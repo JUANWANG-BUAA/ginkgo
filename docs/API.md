@@ -5,6 +5,7 @@
 > (2) 若干端点（byxt `courseTable.do`、byxt `grade.do`、`opac/api.php`、`uc/api/uc/userinfo`）在任何已知实现中都不存在；
 > (3) 部分字段名与真实响应不符。
 > 本版所有 ✅ 标记的内容均从 UBAA（BUAASubnet/BBAA）仓库的**在用代码**逐条核对重写，行号引用以该仓库为准。
+> **仓库名说明（2026-10-14）**：GitHub 实际仓库为 `BUAASubnet/UBAA`，本仓库文档沿用的「BBAA」是它的简称，二者为同一仓库；行号以 2026-10-13 核对的 main 分支为准，上游演进可能造成偏移（否定性断言尤其脆弱，见 §0.0 第 18 条）。
 
 ### 0.0 修订对照记录（旧版 → 本版）
 
@@ -26,6 +27,11 @@
 | 14 | **保留** | GSMIS 基址 `gsapp/sys/wdkbapp`、buaascore URL、图书馆 CAS 入口与 v4 端点、`ZZWBKJ_ZHIHUAWEI` 加密方案、CAS 表单流 | 原样保留，仅补齐细节 | 各对应文件 |
 | 15 | SSO 登录表单字段 | `rememberMe=false`（硬编码） | 实测无此字段；改为「页面隐藏字段全量回传」通用策略 | 2026-10-13 登录页实测（§1.2 注记） |
 | 16 | 图书馆加密密钥示例 | `"20261013" + "31016020"` | `"20261013" + "31016202"`（`20261013` 的逐字符反转，此前示例为笔误） | 反转逐字符核算；与 DEEP-ARCHITECTURE-REVIEW.md §3.4 一致（2026-10-14 勘误） |
+| 17 | §1.2 注记 Swift 编码建议 | 「`URLComponents.queryItems` 默认行为即正确」 | queryItems **不**把 `+` 编成 `%2B`（`+` 是 RFC 3986 query 合法字符，原样保留；表单解码端当空格）——须组好 query 后对 `percentEncodedQuery` 再做 `+`→`%2B` 替换，或对值预编码 | Swift 行为实测 + RFC 3986（2026-10-14 勘误，原说法是错的） |
+| 18 | §1.8 注记 userinfo 端点 | 「UBAA 代码中不存在调用（只有 status 与 login）」 | 上游 2026-10-14 HEAD 已新增调用（`LocalConnectionAuth.kt:765` `LocalUserServiceBackend.getUserInfo()`，直连链路在用）——否定性断言须注明核对日期 | GitHub main 分支复核（2026-10-14） |
+| 19 | §3.1 注记 getUserInfo.do | 「UBAA 代码中无此请求」 | 限定为「**客户端直连链路**无此请求」；服务端 `ByxtService.kt:34` 预热逻辑会请求它 | 同上 |
+| 20 | §3.3 学期起点反推引用 | 「GSU:42-68」 | `GsmisSchedule.kt:42-68`（GSU 的 42-68 行是请求构造，系文件误标） | GitHub 仓库复核（2026-10-14） |
+| 21 | §5.3 Swift 实现注意 | 「kCCModeCBC 需手动处理填充」 | `CCCrypt` 直接开 `kCCOptionPKCS7Padding`（与上游手动 PKCS7+NoPadding 产出等价密文），无需手写填充 | CCCrypt 官方文档（2026-10-14） |
 
 ## 0. 文档约定
 
@@ -88,7 +94,7 @@ GET https://sso.buaa.edu.cn/login
 ```
 
 - 使用**不跟随重定向**的请求（Swift: `URLSession` 配置 delegate 拦截重定向，或逐跳手动请求）。
-- 响应 3xx → 已存在有效会话（Cookie 中已有 CASTGC），直接跳到 §1.5。
+- 响应 3xx → 已存在有效会话（Cookie 中已有 CASTGC），直接跳到 §1.7 激活 UC。
 - 响应 200 → HTML 登录页，解析以下三样：
 
 | 目标 | 提取方式 | 对照 |
@@ -97,7 +103,7 @@ GET https://sso.buaa.edu.cn/login
 | 验证码配置 | 正则 `config\.captcha\s*=\s*\{\s*type:\s*['"]([^'"]+)['"],\s*id:\s*['"]([^'"]+)['"]` | LCA:832-834 |
 | 预登录提示 | `div.tip-text` 内容（如「账号已锁定」），有则直接报错终止 | LCA:836-841 |
 
-> **2026-10-13 实测记录**（无认证 GET，7195B）：`execution` 字段存在，值为 **JWT 三段结构**，含 `+` 与 `/` 字符——**表单提交时必须正确 percent-encode**（Swift 的 `URLComponents.queryItems` 默认行为即正确，勿手工拼接把 `+` 当空格）；默认页**无** `config.captcha`（验证码仅风控触发，与 §1.3 一致）；表单 input 实测共 6 个：`username/password/submit/type/execution/_eventId`，**没有 `rememberMe`**（旧版文档硬编码 `rememberMe=false` 无依据，见 §0.0 表第 15 条）。CasPageParser 三条正则与实测页面匹配。
+> **2026-10-13 实测记录**（无认证 GET，7195B）：`execution` 字段存在，值为 **JWT 三段结构**，含 `+` 与 `/` 字符——**表单提交时必须正确 percent-encode**。**注意（2026-10-14 更正）**：Swift 的 `URLComponents.queryItems` **不会**把 `+` 编码为 `%2B`——`+` 是 RFC 3986 的 query 合法字符，会被原样保留，而 x-www-form-urlencoded 解码端把字面 `+` 当空格。正确做法：组好 query 后对 `percentEncodedQuery` 再 `replacingOccurrences(of: "+", with: "%2B")`，或对值预编码；纯手工拼接同样必错（原注记称 queryItems「默认行为即正确」，是错的，见 §0.0 第 17 条）。默认页**无** `config.captcha`（验证码仅风控触发，与 §1.3 一致）；表单 input 实测共 6 个：`username/password/submit/type/execution/_eventId`，**没有 `rememberMe`**（旧版文档硬编码 `rememberMe=false` 无依据，见 §0.0 表第 15 条）。CasPageParser 三条正则与实测页面匹配。
 
 ### 1.3 验证码（旧版文档缺失，本节补全）
 
@@ -185,7 +191,7 @@ X-Requested-With: XMLHttpRequest
 - 非 200、body 以 `<` 开头（HTML）、`code != 0`、`data == null` → 会话无效；
 - **5xx 是暂时性错误，不得清除本地会话**（上游抖动会误杀登录态）。判定无效后先别急着清 Cookie：UBAA 的做法是「业务系统报未登录 → 复核 `uc/status` → 复核确认无效才清」（LCA:369-384），建议照抄这个两步确认。
 
-> ⚠️ `uc.buaa.edu.cn/api/uc/userinfo` 端点：UBAA 代码中**不存在**调用（只有 `status` 与 `login`），旧版文档所载响应结构未经验证。如需用户详情（院系/邮箱），先抓包确认再实现。
+> ⚠️ `uc.buaa.edu.cn/api/uc/userinfo` 端点：**2026-10-13 核对时** UBAA 代码中无调用（只有 `status` 与 `login`）；**2026-10-14 复核发现上游已新增**（`LocalConnectionAuth.kt:765` 的 `LocalUserServiceBackend.getUserInfo()`，直连链路在用）——否定性断言对上游演进脆弱，本条已被证伪（§0.0 第 18 条）。旧版文档所载响应结构仍未取证，如需用户详情（院系/邮箱），先抓包确认再实现。
 
 ### 1.9 登出
 
@@ -340,7 +346,7 @@ GET https://gsmis.buaa.edu.cn/gsapp/sys/wdkbapp/*default/index.do
 
 未登录判定（GSU:120-141）：401；或最终 URL 的 host+path 为 `sso.buaa.edu.cn/login`；或 body 含 `<title>CAS Login</title>` / `name="execution"`。
 
-> 旧版文档的 `yjsemaphome/modules/pubWork/getUserInfo.do`「用户信息探测」：UBAA 代码中**无此请求**，GSMIS 链路只有本节及 §3.2/§3.3 三个请求。研究生身份判定由 §2.1 的 byxt 探测完成。
+> 旧版文档的 `yjsemaphome/modules/pubWork/getUserInfo.do`「用户信息探测」：UBAA **客户端直连链路**无此请求，GSMIS 链路只有本节及 §3.2/§3.3 三个请求（且有测试断言不得请求它）；服务端 `ByxtService.kt:34` 的预热逻辑会请求它（2026-10-14 核对，此前「全仓库无此请求」的表述不严谨，见 §0.0 第 19 条）。研究生身份判定由 §2.1 的 byxt 探测完成。
 
 ### 3.2 开课学期查询
 
@@ -400,7 +406,7 @@ ZC=&XNXQDM=20251&XH=&XQDM=
 
 **`jcfaList[].skjcList[]` 节次方案：** `JCFADM`、`DM`（节次号）、`KSSJ/JSSJ`。
 
-**学期起点反推**（GSU:42-68）：用 `SCSKRQ` 减去最早排课的周偏移，推算开学日期；结果必须唯一且为周一，否则视为上游数据异常。这个算法建议原样移植——它是处理上游不给开学日期的必要补丁。
+**学期起点反推**（`GsmisSchedule.kt:42-68`）：用 `SCSKRQ` 减去最早排课的周偏移，推算开学日期；结果必须唯一且为周一，否则视为上游数据异常。这个算法建议原样移植——它是处理上游不给开学日期的必要补丁。
 
 ---
 
@@ -495,7 +501,7 @@ xq=1&year=2025-2026
 
 ### 5.2 业务端点（全部 POST JSON）
 
-公共头：`Accept: application/json, text/plain, */*`、`X-Requested-With: XMLHttpRequest`、`Origin/Referer: https://booking.lib.buaa.edu.cn`，外加浏览器 UA（Chrome 桌面版，LLB:413）。
+公共头：`Accept: application/json, text/plain, */*`、`X-Requested-With: XMLHttpRequest`、`Origin/Referer: https://booking.lib.buaa.edu.cn`，外加浏览器 UA（Chrome 桌面版，LLB:415-416）。
 
 | 端点 | 用途 | 请求体关键字段 | 响应关键路径 |
 |------|------|----------------|--------------|
@@ -524,7 +530,7 @@ IV：固定 "ZZWBKJ_ZHIHUAWEI"
 
 （`LocalLibBookCrypto.kt:12-46`）
 
-**Swift 实现注意**：CryptoKit **不支持 AES-CBC**（只有 GCM/ChaChaPoly）。需用 CommonCrypto 的 `CCCrypt`（kCCAlgorithmAES, kCCModeCBC 需手动处理填充，因为上游是 NoPadding+手动 PKCS7）。ARCHITECTURE.md §2 的「仅 CryptoKit」口径已按此修订。
+**Swift 实现注意**：CryptoKit **不支持 AES-CBC**（只有 GCM/ChaChaPoly）。需用 CommonCrypto 的 `CCCrypt`：AES-CBC 为默认模式（不传 `kCCOptionECBMode` 即 CBC），填充直接开 `kCCOptionPKCS7Padding`——与上游「手动 PKCS7 + NoPadding」产出等价密文，无需手写填充（2026-10-14 放宽，见 §0.0 第 21 条）。ARCHITECTURE.md §2 的「仅 CryptoKit」口径已按此修订。
 
 ### 5.4 TLS 证书链问题（macOS 风险点）
 

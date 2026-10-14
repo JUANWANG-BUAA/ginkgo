@@ -220,7 +220,7 @@ final class GPACalculatorTests: XCTestCase {
     func test_calculateGPA_withSingleCourse_shouldReturnCorrectGPA() {
         // Given
         let grades = [
-            Grade(courseName: "算法", credit: 4.0, score: 92, gpa: 4.0, semester: "2025-1")
+            Grade(courseName: "算法", credit: 4.0, score: 92, gpa: 4.0, semester: "2025-2026-1")
         ]
         
         // When
@@ -234,9 +234,9 @@ final class GPACalculatorTests: XCTestCase {
     func test_calculateGPA_withMultipleCourses_shouldReturnWeightedAverage() {
         // Given
         let grades = [
-            Grade(courseName: "算法", credit: 4.0, score: 90, gpa: 4.0, semester: "2025-1"),
-            Grade(courseName: "操作系统", credit: 3.0, score: 85, gpa: 3.5, semester: "2025-1"),
-            Grade(courseName: "网络", credit: 3.0, score: 80, gpa: 3.0, semester: "2025-1")
+            Grade(courseName: "算法", credit: 4.0, score: 90, gpa: 4.0, semester: "2025-2026-1"),
+            Grade(courseName: "操作系统", credit: 3.0, score: 85, gpa: 3.5, semester: "2025-2026-1"),
+            Grade(courseName: "网络", credit: 3.0, score: 80, gpa: 3.0, semester: "2025-2026-1")
         ]
         
         // When
@@ -263,8 +263,8 @@ final class GPACalculatorTests: XCTestCase {
     func test_calculateGPA_withFailedCourse_shouldExcludeFromGPA() {
         // Given
         let grades = [
-            Grade(courseName: "算法", credit: 4.0, score: 90, gpa: 4.0, semester: "2025-1"),
-            Grade(courseName: "挂科", credit: 3.0, score: 55, gpa: 0.0, semester: "2025-1")
+            Grade(courseName: "算法", credit: 4.0, score: 90, gpa: 4.0, semester: "2025-2026-1"),
+            Grade(courseName: "挂科", credit: 3.0, score: 55, gpa: 0.0, semester: "2025-2026-1")
         ]
         
         // When
@@ -280,9 +280,9 @@ final class GPACalculatorTests: XCTestCase {
     func test_calculateGPA_byCategory_shouldGroupCorrectly() {
         // Given
         let grades = [
-            Grade(courseName: "算法", credit: 4.0, score: 90, gpa: 4.0, semester: "2025-1", category: .required),
-            Grade(courseName: "通识", credit: 2.0, score: 85, gpa: 3.5, semester: "2025-1", category: .general),
-            Grade(courseName: "选修", credit: 3.0, score: 80, gpa: 3.0, semester: "2025-1", category: .elective)
+            Grade(courseName: "算法", credit: 4.0, score: 90, gpa: 4.0, semester: "2025-2026-1", category: .required),
+            Grade(courseName: "通识", credit: 2.0, score: 85, gpa: 3.5, semester: "2025-2026-1", category: .general),
+            Grade(courseName: "选修", credit: 3.0, score: 80, gpa: 3.0, semester: "2025-2026-1", category: .elective)
         ]
         
         // When
@@ -299,17 +299,17 @@ final class GPACalculatorTests: XCTestCase {
     func test_calculateGPA_bySemester_shouldGroupCorrectly() {
         // Given
         let grades = [
-            Grade(courseName: "算法", credit: 4.0, score: 90, gpa: 4.0, semester: "2025-1"),
-            Grade(courseName: "操作系统", credit: 3.0, score: 85, gpa: 3.5, semester: "2025-1"),
-            Grade(courseName: "网络", credit: 3.0, score: 80, gpa: 3.0, semester: "2025-2")
+            Grade(courseName: "算法", credit: 4.0, score: 90, gpa: 4.0, semester: "2025-2026-1"),
+            Grade(courseName: "操作系统", credit: 3.0, score: 85, gpa: 3.5, semester: "2025-2026-1"),
+            Grade(courseName: "网络", credit: 3.0, score: 80, gpa: 3.0, semester: "2025-2026-2")
         ]
         
         // When
         let result = sut.calculateGPABySemester(from: grades)
         
         // Then
-        XCTAssertEqual(result["2025-1"]?.gpa, 3.78, accuracy: 0.01)
-        XCTAssertEqual(result["2025-2"]?.gpa, 3.0, accuracy: 0.01)
+        XCTAssertEqual(result["2025-2026-1"]?.gpa, 3.78, accuracy: 0.01)
+        XCTAssertEqual(result["2025-2026-2"]?.gpa, 3.0, accuracy: 0.01)
     }
     
     // MARK: - 边界情况测试
@@ -317,7 +317,7 @@ final class GPACalculatorTests: XCTestCase {
     func test_calculateGPA_withZeroCredit_shouldNotCrash() {
         // Given
         let grades = [
-            Grade(courseName: "零学分", credit: 0.0, score: 90, gpa: 4.0, semester: "2025-1")
+            Grade(courseName: "零学分", credit: 0.0, score: 90, gpa: 4.0, semester: "2025-2026-1")
         ]
         
         // When
@@ -348,7 +348,7 @@ final class GPACalculatorTests: XCTestCase {
 
 ### 2.3 课表解析测试
 
-> 更正（2026-10-13）：旧版此处把研究生课表当 HTML 表格解析、本科课表引用了不存在的 `courseTable.do` 响应结构。实际两套课表均为 JSON（GSMIS `loadXskbData.do` 返回 `jgList/rwList/jcfaList`；BYXT `getMyScheduleDetail.do` 返回 `datas.arragedList`），真实结构见 [API.md](API.md) §2/§3。HTML 解析仅存在于 CAS 登录页（execution 提取）。
+> 更正（2026-10-13）：旧版此处把研究生课表当 HTML 表格解析、本科课表引用了不存在的 `courseTable.do` 响应结构。实际两套课表均为 JSON（GSMIS `loadXskbData.do` 返回 `jgList/rwList/jcfaList`；BYXT `getMyScheduleDetail.do` 返回 `datas.arrangedList`），真实结构见 [API.md](API.md) §2/§3。HTML 解析仅存在于 CAS 登录页（execution 提取）。
 
 #### 测试文件：`ScheduleParserTests.swift`
 
@@ -586,20 +586,26 @@ final class APIClientIntegrationTests: XCTestCase {
         XCTAssertEqual(body, "ZC=&XNXQDM=20251&XH=&XQDM=")
     }
     
-    // MARK: - Cookie 管理测试
-    
-    func test_fetchWithCookie_shouldInjectCookieHeader() async throws {
-        // Given
-        sut.setCookie("CASTGC=TGT-test", for: "sso.buaa.edu.cn")
+    // MARK: - Cookie 管理测试（Cookie 由 HTTPCookieStorage 自动管理，禁止手拼 Cookie 头，API.md §9）
+
+    func test_fetchWithStoredCookie_shouldAttachCookieAutomatically() async throws {
+        // Given — Cookie 写入共享存储（模拟登录后 Set-Cookie 的落点），不由 APIClient 手动注入
+        let storage = HTTPCookieStorage.shared
+        let cookie = HTTPCookie(properties: [
+            .domain: "sso.buaa.edu.cn", .path: "/", .name: "CASTGC", .value: "TGT-test",
+            .secure: "TRUE",
+        ])!
+        storage.setCookie(cookie)
+        defer { storage.deleteCookie(cookie) }
         mockSession.mockResponse = (
             HTTPURLResponse(url: URL(string: "https://sso.buaa.edu.cn/test")!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
             Data()
         )
-        
+
         // When
         _ = try await sut.get("https://sso.buaa.edu.cn/test")
-        
-        // Then
+
+        // Then — 请求自动携带（.default 配置的 session 共享 HTTPCookieStorage.shared）
         let cookieHeader = mockSession.lastRequest?.value(forHTTPHeaderField: "Cookie")
         XCTAssertTrue(cookieHeader?.contains("CASTGC=TGT-test") ?? false)
     }
@@ -618,7 +624,7 @@ final class APIClientIntegrationTests: XCTestCase {
             _ = try await sut.get("https://test.com")
             XCTFail("Should throw error")
         } catch let error as APIError {
-            if case .serverError(500) = error {
+            if case .upstreamError(500, nil) = error {
                 // Expected
             } else {
                 XCTFail("Wrong error type: \(error)")
@@ -739,7 +745,7 @@ final class SwiftDataStoreIntegrationTests: XCTestCase {
     func test_saveGrades_shouldPersistToDatabase() async throws {
         // Given
         let grades = [
-            Grade(courseName: "算法", credit: 4.0, score: 92, gpa: 4.0, semester: "2025-1")
+            Grade(courseName: "算法", credit: 4.0, score: 92, gpa: 4.0, semester: "2025-2026-1")
         ]
         
         // When
@@ -1284,6 +1290,8 @@ jobs:
       - name: Run Unit Tests
         run: xcodebuild test -scheme BUAA-Assistant -destination 'platform=macOS' -only-testing:BUAA_AssistantTests
         
+      # UI 测试 target 于 ROADMAP Step 8 创建，此前此步会因 target 不存在而失败：
+      # Phase 1 建 CI 时先注释掉本步
       - name: Run UI Tests
         run: xcodebuild test -scheme BUAA-Assistant -destination 'platform=macOS' -only-testing:BUAA_AssistantUITests
         
@@ -1427,7 +1435,7 @@ final class UpstreamHealthTests: XCTestCase {
 ### 10.2 黄金文件管理
 
 ```
-Tests/
+BUAA-AssistantTests/
 └── Resources/
     └── Snapshots/
         ├── cas_login_page_v1.html              # CAS 登录页（execution/验证码结构）
@@ -1447,7 +1455,7 @@ Tests/
 
 ```swift
 final class SnapshotTests: XCTestCase {
-    private let snapshotDir = "Tests/Resources/Snapshots"
+    private let snapshotDir = "BUAA-AssistantTests/Resources/Snapshots"
     
     /// 检测上游 JSON 结构是否发生变化
     func test_gsmisScheduleJSON_shouldMatchSnapshot() throws {
@@ -1548,12 +1556,15 @@ final class SnapshotTests: XCTestCase {
 test_方法名_条件_预期结果
 
 示例：
-test_login_withValidCredentials_shouldReturnToken
+test_login_withValidCredentials_shouldReturnUserData
 test_calculateGPA_withEmptyGrades_shouldReturnZero
 ```
 
 ### B. 测试数据文件
 
-- `Tests/Resources/mock_schedule.html`
-- `Tests/Resources/mock_grades.json`
-- `Tests/Resources/mock_login_response.html`
+黄金文件统一放 `BUAA-AssistantTests/Resources/Snapshots/`（清单见 §10.2；课表/成绩均为 JSON，无 HTML 课表快照——需要 HTML 快照的只有 CAS 登录页）：
+
+- `cas_login_page_v1.html`（CAS 登录页）
+- `gsmis_schedule_v1.json` / `byxt_schedule_v1.json`
+- `buaascore_grade_v1.json`
+- `libbook_reserve_crypto_v1.json`（加密向量）

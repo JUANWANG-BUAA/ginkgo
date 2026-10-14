@@ -232,7 +232,7 @@ actor ScheduleStore {
 2. CAS 票据（TGT/ST）流转完全由 Cookie + 重定向链自动完成，客户端**不手动管理票据**；唯一例外是图书馆，需手动从重定向 URL 提取 `cas` 令牌
 3. 会话有效性以 `uc.buaa.edu.cn/api/uc/status` 为唯一判据，且业务系统报未登录时先复核再清会话（防上游 5xx 抖动误杀登录态）
 4. 密码存 Keychain；业务 Cookie 交给 `HTTPCookieStorage`（CASTGC 是 HttpOnly，手拼 Cookie 头会丢失语义）
-5. **会话恢复不依赖 Cookie 跨重启持久化**：`CASTGC`/`JSESSIONID` 均为无 Expires 的会话 Cookie，`HTTPCookieStorage` 只在进程内保留它们，App 重启即失。免登录恢复的设计是：启动 → `validateSession()` 复核 → 无效且 Keychain 存有密码（「记住密码」开启）→ **静默重登一次**；无密码则回登录页。Step 2 验收时实测 CASTGC 是否带 Expires（若带，前半句自动成立），结论登记进 API.md §1.8
+5. **会话恢复不依赖 Cookie 跨重启持久化**：`CASTGC`/`JSESSIONID` 均为无 Expires 的会话 Cookie，`HTTPCookieStorage` 只在进程内保留它们，App 重启即失。免登录恢复的设计是：启动 → `validateSession()` 复核 → 无效且 Keychain 存有密码（「记住密码」开启）→ **静默重登一次**；无密码则回登录页。Step 2 验收时实测 CASTGC 是否带 Expires（若实测带 Expires，则 CASTGC 可跨重启持久化，静默重登退为兜底），结论登记进 API.md §1.8
 
 **流程**（与 UBAA `LocalConnectionAuth.kt` 在用实现逐行对齐，细节见 [API 接口文档](API.md) 第 1 节）：
 
@@ -499,7 +499,7 @@ UBAA 的凭据管理缺乏清晰的生命周期：
 - 多账号支持缺失：只能存储一组凭据，切换账号需要手动清理
 - Token 刷新竞态：多个并发请求同时检测到 session 过期时，会触发多次 refresh，导致 token 互相覆盖
 
-**本项目的对策**：
+**本项目的对策**（适用场景：图书馆 member token 等确需刷新的凭据；CAS 会话为纯 Cookie、无 token 可刷，见 §4.1）：
 ```swift
 actor CredentialManager {
     private var refreshTask: Task<Void, Error>?
@@ -621,7 +621,7 @@ UBAA 的 `commonTest` 中大量使用硬编码的 Mock 响应。这些 Mock 数�
 | 平台选择 | 6 平台 KMP | macOS 原生 Swift |
 | 连接模式 | 三种模式 × N 个接口 | 仅直连 |
 | 凭据存储 | 明文 Preferences | Keychain + Access Control |
-| 并发模型 | GlobalScope + 手动管理 | Swift Concurrency + Actor 隔离 |
+| 并发模型 | 受管 CoroutineScope（viewModelScope 等；旧版误记 GlobalScope，更正见 §9.3.1） | Swift Concurrency + Actor 隔离 |
 | 错误处理 | 混合风格 | 统一 AppError 枚举 |
 | 上游耦合 | 硬编码假设 | Adapter 模式 + 版本探测 |
 | 测试策略 | Mock 单元测试为主 | Mock + 上游巡检 + 快照回归 |

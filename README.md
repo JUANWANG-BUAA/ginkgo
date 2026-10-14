@@ -18,13 +18,14 @@
 | [docs/TESTING.md](docs/TESTING.md) | 测试策略 |
 | [docs/COLLABORATION.md](docs/COLLABORATION.md) | 人 + AI 协作规则（分工/红线/审查清单/提示词模板） |
 | [docs/BACKLOG.md](docs/BACKLOG.md) | 候选功能储备（A-D 级分级；接入前须先取证转正） |
+| [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md) | 验收记录（每 Step 验收后追加，规则见 ROADMAP 附录 A） |
 | [docs/DEEP-ARCHITECTURE-REVIEW.md](docs/DEEP-ARCHITECTURE-REVIEW.md) | UBAA 参考实现透视（只读参考） |
 
 ## 工程结构
 
 ```
 BUAA-Assistant/
-├── BUAA-Assistant.xcodeproj       # Xcode 27 工程（文件系统同步模式，AI 不手改此目录）
+├── BUAA-Assistant.xcodeproj       # Xcode 16+ 工程（objectVersion 70 文件系统同步；本机以 27.0 打开验证；AI 不手改此目录）
 ├── BUAA-Assistant.entitlements    # App Sandbox + 网络客户端权限
 ├── BUAA-Assistant/                # 应用源码（新增 .swift 文件自动纳入编译）
 │   ├── Features/                  # Auth（含 CasPageParser）/ Schedule / Grade / Library / Settings

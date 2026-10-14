@@ -6,7 +6,7 @@
 >
 > 配套文档：协议细节查 [API.md](API.md)；协作规则查 [COLLABORATION.md](COLLABORATION.md)；测试策略查 [TESTING.md](TESTING.md)；功能储备查 [BACKLOG.md](BACKLOG.md)。
 >
-> 版本：2026-10-13 详细版（初版纲要同日）。
+> 版本：2026-10-13 详细版（初版纲要同日）；2026-10-14 勘误（Xcode 版本口径、objectVersion、骨架文件数、Step 2 会话恢复、execution 编码注意事项、arrangedList 拼写）。
 
 ---
 
@@ -154,7 +154,7 @@
 
 **常见坑**：
 - 用错会话：必须 `noRedirectSession`，自动跟随重定向会把 3xx"已有会话"信号吃掉；
--execution 值含 `+` `/` 字符——只能用 `URLComponents.queryItems` 编码，手拼字符串必错（API.md §1.2 实测注记）。
+-execution 值含 `+` `/` 字符——`URLComponents.queryItems` **不会**把 `+` 编成 `%2B`（`+` 在 query 中合法、原样保留，表单解码端当空格），组好后须对 `percentEncodedQuery` 再 `replacingOccurrences(of: "+", with: "%2B")`；手拼字符串同样必错（API.md §1.2 实测注记，2026-10-14 更正）。
 
 ### 1.2 登录表单构建与提交（1-2 天）
 
@@ -214,8 +214,8 @@
 任务分解（顺序即依赖序）：
 
 1. **门户探测** `ScheduleClient.probePortal()`：GET `currentUser.do`（API.md §2.1），按响应分类：未登录（走 Step 2 两步确认）/ 本科就绪 / 研究生门户（转 Step 4 逻辑）。
-2. **学期/周次**：`schoolCalendars.do`（注意 URL 带 `student/` 段）→ `getTermWeeks.do?termCode=`。成功码是**字符串** `"0"`（附录 C，禁统一抽象）。
-3. **周课表**：POST `student/getMyScheduleDetail.do`，表单 `termCode/type=week/week`；解析 `datas.arragedList[]`。`datas.code` 是**学号**（PII，注意裁剪、不得当学期标识）。
+2. **学期/周次**：`schoolCalendars.do`（注意 URL 带 `student/` 段）→ `getTermWeeks.do?termCode=`。成功码是**字符串** `"0"`（API.md 附录 C，禁统一抽象）。
+3. **周课表**：POST `student/getMyScheduleDetail.do`，表单 `termCode/type=week/week`；解析 `datas.arrangedList[]`。`datas.code` 是**学号**（PII，注意裁剪、不得当学期标识）。
 4. **SwiftData 缓存**：新建 `Core/Storage/` 下课表实体（termCode/week 为键）+ ModelActor 隔离写入；读取走 Stale-While-Revalidate（先显缓存，后台刷新，ARCHITECTURE.md §4.2）。
 5. **周视图 UI**：周次切换（上/下周按钮）、课程卡片（名称/地点/节次/颜色用上游 `color` 字段）、今日高亮。
 6. **菜单栏卡片**：`teachingSchedule/detail.do?rq=今天&lxdm=student`（API.md §2.5）→ MenuBarPanel 显示「下一节课」。菜单栏是产品核心价值，**随本 Step 交付，不拖到最后**。

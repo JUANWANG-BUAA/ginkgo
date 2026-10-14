@@ -159,11 +159,12 @@ AI：定位根因，给出修复 + 回归测试
    - `ARCHITECTURE.md`：技术决策与结构
    - `TESTING.md`：测试策略
    - `BACKLOG.md`：候选功能储备（A-D 级分级与接入规则）
+   - `ACCEPTANCE.md`：验收记录（每 Step 验收后追加，规则见 ROADMAP 附录 A）
    - `DEEP-ARCHITECTURE-REVIEW.md`：UBAA 参考实现的透视（只读参考，不随本项目代码更新）
    - `COLLABORATION.md`（本文）：协作规则
 2. **修订可追溯**：改 `API.md` 必须在 §0.0 修订对照表登记（改了什么、证据是什么）。被否决的旧说法保留更正注记而非直接消失——这正是旧版文档出错后难以追溯的教训。
 3. **取证产物**：放 `docs/_audit/`，命名 `YYYY-MM-DD-<主题>.md`；HAR 原件、含 PII 的导出一律不入库。
-4. **分支与提交**：`main` 保持可用；每个功能/修复开分支 `feat/<模块>` / `fix/<问题>`；提交信息中文一句话说清动机（参照 BBAA 仓库风格）。
+4. **分支与提交**：`main` 保持可用；每个功能/修复开分支 `feat/<模块>` / `fix/<问题>`；提交信息中文一句话说清动机（参照 BBAA 仓库风格）。例外：Step 0 骨架初始化与纯文档勘误可直接提交 `main`。
 5. **CI（Phase 1 建立）**：`xcodebuild test` + 快照回归 + 上游巡检（TESTING.md §9/§10）。
 
 ### 5.6 工具链：Xcode（人）+ 终端 AI 代理（AI）

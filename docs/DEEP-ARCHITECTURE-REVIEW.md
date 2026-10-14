@@ -363,7 +363,7 @@ shared/src/commonMain/kotlin/cn/edu/ubaa/model/dto/
 ├── Auth.kt          → LoginRequest, LoginResponse, UserData, CaptchaInfo, TokenRefresh*
 ├── Schedule.kt      → Term, Week, CourseClass, WeeklySchedule, TodayClass, SectionTime
 ├── Grade.kt         → Grade, GradeData, BuaaScoreResponse, BuaaScoreCourse
-├── GraduateSchedule.kt → 研究生课表 (GSMIS HTML 解析中间结构)
+├── GraduateSchedule.kt → 研究生课表 (早期 HTML 方案遗留的中间结构；现行 GSMIS 课表为 JSON，见 API.md §3)
 ├── GsmisSchedule.kt → GSMIS 课表适配
 ├── Exam.kt          → 考试安排
 ├── UserInfo.kt      → 用户详细信息
@@ -727,7 +727,7 @@ ScheduleView 渲染课表
 
 1. **不要复制 UBAA 的 DTO 结构**——上游字段名（`KCM`, `XF`, `XSZCJ`）不应出现在领域模型中
 2. **不要复制 UBAA 的三模式架构**——只做直连，WebVPN 需求通过系统代理解决
-3. **不要复制 UBAA 的 expect/actual 加密**——macOS 原生直接用 CryptoKit
+3. **不要复制 UBAA 的 expect/actual 加密**——macOS 原生用 CryptoKit（GCM/ChaChaPoly）+ CommonCrypto（AES-CBC，图书馆预约；**2026-10-14 更正**：原句「直接用 CryptoKit」漏了 CBC 场景，CryptoKit 不支持 CBC，见 §11 表末行与 API.md §5.3）
 4. **不要复制 UBAA 的 Settings 存储**——SwiftData + Keychain 更安全更高效
 5. **不要复制 UBAA 的 HTML 解析逻辑**——每个系统的 HTML 结构都可能变化，需要独立的 Adapter + 快照回归测试
 6. **不要复制 UBAA 的 per-user HttpClient**——直连模式不需要服务端会话隔离
