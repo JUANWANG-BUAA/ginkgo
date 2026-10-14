@@ -4,7 +4,7 @@
 
 ## 快速开始
 
-1. 用 Xcode 27+（本机已验证可编译、测试全绿）打开 `BUAA-Assistant.xcodeproj`；
+1. 用 Xcode 16+（工程为文件系统同步格式；本机已用 27.0 验证可编译、测试全绿）打开 `BUAA-Assistant.xcodeproj`；
 2. ⌘R 运行，⌘U 跑测试（13 个基线测试）；
 3. 按顺序阅读 [docs/ROADMAP.md](docs/ROADMAP.md) 开始开发——它回答"先写什么、后写什么、每步怎么验收"。
 
@@ -17,6 +17,7 @@
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 架构与技术决策 |
 | [docs/TESTING.md](docs/TESTING.md) | 测试策略 |
 | [docs/COLLABORATION.md](docs/COLLABORATION.md) | 人 + AI 协作规则（分工/红线/审查清单/提示词模板） |
+| [docs/BACKLOG.md](docs/BACKLOG.md) | 候选功能储备（A-D 级分级；接入前须先取证转正） |
 | [docs/DEEP-ARCHITECTURE-REVIEW.md](docs/DEEP-ARCHITECTURE-REVIEW.md) | UBAA 参考实现透视（只读参考） |
 
 ## 工程结构

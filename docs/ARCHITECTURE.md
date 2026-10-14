@@ -25,7 +25,7 @@
 | UI 框架 | SwiftUI | 5.0+ | 声明式 UI，热重载快 |
 | 最低系统 | macOS 14.0 | Sonoma | SwiftData 支持 |
 | 语言 | Swift | 5.9+ | 类型安全，现代语法 |
-| IDE | Xcode | 15.0+ | 官方工具链 |
+| IDE | Xcode | 16+（工程为文件系统同步格式；本机 27.0 实测） | 官方工具链 |
 | 本地存储 | SwiftData | - | 原生 ORM，与 SwiftUI 深度集成 |
 | 网络 | URLSession | - | 系统原生，无需第三方依赖 |
 | 凭据存储 | Keychain | - | 系统级安全存储 |
@@ -36,8 +36,8 @@
 
 | 依赖 | 用途 | 理由 |
 |------|------|------|
-| SwiftSoup | HTML 解析 | CAS 登录页 execution 解析等（注意：课表/成绩业务数据均为 JSON，HTML 解析范围有限） |
-| KeychainAccess | Keychain 封装 | 简化 Keychain 操作（可选，可用原生） |
+| SwiftSoup | HTML 解析 | **按需引入**：CAS 登录页解析已由正则覆盖（`CasPageParser`，API.md §1.2）；仅当接入 HTML 重度解析功能（如 BACKLOG 希冀作业）时再引入 |
+| KeychainAccess | Keychain 封装 | 简化 Keychain 操作（可选；当前计划用原生 Security API，见 §5.1） |
 
 > 系统框架补充：**CommonCrypto**（AES-CBC，图书馆座位预约加密必需，见 API.md §5.3）。CryptoKit 只支持 GCM/ChaChaPoly，**不支持 CBC**，此处不能用 CryptoKit 替代。
 
@@ -86,7 +86,9 @@
 └─────────────────────────────────────────────────────────┘
 ```
 
-### 3.2 模块划分
+### 3.2 模块划分（目标态）
+
+> 以下是**规划的目标结构**，非现状。当前骨架为 12 个应用源码文件 + 1 个测试文件（清单见 ROADMAP 第 1 部分第 5 条）：入口/AppState/RootView/MainView 在 `BUAA-Assistant/` 根目录，尚无 `App/`、`Core/Storage` 等目录；测试在工程级 `BUAA-AssistantTests/` target；Info.plist 由 `GENERATE_INFOPLIST_FILE` 生成，entitlements 在仓库根目录。
 
 ```
 BUAA-Assistant/
@@ -96,8 +98,7 @@ BUAA-Assistant/
 ├── Features/
 │   ├── Auth/
 │   │   ├── AuthService.swift           # 认证服务
-│   │   ├── LoginView.swift             # 登录界面
-│   │   └── KeychainStore.swift         # 凭据存储
+│   │   └── LoginView.swift             # 登录界面
 │   │
 │   ├── Schedule/
 │   │   ├── ScheduleService.swift       # 课表服务
@@ -148,23 +149,9 @@ BUAA-Assistant/
 │       └── Logger.swift                # 日志工具
 │
 ├── Resources/
-│   ├── Assets.xcassets                 # 资源文件
-│   ├── Info.plist                      # 应用配置
-│   └── Entitlements.plist              # 权限配置
+│   └── Assets.xcassets                 # 资源文件（Info.plist 由构建系统生成；entitlements 在仓库根目录）
 │
-└── Tests/
-    ├── UnitTests/
-    │   ├── AuthServiceTests.swift
-    │   ├── ScheduleServiceTests.swift
-    │   └── GPACalculatorTests.swift
-    │
-    ├── IntegrationTests/
-    │   ├── APIClientTests.swift
-    │   └── SwiftDataStoreTests.swift
-    │
-    └── UITests/
-        ├── LoginUITests.swift
-        └── ScheduleUITests.swift
+└── BUAA-AssistantTests/                # 工程级测试 target（当前 CasPageParserTests；UI 测试 target 于 Step 8 创建）
 ```
 
 ### 3.3 数据流
@@ -245,6 +232,7 @@ actor ScheduleStore {
 2. CAS 票据（TGT/ST）流转完全由 Cookie + 重定向链自动完成，客户端**不手动管理票据**；唯一例外是图书馆，需手动从重定向 URL 提取 `cas` 令牌
 3. 会话有效性以 `uc.buaa.edu.cn/api/uc/status` 为唯一判据，且业务系统报未登录时先复核再清会话（防上游 5xx 抖动误杀登录态）
 4. 密码存 Keychain；业务 Cookie 交给 `HTTPCookieStorage`（CASTGC 是 HttpOnly，手拼 Cookie 头会丢失语义）
+5. **会话恢复不依赖 Cookie 跨重启持久化**：`CASTGC`/`JSESSIONID` 均为无 Expires 的会话 Cookie，`HTTPCookieStorage` 只在进程内保留它们，App 重启即失。免登录恢复的设计是：启动 → `validateSession()` 复核 → 无效且 Keychain 存有密码（「记住密码」开启）→ **静默重登一次**；无密码则回登录页。Step 2 验收时实测 CASTGC 是否带 Expires（若带，前半句自动成立），结论登记进 API.md §1.8
 
 **流程**（与 UBAA `LocalConnectionAuth.kt` 在用实现逐行对齐，细节见 [API 接口文档](API.md) 第 1 节）：
 
@@ -335,7 +323,10 @@ class KeychainStore {
             kSecValueData as String: password.data(using: .utf8)!,
             kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
         ]
-        SecItemAdd(query as CFDictionary, nil)
+        let status = SecItemAdd(query as CFDictionary, nil)
+        guard status == errSecSuccess else {
+            throw KeychainError.saveFailed(status)  // Keychain 写失败必须显式暴露，禁止吞掉
+        }
     }
 }
 ```
@@ -421,7 +412,6 @@ class MockAPI: AcademicAPI { ... }        // 测试用
 
 ### Phase 3: 增强功能 (2 周)
 - [ ] 图书馆座位（楼馆/分区/座位查询与预约——协议已验证，见 API.md §5；含 AES-CBC 加密与 TLS 证书链实测项）
-- [ ] 图书馆借阅查询（**探索性目标**：无参考实现，须先完成 API.md §6 的逆向验证清单再转正）
 - [ ] 系统通知
 - [ ] 快捷键支持
 
@@ -429,6 +419,8 @@ class MockAPI: AcademicAPI { ... }        // 测试用
 - [ ] 性能优化
 - [ ] 错误处理完善
 - [ ] 文档完善
+
+> **探索性目标（不占任何里程碑）**：图书馆借阅查询——无参考实现，须先完成 API.md §6 的逆向验证清单并转正后才进入计划（COLLABORATION §6 的既定规则）。
 
 ---
 
@@ -889,6 +881,8 @@ Text("新主楼A座101 · 周一 1-2节")
 Text("算法设计与分析")
     .font(.system(size: 16, weight: .semibold))  // 不支持 Dynamic Type
 ```
+
+> 例外：`Image(systemName:)` 图标的尺寸允许固定 pt（如登录页/占位页的大图标用 `.font(.system(size:))`）——文本样式缩放约束的是 `Text`，图标只需跟随语义色与字重即可。
 
 #### 10.5.3 Dynamic Type
 

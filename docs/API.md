@@ -25,6 +25,7 @@
 | 13 | 研究生课表数据格式 | HTML 表格 | JSON（`jgList/rwList/jcfaList`，成功码 `"1"`） | `GsmisSchedule.kt:24-37` |
 | 14 | **保留** | GSMIS 基址 `gsapp/sys/wdkbapp`、buaascore URL、图书馆 CAS 入口与 v4 端点、`ZZWBKJ_ZHIHUAWEI` 加密方案、CAS 表单流 | 原样保留，仅补齐细节 | 各对应文件 |
 | 15 | SSO 登录表单字段 | `rememberMe=false`（硬编码） | 实测无此字段；改为「页面隐藏字段全量回传」通用策略 | 2026-10-13 登录页实测（§1.2 注记） |
+| 16 | 图书馆加密密钥示例 | `"20261013" + "31016020"` | `"20261013" + "31016202"`（`20261013` 的逐字符反转，此前示例为笔误） | 反转逐字符核算；与 DEEP-ARCHITECTURE-REVIEW.md §3.4 一致（2026-10-14 勘误） |
 
 ## 0. 文档约定
 
@@ -515,7 +516,7 @@ xq=1&year=2025-2026
 
 ```
 明文 JSON：{ "seat_id": ..., "segment": ..., "day": "2026-10-13", "start_time": "", "end_time": "" }
-密钥：取 day 中的 8 位数字 + 其反转拼接（"20261013" + "31016020"）= 16 字节
+密钥：取 day 中的 8 位数字 + 其反转拼接（"20261013" + "31016202"）= 16 字节
 IV：固定 "ZZWBKJ_ZHIHUAWEI"
 填充：手动 PKCS7 到 16 字节倍数（算法本身 NoPadding）
 算法：AES-CBC-NoPadding → Base64 → 作为 aesjson 字段提交

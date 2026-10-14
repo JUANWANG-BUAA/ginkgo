@@ -41,6 +41,8 @@
 
 ### 2.1 认证模块测试
 
+> **建模口径修订（2026-10-14）**：旧版草案按 `AuthToken(tgt:)` 建模（login 返回 token、Keychain 存/刷 token），与既定认证设计矛盾——本项目为纯 Cookie 会话，客户端不持有任何 token（ARCHITECTURE.md §4.1）。本版重写：登录返回 `UserData`；Keychain 只存密码且受「记住密码」开关控制；会话判定 = `uc/status`（区分暂时失败与确认无效，API.md §1.8）；会话恢复 = 静默重登（会话 Cookie 不跨重启持久化）。旧草案的「登录失败自动重试 2 次」已删——登录 POST 属写操作，不自动重试（API.md §9）。
+
 #### 测试文件：`AuthServiceTests.swift`
 
 ```swift
@@ -66,20 +68,31 @@ final class AuthServiceTests: XCTestCase {
         super.tearDown()
     }
     
-    // MARK: - 登录测试
+    // MARK: - 登录测试（纯 Cookie 会话：登录返回 UserData，无 token）
     
-    func test_login_withValidCredentials_shouldReturnToken() async throws {
+    func test_login_withValidCredentials_shouldReturnUserData() async throws {
         // Given
-        let username = "sy2501001"
-        let password = "validPassword"
-        mockAPI.mockLoginResponse = .success(AuthToken(tgt: "TGT-test"))
+        sut.rememberPassword = true
+        mockAPI.mockLoginResponse = .success(UserData(schoolid: "sy2501001", name: "李文"))
         
         // When
-        let token = try await sut.login(username: username, password: password)
+        let user = try await sut.login(username: "sy2501001", password: "validPassword")
         
         // Then
-        XCTAssertEqual(token.tgt, "TGT-test")
-        XCTAssertTrue(mockKeychain.hasPassword(for: username))
+        XCTAssertEqual(user.schoolid, "sy2501001")
+        XCTAssertTrue(mockKeychain.hasPassword(for: "sy2501001"))  // 「记住密码」开启才落 Keychain
+    }
+    
+    func test_login_withRememberPasswordOff_shouldNotStorePassword() async throws {
+        // Given
+        sut.rememberPassword = false
+        mockAPI.mockLoginResponse = .success(UserData(schoolid: "sy2501001", name: "李文"))
+        
+        // When
+        _ = try await sut.login(username: "sy2501001", password: "validPassword")
+        
+        // Then
+        XCTAssertFalse(mockKeychain.hasPassword(for: "sy2501001"))
     }
     
     func test_login_withInvalidCredentials_shouldThrowAuthError() async {
@@ -90,84 +103,98 @@ final class AuthServiceTests: XCTestCase {
         do {
             _ = try await sut.login(username: "test", password: "wrong")
             XCTFail("Should throw error")
-        } catch let error as AuthError {
+        } catch let error as APIError {
             XCTAssertEqual(error, .invalidCredentials)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
     }
     
-    func test_login_withNetworkError_shouldRetry() async throws {
-        // Given
-        mockAPI.requestCount = 0
-        mockAPI.failFirstNTimes = 2
-        mockAPI.mockLoginResponse = .success(AuthToken(tgt: "TGT-test"))
-        
-        // When
-        let token = try await sut.login(username: "test", password: "test")
-        
-        // Then
-        XCTAssertEqual(token.tgt, "TGT-test")
-        XCTAssertEqual(mockAPI.requestCount, 3) // 失败2次 + 成功1次
-    }
-    
-    func test_login_withCaptchaRequired_shouldReturnCaptchaRequired() async {
-        // Given
-        mockAPI.mockLoginResponse = .failure(.captchaRequired(captchaId: "cap-123"))
+    func test_login_withCaptchaRequired_shouldThrowCaptchaChallenge() async {
+        // Given — 协议见 API.md §1.3
+        let challenge = CaptchaChallenge(
+            type: "local", id: "cap-123",
+            imageURL: URL(string: "https://sso.buaa.edu.cn/captcha?captchaId=cap-123")!
+        )
+        mockAPI.mockLoginResponse = .failure(.captchaRequired(challenge))
         
         // When & Then
         do {
             _ = try await sut.login(username: "test", password: "test")
             XCTFail("Should throw error")
-        } catch let error as AuthError {
-            if case .captchaRequired(let id) = error {
-                XCTAssertEqual(id, "cap-123")
+        } catch let error as APIError {
+            if case .captchaRequired(let c) = error {
+                XCTAssertEqual(c.id, "cap-123")
             } else {
                 XCTFail("Wrong error type")
             }
         }
     }
     
-    // MARK: - 会话刷新测试
+    // MARK: - 会话测试（uc/status 唯一判据 + 两步确认，API.md §1.8）
     
-    func test_refreshSession_withValidTGT_shouldSucceed() async throws {
+    func test_validateSession_withValidCookie_shouldReturnUser() async throws {
         // Given
-        let validToken = AuthToken(tgt: "TGT-valid", expiresAt: .now.addingTimeInterval(3600))
-        mockKeychain.saveToken(validToken)
-        mockAPI.mockStatusResponse = .success(true)
+        mockAPI.mockStatusResponse = .success(UserData(schoolid: "sy2501001", name: "李文"))
         
         // When
-        let isValid = try await sut.refreshSession()
+        let user = try await sut.validateSession()
         
         // Then
-        XCTAssertTrue(isValid)
+        XCTAssertEqual(user?.schoolid, "sy2501001")
     }
     
-    func test_refreshSession_withExpiredTGT_shouldReturnFalse() async throws {
-        // Given
-        let expiredToken = AuthToken(tgt: "TGT-expired", expiresAt: .now.addingTimeInterval(-3600))
-        mockKeychain.saveToken(expiredToken)
+    func test_validateSession_withUpstream5xx_shouldNotClearSession() async throws {
+        // Given — 5xx 是暂时性错误，不得清会话（API.md §1.8）
+        mockAPI.mockStatusResponse = .failure(.upstreamError(502, nil))
         
         // When
-        let isValid = try await sut.refreshSession()
+        let outcome = try await sut.validateSessionOutcome()
         
-        // Then
-        XCTAssertFalse(isValid)
+        // Then — 区分「暂时失败」与「确认无效」，只有后者才清会话
+        XCTAssertEqual(outcome, .transientFailure)
     }
     
-    // MARK: - 登出测试
+    // MARK: - 会话恢复测试（会话 Cookie 不跨重启持久化 → 静默重登，ARCHITECTURE.md §4.1）
     
-    func test_logout_shouldClearKeychain() async throws {
+    func test_restoreSession_withRememberedPassword_shouldSilentlyRelogin() async throws {
         // Given
-        mockKeychain.savePassword("test", for: "user")
-        mockKeychain.saveToken(AuthToken(tgt: "TGT-test"))
+        mockKeychain.savePassword("validPassword", for: "sy2501001")
+        mockAPI.mockStatusResponse = .failure(.sessionExpired)
+        mockAPI.mockLoginResponse = .success(UserData(schoolid: "sy2501001", name: "李文"))
+        
+        // When
+        let user = try await sut.restoreSession()
+        
+        // Then
+        XCTAssertEqual(user?.schoolid, "sy2501001")
+        XCTAssertEqual(mockAPI.loginCallCount, 1)  // 静默重登恰好一次
+    }
+    
+    func test_restoreSession_withoutRememberedPassword_shouldNotAttemptLogin() async throws {
+        // Given
+        mockAPI.mockStatusResponse = .failure(.sessionExpired)
+        
+        // When
+        let user = try await sut.restoreSession()
+        
+        // Then — 无凭据不发起登录，回登录页
+        XCTAssertNil(user)
+        XCTAssertEqual(mockAPI.loginCallCount, 0)
+    }
+    
+    // MARK: - 登出测试（登出请求失败也清本地，API.md §1.9）
+    
+    func test_logout_shouldClearKeychainAndCookies() async throws {
+        // Given
+        mockKeychain.savePassword("test", for: "sy2501001")
         
         // When
         try await sut.logout()
         
-        // Then
-        XCTAssertFalse(mockKeychain.hasPassword(for: "user"))
-        XCTAssertNil(mockKeychain.getToken())
+        // Then — Keychain 与 Cookie 都要清（半登出状态最诡异，ROADMAP Step 2）
+        XCTAssertFalse(mockKeychain.hasPassword(for: "sy2501001"))
+        XCTAssertTrue(mockAPI.cookiesCleared)
     }
 }
 ```
@@ -1248,7 +1275,9 @@ on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: macos-14
+    # 工程为 Xcode 16+ 文件系统同步格式：runner 镜像须带新版 Xcode，
+    # 默认版本过旧时需显式指定（本机验证环境为 Xcode 27.0）
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       
@@ -1318,7 +1347,8 @@ actor UpstreamHealthChecker {
         let start = Date()
         do {
             var request = URLRequest(url: URL(string: url)!)
-            request.httpMethod = "HEAD"
+            // 用 GET 而非 HEAD：部分上游对 HEAD 返回 405；可达性判定只看状态码
+            request.httpMethod = "GET"
             request.timeoutInterval = 10
             
             let (_, response) = try await URLSession.shared.data(for: request)

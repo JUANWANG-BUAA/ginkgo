@@ -37,7 +37,7 @@
 | 项 | 要求 | 说明 |
 |----|------|------|
 | Mac | 可运行 Xcode 27 的机型 | 你当前机器已验证 |
-| Xcode | 27.0+（已装） | 免费，App Store 或 developer.apple.com |
+| Xcode | 16+（工程格式要求；本机已装 27.0） | 免费，App Store 或 developer.apple.com |
 | Apple ID | 可选 | 免费个人账号即可本机运行；分发他人才需要 $99/年（Step 8 才涉及） |
 | 北航账号 | 你自己的学号密码 | 仅用于登录和验收，**任何时候不告诉 AI、不写进任何文件** |
 | 网络 | 常规网络即可 | 2026-10-13 实测 6 个上游域名全部可达（见「网络环境前提」） |
@@ -81,11 +81,11 @@
 
 现在的工程骨架已就绪，这一部分**平时不需要动**，但当你想重建、或在别的机器上复建时按此执行。也是理解工程配置的速览。
 
-1. **Xcode 工程**：`BUAA-Assistant.xcodeproj/project.pbxproj` 是手写的 Xcode 16+ 格式（objectVersion 77），关键决策：两个 target（App + 单元测试）、**文件系统同步组**（源码文件夹磁盘即真相）、测试通过 TEST_HOST 挂在 App 进程里跑。
+1. **Xcode 工程**：`BUAA-Assistant.xcodeproj/project.pbxproj` 是手写的 Xcode 16+ 格式（objectVersion 70），关键决策：两个 target（App + 单元测试）、**文件系统同步组**（源码文件夹磁盘即真相）、测试通过 TEST_HOST 挂在 App 进程里跑。
 2. **entitlements**（`BUAA-Assistant.entitlements`）：App Sandbox 开启 + `network.client`（出站网络权限）。这两条是 App 能联网的最低配置；以后加能力（通知不需要、文件访问需要）时在此追加。
 3. **版本基线**：macOS 14.0（SwiftData 需要）、Swift 5 语言模式（避开 Swift 6 严格并发的迁移成本）。
 4. **共享 Scheme**：`xcshareddata/xcschemes/` 里的 scheme 让终端 `xcodebuild` 和以后的 CI 能直接跑 build/test。
-5. **源码骨架** 13 个文件：入口（菜单栏+主窗口）、AppState、RootView、MainView（侧边栏）、LoginView/AuthViewModel（登录壳）、CasPageParser（第一块真实逻辑+13 测试）、APIClient（双会话）、四个占位页。
+5. **源码骨架** 13 个文件（12 个应用源码 + 1 个测试文件）：入口（菜单栏+主窗口）、AppState、RootView、MainView（侧边栏）、LoginView/AuthViewModel（登录壳）、CasPageParser（第一块真实逻辑+13 测试）、APIClient（双会话）、四个占位页。
 6. **铁律**（COLLABORATION §5.6）：`.xcodeproj` 工程文件 AI 永不手改；需要改工程配置（新 target、capability）时 AI 给步骤、你在 Xcode 界面点。
 
 ---
@@ -197,7 +197,7 @@
 任务分解：
 
 1. **新建 `Core/Storage/KeychainManager.swift`**：save/read/delete 密码，`kSecAttrAccessibleWhenUnlockedThisDeviceOnly`（规范见 ARCHITECTURE.md §5.1；Keychain 是系统 API 无需取证）。「记住密码」开关控制存取；启动时预填。
-2. **会话恢复**：App 启动 → `validateSession()` → 有效直接进主界面；无效回登录页。依赖 URLSession 的 Cookie 自动持久化。
+2. **会话恢复**：App 启动 → `validateSession()` → 有效直接进主界面；无效且 Keychain 存有密码（「记住密码」开启）→ **静默重登一次**再进主界面；无密码则回登录页。注意：`CASTGC`/`JSESSIONID` 是会话 Cookie（无 Expires），`HTTPCookieStorage` **不会跨进程重启保留它们**——下面「重启免登录」的验收实际由静默重登达成，不是 Cookie 还在（设计依据 ARCHITECTURE.md §4.1 第 5 条；验收时顺带实测 CASTGC 是否带 Expires，结论登记 API.md §1.8）。
 3. **两步确认**（API.md §1.8）：任何业务请求报未登录 → 先复核 `uc/status` → 确认无效才清 Cookie+会话回登录页。**5xx 永不清会话**。
 4. **登出**：GET `sso/logout` → 清 Keychain → 清 HTTPCookieStorage → 回登录页。SettingsView 从占位页改为真实设置页（含退出按钮）。
 
