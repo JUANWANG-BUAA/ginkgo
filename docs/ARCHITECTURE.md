@@ -1,5 +1,17 @@
 # BUAA Assistant - 架构设计文档
 
+## 当前实现说明（2026-10-15）
+
+本文件包含目标架构与历史设计示例，不能据此推断所有能力已经实现。当前模块为 Auth、Today、Schedule、Grade、Library、Classroom、Tasks、Settings；入口与全局状态仍在源码根目录。
+
+- 网络：APIClient 提供共享 Cookie 的普通会话与禁止自动重定向的认证会话；CasClient、ScheduleClient、GradeClient、LibraryClient、ClassroomClient 分别接入上游。图书馆业务 token 仅保存在 LibraryClient 内存。
+- 状态：课表与成绩使用 MainActor ViewModel；图书馆 ViewModel 与 View 暂在同文件；空教室使用视图局部状态。尚未统一成目标架构中的 Service/Repository 层。
+- 存储：凭据可选保存到钥匙串；课表与成绩使用 actor + Codable JSON 文件，文件名为账号 SHA-256 摘要；摘要不是内容加密。每账号保存最近课表/成绩快照，课表可包含已查询的各周课程。本地待办存入按账号摘要命名的 UserDefaults。未实现 SwiftData、多学期缓存库或全量数据清除。
+- 界面：NavigationSplitView 的导航为今天、课表、成绩、图书馆、空教室、待办、设置。课表网格使用 TimetableLayout 分配重叠课程栏位，SemesterOverview 显示查询覆盖范围。
+- 边界：图书馆提交与取消不自动重发；其他服务只读查询。研讨室专用分类、学校作业同步与提交、签到/打卡、系统通知、后台监测均未完成。
+
+构建与测试证据见 TESTING.md，真实观察和待验收范围见 ACCEPTANCE.md。
+
 ## 1. 项目概述
 
 ### 1.1 定位
@@ -88,7 +100,7 @@
 
 ### 3.2 模块划分（目标态）
 
-> 以下是**规划的目标结构**，非现状。当前骨架为 12 个应用源码文件 + 1 个测试文件（清单见 ROADMAP 第 1 部分第 5 条）：入口/AppState/RootView/MainView 在 `BUAA-Assistant/` 根目录，尚无 `App/`、`Core/Storage` 等目录；测试在工程级 `BUAA-AssistantTests/` target；Info.plist 由 `GENERATE_INFOPLIST_FILE` 生成，entitlements 在仓库根目录。
+> 以下是**规划的目标结构**，非现状。初始骨架曾为 12 个应用源码文件 + 1 个测试文件；当前入口/AppState/RootView/MainView 仍在 `BUAA-Assistant/` 根目录，已新增 `Core/Storage`、`Core/UI` 和 `Core/Logging` 等目录；测试在工程级 `BUAA-AssistantTests/` target；Info.plist 由 `GENERATE_INFOPLIST_FILE` 生成，entitlements 在仓库根目录。
 
 ```
 BUAA-Assistant/
@@ -629,9 +641,9 @@ UBAA 的 `commonTest` 中大量使用硬编码的 Mock 响应。这些 Mock 数�
 
 ---
 
-## 10. 原生 macOS UI 设计语言（基于 Apple HIG）
+## 10. 原生 macOS UI 设计语言（历史草案）
 
-本节定义 BUAA Assistant 的视觉设计语言。所有数值均来源于 [Apple Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines) 官方规范，确保与 macOS 系统体验一致。
+> **设计准则已迁至 [UI-DESIGN.md](UI-DESIGN.md)，新功能与验收以该文档为准。**本节保留为早期视觉探索，下面的尺寸、颜色值、动画参数和代码示例并非全部出自 Apple HIG，也不构成实现约束；其中自制 Liquid Glass 内容卡片的建议已废弃。实现时优先使用系统组件，并以 Apple 当前文档及真机表现核对。
 
 ### 10.1 设计哲学
 

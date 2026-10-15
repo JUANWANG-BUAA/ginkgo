@@ -27,6 +27,10 @@ enum CasPageParser {
     pattern: #"<div[^>]*class=["'][^"']*tip-text[^"']*["'][^>]*>([\s\S]*?)</div>"#,
     options: [.caseInsensitive]
   )
+  private static let errorRegex = try! NSRegularExpression(
+    pattern: #"<(?:div|span)[^>]*(?:id=["']errorDiv["']|class=["'][^"']*\berrors\b[^"']*["'])[^>]*>([\s\S]*?)</(?:div|span)>"#,
+    options: [.caseInsensitive]
+  )
 
   /// 提取登录页的 execution 隐藏字段。缺失返回 nil（该页面不是登录页或结构已变）。
   static func extractExecution(from html: String) -> String? {
@@ -47,7 +51,16 @@ enum CasPageParser {
 
   /// 提取预登录提示（如「账号已锁定」）。有提示时登录流程应直接终止并展示。
   static func extractTipText(from html: String) -> String? {
-    let stripped = firstMatch(tipRegex, in: html, group: 1)?
+    cleanedText(firstMatch(tipRegex, in: html, group: 1))
+  }
+
+  /// API.md §1.6 的认证错误容器；tip-text 同样属于可显示错误。
+  static func extractErrorText(from html: String) -> String? {
+    cleanedText(firstMatch(errorRegex, in: html, group: 1)) ?? extractTipText(from: html)
+  }
+
+  private static func cleanedText(_ text: String?) -> String? {
+    let stripped = text?
       .replacingOccurrences(of: #"<[^>]+>"#, with: " ", options: .regularExpression)
       ?? ""
     // 去标签会留下连续空格，折叠为单个空格便于展示。

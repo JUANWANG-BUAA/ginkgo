@@ -1,5 +1,25 @@
 # BUAA Assistant - 测试计划
 
+## 当前测试证据（2026-10-15）
+
+源码现有 49 个 test 方法。最近一轮功能实现后执行以下命令，退出码均为 0；本次文档更新未重新执行测试。
+
+```sh
+xcodebuild build -project BUAA-Assistant.xcodeproj -scheme BUAA-Assistant -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
+xcodebuild test -project BUAA-Assistant.xcodeproj -scheme BUAA-Assistant -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
+git diff --check
+```
+
+| 实际测试文件 | 覆盖范围 |
+|---|---|
+| CasPageParserTests / CasFormParserTests | 页面字段、验证码识别、隐藏表单与编码 |
+| CasClientTests / AppStateSessionTests | 模拟认证响应、会话恢复、错误与本地清理 |
+| ScheduleParserTests | 本科结构、研究生周次位图、开学日期、学期码缺省与节次合并 |
+| GradeParserTests | 学期归一化、字段类型漂移、不及格计入与等级制排除 |
+| TimetableAndLibraryTests | 交错课程分栏、CAS query/fragment、AES-CBC OpenSSL 固定向量 |
+
+尚无自动化证据：图书馆业务请求与真实预约闭环、空教室请求、待办存取交互、完整网络缓存失败路径、窗口快照及 VoiceOver。覆盖率尚未测量，CI 与黄金文件目录仍属规划。以下各节保留目标测试方案及示例，出现 AuthService、GPACalculator 等类型不表示工程已有这些实现；部分历史示例绩点映射也不代表当前规则。实际规则以 GradeModels.swift 与 GradeParserTests.swift 为准。
+
 ## 1. 测试策略概述
 
 ### 1.1 测试金字塔

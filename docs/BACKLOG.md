@@ -3,23 +3,27 @@
 > **产出背景（2026-10-13 侦察）**：(1) 对 BBAA 仓库做了全量端点盘点——16 个上游主机、14+ 个系统**全部存在直连本地实现**（`shared/.../api/local/` 下 20 个文件），即协议均已逆向完毕；(2) 对公开页面做了轻量无认证实测（见文末记录）。
 > **使用规则**：这里的每一项在进入 ROADMAP 正式步骤前，必须先把对应协议写入 API.md（✅/⚠️ 分级）并通过审查。分级依据 = 协议证据强度 × 移植成本 × 操作风险。
 
+## 当前跟进状态（2026-10-15）
+
+空教室已按源码接入，协议见 API.md §6A，真实查询待验收；图书馆座位预约已接入代码，真实往返待验收。研讨室 boutique 分类仍未实现。本地待办已实现。原版 BBAA 已确认作业分为 Judge 与 SPOC：Judge 直连结构已开始移植，SPOC 直连 provider 排在下一项。iclass 签到、阳光打卡仍排在其后，写操作继续暂缓。下表保留候选功能及参考来源，不作为已完成功能清单。
+
 ## A 级：低成本高价值（协议现成、以只读为主）
 
 | # | 功能 | 上游 | 协议依据 | 价值与说明 | 建议 |
 |---|------|------|----------|------------|------|
 | 1 | 考试安排 | byxt `student/exams.do` | **API.md §2.6 已文档化** | 考场/座位号/时间，期末刚需；研究生 403 需按身份隐藏 | 与 Step 3 同 host 同会话，**顺带做，边际成本≈0** |
 | 2 | 图书馆研讨室 | booking.lib v4（`space/pick` 的 `boutiqueIds` 分区） | `LocalLibBookApi.kt:194-209` | 与座位是**同一套 API 的不同分区类型**，登录/加密/鉴权全部复用 | 与 Step 6 一并做 |
-| 3 | 空闲教室 | app.buaa.edu.cn `buafreeclass/wap/default/search1` | `LocalClassroomApi.kt:38`（另需先 GET `site/classRoomQuery/index` 同步会话） | JSON 响应（楼/层/空闲节次），自习找教室刚需 | Step 5 后 |
-| 4 | 希冀作业列表 | judge.buaa.edu.cn | `LocalJudgeApi.kt` | HTML 解析（课程列表/作业/截止时间）；与系统通知联动价值最大 | Step 7 通知功能时一并评估 |
+| 3 | 空闲教室 | app.buaa.edu.cn `buaafreeclass/wap/default/search1` | `LocalClassroomApi.kt:38`（另需先 GET `site/classRoomQuery/index` 同步会话） | JSON 响应（楼/层/空闲节次），自习找教室刚需 | Step 5 后 |
+| 4 | 希冀作业列表（移植中） | judge.buaa.edu.cn | BBAA `LocalJudgeApi.kt` 直连实现；本项目 API.md §7.1 | SSO Cookie + HTML 课程/作业/详情解析；真实账号验收仍待完成 | 当前扩展首项 |
 | 5 | iHome 诉求浏览 | i.buaa.edu.cn | **取证文档最全**：`BBAA/docs/_audit/2026-09-17-ihome-live-api.md` + `IhomeUpstreamClient.kt`（12 步 CAS→JWT 链已实现） | 只读浏览诉求/官方回复/公告；关注/支持是写操作（上游为切换语义，重发会反向操作） | 弹性 |
 
 ## B 级：中等成本（有加密或独立登录，但实现可移植）
 
 | # | 功能 | 上游 | 协议依据 | 难点 | 建议 |
 |---|------|------|----------|------|------|
-| 6 | SPOC 作业 | spoc.buaa.edu.cn | `LocalSpocApi.kt` + `LocalSpocSupport.kt` | AES-CBC 加密分页请求（密钥在 Support 内，可移植到 CommonCrypto） | 作业提醒价值高，Step 7 后 |
-| 7 | 阳光打卡记录（只读） | ygdk.buaa.edu.cn | `LocalYgdkApi.kt` | OAuth 授权链（经 app.buaa.edu.cn） | 只做记录/统计；**提交打卡（含照片 multipart）是写操作，暂缓** |
-| 8 | iclass 签到状态（只读） | iclass.buaa.edu.cn:**8347** | `LocalSigninApi.kt:83`（`get_stu_course_sched.action`）+ `SigninLoginNameSupport.kt` | 独立登录（schoolid+密码，非 CAS）；8346 端口是个人中心页 | 先只读课程签到状态；一键签到是写操作，需单独评审 |
+| 6 | SPOC 作业（下一项） | spoc.buaa.edu.cn | BBAA `LocalSpocApi.kt` + `LocalSpocSupport.kt`；本项目 API.md §7.1 | CAS token、RoleCode、AES-CBC 加密分页请求；需先移植固定向量和解析器 | Judge provider 通过测试后 |
+| 7 | 阳光打卡记录（只读） | ygdk.buaa.edu.cn | `LocalYgdkApi.kt` 仅为参考线索；本项目尚无取证章节 | 先确认 OAuth 授权链和只读字段 | 作业、iclass 只读完成后 |
+| 8 | iclass 签到状态（只读） | iclass.buaa.edu.cn:**8347** | `LocalSigninApi.kt:83` 仅为参考线索；本项目尚无取证章节 | 独立登录（schoolid+密码，非 CAS）需先确认凭据策略；8346 端口是个人中心页 | 希冀作业只读后 |
 | 9 | 课程评价（评教） | spoc.buaa.edu.cn/pjxt | `LocalEvaluationService.kt` | 复用 SPOC 会话；提交评价是写操作 | 季节性功能，只做进度提醒可降级为只读 |
 | 10 | 北航网盘 bhpan | bhpan.buaa.edu.cn `/api/efast/v1/file/*` | `buildSrc/.../UploadLatestReleaseToBhpanTask.kt:346-530` | 上传链路（beginupload/multipart/complete）已知；**浏览/下载/分享未逆向**，且网盘写操作风险高 | 浏览器端 HAR 侦察后再评估 |
 

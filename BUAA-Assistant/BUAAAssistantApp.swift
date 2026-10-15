@@ -26,9 +26,11 @@ struct BUAAAssistantApp: App {
   }
 }
 
-/// 菜单栏弹出面板（骨架态）。数据卡片在课表/成绩模块完成后填充。
+/// 菜单栏只展示最近同步的摘要；打开主窗口后各模块会主动刷新。
 struct MenuBarPanel: View {
   @EnvironmentObject private var appState: AppState
+  @State private var schedule: ScheduleSnapshot?
+  @State private var grades: GradeSnapshot?
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -39,12 +41,36 @@ struct MenuBarPanel: View {
       }
 
       if appState.isLoggedIn {
-        Label(
-          appState.user.map { "已登录：\($0.name)（\($0.schoolid)）" } ?? "已登录",
-          systemImage: "person.crop.circle.fill"
-        )
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
+        if let schedule, schedule.containsToday() {
+          let today = todayCourses(schedule)
+          if let next = today.first(where: { meeting in
+            guard let time = meeting.startTime else { return true }
+            let parts = time.split(separator: ":").compactMap { Int($0) }
+            guard parts.count == 2 else { return true }
+            let calendar = ScheduleSnapshot.schoolCalendar
+            let now = calendar.component(.hour, from: Date()) * 60 + calendar.component(.minute, from: Date())
+            return parts[0] * 60 + parts[1] >= now
+          }) {
+            VStack(alignment: .leading, spacing: 4) {
+              Text("下一节课").font(.caption).foregroundStyle(.secondary)
+              Text(next.name).font(.headline)
+              Text([next.startTime ?? "第 \(next.startSection) 节", next.place].compactMap { $0 }.joined(separator: " · "))
+                .font(.subheadline).foregroundStyle(.secondary)
+            }
+          } else {
+            Label(today.isEmpty ? "今日课表无课程" : "今天的课程已结束", systemImage: "calendar.badge.checkmark")
+              .font(.subheadline)
+          }
+          Text("课表同步：\(schedule.fetchedAt.formatted(date: .abbreviated, time: .shortened))")
+            .font(.caption).foregroundStyle(.secondary)
+        } else {
+          Label("今日课程尚未确认，请打开主窗口刷新", systemImage: "calendar.badge.exclamationmark")
+            .font(.subheadline)
+        }
+        if let grades, let gpa = grades.gradePointAverage {
+          Label("\(grades.term.name)参考绩点 \(gpa.formatted(.number.precision(.fractionLength(2))))", systemImage: "chart.bar")
+            .font(.caption).foregroundStyle(.secondary)
+        }
       } else {
         Label("未登录", systemImage: "person.crop.circle")
           .font(.subheadline)
@@ -66,5 +92,21 @@ struct MenuBarPanel: View {
       .keyboardShortcut("q")
     }
     .padding(16)
+    .task(id: appState.user?.schoolid) {
+      guard let account = appState.user?.schoolid else { schedule = nil; grades = nil; return }
+      schedule = await ScheduleCache().read(for: account)
+      grades = await GradeCache().read(account: account)
+    }
+    .onAppear {
+      Task {
+        guard let account = appState.user?.schoolid else { return }
+        schedule = await ScheduleCache().read(for: account)
+        grades = await GradeCache().read(account: account)
+      }
+    }
+  }
+
+  private func todayCourses(_ snapshot: ScheduleSnapshot) -> [CourseMeeting] {
+    snapshot.todayCourses()
   }
 }

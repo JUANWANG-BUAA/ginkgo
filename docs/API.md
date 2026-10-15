@@ -551,9 +551,26 @@ IV：固定 "ZZWBKJ_ZHIHUAWEI"
 
 ---
 
+## 6A. 空教室（源码已核对，真机待验收）
+
+依据：2026-10-15 核对 UBAA main 的 `LocalClassroomApi.kt`、`model/dto/Classroom.kt` 与 `ClassroomViewModel.kt`。此分级仅表示源码证据，未宣称本应用真实账号验收完成。
+
+1. GET SSO service：`https://app.buaa.edu.cn/a_buaa/api/cas/index?redirect=https%3A%2F%2Fapp.buaa.edu.cn%2Fsite%2FclassRoomQuery%2Findex&from=wap&login_from=`，SSO 查询包含 `noAutoRedirect=1`。使用共享 Cookie 激活业务会话。
+2. GET `https://app.buaa.edu.cn/buaafreeclass/wap/default/search1?xqid=1&floorid=&date=yyyy-MM-dd`。注意路径为 **buaafreeclass**；旧 BACKLOG 少了一个 a。校区 `1=学院路 / 2=沙河 / 3=杭州`。Ajax 头与 Referer `https://app.buaa.edu.cn/site/classRoomQuery/index`。
+3. 响应 `{e:0,m:"",d:{list:{楼栋:[{id,floorid,name,kxsds}]}}}`，`kxsds` 为逗号分隔空闲节次。非零 e、HTML 登录页、结构缺失均报错，不当作无空教室。
+
 ## 7. 本期不接入的系统（中转接口说明）
 
 旧版文档第 6-15 节（博雅 BYKC、SPOC、操场 CGYY、阳光打卡 YGDK、iHome、空闲教室、课程评价、iclass 签到、考试安排中转版）记载的 `/api/v1/*` 路径全部是 **UBAA Ktor 中转服务器的自有路由**（见 `BBAA/docs/tech/server-routes.md`），不是北航上游直连协议。本项目架构为仅直连（ARCHITECTURE.md §9.1.3），这些接口**无法使用**；上述系统若未来要接入，每个都需按 §6 的逆向流程重新取证（其中博雅/操场还涉及上游自定义加密，见 DEEP-ARCHITECTURE-REVIEW.md §3）。此处不再罗列。
+
+### 7.1 BBAA 原版作业实现对照（2026-10-15）
+
+BBAA 原版并非只有一个作业来源，而是同时实现了两套直连上游：
+
+- **希冀 Judge**：`shared/src/commonMain/kotlin/cn/edu/ubaa/api/local/LocalJudgeApi.kt`。先访问 `sso.buaa.edu.cn/login?service=http%3A%2F%2Fjudge.buaa.edu.cn%2F` 激活 Cookie，再访问 `judge.buaa.edu.cn/courselist.jsp?courseID=0`、课程选择页和 `assignment/index.jsp`，解析 HTML 课程、作业和详情。原版列表缓存 TTL 为 5 分钟，详情缓存 TTL 为 2 分钟。
+- **SPOC**：`LocalSpocApi.kt` + `LocalSpocSupport.kt`。通过 `spoc.buaa.edu.cn/spocnewht/cas` 获取 token，再调用 `sys/casLogin` 获取 `RoleCode`；当前学期和课程来自 `inco/ht/queryOne`、`jxkj/queryKclb`，作业分页来自 `inco/ht/queryListByPage`。分页参数使用 AES-CBC（key `inco12345678ocni`，IV `ocni12345678inco`，零填充）后 Base64 编码。
+
+`/api/v1/judge/*` 和 `/api/v1/spoc/*` 仍是 BBAA 服务端中转路由，本项目不调用它们。当前 Swift 工程已先接入 Judge 的直连结构和统一作业模型；SPOC 作为第二 provider，需复用 BBAA 的加密测试向量实现后再接入。
 
 ---
 

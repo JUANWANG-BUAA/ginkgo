@@ -68,6 +68,16 @@ final class CasPageParserTests: XCTestCase {
     XCTAssertNil(CasPageParser.extractTipText(from: "<html></html>"))
   }
 
+  func test_extractErrorText_withErrorDiv_shouldReturnMessage() {
+    let html = #"<div id="errorDiv"><span>账号或密码错误</span></div>"#
+    XCTAssertEqual(CasPageParser.extractErrorText(from: html), "账号或密码错误")
+  }
+
+  func test_extractErrorText_withErrorsClass_shouldReturnMessage() {
+    let html = #"<div class="alert errors">验证码错误</div>"#
+    XCTAssertEqual(CasPageParser.extractErrorText(from: html), "验证码错误")
+  }
+
   // MARK: - 密码过期跳过页（API.md §1.5）
 
   func test_isPasswordExpiryPage_withContinueForm_shouldBeTrue() {

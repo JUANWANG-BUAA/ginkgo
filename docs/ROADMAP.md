@@ -4,11 +4,26 @@
 > 读者假设：你不熟 Swift 和 macOS 开发，AI 负责写代码，你负责决策、验收和把关。
 > 严格按顺序推进，不跳步——每一步以前一步的**真机验收**为前提。
 >
-> 配套文档：协议细节查 [API.md](API.md)；协作规则查 [COLLABORATION.md](COLLABORATION.md)；测试策略查 [TESTING.md](TESTING.md)；功能储备查 [BACKLOG.md](BACKLOG.md)。
+> 配套文档：协议细节查 [API.md](API.md)；界面实现与验收查 [UI-DESIGN.md](UI-DESIGN.md)；协作规则查 [COLLABORATION.md](COLLABORATION.md)；测试策略查 [TESTING.md](TESTING.md)；功能储备查 [BACKLOG.md](BACKLOG.md)。
 >
-> 版本：2026-10-13 详细版（初版纲要同日）；2026-10-14 勘误（Xcode 版本口径、objectVersion、骨架文件数、Step 2 会话恢复、execution 编码注意事项、arrangedList 拼写）。
+> 版本：2026-10-13 详细版（初版纲要同日）；2026-10-14 勘误（Xcode 版本口径、objectVersion、骨架文件数、Step 2 会话恢复、execution 编码注意事项、arrangedList 拼写）；2026-10-15 更新扩展模块顺序。
 
 ---
+
+## 当前推进位置（2026-10-15）
+
+本文件保留从骨架开始的实施说明；下文 Step 0 的占位页面和测试数量是历史步骤，不是当前运行表现。当前代码状态以 [IMPLEMENTATION.md](IMPLEMENTATION.md) 为准。
+
+| 步骤 | 当前状态 | 下一项验收 |
+|------|----------|------------|
+| Step 1–2 登录/会话 | 已实现，真实登录与自动恢复已有观察 | 验证码、断网、键盘与 VoiceOver |
+| Step 3 本科课表 | 请求/解析/网格/缓存已实现 | 本科真实账号、考试安排尚未实现 |
+| Step 4 研究生课表 | 周网格、全学期总览已实现，课程返回已有观察 | 单双周与教务页面对照、浅深色与窗口缩放 |
+| Step 5 成绩 | 查询/归一化/列表/参考统计已实现 | 非空成绩与 GPA 手算对照 |
+| Step 6 图书馆 | 座位与预约代码已接入，加密测试通过 | 真实查询、预约→列表→取消；研讨室分类待实现 |
+| 扩展 | 空教室查询、本地待办已实现 | 真实查询、持久化交互验收；下一项为希冀作业只读协议取证 |
+
+当前课表/成绩缓存使用 actor + Codable JSON 文件，尚未采用下文规划的 SwiftData；本地待办使用按账号摘要命名的 UserDefaults 数据。
 
 ## 目录
 
@@ -267,7 +282,7 @@
 1. **TLS 证书链实测（先做，人工步骤）**：终端跑 `curl -v https://booking.lib.buaa.edu.cn/ 2>&1 | grep -A3 "SSL"`；再在 App 里发一个探测请求。证书正常 → 继续；异常 → 把 curl 输出发给 AI 评估方案（JVM/Android 上 UBAA 做过仅限此域名的信任放宽，Darwin 是否需要实测才知道；**禁止静默全站放宽**，方案必须人工评审）。
 2. CAS 链：GET `sso/login?service=.../v4/login/cas`（禁重定向）→ 手动跟最多 8 跳、正则 `[?&#]cas=([^&#]+)` 提取令牌（查询串和 fragment 都要兼容）→ POST `v4/login/user {"cas": token}` → 取 `data.member.token`。
 3. 业务端点：全部 POST JSON（API.md §5.2 表），公共头带桌面 Chrome UA + `X-Requested-With` + Origin/Referer；鉴权头 **`Authorization: bearer<token>`（小写、无空格）**；成功码 `code ∈ {0,1}`；字段名 snake/camel 双变体都要接。
-4. **预约加密**：CommonCrypto AES-CBC（密钥=日期 8 数字+反转，IV=`ZZWBKJ_ZHIHUAWEI`，手动 PKCS7，Base64）——先写**加密向量黄金文件测试**（TESTING.md §10）再写实现。CryptoKit 不支持 CBC，别让 AI 用错框架。
+4. **预约加密**：CommonCrypto AES-CBC（密钥=日期 8 数字+反转，IV=`ZZWBKJ_ZHIHUAWEI`，CommonCrypto 开启 PKCS7，Base64）——先写**加密向量黄金文件测试**（TESTING.md §10）再写实现。CryptoKit 不支持 CBC，别让 AI 用错框架。
 5. 失效重登：响应 message 含「登录失效/请重新登录/未登录」→ 清 token 重新 CAS，**重试一次**即止。
 6. UI：楼馆列表→分区→座位网格→预约弹窗→我的预约→取消。写操作按钮确认弹窗；失败保留"状态未确认"提示、**绝不自动重发**（API.md §9）。
 7. **顺带（BACKLOG A-2）**：研讨室 = `space/pick` 的 `boutiqueIds` 分区类型，同一套链路换个参数。
@@ -281,7 +296,14 @@
 1. **系统通知**（课程前 10 分钟提醒）：`UNUserNotificationCenter` 请求授权 → 基于 Step 3 缓存课表排本地通知。验收：收到通知、点击通知聚焦主窗口。
 2. **快捷键**：全局键（如 ⌥⇧B 呼出面板）用 Carbon `RegisterEventHotKey` 或 NSEvent monitor（AI 给方案选型）；窗口内快捷键用 `.keyboardShortcut`。
 3. **开机自启**：`SMAppService.mainApp.register()`（macOS 13+），SettingsView 开关联动。
-4. **BACKLOG A 级收割**：空闲教室（`buafreeclass/search1`）、希冀作业（HTML 解析）——每个都先在 API.md 建章节再动手（BACKLOG 使用规则）。
+4. **扩展功能顺序（2026-10-15 决定）**：先做希冀作业只读列表，再做 iclass 签到状态只读，最后评估阳光打卡只读记录。每项都必须先完成协议取证并在 API.md 建章节，再写客户端；参考实现线索不等于本项目已验证协议。
+5. **写操作暂缓**：作业提交、一键签到、阳光打卡提交（尤其照片 multipart）不进入本轮；需要独立的真实往返验证、安全审查和不自动重试设计。
+
+### 下一项任务：希冀作业只读列表
+
+第一阶段只做协议取证：本人在浏览器正常打开作业列表，导出脱敏 HAR，确认登录跳转、请求参数、HTML/JSON 结构、分页、空列表、截止时间、会话失效和服务错误。结论写入 `docs/API.md` 新章节并标注证据条目。
+
+进入代码实现的门槛是：API.md 有 ✅ 请求清单和脱敏响应样本；Parser 有合成 fixture 测试；GET 失败不会显示成“暂无作业”；作业 ID、来源和截止时间能稳定映射到本地待办模型。达到门槛后再实现 `HomeworkClient`、`HomeworkParser`、按账号缓存和今天页/待办页的只读映射。
 5. 探索项：借阅查询（先执行 API.md §6 验证清单：你开浏览器登录图书馆→我的借阅→抓 HAR→AI 分析出取证报告→人工确认→转正）。
 
 ## Step 8：打磨与分发（1 周）
