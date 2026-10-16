@@ -1,18 +1,22 @@
-# BUAA Assistant
+# Ginkgo · 北航校园工作台
 
-北航校园服务聚合的 macOS 原生客户端（Swift/SwiftUI，菜单栏常驻）。个人项目，仅直连校内系统。
+北航校园服务聚合的 macOS 原生客户端（Swift/SwiftUI，菜单栏常驻），即此前的 BUAA Assistant。个人项目，仅直连校内系统。
+
+> **为什么叫 Ginkgo**：银杏是北航最有辨识度的符号——学院路与沙河的银杏大道。它简短、好念、一眼能画成图标；也希望这个工作台像秋天那条路一样，成为你每天都会经过的地方。
 
 ## 快速开始
 
 1. 用 Xcode 16+（工程为文件系统同步格式；本机已用 27.0 验证可编译、测试全绿）打开 `BUAA-Assistant.xcodeproj`；
-2. ⌘R 运行，⌘U 跑测试（源码现有 132 个测试方法；0.1.0-alpha 全量通过）；
+2. ⌘R 运行，⌘U 跑测试（源码现有 133 个测试方法；0.1.0-alpha 全量通过）；
 3. 按顺序阅读 [docs/ROADMAP.md](docs/ROADMAP.md) 开始开发——它回答"先写什么、后写什么、每步怎么验收"。
 
 > 命令行构建（`CODE_SIGNING_ALLOWED=NO`）的产物资源未封签，Dock 会显示白色占位图标；本地运行请用 Xcode ⌘R，或构建后先执行 `codesign --force --sign - <App>` 再启动。
 
 ## 当前版本：0.1.0-alpha（2026-10-16）
 
-首个 alpha 基线：只读链路可用，132 项测试全绿（见 [docs/TESTING.md](docs/TESTING.md)）。本轮修好了研究生课表刷新与希冀作业的 ATS 阻断，并按取舍暂时下线希冀来源；写操作（图书馆预约/取消、iclass 签到提交）尚未完成真实往返验收，已知限制与风险见 [docs/RELEASE-NOTES.md](docs/RELEASE-NOTES.md)。
+首个 alpha 基线：只读链路可用，133 项测试全绿（见 [docs/TESTING.md](docs/TESTING.md)）。本轮修好了研究生课表刷新与周次误标、希冀作业的 ATS 阻断、图书馆聚焦刷新与总览配色，并按取舍暂时下线希冀来源；写操作（图书馆预约/取消、iclass 签到提交）尚未完成真实往返验收，已知限制与风险见 [docs/RELEASE-NOTES.md](docs/RELEASE-NOTES.md)。
+
+项目主页（GitHub Pages）：<https://juanwang-buaa.github.io/ginkgo/>
 
 ## 界面预览
 
@@ -23,6 +27,10 @@
 | 今天 | 课表 |
 |------|------|
 | ![今天](docs/images/today.png) | ![课表](docs/images/schedule.png) |
+
+| 学期总览 |
+|----------|
+| ![学期总览](docs/images/overview.png) |
 
 | 学校作业 | 图书馆 |
 |----------|--------|
@@ -65,6 +73,7 @@
 | [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md) | 验收记录（每 Step 验收后追加，规则见 ROADMAP 附录 A） |
 | [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) | 当前模块的实现范围、测试结果与待验收项 |
 | [docs/RELEASE-NOTES.md](docs/RELEASE-NOTES.md) | 版本发布说明：0.1.0-alpha 范围、验证证据与已知限制 |
+| [docs/PROMOTION.md](docs/PROMOTION.md) | 宣传文案与关键词：仓库描述、topics、社区发帖模板 |
 | [docs/PRIVACY.md](docs/PRIVACY.md) | 隐私与数据管理：本机数据位置、仓库红线、清理方式与反馈要求 |
 | [docs/LEARNING.md](docs/LEARNING.md) | 实施中用到的 Swift 概念速记 |
 | [docs/DEEP-ARCHITECTURE-REVIEW.md](docs/DEEP-ARCHITECTURE-REVIEW.md) | UBAA 参考实现透视（只读参考） |
@@ -78,14 +87,14 @@ BUAA-Assistant/
 ├── BUAA-Assistant/                # 应用源码（新增 .swift 文件自动纳入编译）
 │   ├── Features/                  # Auth / Today / Schedule / Grade / Library / Classroom / Homework / CheckIn / Campus / Tasks / Settings
 │   └── Core/                      # Network / Storage / Logging / UI（共享提示与空态组件）
-├── BUAA-AssistantTests/           # 单元测试（源码现有 132 个测试方法）
+├── BUAA-AssistantTests/           # 单元测试（源码现有 133 个测试方法）
 ├── LICENSE                        # MIT License（含 UBAA 参考实现版权声明）
 └── docs/                          # 全部文档与界面截图（单一事实源）
 ```
 
 ## 许可证与致敬
 
-本项目以 [MIT License](LICENSE) 发布。
+本项目以 [MIT License](LICENSE) 发布（版权标识为 Ginkgo contributors）。
 
 **特别致敬 [UBAA（BUAASubnet/UBAA）](https://github.com/BUAASubnet/UBAA)**—同样以 MIT 许可发布的 Kotlin Multiplatform 校园客户端。感谢 UBAA 的作者与贡献者把北航各系统的直连协议、校园网边界情况和加密方案整理成可读、可验证的实现：本项目的 CAS 登录链路、研究生课表推算、图书馆预约加密、SPOC 作业分页与 iclass 签到写协议等，都是逐行对照 UBAA 源码与测试后完成的 Swift 复刻。没有这份开源工作，这个项目不会存在。也感谢它让“直连、不中转、隐私留在本机”的路线有了可信的先例。
 

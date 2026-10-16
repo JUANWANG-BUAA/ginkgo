@@ -86,8 +86,8 @@ struct TimetableGrid: View {
           }
           .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
           .padding(6)
-          .background(courseColor(meeting.name).opacity(0.17), in: RoundedRectangle(cornerRadius: 7))
-          .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(courseColor(meeting.name)).frame(width: 3) }
+          .background(CoursePalette.color(for: meeting.name).opacity(0.17), in: RoundedRectangle(cornerRadius: 7))
+          .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(CoursePalette.color(for: meeting.name)).frame(width: 3) }
         }
         .buttonStyle(.plain)
         .frame(width: width - 6, height: CGFloat(span) * rowHeight - 6)
@@ -99,9 +99,16 @@ struct TimetableGrid: View {
     .overlay(alignment: .leading) { Rectangle().fill(Color.primary.opacity(0.07)).frame(width: 1) }
   }
 
-  private func courseColor(_ name: String) -> Color {
-    let colors: [Color] = [.blue, .teal, .indigo, .orange, .purple, .pink]
-    return colors[name.unicodeScalars.reduce(0) { ($0 + Int($1.value)) % colors.count }]
+}
+
+/// 课程稳定配色：同一门课在周网格与学期总览使用同一颜色，避免总览一片单色。
+enum CoursePalette {
+  private static let colors: [Color] = [.blue, .teal, .indigo, .orange, .purple, .pink, .green, .red]
+
+  static func color(for name: String) -> Color {
+    var hash = 5381
+    for scalar in name.unicodeScalars { hash = (hash &* 33) &+ Int(scalar.value) }
+    return colors[abs(hash) % colors.count]
   }
 }
 
@@ -111,8 +118,15 @@ struct SemesterOverview: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Text("已查询 \(snapshot.termCourses?.count ?? 1) / \(snapshot.weeks.count) 周 · 点击周次查看时间与地点")
-        .font(.caption).foregroundStyle(.secondary)
+      HStack(spacing: 12) {
+        Text("已查询 \(snapshot.termCourses?.count ?? 1) / \(snapshot.weeks.count) 周 · 点击周次查看时间与地点")
+          .font(.caption).foregroundStyle(.secondary)
+        Spacer()
+        HStack(spacing: 6) {
+          Circle().fill(Color.accentColor).frame(width: 6, height: 6)
+          Text("本周").font(.caption).foregroundStyle(.secondary)
+        }
+      }
       ScrollView(.horizontal) {
         Grid(horizontalSpacing: 1, verticalSpacing: 1) {
           GridRow {
@@ -123,7 +137,20 @@ struct SemesterOverview: View {
           }.font(.headline).padding(.vertical, 12)
           ForEach(snapshot.weeks) { week in
             GridRow(alignment: .top) {
-              Button("第 \(week.number) 周") { selectWeek(week.number) }.frame(width: 76, height: 76)
+              Button { selectWeek(week.number) } label: {
+                VStack(spacing: 4) {
+                  Text("第 \(week.number) 周").font(.caption.weight(.semibold))
+                  if week.isCurrent {
+                    Text("本周").font(.system(size: 9, weight: .semibold))
+                      .padding(.horizontal, 5).padding(.vertical, 1)
+                      .background(Color.accentColor, in: Capsule())
+                      .foregroundStyle(.white)
+                  }
+                }
+                .frame(width: 76, height: 76)
+              }
+              .buttonStyle(.plain)
+              .background(week.isCurrent ? Color.accentColor.opacity(0.12) : Color.clear)
               ForEach(1...7, id: \.self) { day in
                 SemesterDayCell(courses: snapshot.termCourses?[String(week.number)], day: day, isCurrent: week.isCurrent)
               }
@@ -141,22 +168,27 @@ private struct SemesterDayCell: View {
   let isCurrent: Bool
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: 4) {
       if let courses {
         let meetings = courses.filter { $0.day == day }
-        if meetings.isEmpty { Text("无课").foregroundStyle(.secondary) }
+        if meetings.isEmpty { Text("无课").font(.caption2).foregroundStyle(.tertiary) }
         ForEach(meetings) { course in
-          VStack(alignment: .leading, spacing: 3) {
-            Text(course.name).font(.caption.weight(.medium))
-            Text("第 \(course.startSection)–\(course.endSection) 节").font(.caption2)
-            Text(course.place ?? "地点待公布").font(.caption2).foregroundStyle(.secondary)
-          }.fixedSize(horizontal: false, vertical: true)
+          let color = CoursePalette.color(for: course.name)
+          VStack(alignment: .leading, spacing: 2) {
+            Text(course.name).font(.caption2.weight(.semibold)).lineLimit(2)
+            Text("第 \(course.startSection)–\(course.endSection) 节").font(.system(size: 9))
+            Text(course.place ?? "地点待公布").font(.system(size: 9)).foregroundStyle(.secondary).lineLimit(1)
+          }
+          .padding(.vertical, 3).padding(.horizontal, 5)
+          .frame(maxWidth: .infinity, alignment: .topLeading)
+          .background(color.opacity(0.16), in: RoundedRectangle(cornerRadius: 5))
+          .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(color).frame(width: 3) }
         }
-      } else { Text("未查询").foregroundStyle(.secondary) }
+      } else { Text("未查询").font(.caption2).foregroundStyle(.tertiary) }
     }
     .frame(width: 116, alignment: .topLeading)
     .frame(minHeight: 60, alignment: .topLeading)
     .padding(8)
-    .background(isCurrent ? Color.accentColor.opacity(0.09) : Color(nsColor: .controlBackgroundColor))
+    .background(isCurrent ? Color.accentColor.opacity(0.10) : Color(nsColor: .controlBackgroundColor))
   }
 }

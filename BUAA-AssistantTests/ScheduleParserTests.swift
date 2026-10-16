@@ -71,6 +71,21 @@ final class ScheduleParserTests: XCTestCase {
     XCTAssertThrowsError(try ScheduleParser.graduateWeeks(Data(json.utf8), termID: "20251"))
   }
 
+  func testGraduateWeeksMarksOnlyOneCurrentWeek() throws {
+    // DateInterval 的右端点恰好是下一周周一，历史上导致第 6、7 周同时被标为“本周”。
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(identifier: "Asia/Shanghai")!
+    calendar.firstWeekday = 2
+    let monday = try XCTUnwrap(calendar.dateInterval(of: .weekOfYear, for: Date())?.start)
+    let formatter = DateFormatter()
+    formatter.calendar = calendar
+    formatter.timeZone = calendar.timeZone
+    formatter.dateFormat = "yyyy-MM-dd"
+    let json = #"{"code":"1","jgList":[{"BJDM":"A","XNXQDM":"20251","XQ":1,"ZCBH":"1111"}],"rwList":[{"BJDM":"A","XNXQDM":"20251","SCSKRQ":"\#(formatter.string(from: monday))"}],"jcfaList":[]}"#
+    let weeks = try ScheduleParser.graduateWeeks(Data(json.utf8), termID: "20251")
+    XCTAssertEqual(weeks.filter(\.isCurrent).map(\.number), [1])
+  }
+
   func testGraduateTasksWithoutRowsOrDatesAreSkipped() throws {
     // 真实响应中存在没有排课行或缺少 SCSKRQ 的教学班，它们不参与开学日期推算。
     let json = #"{"code":"1","jgList":[{"BJDM":"A","XNXQDM":"20251","KCMC":"研究方法","XQ":3,"KSJCDM":1,"JSJCDM":2,"ZCBH":"1010","JASMC":"教室"}],"rwList":[{"BJDM":"A","XNXQDM":"20251","SCSKRQ":"2025-09-03"},{"BJDM":"B","XNXQDM":"20251","SCSKRQ":"2025-09-03"},{"BJDM":"C","XNXQDM":"20251"}],"jcfaList":[]}"#

@@ -64,10 +64,16 @@ final class LibraryViewModel: ObservableObject {
       }
     }
 
+    await refreshIfStale()
+  }
+
+  /// 页面重新出现或应用回到前台时调用：按时效刷新楼馆列表与官网公开实时数据。
+  /// 实时人数变化快，聚焦时按 5 分钟时效刷新；楼馆列表 15 分钟内不重复请求。
+  func refreshIfStale(maxPublicStatsAge: TimeInterval = 5 * 60) async {
     if libraries.isEmpty || librariesFetchedAt.map({ Date().timeIntervalSince($0) >= 15 * 60 }) ?? true {
       await loadLibraries()
     }
-    if publicStats == nil || publicStats.map({ Date().timeIntervalSince($0.fetchedAt) >= 30 * 60 }) ?? true {
+    if publicStats == nil || publicStats.map({ Date().timeIntervalSince($0.fetchedAt) >= maxPublicStatsAge }) ?? true {
       await refreshPublicStats()
     }
   }

@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-BUAA Assistant is a native Swift/SwiftUI macOS campus-services client. Application code lives in `BUAA-Assistant/`: `Features/` groups Auth, Schedule, Grade, Library, Classroom, Today, Tasks, and Settings; `Core/` contains shared networking, storage, logging, and UI components. Keep feature-specific clients, models, parsers, views, and view models together. XCTest sources live in `BUAA-AssistantTests/`. Treat `docs/` as the documentation source of truth; start with `ROADMAP.md`, `ARCHITECTURE.md`, and `API.md`.
+Ginkgo（BUAA Assistant）is a native Swift/SwiftUI macOS campus-services client. Application code lives in `BUAA-Assistant/`: `Features/` groups Auth, Schedule, Grade, Library, Classroom, Today, Tasks, and Settings; `Core/` contains shared networking, storage, logging, and UI components. Keep feature-specific clients, models, parsers, views, and view models together. XCTest sources live in `BUAA-AssistantTests/`. Treat `docs/` as the documentation source of truth; start with `ROADMAP.md`, `ARCHITECTURE.md`, and `API.md`.
 
 ## Build, Test, and Development Commands
 

@@ -6,6 +6,8 @@ struct TodayView: View {
   @EnvironmentObject private var schedule: ScheduleViewModel
   @EnvironmentObject private var tasks: PersonalTaskStore
   @EnvironmentObject private var homework: HomeworkViewModel
+  /// 分钟级时钟：让“已逾期/今天截止”等时间状态在页面停留时也能自行更新。
+  @State private var now = Date()
 
   var body: some View {
     ScrollView {
@@ -51,7 +53,7 @@ struct TodayView: View {
                 Text(task.title).lineLimit(2)
                 Spacer()
                 Text(task.due.formatted(date: .abbreviated, time: .shortened))
-                  .font(.caption).foregroundStyle(task.due < Date() ? Color.orange : Color.secondary)
+                  .font(.caption).foregroundStyle(task.due < now ? Color.orange : Color.secondary)
               }
             }
           }
@@ -140,6 +142,12 @@ struct TodayView: View {
         tasks.load(account: account)
         await homework.start(account: account)
         await schedule.start(account: account)
+      }
+    }
+    .task {
+      while !Task.isCancelled {
+        do { try await Task.sleep(nanoseconds: 60 * 1_000_000_000) } catch { return }
+        now = Date()
       }
     }
     .onChange(of: schedule.needsSessionCheck) { _, needed in

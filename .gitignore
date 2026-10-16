@@ -19,3 +19,6 @@ Package.resolved
 
 # 本地 AI 协作过程记录（项目文档是 docs/，这些是代理本地状态）
 .learnings/
+
+# Playwright 预览截图（本地工具输出）
+.playwright-mcp/

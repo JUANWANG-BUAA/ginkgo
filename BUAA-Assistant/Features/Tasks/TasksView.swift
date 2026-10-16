@@ -14,6 +14,8 @@ struct TasksView: View {
   @State private var editing: PersonalTask?
   @State private var editTitle = ""
   @State private var editDue = Date()
+  /// 分钟级时钟：逾期标记与“只看逾期”筛选在页面停留时也能自行更新。
+  @State private var now = Date()
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 20) {
@@ -36,7 +38,7 @@ struct TasksView: View {
           Text("待完成 \(store.tasks.filter { !$0.completed }.count) 项").font(.caption).foregroundStyle(.secondary)
         }
         let term = search.trimmingCharacters(in: .whitespacesAndNewlines)
-        let visible = store.tasks.filter { (showCompleted || !$0.completed) && (!onlyOverdue || (!$0.completed && $0.due < Date())) && (term.isEmpty || $0.title.localizedCaseInsensitiveContains(term)) }.sorted { $0.due < $1.due }
+        let visible = store.tasks.filter { (showCompleted || !$0.completed) && (!onlyOverdue || (!$0.completed && $0.due < now)) && (term.isEmpty || $0.title.localizedCaseInsensitiveContains(term)) }.sorted { $0.due < $1.due }
         if visible.isEmpty {
           PageEmptyState(
             symbol: store.isReadable ? "checklist" : "exclamationmark.triangle",
@@ -51,7 +53,7 @@ struct TasksView: View {
             VStack(alignment: .leading, spacing: 5) {
               Text(task.title).font(.body.weight(.medium)).strikethrough(task.completed)
               Text(task.due.formatted(date: .abbreviated, time: .shortened)).font(.caption).foregroundStyle(.secondary)
-              if !task.completed && task.due < Date() { Label("已逾期", systemImage: "exclamationmark.circle").font(.caption).foregroundStyle(.orange) }
+              if !task.completed && task.due < now { Label("已逾期", systemImage: "exclamationmark.circle").font(.caption).foregroundStyle(.orange) }
             }
             Spacer()
             Button { editing = task; editTitle = task.title; editDue = task.due } label: { Image(systemName: "pencil") }
@@ -65,6 +67,12 @@ struct TasksView: View {
       }.padding(24).frame(maxWidth: 800, alignment: .leading).frame(maxWidth: .infinity)
     }.background(Color(nsColor: .windowBackgroundColor))
       .task(id: appState.user?.schoolid) { if let account = appState.user?.schoolid { store.load(account: account) } }
+      .task {
+        while !Task.isCancelled {
+          do { try await Task.sleep(nanoseconds: 60 * 1_000_000_000) } catch { return }
+          now = Date()
+        }
+      }
       .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: store.tasks.map { $0.id })
       .alert("删除这条待办？", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })) {
         Button("删除", role: .destructive) { if let task = deleting { store.delete(task.id) }; deleting = nil }

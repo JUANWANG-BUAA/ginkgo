@@ -177,10 +177,12 @@ enum ScheduleParser {
     }
     let count = bitmaps.map(\.count).max() ?? 0
     guard count > 0 else { throw ScheduleError.changedResponse }
+    let currentInterval = calendar.dateInterval(of: .weekOfYear, for: Date())
     return (1...count).compactMap { number in
       guard let first = calendar.date(byAdding: .day, value: (number - 1) * 7, to: start),
             let last = calendar.date(byAdding: .day, value: 6, to: first) else { return nil }
-      let current = calendar.dateInterval(of: .weekOfYear, for: Date()).map { $0.contains(first) } ?? false
+      // DateInterval.contains 包含右端点，而右端点正是下一周的周一；用半开区间避免连续两周都标“本周”。
+      let current = currentInterval.map { first >= $0.start && first < $0.end } ?? false
       return SchoolWeek(number: number, start: first, end: last, isCurrent: current)
     }
   }
