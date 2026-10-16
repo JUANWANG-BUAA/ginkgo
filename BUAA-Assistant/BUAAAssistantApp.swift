@@ -1,16 +1,33 @@
 import SwiftUI
+import UserNotifications
 
 /// 应用入口：主窗口（NavigationSplitView 布局）+ 菜单栏常驻入口。
 /// 布局规范见 ARCHITECTURE.md §10（主窗口最小 800×560，菜单栏弹出面板宽 360）。
 @main
 struct BUAAAssistantApp: App {
   @StateObject private var appState = AppState()
+  @StateObject private var globalShortcut = GlobalShortcutController()
+  @StateObject private var courseReminders = CourseReminderScheduler()
+
+  init() {
+    UNUserNotificationCenter.current().delegate = AppNotificationDelegate.shared
+  }
 
   var body: some Scene {
-    WindowGroup {
+    WindowGroup(id: "main") {
       RootView()
         .environmentObject(appState)
+        .environmentObject(courseReminders)
         .frame(minWidth: 800, minHeight: 560)
+    }
+    .defaultSize(width: 1200, height: 800)
+    .commands {
+      CommandGroup(after: .appInfo) {
+        Toggle("全局快捷键（⌃⌥B）", isOn: Binding(
+          get: { globalShortcut.isEnabled },
+          set: { globalShortcut.setEnabled($0) }
+        ))
+      }
     }
 
     MenuBarExtra(appState.isLoggedIn ? "BUAA Assistant（已连接）" : "BUAA Assistant", systemImage: menuBarIcon) {

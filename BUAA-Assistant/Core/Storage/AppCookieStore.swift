@@ -9,5 +9,9 @@ struct AppCookieStore: CookieClearing {
     for cookie in HTTPCookieStorage.shared.cookies ?? [] {
       HTTPCookieStorage.shared.deleteCookie(cookie)
     }
+    let webVPNStorage = APIClient.shared.webVPNCookieStorage
+    for cookie in webVPNStorage.cookies ?? [] {
+      webVPNStorage.deleteCookie(cookie)
+    }
   }
 }

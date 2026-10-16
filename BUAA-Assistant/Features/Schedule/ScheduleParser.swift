@@ -1,6 +1,13 @@
 import Foundation
 
 enum ScheduleParser {
+  private struct MeetingKey: Hashable {
+    let name: String
+    let day: Int
+    let startSection: Int
+    let endSection: Int
+  }
+
   static func terms(_ data: Data, portal: SchedulePortal) throws -> [SchoolTerm] {
     let root = try object(data)
     guard string(root["code"]) == "0" else { throw ScheduleError.changedResponse }
@@ -36,11 +43,42 @@ enum ScheduleParser {
     }.sorted { $0.number < $1.number }
   }
 
+  static func exams(_ data: Data) throws -> [Exam] {
+    let root = try object(data)
+    guard string(root["code"]) == "0", let rows = root["datas"] as? [[String: Any]] else {
+      throw ScheduleError.changedResponseAt("考试安排")
+    }
+    return try rows.map { row in
+      guard let courseName = row["courseName"] as? String, !courseName.isEmpty else {
+        throw ScheduleError.changedResponseAt("考试安排")
+      }
+      return Exam(
+        courseName: courseName,
+        courseNo: string(row["courseNo"]),
+        examTimeDescription: row["examTimeDescription"] as? String,
+        examDate: row["examDate"] as? String,
+        startTime: row["startTime"] as? String,
+        endTime: row["endTime"] as? String,
+        examPlace: row["examPlace"] as? String,
+        examSeatNo: string(row["examSeatNo"]),
+        week: integer(row["week"]),
+        examStatus: string(row["examStatus"]),
+        examType: row["examType"] as? String,
+        taskId: string(row["taskId"])
+      )
+    }
+    .sorted { left, right in
+      let lhs = "\(left.examDate ?? "9999-99-99") \(left.startTime ?? "99:99")"
+      let rhs = "\(right.examDate ?? "9999-99-99") \(right.startTime ?? "99:99")"
+      return lhs == rhs ? left.courseName.localizedStandardCompare(right.courseName) == .orderedAscending : lhs < rhs
+    }
+  }
+
   static func undergraduateCourses(_ data: Data) throws -> [CourseMeeting] {
     let root = try object(data)
     guard string(root["code"]) == "0", let datas = root["datas"] as? [String: Any],
           let rows = datas["arrangedList"] as? [[String: Any]] else { throw ScheduleError.changedResponse }
-    return try rows.enumerated().map { index, row in
+    let meetings = try rows.enumerated().map { index, row in
       guard let name = row["courseName"] as? String, !name.isEmpty,
             let day = integer(row["dayOfWeek"]), (1...7).contains(day),
             let start = integer(row["beginSection"]), let end = integer(row["endSection"]), start <= end else {
@@ -51,7 +89,8 @@ enum ScheduleParser {
                            startTime: row["beginTime"] as? String, endTime: row["endTime"] as? String,
                            place: row["placeName"] as? String, teacher: row["weeksAndTeachers"] as? String,
                            color: row["color"] as? String)
-    }.sorted(by: meetingOrder)
+    }
+    return mergeAdjacent(uniqueMeetings(meetings).sorted(by: meetingOrder))
   }
 
   static func graduateCourses(_ data: Data, termID: String, week: Int) throws -> [CourseMeeting] {
@@ -60,7 +99,7 @@ enum ScheduleParser {
       throw ScheduleError.changedResponse
     }
     let slots = (root["jcfaList"] as? [[String: Any]] ?? []).flatMap { $0["skjcList"] as? [[String: Any]] ?? [] }
-    let meetings = try rows.enumerated().compactMap { index, row in
+    let meetings: [CourseMeeting] = try rows.enumerated().compactMap { index, row -> CourseMeeting? in
       guard let bitmap = row["ZCBH"] as? String,
             bitmap.allSatisfy({ $0 == "0" || $0 == "1" }), week > 0 else {
         throw ScheduleError.changedResponse
@@ -76,8 +115,8 @@ enum ScheduleParser {
                            startTime: slotTime(slots, scheme: row["JCFADM"] as? String, section: start, key: "KSSJ"),
                            endTime: slotTime(slots, scheme: row["JCFADM"] as? String, section: end, key: "JSSJ"),
                            place: row["JASMC"] as? String, teacher: row["JGJSXM"] as? String, color: nil)
-    }.sorted(by: meetingOrder)
-    return mergeAdjacent(meetings)
+    }
+    return mergeAdjacent(uniqueMeetings(meetings).sorted(by: meetingOrder))
   }
 
   static func graduateWeeks(_ data: Data, termID: String) throws -> [SchoolWeek] {
@@ -146,22 +185,91 @@ enum ScheduleParser {
     lhs.day == rhs.day ? lhs.startSection < rhs.startSection : lhs.day < rhs.day
   }
 
+  private static func uniqueMeetings(_ meetings: [CourseMeeting]) -> [CourseMeeting] {
+    var positions: [MeetingKey: Int] = [:]
+    var result: [CourseMeeting] = []
+
+    for meeting in meetings {
+      let key = MeetingKey(
+        name: normalizedCourseName(meeting.name),
+        day: meeting.day,
+        startSection: meeting.startSection,
+        endSection: meeting.endSection
+      )
+      if let index = positions[key] {
+        let existing = result[index]
+        result[index] = CourseMeeting(
+          id: existing.id,
+          name: existing.name,
+          day: existing.day,
+          startSection: existing.startSection,
+          endSection: existing.endSection,
+          startTime: existing.startTime ?? meeting.startTime,
+          endTime: existing.endTime ?? meeting.endTime,
+          place: existing.place ?? meeting.place,
+          teacher: existing.teacher ?? meeting.teacher,
+          color: existing.color ?? meeting.color
+        )
+      } else {
+        positions[key] = result.count
+        result.append(meeting)
+      }
+    }
+
+    return result
+  }
+
+  private static func normalizedCourseName(_ name: String) -> String {
+    let normalized = name.precomposedStringWithCanonicalMapping
+      .split(whereSeparator: { $0.isWhitespace })
+      .joined(separator: " ")
+      .lowercased()
+    return normalized.isEmpty ? name : normalized
+  }
+
   private static func mergeAdjacent(_ meetings: [CourseMeeting]) -> [CourseMeeting] {
     var result: [CourseMeeting] = []
     for meeting in meetings {
       if let previous = result.last,
-         previous.day == meeting.day, previous.name == meeting.name,
-         previous.place == meeting.place, previous.teacher == meeting.teacher,
+         previous.day == meeting.day,
+         normalizedCourseName(previous.name) == normalizedCourseName(meeting.name),
+         compatible(previous.place, meeting.place),
          previous.endSection + 1 == meeting.startSection {
         result[result.count - 1] = CourseMeeting(id: previous.id, name: previous.name, day: previous.day,
                                                   startSection: previous.startSection, endSection: meeting.endSection,
-                                                  startTime: previous.startTime, endTime: meeting.endTime,
-                                                  place: previous.place, teacher: previous.teacher, color: previous.color)
+                                                  startTime: previous.startTime ?? meeting.startTime,
+                                                  endTime: meeting.endTime ?? previous.endTime,
+                                                  place: nonEmpty(previous.place) ?? meeting.place,
+                                                  teacher: mergedTeacher(previous.teacher, meeting.teacher),
+                                                  color: previous.color ?? meeting.color)
       } else {
         result.append(meeting)
       }
     }
     return result
+  }
+
+  private static func compatible(_ lhs: String?, _ rhs: String?) -> Bool {
+    guard let lhs = nonEmpty(lhs), let rhs = nonEmpty(rhs) else { return true }
+    return normalizedCourseName(lhs) == normalizedCourseName(rhs)
+  }
+
+  private static func nonEmpty(_ value: String?) -> String? {
+    guard let value else { return nil }
+    let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+    return trimmed.isEmpty ? nil : trimmed
+  }
+
+  private static func mergedTeacher(_ lhs: String?, _ rhs: String?) -> String? {
+    let left = nonEmpty(lhs)
+    let right = nonEmpty(rhs)
+    switch (left, right) {
+    case let (left?, right?) where normalizedCourseName(left) != normalizedCourseName(right):
+      return "\(left) / \(right)"
+    case let (left?, _): return left
+    case let (_, right?): return right
+    default: return nil
+    }
   }
 
   private static func slotTime(_ slots: [[String: Any]], scheme: String?, section: Int, key: String) -> String? {

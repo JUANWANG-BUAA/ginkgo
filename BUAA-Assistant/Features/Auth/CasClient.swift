@@ -20,6 +20,10 @@ protocol AuthSessionClient {
   func logout() async throws
 }
 
+protocol WebVPNSessionPreparing {
+  func establishWebVPNSession(username: String, password: String) async throws
+}
+
 enum CasClientError: LocalizedError {
   case invalidResponse
   case missingRedirectLocation
@@ -31,6 +35,7 @@ enum CasClientError: LocalizedError {
   case invalidCredentials
   case redirectLimit
   case sessionInvalid
+  case webVPNSessionCookieMissing
 
   var errorDescription: String? {
     switch self {
@@ -44,20 +49,47 @@ enum CasClientError: LocalizedError {
     case .invalidCredentials: "账号或密码错误，请检查后重试"
     case .redirectLimit: "认证服务跳转次数过多，请稍后重试"
     case .sessionInvalid: "认证未完成，请重新登录"
+    case .webVPNSessionCookieMissing: "WebVPN 网关未保存签到认证会话，请重新登录后重试"
     }
   }
 }
 
 /// CAS 认证链。登录请求使用不自动跟随重定向的会话（API.md §1.2）。
-actor CasClient: AuthSessionClient {
+actor CasClient: AuthSessionClient, WebVPNSessionPreparing {
   private let session: URLSession
+  private let routeThroughWebVPN: Bool
+  private let webVPNSession: URLSession?
   private let loginURL = URL(string: "https://sso.buaa.edu.cn/login")!
   private let ucActivationURL = URL(string: "https://uc.buaa.edu.cn/api/login?target=https%3A%2F%2Fuc.buaa.edu.cn%2F%23%2Fuser%2Flogin")!
   private let ucStatusURL = URL(string: "https://uc.buaa.edu.cn/api/uc/status")!
   private let logoutURL = URL(string: "https://sso.buaa.edu.cn/logout")!
 
-  init(session: URLSession = APIClient.shared.noRedirectSession) {
+  init(
+    session: URLSession = APIClient.shared.noRedirectSession,
+    routeThroughWebVPN: Bool = false,
+    webVPNSession: URLSession? = nil
+  ) {
     self.session = session
+    self.routeThroughWebVPN = routeThroughWebVPN
+    self.webVPNSession = webVPNSession
+  }
+
+  /// UBAA establishes the selected WebVPN-mode CAS session before using routed providers.
+  /// The direct CAS session remains intact; routed requests use the isolated WebVPN cookie store.
+  func establishWebVPNSession(username: String, password: String) async throws {
+    let webVPNRequestSession = webVPNSession
+      ?? (session === APIClient.shared.noRedirectSession ? APIClient.shared.webVPNNoRedirectSession : session)
+    let webVPNClient = CasClient(session: webVPNRequestSession, routeThroughWebVPN: true)
+    switch try await webVPNClient.fetchLoginPage() {
+    case .existingSession:
+      _ = try await webVPNClient.loginWithExistingSession()
+    case .loginPage(let page):
+      guard page.captcha == nil else { throw CasClientError.captchaRequired }
+      _ = try await webVPNClient.login(page: page, username: username, password: password, captchaText: nil)
+    }
+    let checkInURL = try WebVPNRouter.wrap(URL(string: "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter")!)
+    let gatewayCookies = webVPNRequestSession.configuration.httpCookieStorage?.cookies(for: checkInURL) ?? []
+    guard !gatewayCookies.isEmpty else { throw CasClientError.webVPNSessionCookieMissing }
   }
 
   func fetchLoginPage() async throws -> LoginPageResult {
@@ -65,28 +97,24 @@ actor CasClient: AuthSessionClient {
     request.httpMethod = "GET"
     request.timeoutInterval = 30
 
-    let (data, response): (Data, URLResponse)
+    let (data, http): (Data, HTTPURLResponse)
     do {
-      (data, response) = try await session.data(for: request)
+      (data, http) = try await send(request)
     } catch {
       AppLog.network.error("获取 CAS 登录页失败：\(error.localizedDescription, privacy: .private)")
       throw error
     }
-    guard let http = response as? HTTPURLResponse else {
-      AppLog.auth.error("CAS 登录页返回非 HTTP 响应")
-      throw CasClientError.invalidResponse
-    }
 
     if (300..<400).contains(http.statusCode) {
-      guard let location = http.value(forHTTPHeaderField: "Location"),
-            let redirectURL = URL(string: location, relativeTo: loginURL)?.absoluteURL,
-            redirectURL.scheme == "https"
-      else {
+      let targetURL: URL
+      do {
+        targetURL = try redirectURL(from: http, relativeTo: loginURL)
+      } catch {
         AppLog.auth.error("CAS 登录页跳转缺少有效的 HTTPS Location")
         throw CasClientError.missingRedirectLocation
       }
       AppLog.auth.info("CAS 登录页返回跳转，已有会话")
-      return .existingSession(redirectURL: redirectURL)
+      return .existingSession(redirectURL: targetURL)
     }
 
     guard http.statusCode == 200 else {
@@ -232,7 +260,15 @@ actor CasClient: AuthSessionClient {
 
   private func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
     do {
-      let (data, response) = try await session.data(for: request)
+      let routedRequest: URLRequest
+      if routeThroughWebVPN, let url = request.url {
+        var copy = request
+        copy.url = try WebVPNRouter.wrap(url)
+        routedRequest = copy
+      } else {
+        routedRequest = request
+      }
+      let (data, response) = try await session.data(for: routedRequest)
       guard let http = response as? HTTPURLResponse else { throw CasClientError.invalidResponse }
       return (data, http)
     } catch {
@@ -243,7 +279,7 @@ actor CasClient: AuthSessionClient {
 
   private func redirectURL(from response: HTTPURLResponse, relativeTo url: URL) throws -> URL {
     guard let location = response.value(forHTTPHeaderField: "Location"),
-          let target = URL(string: location, relativeTo: url)?.absoluteURL,
+          let target = WebVPNRouter.resolveRedirect(location, relativeTo: response.url.flatMap(WebVPNRouter.unwrap) ?? url),
           target.scheme == "https"
     else { throw CasClientError.missingRedirectLocation }
     return target

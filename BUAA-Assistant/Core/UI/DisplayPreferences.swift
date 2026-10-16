@@ -16,7 +16,7 @@ struct SearchField: View {
       TextField(prompt, text: $text).textFieldStyle(.plain).accessibilityLabel(prompt)
       if !text.isEmpty {
         Button { text = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary) }
-          .buttonStyle(.plain).help("清除搜索").accessibilityLabel("清除搜索")
+          .buttonStyle(.plain).help("清除搜索").accessibilityLabel("清除\(prompt)")
       }
     }
     .padding(10).background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))

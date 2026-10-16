@@ -7,6 +7,14 @@ struct UserData: Equatable {
   var name: String
 }
 
+enum WebVPNSessionStatus: Equatable {
+  case notAttempted
+  case preparing
+  case ready
+  case requiresCaptcha
+  case unavailable
+}
+
 /// 全局应用状态。UI 层通过 @EnvironmentObject 读取。
 @MainActor
 final class AppState: ObservableObject {
@@ -17,8 +25,10 @@ final class AppState: ObservableObject {
   @Published var notice: String?
   @Published var toast: String?
   @Published var toastIsError = false
+  @Published private(set) var webVPNSessionStatus: WebVPNSessionStatus = .notAttempted
 
   private(set) var rememberedCredential: SavedCredential?
+  var canRetryWebVPNSession: Bool { rememberedCredential != nil }
   private let authClient: AuthSessionClient
   private let credentialStore: CredentialStore
   private let cookieStore: CookieClearing
@@ -51,6 +61,9 @@ final class AppState: ObservableObject {
       user = verifiedUser
       isLoggedIn = true
       showToast("学校会话已验证，登录成功")
+      if let credential = rememberedCredential {
+        Task { await prepareWebVPNSession(username: credential.username, password: credential.password) }
+      }
       return
     } catch CasClientError.sessionInvalid {
       // 已确认无效，才允许尝试静默重登。
@@ -80,6 +93,7 @@ final class AppState: ObservableObject {
       isLoggedIn = true
       notice = nil
       showToast("自动登录成功，学校会话已验证")
+      Task { await prepareWebVPNSession(username: credential.username, password: credential.password) }
     } catch {
       AppLog.auth.error("自动登录失败：\(error.localizedDescription, privacy: .private)")
       notice = "自动登录未完成，请手动登录"
@@ -106,6 +120,46 @@ final class AppState: ObservableObject {
     isLoggedIn = true
     notice = nil
     showToast("学校会话已验证，登录成功")
+  }
+
+  func prepareWebVPNSession(username: String, password: String) async {
+    guard let preparer = authClient as? WebVPNSessionPreparing else { return }
+    guard webVPNSessionStatus != .preparing else { return }
+    webVPNSessionStatus = .preparing
+    do {
+      try await preparer.establishWebVPNSession(username: username, password: password)
+      webVPNSessionStatus = .ready
+      showToast("WebVPN CAS 会话已验证，正在核对签到状态")
+      if notice == "学校登录成功，但 WebVPN 会话未建立；签到状态暂时无法核对" {
+        notice = nil
+      }
+    } catch {
+      let networkError = error as NSError
+      AppLog.network.error(
+        "WebVPN CAS session bootstrap failed error_domain=\(networkError.domain, privacy: .public) error_code=\(networkError.code)"
+      )
+      if case CasClientError.captchaRequired = error {
+        webVPNSessionStatus = .requiresCaptcha
+        showToast("WebVPN 登录需要验证码，签到状态暂未确认", isError: true)
+      } else {
+        webVPNSessionStatus = .unavailable
+        showToast("签到 WebVPN 会话未准备，状态暂无法确认", isError: true)
+      }
+      notice = "学校登录成功，但 WebVPN 会话未建立；签到状态暂时无法核对"
+    }
+  }
+
+  func retryWebVPNSession() async {
+    guard let credential = rememberedCredential else {
+      showToast("签到服务需要重新登录学校账号以建立会话", isError: true)
+      return
+    }
+    await prepareWebVPNSession(username: credential.username, password: credential.password)
+  }
+
+  func markWebVPNSessionUnavailable() {
+    guard webVPNSessionStatus != .preparing else { return }
+    webVPNSessionStatus = .unavailable
   }
 
   /// 业务系统报未登录时调用：UC 复核确认无效才清本地会话。
@@ -143,6 +197,7 @@ final class AppState: ObservableObject {
     cookieStore.clearAll()
     user = nil
     isLoggedIn = false
+    webVPNSessionStatus = .notAttempted
     toastTask?.cancel()
     toast = nil
     if notice == nil {

@@ -12,6 +12,7 @@ struct TodayView: View {
       VStack(alignment: .leading, spacing: 24) {
         PageHeading(eyebrow: Date.now.formatted(.dateTime.weekday(.wide).month().day()),
                     title: "今天", subtitle: "今日课程与最近同步状态")
+        CheckInSummaryView()
         VStack(alignment: .leading, spacing: 12) {
           HStack {
             Text("接下来要做").font(.title2.weight(.semibold))
@@ -22,6 +23,9 @@ struct TodayView: View {
             StatusNotice(message: "正在检查学校作业…", kind: .information)
           } else if let error = homework.errorMessage {
             StatusNotice(message: "暂时无法确认学校作业状态：\(error)", kind: .warning)
+          } else if let snapshot = homework.snapshot, !snapshot.protocolChangedSources.isEmpty {
+            let sources = snapshot.protocolChangedSources.map(\.title).joined(separator: "、")
+            StatusNotice(message: "\(sources)接口格式可能已调整；暂时保留可用数据", kind: .warning)
           } else if let snapshot = homework.snapshot, !snapshot.unavailableSources.isEmpty {
             StatusNotice(message: "学校作业仅部分来源已更新（\(snapshot.unavailableSources.map(\.title).joined(separator: "、"))）", kind: .warning)
           } else if homework.snapshot == nil {
@@ -37,7 +41,7 @@ struct TodayView: View {
             ForEach(Array(pending.prefix(3))) { task in
               HStack {
                 Button { tasks.toggle(task.id) } label: { Image(systemName: "circle") }
-                  .buttonStyle(.plain).accessibilityLabel("完成任务")
+                  .buttonStyle(.plain).accessibilityLabel("完成待办：\(task.title)")
                 Text(task.title).lineLimit(2)
                 Spacer()
                 Text(task.due.formatted(date: .abbreviated, time: .shortened))
@@ -45,16 +49,15 @@ struct TodayView: View {
               }
             }
           }
-          Text("个人待办保存在本机；学校作业按最近查询结果展示，签到暂未接入。")
-            .font(.caption).foregroundStyle(.secondary)
-          if !homework.pendingItems.isEmpty {
+          let attentionItems = homework.attentionItems()
+          if !attentionItems.isEmpty {
             Divider()
             HStack {
-              Label("学校作业", systemImage: "doc.text.fill").font(.callout.weight(.medium))
+              Label("近期截止", systemImage: "clock.badge.exclamationmark").font(.callout.weight(.medium))
               Spacer()
-              Text("\(homework.pendingItems.count) 项待处理").font(.caption).foregroundStyle(.secondary)
+              Text("\(attentionItems.count) 项").font(.caption).foregroundStyle(.secondary)
             }
-            ForEach(Array(homework.pendingItems.prefix(2))) { item in
+            ForEach(Array(attentionItems.prefix(2))) { item in
               HStack {
                 Text(item.title).lineLimit(1)
                 Spacer()
@@ -110,6 +113,7 @@ struct TodayView: View {
                          detail: schedule.errorMessage ?? "请刷新后查看学校课表。")
           Button("重试") { Task { await schedule.refreshToday() } }.buttonStyle(.borderedProminent)
         }
+        CampusNoticesSummaryView()
       }
       .padding(24)
       .frame(maxWidth: 760, alignment: .leading)

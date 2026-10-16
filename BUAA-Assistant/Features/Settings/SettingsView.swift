@@ -1,13 +1,22 @@
 import SwiftUI
+import UserNotifications
 
 struct SettingsView: View {
   @EnvironmentObject private var appState: AppState
   @EnvironmentObject private var schedule: ScheduleViewModel
   @EnvironmentObject private var grades: GradeViewModel
+  @EnvironmentObject private var exams: ExamViewModel
   @EnvironmentObject private var classroom: ClassroomViewModel
   @EnvironmentObject private var homework: HomeworkViewModel
+  @EnvironmentObject private var library: LibraryViewModel
+  @EnvironmentObject private var campusNotices: CampusNoticesViewModel
+  @EnvironmentObject private var checkIn: CheckInViewModel
+  @EnvironmentObject private var courseReminders: CourseReminderScheduler
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.scenePhase) private var scenePhase
   @AppStorage("appearance") private var appearance = AppAppearance.system.rawValue
   @AppStorage("compactLists") private var compactLists = false
+  @StateObject private var launchAtLogin = LaunchAtLoginController()
   @State private var isLoggingOut = false
   @State private var clearing = false
   @State private var showLogout = false
@@ -42,10 +51,75 @@ struct SettingsView: View {
             }
           }.toggleStyle(.switch)
         }
+        settingsGroup("启动", symbol: "power", detail: "按需在你登录 macOS 时自动打开校园工作台") {
+          Toggle(isOn: Binding(
+            get: { launchAtLogin.isRegistered },
+            set: { launchAtLogin.setEnabled($0) }
+          )) {
+            VStack(alignment: .leading, spacing: 4) {
+              Text("登录时自动启动")
+              Text("由 macOS 管理此登录项；关闭开关会从系统登录项中注销。")
+                .font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+          }
+          .toggleStyle(.switch)
+
+          LabeledContent("当前状态", value: launchAtLogin.statusDescription)
+          if launchAtLogin.requiresApproval {
+            StatusNotice(message: "已向 macOS 注册；请在系统设置的“登录项”中允许 BUAA Assistant。", kind: .warning)
+            Button("打开登录项设置") { launchAtLogin.openLoginItemsSettings() }
+              .buttonStyle(.link)
+          }
+          if let errorMessage = launchAtLogin.errorMessage {
+            StatusNotice(message: errorMessage, kind: .warning)
+          }
+        }
+        settingsGroup("通知与提醒", symbol: "bell.badge", detail: "课程前提醒与签到状态通知分别控制") {
+          Toggle(isOn: Binding(
+            get: { courseReminders.isEnabled },
+            set: { setCourseRemindersEnabled($0) }
+          )) {
+            VStack(alignment: .leading, spacing: 4) {
+              Text("课程前 10 分钟提醒")
+              Text("使用未来 14 天内已缓存且有明确开课时间的周次；锁屏通知不显示课程名和地点。")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+          }
+          .toggleStyle(.switch)
+
+          Text(courseReminders.statusMessage)
+            .font(.caption)
+            .foregroundStyle(courseReminders.statusMessage.contains("未授权") ? Color.orange : Color.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+
+          Divider().padding(.vertical, 4)
+          Toggle(isOn: Binding(
+            get: { checkIn.notificationsEnabled },
+            set: { setCheckInNotificationsEnabled($0) }
+          )) {
+            VStack(alignment: .leading, spacing: 4) {
+              Text("课程签到状态变化提醒")
+              Text("只在状态从未签到变为已签到并经回查确认后通知，不会因重复刷新连发。")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+          }
+          .toggleStyle(.switch)
+
+          notificationPermissionStatus
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: checkIn.notificationAuthorization)
+        }
         settingsGroup("数据与缓存", symbol: "externaldrive", detail: "先展示已有数据，再按需从学校服务更新") {
-          LabeledContent("课表、成绩与作业", value: "本机缓存 · 按账号隔离")
+          LabeledContent("课表、考试、成绩与作业", value: "本机缓存 · 按账号隔离")
+          LabeledContent("图书馆", value: "本机缓存 · 每账号最多 2,000 个座位")
+          LabeledContent("签到状态与历史", value: "本机缓存 · 按账号隔离 · 最多 180 天历史")
+          LabeledContent("校园通知", value: "本机缓存 · 15 分钟更新")
           Divider().padding(.vertical, 8)
-          LabeledContent("空教室", value: "内存缓存 · 5 分钟 · 最多 12 个查询")
+          LabeledContent("空教室", value: "本机缓存 · 5 分钟 · 最多 12 个查询")
           Text("空教室普通查询优先复用缓存；强制刷新会重新查询。可用情况以学校和现场安排为准。")
             .font(.caption).foregroundStyle(.secondary).padding(.top, 6)
           Divider().padding(.vertical, 8)
@@ -74,7 +148,22 @@ struct SettingsView: View {
           Text("校园日常，从容有序")
         }.font(.caption).foregroundStyle(.secondary).padding(.horizontal, 4)
       }.padding(28).frame(maxWidth: 820).frame(maxWidth: .infinity)
-    }.background(Color(nsColor: .windowBackgroundColor))
+    }
+    .background(Color(nsColor: .windowBackgroundColor))
+    .task {
+      await checkIn.refreshNotificationAuthorization()
+      await courseReminders.update(snapshot: schedule.snapshot)
+      launchAtLogin.refresh()
+    }
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .active {
+        launchAtLogin.refresh()
+        Task {
+          await checkIn.refreshNotificationAuthorization()
+          await courseReminders.update(snapshot: schedule.snapshot)
+        }
+      }
+    }
       .confirmationDialog("退出登录？", isPresented: $showLogout) {
         Button("退出登录", role: .destructive) {
           isLoggingOut = true
@@ -83,7 +172,7 @@ struct SettingsView: View {
       } message: { Text("本机保存的登录凭据与会话会被清除。") }
       .confirmationDialog("清除查询缓存？", isPresented: $showCache) {
         Button("清除缓存", role: .destructive) { clearCache() }
-      } message: { Text("下次查看时需要重新查询课表、成绩和空教室。个人待办会保留。") }
+      } message: { Text("下次查看时需要重新查询课表、考试、成绩、作业、图书馆、签到历史、校园通知和空教室。个人待办会保留。") }
   }
 
   private func settingsGroup<Content: View>(_ title: String, symbol: String, detail: String, @ViewBuilder content: () -> Content) -> some View {
@@ -101,6 +190,94 @@ struct SettingsView: View {
       .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.primary.opacity(0.06)))
   }
 
+  @ViewBuilder
+  private var notificationPermissionStatus: some View {
+    switch checkIn.notificationAuthorization {
+    case .notDetermined:
+      HStack(alignment: .firstTextBaseline) {
+        Label("系统尚未授权；开启任一提醒时会请求 macOS 通知权限。", systemImage: "bell")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+        Spacer(minLength: 12)
+        Button("请求系统通知权限") {
+          Task {
+            let granted = await checkIn.requestNotificationAuthorization()
+            appState.showToast(granted ? "系统通知权限已开启" : "系统通知权限未开启；可稍后在系统设置中修改")
+          }
+        }
+        .buttonStyle(.link)
+      }
+    case .denied:
+      VStack(alignment: .leading, spacing: 8) {
+        StatusNotice(message: "系统已拒绝通知权限。请到系统设置 → 通知 → BUAA Assistant 开启；应用内状态提示不受影响。", kind: .warning)
+        Button("重新检查系统权限") {
+          Task { await checkIn.refreshNotificationAuthorization() }
+        }
+        .buttonStyle(.link)
+      }
+    case .authorized, .provisional, .ephemeral:
+      Label("系统通知已授权；课程提醒和签到提醒可分别关闭。", systemImage: "checkmark.circle")
+        .font(.caption)
+        .foregroundStyle(.secondary)
+    @unknown default:
+      Label("无法读取系统通知权限状态。", systemImage: "questionmark.circle")
+        .font(.caption)
+        .foregroundStyle(.secondary)
+    }
+  }
+
+  private func setCheckInNotificationsEnabled(_ enabled: Bool) {
+    withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
+      checkIn.setNotificationsEnabled(enabled)
+    }
+    guard enabled else { return }
+
+    switch checkIn.notificationAuthorization {
+    case .notDetermined:
+      Task {
+        let granted = await checkIn.requestNotificationAuthorization()
+        appState.showToast(
+          granted
+            ? "签到状态提醒已开启"
+            : "系统通知未授权；可在系统设置 → 通知 → BUAA Assistant 中开启"
+        )
+      }
+    case .denied:
+      appState.showToast("请先在系统设置 → 通知 → BUAA Assistant 中开启通知")
+    default:
+      break
+    }
+  }
+
+  private func setCourseRemindersEnabled(_ enabled: Bool) {
+    withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
+      courseReminders.setEnabled(enabled)
+    }
+    guard enabled else {
+      Task { await courseReminders.update(snapshot: schedule.snapshot) }
+      return
+    }
+
+    switch checkIn.notificationAuthorization {
+    case .notDetermined:
+      Task {
+        let granted = await checkIn.requestNotificationAuthorization()
+        await checkIn.refreshNotificationAuthorization()
+        await courseReminders.update(snapshot: schedule.snapshot)
+        appState.showToast(
+          granted
+            ? "课程提醒已开启"
+            : "系统通知未授权；可在系统设置 → 通知 → BUAA Assistant 中开启"
+        )
+      }
+    case .denied:
+      appState.showToast("请先在系统设置 → 通知 → BUAA Assistant 中开启通知")
+      Task { await courseReminders.update(snapshot: schedule.snapshot) }
+    default:
+      Task { await courseReminders.update(snapshot: schedule.snapshot) }
+    }
+  }
+
   private func clearCache() {
     guard let account = appState.user?.schoolid else { return }
     clearing = true
@@ -109,7 +286,13 @@ struct SettingsView: View {
       do {
         try await ScheduleCache().clear(for: account)
         try await GradeCache().clear(account: account)
-        schedule.reset(); grades.reset(); classroom.clearCache(); homework.reset()
+        try await HomeworkCache().clear(account: account)
+        try await exams.clearCache(account: account)
+        try await library.clearCache(account: account)
+        try await checkIn.clearCache(account: account)
+        try await classroom.clearCache(account: account)
+        try await campusNotices.clearCache()
+        schedule.reset(); grades.reset(); homework.reset()
         appState.showToast("查询缓存已清除")
       } catch {
         AppLog.network.error("缓存清理失败")

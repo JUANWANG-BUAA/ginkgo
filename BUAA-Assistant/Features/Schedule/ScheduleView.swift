@@ -4,6 +4,7 @@ struct ScheduleView: View {
   @EnvironmentObject private var appState: AppState
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @EnvironmentObject private var model: ScheduleViewModel
+  @EnvironmentObject private var exams: ExamViewModel
   @State private var mode = "周课表"
 
   var body: some View {
@@ -23,8 +24,11 @@ struct ScheduleView: View {
             Text("周课表").tag("周课表")
             Text("学期总览").tag("学期总览")
             Text("每日清单").tag("每日清单")
-          }.pickerStyle(.segmented).frame(maxWidth: 360)
-          if mode == "学期总览" {
+            if snapshot.portal == .undergraduate { Text("考试安排").tag("考试安排") }
+          }.pickerStyle(.segmented).frame(maxWidth: snapshot.portal == .undergraduate ? 480 : 360)
+          if mode == "考试安排", snapshot.portal == .undergraduate {
+            ExamScheduleSection(termID: snapshot.termID)
+          } else if mode == "学期总览" {
             SemesterOverview(snapshot: snapshot) { week in
               mode = "周课表"
               Task { await model.refresh(week: week) }
@@ -76,9 +80,17 @@ struct ScheduleView: View {
     .onChange(of: model.needsSessionCheck) { _, needed in
       if needed { Task { _ = try? await appState.confirmSessionAfterAuthFailure() } }
     }
+    .onChange(of: exams.needsSessionCheck) { _, needed in
+      if needed { Task { _ = try? await appState.confirmSessionAfterAuthFailure() } }
+    }
+    .onChange(of: snapshotPortal) { _, portal in
+      if portal != .undergraduate, mode == "考试安排" { mode = "周课表" }
+    }
     .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: model.snapshot?.weekNumber)
     .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: mode)
   }
+
+  private var snapshotPortal: SchedulePortal? { model.snapshot?.portal }
 
   private func controls(_ snapshot: ScheduleSnapshot) -> some View {
     HStack(spacing: 12) {

@@ -32,6 +32,24 @@
 | 19 | §3.1 注记 getUserInfo.do | 「UBAA 代码中无此请求」 | 限定为「**客户端直连链路**无此请求」；服务端 `ByxtService.kt:34` 预热逻辑会请求它 | 同上 |
 | 20 | §3.3 学期起点反推引用 | 「GSU:42-68」 | `GsmisSchedule.kt:42-68`（GSU 的 42-68 行是请求构造，系文件误标） | GitHub 仓库复核（2026-10-14） |
 | 21 | §5.3 Swift 实现注意 | 「kCCModeCBC 需手动处理填充」 | `CCCrypt` 直接开 `kCCOptionPKCS7Padding`（与上游手动 PKCS7+NoPadding 产出等价密文），无需手写填充 | CCCrypt 官方文档（2026-10-14） |
+| 22 | §7.1 本项目作业 provider 状态 | Judge 已接入、SPOC 待实现 | 两个直连 provider 已接入；CUA 实测 SPOC 返回作业列表。当前希冀请求受 ATS `-1022` 阻断，SPOC 完整性和 Judge 仍待分别验收 | 本项目运行态与脱敏日志（2026-10-15） |
+| 23 | §7.2 iclass 签到状态预研 | 仅 BBAA 代码参考 | 通过授权账号在 WebVPN 浏览器会话内观察只读 app 登录与当天课程查询：HTTP 200、业务状态 0，共 2 条记录，字段及 signStatus 取值已脱敏记录；原生直连跳转仍待验证 | 2026-10-15 浏览器只读观察；未保存原始响应 |
+| 24 | §7.2 本项目签到状态实现 | 尚无客户端 | 新增只读状态客户端、按学号隔离的内存 session、业务拒绝时刷新并重试幂等 GET、阶段化脱敏日志、失败保留旧数据、今天页状态卡片、约 30 秒检查、状态变化提示与用户授权的系统通知；真实系统通知投递未验收 | `Features/CheckIn/*`、`TodayView.swift`、`MainView.swift`（2026-10-15） |
+| 25 | §7.2 iclass 网络路线 | 只读状态查询仅直连 | 默认直连；遇到 TLS 握手失败时，按 UBAA 固定向量编码回退至北航 WebVPN。固定编码和模拟请求链有回归测试；2026-10-15 CUA 初次运行收到网关 HTTP 200 但未提取 loginName，2026-10-16 显式重建后 CAS 验证通过并读取到当天空课程状态；没有执行签到写入 | `WebVPNRouter.swift`、`CheckInClientTests.swift` 与脱敏运行日志（2026-10-16） |
+| 26 | §7.2 iclass 手动签到 | 本项目未实现写操作 | 按 BBAA `LocalSigninApi.kt` 移植服务器时间、表单提交及 `stuSignStatus=1` 判定；新增独立侧栏入口、逐课程人工二次确认、提交后立即 GET 回查；代码级 mock 覆盖通过。**未对真实账号发送签到写请求**，上游参数/成功语义仍待人工真实往返验收；不自动重发 | `CheckInClient.swift`、`CheckInSummaryView.swift`、`MainView.swift`、`CheckInClientTests.swift`（2026-10-15） |
+| 27 | §7.1 SPOC 作业时间 | Swift 未读取发布时间，截止解析不支持毫秒时区 | 对齐 BBAA `zykssj`（发布/开放）与 `zyjzsj`（截止）字段；时间解析增加带毫秒时区 ISO-8601 与本地日期格式。CUA 运行态中截止时间已恢复显示；新增解析与字段解码回归测试 | `SpocHomeworkClient.swift`、`HomeworkModels.swift`、`SpocHomeworkClientTests.swift`（2026-10-15） |
+| 28 | §7.1 SPOC 作业详情与提交能力边界 | 本项目仅有摘要列表；提交路径未知 | 按 BBAA 原实现补齐只读详情：正文、教师、作业分值、发布/截止时间、提交状态/时间；接口契约仅暴露列表和详情。CUA 实测详情读取成功并显示教师、分值与日期；抽样作业正文为空，上游详情页明确提示查看原站点。未在原版 LocalSpocApi/SpocApiBackend 中发现作业上传/提交方法，故不臆造写接口，需以本人正常网页操作的脱敏 HAR 继续取证 | `BBAA/shared/.../api/feature/SpocApi.kt:11-15`、`LocalSpocApi.kt:34-38,202-220`、`LocalSpocSupport.kt:188-209`；本项目 `HomeworkViewModel.swift`、`HomeworkView.swift` 及只读 CUA 运行态（2026-10-16） |
+| 29 | §2.6 考试安排实现状态 | 接口已记录，客户端未实现 | 新增本科考试安排查询、字段解析与课表内入口；研究生入口隐藏；mock 覆盖数字/字符串字段、排序、空列表和业务错误。尚待真实本科账号验收 | `ScheduleClient.swift`、`ScheduleParser.swift`、`ExamScheduleSection.swift` 与 `ScheduleParserTests.swift`（2026-10-16） |
+| 30 | §7.1 希冀作业详情数据 | 客户端只提取截止时间和粗略提交提示 | 对齐 BBAA 详情页解析，读取开始/截止时间、满分、得分、题目级状态/分数及整体进度；多课程 mock 验证切课后详情归属与 query 参数；未触发写操作 | `JudgeHomeworkClient.swift`、`LocalJudgeApi.kt:268-280,743-822` 与 `JudgeHomeworkClientTests.swift`（2026-10-16） |
+| 31 | §7.1 SPOC 提交/附件静态线索 | 仅知 BBAA 读接口，推定上游写协议未知 | 当前 SPOC SPA 静态 bundle 含 `POST /kczy/submitKcz2`（`application/x-www-form-urlencoded`）、`GET /kczy/queryFjList` 的 API 包装定义，以及编辑器通用上传路由。进一步静态检查未找到两个作业包装函数的页面调用：`submitKcz2` 与 `queryFjList` 只见定义、未见模块内调用，也不在该模块导出映射中。具体作业页面调用关系、字段、文件绑定与成功回查仍未确认；不发请求、不实现写入 | `https://spoc.buaa.edu.cn/spocnew/js/app.cf9bd4cf.js`（2026-10-16 公开静态资源，只读检查） |
+| 32 | §7.1 SPOC 学期上下文 | 桌面端只保留作业项，查询后丢弃学期名称/代码 | 保留当前学期 `dqxq`（名称）与 `mrxq`（查询代码）到统一作业快照和本地缓存，并在页面显示。该上下文来自列表所用的当前学期查询，不单独用于推断学期是否完整 | BBAA `LocalSpocApi.kt:40-42,75-78`、`Spoc.kt:13-19`；本项目 `SpocHomeworkClient.swift` 与 `HomeworkModels.swift`（2026-10-16） |
+| 33 | §7.1 SPOC 作业课程上下文 | 列表只解析课程 ID 用于课程名关联，随后丢弃 | 将列表记录 `sskcid` 保存为统一作业项可选 `courseID`，并纳入缓存；旧缓存缺该字段可继续解码。仅保留上游已返回的标识，不推断其为提交接口必需参数 | BBAA `LocalSpocApi.kt:50-62`、`Spoc.kt:21-34`；本项目 `SpocHomeworkClient.swift`、`HomeworkModels.swift` 及兼容性测试（2026-10-16） |
+| 34 | §7.2 WebVPN 临时会话恢复 | 网关页返回后只能手动重启 App/重新登录 | 明确 WebVPN 会话仍只保存在进程内；iclass 回退识别到网关登录页时将会话状态标为不可用。仅在 Keychain 已有用户选择保存的凭据时显示显式重建按钮；无已存凭据不发认证请求，提示用户重新登录。无协议变更、不持久化 Cookie | `AppState.swift`、`CheckInViewModel.swift`、`CheckInSummaryView.swift`、`MainView.swift` 与回归测试（2026-10-16） |
+| 35 | §7.1 SPOC 未知提交状态 | 列表将未识别 `tjzt` 映射为“待确认”后丢弃原值 | 保持 `UNKNOWN` 状态语义，同时将非空原始 `tjzt` 作为可选 `statusDetail` 缓存；卡片及详情展示限长来源状态，旧缓存无此字段仍可解码 | BBAA `LocalSpocSupport.kt:80-99`；本项目 `SpocHomeworkClient.swift`、`HomeworkModels.swift` 与测试（2026-10-16） |
+| 36 | §7.2 iclass 当天课程空结果 | 所有非 `0` `STATUS` 都清除 iclass session 并重试，导致 `STATUS=2` 被显示为会话拒绝 | 仅在当天课程查询端点把字符串或整数 `STATUS=2` 映射为空课程快照，不刷新 session；其他业务状态仍按拒绝处理。UBAA 本身未区分状态码 `2`，此映射依据公开 iclass 用户脚本的解析注释，并与 2026-10-16 本机只读请求观察到的 `STATUS=2` 相符；不是官方协议确认 | `LocalSigninApi.kt:93-103`；[公开用户脚本解析](https://greasyfork.org/zh-CN/scripts/553469-%E4%B8%8D%E6%99%BA%E6%85%A7%E6%95%99%E5%AE%A4/code)；本机脱敏日志与 `CheckInClientTests.swift`（2026-10-16） |
+| 37 | §7.2 签到重复响应与并发读取 | ViewModel 可被多个入口同时刷新，解析器也保留重复课程 ID | 在 ViewModel 层跳过并发刷新；课程列表按上游 `id` 去重。同 ID 记录的课程信息或状态冲突时标为待确认，不允许误触发签到。此为客户端健壮性处理，不代表上游保证 ID 唯一 | 本项目 `CheckInViewModel.swift`、`CheckInClient.swift` 与合成响应回归测试（2026-10-16） |
+| 38 | §5.5 官网图书馆实时空间数据 | 只有预约端可用/总座位，没有在馆人数 | 官网公开只读页面返回学院路、沙河校区在馆人数；另有沙河特色阅览室人数与座位/研讨间/寄存柜余量。客户端按字段语义分别解析并以独立无 Cookie 会话读取；本机按校区/日期/小时保存聚合样本 | 官网公开页 `/engine2/buaa/more/1082575?websiteId=113745&pageId=208561&wfwfid=16662`（2026-10-16 无认证 GET）；`LibraryPublicStats.swift`、`LibraryPublicStatsParserTests.swift`、CUA 无障碍树运行态 |
+| 39 | §5.2 图书馆预约状态与取消 | 文档只列预约记录字段，未说明终态不可取消 | 保留 `status/status_name`；状态码 `6/8`、文案含“取消/结束/已完成/过期/失效”或记录结束时间已过时隐藏取消动作，历史记录仍只读显示。预约列表按上游页码读取，客户端每页请求 40 条 | BBAA `LibBook.kt:104-119`、`LibBookBookingStatusTest.kt:8-39`；当前项目 `LibraryClient.swift` 与回归测试（2026-10-16） |
 
 ## 0. 文档约定
 
@@ -536,6 +554,18 @@ IV：固定 "ZZWBKJ_ZHIHUAWEI"
 
 `booking.lib.buaa.edu.cn` 呈现的证书链不被 JVM/Android 信任，UBAA 在这两个平台对该域名做了**仅限图书馆客户端**的放宽信任（`LocalLibBookHttpClient.kt` 注释 + jvm/android actual）。**iOS/macOS（Darwin 引擎）没有做任何放宽**——可能系统信任该链，也可能同样失败。macOS 首次联调时把这一项列为必测项；若失败，处理方案与安全代价需单独评估（不建议静默全站放宽）。
 
+### 5.5 官网实时空间数据（公开只读）
+
+北航图书馆公开网站的“空间实时数据”组件链接到一个无需图书馆登录的 HTML 页面：
+
+```http
+GET https://lib.buaa.edu.cn/engine2/buaa/more/1082575?websiteId=113745&pageId=208561&wfwfid=16662
+```
+
+官网主页面通过空间数据组件（应用 ID `1082607`）展示该入口。详情页按 `t_xylxq`、`t_shxq` 分隔学院路与沙河数据，列表中 `图书馆 N 人` 是当前在馆人数；沙河还列出特色阅览室 B1/B2 人数。`预约座位`、`研讨间`、`寄存柜` 的“空闲/总计”字段表示资源余量，不是实时人数或占用率。页面没有公开逐层、逐楼的完整人数分布。
+
+客户端通过不共享校园 Cookie 的 ephemeral `URLSession` 发起 GET，只保存解析后的数字，不保存网页正文。图书馆页面打开时读取并每 30 分钟更新；本机以“校区 + 日期 + 小时”为键保留最近 60 天、最多 4,000 条人数样本，同一小时的重复刷新会替换旧值。趋势按小时汇总；时段估算取最近 60 天内同星期、同小时的样本均值，至少有 3 个历史日才显示。它是本机历史均值，不是官网预测，也不能推断官网没有提供的楼层人数。
+
 ---
 
 ## 6. 图书馆借阅查询 ⚠️（待验证，探索性目标）
@@ -568,9 +598,41 @@ IV：固定 "ZZWBKJ_ZHIHUAWEI"
 BBAA 原版并非只有一个作业来源，而是同时实现了两套直连上游：
 
 - **希冀 Judge**：`shared/src/commonMain/kotlin/cn/edu/ubaa/api/local/LocalJudgeApi.kt`。先访问 `sso.buaa.edu.cn/login?service=http%3A%2F%2Fjudge.buaa.edu.cn%2F` 激活 Cookie，再访问 `judge.buaa.edu.cn/courselist.jsp?courseID=0`、课程选择页和 `assignment/index.jsp`，解析 HTML 课程、作业和详情。原版列表缓存 TTL 为 5 分钟，详情缓存 TTL 为 2 分钟。
+
+Judge 作业详情页同时包含开始/截止时间、满分、题目表格、题目提交状态及得分。桌面端现按原版本地客户端解析题目行并显示整体进度和分数；读取详情前重新选择所属课程，避免依赖共享会话中偶然残留的当前课程。Judge 解析仅用于只读信息展示，不暴露作业提交操作。
 - **SPOC**：`LocalSpocApi.kt` + `LocalSpocSupport.kt`。通过 `spoc.buaa.edu.cn/spocnewht/cas` 获取 token，再调用 `sys/casLogin` 获取 `RoleCode`；当前学期和课程来自 `inco/ht/queryOne`、`jxkj/queryKclb`，作业分页来自 `inco/ht/queryListByPage`。分页参数使用 AES-CBC（key `inco12345678ocni`，IV `ocni12345678inco`，零填充）后 Base64 编码。
 
-`/api/v1/judge/*` 和 `/api/v1/spoc/*` 仍是 BBAA 服务端中转路由，本项目不调用它们。当前 Swift 工程已先接入 Judge 的直连结构和统一作业模型；SPOC 作为第二 provider，需复用 BBAA 的加密测试向量实现后再接入。
+作业页时间字段：分页记录的 `zykssj` 是开始/发布时间、`zyjzsj` 是截止时间。UBAA 对 ISO-8601 毫秒与时区输入做归一化；Swift 客户端现按同类格式解析并在列表中分行展示发布与截止时间。某条记录若上游字段为空或无法解析，仍明确显示“未确认”，不伪造时间。
+
+提交状态字段 `tjzt` 按已知字符串/代码映射为已提交或未提交；原实现对未知非空值保留 `UNKNOWN`，并由 `submissionStatusText` 附上原始文本。Swift 端同步保留可选 `statusDetail`，仅在状态未知时用于卡片/详情的“上游状态”说明，展示最多 48 个字符；该值缺失时仍显示“待确认”，不改变状态判断或筛选。
+
+原版只读详情通过 `GET /spocnewht/kczy/queryKczyInfoByid?id=<assignmentId>` 获取作业正文、时间与分值，通过 `GET /spocnewht/kczy/queryXsSubmitKczyInfo?kczyid=<assignmentId>` 获取提交状态与提交时间；课程查询还提供教师 `skjs`，作业分页项提供课程标识 `sskcid`（BBAA 映射为 DTO `courseId`）。桌面端将该标识作为可选 `courseID` 保存到作业模型与缓存，老缓存缺失时仍可读取；这里只保留已观察字段，不推断任何提交请求参数。BBAA `SpocApiBackend` 接口只定义 `getAssignments()` 与 `getAssignmentDetail()`，`LocalSpocApi` 也只有这两条读路径。当前检查未发现 SPOC 作业上传/提交方法或可引用的上传端点；这只是对当前 BBAA 源码的限定性结论，不代表上游不存在该功能。桌面端详情查询据此按只读实现，上传仍等待正常浏览器操作的脱敏 HAR、字段/附件协议和人工确认。
+
+2026-10-16 只读检查 SPOC 官网当前静态 SPA bundle `js/app.cf9bd4cf.js`，发现前端 API 模块声明 `POST /kczy/submitKcz2`，请求体通过导入依赖的 `stringify` 函数序列化并标注 `application/x-www-form-urlencoded`；同一模块还声明 `GET /kczy/queryFjList`（查询参数）及多个作业列表/详情方法。进一步检查该模块的定义、导出映射与函数引用：`submitKcz2`（局部函数 `E`）和 `queryFjList`（局部函数 `J`）均只见定义、未见模块内调用，也未导出。这是“静态 bundle 含未见调用的路由包装”证据，不能证明当前页面实际使用它们；仍未确认字段、权限角色、附件 ID 绑定、响应成功条件或提交后查询是否权威。bundle 中另出现 TinyMCE 编辑器使用的 `/fileManagerSystem/uploadFullfile`（multipart 字段 `file`）与 `/customFileManagerSystem/editorUploadFile`；前者在编辑器上传 handler 中被调用，二者当前只能标为通用编辑器上传链路，不能据此认定为学生作业附件上传。公开的同名 `.js.map` source map 返回 404，无法借助映射文件还原组件调用关系。BBAA `SpocAssignmentsResponse` 另含学期名称/代码，桌面端本轮开始保留这两个查询上下文字段用于界面提示；该学期信息不能替代来源完整性判断。桌面端继续保持只读，待正常网页操作的脱敏 HAR 或可关联的页面调用证据后再实现。
+
+2026-10-16 CUA 运行态对一个列表作业打开详情，界面成功显示授课教师、提交状态、发布时间、截止时间和作业分值；该条目的正文未由上游返回，界面提示原站点检查。因系统窗口截图捕获当前不可用，本次 UI 证据来自应用无障碍树；这是已打开页面的状态证据，不代表正文字段对所有 SPOC 作业均为空。
+
+`/api/v1/judge/*` 和 `/api/v1/spoc/*` 仍是 BBAA 服务端中转路由，本项目不调用它们。当前 Swift 工程已接入 Judge 与 SPOC 两个直连 provider 和统一作业模型；SPOC AES-CBC 有 UBAA 黄金向量回归测试，CUA 实测列表返回 13 项且时间修复后可见截止时间。SPOC 全课程完整性、发布字段逐条正确性与 Judge 仍需分别真实账号验收；尤其 Judge 详情页提交状态必须由本人逐项对照确认。
+
+### 7.2 iclass 签到状态与手动提交（写协议尚待真实验收）
+
+候选流程最初来自 BBAA `LocalSigninApi.kt` 与模拟测试。2026-10-15 经用户授权的临时账号，通过北航 WebVPN 浏览器会话对真实服务进行了只读请求观察；没有执行签到提交，未保存原始响应或账号字段。
+
+- 认证入口：`https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter`。正常 SSO 会话跳转后，最终 URL 查询中含 `loginName`；本项目从重定向 Location/最终 URL 提取，不记录该值。
+- app session：GET `https://iclass.buaa.edu.cn:8347/app/user/login.action`，查询参数 `password`（空值）、`phone`（上一步 loginName）、`userLevel=1`、`verificationType=2`、`verificationUrl`（空值）。本次观察到 HTTP 200、`STATUS=0`，响应 `result` 含 `id` 和 `sessionId`；两值仅用于内存请求，不持久化。
+- 当天列表：GET `https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action`，查询参数 `id`、`dateStr=yyyyMMdd`，请求头 `sessionId`。本次观察到 HTTP 200、`STATUS=0`、`total=2`、返回 2 条记录；字段名包括 `id`、`courseName`、`classBeginTime`、`classEndTime`、`signStatus` 等。脱敏观察到 `signStatus` 值 `0` 和 `1`；BBAA DTO 将其解释为未签到/已签到。
+- 此次真实请求经官方 WebVPN 网关转发。当前开发环境直连 iclass 时 TLS 握手失败；本项目因此仅为只读 iclass 查询增加窄范围回退：直连遇到 `secureConnectionFailed` 后改由 `d.buaa.edu.cn` 转发，并按 BBAA `LocalWebVpnSupport.kt` 的 URL 编码和重定向规则处理。固定向量和模拟请求链测试通过；2026-10-15 CUA 实测收到 WebVPN 网关 HTTP 200 页面，但尚未提取到 loginName。当前错误会明确提示 WebVPN 尚未返回 iclass 认证信息，不能据此宣称签到状态已成功读取。
+- WebVPN CookieStorage 为隔离的进程内临时存储，不写入文件或 UserDefaults。若只读回退收到网关登录页，ViewModel 将暴露 WebVPN 认证不可用状态；UI 在 Keychain 有用户选择保存的凭据时提供显式会话重建按钮，未保存凭据时提示重新登录，不会自动读取/保存新的密码。该恢复按钮仅重建现有 WebVPN CAS 会话，不发送签到写请求；重建成功仍需 iclass 回查成功才算状态已确认。
+- UBAA 原版 `LocalSigninApi.kt` 按学号隔离 iclass session，并在课程查询业务状态拒绝时刷新 session 后仅重试一次幂等 GET（第 38-40、71-103、188-218 行）；本项目现已对齐这两项行为。参考实现将部分其他 HTTP/业务异常转换成成功空列表；本项目仍把失败与真实空列表分开，保留最后成功快照并显示最后核对时间。未识别的 `signStatus` 映射为“状态待确认”。
+- 2026-10-16 运行截图显示 WebVPN CAS 已验证，但课程列表的 iclass `STATUS` 被拒绝。旧 UI 曾把连续业务拒绝错误显示为“学校会话已失效”；现改为单独的 iclass 未确认错误。HTTP 401/SSO 跳转时先清除旧 iclass session 并重建、重试一次；若主学校会话复核仍有效，再进行一次有界状态回查。已保存凭据的用户还可显式重建临时签到会话。没有改写协议，也没有自动重试签到写请求。
+- 2026-10-16 CUA 只读复测中，WebVPN CAS 已验证，课程查询连续返回 `STATUS=2`。BBAA 原实现会把所有非成功状态刷新一次后再返回空列表，无法区分无课和认证错误；公开 iclass 用户脚本明确将当天课程查询的 `STATUS=2` 解析为空结果。桌面端现仅对该查询状态返回空课程快照，并避免无意义的 session 刷新；其他端点和未知业务状态仍保持错误处理。该状态码含义有第三方代码佐证和本机运行态吻合，但尚无官方协议文档确认。
+- 页面出现、定时轮询和会话状态变化可能同时请求签到状态；实现现跳过进行中的刷新，并折叠重复课程 ID。若重复 ID 的字段或签到状态不一致，将显示待确认且不提供签到按钮。该处理有合成响应回归测试，不代表已观察到真实响应含重复 ID。
+- 本项目对 SSO 跳转、app 登录和课程查询分别记录脱敏 OSLog 阶段、HTTP/业务状态或网络错误域/码；日志不得包含 loginName、sessionId、Cookie、查询串或响应正文。重定向诊断仅记录状态码与 Location 形态，不记录 Location 内容。
+- BBAA `LocalSigninApi.kt` 的写请求为先 GET `https://iclass.buaa.edu.cn:8347/app/common/get_timestamp.action`，再 POST `https://iclass.buaa.edu.cn:8347/app/course/stu_scan_sign.action`，查询参数 `courseSchedId`、`timestamp`，表单字段 `id`，请求头 `sessionId`。BBAA 以 `STATUS` 成功且 `result.stuSignStatus == 1` 判定提交成功。本项目现按此实现手动操作；这些写请求尚未由本项目对真实上游实测，故不把源码对照标成协议验收。
+- 界面仅在用户逐课程点击并确认后发送写请求；不自动签到、不自动重发。收到成功响应后立即再次读取当天课程，只有回查到 `signStatus == 1` 才显示绿色“签到成功，课程状态已回查确认”；提交超时、回查失败或状态未变化时保留“结果待确认”并提供刷新，不宣称成功。
+- 本项目对 SSO、app 登录、课程查询、服务器时间和提交阶段分别记录脱敏 OSLog；日志不得包含 loginName、sessionId、Cookie、查询串或响应正文。应用内状态变化提示与用户授权后的通用 macOS 通知已接入；真实写入往返、通知投递、后台/休眠行为仍待人工验收。
+
+只读字段以真实 WebVPN 转发响应为据；本轮 CUA 已验证当前 App 经 WebVPN CAS 读取当天无课状态。提交协议目前仅以 BBAA 源码为参考，真实签到写入、通知投递和后台/休眠行为仍待验收。
 
 ---
 

@@ -16,6 +16,7 @@ final class CasClientTests: XCTestCase {
 
   override func tearDown() {
     CasMockURLProtocol.handler = nil
+    CasMockURLProtocol.cookieStorage = nil
     session.invalidateAndCancel()
     client = nil
     session = nil
@@ -177,10 +178,85 @@ final class CasClientTests: XCTestCase {
       XCTAssertEqual(message, "账号或密码错误")
     }
   }
+
+  func test_establishWebVPNSession_routesCASAndUCThroughGateway() async throws {
+    var upstreamRequests: [String] = []
+    CasMockURLProtocol.cookieStorage = session.configuration.httpCookieStorage
+    let casDoneURL = try WebVPNRouter.wrap(URL(string: "https://sso.buaa.edu.cn/cas/done")!).absoluteString
+    CasMockURLProtocol.handler = { request in
+      guard let gatewayURL = request.url else {
+        XCTFail("WebVPN authentication request has no URL")
+        return (500, [:], Data())
+      }
+      XCTAssertEqual(gatewayURL.host, "d.buaa.edu.cn", "routed auth URL: \(gatewayURL.absoluteString)")
+      guard
+            let upstreamURL = WebVPNRouter.unwrap(gatewayURL) else {
+        XCTFail("WebVPN URL must decode to its upstream URL")
+        return (500, [:], Data())
+      }
+      upstreamRequests.append("\(request.httpMethod ?? "GET") \(upstreamURL.absoluteString)")
+
+      if upstreamURL.host == "sso.buaa.edu.cn", upstreamURL.path == "/login", request.httpMethod == "GET" {
+        let cookie = HTTPCookie(properties: [
+          .domain: "d.buaa.edu.cn", .path: "/", .name: "webvpn_session", .value: "fixture-session", .secure: "TRUE"
+        ])!
+        CasMockURLProtocol.cookieStorage?.setCookie(cookie)
+        return (
+          200,
+          ["Set-Cookie": "webvpn_session=fixture-session; Path=/; Secure"],
+          Data(#"<input type="hidden" name="execution" value="webvpn-e1">"#.utf8)
+        )
+      }
+      if upstreamURL.host == "sso.buaa.edu.cn", upstreamURL.path == "/login", request.httpMethod == "POST" {
+        return (302, ["Location": casDoneURL], Data())
+      }
+      if upstreamURL.host == "sso.buaa.edu.cn", upstreamURL.path == "/cas/done" {
+        return (200, [:], Data("done".utf8))
+      }
+      if upstreamURL.host == "uc.buaa.edu.cn", upstreamURL.path == "/api/login" {
+        return (200, [:], Data("ok".utf8))
+      }
+      if upstreamURL.host == "uc.buaa.edu.cn", upstreamURL.path == "/api/uc/status" {
+        return (200, [:], Data(#"{"code":0,"data":{"schoolid":"sy2501001","name":"李文"}}"#.utf8))
+      }
+      XCTFail("Unexpected routed CAS request")
+      return (404, [:], Data())
+    }
+
+    try await client.establishWebVPNSession(username: "sy2501001", password: "synthetic-password")
+
+    XCTAssertTrue(
+      session.configuration.httpCookieStorage?.cookies(for: URL(string: "https://d.buaa.edu.cn/")!)?
+        .contains(where: { $0.name == "webvpn_session" }) == true,
+      "CAS bootstrap must retain gateway cookies in the session store"
+    )
+    XCTAssertEqual(upstreamRequests.count, 5)
+    XCTAssertTrue(upstreamRequests[0].contains("sso.buaa.edu.cn/login"))
+    XCTAssertTrue(upstreamRequests[1].contains("sso.buaa.edu.cn/login"))
+    XCTAssertTrue(upstreamRequests[2].contains("sso.buaa.edu.cn/cas/done"))
+    XCTAssertTrue(upstreamRequests[3].contains("uc.buaa.edu.cn/api/login"))
+    XCTAssertTrue(upstreamRequests[4].contains("uc.buaa.edu.cn/api/uc/status"))
+  }
+
+  func test_establishWebVPNSession_doesNotSubmitWithoutItsOwnCaptcha() async throws {
+    var postCount = 0
+    CasMockURLProtocol.handler = { request in
+      if request.httpMethod == "POST" { postCount += 1 }
+      return (200, [:], Data(#"<input name="execution" value="e1"><script>config.captcha = { type: 'local', id: 'webvpn-captcha' }</script>"#.utf8))
+    }
+
+    do {
+      try await client.establishWebVPNSession(username: "sy2501001", password: "synthetic-password")
+      XCTFail("WebVPN-specific captcha must not be skipped or submitted with an unrelated answer")
+    } catch CasClientError.captchaRequired {
+      XCTAssertEqual(postCount, 0)
+    }
+  }
 }
 
 private final class CasMockURLProtocol: URLProtocol {
   static var handler: ((URLRequest) -> (Int, [String: String], Data))?
+  static var cookieStorage: HTTPCookieStorage?
 
   override class func canInit(with request: URLRequest) -> Bool { true }
   override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }

@@ -5,7 +5,9 @@ import SwiftUI
 struct RootView: View {
   @AppStorage("appearance") private var appearance = AppAppearance.system.rawValue
   @EnvironmentObject private var appState: AppState
+  @EnvironmentObject private var courseReminders: CourseReminderScheduler
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.openWindow) private var openWindow
 
   var body: some View {
     ZStack {
@@ -34,7 +36,16 @@ struct RootView: View {
     }
     .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: appState.isLoggedIn)
     .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: appState.toast)
-    .task { await appState.restoreSession() }
+    .onAppear {
+      AppWindowRouter.shared.setOpenMainWindow { openWindow(id: "main") }
+    }
+    .task {
+      await appState.restoreSession()
+      if !appState.isLoggedIn { await courseReminders.update(snapshot: nil) }
+    }
+    .onChange(of: appState.isLoggedIn) { _, isLoggedIn in
+      if !isLoggedIn { Task { await courseReminders.update(snapshot: nil) } }
+    }
     .preferredColorScheme(AppAppearance(rawValue: appearance)?.colorScheme)
   }
 }

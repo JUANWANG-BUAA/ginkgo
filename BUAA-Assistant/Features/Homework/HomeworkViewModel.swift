@@ -6,11 +6,16 @@ final class HomeworkViewModel: ObservableObject {
   @Published private(set) var isLoading = false
   @Published private(set) var errorMessage: String?
   @Published private(set) var needsSessionCheck = false
+  @Published private(set) var detail: HomeworkDetail?
+  @Published private(set) var detailItemID: String?
+  @Published private(set) var isLoadingDetail = false
+  @Published private(set) var detailErrorMessage: String?
 
   private let service: HomeworkServing
   private let cache: HomeworkCache
   private var account: String?
   private var generation = 0
+  private var detailGeneration = 0
 
   init(service: HomeworkServing = HomeworkClient(), cache: HomeworkCache = HomeworkCache()) {
     self.service = service
@@ -20,6 +25,14 @@ final class HomeworkViewModel: ObservableObject {
   var pendingItems: [HomeworkItem] {
     snapshot?.items.filter { $0.status == .pending || $0.status == .overdue }
       .sorted { ($0.dueAt ?? .distantFuture) < ($1.dueAt ?? .distantFuture) } ?? []
+  }
+
+  func attentionItems(now: Date = Date(), leadTime: TimeInterval = 24 * 60 * 60) -> [HomeworkItem] {
+    let deadline = now.addingTimeInterval(max(0, leadTime))
+    return pendingItems.filter { item in
+      guard item.status == .pending, let dueAt = item.dueAt else { return false }
+      return dueAt >= now && dueAt <= deadline
+    }
   }
 
   func start(account: String) async {
@@ -35,11 +48,16 @@ final class HomeworkViewModel: ObservableObject {
 
   func reset() {
     generation += 1
+    detailGeneration += 1
     account = nil
     snapshot = nil
     isLoading = false
     errorMessage = nil
     needsSessionCheck = false
+    detail = nil
+    detailItemID = nil
+    isLoadingDetail = false
+    detailErrorMessage = nil
   }
 
   func refresh() async {
@@ -59,6 +77,46 @@ final class HomeworkViewModel: ObservableObject {
       errorMessage = (error as? LocalizedError)?.errorDescription ?? "学校作业更新失败"
       if case HomeworkError.sessionExpired = error { needsSessionCheck = true }
     }
+  }
+
+  func loadDetail(for item: HomeworkItem) async {
+    if detailItemID == item.id, detail != nil { return }
+    if detailItemID == item.id, isLoadingDetail { return }
+
+    detailGeneration += 1
+    let current = detailGeneration
+    detailItemID = item.id
+    detail = nil
+    detailErrorMessage = nil
+    isLoadingDetail = true
+    needsSessionCheck = false
+    defer {
+      if current == detailGeneration { isLoadingDetail = false }
+    }
+
+    guard let detailService = service as? HomeworkDetailServing else {
+      detailErrorMessage = "当前作业来源暂不支持应用内详情，请打开原作业页面查看。"
+      return
+    }
+
+    do {
+      let result = try await detailService.loadDetail(for: item)
+      guard current == detailGeneration else { return }
+      detail = result
+    } catch {
+      guard current == detailGeneration else { return }
+      detailErrorMessage = (error as? LocalizedError)?.errorDescription ?? "作业详情加载失败"
+      if case HomeworkError.sessionExpired = error { needsSessionCheck = true }
+      if case HomeworkError.spocAuthenticationExpired = error { needsSessionCheck = true }
+    }
+  }
+
+  func clearDetail() {
+    detailGeneration += 1
+    detail = nil
+    detailItemID = nil
+    isLoadingDetail = false
+    detailErrorMessage = nil
   }
 
   func clearCache() async throws {

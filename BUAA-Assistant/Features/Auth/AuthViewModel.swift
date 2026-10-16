@@ -52,6 +52,12 @@ final class AuthViewModel: ObservableObject {
             statusMessage = "已找到学校会话，正在验证…"
             let user = try await casClient.loginWithExistingSession()
             appState.acceptExistingSession(user)
+            Task {
+              await appState.prepareWebVPNSession(
+                username: username.trimmingCharacters(in: .whitespacesAndNewlines),
+                password: password
+              )
+            }
             return
           case .loginPage(let page):
             preparedPage = page
@@ -82,6 +88,12 @@ final class AuthViewModel: ObservableObject {
           AppLog.auth.error("登录后保存凭据失败：\(error.localizedDescription, privacy: .private)")
           appState.acceptExistingSession(user)
           appState.notice = "已登录，但本机保存登录凭据失败，请检查钥匙串"
+        }
+        Task {
+          await appState.prepareWebVPNSession(
+            username: username.trimmingCharacters(in: .whitespacesAndNewlines),
+            password: password
+          )
         }
       } catch {
         AppLog.auth.error("登录流程失败：\(error.localizedDescription, privacy: .private)")

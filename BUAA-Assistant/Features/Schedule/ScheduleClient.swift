@@ -8,7 +8,11 @@ protocol ScheduleServing {
   func load(termID: String?, week: Int?) async throws -> ScheduleSnapshot
 }
 
-actor ScheduleClient: ScheduleServing, TermServing {
+protocol ExamServing {
+  func loadExams(termID: String) async throws -> [Exam]
+}
+
+actor ScheduleClient: ScheduleServing, TermServing, ExamServing {
   private let session: URLSession
   private let undergraduateBase = "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/"
   private let graduateBase = "https://gsmis.buaa.edu.cn/gsapp/sys/wdkbapp/"
@@ -42,6 +46,21 @@ actor ScheduleClient: ScheduleServing, TermServing {
     _ = try await send(url: entry)
     let data = try await send(url: URL(string: graduateBase + "modules/xskcb/kfdxnxqcx.do")!, fields: [], ajaxReferer: entry.absoluteString).data
     return try ScheduleParser.terms(data, portal: .graduate)
+  }
+
+  func loadExams(termID: String) async throws -> [Exam] {
+    let probe = try await send(url: URL(string: undergraduateBase + "currentUser.do")!)
+    guard probe.response.url?.path.contains("/jwapp/sys/byrhmhsy/") != true,
+          let first = probe.data.first(where: { !$0.isASCIIWhitespace }), (first == 123 || first == 91) else {
+      if probe.response.url?.path.contains("/jwapp/sys/byrhmhsy/") == true {
+        throw ScheduleError.unsupportedPortal
+      }
+      throw ScheduleError.changedResponseAt("本科门户身份确认")
+    }
+    var components = URLComponents(string: undergraduateBase + "student/exams.do")!
+    components.queryItems = [URLQueryItem(name: "termCode", value: termID)]
+    let data = try await send(url: components.url!, ajaxReferer: examReferer, accept: "*/*").data
+    return try ScheduleParser.exams(data)
   }
 
   private func loadUndergraduate(termID: String?, week: Int?) async throws -> ScheduleSnapshot {
@@ -106,8 +125,14 @@ actor ScheduleClient: ScheduleServing, TermServing {
   }
 
   private var byxtReferer: String { "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/index.html" }
+  private var examReferer: String { "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/home/index.html" }
 
-  private func send(url: URL, fields: [(String, String)]? = nil, ajaxReferer: String? = nil) async throws -> (data: Data, response: HTTPURLResponse) {
+  private func send(
+    url: URL,
+    fields: [(String, String)]? = nil,
+    ajaxReferer: String? = nil,
+    accept: String = "application/json, text/javascript, */*; q=0.01"
+  ) async throws -> (data: Data, response: HTTPURLResponse) {
     var request = URLRequest(url: url)
     request.timeoutInterval = 30
     if let fields {
@@ -116,7 +141,7 @@ actor ScheduleClient: ScheduleServing, TermServing {
       request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
     }
     if let ajaxReferer {
-      request.setValue("application/json, text/javascript, */*; q=0.01", forHTTPHeaderField: "Accept")
+      request.setValue(accept, forHTTPHeaderField: "Accept")
       request.setValue("XMLHttpRequest", forHTTPHeaderField: "X-Requested-With")
       request.setValue(ajaxReferer, forHTTPHeaderField: "Referer")
     }

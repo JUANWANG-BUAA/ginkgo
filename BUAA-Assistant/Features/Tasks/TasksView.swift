@@ -47,7 +47,7 @@ struct TasksView: View {
         ProgressiveList(items: visible, pageSize: 60) { task in
           HStack(spacing: 12) {
             Button { store.toggle(task.id) } label: { Image(systemName: task.completed ? "checkmark.circle.fill" : "circle").font(.title2) }
-              .buttonStyle(.plain).accessibilityLabel(task.completed ? "标记未完成" : "完成任务")
+              .buttonStyle(.plain).accessibilityLabel(task.completed ? "标记为未完成：\(task.title)" : "完成待办：\(task.title)")
             VStack(alignment: .leading, spacing: 5) {
               Text(task.title).font(.body.weight(.medium)).strikethrough(task.completed)
               Text(task.due.formatted(date: .abbreviated, time: .shortened)).font(.caption).foregroundStyle(.secondary)
@@ -55,8 +55,9 @@ struct TasksView: View {
             }
             Spacer()
             Button { editing = task; editTitle = task.title; editDue = task.due } label: { Image(systemName: "pencil") }
-              .buttonStyle(.borderless).help("编辑待办").accessibilityLabel("编辑待办")
-            Button { deleting = task } label: { Image(systemName: "trash") }.buttonStyle(.borderless).help("删除待办")
+              .buttonStyle(.borderless).help("编辑待办").accessibilityLabel("编辑待办：\(task.title)")
+            Button { deleting = task } label: { Image(systemName: "trash") }
+              .buttonStyle(.borderless).help("删除待办").accessibilityLabel("删除待办：\(task.title)")
           }.padding(compactLists ? 10 : 16).background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
         }
         .disabled(!store.isReadable)

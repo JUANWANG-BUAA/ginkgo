@@ -1,6 +1,6 @@
 import Foundation
 
-struct FreeClassroom: Identifiable, Decodable {
+struct FreeClassroom: Identifiable, Codable {
   let id: String
   let floorid: String
   let name: String

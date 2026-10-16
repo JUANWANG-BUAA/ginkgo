@@ -57,6 +57,20 @@ final class ClassroomViewModelTests: XCTestCase {
     XCTAssertEqual(model.filteredRoomCount, 2000)
   }
 
+  func testRoomSearchIgnoresPresentationPunctuation() async {
+    let service = FakeClassroomService()
+    service.rooms = ["三号楼": [
+      FreeClassroom(id: "105", floorid: "", name: "(三)105", kxsds: "1,2,3"),
+      FreeClassroom(id: "205", floorid: "", name: "(三)205", kxsds: "1,2,3")
+    ]]
+    let model = ClassroomViewModel(client: service)
+    await model.query()
+
+    model.search = "三105"
+
+    XCTAssertEqual(model.filtered["三号楼"]?.map(\.id), ["105"])
+  }
+
   func testFailedRefreshPreservesResultsAndFiltersByBuildingAndSection() async {
     let service = FakeClassroomService()
     let model = ClassroomViewModel(client: service)
@@ -114,6 +128,32 @@ final class ClassroomViewModelTests: XCTestCase {
     XCTAssertEqual(service.callCount, 2)
     XCTAssertTrue(model.rooms.isEmpty)
     XCTAssertTrue(model.queried)
+  }
+
+  func testDiskCacheRestoresResultsForAnotherWindow() async throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let cache = ClassroomCache(directory: directory)
+    let initialService = FakeClassroomService()
+    initialService.rooms = ["主楼": [FreeClassroom(id: "cached-101", floorid: "1", name: "101", kxsds: "1,2,3")]]
+    let firstWindow = ClassroomViewModel(client: initialService, cache: cache)
+    let cachedDate = try XCTUnwrap(ScheduleSnapshot.schoolCalendar.date(byAdding: .day, value: 1, to: Date()))
+    firstWindow.campus = 2
+    firstWindow.date = cachedDate
+    await firstWindow.start(account: "account-1")
+    await firstWindow.query(forceRefresh: true)
+
+    let nextWindowService = FakeClassroomService()
+    nextWindowService.fail = true
+    let nextWindow = ClassroomViewModel(client: nextWindowService, cache: cache)
+    await nextWindow.start(account: "account-1")
+    await nextWindow.query()
+
+    XCTAssertTrue(nextWindow.queried)
+    XCTAssertEqual(nextWindow.rooms["主楼"]?.map(\.id), ["cached-101"])
+    XCTAssertEqual(nextWindow.campus, 2)
+    XCTAssertTrue(ScheduleSnapshot.schoolCalendar.isDate(nextWindow.date, inSameDayAs: cachedDate))
+    XCTAssertEqual(nextWindowService.callCount, 0, "A fresh disk result should be shown without a redundant request.")
   }
 }
 

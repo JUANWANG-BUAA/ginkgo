@@ -28,6 +28,7 @@ struct ClassroomView: View {
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @AppStorage("compactLists") private var compactLists = false
   @State private var displayMode: ClassroomDisplayMode = .overview
+  @State private var filtersExpanded = false
   @State private var resultPage = 0
   private let pageSize = 40
   @State private var selectedRoom: FreeClassroom?
@@ -57,10 +58,16 @@ struct ClassroomView: View {
             .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
         }
 
+        if model.isLoadingCache {
+          ProgressView("正在读取本机查询结果…")
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+
         if let fetchedAt = model.fetchedAt {
           HStack(spacing: 8) {
             Image(systemName: "clock.arrow.circlepath")
             Text("查询于 \(fetchedAt.formatted(date: .abbreviated, time: .shortened))")
+            if model.resultsAreCached { Text("· 本机缓存").foregroundStyle(.secondary) }
             if model.busy { Text("· 正在更新").foregroundStyle(.secondary) }
           }
           .font(.caption)
@@ -75,13 +82,19 @@ struct ClassroomView: View {
       .frame(maxWidth: .infinity)
     }
     .background(Color(nsColor: .windowBackgroundColor))
+    .task(id: appState.user?.schoolid) {
+      if let account = appState.user?.schoolid { await model.start(account: account) }
+    }
     .onChange(of: displayMode) { _, _ in
       resultPage = 0
       proxy.scrollTo("classroom-results", anchor: .top)
     }
-    .onChange(of: resultIDs) { _, _ in resultPage = 0 }
+    .onChange(of: model.resultRevision) { _, _ in resultPage = 0 }
     .onChange(of: resultPage) { _, _ in
       proxy.scrollTo("classroom-results", anchor: .top)
+    }
+    .onChange(of: model.filteredRoomCount) { _, count in
+      if model.hasActiveFilters && count == 0 { filtersExpanded = true }
     }
     }
     .onChange(of: model.needsSessionCheck) { _, needed in
@@ -146,14 +159,14 @@ struct ClassroomView: View {
         }
         .buttonStyle(.borderedProminent)
         .keyboardShortcut(.defaultAction)
-        .disabled(model.busy)
+        .disabled(model.busy || model.isLoadingCache)
         Button { Task { await model.query(forceRefresh: true) } } label: {
           Label("强制刷新", systemImage: "arrow.clockwise")
         }
         .buttonStyle(.bordered)
         .help("跳过五分钟缓存重新查询")
         .keyboardShortcut("r", modifiers: .command)
-        .disabled(model.busy)
+        .disabled(model.busy || model.isLoadingCache)
         if model.busy { ProgressView().controlSize(.small) }
         Spacer()
         Text("缓存 5 分钟内自动复用")
@@ -167,56 +180,82 @@ struct ClassroomView: View {
   }
 
   private var filterPanel: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: 14) {
+      HStack(spacing: 12) {
         SearchField(prompt: "搜索楼栋或教室", text: $model.search)
           .frame(maxWidth: .infinity)
-        Picker("空闲节次", selection: $model.section) {
-          Text("任意节次").tag(0)
-          ForEach(1...14, id: \.self) { Text("第 \($0) 节").tag($0) }
-        }
-        .frame(width: 150)
-        Picker("至少空闲", selection: $model.minimumFreeSections) {
-          Text("不限制空闲数量").tag(0)
-          Text("至少 3 节").tag(3)
-          Text("至少 5 节").tag(5)
-          Text("至少 8 节").tag(8)
-        }
-        .frame(width: 180)
-        Picker("连续空闲", selection: $model.minimumConsecutiveSections) {
-          Text("不限").tag(0)
-          Text("至少 2 节").tag(2)
-          Text("至少 4 节").tag(4)
-        }
-        Picker("排序", selection: $model.sort) {
-          ForEach(ClassroomSort.allCases) { Text($0.rawValue).tag($0) }
-        }
+          .accessibilityHint("输入后立即筛选当前结果")
         if model.hasActiveFilters {
-          Button("清除筛选") { model.resetFilters() }
+          Button("清除") { model.resetFilters() }
             .buttonStyle(.borderless)
+            .help("清除全部筛选条件")
         }
       }
-      HStack {
-        Label("结果展示", systemImage: "rectangle.3.group")
+
+      DisclosureGroup(isExpanded: $filtersExpanded) {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], alignment: .leading, spacing: 12) {
+          Picker("空闲节次", selection: $model.section) {
+            Text("任意节次").tag(0)
+            ForEach(1...14, id: \.self) { Text("第 \($0) 节").tag($0) }
+          }
+          Picker("至少空闲", selection: $model.minimumFreeSections) {
+            Text("不限制空闲数量").tag(0)
+            Text("至少 3 节").tag(3)
+            Text("至少 5 节").tag(5)
+            Text("至少 8 节").tag(8)
+          }
+          Picker("连续空闲", selection: $model.minimumConsecutiveSections) {
+            Text("不限").tag(0)
+            Text("至少 2 节").tag(2)
+            Text("至少 4 节").tag(4)
+          }
+          Picker("排序", selection: $model.sort) {
+            ForEach(ClassroomSort.allCases) { Text($0.rawValue).tag($0) }
+          }
+        }
+        .padding(.top, 10)
+      } label: {
+        HStack(spacing: 8) {
+          Image(systemName: "slider.horizontal.3")
+            .foregroundStyle(Color.accentColor)
+          Text("筛选与排序")
+            .font(.callout.weight(.medium))
+          Text(model.hasActiveFilters ? "已启用 \(activeFilterCount) 项" : "节次、空闲数、连续时间")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        .contentShape(Rectangle())
+      }
+
+      HStack(spacing: 12) {
+        Label("结果布局", systemImage: "rectangle.3.group")
           .font(.caption.weight(.medium))
           .foregroundStyle(.secondary)
-        Picker("结果展示", selection: $displayMode) {
+        Picker("结果布局", selection: $displayMode) {
           ForEach(ClassroomDisplayMode.allCases) { mode in
             Label(mode.title, systemImage: mode.symbol).tag(mode)
           }
         }
         .pickerStyle(.segmented)
         .frame(maxWidth: 360)
-        Spacer()
+        Spacer(minLength: 0)
         if model.hasActiveFilters {
-          Text("已启用筛选")
-            .font(.caption)
+          Text("结果即时更新")
+            .font(.caption2)
             .foregroundStyle(.secondary)
         }
       }
     }
     .padding(14)
     .background(Color(nsColor: .controlBackgroundColor).opacity(0.72), in: RoundedRectangle(cornerRadius: 12))
+  }
+
+  private var activeFilterCount: Int {
+    [!model.search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+     model.section != 0,
+     model.minimumFreeSections != 0,
+     model.minimumConsecutiveSections != 0,
+     model.building != nil].filter { $0 }.count
   }
 
   @ViewBuilder
@@ -278,22 +317,26 @@ struct ClassroomView: View {
     }
   }
 
-  // Render a bounded page eagerly. Nested lazy stacks with changing row heights
-  // retain estimated extents and can leave large gaps after mode/filter changes.
-  private var resultIDs: [String] {
-    model.filtered.keys.sorted().flatMap { building in
-      (model.filtered[building] ?? []).map { building + "|" + $0.id }
-    }
-  }
-
+  // Render one bounded page without flattening every matching room on each update.
   private var list: some View {
     let buildings = model.filtered.keys.sorted()
-    let entries = buildings.flatMap { building in
-      (model.filtered[building] ?? []).map { (building: building, room: $0) }
-    }
-    let pageCount = max(1, (entries.count + pageSize - 1) / pageSize)
+    let totalCount = model.filteredRoomCount
+    let pageCount = max(1, (totalCount + pageSize - 1) / pageSize)
     let page = min(resultPage, pageCount - 1)
-    let visible = Array(entries.dropFirst(page * pageSize).prefix(pageSize))
+    var offset = page * pageSize
+    var remaining = pageSize
+    var visibleByBuilding: [String: [FreeClassroom]] = [:]
+    for building in buildings {
+      guard remaining > 0, let rooms = model.filtered[building] else { break }
+      if offset >= rooms.count {
+        offset -= rooms.count
+        continue
+      }
+      let end = min(rooms.count, offset + remaining)
+      visibleByBuilding[building] = Array(rooms[offset..<end])
+      remaining -= end - offset
+      offset = 0
+    }
     return VStack(alignment: .leading, spacing: 12) {
       HStack {
         Text("第 \(page + 1) / \(pageCount) 页 · 每页最多 \(pageSize) 间")
@@ -303,7 +346,7 @@ struct ClassroomView: View {
         Button("下一页") { resultPage = page + 1 }.disabled(page + 1 >= pageCount)
       }
       ForEach(buildings, id: \.self) { building in
-        let rooms = visible.filter { $0.building == building }.map(\.room)
+        let rooms = visibleByBuilding[building] ?? []
         if !rooms.isEmpty {
           Label(building, systemImage: "building.2").font(.headline).padding(.top, 8)
           ForEach(rooms) { room in

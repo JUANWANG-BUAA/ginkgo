@@ -7,6 +7,7 @@ final class ScheduleViewModel: ObservableObject {
   @Published private(set) var errorMessage: String?
   @Published private(set) var feedback: String?
   @Published private(set) var needsSessionCheck = false
+  @Published private(set) var reminderRevision = 0
 
   private let service: ScheduleServing
   private let cache: ScheduleCache
@@ -27,6 +28,7 @@ final class ScheduleViewModel: ObservableObject {
     let cached = await cache.read(for: account)
     guard current == generation else { return }
     snapshot = cached
+    reminderRevision += 1
     await refresh(termID: snapshot?.termID)
   }
 
@@ -34,6 +36,7 @@ final class ScheduleViewModel: ObservableObject {
     generation += 1
     account = nil
     snapshot = nil
+    reminderRevision += 1
     isLoading = false
     errorMessage = nil
     feedback = nil
@@ -52,6 +55,7 @@ final class ScheduleViewModel: ObservableObject {
       self.snapshot = ScheduleSnapshot(portal: snapshot.portal, terms: snapshot.terms, termID: snapshot.termID,
                                        weeks: snapshot.weeks, weekNumber: week, courses: courses, fetchedAt: snapshot.fetchedAt,
                                        termCourses: snapshot.termCourses)
+      reminderRevision += 1
       return
     }
     generation += 1
@@ -71,6 +75,7 @@ final class ScheduleViewModel: ObservableObject {
         newSnapshot.termCourses = known
       }
       snapshot = newSnapshot
+      reminderRevision += 1
       feedback = "课表已更新"
       if let account { try? await cache.save(newSnapshot, for: account) }
     } catch {

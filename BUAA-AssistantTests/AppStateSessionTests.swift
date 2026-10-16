@@ -113,6 +113,40 @@ final class AppStateSessionTests: XCTestCase {
     XCTAssertEqual(state.toast, "登录成功，学校会话已验证")
   }
 
+  func test_retryWebVPNSessionUsesSavedCredentialAndCanRecover() async throws {
+    let auth = FakeAuthClient()
+    let credentials = FakeCredentialStore()
+    let state = AppState(authClient: auth, credentialStore: credentials, cookieStore: FakeCookieStore())
+    try state.completeLogin(
+      UserData(schoolid: "sy2501001", name: "李文"),
+      username: "sy2501001",
+      password: "synthetic-password",
+      rememberPassword: true
+    )
+
+    auth.webVPNError = CasClientError.unexpectedStatus(503)
+    await state.retryWebVPNSession()
+    XCTAssertEqual(state.webVPNSessionStatus, .unavailable)
+    XCTAssertEqual(auth.webVPNPreparationCount, 1)
+
+    auth.webVPNError = nil
+    await state.retryWebVPNSession()
+    XCTAssertEqual(state.webVPNSessionStatus, .ready)
+    XCTAssertEqual(auth.webVPNPreparationCount, 2)
+  }
+
+  func test_retryWebVPNSessionWithoutRememberedCredentialDoesNotAttemptAuthentication() async {
+    let auth = FakeAuthClient()
+    let state = AppState(authClient: auth, credentialStore: FakeCredentialStore(), cookieStore: FakeCookieStore())
+    state.acceptExistingSession(UserData(schoolid: "sy2501001", name: "李文"))
+
+    await state.retryWebVPNSession()
+
+    XCTAssertFalse(state.canRetryWebVPNSession)
+    XCTAssertEqual(auth.webVPNPreparationCount, 0)
+    XCTAssertTrue(state.toast?.contains("重新登录") == true)
+  }
+
   func test_logout_withRemoteFailure_stillClearsLocalState() async {
     let auth = FakeAuthClient()
     auth.logoutError = CasClientError.unexpectedStatus(503)
@@ -133,13 +167,15 @@ final class AppStateSessionTests: XCTestCase {
   }
 }
 
-private final class FakeAuthClient: AuthSessionClient {
+private final class FakeAuthClient: AuthSessionClient, WebVPNSessionPreparing {
   var statusResult: Result<UserData, Error> = .failure(CasClientError.sessionInvalid)
   var pageResult: Result<LoginPageResult, Error> = .failure(CasClientError.missingExecution)
   var loginResult: Result<UserData, Error> = .success(UserData(schoolid: "sy2501001", name: "李文"))
   var logoutError: Error?
+  var webVPNError: Error?
   var fetchCount = 0
   var loginCount = 0
+  var webVPNPreparationCount = 0
 
   func fetchLoginPage() async throws -> LoginPageResult {
     fetchCount += 1
@@ -152,6 +188,10 @@ private final class FakeAuthClient: AuthSessionClient {
   func loginWithExistingSession() async throws -> UserData { try loginResult.get() }
   func validateSession() async throws -> UserData { try statusResult.get() }
   func logout() async throws { if let logoutError { throw logoutError } }
+  func establishWebVPNSession(username: String, password: String) async throws {
+    webVPNPreparationCount += 1
+    if let webVPNError { throw webVPNError }
+  }
 }
 
 private final class FakeCredentialStore: CredentialStore {

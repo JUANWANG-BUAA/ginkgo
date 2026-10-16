@@ -31,6 +31,23 @@ struct CourseMeeting: Identifiable, Codable, Hashable {
   let color: String?
 }
 
+struct Exam: Identifiable, Codable, Hashable {
+  let courseName: String
+  let courseNo: String?
+  let examTimeDescription: String?
+  let examDate: String?
+  let startTime: String?
+  let endTime: String?
+  let examPlace: String?
+  let examSeatNo: String?
+  let week: Int?
+  let examStatus: String?
+  let examType: String?
+  let taskId: String?
+
+  var id: String { taskId ?? "\(courseNo ?? ""):\(examDate ?? ""):\(courseName)" }
+}
+
 struct ScheduleSnapshot: Codable {
   let portal: SchedulePortal
   let terms: [SchoolTerm]
@@ -73,6 +90,7 @@ struct ScheduleSnapshot: Codable {
 
 enum ScheduleError: LocalizedError {
   case sessionExpired
+  case unsupportedPortal
   case unavailable(String)
   case changedResponse
   case changedResponseAt(String)
@@ -81,6 +99,7 @@ enum ScheduleError: LocalizedError {
   var errorDescription: String? {
     switch self {
     case .sessionExpired: "学校会话已过期，请重新登录"
+    case .unsupportedPortal: "当前研究生教务门户不提供本科考试安排接口"
     case .unavailable(let service): "\(service)暂时无法访问，请稍后重试"
     case .changedResponse: "学校课表数据格式已变化，请稍后重试"
     case .changedResponseAt(let step): "\(step)返回的数据无法识别，请稍后重试"

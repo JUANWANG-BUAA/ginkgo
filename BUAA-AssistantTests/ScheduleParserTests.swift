@@ -18,6 +18,40 @@ final class ScheduleParserTests: XCTestCase {
     XCTAssertEqual(courses[0].place, "主楼")
   }
 
+  func testUndergraduateCoursesCollapseDuplicateSessionsAndMergeAdjacentSections() throws {
+    let json = #"{"code":"0","datas":{"arrangedList":[{"courseName":"模拟课程","dayOfWeek":3,"beginSection":3,"endSection":3,"beginTime":"09:50","endTime":"10:30","placeName":"教室 A"},{"courseName":" 模拟课程 ","dayOfWeek":3,"beginSection":3,"endSection":3,"beginTime":"09:50","endTime":"10:30","placeName":"教室 A","weeksAndTeachers":"教师甲"},{"courseName":"模拟课程","dayOfWeek":3,"beginSection":4,"endSection":4,"beginTime":"10:40","endTime":"11:20","placeName":" 教室 A ","weeksAndTeachers":" 教师乙 "},{"courseName":"模拟课程","dayOfWeek":4,"beginSection":3,"endSection":4,"beginTime":"09:50","endTime":"11:20","placeName":"教室 A","weeksAndTeachers":"教师甲"}]}}"#
+
+    let courses = try ScheduleParser.undergraduateCourses(Data(json.utf8))
+
+    XCTAssertEqual(courses.count, 2)
+    XCTAssertEqual(courses[0].startSection, 3)
+    XCTAssertEqual(courses[0].endSection, 4)
+    XCTAssertEqual(courses[0].startTime, "09:50")
+    XCTAssertEqual(courses[0].endTime, "11:20")
+    XCTAssertEqual(courses[0].teacher, "教师甲 / 教师乙")
+    XCTAssertEqual(courses[1].day, 4)
+    XCTAssertEqual(courses[1].startSection, 3)
+    XCTAssertEqual(courses[1].endSection, 4)
+  }
+
+  func testExamParserMapsNumberOrStringFieldsAndSortsChronologically() throws {
+    let json = #"{"code":"0","datas":[{"courseName":"后考课程","examDate":"2026-01-12","startTime":"14:00","examSeatNo":12,"week":18,"examStatus":1,"taskId":1001},{"courseName":"先考课程","courseNo":2301,"examDate":"2026-01-08","examTimeDescription":"上午 9:00–11:00","examPlace":"主楼 201","examSeatNo":"A031","week":"17","examType":"期末","taskId":"1002"}]}"#
+    let exams = try ScheduleParser.exams(Data(json.utf8))
+    XCTAssertEqual(exams.map(\.courseName), ["先考课程", "后考课程"])
+    XCTAssertEqual(exams[0].courseNo, "2301")
+    XCTAssertEqual(exams[0].examSeatNo, "A031")
+    XCTAssertEqual(exams[0].week, 17)
+    XCTAssertEqual(exams[1].examSeatNo, "12")
+    XCTAssertEqual(exams[1].examStatus, "1")
+    XCTAssertEqual(exams[1].id, "1001")
+  }
+
+  func testExamParserAcceptsEmptyListButRejectsBusinessError() throws {
+    XCTAssertTrue(try ScheduleParser.exams(Data(#"{"code":"0","datas":[]}"#.utf8)).isEmpty)
+    XCTAssertThrowsError(try ScheduleParser.exams(Data(#"{"code":"403","datas":[]}"#.utf8)))
+    XCTAssertThrowsError(try ScheduleParser.exams(Data(#"{"code":"0","datas":[{"examDate":"2026-01-01"}]}"#.utf8)))
+  }
+
   func testGraduateBitmapFiltersAlternatingWeeksAndDerivesMonday() throws {
     let json = #"{"code":"1","jgList":[{"BJDM":"A","XNXQDM":"20251","KCMC":"研究方法","XQ":3,"KSJCDM":1,"JSJCDM":2,"ZCBH":"1010","JASMC":"教室"}],"rwList":[{"BJDM":"A","XNXQDM":"20251","SCSKRQ":"2025-09-03"}],"jcfaList":[]}"#
     let data = Data(json.utf8)
@@ -49,7 +83,7 @@ final class ScheduleParserTests: XCTestCase {
   }
 
   func testGraduateAdjacentSectionsAreOneCourse() throws {
-    let json = #"{"code":"1","jgList":[{"BJDM":"A","KCMC":"矩阵理论","XQ":4,"KSJCDM":6,"JSJCDM":6,"ZCBH":"1","JASMC":"主楼"},{"BJDM":"A","KCMC":"矩阵理论","XQ":4,"KSJCDM":7,"JSJCDM":7,"ZCBH":"1","JASMC":"主楼"}],"rwList":[],"jcfaList":[]}"#
+    let json = #"{"code":"1","jgList":[{"BJDM":"A","KCMC":"矩阵理论","XQ":4,"KSJCDM":6,"JSJCDM":6,"ZCBH":"1","JASMC":"主楼"},{"BJDM":"A","KCMC":"矩阵理论","XQ":4,"KSJCDM":6,"JSJCDM":6,"ZCBH":"1","JASMC":"主楼"},{"BJDM":"A","KCMC":"矩阵理论","XQ":4,"KSJCDM":7,"JSJCDM":7,"ZCBH":"1","JASMC":"主楼"},{"BJDM":"A","KCMC":"矩阵理论","XQ":4,"KSJCDM":7,"JSJCDM":7,"ZCBH":"1","JASMC":"主楼"}],"rwList":[],"jcfaList":[]}"#
     let courses = try ScheduleParser.graduateCourses(Data(json.utf8), termID: "20251", week: 1)
     XCTAssertEqual(courses.count, 1)
     XCTAssertEqual(courses[0].startSection, 6)
