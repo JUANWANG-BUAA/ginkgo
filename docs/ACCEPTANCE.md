@@ -69,3 +69,13 @@
 | 自动化与差异检查 | - | `xcodebuild test`、`git diff --check` | 全量测试退出码 0；空白差异检查通过 | UI 细节仍需浅色模式、窄窗口与 VoiceOver 全流程验收 |
 
 验证过程中只执行了查询与页面切换，没有触发预约、取消或签到写入。
+
+## 2026-10-16 · 0.1 alpha 收口验证
+
+| 范围 | 账号类型 | 证据类型 | 结果 | 未覆盖项 |
+|---|---|---|---|---|
+| 空教室筛选回归 | - | 全量 XCTest | 修复后台筛选测试等待后，`ClassroomViewModelTests` 9 项通过；全量 129 项、0 失败 | 真实窗口交互仍需人工验收 |
+| Release 构建 | - | `xcodebuild build -configuration Release` | 构建通过 | 未做公证/分发验证 |
+| 代码与文档差异 | - | `git diff --check` | 通过 | - |
+
+本轮为自动化验证与文档收口，未访问真实上游，未执行预约、取消或签到写入；alpha 的已知限制见 [RELEASE-NOTES.md](RELEASE-NOTES.md)。

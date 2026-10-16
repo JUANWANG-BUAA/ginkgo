@@ -12,7 +12,7 @@
 
 ## 当前推进位置（2026-10-16）
 
-本文件保留从骨架开始的实施说明；下文 Step 0 的占位页面和测试数量是历史步骤，不是当前运行表现。当前代码状态以 [IMPLEMENTATION.md](IMPLEMENTATION.md) 为准。
+本文件保留从骨架开始的实施说明；下文 Step 0 的占位页面和测试数量是历史步骤，不是当前运行表现。当前代码状态以 [IMPLEMENTATION.md](IMPLEMENTATION.md) 为准；0.1.0-alpha 的收口状态与已知限制见 [RELEASE-NOTES.md](RELEASE-NOTES.md)。
 
 | 步骤 | 当前状态 | 下一项验收 |
 |------|----------|------------|

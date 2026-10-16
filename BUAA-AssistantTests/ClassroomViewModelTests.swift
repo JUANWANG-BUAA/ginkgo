@@ -25,18 +25,24 @@ final class ClassroomViewModelTests: XCTestCase {
     await model.query()
     model.building = "主楼"
     model.sort = .availability
+    await model.waitForFilterUpdate()
     XCTAssertEqual(model.filtered["主楼"]?.map(\.id), ["1", "2"])
     XCTAssertNil(model.filtered["主楼北"])
     model.sort = .consecutive
+    await model.waitForFilterUpdate()
     XCTAssertEqual(model.filtered["主楼"]?.map(\.id), ["2", "1"])
     model.minimumConsecutiveSections = 2
+    await model.waitForFilterUpdate()
     XCTAssertEqual(model.filtered["主楼"]?.map(\.id), ["2"])
     model.section = 4
+    await model.waitForFilterUpdate()
     XCTAssertEqual(model.filteredRoomCount, 0)
     model.resetFilters()
+    await model.waitForFilterUpdate()
     XCTAssertFalse(model.hasActiveFilters)
     XCTAssertEqual(model.filteredRoomCount, 3)
     model.minimumFreeSections = 4
+    await model.waitForFilterUpdate()
     XCTAssertEqual(model.filteredRoomCount, 2)
     XCTAssertEqual(service.callCount, 1, "Local filters must not query the school service")
   }
@@ -50,10 +56,13 @@ final class ClassroomViewModelTests: XCTestCase {
     await model.query()
     XCTAssertEqual(model.roomCount, 2000)
     model.minimumConsecutiveSections = 4
+    await model.waitForFilterUpdate()
     XCTAssertEqual(model.filteredRoomCount, 1000)
     model.search = "教室 2000"
+    await model.waitForFilterUpdate()
     XCTAssertEqual(model.filtered["测试楼"]?.first?.id, "2000")
     model.resetFilters()
+    await model.waitForFilterUpdate()
     XCTAssertEqual(model.filteredRoomCount, 2000)
   }
 
@@ -67,6 +76,7 @@ final class ClassroomViewModelTests: XCTestCase {
     await model.query()
 
     model.search = "三105"
+    await model.waitForFilterUpdate()
 
     XCTAssertEqual(model.filtered["三号楼"]?.map(\.id), ["105"])
   }
@@ -77,8 +87,10 @@ final class ClassroomViewModelTests: XCTestCase {
     await model.query()
     model.search = " 主楼 "
     model.section = 2
+    await model.waitForFilterUpdate()
     XCTAssertEqual(model.filtered["主楼"]?.count, 1)
     model.section = 3
+    await model.waitForFilterUpdate()
     XCTAssertTrue(model.filtered.isEmpty)
     service.fail = true
     await model.query(forceRefresh: true)

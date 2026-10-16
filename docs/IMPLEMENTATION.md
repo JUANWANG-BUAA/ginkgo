@@ -1,5 +1,12 @@
 # 实施进度
 
+## 2026-10-16 · 0.1 alpha 收口
+
+- 修复空教室筛选改为后台计算后测试未等待结果的回归：新增 `ClassroomViewModel.waitForFilterUpdate()`，`ClassroomViewModelTests` 9 项恢复通过；筛选本身仍为可取消的后台计算，不改变界面行为。
+- 全量 `xcodebuild test` 129 项、0 失败；`xcodebuild build -configuration Release` 通过；`git diff --check` 通过。
+- 本轮只修改测试等待逻辑、文档与版本说明，不改变上游请求、认证、缓存格式或写操作行为。
+- 发布范围、验证证据与已知限制见 [RELEASE-NOTES.md](RELEASE-NOTES.md)；0.1 alpha 不包含未验收的写操作承诺。
+
 ## 2026-10-16 · 上游结构变化告警与状态误报治理
 
 - 课表、成绩、空教室、通知、图书馆、iclass 与两类作业来源加强必需字段和分页校验。结构变化不再被当成空列表或“未发布”；学校明确返回非成功业务码时则归为服务暂不可用，避免把业务拒绝误报成接口改版。

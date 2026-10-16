@@ -279,6 +279,13 @@ final class ClassroomViewModel: ObservableObject {
     }
   }
 
+  /// 等待最近一次筛选计算写入 `filtered`。
+  /// 界面依赖发布属性自动刷新；测试与需要串行读取最终结果的调用方在此等待，
+  /// 避免在后台计算完成前读取旧值。
+  func waitForFilterUpdate() async {
+    await resultUpdateTask?.value
+  }
+
   var hasActiveFilters: Bool {
     !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || section != 0 ||
       minimumFreeSections != 0 || minimumConsecutiveSections != 0 || building != nil
