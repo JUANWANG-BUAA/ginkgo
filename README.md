@@ -7,14 +7,14 @@
 ## 快速开始
 
 1. 用 Xcode 16+（工程为文件系统同步格式；本机已用 27.0 验证可编译、测试全绿）打开 `BUAA-Assistant.xcodeproj`；
-2. ⌘R 运行，⌘U 跑测试（源码现有 140 个测试方法；0.1.0-alpha 全量通过）；
+2. ⌘R 运行，⌘U 跑测试（源码现有 141 个测试方法；0.1.0-alpha 全量通过）；
 3. 按顺序阅读 [docs/ROADMAP.md](docs/ROADMAP.md) 开始开发——它回答"先写什么、后写什么、每步怎么验收"。
 
 > 命令行构建（`CODE_SIGNING_ALLOWED=NO`）的产物资源未封签，Dock 会显示白色占位图标；本地运行请用 Xcode ⌘R，或构建后先执行 `codesign --force --sign - <App>` 再启动。
 
 ## 当前版本：0.1.0-alpha（2026-10-16）
 
-首个 alpha 基线：140 项测试全绿（见 [docs/TESTING.md](docs/TESTING.md)）。课表、打卡签到与图书馆预约均已可用；内置更新会从 GitHub Releases 检查新版本，下载安装后**保留课表、成绩缓存与本机待办**。本版还修好了研究生周次误标、希冀作业的 ATS 阻断、图书馆聚焦刷新与总览配色；希冀来源按取舍暂时下线，已知限制与风险见 [docs/RELEASE-NOTES.md](docs/RELEASE-NOTES.md)。
+首个 alpha 基线：141 项测试全绿（见 [docs/TESTING.md](docs/TESTING.md)）。课表、打卡签到与图书馆预约均已可用；内置更新会从 GitHub Releases 检查新版本，下载安装后**保留课表、成绩缓存与本机待办**。本版还修好了研究生周次误标、希冀作业的 ATS 阻断、图书馆聚焦刷新与总览配色；希冀来源按取舍暂时下线，已知限制与风险见 [docs/RELEASE-NOTES.md](docs/RELEASE-NOTES.md)。
 
 项目主页（GitHub Pages）：<https://juanwang-buaa.github.io/ginkgo/>
 
@@ -87,7 +87,7 @@ BUAA-Assistant/
 ├── BUAA-Assistant/                # 应用源码（新增 .swift 文件自动纳入编译）
 │   ├── Features/                  # Auth / Today / Schedule / Grade / Library / Classroom / Homework / CheckIn / Campus / Tasks / Settings
 │   └── Core/                      # Network / Storage / Logging / UI（共享提示与空态组件）
-├── BUAA-AssistantTests/           # 单元测试（源码现有 140 个测试方法）
+├── BUAA-AssistantTests/           # 单元测试（源码现有 141 个测试方法）
 ├── LICENSE                        # MIT License（含 UBAA 参考实现版权声明）
 └── docs/                          # 全部文档与界面截图（单一事实源）
 ```

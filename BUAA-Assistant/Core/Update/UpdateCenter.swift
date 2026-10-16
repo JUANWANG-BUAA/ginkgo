@@ -98,6 +98,22 @@ final class UpdateCenter: ObservableObject {
   var isBusy: Bool { phase == .checking || phase == .downloading || phase == .installing }
   var hasError: Bool { if case .failed = phase { return true }; return false }
 
+  private var ignoredTag: String? { defaults.string(forKey: Self.ignoredTagKey) }
+  static let ignoredTagKey = "update.ignoredTag"
+
+  /// 被用户忽略的版本不再提示；更新的版本仍会正常提示（可测试）。
+  static func shouldOffer(release: UpdateRelease, ignoredTag: String?) -> Bool {
+    release.tagName != ignoredTag
+  }
+
+  /// 忽略当前提示的版本，保留手动检查与发布页入口。
+  func ignoreCurrent() {
+    guard let release = latest else { return }
+    defaults.set(release.tagName, forKey: Self.ignoredTagKey)
+    latest = nil
+    statusMessage = "已忽略 \(release.displayVersion)；有新版本时会再次提示"
+  }
+
   /// 检查更新；`manual` 为 true 时即使无更新也会给出“已是最新”的反馈。
   func check(manual: Bool) async {
     guard !isBusy else { return }
@@ -109,11 +125,15 @@ final class UpdateCenter: ObservableObject {
     }
     do {
       let found = try await checker.availableUpdate(current: currentVersion)
-      latest = found
-      if let found {
+      if let found, !Self.shouldOffer(release: found, ignoredTag: ignoredTag) {
+        latest = nil
+        if manual { statusMessage = "已是最新版本（\(found.displayVersion) 已忽略，可在发布页手动下载）" }
+      } else if let found {
+        latest = found
         statusMessage = "发现新版本 \(found.displayVersion)"
-      } else if manual {
-        statusMessage = "已是最新版本"
+      } else {
+        latest = nil
+        if manual { statusMessage = "已是最新版本" }
       }
     } catch {
       AppLog.network.error("检查更新失败：\(error.localizedDescription, privacy: .private)")

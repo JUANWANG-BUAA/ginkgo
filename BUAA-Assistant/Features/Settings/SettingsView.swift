@@ -165,19 +165,20 @@ struct SettingsView: View {
               .buttonStyle(.borderedProminent)
               .disabled(updates.isBusy)
               Button("查看发布页") { updates.openReleasePage(release) }.buttonStyle(.link)
+              Button("忽略此版本") { updates.ignoreCurrent() }.buttonStyle(.link)
             }
-          } else {
-            HStack(spacing: 12) {
-              Button {
-                Task { await updates.check(manual: true) }
-              } label: {
-                Label(updates.phase == .checking ? "正在检查…" : "检查更新", systemImage: "arrow.triangle.2.circlepath")
-              }
-              .disabled(updates.isBusy)
-              if let last = updates.lastCheckedAt {
-                Text("上次检查：\(last.formatted(date: .abbreviated, time: .shortened))")
-                  .font(.caption).foregroundStyle(.secondary)
-              }
+          }
+          HStack(spacing: 12) {
+            Button {
+              Task { await updates.check(manual: true) }
+            } label: {
+              Label(updates.phase == .checking ? "正在检查…" : (updates.updateAvailable ? "重新检查" : "检查更新"),
+                    systemImage: "arrow.triangle.2.circlepath")
+            }
+            .disabled(updates.isBusy)
+            if let last = updates.lastCheckedAt {
+              Text("上次检查：\(last.formatted(date: .abbreviated, time: .shortened))")
+                .font(.caption).foregroundStyle(.secondary)
             }
           }
           if let message = updates.statusMessage {

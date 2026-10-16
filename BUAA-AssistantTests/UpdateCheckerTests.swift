@@ -118,6 +118,21 @@ final class UpdateDownloadSourceTests: XCTestCase {
     XCTAssertEqual(automatic.last, url)
   }
 
+  func testIgnoredReleaseIsNotOffered() throws {
+    let json: [String: Any] = [
+      "tag_name": "v0.1.0-alpha.3",
+      "name": "Ginkgo v0.1.0-alpha.3",
+      "html_url": "https://example.com/release",
+      "body": "",
+      "draft": false,
+      "assets": []
+    ]
+    let release = try XCTUnwrap(UpdateRelease(json: json))
+    XCTAssertTrue(UpdateCenter.shouldOffer(release: release, ignoredTag: nil))
+    XCTAssertFalse(UpdateCenter.shouldOffer(release: release, ignoredTag: "v0.1.0-alpha.3"))
+    XCTAssertTrue(UpdateCenter.shouldOffer(release: release, ignoredTag: "v0.1.0-alpha.2"))
+  }
+
   func testParsesChecksumFile() {
     let text = """
     bb6323128df41a6d806b63e1d6151134a9196aaaf8addfcb86f75eee4c15bdca  Ginkgo-v0.1.0-alpha.2.dmg
