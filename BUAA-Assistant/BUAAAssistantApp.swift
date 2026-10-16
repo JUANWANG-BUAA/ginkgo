@@ -107,6 +107,13 @@ struct MenuBarPanel: View {
         NSApp.terminate(nil)
       }
       .keyboardShortcut("q")
+
+      Divider()
+
+      Link(destination: URL(string: "https://github.com/JUANWANG-BUAA/ginkgo")!) {
+        Label("GitHub 项目主页", systemImage: "star")
+          .font(.caption)
+      }
     }
     .padding(16)
     .task(id: appState.user?.schoolid) {

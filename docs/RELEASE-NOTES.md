@@ -21,7 +21,7 @@
 - `xcodebuild test`：133 项测试、0 失败（含空教室后台筛选一致性、研究生课表任务跳过与周次半开区间、希冀来源下线回归）。
 - `xcodebuild build -configuration Release`：通过。
 - `git diff --check`：通过。
-- 研究生账号真实观察：登录/恢复、当前学期课表（修复后刷新成功）、成绩空列表、图书馆公开人数、空教室查询、SPOC 作业列表、iclass 只读状态。
+- 研究生账号真实观察：登录/恢复、当前学期课表（修复后刷新成功）、成绩空列表、图书馆公开人数、空教室查询、SPOC 作业列表、iclass 只读状态与按日历史（2026-10-12 查询到 2 条已签到记录）。
 - 详细验收记录见 [ACCEPTANCE.md](ACCEPTANCE.md)，实现范围见 [IMPLEMENTATION.md](IMPLEMENTATION.md)。
 
 ### 已知限制与风险

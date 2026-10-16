@@ -141,9 +141,33 @@ struct SettingsView: View {
             Button("退出登录…", role: .destructive) { showLogout = true }.disabled(isLoggingOut)
           }
         }
+        settingsGroup("关于 Ginkgo", symbol: "leaf", detail: "北航校园工作台 · 开源与致敬") {
+          LabeledContent("版本", value: appVersion)
+          HStack(spacing: 18) {
+            Link(destination: URL(string: "https://github.com/JUANWANG-BUAA/ginkgo")!) {
+              Label("GitHub 仓库", systemImage: "chevron.left.forwardslash.chevron.right")
+            }
+            Link(destination: URL(string: "https://juanwang-buaa.github.io/ginkgo/")!) {
+              Label("项目主页", systemImage: "safari")
+            }
+          }
+          .buttonStyle(.link)
+          HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: "star.fill").foregroundStyle(.yellow).font(.caption)
+            Text("如果 Ginkgo 帮到了你，欢迎到 GitHub 点个 Star，让更多北航同学看到它。")
+              .font(.caption).foregroundStyle(.secondary)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+          Divider().padding(.vertical, 6)
+          Text("协议研究与实现参考了同以 MIT 许可发布的 UBAA（BUAASubnet/UBAA）；感谢原作者与贡献者把北航各系统的直连协议整理成可读、可验证的实现。")
+            .font(.caption).foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+          Link("访问 BUAASubnet/UBAA →", destination: URL(string: "https://github.com/BUAASubnet/UBAA")!)
+            .font(.caption)
+        }
         if let notice = appState.notice { StatusNotice(message: notice, kind: .information) }
         HStack {
-          Label("BUAA Assistant", systemImage: "graduationcap")
+          Label("Ginkgo · 北航校园工作台", systemImage: "leaf")
           Spacer()
           Text("校园日常，从容有序")
         }.font(.caption).foregroundStyle(.secondary).padding(.horizontal, 4)
@@ -173,6 +197,12 @@ struct SettingsView: View {
       .confirmationDialog("清除查询缓存？", isPresented: $showCache) {
         Button("清除缓存", role: .destructive) { clearCache() }
       } message: { Text("下次查看时需要重新查询课表、考试、成绩、作业、图书馆、签到历史、校园通知和空教室。个人待办会保留。") }
+  }
+
+  private var appVersion: String {
+    let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.0"
+    let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"
+    return "\(version) (\(build))"
   }
 
   private func settingsGroup<Content: View>(_ title: String, symbol: String, detail: String, @ViewBuilder content: () -> Content) -> some View {
