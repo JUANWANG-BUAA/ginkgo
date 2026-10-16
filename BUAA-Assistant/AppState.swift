@@ -51,7 +51,11 @@ final class AppState: ObservableObject {
     didRestore = true
     defer { isRestoring = false }
     do {
-      rememberedCredential = try credentialStore.read()
+      rememberedCredential = try await Self.readCredentialWithoutBlocking(credentialStore)
+    } catch is CredentialReadTimeout {
+      // 多次重新签名后钥匙串 ACL 可能要求系统授权；超时不能阻塞登录界面。
+      AppLog.auth.error("钥匙串读取超时（可能在等待系统授权）")
+      notice = "钥匙串需要授权：请在系统弹窗中选择“始终允许”，或直接手动登录"
     } catch {
       AppLog.auth.error("读取钥匙串失败：\(error.localizedDescription, privacy: .private)")
       notice = "无法读取已保存的账号，请手动登录"
@@ -97,6 +101,48 @@ final class AppState: ObservableObject {
     } catch {
       AppLog.auth.error("自动登录失败：\(error.localizedDescription, privacy: .private)")
       notice = "自动登录未完成，请手动登录"
+    }
+  }
+
+  /// 钥匙串读取可能因为系统授权弹窗长时间不返回；放到后台任务并把等待限制在 5 秒内，
+  /// 超时按“本次没有保存凭据”处理，保证登录界面永远能及时出现。
+  /// 注意：这里不能用 TaskGroup——作用域结束时会等待所有子任务，而卡住的
+  /// SecItemCopyMatching 无法取消，会把异常一起拖住。
+  private static func readCredentialWithoutBlocking(
+    _ store: CredentialStore,
+    timeout: TimeInterval = 5
+  ) async throws -> SavedCredential? {
+    try await withCheckedThrowingContinuation { continuation in
+      let race = CredentialReadRace(continuation: continuation)
+      Task.detached(priority: .userInitiated) {
+        do { race.finish(.success(try store.read())) }
+        catch { race.finish(.failure(error)) }
+      }
+      Task.detached {
+        try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+        race.finish(.failure(CredentialReadTimeout()))
+      }
+    }
+  }
+
+  private struct CredentialReadTimeout: Error {}
+
+  /// 保证竞速只有一个结果生效。
+  private final class CredentialReadRace: @unchecked Sendable {
+    private let lock = NSLock()
+    private var finished = false
+    private let continuation: CheckedContinuation<SavedCredential?, Error>
+
+    init(continuation: CheckedContinuation<SavedCredential?, Error>) {
+      self.continuation = continuation
+    }
+
+    func finish(_ result: Result<SavedCredential?, Error>) {
+      lock.lock()
+      defer { lock.unlock() }
+      guard !finished else { return }
+      finished = true
+      continuation.resume(with: result)
     }
   }
 

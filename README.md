@@ -12,6 +12,8 @@
 
 > 命令行构建（`CODE_SIGNING_ALLOWED=NO`）的产物资源未封签，Dock 会显示白色占位图标；本地运行请用 Xcode ⌘R，或构建后先执行 `codesign --force --sign - <App>` 再启动。
 
+> 首次运行或更新后，macOS 可能询问一次钥匙串访问权限（ad-hoc 签名每次构建的指纹不同）：选择“**始终允许**”即可继续自动登录；弹窗未处理时应用也会在 5 秒后回到登录页并提示。
+
 ## 当前版本：0.1.0-alpha（2026-10-16）
 
 首个 alpha 基线：141 项测试全绿（见 [docs/TESTING.md](docs/TESTING.md)）。课表、打卡签到与图书馆预约均已可用；内置更新会从 GitHub Releases 检查新版本，下载安装后**保留课表、成绩缓存与本机待办**。本版还修好了研究生周次误标、希冀作业的 ATS 阻断、图书馆聚焦刷新与总览配色；希冀来源按取舍暂时下线，已知限制与风险见 [docs/RELEASE-NOTES.md](docs/RELEASE-NOTES.md)。

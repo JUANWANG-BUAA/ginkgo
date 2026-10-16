@@ -24,6 +24,7 @@
 - `xcodebuild build -configuration Release`：通过。
 - `git diff --check`：通过。
 - 研究生账号真实观察：登录/恢复、当前学期课表（修复后刷新成功）、成绩空列表、图书馆公开人数、空教室查询、SPOC 作业列表、iclass 只读状态与按日历史（2026-10-12 查询到 2 条已签到记录）。
+- 钥匙串兼容性：多次 ad-hoc 重新签名后，旧凭据条目的 ACL 可能要求系统授权；读取已改为**非阻塞 + 5 秒超时**，超时后回到登录页并提示“钥匙串需要授权”。首次运行或更新后若出现询问，选择“始终允许”即可继续自动登录。
 - 详细验收记录见 [ACCEPTANCE.md](ACCEPTANCE.md)，实现范围见 [IMPLEMENTATION.md](IMPLEMENTATION.md)。
 
 ### 已知限制与风险
@@ -38,8 +39,9 @@
 
 ### 运行方式
 
-- 版本标识：`CFBundleShortVersionString 0.1.0`（build 1）。
+- 版本标识：`CFBundleShortVersionString` 与 tag 一致（发布构建由 CI 注入）。
 - 直接下载：从 [GitHub Releases](https://github.com/JUANWANG-BUAA/ginkgo/releases/latest) 获取 DMG（拖入 Applications）或 ZIP；发布资产附 `checksums.txt`。
+- 首次运行或更新后，macOS 可能询问一次钥匙串访问权限（ad-hoc 签名的 cdhash 每次构建都会变）：选择“**始终允许**”即可继续自动登录；即使弹窗未处理，应用也会在 5 秒后回到登录页并给出提示。
 - 自用：用 Xcode 16+ 打开 `BUAA-Assistant.xcodeproj`，⌘R 运行（本机已验证；Xcode 27.0 / macOS）。
 - 命令行构建（`CODE_SIGNING_ALLOWED=NO`）的产物资源未封签，Dock 会显示白色占位图标；本地运行请用 Xcode ⌘R，或构建后执行 `codesign --force --sign - <App>` 再启动。
 - 分发他人：当前未配置 Developer ID 签名与公证，首次打开可能需要在「系统设置 → 隐私与安全性」中允许；也可用内置更新在应用内升级。
