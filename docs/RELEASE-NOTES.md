@@ -41,7 +41,7 @@
 
 - 版本标识：`CFBundleShortVersionString` 与 tag 一致（发布构建由 CI 注入）。
 - 直接下载：从 [GitHub Releases](https://github.com/JUANWANG-BUAA/ginkgo/releases/latest) 获取 DMG（拖入 Applications）或 ZIP；发布资产附 `checksums.txt`。
-- 首次运行或更新后，macOS 可能询问一次钥匙串访问权限（ad-hoc 签名的 cdhash 每次构建都会变）：选择“**始终允许**”即可继续自动登录；即使弹窗未处理，应用也会在 5 秒后回到登录页并给出提示。
+- 首次运行或更新后，macOS 可能询问一次钥匙串访问权限：发布包与本地构建都使用同一张稳定自签名证书（`Ginkgo Local Signing`），选择“**始终允许**”后后续构建/更新不再询问；即使弹窗未处理，应用也会在 5 秒后回到登录页并给出提示。签名方案详见 [SIGNING.md](SIGNING.md)。
 - 自用：用 Xcode 16+ 打开 `BUAA-Assistant.xcodeproj`，⌘R 运行（本机已验证；Xcode 27.0 / macOS）。
 - 命令行构建（`CODE_SIGNING_ALLOWED=NO`）的产物资源未封签，Dock 会显示白色占位图标；本地运行请用 Xcode ⌘R，或构建后执行 `codesign --force --sign - <App>` 再启动。
 - 分发他人：当前未配置 Developer ID 签名与公证，首次打开可能需要在「系统设置 → 隐私与安全性」中允许；也可用内置更新在应用内升级。

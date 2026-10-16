@@ -12,7 +12,7 @@
 
 > 命令行构建（`CODE_SIGNING_ALLOWED=NO`）的产物资源未封签，Dock 会显示白色占位图标；本地运行请用 Xcode ⌘R，或构建后先执行 `codesign --force --sign - <App>` 再启动。
 
-> 首次运行或更新后，macOS 可能询问一次钥匙串访问权限（ad-hoc 签名每次构建的指纹不同）：选择“**始终允许**”即可继续自动登录；弹窗未处理时应用也会在 5 秒后回到登录页并提示。
+> 首次运行或更新后，macOS 可能询问一次钥匙串访问权限：选择“**始终允许**”即可。发布包与本地构建都使用同一张稳定自签名证书（`Ginkgo Local Signing`），授权一次后后续构建/更新不再询问；即使弹窗未处理，应用也会在 5 秒后回到登录页并提示。详见 [docs/SIGNING.md](docs/SIGNING.md)。
 
 ## 当前版本：0.1.0-alpha（2026-10-16）
 
@@ -77,6 +77,7 @@
 | [docs/RELEASE-NOTES.md](docs/RELEASE-NOTES.md) | 版本发布说明：0.1.0-alpha 范围、验证证据与已知限制 |
 | [docs/PROMOTION.md](docs/PROMOTION.md) | 宣传文案与关键词：仓库描述、topics、社区发帖模板 |
 | [docs/PRIVACY.md](docs/PRIVACY.md) | 隐私与数据管理：本机数据位置、仓库红线、清理方式与反馈要求 |
+| [docs/SIGNING.md](docs/SIGNING.md) | 代码签名与更新体验：本地稳定证书、CI 签名与将来公证路径 |
 | [docs/LEARNING.md](docs/LEARNING.md) | 实施中用到的 Swift 概念速记 |
 | [docs/DEEP-ARCHITECTURE-REVIEW.md](docs/DEEP-ARCHITECTURE-REVIEW.md) | UBAA 参考实现透视（只读参考） |
 
