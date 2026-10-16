@@ -12,10 +12,12 @@ struct SettingsView: View {
   @EnvironmentObject private var campusNotices: CampusNoticesViewModel
   @EnvironmentObject private var checkIn: CheckInViewModel
   @EnvironmentObject private var courseReminders: CourseReminderScheduler
+  @EnvironmentObject private var updates: UpdateCenter
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Environment(\.scenePhase) private var scenePhase
   @AppStorage("appearance") private var appearance = AppAppearance.system.rawValue
   @AppStorage("compactLists") private var compactLists = false
+  @AppStorage(UpdateCenter.downloadSourceKey) private var updateDownloadSource = UpdateCenter.DownloadSource.automatic.rawValue
   @StateObject private var launchAtLogin = LaunchAtLoginController()
   @State private var isLoggingOut = false
   @State private var clearing = false
@@ -141,6 +143,56 @@ struct SettingsView: View {
             Button("退出登录…", role: .destructive) { showLogout = true }.disabled(isLoggingOut)
           }
         }
+        settingsGroup("软件更新", symbol: "arrow.triangle.2.circlepath", detail: "从 GitHub Releases 检查并安装新版本，不影响本机缓存") {
+          LabeledContent("当前版本", value: updates.currentVersionDescription)
+          if let release = updates.latest {
+            LabeledContent("最新版本", value: release.displayVersion)
+            Text("更新只替换应用本身，课表、成绩、作业缓存与本机待办都会保留。")
+              .font(.caption).foregroundStyle(.secondary)
+              .fixedSize(horizontal: false, vertical: true)
+            if let progress = updates.downloadProgress {
+              ProgressView(value: progress) {
+                Text("正在下载 \(release.displayVersion)… \(Int(progress * 100))%")
+                  .font(.caption).foregroundStyle(.secondary)
+              }
+            }
+            HStack(spacing: 12) {
+              Button {
+                Task { await updates.install() }
+              } label: {
+                Label(downloadButtonTitle, systemImage: "arrow.down.circle")
+              }
+              .buttonStyle(.borderedProminent)
+              .disabled(updates.isBusy)
+              Button("查看发布页") { updates.openReleasePage(release) }.buttonStyle(.link)
+            }
+          } else {
+            HStack(spacing: 12) {
+              Button {
+                Task { await updates.check(manual: true) }
+              } label: {
+                Label(updates.phase == .checking ? "正在检查…" : "检查更新", systemImage: "arrow.triangle.2.circlepath")
+              }
+              .disabled(updates.isBusy)
+              if let last = updates.lastCheckedAt {
+                Text("上次检查：\(last.formatted(date: .abbreviated, time: .shortened))")
+                  .font(.caption).foregroundStyle(.secondary)
+              }
+            }
+          }
+          if let message = updates.statusMessage {
+            StatusNotice(message: message, kind: updates.hasError ? .warning : .information)
+          }
+          Divider().padding(.vertical, 6)
+          Picker("下载源", selection: $updateDownloadSource) {
+            ForEach(UpdateCenter.DownloadSource.allCases, id: \.self) { source in
+              Text(source.title).tag(source.rawValue)
+            }
+          }
+          .pickerStyle(.menu)
+          Text("国内直连 GitHub 下载可能很慢；默认会自动尝试镜像并回退到直连。")
+            .font(.caption).foregroundStyle(.secondary)
+        }
         settingsGroup("关于 Ginkgo", symbol: "leaf", detail: "北航校园工作台 · 开源与致敬") {
           LabeledContent("版本", value: appVersion)
           HStack(spacing: 18) {
@@ -197,6 +249,17 @@ struct SettingsView: View {
       .confirmationDialog("清除查询缓存？", isPresented: $showCache) {
         Button("清除缓存", role: .destructive) { clearCache() }
       } message: { Text("下次查看时需要重新查询课表、考试、成绩、作业、图书馆、签到历史、校园通知和空教室。个人待办会保留。") }
+  }
+
+  private var downloadButtonTitle: String {
+    if let progress = updates.downloadProgress {
+      return "正在下载 \(Int(progress * 100))%…"
+    }
+    switch updates.phase {
+    case .downloading: return "正在下载…"
+    case .installing: return "正在安装…"
+    default: return "下载并安装"
+    }
   }
 
   private var appVersion: String {

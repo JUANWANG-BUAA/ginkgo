@@ -185,6 +185,12 @@
   }
   pre .c{color:#5e7188}
   pre .p{color:var(--accent)}
+  .download-card{
+    display:flex;justify-content:space-between;align-items:center;gap:22px;flex-wrap:wrap;
+    border:1px solid rgba(79,179,217,.28);background:linear-gradient(135deg,rgba(79,179,217,.10),rgba(124,140,255,.06));
+    border-radius:var(--radius);padding:22px 24px
+  }
+  .chip .ver,.ver{color:var(--accent);font-family:var(--mono);font-size:12px;margin-left:4px}
   .notice{
     margin-top:18px;border:1px solid rgba(210,153,34,.35);background:rgba(210,153,34,.08);
     border-radius:14px;padding:16px 18px;font-size:13.5px;color:#e6d3a3
@@ -251,14 +257,15 @@
           打开就知道今天要关注什么。不经过第三方服务器，账号数据只留在这台 Mac。
         </p>
         <div class="cta">
-          <a class="btn primary" href="https://github.com/JUANWANG-BUAA/ginkgo">在 GitHub 查看</a>
+          <a class="btn primary" data-download-dmg href="https://github.com/JUANWANG-BUAA/ginkgo/releases/latest">下载 DMG <span class="ver" data-latest-version>最新版</span></a>
+          <a class="btn ghost" href="https://github.com/JUANWANG-BUAA/ginkgo">在 GitHub 查看</a>
           <a class="btn ghost" href="#screenshots">浏览界面</a>
         </div>
         <div class="chips">
-          <span class="chip"><b>133</b> 项测试全绿</span>
+          <span class="chip"><b>140</b> 项测试全绿</span>
           <span class="chip"><b>10</b> 个页面</span>
+          <span class="chip"><b>内置更新</b> 一键升级</span>
           <span class="chip"><b>MIT</b> 开源</span>
-          <span class="chip"><b>0</b> 第三方依赖</span>
         </div>
       </div>
       <div data-reveal>
@@ -330,6 +337,7 @@
       <div class="mini" data-reveal><h4>全局快捷键</h4><p>⌃⌥B 唤起主窗口，可在应用菜单关闭。</p></div>
       <div class="mini" data-reveal><h4>多账号隔离</h4><p>缓存按账号摘要分文件，切换账号不串数据。</p></div>
       <div class="mini" data-reveal><h4>登录时自启</h4><p>由 macOS 登录项管理，状态以系统为准。</p></div>
+      <div class="mini" data-reveal><h4>内置更新</h4><p>从 GitHub Releases 检查新版本，一键下载安装，不清缓存。</p></div>
       <div class="mini" data-reveal><h4>深浅色与减少动态</h4><p>跟随系统外观，动效尊重「减少动态效果」。</p></div>
       <div class="mini" data-reveal><h4>一键清缓存</h4><p>查询快照可清；个人待办不会被误删。</p></div>
     </div>
@@ -413,7 +421,21 @@
     </div>
     <div class="split">
       <div data-reveal>
-        <pre><code><span class="c"># 克隆仓库</span>
+        <div class="download-card">
+          <div>
+            <p class="eyebrow" style="margin-bottom:8px">Download</p>
+            <h3 style="margin:0 0 8px">下载最新版</h3>
+            <p style="margin:0;color:var(--muted);font-size:14px">
+              macOS 14+ · 通用（Apple 芯片 / Intel）· <span data-dmg-name>Ginkgo-*.dmg</span>
+            </p>
+          </div>
+          <div class="cta" style="margin:0">
+            <a class="btn primary" data-download-dmg href="https://github.com/JUANWANG-BUAA/ginkgo/releases/latest">下载 DMG</a>
+            <a class="btn ghost" data-download-zip href="https://github.com/JUANWANG-BUAA/ginkgo/releases/latest">ZIP</a>
+            <a class="btn ghost" data-checksums href="https://github.com/JUANWANG-BUAA/ginkgo/releases/latest">校验和</a>
+          </div>
+        </div>
+        <pre style="margin-top:16px"><code><span class="c"># 克隆仓库</span>
 git clone https://github.com/JUANWANG-BUAA/ginkgo.git
 <span class="p">cd</span> ginkgo
 
@@ -432,9 +454,9 @@ xcodebuild test -project BUAA-Assistant.xcodeproj \
           <li><span class="check"><svg viewBox="0 0 24 24"><path d="M4 12.5l5.5 5.5L20 6.5"/></svg></span><span>命令行构建产物未封签时，Dock 图标可能需要 <code>codesign --force --sign -</code>。</span></li>
         </ul>
         <div class="notice">
-          <b>Alpha 说明：</b>图书馆预约/取消与 iclass 签到写入尚未完成真实往返验收；
+          <b>Alpha 说明：</b>打卡与图书馆预约已可用（写操作都需要你逐项确认，结果不明确时不会自动重发）；
           希冀（Judge）作业来源暂时下线，当前只显示 SPOC；
-          本科账号链路与验证码分支仍待真机验收。使用写操作前请先读
+          本科账号链路、验证码分支与浅色模式仍待真机验收。详见
           <a href="https://github.com/JUANWANG-BUAA/ginkgo/blob/main/docs/RELEASE-NOTES.md">发布说明</a>。
         </div>
       </div>
@@ -481,6 +503,29 @@ xcodebuild test -project BUAA-Assistant.xcodeproj \
     img.addEventListener('click', () => { dlgImg.src = img.src; dlgImg.alt = img.alt; dlg.showModal(); });
   });
   dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+
+  // 直接下载：解析最新 Release 的资产地址；失败时保留指向发布页的回退链接。
+  (async () => {
+    try {
+      const response = await fetch('https://api.github.com/repos/JUANWANG-BUAA/ginkgo/releases/latest', {
+        headers: { Accept: 'application/vnd.github+json' }
+      });
+      if (!response.ok) return;
+      const release = await response.json();
+      const assets = release.assets || [];
+      const version = String(release.tag_name || '').replace(/^v/, '');
+      const dmg = assets.find(a => a.name.endsWith('.dmg'));
+      const zip = assets.find(a => a.name.endsWith('.zip'));
+      const sums = assets.find(a => a.name === 'checksums.txt');
+      if (version) document.querySelectorAll('[data-latest-version]').forEach(el => { el.textContent = 'v' + version; });
+      if (dmg) {
+        document.querySelectorAll('[data-download-dmg]').forEach(el => { el.href = dmg.browser_download_url; });
+        document.querySelectorAll('[data-dmg-name]').forEach(el => { el.textContent = dmg.name; });
+      }
+      if (zip) document.querySelectorAll('[data-download-zip]').forEach(el => { el.href = zip.browser_download_url; });
+      if (sums) document.querySelectorAll('[data-checksums]').forEach(el => { el.href = sums.browser_download_url; });
+    } catch (error) { /* 保留发布页回退链接 */ }
+  })();
 </script>
 </body>
 </html>

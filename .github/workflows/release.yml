@@ -22,6 +22,7 @@ jobs:
             -scheme BUAA-Assistant \
             -configuration Release \
             -destination 'platform=macOS' \
+            MARKETING_VERSION="${GITHUB_REF_NAME#v}" \
             CODE_SIGNING_ALLOWED=NO \
             -derivedDataPath build
 
@@ -38,7 +39,8 @@ jobs:
           hdiutil create -volname "Ginkgo ${GITHUB_REF_NAME}" -srcfolder dist -ov -format UDZO "Ginkgo-${GITHUB_REF_NAME}.dmg"
           codesign --force --sign - --timestamp=none "Ginkgo-${GITHUB_REF_NAME}.dmg"
           hdiutil verify "Ginkgo-${GITHUB_REF_NAME}.dmg"
-          shasum -a 256 Ginkgo-*.zip Ginkgo-*.dmg
+          shasum -a 256 Ginkgo-*.zip Ginkgo-*.dmg > checksums.txt
+          cat checksums.txt
 
       - name: Create draft release
         uses: softprops/action-gh-release@v2
@@ -50,3 +52,4 @@ jobs:
           files: |
             Ginkgo-*.zip
             Ginkgo-*.dmg
+            checksums.txt

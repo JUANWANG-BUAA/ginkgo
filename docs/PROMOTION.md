@@ -14,7 +14,7 @@
 
 ## 关键词
 
-北航、BUAA、Beihang、北航助手、校园助手、macOS 客户端、SwiftUI、菜单栏、课表、课程表、签到、打卡、iclass、图书馆预约、座位预约、成绩查询、GPA、空教室、学校作业、SPOC、希冀（Judge）、校园通知、待办、原生应用、直连、隐私、本地缓存
+北航、BUAA、Beihang、北航助手、校园助手、macOS 客户端、SwiftUI、菜单栏、课表、课程表、签到、打卡、iclass、图书馆预约、座位预约、成绩查询、GPA、空教室、学校作业、SPOC、希冀（Judge）、校园通知、待办、内置更新、DMG 下载、原生应用、直连、隐私、本地缓存
 
 ## 一句话介绍
 
@@ -49,7 +49,7 @@
 - 还有成绩与参考绩点、空教室、SPOC 作业、校园通知、本机待办
 
 SwiftUI 原生，无第三方依赖；只直连学校系统，账号数据只留本机。
-目前是 0.1.0-alpha，133 项测试全绿，欢迎北航同学试用和反馈。
+目前是 0.1.0-alpha，140 项测试全绿；打卡签到与图书馆预约已可用，应用内置自更新（从 GitHub Releases 检查并安装，不清本地缓存），欢迎北航同学试用和反馈。
 
 GitHub: https://github.com/JUANWANG-BUAA/ginkgo
 项目主页: https://juanwang-buaa.github.io/ginkgo/

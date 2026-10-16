@@ -6,6 +6,7 @@ struct RootView: View {
   @AppStorage("appearance") private var appearance = AppAppearance.system.rawValue
   @EnvironmentObject private var appState: AppState
   @EnvironmentObject private var courseReminders: CourseReminderScheduler
+  @EnvironmentObject private var updates: UpdateCenter
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Environment(\.openWindow) private var openWindow
   /// 启动入场动画只在本次进程内播放一次；「减少动态效果」时直接跳过。
@@ -51,6 +52,11 @@ struct RootView: View {
     .task {
       await appState.restoreSession()
       if !appState.isLoggedIn { await courseReminders.update(snapshot: nil) }
+      // 启动时静默检查更新（每天最多一次）；有新版时用应用内提示告知。
+      await updates.autoCheckIfDue()
+      if let release = updates.latest {
+        appState.showToast("发现新版本 \(release.displayVersion)，可在设置中更新")
+      }
     }
     .task(id: appState.isRestoring) {
       // 启动入场：等会话恢复结束后播一次短动画；不阻塞操作（约 0.9s 后自动淡出）。

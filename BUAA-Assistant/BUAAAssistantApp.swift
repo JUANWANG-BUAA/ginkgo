@@ -8,6 +8,7 @@ struct BUAAAssistantApp: App {
   @StateObject private var appState = AppState()
   @StateObject private var globalShortcut = GlobalShortcutController()
   @StateObject private var courseReminders = CourseReminderScheduler()
+  @StateObject private var updates = UpdateCenter()
 
   init() {
     UNUserNotificationCenter.current().delegate = AppNotificationDelegate.shared
@@ -18,6 +19,7 @@ struct BUAAAssistantApp: App {
       RootView()
         .environmentObject(appState)
         .environmentObject(courseReminders)
+        .environmentObject(updates)
         .frame(minWidth: 800, minHeight: 560)
     }
     .defaultSize(width: 1200, height: 800)
