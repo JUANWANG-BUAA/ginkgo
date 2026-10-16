@@ -116,7 +116,8 @@ struct JudgeHomeworkClient {
   }
 
   private func activateSession() async throws {
-    let activation = URL(string: "https://sso.buaa.edu.cn/login?service=http%3A%2F%2Fjudge.buaa.edu.cn%2F")!
+    // ATS 拒绝明文 HTTP：CAS service 必须用 https，judge 站点本身已验证支持 https（API.md §7.1）。
+    let activation = URL(string: "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fjudge.buaa.edu.cn%2F")!
     let (data, response) = try await session.data(from: activation)
     guard let http = response as? HTTPURLResponse else { throw HomeworkError.unavailable }
     if http.statusCode == 401 || http.statusCode == 403 || Self.isAuthenticationPage(data) {

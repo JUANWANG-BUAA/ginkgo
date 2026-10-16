@@ -72,6 +72,10 @@ final class JudgeHomeworkClientTests: XCTestCase {
     JudgeMockURLProtocol.handler = { request in
       switch (request.url?.host, request.url?.path) {
       case ("sso.buaa.edu.cn", "/login"):
+        XCTAssertTrue(
+          request.url?.absoluteString.contains("service=https%3A%2F%2Fjudge.buaa.edu.cn%2F") == true,
+          "CAS service 必须使用 https，否则 ATS 会拦截后的明文跳转"
+        )
         return (200, [:], Data("<html>ready</html>".utf8))
       case ("judge.buaa.edu.cn", "/courselist.jsp"):
         XCTAssertEqual(URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems?.first?.value, "7")

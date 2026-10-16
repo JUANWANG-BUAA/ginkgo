@@ -2,7 +2,7 @@
 
 ## 当前测试证据（2026-10-16）
 
-源码现有 129 个 test 方法。0.1.0-alpha 收口轮执行以下命令全部通过；另验证了 Release 配置构建。空教室筛选改为后台计算后，`ClassroomViewModelTests` 曾出现未等待结果的回归，已由 `ClassroomViewModel.waitForFilterUpdate()` 修复并重新纳入回归。
+源码现有 132 个 test 方法。0.1.0-alpha 收口后执行以下命令全部通过；另验证了 Release 配置构建。空教室筛选改为后台计算后，`ClassroomViewModelTests` 曾出现未等待结果的回归，已由 `ClassroomViewModel.waitForFilterUpdate()` 修复并重新纳入回归；`ScheduleParserTests` 新增研究生不可推算教学班跳过与全部无排课行拒绝用例；`HomeworkViewModelTests` 新增希冀来源暂时下线的配置回归。
 
 ```sh
 xcodebuild build -project BUAA-Assistant.xcodeproj -scheme BUAA-Assistant -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet

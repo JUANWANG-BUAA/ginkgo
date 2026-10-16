@@ -1,5 +1,12 @@
 # 实施进度
 
+## 2026-10-16 · 课表刷新、希冀来源与本地图标修复
+
+- 研究生课表 `graduate_weeks` 误报结构变化：真实响应 37 个排课行、9 个教学班任务中有 3 个没有排课行或缺少可解析 SCSKRQ。对齐 UBAA `parseGsmisSchedule` 的 `mapNotNull` 语义，无法参与推算的教学班跳过，只要求有效任务推出一致的周一（与 UBAA 样例的 2026-09-07 起点、30 周一致）；全部任务无法推算才报结构变化。新增“跳过不可推算任务”与“全部无排课行仍拒绝”回归用例。
+- 希冀（Judge）作业：`network_-1022` 根因是 CAS 激活链接使用 `service=http://judge.buaa.edu.cn/`，ATS 拒绝明文 http 跳转；改为 https 后网络错误消失，但真实课程列表结构与客户端预期仍不一致。当前账号没有希冀作业，按产品取舍暂时下线该来源（`HomeworkSource.enabled = [.spoc]`），作业页、来源筛选、详情入口与今日摘要只保留 SPOC；代码、协议研究与测试保留，待真实页面脱敏样本补齐后重新启用。
+- Dock 白色占位图标：`CODE_SIGNING_ALLOWED=NO` 构建只有 linker ad-hoc 签名、资源未封签（`Sealed Resources=none`），IconServices/Dock 无法读取 `Assets.car` 中的图标。构建后执行 `codesign --force --sign -` 封签资源即恢复正常；README 与 RELEASE-NOTES 记录了本地运行方式。
+- 验证：`xcodebuild test` 132 项、0 失败；`xcodebuild build -configuration Release` 通过；`git diff --check` 通过；真实账号运行确认课表刷新成功（第 6 周，上次同步 15:07）、作业页无来源告警、Dock 显示彩色图标。本轮未执行预约、取消或签到写入。
+
 ## 2026-10-16 · 0.1 alpha 收口
 
 - 修复空教室筛选改为后台计算后测试未等待结果的回归：新增 `ClassroomViewModel.waitForFilterUpdate()`，`ClassroomViewModelTests` 9 项恢复通过；筛选本身仍为可取消的后台计算，不改变界面行为。
@@ -226,7 +233,7 @@
 
 ## 2026-10-15 · 对照 BBAA 原版并接入 Judge 直连
 
-- 已定位原版工程 `/Users/juanwang/code/project_mac/BBAA`。确认学校作业分为 Judge（希冀）和 SPOC 两套来源，不应将“作业”抽象成单一上游。
+- 已定位原版 UBAA（BBAA）仓库。确认学校作业分为 Judge（希冀）和 SPOC 两套来源，不应将“作业”抽象成单一上游。
 - 依据 BBAA `LocalJudgeApi.kt` 接入 Judge 直连客户端：SSO Cookie 激活、课程列表、课程选择、HTML 作业链接和详情页；未调用 BBAA 的 `/api/v1/judge/*` 中转路由。
 - 统一 `HomeworkItem` 增加 `HomeworkSource`，当前标记 Judge 来源；缓存、今天页摘要和待办页不需要区分上游。
 - Judge HTML 解析目前锁定 BBAA 已有字段和路径，但真实账号端到端仍需验收；作业提交不在范围内。

@@ -38,7 +38,7 @@ struct MainView: View {
       case .checkIn: return "iclass 签到查询与手动提交"
       case .schedule: return "ROADMAP Step 3-4（API.md §2 本科 / §3 研究生）"
       case .grade: return "ROADMAP Step 5（API.md §4 buaascore）"
-      case .homework: return "Judge 与 SPOC 只读查询（待真实账号验收）"
+      case .homework: return "SPOC 只读查询（希冀暂时下线，待真实账号验收）"
       case .library: return "ROADMAP Step 6（API.md §5 座位 · §6 借阅为探索项）"
       case .classroom: return "空教室查询"
       case .tasks: return "本地待办"

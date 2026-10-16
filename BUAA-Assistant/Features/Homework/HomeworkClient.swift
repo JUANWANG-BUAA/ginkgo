@@ -14,16 +14,18 @@ actor HomeworkClient: HomeworkServing, HomeworkDetailServing {
   init(session: URLSession = APIClient.shared.session) { self.session = session }
 
   func load() async throws -> HomeworkSnapshot {
-    async let judge = JudgeHomeworkClient(session: session).load()
     async let spoc = SpocHomeworkClient(session: session).load()
     var items: [HomeworkItem] = []
     var failures: [HomeworkSource: Error] = [:]
     var spocTerm: HomeworkTerm?
-    do {
-      items += try await judge.items
-    } catch {
-      failures[.judge] = error
-      Self.logProviderFailure(source: .judge, error: error)
+    let enabledSources = HomeworkSource.enabled
+    if HomeworkSource.judge.isEnabled {
+      do {
+        items += try await JudgeHomeworkClient(session: session).load().items
+      } catch {
+        failures[.judge] = error
+        Self.logProviderFailure(source: .judge, error: error)
+      }
     }
     do {
       let result = try await spoc
@@ -33,7 +35,7 @@ actor HomeworkClient: HomeworkServing, HomeworkDetailServing {
       failures[.spoc] = error
       Self.logProviderFailure(source: .spoc, error: error)
     }
-    if failures.count == HomeworkSource.allCases.count {
+    if failures.count == enabledSources.count {
       throw HomeworkError.allSourcesUnavailable(
         judge: Self.userFacingDescription(for: failures[.judge]),
         spoc: Self.userFacingDescription(for: failures[.spoc])
@@ -41,8 +43,8 @@ actor HomeworkClient: HomeworkServing, HomeworkDetailServing {
     }
     return HomeworkSnapshot(items: items.sorted { ($0.dueAt ?? .distantFuture) < ($1.dueAt ?? .distantFuture) },
                             fetchedAt: Date(),
-                            unavailableSources: HomeworkSource.allCases.filter { failures[$0] != nil },
-                            protocolChangedSources: HomeworkSource.allCases.filter { source in
+                            unavailableSources: enabledSources.filter { failures[$0] != nil },
+                            protocolChangedSources: enabledSources.filter { source in
                               guard let error = failures[source] else { return false }
                               return Self.isProtocolChanged(error)
                             },
@@ -57,7 +59,7 @@ actor HomeworkClient: HomeworkServing, HomeworkDetailServing {
       }
       return try await SpocHomeworkClient(session: session).loadDetail(assignmentID: assignmentID)
     }
-    guard item.source == .judge else {
+    guard item.source == .judge, HomeworkSource.judge.isEnabled else {
       throw HomeworkError.detailUnavailable("当前作业来源暂不支持应用内详情")
     }
     let parts = item.id.split(separator: ":", omittingEmptySubsequences: false)

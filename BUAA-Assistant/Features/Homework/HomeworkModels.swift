@@ -10,6 +10,11 @@ enum HomeworkStatus: String, Codable {
 enum HomeworkSource: String, Codable, CaseIterable, Identifiable {
   case judge
   case spoc
+
+  /// 当前启用的同步来源。希冀暂时下线：alpha 账号没有该来源作业，且真实课程列表结构未完成
+  /// 验收（见 RELEASE-NOTES.md），避免把未验收来源的失败显示成“结果不完整”。
+  static let enabled: [HomeworkSource] = [.spoc]
+  var isEnabled: Bool { Self.enabled.contains(self) }
   var id: String { rawValue }
   var title: String { self == .judge ? "希冀" : "SPOC" }
 }

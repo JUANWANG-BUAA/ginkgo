@@ -4,6 +4,12 @@ import XCTest
 
 @MainActor
 final class HomeworkViewModelTests: XCTestCase {
+  func testJudgeSourceIsTemporarilyHidden() {
+    XCTAssertEqual(HomeworkSource.enabled, [.spoc])
+    XCTAssertFalse(HomeworkSource.judge.isEnabled)
+    XCTAssertTrue(HomeworkSource.spoc.isEnabled)
+  }
+
   func testHomeworkSnapshotDecodesLegacyCacheWithoutSpocTerm() throws {
     let snapshot = try JSONDecoder().decode(
       HomeworkSnapshot.self,

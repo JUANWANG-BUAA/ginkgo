@@ -141,31 +141,38 @@ enum ScheduleParser {
     guard string(root["code"]) == "1", let rows = root["jgList"] as? [[String: Any]],
           let tasks = root["rwList"] as? [[String: Any]] else { throw ScheduleError.changedResponse }
     // API.md §3.3：SCSKRQ 属于教学班，须取该班所有排课中的最早周/星期偏移。
+    // 论文/实践类教学班可能没有排课行或缺少可解析日期，这类任务无法参与推算，跳过即可；
+    // 只有有效任务给出不一致的开学日期时，才报告结构变化。
     let termTasks = tasks.filter { string($0["XNXQDM"]) == termID }
     guard !termTasks.isEmpty else { throw ScheduleError.changedResponse }
-    let candidates: [Date] = try termTasks.map { task in
-      guard let classID = task["BJDM"] as? String, !classID.isEmpty,
-            let firstDate = date(task["SCSKRQ"]) else { throw ScheduleError.changedResponse }
-      let classRows = rows.filter { $0["BJDM"] as? String == classID }
-      guard !classRows.isEmpty else { throw ScheduleError.changedResponse }
-      let offsets = try classRows.map { row -> Int in
+    var skippedTasks = 0
+    let candidates: [Date] = termTasks.compactMap { task in
+      guard let classID = string(task["BJDM"]), !classID.isEmpty,
+            let firstDate = date(task["SCSKRQ"]) else { skippedTasks += 1; return nil }
+      let classRows = rows.filter { string($0["BJDM"]) == classID }
+      guard !classRows.isEmpty else { skippedTasks += 1; return nil }
+      let offsets: [Int] = classRows.compactMap { row in
         guard let day = integer(row["XQ"]), (1...7).contains(day),
               let bitmap = row["ZCBH"] as? String, !bitmap.isEmpty,
               bitmap.allSatisfy({ $0 == "0" || $0 == "1" }),
-              let first = bitmap.firstIndex(of: "1") else { throw ScheduleError.changedResponse }
+              let first = bitmap.firstIndex(of: "1") else { return nil }
         return bitmap.distance(from: bitmap.startIndex, to: first) * 7 + day - 1
       }
       guard let offset = offsets.min(),
             let start = calendar.date(byAdding: .day, value: -offset, to: firstDate) else {
-        throw ScheduleError.changedResponse
+        skippedTasks += 1
+        return nil
       }
       return start
     }
+    if skippedTasks > 0 {
+      AppLog.network.notice("graduate weeks skipped incomputable tasks count=\(skippedTasks)")
+    }
     guard let start = candidates.first, candidates.allSatisfy({ calendar.isDate($0, inSameDayAs: start) }),
           calendar.component(.weekday, from: start) == 2 else { throw ScheduleError.changedResponse }
-    let bitmaps = try rows.map { row -> String in
+    let bitmaps = rows.compactMap { row -> String? in
       guard let bitmap = row["ZCBH"] as? String, !bitmap.isEmpty,
-            bitmap.allSatisfy({ $0 == "0" || $0 == "1" }) else { throw ScheduleError.changedResponse }
+            bitmap.allSatisfy({ $0 == "0" || $0 == "1" }) else { return nil }
       return bitmap
     }
     let count = bitmaps.map(\.count).max() ?? 0

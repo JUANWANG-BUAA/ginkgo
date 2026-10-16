@@ -21,7 +21,7 @@ struct HomeworkView: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 20) {
-        PageHeading(eyebrow: "ACADEMIC / HOMEWORK", title: "学校作业", subtitle: "集中查看希冀与 SPOC 作业、截止时间和提交状态")
+        PageHeading(eyebrow: "ACADEMIC / HOMEWORK", title: "学校作业", subtitle: "集中查看 \(enabledSourceNames) 作业、截止时间和提交状态")
         if let snapshot = model.snapshot {
           summary(snapshot)
           freshness(snapshot)
@@ -42,7 +42,7 @@ struct HomeworkView: View {
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: source)
           }
         } else if model.isLoading {
-          ProgressView("正在查询希冀与 SPOC…")
+          ProgressView("正在查询 \(enabledSourceNames)…")
             .frame(maxWidth: .infinity, minHeight: 220)
         } else {
           PageEmptyState(symbol: "doc.badge.ellipsis", title: "暂时无法确认学校作业", detail: model.errorMessage ?? "学校服务尚未返回可用结果，请稍后重试。")
@@ -168,11 +168,15 @@ struct HomeworkView: View {
         SearchField(prompt: "搜索作业或课程", text: $search)
         Picker("来源", selection: $source) {
           Text("全部来源").tag(nil as HomeworkSource?)
-          ForEach(HomeworkSource.allCases) { item in Text(item.title).tag(item as HomeworkSource?) }
+          ForEach(HomeworkSource.enabled) { item in Text(item.title).tag(item as HomeworkSource?) }
         }
         .frame(width: 140)
       }
     }
+  }
+
+  private var enabledSourceNames: String {
+    HomeworkSource.enabled.map(\.title).joined(separator: "与")
   }
 
   @ViewBuilder

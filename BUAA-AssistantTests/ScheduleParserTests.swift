@@ -71,6 +71,18 @@ final class ScheduleParserTests: XCTestCase {
     XCTAssertThrowsError(try ScheduleParser.graduateWeeks(Data(json.utf8), termID: "20251"))
   }
 
+  func testGraduateTasksWithoutRowsOrDatesAreSkipped() throws {
+    // 真实响应中存在没有排课行或缺少 SCSKRQ 的教学班，它们不参与开学日期推算。
+    let json = #"{"code":"1","jgList":[{"BJDM":"A","XNXQDM":"20251","KCMC":"研究方法","XQ":3,"KSJCDM":1,"JSJCDM":2,"ZCBH":"1010","JASMC":"教室"}],"rwList":[{"BJDM":"A","XNXQDM":"20251","SCSKRQ":"2025-09-03"},{"BJDM":"B","XNXQDM":"20251","SCSKRQ":"2025-09-03"},{"BJDM":"C","XNXQDM":"20251"}],"jcfaList":[]}"#
+    let weeks = try ScheduleParser.graduateWeeks(Data(json.utf8), termID: "20251")
+    XCTAssertEqual(weeks.count, 4)
+  }
+
+  func testGraduateAllTasksWithoutRowsIsRejected() {
+    let json = #"{"code":"1","jgList":[{"BJDM":"A","XNXQDM":"20251","XQ":3,"ZCBH":"10"}],"rwList":[{"BJDM":"B","XNXQDM":"20251","SCSKRQ":"2025-09-03"}],"jcfaList":[]}"#
+    XCTAssertThrowsError(try ScheduleParser.graduateWeeks(Data(json.utf8), termID: "20251"))
+  }
+
   func testGraduateFirstClassDateUsesEarliestMeetingOfSameClass() throws {
     let json = #"{"code":"1","jgList":[{"BJDM":"A","XNXQDM":"20251","XQ":3,"ZCBH":"11"},{"BJDM":"A","XNXQDM":"20251","XQ":5,"ZCBH":"11"}],"rwList":[{"BJDM":"A","XNXQDM":"20251","SCSKRQ":"2025-09-03"}],"jcfaList":[]}"#
     let weeks = try ScheduleParser.graduateWeeks(Data(json.utf8), termID: "20251")

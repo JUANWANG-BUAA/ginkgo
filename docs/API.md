@@ -50,6 +50,9 @@
 | 37 | §7.2 签到重复响应与并发读取 | ViewModel 可被多个入口同时刷新，解析器也保留重复课程 ID | 在 ViewModel 层跳过并发刷新；课程列表按上游 `id` 去重。同 ID 记录的课程信息或状态冲突时标为待确认，不允许误触发签到。此为客户端健壮性处理，不代表上游保证 ID 唯一 | 本项目 `CheckInViewModel.swift`、`CheckInClient.swift` 与合成响应回归测试（2026-10-16） |
 | 38 | §5.5 官网图书馆实时空间数据 | 只有预约端可用/总座位，没有在馆人数 | 官网公开只读页面返回学院路、沙河校区在馆人数；另有沙河特色阅览室人数与座位/研讨间/寄存柜余量。客户端按字段语义分别解析并以独立无 Cookie 会话读取；本机按校区/日期/小时保存聚合样本 | 官网公开页 `/engine2/buaa/more/1082575?websiteId=113745&pageId=208561&wfwfid=16662`（2026-10-16 无认证 GET）；`LibraryPublicStats.swift`、`LibraryPublicStatsParserTests.swift`、CUA 无障碍树运行态 |
 | 39 | §5.2 图书馆预约状态与取消 | 文档只列预约记录字段，未说明终态不可取消 | 保留 `status/status_name`；状态码 `6/8`、文案含“取消/结束/已完成/过期/失效”或记录结束时间已过时隐藏取消动作，历史记录仍只读显示。预约列表按上游页码读取，客户端每页请求 40 条 | BBAA `LibBook.kt:104-119`、`LibBookBookingStatusTest.kt:8-39`；当前项目 `LibraryClient.swift` 与回归测试（2026-10-16） |
+| 40 | §3.3 研究生周次推算 | 任一教学班缺少排课行或 SCSKRQ 解析失败即判定“上游结构变化” | 对齐 UBAA `parseGsmisSchedule`：无法参与推算的教学班跳过，仅当所有任务都无法推算、或有效任务给出的开学日期不一致/不是周一时才报结构变化 | 2026-10-16 本机脱敏诊断（37 个排课行、9 个教学班中 3 个不可推算）与修复后真实刷新成功（第 6 周）；BBAA `GsmisSchedule.kt:24-70`；`ScheduleParserTests.swift` |
+| 41 | §7.1 希冀 CAS 激活 | `service=http%3A%2F%2Fjudge.buaa.edu.cn%2F` | 改为 `service=https%3A%2F%2Fjudge.buaa.edu.cn%2F`。明文 http 跳转会被 ATS 以 `-1022` 拒绝；https 已验证可完成 CAS 激活并读取后续页面 | 本项目真实运行日志（修复后 `-1022` 消失）与 `JudgeHomeworkClientTests.swift` 回归（2026-10-16） |
+| 42 | §7.1 希冀来源启用范围 | 客户端始终同步 Judge 与 SPOC 两来源 | Judge 来源暂时下线（`HomeworkSource.enabled = [.spoc]`）：真实课程列表结构与客户端预期不一致，且当前账号无该来源作业。代码、协议研究与测试保留，待真实页面脱敏样本后重新启用；这是产品取舍，不是上游协议变更 | 本项目 `HomeworkClient.swift`、`HomeworkView.swift`、`HomeworkViewModelTests.swift` 与 [RELEASE-NOTES.md](RELEASE-NOTES.md)（2026-10-16） |
 
 ## 0. 文档约定
 
@@ -599,6 +602,8 @@ BBAA 原版并非只有一个作业来源，而是同时实现了两套直连上
 
 - **希冀 Judge**：`shared/src/commonMain/kotlin/cn/edu/ubaa/api/local/LocalJudgeApi.kt`。先访问 `sso.buaa.edu.cn/login?service=http%3A%2F%2Fjudge.buaa.edu.cn%2F` 激活 Cookie，再访问 `judge.buaa.edu.cn/courselist.jsp?courseID=0`、课程选择页和 `assignment/index.jsp`，解析 HTML 课程、作业和详情。原版列表缓存 TTL 为 5 分钟，详情缓存 TTL 为 2 分钟。
 
+  **2026-10-16 更新**：本项目将 CAS 激活链接改为 `service=https%3A%2F%2Fjudge.buaa.edu.cn%2F`——照抄 `http` 会在 macOS ATS 下以 `-1022` 失败（明文跳转被拒），https 已验证能完成激活与后续读取。真实课程列表结构与客户端预期仍不一致，且当前验收账号没有希冀作业，因此希冀来源在本项目暂时下线（`HomeworkSource.enabled = [.spoc]`），作业页只展示 SPOC；代码、协议研究与测试保留，待真实页面脱敏样本补齐后重新启用。
+
 Judge 作业详情页同时包含开始/截止时间、满分、题目表格、题目提交状态及得分。桌面端现按原版本地客户端解析题目行并显示整体进度和分数；读取详情前重新选择所属课程，避免依赖共享会话中偶然残留的当前课程。Judge 解析仅用于只读信息展示，不暴露作业提交操作。
 - **SPOC**：`LocalSpocApi.kt` + `LocalSpocSupport.kt`。通过 `spoc.buaa.edu.cn/spocnewht/cas` 获取 token，再调用 `sys/casLogin` 获取 `RoleCode`；当前学期和课程来自 `inco/ht/queryOne`、`jxkj/queryKclb`，作业分页来自 `inco/ht/queryListByPage`。分页参数使用 AES-CBC（key `inco12345678ocni`，IV `ocni12345678inco`，零填充）后 Base64 编码。
 
@@ -612,7 +617,7 @@ Judge 作业详情页同时包含开始/截止时间、满分、题目表格、�
 
 2026-10-16 CUA 运行态对一个列表作业打开详情，界面成功显示授课教师、提交状态、发布时间、截止时间和作业分值；该条目的正文未由上游返回，界面提示原站点检查。因系统窗口截图捕获当前不可用，本次 UI 证据来自应用无障碍树；这是已打开页面的状态证据，不代表正文字段对所有 SPOC 作业均为空。
 
-`/api/v1/judge/*` 和 `/api/v1/spoc/*` 仍是 BBAA 服务端中转路由，本项目不调用它们。当前 Swift 工程已接入 Judge 与 SPOC 两个直连 provider 和统一作业模型；SPOC AES-CBC 有 UBAA 黄金向量回归测试，CUA 实测列表返回 13 项且时间修复后可见截止时间。SPOC 全课程完整性、发布字段逐条正确性与 Judge 仍需分别真实账号验收；尤其 Judge 详情页提交状态必须由本人逐项对照确认。
+`/api/v1/judge/*` 和 `/api/v1/spoc/*` 仍是 BBAA 服务端中转路由，本项目不调用它们。当前 Swift 工程保留 Judge 与 SPOC 两个直连 provider 和统一作业模型；SPOC AES-CBC 有 UBAA 黄金向量回归测试，CUA 实测列表返回 13 项且时间修复后可见截止时间。希冀来源暂时下线（见上），SPOC 全课程完整性与发布字段逐条正确性仍需真实账号继续核对；重新启用 Judge 前必须由本人逐项对照详情页提交状态。
 
 ### 7.2 iclass 签到状态与手动提交（写协议尚待真实验收）
 
