@@ -43,7 +43,7 @@ jobs:
 
       - name: Sign and package
         run: |
-          APP="build/Build/Products/Release/BUAA-Assistant.app"
+          APP="build/Build/Products/Release/Ginkgo.app"
           /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Contents/Info.plist"
           # 有稳定证书就用它（钥匙串授权一次长期有效），否则退回 ad-hoc 签名。
           if security find-identity -p codesigning 2>/dev/null | grep -q "Ginkgo Local Signing"; then

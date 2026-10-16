@@ -41,7 +41,7 @@ security import ~/.ginkgo-signing/ginkgo-signing.p12 -k ~/Library/Keychains/logi
 ### 用证书签名本地构建
 
 ```sh
-APP=~/Library/Developer/Xcode/DerivedData/.../BUAA-Assistant.app
+APP=~/Library/Developer/Xcode/DerivedData/.../Ginkgo.app
 codesign --force --sign "Ginkgo Local Signing" --timestamp=none "$APP"
 ```
 

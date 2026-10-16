@@ -69,7 +69,7 @@ struct SettingsView: View {
 
           LabeledContent("当前状态", value: launchAtLogin.statusDescription)
           if launchAtLogin.requiresApproval {
-            StatusNotice(message: "已向 macOS 注册；请在系统设置的“登录项”中允许 BUAA Assistant。", kind: .warning)
+            StatusNotice(message: "已向 macOS 注册；请在系统设置的“登录项”中允许 Ginkgo。", kind: .warning)
             Button("打开登录项设置") { launchAtLogin.openLoginItemsSettings() }
               .buttonStyle(.link)
           }
@@ -194,33 +194,26 @@ struct SettingsView: View {
           Text("国内直连 GitHub 下载可能很慢；默认会自动尝试镜像并回退到直连。")
             .font(.caption).foregroundStyle(.secondary)
         }
-        settingsGroup("关于 Ginkgo", symbol: "leaf", detail: "北航校园工作台 · 开源与致敬") {
+        settingsGroup("关于", symbol: "info.circle", detail: "版本、开源与致谢") {
           LabeledContent("版本", value: appVersion)
-          HStack(spacing: 18) {
-            Link(destination: URL(string: "https://github.com/JUANWANG-BUAA/ginkgo")!) {
-              Label("GitHub 仓库", systemImage: "chevron.left.forwardslash.chevron.right")
-            }
-            Link(destination: URL(string: "https://juanwang-buaa.github.io/ginkgo/")!) {
-              Label("项目主页", systemImage: "safari")
-            }
+          LabeledContent("仓库") {
+            Link("JUANWANG-BUAA/ginkgo", destination: URL(string: "https://github.com/JUANWANG-BUAA/ginkgo")!)
           }
-          .buttonStyle(.link)
-          HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Image(systemName: "star.fill").foregroundStyle(.yellow).font(.caption)
-            Text("如果 Ginkgo 帮到了你，欢迎到 GitHub 点个 Star，让更多北航同学看到它。")
-              .font(.caption).foregroundStyle(.secondary)
-              .fixedSize(horizontal: false, vertical: true)
+          LabeledContent("项目主页") {
+            Link("juanwang-buaa.github.io/ginkgo", destination: URL(string: "https://juanwang-buaa.github.io/ginkgo/")!)
           }
-          Divider().padding(.vertical, 6)
-          Text("协议研究与实现参考了同以 MIT 许可发布的 UBAA（BUAASubnet/UBAA）；感谢原作者与贡献者把北航各系统的直连协议整理成可读、可验证的实现。")
+          Divider().padding(.vertical, 4)
+          Text("如果 Ginkgo 帮到了你，欢迎在 GitHub 点个 Star。")
+            .font(.caption).foregroundStyle(.secondary)
+          Text("协议研究与实现参考了同以 MIT 许可发布的 UBAA（BUAASubnet/UBAA），谨致谢意。")
             .font(.caption).foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
-          Link("访问 BUAASubnet/UBAA →", destination: URL(string: "https://github.com/BUAASubnet/UBAA")!)
+          Link("访问 UBAA", destination: URL(string: "https://github.com/BUAASubnet/UBAA")!)
             .font(.caption)
         }
         if let notice = appState.notice { StatusNotice(message: notice, kind: .information) }
         HStack {
-          Label("Ginkgo · 北航校园工作台", systemImage: "leaf")
+          Label("Ginkgo（北航校园工作台）", systemImage: "graduationcap")
           Spacer()
           Text("校园日常，从容有序")
         }.font(.caption).foregroundStyle(.secondary).padding(.horizontal, 4)
@@ -303,7 +296,7 @@ struct SettingsView: View {
       }
     case .denied:
       VStack(alignment: .leading, spacing: 8) {
-        StatusNotice(message: "系统已拒绝通知权限。请到系统设置 → 通知 → BUAA Assistant 开启；应用内状态提示不受影响。", kind: .warning)
+        StatusNotice(message: "系统已拒绝通知权限。请到系统设置 → 通知 → Ginkgo 开启；应用内状态提示不受影响。", kind: .warning)
         Button("重新检查系统权限") {
           Task { await checkIn.refreshNotificationAuthorization() }
         }
@@ -333,11 +326,11 @@ struct SettingsView: View {
         appState.showToast(
           granted
             ? "签到状态提醒已开启"
-            : "系统通知未授权；可在系统设置 → 通知 → BUAA Assistant 中开启"
+            : "系统通知未授权；可在系统设置 → 通知 → Ginkgo 中开启"
         )
       }
     case .denied:
-      appState.showToast("请先在系统设置 → 通知 → BUAA Assistant 中开启通知")
+      appState.showToast("请先在系统设置 → 通知 → Ginkgo 中开启通知")
     default:
       break
     }
@@ -361,11 +354,11 @@ struct SettingsView: View {
         appState.showToast(
           granted
             ? "课程提醒已开启"
-            : "系统通知未授权；可在系统设置 → 通知 → BUAA Assistant 中开启"
+            : "系统通知未授权；可在系统设置 → 通知 → Ginkgo 中开启"
         )
       }
     case .denied:
-      appState.showToast("请先在系统设置 → 通知 → BUAA Assistant 中开启通知")
+      appState.showToast("请先在系统设置 → 通知 → Ginkgo 中开启通知")
       Task { await courseReminders.update(snapshot: schedule.snapshot) }
     default:
       Task { await courseReminders.update(snapshot: schedule.snapshot) }

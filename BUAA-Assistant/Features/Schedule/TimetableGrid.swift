@@ -150,13 +150,14 @@ struct SemesterOverview: View {
                 .frame(width: 76, height: 76)
               }
               .buttonStyle(.plain)
-              .background(week.isCurrent ? Color.accentColor.opacity(0.12) : Color.clear)
+              .background(week.isCurrent ? Color.accentColor.opacity(0.08) : Color.clear)
               ForEach(1...7, id: \.self) { day in
                 SemesterDayCell(courses: snapshot.termCourses?[String(week.number)], day: day, isCurrent: week.isCurrent)
               }
             }
           }
-        }.background(Color.primary.opacity(0.06)).clipShape(RoundedRectangle(cornerRadius: 10))
+        }.background(Color(nsColor: .separatorColor)).clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.primary.opacity(0.06)))
       }
     }
   }
@@ -181,7 +182,7 @@ private struct SemesterDayCell: View {
           }
           .padding(.vertical, 3).padding(.horizontal, 5)
           .frame(maxWidth: .infinity, alignment: .topLeading)
-          .background(color.opacity(0.16), in: RoundedRectangle(cornerRadius: 5))
+          .background(color.opacity(0.14), in: RoundedRectangle(cornerRadius: 4))
           .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(color).frame(width: 3) }
         }
       } else { Text("未查询").font(.caption2).foregroundStyle(.tertiary) }
@@ -189,6 +190,6 @@ private struct SemesterDayCell: View {
     .frame(width: 116, alignment: .topLeading)
     .frame(minHeight: 60, alignment: .topLeading)
     .padding(8)
-    .background(isCurrent ? Color.accentColor.opacity(0.10) : Color(nsColor: .controlBackgroundColor))
+    .background(isCurrent ? Color.accentColor.opacity(0.08) : Color(nsColor: .controlBackgroundColor))
   }
 }

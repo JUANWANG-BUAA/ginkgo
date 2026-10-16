@@ -184,7 +184,7 @@ final class CourseReminderScheduler: ObservableObject {
 
         let content = UNMutableNotificationContent()
         content.title = "课程即将开始"
-        content.body = "10 分钟后有课程，打开 BUAA Assistant 查看课表。"
+        content.body = "10 分钟后有课程，打开 Ginkgo 查看课表。"
         content.sound = .default
         content.threadIdentifier = "course-reminders"
 

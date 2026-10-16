@@ -22,7 +22,7 @@ final class SystemCheckInNotificationClient: CheckInNotificationServing {
   func sendStatusChangeNotification() {
     let content = UNMutableNotificationContent()
     content.title = "课程签到状态已更新"
-    content.body = "iclass 已确认课程签到状态变化，打开 BUAA Assistant 查看详情。"
+    content.body = "iclass 已确认课程签到状态变化，打开 Ginkgo 查看详情。"
     content.sound = .default
     let request = UNNotificationRequest(
       identifier: "check-in-status-\(UUID().uuidString)",

@@ -7,7 +7,7 @@ final class NetworkPathObserver: ObservableObject {
   @Published private(set) var isConnected: Bool?
 
   private let monitor = NWPathMonitor()
-  private let queue = DispatchQueue(label: "BUAA-Assistant.network-path")
+  private let queue = DispatchQueue(label: "Ginkgo.network-path")
 
   init() {
     monitor.pathUpdateHandler = { [weak self] path in

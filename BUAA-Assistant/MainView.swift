@@ -104,7 +104,7 @@ struct MainView: View {
     .environmentObject(checkIn)
     .environmentObject(tasks)
     .environmentObject(classroom)
-    .navigationTitle(selectedSection?.rawValue ?? "BUAA Assistant")
+    .navigationTitle(selectedSection?.rawValue ?? "Ginkgo")
     .task(id: "\(appState.user?.schoolid ?? "")|\(checkInPollingIsActive)") {
       guard let account = appState.user?.schoolid else {
         await courseReminders.update(snapshot: nil)
@@ -257,7 +257,7 @@ struct MainView: View {
       }
       .frame(width: 40, height: 40)
       VStack(alignment: .leading, spacing: 3) {
-        Text("BUAA Assistant")
+        Text("Ginkgo")
           .font(.system(.headline, design: .rounded).weight(.semibold))
           .lineLimit(1)
         HStack(spacing: 5) {

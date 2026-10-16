@@ -150,7 +150,7 @@ final class CheckInViewModel: ObservableObject {
       case .notDetermined:
         notificationHint = "开启通知后，只在确认状态变化时提醒。"
       case .denied:
-        notificationHint = "系统通知已关闭，可在系统设置 → 通知 → BUAA Assistant 中开启。"
+        notificationHint = "系统通知已关闭，可在系统设置 → 通知 → Ginkgo 中开启。"
       case .authorized, .provisional, .ephemeral:
         notificationHint = "系统通知已开启，只在确认状态变化后提醒。"
       @unknown default:

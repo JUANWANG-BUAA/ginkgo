@@ -32,7 +32,7 @@ struct BUAAAssistantApp: App {
       }
     }
 
-    MenuBarExtra(appState.isLoggedIn ? "BUAA Assistant（已连接）" : "BUAA Assistant", systemImage: menuBarIcon) {
+    MenuBarExtra(appState.isLoggedIn ? "Ginkgo（已连接）" : "Ginkgo", systemImage: menuBarIcon) {
       MenuBarPanel()
         .environmentObject(appState)
         .frame(width: 360)
@@ -54,7 +54,7 @@ struct MenuBarPanel: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
-        Label("BUAA Assistant", systemImage: "graduationcap")
+        Label("Ginkgo", systemImage: "graduationcap")
           .font(.headline)
         Spacer()
       }
@@ -105,7 +105,7 @@ struct MenuBarPanel: View {
         }
       }
 
-      Button("退出 BUAA Assistant") {
+      Button("退出 Ginkgo") {
         NSApp.terminate(nil)
       }
       .keyboardShortcut("q")

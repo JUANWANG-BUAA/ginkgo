@@ -3,6 +3,16 @@
 > 用途：GitHub 仓库信息、社区发帖、社交分享的统一口径。发布时直接复制，避免各文档说法不一致。
 > 当前版本：Ginkgo 0.1.0-alpha（2026-10-16）
 
+## 命名与品牌
+
+- **仓库名 / 应用显示名**：`Ginkgo`（北航校园工作台）；应用内叉栏、菜单栏、窗口标题、登录页与通知文案已统一为 Ginkgo。
+- **内部标识保留旧名以兼容历史数据**：bundle id `com.buaaassistant.app`、钥匙串 service `com.buaaassistant.credentials`、本机缓存目录 `~/Library/Application Support/BUAA-Assistant/`。改掉它们会让用户丢失已保存密码与缓存，因此不动。
+- **Xcode 工程名**（`BUAA-Assistant.xcodeproj`、`BUAA-AssistantTests/`）保留；App target 的**产物名已改为 `Ginkgo.app`**（`PRODUCT_NAME = Ginkgo`，应用菜单/Finder/窗口标题均显示 Ginkgo），而 Swift 模块名固定为 `BUAA_Assistant` 以兼容测试导入。
+
+## 免责声明（发帖时请附上）
+
+> Ginkgo 是非官方个人开源项目，与北京航空航天大学及其任何部门无隶属、合作或授权关系。项目仅出于个人学习与自用目的直连学校公开服务，不提供破解或绕过风控的能力；数据以学校官方渠道为准；使用者应遵守学校服务条款并自行承担使用风险。代码按 MIT 许可“按原样”提供。
+
 ## GitHub 仓库信息
 
 - **仓库名**：`ginkgo`（完整地址 `github.com/JUANWANG-BUAA/ginkgo`，"BUAA"在账号名里）
@@ -60,13 +70,14 @@ GitHub: https://github.com/JUANWANG-BUAA/ginkgo
 ```
 写了个北航专用的 macOS 校园工作台：课表、签到、图书馆预约直接在菜单栏看完。
 原生 SwiftUI，数据不上传，开源在 GitHub，北航同学自取 🌿
+（非官方项目，与学校无隶属关系；使用请遵守学校相关服务条款）
 ```
 
 ## 视觉素材
 
-- **演示动画**：`docs/images/demo.gif`（9 个页面轮播，294 KB）
+- **演示动画**：`docs/images/demo.gif`（9 个页面轮播）
 - **社交预览图（GitHub Social Preview）**：建议用 `docs/images/overview.png` 或首页 hero 截图按 1200×630 裁切
-- **项目主页**：`docs/index.html`（GitHub Pages：main 分支 /docs 目录）
+- **项目主页**：`docs/index.html`（GitHub Pages：main 分支 /docs 目录）；已适配手机端（响应式布局、移动端按钮堆叠），并含免责声明区块
 - 所有截图已打码姓名、学号、课程与作业标题
 
 ## 发布节奏建议

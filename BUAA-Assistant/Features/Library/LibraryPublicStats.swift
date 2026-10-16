@@ -163,7 +163,7 @@ actor LibraryPublicStatsClient {
     request.httpMethod = "GET"
     request.setValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
     request.setValue("https://lib.buaa.edu.cn/", forHTTPHeaderField: "Referer")
-    request.setValue("BUAA-Assistant/1.0", forHTTPHeaderField: "User-Agent")
+    request.setValue("Ginkgo/1.0", forHTTPHeaderField: "User-Agent")
     let (data, response) = try await session.data(for: request)
     guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
       throw LibraryPublicStatsError.unavailable

@@ -301,8 +301,11 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
+				INFOPLIST_KEY_CFBundleDisplayName = Ginkgo;
+				INFOPLIST_KEY_CFBundleName = Ginkgo;
 				PRODUCT_BUNDLE_IDENTIFIER = com.buaaassistant.app;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_MODULE_NAME = BUAA_Assistant;
+				PRODUCT_NAME = Ginkgo;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
 			name = Debug;
@@ -326,8 +329,11 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
+				INFOPLIST_KEY_CFBundleDisplayName = Ginkgo;
+				INFOPLIST_KEY_CFBundleName = Ginkgo;
 				PRODUCT_BUNDLE_IDENTIFIER = com.buaaassistant.app;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_MODULE_NAME = BUAA_Assistant;
+				PRODUCT_NAME = Ginkgo;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
 			name = Release;
@@ -350,7 +356,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.buaaassistant.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BUAA-Assistant.app/Contents/MacOS/BUAA-Assistant";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Ginkgo.app/Contents/MacOS/Ginkgo";
 			};
 			name = Debug;
 		};
@@ -372,7 +378,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.buaaassistant.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BUAA-Assistant.app/Contents/MacOS/BUAA-Assistant";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Ginkgo.app/Contents/MacOS/Ginkgo";
 			};
 			name = Release;
 		};

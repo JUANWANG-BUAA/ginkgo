@@ -110,7 +110,7 @@ struct CheckInSummaryView: View {
             appState.showToast(
               enabled
                 ? "签到状态通知已开启"
-                : "系统通知未授权；可在系统设置 → 通知 → BUAA Assistant 中开启"
+                : "系统通知未授权；可在系统设置 → 通知 → Ginkgo 中开启"
             )
           }
         }

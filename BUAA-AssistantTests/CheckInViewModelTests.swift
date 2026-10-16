@@ -175,7 +175,7 @@ final class CheckInViewModelTests: XCTestCase {
     )
 
     await model.start(account: "test-account")
-    XCTAssertTrue(model.notificationHint(webVPNSessionStatus: .notAttempted).contains("系统设置 → 通知 → BUAA Assistant"))
+    XCTAssertTrue(model.notificationHint(webVPNSessionStatus: .notAttempted).contains("系统设置 → 通知 → Ginkgo"))
 
     notifications.nextRequestResult = true
     let enabled = await model.requestNotificationAuthorization()
