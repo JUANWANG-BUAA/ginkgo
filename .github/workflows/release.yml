@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Release
+        run: |
+          xcodebuild build \
+            -project BUAA-Assistant.xcodeproj \
+            -scheme BUAA-Assistant \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            -derivedDataPath build
+
+      - name: Ad-hoc sign and package
+        run: |
+          APP="build/Build/Products/Release/BUAA-Assistant.app"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Contents/Info.plist"
+          codesign --force --sign - --timestamp=none "$APP"
+          codesign --verify --strict -vv "$APP"
+          ditto -c -k --keepParent "$APP" "BUAA-Assistant-${GITHUB_REF_NAME}.zip"
+          shasum -a 256 BUAA-Assistant-*.zip
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: BUAA Assistant ${{ github.ref_name }}
+          generate_release_notes: true
+          draft: true
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
+          files: BUAA-Assistant-*.zip
