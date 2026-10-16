@@ -31,14 +31,22 @@ jobs:
           /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Contents/Info.plist"
           codesign --force --sign - --timestamp=none "$APP"
           codesign --verify --strict -vv "$APP"
-          ditto -c -k --keepParent "$APP" "BUAA-Assistant-${GITHUB_REF_NAME}.zip"
-          shasum -a 256 BUAA-Assistant-*.zip
+          ditto -c -k --keepParent "$APP" "Ginkgo-${GITHUB_REF_NAME}.zip"
+          mkdir -p dist
+          cp -R "$APP" dist/
+          ln -s /Applications dist/Applications
+          hdiutil create -volname "Ginkgo ${GITHUB_REF_NAME}" -srcfolder dist -ov -format UDZO "Ginkgo-${GITHUB_REF_NAME}.dmg"
+          codesign --force --sign - --timestamp=none "Ginkgo-${GITHUB_REF_NAME}.dmg"
+          hdiutil verify "Ginkgo-${GITHUB_REF_NAME}.dmg"
+          shasum -a 256 Ginkgo-*.zip Ginkgo-*.dmg
 
       - name: Create draft release
         uses: softprops/action-gh-release@v2
         with:
-          name: BUAA Assistant ${{ github.ref_name }}
+          name: Ginkgo ${{ github.ref_name }}
           generate_release_notes: true
           draft: true
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
-          files: BUAA-Assistant-*.zip
+          files: |
+            Ginkgo-*.zip
+            Ginkgo-*.dmg
