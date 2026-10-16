@@ -16,6 +16,8 @@ final class HomeworkViewModel: ObservableObject {
   private var account: String?
   private var generation = 0
   private var detailGeneration = 0
+  private var lastAutomaticRefreshAttemptAt: Date?
+  private var pendingAutomaticRefresh = false
 
   init(service: HomeworkServing = HomeworkClient(), cache: HomeworkCache = HomeworkCache()) {
     self.service = service
@@ -50,6 +52,8 @@ final class HomeworkViewModel: ObservableObject {
     generation += 1
     detailGeneration += 1
     account = nil
+    lastAutomaticRefreshAttemptAt = nil
+    pendingAutomaticRefresh = false
     snapshot = nil
     isLoading = false
     errorMessage = nil
@@ -60,23 +64,61 @@ final class HomeworkViewModel: ObservableObject {
     detailErrorMessage = nil
   }
 
+  func refreshIfStale(
+    maxAge: TimeInterval = 15 * 60,
+    queueIfLoading: Bool = false,
+    bypassCooldown: Bool = false,
+    forceRefresh: Bool = false
+  ) async {
+    guard account != nil else { return }
+    if isLoading {
+      if queueIfLoading { pendingAutomaticRefresh = true }
+      return
+    }
+    let now = Date()
+    let isStale = snapshot.map { now.timeIntervalSince($0.fetchedAt) >= maxAge } ?? true
+    let hasUnavailableSources = snapshot.map { !$0.unavailableSources.isEmpty } ?? false
+    guard forceRefresh || errorMessage != nil || isStale || hasUnavailableSources else { return }
+    let cooldown: TimeInterval = forceRefresh ? 5 : 30
+    if !bypassCooldown, let lastAutomaticRefreshAttemptAt,
+       now.timeIntervalSince(lastAutomaticRefreshAttemptAt) < cooldown { return }
+    lastAutomaticRefreshAttemptAt = now
+    await refresh()
+  }
+
   func refresh() async {
     generation += 1
     let current = generation
     isLoading = true
     errorMessage = nil
     needsSessionCheck = false
-    defer { if current == generation { isLoading = false } }
+    defer { finishRefresh(current: current) }
     do {
       let result = try await service.load()
       guard current == generation else { return }
       snapshot = result
-      if let account { try? await cache.save(result, account: account) }
+      if let account {
+        do { try await cache.save(result, account: account) }
+        catch { AppLog.cacheWriteFailed(feature: "homework", error: error) }
+      }
     } catch {
       guard current == generation else { return }
+      AppLog.operationFailed(feature: "homework", stage: "refresh", error: error)
       errorMessage = (error as? LocalizedError)?.errorDescription ?? "学校作业更新失败"
       if case HomeworkError.sessionExpired = error { needsSessionCheck = true }
     }
+  }
+
+  func cancelPendingAutomaticRefresh() {
+    pendingAutomaticRefresh = false
+  }
+
+  private func finishRefresh(current: Int) {
+    guard current == generation else { return }
+    isLoading = false
+    guard pendingAutomaticRefresh else { return }
+    pendingAutomaticRefresh = false
+    Task { await refreshIfStale(bypassCooldown: true) }
   }
 
   func loadDetail(for item: HomeworkItem) async {
@@ -105,6 +147,12 @@ final class HomeworkViewModel: ObservableObject {
       detail = result
     } catch {
       guard current == detailGeneration else { return }
+      if let homeworkError = error as? HomeworkError,
+         case let .upstreamProtocolChanged(_, stage) = homeworkError {
+        AppLog.responseFormatChanged(feature: "homework-detail", stage: stage)
+      } else {
+        AppLog.operationFailed(feature: "homework", stage: "detail", error: error)
+      }
       detailErrorMessage = (error as? LocalizedError)?.errorDescription ?? "作业详情加载失败"
       if case HomeworkError.sessionExpired = error { needsSessionCheck = true }
       if case HomeworkError.spocAuthenticationExpired = error { needsSessionCheck = true }

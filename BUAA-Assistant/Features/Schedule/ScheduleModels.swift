@@ -100,9 +100,9 @@ enum ScheduleError: LocalizedError {
     switch self {
     case .sessionExpired: "学校会话已过期，请重新登录"
     case .unsupportedPortal: "当前研究生教务门户不提供本科考试安排接口"
-    case .unavailable(let service): "\(service)暂时无法访问，请稍后重试"
-    case .changedResponse: "学校课表数据格式已变化，请稍后重试"
-    case .changedResponseAt(let step): "\(step)返回的数据无法识别，请稍后重试"
+    case .unavailable(let service): "\(service)暂时不可用，请稍后重试"
+    case .changedResponse: "学校服务返回的数据格式无法识别，接口可能已调整；请重试，若持续出现请反馈"
+    case .changedResponseAt(let step): "\(step)返回的数据格式无法识别，接口可能已调整；请重试，若持续出现请反馈"
     case .invalidTerm: "学期信息无效，请重新选择学期"
     }
   }

@@ -121,14 +121,19 @@ struct HomeworkView: View {
 
   @ViewBuilder
   private func freshness(_ snapshot: HomeworkSnapshot) -> some View {
+    let protocolChanged = snapshot.protocolChangedSources.map(\.title)
+    let unavailable = snapshot.unavailableSources
+      .filter { !snapshot.protocolChangedSources.contains($0) }
+      .map(\.title)
     VStack(alignment: .leading, spacing: 6) {
       if model.isLoading {
         StatusNotice(message: "正在更新作业 · 显示上次结果", kind: .information)
       } else if let error = model.errorMessage {
         StatusNotice(message: "更新失败：\(error) · 已保留上次结果", kind: .warning)
       } else if !snapshot.protocolChangedSources.isEmpty {
-        let sources = snapshot.protocolChangedSources.map(\.title).joined(separator: "、")
-        StatusNotice(message: "\(sources)接口格式可能已调整，已保留可用数据；请稍后重试", kind: .warning)
+        let sources = protocolChanged.joined(separator: "、")
+        let unavailableDetail = unavailable.isEmpty ? "" : "；\(unavailable.joined(separator: "、"))暂时不可用"
+        StatusNotice(message: "\(sources)响应格式无法识别，接口可能已调整\(unavailableDetail)；列表仅包含已成功同步的来源，请重试", kind: .warning)
       } else if !snapshot.unavailableSources.isEmpty {
         let sources = snapshot.unavailableSources.map(\.title).joined(separator: "、")
         let spocCount = snapshot.items.filter { $0.source == .spoc }.count

@@ -23,7 +23,7 @@ actor HomeworkClient: HomeworkServing, HomeworkDetailServing {
       items += try await judge.items
     } catch {
       failures[.judge] = error
-      AppLog.network.error("homework provider failed source=judge category=\(Self.failureCategory(error), privacy: .public)")
+      Self.logProviderFailure(source: .judge, error: error)
     }
     do {
       let result = try await spoc
@@ -31,7 +31,7 @@ actor HomeworkClient: HomeworkServing, HomeworkDetailServing {
       spocTerm = result.spocTerm
     } catch {
       failures[.spoc] = error
-      AppLog.network.error("homework provider failed source=spoc category=\(Self.failureCategory(error), privacy: .public)")
+      Self.logProviderFailure(source: .spoc, error: error)
     }
     if failures.count == HomeworkSource.allCases.count {
       throw HomeworkError.allSourcesUnavailable(
@@ -99,6 +99,17 @@ actor HomeworkClient: HomeworkServing, HomeworkDetailServing {
     if let urlError = error as? URLError { return "network_\(urlError.code.rawValue)" }
     if error is DecodingError { return "decoding_failure" }
     return "unexpected_failure"
+  }
+
+  private static func logProviderFailure(source: HomeworkSource, error: Error) {
+    if let homeworkError = error as? HomeworkError,
+       case let .upstreamProtocolChanged(errorSource, stage) = homeworkError {
+      AppLog.responseFormatChanged(feature: "homework-\(errorSource.rawValue)", stage: stage)
+      return
+    }
+    AppLog.network.error(
+      "homework provider failed source=\(source.rawValue, privacy: .public) category=\(failureCategory(error), privacy: .public)"
+    )
   }
 
   private static func isProtocolChanged(_ error: Error) -> Bool {

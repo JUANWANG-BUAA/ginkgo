@@ -44,24 +44,133 @@ actor ClassroomCache {
   }
 }
 
-enum ClassroomSort: String, CaseIterable, Identifiable {
+enum ClassroomSort: String, CaseIterable, Identifiable, Sendable {
   case name = "教室名称"
   case availability = "空闲节数优先"
   case consecutive = "连续空闲优先"
   var id: String { rawValue }
 }
 
+private struct IndexedClassroom: Sendable {
+  let room: FreeClassroom
+  let normalizedName: String
+}
+
+private struct ClassroomResultSummary: Sendable {
+  var roomCount = 0
+  var buildingCount = 0
+  var freeSlotCount = 0
+}
+
+private struct ClassroomFilterInput: Sendable {
+  let sourceRooms: [String: [FreeClassroom]]?
+  let indexedRooms: [String: [IndexedClassroom]]?
+  let search: String
+  let section: Int
+  let minimumFreeSections: Int
+  let minimumConsecutiveSections: Int
+  let building: String?
+  let sort: ClassroomSort
+}
+
+private struct ClassroomFilterOutput: Sendable {
+  let filtered: [String: [FreeClassroom]]
+  let index: [String: [IndexedClassroom]]?
+  let summary: ClassroomResultSummary
+}
+
+private enum ClassroomResultProcessor {
+  static func process(_ input: ClassroomFilterInput) -> ClassroomFilterOutput {
+    let index: [String: [IndexedClassroom]]
+    let shouldReturnIndex = input.indexedRooms == nil
+    if let indexedRooms = input.indexedRooms {
+      index = indexedRooms
+    } else {
+      var prepared: [String: [IndexedClassroom]] = [:]
+      for (building, rooms) in input.sourceRooms ?? [:] {
+        var entries: [IndexedClassroom] = []
+        entries.reserveCapacity(rooms.count)
+        for room in rooms {
+          guard !Task.isCancelled else {
+            return ClassroomFilterOutput(filtered: [:], index: nil, summary: ClassroomResultSummary())
+          }
+          entries.append(IndexedClassroom(room: room, normalizedName: normalizedSearch(room.name)))
+        }
+        prepared[building] = entries
+      }
+      index = prepared
+    }
+
+    let term = normalizedSearch(input.search.trimmingCharacters(in: .whitespacesAndNewlines))
+    var filtered: [String: [FreeClassroom]] = [:]
+    var summary = ClassroomResultSummary()
+
+    for (building, entries) in index {
+      guard !Task.isCancelled else {
+        return ClassroomFilterOutput(filtered: [:], index: nil, summary: ClassroomResultSummary())
+      }
+      if let selectedBuilding = input.building, selectedBuilding != building { continue }
+      let matchesBuilding = normalizedSearch(building).contains(term)
+      var matches: [FreeClassroom] = []
+      matches.reserveCapacity(entries.count)
+      for entry in entries {
+        guard !Task.isCancelled else {
+          return ClassroomFilterOutput(filtered: [:], index: nil, summary: ClassroomResultSummary())
+        }
+        let room = entry.room
+        let matchesSearch = term.isEmpty || matchesBuilding || entry.normalizedName.contains(term)
+        let matchesSection = input.section == 0 || room.isAvailable(at: input.section)
+        guard matchesSearch, matchesSection,
+              room.availableSectionCount >= input.minimumFreeSections,
+              room.longestFreeRun >= input.minimumConsecutiveSections else { continue }
+        matches.append(room)
+      }
+
+      matches.sort { lhs, rhs in
+        if input.sort == .availability, lhs.availableSectionCount != rhs.availableSectionCount {
+          return lhs.availableSectionCount > rhs.availableSectionCount
+        }
+        if input.sort == .consecutive, lhs.longestFreeRun != rhs.longestFreeRun {
+          return lhs.longestFreeRun > rhs.longestFreeRun
+        }
+        let order = lhs.name.localizedStandardCompare(rhs.name)
+        return order == .orderedSame ? lhs.id < rhs.id : order == .orderedAscending
+      }
+      guard !Task.isCancelled else {
+        return ClassroomFilterOutput(filtered: [:], index: nil, summary: ClassroomResultSummary())
+      }
+      guard !matches.isEmpty else { continue }
+      filtered[building] = matches
+      summary.roomCount += matches.count
+      summary.buildingCount += 1
+      summary.freeSlotCount += matches.reduce(0) { $0 + $1.availableSectionCount }
+    }
+
+    return ClassroomFilterOutput(
+      filtered: filtered,
+      index: shouldReturnIndex ? index : nil,
+      summary: summary
+    )
+  }
+
+  private static func normalizedSearch(_ value: String) -> String {
+    let folded = value.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
+    let scalars = folded.unicodeScalars.filter { CharacterSet.alphanumerics.contains($0) }
+    return String(String.UnicodeScalarView(scalars))
+  }
+}
+
 @MainActor
 final class ClassroomViewModel: ObservableObject {
   @Published var campus = 1 { didSet { if campus != oldValue { reset() } } }
   @Published var date = Date() { didSet { if !ScheduleSnapshot.schoolCalendar.isDate(date, inSameDayAs: oldValue) { reset() } } }
-  @Published var search = "" { didSet { updateResults() } }
+  @Published var search = "" { didSet { updateResults(debounceSearch: true) } }
   @Published var section = 0 { didSet { updateResults() } }
   @Published var minimumFreeSections = 0 { didSet { updateResults() } }
   @Published var minimumConsecutiveSections = 0 { didSet { updateResults() } }
   @Published var building: String? { didSet { updateResults() } }
   @Published var sort: ClassroomSort = .name { didSet { updateResults() } }
-  @Published private(set) var rooms: [String: [FreeClassroom]] = [:] { didSet { updateResults() } }
+  @Published private(set) var rooms: [String: [FreeClassroom]] = [:] { didSet { updateResults(roomsChanged: true) } }
   @Published private(set) var filtered: [String: [FreeClassroom]] = [:]
   @Published private(set) var resultRevision = 0
   @Published private(set) var busy = false
@@ -80,13 +189,11 @@ final class ClassroomViewModel: ObservableObject {
     let fetchedAt: Date
   }
   private var cachedQueries: [String: CachedQuery] = [:]
-  private var resultSummary = ResultSummary()
-
-  private struct ResultSummary {
-    var roomCount = 0
-    var buildingCount = 0
-    var freeSlotCount = 0
-  }
+  private var preparedSearchIndex: [String: [IndexedClassroom]]?
+  private var resultSummary = ClassroomResultSummary()
+  private var resultUpdateGeneration = 0
+  private var resultUpdateTask: Task<Void, Never>?
+  private var resultComputationTask: Task<ClassroomFilterOutput, Never>?
 
   private var queryKey: String {
     let components = ScheduleSnapshot.schoolCalendar.dateComponents([.year, .month, .day], from: date)
@@ -130,44 +237,46 @@ final class ClassroomViewModel: ObservableObject {
     }
   }
 
-  private func updateResults() {
-    let term = search.trimmingCharacters(in: .whitespacesAndNewlines)
-    let normalizedTerm = Self.normalizedSearch(term)
-    var summary = ResultSummary()
-    let nextResults = rooms.reduce(into: [String: [FreeClassroom]]()) { result, entry in
-      guard building == nil || building == entry.key else { return }
-      let matchesBuilding = Self.normalizedSearch(entry.key).contains(normalizedTerm)
-      let matches = entry.value.filter { room in
-        (normalizedTerm.isEmpty || matchesBuilding || Self.normalizedSearch(room.name).contains(normalizedTerm)) &&
-        (section == 0 || room.isAvailable(at: section)) &&
-        room.availableSectionCount >= minimumFreeSections &&
-        room.longestFreeRun >= minimumConsecutiveSections
-      }.sorted { lhs, rhs in
-        if sort == .availability, lhs.availableSectionCount != rhs.availableSectionCount {
-          return lhs.availableSectionCount > rhs.availableSectionCount
-        }
-        if sort == .consecutive, lhs.longestFreeRun != rhs.longestFreeRun {
-          return lhs.longestFreeRun > rhs.longestFreeRun
-        }
-        let order = lhs.name.localizedStandardCompare(rhs.name)
-        return order == .orderedSame ? lhs.id < rhs.id : order == .orderedAscending
-      }
-      if !matches.isEmpty {
-        result[entry.key] = matches
-        summary.roomCount += matches.count
-        summary.buildingCount += 1
-        summary.freeSlotCount += matches.reduce(0) { $0 + $1.availableSectionCount }
-      }
-    }
-    resultSummary = summary
-    resultRevision &+= 1
-    filtered = nextResults
-  }
+  private func updateResults(roomsChanged: Bool = false, debounceSearch: Bool = false) {
+    if roomsChanged { preparedSearchIndex = nil }
+    resultUpdateGeneration &+= 1
+    let current = resultUpdateGeneration
+    resultUpdateTask?.cancel()
+    resultComputationTask?.cancel()
 
-  private static func normalizedSearch(_ value: String) -> String {
-    let folded = value.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
-    let scalars = folded.unicodeScalars.filter { CharacterSet.alphanumerics.contains($0) }
-    return String(String.UnicodeScalarView(scalars))
+    let input = ClassroomFilterInput(
+      sourceRooms: preparedSearchIndex == nil ? rooms : nil,
+      indexedRooms: preparedSearchIndex,
+      search: search,
+      section: section,
+      minimumFreeSections: minimumFreeSections,
+      minimumConsecutiveSections: minimumConsecutiveSections,
+      building: building,
+      sort: sort
+    )
+
+    resultUpdateTask = Task { [weak self] in
+      if debounceSearch {
+        do {
+          try await Task.sleep(nanoseconds: 120_000_000)
+        } catch {
+          return
+        }
+      }
+      guard !Task.isCancelled, let self else { return }
+      let computation = Task.detached(priority: .userInitiated) {
+        ClassroomResultProcessor.process(input)
+      }
+      self.resultComputationTask = computation
+      let output = await computation.value
+      guard !Task.isCancelled, self.resultUpdateGeneration == current else { return }
+      if let index = output.index { self.preparedSearchIndex = index }
+      self.resultSummary = output.summary
+      self.filtered = output.filtered
+      self.resultRevision &+= 1
+      self.resultComputationTask = nil
+      self.resultUpdateTask = nil
+    }
   }
 
   var hasActiveFilters: Bool {
@@ -217,16 +326,20 @@ final class ClassroomViewModel: ObservableObject {
       rooms = result; queried = true; resultsAreCached = false; fetchedAt = Date()
       cachedQueries[key] = CachedQuery(rooms: result, fetchedAt: fetchedAt!)
       if let account {
-        try? await cache.save(ClassroomCacheEntry(
-          key: key, campus: campus, date: date, rooms: result, fetchedAt: fetchedAt!
-        ), account: account)
+        do {
+          try await cache.save(ClassroomCacheEntry(
+            key: key, campus: campus, date: date, rooms: result, fetchedAt: fetchedAt!
+          ), account: account)
+        } catch {
+          AppLog.cacheWriteFailed(feature: "classrooms", error: error)
+        }
       }
       if cachedQueries.count > 12, let oldest = cachedQueries.min(by: { $0.value.fetchedAt < $1.value.fetchedAt })?.key {
         cachedQueries.removeValue(forKey: oldest)
       }
     } catch {
       guard current == generation else { return }
-      AppLog.network.error("空教室查询失败")
+      AppLog.operationFailed(feature: "classrooms", stage: "query", error: error)
       message = error.localizedDescription
       if case ScheduleError.sessionExpired = error { needsSessionCheck = true }
     }

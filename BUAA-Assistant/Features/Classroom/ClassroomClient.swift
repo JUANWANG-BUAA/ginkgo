@@ -1,15 +1,63 @@
 import Foundation
 
-struct FreeClassroom: Identifiable, Codable {
+struct FreeClassroom: Identifiable, Codable, Sendable {
   let id: String
   let floorid: String
   let name: String
   let kxsds: String
+  let availableSections: [Int]
+  let availableSectionCount: Int
+  let longestFreeRun: Int
 
-  /// The upstream returns a comma-separated list. Keep the parsing here so every
-  /// presentation mode uses the same normalized section values.
-  var availableSections: [Int] {
-    kxsds
+  init(id: String, floorid: String, name: String, kxsds: String) {
+    self.id = id
+    self.floorid = floorid
+    self.name = name
+    self.kxsds = kxsds
+    let sections = Self.parseAvailableSections(kxsds)
+    availableSections = sections
+    availableSectionCount = sections.count
+
+    var longest = 0
+    var run = 0
+    var previous = 0
+    for section in sections {
+      run = section == previous + 1 ? run + 1 : 1
+      longest = max(longest, run)
+      previous = section
+    }
+    longestFreeRun = longest
+  }
+
+  private enum CodingKeys: String, CodingKey {
+    case id
+    case floorid
+    case name
+    case kxsds
+  }
+
+  init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    self.init(
+      id: try values.decode(String.self, forKey: .id),
+      floorid: try values.decode(String.self, forKey: .floorid),
+      name: try values.decode(String.self, forKey: .name),
+      kxsds: try values.decode(String.self, forKey: .kxsds)
+    )
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var values = encoder.container(keyedBy: CodingKeys.self)
+    try values.encode(id, forKey: .id)
+    try values.encode(floorid, forKey: .floorid)
+    try values.encode(name, forKey: .name)
+    try values.encode(kxsds, forKey: .kxsds)
+  }
+
+  /// The upstream returns a comma-separated list. Parse it once so filtering
+  /// and SwiftUI row updates reuse the same normalized section values.
+  private static func parseAvailableSections(_ value: String) -> [Int] {
+    value
       .split { ",，、 /".contains($0) }
       .compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
       .filter { (1...14).contains($0) }
@@ -19,22 +67,18 @@ struct FreeClassroom: Identifiable, Codable {
       }
   }
 
-  var availableSectionCount: Int { availableSections.count }
-
   func isAvailable(at section: Int) -> Bool {
     availableSections.contains(section)
   }
 
-  var longestFreeRun: Int {
-    var longest = 0
-    var run = 0
-    var previous = 0
-    for section in availableSections {
-      run = section == previous + 1 ? run + 1 : 1
-      longest = max(longest, run)
-      previous = section
+  var hasRecognizedAvailabilityFormat: Bool {
+    let value = kxsds.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !value.isEmpty else { return true }
+    let sections = value.split { ",，、 /".contains($0) }
+    return !sections.isEmpty && sections.allSatisfy { raw in
+      guard let section = Int(raw.trimmingCharacters(in: .whitespacesAndNewlines)) else { return false }
+      return (1...14).contains(section)
     }
-    return longest
   }
 }
 private struct ClassroomResponse: Decodable {
@@ -64,10 +108,27 @@ actor ClassroomClient: ClassroomServing {
     request.setValue("XMLHttpRequest", forHTTPHeaderField: "X-Requested-With")
     request.setValue("https://app.buaa.edu.cn/site/classRoomQuery/index", forHTTPHeaderField: "Referer")
     let (data, response) = try await session.data(for: request)
-    guard let http = response as? HTTPURLResponse else { throw ScheduleError.changedResponseAt("空教室") }
-    if http.statusCode == 401 || http.url?.host == "sso.buaa.edu.cn" { throw ScheduleError.sessionExpired }
-    guard http.statusCode == 200, let result = try? JSONDecoder().decode(ClassroomResponse.self, from: data) else { throw ScheduleError.changedResponseAt("空教室") }
+    guard let http = response as? HTTPURLResponse else { throw ScheduleError.unavailable("空教室服务") }
+    let bodyText = String(data: data.prefix(5000), encoding: .utf8) ?? ""
+    if http.statusCode == 401 || http.statusCode == 403 || http.url?.host == "sso.buaa.edu.cn"
+        || bodyText.contains("name=\"execution\"") || bodyText.localizedCaseInsensitiveContains("统一身份认证") {
+      throw ScheduleError.sessionExpired
+    }
+    guard (200..<300).contains(http.statusCode) else { throw ScheduleError.unavailable("空教室服务") }
+    guard let result = try? JSONDecoder().decode(ClassroomResponse.self, from: data) else {
+      AppLog.responseFormatChanged(feature: "classrooms", stage: "room_list")
+      throw ScheduleError.changedResponseAt("空教室")
+    }
     guard result.e == 0 else { throw ScheduleError.unavailable("空教室服务") }
+    let rooms = result.d.list.values.flatMap { $0 }
+    guard rooms.allSatisfy({
+      !$0.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        && !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        && $0.hasRecognizedAvailabilityFormat
+    }) else {
+      AppLog.responseFormatChanged(feature: "classrooms", stage: "room_fields")
+      throw ScheduleError.changedResponseAt("空教室")
+    }
     return result.d.list
   }
 }

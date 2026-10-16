@@ -8,6 +8,9 @@ struct JudgeHomeworkClient {
   func load() async throws -> HomeworkSnapshot {
     try await activateSession()
     let courses = try await getCourses()
+    guard courses.allSatisfy({ !$0.id.isEmpty && !$0.name.isEmpty }) else {
+      throw HomeworkError.upstreamProtocolChanged(source: .judge, stage: "课程列表")
+    }
     var items: [HomeworkItem] = []
     for course in courses {
       let assignments = try await getAssignments(course: course)
@@ -80,12 +83,46 @@ struct JudgeHomeworkClient {
     )
   }
 
+  private static func parseDetailForLoading(html: String, itemID: String) throws -> HomeworkDetail {
+    let detail = parseDetail(html: html, itemID: itemID)
+    let stateMarkers = [
+      "还未提交代码", "未提交文件", "未提交答案", "未作答", "未提交",
+      "初次提交时间", "首次提交时间", "最近一次提交时间", "最后一次提交时间",
+      "最后一次修改时间", "已提交", "得分", "Accepted", "Accept"
+    ]
+    let plain = plainText(html)
+    let hasRecognizedSubmissionState = stateMarkers.contains {
+      plain.localizedCaseInsensitiveContains($0)
+    }
+    let candidateRows = topLevelTables(in: html).flatMap { table in
+      captures(#"<tr\b[^>]*>([\s\S]*?)</tr>"#, in: removeNestedTables(table))
+    }.filter { row in
+      guard let rowHTML = row[safe: 1] else { return false }
+      let rowText = plainText(rowHTML)
+      return stateMarkers.contains { rowText.localizedCaseInsensitiveContains($0) }
+    }.count
+    let tableProgressIsIncomplete: Bool
+    if candidateRows > 0, let total = detail.totalProblems, total > 0 {
+      tableProgressIsIncomplete = detail.problems.count != total
+    } else {
+      tableProgressIsIncomplete = false
+    }
+
+    guard candidateRows == detail.problems.count, !tableProgressIsIncomplete,
+          detail.totalProblems == nil || detail.totalProblems == 0 || hasRecognizedSubmissionState else {
+      throw HomeworkError.upstreamProtocolChanged(source: .judge, stage: "作业详情")
+    }
+    return detail
+  }
+
   private func activateSession() async throws {
     let activation = URL(string: "https://sso.buaa.edu.cn/login?service=http%3A%2F%2Fjudge.buaa.edu.cn%2F")!
-    let (_, response) = try await session.data(from: activation)
-    guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+    let (data, response) = try await session.data(from: activation)
+    guard let http = response as? HTTPURLResponse else { throw HomeworkError.unavailable }
+    if http.statusCode == 401 || http.statusCode == 403 || Self.isAuthenticationPage(data) {
       throw HomeworkError.sessionExpired
     }
+    guard (200..<300).contains(http.statusCode) else { throw HomeworkError.unavailable }
   }
 
   private func getCourses() async throws -> [(id: String, name: String)] {
@@ -96,16 +133,22 @@ struct JudgeHomeworkClient {
     if matches.isEmpty && !Self.containsEmptyState(in: html, markers: ["暂无课程", "没有课程", "当前学期暂无教学班", "没有符合条件的课程"]) {
       throw HomeworkError.upstreamProtocolChanged(source: .judge, stage: "课程列表")
     }
-    return matches.compactMap { match in
-      guard let id = match[safe: 1], id != "0", let rawName = match[safe: 2] else { return nil }
+    var courses: [(id: String, name: String)] = []
+    for match in matches {
+      guard let id = match[safe: 1], let rawName = match[safe: 2] else {
+        throw HomeworkError.upstreamProtocolChanged(source: .judge, stage: "课程列表")
+      }
+      if id == "0" { continue }
       let name = Self.cleanText(rawName)
-      return name.isEmpty ? nil : (id, name)
+      guard !name.isEmpty else { throw HomeworkError.upstreamProtocolChanged(source: .judge, stage: "课程列表") }
+      courses.append((id, name))
     }
+    return courses
   }
 
   private func getAssignments(course: (id: String, name: String)) async throws -> [(id: String, title: String)] {
-    let (_, selectionResponse) = try await session.data(from: courseURL(course.id))
-    guard (selectionResponse as? HTTPURLResponse)?.statusCode == 200 else { throw HomeworkError.unavailable }
+    let (selectionData, selectionResponse) = try await session.data(from: courseURL(course.id))
+    _ = try body(selectionData, selectionResponse)
     let (data, response) = try await session.data(from: base.appendingPathComponent("assignment/index.jsp"))
     let html = try body(data, response)
     let pattern = #"assignID=(\d+)[^>]*>([\s\S]*?)</a>"#
@@ -113,20 +156,29 @@ struct JudgeHomeworkClient {
     if matches.isEmpty && !Self.containsEmptyState(in: html, markers: ["暂无作业", "没有作业", "暂无待完成作业", "没有待完成作业"]) {
       throw HomeworkError.upstreamProtocolChanged(source: .judge, stage: "作业列表")
     }
-    return matches.compactMap { match in
-      guard let id = match[safe: 1], let rawTitle = match[safe: 2] else { return nil }
+    var assignments: [(id: String, title: String)] = []
+    for match in matches {
+      guard let id = match[safe: 1], let rawTitle = match[safe: 2] else {
+        throw HomeworkError.upstreamProtocolChanged(source: .judge, stage: "作业列表")
+      }
       let title = Self.cleanText(rawTitle)
-      return title.isEmpty ? nil : (id, title)
+      guard !title.isEmpty else { throw HomeworkError.upstreamProtocolChanged(source: .judge, stage: "作业列表") }
+      assignments.append((id, title))
     }
+    return assignments
   }
 
   private func getDetail(
     itemID: String, courseID: String, assignmentID: String
   ) async throws -> HomeworkDetail {
-    let (_, selectionResponse) = try await session.data(from: courseURL(courseID))
-    guard (selectionResponse as? HTTPURLResponse)?.statusCode == 200 else { throw HomeworkError.unavailable }
+    let (selectionData, selectionResponse) = try await session.data(from: courseURL(courseID))
+    _ = try body(selectionData, selectionResponse)
     let (data, response) = try await session.data(from: assignmentURL(assignmentID))
-    return Self.parseDetail(html: try body(data, response), itemID: itemID)
+    let html = try body(data, response)
+    guard Self.hasRecognizedDetail(html) else {
+      throw HomeworkError.upstreamProtocolChanged(source: .judge, stage: "作业详情")
+    }
+    return try Self.parseDetailForLoading(html: html, itemID: itemID)
   }
 
   private func assignmentURL(_ assignmentID: String) -> URL {
@@ -142,12 +194,29 @@ struct JudgeHomeworkClient {
   }
 
   private func body(_ data: Data, _ response: URLResponse) throws -> String {
-    guard let http = response as? HTTPURLResponse, http.statusCode == 200,
-          let html = String(data: data, encoding: .utf8),
-          !html.localizedCaseInsensitiveContains("统一身份认证") else {
+    guard let http = response as? HTTPURLResponse else { throw HomeworkError.unavailable }
+    if http.statusCode == 401 || http.statusCode == 403 || http.url?.host == "sso.buaa.edu.cn"
+        || Self.isAuthenticationPage(data) {
       throw HomeworkError.sessionExpired
     }
+    guard (200..<300).contains(http.statusCode) else { throw HomeworkError.unavailable }
+    guard let html = String(data: data, encoding: .utf8) else {
+      throw HomeworkError.upstreamProtocolChanged(source: .judge, stage: "页面")
+    }
     return html
+  }
+
+  private static func isAuthenticationPage(_ data: Data) -> Bool {
+    guard let html = String(data: data.prefix(5000), encoding: .utf8) else { return false }
+    return html.localizedCaseInsensitiveContains("统一身份认证")
+      || html.localizedCaseInsensitiveContains("name=\"execution\"")
+      || html.localizedCaseInsensitiveContains("<title>cas login")
+  }
+
+  private static func hasRecognizedDetail(_ html: String) -> Bool {
+    let text = plainText(html)
+    let markers = ["作业时间", "作业满分", "未提交", "还未提交", "未作答", "已提交", "得分", "Accepted", "初次提交时间", "最后一次提交时间"]
+    return markers.contains { text.localizedCaseInsensitiveContains($0) }
   }
 
   private static func parseProblems(_ html: String) -> [HomeworkProblem] {

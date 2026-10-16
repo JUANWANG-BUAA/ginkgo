@@ -58,6 +58,8 @@ final class ExamViewModel: ObservableObject {
   private let cache: ExamCache
   private var account: String?
   private var generation = 0
+  private var lastAutomaticRefreshAttemptAt: Date?
+  private var pendingAutomaticRefresh = false
 
   init(service: ExamServing = ScheduleClient(), cache: ExamCache = ExamCache()) {
     self.service = service
@@ -68,6 +70,8 @@ final class ExamViewModel: ObservableObject {
     guard !termID.isEmpty else { return }
     if let account, self.account != account {
       generation += 1
+      lastAutomaticRefreshAttemptAt = nil
+      pendingAutomaticRefresh = false
       exams = nil
       fetchedAt = nil
       loadedTermID = nil
@@ -87,7 +91,7 @@ final class ExamViewModel: ObservableObject {
     isLoading = true
     errorMessage = nil
     needsSessionCheck = false
-    defer { if current == generation { isLoading = false } }
+    defer { finishRefresh(current: current) }
 
     if termChanged, let account = self.account,
        let cached = await cache.read(account: account, termID: termID) {
@@ -109,10 +113,16 @@ final class ExamViewModel: ObservableObject {
       loadedTermID = termID
       resultsAreCached = false
       if let account = self.account {
-        try? await cache.save(ExamCacheEntry(exams: result, fetchedAt: fetchedAt!), account: account, termID: termID)
+        let refreshedAt = fetchedAt ?? Date()
+        do {
+          try await cache.save(ExamCacheEntry(exams: result, fetchedAt: refreshedAt), account: account, termID: termID)
+        } catch {
+          AppLog.cacheWriteFailed(feature: "exams", error: error)
+        }
       }
     } catch {
       guard current == generation else { return }
+      AppLog.operationFailed(feature: "exams", stage: "refresh", error: error)
       errorMessage = (error as? LocalizedError)?.errorDescription ?? "考试安排读取失败，请稍后重试"
       if let error = error as? ScheduleError, case .sessionExpired = error {
         needsSessionCheck = true
@@ -122,6 +132,8 @@ final class ExamViewModel: ObservableObject {
 
   func reset() {
     generation += 1
+    lastAutomaticRefreshAttemptAt = nil
+    pendingAutomaticRefresh = false
     exams = nil
     fetchedAt = nil
     loadedTermID = nil
@@ -130,6 +142,40 @@ final class ExamViewModel: ObservableObject {
     isLoading = false
     errorMessage = nil
     needsSessionCheck = false
+  }
+
+  func refreshIfStale(
+    maxAge: TimeInterval = 15 * 60,
+    queueIfLoading: Bool = false,
+    bypassCooldown: Bool = false,
+    forceRefresh: Bool = false
+  ) async {
+    guard account != nil else { return }
+    if isLoading {
+      if queueIfLoading { pendingAutomaticRefresh = true }
+      return
+    }
+    guard let termID = loadedTermID else { return }
+    let now = Date()
+    let isStale = fetchedAt.map { now.timeIntervalSince($0) >= maxAge } ?? true
+    guard forceRefresh || errorMessage != nil || isStale else { return }
+    let cooldown: TimeInterval = forceRefresh ? 5 : 30
+    if !bypassCooldown, let lastAutomaticRefreshAttemptAt,
+       now.timeIntervalSince(lastAutomaticRefreshAttemptAt) < cooldown { return }
+    lastAutomaticRefreshAttemptAt = now
+    await load(termID: termID, force: true)
+  }
+
+  func cancelPendingAutomaticRefresh() {
+    pendingAutomaticRefresh = false
+  }
+
+  private func finishRefresh(current: Int) {
+    guard current == generation else { return }
+    isLoading = false
+    guard pendingAutomaticRefresh else { return }
+    pendingAutomaticRefresh = false
+    Task { await refreshIfStale(bypassCooldown: true) }
   }
 
   func clearCache(account overrideAccount: String? = nil) async throws {

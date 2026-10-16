@@ -36,6 +36,9 @@ final class LibraryViewModel: ObservableObject {
   private let occupancyHistory = LibraryOccupancyHistory()
   private var account: String?
   private var librariesFetchedAt: Date?
+  private var seatFilterGeneration = 0
+  private var seatFilterTask: Task<Void, Never>?
+  private var seatFilterWork: Task<[LibraryItem], Never>?
   var selectedSlot: LibrarySlot? { slots.first { $0.id == slotID } }
 
   func start(account: String) async {
@@ -70,6 +73,7 @@ final class LibraryViewModel: ObservableObject {
   }
 
   func reset() {
+    cancelSeatFiltering()
     libraries = []; areas = []; slots = []; seats = []; bookings = []
     libraryID = ""; areaID = ""; slotID = ""
     busy = false; message = nil; failed = false
@@ -87,26 +91,65 @@ final class LibraryViewModel: ObservableObject {
     reset()
   }
 
-  func applySeatFilter(search: String, onlyAvailable: Bool) {
+  func applySeatFilter(search: String, onlyAvailable: Bool, debounceSearch: Bool = false) {
     let term = search.trimmingCharacters(in: .whitespacesAndNewlines)
-    filteredSeats = seats.filter {
-      (!onlyAvailable || $0.available) && (term.isEmpty || $0.name.localizedCaseInsensitiveContains(term))
+    let source = seats
+    seatFilterGeneration &+= 1
+    let current = seatFilterGeneration
+    seatFilterTask?.cancel()
+    seatFilterWork?.cancel()
+    seatFilterTask = Task { [weak self] in
+      if debounceSearch, !term.isEmpty {
+        do { try await Task.sleep(nanoseconds: 120_000_000) }
+        catch { return }
+      }
+      guard !Task.isCancelled, let self else { return }
+      let work = Task.detached(priority: .userInitiated) {
+        var filtered: [LibraryItem] = []
+        filtered.reserveCapacity(min(source.count, 128))
+        for seat in source {
+          guard !Task.isCancelled else { return [LibraryItem]() }
+          if (!onlyAvailable || seat.available) && (term.isEmpty || seat.name.localizedCaseInsensitiveContains(term)) {
+            filtered.append(seat)
+          }
+        }
+        return filtered
+      }
+      self.seatFilterWork = work
+      let filtered = await work.value
+      guard !Task.isCancelled, self.seatFilterGeneration == current else { return }
+      self.filteredSeats = filtered
+      self.seatFilterWork = nil
+      self.seatFilterTask = nil
     }
   }
 
   func clearSeatResults() {
+    cancelSeatFiltering()
     seats = []; filteredSeats = []; loadedSeats = false
     seatsFetchedAt = nil; seatsAreCached = false; seatsCacheIsPartial = false
   }
 
-  func run(_ work: () async throws -> Void) async {
+  private func cancelSeatFiltering() {
+    seatFilterGeneration &+= 1
+    seatFilterTask?.cancel()
+    seatFilterWork?.cancel()
+    seatFilterTask = nil
+    seatFilterWork = nil
+  }
+
+  func run(stage: String = "action", _ work: () async throws -> Void) async {
     guard !busy else { return }
     busy = true; message = nil; failed = false
     defer { busy = false }
-    do { try await work() } catch { failed = true; message = error.localizedDescription }
+    do { try await work() } catch {
+      AppLog.operationFailed(feature: "library", stage: stage, error: error)
+      failed = true
+      message = error.localizedDescription
+    }
   }
   func loadLibraries() async {
-    await run {
+    await run(stage: "libraries") {
       let formatter = DateFormatter()
       formatter.locale = Locale(identifier: "en_US_POSIX")
       formatter.dateFormat = "yyyy-MM-dd"
@@ -115,8 +158,8 @@ final class LibraryViewModel: ObservableObject {
       let refreshedLibraries = try await client.libraries(day: day)
       libraries = refreshedLibraries
       if !libraries.contains(where: { $0.id == libraryID }) {
-        libraryID = ""; areaID = ""; slotID = ""; areas = []; slots = []; seats = []; loadedSeats = false
-        filteredSeats = []; seatsFetchedAt = nil; seatsAreCached = false; seatsCacheIsPartial = false
+        libraryID = ""; areaID = ""; slotID = ""; areas = []; slots = []
+        clearSeatResults()
       }
       librariesFetchedAt = Date()
       message = libraries.isEmpty ? "今天暂无可查询楼馆" : "楼馆已更新"
@@ -124,9 +167,10 @@ final class LibraryViewModel: ObservableObject {
     }
   }
   func loadAreas() async {
-    areaID = ""; slotID = ""; areas = []; slots = []; seats = []; filteredSeats = []; loadedSeats = false
+    areaID = ""; slotID = ""; areas = []; slots = []
+    clearSeatResults()
     guard !libraryID.isEmpty else { return }
-    await run {
+    await run(stage: "areas") {
       let formatter = DateFormatter(); formatter.dateFormat = "yyyy-MM-dd"; formatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
       areas = try await client.areas(library: libraryID, day: formatter.string(from: Date()))
       if areas.isEmpty { message = "该楼馆暂无可查询分区" }
@@ -134,9 +178,10 @@ final class LibraryViewModel: ObservableObject {
     }
   }
   func loadSlots() async {
-    slotID = ""; slots = []; seats = []; filteredSeats = []; loadedSeats = false
+    slotID = ""; slots = []
+    clearSeatResults()
     guard !areaID.isEmpty else { return }
-    await run {
+    await run(stage: "slots") {
       let allSlots = try await client.slots(area: areaID)
       if let current = Self.currentSlot(in: allSlots, at: Date()) {
         slots = [current]
@@ -159,7 +204,7 @@ final class LibraryViewModel: ObservableObject {
     }
     isRefreshingSeats = true
     defer { isRefreshingSeats = false }
-    await run {
+    await run(stage: "seats") {
       let refreshedSeats = try await client.seats(area: areaID, slot: slot)
       seats = refreshedSeats
       loadedSeats = true
@@ -198,6 +243,7 @@ final class LibraryViewModel: ObservableObject {
       loadedBookings = true
       message = "预约记录已更新"
     } catch {
+      AppLog.operationFailed(feature: "library", stage: "bookings", error: error)
       failed = true
       message = error.localizedDescription
     }
@@ -215,6 +261,7 @@ final class LibraryViewModel: ObservableObject {
       occupancyHistory.recordPeople(snapshot)
       await persistCache()
     } catch {
+      AppLog.operationFailed(feature: "library", stage: "public_stats", error: error)
       publicStatsError = error.localizedDescription
     }
   }
@@ -225,18 +272,17 @@ final class LibraryViewModel: ObservableObject {
       message = selectedSlot == nil ? "当前没有可预约时段，未提交预约" : "预约时段已变化，未提交预约；请重新查询座位"
       return
     }
-    await run {
+    await run(stage: "reserve") {
       try await client.reserve(seat: seat.id, slot: slot)
       message = "学校已确认预约成功，请到我的预约查看"
-      seats = []; loadedSeats = false
-      filteredSeats = []; seatsFetchedAt = nil; seatsAreCached = false; seatsCacheIsPartial = false
+      clearSeatResults()
       await persistCache()
     }
   }
   func cancel(_ booking: LibraryBooking) async {
     guard booking.canCancel() else { return }
     let page = bookingPage
-    await run {
+    await run(stage: "cancel") {
       try await client.cancel(id: booking.id)
       message = "预约已取消"
       loadedBookings = false
@@ -256,7 +302,8 @@ final class LibraryViewModel: ObservableObject {
       seatsFetchedAt: seatsFetchedAt,
       publicStats: publicStats, fetchedAt: librariesFetchedAt ?? Date()
     )
-    try? await cache.save(snapshot, account: account)
+    do { try await cache.save(snapshot, account: account) }
+    catch { AppLog.cacheWriteFailed(feature: "library", error: error) }
   }
 
   func occupancySampleCount(weekday: Int, hour: Int) -> Int {
@@ -317,6 +364,7 @@ struct LibraryView: View {
   @EnvironmentObject private var model: LibraryViewModel
   @EnvironmentObject private var appState: AppState
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.scenePhase) private var scenePhase
   @State private var seatSearch = ""
   @State private var onlyAvailable = false
   @State private var tab = "选择座位"
@@ -349,10 +397,11 @@ struct LibraryView: View {
     }.background(Color(nsColor: .windowBackgroundColor))
       .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: tab)
       .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: model.busy)
-      .task(id: appState.user?.schoolid) {
+      .task(id: "\(appState.user?.schoolid ?? "")|\(scenePhase == .active)") {
         guard let account = appState.user?.schoolid else { return }
         await model.start(account: account)
         model.applySeatFilter(search: seatSearch, onlyAvailable: onlyAvailable)
+        guard scenePhase == .active else { return }
         while !Task.isCancelled {
           do { try await Task.sleep(nanoseconds: 30 * 60 * 1_000_000_000) }
           catch { return }
@@ -365,7 +414,7 @@ struct LibraryView: View {
       }
       .onChange(of: seatSearch) { _, _ in
         seatPage = 0
-        model.applySeatFilter(search: seatSearch, onlyAvailable: onlyAvailable)
+        model.applySeatFilter(search: seatSearch, onlyAvailable: onlyAvailable, debounceSearch: true)
       }
       .onChange(of: onlyAvailable) { _, _ in
         seatPage = 0

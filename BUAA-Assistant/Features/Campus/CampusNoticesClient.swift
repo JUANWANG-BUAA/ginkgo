@@ -14,8 +14,8 @@ enum CampusNoticesError: LocalizedError {
 
   var errorDescription: String? {
     switch self {
-    case .unavailable: "北航新闻网暂时无法访问"
-    case .changedResponse: "北航通知列表格式发生变化"
+    case .unavailable: "北航新闻网暂时不可用，请稍后重试"
+    case .changedResponse: "北航通知页面格式无法识别，官网可能已调整；请重试，若持续出现请反馈"
     }
   }
 }
@@ -43,20 +43,40 @@ actor CampusNoticesClient {
     request.timeoutInterval = 15
     request.setValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
     let (data, response) = try await session.data(for: request)
-    guard let http = response as? HTTPURLResponse, http.statusCode == 200,
-          let html = String(data: data, encoding: .utf8) else {
+    guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
+          http.url?.host == url.host else {
       throw CampusNoticesError.unavailable
     }
-    let notices = CampusNoticeParser.parse(html, baseURL: url)
-    guard !notices.isEmpty else { throw CampusNoticesError.changedResponse }
+    guard let html = String(data: data, encoding: .utf8) else {
+      AppLog.responseFormatChanged(feature: "campus-notices", stage: "html_encoding")
+      throw CampusNoticesError.changedResponse
+    }
+    let result = CampusNoticeParser.analyze(html, baseURL: url)
+    let notices = result.notices
+    guard !notices.isEmpty, result.candidateCount <= notices.count else {
+      AppLog.responseFormatChanged(feature: "campus-notices", stage: "notice_list")
+      throw CampusNoticesError.changedResponse
+    }
     return Array(notices.prefix(5))
   }
 }
 
 enum CampusNoticeParser {
   static func parse(_ html: String, baseURL: URL) -> [CampusNotice] {
+    analyze(html, baseURL: baseURL).notices
+  }
+
+  static func analyze(_ html: String, baseURL: URL) -> (notices: [CampusNotice], candidateCount: Int) {
     let rows = matches(#"<li\b[^>]*>(.*?)</li>"#, in: html)
-    return rows.compactMap { row in
+    let candidateCount = rows.filter { row in
+      guard firstCapture(#"<h3\b[^>]*>(.*?)</h3>"#, in: row) != nil else { return false }
+      guard let rawLink = firstCapture(#"<a\b[^>]*href=[\"']([^\"']+)[\"']"#, in: row) else {
+        return row.localizedCaseInsensitiveContains("pub_date")
+      }
+      guard let link = URL(string: decodeEntities(rawLink), relativeTo: baseURL)?.absoluteURL else { return true }
+      return link.host == baseURL.host && link.scheme != "javascript"
+    }.count
+    let notices: [CampusNotice] = rows.compactMap { row -> CampusNotice? in
       guard let rawLink = firstCapture(#"<a\b[^>]*href=[\"']([^\"']+)[\"']"#, in: row),
             let link = URL(string: decodeEntities(rawLink), relativeTo: baseURL)?.absoluteURL,
             link.scheme == "https", link.host == baseURL.host,
@@ -81,6 +101,7 @@ enum CampusNoticeParser {
         url: link
       )
     }
+    return (notices, candidateCount)
   }
 
   private static func formattedDate(year: Int, month: Int, day: Int) -> String? {

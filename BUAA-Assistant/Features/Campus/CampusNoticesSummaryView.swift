@@ -66,8 +66,13 @@ final class CampusNoticesViewModel: ObservableObject {
       fetchedAt = refreshedAt
       isUsingCachedData = false
       errorMessage = nil
-      try? await cache.save(CampusNoticesSnapshot(notices: refreshed, fetchedAt: refreshedAt))
+      do {
+        try await cache.save(CampusNoticesSnapshot(notices: refreshed, fetchedAt: refreshedAt))
+      } catch {
+        AppLog.cacheWriteFailed(feature: "campus-notices", error: error)
+      }
     } catch {
+      AppLog.operationFailed(feature: "campus-notices", stage: "refresh", error: error)
       errorMessage = (error as? LocalizedError)?.errorDescription ?? "校园通知暂时无法加载"
     }
   }
@@ -110,6 +115,8 @@ struct CampusNoticesSummaryView: View {
 
       if model.isLoading && model.notices.isEmpty {
         ProgressView("正在读取学校通知…")
+      } else if model.isLoading {
+        StatusNotice(message: "正在更新通知 · 显示上次读取内容", kind: .information)
       } else if let error = model.errorMessage, model.notices.isEmpty {
         StatusNotice(message: "学校通知暂不可用：\(error)", kind: .warning)
       } else if model.notices.isEmpty {
@@ -149,7 +156,8 @@ struct CampusNoticesSummaryView: View {
           .accessibilityLabel("\(notice.publishedAt)，\(notice.title)")
         }
         if let fetchedAt = model.fetchedAt {
-          Text("官网通知 · \(model.isUsingCachedData ? "缓存于" : "更新于") \(fetchedAt.formatted(date: .omitted, time: .shortened))")
+          let label = model.errorMessage != nil ? "上次成功读取" : (model.isUsingCachedData ? "缓存于" : "更新于")
+          Text("官网通知 · \(label) \(fetchedAt.formatted(date: .omitted, time: .shortened))")
             .font(.caption2)
             .foregroundStyle(.tertiary)
         }

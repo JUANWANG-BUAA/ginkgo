@@ -67,12 +67,13 @@ enum LibraryPublicStatsParser {
       guard let people = items.compactMap({ capturedInteger(#"图书馆\s*(\d+)\s*人"#, in: $0) }).first else {
         throw LibraryPublicStatsError.response
       }
-      let readingRooms = items.compactMap { text -> LibraryReadingRoomOccupancy? in
+      let readingRoomItems = items.filter { $0.hasPrefix("特色阅览室") }
+      let readingRooms = try readingRoomItems.map { text -> LibraryReadingRoomOccupancy in
         guard text.hasPrefix("特色阅览室"),
               let match = firstMatch(#"(特色阅览室.*?)\s*(\d+)\s*人"#, in: text),
               let nameRange = Range(match.range(at: 1), in: text),
               let countRange = Range(match.range(at: 2), in: text),
-              let count = Int(text[countRange]) else { return nil }
+              let count = Int(text[countRange]) else { throw LibraryPublicStatsError.response }
         return LibraryReadingRoomOccupancy(name: String(text[nameRange]).trimmingCharacters(in: .whitespaces), people: count)
       }
 
@@ -87,9 +88,9 @@ enum LibraryPublicStatsParser {
         name: campusName,
         people: people,
         readingRooms: readingRooms,
-        seats: metricCount(named: "预约座位", unit: "座", in: items),
-        studyRooms: metricCount(named: "研讨间", unit: "间", in: items),
-        lockers: metricCount(named: "寄存柜", unit: "个", in: items)
+        seats: try metricCount(named: "预约座位", unit: "座", in: items),
+        studyRooms: try metricCount(named: "研讨间", unit: "间", in: items),
+        lockers: try metricCount(named: "寄存柜", unit: "个", in: items)
       ))
     }
 
@@ -97,18 +98,20 @@ enum LibraryPublicStatsParser {
     return LibraryPublicStats(campuses: campuses, fetchedAt: fetchedAt)
   }
 
-  private static func metricCount(named name: String, unit: String, in items: [String]) -> LibraryCountPair? {
+  private static func metricCount(named name: String, unit: String, in items: [String]) throws -> LibraryCountPair? {
     let escapedName = NSRegularExpression.escapedPattern(for: name)
     let escapedUnit = NSRegularExpression.escapedPattern(for: unit)
     let pattern = #"\#(escapedName)\s*空闲\s*(\d+)\s*\#(escapedUnit)\s*/\s*总计\s*(\d+)\s*\#(escapedUnit)"#
-    guard let pair = items.compactMap({ text -> LibraryCountPair? in
+    let matchingItems = items.filter { $0.contains(name) }
+    guard !matchingItems.isEmpty else { return nil }
+    guard let pair = matchingItems.compactMap({ text -> LibraryCountPair? in
       guard let match = firstMatch(pattern, in: text),
             let availableRange = Range(match.range(at: 1), in: text),
             let totalRange = Range(match.range(at: 2), in: text),
             let available = Int(text[availableRange]), let total = Int(text[totalRange]),
             available <= total else { return nil }
       return LibraryCountPair(available: available, total: total)
-    }).first else { return nil }
+    }).first else { throw LibraryPublicStatsError.response }
     return pair
   }
 

@@ -44,6 +44,8 @@ final class GradeViewModel: ObservableObject {
   private let cache: GradeCache
   private var account: String?
   private var generation = 0
+  private var lastAutomaticRefreshAttemptAt: Date?
+  private var pendingAutomaticRefresh = false
 
   init(termService: TermServing = ScheduleClient(), grades: GradeServing = GradeClient(), cache: GradeCache = GradeCache()) {
     self.termService = termService
@@ -66,12 +68,35 @@ final class GradeViewModel: ObservableObject {
   func reset() {
     generation += 1
     account = nil
+    lastAutomaticRefreshAttemptAt = nil
+    pendingAutomaticRefresh = false
     terms = []
     snapshot = nil
     isLoading = false
     errorMessage = nil
     feedback = nil
     needsSessionCheck = false
+  }
+
+  func refreshIfStale(
+    maxAge: TimeInterval = 15 * 60,
+    queueIfLoading: Bool = false,
+    bypassCooldown: Bool = false,
+    forceRefresh: Bool = false
+  ) async {
+    guard account != nil else { return }
+    if isLoading {
+      if queueIfLoading { pendingAutomaticRefresh = true }
+      return
+    }
+    let now = Date()
+    let isStale = snapshot.map { now.timeIntervalSince($0.fetchedAt) >= maxAge } ?? true
+    guard forceRefresh || errorMessage != nil || isStale else { return }
+    let cooldown: TimeInterval = forceRefresh ? 5 : 30
+    if !bypassCooldown, let lastAutomaticRefreshAttemptAt,
+       now.timeIntervalSince(lastAutomaticRefreshAttemptAt) < cooldown { return }
+    lastAutomaticRefreshAttemptAt = now
+    await refresh()
   }
 
   func refresh(term: SchoolTerm? = nil) async {
@@ -81,7 +106,7 @@ final class GradeViewModel: ObservableObject {
     errorMessage = nil
     feedback = nil
     needsSessionCheck = false
-    defer { if current == generation { isLoading = false } }
+    defer { finishRefresh(current: current) }
     do {
       if terms.isEmpty {
         let available = try await termService.availableTerms()
@@ -95,11 +120,27 @@ final class GradeViewModel: ObservableObject {
       guard current == generation else { return }
       snapshot = result
       feedback = "成绩已更新"
-      if let account { try? await cache.save(result, account: account) }
+      if let account {
+        do { try await cache.save(result, account: account) }
+        catch { AppLog.cacheWriteFailed(feature: "grades", error: error) }
+      }
     } catch {
       guard current == generation else { return }
+      AppLog.operationFailed(feature: "grades", stage: "refresh", error: error)
       errorMessage = (error as? LocalizedError)?.errorDescription ?? "成绩更新失败，请检查网络后重试"
       if let failure = error as? ScheduleError, case .sessionExpired = failure { needsSessionCheck = true }
     }
+  }
+
+  func cancelPendingAutomaticRefresh() {
+    pendingAutomaticRefresh = false
+  }
+
+  private func finishRefresh(current: Int) {
+    guard current == generation else { return }
+    isLoading = false
+    guard pendingAutomaticRefresh else { return }
+    pendingAutomaticRefresh = false
+    Task { await refreshIfStale(bypassCooldown: true) }
   }
 }

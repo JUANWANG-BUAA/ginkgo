@@ -158,7 +158,7 @@ enum HomeworkError: LocalizedError, Equatable {
     case .detailUnavailable(let reason): reason
     case .spocFailure(let stage, let reason): "SPOC\(stage)失败：\(reason)"
     case .spocAuthenticationExpired(let stage): "SPOC\(stage)时登录态失效"
-    case .upstreamProtocolChanged(let source, let stage): "\(source.title)\(stage)响应格式已变化，学校接口可能已调整"
+    case .upstreamProtocolChanged(let source, let stage): "\(source.title)\(stage)响应格式无法识别，接口可能已调整；请重试，若持续出现请反馈"
     case .allSourcesUnavailable(let judge, let spoc): "希冀：\(judge)；SPOC：\(spoc)"
     }
   }

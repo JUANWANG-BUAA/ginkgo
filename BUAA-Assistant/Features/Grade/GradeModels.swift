@@ -62,13 +62,21 @@ enum GradeTermCode {
 enum GradeParser {
   static func courses(_ data: Data) throws -> [GradeCourse] {
     guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-          let status = root["e"] as? Int, status == 0,
-          let rows = root["d"] as? [String: [String: Any]] else {
-      throw ScheduleError.changedResponse
+          let status = root["e"] as? Int else {
+      throw ScheduleError.changedResponseAt("成绩")
     }
-    return rows.map { key, row in
+    guard status == 0 else { throw ScheduleError.unavailable("成绩服务") }
+    guard let rows = root["d"] as? [String: [String: Any]] else {
+      throw ScheduleError.changedResponseAt("成绩")
+    }
+    return try rows.map { key, row in
+      guard let name = text(row["kcmc"]), !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            row.keys.contains("kccj"), row.keys.contains("xf"),
+            validScoreValue(row["kccj"]), validCreditValue(row["xf"]) else {
+        throw ScheduleError.changedResponseAt("成绩")
+      }
       let score = text(row["kccj"]) ?? "未发布"
-      return GradeCourse(id: key, name: text(row["kcmc"]) ?? "未命名课程",
+      return GradeCourse(id: key, name: name,
                          code: text(row["kch"]), credit: text(row["xf"]).flatMap(Double.init),
                          score: score, scoreValue: Double(score), scoreType: text(row["fslx"]),
                          courseType: text(row["kclx"]))
@@ -79,5 +87,15 @@ enum GradeParser {
     if let value = value as? String { return value }
     if let value = value as? NSNumber { return value.stringValue }
     return nil
+  }
+
+  private static func validScoreValue(_ value: Any?) -> Bool {
+    value is NSNull || text(value) != nil
+  }
+
+  private static func validCreditValue(_ value: Any?) -> Bool {
+    guard let value, !(value is NSNull) else { return true }
+    guard let raw = text(value), !raw.isEmpty, let credit = Double(raw) else { return false }
+    return credit.isFinite && credit >= 0
   }
 }

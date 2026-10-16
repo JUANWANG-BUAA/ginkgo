@@ -25,12 +25,22 @@ actor GradeClient: GradeServing {
     request.setValue("application/json, text/javascript, */*; q=0.01", forHTTPHeaderField: "Accept")
     request.setValue("XMLHttpRequest", forHTTPHeaderField: "X-Requested-With")
     request.setValue(url.absoluteString, forHTTPHeaderField: "Referer")
-    return GradeSnapshot(term: term, courses: try GradeParser.courses(try await send(request)), fetchedAt: Date())
+    let data = try await send(request)
+    let courses: [GradeCourse]
+    do {
+      courses = try GradeParser.courses(data)
+    } catch let error as ScheduleError {
+      if case .changedResponseAt = error {
+        AppLog.responseFormatChanged(feature: "grades", stage: "course_list")
+      }
+      throw error
+    }
+    return GradeSnapshot(term: term, courses: courses, fetchedAt: Date())
   }
 
   private func send(_ request: URLRequest) async throws -> Data {
     let (data, response) = try await session.data(for: request)
-    guard let http = response as? HTTPURLResponse else { throw ScheduleError.changedResponse }
+    guard let http = response as? HTTPURLResponse else { throw ScheduleError.unavailable("成绩服务") }
     if http.statusCode == 401 || http.statusCode == 403 || http.url?.host == "sso.buaa.edu.cn" {
       throw ScheduleError.sessionExpired
     }

@@ -10,42 +10,55 @@ enum ScheduleParser {
 
   static func terms(_ data: Data, portal: SchedulePortal) throws -> [SchoolTerm] {
     let root = try object(data)
-    guard string(root["code"]) == "0" else { throw ScheduleError.changedResponse }
+    guard let code = string(root["code"]) else { throw ScheduleError.changedResponse }
+    guard code == "0" else { throw ScheduleError.unavailable("教务服务") }
     if portal == .undergraduate {
       guard let rows = root["datas"] as? [[String: Any]] else { throw ScheduleError.changedResponse }
-      return try rows.map { row in
+      let terms = try rows.map { row in
         guard let code = row["itemCode"] as? String, !code.isEmpty,
-              let name = row["itemName"] as? String else { throw ScheduleError.changedResponse }
-        return SchoolTerm(id: code, name: name, isSelected: row["selected"] as? Bool ?? false)
+              let name = row["itemName"] as? String, !name.isEmpty,
+              let selected = row["selected"] as? Bool else { throw ScheduleError.changedResponse }
+        return SchoolTerm(id: code, name: name, isSelected: selected)
       }
+      guard Set(terms.map(\.id)).count == terms.count else { throw ScheduleError.changedResponse }
+      return terms
     }
     guard let datas = root["datas"] as? [String: Any],
           let table = datas["kfdxnxqcx"] as? [String: Any],
           let rows = table["rows"] as? [[String: Any]] else { throw ScheduleError.changedResponse }
-    return try rows.map { row in
+    let terms = try rows.map { row in
       guard let code = row["XNXQDM"] as? String, code.range(of: #"^\d{4}[123]$"#, options: .regularExpression) != nil,
-            let name = row["XNXQDM_DISPLAY"] as? String else { throw ScheduleError.changedResponse }
+            let name = row["XNXQDM_DISPLAY"] as? String, !name.isEmpty else { throw ScheduleError.changedResponse }
       return SchoolTerm(id: code, name: name, isSelected: false)
     }.sorted { $0.id > $1.id }
+    guard Set(terms.map(\.id)).count == terms.count else { throw ScheduleError.changedResponse }
+    return terms
   }
 
   static func weeks(_ data: Data) throws -> [SchoolWeek] {
     let root = try object(data)
-    guard string(root["code"]) == "0", let rows = root["datas"] as? [[String: Any]] else {
+    guard let code = string(root["code"]) else { throw ScheduleError.changedResponse }
+    guard code == "0" else { throw ScheduleError.unavailable("课表服务") }
+    guard let rows = root["datas"] as? [[String: Any]] else {
       throw ScheduleError.changedResponse
     }
-    return try rows.map { row in
+    let weeks = try rows.map { row in
       guard let number = integer(row["serialNumber"]), number > 0,
-            let start = date(row["startDate"]), let end = date(row["endDate"]) else {
+            let start = date(row["startDate"]), let end = date(row["endDate"]), start <= end,
+            let isCurrent = row["curWeek"] as? Bool else {
         throw ScheduleError.changedResponse
       }
-      return SchoolWeek(number: number, start: start, end: end, isCurrent: row["curWeek"] as? Bool ?? false)
+      return SchoolWeek(number: number, start: start, end: end, isCurrent: isCurrent)
     }.sorted { $0.number < $1.number }
+    guard Set(weeks.map(\.number)).count == weeks.count else { throw ScheduleError.changedResponse }
+    return weeks
   }
 
   static func exams(_ data: Data) throws -> [Exam] {
     let root = try object(data)
-    guard string(root["code"]) == "0", let rows = root["datas"] as? [[String: Any]] else {
+    guard let code = string(root["code"]) else { throw ScheduleError.changedResponseAt("考试安排") }
+    guard code == "0" else { throw ScheduleError.unavailable("考试安排服务") }
+    guard let rows = root["datas"] as? [[String: Any]] else {
       throw ScheduleError.changedResponseAt("考试安排")
     }
     return try rows.map { row in
@@ -98,7 +111,11 @@ enum ScheduleParser {
     guard string(root["code"]) == "1", let rows = root["jgList"] as? [[String: Any]] else {
       throw ScheduleError.changedResponse
     }
-    let slots = (root["jcfaList"] as? [[String: Any]] ?? []).flatMap { $0["skjcList"] as? [[String: Any]] ?? [] }
+    guard let schemes = root["jcfaList"] as? [[String: Any]] else { throw ScheduleError.changedResponse }
+    let slots = try schemes.flatMap { scheme -> [[String: Any]] in
+      guard let entries = scheme["skjcList"] as? [[String: Any]] else { throw ScheduleError.changedResponse }
+      return entries
+    }
     let meetings: [CourseMeeting] = try rows.enumerated().compactMap { index, row -> CourseMeeting? in
       guard let bitmap = row["ZCBH"] as? String,
             bitmap.allSatisfy({ $0 == "0" || $0 == "1" }), week > 0 else {
@@ -124,22 +141,34 @@ enum ScheduleParser {
     guard string(root["code"]) == "1", let rows = root["jgList"] as? [[String: Any]],
           let tasks = root["rwList"] as? [[String: Any]] else { throw ScheduleError.changedResponse }
     // API.md §3.3：SCSKRQ 属于教学班，须取该班所有排课中的最早周/星期偏移。
-    let candidates: [Date] = tasks.compactMap { task in
-      guard task["XNXQDM"] as? String == termID,
-            let classID = task["BJDM"] as? String,
-            let firstDate = date(task["SCSKRQ"]) else { return nil }
-      let offsets = rows.filter { $0["BJDM"] as? String == classID }.compactMap { row -> Int? in
+    let termTasks = tasks.filter { string($0["XNXQDM"]) == termID }
+    guard !termTasks.isEmpty else { throw ScheduleError.changedResponse }
+    let candidates: [Date] = try termTasks.map { task in
+      guard let classID = task["BJDM"] as? String, !classID.isEmpty,
+            let firstDate = date(task["SCSKRQ"]) else { throw ScheduleError.changedResponse }
+      let classRows = rows.filter { $0["BJDM"] as? String == classID }
+      guard !classRows.isEmpty else { throw ScheduleError.changedResponse }
+      let offsets = try classRows.map { row -> Int in
         guard let day = integer(row["XQ"]), (1...7).contains(day),
-              let bitmap = row["ZCBH"] as? String,
-              let first = bitmap.firstIndex(of: "1") else { return nil }
+              let bitmap = row["ZCBH"] as? String, !bitmap.isEmpty,
+              bitmap.allSatisfy({ $0 == "0" || $0 == "1" }),
+              let first = bitmap.firstIndex(of: "1") else { throw ScheduleError.changedResponse }
         return bitmap.distance(from: bitmap.startIndex, to: first) * 7 + day - 1
       }
-      guard let offset = offsets.min() else { return nil }
-      return calendar.date(byAdding: .day, value: -offset, to: firstDate)
+      guard let offset = offsets.min(),
+            let start = calendar.date(byAdding: .day, value: -offset, to: firstDate) else {
+        throw ScheduleError.changedResponse
+      }
+      return start
     }
     guard let start = candidates.first, candidates.allSatisfy({ calendar.isDate($0, inSameDayAs: start) }),
           calendar.component(.weekday, from: start) == 2 else { throw ScheduleError.changedResponse }
-    let count = rows.compactMap { $0["ZCBH"] as? String }.map(\.count).max() ?? 0
+    let bitmaps = try rows.map { row -> String in
+      guard let bitmap = row["ZCBH"] as? String, !bitmap.isEmpty,
+            bitmap.allSatisfy({ $0 == "0" || $0 == "1" }) else { throw ScheduleError.changedResponse }
+      return bitmap
+    }
+    let count = bitmaps.map(\.count).max() ?? 0
     guard count > 0 else { throw ScheduleError.changedResponse }
     return (1...count).compactMap { number in
       guard let first = calendar.date(byAdding: .day, value: (number - 1) * 7, to: start),

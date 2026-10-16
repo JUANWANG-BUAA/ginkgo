@@ -105,12 +105,20 @@ struct SpocHomeworkClient {
       "/inco/ht/queryOne", headers: headers(token, role),
       body: ["param": Self.currentTermParam], type: Term.self, stage: .currentTerm
     )
-    guard let termCode = term.mrxq else { throw HomeworkError.spocFailure(stage: Stage.currentTerm.rawValue, reason: "未返回学期代码") }
+    guard let termCode = term.mrxq, !termCode.isEmpty else {
+      throw HomeworkError.upstreamProtocolChanged(source: .spoc, stage: Stage.currentTerm.rawValue)
+    }
     let courses = try await get(
       "/jxkj/queryKclb?kcmc=&xnxq=\(termCode)", headers: headers(token, role),
       type: [Course].self, stage: .courseList
     )
-    let courseMap = Dictionary(uniqueKeysWithValues: courses.map { ($0.kcid, $0) })
+    guard courses.allSatisfy({ !$0.kcid.isEmpty && !$0.kcmc.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else {
+      throw HomeworkError.upstreamProtocolChanged(source: .spoc, stage: Stage.courseList.rawValue)
+    }
+    guard Set(courses.map(\.kcid)).count == courses.count else {
+      throw HomeworkError.upstreamProtocolChanged(source: .spoc, stage: Stage.courseList.rawValue)
+    }
+    let courseMap = Dictionary(courses.map { ($0.kcid, $0) }, uniquingKeysWith: { first, _ in first })
     var result: [HomeworkItem] = []
     var page = 1
     while true {
@@ -121,6 +129,32 @@ struct SpocHomeworkClient {
         "/inco/ht/queryListByPage", headers: headers(token, role),
         body: ["param": encoded], type: Page.self, stage: .assignmentList
       )
+      guard pageData.pages != nil || pageData.hasNextPage != nil else {
+        throw HomeworkError.upstreamProtocolChanged(source: .spoc, stage: Stage.assignmentList.rawValue)
+      }
+      if let responsePage = pageData.pageNum, responsePage != page {
+        throw HomeworkError.upstreamProtocolChanged(source: .spoc, stage: Stage.assignmentList.rawValue)
+      }
+      if let pages = pageData.pages, pages < page, !pageData.list.isEmpty {
+        throw HomeworkError.upstreamProtocolChanged(source: .spoc, stage: Stage.assignmentList.rawValue)
+      }
+      guard pageData.list.allSatisfy({
+        !$0.zyid.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+          && !$0.zymc.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+      }) else {
+        throw HomeworkError.upstreamProtocolChanged(source: .spoc, stage: Stage.assignmentList.rawValue)
+      }
+      let hasNext: Bool
+      if let explicitHasNext = pageData.hasNextPage {
+        hasNext = explicitHasNext
+        if let pages = pageData.pages, explicitHasNext != (page < pages) {
+          throw HomeworkError.upstreamProtocolChanged(source: .spoc, stage: Stage.assignmentList.rawValue)
+        }
+      } else if let pages = pageData.pages {
+        hasNext = page < pages
+      } else {
+        throw HomeworkError.upstreamProtocolChanged(source: .spoc, stage: Stage.assignmentList.rawValue)
+      }
       result += pageData.list.map { assignment in
         let due = Self.date(assignment.zyjzsj)
         let mappedStatus = Self.mapSubmissionStatus(assignment.tjzt, dueAt: due)
@@ -141,9 +175,11 @@ struct SpocHomeworkClient {
           statusDetail: mappedStatus.detail
         )
       }
-      if pageData.hasNextPage != true && page >= (pageData.pages ?? page) { break }
+      if !hasNext { break }
+      guard page < 100 else {
+        throw HomeworkError.upstreamProtocolChanged(source: .spoc, stage: Stage.assignmentList.rawValue)
+      }
       page += 1
-      if page > 100 { break }
     }
     let deadlines = result.filter { $0.dueAt != nil }.count
     AppLog.network.info("SPOC assignments loaded count=\(result.count) deadlines_confirmed=\(deadlines)")
@@ -163,7 +199,7 @@ struct SpocHomeworkClient {
       stage: .casLogin
     ).resolvedCode ?? ""
     guard !role.isEmpty else {
-      throw HomeworkError.spocFailure(stage: Stage.casLogin.rawValue, reason: "登录响应未包含可用角色")
+      throw HomeworkError.upstreamProtocolChanged(source: .spoc, stage: Stage.casLogin.rawValue)
     }
     return (token, role)
   }
@@ -311,12 +347,15 @@ struct SpocHomeworkClient {
       }
       throw HomeworkError.upstreamProtocolChanged(source: .spoc, stage: stage.rawValue)
     }
-    guard envelope.code == 200, let content = envelope.content else {
+    guard envelope.code == 200 else {
       AppLog.network.error("SPOC request failed stage=\(stage.rawValue, privacy: .public) business_code=\(envelope.code)")
       if envelope.code == 401 || envelope.code == 403 {
         throw HomeworkError.spocAuthenticationExpired(stage: stage.rawValue)
       }
       throw HomeworkError.spocFailure(stage: stage.rawValue, reason: "业务响应未成功（\(envelope.code)）")
+    }
+    guard let content = envelope.content else {
+      throw HomeworkError.upstreamProtocolChanged(source: .spoc, stage: stage.rawValue)
     }
     AppLog.network.info("SPOC request succeeded stage=\(stage.rawValue, privacy: .public)")
     return content

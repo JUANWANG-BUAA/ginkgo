@@ -249,9 +249,11 @@ final class CheckInViewModel: ObservableObject {
       guard current == historyGeneration else { return }
       historySnapshot = result
       historyIsCached = false
-      try? await cache.saveHistory(result, account: account)
+      do { try await cache.saveHistory(result, account: account) }
+      catch { AppLog.cacheWriteFailed(feature: "checkin-history", error: error) }
     } catch {
       guard current == historyGeneration else { return }
+      AppLog.operationFailed(feature: "checkin", stage: "history", error: error)
       historyErrorMessage = (error as? LocalizedError)?.errorDescription ?? CheckInError.unavailable.errorDescription
     }
   }
@@ -289,10 +291,12 @@ final class CheckInViewModel: ObservableObject {
       snapshot = updated
       snapshotIsCached = false
       if updated.schoolDate == Self.schoolDateString(from: Date()) {
-        try? await cache.saveToday(updated, account: account)
+        do { try await cache.saveToday(updated, account: account) }
+        catch { AppLog.cacheWriteFailed(feature: "checkin-today", error: error) }
       }
     } catch {
       guard current == generation else { return }
+      AppLog.operationFailed(feature: "checkin", stage: "today", error: error)
       errorMessage = (error as? LocalizedError)?.errorDescription ?? CheckInError.unavailable.errorDescription
       if case CheckInError.sessionExpired = error, checkPrimarySessionOnFailure { needsSessionCheck = true }
       if case CheckInError.webVPNUnavailable = error { webVPNAuthenticationUnavailable = true }
@@ -339,16 +343,27 @@ final class CheckInViewModel: ObservableObject {
 
       await refresh()
       if errorMessage != nil {
-        actionMessage = "签到结果尚未确认；状态回查暂时失败，请稍后刷新确认"
+        actionMessage = result.responseFormatUnrecognized
+          ? "签到提交响应格式无法识别，接口可能已调整；状态回查失败，请勿重复提交，稍后刷新或到原站核实"
+          : "签到结果尚未确认；状态回查暂时失败，请勿重复提交，稍后刷新或到原站核实"
       } else if snapshot?.items.first(where: { $0.id == courseID })?.status == .signed {
         actionSucceeded = true
-        actionMessage = result.succeeded ? "签到成功，课程状态已回查确认" : "课程已签到，状态已回查确认"
+        if result.responseFormatUnrecognized {
+          actionMessage = "课程已签到，状态回查已确认；提交响应格式无法识别，接口可能已调整"
+        } else {
+          actionMessage = result.succeeded ? "签到成功，课程状态已回查确认" : "课程已签到，状态已回查确认"
+        }
+      } else if result.responseFormatUnrecognized {
+        actionMessage = "签到提交响应格式无法识别，接口可能已调整；状态回查未确认签到，请勿立即重复提交，稍后刷新或到原站核实"
+      } else if result.requiresStatusRefresh {
+        actionMessage = "签到状态尚未确认；已回查但未确认成功，请勿立即重复提交，稍后刷新或到原站核实"
       } else {
         actionMessage = result.succeeded
           ? "学校已返回签到成功，课程状态尚未同步；请稍后再次核对"
           : "尚未确认课程已签到；请检查时间/范围后重试，或再次核对状态"
       }
     } catch {
+      AppLog.operationFailed(feature: "checkin", stage: "sign_in_response", error: error)
       await refresh()
       if snapshot?.items.first(where: { $0.id == courseID })?.status == .signed {
         actionSucceeded = true

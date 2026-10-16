@@ -13,6 +13,9 @@ final class ScheduleViewModel: ObservableObject {
   private let cache: ScheduleCache
   private var account: String?
   private var generation = 0
+  private var lastAutomaticRefreshAttemptAt: Date?
+  private var pendingAutomaticRefresh = false
+  private var pendingAutomaticRefreshForCurrentWeek = false
 
   init(service: ScheduleServing = ScheduleClient(), cache: ScheduleCache = ScheduleCache()) {
     self.service = service
@@ -35,6 +38,9 @@ final class ScheduleViewModel: ObservableObject {
   func reset() {
     generation += 1
     account = nil
+    lastAutomaticRefreshAttemptAt = nil
+    pendingAutomaticRefresh = false
+    pendingAutomaticRefreshForCurrentWeek = false
     snapshot = nil
     reminderRevision += 1
     isLoading = false
@@ -45,6 +51,31 @@ final class ScheduleViewModel: ObservableObject {
 
   func refreshToday() async {
     await refresh(termID: snapshot?.terms.first(where: \.isSelected)?.id, currentWeek: true)
+  }
+
+  func refreshIfStale(
+    currentWeek: Bool = false,
+    maxAge: TimeInterval = 15 * 60,
+    queueIfLoading: Bool = false,
+    bypassCooldown: Bool = false,
+    forceRefresh: Bool = false
+  ) async {
+    guard account != nil else { return }
+    if isLoading {
+      if queueIfLoading {
+        pendingAutomaticRefresh = true
+        pendingAutomaticRefreshForCurrentWeek = pendingAutomaticRefreshForCurrentWeek || currentWeek
+      }
+      return
+    }
+    let now = Date()
+    let isStale = snapshot.map { now.timeIntervalSince($0.fetchedAt) >= maxAge } ?? true
+    guard forceRefresh || errorMessage != nil || isStale else { return }
+    let cooldown: TimeInterval = forceRefresh ? 5 : 30
+    if !bypassCooldown, let lastAutomaticRefreshAttemptAt,
+       now.timeIntervalSince(lastAutomaticRefreshAttemptAt) < cooldown { return }
+    lastAutomaticRefreshAttemptAt = now
+    if currentWeek { await refreshToday() } else { await refresh() }
   }
 
   func refresh(termID: String? = nil, week: Int? = nil, currentWeek: Bool = false) async {
@@ -64,7 +95,7 @@ final class ScheduleViewModel: ObservableObject {
     errorMessage = nil
     feedback = nil
     needsSessionCheck = false
-    defer { if current == generation { isLoading = false } }
+    defer { finishRefresh(current: current) }
     do {
       var newSnapshot = try await service.load(termID: termID ?? snapshot?.termID,
                                                week: currentWeek ? nil : week ?? (termID == nil ? snapshot?.weekNumber : nil))
@@ -77,11 +108,29 @@ final class ScheduleViewModel: ObservableObject {
       snapshot = newSnapshot
       reminderRevision += 1
       feedback = "课表已更新"
-      if let account { try? await cache.save(newSnapshot, for: account) }
+      if let account {
+        do { try await cache.save(newSnapshot, for: account) }
+        catch { AppLog.cacheWriteFailed(feature: "schedule", error: error) }
+      }
     } catch {
       guard current == generation else { return }
+      AppLog.operationFailed(feature: "schedule", stage: "refresh", error: error)
       errorMessage = (error as? LocalizedError)?.errorDescription ?? "课表更新失败，请检查网络后重试"
       if let failure = error as? ScheduleError, case .sessionExpired = failure { needsSessionCheck = true }
     }
+  }
+
+  func cancelPendingAutomaticRefresh() {
+    pendingAutomaticRefresh = false
+    pendingAutomaticRefreshForCurrentWeek = false
+  }
+
+  private func finishRefresh(current: Int) {
+    guard current == generation else { return }
+    isLoading = false
+    guard pendingAutomaticRefresh else { return }
+    let currentWeek = pendingAutomaticRefreshForCurrentWeek
+    cancelPendingAutomaticRefresh()
+    Task { await refreshIfStale(currentWeek: currentWeek, bypassCooldown: true) }
   }
 }

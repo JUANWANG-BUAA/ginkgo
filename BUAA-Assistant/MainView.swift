@@ -56,10 +56,13 @@ struct MainView: View {
   @StateObject private var classroom = ClassroomViewModel()
   @StateObject private var checkIn = CheckInViewModel()
   @StateObject private var tasks = PersonalTaskStore()
+  @StateObject private var networkPath = NetworkPathObserver()
+  @State private var networkRecoveryTask: Task<Void, Never>?
   @State private var selectedSection: AppSection? = .today
   @State private var hoveredSection: AppSection?
   @Namespace private var sidebarSelection
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.scenePhase) private var scenePhase
   @EnvironmentObject private var appState: AppState
   @EnvironmentObject private var courseReminders: CourseReminderScheduler
 
@@ -102,7 +105,7 @@ struct MainView: View {
     .environmentObject(tasks)
     .environmentObject(classroom)
     .navigationTitle(selectedSection?.rawValue ?? "BUAA Assistant")
-    .task(id: appState.user?.schoolid) {
+    .task(id: "\(appState.user?.schoolid ?? "")|\(checkInPollingIsActive)") {
       guard let account = appState.user?.schoolid else {
         await courseReminders.update(snapshot: nil)
         await checkIn.setWebVPNRouteEnabled(false)
@@ -114,9 +117,11 @@ struct MainView: View {
       await checkIn.setWebVPNRouteEnabled(appState.webVPNSessionStatus == .ready)
       await checkIn.start(account: account)
       await courseReminders.update(snapshot: schedule.snapshot)
+      guard checkInPollingIsActive else { return }
       while !Task.isCancelled {
         let delay: UInt64 = checkIn.errorMessage == nil ? 30 : 120
-        try? await Task.sleep(nanoseconds: delay * 1_000_000_000)
+        do { try await Task.sleep(nanoseconds: delay * 1_000_000_000) }
+        catch { return }
         guard !Task.isCancelled else { return }
         await checkIn.refresh()
       }
@@ -153,6 +158,88 @@ struct MainView: View {
     .onChange(of: courseReminders.isEnabled) { _, _ in
       Task { await courseReminders.update(snapshot: schedule.snapshot) }
     }
+    .onChange(of: networkPath.isConnected) { previous, isConnected in
+      if previous == false && isConnected == true {
+        refreshVisibleDataAfterRecovery(forceRefresh: true)
+      } else if isConnected != true {
+        networkRecoveryTask?.cancel()
+        cancelPendingAutomaticRefreshes()
+      }
+    }
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .active {
+        refreshVisibleDataAfterRecovery(forceRefresh: false)
+      } else {
+        networkRecoveryTask?.cancel()
+        cancelPendingAutomaticRefreshes()
+      }
+    }
+    .onChange(of: selectedSection) { _, _ in
+      networkRecoveryTask?.cancel()
+      cancelPendingAutomaticRefreshes()
+      Task { await refreshVisibleDataIfStale() }
+    }
+    .onDisappear {
+      networkRecoveryTask?.cancel()
+      cancelPendingAutomaticRefreshes()
+    }
+  }
+
+  private func refreshVisibleDataAfterRecovery(forceRefresh: Bool) {
+    guard appState.isLoggedIn, scenePhase == .active, networkPath.isConnected == true else { return }
+    networkRecoveryTask?.cancel()
+    networkRecoveryTask = Task {
+      await refreshVisibleDataIfStale(queueIfLoading: forceRefresh, forceRefresh: forceRefresh)
+    }
+  }
+
+  private func refreshVisibleDataIfStale(
+    queueIfLoading: Bool = false,
+    forceRefresh: Bool = false
+  ) async {
+    guard appState.isLoggedIn, scenePhase == .active, networkPath.isConnected == true else { return }
+    switch selectedSection {
+    case .today:
+      async let scheduleRefresh = schedule.refreshIfStale(
+        currentWeek: true,
+        queueIfLoading: queueIfLoading,
+        forceRefresh: forceRefresh
+      )
+      async let homeworkRefresh = homework.refreshIfStale(
+        queueIfLoading: queueIfLoading,
+        forceRefresh: forceRefresh
+      )
+      await scheduleRefresh
+      await homeworkRefresh
+    case .schedule:
+      async let scheduleRefresh = schedule.refreshIfStale(
+        queueIfLoading: queueIfLoading,
+        forceRefresh: forceRefresh
+      )
+      async let examRefresh = exams.refreshIfStale(
+        queueIfLoading: queueIfLoading,
+        forceRefresh: forceRefresh
+      )
+      await scheduleRefresh
+      await examRefresh
+    case .grade:
+      await grades.refreshIfStale(queueIfLoading: queueIfLoading, forceRefresh: forceRefresh)
+    case .homework:
+      await homework.refreshIfStale(queueIfLoading: queueIfLoading, forceRefresh: forceRefresh)
+    default:
+      break
+    }
+  }
+
+  private func cancelPendingAutomaticRefreshes() {
+    schedule.cancelPendingAutomaticRefresh()
+    exams.cancelPendingAutomaticRefresh()
+    grades.cancelPendingAutomaticRefresh()
+    homework.cancelPendingAutomaticRefresh()
+  }
+
+  private var checkInPollingIsActive: Bool {
+    scenePhase == .active && (selectedSection == .today || selectedSection == .checkIn)
   }
 
   private var sidebarIdentity: some View {

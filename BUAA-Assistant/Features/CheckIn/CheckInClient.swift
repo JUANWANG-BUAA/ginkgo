@@ -108,15 +108,29 @@ actor CheckInClient: CheckInServing, CheckInWebVPNRouting {
     let timestampURL = URL(string: "https://iclass.buaa.edu.cn:8347/app/common/get_timestamp.action")!
     var timestampRequest = URLRequest(url: timestampURL)
     timestampRequest.timeoutInterval = 20
-    let (timestampData, timestampResponse) = try await requestData(
-      for: timestampRequest, using: session, stage: .serverTimestamp
-    )
-    guard let timestampHTTP = timestampResponse as? HTTPURLResponse,
-          timestampHTTP.statusCode == 200,
-          let timestampPayload = try? Self.jsonObject(from: timestampData),
-          let timestamp = Self.string(timestampPayload["timestamp"]), !timestamp.isEmpty else {
-      AppLog.network.error("iclass request failed stage=server_timestamp outcome=invalid_timestamp")
+    let timestampData: Data
+    let timestampResponse: URLResponse
+    do {
+      (timestampData, timestampResponse) = try await requestData(
+        for: timestampRequest, using: session, stage: .serverTimestamp
+      )
+    } catch {
+      AppLog.network.error("iclass request failed stage=server_timestamp outcome=transport_failure")
       return CheckInActionResult(succeeded: false, message: "暂时无法取得学校服务器时间，未提交签到")
+    }
+    guard let timestampHTTP = timestampResponse as? HTTPURLResponse,
+          timestampHTTP.statusCode == 200 else {
+      AppLog.network.error("iclass request failed stage=server_timestamp outcome=invalid_http_response")
+      return CheckInActionResult(succeeded: false, message: "暂时无法取得学校服务器时间，未提交签到")
+    }
+    guard let timestampPayload = try? Self.jsonObject(from: timestampData),
+          let timestamp = Self.string(timestampPayload["timestamp"]) else {
+      AppLog.network.error("iclass request failed stage=server_timestamp reason=unrecognized_response_format")
+      return CheckInActionResult(
+        succeeded: false,
+        message: "学校服务器时间响应格式无法识别，接口可能已调整；未提交签到",
+        responseFormatUnrecognized: true
+      )
     }
 
     var components = URLComponents(string: "https://iclass.buaa.edu.cn:8347/app/course/stu_scan_sign.action")!
@@ -135,13 +149,49 @@ actor CheckInClient: CheckInServing, CheckInWebVPNRouting {
     request.httpBody = "id=\(activeSession.userID)".data(using: .utf8)
 
     let (data, response) = try await requestData(for: request, using: session, stage: .signIn)
-    guard let http = response as? HTTPURLResponse, http.statusCode == 200,
-          let payload = try? Self.jsonObject(from: data) else {
-      AppLog.network.error("iclass request failed stage=sign_in outcome=invalid_response")
-      return CheckInActionResult(succeeded: false, message: "签到响应未能确认；请刷新状态后再判断结果")
+    guard let http = response as? HTTPURLResponse else {
+      AppLog.network.error("iclass request failed stage=sign_in outcome=non_http_response")
+      return CheckInActionResult(succeeded: false, message: "签到结果尚未确认；正在回查课程状态…", requiresStatusRefresh: true)
+    }
+    if http.statusCode != 200 {
+      AppLog.network.error("iclass request failed stage=sign_in http_status=\(http.statusCode) outcome=unconfirmed")
+      return CheckInActionResult(succeeded: false, message: "签到结果尚未确认；正在回查课程状态…", requiresStatusRefresh: true)
+    }
+    let responseText = String(data: data.prefix(5000), encoding: .utf8) ?? ""
+    if http.url?.host == "sso.buaa.edu.cn" || responseText.contains("name=\"execution\"")
+        || responseText.localizedCaseInsensitiveContains("统一身份认证") {
+      AppLog.network.error("iclass request failed stage=sign_in outcome=authentication_response_unconfirmed")
+      return CheckInActionResult(succeeded: false, message: "签到会话可能已失效；结果尚未确认，正在回查课程状态…", requiresStatusRefresh: true)
+    }
+    guard let payload = try? Self.jsonObject(from: data) else {
+      AppLog.network.error("iclass request failed stage=sign_in reason=unrecognized_response_format")
+      return CheckInActionResult(
+        succeeded: false,
+        message: "签到响应格式无法识别，接口可能已调整；正在回查课程状态…",
+        requiresStatusRefresh: true,
+        responseFormatUnrecognized: true
+      )
+    }
+    guard Self.string(payload["STATUS"]) != nil else {
+      AppLog.network.error("iclass request failed stage=sign_in reason=missing_business_status")
+      return CheckInActionResult(
+        succeeded: false,
+        message: "签到响应缺少状态字段，接口可能已调整；正在回查课程状态…",
+        requiresStatusRefresh: true,
+        responseFormatUnrecognized: true
+      )
     }
 
     let result = payload["result"] as? [String: Any]
+    if Self.isSuccessful(payload["STATUS"]), Self.string(result?["stuSignStatus"]) == nil {
+      AppLog.network.error("iclass request failed stage=sign_in reason=missing_confirmation_status")
+      return CheckInActionResult(
+        succeeded: false,
+        message: "签到响应缺少确认状态，接口可能已调整；正在回查课程状态…",
+        requiresStatusRefresh: true,
+        responseFormatUnrecognized: true
+      )
+    }
     let succeeded = Self.isSuccessful(payload["STATUS"]) && Self.string(result?["stuSignStatus"]) == "1"
     let rawMessage = Self.string(payload["ERRMSG"])
     let alreadySigned = rawMessage?.contains("已签到") == true
@@ -217,6 +267,10 @@ actor CheckInClient: CheckInServing, CheckInWebVPNRouting {
       AppLog.network.info("iclass request succeeded stage=course_schedule outcome=empty_schedule status=2")
       return CheckInSnapshot(items: [], fetchedAt: Date(), schoolDate: schoolDate)
     }
+    guard Self.string(payload["STATUS"]) != nil else {
+      AppLog.network.error("iclass request failed stage=app_login reason=missing_business_status")
+      throw CheckInError.invalidResponse
+    }
     guard Self.isSuccessful(payload["STATUS"]) else {
       if payload["STATUS"] != nil {
         iclassSession = nil
@@ -239,7 +293,8 @@ actor CheckInClient: CheckInServing, CheckInWebVPNRouting {
       guard let id = Self.string(record["id"]),
             let name = Self.string(record["courseName"]),
             let begin = Self.string(record["classBeginTime"]),
-            let end = Self.string(record["classEndTime"]) else {
+            let end = Self.string(record["classEndTime"]),
+            Self.string(record["signStatus"]) != nil else {
         AppLog.network.error("iclass request failed stage=course_schedule reason=missing_course_fields")
         throw CheckInError.invalidResponse
       }
@@ -361,12 +416,16 @@ actor CheckInClient: CheckInServing, CheckInWebVPNRouting {
       AppLog.network.error("iclass request failed stage=app_login reason=invalid_json")
       throw error
     }
-    guard Self.isSuccessful(payload["STATUS"]), let result = payload["result"] as? [String: Any],
-          let userID = Self.string(result["id"]), let sessionID = Self.string(result["sessionId"]) else {
+    guard Self.isSuccessful(payload["STATUS"]) else {
       AppLog.network.error(
         "iclass request failed stage=app_login reason=login_rejected status=\(Self.safeStatus(payload["STATUS"]), privacy: .public)"
       )
       throw CheckInError.loginNameUnavailable
+    }
+    guard let result = payload["result"] as? [String: Any],
+          let userID = Self.string(result["id"]), let sessionID = Self.string(result["sessionId"]) else {
+      AppLog.network.error("iclass request failed stage=app_login reason=missing_session_fields")
+      throw CheckInError.invalidResponse
     }
     let newSession = IClassSession(userID: userID, sessionID: sessionID)
     iclassSession = newSession

@@ -2,7 +2,7 @@ import Foundation
 import CommonCrypto
 import CryptoKit
 
-struct LibraryItem: Identifiable, Hashable, Codable {
+struct LibraryItem: Identifiable, Hashable, Codable, Sendable {
   let id: String
   let name: String
   let detail: String
@@ -21,8 +21,8 @@ enum LibraryError: LocalizedError {
   case response, unavailable, authentication, rejected(String), uncertain, invalidRequest, operation
   var errorDescription: String? {
     switch self {
-    case .response: "图书馆接口返回格式无法识别，学校接口可能已调整"
-    case .unavailable: "图书馆服务暂时不可用"
+    case .response: "图书馆返回的数据格式无法识别，接口可能已调整；请重试，若持续出现请反馈"
+    case .unavailable: "图书馆服务暂时不可用，请稍后重试"
     case .authentication: "图书馆登录未完成，请重新登录学校账号后再试"
     case .rejected(let message): message
     case .uncertain: "操作结果待核实，请刷新我的预约后确认，勿重复提交"
@@ -61,15 +61,19 @@ struct LibraryBooking: Identifiable, Equatable {
     case "6": return "已取消"
     case "8": return "已结束"
     case "1": return "进行中"
-    default: return canCancel() ? "可取消" : "不可取消"
+    default:
+      return Self.endDate(day: day, time: endTime) == nil
+        ? "预约时间待确认"
+        : (canCancel() ? "可取消" : "不可取消")
     }
   }
 
   func canCancel(at date: Date = Date()) -> Bool {
     guard !id.isEmpty,
           !["6", "8"].contains(status.trimmingCharacters(in: .whitespacesAndNewlines)),
-          !["取消", "结束", "已完成", "过期", "失效"].contains(where: statusName.contains) else { return false }
-    return !hasEnded(at: date)
+          !["取消", "结束", "已完成", "过期", "失效"].contains(where: statusName.contains),
+          let end = Self.endDate(day: day, time: endTime) else { return false }
+    return end > date
   }
 
   func hasEnded(at date: Date = Date()) -> Bool {
@@ -191,14 +195,19 @@ actor LibraryClient {
   func slots(area: String) async throws -> [LibrarySlot] {
     let data = try await request("Space/map", body: ["id": area])
     guard let dates = data["date"] as? [String: Any], let rows = dates["list"] as? [[String: Any]] else { throw LibraryError.response }
-    return rows.flatMap { row -> [LibrarySlot] in
+    let slots = try rows.flatMap { row -> [LibrarySlot] in
       let day = Self.text(row["day"] ?? row["date"])
-      return (row["times"] as? [[String: Any]] ?? []).compactMap { slot in
+      guard !day.isEmpty, let times = row["times"] as? [[String: Any]] else { throw LibraryError.response }
+      return try times.map { slot in
         let id = Self.text(slot["id"])
-        guard !id.isEmpty, !day.isEmpty else { return nil }
-        return LibrarySlot(id: day + "/" + id, day: day, start: Self.text(slot["start"]), end: Self.text(slot["end"]))
+        let start = Self.text(slot["start"])
+        let end = Self.text(slot["end"])
+        guard !id.isEmpty, !start.isEmpty, !end.isEmpty else { throw LibraryError.response }
+        return LibrarySlot(id: day + "/" + id, day: day, start: start, end: end)
       }
     }
+    guard Set(slots.map(\.id)).count == slots.count else { throw LibraryError.response }
+    return slots
   }
   func seats(area: String, slot: LibrarySlot) async throws -> [LibraryItem] {
     try items(try await request("Space/seat", body: ["id": area, "day": slot.day, "label_id": [],
@@ -209,24 +218,77 @@ actor LibraryClient {
     let safeLimit = min(max(1, limit), 100)
     let data = try await request("member/seat", body: ["type": "1", "page": safePage, "limit": safeLimit])
     guard let rows = (data["data"] ?? data["list"]) as? [[String: Any]] else { throw LibraryError.response }
-    let items = rows.map { row in
-      LibraryBooking(
-        id: Self.text(row["id"]),
-        name: Self.text(row["nameMerge"] ?? row["name_merge"] ?? row["name"]),
-        areaName: Self.text(row["areaName"] ?? row["area_name"] ?? row["name"]),
-        seatNumber: Self.text(row["no"] ?? row["seat_no"]),
-        day: Self.text(row["day"] ?? row["date"]),
-        startTime: Self.text(row["beginTime"] ?? row["begin_time"]),
-        endTime: Self.text(row["endTime"] ?? row["end_time"]),
-        status: Self.text(row["status"]),
-        statusName: Self.text(row["status_name"])
+    let items = try rows.map { row in
+      let id = Self.text(row["id"])
+      let statusValue = [row["status"], row["statusName"], row["status_name"]]
+        .compactMap { $0 }.first { !($0 is NSNull) }
+      let status = Self.text(statusValue)
+      let hasStatus = ["status", "statusName", "status_name"].contains { row.keys.contains($0) }
+      guard !id.isEmpty, hasStatus, !status.isEmpty else { throw LibraryError.response }
+      let name = Self.text([row["nameMerge"], row["name_merge"], row["name"]].compactMap { $0 }.first { !($0 is NSNull) })
+      let areaName = Self.text([row["areaName"], row["area_name"], row["name"]].compactMap { $0 }.first { !($0 is NSNull) })
+      let seatNumber = Self.text([row["no"], row["seat_no"]].compactMap { $0 }.first { !($0 is NSNull) })
+      let day = Self.text([row["day"], row["date"]].compactMap { $0 }.first { !($0 is NSNull) })
+      let startTime = Self.text([row["beginTime"], row["begin_time"]].compactMap { $0 }.first { !($0 is NSNull) })
+      let endTime = Self.text([row["endTime"], row["end_time"]].compactMap { $0 }.first { !($0 is NSNull) })
+      let statusName = Self.text([row["status_name"], row["statusName"]].compactMap { $0 }.first { !($0 is NSNull) })
+      return LibraryBooking(
+        id: id,
+        name: name,
+        areaName: areaName,
+        seatNumber: seatNumber,
+        day: day,
+        startTime: startTime,
+        endTime: endTime,
+        status: status,
+        statusName: statusName
       )
     }
-    let currentPage = Self.integer(data["current_page"] ?? data["page"]) ?? safePage
-    let pageSize = Self.integer(data["per_page"] ?? data["limit"]) ?? safeLimit
-    let total = Self.integer(data["total"] ?? data["count"])
-    let lastPage = Self.integer(data["last_page"] ?? data["lastPage"])
-    let explicitHasNext = data["has_more"] as? Bool ?? data["hasNextPage"] as? Bool
+    guard Set(items.map(\.id)).count == items.count else { throw LibraryError.response }
+    let paginationKeys: Set<String> = ["current_page", "page", "per_page", "limit", "total", "count", "last_page", "lastPage", "has_more", "hasNextPage"]
+    guard !Set(data.keys).isDisjoint(with: paginationKeys) else { throw LibraryError.response }
+    let currentPageValue = [data["current_page"], data["page"]].compactMap { $0 }.first { !($0 is NSNull) }
+    let pageSizeValue = [data["per_page"], data["limit"]].compactMap { $0 }.first { !($0 is NSNull) }
+    let totalValue = [data["total"], data["count"]].compactMap { $0 }.first { !($0 is NSNull) }
+    let lastPageValue = [data["last_page"], data["lastPage"]].compactMap { $0 }.first { !($0 is NSNull) }
+    let reportedPage = Self.integer(currentPageValue)
+    let reportedPageSize = Self.integer(pageSizeValue)
+    let total = Self.integer(totalValue)
+    let lastPage = Self.integer(lastPageValue)
+    if (currentPageValue != nil && reportedPage == nil && !(currentPageValue is NSNull))
+        || (pageSizeValue != nil && reportedPageSize == nil && !(pageSizeValue is NSNull))
+        || (totalValue != nil && total == nil && !(totalValue is NSNull))
+        || (lastPageValue != nil && lastPage == nil && !(lastPageValue is NSNull)) {
+      throw LibraryError.response
+    }
+    let currentPage = reportedPage ?? safePage
+    let pageSize = reportedPageSize ?? safeLimit
+    let nextValue = [data["has_more"], data["hasNextPage"]].compactMap { $0 }.first { !($0 is NSNull) }
+    let explicitHasNext: Bool?
+    if let nextValue {
+      if let value = nextValue as? Bool {
+        explicitHasNext = value
+      } else if let value = Self.integer(nextValue), value == 0 || value == 1 {
+        explicitHasNext = value == 1
+      } else {
+        throw LibraryError.response
+      }
+    } else {
+      explicitHasNext = nil
+    }
+    guard currentPage > 0, pageSize > 0, total.map({ $0 >= 0 }) ?? true,
+          lastPage.map({ $0 >= 0 }) ?? true,
+          currentPage <= Int.max / pageSize, items.count <= pageSize,
+          reportedPage == nil || currentPage == safePage,
+          total != nil || lastPage != nil || explicitHasNext != nil || items.count == pageSize else {
+      throw LibraryError.response
+    }
+    if let explicitHasNext, let lastPage, explicitHasNext != (currentPage < lastPage) {
+      throw LibraryError.response
+    }
+    if let explicitHasNext, let total, explicitHasNext != (currentPage * pageSize < total) {
+      throw LibraryError.response
+    }
     let inferredHasNext: Bool
     if let lastPage { inferredHasNext = currentPage < lastPage }
     else if let total { inferredHasNext = currentPage * pageSize < total }
@@ -238,24 +300,42 @@ actor LibraryClient {
     let segment = String(slot.id.split(separator: "/").last ?? "")
     let plain = try JSONSerialization.data(withJSONObject: ["seat_id": seat, "segment": segment, "day": slot.day, "start_time": "", "end_time": ""], options: .sortedKeys)
     let encrypted = try LibraryCrypto.encrypt(plain, day: slot.day)
-    _ = try await request("space/confirm", body: ["aesjson": encrypted], mutation: true)
+    _ = try await request("space/confirm", body: ["aesjson": encrypted], mutation: true, requiresObjectData: false)
   }
   func cancel(id: String) async throws {
-    _ = try await request("space/cancel", body: ["id": id], mutation: true)
+    _ = try await request("space/cancel", body: ["id": id], mutation: true, requiresObjectData: false)
   }
 
   private func items(_ data: [String: Any], key: String, seats: Bool = false) throws -> [LibraryItem] {
     guard let rows = data[key] as? [[String: Any]] else { throw LibraryError.response }
-    return rows.map { row in
+    let items = try rows.map { row in
+      let id = Self.text(row["id"])
+      let name = Self.text(row["name"] ?? row["no"])
+      guard !id.isEmpty, !name.isEmpty else { throw LibraryError.response }
       let availableCount = seats ? nil : Self.integer(row["free_num"])
       let totalCount = seats ? nil : Self.integer(row["total_num"])
-      return LibraryItem(id: Self.text(row["id"]), name: Self.text(row["name"] ?? row["no"]),
+      if seats {
+        guard row.keys.contains("status"), !Self.text(row["status"]).isEmpty else { throw LibraryError.response }
+      } else {
+        guard let availableCount, let totalCount, availableCount >= 0, totalCount >= availableCount else {
+          throw LibraryError.response
+        }
+      }
+      return LibraryItem(id: id, name: name,
                          detail: seats ? Self.text(row["status_name"]) : "可预约 \(Self.text(row["free_num"])) / \(Self.text(row["total_num"]))",
                          available: !seats || Self.text(row["status"]) == "1",
                          availableCount: availableCount, totalCount: totalCount)
     }
+    guard Set(items.map(\.id)).count == items.count else { throw LibraryError.response }
+    return items
   }
-  private func request(_ path: String, body: [String: Any], mutation: Bool = false, retry: Bool = true) async throws -> [String: Any] {
+  private func request(
+    _ path: String,
+    body: [String: Any],
+    mutation: Bool = false,
+    requiresObjectData: Bool = true,
+    retry: Bool = true
+  ) async throws -> [String: Any] {
     if token == nil { try await login() }
     var request = makeRequest(URL(string: base + "/v4/" + path)!)
     request.httpMethod = "POST"
@@ -263,16 +343,40 @@ actor LibraryClient {
     request.httpBody = try JSONSerialization.data(withJSONObject: body)
     let result: [String: Any]
     do { result = try await send(request, session: session) }
-    catch { if mutation { throw LibraryError.uncertain }; throw error }
+    catch let error as LibraryError {
+      if case .authentication = error {
+        token = nil
+        if retry, !mutation {
+          return try await self.request(path, body: body, mutation: mutation, requiresObjectData: requiresObjectData, retry: false)
+        }
+        if mutation { throw LibraryError.uncertain }
+      }
+      if mutation { throw LibraryError.uncertain }
+      throw error
+    } catch {
+      if mutation { throw LibraryError.uncertain }
+      throw error
+    }
     let message = Self.text(result["message"] ?? result["msg"])
     if ["登录失效", "请重新登录", "未登录"].contains(where: message.contains) {
       token = nil
-      if retry && !mutation { return try await self.request(path, body: body, retry: false) }
+      if retry && !mutation { return try await self.request(path, body: body, mutation: mutation, requiresObjectData: requiresObjectData, retry: false) }
+      if mutation { throw LibraryError.uncertain }
       throw LibraryError.authentication
     }
-    guard let code = Int(Self.text(result["code"])), [0, 1].contains(code) else { throw LibraryError.rejected(message.isEmpty ? "图书馆操作未成功" : message) }
+    guard let code = Self.integer(result["code"]) else {
+      if mutation { throw LibraryError.uncertain }
+      throw LibraryError.response
+    }
+    guard [0, 1].contains(code) else {
+      let explicitFailure = ["失败", "不可", "已被", "不能", "无法"].contains(where: message.contains)
+      if mutation && !explicitFailure { throw LibraryError.uncertain }
+      throw LibraryError.rejected(message.isEmpty ? "图书馆操作未成功（服务代码 \(code)）" : message)
+    }
     if mutation, ["失败", "不可", "已被", "不能", "无法"].contains(where: message.contains) { throw LibraryError.rejected(message) }
-    return result["data"] as? [String: Any] ?? [:]
+    if let data = result["data"] as? [String: Any] { return data }
+    guard !requiresObjectData else { throw LibraryError.response }
+    return [:]
   }
   // API.md §5.1：最多八跳，查询串和 fragment 都提取 cas。
   private func login() async throws {
@@ -315,7 +419,9 @@ actor LibraryClient {
   }
   private func send(_ request: URLRequest, session: URLSession) async throws -> [String: Any] {
     let (data, response) = try await session.data(for: request)
-    guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { throw LibraryError.unavailable }
+    guard let http = response as? HTTPURLResponse else { throw LibraryError.unavailable }
+    if http.statusCode == 401 || http.statusCode == 403 { throw LibraryError.authentication }
+    guard (200..<300).contains(http.statusCode) else { throw LibraryError.unavailable }
     guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw LibraryError.response }
     return json
   }

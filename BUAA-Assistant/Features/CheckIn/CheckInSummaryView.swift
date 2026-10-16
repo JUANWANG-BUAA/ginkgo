@@ -117,7 +117,7 @@ struct CheckInSummaryView: View {
         .buttonStyle(.link)
       }
       if let actionMessage = model.actionMessage {
-        StatusNotice(message: actionMessage, kind: model.actionSucceeded ? .success : .information)
+        StatusNotice(message: actionMessage, kind: model.actionSucceeded ? .success : .warning)
       }
     }
     .padding(16)

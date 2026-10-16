@@ -52,6 +52,7 @@ struct CheckInActionResult: Equatable {
   let succeeded: Bool
   let message: String
   var requiresStatusRefresh = false
+  var responseFormatUnrecognized = false
 }
 
 enum CheckInError: LocalizedError, Equatable {
