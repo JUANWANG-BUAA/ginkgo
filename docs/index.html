@@ -280,7 +280,7 @@
           成绩、作业、研究生教务与博雅，打开就知道今天要关注什么。不经过第三方服务器，账号数据只留在这台设备。
         </p>
         <div class="cta">
-          <a class="btn primary" data-download-dmg href="https://github.com/JUANWANG-BUAA/ginkgo/releases/latest">下载 DMG <span class="ver" data-latest-version>最新版</span></a>
+          <a class="btn primary" data-download-dmg href="https://github.com/JUANWANG-BUAA/ginkgo/releases">下载 DMG <span class="ver" data-latest-version>最新版</span></a>
           <a class="btn ghost" href="https://github.com/JUANWANG-BUAA/ginkgo">在 GitHub 查看</a>
           <a class="btn ghost" href="#screenshots">浏览界面</a>
         </div>
@@ -507,9 +507,9 @@
             </p>
           </div>
           <div class="cta" style="margin:0">
-            <a class="btn primary" data-download-dmg href="https://github.com/JUANWANG-BUAA/ginkgo/releases/latest">下载 DMG</a>
-            <a class="btn ghost" data-download-zip href="https://github.com/JUANWANG-BUAA/ginkgo/releases/latest">ZIP</a>
-            <a class="btn ghost" data-checksums href="https://github.com/JUANWANG-BUAA/ginkgo/releases/latest">校验和</a>
+            <a class="btn primary" data-download-dmg href="https://github.com/JUANWANG-BUAA/ginkgo/releases">下载 DMG</a>
+            <a class="btn ghost" data-download-zip href="https://github.com/JUANWANG-BUAA/ginkgo/releases">ZIP</a>
+            <a class="btn ghost" data-checksums href="https://github.com/JUANWANG-BUAA/ginkgo/releases">校验和</a>
           </div>
         </div>
         <pre style="margin-top:16px"><code><span class="c"># 克隆仓库</span>
@@ -597,14 +597,18 @@ xcodebuild test -project BUAA-Assistant.xcodeproj \
   });
   dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
 
-  // 直接下载：解析最新 Release 的资产地址；失败时保留指向发布页的回退链接。
+  // 直接下载：取最近发布的 Release（包含 alpha/beta 预发布；GitHub 的 /latest 会跳过 prerelease）。
   (async () => {
     try {
-      const response = await fetch('https://api.github.com/repos/JUANWANG-BUAA/ginkgo/releases/latest', {
+      const response = await fetch('https://api.github.com/repos/JUANWANG-BUAA/ginkgo/releases?per_page=20', {
         headers: { Accept: 'application/vnd.github+json' }
       });
       if (!response.ok) return;
-      const release = await response.json();
+      const releases = await response.json();
+      const release = (Array.isArray(releases) ? releases : [])
+        .filter(item => item && !item.draft)
+        .sort((a, b) => new Date(b.published_at || b.created_at) - new Date(a.published_at || a.created_at))[0];
+      if (!release) return;
       const assets = release.assets || [];
       const version = String(release.tag_name || '').replace(/^v/, '');
       const dmg = assets.find(a => a.name.endsWith('.dmg'));
