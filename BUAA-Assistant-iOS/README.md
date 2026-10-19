@@ -70,9 +70,13 @@ xcodebuild test \
 iOS target 直接编译 `BUAA-Assistant/` 下的共享代码，同时排除仅适用于 macOS 的应用壳和系统集成：
 
 - `BUAAAssistantApp.swift`、`RootView.swift`、`MainView.swift`
+- 全部 macOS 功能页面（Today、Schedule、Grade、Homework、Library、Classroom、CheckIn、Tasks、CampusNotices、Bykc、GraduateAcademic、Cgyy）
 - `Core/Keyboard`、`Core/LaunchAtLogin`、`Core/Notification`
+- `Core/UI/PageComponents.swift`、`Core/UI/MacViewModifiers.swift`
 - `Features/Settings/SettingsView.swift`
 - macOS 专属 AppIcon 资源
+
+两个壳共享 `WorkspaceHost`、`WorkspaceCoordinator` 与 `WorkspaceLifecycleModifier`：工作区持有全部 ViewModel，签到轮询、课程提醒、WebVPN 状态与前后台/网络恢复刷新只实现一次。
 
 iOS 自己提供：
 
@@ -81,7 +85,7 @@ iOS 自己提供：
 - `Sources/Native/IOSTodayView.swift`：`List`/`Section` 今日工作台
 - `Sources/Native/IOSScheduleView.swift`：原生课表、考试与课程详情
 - `Sources/Native/IOSBykcView.swift`：原生博雅课程库、已选课程、完成统计与课程详情
-- `Sources/Native/IOSCgyyView.swift`：教学楼研讨室预约、订单与门锁密码；图书馆仅提供座位预约，历史 IOSSeminarView 不作为功能入口
+- `Sources/Native/IOSCgyyView.swift`：教学楼研讨室预约、订单与门锁密码；图书馆仅提供座位预约，图书馆研讨间代码已删除
 - `Sources/Native/IOSGraduateAcademicView.swift`：共享原生学分地图、类别/课组缺口、课程与原文、成绩及学籍服务目录
 - `Sources/Native/IOSGradeView.swift`：原生成绩列表、学期 Menu 与 searchable
 - `Sources/Native/IOSHomeworkView.swift`：原生作业列表与 NavigationLink 详情
@@ -110,14 +114,14 @@ macOS 功能 View 只保留给 macOS；iOS 页面层全部是独立的原生 Swi
 
 ## 当前验证
 
-- macOS：167 项 XCTest 全绿。
-- iOS 单元测试：167 项、0 失败。
-- iOS UI 测试：3 项中 2 项常规通过、1 项真实账号测试在未注入凭据时跳过；完整 XCTest 170 项中 169 项通过。
+- macOS：212 项 XCTest 全绿。
+- iOS 单元测试：212 项、0 失败。
+- iOS UI 测试：3 项中 2 项常规通过、1 项真实账号测试在未注入凭据时跳过。
 - iPhone 17 Pro、iPhone SE (3rd generation)、iPad Pro 11：原生 UI 冒烟测试通过。
 - 产物包含 iOS AppIcon、AccentColor、LaunchBackground、PrivacyInfo.xcprivacy。
 - 真实账号会话测试：直连 UC 返回 HTTP 483「访问策略禁止」后，自动切换北航 WebVPN 并完成 CAS 登录，`uc/status` 返回 `code == 0 + data`，会话已验证有效。
 - WebVPN 业务只读验证：研究生课表（30 周、7 门课程）、成绩、空教室、图书馆座位、校园通知、SPOC（13 项作业）与 iclass 均可访问。
-- 新增页面 live UI 验证：博雅读回 74 门课程；研讨室读回 45 个空间及空档；研究生教务读回学籍摘要、培养方案与课程数据。
+- 新增页面 live UI 验证：博雅读回 74 门课程；研究生教务读回学籍摘要、培养方案与课程数据。图书馆研讨间只读链路已停止提供，教学楼 CGYY 写入待验收。
 
 ## 可选真实账号验收
 

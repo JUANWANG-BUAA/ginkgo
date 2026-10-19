@@ -1,7 +1,7 @@
 # 宣传文案与关键词
 
 > 用途：GitHub 仓库信息、社区发帖、社交分享的统一口径。发布时直接复制，避免各文档说法不一致。
-> 当前版本：Ginkgo 0.1.0-alpha（2026-10-16）
+> 当前版本：Ginkgo 0.1.0-alpha.7（2026-10-19）
 
 ## 命名与品牌
 
@@ -17,25 +17,25 @@
 
 - **仓库名**：`ginkgo`（完整地址 `github.com/JUANWANG-BUAA/ginkgo`，"BUAA"在账号名里）
 - **Description（≤ 120 字符）**：
-  `北航（BUAA）校园服务聚合的 macOS 原生客户端 · 课表 / 签到 / 图书馆预约 / 成绩与作业`
+  `北航（BUAA）校园服务聚合的 macOS 原生客户端 · 课表 / 签到 / 图书馆与研讨室预约 / 成绩 / 作业 / 研究生教务`
 - **Website**：`https://juanwang-buaa.github.io/ginkgo/`（启用 GitHub Pages 后填写）
 - **Topics**：
-  `buaa` `beihang` `macos` `swiftui` `menubar` `campus` `schedule` `checkin` `library-booking` `student-tools` `open-source`
+  `buaa` `beihang` `macos` `ios` `swiftui` `menubar` `campus` `schedule` `checkin` `library-booking` `graduate` `student-tools` `open-source`
 
 ## 关键词
 
-北航、BUAA、Beihang、北航助手、校园助手、macOS 客户端、SwiftUI、菜单栏、课表、课程表、签到、打卡、iclass、图书馆预约、座位预约、成绩查询、GPA、空教室、学校作业、SPOC、希冀（Judge）、校园通知、待办、内置更新、DMG 下载、原生应用、直连、隐私、本地缓存
+北航、BUAA、Beihang、北航助手、校园助手、macOS 客户端、iOS、SwiftUI、菜单栏、课表、课程表、签到、打卡、iclass、图书馆预约、座位预约、研讨室预约、CGYY、研究生教务、培养方案、学分地图、博雅、成绩查询、GPA、空教室、学校作业、SPOC、希冀（Judge）、校园通知、待办、内置更新、DMG 下载、原生应用、直连、隐私、本地缓存
 
 ## 一句话介绍
 
 - **极简版**：课表、签到、预约，收进菜单栏的北航 macOS 校园助手。
-- **完整版**：Ginkgo 是北航校园服务聚合的 macOS 原生客户端：课表、签到、图书馆预约、成绩与作业一站式查看；直连校内系统，账号数据只留本机。
+- **完整版**：Ginkgo 是北航校园服务聚合的 macOS / iOS 原生客户端：课表、签到、图书馆座位与教学楼研讨室预约、成绩、作业、研究生教务与博雅一站式查看；直连校内系统，账号数据只留本机。
 
 ## 长介绍（README / 仓库首屏）
 
 > 打开就知道今天要关注什么。
 >
-> Ginkgo 把北航常用的几个系统收进 macOS 菜单栏：**课表**（本科/研究生周网格、学期总览、考试安排，断网看缓存）、**签到**（iclass 状态常驻核对，逐课程手动提交并回查结果）、**预约**（图书馆楼馆/分区/座位与官网实时在馆人数），另外还有成绩与参考绩点、空教室、SPOC 作业、校园通知和本机待办。
+> Ginkgo 把北航常用的几个系统收进 macOS 菜单栏与 iOS 工作台：**课表**（本科/研究生周网格、学期总览、考试安排，断网看缓存）、**签到**（iclass 状态常驻核对，逐课程手动提交并回查结果）、**预约**（图书馆座位与官网实时在馆人数，教学楼研讨室 CGYY），另外还有成绩与参考绩点、研究生教务学分地图、博雅课程、空教室、SPOC 作业、校园通知和本机待办。
 >
 > SwiftUI 原生编写、无第三方依赖；只直连学校系统，不经过任何第三方服务器，密码可选存入钥匙串，查询缓存按账号隔离且可一键清除。
 
@@ -59,7 +59,7 @@
 - 还有成绩与参考绩点、空教室、SPOC 作业、校园通知、本机待办
 
 SwiftUI 原生，无第三方依赖；只直连学校系统，账号数据只留本机。
-目前是 0.1.0-alpha，167 项测试全绿；打卡签到与图书馆预约已可用，应用内置自更新（从 GitHub Releases 检查并安装，不清本地缓存），欢迎北航同学试用和反馈。
+目前是 0.1.0-alpha.7，212 项测试全绿；打卡签到与图书馆预约已可用，应用内置自更新（从 GitHub Releases 检查并安装，不清本地缓存），欢迎北航同学试用和反馈。
 
 GitHub: https://github.com/JUANWANG-BUAA/ginkgo
 项目主页: https://juanwang-buaa.github.io/ginkgo/
@@ -75,10 +75,10 @@ GitHub: https://github.com/JUANWANG-BUAA/ginkgo
 
 ## 视觉素材
 
-- **演示动画**：`docs/images/demo.gif`（9 个页面轮播）
+- **演示动画**：`docs/images/demo.gif`（10 个页面轮播：今天、课表、学期总览、作业、图书馆、空教室、签到、研究生教务、博雅、研讨室）
 - **社交预览图（GitHub Social Preview）**：建议用 `docs/images/overview.png` 或首页 hero 截图按 1200×630 裁切
 - **项目主页**：`docs/index.html`（GitHub Pages：main 分支 /docs 目录）；已适配手机端（响应式布局、移动端按钮堆叠），并含免责声明区块
-- 所有截图已打码姓名、学号、课程与作业标题
+- 所有截图已打码姓名、学号、课程、作业与培养方案信息
 
 ## 发布节奏建议
 

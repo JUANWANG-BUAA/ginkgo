@@ -165,11 +165,11 @@ xcodebuild test \
 | 检查 | 结果 | 备注 |
 |---|---|---|
 | macOS Debug build | 通过 | Xcode 27.1 |
-| macOS XCTest | 167 项 / 0 失败 | 网络路线、CAS 4xx/483 与表单 action 回归 |
+| macOS XCTest | 212 项 / 0 失败 | 网络路线、CAS 4xx/483、共享存储/解析与工作区回归 |
 | iOS generic device build | 通过 | CODE_SIGNING_ALLOWED=NO |
-| iOS build-for-testing | 通过 | 167 项单元测试源码成功编译 |
-| iOS 模拟器 XCTest | 167 项 / 0 失败 | iOS 27.0 Runtime |
-| iOS UI 测试 | iPhone 17 Pro / iPhone SE / iPad Pro 11 通过 | 登录、Tab/侧栏、博雅/研讨室/研究生教务入口与设置；完整 XCTest 170 项中 169 项通过、1 项凭据测试跳过 |
+| iOS build-for-testing | 通过 | 212 项单元测试源码成功编译 |
+| iOS 模拟器 XCTest | 212 项 / 0 失败 | iOS 27.0 Runtime |
+| iOS UI 测试 | iPhone 17 Pro / iPhone SE / iPad Pro 11 通过 | 登录、Tab/侧栏、博雅/研究生教务/CGY 入口与设置；1 项真实账号测试在未注入凭据时跳过 |
 | iPhone 真机运行 | **未执行** | 模拟器不能替代真机 |
 | iOS 写操作 | **未执行** | 预约/取消与签到必须真机逐项确认 |
 | 真实账号会话 | 通过 | 直连 UC 被 483 拦截后自动切换 WebVPN，CAS 登录成功，`uc/status` 返回 `code == 0 + data` |

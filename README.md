@@ -7,7 +7,7 @@
 ## 快速开始
 
 1. 用 Xcode 16+（工程为文件系统同步格式；本机已用 Xcode 27.1 验证可编译、测试全绿）打开 `BUAA-Assistant.xcodeproj`；
-2. ⌘R 运行，⌘U 跑测试（源码现有 167 个测试方法；当前全量通过）；
+2. ⌘R 运行，⌘U 跑测试（源码现有 212 个测试方法；当前全量通过）；
 3. 按顺序阅读 [docs/ROADMAP.md](docs/ROADMAP.md) 开始开发——它回答"先写什么、后写什么、每步怎么验收"；
 4. iOS 版打开 `BUAA-Assistant-iOS/Ginkgo-iOS.xcodeproj`（iOS 17+）；工程由 [XcodeGen](https://github.com/yonaskolb/XcodeGen) 根据 `project.yml` 生成，详见 [iOS 子项目说明](docs/IOS.md)。
 
@@ -15,14 +15,13 @@
 
 > 首次运行或更新后，macOS 可能询问一次钥匙串访问权限：选择“**始终允许**”即可。发布包与本地构建都使用同一张稳定自签名证书（`Ginkgo Local Signing`），授权一次后后续构建/更新不再询问；即使弹窗未处理，应用也会在 5 秒后回到登录页并提示。详见 [docs/SIGNING.md](docs/SIGNING.md)。
 
-## 当前版本：0.1.0-alpha（2026-10-16）
+## 当前版本：0.1.0-alpha.7（2026-10-19）
 
-首个 alpha 基线：141 项测试全绿；当前源码在新增访问策略、WebVPN 路由、博雅加密协议、研讨室空档与预约、研究生教务解析、座位暂离/完全离开与空课表回归后，本轮教务层级与预约回归为 212 项（见 [docs/TESTING.md](docs/TESTING.md)）。课表、打卡签到与图书馆预约均已可用；内置更新会从 GitHub Releases 检查新版本，下载安装后**保留课表、成绩缓存与本机待办**。本版还修好了研究生周次误标、希冀作业的 ATS 阻断、图书馆聚焦刷新与总览配色；希冀来源按取舍暂时下线，已知限制与风险见 [docs/RELEASE-NOTES.md](docs/RELEASE-NOTES.md)。
+本版完成一次工程瘦身：抽取共享存储、时间、解析、加密与刷新节流基础设施，macOS 与 iOS 共用工作区编排；删除未挂载的图书馆研讨间代码。功能面覆盖课表与考试、成绩、研究生教务（学分地图）、博雅、学校作业、图书馆座位、教学楼研讨室（CGYY）、空教室、iclass 签到、待办与校园通知。源码 212 项测试全绿（见 [docs/TESTING.md](docs/TESTING.md)）；内置更新会从 GitHub Releases 检查新版本，下载安装后**保留课表、成绩缓存与本机待办**。已知限制与风险见 [docs/RELEASE-NOTES.md](docs/RELEASE-NOTES.md)。
 
 项目主页（GitHub Pages）：<https://juanwang-buaa.github.io/ginkgo/>
 
-
-> 2026-10-19 本轮优化：研究生教务新增层级学分地图，支持逐层查看类别与课组缺口、最少门数、完整合并规则；修正校企课程字段与失败保留缓存。图书馆座位预约已由维护者确认可行；研讨室仅指教学楼 CGYY。验证：macOS 212 项全绿，iOS 模拟器同源 212 项全绿。CGYY 真实写入仍待人工验收。
+> 验证范围：macOS 212 项、iOS 27.0 模拟器 212 项单元测试通过；正式签名包的真实账号全链路与 CGYY 写入仍待人工验收。
 
 ## iOS 子项目
 
@@ -39,7 +38,7 @@
 
 当前状态：已在标准 **iOS 27.0 Runtime** 的 iPhone 17 Pro、iPhone SE (3rd generation) 和 iPad Pro 11 上运行原生 UI 冒烟测试；iPhone/iPad UI 测试通过。iOS 单元测试 **212 项、0 失败**；真实账号 UI 测试在未注入凭据时按设计跳过。产物已包含 AppIcon、LaunchBackground、PrivacyInfo，Application Support 被排除出系统备份。
 
-真实账号会话测试于 2026-10-18 在 iPhone 17 Pro 模拟器通过：直连 UC 被学校访问策略以 HTTP 483 拦截后，客户端自动切换到北航 WebVPN（`d.buaa.edu.cn`），重新完成 CAS 登录，并以 `uc/status` 的 `code == 0 + data` 确认会话有效。新增三个原生只读页面：博雅课程库（74 门课程、已选与完成统计）、图书馆研讨室（45 个空间、日期/类型/校区筛选与逐时空档）、研究生教务（学籍白名单摘要、10 章培养方案、59 门计划课程、成绩与考试数量、7 类 46 个教务应用目录）。真实账号 live UI 测试已进入三个页面并读回数据；2026-10-19 将这三类数据补齐到 macOS 原生页面，并加入教学楼研讨室（CGYY）预约、门锁密码与座位暂离/完全离开写路径（真实写操作待验收）；希冀课程列表结构仍需适配。
+真实账号会话测试于 2026-10-18 在 iPhone 17 Pro 模拟器通过：直连 UC 被学校访问策略以 HTTP 483 拦截后，客户端自动切换到北航 WebVPN（`d.buaa.edu.cn`），重新完成 CAS 登录，并以 `uc/status` 的 `code == 0 + data` 确认会话有效。iOS 提供博雅课程库（74 门课程、已选与完成统计）与研究生教务（学籍摘要、10 章培养方案、59 门计划课程、学分地图）两个原生只读页面，以及教学楼研讨室（CGYY）预约、订单与门锁密码页面；图书馆仅提供座位预约（研讨间只读代码已删除）。真实账号 live UI 已进入博雅与研究生教务并读回数据；CGYY 与座位写操作仍待真实往返验收，希冀课程列表结构仍需适配。
 
 ```sh
 xcodebuild test \
@@ -52,7 +51,7 @@ xcodebuild test \
 
 ## 界面预览
 
-> 截图来自开发机（macOS 深色模式，1200 × 800 pt 窗口），姓名与学号已打码；课程、作业等内容为当时状态。
+> 截图来自开发机（macOS 深色模式，1200 × 800 pt 窗口），姓名、学号、课程、作业与培养方案信息均已打码；页面内容为当时状态。
 
 ![页面演示](docs/images/demo.gif)
 
@@ -68,9 +67,17 @@ xcodebuild test \
 |----------|--------|
 | ![学校作业](docs/images/homework.png) | ![图书馆](docs/images/library.png) |
 
-| 空教室 | 课程签到（历史查询） |
+| 空教室 | 课程签到 |
 |--------|----------|
-| ![空教室](docs/images/classroom.png) | ![课程签到历史查询](docs/images/checkin-history.png) |
+| ![空教室](docs/images/classroom.png) | ![课程签到](docs/images/checkin.png) |
+
+| 研究生教务 | 博雅 |
+|------------|------|
+| ![研究生教务](docs/images/graduate.png) | ![博雅](docs/images/bykc.png) |
+
+| 教学楼研讨室（CGYY） |
+|----------------------|
+| ![研讨室](docs/images/cgyy.png) |
 
 | 成绩 | 设置 |
 |------|------|

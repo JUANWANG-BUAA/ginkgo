@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ginkgo · 北航校园工作台 — macOS 原生校园助手</title>
-<meta name="description" content="Ginkgo 是北航校园服务聚合的 macOS 原生客户端：课表、签到、图书馆预约、成绩与作业一站式收进菜单栏。SwiftUI 编写，直连校内系统，账号数据只留本机。">
-<meta name="keywords" content="北航,BUAA,校园助手,macOS,菜单栏,课表,签到,打卡,图书馆预约,成绩,GPA,空教室,SwiftUI,开源,Ginkgo">
+<meta name="description" content="Ginkgo 是北航校园服务聚合的 macOS / iOS 原生客户端：课表、签到、图书馆与教学楼研讨室预约、成绩、作业、研究生教务与博雅一站式查看。SwiftUI 编写，直连校内系统，账号数据只留本机。">
+<meta name="keywords" content="北航,BUAA,Beihang,校园助手,macOS,iOS,菜单栏,课表,签到,打卡,图书馆预约,研讨室,CGYY,研究生教务,博雅,成绩,GPA,空教室,SwiftUI,开源,Ginkgo">
 <meta name="theme-color" content="#080c12">
 <meta property="og:title" content="Ginkgo · 北航校园工作台">
-<meta property="og:description" content="课表、签到、预约、成绩与作业，收进菜单栏的北航 macOS 校园助手。直连校内系统，数据只留本机。">
+<meta property="og:description" content="课表、签到、图书馆与研讨室预约、成绩、作业、研究生教务与博雅，收进菜单栏的北航校园助手。直连校内系统，数据只留本机。">
 <meta property="og:type" content="website">
 <meta property="og:image" content="images/today.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 92C44 80 42 72 34 60 24 46 12 40 12 30 12 18 30 10 42 22 47 27 49 33 50 40 51 33 53 27 58 22 70 10 88 18 88 30 88 40 76 46 66 60 58 72 56 80 50 92Z' fill='%234fb3d9'/%3E%3C/svg%3E">
@@ -276,8 +276,8 @@
         <p class="eyebrow">macOS · SwiftUI · 直连校内系统</p>
         <h1>把校园服务<br>收进<span class="grad">菜单栏</span></h1>
         <p class="lead">
-          Ginkgo 是北航校园服务聚合的 macOS 原生客户端：<b>课表、签到、图书馆预约</b>、成绩与作业，
-          打开就知道今天要关注什么。不经过第三方服务器，账号数据只留在这台 Mac。
+          Ginkgo 是北航校园服务聚合的 macOS / iOS 原生客户端：<b>课表、签到、图书馆与研讨室预约</b>、
+          成绩、作业、研究生教务与博雅，打开就知道今天要关注什么。不经过第三方服务器，账号数据只留在这台设备。
         </p>
         <div class="cta">
           <a class="btn primary" data-download-dmg href="https://github.com/JUANWANG-BUAA/ginkgo/releases/latest">下载 DMG <span class="ver" data-latest-version>最新版</span></a>
@@ -285,8 +285,8 @@
           <a class="btn ghost" href="#screenshots">浏览界面</a>
         </div>
         <div class="chips">
-          <span class="chip"><b>140</b> 项测试全绿</span>
-          <span class="chip"><b>10</b> 个页面</span>
+          <span class="chip"><b>212</b> 项测试全绿</span>
+          <span class="chip"><b>12</b> 个页面</span>
           <span class="chip"><b>内置更新</b> 一键升级</span>
           <span class="chip"><b>MIT</b> 开源</span>
         </div>
@@ -294,7 +294,7 @@
       <div data-reveal>
         <figure class="window" style="margin:0">
           <div class="bar"><i></i><i></i><i></i><span>Ginkgo — 北航校园工作台</span></div>
-          <img src="images/demo.gif" alt="Ginkgo 界面演示：今天、课表、学期总览、作业、图书馆等页面" width="960" height="640">
+          <img src="images/demo.gif" alt="Ginkgo 界面演示：今天、课表、学期总览、作业、图书馆、研究生教务、博雅与研讨室等页面" width="960" height="640">
         </figure>
       </div>
     </div>
@@ -304,8 +304,8 @@
   <section class="section wrap" id="features">
     <div class="section-head" data-reveal>
       <p class="eyebrow">Core Features</p>
-      <h2>三件每天都会用的事</h2>
-      <p>课表、签到、预约是校园生活的日常动线；Ginkgo 把它们做成原生、快速、可信的一组页面。</p>
+      <h2>从日常到培养过程</h2>
+      <p>课表、签到、预约是每天的动线；研究生教务与博雅把培养过程也放进同一个原生工作台。</p>
     </div>
 
     <div class="cards-3">
@@ -349,6 +349,47 @@
       </article>
     </div>
 
+    <div class="cards-3" style="margin-top:18px">
+      <article class="card" data-reveal>
+        <span class="tag">Graduate</span>
+        <div class="icon"><svg viewBox="0 0 24 24"><path d="M3 10l9-5 9 5-9 5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/><path d="M21 10v5"/></svg></div>
+        <h3>研究生教务</h3>
+        <p>按执行报告展示“总要求 → 类别 → 课组 → 修读记录”，每层缺口独立计算。</p>
+        <ul>
+          <li>已认定、在修、待考核分开展示，不把在修当作已获</li>
+          <li>培养方案章节、课程池、成绩与考试数量</li>
+          <li>部分刷新失败保留旧数据并标注来源时间</li>
+          <li>课程名称、教师与分类可搜索筛选</li>
+        </ul>
+      </article>
+
+      <article class="card" data-reveal>
+        <span class="tag">Liberal Arts</span>
+        <div class="icon"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5z"/><path d="M4 5.5v15M8 7h8M8 11h8"/></svg></div>
+        <h3>博雅课程</h3>
+        <p>课程库、已选课程与完成统计，按类别和关键词快速定位。</p>
+        <ul>
+          <li>课程详情含教师、地点、人数与校区</li>
+          <li>已选课程与完成学分统计</li>
+          <li>只读浏览，不提供选课/退选写操作</li>
+          <li>按账号隔离的本地缓存，进入页面先看旧结果</li>
+        </ul>
+      </article>
+
+      <article class="card" data-reveal>
+        <span class="tag">Venue</span>
+        <div class="icon"><svg viewBox="0 0 24 24"><path d="M4 20V8l8-5 8 5v12"/><path d="M2 20h20M9 20v-6h6v6M8 9h2M14 9h2"/></svg></div>
+        <h3>教学楼研讨室</h3>
+        <p>教学楼 CGYY 的场地、时段、订单与门锁密码，预约前二次确认。</p>
+        <ul>
+          <li>校区 / 楼栋 / 日期 / 时段与参与人</li>
+          <li>提交前复核空档，结果不明时不自动重发</li>
+          <li>我的预约、取消与门锁密码独立展示</li>
+          <li>真实写操作仍需逐次人工验收</li>
+        </ul>
+      </article>
+    </div>
+
     <div class="cards-mini">
       <div class="mini" data-reveal><h4>成绩与参考绩点</h4><p>学期切换、加权均分与参考绩点，计算口径写清说明。</p></div>
       <div class="mini" data-reveal><h4>空教室</h4><p>校区与日期查询，楼栋概览 / 房间列表 / 节次对照。</p></div>
@@ -356,6 +397,7 @@
       <div class="mini" data-reveal><h4>本机待办</h4><p>截止时间、完成与删除，按账号隔离保存在本机。</p></div>
       <div class="mini" data-reveal><h4>校园通知</h4><p>北航通知公告摘要，今天页一屏看完。</p></div>
       <div class="mini" data-reveal><h4>菜单栏面板</h4><p>下一节课、临期作业与打开主窗口，5 秒看完。</p></div>
+      <div class="mini" data-reveal><h4>iOS 工作台</h4><p>iPhone 底部 TabView / iPad 侧栏，复用同一套客户端与缓存。</p></div>
       <div class="mini" data-reveal><h4>课前提醒</h4><p>本地通知，默认关闭；正文不含课程名与地点。</p></div>
       <div class="mini" data-reveal><h4>全局快捷键</h4><p>⌃⌥B 唤起主窗口，可在应用菜单关闭。</p></div>
       <div class="mini" data-reveal><h4>多账号隔离</h4><p>缓存按账号摘要分文件，切换账号不串数据。</p></div>
@@ -371,7 +413,7 @@
     <div class="section-head" data-reveal>
       <p class="eyebrow">Screenshots</p>
       <h2>界面速览</h2>
-      <p>截图为开发机深色模式、1200 × 800 pt 窗口；姓名、学号与课程信息均已打码。</p>
+      <p>截图为开发机深色模式、1200 × 800 pt 窗口；姓名、学号、课程、作业与培养方案信息均已打码。</p>
     </div>
     <div class="gallery">
       <figure class="shot wide" data-reveal>
@@ -399,8 +441,20 @@
         <figcaption>空教室 — 楼栋 / 房间 / 节次三种布局</figcaption>
       </figure>
       <figure class="shot" data-reveal>
-        <img src="images/checkin-history.png" alt="课程签到历史查询：已签到与待核对记录" loading="lazy">
-        <figcaption>课程签到 — 按日历史查询，已签到 / 未签到·待核对一目了然</figcaption>
+        <img src="images/checkin.png" alt="课程签到：已签到与未签到状态" loading="lazy">
+        <figcaption>课程签到 — 状态常驻核对，提交前逐门确认并回查</figcaption>
+      </figure>
+      <figure class="shot" data-reveal>
+        <img src="images/graduate.png" alt="研究生教务学分地图" loading="lazy">
+        <figcaption>研究生教务 — 总要求、类别、课组与修读记录的独立缺口</figcaption>
+      </figure>
+      <figure class="shot" data-reveal>
+        <img src="images/bykc.png" alt="博雅课程库" loading="lazy">
+        <figcaption>博雅 — 课程库分类筛选、已选与完成统计</figcaption>
+      </figure>
+      <figure class="shot" data-reveal>
+        <img src="images/cgyy.png" alt="教学楼研讨室预约" loading="lazy">
+        <figcaption>研讨室 — 教学楼场地、时段、审批与门锁密码</figcaption>
       </figure>
       <figure class="shot" data-reveal>
         <img src="images/grades.png" alt="成绩页" loading="lazy">
@@ -440,7 +494,7 @@
     <div class="section-head" data-reveal>
       <p class="eyebrow">Get Started</p>
       <h2>开始使用</h2>
-      <p>需要 macOS 14+ 与 Xcode 16+。当前是 0.1.0-alpha，只读链路是验收重点。</p>
+      <p>需要 macOS 14+（iOS 17+）。当前是 0.1.0-alpha.7（2026-10-19），212 项测试全绿；只读链路是验收重点。</p>
     </div>
     <div class="split">
       <div data-reveal>
@@ -477,9 +531,9 @@ xcodebuild test -project BUAA-Assistant.xcodeproj \
           <li><span class="check"><svg viewBox="0 0 24 24"><path d="M4 12.5l5.5 5.5L20 6.5"/></svg></span><span>命令行构建产物未封签时，Dock 图标可能需要 <code>codesign --force --sign -</code>。</span></li>
         </ul>
         <div class="notice">
-          <b>Alpha 说明：</b>打卡与图书馆预约已可用（写操作都需要你逐项确认，结果不明确时不会自动重发）；
+          <b>Alpha 说明：</b>打卡、图书馆座位与教学楼研讨室预约已可用（写操作都需要你逐项确认，结果不明确时不会自动重发）；
           希冀（Judge）作业来源暂时下线，当前只显示 SPOC；
-          本科账号链路、验证码分支与浅色模式仍待真机验收。详见
+          正式签名包的真实账号全链路、本科账号与验证码分支仍待真机验收。详见
           <a href="https://github.com/JUANWANG-BUAA/ginkgo/blob/main/docs/RELEASE-NOTES.md">发布说明</a>。
         </div>
       </div>
@@ -509,7 +563,7 @@ xcodebuild test -project BUAA-Assistant.xcodeproj \
         <svg viewBox="0 0 100 100" aria-hidden="true" style="width:22px;height:22px"><path d="M50 92C44 80 42 72 34 60 24 46 12 40 12 30 12 18 30 10 42 22 47 27 49 33 50 40 51 33 53 27 58 22 70 10 88 18 88 30 88 40 76 46 66 60 58 72 56 80 50 92Z" fill="#4fb3d9"/></svg>
         Ginkgo · 北航校园工作台
       </div>
-      <div>MIT License · 0.1.0-alpha · 非官方项目，与北航无隶属关系 · 协议研究致敬 <a href="https://github.com/BUAASubnet/UBAA">UBAA</a></div>
+      <div>MIT License · 0.1.0-alpha.7 · 非官方项目，与北航无隶属关系 · 协议研究致敬 <a href="https://github.com/BUAASubnet/UBAA">UBAA</a></div>
     </div>
     <div class="foot-links">
       <a href="https://github.com/JUANWANG-BUAA/ginkgo">GitHub</a>

@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-Ginkgo（BUAA Assistant）is a native Swift/SwiftUI campus-services client for macOS with an iOS subset. Shared application code lives in `BUAA-Assistant/`: `Features/` groups Auth, Schedule, Grade, Library, Classroom, Today, Tasks, and Settings; `Core/` contains shared networking, storage, logging, and cross-platform UI components. The macOS application shell is in `BUAA-Assistant/` root; the iOS shell, XcodeGen spec, resources, and iOS-only settings live in `BUAA-Assistant-iOS/`. Keep feature-specific clients, models, parsers, views, and view models together. XCTest sources live in `BUAA-AssistantTests/` and are shared by both projects. Treat `docs/` as the documentation source of truth; start with `ROADMAP.md`, `ARCHITECTURE.md`, `API.md`, `IOS.md`, and `IMPROVEMENTS.md`.
+Ginkgo (BUAA Assistant) is a native Swift/SwiftUI campus-services client for macOS with an iOS app. Shared application code lives in `BUAA-Assistant/`: `Features/` groups Auth, Today, Schedule, Grade, Graduate, Homework, BYKC, Library, Venue (CGYY), Campus, Classroom, CheckIn, Tasks, and Settings; `Core/` contains shared networking, storage, time/parsing/crypto helpers, logging, the shared workspace coordinator, and cross-platform UI components. The macOS application shell is in `BUAA-Assistant/` root; the iOS shell, XcodeGen spec, resources, and iOS-only settings live in `BUAA-Assistant-iOS/`. Keep feature-specific clients, models, parsers, views, and view models together. XCTest sources live in `BUAA-AssistantTests/` and are shared by both projects. Treat `docs/` as the documentation source of truth; start with `ROADMAP.md`, `ARCHITECTURE.md`, `API.md`, `IOS.md`, and `IMPROVEMENTS.md`.
 
 ## Build, Test, and Development Commands
 
