@@ -1,20 +1,30 @@
 # BUAA Assistant - 架构设计文档
 
-## 当前实现说明（2026-10-16）
+## 当前实现说明（2026-10-17）
 
-本文件包含目标架构与历史设计示例，不能据此推断所有能力已经实现。当前模块为 Auth、Today、Schedule、Grade、Library、Classroom、Tasks、Settings；入口与全局状态仍在源码根目录。
+本文件包含目标架构与历史设计示例，不能据此推断所有能力已经实现。当前模块为 Auth、Today、Schedule、Grade、Homework、Library、Classroom、CheckIn、Tasks、Settings，并新增 BYKC、GraduateAcademic 与研讨室只读数据模型；入口与全局状态仍在源码根目录。2026-10-17 新增 `BUAA-Assistant-iOS/` 子项目，2026-10-18 进一步将其页面层改为独立原生 SwiftUI：iOS 壳、资源、登录与十二个功能入口全部位于 `BUAA-Assistant-iOS/Sources/`，只共享 CAS、网络、模型、解析器、缓存和 ViewModel。跨平台语义色与平台图片适配集中在 `Core/UI/CrossPlatformSupport.swift`。当前仍是“共享源码 + target membership”的过渡结构，长期应抽取 `GinkgoCore` Swift Package，详见 [IMPROVEMENTS.md](IMPROVEMENTS.md)。
 
 - 网络：APIClient 提供共享 Cookie 的普通会话与禁止自动重定向的认证会话；CasClient、ScheduleClient、GradeClient、LibraryClient、ClassroomClient 分别接入上游。图书馆业务 token 仅保存在 LibraryClient 内存；官网实时空间数据由独立的 `LibraryPublicStatsClient` 通过无 Cookie ephemeral 会话只读获取。
-- 状态：模块 ViewModel 由 `MainView` 持有，切换侧栏不重建同步状态；新窗口从本机快照恢复查询结果。签到页将 iclass 业务拒绝与学校 CAS 失效分开，并限制 session 刷新回查次数。尚未统一成目标架构中的 Service/Repository 层。
+- 状态：`WorkspaceHost` 创建 `WorkspaceCoordinator` 并持有全部模块 ViewModel，macOS `MainView` 与 iOS `IOSMainView` 通过共享的 `WorkspaceLifecycleModifier` 处理签到轮询、WebVPN 会话、课程提醒、前后台/网络恢复刷新与 UC 会话复核；切换页面不重建同步状态，账号切换时整个工作区随 `.id(account)` 释放。签到页将 iclass 业务拒绝与学校 CAS 失效分开，并限制 session 刷新回查次数。尚未统一成目标架构中的 Service/Repository 层。
 - 存储：凭据可选保存到钥匙串；课表、考试、成绩、作业、图书馆、空教室和签到快照使用 Codable JSON 文件，个人数据文件名按账号 SHA-256 摘要隔离；摘要不是内容加密。课表快照可含已查询周次，空教室最多保留 12 组校区/日期结果，考试最多保留 12 个学期，签到缓存当天状态和最多 180 个历史日期。校园通知缓存最近 5 条公开内容。图书馆最多缓存 2,000 个座位；图书馆分区余量与官网人数另按本机小时聚合，不含账号或座位标识，最多保存 60 天/4,000 条。设置可清理查询快照及图书馆聚合历史，不删除个人待办。尚未实现 SwiftData 或完整的多学期成绩仓库。
-- 界面：NavigationSplitView 的导航为今天、课程签到、课表、成绩、学校作业、图书馆、空教室、待办、设置。主窗口默认 1200 × 800 pt，最小 800 × 560 pt。课表网格使用 TimetableLayout 分配重叠课程栏位；同日同课、同教室的连续节次合并，保留教师差异供详情查看。周网格保留可读的最小日列宽，不够时横向滚动，SemesterOverview 显示查询覆盖范围。
+- 界面：NavigationSplitView 的导航为今天、课程签到、课表、成绩、研究生教务、学校作业、博雅、图书馆、研讨室、空教室、待办、设置。研究生教务与博雅只读展示白名单/课程数据；研讨室为教学楼 CGYY 预约、订单与门锁密码（自动滑块识别需用户确认）；图书馆研讨间代码已于 2026-10-19 瘦身时整体删除（协议资料仍见 API.md / EDUCATION-DATA-MAP）；图书馆“我的预约”分为进行中与历史并支持座位签到/暂离/完全离开。主窗口默认 1200 × 800 pt，最小 800 × 560 pt。课表网格使用 TimetableLayout 分配重叠课程栏位；同日同课、同教室的连续节次合并，保留教师差异供详情查看。周网格保留可读的最小日列宽，不够时横向滚动，SemesterOverview 显示查询覆盖范围。
 - 图书馆预约自动定位北航时区当前时段；预约端分区数据展示空闲/总座位并按本机历史估算不可预约座位数量。官网公开数据另提供两校区在馆人数和沙河特色阅览室人数；人数按校区/日期/小时采样，趋势及估算基于相同星期和时段的本机历史均值，不能推断官网未提供的楼层人数，也不等同于官方预测。
 - 快捷键：全局快捷键由 Carbon `RegisterEventHotKey` 注册，⌃⌥B 用于恢复并聚焦主窗口；默认关闭，可从应用菜单启停，偏好保存在本机 UserDefaults。
 - 启动：设置页使用 `SMAppService.mainApp` 注册或注销当前应用登录项；批准状态以 macOS Service Management 为准，可跳转系统登录项设置。
 - 通知：课程前提醒默认关闭，由 `CourseReminderScheduler` 从已缓存周次安排未来 14 天的本地通知；本科只覆盖已查询周次。课程通知使用独立 identifier 前缀，刷新/关闭/登出仅清理本应用的课程提醒；通知正文不包含课程名和地点。点击时由 `AppWindowRouter` 聚焦已有主窗口，或在窗口关闭时重新打开主窗口。
-- 边界：图书馆提交与取消、课程签到均需用户主动触发且不自动重发；签到写协议仅按 BBAA 源码移植，尚待真实上游往返验收。AppIcon 资源和 target 绑定已接入，Dock/Finder 显示仍待人工确认。学校作业同步、课程前通知和签到状态通知已接入，仍需分别做真实账号/通知投递验收；研讨室专用分类和后台监测未完成。
+- 边界：图书馆提交与取消、课程签到均需用户主动触发且不自动重发；签到写协议仅按 BBAA 源码移植，尚待真实上游往返验收。AppIcon 资源和 target 绑定已接入，Dock/Finder 显示仍待人工确认。学校作业同步、课程前通知和签到状态通知已接入，仍需分别做真实账号/通知投递验收；研讨室只读分类、45 个空间与逐时空档已接入；预约/取消等写路径和后台监测仍未完成。
 
 构建与测试证据见 TESTING.md，真实观察和待验收范围见 ACCEPTANCE.md。
+
+### 2026-10-19 · 瘦身与共享编排
+
+图书馆研讨间未挂载的页面、ViewModel、解析器和只读 API 已删除，产品范围保持“图书馆仅座位预约”；协议资料保留在 API.md / EDUCATION-DATA-MAP。通用能力收敛到 `Core/`：`LocalStore`/`SnapshotCache`（11 个手写缓存）、`SchoolTime`、`JSONValue`、`HTMLText`、`FormURLEncoding`、`AESCipher`（4 处 AES 实现）、`AutoRefreshGate`、`CasPageParser.isLoginRedirect`、`StatusPresentation`、`GraduateCredit`。两个应用壳共用 `WorkspaceHost` / `WorkspaceCoordinator` / `WorkspaceLifecycleModifier`；iOS target 不再编译 macOS 功能页面、`PageComponents` 与 `MacViewModifiers`，其死代码式的紧凑布局分支随之删除。iOS 页面此前各自持有的博雅/研究生教务 ViewModel 改由工作区统一持有，设置页清理缓存补上这两个模块。macOS 与 iOS 测试 212 项通过。
+
+### 2026-10-19 · 教务要求树与预约范围更正
+
+研究生教务首页改为共享的 `GraduateRequirementDashboard`，基于 `GraduateRequirementBuilder` 保留“总要求 → 类别 → 课组 → 修读记录”的层级。每层分别计算要求减已获，不累加父子缺口，不将待考核/在修计入已获。校企课程与分阶段培养作为独立约束；合并要求保留原文。查询快照记录分项错误与成功时间，部分刷新失败保留对应旧数据。缓存使用原目录内的版本 2 envelope，旧语义快照不再读入，下次成功刷新覆盖。
+
+图书馆产品范围仅为座位预约，维护者已验证可行；历史 seminar 提交已停用。教学楼 CGYY 补齐有界 WebVPN 登录与统一路由，认证后仅 GET 可重查；预约/取消结果未知时暂停重复操作，要求核对订单。真实 CGYY 写操作仍待人工验收。
 
 ## 1. 项目概述
 
@@ -249,7 +259,8 @@ actor ScheduleStore {
 3. 会话有效性以 `uc.buaa.edu.cn/api/uc/status` 为唯一判据，且业务系统报未登录时先复核再清会话（防上游 5xx 抖动误杀登录态）
 4. 密码存 Keychain；业务 Cookie 交给 `HTTPCookieStorage`（CASTGC 是 HttpOnly，手拼 Cookie 头会丢失语义）
 5. **会话恢复不依赖 Cookie 跨重启持久化**：`CASTGC`/`JSESSIONID` 均为无 Expires 的会话 Cookie，`HTTPCookieStorage` 只在进程内保留它们，App 重启即失。免登录恢复的设计是：启动 → `validateSession()` 复核 → 无效且 Keychain 存有密码（「记住密码」开启）→ **静默重登一次**；无密码则回登录页。Step 2 验收时实测 CASTGC 是否带 Expires（若实测带 Expires，则 CASTGC 可跨重启持久化，静默重登退为兜底），结论登记进 API.md §1.8
-6. **签到 WebVPN 会话同样不落盘**：网关 Cookie 仅驻留隔离的进程内 CookieStorage。会话过期/网关返回登录页时，签到页把状态标为未确认；若 Keychain 中有用户选择保存的凭据，提供显式“重试连接签到服务”来重建 WebVPN CAS 会话；否则要求用户重新登录。不得为了签到后台恢复而扩大 Cookie 持久化范围或静默保存密码。
+6. **WebVPN Cookie 不落盘**：直连与 WebVPN 使用隔离的 CookieStorage；WebVPN Cookie 仅驻留进程内。切换网络路线会清空旧会话，记住密码仍受用户显式开关控制。
+7. **自动网络回退**：默认先直连；UC 返回非标准 HTTP 483 或访问策略页时，自动切换到 `d.buaa.edu.cn` WebVPN 并重试。WebVPN 是学校官方网关，不经过本项目自建中转服务器。
 
 **流程**（与 UBAA `LocalConnectionAuth.kt` 在用实现逐行对齐，细节见 [API 接口文档](API.md) 第 1 节）：
 
@@ -491,7 +502,12 @@ UBAA 设计了三种连接模式（Direct/WebVPN/ServerRelay），导致：
 - WebVPN 模式的 HTTP 隧道实现复杂且脆弱（需要处理 JS 加密、动态端口、验证码弹窗）
 - ServerRelay 模式依赖第三方服务器，该服务器当前处于不稳定状态
 
-**本项目的决策**：默认直连，不实现全局连接模式矩阵，也不实现 ServerRelay。只读 iclass 状态查询是一个有证据的窄例外：若直连 TLS 握手失败，则按 UBAA 已验证的 WebVPN URL 编码方式重试该只读请求；该回退不适用于其他模块或任何上游写操作，并继续使用系统 TLS 校验。回退链的真实账号端到端验收完成前，UI 必须显示“状态未确认”，不能将失败解释为空列表或签到成功。
+**本项目的修正决策（2026-10-18）**：原先“只直连、不实现全局模式”的取舍在校园公网 IP 被访问策略拦截时不成立。现在实现 **自动 / 直连 / WebVPN** 三种用户偏好：
+- 自动模式先直连，遇到 UC 483/访问策略拦截后自动切换到 WebVPN 并重试；
+- WebVPN 模式对所有北航上游 URL 使用 `d.buaa.edu.cn` 加密路由与独立 CookieStorage；
+- `routedData` 只改写 URL、Host 相关头部与 `Referer/Origin`，必须原样保留 `URLRequest.httpBody`，并由同一个 URLSession Cookie 会话贯穿 SPA 预热、CAS 重定向与业务 POST；禁止重新序列化表单/JSON body 或手工覆盖网关 Cookie，否则研究生课表和 SPOC 角色接口会返回空数据或业务错误；
+- 不实现 UBAA 的 ServerRelay，因为 Ginkgo 不运行自建中转服务器；
+- 认证链保持逐跳重定向与 `uc/status` 成功判据，WebVPN 只改变传输路线，不降低会话校验标准。
 
 ### 9.2 安全层面
 
@@ -636,7 +652,7 @@ UBAA 的 `commonTest` 中大量使用硬编码的 Mock 响应。这些 Mock 数�
 | 原则 | UBAA 的做法 | 本项目的做法 |
 |------|-------------|-------------|
 | 平台选择 | 6 平台 KMP | macOS 原生 Swift |
-| 连接模式 | 三种模式 × N 个接口 | 默认直连；只读 iclass 在 TLS 握手失败时窄范围 WebVPN 回退 |
+| 连接模式 | 三种模式 × N 个接口 | 自动 / 直连 / WebVPN；无 ServerRelay，统一 `routedData` 传输层 |
 | 凭据存储 | 明文 Preferences | Keychain + Access Control |
 | 并发模型 | 受管 CoroutineScope（viewModelScope 等；旧版误记 GlobalScope，更正见 §9.3.1） | Swift Concurrency + Actor 隔离 |
 | 错误处理 | 混合风格 | 统一 AppError 枚举 |

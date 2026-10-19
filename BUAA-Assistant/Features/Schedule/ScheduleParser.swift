@@ -26,13 +26,16 @@ enum ScheduleParser {
     guard let datas = root["datas"] as? [String: Any],
           let table = datas["kfdxnxqcx"] as? [String: Any],
           let rows = table["rows"] as? [[String: Any]] else { throw ScheduleError.changedResponse }
-    let terms = try rows.map { row in
+    let sorted = try rows.map { row in
       guard let code = row["XNXQDM"] as? String, code.range(of: #"^\d{4}[123]$"#, options: .regularExpression) != nil,
             let name = row["XNXQDM_DISPLAY"] as? String, !name.isEmpty else { throw ScheduleError.changedResponse }
       return SchoolTerm(id: code, name: name, isSelected: false)
     }.sorted { $0.id > $1.id }
-    guard Set(terms.map(\.id)).count == terms.count else { throw ScheduleError.changedResponse }
-    return terms
+    guard Set(sorted.map(\.id)).count == sorted.count else { throw ScheduleError.changedResponse }
+    // GSMIS 不返回 selected 字段；倒序第一项即当前学期，对齐 UBAA parseGsmisTerms。
+    return sorted.enumerated().map { index, term in
+      SchoolTerm(id: term.id, name: term.name, isSelected: index == 0)
+    }
   }
 
   static func weeks(_ data: Data) throws -> [SchoolWeek] {
@@ -140,6 +143,9 @@ enum ScheduleParser {
     let root = try object(data)
     guard string(root["code"]) == "1", let rows = root["jgList"] as? [[String: Any]],
           let tasks = root["rwList"] as? [[String: Any]] else { throw ScheduleError.changedResponse }
+    // 新学期尚未发布排课时 GSMIS 会返回 code=1 和三个空数组。
+    // 这是合法的“暂无课表”，不是上游结构变化。
+    if rows.isEmpty && tasks.isEmpty { return [] }
     // API.md §3.3：SCSKRQ 属于教学班，须取该班所有排课中的最早周/星期偏移。
     // 论文/实践类教学班可能没有排课行或缺少可解析日期，这类任务无法参与推算，跳过即可；
     // 只有有效任务给出不一致的开学日期时，才报告结构变化。
@@ -194,29 +200,16 @@ enum ScheduleParser {
     return value
   }
 
-  private static func string(_ value: Any?) -> String? {
-    if let value = value as? String { return value }
-    if let value = value as? NSNumber { return value.stringValue }
-    return nil
-  }
+  private static func string(_ value: Any?) -> String? { JSONValue.string(value) }
 
+  /// 课表字段严格要求整数文本：`3.5` 这类非整数视为结构变化，而不是截断为 3。
   private static func integer(_ value: Any?) -> Int? { string(value).flatMap(Int.init) }
 
-  private static let calendar: Calendar = {
-    var calendar = Calendar(identifier: .gregorian)
-    calendar.timeZone = TimeZone(identifier: "Asia/Shanghai")!
-    calendar.firstWeekday = 2
-    return calendar
-  }()
+  private static var calendar: Calendar { SchoolTime.calendar }
 
   private static func date(_ value: Any?) -> Date? {
     guard let raw = value as? String else { return nil }
-    let prefix = String(raw.prefix(10))
-    let formatter = DateFormatter()
-    formatter.calendar = calendar
-    formatter.timeZone = calendar.timeZone
-    formatter.dateFormat = "yyyy-MM-dd"
-    return formatter.date(from: prefix)
+    return SchoolTime.date(from: String(raw.prefix(10)), formats: ["yyyy-MM-dd"])
   }
 
   private static func meetingOrder(_ lhs: CourseMeeting, _ rhs: CourseMeeting) -> Bool {

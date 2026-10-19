@@ -83,11 +83,7 @@ enum GradeParser {
     }.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
   }
 
-  private static func text(_ value: Any?) -> String? {
-    if let value = value as? String { return value }
-    if let value = value as? NSNumber { return value.stringValue }
-    return nil
-  }
+  private static func text(_ value: Any?) -> String? { JSONValue.string(value) }
 
   private static func validScoreValue(_ value: Any?) -> Bool {
     value is NSNull || text(value) != nil
@@ -97,5 +93,23 @@ enum GradeParser {
     guard let value, !(value is NSNull) else { return true }
     guard let raw = text(value), !raw.isEmpty, let credit = Double(raw) else { return false }
     return credit.isFinite && credit >= 0
+  }
+}
+
+typealias GradeCache = SnapshotCache<GradeSnapshot>
+
+extension SnapshotCache where Value == GradeSnapshot {
+  init(directory: URL? = nil) { self.init(module: "Grades", directory: directory) }
+}
+
+extension GradeSnapshot {
+  /// 按课程名或课程号筛选；空白查询返回全部。
+  func courses(matching query: String) -> [GradeCourse] {
+    let term = query.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !term.isEmpty else { return courses }
+    return courses.filter { course in
+      course.name.localizedCaseInsensitiveContains(term)
+        || (course.code?.localizedCaseInsensitiveContains(term) == true)
+    }
   }
 }

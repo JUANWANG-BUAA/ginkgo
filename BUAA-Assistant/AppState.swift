@@ -72,9 +72,17 @@ final class AppState: ObservableObject {
     } catch CasClientError.sessionInvalid {
       // 已确认无效，才允许尝试静默重登。
     } catch {
-      AppLog.auth.error("启动会话验证失败：\(error.localizedDescription, privacy: .private)")
-      notice = "暂时无法验证登录状态，请检查网络后手动登录"
-      return
+      if case CasClientError.accessPolicyDenied = error,
+         UpstreamRoutePreference.activateAutomaticWebVPNFallback() {
+        AppLog.auth.notice("启动会话验证检测到直连访问策略拦截，切换到 WebVPN")
+        cookieStore.clearAll()
+        webVPNSessionStatus = .notAttempted
+        notice = "直连被访问策略拦截，已自动切换 WebVPN；正在重新验证登录"
+      } else {
+        AppLog.auth.error("启动会话验证失败：\(error.localizedDescription, privacy: .private)")
+        notice = "暂时无法验证登录状态，请检查网络后手动登录"
+        return
+      }
     }
     guard let credential = rememberedCredential else { return }
     restoreMessage = "会话已失效，正在自动登录…"
@@ -167,6 +175,16 @@ final class AppState: ObservableObject {
     notice = nil
     showToast("学校会话已验证，登录成功")
   }
+  /// 切换 WebVPN/直连后，旧 Cookie 与内存会话不能继续混用。
+  /// Keychain 中用户主动保存的账号密码保留，只需重新登录。
+  func applyUpstreamRouteChange() {
+    cookieStore.clearAll()
+    webVPNSessionStatus = .notAttempted
+    user = nil
+    isLoggedIn = false
+    notice = "网络路线已切换，请重新登录以建立新的学校会话"
+  }
+
 
   func prepareWebVPNSession(username: String, password: String) async {
     guard let preparer = authClient as? WebVPNSessionPreparing else { return }

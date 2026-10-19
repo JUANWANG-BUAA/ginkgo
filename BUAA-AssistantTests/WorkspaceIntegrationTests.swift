@@ -40,7 +40,7 @@ final class WorkspaceIntegrationTests: XCTestCase {
   }
 
   func testTodayUsesCurrentWeekWhileBrowsingAnotherWeek() throws {
-    let calendar = ScheduleSnapshot.schoolCalendar
+    let calendar = SchoolTime.calendar
     let monday = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 10, day: 12)))
     let sunday = try XCTUnwrap(calendar.date(byAdding: .day, value: 6, to: monday))
     let meeting = CourseMeeting(id: "current", name: "合成课程", day: 1, startSection: 1,

@@ -1,34 +1,4 @@
-import CryptoKit
 import Foundation
-
-actor GradeCache {
-  private let directory: URL
-
-  init(directory: URL? = nil) {
-    self.directory = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-      .appendingPathComponent("BUAA-Assistant/Grades", isDirectory: true)
-  }
-
-  func read(account: String) -> GradeSnapshot? {
-    guard let data = try? Data(contentsOf: file(account)) else { return nil }
-    return try? JSONDecoder().decode(GradeSnapshot.self, from: data)
-  }
-
-  func save(_ snapshot: GradeSnapshot, account: String) throws {
-    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-    try JSONEncoder().encode(snapshot).write(to: file(account), options: .atomic)
-  }
-
-  func clear(account: String) throws {
-    let target = file(account)
-    if FileManager.default.fileExists(atPath: target.path) { try FileManager.default.removeItem(at: target) }
-  }
-
-  private func file(_ account: String) -> URL {
-    let digest = SHA256.hash(data: Data(account.utf8)).map { String(format: "%02x", $0) }.joined()
-    return directory.appendingPathComponent(digest + ".json")
-  }
-}
 
 @MainActor
 final class GradeViewModel: ObservableObject {
@@ -44,8 +14,7 @@ final class GradeViewModel: ObservableObject {
   private let cache: GradeCache
   private var account: String?
   private var generation = 0
-  private var lastAutomaticRefreshAttemptAt: Date?
-  private var pendingAutomaticRefresh = false
+  private var autoRefresh = AutoRefreshGate()
 
   init(termService: TermServing = ScheduleClient(), grades: GradeServing = GradeClient(), cache: GradeCache = GradeCache()) {
     self.termService = termService
@@ -68,8 +37,7 @@ final class GradeViewModel: ObservableObject {
   func reset() {
     generation += 1
     account = nil
-    lastAutomaticRefreshAttemptAt = nil
-    pendingAutomaticRefresh = false
+    autoRefresh.reset()
     terms = []
     snapshot = nil
     isLoading = false
@@ -85,17 +53,10 @@ final class GradeViewModel: ObservableObject {
     forceRefresh: Bool = false
   ) async {
     guard account != nil else { return }
-    if isLoading {
-      if queueIfLoading { pendingAutomaticRefresh = true }
-      return
-    }
-    let now = Date()
-    let isStale = snapshot.map { now.timeIntervalSince($0.fetchedAt) >= maxAge } ?? true
-    guard forceRefresh || errorMessage != nil || isStale else { return }
-    let cooldown: TimeInterval = forceRefresh ? 5 : 30
-    if !bypassCooldown, let lastAutomaticRefreshAttemptAt,
-       now.timeIntervalSince(lastAutomaticRefreshAttemptAt) < cooldown { return }
-    lastAutomaticRefreshAttemptAt = now
+    if isLoading { autoRefresh.deferWhileLoading(queue: queueIfLoading); return }
+    let isStale = snapshot.map { Date().timeIntervalSince($0.fetchedAt) >= maxAge } ?? true
+    guard forceRefresh || errorMessage != nil || isStale,
+          autoRefresh.allowsAttempt(force: forceRefresh, bypassCooldown: bypassCooldown) else { return }
     await refresh()
   }
 
@@ -126,6 +87,7 @@ final class GradeViewModel: ObservableObject {
       }
     } catch {
       guard current == generation else { return }
+      if RequestCancellation.isCancellation(error) { return }
       AppLog.operationFailed(feature: "grades", stage: "refresh", error: error)
       errorMessage = (error as? LocalizedError)?.errorDescription ?? "成绩更新失败，请检查网络后重试"
       if let failure = error as? ScheduleError, case .sessionExpired = failure { needsSessionCheck = true }
@@ -133,14 +95,13 @@ final class GradeViewModel: ObservableObject {
   }
 
   func cancelPendingAutomaticRefresh() {
-    pendingAutomaticRefresh = false
+    autoRefresh.cancelPending()
   }
 
   private func finishRefresh(current: Int) {
     guard current == generation else { return }
     isLoading = false
-    guard pendingAutomaticRefresh else { return }
-    pendingAutomaticRefresh = false
+    guard autoRefresh.takePending() else { return }
     Task { await refreshIfStale(bypassCooldown: true) }
   }
 }

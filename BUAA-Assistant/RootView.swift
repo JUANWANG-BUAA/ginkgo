@@ -17,7 +17,7 @@ struct RootView: View {
       if appState.isRestoring {
         ProgressView(appState.restoreMessage)
       } else if appState.isLoggedIn {
-        MainView()
+        WorkspaceHost { MainView() }
           .id(appState.user?.schoolid)
           .transition(.opacity.combined(with: .scale(scale: 0.98)))
       } else {

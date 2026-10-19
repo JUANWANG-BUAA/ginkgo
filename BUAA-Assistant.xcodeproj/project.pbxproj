@@ -17,7 +17,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		7A0000000000000000000004 /* BUAA-Assistant.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "BUAA-Assistant.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7A0000000000000000000004 /* BUAA-Assistant.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "BUAA-Assistant.app"; path = Ginkgo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A0000000000000000000005 /* BUAA-AssistantTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "BUAA-AssistantTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -293,7 +293,8 @@
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "BUAA Assistant";
+				INFOPLIST_KEY_CFBundleDisplayName = Ginkgo;
+				INFOPLIST_KEY_CFBundleName = Ginkgo;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -301,8 +302,6 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				INFOPLIST_KEY_CFBundleDisplayName = Ginkgo;
-				INFOPLIST_KEY_CFBundleName = Ginkgo;
 				PRODUCT_BUNDLE_IDENTIFIER = com.buaaassistant.app;
 				PRODUCT_MODULE_NAME = BUAA_Assistant;
 				PRODUCT_NAME = Ginkgo;
@@ -321,7 +320,8 @@
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "BUAA Assistant";
+				INFOPLIST_KEY_CFBundleDisplayName = Ginkgo;
+				INFOPLIST_KEY_CFBundleName = Ginkgo;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -329,8 +329,6 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				INFOPLIST_KEY_CFBundleDisplayName = Ginkgo;
-				INFOPLIST_KEY_CFBundleName = Ginkgo;
 				PRODUCT_BUNDLE_IDENTIFIER = com.buaaassistant.app;
 				PRODUCT_MODULE_NAME = BUAA_Assistant;
 				PRODUCT_NAME = Ginkgo;

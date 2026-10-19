@@ -22,7 +22,7 @@ enum CasFormParser {
       guard let name = attributes["name"], !name.isEmpty else { continue }
       let type = attributes["type"]?.lowercased() ?? "text"
       if type == "hidden" || (type == "checkbox" && tag.range(of: #"\bchecked\b"#, options: [.regularExpression, .caseInsensitive]) != nil) {
-        fields.append((name, decodeHTMLEntities(attributes["value"] ?? "")))
+        fields.append((name, HTMLText.decodeEntities(attributes["value"] ?? "")))
       }
     }
     set("username", username, in: &fields)
@@ -35,13 +35,6 @@ enum CasFormParser {
       set("captchaResponse", captchaText, in: &fields)
     }
     return fields
-  }
-
-  static func encodedBody(_ fields: [(String, String)]) -> Data {
-    let encoded = fields.map { key, value in
-      "\(formEncode(key))=\(formEncode(value))"
-    }.joined(separator: "&")
-    return Data(encoded.utf8)
   }
 
   private static func set(_ key: String, _ value: String, in fields: inout [(String, String)]) {
@@ -58,19 +51,5 @@ enum CasFormParser {
       result[String(tag[keyRange]).lowercased()] = valueRange.map { String(tag[$0]) } ?? ""
     }
     return result
-  }
-
-  private static func decodeHTMLEntities(_ value: String) -> String {
-    value.replacingOccurrences(of: "&amp;", with: "&")
-      .replacingOccurrences(of: "&quot;", with: "\"")
-      .replacingOccurrences(of: "&#39;", with: "'")
-      .replacingOccurrences(of: "&apos;", with: "'")
-      .replacingOccurrences(of: "&lt;", with: "<")
-      .replacingOccurrences(of: "&gt;", with: ">")
-  }
-
-  private static func formEncode(_ value: String) -> String {
-    let allowed = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
-    return value.addingPercentEncoding(withAllowedCharacters: allowed) ?? ""
   }
 }

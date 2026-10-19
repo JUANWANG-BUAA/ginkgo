@@ -60,31 +60,24 @@ struct ScheduleSnapshot: Codable {
 
   func containsToday(now: Date = Date()) -> Bool {
     guard let week = weekContaining(now),
-          let end = Self.schoolCalendar.date(byAdding: .day, value: 1, to: week.end) else { return false }
+          let end = SchoolTime.calendar.date(byAdding: .day, value: 1, to: week.end) else { return false }
     return week.start <= now && now < end && (week.number == weekNumber || termCourses?[String(week.number)] != nil)
   }
 
   private func weekContaining(_ date: Date) -> SchoolWeek? {
     weeks.first { week in
-      guard let end = Self.schoolCalendar.date(byAdding: .day, value: 1, to: Self.schoolCalendar.startOfDay(for: week.end)) else { return false }
+      guard let end = SchoolTime.calendar.date(byAdding: .day, value: 1, to: SchoolTime.calendar.startOfDay(for: week.end)) else { return false }
       return week.start <= date && date < end
     }
   }
 
   func todayCourses(now: Date = Date()) -> [CourseMeeting] {
     guard containsToday(now: now) else { return [] }
-    let weekday = Self.schoolCalendar.component(.weekday, from: now)
+    let weekday = SchoolTime.calendar.component(.weekday, from: now)
     let week = weekContaining(now)!
     let meetings = week.number == weekNumber ? courses : termCourses?[String(week.number)] ?? []
     return meetings.filter { $0.day == (weekday == 1 ? 7 : weekday - 1) }
       .sorted { $0.startSection < $1.startSection }
-  }
-
-  static var schoolCalendar: Calendar {
-    var calendar = Calendar(identifier: .gregorian)
-    calendar.timeZone = TimeZone(identifier: "Asia/Shanghai")!
-    calendar.firstWeekday = 2
-    return calendar
   }
 }
 
@@ -106,4 +99,10 @@ enum ScheduleError: LocalizedError {
     case .invalidTerm: "学期信息无效，请重新选择学期"
     }
   }
+}
+
+typealias ScheduleCache = SnapshotCache<ScheduleSnapshot>
+
+extension SnapshotCache where Value == ScheduleSnapshot {
+  init(directory: URL? = nil) { self.init(module: "Schedules", directory: directory) }
 }

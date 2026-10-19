@@ -19,7 +19,7 @@ struct SearchField: View {
           .buttonStyle(.plain).help("清除搜索").accessibilityLabel("清除\(prompt)")
       }
     }
-    .padding(10).background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
+    .padding(10).background(Color.ginkgoFieldBackground, in: RoundedRectangle(cornerRadius: 8))
     .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.primary.opacity(0.10)))
   }
 }

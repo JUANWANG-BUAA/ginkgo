@@ -146,7 +146,6 @@ private extension String {
 }
 
 enum HomeworkError: LocalizedError, Equatable {
-  case protocolNotConfigured
   case sessionExpired
   case unavailable
   case detailUnavailable(String)
@@ -157,7 +156,6 @@ enum HomeworkError: LocalizedError, Equatable {
 
   var errorDescription: String? {
     switch self {
-    case .protocolNotConfigured: "学校作业协议尚未完成取证，暂未连接"
     case .sessionExpired: "学校作业会话已过期，请重新登录"
     case .unavailable: "学校作业服务暂时不可用"
     case .detailUnavailable(let reason): reason
@@ -165,6 +163,37 @@ enum HomeworkError: LocalizedError, Equatable {
     case .spocAuthenticationExpired(let stage): "SPOC\(stage)时登录态失效"
     case .upstreamProtocolChanged(let source, let stage): "\(source.title)\(stage)响应格式无法识别，接口可能已调整；请重试，若持续出现请反馈"
     case .allSourcesUnavailable(let judge, let spoc): "希冀：\(judge)；SPOC：\(spoc)"
+    }
+  }
+}
+
+typealias HomeworkCache = SnapshotCache<HomeworkSnapshot>
+
+extension SnapshotCache where Value == HomeworkSnapshot {
+  init(directory: URL? = nil) { self.init(module: "Homework", directory: directory) }
+}
+
+extension Array where Element == HomeworkItem {
+  /// 状态/来源/关键词筛选，并按截止时间、标题排序；无截止时间排在最后。
+  func filteredHomework(
+    status: HomeworkStatus?,
+    source: HomeworkSource?,
+    query: String
+  ) -> [HomeworkItem] {
+    let term = query.trimmingCharacters(in: .whitespacesAndNewlines)
+    return filter { item in
+      (status == nil || item.status == status)
+        && (source == nil || item.source == source)
+        && (term.isEmpty
+          || item.title.localizedCaseInsensitiveContains(term)
+          || item.courseName.localizedCaseInsensitiveContains(term))
+    }
+    .sorted { lhs, rhs in
+      let left = lhs.dueAt ?? .distantFuture
+      let right = rhs.dueAt ?? .distantFuture
+      return left == right
+        ? lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
+        : left < right
     }
   }
 }

@@ -33,7 +33,7 @@ struct ClassroomView: View {
   private let pageSize = 40
   @State private var selectedRoom: FreeClassroom?
 
-  private var calendar: Calendar { ScheduleSnapshot.schoolCalendar }
+  private var calendar: Calendar { SchoolTime.calendar }
 
   var body: some View {
     ScrollViewReader { proxy in
@@ -77,11 +77,11 @@ struct ClassroomView: View {
         resultContent
           .id("classroom-results")
       }
-      .padding(24)
+      .ginkgoPagePadding()
       .frame(maxWidth: 1040, alignment: .leading)
       .frame(maxWidth: .infinity)
     }
-    .background(Color(nsColor: .windowBackgroundColor))
+    .background(Color.ginkgoWindowBackground)
     .task(id: appState.user?.schoolid) {
       if let account = appState.user?.schoolid { await model.start(account: account) }
     }
@@ -154,20 +154,7 @@ struct ClassroomView: View {
         }
       }
       HStack(spacing: 10) {
-        Button { Task { await model.query() } } label: {
-          Label("查询空教室", systemImage: "magnifyingglass")
-        }
-        .buttonStyle(.borderedProminent)
-        .keyboardShortcut(.defaultAction)
-        .disabled(model.busy || model.isLoadingCache)
-        Button { Task { await model.query(forceRefresh: true) } } label: {
-          Label("强制刷新", systemImage: "arrow.clockwise")
-        }
-        .buttonStyle(.bordered)
-        .help("跳过五分钟缓存重新查询")
-        .keyboardShortcut("r", modifiers: .command)
-        .disabled(model.busy || model.isLoadingCache)
-        if model.busy { ProgressView().controlSize(.small) }
+        queryButtons
         Spacer()
         Text("缓存 5 分钟内自动复用")
           .font(.caption)
@@ -175,8 +162,29 @@ struct ClassroomView: View {
       }
     }
     .padding(18)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 14))
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 14))
     .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.primary.opacity(0.06)))
+  }
+
+  private var queryButtons: some View {
+    HStack(spacing: 10) {
+      Button { Task { await model.query() } } label: {
+        Label("查询空教室", systemImage: "magnifyingglass")
+      }
+      .buttonStyle(.borderedProminent)
+      .keyboardShortcut(.defaultAction)
+      .disabled(model.busy || model.isLoadingCache)
+
+      Button { Task { await model.query(forceRefresh: true) } } label: {
+        Label("强制刷新", systemImage: "arrow.clockwise")
+      }
+      .buttonStyle(.bordered)
+      .help("跳过五分钟缓存重新查询")
+      .keyboardShortcut("r", modifiers: .command)
+      .disabled(model.busy || model.isLoadingCache)
+
+      if model.busy { ProgressView().controlSize(.small) }
+    }
   }
 
   private var filterPanel: some View {
@@ -247,7 +255,7 @@ struct ClassroomView: View {
       }
     }
     .padding(14)
-    .background(Color(nsColor: .controlBackgroundColor).opacity(0.72), in: RoundedRectangle(cornerRadius: 12))
+    .background(Color.ginkgoCardBackground.opacity(0.72), in: RoundedRectangle(cornerRadius: 12))
   }
 
   private var activeFilterCount: Int {
@@ -289,11 +297,16 @@ struct ClassroomView: View {
     }
   }
 
+  @ViewBuilder
   private var summary: some View {
+    let roomMetric = ClassroomMetric(title: "可用教室", value: "\(model.filteredRoomCount)", detail: model.hasActiveFilters ? "筛选后" : "全部结果", symbol: "door.left.hand.open")
+    let buildingMetric = ClassroomMetric(title: "楼栋", value: "\(model.buildingCount)", detail: "当前范围", symbol: "building.2")
+    let slotMetric = ClassroomMetric(title: "空闲节次", value: "\(model.freeSlotCount)", detail: "合计空闲标记", symbol: "clock")
+
     HStack(alignment: .top, spacing: 10) {
-      ClassroomMetric(title: "可用教室", value: "\(model.filteredRoomCount)", detail: model.hasActiveFilters ? "筛选后" : "全部结果", symbol: "door.left.hand.open")
-      ClassroomMetric(title: "楼栋", value: "\(model.buildingCount)", detail: "当前范围", symbol: "building.2")
-      ClassroomMetric(title: "空闲节次", value: "\(model.freeSlotCount)", detail: "合计空闲标记", symbol: "clock")
+      roomMetric
+      buildingMetric
+      slotMetric
       Spacer(minLength: 0)
       Text("共 \(model.roomCount) 间返回")
         .font(.caption)
@@ -384,7 +397,7 @@ private struct ClassroomMetric: View {
     }
     .frame(minWidth: 130, alignment: .leading)
     .padding(12)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 10))
   }
 }
 
@@ -430,7 +443,7 @@ private struct BuildingSummaryCard: View {
     }
     .frame(maxWidth: .infinity, minHeight: 145, alignment: .topLeading)
     .padding(16)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 14))
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 14))
     .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.accentColor.opacity(0.08)))
   }
 }
@@ -468,7 +481,7 @@ private struct ClassroomRoomCard: View {
     }
     .padding(compact ? 11 : 15)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 11))
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 11))
     .overlay(alignment: .leading) {
       RoundedRectangle(cornerRadius: 2)
         .fill(room.availableSectionCount > 0 ? Color.green : Color.secondary)
@@ -540,8 +553,8 @@ private struct ClassroomRoomDetail: View {
         .font(.caption)
         .foregroundStyle(.secondary)
     }
-    .padding(24)
-    .frame(width: 500)
+    .ginkgoPagePadding()
+    .ginkgoSheetSizing(minWidth: 500, minHeight: 420)
   }
 }
 
@@ -550,19 +563,30 @@ private struct ClassroomSectionStrip: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      HStack(spacing: 3) {
-        ForEach(1...14, id: \.self) { section in
-          VStack(spacing: 4) {
-            Text("\(section)").font(.caption2.monospacedDigit())
-            Image(systemName: sections.contains(section) ? "checkmark" : "minus")
-              .font(.caption2)
-          }
-          .frame(maxWidth: .infinity).padding(.vertical, 7)
-          .background(sections.contains(section) ? Color.green.opacity(0.16) : Color.secondary.opacity(0.07), in: RoundedRectangle(cornerRadius: 5))
-          .accessibilityLabel("第 \(section) 节，" + (sections.contains(section) ? "空闲" : "未标为空闲"))
-        }
-      }
+      sectionCells
       Text("节次 1–14 · ✓ 空闲 · — 未标为空闲").font(.caption2).foregroundStyle(.secondary)
     }
+  }
+
+  private var sectionCells: some View {
+    HStack(spacing: 3) {
+      ForEach(1...14, id: \.self) { section in
+        sectionCell(section).frame(maxWidth: .infinity)
+      }
+    }
+  }
+
+  private func sectionCell(_ section: Int) -> some View {
+    VStack(spacing: 4) {
+      Text("\(section)").font(.caption2.monospacedDigit())
+      Image(systemName: sections.contains(section) ? "checkmark" : "minus")
+        .font(.caption2)
+    }
+    .padding(.vertical, 7)
+    .background(
+      sections.contains(section) ? Color.green.opacity(0.16) : Color.secondary.opacity(0.07),
+      in: RoundedRectangle(cornerRadius: 5)
+    )
+    .accessibilityLabel("第 \(section) 节，" + (sections.contains(section) ? "空闲" : "未标为空闲"))
   }
 }

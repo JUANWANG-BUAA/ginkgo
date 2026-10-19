@@ -19,7 +19,7 @@ struct TasksView: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 20) {
-        PageHeading(eyebrow: "PERSONAL / TASKS", title: "待办", subtitle: "记录自己的课程任务与截止时间，保存在这台 Mac 上")
+        PageHeading(eyebrow: "PERSONAL / TASKS", title: "待办", subtitle: "记录自己的课程任务与截止时间，保存在本机")
         VStack(alignment: .leading, spacing: 12) {
           TextField("添加任务，例如完成实验报告", text: $title).textFieldStyle(.roundedBorder).onSubmit(add)
           HStack {
@@ -27,7 +27,7 @@ struct TasksView: View {
             Spacer()
             Button("添加待办", action: add).buttonStyle(.borderedProminent).disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
           }
-        }.padding(16).background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+        }.padding(16).background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
           .disabled(!store.isReadable)
         if let error = store.errorMessage { StatusNotice(message: error, kind: .warning) }
         SearchField(prompt: "搜索待办", text: $search)
@@ -35,7 +35,7 @@ struct TasksView: View {
           Toggle("显示已完成", isOn: $showCompleted)
           Toggle("只看逾期", isOn: $onlyOverdue)
           Spacer()
-          Text("待完成 \(store.tasks.filter { !$0.completed }.count) 项").font(.caption).foregroundStyle(.secondary)
+          Text("待完成 \(store.tasks.filter { $0.completed == false }.count) 项").font(.caption).foregroundStyle(.secondary)
         }
         let term = search.trimmingCharacters(in: .whitespacesAndNewlines)
         let visible = store.tasks.filter { (showCompleted || !$0.completed) && (!onlyOverdue || (!$0.completed && $0.due < now)) && (term.isEmpty || $0.title.localizedCaseInsensitiveContains(term)) }.sorted { $0.due < $1.due }
@@ -60,12 +60,12 @@ struct TasksView: View {
               .buttonStyle(.borderless).help("编辑待办").accessibilityLabel("编辑待办：\(task.title)")
             Button { deleting = task } label: { Image(systemName: "trash") }
               .buttonStyle(.borderless).help("删除待办").accessibilityLabel("删除待办：\(task.title)")
-          }.padding(compactLists ? 10 : 16).background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
+          }.padding(compactLists ? 10 : 16).background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 10))
         }
         .disabled(!store.isReadable)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: visible.map(\.id))
-      }.padding(24).frame(maxWidth: 800, alignment: .leading).frame(maxWidth: .infinity)
-    }.background(Color(nsColor: .windowBackgroundColor))
+      }.ginkgoPagePadding().frame(maxWidth: 800, alignment: .leading).frame(maxWidth: .infinity)
+    }.background(Color.ginkgoWindowBackground)
       .task(id: appState.user?.schoolid) { if let account = appState.user?.schoolid { store.load(account: account) } }
       .task {
         while !Task.isCancelled {
@@ -90,7 +90,7 @@ struct TasksView: View {
               .buttonStyle(.borderedProminent).disabled(editTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
               .keyboardShortcut(.defaultAction)
           }
-        }.padding(24).frame(width: 420)
+        }.padding(24).ginkgoSheetSizing(minWidth: 420, minHeight: 250)
       }
   }
   private func add() {

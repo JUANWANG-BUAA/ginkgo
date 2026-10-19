@@ -13,9 +13,8 @@ final class ScheduleViewModel: ObservableObject {
   private let cache: ScheduleCache
   private var account: String?
   private var generation = 0
-  private var lastAutomaticRefreshAttemptAt: Date?
-  private var pendingAutomaticRefresh = false
-  private var pendingAutomaticRefreshForCurrentWeek = false
+  private var autoRefresh = AutoRefreshGate()
+  private var pendingRefreshTargetsCurrentWeek = false
 
   init(service: ScheduleServing = ScheduleClient(), cache: ScheduleCache = ScheduleCache()) {
     self.service = service
@@ -28,7 +27,7 @@ final class ScheduleViewModel: ObservableObject {
     self.account = account
     isLoading = true
     let current = generation
-    let cached = await cache.read(for: account)
+    let cached = await cache.read(account: account)
     guard current == generation else { return }
     snapshot = cached
     reminderRevision += 1
@@ -38,9 +37,8 @@ final class ScheduleViewModel: ObservableObject {
   func reset() {
     generation += 1
     account = nil
-    lastAutomaticRefreshAttemptAt = nil
-    pendingAutomaticRefresh = false
-    pendingAutomaticRefreshForCurrentWeek = false
+    autoRefresh.reset()
+    pendingRefreshTargetsCurrentWeek = false
     snapshot = nil
     reminderRevision += 1
     isLoading = false
@@ -62,19 +60,13 @@ final class ScheduleViewModel: ObservableObject {
   ) async {
     guard account != nil else { return }
     if isLoading {
-      if queueIfLoading {
-        pendingAutomaticRefresh = true
-        pendingAutomaticRefreshForCurrentWeek = pendingAutomaticRefreshForCurrentWeek || currentWeek
-      }
+      autoRefresh.deferWhileLoading(queue: queueIfLoading)
+      if queueIfLoading { pendingRefreshTargetsCurrentWeek = pendingRefreshTargetsCurrentWeek || currentWeek }
       return
     }
-    let now = Date()
-    let isStale = snapshot.map { now.timeIntervalSince($0.fetchedAt) >= maxAge } ?? true
-    guard forceRefresh || errorMessage != nil || isStale else { return }
-    let cooldown: TimeInterval = forceRefresh ? 5 : 30
-    if !bypassCooldown, let lastAutomaticRefreshAttemptAt,
-       now.timeIntervalSince(lastAutomaticRefreshAttemptAt) < cooldown { return }
-    lastAutomaticRefreshAttemptAt = now
+    let isStale = snapshot.map { Date().timeIntervalSince($0.fetchedAt) >= maxAge } ?? true
+    guard forceRefresh || errorMessage != nil || isStale,
+          autoRefresh.allowsAttempt(force: forceRefresh, bypassCooldown: bypassCooldown) else { return }
     if currentWeek { await refreshToday() } else { await refresh() }
   }
 
@@ -109,11 +101,12 @@ final class ScheduleViewModel: ObservableObject {
       reminderRevision += 1
       feedback = "课表已更新"
       if let account {
-        do { try await cache.save(newSnapshot, for: account) }
+        do { try await cache.save(newSnapshot, account: account) }
         catch { AppLog.cacheWriteFailed(feature: "schedule", error: error) }
       }
     } catch {
       guard current == generation else { return }
+      if RequestCancellation.isCancellation(error) { return }
       AppLog.operationFailed(feature: "schedule", stage: "refresh", error: error)
       errorMessage = (error as? LocalizedError)?.errorDescription ?? "课表更新失败，请检查网络后重试"
       if let failure = error as? ScheduleError, case .sessionExpired = failure { needsSessionCheck = true }
@@ -121,16 +114,16 @@ final class ScheduleViewModel: ObservableObject {
   }
 
   func cancelPendingAutomaticRefresh() {
-    pendingAutomaticRefresh = false
-    pendingAutomaticRefreshForCurrentWeek = false
+    autoRefresh.cancelPending()
+    pendingRefreshTargetsCurrentWeek = false
   }
 
   private func finishRefresh(current: Int) {
     guard current == generation else { return }
     isLoading = false
-    guard pendingAutomaticRefresh else { return }
-    let currentWeek = pendingAutomaticRefreshForCurrentWeek
-    cancelPendingAutomaticRefresh()
+    guard autoRefresh.takePending() else { return }
+    let currentWeek = pendingRefreshTargetsCurrentWeek
+    pendingRefreshTargetsCurrentWeek = false
     Task { await refreshIfStale(currentWeek: currentWeek, bypassCooldown: true) }
   }
 }

@@ -1,8 +1,8 @@
 # BUAA Assistant - 测试计划
 
-## 当前测试证据（2026-10-16）
+## 当前测试证据（2026-10-18）
 
-源码现有 141 个 test 方法。0.1.0-alpha 收口后执行以下命令全部通过；另验证了 Release 配置构建。空教室筛选改为后台计算后，`ClassroomViewModelTests` 曾出现未等待结果的回归，已由 `ClassroomViewModel.waitForFilterUpdate()` 修复并重新纳入回归；`ScheduleParserTests` 新增研究生不可推算教学班跳过、全部无排课行拒绝与“只有一周标记本周”的回归；`HomeworkViewModelTests` 新增希冀来源暂时下线的配置回归；`UpdateCheckerTests` 覆盖版本比较、更新检查、下载源回退与校验和解析。
+源码现有 212 个 test 方法。2026-10-19 新增 `CoreUtilitiesTests`、`SharedHelpersTests`（共享日历/取值/编码/缓存、刷新节流、状态展示、成绩与作业筛选），并删除随图书馆研讨间功能一并移除的 9 项测试。此前新增 `LibraryBookingLifecycleTests`（座位动作提示、研讨室提交体、时长/空档校验与标题 ID）、`GraduateProgressTests`（总学分/课程池、状态、类别、结构化执行报告、缓存）、`CgyyClientTests`（MD5 签名、AES-ECB、订单状态、门锁密码展示）与 `CheckInTargetMatcherTests`（按课表教室/教师从多条同课程记录中选择签到目标）。当前 macOS 全量单元测试通过；iOS generic build 通过，iOS 模拟器全量 XCTest 为本轮之前的结果；另验证了 iOS UI 冒烟测试。空教室筛选改为后台计算后，`ClassroomViewModelTests` 曾出现未等待结果的回归，已由 `ClassroomViewModel.waitForFilterUpdate()` 修复并重新纳入回归；`ScheduleParserTests` 新增研究生不可推算教学班跳过、全部无排课行拒绝与“只有一周标记本周”的回归；`HomeworkViewModelTests` 新增希冀来源暂时下线的配置回归；`UpdateCheckerTests` 覆盖版本比较、更新检查、下载源回退与校验和解析。
 
 ```sh
 xcodebuild build -project BUAA-Assistant.xcodeproj -scheme BUAA-Assistant -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
@@ -10,10 +10,33 @@ xcodebuild test -project BUAA-Assistant.xcodeproj -scheme BUAA-Assistant -destin
 git diff --check
 ```
 
+### iOS 子项目（2026-10-18）
+
+iOS target 复用同一份 `BUAA-AssistantTests/`，页面层使用独立原生 SwiftUI。当前已在标准 iOS 27.0 Runtime 上完成：
+
+- iPhone 17 Pro：212 项单元测试、0 失败；登录、自适应导航及博雅/研讨室/研究生教务入口 UI 测试通过。完整 XCTest 170 项中 169 项通过、1 项仅在未注入凭据时跳过。
+- iPhone SE (3rd generation)：完整 UI 冒烟测试 3 项中 2 项通过、1 项凭据测试跳过；新入口在窄屏可滚动并成功打开。
+- iPad Pro 11：完整 UI 冒烟测试 3 项中 2 项通过、1 项凭据测试跳过；侧栏新入口与详情切换正常。
+- iPhone 17 Pro live UI：注入临时凭据后登录成功，并实际进入博雅、研讨室、研究生教务读回数据；测试通过。
+
+```sh
+xcrun simctl list devices available
+xcodebuild test \
+  -project BUAA-Assistant-iOS/Ginkgo-iOS.xcodeproj \
+  -scheme Ginkgo-iOS \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=27.0'
+```
+
+当前 Xcode 27.1 的 iOS 27.1 Runtime 只注册 `iPhone Duo`，普通 iPhone/iPad 应使用标准 iOS 27.0 Runtime。仓库同时声明了 `.github/workflows/ios.yml`，但 GitHub Actions 首次远端运行尚未取得结果。真实账号验收中，直连 UC 被 HTTP 483 拦截后客户端自动切换 WebVPN，CAS 登录成功并通过 `uc/status` 的 `code == 0 + data` 判据；WebVPN 下研究生课表（20 学期、30 周、7 门课程）、成绩服务、空教室、图书馆座位、校园通知、SPOC（13 项作业）与 iclass 只读状态均已实测；博雅读回 74 门课程，研讨室读回 45 个空间，研究生教务读回学籍摘要、10 章培养方案和 59 门计划课程。Judge 课程列表仍待适配。详见 [ACCEPTANCE.md](ACCEPTANCE.md)。iOS 验证边界与真机清单见 [IOS.md](IOS.md)。
+
 | 实际测试文件 | 覆盖范围 |
 |---|---|
 | CasPageParserTests / CasFormParserTests | 页面字段、验证码识别、隐藏表单与编码 |
-| CasClientTests / AppStateSessionTests | 模拟认证响应、会话恢复、错误与本地清理 |
+| CasClientTests / AppStateSessionTests | 模拟认证响应、会话恢复、4xx/483 错误、WebVPN 显式路由与本地清理 |
+| UpstreamRouteTests | 自动回退、URL/Cookie 隔离、Referer/Origin 重写、网关相对重定向与表单 action |
+| BykcClientTests | BYKC AES-ECB 往返、RSA 请求信封、当前学期判定与类别过滤 |
+| SeminarParserTests | 研讨室筛选、空间列表、占用区间、空档扣除与详情轴数据 |
+| GraduateAcademicClientTests | 学籍白名单映射、教务应用目录与培养方案课程格式 |
 | ScheduleParserTests | 本科结构、研究生周次位图、开学日期、学期码缺省与节次合并 |
 | GradeParserTests | 学期归一化、字段类型漂移、不及格计入与等级制排除 |
 | TimetableAndLibraryTests | 交错课程分栏、CAS query/fragment、AES-CBC OpenSSL 固定向量 |
@@ -21,8 +44,9 @@ git diff --check
 | CheckInClientTests / CheckInViewModelTests | iclass 状态、重复行与并发刷新、WebVPN 回退、通知去重与权限提示 |
 | JudgeHomeworkClientTests / SpocHomeworkClientTests / HomeworkViewModelTests | 两来源作业解析、详情归属、状态保留与缓存兼容 |
 | LibraryPublicStatsParserTests / LibraryOccupancyHistoryTests / CampusNoticesClientTests / WorkspaceIntegrationTests | 官网人数解析、本机聚合历史、通知缓存、账号隔离与工作区重置 |
+| GinkgoSmokeUITests | iOS 原生登录输入、主 Tab / iPad 侧栏、二级页导航与设置；真实账号 live test 在未注入凭据时跳过 |
 
-尚无自动化证据：图书馆业务请求与真实预约闭环、空教室请求、待办存取交互、完整网络缓存失败路径、窗口快照及 VoiceOver。覆盖率尚未测量，CI 与黄金文件目录仍属规划。以下各节保留目标测试方案及示例，出现 AuthService、GPACalculator 等类型不表示工程已有这些实现；部分历史示例绩点映射也不代表当前规则。实际规则以 GradeModels.swift 与 GradeParserTests.swift 为准。
+尚无自动化证据：图书馆业务请求与真实预约闭环、空教室请求、待办存取交互、完整网络缓存失败路径、窗口快照及 VoiceOver。覆盖率尚未测量，iOS 真机矩阵、完整 UI 流程与黄金文件目录仍待补齐；iOS CI 工作流已声明但尚未取得远端运行结果。以下各节保留目标测试方案及示例，出现 AuthService、GPACalculator 等类型不表示工程已有这些实现；部分历史示例绩点映射也不代表当前规则。实际规则以 GradeModels.swift 与 GradeParserTests.swift 为准。
 
 ## 1. 测试策略概述
 
@@ -1337,7 +1361,7 @@ xcrun xccov view-report --output-format json build/Logs/Test/*.xccovreport > cov
 
 ## 9. 上游 API 可达性测试
 
-> 本期接入范围只有 6 个上游系统（见 [API.md](API.md) 附录 A）；博雅/SPOC/操场/阳光打卡/iHome/空闲教室/评教/签到等系统不在直连范围内，不巡检。旧版巡检列表里的 `bykc.buaa.edu.cn/sscv/getUserProfile` 为未验证路径，已移除。
+> 当前只读验收覆盖 SSO、UC、本科教务、研究生教务、成绩、空教室、图书馆座位、图书馆公开人数、校园通知、SPOC 与 iclass 等上游系统（见 [API.md](API.md) 附录 A）。博雅、操场、阳光打卡、iHome、评教等尚未在 Ginkgo 中实现，不能仅凭 UBAA 源码就宣称可用。
 
 ### 9.1 健康检查策略
 
@@ -1592,3 +1616,13 @@ test_calculateGPA_withEmptyGrades_shouldReturnZero
 - `gsmis_schedule_v1.json` / `byxt_schedule_v1.json`
 - `buaascore_grade_v1.json`
 - `libbook_reserve_crypto_v1.json`（加密向量）
+
+## 2026-10-19 · 学分地图回归
+
+macOS 全量 210 项通过；iPhone SE（iOS 27.0）教务相关 43 项通过。相关组为 `GraduateRequirementsTests`、`GraduateAcademicClientTests`、`GraduateProgressTests`、`CgyyClientTests`、`LibraryBookingLifecycleTests`。
+
+新增覆盖：总/类别/课组的独立缺口、最少门数、总学分满足但课组未满足、未知学分不报零、执行报告 JSON 字符串、结构变更、业务失败、认定学分与全部已修不互换、部分失败保留分项与时间、成功空结果覆盖旧数据、历史学期不推断在修、执行报告确认完成优先、CGYY POST 401 不重发/缺失状态待核实、快速切日丢弃旧上下文，以及停用图书馆 seminar 提交。
+
+`GraduateRequirementsTests.testRequirementDashboardRendersAtDesktopAndPhoneWidths` 使用合成数据，macOS 下通过 NSHostingView 渲染，产物写入系统临时目录；布局目视检查记录在 ACCEPTANCE.md，不能将该测试通过等同于真实账号交互或可访问性验收。
+
+最终补充检查：iOS generic-device build 通过；最后的文案调整后，macOS `GraduateRequirementsTests` 定向复跑通过；`git diff --check` 通过。

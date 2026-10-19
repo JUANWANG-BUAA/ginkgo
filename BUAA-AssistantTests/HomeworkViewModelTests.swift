@@ -63,11 +63,11 @@ final class HomeworkViewModelTests: XCTestCase {
     XCTAssertEqual(restored.statusDetail, "待批阅")
   }
 
-  func testProtocolNotConfiguredIsShownAsUnavailableNotEmpty() async {
-    let model = HomeworkViewModel(service: StubHomeworkService(result: .failure(HomeworkError.protocolNotConfigured)))
+  func testUnavailableServiceIsShownAsErrorNotEmpty() async {
+    let model = HomeworkViewModel(service: StubHomeworkService(result: .failure(HomeworkError.unavailable)))
     await model.refresh()
     XCTAssertNil(model.snapshot)
-    XCTAssertEqual(model.errorMessage, HomeworkError.protocolNotConfigured.errorDescription)
+    XCTAssertEqual(model.errorMessage, HomeworkError.unavailable.errorDescription)
   }
 
   func testPendingItemsSortByDueDateAndExcludeSubmitted() async {

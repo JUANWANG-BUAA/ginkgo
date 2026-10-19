@@ -8,6 +8,16 @@ struct HomeworkView: View {
     case submitted = "已提交"
     case unknown = "待确认"
     var id: String { rawValue }
+
+    var status: HomeworkStatus? {
+      switch self {
+      case .all: nil
+      case .pending: .pending
+      case .overdue: .overdue
+      case .submitted: .submitted
+      case .unknown: .unknown
+      }
+    }
   }
 
   @EnvironmentObject private var appState: AppState
@@ -50,11 +60,11 @@ struct HomeworkView: View {
             .buttonStyle(.borderedProminent)
         }
       }
-      .padding(24)
+      .ginkgoPagePadding()
       .frame(maxWidth: 820, alignment: .leading)
       .frame(maxWidth: .infinity)
     }
-    .background(Color(nsColor: .windowBackgroundColor))
+    .background(Color.ginkgoWindowBackground)
     .toolbar {
       ToolbarItem(placement: .primaryAction) {
         Button { Task { await model.refresh() } } label: {
@@ -76,16 +86,36 @@ struct HomeworkView: View {
     }
   }
 
-  private func summary(_ snapshot: HomeworkSnapshot) -> some View {
-    let pending = snapshot.items.filter { $0.status == .pending }.count
-    let overdue = snapshot.items.filter { $0.status == .overdue }.count
-    let submitted = snapshot.items.filter { $0.status == .submitted }.count
+  private struct SummaryCount: Identifiable {
+    let title: String
+    let count: Int
+    let symbol: String
+    let tint: Color
+    let filter: Filter
+    var id: String { title }
+  }
+
+  private func summaryEntries(_ snapshot: HomeworkSnapshot) -> [SummaryCount] {
+    var entries = [
+      SummaryCount(title: "待处理", count: snapshot.items.filter { $0.status == .pending }.count, symbol: "doc.text", tint: .accentColor, filter: .pending),
+      SummaryCount(title: "已逾期", count: snapshot.items.filter { $0.status == .overdue }.count, symbol: "exclamationmark.circle.fill", tint: .orange, filter: .overdue),
+      SummaryCount(title: "已提交", count: snapshot.items.filter { $0.status == .submitted }.count, symbol: "checkmark.circle.fill", tint: .green, filter: .submitted)
+    ]
     let unknown = snapshot.items.filter { $0.status == .unknown }.count
-    return HStack(spacing: 10) {
-      countCard("待处理", count: pending, symbol: "doc.text", tint: .accentColor, filter: .pending)
-      countCard("已逾期", count: overdue, symbol: "exclamationmark.circle.fill", tint: .orange, filter: .overdue)
-      countCard("已提交", count: submitted, symbol: "checkmark.circle.fill", tint: .green, filter: .submitted)
-      if unknown > 0 { countCard("待确认", count: unknown, symbol: "questionmark.circle", tint: .secondary, filter: .unknown) }
+    if unknown > 0 {
+      entries.append(SummaryCount(title: "待确认", count: unknown, symbol: "questionmark.circle", tint: .secondary, filter: .unknown))
+    }
+    return entries
+  }
+
+  @ViewBuilder
+  private func summary(_ snapshot: HomeworkSnapshot) -> some View {
+    let entries = summaryEntries(snapshot)
+
+    HStack(spacing: 10) {
+      ForEach(entries) { entry in
+        countCard(entry.title, count: entry.count, symbol: entry.symbol, tint: entry.tint, filter: entry.filter)
+      }
     }
   }
 
@@ -106,7 +136,7 @@ struct HomeworkView: View {
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding(12)
-      .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
+      .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 10))
       .overlay {
         RoundedRectangle(cornerRadius: 10)
           .strokeBorder(isSelected ? Color.accentColor.opacity(0.5) : .clear, lineWidth: 1)
@@ -158,12 +188,14 @@ struct HomeworkView: View {
     }
   }
 
+  @ViewBuilder
   private var controls: some View {
     VStack(alignment: .leading, spacing: 10) {
       Picker("作业状态", selection: $filter) {
         ForEach(Filter.allCases) { Text($0.rawValue).tag($0) }
       }
       .pickerStyle(.segmented)
+
       HStack(spacing: 10) {
         SearchField(prompt: "搜索作业或课程", text: $search)
         Picker("来源", selection: $source) {
@@ -191,25 +223,7 @@ struct HomeworkView: View {
   }
 
   private func filteredItems(_ items: [HomeworkItem]) -> [HomeworkItem] {
-    let query = search.trimmingCharacters(in: .whitespacesAndNewlines)
-    return items.filter { item in
-      let matchesFilter: Bool
-      switch filter {
-      case .all: matchesFilter = true
-      case .pending: matchesFilter = item.status == .pending
-      case .overdue: matchesFilter = item.status == .overdue
-      case .submitted: matchesFilter = item.status == .submitted
-      case .unknown: matchesFilter = item.status == .unknown
-      }
-      let matchesSource = source == nil || item.source == source
-      let matchesSearch = query.isEmpty || item.title.localizedCaseInsensitiveContains(query) || item.courseName.localizedCaseInsensitiveContains(query)
-      return matchesFilter && matchesSource && matchesSearch
-    }
-    .sorted { lhs, rhs in
-      let left = lhs.dueAt ?? .distantFuture
-      let right = rhs.dueAt ?? .distantFuture
-      return left == right ? lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending : left < right
-    }
+    items.filteredHomework(status: filter.status, source: source, query: search)
   }
 
 }
@@ -224,8 +238,8 @@ private struct HomeworkAssignmentRow: View {
   var body: some View {
     Button(action: onOpen) {
       HStack(alignment: .top, spacing: 12) {
-        Image(systemName: statusSymbol)
-          .foregroundStyle(statusTint)
+        Image(systemName: item.status.symbol)
+          .foregroundStyle(item.status.tint)
           .font(.body.weight(.semibold))
           .frame(width: 22)
           .padding(.top, 2)
@@ -260,12 +274,12 @@ private struct HomeworkAssignmentRow: View {
         }
         Spacer(minLength: 8)
         VStack(alignment: .trailing, spacing: 8) {
-          Text(statusTitle)
+          Text(item.status.title)
             .font(.caption.weight(.medium))
-            .foregroundStyle(statusTint)
+            .foregroundStyle(item.status.tint)
             .padding(.horizontal, 8)
             .padding(.vertical, 5)
-            .background(statusTint.opacity(0.10), in: Capsule())
+            .background(item.status.tint.opacity(0.10), in: Capsule())
           Image(systemName: "chevron.right")
             .font(.caption.weight(.semibold))
             .foregroundStyle(.tertiary)
@@ -273,7 +287,7 @@ private struct HomeworkAssignmentRow: View {
       }
       .padding(14)
       .frame(maxWidth: .infinity, alignment: .leading)
-      .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
+      .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 10))
       .overlay {
         RoundedRectangle(cornerRadius: 10)
           .strokeBorder(Color.accentColor.opacity(isHovered ? 0.42 : 0), lineWidth: 1)
@@ -281,38 +295,11 @@ private struct HomeworkAssignmentRow: View {
       .contentShape(RoundedRectangle(cornerRadius: 10))
     }
     .buttonStyle(HomeworkCardButtonStyle())
-    .onHover { isHovered = $0 }
+    .ginkgoOnHover { isHovered = $0 }
     .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isHovered)
     .help("打开作业详情")
-    .accessibilityLabel("\(item.title)，\(item.courseName)，\(statusTitle)")
+    .accessibilityLabel("\(item.title)，\(item.courseName)，\(item.status.title)")
     .accessibilityHint("打开作业详情")
-  }
-
-  private var statusTitle: String {
-    switch item.status {
-    case .pending: "待处理"
-    case .submitted: "已提交"
-    case .overdue: "已逾期"
-    case .unknown: "待确认"
-    }
-  }
-
-  private var statusSymbol: String {
-    switch item.status {
-    case .pending: "doc.text.fill"
-    case .submitted: "checkmark.circle.fill"
-    case .overdue: "exclamationmark.circle.fill"
-    case .unknown: "questionmark.circle.fill"
-    }
-  }
-
-  private var statusTint: Color {
-    switch item.status {
-    case .pending: .accentColor
-    case .submitted: .green
-    case .overdue: .orange
-    case .unknown: .secondary
-    }
   }
 
   private func deadlineText(_ date: Date) -> String {
@@ -434,7 +421,7 @@ private struct HomeworkDetailSheet: View {
         .padding(16)
       }
     }
-    .frame(minWidth: 520, idealWidth: 620, minHeight: 420, idealHeight: 480)
+    .ginkgoSheetSizing(minWidth: 520, minHeight: 420, idealWidth: 620, idealHeight: 480)
   }
 
   @Environment(\.dismiss) private var dismiss
@@ -472,7 +459,7 @@ private struct HomeworkDetailSheet: View {
     }
     .padding(16)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
   }
 
   private func metadataRow(_ title: String, value: String) -> some View {
@@ -511,7 +498,7 @@ private struct HomeworkDetailSheet: View {
     }
     .padding(16)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
   }
 
   private func problemList(_ problems: [HomeworkProblem]) -> some View {
@@ -534,14 +521,14 @@ private struct HomeworkDetailSheet: View {
           }
         }
         .padding(12)
-        .background(Color(nsColor: .windowBackgroundColor), in: RoundedRectangle(cornerRadius: 9))
+        .background(Color.ginkgoWindowBackground, in: RoundedRectangle(cornerRadius: 9))
         .accessibilityElement(children: .combine)
         .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
       }
     }
     .padding(16)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
   }
 
   private func statusText(_ status: HomeworkStatus) -> String {

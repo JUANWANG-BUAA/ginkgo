@@ -3,8 +3,10 @@ import SwiftUI
 struct CheckInSummaryView: View {
   @EnvironmentObject private var appState: AppState
   @EnvironmentObject private var model: CheckInViewModel
+  @EnvironmentObject private var schedule: ScheduleViewModel
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var selectedCourse: CheckInItem?
+  @State private var selectedSignInID: String?
   @State private var showsSignInConfirmation = false
   @State private var showsHistorySheet = false
 
@@ -14,32 +16,9 @@ struct CheckInSummaryView: View {
         Label("课程签到", systemImage: "checkmark.seal")
           .font(.title3.weight(.semibold))
         Spacer()
-        if let snapshot = model.snapshot, !snapshot.items.isEmpty {
-          Text("\(snapshot.items.filter { $0.status == .signed }.count)/\(snapshot.items.count) 已确认签到")
-            .font(.caption.weight(.medium))
-            .foregroundStyle(.secondary)
-            .contentTransition(.numericText())
-            .animation(reduceMotion ? nil : .snappy(duration: 0.22), value: snapshot.items.filter { $0.status == .signed }.count)
-        }
-        Button {
-          showsHistorySheet = true
-        } label: {
-          Label("历史查询", systemImage: "calendar.badge.clock")
-        }
-        .buttonStyle(.borderless)
-        Button {
-          Task { await model.refresh() }
-        } label: {
-          if model.isLoading {
-            ProgressView().controlSize(.small)
-          } else {
-            Image(systemName: "arrow.clockwise")
-          }
-        }
-        .buttonStyle(.borderless)
-        .disabled(model.isLoading)
-        .help("立即刷新签到状态")
-        .accessibilityLabel(model.isLoading ? "正在核对签到状态" : "立即刷新签到状态")
+        signedCount
+        historyButton
+        refreshButton
       }
 
       if let error = model.errorMessage {
@@ -98,7 +77,7 @@ struct CheckInSummaryView: View {
             Label("重试连接签到服务", systemImage: "arrow.clockwise")
           }
         }
-        .buttonStyle(.link)
+        .ginkgoLinkButtonStyle()
         .disabled(appState.webVPNSessionStatus == .preparing)
         .accessibilityHint("使用钥匙串中已保存的登录凭据重新建立临时 WebVPN 会话")
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: appState.webVPNSessionStatus)
@@ -114,7 +93,7 @@ struct CheckInSummaryView: View {
             )
           }
         }
-        .buttonStyle(.link)
+        .ginkgoLinkButtonStyle()
       }
       if let actionMessage = model.actionMessage {
         StatusNotice(message: actionMessage, kind: model.actionSucceeded ? .success : .warning)
@@ -122,19 +101,24 @@ struct CheckInSummaryView: View {
     }
     .padding(16)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
     .task { await model.refreshNotificationAuthorization() }
     .sheet(isPresented: $showsHistorySheet) {
       CheckInHistorySheet()
         .environmentObject(model)
-        .frame(minWidth: 600, minHeight: 500)
+        .ginkgoSheetSizing(minWidth: 600, minHeight: 500)
     }
     .confirmationDialog("确认课程签到", isPresented: $showsSignInConfirmation, titleVisibility: .visible) {
       Button("确认签到") {
         guard let selectedCourse else { return }
-        Task { await model.performSignIn(courseID: selectedCourse.id) }
+        let target = selectedSignInID ?? selectedCourse.id
+        selectedSignInID = nil
+        Task { await model.performSignIn(courseID: target) }
       }
-      Button("取消", role: .cancel) {}
+      Button("取消", role: .cancel) {
+        selectedSignInID = nil
+        selectedCourse = nil
+      }
     } message: {
       if let selectedCourse {
         Text("将为“\(selectedCourse.courseName)”提交签到，并在提交后立即回查状态。只有学校确认后才显示成功。")
@@ -142,10 +126,46 @@ struct CheckInSummaryView: View {
     }
   }
 
+  @ViewBuilder
+  private var signedCount: some View {
+    if let snapshot = model.snapshot, snapshot.items.isEmpty == false {
+      Text("\(snapshot.items.filter { $0.status == .signed }.count)/\(snapshot.items.count) 已确认签到")
+        .font(.caption.weight(.medium))
+        .foregroundStyle(.secondary)
+        .contentTransition(.numericText())
+        .animation(reduceMotion ? nil : .snappy(duration: 0.22), value: snapshot.items.filter { $0.status == .signed }.count)
+    }
+  }
+
+  private var historyButton: some View {
+    Button {
+      showsHistorySheet = true
+    } label: {
+      Label("历史查询", systemImage: "calendar.badge.clock")
+    }
+    .buttonStyle(.borderless)
+  }
+
+  private var refreshButton: some View {
+    Button {
+      Task { await model.refresh() }
+    } label: {
+      if model.isLoading {
+        ProgressView().controlSize(.small)
+      } else {
+        Image(systemName: "arrow.clockwise")
+      }
+    }
+    .buttonStyle(.borderless)
+    .disabled(model.isLoading)
+    .help("立即刷新签到状态")
+    .accessibilityLabel(model.isLoading ? "正在核对签到状态" : "立即刷新签到状态")
+  }
+
   private func courseRow(_ item: CheckInItem) -> some View {
     HStack(alignment: .top, spacing: 10) {
-      Image(systemName: symbol(for: item.status))
-        .foregroundStyle(tint(for: item.status))
+      Image(systemName: item.status.symbol)
+        .foregroundStyle(item.status.tint)
         .frame(width: 18)
         .padding(.top, 2)
       VStack(alignment: .leading, spacing: 4) {
@@ -153,47 +173,18 @@ struct CheckInSummaryView: View {
         Text("\(item.beginsAt)–\(item.endsAt)")
           .font(.caption.monospacedDigit())
           .foregroundStyle(.secondary)
+        if let target = CheckInTargetMatcher.matchedTargetLabel(for: item, schedule: schedule.snapshot) {
+          Text("签到目标：\(target)")
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+        }
       }
       .accessibilityElement(children: .combine)
       Spacer()
-      Text(title(for: item.status))
-        .font(.caption.weight(.medium))
-        .foregroundStyle(tint(for: item.status))
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .background(tint(for: item.status).opacity(0.10), in: Capsule())
-      if item.status == .notSigned && item.signInAllowed && !model.canSubmitSignIn {
-        Label("联网确认后可签到", systemImage: "clock.arrow.circlepath")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      } else if item.status == .notSigned && item.signInAllowed {
-        let isSubmitting = model.isSigningInCourseID == item.id
-        Button {
-          selectedCourse = item
-          showsSignInConfirmation = true
-        } label: {
-          if isSubmitting {
-            ProgressView().controlSize(.small)
-          } else {
-            Text("签到")
-          }
-        }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.small)
-        .disabled(model.isSigningInCourseID != nil)
-        .accessibilityLabel(isSubmitting ? "正在提交签到：\(item.courseName)" : "签到：\(item.courseName)")
-        .accessibilityHint(isSubmitting ? "正在等待学校确认签到结果" : "提交前会再次询问确认")
-      } else if item.status == .notSigned {
-        Label("签到目标待核实", systemImage: "exclamationmark.triangle")
-          .font(.caption.weight(.medium))
-          .foregroundStyle(.secondary)
-          .help("同一课时对应多个上游课程标识，暂不提供签到提交。")
-      }
+      statusBadge(for: item)
+      courseAction(for: item)
       if item.mergedRecordCount > 1 {
-        Label("已合并 \(item.mergedRecordCount) 条重复记录", systemImage: "arrow.triangle.merge")
-          .font(.caption2)
-          .foregroundStyle(.secondary)
-          .accessibilityLabel("已合并 \(item.mergedRecordCount) 条重复上游记录")
+        mergedRecordLabel(item)
       }
     }
     .padding(.vertical, 4)
@@ -201,29 +192,75 @@ struct CheckInSummaryView: View {
     .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: item.status)
   }
 
-  private func title(for status: CheckInStatus) -> String {
-    switch status {
-    case .notSigned: "尚未签到"
-    case .signed: "已签到"
-    case .unknown: "状态待确认"
+  private func statusBadge(for item: CheckInItem) -> some View {
+    Text(item.status.title)
+      .font(.caption.weight(.medium))
+      .foregroundStyle(item.status.tint)
+      .padding(.horizontal, 8)
+      .padding(.vertical, 5)
+      .background(item.status.tint.opacity(0.10), in: Capsule())
+  }
+
+  private func mergedRecordLabel(_ item: CheckInItem) -> some View {
+    Label("\(item.mergedRecordCount) 条同名教学班记录", systemImage: "arrow.triangle.merge")
+      .font(.caption2)
+      .foregroundStyle(.secondary)
+      .help("iclass 返回了同一课程、同一时间的多个教学班（教室/教师/课程 ID 不同）。签到时会按你的课表教室/教师匹配，匹配不到时可手动选择。")
+      .accessibilityLabel("已合并 \(item.mergedRecordCount) 条同名教学班记录")
+  }
+
+  @ViewBuilder
+  private func courseAction(for item: CheckInItem) -> some View {
+    let candidates = CheckInTargetMatcher.signInCandidates(for: item, schedule: schedule.snapshot)
+    let canChoose = item.status == .notSigned || item.status == .unknown
+    if canChoose && candidates.isEmpty && model.canSubmitSignIn == false {
+      Label("联网确认后可签到", systemImage: "clock.arrow.circlepath")
+        .font(.caption)
+        .foregroundStyle(.secondary)
+    } else if canChoose && candidates.count == 1, let candidate = candidates.first {
+      let isSubmitting = model.isSigningInCourseID == candidate.id
+      Button {
+        selectedCourse = item
+        selectedSignInID = candidate.id
+        showsSignInConfirmation = true
+      } label: {
+        if isSubmitting {
+          ProgressView().controlSize(.small)
+        } else {
+          Text("签到")
+        }
+      }
+      .buttonStyle(.borderedProminent)
+      .controlSize(.small)
+      .disabled(model.isSigningInCourseID != nil)
+      .accessibilityLabel(isSubmitting ? "正在提交签到：\(item.courseName)" : "签到：\(item.courseName)")
+      .accessibilityHint(isSubmitting ? "正在等待学校确认签到结果" : "提交前会再次询问确认")
+    } else if canChoose && candidates.isEmpty == false {
+      Menu {
+        ForEach(candidates) { candidate in
+          Button(candidate.menuLabel) {
+            selectedCourse = item
+            selectedSignInID = candidate.id
+            showsSignInConfirmation = true
+          }
+        }
+      } label: {
+        Text("选择签到记录")
+      }
+      .menuStyle(.borderlessButton)
+      .controlSize(.small)
+      .disabled(model.isSigningInCourseID != nil)
+      .help("同名记录包含不同教室/教师；请选择你实际所在的课堂。")
+    } else if canChoose {
+      Label("签到目标待核实", systemImage: "exclamationmark.triangle")
+        .font(.caption.weight(.medium))
+        .foregroundStyle(.secondary)
+        .help("上游没有返回可签到的课程记录。")
     }
   }
 
-  private func symbol(for status: CheckInStatus) -> String {
-    switch status {
-    case .notSigned: "circle"
-    case .signed: "checkmark.circle.fill"
-    case .unknown: "questionmark.circle.fill"
-    }
-  }
 
-  private func tint(for status: CheckInStatus) -> Color {
-    switch status {
-    case .notSigned: .orange
-    case .signed: .green
-    case .unknown: .secondary
-    }
-  }
+
 }
 
 private struct CheckInHistorySheet: View {
@@ -232,9 +269,7 @@ private struct CheckInHistorySheet: View {
   @State private var selectedDate = Self.defaultDate
 
   private static var defaultDate: Date {
-    var calendar = Calendar(identifier: .gregorian)
-    calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? .current
-    return calendar.date(byAdding: .day, value: -1, to: Date()) ?? Date()
+    SchoolTime.calendar.date(byAdding: .day, value: -1, to: Date()) ?? Date()
   }
 
   var body: some View {
@@ -256,37 +291,8 @@ private struct CheckInHistorySheet: View {
         .keyboardShortcut(.cancelAction)
       }
       HStack(spacing: 14) {
-        Button {
-          shiftDate(by: -1)
-        } label: {
-          Image(systemName: "chevron.left")
-        }
-        .buttonStyle(.bordered)
-        .help("前一天")
-        .accessibilityLabel("选择前一天")
-        DatePicker("日期", selection: $selectedDate, in: ...Date(), displayedComponents: .date)
-          .datePickerStyle(.compact)
-          .labelsHidden()
-        Button {
-          shiftDate(by: 1)
-        } label: {
-          Image(systemName: "chevron.right")
-        }
-        .buttonStyle(.bordered)
-        .help("后一天")
-        .accessibilityLabel("选择后一天")
-        .disabled(isTodaySelected)
-        Button {
-          Task { await model.loadHistory(on: selectedDate) }
-        } label: {
-          if model.historyIsLoading {
-            ProgressView().controlSize(.small)
-          } else {
-            Label("查询这一天", systemImage: "magnifyingglass")
-          }
-        }
-        .buttonStyle(.borderedProminent)
-        .disabled(model.historyIsLoading)
+        dateNavigationControls
+        historyQueryButton
       }
 
       if let error = model.historyErrorMessage {
@@ -323,7 +329,7 @@ private struct CheckInHistorySheet: View {
                       .font(.caption.monospacedDigit())
                       .foregroundStyle(.secondary)
                     if item.mergedRecordCount > 1 {
-                      Label("已合并 \(item.mergedRecordCount) 条重复记录", systemImage: "arrow.triangle.merge")
+                      Label("\(item.mergedRecordCount) 条同名教学班记录", systemImage: "arrow.triangle.merge")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                     }
@@ -350,19 +356,56 @@ private struct CheckInHistorySheet: View {
         .fixedSize(horizontal: false, vertical: true)
     }
     .padding(24)
-    .onExitCommand { dismiss() }
+    .ginkgoOnExitCommand { dismiss() }
+  }
+
+  private var dateNavigationControls: some View {
+    HStack(spacing: 14) {
+      Button {
+        shiftDate(by: -1)
+      } label: {
+        Image(systemName: "chevron.left")
+      }
+      .buttonStyle(.bordered)
+      .help("前一天")
+      .accessibilityLabel("选择前一天")
+
+      DatePicker("日期", selection: $selectedDate, in: ...Date(), displayedComponents: .date)
+        .datePickerStyle(.compact)
+        .labelsHidden()
+
+      Button {
+        shiftDate(by: 1)
+      } label: {
+        Image(systemName: "chevron.right")
+      }
+      .buttonStyle(.bordered)
+      .help("后一天")
+      .accessibilityLabel("选择后一天")
+      .disabled(isTodaySelected)
+    }
+  }
+
+  private var historyQueryButton: some View {
+    Button {
+      Task { await model.loadHistory(on: selectedDate) }
+    } label: {
+      if model.historyIsLoading {
+        ProgressView().controlSize(.small)
+      } else {
+        Label("查询这一天", systemImage: "magnifyingglass")
+      }
+    }
+    .buttonStyle(.borderedProminent)
+    .disabled(model.historyIsLoading)
   }
 
   private var isTodaySelected: Bool {
-    var calendar = Calendar(identifier: .gregorian)
-    calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? .current
-    return calendar.startOfDay(for: selectedDate) >= calendar.startOfDay(for: Date())
+    SchoolTime.calendar.startOfDay(for: selectedDate) >= SchoolTime.calendar.startOfDay(for: Date())
   }
 
   private func shiftDate(by days: Int) {
-    var calendar = Calendar(identifier: .gregorian)
-    calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? .current
-    guard let date = calendar.date(byAdding: .day, value: days, to: selectedDate) else { return }
+    guard let date = SchoolTime.calendar.date(byAdding: .day, value: days, to: selectedDate) else { return }
     selectedDate = min(date, Date())
   }
 
@@ -394,6 +437,7 @@ private struct CheckInHistorySheet: View {
 struct CheckInPage: View {
   @EnvironmentObject private var appState: AppState
   @EnvironmentObject private var model: CheckInViewModel
+  @EnvironmentObject private var schedule: ScheduleViewModel
 
   var body: some View {
     ScrollView {
@@ -405,11 +449,11 @@ struct CheckInPage: View {
         )
         CheckInSummaryView()
       }
-      .padding(24)
+      .ginkgoPagePadding()
       .frame(maxWidth: 820, alignment: .leading)
       .frame(maxWidth: .infinity)
     }
-    .background(Color(nsColor: .windowBackgroundColor))
+    .background(Color.ginkgoWindowBackground)
     .task(id: appState.user?.schoolid) {
       guard let account = appState.user?.schoolid else { return }
       await model.refreshOnAppearance(account: account)

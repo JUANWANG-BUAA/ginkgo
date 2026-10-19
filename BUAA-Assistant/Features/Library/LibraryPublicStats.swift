@@ -61,7 +61,7 @@ enum LibraryPublicStatsParser {
       let section = source.substring(with: sectionRange)
       let items = matches(listItemPattern, in: section).compactMap { item -> String? in
         guard let range = Range(item.range(at: 1), in: section) else { return nil }
-        return visibleText(String(section[range]))
+        return HTMLText.plainText(String(section[range]))
       }
 
       guard let people = items.compactMap({ capturedInteger(#"图书馆\s*(\d+)\s*人"#, in: $0) }).first else {
@@ -115,15 +115,6 @@ enum LibraryPublicStatsParser {
     return pair
   }
 
-  private static func visibleText(_ html: String) -> String {
-    let withoutTags = html.replacingOccurrences(of: #"<[^>]+>"#, with: " ", options: .regularExpression)
-    let decoded = withoutTags
-      .replacingOccurrences(of: "&nbsp;", with: " ")
-      .replacingOccurrences(of: "&#160;", with: " ")
-      .replacingOccurrences(of: "&amp;", with: "&")
-    return decoded.split(whereSeparator: \.isWhitespace).joined(separator: " ")
-  }
-
   private static func capturedInteger(_ pattern: String, in text: String) -> Int? {
     guard let match = firstMatch(pattern, in: text),
           let range = Range(match.range(at: 1), in: text) else { return nil }
@@ -143,9 +134,11 @@ enum LibraryPublicStatsParser {
 
 actor LibraryPublicStatsClient {
   private let session: URLSession
+  private let allowsGlobalRouting: Bool
   private let endpoint = LibraryPublicStatsSource.url
 
   init(session: URLSession? = nil) {
+    self.allowsGlobalRouting = session == nil
     if let session {
       self.session = session
     } else {
@@ -164,7 +157,7 @@ actor LibraryPublicStatsClient {
     request.setValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
     request.setValue("https://lib.buaa.edu.cn/", forHTTPHeaderField: "Referer")
     request.setValue("Ginkgo/1.0", forHTTPHeaderField: "User-Agent")
-    let (data, response) = try await session.data(for: request)
+    let (data, response) = try await session.routedData(for: request, allowWebVPN: allowsGlobalRouting)
     guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
       throw LibraryPublicStatsError.unavailable
     }

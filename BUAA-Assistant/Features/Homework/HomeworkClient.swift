@@ -1,5 +1,4 @@
 import Foundation
-import CommonCrypto
 
 protocol HomeworkServing {
   func load() async throws -> HomeworkSnapshot
@@ -88,7 +87,6 @@ actor HomeworkClient: HomeworkServing, HomeworkDetailServing {
   private static func failureCategory(_ error: Error) -> String {
     if let homeworkError = error as? HomeworkError {
       switch homeworkError {
-      case .protocolNotConfigured: return "protocol_not_configured"
       case .sessionExpired: return "session_expired"
       case .unavailable: return "service_unavailable"
       case .detailUnavailable: return "detail_unavailable"

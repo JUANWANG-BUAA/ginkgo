@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 import UserNotifications
 
@@ -7,21 +6,17 @@ struct CheckInCacheSnapshot: Codable {
   var history: [String: CheckInSnapshot]
 }
 
+/// 当天状态与最多 180 个历史日期的签到快照。
 actor CheckInCache {
-  private let directory: URL
+  private let store: LocalStore
   private let maximumHistoryDays = 180
 
   init(directory: URL? = nil) {
-    self.directory = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-      .appendingPathComponent("BUAA-Assistant/CheckIn", isDirectory: true)
+    store = LocalStore(module: "CheckIn", directory: directory)
   }
 
   func read(account: String) -> CheckInCacheSnapshot {
-    guard let data = try? Data(contentsOf: file(account: account)),
-          let snapshot = try? JSONDecoder().decode(CheckInCacheSnapshot.self, from: data) else {
-      return CheckInCacheSnapshot(today: nil, history: [:])
-    }
-    return snapshot
+    store.read(CheckInCacheSnapshot.self, account: account) ?? CheckInCacheSnapshot(today: nil, history: [:])
   }
 
   func saveToday(_ snapshot: CheckInSnapshot, account: String) throws {
@@ -41,18 +36,11 @@ actor CheckInCache {
   }
 
   func clear(account: String) throws {
-    let target = file(account: account)
-    if FileManager.default.fileExists(atPath: target.path) { try FileManager.default.removeItem(at: target) }
+    try store.remove(account: account)
   }
 
   private func save(_ snapshot: CheckInCacheSnapshot, account: String) throws {
-    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-    try JSONEncoder().encode(snapshot).write(to: file(account: account), options: .atomic)
-  }
-
-  private func file(account: String) -> URL {
-    let digest = SHA256.hash(data: Data(account.utf8)).map { String(format: "%02x", $0) }.joined()
-    return directory.appendingPathComponent(digest + ".json")
+    try store.write(snapshot, account: account)
   }
 }
 
@@ -318,15 +306,15 @@ final class CheckInViewModel: ObservableObject {
   }
 
   private static func schoolDateString(from date: Date) -> String {
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
-    formatter.dateFormat = "yyyyMMdd"
-    return formatter.string(from: date)
+    SchoolTime.string(from: date, format: "yyyyMMdd")
   }
 
   func clearWebVPNAuthenticationFailure() {
     webVPNAuthenticationUnavailable = false
+  }
+
+  private func confirmedSigned(courseID: String) -> Bool {
+    CheckInTargetMatcher.isSigned(courseID: courseID, in: snapshot?.items ?? [])
   }
 
   func performSignIn(courseID: String) async {
@@ -346,7 +334,7 @@ final class CheckInViewModel: ObservableObject {
         actionMessage = result.responseFormatUnrecognized
           ? "签到提交响应格式无法识别，接口可能已调整；状态回查失败，请勿重复提交，稍后刷新或到原站核实"
           : "签到结果尚未确认；状态回查暂时失败，请勿重复提交，稍后刷新或到原站核实"
-      } else if snapshot?.items.first(where: { $0.id == courseID })?.status == .signed {
+      } else if confirmedSigned(courseID: courseID) {
         actionSucceeded = true
         if result.responseFormatUnrecognized {
           actionMessage = "课程已签到，状态回查已确认；提交响应格式无法识别，接口可能已调整"

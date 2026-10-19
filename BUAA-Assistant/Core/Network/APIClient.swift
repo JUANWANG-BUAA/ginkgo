@@ -25,19 +25,26 @@ final class APIClient: @unchecked Sendable {
     self.session = URLSession(configuration: .default)
     let delegate = NoRedirectDelegate()
     self.noRedirectDelegate = delegate
-    self.noRedirectSession = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+    self.noRedirectSession = URLSession(
+      configuration: .default,
+      delegate: delegate,
+      delegateQueue: nil
+    )
 
     // UBAA keeps WebVPN cookies in a mode-scoped store. Do the same here so a
     // gateway login cannot be confused with (or overwritten by) direct SSO cookies.
     let webVPNConfiguration = URLSessionConfiguration.ephemeral
-    guard let webVPNCookies = webVPNConfiguration.httpCookieStorage else {
-      preconditionFailure("Ephemeral URLSession must provide an isolated cookie store")
-    }
+    let webVPNCookies = WebVPNCookieStore.storage
+    webVPNConfiguration.httpCookieStorage = webVPNCookies
+    webVPNConfiguration.httpShouldSetCookies = true
+    webVPNConfiguration.httpCookieAcceptPolicy = .always
     self.webVPNCookieStorage = webVPNCookies
     self.webVPNSession = URLSession(configuration: webVPNConfiguration)
 
     let webVPNNoRedirectConfiguration = URLSessionConfiguration.ephemeral
     webVPNNoRedirectConfiguration.httpCookieStorage = webVPNCookies
+    webVPNNoRedirectConfiguration.httpShouldSetCookies = true
+    webVPNNoRedirectConfiguration.httpCookieAcceptPolicy = .always
     self.webVPNNoRedirectSession = URLSession(
       configuration: webVPNNoRedirectConfiguration,
       delegate: delegate,

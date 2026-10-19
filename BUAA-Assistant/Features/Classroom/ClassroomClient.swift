@@ -98,20 +98,18 @@ actor ClassroomClient: ClassroomServing {
   func query(campus: Int, date: Date) async throws -> [String: [FreeClassroom]] {
     var activation = URLComponents(string: "https://sso.buaa.edu.cn/login")!
     activation.queryItems = [URLQueryItem(name: "service", value: "https://app.buaa.edu.cn/a_buaa/api/cas/index?redirect=https%3A%2F%2Fapp.buaa.edu.cn%2Fsite%2FclassRoomQuery%2Findex&from=wap&login_from="), URLQueryItem(name: "noAutoRedirect", value: "1")]
-    _ = try await session.data(from: activation.url!)
-    let formatter = DateFormatter(); formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.dateFormat = "yyyy-MM-dd"; formatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
+    _ = try await session.routedData(from: activation.url!)
     var url = URLComponents(string: "https://app.buaa.edu.cn/buaafreeclass/wap/default/search1")!
-    url.queryItems = [URLQueryItem(name: "xqid", value: String(campus)), URLQueryItem(name: "floorid", value: ""), URLQueryItem(name: "date", value: formatter.string(from: date))]
+    url.queryItems = [URLQueryItem(name: "xqid", value: String(campus)), URLQueryItem(name: "floorid", value: ""), URLQueryItem(name: "date", value: SchoolTime.dayString(date))]
     var request = URLRequest(url: url.url!); request.timeoutInterval = 30
     request.setValue("application/json, text/javascript, */*; q=0.01", forHTTPHeaderField: "Accept")
     request.setValue("XMLHttpRequest", forHTTPHeaderField: "X-Requested-With")
     request.setValue("https://app.buaa.edu.cn/site/classRoomQuery/index", forHTTPHeaderField: "Referer")
-    let (data, response) = try await session.data(for: request)
+    let (data, response) = try await session.routedData(for: request)
     guard let http = response as? HTTPURLResponse else { throw ScheduleError.unavailable("空教室服务") }
     let bodyText = String(data: data.prefix(5000), encoding: .utf8) ?? ""
-    if http.statusCode == 401 || http.statusCode == 403 || http.url?.host == "sso.buaa.edu.cn"
-        || bodyText.contains("name=\"execution\"") || bodyText.localizedCaseInsensitiveContains("统一身份认证") {
+    if http.statusCode == 401 || http.statusCode == 403 || CasPageParser.isLoginRedirect(url: http.url, data: data)
+        || bodyText.localizedCaseInsensitiveContains("统一身份认证") {
       throw ScheduleError.sessionExpired
     }
     guard (200..<300).contains(http.statusCode) else { throw ScheduleError.unavailable("空教室服务") }

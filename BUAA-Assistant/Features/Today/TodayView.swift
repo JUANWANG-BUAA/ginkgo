@@ -76,7 +76,7 @@ struct TodayView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+        .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
         if let snapshot = schedule.snapshot {
           if let error = schedule.errorMessage {
             StatusNotice(message: "课表更新失败：\(error) · 以下是缓存内容", kind: .warning)
@@ -108,7 +108,7 @@ struct TodayView: View {
               }
               .padding(16)
               .frame(maxWidth: .infinity, alignment: .leading)
-              .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+              .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
             }
           }
           Text("课表同步：\(snapshot.fetchedAt.formatted(date: .abbreviated, time: .shortened))")
@@ -123,11 +123,11 @@ struct TodayView: View {
         }
         CampusNoticesSummaryView()
       }
-      .padding(24)
+      .ginkgoPagePadding()
       .frame(maxWidth: 760, alignment: .leading)
       .frame(maxWidth: .infinity)
     }
-    .background(Color(nsColor: .windowBackgroundColor))
+    .background(Color.ginkgoWindowBackground)
     .toolbar {
       ToolbarItem(placement: .primaryAction) {
         Button { Task { await schedule.refreshToday() } } label: {

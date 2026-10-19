@@ -158,7 +158,7 @@ actor CheckInClient: CheckInServing, CheckInWebVPNRouting {
       return CheckInActionResult(succeeded: false, message: "签到结果尚未确认；正在回查课程状态…", requiresStatusRefresh: true)
     }
     let responseText = String(data: data.prefix(5000), encoding: .utf8) ?? ""
-    if http.url?.host == "sso.buaa.edu.cn" || responseText.contains("name=\"execution\"")
+    if CasPageParser.isLoginRedirect(url: http.url, data: data)
         || responseText.localizedCaseInsensitiveContains("统一身份认证") {
       AppLog.network.error("iclass request failed stage=sign_in outcome=authentication_response_unconfirmed")
       return CheckInActionResult(succeeded: false, message: "签到会话可能已失效；结果尚未确认，正在回查课程状态…", requiresStatusRefresh: true)
@@ -289,7 +289,8 @@ actor CheckInClient: CheckInServing, CheckInWebVPNRouting {
       throw CheckInError.invalidResponse
     }
 
-    let parsedItems = try records.map { record -> CheckInItem in
+
+    let parsedCandidates = try records.map { record -> CheckInCandidate in
       guard let id = Self.string(record["id"]),
             let name = Self.string(record["courseName"]),
             let begin = Self.string(record["classBeginTime"]),
@@ -298,25 +299,29 @@ actor CheckInClient: CheckInServing, CheckInWebVPNRouting {
         AppLog.network.error("iclass request failed stage=course_schedule reason=missing_course_fields")
         throw CheckInError.invalidResponse
       }
-      return CheckInItem(
+      return CheckInCandidate(
         id: id,
+        courseID: Self.string(record["courseId"]),
+        courseNum: Self.string(record["courseNum"]),
         courseName: name,
         beginsAt: begin,
         endsAt: end,
-        status: CheckInStatus(rawValue: Self.integer(record["signStatus"]))
+        status: CheckInStatus(rawValue: Self.integer(record["signStatus"])),
+        teacherName: Self.string(record["teacherName"]),
+        classroomName: Self.string(record["classroomName"])
       )
     }
 
-    let sessionKeys = parsedItems.map(Self.sessionKey(for:))
-    var groups = DisjointSet(count: parsedItems.count)
+    let sessionKeys = parsedCandidates.map(Self.sessionKey(for:))
+    var groups = DisjointSet(count: parsedCandidates.count)
     var firstIndexByID: [String: Int] = [:]
     var firstIndexBySession: [CourseSessionKey: Int] = [:]
-    for index in parsedItems.indices {
-      let item = parsedItems[index]
-      if let firstIndex = firstIndexByID[item.id] {
+    for index in parsedCandidates.indices {
+      let candidate = parsedCandidates[index]
+      if let firstIndex = firstIndexByID[candidate.id] {
         groups.join(index, firstIndex)
       } else {
-        firstIndexByID[item.id] = index
+        firstIndexByID[candidate.id] = index
       }
       if let firstIndex = firstIndexBySession[sessionKeys[index]] {
         groups.join(index, firstIndex)
@@ -327,7 +332,7 @@ actor CheckInClient: CheckInServing, CheckInWebVPNRouting {
 
     var groupedIndices: [[Int]] = []
     var positionByRoot: [Int: Int] = [:]
-    for index in parsedItems.indices {
+    for index in parsedCandidates.indices {
       let root = groups.root(of: index)
       if let position = positionByRoot[root] {
         groupedIndices[position].append(index)
@@ -339,14 +344,16 @@ actor CheckInClient: CheckInServing, CheckInWebVPNRouting {
 
     var conflictingRecordCount = 0
     let items = groupedIndices.map { indices -> CheckInItem in
-      let first = parsedItems[indices[0]]
+      let first = parsedCandidates[indices[0]]
       let firstKey = sessionKeys[indices[0]]
       let hasSessionConflict = indices.contains { sessionKeys[$0] != firstKey }
-      let hasStatusConflict = indices.contains { parsedItems[$0].status != first.status }
+      let hasStatusConflict = indices.contains { parsedCandidates[$0].status != first.status }
       let hasConflict = hasSessionConflict || hasStatusConflict
       if hasConflict { conflictingRecordCount += 1 }
 
-      let uniqueIDs = Set(indices.map { parsedItems[$0].id })
+      let candidates = indices.map { parsedCandidates[$0] }
+        .sorted { $0.id.localizedStandardCompare($1.id) == .orderedAscending }
+      let uniqueIDs = Set(candidates.map(\.id))
       return CheckInItem(
         id: uniqueIDs.sorted().first ?? first.id,
         courseName: first.courseName,
@@ -354,10 +361,12 @@ actor CheckInClient: CheckInServing, CheckInWebVPNRouting {
         endsAt: first.endsAt,
         status: hasConflict ? .unknown : first.status,
         signInAllowed: uniqueIDs.count == 1 && !hasConflict,
-        mergedRecordCount: indices.count
+        mergedRecordCount: candidates.count,
+        candidates: candidates
       )
     }
-    let duplicateRecordCount = parsedItems.count - items.count
+    let parsedCandidateCount = parsedCandidates.count
+    let duplicateRecordCount = parsedCandidateCount - items.count
     let sortedItems = items.sorted { $0.beginsAt < $1.beginsAt }
     if duplicateRecordCount > 0 {
       AppLog.network.notice(
@@ -366,6 +375,14 @@ actor CheckInClient: CheckInServing, CheckInWebVPNRouting {
     }
     AppLog.network.info("iclass request succeeded stage=course_schedule course_count=\(sortedItems.count)")
     return CheckInSnapshot(items: sortedItems, fetchedAt: Date(), schoolDate: schoolDate)
+  }
+
+  private static func sessionKey(for candidate: CheckInCandidate) -> CourseSessionKey {
+    CourseSessionKey(
+      courseName: normalizedSessionValue(candidate.courseName),
+      beginsAt: normalizedSessionValue(candidate.beginsAt),
+      endsAt: normalizedSessionValue(candidate.endsAt)
+    )
   }
 
   private static func sessionKey(for item: CheckInItem) -> CourseSessionKey {
@@ -556,7 +573,7 @@ actor CheckInClient: CheckInServing, CheckInWebVPNRouting {
 
   private static func loginName(in url: URL?) -> String? {
     guard let url, let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
-    return nonempty(components.queryItems?.first(where: { $0.name.caseInsensitiveCompare("loginName") == .orderedSame })?.value)
+    return JSONValue.nonEmptyString(components.queryItems?.first(where: { $0.name.caseInsensitiveCompare("loginName") == .orderedSame })?.value)
   }
 
   private static func redirectShape(_ location: String) -> String {
@@ -643,31 +660,11 @@ actor CheckInClient: CheckInServing, CheckInWebVPNRouting {
     return ["0", "200", "success"].contains(status.lowercased())
   }
 
-  private static func string(_ value: Any?) -> String? {
-    guard let value, !(value is NSNull) else { return nil }
-    if let text = value as? String { return nonempty(text) }
-    if let number = value as? NSNumber { return number.stringValue }
-    return nil
-  }
-
-  private static func nonempty(_ value: String?) -> String? {
-    guard let value else { return nil }
-    let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-    return trimmed.isEmpty ? nil : trimmed
-  }
-
-  private static func integer(_ value: Any?) -> Int? {
-    guard let value else { return nil }
-    if let number = value as? NSNumber { return number.intValue }
-    if let text = value as? String { return Int(text) }
-    return nil
-  }
+  /// iclass 字段一律去除首尾空白，空文本视为缺失。
+  private static func string(_ value: Any?) -> String? { JSONValue.nonEmptyString(value) }
+  private static func integer(_ value: Any?) -> Int? { JSONValue.int(value) }
 
   private static func schoolDateString(from date: Date) -> String {
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
-    formatter.dateFormat = "yyyyMMdd"
-    return formatter.string(from: date)
+    SchoolTime.string(from: date, format: "yyyyMMdd")
   }
 }

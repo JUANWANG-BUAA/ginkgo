@@ -20,7 +20,7 @@ actor GradeClient: GradeServing {
     // API.md §4.2：同址 POST xq/year，Ajax 响应为 JSON。
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
-    request.httpBody = "xq=\(parts.semester)&year=\(parts.year)".data(using: .utf8)
+    request.httpBody = FormURLEncoding.body([("xq", parts.semester), ("year", parts.year)])
     request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
     request.setValue("application/json, text/javascript, */*; q=0.01", forHTTPHeaderField: "Accept")
     request.setValue("XMLHttpRequest", forHTTPHeaderField: "X-Requested-With")
@@ -39,15 +39,13 @@ actor GradeClient: GradeServing {
   }
 
   private func send(_ request: URLRequest) async throws -> Data {
-    let (data, response) = try await session.data(for: request)
+    let (data, response) = try await session.routedData(for: request)
     guard let http = response as? HTTPURLResponse else { throw ScheduleError.unavailable("成绩服务") }
     if http.statusCode == 401 || http.statusCode == 403 || http.url?.host == "sso.buaa.edu.cn" {
       throw ScheduleError.sessionExpired
     }
     guard (200..<300).contains(http.statusCode) else { throw ScheduleError.unavailable("成绩服务") }
-    if String(data: data.prefix(5000), encoding: .utf8)?.contains("name=\"execution\"") == true {
-      throw ScheduleError.sessionExpired
-    }
+    if CasPageParser.isLoginRedirect(url: http.url, data: data) { throw ScheduleError.sessionExpired }
     return data
   }
 }

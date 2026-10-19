@@ -149,7 +149,7 @@ final class ClassroomViewModelTests: XCTestCase {
     let initialService = FakeClassroomService()
     initialService.rooms = ["主楼": [FreeClassroom(id: "cached-101", floorid: "1", name: "101", kxsds: "1,2,3")]]
     let firstWindow = ClassroomViewModel(client: initialService, cache: cache)
-    let cachedDate = try XCTUnwrap(ScheduleSnapshot.schoolCalendar.date(byAdding: .day, value: 1, to: Date()))
+    let cachedDate = try XCTUnwrap(SchoolTime.calendar.date(byAdding: .day, value: 1, to: Date()))
     firstWindow.campus = 2
     firstWindow.date = cachedDate
     await firstWindow.start(account: "account-1")
@@ -164,7 +164,7 @@ final class ClassroomViewModelTests: XCTestCase {
     XCTAssertTrue(nextWindow.queried)
     XCTAssertEqual(nextWindow.rooms["主楼"]?.map(\.id), ["cached-101"])
     XCTAssertEqual(nextWindow.campus, 2)
-    XCTAssertTrue(ScheduleSnapshot.schoolCalendar.isDate(nextWindow.date, inSameDayAs: cachedDate))
+    XCTAssertTrue(SchoolTime.calendar.isDate(nextWindow.date, inSameDayAs: cachedDate))
     XCTAssertEqual(nextWindowService.callCount, 0, "A fresh disk result should be shown without a redundant request.")
   }
 }

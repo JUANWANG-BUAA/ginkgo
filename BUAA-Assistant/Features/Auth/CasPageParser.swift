@@ -32,6 +32,18 @@ enum CasPageParser {
     options: [.caseInsensitive]
   )
 
+  private static let formActionRegex = try! NSRegularExpression(
+    pattern: #"<form\b[^>]*action=["']([^"']+)["'][^>]*>"#,
+    options: [.caseInsensitive]
+  )
+
+  /// 提取登录表单 action。WebVPN 网关要求保留该 URL 上的 service 查询参数。
+  static func extractLoginFormAction(from html: String) -> String? {
+    firstMatch(formActionRegex, in: html, group: 1)
+      .map { HTMLText.decodeEntities($0).trimmingCharacters(in: .whitespacesAndNewlines) }?
+      .nilIfBlank
+  }
+
   /// 提取登录页的 execution 隐藏字段。缺失返回 nil（该页面不是登录页或结构已变）。
   static func extractExecution(from html: String) -> String? {
     firstMatch(executionRegex, in: html, group: 1)
@@ -60,15 +72,23 @@ enum CasPageParser {
   }
 
   private static func cleanedText(_ text: String?) -> String? {
-    let stripped = text?
-      .replacingOccurrences(of: #"<[^>]+>"#, with: " ", options: .regularExpression)
-      ?? ""
-    // 去标签会留下连续空格，折叠为单个空格便于展示。
-    let collapsed = stripped
-      .components(separatedBy: .whitespacesAndNewlines)
-      .filter { !$0.isEmpty }
-      .joined(separator: " ")
-    return collapsed.nilIfBlank
+    text.map(HTMLText.plainText)?.nilIfBlank
+  }
+
+  /// 业务请求被学校送回统一认证登录页：最终落在 sso 主机，或正文带登录表单的 execution 字段。
+  static func isLoginRedirect(url: URL?, data: Data) -> Bool {
+    if url?.host == "sso.buaa.edu.cn" { return true }
+    return String(data: data.prefix(5000), encoding: .utf8)?.contains(#"name="execution""#) == true
+  }
+
+  /// UC/WAF 的访问策略页。上游可能用非标准 HTTP 483 返回；
+  /// 只有同时出现策略关键词时才判定，避免把普通 403 都归因于网络。
+  static func isAccessPolicyDenied(_ html: String) -> Bool {
+    let compact = html.replacingOccurrences(
+      of: #"\s+"#, with: " ", options: .regularExpression
+    )
+    return compact.contains("访问策略禁止")
+      || compact.contains("没有权限访问相应的资源")
   }
 
   /// 「密码过期 / 账号存在安全风险」跳过页判定（API.md §1.5）。

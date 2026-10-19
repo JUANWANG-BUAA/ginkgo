@@ -53,6 +53,17 @@
 | 40 | §3.3 研究生周次推算 | 任一教学班缺少排课行或 SCSKRQ 解析失败即判定“上游结构变化” | 对齐 UBAA `parseGsmisSchedule`：无法参与推算的教学班跳过，仅当所有任务都无法推算、或有效任务给出的开学日期不一致/不是周一时才报结构变化 | 2026-10-16 本机脱敏诊断（37 个排课行、9 个教学班中 3 个不可推算）与修复后真实刷新成功（第 6 周）；BBAA `GsmisSchedule.kt:24-70`；`ScheduleParserTests.swift` |
 | 41 | §7.1 希冀 CAS 激活 | `service=http%3A%2F%2Fjudge.buaa.edu.cn%2F` | 改为 `service=https%3A%2F%2Fjudge.buaa.edu.cn%2F`。明文 http 跳转会被 ATS 以 `-1022` 拒绝；https 已验证可完成 CAS 激活并读取后续页面 | 本项目真实运行日志（修复后 `-1022` 消失）与 `JudgeHomeworkClientTests.swift` 回归（2026-10-16） |
 | 42 | §7.1 希冀来源启用范围 | 客户端始终同步 Judge 与 SPOC 两来源 | Judge 来源暂时下线（`HomeworkSource.enabled = [.spoc]`）：真实课程列表结构与客户端预期不一致，且当前账号无该来源作业。代码、协议研究与测试保留，待真实页面脱敏样本后重新启用；这是产品取舍，不是上游协议变更 | 本项目 `HomeworkClient.swift`、`HomeworkView.swift`、`HomeworkViewModelTests.swift` 与 [RELEASE-NOTES.md](RELEASE-NOTES.md)（2026-10-16） |
+| 43 | §1.6 CAS 登录 4xx 错误消费 | 非 401 的 4xx 直接显示为“认证服务暂时不可用”，丢弃页面错误信息 | 对 4xx 响应先尝试解析 `errorDiv` / `.errors` / `tip-text`；HTTP 483 无错误正文时提示学校认证服务拒绝本次登录；日志只记录状态与脱敏域信息。2026-10-18 模拟器真实账号尝试观察到 CAS POST 302，但 `uc.buaa.edu.cn` 对 `/`、`/api/login`、`/api/uc/status` 均返回 HTTP 483「访问策略禁止」，因此未能完成 UC 会话判据，不能据此判定账号密码错误或会话有效 | 模拟器真实账号尝试与未认证 UC GET（仅记录脱敏状态/可见错误文本）；`CasClientTests.test_login_withHTTP483_usesServerErrorMessage` |
+| 44 | §0.3 / §1.7 全局 WebVPN 路线 | 主认证与主要业务请求固定直连；WebVPN 仅用于签到专用会话 | 新增自动/直连/WebVPN 路线。WebVPN 模式与 UBAA 一样将北航 URL 包装到 `d.buaa.edu.cn`，直连遇到 UC 483 时自动切换并重试；登录表单必须沿用页面 `action`，否则会丢失网关 service 上下文。真实账号已在 iPhone 17 Pro Simulator 完成 WebVPN CAS 登录，`uc/status` 返回 `code == 0 + data`。后续修复 `routedData` 重编码 POST body 后，WebVPN 下研究生课表读取 20 个学期、30 周、7 门课程；SPOC 读取 13 项作业；成绩、空教室、图书馆座位、校园通知和 iclass 只读查询也已实测。传输层必须原样转发请求 body，并让同一个 URLSession Cookie 会话完成 SPA→CAS→回调→业务 POST。 | `UpstreamRoute.swift`、`SpocHomeworkClient.swift`、`ScheduleClient.swift`、`AuthViewModel.swift`、`CasClient.swift`、`docs/ACCEPTANCE.md`（2026-10-18） |
+| 45 | §5.2 §5.6 图书馆当前预约 | 只有 `member/seat` 历史分页，无法区分当前座位/研讨室/研修座位 | 新增 `index/subscribe` 读取当前记录，解析 `type` 与 `flag_in/flag_out/flag_leave/oksign`；历史列表继续只读。只有上游明确给出动作提示时才显示签到/暂离/完全离开/取消按钮 | H5 公开静态资源 `index.1780450282721.js`、`AppointmentItem.1780450282721.js`（2026-10-19 只读检查）；本项目 `LibraryClient.swift`、`LibraryView.swift`、`IOSLibraryView.swift` 与 `LibraryBookingLifecycleTests.swift` |
+| 46 | §5.6 座位签到/临时离开/完全离开 | 只有预约与取消 | 前端静态取证 `space/signin`、`space/leave`、`space/checkout`：明文 `{id, points}`，按当天日期加密为 `aesjson`；`points` 可为空对象。客户端实现二次确认、空定位提交、提交后回查、不自动重试；**未对真实账号发送写请求**，成功语义与暂离时限仍待人工验收 | H5 `AppointmentItem.1780450282721.js`（2026-10-19 只读检查）；本项目 `LibraryClient.swift`、`LibraryView.swift` 与 `LibraryBookingLifecycleTests.swift` |
+| 47 | §5.7 研讨室预约 | 只读空档；写接口已定位但字段未补全 | 前端静态取证 `seminar/members`、`seminar/confirm`、`seminar/submit` 请求体与 `earlierPeriods` 分支；客户端实现参与人解析、提交前空档复核、二次确认、不自动重试。`type_id == 5 && earlierPeriods == 3` 与要求附件的空间不提交。**未发送真实预约写请求**，成功语义/名额竞争/取消回查待验收。CGYY 教学楼系统含滑块验证码，按项目红线不接入 | H5 `apply.1780450282721.js`、`space.17804502827215.js`（2026-10-19 只读检查）；本项目 `SeminarModels.swift`、`SeminarViewModel.swift`、`SeminarView.swift`、`IOSSeminarView.swift` 与 `LibraryBookingLifecycleTests.swift` |
+| 48 | §6B 教学楼研讨室（CGYY） | 只有图书馆 `v4/seminar/*`，且未接入 CGYY | 移植 UBAA 的 CGYY 登录、MD5 签名、场馆/时段/订单/门锁密码接口与滑块验证码图像匹配；按用户明确要求启用自动识别，写操作前仍需用户确认，失败不自动重发。**未完成真实预约/取消/门锁密码往返** | UBAA `LocalCgyyApi.kt`、`LocalCgyyCaptchaSupport.kt`、`LocalCgyySigner.kt`、`docs/features/cgyy.md`；本项目 `CgyyClient.swift`、`CgyyCaptchaSolver.swift`、`CgyyViewModel.swift`、`CgyyClientTests.swift`（2026-10-19） |
+| 49 | §7.4 培养方案进度 | 把课程池全部学分相加，显示 114 学分和 0%，误以为每门课都必修；类别最低分只有网页可见 | 方案头部 `totalCredits` 是最低总学分（当前账号 32）；课程列表是课程池（合计 114）。新增 `zxbg/loadXspyfazxbgInfo.do` 读取执行报告：`zxbg` 返回 9 个类别及 `dxzList` 课组，带 `yqxf/yhxf/dkhxf`；页面显示“思想政治理论课 3、基础及专业理论核心课 9、综合素养课 5、培养环节 1”等要求及课组“数学课 3、当代科技 1”等。接口成功码为 `1`（不是 0），已单独处理；失败时回退总学分/课程池 | 2026-10-19 Edge 页面源码与 `wdpyfazxbg` 模块 `wdpyfazxbgBS.js`、`zxbgBuilder.js` 只读核对；真实账号执行报告接口返回；本项目 `GraduateAcademicClient.swift`、`GraduateProgress.swift`、`GraduateProgressTests.swift` |
+| 50 | §7.4 研究生综合服务平台入口 | 只读取学籍/成绩/方案/课表，未盘点其他学生服务 | 平台首页可见：学籍管理、课程学习、培养环节、培养项目、学位管理、教育管理、学生活动、服务指南、教务系统；常用应用含我的培养方案执行报告、我的培养方案、我的成绩、我的日程、周课表、专业实践申请、教室借用申请、学生名单、政策文件。当前只读接入培养方案执行报告/成绩/学籍/课表；专业实践申请、教室借用申请、开题/中期/答辩等写工作流未取证，不接入 | 2026-10-19 平台首页只读 DOM 与 `yjsemaphome` 静态模块；不发送任何申请/借用写请求 |
+| 51 | 培养方案执行报告语义 | 将 `XQLHKCXF` 标为论文环节，并以 `yxxf` 回退认定学分 | 更正为校企课程要求，补 `yhxqlhkcxf`；方案认定学分仅取 `yhpyfaxf`。要求与已获缺失时不推算缺口；严格验证执行报告成功码与层级结构 | [取证记录](protocol-evidence/GRADUATE-EXECUTION.md) E1–E6；`GraduateRequirementsTests`、`GraduateAcademicClientTests` |
+| 52 | 图书馆与研讨室产品范围 | 历史取证中的图书馆 seminar 被当成产品预约能力 | 按维护者确认，图书馆仅提供座位预约（维护者已验证可行）；研讨室仅指教学楼 CGYY。图书馆 seminar 提交方法直接拒绝，保留历史解析材料不代表可用功能 | 2026-10-19 本轮维护者明确说明；`LibraryClient.submitSeminarBooking` |
+| 53 | CGYY 路由与写入结果 | CGYY 跟随全局 WebVPN 路由；公开场馆可读但 SSO/业务会话失败 | CGYY 的 SSO Cookie 和全部业务请求固定直连，忽略全局 WebVPN 选择（与 UBAA 当前实现一致）；401 后仅 GET 可重新登录并重查，预约/取消写入不重发，未知结果进入待核实。当前轮未发送预约/取消请求 | [UBAA `LocalCgyyApi.kt`](https://github.com/BUAASubnet/UBAA/blob/main/shared/src/commonMain/kotlin/cn/edu/ubaa/api/local/LocalCgyyApi.kt)、[UBAA CGYY 文档](https://github.com/BUAASubnet/UBAA/blob/main/docs/features/cgyy.md)；本项目 `CgyyClient.swift` |
 
 ## 0. 文档约定
 
@@ -71,6 +82,8 @@
 ### 0.3 通用请求约定
 
 - 所有业务请求默认由共享 Cookie 的 `URLSession` 会话发出（Cookie 自动携带与保存）。
+- 网络路线支持自动 / 直连 / WebVPN。WebVPN 模式按 UBAA 的 `d.buaa.edu.cn` 编码规则包装所有北航 URL，并使用独立进程内 CookieStorage；不实现 ServerRelay。
+- 自动模式先直连；UC 返回非标准 HTTP 483 或访问策略页时，持久化切换到 WebVPN 并重新执行登录。
 - 需要「Ajax 风格」的接口（各节单独注明）统一附加：
   ```http
   Accept: application/json, text/javascript, */*; q=0.01
@@ -429,6 +442,8 @@ ZC=&XNXQDM=20251&XH=&XQDM=
 
 **学期起点反推**（`GsmisSchedule.kt:42-68`）：用 `SCSKRQ` 减去最早排课的周偏移，推算开学日期；结果必须唯一且为周一，否则视为上游数据异常。这个算法建议原样移植——它是处理上游不给开学日期的必要补丁。
 
+**2026-10-18 WebVPN 修复记录**：`code == "1"` 且 `jgList/rwList/jcfaList` 均为空数组，表示该学期尚未发布排课，是合法空课表；客户端返回空的周次/课程快照并显示“该学期暂无课表”，不再报“结构无法识别”。真实账号修复后成功读取 30 周、7 门课程。此前 WebVPN 模式下 `routedData` 对表单 body 重新打包，导致 `loadXskbData.do` 返回三个空数组；传输层现原样转发 `URLRequest.httpBody`，由同一个 URLSession 负责 Cookie 与重定向。
+
 ---
 
 ## 4. 成绩（buaascore）✅
@@ -569,6 +584,70 @@ GET https://lib.buaa.edu.cn/engine2/buaa/more/1082575?websiteId=113745&pageId=20
 
 客户端通过不共享校园 Cookie 的 ephemeral `URLSession` 发起 GET，只保存解析后的数字，不保存网页正文。图书馆页面打开时读取并每 30 分钟更新；本机以“校区 + 日期 + 小时”为键保留最近 60 天、最多 4,000 条人数样本，同一小时的重复刷新会替换旧值。趋势按小时汇总；时段估算取最近 60 天内同星期、同小时的样本均值，至少有 3 个历史日才显示。它是本机历史均值，不是官网预测，也不能推断官网没有提供的楼层人数。
 
+### 5.6 当前预约与座位状态操作（前端静态取证，写入未验收）⚠️
+
+2026-10-19 对 `booking.lib.buaa.edu.cn` 的 H5 前端公开静态资源做了只读检查：主包 `/h5/assets/index.1780450282721.js` 及懒加载 chunk `AppointmentItem.1780450282721.js`、`apply.1780450282721.js`、`space.17804502827215.js`。以下端点、请求体与字段来自前端实际调用的 API 包装和页面动作逻辑；**没有使用真实账号发送签到、暂离或离馆请求**，成功语义、次数限制、定位要求和失败提示仍需人工往返验收。
+
+| 端点 | 用途 | 请求体 | 关键说明 |
+|------|------|--------|----------|
+| `index/subscribe` | 当前进行中的预约 | `{}` | `data[]`；`type` 1=座位、2=研讨室、3/4=研修座位。只有当前记录带动作提示字段 |
+| `space/signin` | 签到入座 / 暂离后返回 | 加密体 `aesjson`；明文 `{id, points}` | `id` 为预约记录 ID |
+| `space/leave` | **临时离开** | 加密体 `aesjson`；明文 `{id, points}` | 保留座位；学校可能限制暂离时长，超时释放 |
+| `space/checkout` | **完全离开** | 加密体 `aesjson`；明文 `{id, points}` | 结束本次座位使用，不可撤销 |
+| `space/cancel` | 取消座位预约 | `{id}` | `type == 1` |
+| `space/studyCancel` | 取消研修座位预约 | `{id}` | `type == 3/4` |
+| `seminar/cancel` | 取消研讨室预约 | `{id}` | `type == 2` |
+
+加密与 §5.3 相同，但密钥日期取**请求当天**：上游 `HY("encrypt", data)` 使用 `new Date()` 的 `YYYYMMDD` 加其反转；`space/confirm` 使用预约日。`points` 在前端是 `{lat, lng, time}`；浏览器定位不可用时提交 `{}`。客户端不申请系统定位权限，统一提交空 `points`，由学校接口决定是否接受。
+
+当前记录的动作提示字段（均按 0/1 解析，历史 `member/seat` 不保证返回）：
+
+| 字段 | 含义 |
+|------|------|
+| `flag_in` | 可签到入座 |
+| `flag_out` | 可临时离开 |
+| `flag_leave` | 当前处于临时离开，可返回入座 |
+| `oksign` | 可取消预约 |
+
+客户端行为：只在上游明确给出动作提示时展示按钮；临时离开与完全离开都需二次确认；提交后刷新 `index/subscribe`，结果不明确时只提示“待核实”，**不自动重发**。
+
+### 5.7 研讨室预约写路径（前端静态取证，写入未验收）⚠️
+
+`seminar/list`、`seminar/seminar`、`seminar/sift`、`seminar/siftdate` 的只读链路见 [EDUCATION-DATA-MAP.md](EDUCATION-DATA-MAP.md) §3。写入链路的请求体由 H5 `apply.1780450282721.js` 与 `space.17804502827215.js` 的 API 包装补全：
+
+| 端点 | 用途 | 请求体 |
+|------|------|--------|
+| `seminar/members` | 解析参与人学号 | `{area_id, member_id, begin_time: "yyyy-MM-dd HH:mm", finish_time: "yyyy-MM-dd HH:mm"}`；返回成员对象（含 `id`） |
+| `seminar/confirm` | 普通预约确认 | 见下；`earlierPeriods == 0` 时上游页面调用 |
+| `seminar/submit` | 分段/提前时段预约 | 见下；`earlierPeriods != 0` 时上游页面调用 |
+| `seminar/cancel` | 取消研讨室预约 | `{id}` |
+| `seminar/signin` | 研讨室签到 | 页面包装存在，字段未在本轮展开 |
+| `seminar/leave` | 研讨室离馆 | 页面包装存在，字段未在本轮展开 |
+
+提交体（不加密）：
+
+```json
+{
+  "area_id": "<空间 ID>",
+  "start_date": "yyyy-MM-dd",
+  "end_date": "yyyy-MM-dd",
+  "title": "<申请主题>",
+  "title_id": "<readonlyTitle 时的主题 ID，否则空串>",
+  "content": "<申请内容>",
+  "open": false,
+  "team": "<参与人 member id，逗号分隔>",
+  "mobile": "<11 位手机号>",
+  "time": [{"start_time": "HH:mm", "end_time": "HH:mm"}],
+  "file": []
+}
+```
+
+上游页面在 `type_id == 5 && earlierPeriods == 3` 时还要求 `cate_id`；在 `isMouldShow == 1` 时要求上传附件。这两类空间当前客户端不提交，改为提示到学校原系统完成。
+
+客户端行为：提交前重新读取一次 `seminar/seminar` 并核对空档、最短/最长时长和粒度；用户二次确认后才提交；不自动重试；成功后刷新列表并提示到“图书馆 → 我的预约”核对。**真实预约成功语义、名额竞争、参与人校验、取消回查仍未验收。**
+
+> 产品范围勘误（2026-10-19）：本节是历史协议取证，不是当前功能承诺。图书馆仅提供座位预约；研讨室入口使用教学楼 CGYY（§6B）。图书馆 seminar 提交已停用。
+
 ---
 
 ## 6. 图书馆借阅查询 ⚠️（待验证，探索性目标）
@@ -592,6 +671,34 @@ GET https://lib.buaa.edu.cn/engine2/buaa/more/1082575?websiteId=113745&pageId=20
 2. GET `https://app.buaa.edu.cn/buaafreeclass/wap/default/search1?xqid=1&floorid=&date=yyyy-MM-dd`。注意路径为 **buaafreeclass**；旧 BACKLOG 少了一个 a。校区 `1=学院路 / 2=沙河 / 3=杭州`。Ajax 头与 Referer `https://app.buaa.edu.cn/site/classRoomQuery/index`。
 3. 响应 `{e:0,m:"",d:{list:{楼栋:[{id,floorid,name,kxsds}]}}}`，`kxsds` 为逗号分隔空闲节次。非零 e、HTML 登录页、结构缺失均报错，不当作无空教室。
 
+## 6B. 教学楼研讨室（CGYY，前端/UBAA 协议移植，真实写操作未验收）⚠️
+
+基址 `https://cgyy.buaa.edu.cn/venue-zhjs-server/`。协议依据为 UBAA `LocalCgyyApi.kt`、`LocalCgyyCaptchaSupport.kt`、`LocalCgyySigner.kt`、`docs/features/cgyy.md`，并于 2026-10-19 在已登录浏览器中只读打开学校“培养方案管理应用”页面确认了上游网页结构；**尚未用真实账号完成预约、取消或门锁密码的端到端验收**。
+
+1. **登录与路线**：GET `sso/manageLogin`（直连并跟随 SSO 重定向），从直连 Cookie Store 取 `sso_buaa_zhjs_token`；POST `/api/login`，头 `Sso-Token: <cookie>`，返回 `data.token.access_token`。后续请求头 `cgAuthorization: <token>`（原始 token，无 Bearer 前缀）。CGYY 的 SSO 和全部业务端点都固定直连，即使全局上游路线选择 WebVPN 也不包装到网关；与 UBAA 当前 `LocalCgyyApi` 一致。新版本仅做只读验收，未发送真实预约/取消写请求。
+2. **签名**：所有请求带 `app-key`、`timestamp`（毫秒）、`sign`。签名原文为：
+   ```
+   <prefix><path><按 key 排序的 key+value 拼接><timestamp> <prefix>
+   ```
+   `prefix = c640ca392cd45fb3a55b00a63a86c618`，`app-key = 8fceb735082b5a529312040b58ea780b`；排除 `gmtCreate/gmtModified/creator/modifier/id/_index/_rowKey`；GET 额外加 `nocache=<timestamp>`；MD5 hex。
+3. **只读端点**：
+   - GET `/api/front/website/venues?page=-1&size=-1&reservationRoleId=3`：校区/场地/空间组。**2026-10-19 无 Cookie 直连实测为公开接口**，不发送 `cgAuthorization` 也返回 `code=200`；页面因此可以先展示场馆，不能因为后面的登录失败把整页判成“未登录”。
+   - GET `/api/codes`：活动类型；未带 token 实测 `code=401 没有权限访问此接口`。
+   - GET `/api/reservation/day/info?searchDate=yyyy-MM-dd&venueSiteId=N`：`spaceTimeInfo`、`reservationDateSpaceInfo`、可预约日期、`token`；未带 token 同样 401。
+   - GET `/api/orders/mine?page=1&size=20`：我的预约。
+   - GET `/api/orders/lock/code`：门锁密码/二维码、有效期、预约详情。
+4. **预约写路径**：
+   - POST `/api/reservation/order/info`：`venueSiteId`、`reservationDate`、`weekStartDate`、`reservationOrderJson`（`[{spaceId,timeId,venueSpaceGroupId}]`）、`token`；创建预约草稿。
+   - GET `/api/captcha/get?captchaType=blockPuzzle&clientUid=slider-<ts>&ts=<ts>`：返回 `secretKey`、`token`、背景图、拼图 Base64。
+   - POST `/api/captcha/check`：`pointJson`（AES-ECB PKCS5 加密的 `{"x":N,"y":5}`）、`token`。
+   - POST `/api/reservation/order/submit`：草稿字段 + `captchaVerification`（AES-ECB 加密的 `<captchaToken>---{"x":N,"y":5}`）+ `token`。
+   - POST `/api/orders/new/cancel/{orderId}`：取消。
+5. **验证码**：UBAA 的做法是灰度边缘匹配求解滑块；本项目已按用户明确要求移植该算法。该行为会改动项目原先“不自动绕过验证码”的红线，使用者需自行承担上游使用条款与风控风险；实现中不保存验证码图片，只在内存中完成一次匹配。
+
+> 图书馆空间预约系统（`booking.lib.buaa.edu.cn/v4/seminar/*`）是另一套系统，本页不再作为“研讨室”入口；其只读/预约代码保留在 `Features/Library/`，但与教学楼 CGYY 不可混用。
+
+---
+
 ## 7. 本期不接入的系统（中转接口说明）
 
 旧版文档第 6-15 节（博雅 BYKC、SPOC、操场 CGYY、阳光打卡 YGDK、iHome、空闲教室、课程评价、iclass 签到、考试安排中转版）记载的 `/api/v1/*` 路径全部是 **UBAA Ktor 中转服务器的自有路由**（见 `BBAA/docs/tech/server-routes.md`），不是北航上游直连协议。本项目架构为仅直连（ARCHITECTURE.md §9.1.3），这些接口**无法使用**；上述系统若未来要接入，每个都需按 §6 的逆向流程重新取证（其中博雅/操场还涉及上游自定义加密，见 DEEP-ARCHITECTURE-REVIEW.md §3）。此处不再罗列。
@@ -607,6 +714,8 @@ BBAA 原版并非只有一个作业来源，而是同时实现了两套直连上
 Judge 作业详情页同时包含开始/截止时间、满分、题目表格、题目提交状态及得分。桌面端现按原版本地客户端解析题目行并显示整体进度和分数；读取详情前重新选择所属课程，避免依赖共享会话中偶然残留的当前课程。Judge 解析仅用于只读信息展示，不暴露作业提交操作。
 - **SPOC**：`LocalSpocApi.kt` + `LocalSpocSupport.kt`。通过 `spoc.buaa.edu.cn/spocnewht/cas` 获取 token，再调用 `sys/casLogin` 获取 `RoleCode`；当前学期和课程来自 `inco/ht/queryOne`、`jxkj/queryKclb`，作业分页来自 `inco/ht/queryListByPage`。分页参数使用 AES-CBC（key `inco12345678ocni`，IV `ocni12345678inco`，零填充）后 Base64 编码。
 
+  **2026-10-18 WebVPN 实测契约**：先 GET `/spocnew/` 预热 SPA，再一次性跟随 `/spocnewht/cas` 的完整重定向链（SSO → `/spocnew/cas?token=...&refreshToken=...`）；回调页即使返回 404 也必须访问，以建立后续请求依赖的会话。随后 POST `/spocnewht/sys/casLogin`，body 必须是原始 JSON `{"token":"..."}`，Header 使用 `Token: Inco-<token>`。成功响应为 `code == 200` 且 `content` 是对象；角色可从 `rolecode`、`jsdmList` 或 `role[].jsdm` 解析。不要把 body 解包后重编码，也不要手工覆盖 Cookie；必须让同一个 URLSession Cookie 会话贯穿 SPA、CAS 和业务 POST。按此修复后真实账号读取 13 项 SPOC 作业。
+
 作业页时间字段：分页记录的 `zykssj` 是开始/发布时间、`zyjzsj` 是截止时间。UBAA 对 ISO-8601 毫秒与时区输入做归一化；Swift 客户端现按同类格式解析并在列表中分行展示发布与截止时间。某条记录若上游字段为空或无法解析，仍明确显示“未确认”，不伪造时间。
 
 提交状态字段 `tjzt` 按已知字符串/代码映射为已提交或未提交；原实现对未知非空值保留 `UNKNOWN`，并由 `submissionStatusText` 附上原始文本。Swift 端同步保留可选 `statusDetail`，仅在状态未知时用于卡片/详情的“上游状态”说明，展示最多 48 个字符；该值缺失时仍显示“待确认”，不改变状态判断或筛选。
@@ -617,7 +726,7 @@ Judge 作业详情页同时包含开始/截止时间、满分、题目表格、�
 
 2026-10-16 CUA 运行态对一个列表作业打开详情，界面成功显示授课教师、提交状态、发布时间、截止时间和作业分值；该条目的正文未由上游返回，界面提示原站点检查。因系统窗口截图捕获当前不可用，本次 UI 证据来自应用无障碍树；这是已打开页面的状态证据，不代表正文字段对所有 SPOC 作业均为空。
 
-`/api/v1/judge/*` 和 `/api/v1/spoc/*` 仍是 BBAA 服务端中转路由，本项目不调用它们。当前 Swift 工程保留 Judge 与 SPOC 两个直连 provider 和统一作业模型；SPOC AES-CBC 有 UBAA 黄金向量回归测试，CUA 实测列表返回 13 项且时间修复后可见截止时间。希冀来源暂时下线（见上），SPOC 全课程完整性与发布字段逐条正确性仍需真实账号继续核对；重新启用 Judge 前必须由本人逐项对照详情页提交状态。
+`/api/v1/judge/*` 和 `/api/v1/spoc/*` 仍是 BBAA 服务端中转路由，本项目不调用它们。当前 Swift 工程保留 Judge 与 SPOC 两个直连 provider 和统一作业模型；SPOC AES-CBC 有 UBAA 黄金向量回归测试。2026-10-18 在 WebVPN 下按上述 SPA 预热/完整回调/原样 body 规则实测读取 13 项作业；SPOC 全课程完整性与发布字段逐条正确性仍需继续核对。希冀来源暂时下线（见上），当前真实账号请求仍在课程列表阶段报结构无法识别；重新启用 Judge 前必须取得脱敏页面样本并由本人逐项对照详情页提交状态。
 
 ### 7.2 iclass 签到状态与手动提交（写协议尚待真实验收）
 
@@ -669,6 +778,38 @@ enum APIError: Error {
 1. **自动重试只对幂等 GET 开启**。POST（尤其预约、选课类写操作）不自动重发——上游切换语义下重发会反向操作（教训见 `BBAA/docs/features/ihome.md` 的写操作约束）。
 2. Cookie 注入交给 `HTTPCookieStorage`（或独立 `URLSession` 的默认行为），**不要**手拼 Cookie 头——图书馆 CAS 链依赖 Set-Cookie 的域/path 语义，手拼容易丢 `HttpOnly` 标记的票据。
 
+### 7.3 2026-10-18 教育系统只读数据盘点
+
+在用户明确授权的测试账号上，先完成 WebVPN CAS 登录，再逐项发起幂等 GET/查询请求；没有执行预约、取消、签到、评教或其他写入。结果如下：
+
+| 系统 | 本次可读取的数据 | 结果 | 说明 |
+|------|------------------|------|------|
+| 研究生教务 | 学期列表、周次、课程排课 | 20 个学期、30 周、7 门课程 | 当前学期有数据；三个空数组也按合法空课表处理 |
+| 成绩 | 学期成绩容器 | HTTP/解析成功，当前账号课程数为 0 | “0 条”是真实空结果，不代表接口不可用 |
+| 空教室 | 楼栋、教室与空闲节次 | 3 栋、158 间 | 只读日期查询 |
+| 图书馆座位 | 楼馆列表 | 3 个馆 | 未预约、未取消 |
+| 图书馆公开人数 | 校区与阅览室人数 | 2 个校区 | 官网公开页面解析 |
+| 校园通知 | 通知标题/日期/链接 | 5 条 | 仅列表读取 |
+| SPOC | 当前学期、课程、作业列表 | 13 项作业 | 未读取或提交作业附件 |
+| iclass | 当天课程与签到状态 | 查询成功，本次 0 门课 | 未调用签到写接口 |
+
+### 7.4 培养方案执行报告（结构化类别/课组）
+
+2026-10-19 从 `wdpyfazxbg` 微应用静态模块 `wdpyfazxbgBS.js` 定位到：
+
+- POST `/gsapp/sys/wdpyfazxbgappbuaa/zxbg/loadXspyfazxbgInfo.do`，表单 `isShowSszxbg=0`，Referer `.../wdpyfazxbgappbuaa/*default/index.do`。
+- 该端点成功码是 **`code == 1`**（页面脚本把 `code === 0` 当作“无数据/错误”），不能套用其他教务接口的 `code == 0`。
+- 返回顶层：`fa.ZDXF` 总学分要求、`yhpyfaxf` 已获培养方案要求学分、`yxxf` 已修学分、`dkhxf` 待考核学分、`yhyjxf` 已获研究学分、`scxx` 分阶段学分；`zxbg` 是 **JSON 字符串**。
+- `zxbg` 数组元素：`kclbdm/kclbmc` 类别，`yqxf/yhxf/dkhxf` 要求/已获/待考核，`dxzList` 多选课组，`kcList` 直接课程。课组字段 `dxzmc/yqxf/yhxf/dkhxf/kcList`；课程字段 `kcdm/kcmc/xf/sfwc/cjxsz/xnxqmc/kksx`。部分类别用 `kclbhbzyq` 记录“所属合并组：综合实践，最低学分要求：8.0”这类说明，客户端按说明展示，不把 8 分重复加到每个子类别。
+- 本项目只读接入；页面按 `zxbg` 的类别/课组要求展示“要求/已获/待考核”，总学分仍以 `fa.ZDXF` 为准；接口失败时回退到方案头部与课程池，不伪造类别要求。
+
+| UC | `userinfo` JSON | HTTP 200、合法 JSON | `userinfo` API 尚未接入产品 UI，不保存响应正文 |
+| 希冀 Judge | 课程列表 | 结构无法识别 | 来源继续保持下线，需真实脱敏页面样本重新适配 |
+
+UBAA 源码另提供操场 CGYY、阳光打卡 YGDK、iHome、课程评教、图书馆借阅等本地协议线索，但本次未逐项真实验收，不能因为源码存在就宣称“可读取”。其中评教/签到/预约还包含写路径，后续只能逐端点、只读优先接入，写入必须人工确认并回查。博雅 BYKC、研讨室和研究生教务的详细字段与 API 已另行记录在 [EDUCATION-DATA-MAP.md](EDUCATION-DATA-MAP.md)。
+
+其中博雅课程库、研讨室空档和研究生教务摘要已完成共享客户端与原生 iOS 页面接入，并通过真实账号 live UI 测试；三者均为只读，不发送选课、预约、评教或提交请求。
+
 ---
 
 ## 附录 A：已验证 URL 总表
@@ -680,7 +821,15 @@ enum APIError: Error {
 | 本科教务 | `https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/...`（`currentUser.do`、`student/schoolCalendars.do`、`getTermWeeks.do`、`student/getMyScheduleDetail.do`、`teachingSchedule/detail.do`、`student/exams.do`） | SSO Cookie | JSON |
 | 研究生教务 | `https://gsmis.buaa.edu.cn/gsapp/sys/wdkbapp/...`（`*default/index.do`、`modules/xskcb/kfdxnxqcx.do`、`bykb/loadXskbData.do`） | SSO Cookie | JSON |
 | 成绩 | `https://app.buaa.edu.cn/buaascore/wap/default/index`（GET+POST 同址） | SSO Cookie | JSON |
-| 图书馆座位 | `https://booking.lib.buaa.edu.cn/v4/...`（`login/cas`、`login/user`、`space/*`、`member/seat`） | CAS→token | JSON |
+| SPOC | `https://spoc.buaa.edu.cn/spocnew/`、`/spocnewht/cas`、`/sys/casLogin`、`/inco/ht/*`、`/jxkj/queryKclb` | CAS→Inco token+RoleCode | JSON |
+| 希冀 Judge | `https://judge.buaa.edu.cn/courselist.jsp`、课程页、`assignment/index.jsp` | CAS Cookie | HTML（当前解析待适配） |
+| 空教室 | `https://app.buaa.edu.cn/buaafreeclass/wap/default/search1` | SSO Cookie | JSON |
+| 教学楼研讨室（CGYY） | `https://cgyy.buaa.edu.cn/venue-zhjs-server/`（`sso/manageLogin`、`/api/*`） | CAS Cookie → `sso_buaa_zhjs_token` → access_token + MD5 签名 | JSON |
+| 图书馆座位 | `https://booking.lib.buaa.edu.cn/v4/...`（`login/cas`、`login/user`、`space/*`、`index/subscribe`、`member/seat`、`seminar/*`） | CAS→token | JSON |
+| 图书馆公开人数 | `https://lib.buaa.edu.cn/engine2/buaa/...` | 公开页面 | HTML/嵌入数据 |
+| 校园通知 | `https://news.buaa.edu.cn/tzgg.htm` | 公开页面 | HTML |
+| iclass | `https://iclass.buaa.edu.cn:8346/`、`:8347/app/*` | CAS→loginName→sessionId | JSON |
+| UC userinfo | `https://uc.buaa.edu.cn/api/uc/userinfo` | SSO Cookie | JSON |
 | 图书馆借阅 | 待验证（§6） | ? | ? |
 
 ## 附录 B：Cookie / Token 清单
@@ -701,3 +850,4 @@ enum APIError: Error {
 | GSMIS 课表 | `code == "1"` | String |
 | buaascore | `e == 0` | Int |
 | 图书馆 | `code ∈ {0, 1}` | Int |
+| SPOC | `code == 200`，`content` 非空 | Int |

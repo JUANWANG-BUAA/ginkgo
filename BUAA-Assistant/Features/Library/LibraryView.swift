@@ -1,371 +1,6 @@
 import SwiftUI
 import Charts
 
-@MainActor
-final class LibraryViewModel: ObservableObject {
-  @Published var libraries: [LibraryItem] = []
-  @Published var areas: [LibraryItem] = []
-  @Published var slots: [LibrarySlot] = []
-  @Published var seats: [LibraryItem] = []
-  @Published private(set) var filteredSeats: [LibraryItem] = []
-  @Published var bookings: [LibraryBooking] = []
-  @Published var libraryID = ""
-  @Published var areaID = ""
-  @Published var slotID = ""
-  @Published var busy = false
-  @Published var message: String?
-  @Published var failed = false
-  @Published var loadedBookings = false
-  @Published var loadedSeats = false
-  @Published private(set) var isLoadingBookings = false
-  @Published private(set) var isRefreshingSeats = false
-  @Published private(set) var bookingPage = 1
-  @Published private(set) var bookingPageSize = 40
-  @Published private(set) var bookingTotal: Int?
-  @Published private(set) var bookingHasNext = false
-  @Published private(set) var seatsFetchedAt: Date?
-  @Published private(set) var seatsAreCached = false
-  @Published private(set) var seatsCacheIsPartial = false
-  @Published private(set) var publicStats: LibraryPublicStats?
-  @Published private(set) var publicStatsAreCached = false
-  @Published private(set) var publicStatsError: String?
-  @Published private(set) var refreshingPublicStats = false
-  private let client = LibraryClient()
-  private let cache = LibraryCache()
-  private let publicStatsClient = LibraryPublicStatsClient()
-  private let occupancyHistory = LibraryOccupancyHistory()
-  private var account: String?
-  private var librariesFetchedAt: Date?
-  private var seatFilterGeneration = 0
-  private var seatFilterTask: Task<Void, Never>?
-  private var seatFilterWork: Task<[LibraryItem], Never>?
-  var selectedSlot: LibrarySlot? { slots.first { $0.id == slotID } }
-
-  func start(account: String) async {
-    if self.account != account {
-      reset()
-      self.account = account
-      if let snapshot = await cache.read(account: account) {
-        libraries = snapshot.libraries
-        libraryID = snapshot.libraryID
-        areas = snapshot.areas
-        areaID = snapshot.areaID
-        slots = snapshot.slots
-        slotID = snapshot.slotID
-        seats = snapshot.seats
-        filteredSeats = snapshot.seats
-        seatsFetchedAt = snapshot.seatsFetchedAt
-        loadedSeats = !snapshot.seats.isEmpty
-        seatsAreCached = loadedSeats
-        seatsCacheIsPartial = snapshot.seatsAreTruncated
-        publicStats = snapshot.publicStats
-        publicStatsAreCached = snapshot.publicStats != nil
-        librariesFetchedAt = snapshot.fetchedAt
-      }
-    }
-
-    await refreshIfStale()
-  }
-
-  /// 页面重新出现或应用回到前台时调用：按时效刷新楼馆列表与官网公开实时数据。
-  /// 实时人数变化快，聚焦时按 5 分钟时效刷新；楼馆列表 15 分钟内不重复请求。
-  func refreshIfStale(maxPublicStatsAge: TimeInterval = 5 * 60) async {
-    if libraries.isEmpty || librariesFetchedAt.map({ Date().timeIntervalSince($0) >= 15 * 60 }) ?? true {
-      await loadLibraries()
-    }
-    if publicStats == nil || publicStats.map({ Date().timeIntervalSince($0.fetchedAt) >= maxPublicStatsAge }) ?? true {
-      await refreshPublicStats()
-    }
-  }
-
-  func reset() {
-    cancelSeatFiltering()
-    libraries = []; areas = []; slots = []; seats = []; bookings = []
-    libraryID = ""; areaID = ""; slotID = ""
-    busy = false; message = nil; failed = false
-    loadedBookings = false; loadedSeats = false; isLoadingBookings = false; isRefreshingSeats = false
-    bookingPage = 1; bookingTotal = nil; bookingHasNext = false
-    seatsFetchedAt = nil; seatsAreCached = false
-    filteredSeats = []; seatsCacheIsPartial = false
-    publicStats = nil; publicStatsAreCached = false; publicStatsError = nil; refreshingPublicStats = false
-    account = nil; librariesFetchedAt = nil
-  }
-
-  func clearCache(account overrideAccount: String? = nil) async throws {
-    if let account = overrideAccount ?? account { try await cache.clear(account: account) }
-    occupancyHistory.clear()
-    reset()
-  }
-
-  func applySeatFilter(search: String, onlyAvailable: Bool, debounceSearch: Bool = false) {
-    let term = search.trimmingCharacters(in: .whitespacesAndNewlines)
-    let source = seats
-    seatFilterGeneration &+= 1
-    let current = seatFilterGeneration
-    seatFilterTask?.cancel()
-    seatFilterWork?.cancel()
-    seatFilterTask = Task { [weak self] in
-      if debounceSearch, !term.isEmpty {
-        do { try await Task.sleep(nanoseconds: 120_000_000) }
-        catch { return }
-      }
-      guard !Task.isCancelled, let self else { return }
-      let work = Task.detached(priority: .userInitiated) {
-        var filtered: [LibraryItem] = []
-        filtered.reserveCapacity(min(source.count, 128))
-        for seat in source {
-          guard !Task.isCancelled else { return [LibraryItem]() }
-          if (!onlyAvailable || seat.available) && (term.isEmpty || seat.name.localizedCaseInsensitiveContains(term)) {
-            filtered.append(seat)
-          }
-        }
-        return filtered
-      }
-      self.seatFilterWork = work
-      let filtered = await work.value
-      guard !Task.isCancelled, self.seatFilterGeneration == current else { return }
-      self.filteredSeats = filtered
-      self.seatFilterWork = nil
-      self.seatFilterTask = nil
-    }
-  }
-
-  func clearSeatResults() {
-    cancelSeatFiltering()
-    seats = []; filteredSeats = []; loadedSeats = false
-    seatsFetchedAt = nil; seatsAreCached = false; seatsCacheIsPartial = false
-  }
-
-  private func cancelSeatFiltering() {
-    seatFilterGeneration &+= 1
-    seatFilterTask?.cancel()
-    seatFilterWork?.cancel()
-    seatFilterTask = nil
-    seatFilterWork = nil
-  }
-
-  func run(stage: String = "action", _ work: () async throws -> Void) async {
-    guard !busy else { return }
-    busy = true; message = nil; failed = false
-    defer { busy = false }
-    do { try await work() } catch {
-      AppLog.operationFailed(feature: "library", stage: stage, error: error)
-      failed = true
-      message = error.localizedDescription
-    }
-  }
-  func loadLibraries() async {
-    await run(stage: "libraries") {
-      let formatter = DateFormatter()
-      formatter.locale = Locale(identifier: "en_US_POSIX")
-      formatter.dateFormat = "yyyy-MM-dd"
-      formatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
-      let day = formatter.string(from: Date())
-      let refreshedLibraries = try await client.libraries(day: day)
-      libraries = refreshedLibraries
-      if !libraries.contains(where: { $0.id == libraryID }) {
-        libraryID = ""; areaID = ""; slotID = ""; areas = []; slots = []
-        clearSeatResults()
-      }
-      librariesFetchedAt = Date()
-      message = libraries.isEmpty ? "今天暂无可查询楼馆" : "楼馆已更新"
-      await persistCache()
-    }
-  }
-  func loadAreas() async {
-    areaID = ""; slotID = ""; areas = []; slots = []
-    clearSeatResults()
-    guard !libraryID.isEmpty else { return }
-    await run(stage: "areas") {
-      let formatter = DateFormatter(); formatter.dateFormat = "yyyy-MM-dd"; formatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
-      areas = try await client.areas(library: libraryID, day: formatter.string(from: Date()))
-      if areas.isEmpty { message = "该楼馆暂无可查询分区" }
-      await persistCache()
-    }
-  }
-  func loadSlots() async {
-    slotID = ""; slots = []
-    clearSeatResults()
-    guard !areaID.isEmpty else { return }
-    await run(stage: "slots") {
-      let allSlots = try await client.slots(area: areaID)
-      if let current = Self.currentSlot(in: allSlots, at: Date()) {
-        slots = [current]
-        slotID = current.id
-        message = "已定位到当前时段：\(current.start)–\(current.end)"
-      } else {
-        slots = []
-        slotID = ""
-        message = "当前没有可预约时段"
-      }
-      await persistCache()
-    }
-  }
-  func loadSeats(search: String = "", onlyAvailable: Bool = false) async {
-    guard let slot = selectedSlot else { return }
-    guard Self.currentSlot(in: slots, at: Date())?.id == slot.id else {
-      await loadSlots()
-      message = selectedSlot == nil ? "当前没有可预约时段" : "当前时段已更新，请重新查询座位"
-      return
-    }
-    isRefreshingSeats = true
-    defer { isRefreshingSeats = false }
-    await run(stage: "seats") {
-      let refreshedSeats = try await client.seats(area: areaID, slot: slot)
-      seats = refreshedSeats
-      loadedSeats = true
-      seatsAreCached = false
-      seatsCacheIsPartial = false
-      seatsFetchedAt = Date()
-      applySeatFilter(search: search, onlyAvailable: onlyAvailable)
-      await persistCache()
-    }
-    guard loadedSeats, !failed else { return }
-    occupancyHistory.record(
-      areaID: areaID,
-      availableSeats: seats.filter(\.available).count,
-      totalSeats: seats.count
-    )
-  }
-  func loadBookings(page: Int = 1) async {
-    guard !isLoadingBookings else { return }
-    let targetPage = max(1, page)
-    let samePage = loadedBookings && targetPage == bookingPage
-    if !samePage {
-      bookings = []
-      loadedBookings = false
-    }
-    isLoadingBookings = true
-    message = nil
-    failed = false
-    defer { isLoadingBookings = false }
-    do {
-      let result = try await client.bookings(page: targetPage, limit: bookingPageSize)
-      bookings = result.items
-      bookingPage = result.page
-      bookingPageSize = result.pageSize
-      bookingTotal = result.total
-      bookingHasNext = result.hasNext
-      loadedBookings = true
-      message = "预约记录已更新"
-    } catch {
-      AppLog.operationFailed(feature: "library", stage: "bookings", error: error)
-      failed = true
-      message = error.localizedDescription
-    }
-  }
-
-  func refreshPublicStats() async {
-    guard !refreshingPublicStats else { return }
-    refreshingPublicStats = true
-    defer { refreshingPublicStats = false }
-    do {
-      let snapshot = try await publicStatsClient.fetch()
-      publicStats = snapshot
-      publicStatsAreCached = false
-      publicStatsError = nil
-      occupancyHistory.recordPeople(snapshot)
-      await persistCache()
-    } catch {
-      AppLog.operationFailed(feature: "library", stage: "public_stats", error: error)
-      publicStatsError = error.localizedDescription
-    }
-  }
-  func reserve(_ seat: LibraryItem) async {
-    guard let slot = selectedSlot else { return }
-    guard Self.currentSlot(in: slots, at: Date())?.id == slot.id else {
-      await loadSlots()
-      message = selectedSlot == nil ? "当前没有可预约时段，未提交预约" : "预约时段已变化，未提交预约；请重新查询座位"
-      return
-    }
-    await run(stage: "reserve") {
-      try await client.reserve(seat: seat.id, slot: slot)
-      message = "学校已确认预约成功，请到我的预约查看"
-      clearSeatResults()
-      await persistCache()
-    }
-  }
-  func cancel(_ booking: LibraryBooking) async {
-    guard booking.canCancel() else { return }
-    let page = bookingPage
-    await run(stage: "cancel") {
-      try await client.cancel(id: booking.id)
-      message = "预约已取消"
-      loadedBookings = false
-      bookings = []
-    }
-    if !failed {
-      await loadBookings(page: page)
-      if page > 1 && bookings.isEmpty { await loadBookings(page: page - 1) }
-    }
-  }
-
-  private func persistCache() async {
-    guard let account else { return }
-    let snapshot = LibraryCacheSnapshot(
-      libraries: libraries, libraryID: libraryID, areas: areas, areaID: areaID,
-      slots: slots, slotID: slotID, seats: seats, seatsAreTruncated: seatsCacheIsPartial,
-      seatsFetchedAt: seatsFetchedAt,
-      publicStats: publicStats, fetchedAt: librariesFetchedAt ?? Date()
-    )
-    do { try await cache.save(snapshot, account: account) }
-    catch { AppLog.cacheWriteFailed(feature: "library", error: error) }
-  }
-
-  func occupancySampleCount(weekday: Int, hour: Int) -> Int {
-    occupancyHistory.sampleCount(areaID: areaID, weekday: weekday, hour: hour)
-  }
-
-  func occupancyForecast(weekday: Int, hour: Int) -> LibraryOccupancyForecast? {
-    guard let total = areas.first(where: { $0.id == areaID })?.totalCount else { return nil }
-    return occupancyHistory.forecast(areaID: areaID, weekday: weekday, hour: hour, totalSeats: total)
-  }
-
-  func occupancyTrend(weekday: Int) -> [LibraryOccupancyTrendPoint] {
-    occupancyHistory.trend(areaID: areaID, weekday: weekday)
-  }
-
-  func peopleSampleCount(campusID: String, weekday: Int, hour: Int) -> Int {
-    occupancyHistory.peopleSampleCount(campusID: campusID, weekday: weekday, hour: hour)
-  }
-
-  func peopleForecast(campusID: String, weekday: Int, hour: Int) -> LibraryPeopleForecast? {
-    occupancyHistory.peopleForecast(campusID: campusID, weekday: weekday, hour: hour)
-  }
-
-  func peopleTrend(campusID: String, weekday: Int) -> [LibraryPeopleTrendPoint] {
-    occupancyHistory.peopleTrend(campusID: campusID, weekday: weekday)
-  }
-
-  private static func currentSlot(in slots: [LibrarySlot], at date: Date) -> LibrarySlot? {
-    let timezone = TimeZone(identifier: "Asia/Shanghai") ?? .current
-    var calendar = Calendar(identifier: .gregorian)
-    calendar.timeZone = timezone
-    let dayFormatter = DateFormatter()
-    dayFormatter.locale = Locale(identifier: "en_US_POSIX")
-    dayFormatter.timeZone = timezone
-    dayFormatter.dateFormat = "yyyy-MM-dd"
-    let today = dayFormatter.string(from: date).filter(\.isNumber)
-    let now = calendar.component(.hour, from: date) * 60 + calendar.component(.minute, from: date)
-
-    return slots.first { slot in
-      guard slot.day.filter(\.isNumber) == today,
-            let start = Self.minutes(from: slot.start),
-            let end = Self.minutes(from: slot.end) else { return false }
-      return start <= now && now < end
-    }
-  }
-
-  private static func minutes(from time: String) -> Int? {
-    let parts = time.split(separator: ":")
-    guard parts.count >= 2,
-          let hour = Int(parts[0]),
-          let minute = Int(parts[1].prefix(2)),
-          (0..<24).contains(hour), (0..<60).contains(minute) else { return nil }
-    return hour * 60 + minute
-  }
-}
-
 struct LibraryView: View {
   @EnvironmentObject private var model: LibraryViewModel
   @EnvironmentObject private var appState: AppState
@@ -376,6 +11,7 @@ struct LibraryView: View {
   @State private var tab = "选择座位"
   @State private var pendingSeat: LibraryItem?
   @State private var pendingCancellation: LibraryBooking?
+  @State private var pendingSeatAction: PendingLibrarySeatAction?
   @State private var forecastWeekday = LibraryOccupancyHistory.currentWeekday
   @State private var forecastHour = LibraryOccupancyHistory.currentHour
   @State private var selectedTrendHour: Int?
@@ -399,8 +35,8 @@ struct LibraryView: View {
             .font(.caption).foregroundStyle(.secondary)
         }
         if tab == "选择座位" { seatSelectionContent } else { bookingContent }
-      }.padding(24).frame(maxWidth: 900, alignment: .leading).frame(maxWidth: .infinity)
-    }.background(Color(nsColor: .windowBackgroundColor))
+      }.ginkgoPagePadding().frame(maxWidth: 900, alignment: .leading).frame(maxWidth: .infinity)
+    }.background(Color.ginkgoWindowBackground)
       .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: tab)
       .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: model.busy)
       .task(id: "\(appState.user?.schoolid ?? "")|\(scenePhase == .active)") {
@@ -435,6 +71,20 @@ struct LibraryView: View {
         Button("确认取消预约", role: .destructive) { if let booking = pendingCancellation { Task { await model.cancel(booking) } }; pendingCancellation = nil }
         Button("保留预约", role: .cancel) { pendingCancellation = nil }
       } message: { Text(pendingCancellation?.detail ?? "") }
+      .alert(pendingSeatAction?.action.confirmationTitle ?? "确认操作？", isPresented: Binding(
+        get: { pendingSeatAction != nil },
+        set: { if !$0 { pendingSeatAction = nil } }
+      )) {
+        Button(seatActionButtonTitle(pendingSeatAction), role: pendingSeatAction?.action == .checkout ? .destructive : nil) {
+          if let pending = pendingSeatAction {
+            Task { await model.perform(pending.action, on: pending.booking) }
+          }
+          pendingSeatAction = nil
+        }
+        Button("取消", role: .cancel) { pendingSeatAction = nil }
+      } message: {
+        Text("\(pendingSeatAction?.booking.displayTitle ?? "")\n\(pendingSeatAction.map { $0.action.confirmationMessage(for: $0.booking) } ?? "")")
+      }
   }
 
   private var visibleSeats: [LibraryItem] {
@@ -442,8 +92,13 @@ struct LibraryView: View {
   }
 
   private func openBookingsIfNeeded(for value: String) {
-    guard value == "我的预约", !model.loadedBookings else { return }
-    Task { await model.loadBookings() }
+    guard value == "我的预约" else { return }
+    guard !model.loadedBookings || !model.loadedCurrentBookings else { return }
+    Task { await model.refreshMyBookings(page: model.bookingPage) }
+  }
+
+  private func seatActionButtonTitle(_ pending: PendingLibrarySeatAction?) -> String {
+    pending.map { $0.action.buttonTitle(for: $0.booking) } ?? "确认"
   }
 
   @ViewBuilder
@@ -495,15 +150,43 @@ struct LibraryView: View {
   @ViewBuilder
   private var bookingContent: some View {
     HStack {
-      Button("刷新我的预约") { Task { await model.loadBookings(page: model.bookingPage) } }
-        .disabled(model.isLoadingBookings)
+      Button("刷新我的预约") { Task { await model.refreshMyBookings(page: model.bookingPage) } }
+        .disabled(model.isLoadingBookings || model.isLoadingCurrentBookings)
       Spacer()
-      if model.isLoadingBookings { ProgressView().controlSize(.small) }
+      if model.isLoadingBookings || model.isLoadingCurrentBookings {
+        ProgressView().controlSize(.small)
+      }
     }
-    if model.loadedBookings && model.bookings.isEmpty {
-      PageEmptyState(symbol: "ticket", title: "暂无预约记录", detail: "学校已返回空列表。")
+
+    if let error = model.currentBookingsError {
+      StatusNotice(message: "进行中的预约暂时无法读取：\(error)", kind: .warning)
     }
-    ForEach(model.bookings) { booking in
+
+    Text("进行中的预约")
+      .font(.headline)
+      .frame(maxWidth: .infinity, alignment: .leading)
+    if model.loadedCurrentBookings && model.currentBookings.isEmpty {
+      StatusNotice(message: "当前没有进行中的预约。已结束或已取消的记录在下方历史列表中。", kind: .information)
+    }
+    ForEach(model.currentBookings) { booking in
+      LibraryActiveBookingCard(
+        booking: booking,
+        isBusy: model.busy || model.isLoadingCurrentBookings
+      ) { action in
+        pendingSeatAction = PendingLibrarySeatAction(booking: booking, action: action)
+      } onCancel: {
+        pendingCancellation = booking
+      }
+    }
+
+    Text("历史记录")
+      .font(.headline)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.top, 4)
+    if model.loadedBookings && model.historyBookings.isEmpty {
+      PageEmptyState(symbol: "ticket", title: "暂无历史预约", detail: "学校已返回空列表。")
+    }
+    ForEach(model.historyBookings) { booking in
       LibraryBookingRow(booking: booking, isBusy: model.busy || model.isLoadingBookings) {
         pendingCancellation = booking
       }
@@ -520,6 +203,9 @@ struct LibraryView: View {
       }
       .buttonStyle(.bordered)
     }
+    Text("临时离开会保留座位，需在暂离时限内返回并签到；完全离开会结束本次使用。写操作提交后以学校返回状态为准，Ginkgo 不会自动重试。")
+      .font(.caption)
+      .foregroundStyle(.secondary)
   }
 
   private let seatPageSize = 60
@@ -548,19 +234,7 @@ struct LibraryView: View {
             .font(.caption.monospacedDigit())
             .foregroundStyle(.secondary)
         }
-        Button {
-          Task { await model.refreshPublicStats() }
-        } label: {
-          if model.refreshingPublicStats {
-            ProgressView().controlSize(.small)
-          } else {
-            Image(systemName: "arrow.clockwise")
-          }
-        }
-        .buttonStyle(.plain)
-        .disabled(model.refreshingPublicStats)
-        .help("刷新图书馆实时数据")
-        .accessibilityLabel("刷新图书馆实时数据")
+        publicStatsRefreshButton
       }
 
       if let snapshot = model.publicStats {
@@ -592,8 +266,24 @@ struct LibraryView: View {
       }
     }
     .padding(18)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 14))
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 14))
     .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.primary.opacity(0.07)))
+  }
+
+  private var publicStatsRefreshButton: some View {
+    Button {
+      Task { await model.refreshPublicStats() }
+    } label: {
+      if model.refreshingPublicStats {
+        ProgressView().controlSize(.small)
+      } else {
+        Image(systemName: "arrow.clockwise")
+      }
+    }
+    .buttonStyle(.plain)
+    .disabled(model.refreshingPublicStats)
+    .help("刷新图书馆实时数据")
+    .accessibilityLabel("刷新图书馆实时数据")
   }
 
   private func campusOccupancyCard(_ campus: LibraryCampusOccupancy) -> some View {
@@ -614,16 +304,15 @@ struct LibraryView: View {
           .monospacedDigit()
         Text("人在馆内").font(.caption).foregroundStyle(.secondary)
       }
-      if !campus.readingRooms.isEmpty {
-        HStack(spacing: 8) {
-          ForEach(campus.readingRooms) { room in
-            Text("\(room.name.replacingOccurrences(of: "特色阅览室", with: "阅览室")) · \(room.people) 人")
-          }
-        }
-        .font(.caption)
-        .foregroundStyle(.secondary)
+      if campus.readingRooms.isEmpty == false {
+        Text(campus.readingRooms.map {
+          "\($0.name.replacingOccurrences(of: "特色阅览室", with: "阅览室")) · \($0.people) 人"
+        }.joined(separator: " · "))
+          .font(.caption)
+          .foregroundStyle(.secondary)
+          .fixedSize(horizontal: false, vertical: true)
       }
-      HStack(spacing: 10) {
+      LazyVGrid(columns: [GridItem(.adaptive(minimum: 108), spacing: 8)], alignment: .leading, spacing: 7) {
         if let seats = campus.seats {
           Label("预约座位 \(seats.available)/\(seats.total)", systemImage: "chair")
         }
@@ -636,8 +325,6 @@ struct LibraryView: View {
       }
       .font(.caption.monospacedDigit())
       .foregroundStyle(.secondary)
-      .lineLimit(1)
-      .minimumScaleFactor(0.85)
       .help("依次为可预约座位、可用研讨间、可用寄存柜；斜线后为总量")
     }
     .frame(maxWidth: .infinity, minHeight: 112, alignment: .leading)
@@ -650,17 +337,20 @@ struct LibraryView: View {
   private func peopleForecastContent(_ snapshot: LibraryPublicStats) -> some View {
     let trend = model.peopleTrend(campusID: peopleCampusID, weekday: peopleWeekday)
     return VStack(alignment: .leading, spacing: 12) {
-      HStack(spacing: 10) {
+      LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), spacing: 8)], alignment: .leading, spacing: 8) {
         Picker("校区", selection: $peopleCampusID) {
           ForEach(snapshot.campuses) { Text($0.name).tag($0.id) }
-        }.frame(maxWidth: 150)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
         Picker("星期", selection: $peopleWeekday) {
           Text("周日").tag(1); Text("周一").tag(2); Text("周二").tag(3); Text("周三").tag(4)
           Text("周四").tag(5); Text("周五").tag(6); Text("周六").tag(7)
-        }.frame(width: 92)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
         Picker("时段", selection: $peopleHour) {
           ForEach(7..<24, id: \.self) { Text(String(format: "%02d:00", $0)).tag($0) }
-        }.frame(width: 92)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
       }
 
       if let forecast = model.peopleForecast(campusID: peopleCampusID, weekday: peopleWeekday, hour: peopleHour) {
@@ -740,7 +430,7 @@ struct LibraryView: View {
       LabeledContent("预约时段", value: model.selectedSlot?.title ?? "当前没有开放时段")
       Button("查询当前座位") { Task { await model.loadSeats(search: seatSearch, onlyAvailable: onlyAvailable) } }
         .buttonStyle(.borderedProminent).disabled(model.selectedSlot == nil)
-    }.padding(16).background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+    }.padding(16).background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
       .disabled(model.busy)
       .onChange(of: model.libraryID) { _, _ in Task { await model.loadAreas() } }
       .onChange(of: model.areaID) { _, _ in Task { await model.loadSlots() } }
@@ -752,7 +442,9 @@ struct LibraryView: View {
       Text("分区座位概况").font(.headline)
       ForEach(model.areas) { area in
         HStack(spacing: 12) {
-          Text(area.name).frame(width: 150, alignment: .leading).lineLimit(1)
+          Text(area.name)
+            .frame(width: 150, alignment: .leading)
+            .lineLimit(1)
           if let available = area.availableCount, let total = area.totalCount, total > 0 {
             let clampedAvailable = min(max(available, 0), total)
             ProgressView(value: Double(total - clampedAvailable), total: Double(total))
@@ -765,7 +457,22 @@ struct LibraryView: View {
       }
     }
     .padding(16)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
+  }
+
+  private var forecastWeekdayPicker: some View {
+    Picker("星期", selection: $forecastWeekday) {
+      Text("周日").tag(1); Text("周一").tag(2); Text("周二").tag(3); Text("周三").tag(4)
+      Text("周四").tag(5); Text("周五").tag(6); Text("周六").tag(7)
+    }
+    .frame(maxWidth: 100)
+  }
+
+  private var forecastHourPicker: some View {
+    Picker("时段", selection: $forecastHour) {
+      ForEach(7..<24, id: \.self) { Text(String(format: "%02d:00", $0)).tag($0) }
+    }
+    .frame(maxWidth: 100)
   }
 
   @ViewBuilder
@@ -776,13 +483,8 @@ struct LibraryView: View {
         Label("本机时段估算", systemImage: "chart.xyaxis.line")
           .font(.headline)
         Spacer()
-        Picker("星期", selection: $forecastWeekday) {
-          Text("周日").tag(1); Text("周一").tag(2); Text("周二").tag(3); Text("周三").tag(4)
-          Text("周四").tag(5); Text("周五").tag(6); Text("周六").tag(7)
-        }.frame(width: 100)
-        Picker("时段", selection: $forecastHour) {
-          ForEach(7..<24, id: \.self) { Text(String(format: "%02d:00", $0)).tag($0) }
-        }.frame(width: 100)
+        forecastWeekdayPicker
+        forecastHourPicker
       }
       if let forecast = model.occupancyForecast(weekday: forecastWeekday, hour: forecastHour) {
         Text("近 60 天同星期、同小时有 \(forecast.sampleCount) 天记录，预计约 \(forecast.estimatedUnavailableSeats) / \(forecast.totalSeats) 个座位不可预约。")
@@ -845,7 +547,100 @@ struct LibraryView: View {
         .font(.caption).foregroundStyle(.secondary)
     }
     .padding(16)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
+  }
+}
+
+private struct PendingLibrarySeatAction: Identifiable {
+  let id = UUID()
+  let booking: LibraryBooking
+  let action: LibrarySeatAction
+}
+
+private struct LibraryActiveBookingCard: View {
+  let booking: LibraryBooking
+  let isBusy: Bool
+  let onAction: (LibrarySeatAction) -> Void
+  let onCancel: () -> Void
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      HStack(alignment: .firstTextBaseline) {
+        VStack(alignment: .leading, spacing: 5) {
+          HStack(spacing: 8) {
+            Text(booking.displayTitle).font(.headline)
+            Text(kindLabel)
+              .font(.caption2.weight(.medium))
+              .padding(.horizontal, 7)
+              .padding(.vertical, 2)
+              .background(Color.accentColor.opacity(0.12), in: Capsule())
+              .foregroundStyle(Color.accentColor)
+          }
+          Text(booking.displayDetail).font(.caption).foregroundStyle(.secondary)
+        }
+        Spacer()
+        Text(booking.displayStatus).font(.caption).foregroundStyle(.secondary)
+      }
+
+      if booking.hasLifecycleActions {
+        HStack(spacing: 8) {
+          if booking.canSignIn {
+            actionButton(.signIn)
+          }
+          if booking.canTemporaryLeave {
+            actionButton(.temporaryLeave)
+          }
+          if booking.canCheckout {
+            Button(role: .destructive) {
+              onAction(.checkout)
+            } label: {
+              Label(LibrarySeatAction.checkout.title, systemImage: LibrarySeatAction.checkout.symbol)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .disabled(isBusy)
+          }
+        }
+      }
+
+      HStack {
+        if booking.canCancel() {
+          Button("取消预约", role: .destructive, action: onCancel)
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .disabled(isBusy)
+        }
+        Spacer()
+        Text(booking.hasLifecycleActions
+          ? "操作结果以学校返回状态为准"
+          : (booking.canCancel() ? "座位状态操作未开放" : "学校尚未开放自助操作"))
+          .font(.caption2)
+          .foregroundStyle(.secondary)
+      }
+    }
+    .padding(16)
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
+    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.accentColor.opacity(0.12)))
+  }
+
+  private var kindLabel: String {
+    if booking.isSeminar { return "研讨室" }
+    if booking.isStudySeat { return "研修座位" }
+    return "座位"
+  }
+
+  private func actionButton(_ action: LibrarySeatAction) -> some View {
+    Button {
+      onAction(action)
+    } label: {
+      Label(
+        action == .signIn ? booking.signInActionTitle : action.title,
+        systemImage: action.symbol
+      )
+    }
+    .buttonStyle(.bordered)
+    .controlSize(.small)
+    .disabled(isBusy)
   }
 }
 
@@ -868,7 +663,7 @@ private struct LibraryBookingRow: View {
       }
     }
     .padding(16)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 10))
   }
 }
 

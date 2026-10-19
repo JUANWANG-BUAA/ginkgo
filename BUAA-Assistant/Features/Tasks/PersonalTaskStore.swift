@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 
 struct PersonalTask: Identifiable, Codable {
@@ -18,8 +17,7 @@ final class PersonalTaskStore: ObservableObject {
 
   init(defaults: UserDefaults = .standard) { self.defaults = defaults }
   func load(account: String) {
-    let digest = SHA256.hash(data: Data(account.utf8)).map { String(format: "%02x", $0) }.joined()
-    key = "personalTasks." + digest
+    key = "personalTasks." + LocalStore.accountKey(account)
     errorMessage = nil
     isReadable = true
     guard let data = defaults.data(forKey: key!) else { tasks = []; return }

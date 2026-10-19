@@ -118,7 +118,7 @@ struct JudgeHomeworkClient {
   private func activateSession() async throws {
     // ATS 拒绝明文 HTTP：CAS service 必须用 https，judge 站点本身已验证支持 https（API.md §7.1）。
     let activation = URL(string: "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fjudge.buaa.edu.cn%2F")!
-    let (data, response) = try await session.data(from: activation)
+    let (data, response) = try await session.routedData(from: activation)
     guard let http = response as? HTTPURLResponse else { throw HomeworkError.unavailable }
     if http.statusCode == 401 || http.statusCode == 403 || Self.isAuthenticationPage(data) {
       throw HomeworkError.sessionExpired
@@ -127,7 +127,7 @@ struct JudgeHomeworkClient {
   }
 
   private func getCourses() async throws -> [(id: String, name: String)] {
-    let (data, response) = try await session.data(from: courseURL("0"))
+    let (data, response) = try await session.routedData(from: courseURL("0"))
     let html = try body(data, response)
     let pattern = #"courselist\.jsp\?courseID=(\d+)[^>]*>([\s\S]*?)</a>"#
     let matches = Self.captures(pattern, in: html)
@@ -140,7 +140,7 @@ struct JudgeHomeworkClient {
         throw HomeworkError.upstreamProtocolChanged(source: .judge, stage: "课程列表")
       }
       if id == "0" { continue }
-      let name = Self.cleanText(rawName)
+      let name = Self.plainText(rawName)
       guard !name.isEmpty else { throw HomeworkError.upstreamProtocolChanged(source: .judge, stage: "课程列表") }
       courses.append((id, name))
     }
@@ -148,9 +148,9 @@ struct JudgeHomeworkClient {
   }
 
   private func getAssignments(course: (id: String, name: String)) async throws -> [(id: String, title: String)] {
-    let (selectionData, selectionResponse) = try await session.data(from: courseURL(course.id))
+    let (selectionData, selectionResponse) = try await session.routedData(from: courseURL(course.id))
     _ = try body(selectionData, selectionResponse)
-    let (data, response) = try await session.data(from: base.appendingPathComponent("assignment/index.jsp"))
+    let (data, response) = try await session.routedData(from: base.appendingPathComponent("assignment/index.jsp"))
     let html = try body(data, response)
     let pattern = #"assignID=(\d+)[^>]*>([\s\S]*?)</a>"#
     let matches = Self.captures(pattern, in: html)
@@ -162,7 +162,7 @@ struct JudgeHomeworkClient {
       guard let id = match[safe: 1], let rawTitle = match[safe: 2] else {
         throw HomeworkError.upstreamProtocolChanged(source: .judge, stage: "作业列表")
       }
-      let title = Self.cleanText(rawTitle)
+      let title = Self.plainText(rawTitle)
       guard !title.isEmpty else { throw HomeworkError.upstreamProtocolChanged(source: .judge, stage: "作业列表") }
       assignments.append((id, title))
     }
@@ -172,9 +172,9 @@ struct JudgeHomeworkClient {
   private func getDetail(
     itemID: String, courseID: String, assignmentID: String
   ) async throws -> HomeworkDetail {
-    let (selectionData, selectionResponse) = try await session.data(from: courseURL(courseID))
+    let (selectionData, selectionResponse) = try await session.routedData(from: courseURL(courseID))
     _ = try body(selectionData, selectionResponse)
-    let (data, response) = try await session.data(from: assignmentURL(assignmentID))
+    let (data, response) = try await session.routedData(from: assignmentURL(assignmentID))
     let html = try body(data, response)
     guard Self.hasRecognizedDetail(html) else {
       throw HomeworkError.upstreamProtocolChanged(source: .judge, stage: "作业详情")
@@ -226,7 +226,7 @@ struct JudgeHomeworkClient {
       return captures(#"<tr\b[^>]*>([\s\S]*?)</tr>"#, in: flattened).enumerated().compactMap { rowIndex, row -> HomeworkProblem? in
         guard let rowHTML = row[safe: 1] else { return nil }
         let cells = captures(#"<(?:th|td)\b[^>]*>([\s\S]*?)</(?:th|td)>"#, in: rowHTML)
-          .compactMap { $0[safe: 1] }.map(cleanText)
+          .compactMap { $0[safe: 1] }.map(plainText)
         return parseProblem(cells, id: "\(tableIndex)-\(rowIndex)")
       }
     }
@@ -328,40 +328,18 @@ struct JudgeHomeworkClient {
   }
 
   private static func number(_ text: String) -> String? {
-    let value = cleanText(text)
+    let value = plainText(text)
     return value.range(of: #"^\d+(?:\.\d+)?$"#, options: .regularExpression) == nil ? nil : value
   }
 
-  private static func plainText(_ html: String) -> String {
-    html.replacingOccurrences(of: #"<script\b[\s\S]*?</script>"#, with: " ", options: [.regularExpression, .caseInsensitive])
-      .replacingOccurrences(of: #"</(?:p|div|tr|li|h[1-6])\s*>"#, with: "\n", options: [.regularExpression, .caseInsensitive])
-      .replacingOccurrences(of: #"<br\s*/?>"#, with: "\n", options: [.regularExpression, .caseInsensitive])
-      .replacingOccurrences(of: #"<[^>]+>"#, with: " ", options: .regularExpression)
-      .replacingOccurrences(of: "&nbsp;", with: " ")
-      .replacingOccurrences(of: "&amp;", with: "&")
-      .replacingOccurrences(of: "&lt;", with: "<")
-      .replacingOccurrences(of: "&gt;", with: ">")
-      .replacingOccurrences(of: "&quot;", with: "\"")
-      .replacingOccurrences(of: "&#39;", with: "'")
-      .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
-      .trimmingCharacters(in: .whitespacesAndNewlines)
-  }
-
-  private static func cleanText(_ value: String) -> String { plainText(value) }
+  private static func plainText(_ html: String) -> String { HTMLText.plainText(html) }
   private static func containsEmptyState(in html: String, markers: [String]) -> Bool {
     markers.contains { html.localizedCaseInsensitiveContains($0) }
   }
 
   private static func date(in value: String?) -> Date? {
     guard let value else { return nil }
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
-    for format in ["yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm"] {
-      formatter.dateFormat = format
-      if let date = formatter.date(from: value) { return date }
-    }
-    return nil
+    return SchoolTime.date(from: value, formats: ["yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm"])
   }
 
   private static func firstMatch(_ pattern: String, in text: String) -> [String]? {

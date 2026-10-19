@@ -21,7 +21,7 @@
 | 图书馆 | TLS 命令行探测、加密测试 | HTTPS 系统证书校验通过；OpenSSL 向量一致 | App 内查询、真实预约→列表→取消、研讨室规则 |
 | 空教室、本地待办 | 代码构建 | 编译通过 | 真实查询、保存恢复与交互验收 |
 
-本科真实账号、减少动态/透明度、键盘和 VoiceOver 流程仍待验收；浅深色切换与 980×700 pt 窄窗口已按研究生界面完成抽查，尚未覆盖双账号差异。作业提交、签到/打卡写入及研讨室专用预约尚未完成人工往返验收，不登记为完成；只读签到状态查询另见 2026-10-16 记录。
+本科真实账号、减少动态/透明度、键盘和 VoiceOver 流程仍待验收；浅深色切换与 980×700 pt 窄窗口已按研究生界面完成抽查，尚未覆盖双账号差异。作业提交、签到/打卡写入及研讨室预约写操作尚未完成人工往返验收，不登记为完成；研讨室只读空档已于 2026-10-18 接入；只读签到状态查询另见 2026-10-16 记录。
 
 ## 2026-10-15 · 空教室显示模式与查询交互升级
 
@@ -114,3 +114,86 @@
 | 应用更名 | - | 构建产物 + 运行界面 | 产物为 `Ginkgo.app`，`CFBundleName`/`CFBundleDisplayName` 均为 Ginkgo，窗口标题显示 Ginkgo；bundle id 不变 | 已安装的旧包名需重新安装/更新后变化 |
 | 登录首页重做 | - | CUA 截图 | 品牌区与表单构图平衡，入场/呼吸动画在「减少动态效果」下跳过 | 动画帧率与浅色/深色逐帧对照未验收 |
 | 宣传页手机端 | - | Playwright 390×844 / 1440×900 | 两端均无横向溢出，按钮与下载卡在手机端单列，包含免责声明区块 | 真实手机 Safari 未测 |
+
+## 2026-10-17 · iOS 子项目编译基线
+
+| 范围 | 账号类型 | 证据类型 | 结果 | 未覆盖项 |
+|---|---|---|---|---|
+| iOS App | - | `xcodebuild build -destination generic/platform=iOS` | ✅ 编译/链接通过，产物含 AppIcon、LaunchBackground、PrivacyInfo.xcprivacy | 未签名、未安装真机、未启动 |
+| iOS XCTest bundle | - | `xcodebuild build-for-testing` | ✅ 复用 141 项测试源码，App 与测试 bundle 编译通过 | 当前机器无 Simulator Runtime，未实际执行 XCTest |
+| iOS 信息架构 | - | 代码审查 | iPhone 五 Tab、iPad NavigationSplitView、iOS Form 设置页已接入 | 小屏/大屏、横屏、动态字体、VoiceOver 均待人工验收 |
+| 共享代码回归 | - | macOS `xcodebuild test` | ✅ 141 项、0 失败 | iOS 网络栈与 Cookie 生命周期仍需真机验证 |
+| iOS 隐私基线 | - | 构建产物与代码检查 | ✅ Privacy Manifest 已打包；Application Support 设置备份排除；Keychain 仍使用设备专属可访问性 | 卸载/重装、iCloud 备份与 App Store 隐私标签未实测 |
+| iOS 写操作 | - | - | 未执行 | 图书馆预约/取消与课程签到必须由维护者真机逐项确认 |
+
+本轮只做编译、测试 bundle 构建与代码接入，没有在 iOS 上登录真实账号，也没有发送任何学校上游请求或写操作。
+
+## 2026-10-18 · 原生 iOS UI 与模拟器验收
+
+| 范围 | 账号类型 | 证据类型 | 结果 | 未覆盖项 |
+|---|---|---|---|---|
+| iOS Runtime | - | `xcrun simctl list runtimes` | iOS 27.1 Runtime 仅注册 `iPhone Duo`；另装标准 iOS 27.0 Runtime 后可创建 iPhone 17 Pro、iPhone SE (3rd generation)、iPad Pro 11 | 真机 Runtime 未验证 |
+| iOS 原生 UI | - | XCUITest 截图与人工检查 | 登录使用原生 Form；主界面使用 TabView / NavigationSplitView、List/Form、Section、NavigationStack、toolbar Menu、searchable、refreshable、swipeActions、confirmationDialog | 真机动态字体、VoiceOver、横屏/分屏仍需验收 |
+| iOS 单元测试 | - | `xcodebuild test`，iOS 27.0 Simulator | 167 项、0 失败 | 无 iOS 真机测试 |
+| iOS UI 测试 | - | XCUITest | iPhone 17 Pro 与 iPhone SE：登录输入、Tab/二级页导航通过；iPad Pro 11：侧栏选择与详情切换通过 | 未覆盖通知权限、真实写操作、网络恢复 |
+| iOS 全量回归 | - | `xcodebuild test` | 170 项：169 通过、0 失败、1 项真实账号测试按设计跳过（未注入凭据的回归运行） | 真实账号测试另行单独执行并通过 |
+| 网络路线 | - | 单元测试 + 真实网关探测 | 支持自动/直连/WebVPN；直连 UC 返回 HTTP 483 时自动切换 `d.buaa.edu.cn` WebVPN 并重试 | 真机网络切换与弱网恢复未验证 |
+| 真实账号会话 | 用户授权账号 | iPhone 17 Pro 模拟器 XCUITest + Mac 脱敏集成测试 | 直连 UC 返回 HTTP 483 后自动切换 WebVPN，CAS 登录成功，`uc/status` 返回 `code == 0 + data`，进入「今天」工作台 | 账号密码/验证码分支仍需更多真实样本 |
+| WebVPN 业务只读 | 同一授权账号 | Mac 集成测试 | 研究生课表 20 学期、30 周、7 门；成绩服务；空教室 3 栋/158 间；图书馆 3 馆与公开人数 2 校区；校园通知 5 条；SPOC 13 项作业；iclass 当天课程查询；UC userinfo JSON | Judge 课程列表结构仍需适配 |
+| 博雅只读 | 同一授权账号 | Mac 集成 + iPhone live UI | 74 门课程、5 个二级类别、课程详情、0 门已选、4 组完成统计；页面读回真实数据 | 选课/退选/签到写操作未验收 |
+| 研讨室空档 | 同一授权账号 | Mac 集成 + iPhone live UI | 3 天轴、2 校区、5 类空间、4 类设备、45 个空间及逐时空档；页面读回真实数据 | 预约 `confirm/submit`、取消、参与人和签到写操作未验收 |
+| 研究生教务 | 同一授权账号 | Mac 集成 + iPhone live UI | 学籍白名单摘要、10 章培养方案、59 门计划课程、成绩 0 条、考试 0 条、7 类 46 个应用目录；页面读回真实数据 | 学籍完整敏感字段未映射；其余培养环节页面尚未逐项接入 |
+| 凭据清理 | - | 环境与产物检查 | 真实凭据仅通过临时进程环境传入；未写入仓库；测试后已清除模拟器环境、卸载 App 并删除截图/结果临时文件 | 系统 shell 历史清理不在本仓库控制范围 |
+| 写操作 | - | - | 未执行预约、取消、签到或其他上游写请求 | 必须由维护者在真机逐项确认 |
+
+本轮将 HTTP 483 识别为网络访问策略，而不是账号或密码错误；最终只有在 WebVPN 路线的 `uc/status` 返回 `code==0` 且用户数据非空后才判定登录成功。真实凭据未写入仓库，临时凭据文件与测试 App 已清理。
+
+## 2026-10-19 · 座位生命周期、研讨室预约与 macOS 教务页面
+
+| 范围 | 账号类型 | 证据类型 | 结果 | 未覆盖项 |
+|---|---|---|---|---|
+| macOS 构建 | - | `xcodebuild build -scheme BUAA-Assistant` | 通过 | 无 |
+| macOS 单元测试 | - | `xcodebuild test -scheme BUAA-Assistant` | 193 项、0 失败 | 无真实上游写请求 |
+| iOS 构建 | - | `xcodebuild build -scheme Ginkgo-iOS -destination generic/platform=iOS` | 通过 | 未跑 iOS Simulator XCTest/真机 |
+| 座位动作解析 | - | 合成响应回归 | 覆盖 `flag_in/flag_out/flag_leave/oksign`、研讨室排除座位动作、过期记录只读、缺失提示只读 | 真实 `index/subscribe` 字段仍需核对 |
+| 图书馆研讨室提交体 | - | 合成数据回归 | 覆盖参与人 `team`、`title_id`、`time[]`、手机号校验、时长/粒度/占用校验、`earlierPeriods` 分支 | 真实 `seminar/confirm`/`submit` 成功语义未验收 |
+| 培养进度 | 真实账号只读缓存 + 执行报告接口 | 真实缓存与页面核对 | 方案最低总学分 32，课程池 59 门/114 学分；`loadXspyfazxbgInfo.do` 返回 9 个类别及课组，页面显示思想政治理论课 3、基础及专业理论核心课 9、综合素养课 5、培养环节 1 等要求，以及数学课 3、当代科技 1 等课组最低分；按 32 计算已修/在修/未修 | 真实成绩非空时的完成状态未验收；合并组说明（综合实践最低 8）目前按文本展示 |
+| CGYY 协议 | - | 合成回归 | MD5 签名、AES-ECB、订单状态窗口、门锁密码展示通过 | 真实登录、场馆/时段、预约、取消、门锁密码未验收 |
+| macOS 教务页面 | - | 编译 + 只读 live 数据 | 研究生教务进度页（总要求 32、在修 11、还差 21）在运行 App 中读回真实数据；博雅/研讨室页面通过编译 | 真实窗口浅深色/窄窗口/VoiceOver/动态字体未验收 |
+| 写操作 | - | - | 本轮未主动发送研讨室预约写请求；自动化导航误触过一次图书馆“签到入座”，用户选择自行核对，随后停止所有写操作 | CGYY 预约/取消/门锁密码需维护者逐项确认；结果不确定时只回查，不自动重发 |
+
+本次新增协议依据为 `booking.lib.buaa.edu.cn` H5 公开静态资源、UBAA CGYY 源码与学校培养方案网页的只读核对，属于前端/页面证据，不等同真实端到端验收。CGYY 的滑块识别已按用户明确授权移植，使用前需自行评估上游条款与风控风险。
+
+## 2026-10-19 · 教务层级学分地图与预约可靠性
+
+| 范围 | 证据 | 结果 | 范围限制 |
+|---|---|---|---|
+| macOS 回归 | `xcodebuild test`，macOS、禁用签名 | 210 项通过，0 失败 | 合成响应/本地逻辑，不代表真实上游验收 |
+| iOS 回归 | iPhone SE (3rd generation)、iOS 27.0 Simulator，教务/培养进度/CGYY/图书馆生命周期五组 | 43 项通过，0 失败 | 单元测试，非完整 UI 流程/真机 |
+| iOS 设备构建 | generic/platform=iOS，禁用签名 | 通过 | 非设备安装与真实账号验收 |
+| 教务布局 | 合成数据，NSHostingView 实际渲染，960pt/350pt、浅色/深色 | 已目视检查；筛选控件窄屏挤压已修正，类别与课组可分别定位缺口 | 尚未做真实账号新页面与 VoiceOver 验收 |
+| 方案语义 | 学校静态脚本复核 + 合成解析 | 校企课程、方案认定学分、类别/课组独立要求、最少门数与待考核口径已覆盖 | 合并要求保留全文，未自动推断规则关系 |
+| 图书馆座位预约 | 维护者在本轮会话明确反馈 | 维护者确认可行 | 不扩大为暂离/完全离开等全部动作已验收 |
+| CGYY | 合成网络响应与切换竞争回归 | 401 POST 不重发、缺失状态不报成功、旧日期结果被丢弃 | 本轮未执行真实预约、取消或其他上游写请求 |
+
+## 2026-10-19 · 在修状态与 CGYY 直连修正
+
+| 范围 | 证据 | 结果 | 范围限制 |
+|---|---|---|---|
+| macOS 构建 | `xcodebuild build -project BUAA-Assistant.xcodeproj -scheme BUAA-Assistant -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet` | 通过 | 本轮未运行 XCTest |
+| iOS 构建 | `xcodebuild build -project BUAA-Assistant-iOS/Ginkgo-iOS.xcodeproj -scheme Ginkgo-iOS -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO -quiet` | 通过 | 非模拟器/设备验收 |
+| 教务状态层级 | 代码检查与构建 | 主进度显示方案认定、在修、缺口；按类别/课组映射在修，未匹配课程单独分组；课程池/成绩/长层级分页 | 本轮新窗口未登录，未从真实学分地图逐项核对数值 |
+| CGYY 路由 | 对照 UBAA `LocalCgyyApi.kt` 与本地 `CgyyClient` | SSO Cookie、公开场馆和业务 API 均绕过全局 WebVPN，统一直连 | 新窗口未登录，尚未读取真实时段/订单；未发送预约或取消请求 |
+| 运行窗口 | `cua-driver launch_app` + AX snapshot | 新 Ginkgo 实例后台启动成功；AX 可读取登录页 | 保留原运行实例；窗口截图捕捉不可用，尚未做新版真实窗口视觉验收 |
+
+## 2026-10-19 · 瘦身、共享基础设施与双壳合并
+
+| 范围 | 证据 | 结果 | 范围限制 |
+|---|---|---|---|
+| macOS 回归 | `xcodebuild test`，macOS、禁用签名 | 212 项通过，0 失败 | 合成响应/本地逻辑，不代表真实上游验收 |
+| iOS 回归 | iPhone 17 Pro、iOS 27.0 Simulator，`GinkgoiOSTests` | 212 项通过，0 失败 | 单元测试，非完整 UI 流程/真机 |
+| 双端构建 | macOS 与 iOS Simulator generic build | 通过 | 非设备安装与真实账号验收 |
+| 共享编排 | 代码审查 + 两端编译 | 签到轮询、课程提醒、WebVPN 状态、前后台/网络恢复刷新与账号释放均由 `WorkspaceLifecycleModifier` 统一处理 | 真实前后台切换、网络恢复与通知投递仍需人工验收 |
+| 图书馆范围 | 代码删除 + 文档同步 | 研讨间页面/解析器/只读 API 已删除；座位预约、进行中预约与生命周期写路径保留 | 历史研讨间记录仍可在“我的预约”中查看与取消 |
+
+删除代码属于不可达功能清理，不涉及上游写操作；本轮未发送任何真实预约、签到或取消请求。

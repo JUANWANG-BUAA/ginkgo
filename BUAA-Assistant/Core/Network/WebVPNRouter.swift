@@ -79,7 +79,8 @@ enum WebVPNRouter {
     if let absoluteURL = URL(string: target), absoluteURL.scheme != nil {
       return unwrap(absoluteURL)
     }
-    if ["/https-", "/http-", "/wss-", "/ws-"].contains(where: target.hasPrefix) {
+    if ["/https/", "/http/", "/https-", "/http-", "/wss/", "/ws/", "/wss-", "/ws-"]
+      .contains(where: target.hasPrefix) {
       guard let gatewayURL = URL(string: "https://\(gatewayHost)\(target)") else { return nil }
       return unwrap(gatewayURL)
     }

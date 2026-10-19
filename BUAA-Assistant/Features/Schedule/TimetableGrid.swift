@@ -16,14 +16,14 @@ struct TimetableGrid: View {
             Text("节次 / 时间").font(.caption).frame(width: sectionColumnWidth, height: 52)
             ForEach(1...7, id: \.self) { day in
               VStack(spacing: 3) {
-                Text("周\(["一", "二", "三", "四", "五", "六", "日"][day - 1])").font(.headline)
+                Text(SchoolTime.weekdayName(day)).font(.headline)
                 if let week = snapshot.weeks.first(where: { $0.number == snapshot.weekNumber }),
-                   let date = ScheduleSnapshot.schoolCalendar.date(byAdding: .day, value: day - 1, to: week.start) {
+                   let date = SchoolTime.calendar.date(byAdding: .day, value: day - 1, to: week.start) {
                   Text(date.formatted(.dateTime.month().day())).font(.caption).foregroundStyle(.secondary)
                 }
               }.frame(width: columnWidth, height: 52)
             }
-          }.background(Color(nsColor: .controlBackgroundColor))
+          }.background(Color.ginkgoCardBackground)
           HStack(alignment: .top, spacing: 0) {
             VStack(spacing: 0) {
               ForEach(1...sections, id: \.self) { section in
@@ -40,7 +40,7 @@ struct TimetableGrid: View {
             }
           }
         }
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(Color.ginkgoCardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.primary.opacity(0.08)))
       }
@@ -49,12 +49,12 @@ struct TimetableGrid: View {
     .sheet(item: $selected) { meeting in
       VStack(alignment: .leading, spacing: 16) {
         Text(meeting.name).font(.title2.weight(.semibold))
-        Label("周\(["一", "二", "三", "四", "五", "六", "日"][meeting.day - 1]) · 第 \(meeting.startSection)–\(meeting.endSection) 节", systemImage: "calendar")
+        Label("\(SchoolTime.weekdayName(meeting.day)) · 第 \(meeting.startSection)–\(meeting.endSection) 节", systemImage: "calendar")
         if let start = meeting.startTime, let end = meeting.endTime { Label("\(start)–\(end)", systemImage: "clock") }
         Label(meeting.place ?? "地点待公布", systemImage: "mappin")
         Text(meeting.teacher ?? "教师信息未公布").foregroundStyle(.secondary)
         HStack { Spacer(); Button("完成") { selected = nil }.keyboardShortcut(.defaultAction) }
-      }.padding(24).frame(width: 420)
+      }.padding(24).ginkgoSheetSizing(minWidth: 420, minHeight: 260)
     }
   }
 
@@ -101,17 +101,6 @@ struct TimetableGrid: View {
 
 }
 
-/// 课程稳定配色：同一门课在周网格与学期总览使用同一颜色，避免总览一片单色。
-enum CoursePalette {
-  private static let colors: [Color] = [.blue, .teal, .indigo, .orange, .purple, .pink, .green, .red]
-
-  static func color(for name: String) -> Color {
-    var hash = 5381
-    for scalar in name.unicodeScalars { hash = (hash &* 33) &+ Int(scalar.value) }
-    return colors[abs(hash) % colors.count]
-  }
-}
-
 struct SemesterOverview: View {
   let snapshot: ScheduleSnapshot
   let selectWeek: (Int) -> Void
@@ -132,7 +121,7 @@ struct SemesterOverview: View {
           GridRow {
             Text("周次").frame(width: 76)
             ForEach(1...7, id: \.self) { day in
-              Text("周\(["一", "二", "三", "四", "五", "六", "日"][day - 1])").frame(width: 132)
+              Text(SchoolTime.weekdayName(day)).frame(width: 132)
             }
           }.font(.headline).padding(.vertical, 12)
           ForEach(snapshot.weeks) { week in
@@ -156,7 +145,7 @@ struct SemesterOverview: View {
               }
             }
           }
-        }.background(Color(nsColor: .separatorColor)).clipShape(RoundedRectangle(cornerRadius: 10))
+        }.background(Color.ginkgoSeparator).clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.primary.opacity(0.06)))
       }
     }
@@ -190,6 +179,6 @@ private struct SemesterDayCell: View {
     .frame(width: 116, alignment: .topLeading)
     .frame(minHeight: 60, alignment: .topLeading)
     .padding(8)
-    .background(isCurrent ? Color.accentColor.opacity(0.08) : Color(nsColor: .controlBackgroundColor))
+    .background(isCurrent ? Color.accentColor.opacity(0.08) : Color.ginkgoCardBackground)
   }
 }

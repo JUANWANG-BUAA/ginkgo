@@ -1,0 +1,86 @@
+name: iOS
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes
+
+      - name: Install XcodeGen
+        run: |
+          if ! command -v xcodegen >/dev/null 2>&1; then
+            brew install xcodegen
+          fi
+          xcodegen --version
+
+      - name: Generate project from spec
+        run: |
+          cd BUAA-Assistant-iOS
+          xcodegen generate --spec project.yml
+
+      - name: Build for iOS device
+        run: |
+          xcodebuild build \
+            -project BUAA-Assistant-iOS/Ginkgo-iOS.xcodeproj \
+            -scheme Ginkgo-iOS \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            -quiet
+
+      - name: Select an available iPhone simulator
+        id: simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          candidates = []
+          for runtime, devices in data.get("devices", {}).items():
+              for device in devices:
+                  if device.get("isAvailable") and "iPhone" in device.get("name", ""):
+                      candidates.append((runtime, device.get("udid"), device.get("name")))
+          if not candidates:
+                      raise SystemExit("No available iPhone simulator runtime")
+          candidates.sort(reverse=True)
+          print(candidates[0][1])
+          ')
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          xcrun simctl list devices | grep "$UDID"
+
+      - name: Test
+        run: |
+          xcodebuild test \
+            -project BUAA-Assistant-iOS/Ginkgo-iOS.xcodeproj \
+            -scheme Ginkgo-iOS \
+            -destination "platform=iOS Simulator,id=${{ steps.simulator.outputs.udid }}" \
+            -resultBundlePath iOS-TestResults.xcresult \
+            -quiet
+
+      - name: Whitespace check
+        run: git diff --check
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-results
+          path: iOS-TestResults.xcresult
+          retention-days: 7
+          if-no-files-found: ignore

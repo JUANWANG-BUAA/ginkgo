@@ -1,5 +1,4 @@
 import Foundation
-import CryptoKit
 
 struct ClassroomCacheEntry: Codable {
   let key: String
@@ -9,38 +8,29 @@ struct ClassroomCacheEntry: Codable {
   let fetchedAt: Date
 }
 
+/// 按“校区 + 日期”保存空教室结果，最多保留最近的 12 组查询。
 actor ClassroomCache {
-  private let directory: URL
+  private let store: LocalStore
   private let maximumQueries = 12
 
   init(directory: URL? = nil) {
-    self.directory = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-      .appendingPathComponent("BUAA-Assistant/Classrooms", isDirectory: true)
+    store = LocalStore(module: "Classrooms", directory: directory)
   }
 
   func read(account: String) -> [ClassroomCacheEntry] {
-    guard let data = try? Data(contentsOf: file(account: account)) else { return [] }
-    return (try? JSONDecoder().decode([ClassroomCacheEntry].self, from: data)) ?? []
+    store.read([ClassroomCacheEntry].self, account: account) ?? []
   }
 
   func save(_ entry: ClassroomCacheEntry, account: String) throws {
-    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-    let target = file(account: account)
-    var entries = (try? Data(contentsOf: target)).flatMap { try? JSONDecoder().decode([ClassroomCacheEntry].self, from: $0) } ?? []
+    var entries = read(account: account)
     entries.removeAll { $0.key == entry.key }
     entries.append(entry)
     entries.sort { $0.fetchedAt > $1.fetchedAt }
-    try JSONEncoder().encode(Array(entries.prefix(maximumQueries))).write(to: target, options: .atomic)
+    try store.write(Array(entries.prefix(maximumQueries)), account: account)
   }
 
   func clear(account: String) throws {
-    let target = file(account: account)
-    if FileManager.default.fileExists(atPath: target.path) { try FileManager.default.removeItem(at: target) }
-  }
-
-  private func file(account: String) -> URL {
-    let digest = SHA256.hash(data: Data(account.utf8)).map { String(format: "%02x", $0) }.joined()
-    return directory.appendingPathComponent(digest + ".json")
+    try store.remove(account: account)
   }
 }
 
@@ -163,7 +153,7 @@ private enum ClassroomResultProcessor {
 @MainActor
 final class ClassroomViewModel: ObservableObject {
   @Published var campus = 1 { didSet { if campus != oldValue { reset() } } }
-  @Published var date = Date() { didSet { if !ScheduleSnapshot.schoolCalendar.isDate(date, inSameDayAs: oldValue) { reset() } } }
+  @Published var date = Date() { didSet { if !SchoolTime.calendar.isDate(date, inSameDayAs: oldValue) { reset() } } }
   @Published var search = "" { didSet { updateResults(debounceSearch: true) } }
   @Published var section = 0 { didSet { updateResults() } }
   @Published var minimumFreeSections = 0 { didSet { updateResults() } }
@@ -196,7 +186,7 @@ final class ClassroomViewModel: ObservableObject {
   private var resultComputationTask: Task<ClassroomFilterOutput, Never>?
 
   private var queryKey: String {
-    let components = ScheduleSnapshot.schoolCalendar.dateComponents([.year, .month, .day], from: date)
+    let components = SchoolTime.calendar.dateComponents([.year, .month, .day], from: date)
     return "\(campus)-\(components.year ?? 0)-\(components.month ?? 0)-\(components.day ?? 0)"
   }
 

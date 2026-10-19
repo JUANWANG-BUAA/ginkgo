@@ -26,6 +26,14 @@ final class SpocHomeworkClientTests: XCTestCase {
     XCTAssertEqual(roleList.resolvedCode, "03")
   }
 
+  func testRoleDecoderSupportsCASLoginRoleObjects() throws {
+    let role = try JSONDecoder().decode(
+      SpocHomeworkClient.Role.self,
+      from: Data(#"{"rolecode":null,"jsdmList":null,"role":[{"jsdm":"02","jsmc":"学生"}]}"#.utf8)
+    )
+    XCTAssertEqual(role.resolvedCode, "02")
+  }
+
   func testCurrentTermKeepsHumanNameAndQueryCode() throws {
     let term = try JSONDecoder().decode(
       SpocHomeworkClient.Term.self,
@@ -65,20 +73,20 @@ final class SpocHomeworkClientTests: XCTestCase {
 
   func testDetailParsersKeepPlainTextReadableAndScoreDistinct() {
     XCTAssertEqual(
-      SpocHomeworkClient.plainText("<p>第一题&nbsp;完成</p><p>第二题 &amp; 附图</p>"),
+      HTMLText.multilineText("<p>第一题&nbsp;完成</p><p>第二题 &amp; 附图</p>"),
       "第一题 完成\n第二题 & 附图"
     )
     XCTAssertEqual(SpocHomeworkClient.normalizeScore("满分：100.0 分"), "100.0")
   }
 
   func testSubmissionStatusDoesNotInferSubmittedFromMissingRecord() {
-    XCTAssertEqual(SpocHomeworkClient.submissionStatus(nil, hasSubmissionRecord: false, dueAt: Date().addingTimeInterval(3600)), .pending)
-    XCTAssertEqual(SpocHomeworkClient.submissionStatus(nil, hasSubmissionRecord: true, dueAt: nil), .unknown)
-    XCTAssertEqual(SpocHomeworkClient.submissionStatus("已提交", hasSubmissionRecord: true, dueAt: nil), .submitted)
+    XCTAssertEqual(SpocHomeworkClient.mapSubmissionStatus(nil, hasSubmissionRecord: false, dueAt: Date().addingTimeInterval(3600)).status, .pending)
+    XCTAssertEqual(SpocHomeworkClient.mapSubmissionStatus(nil, hasSubmissionRecord: true, dueAt: nil).status, .unknown)
+    XCTAssertEqual(SpocHomeworkClient.mapSubmissionStatus("已提交", hasSubmissionRecord: true, dueAt: nil).status, .submitted)
   }
 
   func testDetailSubmissionStatusPreservesUnknownUpstreamValue() {
-    let mapped = SpocHomeworkClient.mapDetailSubmissionStatus(
+    let mapped = SpocHomeworkClient.mapSubmissionStatus(
       "已退回",
       hasSubmissionRecord: true,
       dueAt: nil

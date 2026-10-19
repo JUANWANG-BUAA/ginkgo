@@ -42,7 +42,8 @@ struct PageHeading: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       Text(eyebrow.uppercased()).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-      Text(title).font(.largeTitle.weight(.semibold))
+      Text(title)
+        .font(.largeTitle.weight(.semibold))
       Text(subtitle).font(.subheadline).foregroundStyle(.secondary)
     }
     .frame(maxWidth: .infinity, alignment: .leading)

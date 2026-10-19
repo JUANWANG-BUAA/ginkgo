@@ -74,13 +74,13 @@ final class CourseReminderScheduler: ObservableObject {
       await removeScheduledRequests(generation: currentGeneration)
       guard currentGeneration == generation else { return }
       scheduledCount = 0
-      statusMessage = "系统通知未授权；请在 macOS 系统设置中开启"
+      statusMessage = "系统通知未授权；请在系统设置中开启"
       return
     case .notDetermined:
       await removeScheduledRequests(generation: currentGeneration)
       guard currentGeneration == generation else { return }
       scheduledCount = 0
-      statusMessage = "请先授权 macOS 通知，再安排课程提醒"
+      statusMessage = "请先授权系统通知，再安排课程提醒"
       return
     @unknown default:
       await removeScheduledRequests(generation: currentGeneration)
@@ -142,8 +142,7 @@ final class CourseReminderScheduler: ObservableObject {
   }
 
   private static func makeRequests(snapshot: ScheduleSnapshot, now: Date) -> (requests: [UNNotificationRequest], coveredWeeks: Int) {
-    var calendar = ScheduleSnapshot.schoolCalendar
-    calendar.timeZone = TimeZone(identifier: "Asia/Shanghai")!
+    let calendar = SchoolTime.calendar
     let horizon = calendar.date(byAdding: .day, value: horizonDays, to: now) ?? now
     var requests: [UNNotificationRequest] = []
     var identifiers = Set<String>()
@@ -167,13 +166,15 @@ final class CourseReminderScheduler: ObservableObject {
 
       for meeting in meetings {
         guard (1...7).contains(meeting.day),
-              let (hour, minute) = clockTime(meeting.startTime),
+              let startMinutes = SchoolTime.minutes(fromClock: meeting.startTime),
               let meetingDate = calendar.date(
                 byAdding: .day,
                 value: meeting.day - 1,
                 to: calendar.startOfDay(for: week.start)
               ),
-              let start = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: meetingDate),
+              let start = calendar.date(
+                bySettingHour: startMinutes / 60, minute: startMinutes % 60, second: 0, of: meetingDate
+              ),
               start > now,
               start <= horizon,
               let fireDate = calendar.date(byAdding: .minute, value: -10, to: start),
@@ -205,28 +206,8 @@ final class CourseReminderScheduler: ObservableObject {
     }, coveredWeeks)
   }
 
-  private static func clockTime(_ value: String?) -> (hour: Int, minute: Int)? {
-    guard let value else { return nil }
-    let normalized = value.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "：", with: ":")
-    let parts = normalized.split(separator: ":", omittingEmptySubsequences: false)
-    let hour: Int
-    let minute: Int
-    if parts.count == 2, let parsedHour = Int(parts[0]), let parsedMinute = Int(parts[1]) {
-      hour = parsedHour
-      minute = parsedMinute
-    } else if parts.count == 1, let compact = Int(normalized), (3...4).contains(normalized.count) {
-      hour = compact / 100
-      minute = compact % 100
-    } else {
-      return nil
-    }
-    guard (0..<24).contains(hour), (0..<60).contains(minute) else { return nil }
-    return (hour, minute)
-  }
-
   private static func requestIdentifier(meetingID: String, date: Date) -> String {
-    var calendar = ScheduleSnapshot.schoolCalendar
-    calendar.timeZone = TimeZone(identifier: "Asia/Shanghai")!
+    let calendar = SchoolTime.calendar
     let parts = calendar.dateComponents([.year, .month, .day], from: date)
     let dateKey = String(format: "%04d%02d%02d", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0)
     let digest = SHA256.hash(data: Data(meetingID.utf8)).prefix(8).map { String(format: "%02x", $0) }.joined()

@@ -23,7 +23,7 @@ final class CasFormParserTests: XCTestCase {
     XCTAssertEqual(values["captcha"], "12 34")
     XCTAssertEqual(values["captchaResponse"], "12 34")
     XCTAssertEqual(values["password"], "p+a&b")
-    let body = String(decoding: CasFormParser.encodedBody(fields), as: UTF8.self)
+    let body = String(decoding: FormURLEncoding.body(fields), as: UTF8.self)
     XCTAssertTrue(body.contains("execution=part%2Btwo%2Fthree"))
     XCTAssertTrue(body.contains("password=p%2Ba%26b"))
     XCTAssertTrue(body.contains("captcha=12%2034"))

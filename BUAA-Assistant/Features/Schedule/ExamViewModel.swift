@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 
 struct ExamCacheEntry: Codable {
@@ -6,41 +5,31 @@ struct ExamCacheEntry: Codable {
   let fetchedAt: Date
 }
 
+/// 按学期保存考试结果，最多保留最近更新的 12 个学期。
 actor ExamCache {
-  private let directory: URL
+  private let store: LocalStore
   private let maximumTerms = 12
 
   init(directory: URL? = nil) {
-    self.directory = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-      .appendingPathComponent("BUAA-Assistant/Exams", isDirectory: true)
+    store = LocalStore(module: "Exams", directory: directory)
   }
 
   func read(account: String, termID: String) -> ExamCacheEntry? {
-    guard let data = try? Data(contentsOf: file(account: account)),
-          let entries = try? JSONDecoder().decode([String: ExamCacheEntry].self, from: data) else { return nil }
-    return entries[termID]
+    store.read([String: ExamCacheEntry].self, account: account)?[termID]
   }
 
   func save(_ entry: ExamCacheEntry, account: String, termID: String) throws {
-    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-    let target = file(account: account)
-    var entries = (try? Data(contentsOf: target)).flatMap { try? JSONDecoder().decode([String: ExamCacheEntry].self, from: $0) } ?? [:]
+    var entries = store.read([String: ExamCacheEntry].self, account: account) ?? [:]
     entries[termID] = entry
     if entries.count > maximumTerms {
       let retained = entries.sorted { $0.value.fetchedAt > $1.value.fetchedAt }.prefix(maximumTerms)
       entries = Dictionary(uniqueKeysWithValues: retained.map { ($0.key, $0.value) })
     }
-    try JSONEncoder().encode(entries).write(to: target, options: .atomic)
+    try store.write(entries, account: account)
   }
 
   func clear(account: String) throws {
-    let target = file(account: account)
-    if FileManager.default.fileExists(atPath: target.path) { try FileManager.default.removeItem(at: target) }
-  }
-
-  private func file(account: String) -> URL {
-    let digest = SHA256.hash(data: Data(account.utf8)).map { String(format: "%02x", $0) }.joined()
-    return directory.appendingPathComponent(digest + ".json")
+    try store.remove(account: account)
   }
 }
 
@@ -58,8 +47,7 @@ final class ExamViewModel: ObservableObject {
   private let cache: ExamCache
   private var account: String?
   private var generation = 0
-  private var lastAutomaticRefreshAttemptAt: Date?
-  private var pendingAutomaticRefresh = false
+  private var autoRefresh = AutoRefreshGate()
 
   init(service: ExamServing = ScheduleClient(), cache: ExamCache = ExamCache()) {
     self.service = service
@@ -70,8 +58,7 @@ final class ExamViewModel: ObservableObject {
     guard !termID.isEmpty else { return }
     if let account, self.account != account {
       generation += 1
-      lastAutomaticRefreshAttemptAt = nil
-      pendingAutomaticRefresh = false
+      autoRefresh.reset()
       exams = nil
       fetchedAt = nil
       loadedTermID = nil
@@ -132,8 +119,7 @@ final class ExamViewModel: ObservableObject {
 
   func reset() {
     generation += 1
-    lastAutomaticRefreshAttemptAt = nil
-    pendingAutomaticRefresh = false
+    autoRefresh.reset()
     exams = nil
     fetchedAt = nil
     loadedTermID = nil
@@ -151,30 +137,22 @@ final class ExamViewModel: ObservableObject {
     forceRefresh: Bool = false
   ) async {
     guard account != nil else { return }
-    if isLoading {
-      if queueIfLoading { pendingAutomaticRefresh = true }
-      return
-    }
+    if isLoading { autoRefresh.deferWhileLoading(queue: queueIfLoading); return }
     guard let termID = loadedTermID else { return }
-    let now = Date()
-    let isStale = fetchedAt.map { now.timeIntervalSince($0) >= maxAge } ?? true
-    guard forceRefresh || errorMessage != nil || isStale else { return }
-    let cooldown: TimeInterval = forceRefresh ? 5 : 30
-    if !bypassCooldown, let lastAutomaticRefreshAttemptAt,
-       now.timeIntervalSince(lastAutomaticRefreshAttemptAt) < cooldown { return }
-    lastAutomaticRefreshAttemptAt = now
+    let isStale = fetchedAt.map { Date().timeIntervalSince($0) >= maxAge } ?? true
+    guard forceRefresh || errorMessage != nil || isStale,
+          autoRefresh.allowsAttempt(force: forceRefresh, bypassCooldown: bypassCooldown) else { return }
     await load(termID: termID, force: true)
   }
 
   func cancelPendingAutomaticRefresh() {
-    pendingAutomaticRefresh = false
+    autoRefresh.cancelPending()
   }
 
   private func finishRefresh(current: Int) {
     guard current == generation else { return }
     isLoading = false
-    guard pendingAutomaticRefresh else { return }
-    pendingAutomaticRefresh = false
+    guard autoRefresh.takePending() else { return }
     Task { await refreshIfStale(bypassCooldown: true) }
   }
 

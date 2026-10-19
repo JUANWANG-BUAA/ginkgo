@@ -1,5 +1,4 @@
 import Foundation
-import CommonCrypto
 
 struct SpocHomeworkClient {
   private enum Stage: String {
@@ -15,6 +14,10 @@ struct SpocHomeworkClient {
   let session: URLSession
   private let api = "https://spoc.buaa.edu.cn/spocnewht"
   private let json = JSONDecoder()
+
+  init(session: URLSession = APIClient.shared.session) {
+    self.session = session
+  }
 
   private struct LoadedAssignments {
     let items: [HomeworkItem]
@@ -43,20 +46,26 @@ struct SpocHomeworkClient {
   }
   struct Submission: Decodable { let tjzt: String?; let tjsj: String? }
   struct Role: Decodable {
+    struct Entry: Decodable { let jsdm: String? }
+
     let jsdm: String?
     let rolecode: String?
     let jsdmList: String?
+    let roles: [Entry]
 
-    private enum CodingKeys: String, CodingKey { case jsdm, rolecode, jsdmList }
+    private enum CodingKeys: String, CodingKey { case jsdm, rolecode, jsdmList, role }
 
     init(from decoder: Decoder) throws {
       let container = try decoder.container(keyedBy: CodingKeys.self)
       jsdm = Self.firstString(in: container, forKey: .jsdm)
       rolecode = Self.firstString(in: container, forKey: .rolecode)
       jsdmList = Self.firstString(in: container, forKey: .jsdmList)
+      roles = (try? container.decode([Entry].self, forKey: .role)) ?? []
     }
 
-    var resolvedCode: String? { jsdm ?? rolecode ?? jsdmList }
+    var resolvedCode: String? {
+      jsdm ?? rolecode ?? jsdmList ?? roles.compactMap(\.jsdm).first(where: { $0.isEmpty == false })
+    }
 
     private static func firstString(
       in container: KeyedDecodingContainer<CodingKeys>,
@@ -73,8 +82,6 @@ struct SpocHomeworkClient {
       return nil
     }
   }
-
-  var items: [HomeworkItem] { get async throws { try await loadItems().items } }
 
   func load() async throws -> HomeworkSnapshot {
     let loaded = try await loadItems()
@@ -216,14 +223,14 @@ struct SpocHomeworkClient {
     ])
     let submission = try await getOptional(submissionURL, headers: headers(token, role), type: Submission.self, stage: .submissionInfo)
     let dueAt = Self.date(assignment.zyjzsj)
-    let status = Self.mapDetailSubmissionStatus(
+    let status = Self.mapSubmissionStatus(
       submission?.tjzt,
       hasSubmissionRecord: submission != nil,
       dueAt: dueAt
     )
     return HomeworkDetail(
       itemID: "spoc:\(assignmentID)",
-      content: Self.plainText(assignment.zynr),
+      content: assignment.zynr.flatMap(HTMLText.multilineText),
       submissionStatus: status.status,
       statusDetail: status.detail,
       submittedAt: Self.date(submission?.tjsj),
@@ -235,26 +242,33 @@ struct SpocHomeworkClient {
   }
 
   private func loginToken() async throws -> String {
-    var url = URL(string: "\(api)/cas")!
-    for hop in 0..<8 {
-      let request = URLRequest(url: url)
-      let (_, http) = try await requestData(request, using: APIClient.shared.noRedirectSession, stage: .loginRedirect)
-      if let location = http.value(forHTTPHeaderField: "Location"), let next = URL(string: location, relativeTo: url)?.absoluteURL {
-        if let components = URLComponents(url: next, resolvingAgainstBaseURL: false), next.path.contains("/spocnew/cas"), let token = components.queryItems?.first(where: { $0.name == "token" })?.value {
-          AppLog.network.info("SPOC request succeeded stage=login_redirect hops=\(hop + 1)")
-          return token
-        }
-        guard (300..<400).contains(http.statusCode) else {
-          throw HomeworkError.spocFailure(stage: Stage.loginRedirect.rawValue, reason: "未返回访问凭证")
-        }
-        url = next; continue
-      }
-      if let components = URLComponents(url: url, resolvingAgainstBaseURL: false), let token = components.queryItems?.first(where: { $0.name == "token" })?.value { return token }
-      AppLog.network.error("SPOC request failed stage=login_redirect http_status=\(http.statusCode) outcome=location_missing")
-      throw HomeworkError.spocFailure(stage: Stage.loginRedirect.rawValue, reason: "未收到有效登录跳转")
+    // 浏览器先加载 SPA，再一次性跟随 CAS 重定向链。当前上游会校验这次
+    // 浏览及回调产生的 SPOC/WebVPN Cookie；只取中间 Location 会得到错误 UUID。
+    if let landing = URL(string: "https://spoc.buaa.edu.cn/spocnew/") {
+      var landingRequest = URLRequest(url: landing)
+      landingRequest.setValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
+      _ = try? await session.routedData(for: landingRequest)
     }
-    AppLog.network.error("SPOC request failed stage=login_redirect outcome=redirect_limit")
-    throw HomeworkError.spocFailure(stage: Stage.loginRedirect.rawValue, reason: "登录跳转次数过多")
+
+    guard let casURL = URL(string: "\(api)/cas") else {
+      throw HomeworkError.spocFailure(stage: Stage.loginRedirect.rawValue, reason: "登录地址无效")
+    }
+    var request = URLRequest(url: casURL)
+    request.timeoutInterval = 35
+    request.setValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
+    let (_, response) = try await requestData(request, using: session, stage: .loginRedirect)
+    if let components = URLComponents(url: response.url ?? casURL, resolvingAgainstBaseURL: false),
+       let token = components.queryItems?.first(where: { $0.name == "token" })?.value,
+       token.isEmpty == false {
+      AppLog.network.info("SPOC request succeeded stage=login_redirect")
+      return token
+    }
+
+    let looksLikeLogin = response.statusCode == 200
+    AppLog.network.error(
+      "SPOC request failed stage=login_redirect http_status=\(response.statusCode, privacy: .public) outcome=\(looksLikeLogin ? "login_page" : "location_missing", privacy: .public)"
+    )
+    throw HomeworkError.spocFailure(stage: Stage.loginRedirect.rawValue, reason: "未收到有效登录跳转")
   }
 
   private func headers(_ token: String, _ role: String) -> [String: String] { ["Token": "Inco-\(token)", "RoleCode": role, "X-Requested-With": "XMLHttpRequest"] }
@@ -274,7 +288,11 @@ struct SpocHomeworkClient {
     request.setValue("application/json, text/javascript, */*; q=0.01", forHTTPHeaderField: "Accept")
     let (data, response) = try await requestData(request, using: session, stage: stage)
     guard response.statusCode == 200 else {
-      AppLog.network.error("SPOC request failed stage=\(stage.rawValue, privacy: .public) http_status=\(response.statusCode)")
+      let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+      let shape = root.map { "keys=\($0.keys.sorted().joined(separator: ",")) code=\(String(describing: $0["code"])) msg=\(String(describing: $0["msg"]).prefix(80))" } ?? "non_object"
+      AppLog.network.error(
+        "SPOC request failed stage=\(stage.rawValue, privacy: .public) http_status=\(response.statusCode, privacy: .public) bytes=\(data.count) shape=\(shape, privacy: .public)"
+      )
       throw HomeworkError.spocFailure(stage: stage.rawValue, reason: "服务返回 HTTP \(response.statusCode)")
     }
     let envelope: Envelope<T>
@@ -310,10 +328,11 @@ struct SpocHomeworkClient {
   private func requestData(
     _ request: URLRequest,
     using session: URLSession,
-    stage: Stage
+    stage: Stage,
+    noRedirect: Bool = false
   ) async throws -> (Data, HTTPURLResponse) {
     do {
-      let (data, response) = try await session.data(for: request)
+      let (data, response) = try await session.routedData(for: request, noRedirect: noRedirect)
       guard let http = response as? HTTPURLResponse else {
         AppLog.network.error("SPOC request failed stage=\(stage.rawValue, privacy: .public) outcome=non_http_response")
         throw HomeworkError.spocFailure(stage: stage.rawValue, reason: "服务器响应无效")
@@ -341,7 +360,11 @@ struct SpocHomeworkClient {
       envelope = try JSONDecoder().decode(Envelope<T>.self, from: data)
     } catch {
       let looksLikeHTML = String(data: data.prefix(128), encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased().hasPrefix("<") == true
-      AppLog.network.error("SPOC request failed stage=\(stage.rawValue, privacy: .public) outcome=\(looksLikeHTML ? "html_response" : "invalid_json", privacy: .public)")
+      let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+      let content = root?["content"]
+      let contentType = content.map { String(describing: Swift.type(of: $0)) } ?? "nil"
+      let shape = root.map { "keys=\($0.keys.sorted().joined(separator: ",")) code=\(String(describing: $0["code"])) content=\(contentType)" } ?? "non_object"
+      AppLog.network.error("SPOC request failed stage=\(stage.rawValue, privacy: .public) outcome=\(looksLikeHTML ? "html_response" : "invalid_json", privacy: .public) shape=\(shape)")
       if looksLikeHTML {
         throw HomeworkError.spocFailure(stage: stage.rawValue, reason: "收到登录页面，请重新登录后重试")
       }
@@ -370,14 +393,10 @@ struct SpocHomeworkClient {
       formatter.formatOptions = options
       if let date = formatter.date(from: value) { return date }
     }
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
-    for pattern in ["yyyy-MM-dd HH:mm:ss.SSS", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd"] {
-      formatter.dateFormat = pattern
-      if let date = formatter.date(from: value) { return date }
-    }
-    return nil
+    return SchoolTime.date(
+      from: value,
+      formats: ["yyyy-MM-dd HH:mm:ss.SSS", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd"]
+    )
   }
 
   static func normalizeScore(_ value: String?) -> String? {
@@ -386,38 +405,15 @@ struct SpocHomeworkClient {
     return String(value[range])
   }
 
-  static func submissionStatus(_ raw: String?, hasSubmissionRecord: Bool, dueAt: Date?) -> HomeworkStatus {
-    switch raw?.trimmingCharacters(in: .whitespacesAndNewlines) {
-    case "1", "已做", "已提交": return .submitted
-    case "0", "未做", "未提交", nil, "":
-      guard hasSubmissionRecord else { return (dueAt ?? .distantFuture) < Date() ? .overdue : .pending }
-      return .unknown
-    case .some: return .unknown
-    }
-  }
-
+  /// 列表接口只有 `tjzt`；详情接口另带提交记录。没有提交记录时才按截止时间推断待处理/逾期，
+  /// 有记录但状态缺失时保持未知，不臆测为已提交；无法识别的上游原文保留在 detail 中。
   static func mapSubmissionStatus(
     _ rawStatus: String?,
+    hasSubmissionRecord: Bool = false,
     dueAt: Date?,
     now: Date = Date()
   ) -> (status: HomeworkStatus, detail: String?) {
-    let normalized = rawStatus?.trimmingCharacters(in: .whitespacesAndNewlines)
-    switch normalized {
-    case "1", "已做", "已提交": return (.submitted, nil)
-    case "0", "未做", "未提交": return ((dueAt ?? .distantFuture) < now ? .overdue : .pending, nil)
-    case nil, "": return ((dueAt ?? .distantFuture) < now ? .overdue : .pending, nil)
-    case .some(let value): return (.unknown, value)
-    }
-  }
-
-  static func mapDetailSubmissionStatus(
-    _ rawStatus: String?,
-    hasSubmissionRecord: Bool,
-    dueAt: Date?,
-    now: Date = Date()
-  ) -> (status: HomeworkStatus, detail: String?) {
-    let normalized = rawStatus?.trimmingCharacters(in: .whitespacesAndNewlines)
-    switch normalized {
+    switch rawStatus?.trimmingCharacters(in: .whitespacesAndNewlines) {
     case "1", "已做", "已提交": return (.submitted, nil)
     case "0", "未做", "未提交", nil, "":
       guard hasSubmissionRecord else {
@@ -428,48 +424,22 @@ struct SpocHomeworkClient {
     }
   }
 
-  static func plainText(_ html: String?) -> String? {
-    guard let html, !html.isEmpty else { return nil }
-    let withBreaks = html.replacingOccurrences(
-      of: #"(?i)<br\s*/?>|</p\s*>|</li\s*>|</div\s*>"#,
-      with: "\n",
-      options: .regularExpression
-    )
-    let text = withBreaks
-      .replacingOccurrences(of: #"<[^>]+>"#, with: " ", options: .regularExpression)
-      .replacingOccurrences(of: "&nbsp;", with: " ")
-      .replacingOccurrences(of: "&amp;", with: "&")
-      .replacingOccurrences(of: "&lt;", with: "<")
-      .replacingOccurrences(of: "&gt;", with: ">")
-      .replacingOccurrences(of: "&quot;", with: "\"")
-      .replacingOccurrences(of: "&#39;", with: "'")
-    let lines = text.components(separatedBy: .newlines)
-      .map { $0.split(whereSeparator: \.isWhitespace).joined(separator: " ") }
-      .filter { !$0.isEmpty }
-    return lines.isEmpty ? nil : lines.joined(separator: "\n")
-  }
-
   private static func url(_ value: String, queryItems: [URLQueryItem]) -> URL {
     var components = URLComponents(string: value)!
     components.queryItems = queryItems
     return components.url!
   }
+  /// 分页参数使用 AES-CBC + 零填充（不是 PKCS7），与 SPOC 前端一致（API.md §7.1）。
   static func encrypt(_ data: Data) -> String {
     var input = data
     input.append(Data(repeating: 0, count: (16 - data.count % 16) % 16))
-    let outputCapacity = input.count + kCCBlockSizeAES128
-    var output = Data(count: outputCapacity)
-    var moved = 0
-    let key = Array("inco12345678ocni".utf8)
-    let iv = Array("ocni12345678inco".utf8)
-    let inputCount = input.count
-    _ = input.withUnsafeBytes { inputBytes in
-      output.withUnsafeMutableBytes { outputBytes in
-        CCCrypt(CCOperation(kCCEncrypt), CCAlgorithm(kCCAlgorithmAES), CCOptions(0), key, kCCKeySizeAES128, iv,
-          inputBytes.baseAddress, inputCount, outputBytes.baseAddress, outputCapacity, &moved)
-      }
-    }
-    return output.prefix(moved).base64EncodedString()
+    let encrypted = AESCipher.encrypt(
+      input,
+      key: Array("inco12345678ocni".utf8),
+      mode: .cbc(iv: Array("ocni12345678inco".utf8)),
+      pkcs7Padding: false
+    )
+    return encrypted?.base64EncodedString() ?? ""
   }
   private static let currentTermParam = "YHrxtTavu6raCwC0/qdgYffB9evWHBkTng/XS4W6j3f/TPo02iEPSoegscDTRNzIPRG49o3RHl4JiFCXAiBkkA=="
   private static let assignmentSQLID = "1713252980496efac7d5d9985e81693116d3e8a52ebf2b"

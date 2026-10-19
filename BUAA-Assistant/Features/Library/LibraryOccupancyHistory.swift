@@ -68,7 +68,7 @@ final class LibraryOccupancyHistory {
   func record(areaID: String, availableSeats: Int, totalSeats: Int, at date: Date = Date()) {
     guard !areaID.isEmpty, totalSeats > 0 else { return }
     let calendar = Self.calendar
-    let day = Self.dayFormatter.string(from: date)
+    let day = SchoolTime.dayString(date)
     let sample = Sample(
       areaID: areaID,
       day: day,
@@ -99,7 +99,7 @@ final class LibraryOccupancyHistory {
 
   func recordPeople(campusID: String, people: Int, at date: Date = Date()) {
     guard !campusID.isEmpty, people >= 0 else { return }
-    let day = Self.dayFormatter.string(from: date)
+    let day = SchoolTime.dayString(date)
     let sample = PeopleSample(
       campusID: campusID,
       day: day,
@@ -122,7 +122,7 @@ final class LibraryOccupancyHistory {
   }
 
   func sampleCount(areaID: String, weekday: Int, hour: Int, before date: Date = Date()) -> Int {
-    let today = Self.dayFormatter.string(from: date)
+    let today = SchoolTime.dayString(date)
     let firstDay = Self.minimumDay(from: date, days: maximumAgeDays)
     return loadSamples().filter {
       $0.areaID == areaID && $0.weekday == weekday && $0.hour == hour && $0.day >= firstDay && $0.day < today
@@ -137,7 +137,7 @@ final class LibraryOccupancyHistory {
     before date: Date = Date()
   ) -> LibraryOccupancyForecast? {
     guard totalSeats > 0 else { return nil }
-    let today = Self.dayFormatter.string(from: date)
+    let today = SchoolTime.dayString(date)
     let firstDay = Self.minimumDay(from: date, days: maximumAgeDays)
     let samples = loadSamples().filter {
       $0.areaID == areaID && $0.weekday == weekday && $0.hour == hour &&
@@ -154,7 +154,7 @@ final class LibraryOccupancyHistory {
   }
 
   func trend(areaID: String, weekday: Int, before date: Date = Date()) -> [LibraryOccupancyTrendPoint] {
-    let today = Self.dayFormatter.string(from: date)
+    let today = SchoolTime.dayString(date)
     let firstDay = Self.minimumDay(from: date, days: maximumAgeDays)
     let samples = loadSamples().filter {
       $0.areaID == areaID && $0.weekday == weekday && $0.day >= firstDay && $0.day <= today && $0.totalSeats > 0
@@ -174,7 +174,7 @@ final class LibraryOccupancyHistory {
   }
 
   func peopleSampleCount(campusID: String, weekday: Int, hour: Int, before date: Date = Date()) -> Int {
-    let today = Self.dayFormatter.string(from: date)
+    let today = SchoolTime.dayString(date)
     let firstDay = Self.minimumDay(from: date, days: maximumAgeDays)
     return loadPeopleSamples().filter {
       $0.campusID == campusID && $0.weekday == weekday && $0.hour == hour && $0.day >= firstDay && $0.day < today
@@ -187,7 +187,7 @@ final class LibraryOccupancyHistory {
     hour: Int,
     before date: Date = Date()
   ) -> LibraryPeopleForecast? {
-    let today = Self.dayFormatter.string(from: date)
+    let today = SchoolTime.dayString(date)
     let firstDay = Self.minimumDay(from: date, days: maximumAgeDays)
     let samples = loadPeopleSamples().filter {
       $0.campusID == campusID && $0.weekday == weekday && $0.hour == hour &&
@@ -199,7 +199,7 @@ final class LibraryOccupancyHistory {
   }
 
   func peopleTrend(campusID: String, weekday: Int, before date: Date = Date()) -> [LibraryPeopleTrendPoint] {
-    let today = Self.dayFormatter.string(from: date)
+    let today = SchoolTime.dayString(date)
     let firstDay = Self.minimumDay(from: date, days: maximumAgeDays)
     let samples = loadPeopleSamples().filter {
       $0.campusID == campusID && $0.weekday == weekday && $0.day >= firstDay && $0.day <= today
@@ -252,21 +252,9 @@ final class LibraryOccupancyHistory {
     defaults.set(data, forKey: peopleKey)
   }
 
-  private static var calendar: Calendar {
-    var calendar = Calendar(identifier: .gregorian)
-    calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? .current
-    return calendar
-  }
-
-  private static let dayFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
-    formatter.dateFormat = "yyyy-MM-dd"
-    return formatter
-  }()
+  private static var calendar: Calendar { SchoolTime.calendar }
 
   private static func minimumDay(from date: Date, days: Int) -> String {
-    dayFormatter.string(from: calendar.date(byAdding: .day, value: -days, to: date) ?? date)
+    SchoolTime.dayString(calendar.date(byAdding: .day, value: -days, to: date) ?? date)
   }
 }

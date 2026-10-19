@@ -93,6 +93,26 @@ final class ScheduleParserTests: XCTestCase {
     XCTAssertEqual(weeks.count, 4)
   }
 
+  func testGraduateTermsMarkNewestTermAsSelected() throws {
+    let data = Data(#"""
+    {"code":"0","datas":{"kfdxnxqcx":{"rows":[
+      {"XNXQDM":"20242","XNXQDM_DISPLAY":"2024-2025学年 第二学期"},
+      {"XNXQDM":"20261","XNXQDM_DISPLAY":"2026-2027学年 第一学期"},
+      {"XNXQDM":"20253","XNXQDM_DISPLAY":"2025-2026学年 第三学期"}
+    ]}}}
+    """#.utf8)
+    let terms = try ScheduleParser.terms(data, portal: .graduate)
+    XCTAssertEqual(terms.map(\.id), ["20261", "20253", "20242"])
+    XCTAssertTrue(terms[0].isSelected)
+    XCTAssertFalse(terms[1].isSelected)
+    XCTAssertFalse(terms[2].isSelected)
+  }
+
+  func testGraduateEmptyPublishedScheduleIsValidEmptyResult() throws {
+    let data = Data(#"{"code":1,"jcfaList":[],"jgList":[],"rwList":[]}"#.utf8)
+    XCTAssertEqual(try ScheduleParser.graduateWeeks(data, termID: "20261"), [])
+  }
+
   func testGraduateAllTasksWithoutRowsIsRejected() {
     let json = #"{"code":"1","jgList":[{"BJDM":"A","XNXQDM":"20251","XQ":3,"ZCBH":"10"}],"rwList":[{"BJDM":"B","XNXQDM":"20251","SCSKRQ":"2025-09-03"}],"jcfaList":[]}"#
     XCTAssertThrowsError(try ScheduleParser.graduateWeeks(Data(json.utf8), termID: "20251"))

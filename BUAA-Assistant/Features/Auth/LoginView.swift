@@ -9,14 +9,30 @@ struct LoginView: View {
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var appeared = false
   @State private var glow = false
+  @FocusState private var focusedField: Field?
+  @AppStorage(UpstreamRoutePreference.storageKey) private var upstreamRoute = UpstreamRoutePreference.automatic.rawValue
+
+  private enum Field: Hashable {
+    case username
+    case password
+    case captcha
+  }
 
   var body: some View {
-    HStack(spacing: 0) {
-      brandPanel
-      formPanel
+    GeometryReader { geometry in
+      Group {
+        if geometry.size.width < 760 {
+          compactLayout
+        } else {
+          HStack(spacing: 0) {
+            brandPanel
+            formPanel
+          }
+        }
+      }
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(Color(nsColor: .windowBackgroundColor))
+    .background(Color.ginkgoWindowBackground)
     .onAppear {
       viewModel.prefill(from: appState.rememberedCredential)
       if reduceMotion {
@@ -25,6 +41,48 @@ struct LoginView: View {
         withAnimation(.easeOut(duration: 0.5)) { appeared = true }
         withAnimation(.easeInOut(duration: 2.6).repeatForever(autoreverses: true)) { glow = true }
       }
+    }
+  }
+
+  /// iPhone and compact split-view widths collapse the two-column desktop
+  /// composition into one focused, vertically scrolling sign-in flow.
+  private var compactLayout: some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: 24) {
+        HStack(spacing: 12) {
+          appIcon
+          VStack(alignment: .leading, spacing: 3) {
+            Text("Ginkgo")
+              .font(.system(.title2, design: .rounded).weight(.semibold))
+            Text("北航校园工作台")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+          }
+          Spacer()
+        }
+
+        Text("你的校园，\n一目了然。")
+          .font(.system(.title, design: .rounded, weight: .bold))
+          .fixedSize(horizontal: false, vertical: true)
+
+        VStack(alignment: .leading, spacing: 16) {
+          formFields
+        }
+        .padding(20)
+        .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay {
+          RoundedRectangle(cornerRadius: 20, style: .continuous)
+            .strokeBorder(Color.primary.opacity(0.06))
+        }
+
+        Text("开源 · MIT License · 数据只留本机")
+          .font(.caption2)
+          .foregroundStyle(.tertiary)
+      }
+      .frame(maxWidth: 460)
+      .padding(.horizontal, 24)
+      .padding(.vertical, 32)
+      .frame(maxWidth: .infinity)
     }
   }
 
@@ -48,7 +106,7 @@ struct LoginView: View {
           .font(.system(.largeTitle, design: .rounded, weight: .semibold))
           .fixedSize(horizontal: false, vertical: true)
           .minimumScaleFactor(0.85)
-        Text("课程、成绩与校园服务，集中在 Mac 上。")
+        Text("课程、成绩与校园服务，集中在一个原生应用里。")
           .font(.body)
           .foregroundStyle(.secondary)
           .fixedSize(horizontal: false, vertical: true)
@@ -92,7 +150,7 @@ struct LoginView: View {
   /// 很淡的品牌底色：窗口背景上叠一层 accent 渐变，避免大面积纯色空白。
   private var brandBackground: some View {
     ZStack {
-      Color(nsColor: .underPageBackgroundColor)
+      Color.ginkgoSidebarBackground
       LinearGradient(colors: [Color.accentColor.opacity(0.10), Color.accentColor.opacity(0.02), .clear],
                      startPoint: .topLeading, endPoint: .bottomTrailing)
     }
@@ -100,68 +158,107 @@ struct LoginView: View {
 
   // MARK: - 表单区
 
+  private var formFields: some View {
+    VStack(alignment: .leading, spacing: 20) {
+      PageHeading(eyebrow: "SECURE SIGN IN", title: "登录", subtitle: "使用北航统一身份认证账号")
+      VStack(alignment: .leading, spacing: 12) {
+        Text("学号").font(.subheadline.weight(.medium))
+        TextField("请输入学号", text: $viewModel.username)
+          .textFieldStyle(.roundedBorder)
+          .ginkgoUsernameEntry()
+          .focused($focusedField, equals: .username)
+          .submitLabel(.next)
+          .onSubmit { focusedField = .password }
+          .accessibilityLabel("学号输入框")
+        Text("密码").font(.subheadline.weight(.medium))
+        SecureField("请输入密码", text: $viewModel.password)
+          .textFieldStyle(.roundedBorder)
+          .ginkgoPasswordEntry()
+          .focused($focusedField, equals: .password)
+          .submitLabel(.go)
+          .onSubmit {
+            if viewModel.canSubmit { viewModel.login(appState: appState) }
+          }
+          .accessibilityLabel("密码输入框")
+        if viewModel.captcha != nil {
+          Text("验证码").font(.subheadline.weight(.medium))
+          HStack(spacing: 12) {
+            if let image = viewModel.captchaImage {
+              Image(ginkgoPlatformImage: image).resizable().scaledToFit()
+                .frame(width: 120, height: 40).accessibilityLabel("验证码图片")
+            }
+            TextField("请输入验证码", text: $viewModel.captchaText)
+              .textFieldStyle(.roundedBorder)
+              .ginkgoCaptchaEntry()
+              .focused($focusedField, equals: .captcha)
+              .submitLabel(.go)
+              .onSubmit {
+                if viewModel.canSubmit { viewModel.login(appState: appState) }
+              }
+              .accessibilityLabel("验证码输入框")
+          }
+        }
+      }
+      Toggle("记住密码，下次自动登录", isOn: $viewModel.rememberPassword)
+        .accessibilityHint("密码仅保存在本机钥匙串；关闭后登录会删除已保存的凭据")
+      VStack(alignment: .leading, spacing: 6) {
+        Picker("校园服务路线", selection: $upstreamRoute) {
+          ForEach(UpstreamRoutePreference.allCases) { route in
+            Text(route.title).tag(route.rawValue)
+          }
+        }
+        .pickerStyle(.menu)
+        if let route = UpstreamRoutePreference(rawValue: upstreamRoute) {
+          Text(route.detail)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+      }
+      .onChange(of: upstreamRoute) { _, _ in
+        AppCookieStore().clearAll()
+        viewModel.resetForRouteChange()
+      }
+      Button {
+        viewModel.login(appState: appState)
+      } label: {
+        HStack {
+          if viewModel.isLoading { ProgressView().controlSize(.small) }
+          Text(viewModel.isLoading ? "正在登录…" : "登录")
+        }
+        .frame(maxWidth: .infinity)
+      }
+      .buttonStyle(.borderedProminent)
+      .controlSize(.large)
+      .disabled(!viewModel.canSubmit)
+      .accessibilityLabel("登录按钮")
+      if let status = viewModel.statusMessage {
+        StatusNotice(message: status, kind: .information)
+      }
+      if let error = viewModel.error {
+        StatusNotice(message: error, kind: .warning)
+      }
+      if let notice = appState.notice {
+        StatusNotice(message: notice, kind: .information)
+      }
+      Text("登录状态由学校服务确认。仅勾选记住密码时，凭据才会保存到本机钥匙串。")
+        .font(.caption).foregroundStyle(.secondary)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+  }
+
   private var formPanel: some View {
     GeometryReader { geometry in
       ScrollView {
-        VStack(alignment: .leading, spacing: 20) {
-          PageHeading(eyebrow: "SECURE SIGN IN", title: "登录", subtitle: "使用北航统一身份认证账号")
-          VStack(alignment: .leading, spacing: 12) {
-            Text("学号").font(.subheadline.weight(.medium))
-            TextField("请输入学号", text: $viewModel.username)
-              .textFieldStyle(.roundedBorder)
-              .accessibilityLabel("学号输入框")
-            Text("密码").font(.subheadline.weight(.medium))
-            SecureField("请输入密码", text: $viewModel.password)
-              .textFieldStyle(.roundedBorder)
-              .accessibilityLabel("密码输入框")
-            if viewModel.captcha != nil {
-              Text("验证码").font(.subheadline.weight(.medium))
-              HStack(spacing: 12) {
-                if let image = viewModel.captchaImage {
-                  Image(nsImage: image).resizable().scaledToFit()
-                    .frame(width: 120, height: 40).accessibilityLabel("验证码图片")
-                }
-                TextField("请输入验证码", text: $viewModel.captchaText)
-                  .textFieldStyle(.roundedBorder)
-                  .accessibilityLabel("验证码输入框")
-              }
-            }
-          }
-          Toggle("记住密码，下次自动登录", isOn: $viewModel.rememberPassword)
-            .accessibilityHint("密码仅保存在本机钥匙串；关闭后登录会删除已保存的凭据")
-          Button {
-            viewModel.login(appState: appState)
-          } label: {
-            HStack {
-              if viewModel.isLoading { ProgressView().controlSize(.small) }
-              Text(viewModel.isLoading ? "正在登录…" : "登录")
-            }
-            .frame(maxWidth: .infinity)
-          }
-          .buttonStyle(.borderedProminent)
-          .controlSize(.large)
-          .disabled(!viewModel.canSubmit)
-          .accessibilityLabel("登录按钮")
-          if let status = viewModel.statusMessage {
-            StatusNotice(message: status, kind: .information)
-          }
-          if let error = viewModel.error {
-            StatusNotice(message: error, kind: .warning)
-          }
-          if let notice = appState.notice {
-            StatusNotice(message: notice, kind: .information)
-          }
-          Text("登录状态由学校服务确认。仅勾选记住密码时，凭据才会保存到本机钥匙串。")
-            .font(.caption).foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: 360)
-        .padding(40)
-        .frame(maxWidth: .infinity, minHeight: geometry.size.height, alignment: .center)
+        formFields
+          .frame(maxWidth: 360)
+          .padding(40)
+          .frame(maxWidth: .infinity, minHeight: geometry.size.height, alignment: .center)
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
+
 }
 
 /// 品牌区的功能点行。

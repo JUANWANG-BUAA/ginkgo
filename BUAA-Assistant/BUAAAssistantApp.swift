@@ -66,7 +66,7 @@ struct MenuBarPanel: View {
             guard let time = meeting.startTime else { return true }
             let parts = time.split(separator: ":").compactMap { Int($0) }
             guard parts.count == 2 else { return true }
-            let calendar = ScheduleSnapshot.schoolCalendar
+            let calendar = SchoolTime.calendar
             let now = calendar.component(.hour, from: Date()) * 60 + calendar.component(.minute, from: Date())
             return parts[0] * 60 + parts[1] >= now
           }) {
@@ -120,13 +120,13 @@ struct MenuBarPanel: View {
     .padding(16)
     .task(id: appState.user?.schoolid) {
       guard let account = appState.user?.schoolid else { schedule = nil; grades = nil; return }
-      schedule = await ScheduleCache().read(for: account)
+      schedule = await ScheduleCache().read(account: account)
       grades = await GradeCache().read(account: account)
     }
     .onAppear {
       Task {
         guard let account = appState.user?.schoolid else { return }
-        schedule = await ScheduleCache().read(for: account)
+        schedule = await ScheduleCache().read(account: account)
         grades = await GradeCache().read(account: account)
       }
     }

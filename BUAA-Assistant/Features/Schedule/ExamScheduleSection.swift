@@ -61,7 +61,7 @@ struct ExamScheduleSection: View {
           Spacer()
         }
         .padding(18)
-        .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+        .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
         .transition(.opacity)
       } else {
         VStack(spacing: 10) {
@@ -125,7 +125,7 @@ private struct ExamCard: View {
       .frame(maxWidth: .infinity, alignment: .leading)
     }
     .padding(14)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
     .overlay(alignment: .leading) {
       RoundedRectangle(cornerRadius: 2).fill(Color.accentColor.opacity(0.7)).frame(width: 3).padding(.vertical, 12)
     }
@@ -154,13 +154,6 @@ private struct ExamCard: View {
 
   private var parsedDate: Date? {
     guard let value = exam.examDate else { return nil }
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
-    for pattern in ["yyyy-MM-dd", "yyyy-MM-dd HH:mm:ss", "yyyy/MM/dd"] {
-      formatter.dateFormat = pattern
-      if let date = formatter.date(from: value) { return date }
-    }
-    return nil
+    return SchoolTime.date(from: value, formats: ["yyyy-MM-dd", "yyyy-MM-dd HH:mm:ss", "yyyy/MM/dd"])
   }
 }

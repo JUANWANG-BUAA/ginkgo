@@ -2,27 +2,40 @@
 
 ## Project Structure & Module Organization
 
-Ginkgo（BUAA Assistant）is a native Swift/SwiftUI macOS campus-services client. Application code lives in `BUAA-Assistant/`: `Features/` groups Auth, Schedule, Grade, Library, Classroom, Today, Tasks, and Settings; `Core/` contains shared networking, storage, logging, and UI components. Keep feature-specific clients, models, parsers, views, and view models together. XCTest sources live in `BUAA-AssistantTests/`. Treat `docs/` as the documentation source of truth; start with `ROADMAP.md`, `ARCHITECTURE.md`, and `API.md`.
+Ginkgo（BUAA Assistant）is a native Swift/SwiftUI campus-services client for macOS with an iOS subset. Shared application code lives in `BUAA-Assistant/`: `Features/` groups Auth, Schedule, Grade, Library, Classroom, Today, Tasks, and Settings; `Core/` contains shared networking, storage, logging, and cross-platform UI components. The macOS application shell is in `BUAA-Assistant/` root; the iOS shell, XcodeGen spec, resources, and iOS-only settings live in `BUAA-Assistant-iOS/`. Keep feature-specific clients, models, parsers, views, and view models together. XCTest sources live in `BUAA-AssistantTests/` and are shared by both projects. Treat `docs/` as the documentation source of truth; start with `ROADMAP.md`, `ARCHITECTURE.md`, `API.md`, `IOS.md`, and `IMPROVEMENTS.md`.
 
 ## Build, Test, and Development Commands
 
-Use Xcode 16+ on macOS (deployment target: macOS 14). Open `BUAA-Assistant.xcodeproj`, select the `BUAA-Assistant` scheme, and use Command-R to run or Command-U to test. From the repository root:
+Use Xcode 16+ on macOS (macOS deployment target: 14; iOS target: 17). Open `BUAA-Assistant.xcodeproj` for macOS or `BUAA-Assistant-iOS/Ginkgo-iOS.xcodeproj` for iOS. From the repository root:
 
 ```sh
 xcodebuild build -project BUAA-Assistant.xcodeproj -scheme BUAA-Assistant -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
 xcodebuild test -project BUAA-Assistant.xcodeproj -scheme BUAA-Assistant -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
+
+xcodebuild build -project BUAA-Assistant-iOS/Ginkgo-iOS.xcodeproj -scheme Ginkgo-iOS -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO -quiet
+xcodebuild build-for-testing -project BUAA-Assistant-iOS/Ginkgo-iOS.xcodeproj -scheme Ginkgo-iOS -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO -quiet
+xcrun simctl list devices available
+xcodebuild test -project BUAA-Assistant-iOS/Ginkgo-iOS.xcodeproj -scheme Ginkgo-iOS -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=27.0' -quiet
+
 git diff --check
 ```
 
-These commands build without signing, execute the test suite, and check whitespace errors, respectively.
+The iOS project is generated from `BUAA-Assistant-iOS/project.yml` with XcodeGen 2.46+. Do not hand-edit generated `.xcodeproj` files; update the spec and regenerate with:
+
+```sh
+cd BUAA-Assistant-iOS
+xcodegen generate --spec project.yml
+```
+
+iOS simulator XCTest requires an installed Simulator Runtime. A generic-device build and `build-for-testing` validate compilation but are not a substitute for simulator/device acceptance.
 
 ## Coding Style & Naming Conventions
 
-Match existing Swift code: two-space indentation, `UpperCamelCase` types, and `lowerCamelCase` properties and methods. Name files after their primary type, such as `ScheduleViewModel.swift`. Keep UI state on `@MainActor` and isolate parsing from networking and presentation. No formatter or linter configuration is currently checked in. AI contributors must not hand-edit `.xcodeproj`; describe required configuration changes for a maintainer to apply in Xcode.
+Match existing Swift code: two-space indentation, `UpperCamelCase` types, and `lowerCamelCase` properties and methods. Name files after their primary type, such as `ScheduleViewModel.swift`. Keep UI state on `@MainActor` and isolate parsing from networking and presentation. No formatter or linter configuration is currently checked in. AI contributors must not hand-edit `.xcodeproj`; update `BUAA-Assistant-iOS/project.yml` and regenerate the iOS project with XcodeGen. The macOS project remains Xcode-managed; describe required macOS target changes for a maintainer.
 
 ## Testing Guidelines
 
-Use XCTest with `@testable import BUAA_Assistant`. Name files `<Subject>Tests.swift` and methods descriptively, such as `test_loginFields_addsRequiredDefaults`. Cover parser edge cases, session failures, and changed business rules with synthetic data and mocked responses. Add regression tests for fixes. Coverage is not yet measured or enforced; `docs/TESTING.md` lists planned targets. Record manual validation separately from automated results.
+Use XCTest with `@testable import BUAA_Assistant`. Name files `<Subject>Tests.swift` and methods descriptively, such as `test_loginFields_addsRequiredDefaults`. Cover parser edge cases, session failures, and changed business rules with synthetic data and mocked responses. Add regression tests for fixes. iOS UI smoke tests live in `BUAA-Assistant-iOS/UITests/`; use launch environments for fixtures, never commit live credentials. The optional live-account test reads `GINKGO_LIVE_USERNAME` / `GINKGO_LIVE_PASSWORD` from the simulator process environment only. Network tests must use the `UpstreamRoutePreference` automatic/direct/WebVPN abstractions; do not hardcode `d.buaa.edu.cn` in individual feature clients. Coverage is not yet measured or enforced; `docs/TESTING.md` lists planned targets. Record manual validation separately from automated results.
 
 ## Commit & Pull Request Guidelines
 

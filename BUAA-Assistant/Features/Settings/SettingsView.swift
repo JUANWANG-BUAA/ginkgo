@@ -8,6 +8,8 @@ struct SettingsView: View {
   @EnvironmentObject private var exams: ExamViewModel
   @EnvironmentObject private var classroom: ClassroomViewModel
   @EnvironmentObject private var homework: HomeworkViewModel
+  @EnvironmentObject private var graduateAcademic: GraduateAcademicViewModel
+  @EnvironmentObject private var bykc: BykcViewModel
   @EnvironmentObject private var library: LibraryViewModel
   @EnvironmentObject private var campusNotices: CampusNoticesViewModel
   @EnvironmentObject private var checkIn: CheckInViewModel
@@ -17,6 +19,7 @@ struct SettingsView: View {
   @Environment(\.scenePhase) private var scenePhase
   @AppStorage("appearance") private var appearance = AppAppearance.system.rawValue
   @AppStorage("compactLists") private var compactLists = false
+  @AppStorage(UpstreamRoutePreference.storageKey) private var upstreamRoute = UpstreamRoutePreference.automatic.rawValue
   @AppStorage(UpdateCenter.downloadSourceKey) private var updateDownloadSource = UpdateCenter.DownloadSource.automatic.rawValue
   @StateObject private var launchAtLogin = LaunchAtLoginController()
   @State private var isLoggingOut = false
@@ -53,6 +56,30 @@ struct SettingsView: View {
             }
           }.toggleStyle(.switch)
         }
+        settingsGroup("网络连接", symbol: "network", detail: "校园服务可直连，也可经北航 WebVPN 网关访问") {
+          Picker("校园服务路线", selection: $upstreamRoute) {
+            ForEach(UpstreamRoutePreference.allCases) { route in
+              Text(route.title).tag(route.rawValue)
+            }
+          }
+          .pickerStyle(.segmented)
+          .onChange(of: upstreamRoute) { _, _ in
+            appState.applyUpstreamRouteChange()
+          }
+          Text(selectedUpstreamRoute.detail)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+          if selectedUpstreamRoute == .webVPN {
+            StatusNotice(message: "WebVPN 模式会把北航相关请求发往 d.buaa.edu.cn。切换路线后需要重新登录。", kind: .information)
+          }
+          if selectedUpstreamRoute == .automatic {
+            Text("若直连被学校访问策略拦截，Ginkgo 会自动切换到 WebVPN 并重试登录。")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+        }
         settingsGroup("启动", symbol: "power", detail: "按需在你登录 macOS 时自动打开校园工作台") {
           Toggle(isOn: Binding(
             get: { launchAtLogin.isRegistered },
@@ -71,7 +98,7 @@ struct SettingsView: View {
           if launchAtLogin.requiresApproval {
             StatusNotice(message: "已向 macOS 注册；请在系统设置的“登录项”中允许 Ginkgo。", kind: .warning)
             Button("打开登录项设置") { launchAtLogin.openLoginItemsSettings() }
-              .buttonStyle(.link)
+              .ginkgoLinkButtonStyle()
           }
           if let errorMessage = launchAtLogin.errorMessage {
             StatusNotice(message: errorMessage, kind: .warning)
@@ -164,8 +191,8 @@ struct SettingsView: View {
               }
               .buttonStyle(.borderedProminent)
               .disabled(updates.isBusy)
-              Button("查看发布页") { updates.openReleasePage(release) }.buttonStyle(.link)
-              Button("忽略此版本") { updates.ignoreCurrent() }.buttonStyle(.link)
+              Button("查看发布页") { updates.openReleasePage(release) }.ginkgoLinkButtonStyle()
+              Button("忽略此版本") { updates.ignoreCurrent() }.ginkgoLinkButtonStyle()
             }
           }
           HStack(spacing: 12) {
@@ -219,7 +246,7 @@ struct SettingsView: View {
         }.font(.caption).foregroundStyle(.secondary).padding(.horizontal, 4)
       }.padding(28).frame(maxWidth: 820).frame(maxWidth: .infinity)
     }
-    .background(Color(nsColor: .windowBackgroundColor))
+    .background(Color.ginkgoWindowBackground)
     .task {
       await checkIn.refreshNotificationAuthorization()
       await courseReminders.update(snapshot: schedule.snapshot)
@@ -243,6 +270,10 @@ struct SettingsView: View {
       .confirmationDialog("清除查询缓存？", isPresented: $showCache) {
         Button("清除缓存", role: .destructive) { clearCache() }
       } message: { Text("下次查看时需要重新查询课表、考试、成绩、作业、图书馆、签到历史、校园通知和空教室。个人待办会保留。") }
+  }
+
+  private var selectedUpstreamRoute: UpstreamRoutePreference {
+    UpstreamRoutePreference(rawValue: upstreamRoute) ?? .automatic
   }
 
   private var downloadButtonTitle: String {
@@ -273,7 +304,7 @@ struct SettingsView: View {
       }
       Divider()
       VStack(alignment: .leading, spacing: 8, content: content)
-    }.padding(20).background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 14))
+    }.padding(20).background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 14))
       .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.primary.opacity(0.06)))
   }
 
@@ -292,7 +323,7 @@ struct SettingsView: View {
             appState.showToast(granted ? "系统通知权限已开启" : "系统通知权限未开启；可稍后在系统设置中修改")
           }
         }
-        .buttonStyle(.link)
+        .ginkgoLinkButtonStyle()
       }
     case .denied:
       VStack(alignment: .leading, spacing: 8) {
@@ -300,7 +331,7 @@ struct SettingsView: View {
         Button("重新检查系统权限") {
           Task { await checkIn.refreshNotificationAuthorization() }
         }
-        .buttonStyle(.link)
+        .ginkgoLinkButtonStyle()
       }
     case .authorized, .provisional, .ephemeral:
       Label("系统通知已授权；课程提醒和签到提醒可分别关闭。", systemImage: "checkmark.circle")
@@ -371,9 +402,11 @@ struct SettingsView: View {
     Task {
       defer { clearing = false }
       do {
-        try await ScheduleCache().clear(for: account)
+        try await ScheduleCache().clear(account: account)
         try await GradeCache().clear(account: account)
         try await HomeworkCache().clear(account: account)
+        try await graduateAcademic.clearCache(account: account)
+        try await bykc.clearCache(account: account)
         try await exams.clearCache(account: account)
         try await library.clearCache(account: account)
         try await checkIn.clearCache(account: account)

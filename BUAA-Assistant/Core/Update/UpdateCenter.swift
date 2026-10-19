@@ -1,7 +1,10 @@
-import AppKit
 import CryptoKit
 import Foundation
+#if os(macOS)
+import AppKit
+#endif
 
+#if os(macOS)
 /// 报告下载进度（URLSessionDownloadDelegate 的回调在会话队列上触发，用闭包回传主线程）。
 private final class DownloadProgressDelegate: NSObject, URLSessionDownloadDelegate, @unchecked Sendable {
   private let onProgress: @Sendable (Double) -> Void
@@ -25,6 +28,7 @@ private final class DownloadProgressDelegate: NSObject, URLSessionDownloadDelega
     onProgress(min(1, Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)))
   }
 }
+#endif
 
 /// 应用内更新中心：从 GitHub Releases 检查新版本、提示并就地安装。
 ///
@@ -150,6 +154,7 @@ final class UpdateCenter: ObservableObject {
     await check(manual: false)
   }
 
+#if os(macOS)
   func openReleasePage(_ release: UpdateRelease? = nil) {
     let url = (release ?? latest)?.pageURL
       ?? URL(string: "https://github.com/\(UpdateChecker.repository)/releases")!
@@ -251,6 +256,8 @@ final class UpdateCenter: ObservableObject {
     return nil
   }
 
+#endif
+
   /// 从 `sha256  filename` 格式的文本中取出指定文件的校验和（可测试）。
   static func parseChecksum(assetName: String, text: String) -> String? {
     for line in text.split(separator: "\n") {
@@ -262,6 +269,7 @@ final class UpdateCenter: ObservableObject {
     return nil
   }
 
+#if os(macOS)
   private func sha256(of file: URL) throws -> String {
     let data = try Data(contentsOf: file, options: .mappedIfSafe)
     return SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
@@ -322,4 +330,5 @@ final class UpdateCenter: ObservableObject {
     try? await Task.sleep(nanoseconds: 900_000_000)
     NSApplication.shared.terminate(nil)
   }
+#endif
 }

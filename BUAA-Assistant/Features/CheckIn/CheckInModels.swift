@@ -14,6 +14,33 @@ enum CheckInStatus: String, Codable, Equatable {
   }
 }
 
+struct CheckInCandidate: Identifiable, Equatable, Hashable, Codable {
+  let id: String
+  let courseID: String?
+  let courseNum: String?
+  let courseName: String
+  let beginsAt: String
+  let endsAt: String
+  let status: CheckInStatus
+  let teacherName: String?
+  let classroomName: String?
+
+  var displayLabel: String {
+    [classroomName, teacherName, courseNum].compactMap { value in
+      guard let value, value.isEmpty == false else { return nil }
+      return value
+    }.joined(separator: " · ")
+  }
+
+  var menuLabel: String {
+    let place = [classroomName, teacherName].compactMap { value in
+      guard let value, value.isEmpty == false else { return nil }
+      return value
+    }.joined(separator: " · ")
+    return place.isEmpty ? "记录 \(id)" : place
+  }
+}
+
 struct CheckInItem: Identifiable, Equatable, Codable {
   let id: String
   let courseName: String
@@ -22,6 +49,7 @@ struct CheckInItem: Identifiable, Equatable, Codable {
   let status: CheckInStatus
   let signInAllowed: Bool
   let mergedRecordCount: Int
+  let candidates: [CheckInCandidate]
 
   init(
     id: String,
@@ -30,7 +58,8 @@ struct CheckInItem: Identifiable, Equatable, Codable {
     endsAt: String,
     status: CheckInStatus,
     signInAllowed: Bool = true,
-    mergedRecordCount: Int = 1
+    mergedRecordCount: Int = 1,
+    candidates: [CheckInCandidate] = []
   ) {
     self.id = id
     self.courseName = courseName
@@ -39,6 +68,7 @@ struct CheckInItem: Identifiable, Equatable, Codable {
     self.status = status
     self.signInAllowed = signInAllowed
     self.mergedRecordCount = mergedRecordCount
+    self.candidates = candidates
   }
 }
 

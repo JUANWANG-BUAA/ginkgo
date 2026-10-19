@@ -59,7 +59,7 @@
 - 还有成绩与参考绩点、空教室、SPOC 作业、校园通知、本机待办
 
 SwiftUI 原生，无第三方依赖；只直连学校系统，账号数据只留本机。
-目前是 0.1.0-alpha，141 项测试全绿；打卡签到与图书馆预约已可用，应用内置自更新（从 GitHub Releases 检查并安装，不清本地缓存），欢迎北航同学试用和反馈。
+目前是 0.1.0-alpha，167 项测试全绿；打卡签到与图书馆预约已可用，应用内置自更新（从 GitHub Releases 检查并安装，不清本地缓存），欢迎北航同学试用和反馈。
 
 GitHub: https://github.com/JUANWANG-BUAA/ginkgo
 项目主页: https://juanwang-buaa.github.io/ginkgo/

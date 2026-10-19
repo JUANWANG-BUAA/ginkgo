@@ -29,10 +29,24 @@ struct ScheduleView: View {
           if mode == "考试安排", snapshot.portal == .undergraduate {
             ExamScheduleSection(termID: snapshot.termID)
           } else if mode == "学期总览" {
-            SemesterOverview(snapshot: snapshot) { week in
-              mode = "周课表"
-              Task { await model.refresh(week: week) }
+            if snapshot.weeks.isEmpty {
+              PageEmptyState(
+                symbol: "calendar.badge.exclamationmark",
+                title: "该学期暂无课表",
+                detail: "学校尚未为该学期发布排课数据。可以切换到其他学期查看。"
+              )
+            } else {
+              SemesterOverview(snapshot: snapshot) { week in
+                mode = "周课表"
+                Task { await model.refresh(week: week) }
+              }
             }
+          } else if snapshot.weeks.isEmpty {
+            PageEmptyState(
+              symbol: "calendar.badge.exclamationmark",
+              title: "该学期暂无课表",
+              detail: "学校尚未为该学期发布排课数据。可以切换到其他学期查看。"
+            )
           } else if snapshot.courses.isEmpty {
             PageEmptyState(
               symbol: model.errorMessage == nil ? "calendar.badge.checkmark" : "wifi.exclamationmark",
@@ -56,11 +70,11 @@ struct ScheduleView: View {
             .buttonStyle(.borderedProminent)
         }
       }
-      .padding(24)
+      .ginkgoPagePadding()
       .frame(maxWidth: 960, alignment: .leading)
       .frame(maxWidth: .infinity)
     }
-    .background(Color(nsColor: .windowBackgroundColor))
+    .background(Color.ginkgoWindowBackground)
     .toolbar {
       ToolbarItem(placement: .primaryAction) {
         Button { Task { await model.refresh() } } label: {
@@ -94,20 +108,10 @@ struct ScheduleView: View {
 
   private func controls(_ snapshot: ScheduleSnapshot) -> some View {
     HStack(spacing: 12) {
-      Picker("学期", selection: Binding(get: { snapshot.termID }, set: { term in
-        Task { await model.refresh(termID: term) }
-      })) {
-        ForEach(snapshot.terms) { term in Text(term.name).tag(term.id) }
-      }
-      .frame(maxWidth: 300)
-      Picker("周次", selection: Binding(get: { snapshot.weekNumber }, set: { week in
-        Task { await model.refresh(week: week) }
-      })) {
-        ForEach(snapshot.weeks) { week in
-          Text("第 \(week.number) 周\(week.isCurrent ? " · 本周" : "")").tag(week.number)
-        }
-      }
-      .frame(maxWidth: 190)
+      termPicker(snapshot)
+        .frame(maxWidth: 300)
+      weekPicker(snapshot)
+        .frame(maxWidth: 190)
       if let current = snapshot.weeks.first(where: \.isCurrent), current.number != snapshot.weekNumber {
         Button("回到本周") { Task { await model.refresh(week: current.number) } }
       }
@@ -115,7 +119,25 @@ struct ScheduleView: View {
       if model.isLoading { ProgressView().controlSize(.small).accessibilityLabel("正在更新课表") }
     }
     .padding(16)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
+  }
+
+  private func termPicker(_ snapshot: ScheduleSnapshot) -> some View {
+    Picker("学期", selection: Binding(get: { snapshot.termID }, set: { term in
+      Task { await model.refresh(termID: term) }
+    })) {
+      ForEach(snapshot.terms) { term in Text(term.name).tag(term.id) }
+    }
+  }
+
+  private func weekPicker(_ snapshot: ScheduleSnapshot) -> some View {
+    Picker("周次", selection: Binding(get: { snapshot.weekNumber }, set: { week in
+      Task { await model.refresh(week: week) }
+    })) {
+      ForEach(snapshot.weeks) { week in
+        Text("第 \(week.number) 周\(week.isCurrent ? " · 本周" : "")").tag(week.number)
+      }
+    }
   }
 
   private func weekContent(_ snapshot: ScheduleSnapshot) -> some View {
@@ -137,7 +159,7 @@ struct ScheduleView: View {
       .flatMap { Calendar.current.date(byAdding: .day, value: day - 1, to: $0.start) }
     return VStack(alignment: .leading, spacing: 10) {
       HStack(alignment: .firstTextBaseline) {
-        Text("周\(["一", "二", "三", "四", "五", "六", "日"][day - 1])").font(.headline)
+        Text(SchoolTime.weekdayName(day)).font(.headline)
         Spacer()
         if let date { Text(date.formatted(.dateTime.month().day())).font(.caption).foregroundStyle(.secondary) }
       }
@@ -150,7 +172,7 @@ struct ScheduleView: View {
     }
     .padding(14)
     .frame(maxWidth: .infinity, minHeight: 180, alignment: .topLeading)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
   }
 }
 

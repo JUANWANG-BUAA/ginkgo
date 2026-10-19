@@ -3,68 +3,15 @@ import SwiftUI
 /// 主界面：侧边栏 + 详情区双栏布局（ARCHITECTURE.md §10.10）。
 /// 登录会话内持有模块模型，切换页面保留同步状态。
 struct MainView: View {
-  /// 侧边栏条目。注意不要命名为 Section（会与 SwiftUI 的 Section 视图撞名）。
-  enum AppSection: String, Hashable, CaseIterable, Identifiable {
-    case today = "今天"
-    case checkIn = "课程签到"
-    case schedule = "课表"
-    case grade = "成绩"
-    case homework = "学校作业"
-    case library = "图书馆"
-    case classroom = "空教室"
-    case tasks = "待办"
-    case settings = "设置"
-
-    var id: String { rawValue }
-
-    var systemImage: String {
-      switch self {
-      case .today: return "sun.max.fill"
-      case .checkIn: return "checkmark.seal.fill"
-      case .schedule: return "calendar"
-      case .grade: return "chart.bar.fill"
-      case .homework: return "doc.text.fill"
-      case .library: return "books.vertical.fill"
-      case .classroom: return "building.2"
-      case .tasks: return "checklist"
-      case .settings: return "gearshape.fill"
-      }
-    }
-
-    /// 该模块的实施顺序与依据（docs/ROADMAP.md）。
-    var roadmapNote: String {
-      switch self {
-      case .today: return "今日课程"
-      case .checkIn: return "iclass 签到查询与手动提交"
-      case .schedule: return "ROADMAP Step 3-4（API.md §2 本科 / §3 研究生）"
-      case .grade: return "ROADMAP Step 5（API.md §4 buaascore）"
-      case .homework: return "SPOC 只读查询（希冀暂时下线，待真实账号验收）"
-      case .library: return "ROADMAP Step 6（API.md §5 座位 · §6 借阅为探索项）"
-      case .classroom: return "空教室查询"
-      case .tasks: return "本地待办"
-      case .settings: return "骨架已就绪"
-      }
-    }
-  }
-
-  @StateObject private var schedule = ScheduleViewModel()
-  @StateObject private var exams = ExamViewModel()
-  @StateObject private var grades = GradeViewModel()
-  @StateObject private var homework = HomeworkViewModel()
-  @StateObject private var library = LibraryViewModel()
-  @StateObject private var campusNotices = CampusNoticesViewModel()
-  @StateObject private var classroom = ClassroomViewModel()
-  @StateObject private var checkIn = CheckInViewModel()
-  @StateObject private var tasks = PersonalTaskStore()
-  @StateObject private var networkPath = NetworkPathObserver()
-  @State private var networkRecoveryTask: Task<Void, Never>?
-  @State private var selectedSection: AppSection? = .today
-  @State private var hoveredSection: AppSection?
+  @State private var selectedSection: WorkspaceFeature? = .today
+  @State private var hoveredSection: WorkspaceFeature?
   @Namespace private var sidebarSelection
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
-  @Environment(\.scenePhase) private var scenePhase
+  @EnvironmentObject private var workspace: WorkspaceCoordinator
   @EnvironmentObject private var appState: AppState
-  @EnvironmentObject private var courseReminders: CourseReminderScheduler
+  @EnvironmentObject private var checkIn: CheckInViewModel
+  @EnvironmentObject private var homework: HomeworkViewModel
+  @EnvironmentObject private var tasks: PersonalTaskStore
 
   var body: some View {
     NavigationSplitView {
@@ -73,8 +20,8 @@ struct MainView: View {
         ScrollView {
           VStack(alignment: .leading, spacing: 20) {
             sidebarGroup("工作台", sections: [.today, .checkIn])
-            sidebarGroup("学习", sections: [.schedule, .grade, .homework])
-            sidebarGroup("校园", sections: [.library, .classroom, .tasks])
+            sidebarGroup("学习", sections: [.schedule, .grade, .graduateAcademic, .homework, .bykc])
+            sidebarGroup("校园", sections: [.library, .seminar, .classroom, .tasks])
           }
           .padding(.horizontal, 12)
           .padding(.top, 15)
@@ -82,7 +29,7 @@ struct MainView: View {
         }
         sidebarFooter
       }
-      .background(Color(nsColor: .underPageBackgroundColor))
+      .background(Color.ginkgoSidebarBackground)
       .navigationSplitViewColumnWidth(min: 218, ideal: 248, max: 288)
     } detail: {
       ZStack {
@@ -95,151 +42,8 @@ struct MainView: View {
       }
       .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: selectedSection)
     }
-    .environmentObject(schedule)
-    .environmentObject(exams)
-    .environmentObject(grades)
-    .environmentObject(homework)
-    .environmentObject(library)
-    .environmentObject(campusNotices)
-    .environmentObject(checkIn)
-    .environmentObject(tasks)
-    .environmentObject(classroom)
-    .navigationTitle(selectedSection?.rawValue ?? "Ginkgo")
-    .task(id: "\(appState.user?.schoolid ?? "")|\(checkInPollingIsActive)") {
-      guard let account = appState.user?.schoolid else {
-        await courseReminders.update(snapshot: nil)
-        await checkIn.setWebVPNRouteEnabled(false)
-        checkIn.reset()
-        library.reset()
-        return
-      }
-      await courseReminders.update(snapshot: nil)
-      await checkIn.setWebVPNRouteEnabled(appState.webVPNSessionStatus == .ready)
-      await checkIn.start(account: account)
-      await courseReminders.update(snapshot: schedule.snapshot)
-      guard checkInPollingIsActive else { return }
-      while !Task.isCancelled {
-        let delay: UInt64 = checkIn.errorMessage == nil ? 30 : 120
-        do { try await Task.sleep(nanoseconds: delay * 1_000_000_000) }
-        catch { return }
-        guard !Task.isCancelled else { return }
-        await checkIn.refresh()
-      }
-    }
-    .onChange(of: checkIn.needsSessionCheck) { _, needed in
-      if needed {
-        Task {
-          if (try? await appState.confirmSessionAfterAuthFailure()) == true {
-            await checkIn.refreshAfterSessionValidation()
-          }
-        }
-      }
-    }
-    .onChange(of: checkIn.webVPNAuthenticationUnavailable) { _, unavailable in
-      if unavailable { appState.markWebVPNSessionUnavailable() }
-    }
-    .onChange(of: appState.webVPNSessionStatus) { _, status in
-      Task {
-        await checkIn.setWebVPNRouteEnabled(status == .ready)
-        if status == .ready {
-          checkIn.clearWebVPNAuthenticationFailure()
-          await checkIn.refresh()
-        }
-      }
-    }
-    .onChange(of: checkIn.statusChangeRevision) { _, revision in
-      guard revision > 0, let message = checkIn.statusChangeMessage else { return }
-      appState.showToast(message)
-      checkIn.notifyStatusChange()
-    }
-    .onChange(of: schedule.reminderRevision) { _, _ in
-      Task { await courseReminders.update(snapshot: schedule.snapshot) }
-    }
-    .onChange(of: courseReminders.isEnabled) { _, _ in
-      Task { await courseReminders.update(snapshot: schedule.snapshot) }
-    }
-    .onChange(of: networkPath.isConnected) { previous, isConnected in
-      if previous == false && isConnected == true {
-        refreshVisibleDataAfterRecovery(forceRefresh: true)
-      } else if isConnected != true {
-        networkRecoveryTask?.cancel()
-        cancelPendingAutomaticRefreshes()
-      }
-    }
-    .onChange(of: scenePhase) { _, phase in
-      if phase == .active {
-        refreshVisibleDataAfterRecovery(forceRefresh: false)
-      } else {
-        networkRecoveryTask?.cancel()
-        cancelPendingAutomaticRefreshes()
-      }
-    }
-    .onChange(of: selectedSection) { _, _ in
-      networkRecoveryTask?.cancel()
-      cancelPendingAutomaticRefreshes()
-      Task { await refreshVisibleDataIfStale() }
-    }
-    .onDisappear {
-      networkRecoveryTask?.cancel()
-      cancelPendingAutomaticRefreshes()
-    }
-  }
-
-  private func refreshVisibleDataAfterRecovery(forceRefresh: Bool) {
-    guard appState.isLoggedIn, scenePhase == .active, networkPath.isConnected == true else { return }
-    networkRecoveryTask?.cancel()
-    networkRecoveryTask = Task {
-      await refreshVisibleDataIfStale(queueIfLoading: forceRefresh, forceRefresh: forceRefresh)
-    }
-  }
-
-  private func refreshVisibleDataIfStale(
-    queueIfLoading: Bool = false,
-    forceRefresh: Bool = false
-  ) async {
-    guard appState.isLoggedIn, scenePhase == .active, networkPath.isConnected == true else { return }
-    switch selectedSection {
-    case .today:
-      async let scheduleRefresh = schedule.refreshIfStale(
-        currentWeek: true,
-        queueIfLoading: queueIfLoading,
-        forceRefresh: forceRefresh
-      )
-      async let homeworkRefresh = homework.refreshIfStale(
-        queueIfLoading: queueIfLoading,
-        forceRefresh: forceRefresh
-      )
-      await scheduleRefresh
-      await homeworkRefresh
-    case .schedule:
-      async let scheduleRefresh = schedule.refreshIfStale(
-        queueIfLoading: queueIfLoading,
-        forceRefresh: forceRefresh
-      )
-      async let examRefresh = exams.refreshIfStale(
-        queueIfLoading: queueIfLoading,
-        forceRefresh: forceRefresh
-      )
-      await scheduleRefresh
-      await examRefresh
-    case .grade:
-      await grades.refreshIfStale(queueIfLoading: queueIfLoading, forceRefresh: forceRefresh)
-    case .homework:
-      await homework.refreshIfStale(queueIfLoading: queueIfLoading, forceRefresh: forceRefresh)
-    default:
-      break
-    }
-  }
-
-  private func cancelPendingAutomaticRefreshes() {
-    schedule.cancelPendingAutomaticRefresh()
-    exams.cancelPendingAutomaticRefresh()
-    grades.cancelPendingAutomaticRefresh()
-    homework.cancelPendingAutomaticRefresh()
-  }
-
-  private var checkInPollingIsActive: Bool {
-    scenePhase == .active && (selectedSection == .today || selectedSection == .checkIn)
+    .navigationTitle(selectedSection?.title ?? "Ginkgo")
+    .workspaceLifecycle(workspace: workspace, feature: selectedSection ?? .today)
   }
 
   private var sidebarIdentity: some View {
@@ -300,7 +104,7 @@ struct MainView: View {
     let accessibilityText: String
   }
 
-  private func sidebarIndicator(for section: AppSection) -> SidebarIndicator? {
+  private func sidebarIndicator(for section: WorkspaceFeature) -> SidebarIndicator? {
     switch section {
     case .checkIn:
       if checkIn.snapshot == nil, checkIn.errorMessage != nil {
@@ -364,8 +168,11 @@ struct MainView: View {
       case .checkIn: CheckInPage()
       case .schedule: ScheduleView()
       case .grade: GradeView()
+      case .graduateAcademic: GraduateAcademicView()
       case .homework: HomeworkView()
+      case .bykc: BykcView()
       case .library: LibraryView()
+      case .seminar: CgyyView()
       case .classroom: ClassroomView()
       case .tasks: TasksView()
       case .settings: SettingsView()
@@ -375,7 +182,7 @@ struct MainView: View {
     .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 
-  private func sidebarGroup(_ title: String, sections: [AppSection]) -> some View {
+  private func sidebarGroup(_ title: String, sections: [WorkspaceFeature]) -> some View {
     VStack(alignment: .leading, spacing: 6) {
       Text(title)
         .font(.system(size: 10, weight: .semibold, design: .rounded))
@@ -390,7 +197,7 @@ struct MainView: View {
     }
   }
 
-  private func navRow(_ section: AppSection) -> some View {
+  private func navRow(_ section: WorkspaceFeature) -> some View {
     let isSelected = selectedSection == section
     let isHovered = hoveredSection == section
     let indicator = sidebarIndicator(for: section)
@@ -404,7 +211,7 @@ struct MainView: View {
           .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
           .frame(width: 19)
           .symbolEffect(.bounce, value: isSelected && !reduceMotion)
-        Text(section.rawValue)
+        Text(section.title)
           .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
           .foregroundStyle(isSelected ? Color.accentColor : Color.primary)
           .lineLimit(1)
@@ -436,39 +243,15 @@ struct MainView: View {
       .animation(reduceMotion ? nil : .spring(response: 0.24, dampingFraction: 0.82), value: indicator)
     }
     .buttonStyle(.plain)
-    .onHover { hovering in hoveredSection = hovering ? section : (hoveredSection == section ? nil : hoveredSection) }
-    .accessibilityLabel(section.rawValue + (indicator.map { "，\($0.accessibilityText)" } ?? ""))
-    .accessibilityHint("打开\(section.rawValue)")
+    .ginkgoOnHover { hovering in hoveredSection = hovering ? section : (hoveredSection == section ? nil : hoveredSection) }
+    .accessibilityLabel(section.title + (indicator.map { "，\($0.accessibilityText)" } ?? ""))
+    .accessibilityHint("打开\(section.title)")
     .accessibilityValue(isSelected ? "当前页面" : "未选择")
   }
 
-  private func select(_ section: AppSection) {
+  private func select(_ section: WorkspaceFeature) {
     withAnimation(reduceMotion ? nil : .spring(response: 0.32, dampingFraction: 0.82)) {
       selectedSection = section
     }
-  }
-}
-
-/// 占位详情页的统一样式。
-struct PlaceholderPage: View {
-  let title: String
-  let systemImage: String
-  let roadmapNote: String
-
-  var body: some View {
-    VStack(spacing: 16) {
-      Image(systemName: systemImage)
-        .font(.system(size: 48))
-        .foregroundStyle(.secondary)
-      Text(title)
-        .font(.title2.weight(.semibold))
-      Text("此模块尚未实施")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-      Text(roadmapNote)
-        .font(.caption)
-        .foregroundStyle(.tertiary)
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 }

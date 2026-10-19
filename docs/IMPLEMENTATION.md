@@ -1,5 +1,53 @@
 # 实施进度
 
+## 2026-10-19 · 教务层级与预约可靠性优化（当前）
+
+- 两端共享原生学分地图：总要求、类别、课组与修读记录逐层展开，显示独立缺口及最少门数，支持搜索、需关注筛选与展开/收起；旧版等权重卡片网格退出首页。
+- 根据学校前端脚本更正校企课程字段、方案认定与待考核语义；不将全部已修学分代替方案认定学分。跨类别合并规则完整保留，零要求不误报全部满足。
+- 分项查询失败与成功空结果分开；失败保留旧分项及来源时间。版本 2 缓存替换旧语义缓存。
+- CGYY 补齐缺失登录函数、统一路由、POST 不重发、请求上下文校验、提交前空档复核、固定提交表单与订单回查；结果待核实时暂停再次操作。
+- 图书馆座位预约由维护者确认可行；图书馆 seminar 不作为产品能力，提交直接拒绝。教学楼研讨室保留独立入口。
+- 验证：macOS 全量 210 项通过；iPhone SE / iOS 27.0 模拟器相关 43 项通过。桌面与 350pt 窄宽度、浅深色合成数据渲染已检查；真实账号最新页面、VoiceOver 与 CGYY 真实写操作未在本轮验收。
+
+## 2026-10-19 · 座位生命周期、培养进度、缓存刷新与教学楼研讨室（CGYY）
+
+- 图书馆“我的预约”拆成“进行中的预约”和“历史记录”。当前记录改读 `index/subscribe`，保留 `type` 与 `flag_in/flag_out/flag_leave/oksign`；只有学校明确给出提示时才显示“签到入座/返回入座”“临时离开”“完全离开”和“取消预约”。操作均二次确认，提交后重新读取当前记录；结果不确定只提示待核实，不自动重试。写协议来自 H5 公开静态资源的前端调用。**真实签到/暂离/离馆写操作未验收**；本轮自动化导航误触过一次图书馆签到，已停止所有写操作并由用户自行核对。
+- 研究生教务新增“培养进度”：读取培养方案总学分（当前账号 32）与课程池（59 门、合计 114 学分），按“已修/在修/未修/待核对”计算总学分进度；类别卡片只展示课程池规模与已修/在修分布，**不把课程池全部当成必修，也不推断类别最低学分**。2026-10-19 从 `wdpyfazxbg` 微应用静态模块定位到 `zxbg/loadXspyfazxbgInfo.do`，已接入执行报告：返回 9 个类别及 `dxzList` 课组，带 `yqxf/yhxf/dkhxf`；页面显示“思想政治理论课 3、基础及专业理论核心课 9、综合素养课 5、培养环节 1”等要求，以及“数学课 3、当代科技 1”等课组最低分。该接口成功码为 `1`，客户端单独处理，失败时回退总学分/课程池。
+- 研究生教务与博雅改为标签页分层：进度 / 培养方案 / 成绩与考试 / 学籍与目录；博雅为课程库 / 已选 / 统计。大卡片、分组标题、状态胶囊和空态替代一次性长列表。iOS 同步补进度条、课程池说明、状态筛选与课程代码。
+- 新增磁盘缓存与进入页面主动刷新：`GraduateAcademicCache`、`BykcCache` 按账号摘要保存最近快照；页面先显示缓存，再按 2 分钟阈值刷新。`RequestCancellation` 统一忽略页面切换导致的 `cancelled`；科学/图书馆/作业等 ViewModel 同步忽略取消。清除缓存会清理新缓存并重置内存快照。
+- 新增教学楼研讨室（CGYY）模块：按 UBAA `LocalCgyyApi.kt`/`LocalCgyySigner.kt`/`LocalCgyyCaptchaSupport.kt` 移植登录、MD5 签名、场馆/时段/订单/门锁密码接口与滑块图像匹配。macOS/iOS 均有预约、我的预约、门锁密码页面；自动验证码识别按用户明确要求启用，提交前仍二次确认，失败不自动重试。**真实预约/取消/门锁密码往返未验收**；图书馆 `v4/seminar` 只读页面保留但不再作为“研讨室”入口。
+- 数据展示审计：研究生成绩补课程代码/类别；培养方案课程补代码；博雅补学生类型、班级、学期范围、签到配置；研讨室补楼层筛选、人数范围与已占用时段（图书馆页面保留）。
+- 文档：API.md 新增 §5.6（当前预约与座位状态操作）、§5.7（图书馆研讨室写路径）、§6B（教学楼 CGYY）、修订表第 45–49 条；同步 EDUCATION-DATA-MAP、BACKLOG、UI-DESIGN、IOS、ROADMAP、PRIVACY、RELEASE-NOTES 与 README。
+- 验证：macOS build 通过；全量 193 项 XCTest 通过（新增 11 项座位/研讨室回归、6 项培养进度、5 项 CGYY 签名/加密/订单测试、3 项 iclass 教学班匹配测试、1 项结构化类别进度测试）；iOS generic build 通过。真实写操作、真实 CGYY 预约、门锁密码、浅深色/窄窗口/VoiceOver 仍需人工验收。
+
+## 2026-10-18 · 原生 iOS 页面层、模拟器与真实会话边界
+
+- iOS 页面层从复用 macOS 功能 View 切换为独立原生 SwiftUI：登录使用 `Form`，主界面使用 `TabView` / `NavigationSplitView`、`List`、`Section`、`NavigationStack`、toolbar Menu、`searchable`、`refreshable`、`swipeActions` 与系统确认对话框。
+- 新增 `Sources/Native/`：Today、Schedule、Grade、Homework、Library、Classroom、CheckIn、Tasks、Login 全部为独立 iOS 页面；共享层只保留 CAS、客户端、模型、解析器、缓存和 ViewModel。
+- 修复 iPad 侧栏选择：可选 selection 与行 tag 类型对齐，侧栏选中高亮和详情切换均正常。
+- 修复固定宽度 sheet 在 iPhone 溢出的问题，并为窄屏表单/列表增加原生布局。
+- CAS 4xx 错误处理：优先解析上游错误容器；HTTP 483 无正文时给出明确“认证服务拒绝”提示，新增 XCTest 回归。
+- 模拟器环境：确认 Xcode 27.1 的 iOS 27.1 Runtime 只支持 `iPhone Duo`；安装标准 iOS 27.0 Runtime 后创建并验证 iPhone 17 Pro、iPhone SE (3rd generation)、iPad Pro 11。
+- iOS 测试：167 项单元测试全绿；完整 XCTest 170 项中 169 项通过、1 项凭据测试跳过；iPhone 17 Pro 与 iPhone SE UI 冒烟测试通过；iPad Pro 11 侧栏导航 UI 测试通过；真实账号测试在未注入凭据时按设计跳过。
+- 网络路线：新增自动/直连/WebVPN 设置；直连 UC 返回 483 时自动切换 `d.buaa.edu.cn` WebVPN 并重试。认证链读取登录表单 action，保留 WebVPN 所需查询参数；业务请求统一经 `routedData` 选择网络路线。
+- 真实账号会话：直连被 HTTP 483 访问策略拦截后自动切换 WebVPN，CAS 登录成功，`uc/status` 返回 `code == 0 + data`。WebVPN 下研究生课表读取为 20 个学期、30 周、7 门课程；SPOC 读取 13 项作业；成绩、空教室（3 栋 158 间）、图书馆座位（3 馆）、校园通知（5 条）和 iclass 只读状态均已实测。`graduate_weeks` 空数组现在按“学期暂无课表”处理，SPOC 登录补齐 SPA 预热与完整 CAS 回调。
+- 新增只读数据页面：博雅 AES/RSA 认证与 74 门课程、已选/统计；研讨室 45 个空间与逐时空档；研究生教务学籍白名单摘要、10 章方案、59 门计划课程、成绩/考试和 46 个应用目录。均使用原生 List/Picker/searchable/DisclosureGroup 与明确空状态，不提供未验收的写操作。
+- 凭据未写入仓库，测试后已清理模拟器环境、临时截图与测试 App。
+- 已知限制：真实 iPhone/iPad 真机、Dynamic Type、VoiceOver、横屏/分屏、通知投递和写操作往返仍未验收；Judge 课程列表结构仍需适配；GitHub Actions iOS 远端运行尚未取得结果。
+
+
+## 2026-10-17 · 原生 iOS 子项目与跨平台收口
+
+- 新增 `BUAA-Assistant-iOS/`：iOS 17+ SwiftUI 子项目，使用 XcodeGen `project.yml` 管理工程，复用 macOS 主项目的 CAS、网络、模型、解析器、缓存、ViewModel 和大部分功能 View。
+- iOS 自适应壳：iPhone 使用「今天 / 课表 / 作业 / 图书馆 / 更多」五 Tab；iPad regular width 使用九入口 `NavigationSplitView`；「更多」提供签到、成绩、空教室、待办与设置。
+- 新增 iOS 根视图、原生 Form 设置页、前台通知代理、AppIcon、AccentColor、LaunchBackground、Privacy Manifest 与 iOS test target。
+- 跨平台适配：新增语义色、NSImage/UIImage、hover、Escape 键与 link button style 适配层；登录页在 compact width 折叠为单栏；`AuthViewModel` 不再依赖 AppKit；用户文案去除不必要的 macOS 绑定。
+- `UpdateCenter` 将 macOS 安装/Process/NSWorkspace 实现包在平台条件中，iOS 仅保留可测试的策略代码且不使用应用内自更新。
+- 隐私：iOS Application Support 根目录标记 `isExcludedFromBackup`；`PrivacyInfo.xcprivacy` 声明无跟踪/无收集及 required-reason API。
+- 验证：macOS build 通过、141 项 XCTest 全绿；iOS generic build 与包含 141 项测试源码的 `build-for-testing` 通过。当前开发机没有 iOS Simulator Runtime，因此 iOS XCTest 未执行、iOS 真机与写操作未验收。
+- CI：新增 `.github/workflows/ios.yml`，执行 XcodeGen 生成、generic iOS build 与可用 iPhone Simulator 的 XCTest；尚未取得远端运行结果。
+- 文档：新增 [IOS.md](IOS.md)、[IMPROVEMENTS.md](IMPROVEMENTS.md)，并同步 README、AGENTS、TESTING、ACCEPTANCE。
+
 ## 2026-10-16 · 登录首页重做、应用更名与宣传页适配
 
 - 应用更名：App target 产物改为 `Ginkgo.app`（`PRODUCT_NAME = Ginkgo`，应用菜单/Finder/窗口标题均为 Ginkgo），Swift 模块名固定为 `BUAA_Assistant` 以免测试导入失效；bundle id、钥匙串 service、本机缓存目录保持原值以兼容用户数据。应用内文案（侧栏、登录页、菜单栏、通知、设置提示）统一为 Ginkgo。
@@ -316,7 +364,7 @@
 ## 2026-10-15 · 网格课表与校园服务
 
 - 周课表改用星期 × 节次网格，课程显示地点与时间，支持详情弹窗；交错重叠课程按组分栏。增加学期总览，研究生从一次全学期响应生成各周数据，本科仅展示实际查询周次并标记未查询范围。切换效果遵循减少动态效果设置。
-- 图书馆新增 CAS token 交换、楼馆/分区/时段/座位查询、我的预约（前 100 条）、预约和取消确认。写请求不自动重发；网络/解析异常显示结果待核实。研讨室专用 boutique 分类尚未接入，不能视为已完成研讨室预约。
+- 图书馆新增 CAS token 交换、楼馆/分区/时段/座位查询、我的预约（前 100 条）、预约和取消确认。写请求不自动重发；网络/解析异常显示结果待核实。研讨室专用 boutique 分类已于 2026-10-18 通过真实 `v4/seminar/*` 读接口接入只读空档页面；预约提交仍未实现。
 - 空教室按源码接入校区/日期查询、名称搜索和空闲节次筛选，协议见 API.md §6A。该模块尚无真实账号验收证据。
 - 本地待办支持添加截止时间、完成/恢复、显示已完成和确认删除，按账号摘要隔离保存在本机。尚未自动汇入学校作业或签到。
 - 本轮 `xcodebuild build`、`xcodebuild test`、`git diff --check` 通过。新增交错课程分栏、CAS 查询串/fragment 提取、AES-CBC OpenSSL 固定向量测试。HTTPS 命令行探测通过系统证书校验；这不替代 App 内真实账号预约验收。
@@ -364,3 +412,11 @@
 同日用独立应用实例做了真实账号界面检查（账号及密码未写入仓库或日志）：设置页登出后回到登录页，应用钥匙串记录消失；勾选记住密码再次登录后记录出现；启动另一个独立实例后自动进入主界面。此观察证明本机恢复闭环可用，但不能单凭界面判定恢复时优先使用了 Cookie 还是钥匙串凭据；该区分仍以代码分支与模拟测试为证据。
 
 仍需人工查看提示文案的视觉效果，以及验证码触发时的图片与提示布局。当前运行中的旧 App 需要在 Xcode 重新运行，才能看到本轮界面改动。
+
+## 2026-10-19 · 瘦身与共享编排
+
+- 删除图书馆研讨间未挂载功能（`SeminarView`、`IOSSeminarView`、`SeminarViewModel`、`SeminarModels`/解析器、`LibraryClient` 的 seminar 只读 API 与相关测试），图书馆产品范围保持座位预约；`seminar/cancel` 仍用于历史记录取消。
+- 抽出共享基础设施并替换重复实现：`LocalStore`/`SnapshotCache`（11 个缓存）、`SchoolTime`（27 处时区/日期与时间解析）、`JSONValue`（各解析器重复的取值函数）、`HTMLText`、`FormURLEncoding`、`AESCipher`（图书馆/SPOC/博雅/CGYY 四处 AES）、`AutoRefreshGate`（四个 ViewModel 的刷新节流）、`StatusPresentation`、`GraduateCredit`。
+- 两个应用壳合并：`WorkspaceHost` 以账号为生命周期创建 `WorkspaceCoordinator`，后者持有全部 ViewModel；`WorkspaceLifecycleModifier` 统一签到轮询、课程提醒、WebVPN、前后台与网络恢复刷新。iOS target 排除全部 macOS 功能页面、`PageComponents` 与 `MacViewModifiers`，并删除随之不可达的紧凑布局分支；iOS 博雅/研究生教务页面改用工作区持有的 ViewModel。
+- 修复：缓存写入与刷新失败被 `try?` 静默吞掉、图书馆重登重试丢失 `extractData`、HTML 实体二次解码、图书馆日期未固定 locale、iOS 清理缓存遗漏博雅/研究生教务；修正两个既有过期测试（培养进度状态、图书馆时间相关用例）。
+- 验证：macOS 212 项、iOS 模拟器 212 项单元测试通过；双端构建通过；`git diff --check` 通过。真实账号、通知投递与写操作未在本轮验收。

@@ -77,6 +77,16 @@ final class CasClientTests: XCTestCase {
     }
   }
 
+  func test_fetchLoginPage_withHTTP483_reportsAccessPolicy() async throws {
+    CasMockURLProtocol.handler = { _ in (483, [:], Data()) }
+    do {
+      _ = try await client.fetchLoginPage()
+      XCTFail("HTTP 483 应提示访问策略")
+    } catch CasClientError.accessPolicyDenied {
+      // 预期错误
+    }
+  }
+
   func test_fetchLoginPage_withServerFailure_reportsStatus() async throws {
     CasMockURLProtocol.handler = { _ in (503, [:], Data()) }
 
@@ -137,6 +147,51 @@ final class CasClientTests: XCTestCase {
 
     _ = try await client.login(page: page, username: "sy2501001", password: "test", captchaText: nil)
     XCTAssertEqual(postCount, 2)
+  }
+
+  func test_login_withHTTP483_usesServerErrorMessage() async throws {
+    CasMockURLProtocol.handler = { request in
+      if request.httpMethod == "POST" {
+        return (483, ["Content-Type": "text/html"], Data(#"<div id="errorDiv">账号或密码错误</div>"#.utf8))
+      }
+      return (500, [:], Data())
+    }
+    let page = LoginPageInfo(execution: "e-1", captcha: nil, html: #"<input name="execution" value="e-1">"#)
+
+    do {
+      _ = try await client.login(page: page, username: "sy2501001", password: "wrong", captchaText: nil)
+      XCTFail("HTTP 483 应被拒绝")
+    } catch CasClientError.preLoginTip(let message) {
+      XCTAssertEqual(message, "账号或密码错误")
+    }
+  }
+
+  func test_login_whenUcAccessPolicyDeniesNetwork_reportsActionableError() async throws {
+    CasMockURLProtocol.handler = { request in
+      let url = request.url!.absoluteString
+      if url == "https://sso.buaa.edu.cn/login" && request.httpMethod == "POST" {
+        return (302, ["Location": "/cas/done"], Data())
+      }
+      if url == "https://sso.buaa.edu.cn/cas/done" {
+        return (200, [:], Data("<html>完成</html>".utf8))
+      }
+      if url.hasPrefix("https://uc.buaa.edu.cn/api/login?") {
+        let html = "<h1>访问出错</h1><p>访问策略禁止您访问该网站，您(IP：192.0.2.1)，没有权限访问相应的资源</p>"
+        return (483, ["Content-Type": "text/html"], Data(html.utf8))
+      }
+      return (404, [:], Data())
+    }
+    let page = LoginPageInfo(execution: "e-1", captcha: nil, html: #"<input name="execution" value="e-1">"#)
+
+    do {
+      _ = try await client.login(page: page, username: "sy2501001", password: "test", captchaText: nil)
+      XCTFail("访问策略拦截不应被报告为登录成功")
+    } catch CasClientError.accessPolicyDenied {
+      XCTAssertEqual(
+        CasClientError.accessPolicyDenied.errorDescription,
+        "当前网络被学校访问策略拦截，请连接校园网或北航 VPN 后重试"
+      )
+    }
   }
 
   func test_validateSession_withServerFailure_doesNotReportInvalidSession() async throws {

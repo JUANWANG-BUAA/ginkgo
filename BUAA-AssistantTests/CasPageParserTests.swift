@@ -19,6 +19,14 @@ final class CasPageParserTests: XCTestCase {
     )
   }
 
+  func test_extractLoginFormAction_keepsWebVPNSerivceQuery() {
+    let html = #"<form action="/https/encoded-sso/login?service=https%3A%2F%2Fd.buaa.edu.cn%2Flogin" method="post">"#
+    XCTAssertEqual(
+      CasPageParser.extractLoginFormAction(from: html),
+      "/https/encoded-sso/login?service=https%3A%2F%2Fd.buaa.edu.cn%2Flogin"
+    )
+  }
+
   func test_extractExecution_withSingleQuotedInput_shouldReturnToken() {
     let html = #"<input type='hidden' name='execution' value='abc-123'/>"#
     XCTAssertEqual(CasPageParser.extractExecution(from: html), "abc-123")
@@ -97,6 +105,15 @@ final class CasPageParserTests: XCTestCase {
     // 有关键词但没有 execution → 不是 CAS 流程页，不能当跳过页处理
     let html = "<div>密码过期</div>"
     XCTAssertFalse(CasPageParser.isPasswordExpiryPage(html))
+  }
+
+  func test_isAccessPolicyDenied_withUcWafPage_shouldBeTrue() {
+    let html = "访问出错 - 403 出错啦！访问策略禁止您访问该网站，可能的原因为 您(IP：192.0.2.1)，没有权限访问相应的资源"
+    XCTAssertTrue(CasPageParser.isAccessPolicyDenied(html))
+  }
+
+  func test_isAccessPolicyDenied_withNormalForbiddenPage_shouldBeFalse() {
+    XCTAssertFalse(CasPageParser.isAccessPolicyDenied("<h1>403 Forbidden</h1>"))
   }
 
   func test_isPasswordExpiryPage_normalLogin_shouldBeFalse() {

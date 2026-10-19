@@ -71,11 +71,11 @@ struct GradeView: View {
           Button("重试") { Task { await model.refresh() } }.buttonStyle(.borderedProminent)
         }
       }
-      .padding(24)
+      .ginkgoPagePadding()
       .frame(maxWidth: 800, alignment: .leading)
       .frame(maxWidth: .infinity)
     }
-    .background(Color(nsColor: .windowBackgroundColor))
+    .background(Color.ginkgoWindowBackground)
     .toolbar {
       ToolbarItem(placement: .primaryAction) {
         Button { Task { await model.refresh() } } label: {
@@ -98,18 +98,18 @@ struct GradeView: View {
   }
 
   private func filteredCourses(_ snapshot: GradeSnapshot) -> [GradeCourse] {
-    let term = search.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !term.isEmpty else { return snapshot.courses }
-    return snapshot.courses.filter { course in
-      course.name.localizedCaseInsensitiveContains(term) || (course.code?.localizedCaseInsensitiveContains(term) == true)
-    }
+    snapshot.courses(matching: search)
   }
 
+  @ViewBuilder
   private func statistics(_ snapshot: GradeSnapshot) -> some View {
+    let average = snapshot.weightedAverage.map { $0.formatted(.number.precision(.fractionLength(2))) } ?? "—"
+    let gpa = snapshot.gradePointAverage.map { $0.formatted(.number.precision(.fractionLength(2))) } ?? "—"
+
     HStack(spacing: 12) {
       stat("已发布", value: "\(snapshot.courses.count) 门", detail: "当前学期")
-      stat("加权平均分", value: snapshot.weightedAverage.map { $0.formatted(.number.precision(.fractionLength(2))) } ?? "—", detail: "仅计数值成绩")
-      stat("参考绩点", value: snapshot.gradePointAverage.map { $0.formatted(.number.precision(.fractionLength(2))) } ?? "—", detail: "百分制；不及格按 0 计入")
+      stat("加权平均分", value: average, detail: "仅计数值成绩")
+      stat("参考绩点", value: gpa, detail: "百分制；不及格按 0 计入")
     }
   }
 
@@ -121,6 +121,6 @@ struct GradeView: View {
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(16)
-    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
   }
 }
