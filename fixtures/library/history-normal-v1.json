@@ -1,0 +1,67 @@
+{
+  "contract": "library.history",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "data": {
+      "data": [
+        {
+          "id": "b1",
+          "nameMerge": "学院路馆 · A区 · 12号",
+          "areaName": "A区",
+          "no": "12",
+          "day": "2026-10-20",
+          "beginTime": "2026-10-20 08:00:00",
+          "endTime": "2026-10-20 12:00:00",
+          "status": 1,
+          "status_name": "使用中"
+        },
+        {
+          "id": "b2",
+          "name_merge": "沙河馆 · B区 · 03号",
+          "area_name": "B区",
+          "seat_no": "03",
+          "date": "2026-10-21",
+          "start_time": "14:00",
+          "finish_time": "16:00",
+          "status": "6"
+        }
+      ],
+      "current_page": 1,
+      "per_page": 40,
+      "total": 42
+    },
+    "page": 1,
+    "limit": 40
+  },
+  "expected": {
+    "bookings": [
+      {
+        "id": "b1",
+        "title": "学院路馆 · A区 · 12号",
+        "areaName": "A区",
+        "seatNumber": "12",
+        "day": "2026-10-20",
+        "startTime": "08:00:00",
+        "endTime": "12:00:00",
+        "status": "1",
+        "statusName": "使用中"
+      },
+      {
+        "id": "b2",
+        "title": "沙河馆 · B区 · 03号",
+        "areaName": "B区",
+        "seatNumber": "03",
+        "day": "2026-10-21",
+        "startTime": "14:00",
+        "endTime": "16:00",
+        "status": "6",
+        "statusName": "已取消"
+      }
+    ],
+    "page": 1,
+    "pageSize": 40,
+    "total": 42,
+    "hasNext": true
+  }
+}

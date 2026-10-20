@@ -41,7 +41,77 @@ pub struct LibraryBookingsOutcome {
     pub failure: Option<AppError>,
 }
 
+#[derive(Debug, Clone)]
+pub struct LibraryHistoryOutcome {
+    pub data: crate::features::library::LibraryHistoryPage,
+    pub fetched_at: String,
+    pub from_cache: bool,
+    pub stale: bool,
+    pub failure: Option<AppError>,
+}
+
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
+    pub async fn load_library_history(
+        &self,
+        page: i32,
+        force_refresh: bool,
+    ) -> Result<LibraryHistoryOutcome, AppError> {
+        let account = self.current_account()?;
+        if page < 1 {
+            return Err(AppError::invalid());
+        }
+        if !force_refresh {
+            let cache = self.library_history.lock().expect("library history");
+            if let Some(entry) = cache.fresh(&page) {
+                return Ok(LibraryHistoryOutcome {
+                    data: entry.value.clone(),
+                    fetched_at: entry.timestamp.clone(),
+                    from_cache: true,
+                    stale: false,
+                    failure: None,
+                });
+            }
+        }
+        let result = async {
+            let token = self.library_token().await?;
+            let result = library_http::history(&self.session, &token, page, 40).await;
+            if needs_relogin(&result) {
+                self.reset_library_token();
+                let token = self.library_token().await?;
+                library_http::history(&self.session, &token, page, 40).await
+            } else {
+                result
+            }
+        }
+        .await;
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
+        }
+        let mut cache = self.library_history.lock().expect("library history");
+        match result {
+            Ok(data) => {
+                let fetched_at = cache.insert(page, data.clone());
+                Ok(LibraryHistoryOutcome {
+                    data,
+                    fetched_at,
+                    from_cache: false,
+                    stale: false,
+                    failure: None,
+                })
+            }
+            Err(error) => match cache.any(&page) {
+                Some(entry) => Ok(LibraryHistoryOutcome {
+                    data: entry.value.clone(),
+                    fetched_at: entry.timestamp.clone(),
+                    from_cache: true,
+                    stale: true,
+                    failure: Some(error),
+                }),
+                None => Err(error),
+            },
+        }
+    }
+
     pub async fn load_library_venues(
         &self,
         force_refresh: bool,

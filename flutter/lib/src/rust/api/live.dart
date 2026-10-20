@@ -121,6 +121,18 @@ Future<LibraryBookingsResponse> loadLibraryBookings({
   forceRefresh: forceRefresh,
 );
 
+Future<LibraryHistoryResponse> loadLibraryHistory({
+  required int page,
+  required bool forceRefresh,
+}) => RustLib.instance.api.crateApiLiveLoadLibraryHistory(
+  page: page,
+  forceRefresh: forceRefresh,
+);
+
+/// Synthetic page runs the same domain parser as live history.
+Future<LibraryHistoryResponse> loadDemoLibraryHistory({required int page}) =>
+    RustLib.instance.api.crateApiLiveLoadDemoLibraryHistory(page: page);
+
 /// Real SPOC list, API.md §7.1. Demo remains an explicit separate command.
 Future<HomeworkResponse> loadHomework({required bool forceRefresh}) =>
     RustLib.instance.api.crateApiLiveLoadHomework(forceRefresh: forceRefresh);
@@ -255,6 +267,61 @@ class HomeworkDetailResponse {
           submittedAt == other.submittedAt &&
           stale == other.stale &&
           failure == other.failure;
+}
+
+class LibraryHistoryResponse {
+  final List<LibraryBooking> bookings;
+  final int page;
+  final int pageSize;
+  final int? total;
+  final bool hasNext;
+  final String? fetchedAt;
+  final bool fromCache;
+  final bool stale;
+  final FailureCode? failure;
+  final String? failureDetail;
+
+  const LibraryHistoryResponse({
+    required this.bookings,
+    required this.page,
+    required this.pageSize,
+    this.total,
+    required this.hasNext,
+    this.fetchedAt,
+    required this.fromCache,
+    required this.stale,
+    this.failure,
+    this.failureDetail,
+  });
+
+  @override
+  int get hashCode =>
+      bookings.hashCode ^
+      page.hashCode ^
+      pageSize.hashCode ^
+      total.hashCode ^
+      hasNext.hashCode ^
+      fetchedAt.hashCode ^
+      fromCache.hashCode ^
+      stale.hashCode ^
+      failure.hashCode ^
+      failureDetail.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibraryHistoryResponse &&
+          runtimeType == other.runtimeType &&
+          bookings == other.bookings &&
+          page == other.page &&
+          pageSize == other.pageSize &&
+          total == other.total &&
+          hasNext == other.hasNext &&
+          fetchedAt == other.fetchedAt &&
+          fromCache == other.fromCache &&
+          stale == other.stale &&
+          failure == other.failure &&
+          failureDetail == other.failureDetail;
 }
 
 class LiveScope {

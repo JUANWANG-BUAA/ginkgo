@@ -35,7 +35,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         date: Option<String>,
         force_refresh: bool,
     ) -> Result<CheckInOutcome, AppError> {
-        self.current_account()?;
+        let account = self.current_account()?;
         let today = school_time::beijing_day(&now_shanghai())?.local_date;
         let date = match date {
             Some(date) => {
@@ -64,6 +64,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         }
 
         let fetched = self.fetch_checkin(&compact).await;
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
+        }
         match fetched {
             Ok(courses) => {
                 let timestamp = self

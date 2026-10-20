@@ -131,6 +131,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   LibraryDemoResponse dco_decode_library_demo_response(dynamic raw);
 
   @protected
+  LibraryHistoryResponse dco_decode_library_history_response(dynamic raw);
+
+  @protected
   LibrarySeat dco_decode_library_seat(dynamic raw);
 
   @protected
@@ -391,6 +394,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   LibraryDemoResponse sse_decode_library_demo_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LibraryHistoryResponse sse_decode_library_history_response(
     SseDeserializer deserializer,
   );
 
@@ -726,6 +734,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_library_demo_response(
     LibraryDemoResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_library_history_response(
+    LibraryHistoryResponse self,
     SseSerializer serializer,
   );
 

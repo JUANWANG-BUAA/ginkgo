@@ -1510,3 +1510,75 @@ async fn checkin_history_is_cached_per_date_and_failure_preserves_only_that_day(
     assert!(queries[0].url.contains("dateStr=20260901"));
     assert!(queries[1].url.contains("dateStr=20260902"));
 }
+
+#[tokio::test]
+async fn library_history_pages_are_isolated_and_expiry_recovers_once() {
+    let body = |data: serde_json::Value| {
+        HttpResponse::new(
+            200,
+            "https://booking.lib.buaa.edu.cn/v4/member/seat",
+            serde_json::json!({"code":0,"data":data}).to_string(),
+        )
+    };
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(library_login_redirect());
+    responses.push(library_token_response());
+    responses.push(body(
+        fixture("library", "history-normal-v1.json")["input"]["data"].clone(),
+    ));
+    responses.push(body(
+        serde_json::json!({"data":[],"page":2,"limit":40,"total":42}),
+    ));
+    responses.push(HttpResponse::new(401, "library", "expired"));
+    responses.push(library_login_redirect());
+    responses.push(library_token_response());
+    responses.push(body(
+        fixture("library", "history-normal-v1.json")["input"]["data"].clone(),
+    ));
+    responses.push(HttpResponse::new(500, "library", "unavailable"));
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "fixture-password", None, true)
+        .await
+        .expect("login");
+    let first = service
+        .load_library_history(1, false)
+        .await
+        .expect("page one");
+    assert!(first.data.has_next);
+    let second = service
+        .load_library_history(2, false)
+        .await
+        .expect("page two");
+    assert!(!second.data.has_next);
+    assert!(
+        service
+            .load_library_history(1, false)
+            .await
+            .expect("cache")
+            .from_cache
+    );
+    let recovered = service
+        .load_library_history(1, true)
+        .await
+        .expect("recover");
+    assert!(!recovered.stale);
+    let stale = service.load_library_history(1, true).await.expect("stale");
+    assert!(stale.stale && stale.failure.is_some());
+    assert_eq!(stale.data, first.data);
+    let before = transport.request_count();
+    assert!(service.load_library_history(0, false).await.is_err());
+    assert_eq!(before, transport.request_count());
+    let requests = transport.requests();
+    let history: Vec<_> = requests
+        .iter()
+        .filter(|r| r.url.ends_with("member/seat"))
+        .collect();
+    let params: serde_json::Value =
+        serde_json::from_str(history[1].body.as_deref().expect("body")).expect("json");
+    assert_eq!(params, serde_json::json!({"type":"1","page":2,"limit":40}));
+    assert_eq!(
+        history[0].header_value("Authorization"),
+        Some("bearerfixture-library-token")
+    );
+}

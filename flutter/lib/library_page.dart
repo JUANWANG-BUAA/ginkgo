@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
+import 'library_history_page.dart';
 import 'src/rust/api/mirror.dart';
 
 /// booking.lib read-only hierarchy: current booking, venue, area, segment and
@@ -145,6 +146,19 @@ class _LibraryPageState extends State<LibraryPage> {
               )
             else ...[
               _bookingSection(),
+              AppleSection(
+                children: [
+                  AppleListTile(
+                    key: const Key('library-history'),
+                    title: const Text('全部预约记录'),
+                    subtitle: const Text('按页查看进行中、已结束与已取消记录'),
+                    leading: const Icon(CupertinoIcons.clock),
+                    trailing: const CupertinoListTileChevron(),
+                    onTap: () =>
+                        _push(LibraryHistoryPage(service: widget.service)),
+                  ),
+                ],
+              ),
               _venueSection(),
               AppleSection(
                 children: [

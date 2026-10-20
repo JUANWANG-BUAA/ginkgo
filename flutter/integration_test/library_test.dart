@@ -24,6 +24,19 @@ void main() {
     expect(find.text('空闲 12 / 30'), findsOneWidget);
     expect(find.textContaining('仅用于演示只读座位层级'), findsOneWidget);
 
+    await tap(tester, '全部预约记录', scrollKey: 'library-scroll');
+    await show(tester, find.text('已取消'), scrollKey: 'library-history-scroll');
+    expect(find.text('已取消'), findsOneWidget);
+    expect(
+      tester
+          .widget<CupertinoButton>(
+            find.byKey(const Key('library-history-next')),
+          )
+          .onPressed,
+      isNull,
+    );
+    await tester.tap(find.byType(CupertinoNavigationBarBackButton));
+    await settle(tester);
     await tap(tester, '学院路馆', scrollKey: 'library-scroll');
     expect(find.text('区域'), findsOneWidget);
     expect(find.text('空闲 4 / 20'), findsOneWidget);

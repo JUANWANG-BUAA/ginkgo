@@ -1,3 +1,6 @@
+import 'package:ginkgo_mirror/src/rust/api/live.dart'
+    show LibraryHistoryResponse;
+
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -113,6 +116,11 @@ class FailOnceNativeService implements MirrorService {
     status: '已提交',
     stale: false,
   );
+  @override
+  Future<LibraryHistoryResponse> libraryHistory(
+    int page, {
+    bool forceRefresh = false,
+  }) => native.libraryHistory(page, forceRefresh: forceRefresh);
   @override
   Future<HomeworkResponse> homework({bool forceRefresh = false}) =>
       native.homework();

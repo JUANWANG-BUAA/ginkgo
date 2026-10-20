@@ -3,7 +3,7 @@
 //! Strict parsing keeps "empty", "structure changed" and "business rejected"
 //! apart. The seat-lifecycle fields (flag_in/flag_out/...) are deliberately not
 //! modeled yet: this module covers venues, areas, slots, seats and the current
-//! booking list only.
+//! and paginated booking history.
 use crate::AppError;
 use serde::Serialize;
 use serde_json::Value;
@@ -451,4 +451,102 @@ mod tests {
         assert!(parse_bookings(&Value::Null).expect("empty").is_empty());
         assert!(parse_bookings(&json!([])).expect("empty array").is_empty());
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryHistoryPage {
+    pub bookings: Vec<LibraryBooking>,
+    pub page: i32,
+    pub page_size: i32,
+    pub total: Option<i64>,
+    pub has_next: bool,
+}
+
+/// member/seat pagination, matching LibraryClient.swift:392–453.
+pub fn parse_history(
+    data: &Value,
+    requested_page: i32,
+    limit: i32,
+) -> Result<LibraryHistoryPage, AppError> {
+    if requested_page < 1 || !(1..=100).contains(&limit) {
+        return Err(AppError::invalid());
+    }
+    let rows = data
+        .get("data")
+        .or_else(|| data.get("list"))
+        .and_then(Value::as_array)
+        .ok_or_else(AppError::changed)?;
+    // Unlike current bookings, a history record must include its status.
+    if rows
+        .iter()
+        .any(|row| first_text(row, &["status", "status_name", "statusName"]).is_none())
+    {
+        return Err(AppError::changed());
+    }
+    let bookings = parse_bookings(&Value::Array(rows.clone()))?;
+    fn number(data: &Value, keys: &[&str]) -> Result<Option<i64>, AppError> {
+        match keys
+            .iter()
+            .filter_map(|key| data.get(key))
+            .find(|value| !value.is_null())
+        {
+            None => Ok(None),
+            Some(value) => value
+                .as_i64()
+                .or_else(|| value.as_str()?.parse().ok())
+                .map(Some)
+                .ok_or_else(AppError::changed),
+        }
+    }
+    let page = number(data, &["current_page", "page"])?.unwrap_or(i64::from(requested_page));
+    let page_size = number(data, &["per_page", "limit"])?.unwrap_or(i64::from(limit));
+    let total = number(data, &["total", "count"])?;
+    let last = number(data, &["last_page", "lastPage"])?;
+    let explicit_next = match data
+        .get("has_more")
+        .or_else(|| data.get("hasNextPage"))
+        .filter(|v| !v.is_null())
+    {
+        None => None,
+        Some(value) => Some(match value.as_bool() {
+            Some(value) => value,
+            None => match value.as_i64().or_else(|| value.as_str()?.parse().ok()) {
+                Some(0) => false,
+                Some(1) => true,
+                _ => return Err(AppError::changed()),
+            },
+        }),
+    };
+    if page != i64::from(requested_page)
+        || !(1..=100).contains(&page_size)
+        || total.is_some_and(|n| n < 0)
+        || last.is_some_and(|n| n < 0)
+        || rows.len() as i64 > page_size
+        || (total.is_none()
+            && last.is_none()
+            && explicit_next.is_none()
+            && rows.len() as i64 != page_size)
+    {
+        return Err(AppError::changed());
+    }
+    let by_total = total.map(|n| page * page_size < n);
+    let by_last = last.map(|n| page < n);
+    if explicit_next.is_some_and(|next| {
+        by_total.is_some_and(|n| next != n) || by_last.is_some_and(|n| next != n)
+    }) || by_total.zip(by_last).is_some_and(|(a, b)| a != b)
+        || total.is_some_and(|n| !rows.is_empty() && (page - 1) * page_size + rows.len() as i64 > n)
+    {
+        return Err(AppError::changed());
+    }
+    Ok(LibraryHistoryPage {
+        bookings,
+        page: requested_page,
+        page_size: page_size as i32,
+        total,
+        has_next: explicit_next
+            .or(by_last)
+            .or(by_total)
+            .unwrap_or(rows.len() as i64 == page_size),
+    })
 }

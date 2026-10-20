@@ -173,6 +173,26 @@ pub async fn bookings<T: HttpTransport>(
     library::parse_bookings(&data)
 }
 
+/// Read-only history, same bearer token and envelope as current bookings.
+pub async fn history<T: HttpTransport>(
+    session: &Session<T>,
+    token: &str,
+    page: i32,
+    limit: i32,
+) -> Result<library::LibraryHistoryPage, AppError> {
+    if page < 1 || !(1..=100).contains(&limit) {
+        return Err(AppError::invalid());
+    }
+    let data = post(
+        session,
+        token,
+        "member/seat",
+        &json!({"type":"1", "page":page, "limit":limit}),
+    )
+    .await?;
+    library::parse_history(&data, page, limit)
+}
+
 async fn post<T: HttpTransport>(
     session: &Session<T>,
     token: &str,
@@ -202,7 +222,7 @@ fn json_request(url: &str, token: Option<&str>, body: &Value) -> HttpRequest {
 
 /// The envelope is shared by every business endpoint: HTTP auth, a login
 /// message or code outside {0,1} must not be mistaken for an empty list.
-fn parse_envelope(response: &HttpResponse) -> Result<Value, AppError> {
+pub(crate) fn parse_envelope(response: &HttpResponse) -> Result<Value, AppError> {
     if matches!(response.status, 401 | 403)
         || cas::is_login_redirect(&response.final_url, &response.body)
     {

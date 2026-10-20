@@ -312,3 +312,13 @@
 - 验证：21项签到Rust测试、workspace Clippy、Flutter analyze、28项widget通过。真实历史日期尚未登录验收，先标⚠️；先前当天查询成功不替代本次历史验收。
 
 签到历史设备验证：`checkin_test.dart` 独立Android smoke 1项通过（27秒），覆盖当天→历史→前一天→返回；workspace 135 lib + 1 contract通过。未跑mirror长流程（仅补接口实现以保持analyze通过）。
+
+
+## 2026-10-20：图书馆预约历史分页
+
+- 对照 Swift `LibraryClient.swift:392–453` 和 UBAA `LocalLibBookApi.kt:247–258` 接入 `member/seat` 只读POST（type=1/page/limit=40）。严格检查状态、唯一ID与分页字段/矛盾，业务拒绝与确认空分开。
+- 领域→adapter→application→FRB→Cupertino页面贯通；单次token恢复、按页五分钟缓存、认证/传输失败保留该页旧结果；退出/切路线清缓存。桥接只投影已有预约字段，不输出token。
+- 图书馆“全部预约记录”推入独立页，展示日期/时段/状态/当前页/总数、上/下一页。请求失败保留原页并提示实际页码，重试继续请求失败页；末页关闭下一页。页面允许进行中和终态并列，写操作保持关闭。
+- 六份history合成契约（正常/空/漂移/分页依据缺失/矛盾/业务拒绝），一个应用链路覆盖分页隔离/401恢复/失败保留，一个widget覆盖翻页失败及重试；未增加无界长流程。历史真实响应⚠️待用户本机登录，不冒充旧当前预约验收。
+
+图书馆历史验证：136项Rust lib + 1项契约、Clippy、Flutter analyze、29项widget通过；独立library Android合成smoke 1项通过（约98秒，含历史→返回→馆区时段座位）；NDK27 aarch64 bridge cargo check通过。页面未截取真实记录，待本机登录再只读复验。

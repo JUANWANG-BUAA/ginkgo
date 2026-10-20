@@ -223,6 +223,33 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
                 _ => json!({"bookings": library::parse_bookings(&input.data)?}),
             }
         }
+        "library.history" => {
+            #[derive(Deserialize)]
+            struct HistoryInput {
+                #[serde(default)]
+                data: Value,
+                body: Option<Value>,
+                page: i32,
+                limit: i32,
+            }
+            let input: HistoryInput = decode(input)?;
+            let data = match input.body {
+                Some(body) => {
+                    let response = crate::foundation::http::HttpResponse::new(
+                        200,
+                        "https://booking.lib.buaa.edu.cn/v4/member/seat",
+                        body.to_string(),
+                    );
+                    crate::adapters::library_http::parse_envelope(&response)?
+                        .get("data")
+                        .cloned()
+                        .unwrap_or(Value::Null)
+                }
+                None => input.data,
+            };
+            serde_json::to_value(library::parse_history(&data, input.page, input.limit)?)
+                .map_err(|_| AppError::changed())?
+        }
         "checkin.app_login" => {
             let input: checkin::DayInput = decode(input)?;
             let session = checkin::parse_app_login(&input.body)?;

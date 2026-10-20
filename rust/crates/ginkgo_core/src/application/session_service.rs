@@ -17,7 +17,7 @@ use crate::{
     features::{
         checkin::{CheckInCourse, IClassSession},
         classroom::Room,
-        library::{LibraryBooking, LibraryVenue},
+        library::{LibraryBooking, LibraryHistoryPage, LibraryVenue},
         today::TodayCourse,
     },
     foundation::http::HttpTransport,
@@ -96,6 +96,7 @@ pub struct SessionService<T: HttpTransport, V: CredentialVault> {
     pub(crate) iclass: Mutex<Option<IClassSession>>,
     pub(crate) library_venues: Mutex<LibraryVenueCache>,
     pub(crate) library_bookings: Mutex<LibraryBookingCache>,
+    pub(crate) library_history: Mutex<SnapshotCache<i32, LibraryHistoryPage>>,
     /// booking.lib business token. Memory only.
     pub(crate) library_token: Mutex<Option<String>>,
     pub(crate) library_login_gate: tokio::sync::Mutex<()>,
@@ -125,6 +126,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             iclass: Mutex::new(None),
             library_venues: Mutex::new(LibraryVenueCache::default()),
             library_bookings: Mutex::new(LibraryBookingCache::default()),
+            library_history: Mutex::new(SnapshotCache::default()),
             library_token: Mutex::new(None),
             library_login_gate: tokio::sync::Mutex::new(()),
         }
@@ -360,6 +362,10 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         self.grades.lock().expect("grade cache").clear();
         self.checkin.lock().expect("checkin cache").clear();
         self.library_venues.lock().expect("library venues").clear();
+        self.library_history
+            .lock()
+            .expect("library history")
+            .clear();
         self.library_bookings
             .lock()
             .expect("library bookings")

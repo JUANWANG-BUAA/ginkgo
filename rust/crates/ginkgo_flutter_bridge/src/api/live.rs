@@ -883,6 +883,104 @@ pub async fn load_library_bookings(force_refresh: bool) -> LibraryBookingsRespon
     }
 }
 
+pub struct LibraryHistoryResponse {
+    pub bookings: Vec<super::mirror::LibraryBooking>,
+    pub page: i32,
+    pub page_size: i32,
+    pub total: Option<i32>,
+    pub has_next: bool,
+    pub fetched_at: Option<String>,
+    pub from_cache: bool,
+    pub stale: bool,
+    pub failure: Option<FailureCode>,
+    pub failure_detail: Option<String>,
+}
+
+pub async fn load_library_history(page: i32, force_refresh: bool) -> LibraryHistoryResponse {
+    let result = match service() {
+        Ok(service) => service.load_library_history(page, force_refresh).await,
+        Err(error) => Err(error),
+    };
+    match result {
+        Ok(outcome) => {
+            let (failure, failure_detail) = outcome
+                .failure
+                .as_ref()
+                .map(failure)
+                .unwrap_or((None, None));
+            LibraryHistoryResponse {
+                bookings: outcome
+                    .data
+                    .bookings
+                    .into_iter()
+                    .map(library_booking)
+                    .collect(),
+                page: outcome.data.page,
+                page_size: outcome.data.page_size,
+                total: outcome.data.total.and_then(|n| i32::try_from(n).ok()),
+                has_next: outcome.data.has_next,
+                fetched_at: Some(outcome.fetched_at),
+                from_cache: outcome.from_cache,
+                stale: outcome.stale,
+                failure,
+                failure_detail,
+            }
+        }
+        Err(error) => LibraryHistoryResponse {
+            bookings: vec![],
+            page,
+            page_size: 40,
+            total: None,
+            has_next: false,
+            fetched_at: None,
+            from_cache: false,
+            stale: false,
+            failure: Some(error.code.clone().into()),
+            failure_detail: error.detail,
+        },
+    }
+}
+
+/// Synthetic page runs the same domain parser as live history.
+pub fn load_demo_library_history(page: i32) -> LibraryHistoryResponse {
+    let fixture = include_str!("../../../../../fixtures/library/history-normal-v1.json");
+    let result = serde_json::from_str::<serde_json::Value>(fixture)
+        .map_err(|_| AppError::changed())
+        .and_then(|body| {
+            ginkgo_core::features::library::parse_history(&body["input"]["data"], 1, 40)
+        });
+    match result {
+        Ok(data) => LibraryHistoryResponse {
+            bookings: if page == 1 {
+                data.bookings.into_iter().map(library_booking).collect()
+            } else {
+                vec![]
+            },
+            page,
+            page_size: 40,
+            total: Some(2),
+            has_next: false,
+            fetched_at: None,
+            from_cache: false,
+            stale: false,
+            failure: None,
+            failure_detail: None,
+        },
+        Err(error) => LibraryHistoryResponse {
+            bookings: vec![],
+            page,
+            page_size: 40,
+            total: None,
+            has_next: false,
+            fetched_at: None,
+            from_cache: false,
+            stale: false,
+            failure: Some(error.code.into()),
+            failure_detail: None,
+        },
+    }
+}
+
 /// Real SPOC list, API.md §7.1. Demo remains an explicit separate command.
 pub async fn load_homework(force_refresh: bool) -> super::mirror::HomeworkResponse {
     use super::mirror::{HomeworkItem, HomeworkResponse, HomeworkStatus};

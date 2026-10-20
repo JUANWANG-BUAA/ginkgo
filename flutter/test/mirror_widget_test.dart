@@ -1,3 +1,6 @@
+import 'package:ginkgo_mirror/src/rust/api/live.dart'
+    show LibraryHistoryResponse;
+
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -354,6 +357,19 @@ class ControlledService implements MirrorService {
     status: '已提交',
     stale: false,
   );
+  final historyPages = <int>[];
+  final historyRequests = <Completer<LibraryHistoryResponse>>[];
+  @override
+  Future<LibraryHistoryResponse> libraryHistory(
+    int page, {
+    bool forceRefresh = false,
+  }) {
+    historyPages.add(page);
+    final request = Completer<LibraryHistoryResponse>();
+    historyRequests.add(request);
+    return request.future;
+  }
+
   @override
   Future<HomeworkResponse> homework({bool forceRefresh = false}) async =>
       homeworkFixture;
@@ -787,6 +803,77 @@ void main() {
     expect(find.text('没有符合条件的座位'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'library history retains the previous page on failure and retries the requested page',
+    (tester) async {
+      tester.view.physicalSize = const Size(430, 1400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final service = ControlledService();
+      await tester.pumpWidget(GinkgoApp(service: service));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('预约'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('图书馆座位'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('library-history')));
+      await tester.pump();
+      service.historyRequests.last.complete(
+        LibraryHistoryResponse(
+          bookings: libraryBookingsFixture.bookings,
+          page: 1,
+          pageSize: 40,
+          total: 42,
+          hasNext: true,
+          fromCache: false,
+          stale: false,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('library-history-next')));
+      await tester.pump();
+      service.historyRequests.last.complete(
+        const LibraryHistoryResponse(
+          bookings: [],
+          page: 2,
+          pageSize: 40,
+          hasNext: false,
+          fromCache: false,
+          stale: false,
+          failure: FailureCode.serviceUnavailable,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('第 1 页'), findsOneWidget);
+      expect(find.textContaining('保留上次读取的第 1 页'), findsOneWidget);
+      await tester.tap(find.text('重试'));
+      await tester.pump();
+      expect(service.historyPages, [1, 2, 2]);
+      service.historyRequests.last.complete(
+        const LibraryHistoryResponse(
+          bookings: [],
+          page: 2,
+          pageSize: 40,
+          hasNext: false,
+          fromCache: false,
+          stale: false,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('本页没有预约记录'), findsOneWidget);
+      expect(
+        tester
+            .widget<CupertinoButton>(
+              find.byKey(const Key('library-history-next')),
+            )
+            .onPressed,
+        isNull,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('library empty state is explicit, not an error', (tester) async {
     final service = ControlledService()

@@ -1,3 +1,6 @@
+import 'package:ginkgo_mirror/src/rust/api/live.dart'
+    show LibraryHistoryResponse;
+
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
@@ -175,6 +178,18 @@ class FakeService implements MirrorService {
   }) async => const HomeworkDetailResponse(
     content: '合成作业说明',
     status: '已提交',
+    stale: false,
+  );
+  @override
+  Future<LibraryHistoryResponse> libraryHistory(
+    int page, {
+    bool forceRefresh = false,
+  }) async => LibraryHistoryResponse(
+    bookings: [],
+    page: page,
+    pageSize: 40,
+    hasNext: false,
+    fromCache: false,
     stale: false,
   );
   @override
