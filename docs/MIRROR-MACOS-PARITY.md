@@ -39,3 +39,5 @@ Apple 官方依据：[Motion](https://developer.apple.com/design/human-interface
 ### 启动细节优化
 
 启动页沿用叶片标识、字标与系统分组背景，280ms一次淡入/0.98→1轻微缩放，不循环、不等待动画完成。会话仍在首帧后立即恢复，不预热Rust网络运行时；减少动态效果时直接静态显示且不显示旋转进度，大字号可滚动。新增2项widget验证恢复不等待动画与减少动态效果；连同6项会话测试共8项通过，analyze通过。产品交互保留五入口、独立Tab栈和周网格默认方案。
+
+公共统计路线修复后，Android使用NativeMirrorService/正式Rust adapter无账号真实GET成功解析2校区（仅输出状态/条数）。正常main入口debug APK已构建并重新安装；最终设备不保留测试入口。Windows、60天趋势、非空签到历史与真实多页预约仍未验收。

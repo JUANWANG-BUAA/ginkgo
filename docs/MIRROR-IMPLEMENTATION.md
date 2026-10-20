@@ -23,7 +23,7 @@
 | 能力 | 状态 | 证据 |
 | --- | --- | --- |
 | Rust workspace、FRB 桥接、Flutter Android/Windows 壳 | 完成 | `scripts/check-mirror.sh` 通过；Android debug APK 构建通过；`mirror.yml` 已入库 |
-| 共享契约与 fixture | 35 类、108 份 | Rust runner全部通过；134 项 lib + 1 项契约测试 |
+| 共享契约与 fixture | 37 类、118 份 | 本轮完整门禁137项lib + 1项契约；后续路线修复关键回归/Clippy/Android检查通过 |
 | 课程签到真实只读 | 已接入；真实只读响应通过 | iclass SSO/当天课程/signStatus 解析、重复记录合并与冲突归一、快照/失败保留/单次重建、WebVPN 网关会话回退；Android `checkin_test.dart` 通过 |
 | 图书馆真实只读 | 已接入；真实只读响应通过 | booking.lib CAS、场馆/区域/时段/座位/当前预约解析、业务 token 单次重建、快照/失败保留；Android `library_test.dart` 通过 |
 | 认证核心（Cookie/CAS/UC/WebVPN/恢复） | 完成（mock） | 认证单元/流程/mock HTTP 测试 |
@@ -346,3 +346,7 @@ Android `library_stats_test.dart` 独立合成FFI smoke 1项通过（42秒，包
 启动页沿用叶片标识、字标与系统分组背景，280ms一次淡入/0.98→1轻微缩放，不循环、不等待动画完成。会话仍在首帧后立即恢复，不预热Rust网络运行时；减少动态效果时直接静态显示且不显示旋转进度，大字号可滚动。新增2项widget验证恢复不等待动画与减少动态效果；连同6项会话测试共8项通过，analyze通过。产品交互保留五入口、独立Tab栈和周网格默认方案。
 
 启动独立设备smoke 1项通过（1秒测试体）；第一次设备发现阶段模拟器断开，重启后执行一次，未重跑既有长流程。真实验收后正式signOut返回signedOut，重新连接设备后保险库XML条目数确认为0。
+
+公共统计路线修复后，Android使用NativeMirrorService/正式Rust adapter无账号真实GET成功解析2校区（仅输出状态/条数）。正常main入口debug APK已构建并重新安装；最终设备不保留测试入口。Windows、60天趋势、非空签到历史与真实多页预约仍未验收。
+
+最终安装后通过无障碍树仅检查“统一身份认证”存在；run-as目录检查成功且无ginkgo_secure_credentials.xml。未打印保险库内容。全部改动限rust/flutter/fixtures/docs，无Apple源码或工程改动。
