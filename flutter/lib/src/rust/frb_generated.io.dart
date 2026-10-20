@@ -95,6 +95,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   GradeTermsResponse dco_decode_grade_terms_response(dynamic raw);
 
   @protected
+  HomeworkDetailResponse dco_decode_homework_detail_response(dynamic raw);
+
+  @protected
   HomeworkItem dco_decode_homework_item(dynamic raw);
 
   @protected
@@ -332,6 +335,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   GradeTermsResponse sse_decode_grade_terms_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  HomeworkDetailResponse sse_decode_homework_detail_response(
     SseDeserializer deserializer,
   );
 
@@ -637,6 +645,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_grade_terms_response(
     GradeTermsResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_homework_detail_response(
+    HomeworkDetailResponse self,
     SseSerializer serializer,
   );
 

@@ -1,0 +1,31 @@
+{
+  "contract": "homework.spoc_detail",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "assignment": {
+      "code": 200,
+      "content": {
+        "zynr": "<p>合成说明</p>",
+        "zyfs": "100"
+      }
+    },
+    "submission": {
+      "code": 200,
+      "content": {
+        "tjzt": "1"
+      }
+    }
+  },
+  "expected": {
+    "detail": {
+      "content": "合成说明",
+      "publishedAt": null,
+      "dueAt": null,
+      "score": "100",
+      "status": "submitted",
+      "statusDetail": null,
+      "submittedAt": null
+    }
+  }
+}

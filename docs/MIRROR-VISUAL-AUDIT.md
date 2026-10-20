@@ -118,3 +118,9 @@ PNG 写入 `flutter/build/visual/`；保存初始、结果、详情、零匹配�
 - 刷新与未缓存周失败保留旧课表并提示实际显示范围；请求序号保护快速切换。排序/过滤在数据或关键词变化时计算。宽屏保留七列网格并显示日期、今天列，放大文字改用列表。
 - 验证：21 项 Rust 课表相关测试、122 项 workspace lib + 1 项契约、Clippy、Flutter analyze、25 项 widget 测试通过；Android `schedule_test.dart` 1 项真实 FFI + 合成 fixture smoke 通过。未运行已知不收敛的 `mirror_test.dart`；其重复课表用例已移除，保留独立 smoke。FRB stem 为 `ginkgo_flutter_bridge`。
 - 模拟器合成课表已查看浅色、深色、1.8 倍字号截图（仅 `/tmp/ginkgo-schedule-*.png`，不入库）。保持 34pt 标题、16pt 页边与26pt分组圆角；字体/系统材质仍为 Flutter 近似，未宣称像素一致。真实账号学期切换仍待本机登录，Windows 未验收。
+
+## 2026-10-20：SPOC 真实只读链路
+
+- 已接通 SPA/CAS 完整回调、Token/RoleCode、当前学期/课程上下文、最多100页作业与正文/提交信息详情；全部走 Session 路由。真实入口不再调用 loadDemoHomework，离线演示仍独立保留。
+- 列表/详情五分钟快照、账号/路线/登出清空、会话过期单次恢复、失败保留旧结果；正文仅显示纯文本。列表点击推入详情，缺正文/时间/分值明确显示未确认，不推断已提交。希冀与提交/上传仍关闭。
+- 4份新增合成详情契约覆盖正常/空/漂移/业务拒绝，contracts router已登记；8项作业Rust测试、契约、Flutter analyze与25项widget通过。Android独立作业smoke含列表/详情/筛选，结果见当次交付记录。真实上游验收待本机登录，不将合成FFI当作真实数据通过。

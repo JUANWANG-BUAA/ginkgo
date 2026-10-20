@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:ginkgo_mirror/src/rust/api/live.dart'
+    show HomeworkDetailResponse;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:ginkgo_mirror/main.dart';
@@ -98,7 +100,17 @@ class FailOnceNativeService implements MirrorService {
     bool forceRefresh = false,
   }) => native.libraryBookings(forceRefresh: forceRefresh);
   @override
-  Future<HomeworkResponse> homework() => native.homework();
+  Future<HomeworkDetailResponse> homeworkDetail(
+    String assignmentId, {
+    bool forceRefresh = false,
+  }) async => const HomeworkDetailResponse(
+    content: '合成作业说明',
+    status: '已提交',
+    stale: false,
+  );
+  @override
+  Future<HomeworkResponse> homework({bool forceRefresh = false}) =>
+      native.homework();
 }
 
 Future<void> launchClassroom(

@@ -58,7 +58,11 @@ abstract interface class MirrorService {
     required LibrarySlot slot,
   });
   Future<LibraryBookingsResponse> libraryBookings({bool forceRefresh = false});
-  Future<HomeworkResponse> homework();
+  Future<HomeworkResponse> homework({bool forceRefresh = false});
+  Future<live.HomeworkDetailResponse> homeworkDetail(
+    String assignmentId, {
+    bool forceRefresh = false,
+  });
 }
 
 final class NativeMirrorService implements MirrorService {
@@ -144,7 +148,16 @@ final class NativeMirrorService implements MirrorService {
     bool forceRefresh = false,
   }) => live.loadLibraryBookings(forceRefresh: forceRefresh);
   @override
-  Future<HomeworkResponse> homework() => rust.loadDemoHomework();
+  Future<HomeworkResponse> homework({bool forceRefresh = false}) =>
+      live.loadHomework(forceRefresh: forceRefresh);
+  @override
+  Future<live.HomeworkDetailResponse> homeworkDetail(
+    String assignmentId, {
+    bool forceRefresh = false,
+  }) => live.loadHomeworkDetail(
+    assignmentId: assignmentId,
+    forceRefresh: forceRefresh,
+  );
 }
 
 final class DemoMirrorService implements MirrorService {
@@ -246,5 +259,15 @@ final class DemoMirrorService implements MirrorService {
   }
 
   @override
-  Future<HomeworkResponse> homework() => rust.loadDemoHomework();
+  Future<HomeworkResponse> homework({bool forceRefresh = false}) =>
+      rust.loadDemoHomework();
+  @override
+  Future<live.HomeworkDetailResponse> homeworkDetail(
+    String assignmentId, {
+    bool forceRefresh = false,
+  }) async => const live.HomeworkDetailResponse(
+    content: '合成作业说明：阅读教材并完成练习。',
+    status: '待完成',
+    stale: false,
+  );
 }

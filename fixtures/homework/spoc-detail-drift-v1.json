@@ -1,0 +1,18 @@
+{
+  "contract": "homework.spoc_detail",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "assignment": {
+      "code": 200,
+      "content": []
+    },
+    "submission": {
+      "code": 200,
+      "content": null
+    }
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

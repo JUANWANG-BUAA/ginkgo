@@ -1,0 +1,26 @@
+{
+  "contract": "homework.spoc_detail",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "assignment": {
+      "code": 200,
+      "content": {}
+    },
+    "submission": {
+      "code": 200,
+      "content": null
+    }
+  },
+  "expected": {
+    "detail": {
+      "content": null,
+      "publishedAt": null,
+      "dueAt": null,
+      "score": null,
+      "status": "pending",
+      "statusDetail": null,
+      "submittedAt": null
+    }
+  }
+}

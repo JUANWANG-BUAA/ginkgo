@@ -11,6 +11,7 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 镜像 2026-10-20 | SPOC 真实只读迁移 | 镜像仅合成列表 | 按既有协议接通认证、上下文、列表与详情；真实验收待本机登录 | §7.1 2026-10-18 实测；`SpocHomeworkClient.swift`；合成契约不替代上游证据 |
 | 1 | GSMIS 课表请求体 | `ZC=10&XNXQDM=2025-2026-1&XH=<学号>&XQDM=1` | `ZC=&XNXQDM=<学期码>&XH=&XQDM=`（仅学期码有值） | `GraduateScheduleUpstream.kt:50-55` |
 | 2 | GSMIS 学期码格式 | `2025-2026-1` | `\d{4}[123]`（如 `20251`），代码强校验 | `GsmisSchedule.kt:16` |
 | 3 | GSMIS 用户探测 | `getUserInfo.do` | 删除（全仓库无此请求，身份判定由 byxt §2.1 完成） | 全仓 grep |
@@ -855,3 +856,7 @@ UBAA 源码另提供操场 CGYY、阳光打卡 YGDK、iHome、课程评教、图
 | buaascore | `e == 0` | Int |
 | 图书馆 | `code ∈ {0, 1}` | Int |
 | SPOC | `code == 200`，`content` 非空 | Int |
+
+### 镜像实现记录（2026-10-20，§7.1）
+
+✅ 协议依据保持为 §7.1 的 2026-10-18 WebVPN 实测和 `SpocHomeworkClient.swift`：镜像按相同 SPA→CAS→role→term→courses→page/detail 顺序接通真实只读。新增合成详情契约不构成新的上游实测证据；本轮镜像真实账号读取仍 ⚠️ 待本机登录验收。无新增写端点。

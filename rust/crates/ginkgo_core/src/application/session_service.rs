@@ -82,6 +82,8 @@ pub struct SessionService<T: HttpTransport, V: CredentialVault> {
     pub(crate) route: Mutex<RoutePreference>,
     pub(crate) classrooms: Mutex<ClassroomCache>,
     pub(crate) schedules: Mutex<ScheduleCache>,
+    pub(crate) homework: Mutex<super::homework_service::HomeworkCache>,
+    pub(crate) homework_details: Mutex<super::homework_service::HomeworkDetailCache>,
     pub(crate) today: Mutex<TodayCache>,
     pub(crate) grades: Mutex<GradeCache>,
     pub(crate) checkin: Mutex<CheckInCache>,
@@ -104,6 +106,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             route: Mutex::new(RoutePreference::Automatic),
             classrooms: Mutex::new(ClassroomCache::default()),
             schedules: Mutex::new(ScheduleCache::default()),
+            homework: Mutex::new(super::homework_service::HomeworkCache::default()),
+            homework_details: Mutex::new(super::homework_service::HomeworkDetailCache::default()),
             today: Mutex::new(TodayCache::default()),
             grades: Mutex::new(GradeCache::default()),
             checkin: Mutex::new(CheckInCache::default()),
@@ -331,6 +335,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     pub(crate) fn clear_caches(&self) {
         self.classrooms.lock().expect("classroom cache").clear();
         self.schedules.lock().expect("schedule cache").clear();
+        self.homework.lock().expect("homework cache").clear();
+        self.homework_details
+            .lock()
+            .expect("homework detail cache")
+            .clear();
         self.today.lock().expect("today cache").clear();
         self.grades.lock().expect("grade cache").clear();
         self.checkin.lock().expect("checkin cache").clear();

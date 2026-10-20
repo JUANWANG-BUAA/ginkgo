@@ -70,7 +70,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => -269488144;
+  int get rustContentHash => 528694210;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -115,6 +115,15 @@ abstract class RustLibApi extends BaseApi {
 
   Future<GradeResponse> crateApiLiveLoadGrades({
     String? termCode,
+    required bool forceRefresh,
+  });
+
+  Future<HomeworkResponse> crateApiLiveLoadHomework({
+    required bool forceRefresh,
+  });
+
+  Future<HomeworkDetailResponse> crateApiLiveLoadHomeworkDetail({
+    required String assignmentId,
     required bool forceRefresh,
   });
 
@@ -566,6 +575,73 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
+  Future<HomeworkResponse> crateApiLiveLoadHomework({
+    required bool forceRefresh,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_bool(forceRefresh, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 14,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_homework_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveLoadHomeworkConstMeta,
+        argValues: [forceRefresh],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveLoadHomeworkConstMeta => const TaskConstMeta(
+    debugName: "load_homework",
+    argNames: ["forceRefresh"],
+  );
+
+  @override
+  Future<HomeworkDetailResponse> crateApiLiveLoadHomeworkDetail({
+    required String assignmentId,
+    required bool forceRefresh,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(assignmentId, serializer);
+          sse_encode_bool(forceRefresh, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 15,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_homework_detail_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveLoadHomeworkDetailConstMeta,
+        argValues: [assignmentId, forceRefresh],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveLoadHomeworkDetailConstMeta =>
+      const TaskConstMeta(
+        debugName: "load_homework_detail",
+        argNames: ["assignmentId", "forceRefresh"],
+      );
+
+  @override
   Future<LibraryAreasResponse> crateApiLiveLoadLibraryAreas({
     required String libraryId,
   }) {
@@ -577,7 +653,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 14,
+            funcId: 16,
             port: port_,
           );
         },
@@ -610,7 +686,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 15,
+            funcId: 17,
             port: port_,
           );
         },
@@ -651,7 +727,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 16,
+            funcId: 18,
             port: port_,
           );
         },
@@ -684,7 +760,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 17,
+            funcId: 19,
             port: port_,
           );
         },
@@ -717,7 +793,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 20,
             port: port_,
           );
         },
@@ -748,7 +824,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 19,
+            funcId: 21,
             port: port_,
           );
         },
@@ -775,7 +851,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 20,
+            funcId: 22,
             port: port_,
           );
         },
@@ -809,7 +885,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 21,
+            funcId: 23,
             port: port_,
           );
         },
@@ -839,7 +915,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 22,
+            funcId: 24,
             port: port_,
           );
         },
@@ -875,7 +951,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 23,
+            funcId: 25,
             port: port_,
           );
         },
@@ -909,7 +985,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 24,
+            funcId: 26,
             port: port_,
           );
         },
@@ -939,7 +1015,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 25,
+            funcId: 27,
             port: port_,
           );
         },
@@ -966,7 +1042,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 26,
+            funcId: 28,
             port: port_,
           );
         },
@@ -994,7 +1070,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 27,
+            funcId: 29,
             port: port_,
           );
         },
@@ -1021,7 +1097,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 28,
+            funcId: 30,
             port: port_,
           );
         },
@@ -1053,7 +1129,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 29,
+            funcId: 31,
             port: port_,
           );
         },
@@ -1323,6 +1399,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       terms: dco_decode_list_schedule_term(arr[0]),
       failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
       failureDetail: dco_decode_opt_String(arr[2]),
+    );
+  }
+
+  @protected
+  HomeworkDetailResponse dco_decode_homework_detail_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 8)
+      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
+    return HomeworkDetailResponse(
+      content: dco_decode_opt_String(arr[0]),
+      publishedAt: dco_decode_opt_String(arr[1]),
+      dueAt: dco_decode_opt_String(arr[2]),
+      score: dco_decode_opt_String(arr[3]),
+      status: dco_decode_String(arr[4]),
+      submittedAt: dco_decode_opt_String(arr[5]),
+      stale: dco_decode_bool(arr[6]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[7]),
     );
   }
 
@@ -2184,6 +2278,31 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       terms: var_terms,
       failure: var_failure,
       failureDetail: var_failureDetail,
+    );
+  }
+
+  @protected
+  HomeworkDetailResponse sse_decode_homework_detail_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_content = sse_decode_opt_String(deserializer);
+    var var_publishedAt = sse_decode_opt_String(deserializer);
+    var var_dueAt = sse_decode_opt_String(deserializer);
+    var var_score = sse_decode_opt_String(deserializer);
+    var var_status = sse_decode_String(deserializer);
+    var var_submittedAt = sse_decode_opt_String(deserializer);
+    var var_stale = sse_decode_bool(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return HomeworkDetailResponse(
+      content: var_content,
+      publishedAt: var_publishedAt,
+      dueAt: var_dueAt,
+      score: var_score,
+      status: var_status,
+      submittedAt: var_submittedAt,
+      stale: var_stale,
+      failure: var_failure,
     );
   }
 
@@ -3205,6 +3324,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_list_schedule_term(self.terms, serializer);
     sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
     sse_encode_opt_String(self.failureDetail, serializer);
+  }
+
+  @protected
+  void sse_encode_homework_detail_response(
+    HomeworkDetailResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_String(self.content, serializer);
+    sse_encode_opt_String(self.publishedAt, serializer);
+    sse_encode_opt_String(self.dueAt, serializer);
+    sse_encode_opt_String(self.score, serializer);
+    sse_encode_String(self.status, serializer);
+    sse_encode_opt_String(self.submittedAt, serializer);
+    sse_encode_bool(self.stale, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
   }
 
   @protected

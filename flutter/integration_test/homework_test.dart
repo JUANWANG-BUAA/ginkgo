@@ -23,6 +23,12 @@ void main() {
     expect(find.text('作业一'), findsOneWidget);
     expect(find.text('1 / 1'), findsOneWidget);
 
+    await tester.tap(find.byKey(const Key('homework-spoc:a')));
+    await settle(tester);
+    expect(find.text('作业详情'), findsOneWidget);
+    expect(find.text('合成作业说明：阅读教材并完成练习。'), findsOneWidget);
+    await tester.tap(find.byType(CupertinoNavigationBarBackButton));
+    await settle(tester);
     await show(
       tester,
       find.byKey(const Key('homework-filter-pending')),

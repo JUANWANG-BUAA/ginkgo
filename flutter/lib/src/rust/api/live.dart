@@ -112,6 +112,18 @@ Future<LibraryBookingsResponse> loadLibraryBookings({
   forceRefresh: forceRefresh,
 );
 
+/// Real SPOC list, API.md §7.1. Demo remains an explicit separate command.
+Future<HomeworkResponse> loadHomework({required bool forceRefresh}) =>
+    RustLib.instance.api.crateApiLiveLoadHomework(forceRefresh: forceRefresh);
+
+Future<HomeworkDetailResponse> loadHomeworkDetail({
+  required String assignmentId,
+  required bool forceRefresh,
+}) => RustLib.instance.api.crateApiLiveLoadHomeworkDetail(
+  assignmentId: assignmentId,
+  forceRefresh: forceRefresh,
+);
+
 class GradeTermsResponse {
   final List<ScheduleTerm> terms;
   final FailureCode? failure;
@@ -135,6 +147,53 @@ class GradeTermsResponse {
           terms == other.terms &&
           failure == other.failure &&
           failureDetail == other.failureDetail;
+}
+
+class HomeworkDetailResponse {
+  final String? content;
+  final String? publishedAt;
+  final String? dueAt;
+  final String? score;
+  final String status;
+  final String? submittedAt;
+  final bool stale;
+  final FailureCode? failure;
+
+  const HomeworkDetailResponse({
+    this.content,
+    this.publishedAt,
+    this.dueAt,
+    this.score,
+    required this.status,
+    this.submittedAt,
+    required this.stale,
+    this.failure,
+  });
+
+  @override
+  int get hashCode =>
+      content.hashCode ^
+      publishedAt.hashCode ^
+      dueAt.hashCode ^
+      score.hashCode ^
+      status.hashCode ^
+      submittedAt.hashCode ^
+      stale.hashCode ^
+      failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HomeworkDetailResponse &&
+          runtimeType == other.runtimeType &&
+          content == other.content &&
+          publishedAt == other.publishedAt &&
+          dueAt == other.dueAt &&
+          score == other.score &&
+          status == other.status &&
+          submittedAt == other.submittedAt &&
+          stale == other.stale &&
+          failure == other.failure;
 }
 
 class LiveScope {

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
+import 'homework_detail_page.dart';
 import 'src/rust/api/mirror.dart';
 
 class HomeworkPage extends StatefulWidget {
@@ -14,6 +15,7 @@ class HomeworkPage extends StatefulWidget {
 class _HomeworkPageState extends State<HomeworkPage> {
   HomeworkResponse? data;
   String? error;
+  String? notice;
   bool busy = false;
   int filter = 0;
 
@@ -23,19 +25,24 @@ class _HomeworkPageState extends State<HomeworkPage> {
     load();
   }
 
-  Future<void> load() async {
+  Future<void> load({bool force = false}) async {
     setState(() {
       busy = true;
       error = null;
+      notice = null;
     });
     try {
-      final result = await widget.service.homework();
+      final result = await widget.service.homework(forceRefresh: force);
       if (!mounted) return;
       setState(() {
         busy = false;
         if (result.failure != null) {
-          error = failureMessage(result.failure);
-          return;
+          if (data == null && result.termCode.isEmpty) {
+            error = failureMessage(result.failure);
+            return;
+          }
+          notice = '${failureMessage(result.failure)}，正在显示上次结果。';
+          if (result.termCode.isEmpty) return;
         }
         data = result;
       });
@@ -43,7 +50,11 @@ class _HomeworkPageState extends State<HomeworkPage> {
       if (!mounted) return;
       setState(() {
         busy = false;
-        error = failureMessage(null);
+        if (data == null) {
+          error = failureMessage(null);
+        } else {
+          notice = '${failureMessage(null)}，正在显示上次结果。';
+        }
       });
     }
   }
@@ -61,15 +72,31 @@ class _HomeworkPageState extends State<HomeworkPage> {
           border: null,
           trailing: AppleGlassButton(
             label: '刷新作业',
-            onPressed: busy ? null : load,
+            onPressed: busy ? null : () => load(force: true),
             child: busy
                 ? const CupertinoActivityIndicator()
                 : const Icon(CupertinoIcons.refresh, size: 24),
           ),
         ),
-        CupertinoSliverRefreshControl(onRefresh: load),
+        CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
         SliverList.list(
           children: [
+            if (notice != null)
+              AppleSection(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      notice!,
+                      style: TextStyle(
+                        color: CupertinoColors.systemOrange.resolveFrom(
+                          context,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             if (error != null)
               AppleSection(
                 children: [
@@ -78,11 +105,11 @@ class _HomeworkPageState extends State<HomeworkPage> {
                     description: '请检查网络后重试。',
                     error: true,
                     action: '重试',
-                    onAction: load,
+                    onAction: () => load(force: true),
                   ),
                 ],
               )
-            else if (busy || data == null)
+            else if (data == null)
               AppleSection(
                 children: const [
                   Padding(
@@ -167,6 +194,13 @@ class _HomeworkPageState extends State<HomeworkPage> {
             for (final item in visible)
               AppleListTile(
                 key: Key('homework-${item.id}'),
+                onTap: () => Navigator.of(context).push(
+                  CupertinoPageRoute<void>(
+                    builder: (context) =>
+                        HomeworkDetailPage(item: item, service: widget.service),
+                  ),
+                ),
+                trailing: const CupertinoListTileChevron(),
                 minimumHeight: 68,
                 title: Text(item.title),
                 subtitle: Text(_subtitle(item)),
@@ -181,7 +215,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
             child: Text(
               widget.service.isDemo
                   ? '离线合成样例，不连接学校账号；状态与时间用于演示 SPOC 迁移后的列表。'
-                  : '作业模块尚未接入真实账号，以下仍为离线合成样例。',
+                  : 'SPOC 真实只读数据；希冀来源暂未接入。',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,

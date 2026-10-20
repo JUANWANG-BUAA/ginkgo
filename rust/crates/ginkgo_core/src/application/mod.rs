@@ -10,6 +10,8 @@ pub mod demo_library;
 pub mod demo_repository;
 pub mod demo_schedule;
 pub mod demo_today;
+mod homework_service;
+pub use homework_service::{HomeworkDetailOutcome, HomeworkOutcome};
 mod library_service;
 mod schedule_service;
 pub mod session_service;

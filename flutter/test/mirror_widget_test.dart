@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
+import 'package:ginkgo_mirror/src/rust/api/live.dart'
+    show HomeworkDetailResponse;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
@@ -333,7 +335,17 @@ class ControlledService implements MirrorService {
   }) async => libraryBookingsResult;
 
   @override
-  Future<HomeworkResponse> homework() async => homeworkFixture;
+  Future<HomeworkDetailResponse> homeworkDetail(
+    String assignmentId, {
+    bool forceRefresh = false,
+  }) async => const HomeworkDetailResponse(
+    content: '合成作业说明',
+    status: '已提交',
+    stale: false,
+  );
+  @override
+  Future<HomeworkResponse> homework({bool forceRefresh = false}) async =>
+      homeworkFixture;
 }
 
 Future<void> openMore(WidgetTester tester, String label) async {
@@ -592,6 +604,12 @@ void main() {
     expect(find.text('作业一'), findsOneWidget);
     expect(find.text('作业二'), findsOneWidget);
 
+    await tester.tap(find.byKey(const Key('homework-spoc:a')));
+    await tester.pumpAndSettle();
+    expect(find.text('作业详情'), findsOneWidget);
+    expect(find.text('合成作业说明'), findsOneWidget);
+    await tester.tap(find.byType(CupertinoNavigationBarBackButton));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('待完成').first);
     await tester.pumpAndSettle();
     expect(find.text('作业二'), findsOneWidget);

@@ -81,6 +81,12 @@ pub fn parse_page(value: Value) -> Result<HomeworkPage, AppError> {
             return Err(AppError::changed());
         }
     }
+    if pages.is_none() && has_next.is_none()
+        || page_num < 1
+        || pages.is_some_and(|pages| pages < page_num && !rows.is_empty())
+    {
+        return Err(AppError::changed());
+    }
     let items = rows
         .iter()
         .map(|row| {
@@ -176,4 +182,84 @@ mod tests {
         .expect_err("inconsistent");
         assert_eq!(error.code, ErrorCode::ChangedResponse);
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct HomeworkData {
+    pub term_code: String,
+    pub term_name: String,
+    pub items: Vec<HomeworkItem>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HomeworkDetail {
+    pub content: Option<String>,
+    pub published_at: Option<String>,
+    pub due_at: Option<String>,
+    pub score: Option<String>,
+    pub status: HomeworkStatus,
+    pub status_detail: Option<String>,
+    pub submitted_at: Option<String>,
+}
+
+/// SPOC envelope success is 200 (API.md §7.1), independent of other portals.
+pub fn content(value: &Value) -> Result<&Value, AppError> {
+    let code = value
+        .get("code")
+        .and_then(|v| v.as_i64().or_else(|| v.as_str()?.parse().ok()))
+        .ok_or_else(AppError::changed)?;
+    match code {
+        200 => value.get("content").ok_or_else(AppError::changed),
+        401 | 403 => Err(AppError::session_expired()),
+        _ => Err(AppError::new(crate::ErrorCode::BusinessRejected)),
+    }
+}
+
+pub fn parse_detail(value: &Value) -> Result<HomeworkDetail, AppError> {
+    let assignment = content(&value["assignment"])?;
+    if !assignment.is_object() {
+        return Err(AppError::changed());
+    }
+    let submission = content(&value["submission"])?;
+    if !submission.is_null() && !submission.is_object() {
+        return Err(AppError::changed());
+    }
+    let (mut status, status_detail) = map_status(optional_string(submission, "tjzt").as_deref());
+    if !submission.is_null() && optional_string(submission, "tjzt").is_none() {
+        status = HomeworkStatus::Unknown;
+    }
+    // Display plain text only; never execute untrusted upstream HTML.
+    let text = optional_string(assignment, "zynr")
+        .map(|html| {
+            let mut out = String::new();
+            let mut inside = false;
+            for ch in html.chars() {
+                match ch {
+                    '<' => {
+                        inside = true;
+                        out.push('\n');
+                    }
+                    '>' => inside = false,
+                    _ if !inside => out.push(ch),
+                    _ => {}
+                }
+            }
+            out.replace("&nbsp;", " ")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&amp;", "&")
+                .trim()
+                .to_owned()
+        })
+        .filter(|s| !s.is_empty());
+    Ok(HomeworkDetail {
+        content: text,
+        published_at: optional_string(assignment, "zykssj"),
+        due_at: optional_string(assignment, "zyjzsj"),
+        score: optional_string(assignment, "zyfs"),
+        status,
+        status_detail,
+        submitted_at: optional_string(submission, "tjsj"),
+    })
 }

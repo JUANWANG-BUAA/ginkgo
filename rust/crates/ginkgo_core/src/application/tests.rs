@@ -1133,3 +1133,89 @@ async fn library_token_expiry_relogs_exactly_once() {
         .count();
     assert_eq!(exchanges, 2);
 }
+
+#[tokio::test]
+async fn homework_full_read_chain_caches_list_and_reads_detail() {
+    use crate::adapters::homework_http::SPOC_BASE;
+    let envelope = |content: Value| serde_json::json!({"code":200,"content":content}).to_string();
+    let mut responses = login_chain("sy2501001", "fixture");
+    let spoc_auth = || {
+        vec![
+            HttpResponse::new(200, "https://spoc.buaa.edu.cn/spocnew/", "spa"),
+            HttpResponse::new(
+                404,
+                "https://spoc.buaa.edu.cn/spocnew/cas?token=fixture",
+                "callback",
+            ),
+            HttpResponse::new(
+                200,
+                format!("{SPOC_BASE}/sys/casLogin"),
+                envelope(serde_json::json!({"rolecode":"01"})),
+            ),
+        ]
+    };
+    responses.extend(spoc_auth());
+    responses.extend([
+        HttpResponse::new(
+            200,
+            "term",
+            envelope(serde_json::json!({"mrxq":"2026-20271","dqxq":"合成学期"})),
+        ),
+        HttpResponse::new(
+            200,
+            "courses",
+            envelope(serde_json::json!([{"kcid":"c1","kcmc":"合成课程"}])),
+        ),
+        HttpResponse::new(
+            200,
+            "page",
+            envelope(fixture("homework", "spoc-page-v1.json")["input"]["body"].clone()),
+        ),
+    ]);
+    responses.extend(spoc_auth());
+    responses.extend([
+        HttpResponse::new(
+            200,
+            "assignment",
+            envelope(serde_json::json!({"zynr":"<p>合成说明</p>"})),
+        ),
+        HttpResponse::new(200, "submission", envelope(serde_json::json!({"tjzt":"1"}))),
+        HttpResponse::new(503, "spa", "unavailable"),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("login");
+    let list = service.load_homework(false).await.expect("list");
+    assert_eq!(list.data.items.len(), 2);
+    let count = transport.request_count();
+    assert_eq!(
+        service
+            .load_homework(false)
+            .await
+            .expect("cache")
+            .data
+            .term_code,
+        "2026-20271"
+    );
+    assert_eq!(count, transport.request_count());
+    let detail = service
+        .load_homework_detail("a", false)
+        .await
+        .expect("detail");
+    assert_eq!(detail.data.content.as_deref(), Some("合成说明"));
+    assert_eq!(
+        detail.data.status,
+        crate::features::homework::HomeworkStatus::Submitted
+    );
+    // An unavailable refresh retains the last real snapshot.
+    assert!(service
+        .load_homework(true)
+        .await
+        .expect("stale")
+        .failure
+        .is_some());
+    service.sign_out().await;
+    assert!(service.load_homework(false).await.is_err());
+}

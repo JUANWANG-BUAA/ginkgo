@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
+import 'package:ginkgo_mirror/src/rust/api/live.dart'
+    show HomeworkDetailResponse;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
@@ -162,7 +164,16 @@ class FakeService implements MirrorService {
     stale: false,
   );
   @override
-  Future<HomeworkResponse> homework() async =>
+  Future<HomeworkDetailResponse> homeworkDetail(
+    String assignmentId, {
+    bool forceRefresh = false,
+  }) async => const HomeworkDetailResponse(
+    content: '合成作业说明',
+    status: '已提交',
+    stale: false,
+  );
+  @override
+  Future<HomeworkResponse> homework({bool forceRefresh = false}) async =>
       const HomeworkResponse(termName: '', termCode: '', items: []);
 }
 

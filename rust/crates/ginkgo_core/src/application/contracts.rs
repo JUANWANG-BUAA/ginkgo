@@ -207,6 +207,9 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
             let input: checkin::DayInput = decode(input)?;
             checkin::summary(&checkin::parse_course_schedule(&input.body)?)
         }
+        "homework.spoc_detail" => {
+            json!({"detail":homework::parse_detail(&input)?})
+        }
         "homework.spoc_page" => {
             #[derive(Deserialize)]
             struct BodyInput {

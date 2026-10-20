@@ -38,16 +38,22 @@ pub async fn load_page<T: HttpTransport>(
         .header("X-Requested-With", "XMLHttpRequest")
         .header("Accept", "application/json, text/javascript, */*; q=0.01");
     let response = session.send_with_fallback(request).await?;
-    decode_page(&response)
+    let page_data = decode_page(&response)?;
+    if page_data.page_num != page {
+        return Err(AppError::changed());
+    }
+    Ok(page_data)
 }
 
 pub fn page_payload(term_code: &str, page: i32) -> String {
     format!(
-        r#"{{"pageSize":15,"pageNum":{page},"sqlid":"{ASSIGNMENT_SQL_ID}","xnxq":"{term_code}","kcid":"","yzwz":""}}"#
+        r#"{{"pageSize":15,"pageNum":{page},"sqlid":"{ASSIGNMENT_SQL_ID}","xnxq":{term},"kcid":"","yzwz":""}}"#,
+        term = serde_json::Value::String(term_code.to_owned())
     )
 }
 
 fn decode_page(response: &HttpResponse) -> Result<HomeworkPage, AppError> {
+    check_gateway(response)?;
     if matches!(response.status, 401 | 403) {
         return Err(AppError::session_expired());
     }
@@ -59,24 +65,199 @@ fn decode_page(response: &HttpResponse) -> Result<HomeworkPage, AppError> {
     }
     let value: serde_json::Value =
         serde_json::from_str(&response.body).map_err(|_| AppError::changed())?;
-    let code = value
-        .get("code")
-        .and_then(|code| {
-            code.as_i64()
-                .or_else(|| code.as_str().and_then(|text| text.parse().ok()))
+    homework::parse_page(homework::content(&value)?.clone())
+}
+
+// API.md §7.1 and SpocHomeworkClient.swift: SPA -> full CAS callback -> role.
+pub async fn authenticate<T: HttpTransport>(session: &Session<T>) -> Result<SpocAuth, AppError> {
+    let _ = session
+        .send_following_redirects(HttpRequest::get("https://spoc.buaa.edu.cn/spocnew/"))
+        .await?;
+    let callback = session
+        .send_following_redirects(HttpRequest::get(format!("{SPOC_BASE}/cas")))
+        .await?;
+    check_gateway(&callback)?;
+    let url = url::Url::parse(&callback.final_url).map_err(|_| AppError::changed())?;
+    let token = url
+        .query_pairs()
+        .find(|(key, value)| key == "token" && !value.is_empty())
+        .map(|(_, value)| value.into_owned())
+        .ok_or_else(AppError::session_expired)?;
+    let response = session
+        .send_with_fallback(
+            HttpRequest::post_form(
+                format!("{SPOC_BASE}/sys/casLogin"),
+                serde_json::json!({"token": token}).to_string(),
+            )
+            .header("Content-Type", "application/json")
+            .header("Token", &format!("Inco-{token}")),
+        )
+        .await?;
+    let value = decode(&response)?;
+    let role_data = homework::content(&value)?;
+    fn role(value: &serde_json::Value) -> Option<String> {
+        match value {
+            serde_json::Value::String(s) if !s.is_empty() => Some(s.clone()),
+            serde_json::Value::Number(n) => Some(n.to_string()),
+            serde_json::Value::Array(items) => items.iter().find_map(role),
+            _ => None,
+        }
+    }
+    let code = ["jsdm", "rolecode", "jsdmList"]
+        .iter()
+        .find_map(|key| role(&role_data[key]))
+        .or_else(|| {
+            role_data["role"]
+                .as_array()?
+                .iter()
+                .find_map(|item| role(&item["jsdm"]))
         })
         .ok_or_else(AppError::changed)?;
-    if matches!(code, 401 | 403) {
+    Ok(SpocAuth { token, role: code })
+}
+
+fn decode(response: &HttpResponse) -> Result<serde_json::Value, AppError> {
+    check_gateway(response)?;
+    if matches!(response.status, 401 | 403) || response.body.trim_start().starts_with('<') {
         return Err(AppError::session_expired());
     }
-    if code != 200 {
+    if !(200..300).contains(&response.status) {
         return Err(AppError::new(ErrorCode::ServiceUnavailable));
     }
-    let content = value
-        .get("content")
-        .cloned()
+    serde_json::from_str(&response.body).map_err(|_| AppError::changed())
+}
+
+async fn get<T: HttpTransport>(
+    session: &Session<T>,
+    auth: &SpocAuth,
+    path: &str,
+) -> Result<serde_json::Value, AppError> {
+    let response = session
+        .send_following_redirects(headers(
+            HttpRequest::get(format!("{SPOC_BASE}{path}")),
+            auth,
+        ))
+        .await?;
+    let value = decode(&response)?;
+    Ok(homework::content(&value)?.clone())
+}
+
+fn headers(request: HttpRequest, auth: &SpocAuth) -> HttpRequest {
+    request
+        .header("Token", &format!("Inco-{}", auth.token))
+        .header("RoleCode", &auth.role)
+        .header("X-Requested-With", "XMLHttpRequest")
+        .header("Accept", "application/json, text/javascript, */*; q=0.01")
+}
+
+pub async fn load<T: HttpTransport>(
+    session: &Session<T>,
+) -> Result<homework::HomeworkData, AppError> {
+    let auth = authenticate(session).await?;
+    let param =
+        "YHrxtTavu6raCwC0/qdgYffB9evWHBkTng/XS4W6j3f/TPo02iEPSoegscDTRNzIPRG49o3RHl4JiFCXAiBkkA==";
+    let response = session
+        .send_with_fallback(headers(
+            HttpRequest::post_form(
+                format!("{SPOC_BASE}/inco/ht/queryOne"),
+                serde_json::json!({"param":param}).to_string(),
+            )
+            .header("Content-Type", "application/json"),
+            &auth,
+        ))
+        .await?;
+    let value = decode(&response)?;
+    let term = homework::content(&value)?;
+    let code = term["mrxq"]
+        .as_str()
+        .filter(|s| !s.is_empty())
         .ok_or_else(AppError::changed)?;
-    homework::parse_page(content)
+    let query = url::form_urlencoded::Serializer::new(String::new())
+        .append_pair("kcmc", "")
+        .append_pair("xnxq", code)
+        .finish();
+    let courses = get(session, &auth, &format!("/jxkj/queryKclb?{query}")).await?;
+    let rows = courses.as_array().ok_or_else(AppError::changed)?;
+    let mut context = std::collections::BTreeMap::new();
+    for course in rows {
+        let id = course["kcid"]
+            .as_str()
+            .filter(|s| !s.is_empty())
+            .ok_or_else(AppError::changed)?;
+        let name = course["kcmc"]
+            .as_str()
+            .filter(|s| !s.trim().is_empty())
+            .ok_or_else(AppError::changed)?;
+        if context.insert(id.to_owned(), name.to_owned()).is_some() {
+            return Err(AppError::changed());
+        }
+    }
+    let mut items = Vec::new();
+    let mut ids = std::collections::BTreeSet::new();
+    for number in 1..=100 {
+        let page = load_page(session, &auth, code, number).await?;
+        let has_next = page
+            .has_next
+            .unwrap_or_else(|| page.pages.is_some_and(|pages| number < pages));
+        for mut item in page.items {
+            if !ids.insert(item.id.clone()) {
+                return Err(AppError::changed());
+            }
+            if item.course_name == "SPOC 课程" {
+                if let Some(name) = item.course_id.as_ref().and_then(|id| context.get(id)) {
+                    item.course_name.clone_from(name);
+                }
+            }
+            items.push(item);
+        }
+        if !has_next {
+            return Ok(homework::HomeworkData {
+                term_code: code.to_owned(),
+                term_name: term["dqxq"].as_str().unwrap_or("").to_owned(),
+                items,
+            });
+        }
+    }
+    Err(AppError::changed())
+}
+
+pub async fn load_detail<T: HttpTransport>(
+    session: &Session<T>,
+    id: &str,
+) -> Result<homework::HomeworkDetail, AppError> {
+    if id.trim().is_empty() {
+        return Err(AppError::invalid());
+    }
+    let auth = authenticate(session).await?;
+    let query = url::form_urlencoded::Serializer::new(String::new())
+        .append_pair("id", id)
+        .finish();
+    let assignment = get(session, &auth, &format!("/kczy/queryKczyInfoByid?{query}")).await?;
+    let query = url::form_urlencoded::Serializer::new(String::new())
+        .append_pair("kczyid", id)
+        .finish();
+    let submission = get(
+        session,
+        &auth,
+        &format!("/kczy/queryXsSubmitKczyInfo?{query}"),
+    )
+    .await?;
+    homework::parse_detail(
+        &serde_json::json!({"assignment":{"code":200,"content":assignment},"submission":{"code":200,"content":submission}}),
+    )
+}
+
+fn check_gateway(response: &HttpResponse) -> Result<(), AppError> {
+    if url::Url::parse(&response.final_url).is_ok_and(|url| {
+        url.host_str() == Some(crate::foundation::webvpn::GATEWAY_HOST)
+            && url.path().trim_end_matches('/').ends_with("/login")
+    }) {
+        return Err(AppError::with_detail(
+            ErrorCode::AccessPolicyDenied,
+            "webvpn_login_required",
+        ));
+    }
+    Ok(())
 }
 
 #[cfg(test)]
