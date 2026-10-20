@@ -1,7 +1,7 @@
 # Android Alpha 安装与验收
 
 版本：`0.1.0-alpha.1`（build 2），GitHub tag `android-v0.1.0-alpha.1`。
-适用：Android arm64，最低系统版本以 APK manifest 为准。此包不适用于 Windows/iOS/macOS。
+适用：Android arm64，Android 7.0+（minSdk 24）。此包不适用于 Windows/iOS/macOS。
 
 ## 下载与安装
 
@@ -18,7 +18,7 @@
 
 ## 验证与边界
 
-本机门禁：143 Rust core lib、1契约、1 bridge；Clippy、Flutter analyze、38 Flutter测试通过。Android aarch64 bridge编译通过。设备结果与签名/文件校验待当次构建结束补记。
+本机门禁：143 Rust core lib、1契约、1 bridge；Clippy、Flutter analyze、38 Flutter测试通过。Android aarch64 bridge编译通过。签名release与设备验证结果如下。
 
 本次没有登录真实账号。此前的只读学校接口验收范围见 MIRROR-FULL-AUDIT；本科账号、非空成绩、Windows及全模块无障碍未完成。没有“与macOS100%对齐”保证。
 
@@ -27,3 +27,14 @@
 ### 设备结果
 
 `settings_test.dart` 最终单项 smoke 72秒通过：设置浅/深/1.8倍字号、自检三项真实文件/JNI/桥接往返、GitHub公开实网更新查询。初次测试定位Key与导航root处理失败，文件自检曾发现不存在目录createTemp的问题并修复；未修改既有mirror_test或放宽断言。安全存储自检执行删除后再次读取确认不存在；测试框架结束后移除了测试安装，adb确认包不存在，因此其私有保险库也不保留。该smoke无真实账号，公开更新请求不是学校账号验收。
+
+
+### 发布结果
+
+2026-10-20（UTC）已公开 [android-v0.1.0-alpha.1](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.1)，源码提交 `2da161e`。APK 39,414,232字节，arm64-v8a/minSdk24/targetSdk36，versionCode2，正常main入口；无debuggable标志，INTERNET权限存在，APK v2签名验证通过。
+
+- APK SHA-256：`63c5cf474d1a0c0f339d3b3d65c83214095dd4292e62710f4417420a5ef75bea`，GitHub资产digest一致。
+- 签名证书SHA-256：`451748b957b44d5a28ebcc967cc2aeec7e7bea6a13d9edcb021c9fd8dc7fb245`。
+- 实际安装该release包：登录入口→离线演示→设置→自检，Rust/文件/Keystore三项通过（验证R8保留JNI类）；发布后从该release包检查更新，识别Android 0.1.0-alpha.1并显示“当前已是最新 Android 版本”。无账号登录、无上游写操作。
+- 浅色设置、深色自检、系统1.8字号自检已查看合成截图，均仅存/tmp；恢复字号1.0与浅色。冷启动恢复正常登录页。release不可run-as读取私有XML；自检已通过删除后复读不存在，无真实凭据输入。
+- Flutter首次release引擎下载限速；同一Google官方源分段获取并匹配官方MD5，临时本地Maven仅供应此官方引擎，构建54秒完成；未修改仓库依赖源。使用Android Studio JBR，未使用系统不兼容的Java27。
