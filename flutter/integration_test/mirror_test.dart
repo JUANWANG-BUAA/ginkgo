@@ -5,15 +5,34 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/src/rust/api/live.dart' show SessionResponse;
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
 
 import 'support.dart';
 
-const native = NativeMirrorService();
+const native = DemoMirrorService();
 
 class FailOnceNativeService implements MirrorService {
   bool first = true;
+  @override
+  bool get isDemo => true;
+  @override
+  Future<SessionResponse> restoreSession() => native.restoreSession();
+  @override
+  Future<SessionResponse> login({
+    required String account,
+    required String password,
+    String? captcha,
+    required bool remember,
+  }) => native.login(
+    account: account,
+    password: password,
+    captcha: captcha,
+    remember: remember,
+  );
+  @override
+  Future<SessionResponse> signOut() => native.signOut();
   @override
   Future<QueryDates> dates(String instant) => native.dates(instant);
   @override
@@ -37,11 +56,14 @@ class FailOnceNativeService implements MirrorService {
   @override
   Future<RuleExamples> rules() => native.rules();
   @override
-  Future<ScheduleResponse> schedule() => native.schedule();
+  Future<ScheduleResponse> schedule({bool forceRefresh = false}) =>
+      native.schedule(forceRefresh: forceRefresh);
   @override
-  Future<GradeResponse> grades() => native.grades();
+  Future<GradeResponse> grades({bool forceRefresh = false}) =>
+      native.grades(forceRefresh: forceRefresh);
   @override
-  Future<TodayResponse> today() => native.today();
+  Future<TodayResponse> today({bool forceRefresh = false}) =>
+      native.today(forceRefresh: forceRefresh);
   @override
   Future<HomeworkResponse> homework() => native.homework();
 }
@@ -283,10 +305,12 @@ void main() {
       await tap(tester, '查询空教室');
       await expectSummary(tester, '0 间 · 0 栋');
       await select(tester, '校区', '学院路');
-      await tap(tester, '明天');
+      await tester.tap(find.byKey(const Key('classroom-shortcut-明天')));
+      await settle(tester);
       await tap(tester, '查询空教室');
       await expectSummary(tester, '3 间 · 1 栋');
-      await tap(tester, '今天');
+      await tester.tap(find.byKey(const Key('classroom-shortcut-今天')));
+      await settle(tester);
       await tap(tester, '日期');
       expect(find.byType(CupertinoDatePicker), findsOneWidget);
       await tester.tap(find.text('完成'));
@@ -346,7 +370,7 @@ void main() {
     'schedule tab crosses real FFI with week, course and exam states',
     (tester) async {
       await launch(tester);
-      await tap(tester, '课表');
+      await tapTab(tester, '课表');
       await show(
         tester,
         find.text('2026-2027学年第1学期'),
@@ -369,6 +393,7 @@ void main() {
       GinkgoApp(key: UniqueKey(), brightness: Brightness.dark),
     );
     await settle(tester);
+    await tapTab(tester, '空教室');
     await tap(tester, '查询空教室');
     await expectSummary(tester, '3 间 · 1 栋');
     await capture(tester, 'classroom-dark-large');

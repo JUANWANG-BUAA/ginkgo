@@ -12,3 +12,7 @@ else
 fi
 cd flutter
 flutter_rust_bridge_codegen generate
+if rg -q "stem: 'UNKNOWN'" lib/src/rust/frb_generated.dart; then
+  echo 'FRB codegen fell back to UNKNOWN external library stem; check cargo metadata/cache.' >&2
+  exit 1
+fi

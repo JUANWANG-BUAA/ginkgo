@@ -2,7 +2,7 @@
 //!
 //! The AES-CBC + zero padding + Base64 shape is shared with the Apple client;
 //! the golden vector comes from the existing Swift regression test.
-use crate::{AppError, ErrorCode};
+use crate::AppError;
 use aes::{
     cipher::{BlockEncrypt, KeyInit},
     Aes128,
@@ -135,6 +135,7 @@ fn optional_string(row: &Value, key: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ErrorCode;
     use serde_json::json;
 
     #[test]

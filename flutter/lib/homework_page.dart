@@ -143,17 +143,11 @@ class _HomeworkPageState extends State<HomeworkPage> {
                 ),
                 1: Padding(
                   padding: EdgeInsets.symmetric(vertical: 6),
-                  child: Text(
-                    '待完成',
-                    key: Key('homework-filter-pending'),
-                  ),
+                  child: Text('待完成', key: Key('homework-filter-pending')),
                 ),
                 2: Padding(
                   padding: EdgeInsets.symmetric(vertical: 6),
-                  child: Text(
-                    '已提交',
-                    key: Key('homework-filter-submitted'),
-                  ),
+                  child: Text('已提交', key: Key('homework-filter-submitted')),
                 ),
               },
             ),
@@ -181,11 +175,13 @@ class _HomeworkPageState extends State<HomeworkPage> {
           ],
         ),
       AppleSection(
-        children: const [
+        children: [
           Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Text(
-              '离线合成样例，不连接学校账号；状态与时间用于演示 SPOC 迁移后的列表。',
+              widget.service.isDemo
+                  ? '离线合成样例，不连接学校账号；状态与时间用于演示 SPOC 迁移后的列表。'
+                  : '作业模块尚未接入真实账号，以下仍为离线合成样例。',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,

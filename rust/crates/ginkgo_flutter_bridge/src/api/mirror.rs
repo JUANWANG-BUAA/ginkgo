@@ -52,6 +52,7 @@ pub enum FailureCode {
     AccessPolicyDenied,
     RedirectLimit,
     UnsupportedPortal,
+    CredentialStore,
 }
 
 impl From<ErrorCode> for FailureCode {
@@ -68,6 +69,7 @@ impl From<ErrorCode> for FailureCode {
             ErrorCode::AccessPolicyDenied => Self::AccessPolicyDenied,
             ErrorCode::RedirectLimit => Self::RedirectLimit,
             ErrorCode::UnsupportedPortal => Self::UnsupportedPortal,
+            ErrorCode::CredentialStore => Self::CredentialStore,
         }
     }
 }
@@ -232,6 +234,7 @@ pub struct ScheduleResponse {
     pub week_number: i32,
     pub courses: Vec<ScheduleCourse>,
     pub exams: Vec<ScheduleExam>,
+    pub fetched_at: Option<String>,
     pub failure: Option<FailureCode>,
     pub failure_detail: Option<String>,
 }
@@ -300,6 +303,7 @@ pub fn load_demo_schedule() -> ScheduleResponse {
                     exam_type: exam.exam_type,
                 })
                 .collect(),
+            fetched_at: None,
             failure: None,
             failure_detail: None,
         },
@@ -310,6 +314,7 @@ pub fn load_demo_schedule() -> ScheduleResponse {
             week_number: 0,
             courses: vec![],
             exams: vec![],
+            fetched_at: None,
             failure: Some(error.code.into()),
             failure_detail: error.detail,
         },
@@ -338,6 +343,7 @@ pub struct GradeResponse {
     pub term_id: String,
     pub courses: Vec<GradeCourse>,
     pub summary: GradeSummary,
+    pub fetched_at: Option<String>,
     pub failure: Option<FailureCode>,
     pub failure_detail: Option<String>,
 }
@@ -366,6 +372,7 @@ pub fn load_demo_grades() -> GradeResponse {
                     course_type: course.course_type,
                 })
                 .collect(),
+            fetched_at: None,
             failure: None,
             failure_detail: None,
         },
@@ -378,6 +385,7 @@ pub fn load_demo_grades() -> GradeResponse {
                 weighted_average: None,
                 grade_point_average: None,
             },
+            fetched_at: None,
             failure: Some(error.code.into()),
             failure_detail: error.detail,
         },
@@ -394,6 +402,7 @@ pub struct TodayCourse {
 pub struct TodayResponse {
     pub date: String,
     pub courses: Vec<TodayCourse>,
+    pub fetched_at: Option<String>,
     pub failure: Option<FailureCode>,
     pub failure_detail: Option<String>,
 }
@@ -412,12 +421,14 @@ pub fn load_demo_today() -> TodayResponse {
                     short_name: course.short_name,
                 })
                 .collect(),
+            fetched_at: None,
             failure: None,
             failure_detail: None,
         },
         Err(error) => TodayResponse {
             date: String::new(),
             courses: vec![],
+            fetched_at: None,
             failure: Some(error.code.into()),
             failure_detail: error.detail,
         },

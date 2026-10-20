@@ -6,18 +6,21 @@
 //! - `login`   login-page fetch, POST, redirect and error classification
 //! - `uc`      UC activation and the only session-validity check
 //!
-//! Credentials enter through [`CredentialSource`]; Flutter never receives or
+//! Credentials enter through [`CredentialVault`]; Flutter never receives or
 //! forwards cookies.
 pub mod cas;
 pub mod login;
+pub mod platform;
 pub mod session;
 pub mod uc;
+pub mod vault;
 
 use crate::{
     foundation::http::{HttpRequest, HttpTransport},
     AppError,
 };
 pub use login::fetch_login_page;
+use serde::{Deserialize, Serialize};
 use session::{RouteMode, Session};
 pub use uc::{activate_uc, validate_session};
 
@@ -27,17 +30,24 @@ pub const UC_ACTIVATION_URL: &str =
 pub const UC_STATUS_URL: &str = "https://uc.buaa.edu.cn/api/uc/status";
 pub const LOGOUT_URL: &str = "https://sso.buaa.edu.cn/logout";
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Credentials {
     pub username: String,
     pub password: String,
     pub captcha_text: Option<String>,
 }
 
-/// Platform secure-storage port. Implementations live in the Android/iOS
-/// shells; the Rust core only sees typed credentials.
-pub trait CredentialSource {
+/// Read-only credential port used by recovery paths.
+pub trait CredentialSource: Send + Sync {
     fn load(&self, account: &str) -> Result<Option<Credentials>, AppError>;
+}
+
+/// Platform secure-storage port. Implementations wrap the Android Keystore or
+/// the system keychain; the Rust core only sees typed credentials.
+pub trait CredentialVault: CredentialSource {
+    fn save(&self, account: &str, credentials: &Credentials) -> Result<(), AppError>;
+    fn delete(&self, account: &str) -> Result<(), AppError>;
+    fn accounts(&self) -> Result<Vec<String>, AppError>;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -71,10 +81,21 @@ pub async fn login<T: HttpTransport>(
     session: &Session<T>,
     credentials: &Credentials,
 ) -> Result<LoginResult, AppError> {
+    let page = fetch_login_page(session).await?;
+    complete_login(session, credentials, page).await
+}
+
+/// Finish a login from an already fetched page. Keeping the page lets a
+/// captcha answer reuse the same execution token instead of invalidating it by
+/// fetching a new challenge.
+pub async fn complete_login<T: HttpTransport>(
+    session: &Session<T>,
+    credentials: &Credentials,
+    page: LoginPage,
+) -> Result<LoginResult, AppError> {
     if credentials.username.trim().is_empty() || credentials.password.is_empty() {
         return Err(AppError::invalid());
     }
-    let page = fetch_login_page(session).await?;
     match page {
         LoginPage::ExistingSession { location } => {
             let response = session
@@ -119,7 +140,7 @@ pub async fn login<T: HttpTransport>(
 
 /// Load credentials from the platform vault, then log in. This is the only
 /// entry point the bridge should expose for real accounts.
-pub async fn login_with_store<T: HttpTransport, C: CredentialSource>(
+pub async fn login_with_store<T: HttpTransport, C: CredentialSource + ?Sized>(
     session: &Session<T>,
     store: &C,
     account: &str,

@@ -16,6 +16,7 @@ class SchedulePage extends StatefulWidget {
 class _SchedulePageState extends State<SchedulePage> {
   ScheduleResponse? data;
   String? error;
+  String? notice;
   bool busy = false;
   int selectedWeek = 0;
   int viewMode = 0;
@@ -26,22 +27,28 @@ class _SchedulePageState extends State<SchedulePage> {
     load();
   }
 
-  Future<void> load() async {
+  Future<void> load({bool force = false}) async {
     setState(() {
       busy = true;
       error = null;
+      notice = null;
     });
     try {
-      final result = await widget.service.schedule();
+      final result = await widget.service.schedule(forceRefresh: force);
       if (!mounted) return;
       setState(() {
         busy = false;
-        if (result.failure != null) {
+        if (result.failure != null &&
+            result.courses.isEmpty &&
+            result.exams.isEmpty) {
           error = failureMessage(result.failure);
           return;
         }
         data = result;
         selectedWeek = result.weekNumber;
+        notice = result.failure == null
+            ? null
+            : '${failureMessage(result.failure)}，正在显示上次结果。';
       });
     } catch (_) {
       if (!mounted) return;
@@ -65,15 +72,28 @@ class _SchedulePageState extends State<SchedulePage> {
           border: null,
           trailing: AppleGlassButton(
             label: '刷新课表',
-            onPressed: busy ? null : load,
+            onPressed: busy ? null : () => load(force: true),
             child: busy
                 ? const CupertinoActivityIndicator()
                 : const Icon(CupertinoIcons.refresh, size: 24),
           ),
         ),
-        CupertinoSliverRefreshControl(onRefresh: load),
+        CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
         SliverList.list(
           children: [
+            if (notice != null)
+              AppleSection(
+                children: [
+                  AppleListTile(
+                    leading: const Icon(
+                      CupertinoIcons.exclamationmark_triangle,
+                      color: CupertinoColors.systemOrange,
+                      size: 20,
+                    ),
+                    title: Text(notice!),
+                  ),
+                ],
+              ),
             if (error != null)
               AppleSection(
                 children: [
@@ -82,7 +102,7 @@ class _SchedulePageState extends State<SchedulePage> {
                     description: '请检查网络后重试。',
                     error: true,
                     action: '重试',
-                    onAction: load,
+                    onAction: () => load(force: true),
                   ),
                 ],
               )
@@ -228,11 +248,13 @@ class _SchedulePageState extends State<SchedulePage> {
           ],
         ),
       AppleSection(
-        children: const [
+        children: [
           Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Text(
-              '离线合成样例，不连接学校账号；周次与课程用于演示迁移后的页面与状态。',
+              widget.service.isDemo
+                  ? '离线合成样例，不连接学校账号；周次与课程用于演示迁移后的页面与状态。'
+                  : '真实账号只读数据；刷新失败时保留上次课表。',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,

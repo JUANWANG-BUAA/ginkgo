@@ -14,7 +14,7 @@ void main() {
     tester,
   ) async {
     await launch(tester);
-      await tapTab(tester, '课表');
+    await tapTab(tester, '课表');
     await show(
       tester,
       find.text('2026-2027学年第1学期'),

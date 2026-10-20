@@ -5,6 +5,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/src/rust/api/live.dart'
+    show SessionResponse, SessionState;
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 
 const empty = ClassroomResponse(
@@ -132,6 +134,22 @@ final homeworkFixture = HomeworkResponse(
 class ControlledService implements MirrorService {
   final requests = <Completer<ClassroomResponse>>[];
   @override
+  bool get isDemo => true;
+  @override
+  Future<SessionResponse> restoreSession() async =>
+      const SessionResponse(state: SessionState.signedOut, remembered: false);
+  @override
+  Future<SessionResponse> login({
+    required String account,
+    required String password,
+    String? captcha,
+    required bool remember,
+  }) async =>
+      const SessionResponse(state: SessionState.signedIn, remembered: false);
+  @override
+  Future<SessionResponse> signOut() async =>
+      const SessionResponse(state: SessionState.signedOut, remembered: false);
+  @override
   Future<QueryDates> dates(String instant) async =>
       const QueryDates(today: '2026-10-20', tomorrow: '2026-10-21');
   @override
@@ -145,13 +163,16 @@ class ControlledService implements MirrorService {
   Future<RuleExamples> rules() async => examples;
 
   @override
-  Future<ScheduleResponse> schedule() async => scheduleFixture;
+  Future<ScheduleResponse> schedule({bool forceRefresh = false}) async =>
+      scheduleFixture;
 
   @override
-  Future<GradeResponse> grades() async => gradesFixture;
+  Future<GradeResponse> grades({bool forceRefresh = false}) async =>
+      gradesFixture;
 
   @override
-  Future<TodayResponse> today() async => todayFixture;
+  Future<TodayResponse> today({bool forceRefresh = false}) async =>
+      todayFixture;
 
   @override
   Future<HomeworkResponse> homework() async => homeworkFixture;

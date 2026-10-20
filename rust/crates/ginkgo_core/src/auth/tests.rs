@@ -1,4 +1,4 @@
-use super::{cas, login::fetch_login_page, session::Session, *};
+use super::{cas, login::fetch_login_page, session::Session, vault::MemoryVault, *};
 use crate::{
     foundation::http::{HttpMethod, HttpResponse},
     test_support::MockTransport,
@@ -186,4 +186,21 @@ async fn webvpn_cookies_never_leak_into_direct_requests() {
 #[test]
 fn captcha_parser_ignores_default_pages() {
     assert!(cas::detect_captcha(FORM_PAGE).is_none());
+}
+
+#[test]
+fn vault_diagnostic_only_touches_the_reserved_prefix() {
+    let vault = MemoryVault::default();
+    assert!(!vault::verify_vault_round_trip(
+        &vault,
+        "sy2501001",
+        "fixture-secret"
+    ));
+    assert!(vault.accounts().expect("accounts").is_empty());
+    assert!(vault::verify_vault_round_trip(
+        &vault,
+        "__ginkgo_vault_test__account",
+        "fixture-secret"
+    ));
+    assert!(vault.accounts().expect("accounts").is_empty());
 }

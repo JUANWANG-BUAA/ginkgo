@@ -3,6 +3,7 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+import 'api/live.dart';
 import 'api/mirror.dart';
 
 import 'dart:async';
@@ -41,6 +42,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int dco_decode_box_autoadd_i_32(dynamic raw);
+
+  @protected
+  LiveScope dco_decode_box_autoadd_live_scope(dynamic raw);
 
   @protected
   ClassroomBuilding dco_decode_classroom_building(dynamic raw);
@@ -127,6 +131,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<TodayCourse> dco_decode_list_today_course(dynamic raw);
 
   @protected
+  LiveScope dco_decode_live_scope(dynamic raw);
+
+  @protected
   String? dco_decode_opt_String(dynamic raw);
 
   @protected
@@ -163,6 +170,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   SectionState dco_decode_section_state(dynamic raw);
 
   @protected
+  SessionResponse dco_decode_session_response(dynamic raw);
+
+  @protected
+  SessionState dco_decode_session_state(dynamic raw);
+
+  @protected
   TodayCourse dco_decode_today_course(dynamic raw);
 
   @protected
@@ -196,6 +209,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int sse_decode_box_autoadd_i_32(SseDeserializer deserializer);
+
+  @protected
+  LiveScope sse_decode_box_autoadd_live_scope(SseDeserializer deserializer);
 
   @protected
   ClassroomBuilding sse_decode_classroom_building(SseDeserializer deserializer);
@@ -298,6 +314,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<TodayCourse> sse_decode_list_today_course(SseDeserializer deserializer);
 
   @protected
+  LiveScope sse_decode_live_scope(SseDeserializer deserializer);
+
+  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
 
   @protected
@@ -334,6 +353,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   SectionState sse_decode_section_state(SseDeserializer deserializer);
+
+  @protected
+  SessionResponse sse_decode_session_response(SseDeserializer deserializer);
+
+  @protected
+  SessionState sse_decode_session_state(SseDeserializer deserializer);
 
   @protected
   TodayCourse sse_decode_today_course(SseDeserializer deserializer);
@@ -376,6 +401,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_i_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_live_scope(
+    LiveScope self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_classroom_building(
@@ -513,6 +544,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_live_scope(LiveScope self, SseSerializer serializer);
+
+  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
 
   @protected
@@ -556,6 +590,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_section_state(SectionState self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_session_response(
+    SessionResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_session_state(SessionState self, SseSerializer serializer);
 
   @protected
   void sse_encode_today_course(TodayCourse self, SseSerializer serializer);

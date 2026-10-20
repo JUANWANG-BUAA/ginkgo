@@ -7,8 +7,15 @@ import 'src/rust/api/mirror.dart';
 const _weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
 class TodayPage extends StatefulWidget {
-  const TodayPage({super.key, required this.service});
+  const TodayPage({
+    super.key,
+    required this.service,
+    this.accountName,
+    this.onAccountAction,
+  });
   final MirrorService service;
+  final String? accountName;
+  final Future<void> Function()? onAccountAction;
   @override
   State<TodayPage> createState() => _TodayPageState();
 }
@@ -16,6 +23,7 @@ class TodayPage extends StatefulWidget {
 class _TodayPageState extends State<TodayPage> {
   TodayResponse? data;
   String? error;
+  String? notice;
   bool busy = false;
 
   @override
@@ -24,21 +32,26 @@ class _TodayPageState extends State<TodayPage> {
     load();
   }
 
-  Future<void> load() async {
+  Future<void> load({bool force = false}) async {
     setState(() {
       busy = true;
       error = null;
     });
     try {
-      final result = await widget.service.today();
+      final result = await widget.service.today(forceRefresh: force);
       if (!mounted) return;
       setState(() {
         busy = false;
-        if (result.failure != null) {
+        if (result.failure != null && result.courses.isEmpty) {
           error = failureMessage(result.failure);
+          notice = null;
           return;
         }
         data = result;
+        error = null;
+        notice = result.failure == null
+            ? null
+            : '${failureMessage(result.failure)}，正在显示上次结果。';
       });
     } catch (_) {
       if (!mounted) return;
@@ -46,6 +59,32 @@ class _TodayPageState extends State<TodayPage> {
         busy = false;
         error = failureMessage(null);
       });
+    }
+  }
+
+  Future<void> accountAction() async {
+    final demo = widget.service.isDemo;
+    final action = await showCupertinoDialog<String>(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(widget.accountName ?? (demo ? '离线演示' : '账号')),
+        content: Text(demo ? '当前为离线合成样例，不连接学校账号。' : '当前已登录真实学校账号。'),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.pop(context, 'exit'),
+            child: Text(demo ? '返回登录' : '退出登录'),
+          ),
+        ],
+      ),
+    );
+    if (action == 'exit' && mounted) {
+      await widget.onAccountAction!();
     }
   }
 
@@ -60,17 +99,48 @@ class _TodayPageState extends State<TodayPage> {
         CupertinoSliverNavigationBar(
           largeTitle: const Text('今天'),
           border: null,
-          trailing: AppleGlassButton(
-            label: '刷新今天',
-            onPressed: busy ? null : load,
-            child: busy
-                ? const CupertinoActivityIndicator()
-                : const Icon(CupertinoIcons.refresh, size: 24),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (widget.onAccountAction != null) ...[
+                AppleGlassButton(
+                  label: widget.service.isDemo ? '演示模式' : '账号',
+                  onPressed: busy ? null : accountAction,
+                  child: Icon(
+                    widget.service.isDemo
+                        ? CupertinoIcons.eye
+                        : CupertinoIcons.person_crop_circle,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              AppleGlassButton(
+                label: '刷新今天',
+                onPressed: busy ? null : () => load(force: true),
+                child: busy
+                    ? const CupertinoActivityIndicator()
+                    : const Icon(CupertinoIcons.refresh, size: 24),
+              ),
+            ],
           ),
         ),
-        CupertinoSliverRefreshControl(onRefresh: load),
+        CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
         SliverList.list(
           children: [
+            if (notice != null)
+              AppleSection(
+                children: [
+                  AppleListTile(
+                    leading: const Icon(
+                      CupertinoIcons.exclamationmark_triangle,
+                      color: CupertinoColors.systemOrange,
+                      size: 20,
+                    ),
+                    title: Text(notice!),
+                  ),
+                ],
+              ),
             if (error != null)
               AppleSection(
                 children: [
@@ -79,7 +149,7 @@ class _TodayPageState extends State<TodayPage> {
                     description: '请检查网络后重试。',
                     error: true,
                     action: '重试',
-                    onAction: load,
+                    onAction: () => load(force: true),
                   ),
                 ],
               )
@@ -166,13 +236,15 @@ class _TodayPageState extends State<TodayPage> {
           ],
         ),
       AppleSection(
-        children: const [
+        children: [
           Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Text(
-              '离线合成样例，不连接学校账号；日期与课程用于演示迁移后的今天页。',
+              widget.service.isDemo
+                  ? '离线合成样例，不连接学校账号；日期与课程用于演示迁移后的今天页。'
+                  : '真实账号只读数据；今天页只组合课表模块读取的当天课程。',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
                 color: CupertinoColors.secondaryLabel,
               ),

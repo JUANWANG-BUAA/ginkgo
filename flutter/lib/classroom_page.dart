@@ -28,6 +28,7 @@ class _ClassroomPageState extends State<ClassroomPage> {
       initializing = true;
   ClassroomResponse? response;
   String? error;
+  String? notice;
   bool get hasFilters =>
       search.text.isNotEmpty ||
       section != 0 ||
@@ -83,6 +84,7 @@ class _ClassroomPageState extends State<ClassroomPage> {
     setState(() {
       busy = true;
       error = null;
+      notice = null;
     });
     try {
       final result = await widget.service.classrooms(
@@ -98,12 +100,15 @@ class _ClassroomPageState extends State<ClassroomPage> {
       if (!mounted || ticket != generation) return;
       setState(() {
         busy = false;
-        if (result.failure != null) {
+        if (result.failure != null && result.buildings.isEmpty) {
           error = failureMessage(result.failure);
           return;
         }
         response = result;
         queried = true;
+        notice = result.failure == null
+            ? null
+            : '${failureMessage(result.failure)}，正在显示上次结果。';
         if (result.roomCount == 0 && hasFilters) {
           filtersExpanded = true;
         }
@@ -231,7 +236,11 @@ class _ClassroomPageState extends State<ClassroomPage> {
           children: [
             AppleSection(
               header: const Text('查询范围'),
-              footer: const Text('结果在 5 分钟内优先复用本机样例缓存。'),
+              footer: Text(
+                widget.service.isDemo
+                    ? '结果在 5 分钟内优先复用本机样例缓存。'
+                    : '结果在 5 分钟内复用本机缓存；刷新失败时保留上次结果。',
+              ),
               children: [
                 ApplePickerTile<int>(
                   title: '校区',
@@ -363,6 +372,20 @@ class _ClassroomPageState extends State<ClassroomPage> {
                 ],
               ],
             ),
+            if (notice != null)
+              AppleSection(
+                children: [
+                  AppleListTile(
+                    key: const Key('classroom-stale-notice'),
+                    leading: const Icon(
+                      CupertinoIcons.exclamationmark_triangle,
+                      color: CupertinoColors.systemOrange,
+                      size: 20,
+                    ),
+                    title: Text(notice!),
+                  ),
+                ],
+              ),
             if (error != null)
               AppleSection(
                 children: [
@@ -424,7 +447,11 @@ class _ClassroomPageState extends State<ClassroomPage> {
                   ),
                   AppleListTile(
                     title: const Text('数据来源'),
-                    additionalInfo: Text(result.fromCache ? '本机样例缓存' : '合成样例'),
+                    additionalInfo: Text(
+                      widget.service.isDemo
+                          ? (result.fromCache ? '本机样例缓存' : '合成样例')
+                          : (result.fromCache ? '本机缓存' : '学校实时数据'),
+                    ),
                   ),
                   if (hasFilters)
                     AppleListTile(
@@ -489,7 +516,9 @@ class _ClassroomPageState extends State<ClassroomPage> {
             Padding(
               padding: const EdgeInsets.fromLTRB(32, 24, 32, 0),
               child: Text(
-                '离线合成样例，不连接学校账号；日期与校区用于演示查询流程。',
+                widget.service.isDemo
+                    ? '离线合成样例，不连接学校账号；日期与校区用于演示查询流程。'
+                    : '真实账号只读数据；刷新失败时保留上次查询结果。',
                 style: TextStyle(
                   fontSize: 12,
                   color: CupertinoColors.secondaryLabel.resolveFrom(context),
@@ -512,6 +541,7 @@ class _ClassroomPageState extends State<ClassroomPage> {
   );
 
   Widget shortcut(String title, String value) => CupertinoButton.tinted(
+    key: Key('classroom-shortcut-$title'),
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
     minimumSize: const Size(44, 36),
     borderRadius: BorderRadius.circular(24),

@@ -14,6 +14,7 @@ class GradesPage extends StatefulWidget {
 class _GradesPageState extends State<GradesPage> {
   GradeResponse? data;
   String? error;
+  String? notice;
   bool busy = false;
 
   @override
@@ -22,21 +23,25 @@ class _GradesPageState extends State<GradesPage> {
     load();
   }
 
-  Future<void> load() async {
+  Future<void> load({bool force = false}) async {
     setState(() {
       busy = true;
       error = null;
+      notice = null;
     });
     try {
-      final result = await widget.service.grades();
+      final result = await widget.service.grades(forceRefresh: force);
       if (!mounted) return;
       setState(() {
         busy = false;
-        if (result.failure != null) {
+        if (result.failure != null && result.courses.isEmpty) {
           error = failureMessage(result.failure);
           return;
         }
         data = result;
+        notice = result.failure == null
+            ? null
+            : '${failureMessage(result.failure)}，正在显示上次结果。';
       });
     } catch (_) {
       if (!mounted) return;
@@ -60,15 +65,28 @@ class _GradesPageState extends State<GradesPage> {
           border: null,
           trailing: AppleGlassButton(
             label: '刷新成绩',
-            onPressed: busy ? null : load,
+            onPressed: busy ? null : () => load(force: true),
             child: busy
                 ? const CupertinoActivityIndicator()
                 : const Icon(CupertinoIcons.refresh, size: 24),
           ),
         ),
-        CupertinoSliverRefreshControl(onRefresh: load),
+        CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
         SliverList.list(
           children: [
+            if (notice != null)
+              AppleSection(
+                children: [
+                  AppleListTile(
+                    leading: const Icon(
+                      CupertinoIcons.exclamationmark_triangle,
+                      color: CupertinoColors.systemOrange,
+                      size: 20,
+                    ),
+                    title: Text(notice!),
+                  ),
+                ],
+              ),
             if (error != null)
               AppleSection(
                 children: [
@@ -77,7 +95,7 @@ class _GradesPageState extends State<GradesPage> {
                     description: '请检查网络后重试。',
                     error: true,
                     action: '重试',
-                    onAction: load,
+                    onAction: () => load(force: true),
                   ),
                 ],
               )
@@ -140,11 +158,13 @@ class _GradesPageState extends State<GradesPage> {
         ],
       ),
     AppleSection(
-      children: const [
+      children: [
         Padding(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Text(
-            '离线合成样例，不连接学校账号；成绩与学期用于演示迁移后的解析、汇总和页面状态。',
+            widget.service.isDemo
+                ? '离线合成样例，不连接学校账号；成绩与学期用于演示迁移后的解析、汇总和页面状态。'
+                : '真实账号只读数据；当前默认显示学校选中的学期。',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,

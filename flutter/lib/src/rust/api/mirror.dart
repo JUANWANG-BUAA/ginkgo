@@ -219,6 +219,7 @@ enum FailureCode {
   accessPolicyDenied,
   redirectLimit,
   unsupportedPortal,
+  credentialStore,
 }
 
 class GradeCourse {
@@ -272,6 +273,7 @@ class GradeResponse {
   final String termId;
   final List<GradeCourse> courses;
   final GradeSummary summary;
+  final String? fetchedAt;
   final FailureCode? failure;
   final String? failureDetail;
 
@@ -279,6 +281,7 @@ class GradeResponse {
     required this.termId,
     required this.courses,
     required this.summary,
+    this.fetchedAt,
     this.failure,
     this.failureDetail,
   });
@@ -288,6 +291,7 @@ class GradeResponse {
       termId.hashCode ^
       courses.hashCode ^
       summary.hashCode ^
+      fetchedAt.hashCode ^
       failure.hashCode ^
       failureDetail.hashCode;
 
@@ -299,6 +303,7 @@ class GradeResponse {
           termId == other.termId &&
           courses == other.courses &&
           summary == other.summary &&
+          fetchedAt == other.fetchedAt &&
           failure == other.failure &&
           failureDetail == other.failureDetail;
 }
@@ -610,6 +615,7 @@ class ScheduleResponse {
   final int weekNumber;
   final List<ScheduleCourse> courses;
   final List<ScheduleExam> exams;
+  final String? fetchedAt;
   final FailureCode? failure;
   final String? failureDetail;
 
@@ -620,6 +626,7 @@ class ScheduleResponse {
     required this.weekNumber,
     required this.courses,
     required this.exams,
+    this.fetchedAt,
     this.failure,
     this.failureDetail,
   });
@@ -632,6 +639,7 @@ class ScheduleResponse {
       weekNumber.hashCode ^
       courses.hashCode ^
       exams.hashCode ^
+      fetchedAt.hashCode ^
       failure.hashCode ^
       failureDetail.hashCode;
 
@@ -646,6 +654,7 @@ class ScheduleResponse {
           weekNumber == other.weekNumber &&
           courses == other.courses &&
           exams == other.exams &&
+          fetchedAt == other.fetchedAt &&
           failure == other.failure &&
           failureDetail == other.failureDetail;
 }
@@ -754,12 +763,14 @@ class TodayCourse {
 class TodayResponse {
   final String date;
   final List<TodayCourse> courses;
+  final String? fetchedAt;
   final FailureCode? failure;
   final String? failureDetail;
 
   const TodayResponse({
     required this.date,
     required this.courses,
+    this.fetchedAt,
     this.failure,
     this.failureDetail,
   });
@@ -768,6 +779,7 @@ class TodayResponse {
   int get hashCode =>
       date.hashCode ^
       courses.hashCode ^
+      fetchedAt.hashCode ^
       failure.hashCode ^
       failureDetail.hashCode;
 
@@ -778,6 +790,7 @@ class TodayResponse {
           runtimeType == other.runtimeType &&
           date == other.date &&
           courses == other.courses &&
+          fetchedAt == other.fetchedAt &&
           failure == other.failure &&
           failureDetail == other.failureDetail;
 }

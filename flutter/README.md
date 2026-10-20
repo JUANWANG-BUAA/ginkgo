@@ -2,7 +2,7 @@
 
 Android 对齐 iPhone SwiftUI，Windows 对齐 macOS SwiftUI。Apple 应用保持独立。
 
-当前实现是**离线合成数据切片**：空教室查询交互、筛选/排序、详情，以及北京时间/课表缓存周次示例。未接入 CAS、真实学校查询或上游写操作。阶段状态和验收矩阵见 [实施记录](../docs/MIRROR-IMPLEMENTATION.md)。
+当前实现包含登录页、会话恢复门禁、显式离线演示，以及空教室/课表/今天/成绩的真实只读页面；作业仍是合成切片。Android Keystore 保险库、FRB 真实会话和 mock 只读链路已接入；真实账号只读验收、Windows 实机和写操作尚未完成。阶段状态与验收矩阵见 [实施记录](../docs/MIRROR-IMPLEMENTATION.md)。
 
 ## 工具链
 
@@ -33,6 +33,9 @@ cd flutter
 flutter pub get
 flutter devices
 flutter run -d emulator-5554
+# 平台保险库 JNI/Keystore 往返 + 登录页启动（不提交真实账号）
+flutter test integration_test/auth_test.dart -d emulator-5554
+flutter test integration_test/today_test.dart -d emulator-5554
 flutter test integration_test/mirror_test.dart -d emulator-5554
 
 # Windows 主机
@@ -44,9 +47,11 @@ Rust Android 目标随选定设备确定；当前 ARM64 模拟器使用 `aarch64
 
 ## 边界
 
-- `lib/src/rust/` 与 Rust `frb_generated.rs` 是生成物；改 `rust/crates/ginkgo_flutter_bridge/src/api/` 后运行生成脚本。
-- Dart 只保存页面选择、导航和加载状态。学校日期、教室节次解析、过滤/排序、缓存 TTL 与课表周次保留都在 Rust。
-- `mirror_service.dart` 是页面测试注入点。设备集成测试调用真实 Rust 动态库；错误测试通过无效 typed 请求产生真实 Rust 错误码。
+- `lib/src/rust/` 与 Rust `frb_generated.rs` 是生成物；改 `rust/crates/ginkgo_flutter_bridge/src/api/` 后运行生成脚本。生成结果的 `stem` 必须是 `ginkgo_flutter_bridge`，脚本会拒绝 `UNKNOWN`。
+- Dart 只保存页面选择、导航和加载状态。学校日期、教室节次解析、过滤/排序、缓存 TTL、课表周次与认证会话都在 Rust。真实服务只在第一次异步命令时创建网络运行时；不要在 `init_app` 预热，否则 Android 会卡启动。
+- `mirror_service.dart` 是页面测试注入点：`NativeMirrorService` 走真实 bridge，`DemoMirrorService` 走 `load_demo_*`。`auth_test.dart` 只写入并删除 `__ginkgo_vault_test__` 前缀的合成密钥，不需要真实账号。
+- 设备上的 `mirror_test.dart` 仍有一个校区/日期/缓存长流程未收敛；`today/schedule/grades/homework` 与 `auth_test.dart` 可分别独立验收，不要用一个长文件的失败/通过替代模块结论。
+- `flutter test integration_test/...` 会把**测试入口**打包进 `build/app/outputs/flutter-apk/app-debug.apk`；直接安装并启动这个 APK 会停在 Flutter 启动页等待测试驱动。要看真实登录页/演示页，必须重新运行 `flutter build apk` 再安装。
 - 演示仓库仅保留进程内合成查询元数据，不读取 Swift 缓存，不保存账号。学院路/沙河分别使用共享样例中的两组房间，杭州为空；日期参与缓存隔离，不代表当天真实学校安排。
 - 当前 Windows 提供工程及 CI 入口，本机 macOS 不作为 Windows 构建/运行验收环境。
 

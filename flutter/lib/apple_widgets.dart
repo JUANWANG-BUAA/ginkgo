@@ -18,6 +18,7 @@ String failureMessage(FailureCode? code) => switch (code) {
   FailureCode.accessPolicyDenied => '当前网络被学校访问策略拦截，请连接校园网或北航 VPN 后重试',
   FailureCode.redirectLimit => '学校认证跳转次数过多，请稍后重试',
   FailureCode.unsupportedPortal => '当前教务门户不提供该功能，请切换到本科生账号',
+  FailureCode.credentialStore => '系统安全存储暂时不可用，请稍后重试',
   null => '本地服务暂时不可用，请重试',
 };
 

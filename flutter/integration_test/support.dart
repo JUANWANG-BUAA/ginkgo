@@ -92,7 +92,7 @@ Future<void> tapTab(WidgetTester tester, String label) async {
 
 Future<void> launch(
   WidgetTester tester, {
-  MirrorService service = const NativeMirrorService(),
+  MirrorService service = const DemoMirrorService(),
 }) async {
   await tester.pumpWidget(GinkgoApp(key: UniqueKey(), service: service));
   await settle(tester, frames: 30);

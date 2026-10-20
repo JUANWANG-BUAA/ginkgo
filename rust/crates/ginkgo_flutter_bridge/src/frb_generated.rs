@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -232394100;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -2051338894;
 
 // Section: executor
 
@@ -76,6 +76,45 @@ fn wire__crate__api__mirror__init_app_impl(
                     })?;
                     Ok(output_ok)
                 })())
+            }
+        },
+    )
+}
+fn wire__crate__api__live__load_classrooms_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_classrooms",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_scope = <crate::api::live::LiveScope>::sse_decode(&mut deserializer);
+            let api_query = <crate::api::mirror::ClassroomQuery>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::load_classrooms(api_scope, api_query).await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
             }
         },
     )
@@ -242,6 +281,45 @@ fn wire__crate__api__mirror__load_demo_today_impl(
         },
     )
 }
+fn wire__crate__api__live__load_grades_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_grades",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_term_code = <Option<String>>::sse_decode(&mut deserializer);
+            let api_force_refresh = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::load_grades(api_term_code, api_force_refresh).await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__mirror__load_query_dates_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -308,6 +386,130 @@ fn wire__crate__api__mirror__load_rule_examples_impl(
         },
     )
 }
+fn wire__crate__api__live__load_schedule_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_schedule",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_week = <Option<i32>>::sse_decode(&mut deserializer);
+            let api_force_refresh = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::load_schedule(api_week, api_force_refresh).await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__load_today_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_today",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_force_refresh = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::load_today(api_force_refresh).await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__login_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "login",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_account = <String>::sse_decode(&mut deserializer);
+            let api_password = <String>::sse_decode(&mut deserializer);
+            let api_captcha = <Option<String>>::sse_decode(&mut deserializer);
+            let api_remember = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::login(
+                                api_account,
+                                api_password,
+                                api_captcha,
+                                api_remember,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__mirror__query_demo_classrooms_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -337,6 +539,149 @@ fn wire__crate__api__mirror__query_demo_classrooms_impl(
                 transform_result_sse::<_, ()>((move || {
                     let output_ok = Result::<_, ()>::Ok(
                         crate::api::mirror::query_demo_classrooms(api_scope, api_query),
+                    )?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__live__restore_session_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "restore_session",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok =
+                            Result::<_, ()>::Ok(crate::api::live::restore_session().await)?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__session_status_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "session_status",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok =
+                            Result::<_, ()>::Ok(crate::api::live::session_status().await)?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__sign_out_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "sign_out",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(crate::api::live::sign_out().await)?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__verify_credential_storage_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "verify_credential_storage",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_account = <String>::sse_decode(&mut deserializer);
+            let api_secret = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok(
+                        crate::api::live::verify_credential_storage(api_account, api_secret),
                     )?;
                     Ok(output_ok)
                 })())
@@ -490,6 +835,7 @@ impl SseDecode for crate::api::mirror::FailureCode {
             8 => crate::api::mirror::FailureCode::AccessPolicyDenied,
             9 => crate::api::mirror::FailureCode::RedirectLimit,
             10 => crate::api::mirror::FailureCode::UnsupportedPortal,
+            11 => crate::api::mirror::FailureCode::CredentialStore,
             _ => unreachable!("Invalid variant for FailureCode: {}", inner),
         };
     }
@@ -525,12 +871,14 @@ impl SseDecode for crate::api::mirror::GradeResponse {
         let mut var_termId = <String>::sse_decode(deserializer);
         let mut var_courses = <Vec<crate::api::mirror::GradeCourse>>::sse_decode(deserializer);
         let mut var_summary = <crate::api::mirror::GradeSummary>::sse_decode(deserializer);
+        let mut var_fetchedAt = <Option<String>>::sse_decode(deserializer);
         let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
         let mut var_failureDetail = <Option<String>>::sse_decode(deserializer);
         return crate::api::mirror::GradeResponse {
             term_id: var_termId,
             courses: var_courses,
             summary: var_summary,
+            fetched_at: var_fetchedAt,
             failure: var_failure,
             failure_detail: var_failureDetail,
         };
@@ -777,6 +1125,20 @@ impl SseDecode for Vec<crate::api::mirror::TodayCourse> {
     }
 }
 
+impl SseDecode for crate::api::live::LiveScope {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_campus = <i32>::sse_decode(deserializer);
+        let mut var_date = <String>::sse_decode(deserializer);
+        let mut var_forceRefresh = <bool>::sse_decode(deserializer);
+        return crate::api::live::LiveScope {
+            campus: var_campus,
+            date: var_date,
+            force_refresh: var_forceRefresh,
+        };
+    }
+}
+
 impl SseDecode for Option<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -926,6 +1288,7 @@ impl SseDecode for crate::api::mirror::ScheduleResponse {
         let mut var_weekNumber = <i32>::sse_decode(deserializer);
         let mut var_courses = <Vec<crate::api::mirror::ScheduleCourse>>::sse_decode(deserializer);
         let mut var_exams = <Vec<crate::api::mirror::ScheduleExam>>::sse_decode(deserializer);
+        let mut var_fetchedAt = <Option<String>>::sse_decode(deserializer);
         let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
         let mut var_failureDetail = <Option<String>>::sse_decode(deserializer);
         return crate::api::mirror::ScheduleResponse {
@@ -935,6 +1298,7 @@ impl SseDecode for crate::api::mirror::ScheduleResponse {
             week_number: var_weekNumber,
             courses: var_courses,
             exams: var_exams,
+            fetched_at: var_fetchedAt,
             failure: var_failure,
             failure_detail: var_failureDetail,
         };
@@ -983,6 +1347,43 @@ impl SseDecode for crate::api::mirror::SectionState {
     }
 }
 
+impl SseDecode for crate::api::live::SessionResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_state = <crate::api::live::SessionState>::sse_decode(deserializer);
+        let mut var_account = <Option<String>>::sse_decode(deserializer);
+        let mut var_name = <Option<String>>::sse_decode(deserializer);
+        let mut var_captchaId = <Option<String>>::sse_decode(deserializer);
+        let mut var_captchaImageUrl = <Option<String>>::sse_decode(deserializer);
+        let mut var_remembered = <bool>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        let mut var_failureDetail = <Option<String>>::sse_decode(deserializer);
+        return crate::api::live::SessionResponse {
+            state: var_state,
+            account: var_account,
+            name: var_name,
+            captcha_id: var_captchaId,
+            captcha_image_url: var_captchaImageUrl,
+            remembered: var_remembered,
+            failure: var_failure,
+            failure_detail: var_failureDetail,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::SessionState {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::live::SessionState::SignedOut,
+            1 => crate::api::live::SessionState::SignedIn,
+            2 => crate::api::live::SessionState::CaptchaRequired,
+            _ => unreachable!("Invalid variant for SessionState: {}", inner),
+        };
+    }
+}
+
 impl SseDecode for crate::api::mirror::TodayCourse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1004,11 +1405,13 @@ impl SseDecode for crate::api::mirror::TodayResponse {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_date = <String>::sse_decode(deserializer);
         let mut var_courses = <Vec<crate::api::mirror::TodayCourse>>::sse_decode(deserializer);
+        let mut var_fetchedAt = <Option<String>>::sse_decode(deserializer);
         let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
         let mut var_failureDetail = <Option<String>>::sse_decode(deserializer);
         return crate::api::mirror::TodayResponse {
             date: var_date,
             courses: var_courses,
+            fetched_at: var_fetchedAt,
             failure: var_failure,
             failure_detail: var_failureDetail,
         };
@@ -1037,16 +1440,30 @@ fn pde_ffi_dispatcher_primary_impl(
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
         1 => wire__crate__api__mirror__init_app_impl(port, ptr, rust_vec_len, data_len),
-        2 => wire__crate__api__mirror__load_demo_classrooms_impl(port, ptr, rust_vec_len, data_len),
-        3 => wire__crate__api__mirror__load_demo_grades_impl(port, ptr, rust_vec_len, data_len),
-        4 => wire__crate__api__mirror__load_demo_homework_impl(port, ptr, rust_vec_len, data_len),
-        5 => wire__crate__api__mirror__load_demo_schedule_impl(port, ptr, rust_vec_len, data_len),
-        6 => wire__crate__api__mirror__load_demo_today_impl(port, ptr, rust_vec_len, data_len),
-        7 => wire__crate__api__mirror__load_query_dates_impl(port, ptr, rust_vec_len, data_len),
-        8 => wire__crate__api__mirror__load_rule_examples_impl(port, ptr, rust_vec_len, data_len),
-        9 => {
+        2 => wire__crate__api__live__load_classrooms_impl(port, ptr, rust_vec_len, data_len),
+        3 => wire__crate__api__mirror__load_demo_classrooms_impl(port, ptr, rust_vec_len, data_len),
+        4 => wire__crate__api__mirror__load_demo_grades_impl(port, ptr, rust_vec_len, data_len),
+        5 => wire__crate__api__mirror__load_demo_homework_impl(port, ptr, rust_vec_len, data_len),
+        6 => wire__crate__api__mirror__load_demo_schedule_impl(port, ptr, rust_vec_len, data_len),
+        7 => wire__crate__api__mirror__load_demo_today_impl(port, ptr, rust_vec_len, data_len),
+        8 => wire__crate__api__live__load_grades_impl(port, ptr, rust_vec_len, data_len),
+        9 => wire__crate__api__mirror__load_query_dates_impl(port, ptr, rust_vec_len, data_len),
+        10 => wire__crate__api__mirror__load_rule_examples_impl(port, ptr, rust_vec_len, data_len),
+        11 => wire__crate__api__live__load_schedule_impl(port, ptr, rust_vec_len, data_len),
+        12 => wire__crate__api__live__load_today_impl(port, ptr, rust_vec_len, data_len),
+        13 => wire__crate__api__live__login_impl(port, ptr, rust_vec_len, data_len),
+        14 => {
             wire__crate__api__mirror__query_demo_classrooms_impl(port, ptr, rust_vec_len, data_len)
         }
+        15 => wire__crate__api__live__restore_session_impl(port, ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__live__session_status_impl(port, ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__live__sign_out_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__live__verify_credential_storage_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
         _ => unreachable!(),
     }
 }
@@ -1221,6 +1638,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::mirror::FailureCode {
             Self::AccessPolicyDenied => 8.into_dart(),
             Self::RedirectLimit => 9.into_dart(),
             Self::UnsupportedPortal => 10.into_dart(),
+            Self::CredentialStore => 11.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -1270,6 +1688,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::mirror::GradeResponse {
             self.term_id.into_into_dart().into_dart(),
             self.courses.into_into_dart().into_dart(),
             self.summary.into_into_dart().into_dart(),
+            self.fetched_at.into_into_dart().into_dart(),
             self.failure.into_into_dart().into_dart(),
             self.failure_detail.into_into_dart().into_dart(),
         ]
@@ -1381,6 +1800,25 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::HomeworkStatus>
     for crate::api::mirror::HomeworkStatus
 {
     fn into_into_dart(self) -> crate::api::mirror::HomeworkStatus {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LiveScope {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.campus.into_into_dart().into_dart(),
+            self.date.into_into_dart().into_dart(),
+            self.force_refresh.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::live::LiveScope {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LiveScope>
+    for crate::api::live::LiveScope
+{
+    fn into_into_dart(self) -> crate::api::live::LiveScope {
         self
     }
 }
@@ -1502,6 +1940,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::mirror::ScheduleResponse {
             self.week_number.into_into_dart().into_dart(),
             self.courses.into_into_dart().into_dart(),
             self.exams.into_into_dart().into_dart(),
+            self.fetched_at.into_into_dart().into_dart(),
             self.failure.into_into_dart().into_dart(),
             self.failure_detail.into_into_dart().into_dart(),
         ]
@@ -1586,6 +2025,55 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::SectionState>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::SessionResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.state.into_into_dart().into_dart(),
+            self.account.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.captcha_id.into_into_dart().into_dart(),
+            self.captcha_image_url.into_into_dart().into_dart(),
+            self.remembered.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+            self.failure_detail.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::SessionResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::SessionResponse>
+    for crate::api::live::SessionResponse
+{
+    fn into_into_dart(self) -> crate::api::live::SessionResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::SessionState {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::SignedOut => 0.into_dart(),
+            Self::SignedIn => 1.into_dart(),
+            Self::CaptchaRequired => 2.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::SessionState
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::SessionState>
+    for crate::api::live::SessionState
+{
+    fn into_into_dart(self) -> crate::api::live::SessionState {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::mirror::TodayCourse {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -1614,6 +2102,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::mirror::TodayResponse {
         [
             self.date.into_into_dart().into_dart(),
             self.courses.into_into_dart().into_dart(),
+            self.fetched_at.into_into_dart().into_dart(),
             self.failure.into_into_dart().into_dart(),
             self.failure_detail.into_into_dart().into_dart(),
         ]
@@ -1741,6 +2230,7 @@ impl SseEncode for crate::api::mirror::FailureCode {
                 crate::api::mirror::FailureCode::AccessPolicyDenied => 8,
                 crate::api::mirror::FailureCode::RedirectLimit => 9,
                 crate::api::mirror::FailureCode::UnsupportedPortal => 10,
+                crate::api::mirror::FailureCode::CredentialStore => 11,
                 _ => {
                     unimplemented!("");
                 }
@@ -1770,6 +2260,7 @@ impl SseEncode for crate::api::mirror::GradeResponse {
         <String>::sse_encode(self.term_id, serializer);
         <Vec<crate::api::mirror::GradeCourse>>::sse_encode(self.courses, serializer);
         <crate::api::mirror::GradeSummary>::sse_encode(self.summary, serializer);
+        <Option<String>>::sse_encode(self.fetched_at, serializer);
         <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
         <Option<String>>::sse_encode(self.failure_detail, serializer);
     }
@@ -1965,6 +2456,15 @@ impl SseEncode for Vec<crate::api::mirror::TodayCourse> {
     }
 }
 
+impl SseEncode for crate::api::live::LiveScope {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.campus, serializer);
+        <String>::sse_encode(self.date, serializer);
+        <bool>::sse_encode(self.force_refresh, serializer);
+    }
+}
+
 impl SseEncode for Option<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2070,6 +2570,7 @@ impl SseEncode for crate::api::mirror::ScheduleResponse {
         <i32>::sse_encode(self.week_number, serializer);
         <Vec<crate::api::mirror::ScheduleCourse>>::sse_encode(self.courses, serializer);
         <Vec<crate::api::mirror::ScheduleExam>>::sse_encode(self.exams, serializer);
+        <Option<String>>::sse_encode(self.fetched_at, serializer);
         <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
         <Option<String>>::sse_encode(self.failure_detail, serializer);
     }
@@ -2102,6 +2603,37 @@ impl SseEncode for crate::api::mirror::SectionState {
     }
 }
 
+impl SseEncode for crate::api::live::SessionResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::live::SessionState>::sse_encode(self.state, serializer);
+        <Option<String>>::sse_encode(self.account, serializer);
+        <Option<String>>::sse_encode(self.name, serializer);
+        <Option<String>>::sse_encode(self.captcha_id, serializer);
+        <Option<String>>::sse_encode(self.captcha_image_url, serializer);
+        <bool>::sse_encode(self.remembered, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+        <Option<String>>::sse_encode(self.failure_detail, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::SessionState {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::live::SessionState::SignedOut => 0,
+                crate::api::live::SessionState::SignedIn => 1,
+                crate::api::live::SessionState::CaptchaRequired => 2,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
 impl SseEncode for crate::api::mirror::TodayCourse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2117,6 +2649,7 @@ impl SseEncode for crate::api::mirror::TodayResponse {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.date, serializer);
         <Vec<crate::api::mirror::TodayCourse>>::sse_encode(self.courses, serializer);
+        <Option<String>>::sse_encode(self.fetched_at, serializer);
         <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
         <Option<String>>::sse_encode(self.failure_detail, serializer);
     }

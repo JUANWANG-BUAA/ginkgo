@@ -23,5 +23,11 @@ tokio = { version = "1", features = ["rt-multi-thread", "time"], optional = true
 default = []
 network = ["dep:reqwest", "dep:tokio"]
 
+[target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
+keyring = { version = "3.6", default-features = false, features = ["apple-native", "windows-native"] }
+
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "0.21"
+
 [dev-dependencies]
 tokio = { version = "1.48", features = ["macros", "rt"] }

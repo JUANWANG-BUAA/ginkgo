@@ -15,4 +15,4 @@ cargo test --workspace --locked
 
 若本地 `stable` 已是 1.99.0，可以设置 `RUSTUP_TOOLCHAIN=stable` 复用它。辅助脚本会先检查再选择，避免重复安装。
 
-当前没有认证、网络协议、账号缓存或写操作实现；这些要在对应协议 fixture 和 mock HTTP 就绪后逐项迁移。详见 `../docs/RUST-FLUTTER-PORT.md` 与 `../docs/MIRROR-IMPLEMENTATION.md`。
+当前已有认证核心（CAS/UC/Cookie/WebVPN/单次恢复）、平台凭据保险库、真实只读应用层（空教室/课表/今天/成绩）、5 分钟进程内快照和 FRB 真实会话命令；作业仍为合成切片，真实账号只读验收、Windows/macOS 保险库实机与写操作尚未完成。详见 `../docs/RUST-FLUTTER-PORT.md` 与 `../docs/MIRROR-IMPLEMENTATION.md`。

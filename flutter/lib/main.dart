@@ -1,21 +1,24 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'apple_design.dart';
+import 'apple_widgets.dart';
 import 'classroom_page.dart';
 import 'grades_page.dart';
 import 'homework_page.dart';
-import 'apple_design.dart';
+import 'login_page.dart';
 import 'mirror_service.dart';
 import 'rules_page.dart';
 import 'schedule_page.dart';
-import 'today_page.dart';
+import 'src/rust/api/live.dart' show SessionResponse, SessionState;
 import 'src/rust/frb_generated.dart';
+import 'today_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await RustLib.init();
-    runApp(const GinkgoApp());
+    runApp(const GinkgoRoot());
   } catch (_) {
     runApp(
       CupertinoApp(
@@ -35,55 +38,197 @@ Future<void> main() async {
   }
 }
 
+/// Chooses between the real-account session and the explicit offline demo.
+/// The workspace itself stays a plain widget so page tests can inject a fake
+/// service without touching Rust or a keychain.
+class GinkgoRoot extends StatefulWidget {
+  const GinkgoRoot({
+    super.key,
+    this.liveService = const NativeMirrorService(),
+    this.demoService = const DemoMirrorService(),
+  });
+  final MirrorService liveService;
+  final MirrorService demoService;
+  @override
+  State<GinkgoRoot> createState() => _GinkgoRootState();
+}
+
+enum _Stage { restoring, signedOut, signedIn, demo }
+
+class _GinkgoRootState extends State<GinkgoRoot> {
+  _Stage stage = _Stage.restoring;
+  SessionResponse? session;
+  String? message;
+  bool captchaRequired = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Let the startup page paint before touching JNI/Keystore/network work.
+    WidgetsBinding.instance.addPostFrameCallback((_) => restore());
+  }
+
+  Future<void> restore() async {
+    setState(() {
+      stage = _Stage.restoring;
+      message = null;
+    });
+    try {
+      final response = await widget.liveService.restoreSession();
+      if (!mounted) return;
+      if (response.state == SessionState.signedIn) {
+        setState(() {
+          session = response;
+          stage = _Stage.signedIn;
+        });
+        return;
+      }
+      setState(() {
+        session = null;
+        stage = _Stage.signedOut;
+        captchaRequired = response.state == SessionState.captchaRequired;
+        message = captchaRequired
+            ? '学校要求验证码，请重新登录。验证码图片展示尚未接入。'
+            : response.failure == null
+            ? null
+            : failureMessage(response.failure);
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        stage = _Stage.signedOut;
+        message = failureMessage(null);
+      });
+    }
+  }
+
+  Future<void> signOut() async {
+    await widget.liveService.signOut();
+    if (!mounted) return;
+    setState(() {
+      session = null;
+      stage = _Stage.signedOut;
+      message = null;
+    });
+  }
+
+  void signedIn(SessionResponse response) => setState(() {
+    session = response;
+    stage = _Stage.signedIn;
+    captchaRequired = false;
+    message = null;
+  });
+
+  @override
+  Widget build(BuildContext context) => switch (stage) {
+    _Stage.restoring => ginkgoApp(home: const _StartupPage()),
+    _Stage.demo => GinkgoApp(
+      service: widget.demoService,
+      onSignOut: () async => setState(() => stage = _Stage.signedOut),
+    ),
+    _Stage.signedOut => ginkgoApp(
+      home: LoginPage(
+        service: widget.liveService,
+        initialMessage: message,
+        initialCaptcha: captchaRequired,
+        onSignedIn: signedIn,
+        onDemo: () => setState(() {
+          stage = _Stage.demo;
+          captchaRequired = false;
+          message = null;
+        }),
+      ),
+    ),
+    _Stage.signedIn => GinkgoApp(
+      service: widget.liveService,
+      accountName: session?.name ?? session?.account,
+      onSignOut: signOut,
+    ),
+  };
+}
+
+CupertinoThemeData ginkgoTheme([Brightness? brightness]) => CupertinoThemeData(
+  primaryColor: AppleDesign.accent,
+  textTheme: const CupertinoTextThemeData(
+    textStyle: AppleDesign.body,
+    navTitleTextStyle: TextStyle(
+      inherit: false,
+      fontFamily: AppleDesign.font,
+      fontFamilyFallback: AppleDesign.fallback,
+      fontSize: 17,
+      fontWeight: FontWeight.w600,
+      color: CupertinoColors.label,
+    ),
+    navLargeTitleTextStyle: AppleDesign.title,
+    actionTextStyle: TextStyle(
+      inherit: false,
+      fontFamily: AppleDesign.font,
+      fontFamilyFallback: AppleDesign.fallback,
+      fontSize: 17,
+      letterSpacing: -0.25,
+      color: AppleDesign.accent,
+    ),
+    dateTimePickerTextStyle: TextStyle(
+      inherit: false,
+      fontFamily: AppleDesign.font,
+      fontFamilyFallback: AppleDesign.fallback,
+      fontSize: 21,
+      color: CupertinoColors.label,
+    ),
+  ),
+  brightness: brightness,
+);
+
+CupertinoApp ginkgoApp({required Widget home, Brightness? brightness}) =>
+    CupertinoApp(
+      title: 'Ginkgo 银杏',
+      debugShowCheckedModeBanner: false,
+      locale: const Locale('zh', 'CN'),
+      supportedLocales: const [Locale('zh', 'CN')],
+      localizationsDelegates: GlobalCupertinoLocalizations.delegates,
+      theme: ginkgoTheme(brightness),
+      home: home,
+    );
+
+class _StartupPage extends StatelessWidget {
+  const _StartupPage();
+  @override
+  Widget build(BuildContext context) => const CupertinoPageScaffold(
+    child: Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CupertinoActivityIndicator(radius: 14),
+          SizedBox(height: 14),
+          Text('正在恢复本地会话…'),
+        ],
+      ),
+    ),
+  );
+}
+
 class GinkgoApp extends StatelessWidget {
   const GinkgoApp({
     super.key,
-    this.service = const NativeMirrorService(),
+    this.service = const DemoMirrorService(),
     this.brightness,
+    this.accountName,
+    this.onSignOut,
   });
   final MirrorService service;
   final Brightness? brightness;
+  final String? accountName;
+  final Future<void> Function()? onSignOut;
   @override
-  Widget build(BuildContext context) => CupertinoApp(
-    title: 'Ginkgo 银杏',
-    debugShowCheckedModeBanner: false,
-    locale: const Locale('zh', 'CN'),
-    supportedLocales: const [Locale('zh', 'CN')],
-    localizationsDelegates: GlobalCupertinoLocalizations.delegates,
-    theme: CupertinoThemeData(
-      primaryColor: AppleDesign.accent,
-      textTheme: const CupertinoTextThemeData(
-        textStyle: AppleDesign.body,
-        navTitleTextStyle: TextStyle(
-          inherit: false,
-          fontFamily: AppleDesign.font,
-          fontFamilyFallback: AppleDesign.fallback,
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
-          color: CupertinoColors.label,
-        ),
-        navLargeTitleTextStyle: AppleDesign.title,
-        actionTextStyle: TextStyle(
-          inherit: false,
-          fontFamily: AppleDesign.font,
-          fontFamilyFallback: AppleDesign.fallback,
-          fontSize: 17,
-          letterSpacing: -0.25,
-          color: AppleDesign.accent,
-        ),
-        dateTimePickerTextStyle: TextStyle(
-          inherit: false,
-          fontFamily: AppleDesign.font,
-          fontFamilyFallback: AppleDesign.fallback,
-          fontSize: 21,
-          color: CupertinoColors.label,
-        ),
-      ),
-      brightness: brightness,
-    ),
+  Widget build(BuildContext context) => ginkgoApp(
+    brightness: brightness,
     home: LayoutBuilder(
       builder: (context, constraints) => constraints.maxWidth >= 760
-          ? _DesktopWorkspace(service: service)
+          ? _DesktopWorkspace(
+              service: service,
+              accountName: accountName,
+              onSignOut: onSignOut,
+            )
           : CupertinoTabScaffold(
               tabBar: CupertinoTabBar(
                 items: const [
@@ -110,7 +255,11 @@ class GinkgoApp extends StatelessWidget {
                 ],
               ),
               tabBuilder: (context, index) => switch (index) {
-                0 => TodayPage(service: service),
+                0 => TodayPage(
+                  service: service,
+                  accountName: accountName,
+                  onAccountAction: onSignOut,
+                ),
                 1 => ClassroomPage(service: service),
                 2 => SchedulePage(service: service),
                 3 => HomeworkPage(service: service),
@@ -122,8 +271,14 @@ class GinkgoApp extends StatelessWidget {
 }
 
 class _DesktopWorkspace extends StatefulWidget {
-  const _DesktopWorkspace({required this.service});
+  const _DesktopWorkspace({
+    required this.service,
+    this.accountName,
+    this.onSignOut,
+  });
   final MirrorService service;
+  final String? accountName;
+  final Future<void> Function()? onSignOut;
   @override
   State<_DesktopWorkspace> createState() => _DesktopWorkspaceState();
 }
@@ -164,14 +319,33 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
               _sidebar('成绩', CupertinoIcons.chart_bar_alt_fill, 4),
               _sidebar('规则示例', CupertinoIcons.checkmark_shield, 5),
               const Spacer(),
-              const Padding(
-                padding: EdgeInsets.all(20),
-                child: Text(
-                  '离线合成样例',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: CupertinoColors.secondaryLabel,
-                  ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      widget.accountName ??
+                          (widget.service.isDemo ? '离线合成样例' : '未登录'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: CupertinoColors.secondaryLabel,
+                      ),
+                    ),
+                    if (widget.onSignOut != null) ...[
+                      const SizedBox(height: 6),
+                      CupertinoButton(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        onPressed: () => widget.onSignOut!(),
+                        child: Text(
+                          widget.service.isDemo ? '返回登录' : '退出登录',
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],
@@ -186,7 +360,11 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
         child: IndexedStack(
           index: selected,
           children: [
-            TodayPage(service: widget.service),
+            TodayPage(
+              service: widget.service,
+              accountName: widget.accountName,
+              onAccountAction: widget.onSignOut,
+            ),
             ClassroomPage(service: widget.service),
             SchedulePage(service: widget.service),
             HomeworkPage(service: widget.service),

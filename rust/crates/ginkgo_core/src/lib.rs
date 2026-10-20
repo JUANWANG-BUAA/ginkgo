@@ -23,6 +23,7 @@ pub enum ErrorCode {
     AccessPolicyDenied,
     RedirectLimit,
     UnsupportedPortal,
+    CredentialStore,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -55,6 +56,9 @@ impl AppError {
     }
     pub fn unavailable() -> Self {
         Self::new(ErrorCode::ServiceUnavailable)
+    }
+    pub fn credential_store() -> Self {
+        Self::new(ErrorCode::CredentialStore)
     }
 }
 

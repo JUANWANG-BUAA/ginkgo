@@ -51,7 +51,7 @@ xcodebuild test \
 
 ## Android / Windows 镜像项目准备
 
-项目开始为 Android 与 Windows 的 Rust + Flutter 镜像做边界准备；现阶段仍由 macOS/iOS SwiftUI 应用提供正式产品，Rust/Flutter 工程尚未创建，也尚未开始协议移植。跨语言契约、FFI 边界与迁移顺序见 [Rust + Flutter 准备说明](docs/RUST-FLUTTER-PORT.md)；平台路线见 [多平台策略](docs/MULTI-PLATFORM-STRATEGY.md)。
+Android 与 Windows 的 Rust + Flutter 镜像工程已建立：认证核心、Android Keystore 保险库、bridge 登录/恢复/登出，以及空教室/课表/今天/成绩的真实只读链路已接入；作业仍为合成切片。现阶段仍由 macOS/iOS SwiftUI 应用提供正式产品，真实账号只读验收与 Windows 实机尚未完成。跨语言契约、FFI 边界与迁移顺序见 [Rust + Flutter 准备说明](docs/RUST-FLUTTER-PORT.md)；进度见 [镜像实施记录](docs/MIRROR-IMPLEMENTATION.md)，平台路线见 [多平台策略](docs/MULTI-PLATFORM-STRATEGY.md)。
 
 ## 界面预览
 
