@@ -1,6 +1,6 @@
 # Rust + Flutter 镜像项目开发计划
 
-> 状态（2026-10-20）：已启动 `rust/` workspace 与 `flutter/` Android/Windows 镜像工程，四类共享契约已由 Rust fixture runner 消费，正在完善 Android 离线空教室切片及视觉验收。完整协议、认证与其余页面尚未移植。当前范围为 Android + Windows，Apple 继续使用 SwiftUI；进度与验收见 [MIRROR-IMPLEMENTATION.md](MIRROR-IMPLEMENTATION.md)。
+> 状态（2026-10-20）：`rust/` workspace、FRB 桥接与 Flutter Android/Windows 工程已建立；认证核心（Cookie/CAS/UC/WebVPN/恢复）和今天/空教室/课表/成绩/作业五个离线页面切片已完成，16 类 58 份共享 fixture 由 Rust runner 消费。今天/课表/成绩/作业已过 Android 真实 FFI 设备测试，空教室部分通过。平台凭据 store、真实只读 bridge、研究生课表、BYKC/图书馆/场馆/通知、本地功能、Windows 实机与写操作仍未完成。Apple 继续使用 SwiftUI；进度与验收见 [MIRROR-IMPLEMENTATION.md](MIRROR-IMPLEMENTATION.md)。
 
 ## 目标边界
 

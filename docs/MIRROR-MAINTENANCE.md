@@ -30,7 +30,7 @@
 4. 结构漂移必须返回 `changed_response`，不得降级为空结果；上游业务错误与传输失败保持不同错误码。
 5. 不允许为了通过测试直接改 `expected`；预期变化必须对应协议版本或明确的领域规则变更。
 
-当前十四类契约：`classroom.filter`、`classroom.parse_response`、`school_time.beijing_day`、`schedule.snapshot_retained_weeks`、`bykc.course_filter`、`auth.cas_login_page`、`auth.uc_status`、`schedule.terms`、`schedule.weeks`、`schedule.undergraduate_courses`、`schedule.exams`、`schedule.today_courses`、`grades.buaa_score`、`grades.term_parts`。详见 [fixtures/README.md](../fixtures/README.md)。
+当前十六类契约：`classroom.filter`、`classroom.parse_response`、`school_time.beijing_day`、`schedule.snapshot_retained_weeks`、`bykc.course_filter`、`auth.cas_login_page`、`auth.uc_status`、`schedule.terms`、`schedule.weeks`、`schedule.undergraduate_courses`、`schedule.exams`、`schedule.today_courses`、`grades.buaa_score`、`grades.term_parts`、`homework.spoc_page`、`homework.spoc_encrypt`。详见 [fixtures/README.md](../fixtures/README.md)。
 
 ## 3. 桥接维护
 
