@@ -1,0 +1,13 @@
+{
+  "contract": "school_time.beijing_day",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "instant": "2026-10-18T16:30:00-07:00"
+  },
+  "expected": {
+    "timeZone": "Asia/Shanghai",
+    "localDate": "2026-10-19",
+    "minutesSinceMidnight": 450
+  }
+}

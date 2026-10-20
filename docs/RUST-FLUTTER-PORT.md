@@ -1,6 +1,6 @@
 # Rust + Flutter 镜像项目开发计划
 
-> 状态（2026-10-20）：跨语言契约已完成第一批准备，Rust/Flutter 工程尚未创建、协议也未移植。下一阶段可在 `0.1.0-alpha.8` 草稿包形成基线后启动。当前范围冻结为 Android + Windows 镜像、Apple 继续使用 SwiftUI；若要替换 iOS/macOS，须另行评估产品与发布边界。
+> 状态（2026-10-20）：已启动 `rust/` workspace 与 `flutter/` Android/Windows 镜像工程，四类共享契约已由 Rust fixture runner 消费，正在完善 Android 离线空教室切片及视觉验收。完整协议、认证与其余页面尚未移植。当前范围为 Android + Windows，Apple 继续使用 SwiftUI；进度与验收见 [MIRROR-IMPLEMENTATION.md](MIRROR-IMPLEMENTATION.md)。
 
 ## 目标边界
 

@@ -1,0 +1,15 @@
+{
+  "contract": "classroom.parse_response",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "e": 0,
+    "m": "",
+    "d": {
+      "list": {}
+    }
+  },
+  "expected": {
+    "roomIDsByBuilding": {}
+  }
+}

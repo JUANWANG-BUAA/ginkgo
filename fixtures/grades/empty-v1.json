@@ -1,0 +1,15 @@
+{
+  "contract": "grades.buaa_score",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "e": 0,
+      "m": "",
+      "d": {}
+    }
+  },
+  "expected": {
+    "courses": []
+  }
+}

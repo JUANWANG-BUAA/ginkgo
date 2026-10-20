@@ -1,0 +1,13 @@
+{
+  "contract": "auth.uc_status",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": "{\"code\":0,\"data\":{\"username\":\"sy2501001\",\"name\":\"fixture\",\"schoolid\":\"sy2501001\"}}"
+  },
+  "expected": {
+    "valid": true,
+    "schoolID": "sy2501001",
+    "name": "fixture"
+  }
+}

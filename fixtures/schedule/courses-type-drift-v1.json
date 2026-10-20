@@ -1,0 +1,23 @@
+{
+  "contract": "schedule.undergraduate_courses",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "code": "0",
+      "datas": {
+        "arrangedList": [
+          {
+            "courseName": "算法设计与分析",
+            "beginSection": 1,
+            "endSection": 2,
+            "dayOfWeek": "3.5"
+          }
+        ]
+      }
+    }
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "contract": "auth.cas_login_page",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "html": "<html><body><form id=\"fm1\" action=\"/login?service=fixture\" method=\"post\"><input type=\"hidden\" name=\"execution\" value=\"eyJhbGciOiJIUzI1NiJ9.a+b/c=\" /><input type=\"text\" name=\"username\" /><input type=\"password\" name=\"password\" /></form></body></html>"
+  },
+  "expected": {
+    "execution": "eyJhbGciOiJIUzI1NiJ9.a+b/c=",
+    "formAction": "/login?service=fixture",
+    "captcha": null
+  }
+}

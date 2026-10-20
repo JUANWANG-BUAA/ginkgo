@@ -7,7 +7,7 @@
 Ginkgo 已经越过“能查询”的阶段：CAS、课表、成绩、作业、图书馆、空教室、签到、待办都有实际实现。当前静态统计有 219 个 XCTest 方法；截至 2026-10-20，macOS 全量 XCTest 与 iOS 27.0 / iPhone 17 Pro 模拟器 XCTest 均通过。新增博雅、研讨室空档和研究生教务三个只读页面后，数据面已从基础教务扩展到课程素养、空间预约与培养过程。当前最大的改进空间不在继续堆功能，而在以下三条主线：
 
 1. **把跨语言行为固定为可执行契约**：`fixtures/` 已有空教室筛选、BYKC 课程过滤、学校时区和课表周次快照合成样例；下一步扩展错误与解析边界，供 Swift 和未来 Rust 共用。
-2. **为 Rust + Flutter 镜像项目分层**：当前准备范围是 Android + Windows，Apple 继续 SwiftUI；Rust 工程尚未创建，先明确领域/应用/平台适配器与粗粒度 bridge 边界。
+2. **为 Rust + Flutter 镜像项目分层**：当前准备范围是 Android + Windows，Apple 继续 SwiftUI；Rust/Flutter 骨架与共享规则已开始落地；当前是 Android 离线空教室切片，继续完善设备验收和 Apple 视觉对齐，详见 MIRROR-IMPLEMENTATION.md。
 3. **并行完成 Apple 产品质量闭环**：iOS 真机、可访问性、隐私生命周期和 CI 仍是 Apple 端自己的验收事项，不应被新平台准备取代。
 
 ## 1. P0：应先解决的工程与质量风险

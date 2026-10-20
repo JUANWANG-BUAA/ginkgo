@@ -1,0 +1,39 @@
+{
+  "contract": "schedule.terms",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "code": "0",
+      "msg": null,
+      "datas": [
+        {
+          "itemCode": "2026-2027-1",
+          "itemName": "2026-2027学年第1学期",
+          "selected": true,
+          "itemIndex": 1
+        },
+        {
+          "itemCode": "2025-2026-2",
+          "itemName": "2025-2026学年第2学期",
+          "selected": false,
+          "itemIndex": 2
+        }
+      ]
+    }
+  },
+  "expected": {
+    "terms": [
+      {
+        "id": "2026-2027-1",
+        "name": "2026-2027学年第1学期",
+        "selected": true
+      },
+      {
+        "id": "2025-2026-2",
+        "name": "2025-2026学年第2学期",
+        "selected": false
+      }
+    ]
+  }
+}

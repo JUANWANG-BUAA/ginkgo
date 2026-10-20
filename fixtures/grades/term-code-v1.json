@@ -1,0 +1,12 @@
+{
+  "contract": "grades.term_parts",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "code": "2025-2026-1"
+  },
+  "expected": {
+    "year": "2025-2026",
+    "semester": "1"
+  }
+}

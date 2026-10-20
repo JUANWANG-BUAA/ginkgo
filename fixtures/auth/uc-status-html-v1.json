@@ -1,0 +1,11 @@
+{
+  "contract": "auth.uc_status",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": "<html><title>统一身份认证</title></html>"
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

@@ -1,0 +1,35 @@
+name: ginkgo_mirror
+description: Ginkgo Android and Windows mirror, powered by a local Rust core.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.13.0 <4.0.0'
+  flutter: '>=3.47.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: 1.0.9
+  flutter_rust_bridge: 2.12.0
+  rust_lib_ginkgo_mirror:
+    path: rust_builder
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  flutter_lints: 6.0.0
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Ginkgo Sans
+      fonts:
+        - asset: assets/fonts/Inter.ttf
+    - family: Ginkgo Han
+      fonts:
+        - asset: assets/fonts/NotoSansSC.ttf

@@ -1,0 +1,14 @@
+{
+  "contract": "schedule.today_courses",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "code": "0",
+      "datas": []
+    }
+  },
+  "expected": {
+    "courses": []
+  }
+}

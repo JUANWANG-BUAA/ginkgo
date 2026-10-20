@@ -1,0 +1,15 @@
+{
+  "contract": "grades.buaa_score",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "e": 1,
+      "m": "service unavailable",
+      "d": null
+    }
+  },
+  "expected": {
+    "error": "service_unavailable"
+  }
+}

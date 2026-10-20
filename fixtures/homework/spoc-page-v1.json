@@ -1,0 +1,60 @@
+{
+  "contract": "homework.spoc_page",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "pageNum": 1,
+      "pages": 1,
+      "hasNextPage": false,
+      "list": [
+        {
+          "zyid": "a",
+          "zymc": "作业一",
+          "tjzt": "1",
+          "zykssj": "2025-09-01T08:00:00",
+          "zyjzsj": "2025-09-20T23:59:59",
+          "sskcid": "c1",
+          "kcmc": "软件工程",
+          "mf": "100"
+        },
+        {
+          "zyid": "b",
+          "zymc": "作业二",
+          "tjzt": "0"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "page": {
+      "pageNum": 1,
+      "pages": 1,
+      "hasNext": false,
+      "items": [
+        {
+          "id": "spoc:a",
+          "courseId": "c1",
+          "courseName": "软件工程",
+          "title": "作业一",
+          "publishedAt": "2025-09-01T08:00:00",
+          "dueAt": "2025-09-20T23:59:59",
+          "status": "submitted",
+          "statusDetail": null,
+          "score": "100"
+        },
+        {
+          "id": "spoc:b",
+          "courseId": null,
+          "courseName": "SPOC 课程",
+          "title": "作业二",
+          "publishedAt": null,
+          "dueAt": null,
+          "status": "pending",
+          "statusDetail": null,
+          "score": null
+        }
+      ]
+    }
+  }
+}

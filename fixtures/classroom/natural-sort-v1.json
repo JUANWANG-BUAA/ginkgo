@@ -1,0 +1,42 @@
+{
+  "contract": "classroom.filter",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "sourceRooms": {
+      "测试楼": [
+        {
+          "id": "two",
+          "floorid": "1",
+          "name": "Room 2",
+          "kxsds": "1，2、2 /3"
+        },
+        {
+          "id": "ten",
+          "floorid": "1",
+          "name": "Room 10",
+          "kxsds": "1,2,3"
+        }
+      ]
+    },
+    "search": "",
+    "section": 0,
+    "minimumFreeSections": 0,
+    "minimumConsecutiveSections": 0,
+    "building": null,
+    "sort": "name"
+  },
+  "expected": {
+    "roomIDsByBuilding": {
+      "测试楼": [
+        "two",
+        "ten"
+      ]
+    },
+    "summary": {
+      "roomCount": 2,
+      "buildingCount": 1,
+      "freeSlotCount": 6
+    }
+  }
+}

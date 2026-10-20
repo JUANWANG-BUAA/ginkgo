@@ -1,0 +1,44 @@
+{
+  "contract": "schedule.weeks",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "code": "0",
+      "datas": [
+        {
+          "startDate": "2026-09-14",
+          "endDate": "2026-09-20",
+          "term": "2026-2027-1",
+          "curWeek": false,
+          "serialNumber": 3,
+          "name": "第3周"
+        },
+        {
+          "startDate": "2026-09-07",
+          "endDate": "2026-09-13",
+          "term": "2026-2027-1",
+          "curWeek": true,
+          "serialNumber": 2,
+          "name": "第2周"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "weeks": [
+      {
+        "number": 2,
+        "startDate": "2026-09-07",
+        "endDate": "2026-09-13",
+        "current": true
+      },
+      {
+        "number": 3,
+        "startDate": "2026-09-14",
+        "endDate": "2026-09-20",
+        "current": false
+      }
+    ]
+  }
+}

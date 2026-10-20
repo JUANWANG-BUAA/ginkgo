@@ -1,0 +1,20 @@
+{
+  "contract": "grades.buaa_score",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "e": 0,
+      "d": {
+        "a": {
+          "kcmc": "算法设计与分析",
+          "xf": "四",
+          "kccj": "92"
+        }
+      }
+    }
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

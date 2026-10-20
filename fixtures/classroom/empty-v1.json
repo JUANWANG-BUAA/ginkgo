@@ -1,0 +1,22 @@
+{
+  "contract": "classroom.filter",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "sourceRooms": {},
+    "search": "",
+    "section": 0,
+    "minimumFreeSections": 3,
+    "minimumConsecutiveSections": 0,
+    "building": null,
+    "sort": "availability"
+  },
+  "expected": {
+    "roomIDsByBuilding": {},
+    "summary": {
+      "roomCount": 0,
+      "buildingCount": 0,
+      "freeSlotCount": 0
+    }
+  }
+}
