@@ -223,6 +223,23 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
                 _ => json!({"bookings": library::parse_bookings(&input.data)?}),
             }
         }
+        "library.public_stats" => {
+            #[derive(Deserialize)]
+            struct StatsInput {
+                html: String,
+                status: u16,
+            }
+            let input: StatsInput = decode(input)?;
+            let response = crate::foundation::http::HttpResponse::new(
+                input.status,
+                crate::adapters::library_stats_http::URL,
+                input.html,
+            );
+            serde_json::to_value(crate::adapters::library_stats_http::parse_response(
+                &response,
+            )?)
+            .map_err(|_| AppError::changed())?
+        }
         "library.history" => {
             #[derive(Deserialize)]
             struct HistoryInput {

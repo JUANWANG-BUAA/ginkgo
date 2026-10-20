@@ -54,6 +54,7 @@ abstract interface class MirrorService {
     String date, {
     bool forceRefresh = false,
   });
+  Future<live.ReadOnlyResponse> libraryStats({bool forceRefresh = false});
   Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false});
   Future<LibraryAreasResponse> libraryAreas(String libraryId);
   Future<LibrarySlotsResponse> librarySlots(String areaId);
@@ -136,6 +137,9 @@ final class NativeMirrorService implements MirrorService {
     String date, {
     bool forceRefresh = false,
   }) => live.loadCheckinOnDate(date: date, forceRefresh: forceRefresh);
+  @override
+  Future<live.ReadOnlyResponse> libraryStats({bool forceRefresh = false}) =>
+      live.loadLibraryStats(forceRefresh: forceRefresh);
   @override
   Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false}) =>
       live.loadLibraryVenues(forceRefresh: forceRefresh);
@@ -246,6 +250,9 @@ final class DemoMirrorService implements MirrorService {
   }
 
   Future<LibraryDemoResponse> _demoLibrary() => rust.loadDemoLibrary();
+  @override
+  Future<live.ReadOnlyResponse> libraryStats({bool forceRefresh = false}) =>
+      live.loadDemoLibraryStats();
   @override
   Future<LibraryVenuesResponse> libraryVenues({
     bool forceRefresh = false,

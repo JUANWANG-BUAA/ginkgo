@@ -9,7 +9,7 @@ use crate::{
     },
     features::checkin::CheckInStatus,
     features::classroom::Sort,
-    foundation::http::{HttpMethod, HttpResponse, TransportError},
+    foundation::http::{HttpMethod, HttpRequest, HttpResponse, TransportError},
     test_support::MockTransport,
     ErrorCode,
 };
@@ -1581,4 +1581,52 @@ async fn library_history_pages_are_isolated_and_expiry_recovers_once() {
         history[0].header_value("Authorization"),
         Some("bearerfixture-library-token")
     );
+}
+
+#[tokio::test]
+async fn library_public_stats_are_cookie_isolated_cached_and_preserved_on_failure() {
+    let endpoint = crate::adapters::library_stats_http::URL;
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(
+        HttpResponse::new(200, "https://lib.buaa.edu.cn/", "seed")
+            .with_set_cookie("synthetic_private=must-not-leak; Path=/; Secure"),
+    );
+    responses.push(
+        HttpResponse::new(
+            200,
+            endpoint,
+            fixture("library", "stats-normal-v1.json")["input"]["html"]
+                .as_str()
+                .expect("html"),
+        )
+        .with_set_cookie("public_ephemeral=fixture; Path=/; Secure"),
+    );
+    responses.push(HttpResponse::new(503, endpoint, "unavailable"));
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "fixture-password", None, true)
+        .await
+        .expect("login");
+    service
+        .session
+        .send(HttpRequest::get("https://lib.buaa.edu.cn/"))
+        .await
+        .expect("seed cookie");
+    let first = service.load_library_stats(false).await.expect("public");
+    assert_eq!(first.campuses.len(), 2);
+    assert_eq!(first.campuses[0].people, 120);
+    assert!(
+        service
+            .load_library_stats(false)
+            .await
+            .expect("cache")
+            .from_cache
+    );
+    let old = service.load_library_stats(true).await.expect("old");
+    assert!(old.failure.is_some());
+    assert_eq!(old.campuses, first.campuses);
+    let requests = transport.requests();
+    let stats: Vec<_> = requests.iter().filter(|r| r.url == endpoint).collect();
+    assert_eq!(stats.len(), 2);
+    assert!(stats.iter().all(|r| r.header_value("Cookie").is_none()));
 }

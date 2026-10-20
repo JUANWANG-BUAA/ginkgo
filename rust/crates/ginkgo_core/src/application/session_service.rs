@@ -94,6 +94,7 @@ pub struct SessionService<T: HttpTransport, V: CredentialVault> {
     pub(crate) checkin: Mutex<CheckInCache>,
     /// iclass app session. Memory only; cleared on account, route and logout.
     pub(crate) iclass: Mutex<Option<IClassSession>>,
+    pub(crate) library_stats: Mutex<super::library_stats_service::LibraryStatsCache>,
     pub(crate) library_venues: Mutex<LibraryVenueCache>,
     pub(crate) library_bookings: Mutex<LibraryBookingCache>,
     pub(crate) library_history: Mutex<SnapshotCache<i32, LibraryHistoryPage>>,
@@ -124,6 +125,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             grades: Mutex::new(GradeCache::default()),
             checkin: Mutex::new(CheckInCache::default()),
             iclass: Mutex::new(None),
+            library_stats: Mutex::new(super::library_stats_service::LibraryStatsCache::default()),
             library_venues: Mutex::new(LibraryVenueCache::default()),
             library_bookings: Mutex::new(LibraryBookingCache::default()),
             library_history: Mutex::new(SnapshotCache::default()),
@@ -362,6 +364,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         self.grades.lock().expect("grade cache").clear();
         self.checkin.lock().expect("checkin cache").clear();
         self.library_venues.lock().expect("library venues").clear();
+        self.library_stats.lock().expect("library stats").clear();
         self.library_history
             .lock()
             .expect("library history")

@@ -1,3 +1,4 @@
+import 'package:ginkgo_mirror/src/rust/api/live.dart' show ReadOnlyResponse;
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show LibraryHistoryResponse;
 
@@ -359,6 +360,9 @@ class ControlledService implements MirrorService {
   );
   final historyPages = <int>[];
   final historyRequests = <Completer<LibraryHistoryResponse>>[];
+  @override
+  Future<ReadOnlyResponse> libraryStats({bool forceRefresh = false}) async =>
+      const ReadOnlyResponse(stale: false);
   @override
   Future<LibraryHistoryResponse> libraryHistory(
     int page, {

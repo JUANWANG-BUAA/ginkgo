@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
 import 'library_history_page.dart';
+import 'library_stats_page.dart';
 import 'src/rust/api/mirror.dart';
 
 /// booking.lib read-only hierarchy: current booking, venue, area, segment and
@@ -104,6 +105,18 @@ class _LibraryPageState extends State<LibraryPage> {
         CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
         SliverList.list(
           children: [
+            AppleSection(
+              children: [
+                AppleListTile(
+                  key: const Key('library-public-stats'),
+                  title: const Text('在馆人数与空间余量'),
+                  subtitle: const Text('两校区官网公开信息，无需预约登录'),
+                  leading: const Icon(CupertinoIcons.person_2),
+                  trailing: const CupertinoListTileChevron(),
+                  onTap: () => _push(LibraryStatsPage(service: widget.service)),
+                ),
+              ],
+            ),
             if (notice != null)
               AppleSection(
                 children: [

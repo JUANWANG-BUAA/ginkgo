@@ -1,3 +1,4 @@
+import 'package:ginkgo_mirror/src/rust/api/live.dart' show ReadOnlyResponse;
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show LibraryHistoryResponse;
 
@@ -116,6 +117,9 @@ class FailOnceNativeService implements MirrorService {
     status: '已提交',
     stale: false,
   );
+  @override
+  Future<ReadOnlyResponse> libraryStats({bool forceRefresh = false}) =>
+      native.libraryStats(forceRefresh: forceRefresh);
   @override
   Future<LibraryHistoryResponse> libraryHistory(
     int page, {

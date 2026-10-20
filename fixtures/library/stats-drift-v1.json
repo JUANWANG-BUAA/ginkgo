@@ -1,0 +1,12 @@
+{
+  "contract": "library.public_stats",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "html": "<img src=\"/engine2/assets/images/more/custom/t_xylxq.png\"><ul><li>图书馆 120 人</li><li>预约座位 空闲 80 座 / 总计 200 座</li><li>研讨间 空闲 2 间 / 总计 8 间</li><li>寄存柜 空闲 4 个 / 总计 10 个</li></ul><img src=\"/engine2/assets/images/more/custom/t_shxq.png\"><ul><li>未知 60 人</li><li>特色阅览室B1 3 人</li><li>寄存柜 空闲 0 个 / 总计 6 个</li></ul>",
+    "status": 200
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

@@ -93,3 +93,5 @@ mod notices_service;
 pub use notices_service::NoticesOutcome;
 mod cgyy_service;
 pub use cgyy_service::CgyyOutcome;
+
+mod library_stats_service;

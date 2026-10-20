@@ -197,6 +197,15 @@ Future<ReadOnlyResponse> loadCgyy({
 Future<ReadOnlyResponse> loadDemoCgyy({required String kind}) =>
     RustLib.instance.api.crateApiLiveLoadDemoCgyy(kind: kind);
 
+/// Public counts only. No school identity or library token is serialized.
+Future<ReadOnlyResponse> loadLibraryStats({required bool forceRefresh}) =>
+    RustLib.instance.api.crateApiLiveLoadLibraryStats(
+      forceRefresh: forceRefresh,
+    );
+
+Future<ReadOnlyResponse> loadDemoLibraryStats() =>
+    RustLib.instance.api.crateApiLiveLoadDemoLibraryStats();
+
 class GradeTermsResponse {
   final List<ScheduleTerm> terms;
   final FailureCode? failure;

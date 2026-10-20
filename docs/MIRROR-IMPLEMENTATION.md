@@ -322,3 +322,13 @@
 - 六份history合成契约（正常/空/漂移/分页依据缺失/矛盾/业务拒绝），一个应用链路覆盖分页隔离/401恢复/失败保留，一个widget覆盖翻页失败及重试；未增加无界长流程。历史真实响应⚠️待用户本机登录，不冒充旧当前预约验收。
 
 图书馆历史验证：136项Rust lib + 1项契约、Clippy、Flutter analyze、29项widget通过；独立library Android合成smoke 1项通过（约98秒，含历史→返回→馆区时段座位）；NDK27 aarch64 bridge cargo check通过。页面未截取真实记录，待本机登录再只读复验。
+
+
+## 2026-10-20：图书馆公共统计
+
+- 依照 API §5.5、`LibraryPublicStats.swift` 与解析测试贯通领域→独立 Cookie 会话 HTTP adapter→五分钟快照→FRB→MirrorService→Cupertino 页面；不依赖预约认证。图书馆首组入口始终显示，认证失败也能进入。
+- 两校区在馆人数优先、特色阅览室人数及座位/研讨间/寄存柜空闲与总量次级；缺指标明确“官网未提供”，零值仍展示。更新时间标北京时间；刷新失败保留原数据与原时间；下拉和按钮共享请求，防止重复触发。
+- 37类/118份合成契约；完整门禁137项Rust lib + 1项契约、Clippy、Flutter analyze、30项widget通过。新增页面回归覆盖预约认证失败仍可达、刷新失败保留、缺值和零值、返回。
+- macOS host 使用 Rust 正式 Session/reqwest 无账号公开 GET，成功解析两校区；仅输出状态与条数，临时探针删除。此结果不替代 Android 真实网络和账号验收。60天历史/趋势没有迁移；所有上游写操作保持关闭。
+
+Android `library_stats_test.dart` 独立合成FFI smoke 1项通过（42秒，包含浅色/深色/1.8倍字号及减少动态效果），NDK27 aarch64 bridge交叉检查通过。没有重跑mirror_test.dart，接口测试桩仅补齐新增方法。

@@ -9,7 +9,7 @@
 | 课表 | Schedule/ScheduleView.swift、TimetableGrid.swift、TimetableLayout.swift、CoursePalette.swift | 周网格默认；每日清单/学期/有数据时考试；学期切换、日期、今天列、节次/时间/地点/教师详情；稳定多色、冲突分栏、搜索；研究生条目时间方案已修正 | 课程提醒未迁移；真实时间仅核验字段完整，未逐门与教务人工比对；窄屏网格横滑，大字号改清单 |
 | 作业 | Homework/HomeworkView.swift:58,214,284,319,419；SpocHomeworkClient.swift | SPOC 真实列表/详情；全部/待完成/已提交、截止与待确认快捷筛选；本地标题/课程搜索；说明、发布/截止/提交时间和分值；原站点入口；180ms 状态切换 | 教师字段尚未从课程上下文贯通 DTO；希冀关闭；提交、下载附件与题目作答未迁移；来源只有 SPOC，不造多来源筛选 |
 | 课程签到 | CheckIn/CheckInSummaryView.swift:140,280；CheckInClient.swift | 当天课程、已签/未签/待确认计数、时间、地点、合并冲突和核对时间；网关认证已真实恢复 | 历史日期查询已迁移（⚠️实网待验收）；30秒自动轮询、提醒通知未迁移；提交签到按本轮范围关闭 |
-| 图书馆 | Library/LibraryView.swift:182,317,431；LibraryPublicStats.swift、LibraryOccupancyHistory.swift | 真实馆→区→时段→座位及当前预约；CAS并发锁、网关恢复；本地座位搜索/只看空闲；状态同时用图标与文字 | 历史预约分页已迁移（⚠️实网待验收）；公共在馆人数、研讨间/寄存柜统计、60天本地历史趋势未迁移；预约/入座签到/暂离/离馆/取消关闭 |
+| 图书馆 | Library/LibraryView.swift:182,317,431；LibraryPublicStats.swift、LibraryOccupancyHistory.swift | 真实馆→区→时段→座位及当前预约；CAS并发锁、网关恢复；本地座位搜索/只看空闲；状态同时用图标与文字；独立公共人数/阅览室/资源余量页，预约认证失败仍可达 | 历史预约分页已迁移（⚠️实网待验收）；公共统计host实网两校区解析通过；60天本地历史趋势未迁移；预约/入座签到/暂离/离馆/取消关闭 |
 | 博雅 | BYKC/BykcView.swift:5,27,202,257 | 当前学期目录、搜索和类别筛选；真实响应通过 | 已选记录、完成统计、课程详情尚未迁移；选退课关闭 |
 | 研究生教务 | Graduate/GraduateAcademicView.swift:6–9,417,452；GraduateProgress.swift | 学籍白名单、zxbg 原结构报告和课程学习；真实响应通过 | macOS 学分地图、分类/完成状态筛选、课程原文和成绩考试组合视图未完整对齐；不能宣称已覆盖研究生全部信息 |
 | 成绩 | Grade/GradeView.swift、GradeClient.swift | 学期、课程原始成绩、加权均分/GPA | 当前轮没有重新逐项人工对照；Windows 未验收 |

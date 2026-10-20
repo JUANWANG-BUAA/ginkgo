@@ -13,3 +13,5 @@ pub mod tasks;
 
 pub mod cgyy;
 pub mod notices;
+
+pub mod library_stats;

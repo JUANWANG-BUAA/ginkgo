@@ -1325,3 +1325,53 @@ pub fn load_demo_cgyy(kind: String) -> ReadOnlyResponse {
         },
     }
 }
+
+/// Public counts only. No school identity or library token is serialized.
+pub async fn load_library_stats(force_refresh: bool) -> ReadOnlyResponse {
+    let result = match service() {
+        Ok(service) => service.load_library_stats(force_refresh).await,
+        Err(error) => Err(error),
+    };
+    match result {
+        Ok(outcome) => ReadOnlyResponse {
+            payload: serde_json::to_string(&serde_json::json!({"campuses":outcome.campuses,
+                "fetchedAt":outcome.fetched_at,"fromCache":outcome.from_cache}))
+            .ok(),
+            stale: outcome.failure.is_some(),
+            failure: outcome.failure.map(|e| e.code.into()),
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}
+pub fn load_demo_library_stats() -> ReadOnlyResponse {
+    let result = (|| -> Result<_, AppError> {
+        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../../../fixtures/library/stats-normal-v1.json"
+        ))
+        .map_err(|_| AppError::changed())?;
+        ginkgo_core::features::library_stats::parse(
+            fixture["input"]["html"]
+                .as_str()
+                .ok_or_else(AppError::changed)?,
+        )
+    })();
+    match result {
+        Ok(campuses) => ReadOnlyResponse {
+            payload: Some(
+                serde_json::json!({"campuses":campuses,"fetchedAt":null,"fromCache":false})
+                    .to_string(),
+            ),
+            stale: false,
+            failure: None,
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}

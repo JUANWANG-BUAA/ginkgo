@@ -1,0 +1,12 @@
+{
+  "contract": "library.public_stats",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "html": "",
+    "status": 200
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

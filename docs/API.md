@@ -73,6 +73,7 @@
 | 51 | 培养方案执行报告语义 | 将 `XQLHKCXF` 标为论文环节，并以 `yxxf` 回退认定学分 | 更正为校企课程要求，补 `yhxqlhkcxf`；方案认定学分仅取 `yhpyfaxf`。要求与已获缺失时不推算缺口；严格验证执行报告成功码与层级结构 | [取证记录](protocol-evidence/GRADUATE-EXECUTION.md) E1–E6；`GraduateRequirementsTests`、`GraduateAcademicClientTests` |
 | 52 | 图书馆与研讨室产品范围 | 历史取证中的图书馆 seminar 被当成产品预约能力 | 按维护者确认，图书馆仅提供座位预约（维护者已验证可行）；研讨室仅指教学楼 CGYY。图书馆 seminar 提交方法直接拒绝，保留历史解析材料不代表可用功能 | 2026-10-19 本轮维护者明确说明；`LibraryClient.submitSeminarBooking` |
 | 53 | CGYY 路由与写入结果 | CGYY 跟随全局 WebVPN 路由；公开场馆可读但 SSO/业务会话失败 | CGYY 的 SSO Cookie 和全部业务请求固定直连，忽略全局 WebVPN 选择（与 UBAA 当前实现一致）；401 后仅 GET 可重新登录并重查，预约/取消写入不重发，未知结果进入待核实。当前轮未发送预约/取消请求 | [UBAA `LocalCgyyApi.kt`](https://github.com/BUAASubnet/UBAA/blob/main/shared/src/commonMain/kotlin/cn/edu/ubaa/api/local/LocalCgyyApi.kt)、[UBAA CGYY 文档](https://github.com/BUAASubnet/UBAA/blob/main/docs/features/cgyy.md)；本项目 `CgyyClient.swift` |
+| 54 | §5.5 Rust/Flutter公共统计 | 镜像未迁移 | 独立Cookie会话读取两校区人数/阅览室及资源余量，五分钟进程缓存，缺指标null，失败保留；不包含Apple端60天历史趋势 | `LibraryPublicStats.swift`、`LibraryPublicStatsParserTests.swift`、Rust四份合成契约与应用测试；2026-10-20 host正式Session/reqwest公开GET解析2校区 |
 
 ## 0. 文档约定
 
@@ -595,6 +596,8 @@ GET https://lib.buaa.edu.cn/engine2/buaa/more/1082575?websiteId=113745&pageId=20
 官网主页面通过空间数据组件（应用 ID `1082607`）展示该入口。详情页按 `t_xylxq`、`t_shxq` 分隔学院路与沙河数据，列表中 `图书馆 N 人` 是当前在馆人数；沙河还列出特色阅览室 B1/B2 人数。`预约座位`、`研讨间`、`寄存柜` 的“空闲/总计”字段表示资源余量，不是实时人数或占用率。页面没有公开逐层、逐楼的完整人数分布。
 
 客户端通过不共享校园 Cookie 的 ephemeral `URLSession` 发起 GET，只保存解析后的数字，不保存网页正文。图书馆页面打开时读取并每 30 分钟更新；本机以“校区 + 日期 + 小时”为键保留最近 60 天、最多 4,000 条人数样本，同一小时的重复刷新会替换旧值。趋势按小时汇总；时段估算取最近 60 天内同星期、同小时的样本均值，至少有 3 个历史日才显示。它是本机历史均值，不是官网预测，也不能推断官网没有提供的楼层人数。
+
+Rust/Flutter镜像采用借用共享transport的独立Session，复制路线但隔离Cookie jar；五分钟进程快照、用户刷新失败保留旧结果。2026-10-20 host公开GET解析两校区通过，只记录状态/条数；镜像未迁移上述60天本地历史与趋势。
 
 ### 5.6 当前预约与座位状态操作（前端静态取证，写入未验收）⚠️
 

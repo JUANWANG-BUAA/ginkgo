@@ -84,3 +84,5 @@
 - **设备渲染**：headless + SwiftShader 的 Android 模拟器会让 integration_test 的 `pump` 长时间不返回；设备验收使用带窗口的硬件 GPU 模拟器（本机 `-gpu host`）。这属于测试环境问题，不应通过放宽业务断言绕过。
 
 2026-10-20本轮扩展到35类108份：新增SPOC详情、BYKC信封/目录、研究生执行报告、待办文档、校园通知、CGYY场馆/时段/订单；均已登记contracts router，保留正常/空/漂移/拒绝或无效文档覆盖。设备每模块只运行独立smoke，不重跑已知mirror长流程。
+
+公共统计新增独立短生命周期Session，只借用transport并复制路线，不复制登录Cookie；37类/118份合成契约。页面仅解码桥接JSON投影，不在build解析HTML；没有自动轮询或趋势持久化。
