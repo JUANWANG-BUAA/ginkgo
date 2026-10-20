@@ -147,6 +147,7 @@ abstract class RustLibApi extends BaseApi {
   Future<RuleExamples> crateApiMirrorLoadRuleExamples();
 
   Future<ScheduleResponse> crateApiLiveLoadSchedule({
+    String? termId,
     int? week,
     required bool forceRefresh,
   });
@@ -794,6 +795,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<ScheduleResponse> crateApiLiveLoadSchedule({
+    String? termId,
     int? week,
     required bool forceRefresh,
   }) {
@@ -801,6 +803,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       NormalTask(
         callFfi: (port_) {
           final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_opt_String(termId, serializer);
           sse_encode_opt_box_autoadd_i_32(week, serializer);
           sse_encode_bool(forceRefresh, serializer);
           pdeCallFfi(
@@ -815,7 +818,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadScheduleConstMeta,
-        argValues: [week, forceRefresh],
+        argValues: [termId, week, forceRefresh],
         apiImpl: this,
       ),
     );
@@ -823,7 +826,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   TaskConstMeta get kCrateApiLiveLoadScheduleConstMeta => const TaskConstMeta(
     debugName: "load_schedule",
-    argNames: ["week", "forceRefresh"],
+    argNames: ["termId", "week", "forceRefresh"],
   );
 
   @override

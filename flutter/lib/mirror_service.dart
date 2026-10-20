@@ -41,7 +41,11 @@ abstract interface class MirrorService {
   Future<QueryDates> dates(String instant);
   Future<ClassroomResponse> classrooms(DemoScope scope, ClassroomQuery query);
   Future<RuleExamples> rules();
-  Future<ScheduleResponse> schedule({bool forceRefresh = false});
+  Future<ScheduleResponse> schedule({
+    String? termId,
+    int? week,
+    bool forceRefresh = false,
+  });
   Future<GradeTermsResponse> gradeTerms();
   Future<GradeResponse> grades({String? termCode, bool forceRefresh = false});
   Future<TodayResponse> today({bool forceRefresh = false});
@@ -98,8 +102,12 @@ final class NativeMirrorService implements MirrorService {
   @override
   Future<RuleExamples> rules() => rust.loadRuleExamples();
   @override
-  Future<ScheduleResponse> schedule({bool forceRefresh = false}) =>
-      live.loadSchedule(forceRefresh: forceRefresh);
+  Future<ScheduleResponse> schedule({
+    String? termId,
+    int? week,
+    bool forceRefresh = false,
+  }) =>
+      live.loadSchedule(termId: termId, week: week, forceRefresh: forceRefresh);
   @override
   Future<GradeTermsResponse> gradeTerms() => live.loadGradeTerms();
   @override
@@ -171,8 +179,11 @@ final class DemoMirrorService implements MirrorService {
   @override
   Future<RuleExamples> rules() => rust.loadRuleExamples();
   @override
-  Future<ScheduleResponse> schedule({bool forceRefresh = false}) =>
-      rust.loadDemoSchedule();
+  Future<ScheduleResponse> schedule({
+    String? termId,
+    int? week,
+    bool forceRefresh = false,
+  }) => rust.loadDemoSchedule();
   @override
   Future<GradeTermsResponse> gradeTerms() async {
     final schedule = await rust.loadDemoSchedule();
@@ -190,7 +201,9 @@ final class DemoMirrorService implements MirrorService {
       rust.loadDemoCheckin();
   Future<LibraryDemoResponse> _demoLibrary() => rust.loadDemoLibrary();
   @override
-  Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false}) async {
+  Future<LibraryVenuesResponse> libraryVenues({
+    bool forceRefresh = false,
+  }) async {
     final library = await _demoLibrary();
     return LibraryVenuesResponse(
       venues: library.venues,

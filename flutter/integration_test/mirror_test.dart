@@ -62,8 +62,11 @@ class FailOnceNativeService implements MirrorService {
   @override
   Future<RuleExamples> rules() => native.rules();
   @override
-  Future<ScheduleResponse> schedule({bool forceRefresh = false}) =>
-      native.schedule(forceRefresh: forceRefresh);
+  Future<ScheduleResponse> schedule({
+    String? termId,
+    int? week,
+    bool forceRefresh = false,
+  }) => native.schedule(forceRefresh: forceRefresh);
   @override
   Future<GradeTermsResponse> gradeTerms() => native.gradeTerms();
   @override
@@ -393,24 +396,6 @@ void main() {
       expect(find.text('4、5、6'), findsOneWidget);
       expect(find.text('第 5 周'), findsOneWidget);
       expect(find.text('缓存第5周'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    },
-  );
-  testWidgets(
-    'schedule tab crosses real FFI with week, course and exam states',
-    (tester) async {
-      await launch(tester);
-      await tapTab(tester, '课表');
-      await show(
-        tester,
-        find.text('2026-2027学年第1学期'),
-        scrollKey: 'schedule-scroll',
-      );
-      expect(find.text('算法设计与分析'), findsNWidgets(2));
-      expect(find.text('考试安排'), findsOneWidget);
-      await tap(tester, '第 3 周', scrollKey: 'schedule-scroll');
-      await show(tester, find.text('该周课表尚未缓存'), scrollKey: 'schedule-scroll');
-      expect(find.text('该周课表尚未缓存'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

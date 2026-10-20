@@ -43,7 +43,7 @@ impl From<RoutePreference> for RouteMode {
 }
 
 pub(crate) type ClassroomCache = SnapshotCache<(i32, String), BTreeMap<String, Vec<Room>>>;
-pub(crate) type ScheduleCache = SnapshotCache<Option<i32>, ScheduleData>;
+pub(crate) type ScheduleCache = SnapshotCache<(Option<String>, Option<i32>), ScheduleData>;
 pub(crate) type TodayCache = SnapshotCache<String, Vec<TodayCourse>>;
 pub(crate) type GradeCache = SnapshotCache<String, GradeData>;
 pub(crate) type CheckInCache = SnapshotCache<String, Vec<CheckInCourse>>;

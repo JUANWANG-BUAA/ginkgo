@@ -33,6 +33,7 @@ pub struct ScheduleData {
 }
 
 pub struct ScheduleQueryInput {
+    pub term_id: Option<String>,
     pub week: Option<i32>,
     pub force_refresh: bool,
 }
@@ -79,7 +80,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         if input.week.is_some_and(|week| !(1..=30).contains(&week)) {
             return Err(AppError::invalid());
         }
-        let key = input.week;
+        let key = (input.term_id.clone(), input.week);
         if !input.force_refresh {
             let cached = self.schedules.lock().expect("schedule cache");
             if let Some(entry) = cached.fresh(&key) {
@@ -93,10 +94,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             }
         }
 
-        let fetched = match self.fetch_schedule(input.week).await {
+        let fetched = match self
+            .fetch_schedule(input.term_id.as_deref(), input.week)
+            .await
+        {
             Err(error) if error.code == ErrorCode::SessionExpired => {
                 self.silent_login().await?;
-                self.fetch_schedule(input.week).await
+                self.fetch_schedule(input.term_id.as_deref(), input.week)
+                    .await
             }
             other => other,
         };
@@ -133,21 +138,29 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         }
     }
 
-    async fn fetch_schedule(&self, week: Option<i32>) -> Result<ScheduleData, AppError> {
+    async fn fetch_schedule(
+        &self,
+        term_id: Option<&str>,
+        week: Option<i32>,
+    ) -> Result<ScheduleData, AppError> {
         match schedule_http::detect_portal(&self.session).await? {
-            Portal::Undergraduate => self.fetch_undergraduate_schedule(week).await,
-            Portal::Graduate | Portal::Unconfirmed => self.fetch_graduate_schedule(week).await,
+            Portal::Undergraduate => self.fetch_undergraduate_schedule(term_id, week).await,
+            Portal::Graduate | Portal::Unconfirmed => {
+                self.fetch_graduate_schedule(term_id, week).await
+            }
         }
     }
 
     async fn fetch_undergraduate_schedule(
         &self,
+        term_id: Option<&str>,
         week: Option<i32>,
     ) -> Result<ScheduleData, AppError> {
         let terms = schedule_http::load_terms(&self.session).await?;
         let Some(term) = terms
             .iter()
-            .find(|term| term.selected)
+            .find(|term| Some(term.id.as_str()) == term_id)
+            .or_else(|| terms.iter().find(|term| term.selected))
             .or_else(|| terms.first())
             .cloned()
         else {
@@ -192,7 +205,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         })
     }
 
-    async fn fetch_graduate_schedule(&self, week: Option<i32>) -> Result<ScheduleData, AppError> {
+    async fn fetch_graduate_schedule(
+        &self,
+        term_id: Option<&str>,
+        week: Option<i32>,
+    ) -> Result<ScheduleData, AppError> {
         let terms = graduate_schedule_http::load_terms(&self.session)
             .await
             .map_err(|error| {
@@ -204,7 +221,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             })?;
         let Some(term) = terms
             .iter()
-            .find(|term| term.selected)
+            .find(|term| Some(term.id.as_str()) == term_id)
+            .or_else(|| terms.iter().find(|term| term.selected))
             .or_else(|| terms.first())
             .cloned()
         else {
@@ -259,6 +277,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     ) -> Result<TodayOutcome, AppError> {
         let schedule = self
             .load_schedule(&ScheduleQueryInput {
+                term_id: None,
                 week: None,
                 force_refresh,
             })

@@ -43,9 +43,11 @@ Future<ClassroomResponse> loadClassrooms({
     RustLib.instance.api.crateApiLiveLoadClassrooms(scope: scope, query: query);
 
 Future<ScheduleResponse> loadSchedule({
+  String? termId,
   int? week,
   required bool forceRefresh,
 }) => RustLib.instance.api.crateApiLiveLoadSchedule(
+  termId: termId,
   week: week,
   forceRefresh: forceRefresh,
 );

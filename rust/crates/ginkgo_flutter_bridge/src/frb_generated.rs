@@ -782,6 +782,7 @@ fn wire__crate__api__live__load_schedule_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_term_id = <Option<String>>::sse_decode(&mut deserializer);
             let api_week = <Option<i32>>::sse_decode(&mut deserializer);
             let api_force_refresh = <bool>::sse_decode(&mut deserializer);
             deserializer.end();
@@ -789,7 +790,12 @@ fn wire__crate__api__live__load_schedule_impl(
                 transform_result_sse::<_, ()>(
                     (move || async move {
                         let output_ok = Result::<_, ()>::Ok(
-                            crate::api::live::load_schedule(api_week, api_force_refresh).await,
+                            crate::api::live::load_schedule(
+                                api_term_id,
+                                api_week,
+                                api_force_refresh,
+                            )
+                            .await,
                         )?;
                         Ok(output_ok)
                     })()

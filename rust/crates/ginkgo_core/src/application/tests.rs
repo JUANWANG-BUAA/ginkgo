@@ -345,6 +345,7 @@ async fn schedule_fetches_terms_weeks_courses_and_exams_then_reuses_the_snapshot
 
     let first = service
         .load_schedule(&ScheduleQueryInput {
+            term_id: None,
             week: None,
             force_refresh: false,
         })
@@ -358,6 +359,7 @@ async fn schedule_fetches_terms_weeks_courses_and_exams_then_reuses_the_snapshot
 
     let second = service
         .load_schedule(&ScheduleQueryInput {
+            term_id: None,
             week: None,
             force_refresh: false,
         })
@@ -365,6 +367,73 @@ async fn schedule_fetches_terms_weeks_courses_and_exams_then_reuses_the_snapshot
         .expect("cached schedule");
     assert!(second.from_cache);
     assert_eq!(transport.request_count(), 10);
+}
+
+#[tokio::test]
+async fn schedule_requested_term_controls_courses_and_cache_key() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    for name in ["selected term", "requested term"] {
+        let mut courses: serde_json::Value =
+            serde_json::from_str(&schedule_body("courses-normal-v1.json")).expect("fixture");
+        // Use distinct valid course payloads to catch reuse across terms.
+        if name == "requested term" {
+            courses["datas"]["arrangedList"] = serde_json::json!([]);
+        }
+        responses.extend([
+            HttpResponse::new(200, "portal", r#"{"code":"0"}"#),
+            HttpResponse::new(200, "terms", schedule_body("terms-normal-v1.json")),
+            HttpResponse::new(200, "weeks", schedule_body("weeks-normal-v1.json")),
+            HttpResponse::new(200, "courses", courses.to_string()),
+            HttpResponse::new(200, "exams", schedule_body("exams-normal-v1.json")),
+        ]);
+    }
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("login");
+    let current = ScheduleQueryInput {
+        term_id: None,
+        week: None,
+        force_refresh: false,
+    };
+    let initial = service.load_schedule(&current).await.expect("current");
+    assert_eq!(initial.data.courses.len(), 2);
+    let requested = ScheduleQueryInput {
+        term_id: Some("2025-2026-2".into()),
+        week: None,
+        force_refresh: false,
+    };
+    let result = service.load_schedule(&requested).await.expect("requested");
+    assert_eq!(result.data.term_id, "2025-2026-2");
+    assert!(result.data.courses.is_empty());
+    let requests = transport.requests();
+    let course_request = requests
+        .iter()
+        .rev()
+        .find(|request| request.url.contains("getMyScheduleDetail"))
+        .expect("course request");
+    assert_eq!(
+        course_request.body.as_deref(),
+        Some("termCode=2025-2026-2&type=week&week=2")
+    );
+    assert_eq!(
+        service
+            .load_schedule(&current)
+            .await
+            .expect("cached current")
+            .data
+            .courses
+            .len(),
+        2
+    );
+    assert!(
+        service
+            .load_schedule(&requested)
+            .await
+            .expect("cached requested")
+            .from_cache
+    );
 }
 
 #[tokio::test]
@@ -389,6 +458,7 @@ async fn schedule_refresh_failure_keeps_the_previous_week() {
         .expect("signed in");
     service
         .load_schedule(&ScheduleQueryInput {
+            term_id: None,
             week: None,
             force_refresh: false,
         })
@@ -396,6 +466,7 @@ async fn schedule_refresh_failure_keeps_the_previous_week() {
         .expect("first");
     let stale = service
         .load_schedule(&ScheduleQueryInput {
+            term_id: None,
             week: None,
             force_refresh: true,
         })
@@ -656,6 +727,7 @@ async fn graduate_schedule_uses_gsmis_and_today_is_derived_from_the_snapshot() {
 
     let schedule = service
         .load_schedule(&ScheduleQueryInput {
+            term_id: None,
             week: None,
             force_refresh: false,
         })

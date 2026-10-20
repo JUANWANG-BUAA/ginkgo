@@ -19,7 +19,15 @@ class _SchedulePageState extends State<SchedulePage> {
   String? notice;
   bool busy = false;
   int selectedWeek = 0;
+  String? selectedTerm;
   int viewMode = 0;
+  int requestId = 0;
+  String search = '';
+  List<ScheduleCourse> sorted = [];
+  List<ScheduleCourse> filtered = [];
+  Map<int, List<ScheduleCourse>> days = {};
+  Map<int, ScheduleWeek> weeks = {};
+  Map<String, ScheduleTerm> terms = {};
 
   @override
   void initState() {
@@ -27,36 +35,99 @@ class _SchedulePageState extends State<SchedulePage> {
     load();
   }
 
-  Future<void> load({bool force = false}) async {
+  void filter() {
+    final query = search.trim().toLowerCase();
+    filtered = sorted
+        .where(
+          (course) =>
+              query.isEmpty ||
+              [
+                course.name,
+                course.teacher ?? '',
+                course.place ?? '',
+              ].any((value) => value.toLowerCase().contains(query)),
+        )
+        .toList();
+    days = {};
+    for (final course in filtered) {
+      days.putIfAbsent(course.day, () => []).add(course);
+    }
+  }
+
+  Future<void> load({bool force = false, String? termId, int? week}) async {
+    final id = ++requestId;
+    final requestedTerm = termId ?? selectedTerm;
+    final requestedWeek = termId != null
+        ? week
+        : (week ?? (selectedWeek == 0 ? null : selectedWeek));
     setState(() {
       busy = true;
       error = null;
       notice = null;
+      selectedTerm = requestedTerm;
+      if (requestedWeek != null) selectedWeek = requestedWeek;
     });
     try {
-      final result = await widget.service.schedule(forceRefresh: force);
-      if (!mounted) return;
+      final result = await widget.service.schedule(
+        termId: requestedTerm,
+        week: requestedWeek,
+        forceRefresh: force,
+      );
+      if (!mounted || id != requestId) return;
       setState(() {
         busy = false;
-        if (result.failure != null &&
-            result.courses.isEmpty &&
-            result.exams.isEmpty) {
-          error = failureMessage(result.failure);
+        // A cached empty week is still valid. A failure without metadata is
+        // an unsuccessful request and must never replace the visible snapshot.
+        if (result.failure != null && result.termId.isEmpty) {
+          failed(failureMessage(result.failure));
+          return;
+        }
+        // The demo intentionally exposes one known week through real FFI.
+        if (requestedWeek != null &&
+            result.weekNumber != requestedWeek &&
+            result.termId == (data?.termId ?? result.termId)) {
+          failed('第 $requestedWeek 周尚未缓存');
           return;
         }
         data = result;
+        selectedTerm = result.termId;
         selectedWeek = result.weekNumber;
+        terms = {for (final term in result.terms) term.id: term};
+        weeks = {for (final item in result.weeks) item.number: item};
+        sorted = [...result.courses]
+          ..sort((a, b) {
+            final day = a.day.compareTo(b.day);
+            if (day != 0) return day;
+            final section = a.startSection.compareTo(b.startSection);
+            return section == 0 ? a.name.compareTo(b.name) : section;
+          });
+        filter();
+        if (result.exams.isEmpty && viewMode == 2) viewMode = 0;
         notice = result.failure == null
             ? null
             : '${failureMessage(result.failure)}，正在显示上次结果。';
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || id != requestId) return;
       setState(() {
         busy = false;
-        error = failureMessage(null);
+        failed(failureMessage(null));
       });
     }
+  }
+
+  void failed(String message) {
+    if (data == null) {
+      error = message;
+    } else {
+      notice =
+          '$message，正在显示${terms[data!.termId]?.name ?? '上次学期'}第 ${data!.weekNumber} 周课表。';
+    }
+  }
+
+  void selectWeek(int week) {
+    setState(() => viewMode = 0);
+    load(week: week);
   }
 
   @override
@@ -81,20 +152,34 @@ class _SchedulePageState extends State<SchedulePage> {
         CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
         SliverList.list(
           children: [
+            if (data != null) ..._content(data!),
             if (notice != null)
               AppleSection(
                 children: [
-                  AppleListTile(
-                    leading: const Icon(
-                      CupertinoIcons.exclamationmark_triangle,
-                      color: CupertinoColors.systemOrange,
-                      size: 20,
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          notice!,
+                          style: TextStyle(
+                            color: CupertinoColors.systemOrange.resolveFrom(
+                              context,
+                            ),
+                          ),
+                        ),
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: busy ? null : () => load(force: true),
+                          child: const Text('重试'),
+                        ),
+                      ],
                     ),
-                    title: Text(notice!),
                   ),
                 ],
               ),
-            if (error != null)
+            if (data == null && error != null)
               AppleSection(
                 children: [
                   AppleEmptyState(
@@ -106,13 +191,13 @@ class _SchedulePageState extends State<SchedulePage> {
                   ),
                 ],
               )
-            else if (busy || data == null)
-              AppleSection(
+            else if (data == null)
+              const AppleSection(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(20),
                     child: Row(
-                      children: const [
+                      children: [
                         CupertinoActivityIndicator(),
                         SizedBox(width: 10),
                         Text('正在读取课表…'),
@@ -120,205 +205,424 @@ class _SchedulePageState extends State<SchedulePage> {
                     ),
                   ),
                 ],
-              )
-            else
-              ..._content(data!),
+              ),
+            const SizedBox(height: 32),
           ],
         ),
       ],
     ),
   );
 
-  List<Widget> _content(ScheduleResponse data) {
-    final selectedTerm = data.terms.where((term) => term.id == data.termId);
-    final termName = selectedTerm.isEmpty ? '' : selectedTerm.first.name;
-    final week = data.weeks.where((week) => week.number == selectedWeek);
-    final weekLabel = week.isEmpty
-        ? '第 $selectedWeek 周'
-        : '第 ${week.first.number} 周 · ${shortDate(week.first.startDate)}–${shortDate(week.first.endDate)}';
-    final courses = data.weekNumber == selectedWeek
-        ? data.courses
-        : const <ScheduleCourse>[];
-    return [
-      AppleSection(
-        header: Text(termName.isEmpty ? '当前学期' : termName),
-        footer: const Text('课表按学校当前学期与教学周读取；切换未缓存的周次需要联网刷新。'),
-        children: [
-          AppleListTile(title: Text(weekLabel)),
-          _weekStrip(data),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-            child: CupertinoSlidingSegmentedControl<int>(
-              groupValue: viewMode,
-              onValueChanged: (value) => setState(() => viewMode = value ?? 0),
-              children: const {
-                0: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 6),
-                  child: Text('周视图'),
+  List<Widget> _content(ScheduleResponse snapshot) => [
+    AppleSection(
+      header: const Text('课表范围'),
+      footer: snapshot.fetchedAt == null
+          ? (widget.service.isDemo ? const Text('离线合成样例') : null)
+          : Text('更新于 ${snapshot.fetchedAt!.replaceFirst('T', ' ')}'),
+      children: [
+        Builder(
+          builder: (anchor) => _row(
+            key: const Key('schedule-term-picker'),
+            onTap: () async {
+              final id = await choose<String>(
+                anchor,
+                '学期',
+                terms.keys.toList(),
+                (id) => terms[id]?.name ?? id,
+                selected: selectedTerm,
+              );
+              if (mounted && id != null && id != selectedTerm) load(termId: id);
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('学期', style: secondary(context)),
+                const SizedBox(height: 4),
+                Text(
+                  terms[selectedTerm]?.name ?? snapshot.termId,
+                  style: TextStyle(
+                    color: CupertinoTheme.of(context).primaryColor,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                1: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 6),
-                  child: Text('列表'),
-                ),
-              },
+              ],
             ),
           ),
-        ],
-      ),
-      if (data.weekNumber != selectedWeek)
-        AppleSection(
-          children: [
-            AppleEmptyState(
-              title: '该周课表尚未缓存',
-              description: '已保留当前周课表。切换到本机已知周次不会清空结果。',
-              action: '回到第 ${data.weekNumber} 周',
-              onAction: () => setState(() => selectedWeek = data.weekNumber),
-            ),
-          ],
-        )
-      else if (courses.isEmpty)
-        AppleSection(
-          children: const [
-            AppleEmptyState(title: '本周暂无课程', description: '当前学期课表为空，或该周尚未发布。'),
-          ],
-        )
-      else if (viewMode == 0)
-        AppleSection(
-          header: const Text('本周'),
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: ScheduleGrid(
-                courses: courses,
-                onCourseTap: (course) => _showCourse(context, course),
-              ),
-            ),
-          ],
-        )
-      else
-        for (var day = 1; day <= 7; day++)
-          if (courses.where((course) => course.day == day).toList()
-              case final dayCourses when dayCourses.isNotEmpty)
-            AppleSection(
-              header: Text(weekdayNames[day - 1]),
+        ),
+        if (snapshot.weeks.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+            child: Row(
               children: [
-                for (final course in dayCourses)
-                  AppleListTile(
-                    key: Key('schedule-course-${course.id}'),
-                    minimumHeight: 62,
-                    leading: Container(
-                      width: 4,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: courseColor(context, course.color),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
+                Expanded(
+                  child: Text(
+                    '第 $selectedWeek 周',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                if (snapshot.weeks.any((item) => item.current))
+                  CupertinoButton(
+                    key: const Key('schedule-current-week'),
+                    onPressed: () => selectWeek(
+                      snapshot.weeks.firstWhere((item) => item.current).number,
                     ),
-                    title: Text(course.name),
-                    subtitle: Text(
-                      courseDetail(course),
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: CupertinoColors.secondaryLabel.resolveFrom(
-                          context,
-                        ),
-                      ),
-                    ),
-                    additionalInfo: course.place == null
-                        ? null
-                        : Text(
-                            course.place!,
-                            style: const TextStyle(fontSize: 14),
-                          ),
+                    child: const Text('本周'),
                   ),
               ],
             ),
-      if (data.exams.isNotEmpty)
-        AppleSection(
-          header: const Text('考试安排'),
-          children: [
-            for (final exam in data.exams)
-              AppleListTile(
-                title: Text(exam.courseName),
-                subtitle: Text(_examDetail(exam)),
-                additionalInfo: exam.examSeatNo == null
-                    ? null
-                    : Text('座位 ${exam.examSeatNo}'),
-              ),
-          ],
-        ),
-      AppleSection(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              widget.service.isDemo
-                  ? '离线合成样例，不连接学校账号；周次与课程用于演示迁移后的页面与状态。'
-                  : '真实账号只读数据；刷新失败时保留上次课表。',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                color: CupertinoColors.secondaryLabel,
-              ),
+          ),
+          _weekStrip(snapshot),
+        ],
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: SizedBox(
+            width: double.infinity,
+            child: CupertinoSlidingSegmentedControl<int>(
+              groupValue: viewMode,
+              onValueChanged: (value) => setState(() => viewMode = value ?? 0),
+              children: {
+                0: const Text('课程'),
+                1: const Text('学期'),
+                if (snapshot.exams.isNotEmpty) 2: const Text('考试'),
+              },
             ),
           ),
+        ),
+      ],
+    ),
+    if (viewMode == 0) ...[
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+        child: CupertinoSearchTextField(
+          key: const Key('schedule-search'),
+          placeholder: '搜索课程、教师或地点',
+          onChanged: (value) => setState(() {
+            search = value;
+            filter();
+          }),
+        ),
+      ),
+      if (filtered.isEmpty)
+        AppleSection(
+          children: [
+            AppleEmptyState(
+              title: search.trim().isNotEmpty
+                  ? '没有匹配的课程'
+                  : snapshot.weeks.isEmpty
+                  ? '该学期暂无课表'
+                  : '本周没有课程',
+              description: search.trim().isNotEmpty
+                  ? '请尝试其他关键词。'
+                  : '可以切换其他学期或周次查看。',
+            ),
+          ],
+        )
+      else if (MediaQuery.sizeOf(context).width >= 760 &&
+          MediaQuery.textScalerOf(context).scale(1) <= 1.4)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+          child: ScheduleGrid(
+            courses: filtered,
+            weekStart: weeks[snapshot.weekNumber]?.startDate,
+            onCourseTap: showCourse,
+          ),
+        )
+      else
+        for (final day in days.entries)
+          AppleSection(
+            header: Text(dayTitle(day.key, snapshot.weekNumber)),
+            children: [for (final course in day.value) _courseRow(course)],
+          ),
+    ] else if (viewMode == 1)
+      AppleSection(
+        header: const Text('学期周次'),
+        children: [
+          if (snapshot.weeks.isEmpty)
+            const AppleEmptyState(
+              title: '暂无学期周次',
+              description: '学校尚未发布该学期的排课与周次数据。',
+            ),
+          for (final week in snapshot.weeks)
+            _row(
+              key: Key('schedule-semester-week-${week.number}'),
+              onTap: () => selectWeek(week.number),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '第 ${week.number} 周${week.current ? ' · 本周' : ''}',
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    '${shortDate(week.startDate)}–${shortDate(week.endDate)}',
+                    style: secondary(context),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      )
+    else
+      AppleSection(
+        header: const Text('考试安排'),
+        children: [
+          if (snapshot.exams.isEmpty)
+            const AppleEmptyState(
+              title: '本学期暂无考试安排',
+              description: '请留意学校后续通知。',
+            ),
+          for (final exam in snapshot.exams)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      exam.courseName,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(_examDetail(exam), style: secondary(context)),
+                    if (exam.examSeatNo != null)
+                      Text('座位 ${exam.examSeatNo}', style: secondary(context)),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
-    ];
-  }
+  ];
 
-  Widget _weekStrip(ScheduleResponse data) => SizedBox(
-    height: 56,
+  Widget _weekStrip(ScheduleResponse snapshot) => SizedBox(
+    height:
+        32 +
+        MediaQuery.textScalerOf(context).scale(15) * 1.8 +
+        MediaQuery.textScalerOf(context).scale(11) * 1.8,
     child: ListView.separated(
       key: const Key('schedule-weeks'),
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-      itemCount: data.weeks.length,
+      itemCount: snapshot.weeks.length,
       separatorBuilder: (_, _) => const SizedBox(width: 8),
       itemBuilder: (context, index) {
-        final week = data.weeks[index];
-        final selected = week.number == selectedWeek;
+        final week = snapshot.weeks[index];
+        final active = week.number == selectedWeek;
+        final color = CupertinoTheme.of(context).primaryColor;
         return CupertinoButton(
           key: Key('schedule-week-${week.number}'),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          color: selected
-              ? CupertinoTheme.of(context).primaryColor.withValues(alpha: 0.14)
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          color: active
+              ? color.withValues(alpha: 0.14)
               : CupertinoColors.tertiarySystemFill.resolveFrom(context),
-          onPressed: () => setState(() => selectedWeek = week.number),
-          child: Text(
-            '第 ${week.number} 周',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-              color: selected
-                  ? CupertinoTheme.of(context).primaryColor
-                  : CupertinoColors.label.resolveFrom(context),
-            ),
+          onPressed: () => selectWeek(week.number),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '第 ${week.number} 周',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+                  color: active
+                      ? color
+                      : CupertinoColors.label.resolveFrom(context),
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                '${shortDate(week.startDate)}–${shortDate(week.endDate)}',
+                style: secondary(context).copyWith(fontSize: 11),
+              ),
+            ],
           ),
         );
       },
     ),
   );
 
-  void _showCourse(BuildContext context, ScheduleCourse course) {
-    showCupertinoModalPopup<void>(
-      context: context,
-      builder: (sheetContext) => CupertinoActionSheet(
-        title: Text(course.name),
-        message: Text(
-          '${weekdayNames[course.day - 1]} · ${courseDetail(course)}'
-          '${course.place == null ? '' : '\n${course.place}'}',
+  String dayTitle(int day, int week) {
+    final start = DateTime.tryParse(weeks[week]?.startDate ?? '');
+    final date = start?.add(Duration(days: day - 1));
+    final now = DateTime.now().toUtc().add(const Duration(hours: 8));
+    final today =
+        date != null &&
+        date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day;
+    return '${weekdayNames[day - 1]}${date == null ? '' : ' · ${shortDate(date.toIso8601String())}'}${today ? ' · 今天' : ''}';
+  }
+
+  Widget _courseRow(ScheduleCourse course) {
+    final large = MediaQuery.textScalerOf(context).scale(16) > 22;
+    final time = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          course.startTime ?? '时间待定',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
-        actions: [
-          CupertinoActionSheetAction(
-            onPressed: () => Navigator.pop(sheetContext),
-            child: const Text('关闭'),
+        const SizedBox(height: 5),
+        Text(
+          '第${course.startSection}–${course.endSection}节',
+          style: secondary(context).copyWith(fontSize: 12),
+        ),
+      ],
+    );
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(course.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+        if (course.place?.isNotEmpty == true)
+          Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: Text(course.place!, style: secondary(context)),
           ),
-        ],
+        if (course.teacher?.isNotEmpty == true)
+          Padding(
+            padding: const EdgeInsets.only(top: 3),
+            child: Text(course.teacher!, style: secondary(context)),
+          ),
+      ],
+    );
+    return _row(
+      key: Key('schedule-course-${course.id}'),
+      onTap: () => showCourse(course),
+      child: large
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [time, const SizedBox(height: 12), content],
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(width: 72, child: time),
+                Container(
+                  width: 4,
+                  height: 52,
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: courseColor(context, course.color),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Expanded(child: content),
+              ],
+            ),
+    );
+  }
+
+  Widget _row({required Widget child, required VoidCallback onTap, Key? key}) =>
+      CupertinoButton(
+        key: key,
+        padding: const EdgeInsets.all(16),
+        onPressed: onTap,
+        child: Row(
+          children: [
+            Expanded(
+              child: DefaultTextStyle(
+                style: DefaultTextStyle.of(context).style.copyWith(
+                  color: CupertinoColors.label.resolveFrom(context),
+                ),
+                child: child,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              CupertinoIcons.chevron_forward,
+              size: 14,
+              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+            ),
+          ],
+        ),
+      );
+
+  void showCourse(ScheduleCourse course) {
+    final snapshot = data!;
+    final week = weeks[snapshot.weekNumber];
+    Navigator.of(context).push(
+      CupertinoPageRoute<void>(
+        builder: (context) => CupertinoPageScaffold(
+          backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
+            context,
+          ),
+          navigationBar: const CupertinoNavigationBar(
+            middle: Text('课程详情'),
+            previousPageTitle: '课表',
+          ),
+          child: SafeArea(
+            child: ListView(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
+                  child: Text(
+                    course.name,
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                AppleSection(
+                  children: [
+                    _detail('星期', weekdayNames[course.day - 1]),
+                    _detail(
+                      '节次',
+                      '第 ${course.startSection}–${course.endSection} 节',
+                    ),
+                    _detail('开始时间', course.startTime ?? '待定'),
+                    _detail('结束时间', course.endTime ?? '待定'),
+                    _detail('地点', course.place ?? '待定'),
+                    _detail('教师', course.teacher ?? '待定'),
+                  ],
+                ),
+                AppleSection(
+                  header: const Text('课表范围'),
+                  children: [
+                    _detail(
+                      '学期',
+                      terms[snapshot.termId]?.name ?? snapshot.termId,
+                    ),
+                    _detail('周次', '第 ${snapshot.weekNumber} 周'),
+                    if (week != null)
+                      _detail(
+                        '日期范围',
+                        '${shortDate(week.startDate)}–${shortDate(week.endDate)}',
+                      ),
+                    _detail('上课日期', dayTitle(course.day, snapshot.weekNumber)),
+                  ],
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
+
+  Widget _detail(String label, String value) => Padding(
+    padding: const EdgeInsets.all(16),
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: secondary(context)),
+          const SizedBox(height: 5),
+          Text(value),
+        ],
+      ),
+    ),
+  );
 }
+
+TextStyle secondary(BuildContext context) => TextStyle(
+  fontSize: 14,
+  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+);
 
 String _examDetail(ScheduleExam exam) {
   final parts = [

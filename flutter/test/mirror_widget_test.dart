@@ -35,6 +35,7 @@ final examples = RuleExamples(
 final scheduleFixture = ScheduleResponse(
   terms: const [
     ScheduleTerm(id: '2026-2027-1', name: '2026-2027学年第1学期', selected: true),
+    ScheduleTerm(id: '2025-2026-2', name: '2025-2026学年第2学期', selected: false),
   ],
   weeks: const [
     ScheduleWeek(
@@ -191,7 +192,12 @@ const libraryAreasFixture = LibraryAreasResponse(
 
 const librarySlotsFixture = LibrarySlotsResponse(
   slots: [
-    LibrarySlot(id: '2026-10-20/t1', day: '2026-10-20', start: '08:00', end: '10:00'),
+    LibrarySlot(
+      id: '2026-10-20/t1',
+      day: '2026-10-20',
+      start: '08:00',
+      end: '10:00',
+    ),
   ],
 );
 
@@ -223,6 +229,7 @@ final homeworkFixture = HomeworkResponse(
 );
 
 class ControlledService implements MirrorService {
+  String? requestedScheduleTerm;
   final requests = <Completer<ClassroomResponse>>[];
   final checkinRequests = <Completer<CheckInResponse>>[];
   LibraryVenuesResponse libraryVenuesResult = libraryVenuesFixture;
@@ -265,8 +272,21 @@ class ControlledService implements MirrorService {
   Future<RuleExamples> rules() async => examples;
 
   @override
-  Future<ScheduleResponse> schedule({bool forceRefresh = false}) async =>
-      scheduleFixture;
+  Future<ScheduleResponse> schedule({
+    String? termId,
+    int? week,
+    bool forceRefresh = false,
+  }) async {
+    requestedScheduleTerm = termId;
+    return ScheduleResponse(
+      terms: scheduleFixture.terms,
+      weeks: scheduleFixture.weeks,
+      termId: termId ?? scheduleFixture.termId,
+      weekNumber: scheduleFixture.weekNumber,
+      courses: scheduleFixture.courses,
+      exams: scheduleFixture.exams,
+    );
+  }
 
   @override
   Future<GradeTermsResponse> gradeTerms() async => const GradeTermsResponse(
@@ -293,8 +313,9 @@ class ControlledService implements MirrorService {
   }
 
   @override
-  Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false}) async =>
-      libraryVenuesResult;
+  Future<LibraryVenuesResponse> libraryVenues({
+    bool forceRefresh = false,
+  }) async => libraryVenuesResult;
   @override
   Future<LibraryAreasResponse> libraryAreas(String libraryId) async =>
       libraryAreasResult;
@@ -334,10 +355,7 @@ Future<void> start(WidgetTester tester, ControlledService service) async {
   await tester.pump();
 }
 
-Future<void> openCheckin(
-  WidgetTester tester,
-  ControlledService service,
-) async {
+Future<void> openCheckin(WidgetTester tester, ControlledService service) async {
   tester.view.physicalSize = const Size(430, 1200);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
@@ -465,44 +483,64 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('schedule tab shows current week, courses and exams', (
-    tester,
-  ) async {
-    final service = ControlledService();
-    // Tall viewport keeps the whole timetable and exam section mounted so the
-    // test can assert on grid blocks without extra scrolling.
-    tester.view.physicalSize = const Size(430, 1800);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(GinkgoApp(service: service));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('课表'));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'schedule term switching, detail and unavailable week preserve courses',
+    (tester) async {
+      final service = ControlledService();
+      tester.view.physicalSize = const Size(430, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(GinkgoApp(service: service));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('课表'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('schedule-course-u-0-1-1')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('schedule-course-u-0-1-1')));
+      await tester.pumpAndSettle();
+      expect(find.text('课程详情'), findsOneWidget);
+      expect(find.text('08:00'), findsOneWidget);
+      await tester.tap(find.byType(CupertinoNavigationBarBackButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('2026-2027学年第1学期'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('2025-2026学年第2学期'));
+      await tester.pumpAndSettle();
+      expect(service.requestedScheduleTerm, '2025-2026-2');
+      expect(find.text('2025-2026学年第2学期'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('schedule-week-3')));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('第 3 周尚未缓存'), findsOneWidget);
+      expect(find.byKey(const Key('schedule-course-u-0-1-1')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
-    expect(find.text('2026-2027学年第1学期'), findsOneWidget);
-    expect(
-      find.byKey(const Key('schedule-grid-course-u-0-1-1')),
-      findsOneWidget,
-    );
-    expect(find.text('考试安排'), findsOneWidget);
-    expect(find.text('座位 12'), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('schedule-grid-course-u-0-1-1')));
-    await tester.pumpAndSettle();
-    expect(find.text('关闭'), findsOneWidget);
-    await tester.tap(find.text('关闭'));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('列表'));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('schedule-course-u-0-1-1')), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('schedule-week-3')));
-    await tester.pumpAndSettle();
-    expect(find.text('该周课表尚未缓存'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+  testWidgets(
+    'schedule search matches teacher/place and has a clear empty state',
+    (tester) async {
+      tester.view.physicalSize = const Size(430, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(GinkgoApp(service: ControlledService()));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('课表'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('schedule-search')), '张三');
+      await tester.pumpAndSettle();
+      expect(find.text('算法设计与分析'), findsOneWidget);
+      await tester.enterText(find.byKey(const Key('schedule-search')), '不存在');
+      await tester.pumpAndSettle();
+      expect(find.text('没有匹配的课程'), findsOneWidget);
+      expect(find.text('算法设计与分析'), findsNothing);
+      await tester.enterText(find.byKey(const Key('schedule-search')), '');
+      tester.platformDispatcher.textScaleFactorTestValue = 1.8;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('today tab shows date and today courses', (tester) async {
     tester.view.physicalSize = const Size(430, 1200);
@@ -560,7 +598,6 @@ void main() {
     expect(find.text('作业一'), findsNothing);
     expect(tester.takeException(), isNull);
   });
-
 
   testWidgets('library tab shows current bookings and venues', (tester) async {
     final service = ControlledService();

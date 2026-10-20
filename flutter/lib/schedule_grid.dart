@@ -6,18 +6,20 @@ import 'schedule_style.dart';
 import 'src/rust/api/mirror.dart';
 
 /// Seven-day timetable grid. Course blocks span their section range and open
-/// a native detail sheet on tap.
+/// a course detail page on tap.
 class ScheduleGrid extends StatelessWidget {
   const ScheduleGrid({
     super.key,
     required this.courses,
     required this.onCourseTap,
+    this.weekStart,
   });
   final List<ScheduleCourse> courses;
+  final String? weekStart;
   final ValueChanged<ScheduleCourse> onCourseTap;
 
   static const double axisWidth = 30;
-  static const double headerHeight = 28;
+  static const double headerHeight = 48;
   static const int sectionCount = 14;
   static const double cellHeight = 52;
 
@@ -35,8 +37,24 @@ class ScheduleGrid extends StatelessWidget {
         child: Stack(
           children: [
             Positioned.fill(
-              child: CustomPaint(painter: _GridPainter(columnWidth)),
+              child: CustomPaint(
+                painter: _GridPainter(
+                  columnWidth,
+                  CupertinoColors.separator.resolveFrom(context),
+                ),
+              ),
             ),
+            if (_todayColumn() case final int day)
+              Positioned(
+                left: axisWidth + (day - 1) * columnWidth,
+                top: 0,
+                width: columnWidth,
+                height: headerHeight + sectionCount * cellHeight,
+                child: ColoredBox(
+                  color: CupertinoTheme.of(context).primaryColor
+                      .withValues(alpha: 0.06),
+                ),
+              ),
             for (var day = 1; day <= 7; day++)
               Positioned(
                 left: axisWidth + (day - 1) * columnWidth,
@@ -45,7 +63,8 @@ class ScheduleGrid extends StatelessWidget {
                 height: headerHeight,
                 child: Center(
                   child: Text(
-                    weekdayNames[day - 1],
+                    '${weekdayNames[day - 1]}${weekStart == null ? '' : '\n${shortDate(DateTime.parse(weekStart!).add(Duration(days: day - 1)).toIso8601String())}'}',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -103,6 +122,14 @@ class ScheduleGrid extends StatelessWidget {
             );
     },
   );
+  int? _todayColumn() {
+    final start = DateTime.tryParse(weekStart ?? '');
+    if (start == null) return null;
+    final now = DateTime.now().toUtc().add(const Duration(hours: 8));
+    final date = DateTime(start.year, start.month, start.day);
+    final diff = DateTime(now.year, now.month, now.day).difference(date).inDays;
+    return diff >= 0 && diff < 7 ? diff + 1 : null;
+  }
 }
 
 class _CourseBlock extends StatelessWidget {
@@ -162,13 +189,14 @@ class _CourseBlock extends StatelessWidget {
 }
 
 class _GridPainter extends CustomPainter {
-  const _GridPainter(this.columnWidth);
+  const _GridPainter(this.columnWidth, this.lineColor);
+  final Color lineColor;
   final double columnWidth;
 
   @override
   void paint(Canvas canvas, Size size) {
     final line = Paint()
-      ..color = const Color(0x14000000)
+      ..color = lineColor.withValues(alpha: 0.3)
       ..strokeWidth = 0.5;
     final header = ScheduleGrid.headerHeight;
     for (var row = 0; row <= ScheduleGrid.sectionCount; row++) {
@@ -183,5 +211,6 @@ class _GridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_GridPainter oldDelegate) =>
-      oldDelegate.columnWidth != columnWidth;
+      oldDelegate.columnWidth != columnWidth ||
+      oldDelegate.lineColor != lineColor;
 }

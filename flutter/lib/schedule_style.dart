@@ -25,6 +25,9 @@ String courseDetail(ScheduleCourse course) {
   return time.isEmpty ? '$sections$teacher' : '$time · $sections$teacher';
 }
 
-String shortDate(String date) => date.length >= 10
-    ? '${int.parse(date.substring(5, 7))}/${int.parse(date.substring(8, 10))}'
-    : date;
+String shortDate(String date) {
+  final parsed = DateTime.tryParse(date);
+  return parsed == null
+      ? date
+      : '${parsed.month.toString().padLeft(2, '0')}/${parsed.day.toString().padLeft(2, '0')}';
+}

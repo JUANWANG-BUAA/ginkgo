@@ -209,3 +209,11 @@
 - 设备测试只证明真实 FFI 与页面渲染；不能替代真实学校查询。
 
 维护边界、fixture 治理、桥接演进与各层证据要求见 [MIRROR-MAINTENANCE.md](MIRROR-MAINTENANCE.md)。
+
+## 2026-10-20：课表优先重构
+
+- 学期参数贯穿 Rust 用例、FRB 与 Dart；BYXT/GSMIS 命中指定学期，否则回退学校选中/首个学期，返回最终学期。缓存按 `(term_id, week)` 隔离，今天仍请求默认学期与周次。
+- 手机使用按星期与日期分组的课程列表，时间/节次、色条、课名、地点和教师分层；推入课程详情。学期菜单、带日期的周条、本周快捷入口、课程/学期/考试分段与本地搜索已接入。学期列表不编造课程数；考试仅在已有数据时出现。
+- 刷新与未缓存周失败保留旧课表并提示实际显示范围；请求序号保护快速切换。排序/过滤在数据或关键词变化时计算。宽屏保留七列网格并显示日期、今天列，放大文字改用列表。
+- 验证：21 项 Rust 课表相关测试、122 项 workspace lib + 1 项契约、Clippy、Flutter analyze、25 项 widget 测试通过；Android `schedule_test.dart` 1 项真实 FFI + 合成 fixture smoke 通过。未运行已知不收敛的 `mirror_test.dart`；其重复课表用例已移除，保留独立 smoke。FRB stem 为 `ginkgo_flutter_bridge`。
+- 模拟器合成课表已查看浅色、深色、1.8 倍字号截图（仅 `/tmp/ginkgo-schedule-*.png`，不入库）。保持 34pt 标题、16pt 页边与26pt分组圆角；字体/系统材质仍为 Flutter 近似，未宣称像素一致。真实账号学期切换仍待本机登录，Windows 未验收。

@@ -102,15 +102,18 @@ class FakeService implements MirrorService {
     courseNames: [],
   );
   @override
-  Future<ScheduleResponse> schedule({bool forceRefresh = false}) async =>
-      const ScheduleResponse(
-        terms: [],
-        weeks: [],
-        termId: '',
-        weekNumber: 0,
-        courses: [],
-        exams: [],
-      );
+  Future<ScheduleResponse> schedule({
+    String? termId,
+    int? week,
+    bool forceRefresh = false,
+  }) async => const ScheduleResponse(
+    terms: [],
+    weeks: [],
+    termId: '',
+    weekNumber: 0,
+    courses: [],
+    exams: [],
+  );
   @override
   Future<GradeTermsResponse> gradeTerms() async =>
       const GradeTermsResponse(terms: []);
@@ -135,7 +138,9 @@ class FakeService implements MirrorService {
         stale: false,
       );
   @override
-  Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false}) async =>
+  Future<LibraryVenuesResponse> libraryVenues({
+    bool forceRefresh = false,
+  }) async =>
       const LibraryVenuesResponse(venues: [], fromCache: false, stale: false);
   @override
   Future<LibraryAreasResponse> libraryAreas(String libraryId) async =>

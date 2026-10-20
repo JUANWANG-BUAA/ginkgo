@@ -332,12 +332,17 @@ pub async fn load_classrooms(scope: LiveScope, query: ClassroomQuery) -> Classro
     }
 }
 
-pub async fn load_schedule(week: Option<i32>, force_refresh: bool) -> ScheduleResponse {
+pub async fn load_schedule(
+    term_id: Option<String>,
+    week: Option<i32>,
+    force_refresh: bool,
+) -> ScheduleResponse {
     let Ok(service) = service() else {
         return schedule_failure(FailureCode::CredentialStore, None);
     };
     match service
         .load_schedule(&ScheduleQueryInput {
+            term_id,
             week,
             force_refresh,
         })
