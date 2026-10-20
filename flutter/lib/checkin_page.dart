@@ -9,8 +9,9 @@ const _weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '
 /// iclass read-only status. This page never submits a sign-in: writes need
 /// per-course confirmation, a post-submit re-query and an unknown-result rule.
 class CheckInPage extends StatefulWidget {
-  const CheckInPage({super.key, required this.service});
+  const CheckInPage({super.key, required this.service, this.history = false});
   final MirrorService service;
+  final bool history;
   @override
   State<CheckInPage> createState() => _CheckInPageState();
 }
@@ -20,24 +21,85 @@ class _CheckInPageState extends State<CheckInPage> {
   String? error;
   String? notice;
   bool busy = false;
+  int requestSerial = 0;
+  late DateTime selectedDate;
+  DateTime get schoolToday {
+    final now = DateTime.now().toUtc().add(const Duration(hours: 8));
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  String dateString(DateTime day) =>
+      '${day.year.toString().padLeft(4, '0')}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+  Future<void> changeDate(DateTime day) async {
+    if (day.isAfter(schoolToday)) return;
+    setState(() => selectedDate = day);
+    await load();
+  }
+
+  Future<void> pickDate() async {
+    var picked = selectedDate;
+    final confirmed = await showCupertinoModalPopup<bool>(
+      context: context,
+      builder: (context) => Container(
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CupertinoButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('取消'),
+                  ),
+                  CupertinoButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('确定'),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 216,
+                child: CupertinoDatePicker(
+                  mode: CupertinoDatePickerMode.date,
+                  initialDateTime: selectedDate,
+                  maximumDate: schoolToday,
+                  onDateTimeChanged: (date) => picked = date,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (confirmed == true && mounted) await changeDate(picked);
+  }
 
   @override
   void initState() {
     super.initState();
+    selectedDate = schoolToday.subtract(const Duration(days: 1));
     load();
   }
 
   Future<void> load({bool force = false}) async {
+    final serial = ++requestSerial;
+    final requested = dateString(selectedDate);
     setState(() {
       busy = true;
       error = null;
+      notice = null;
     });
     try {
-      final result = await widget.service.checkin(forceRefresh: force);
-      if (!mounted) return;
+      final result = widget.history
+          ? await widget.service.checkinOnDate(requested, forceRefresh: force)
+          : await widget.service.checkin(forceRefresh: force);
+      if (!mounted || serial != requestSerial) return;
       setState(() {
         busy = false;
-        if (result.failure != null && result.courses.isEmpty) {
+        if (result.failure != null && !result.stale) {
           error = failureMessage(result.failure);
           notice = null;
           return;
@@ -49,7 +111,7 @@ class _CheckInPageState extends State<CheckInPage> {
             : '${failureMessage(result.failure)}，正在显示上次结果。';
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || serial != requestSerial) return;
       setState(() {
         busy = false;
         if (data == null) {
@@ -70,7 +132,7 @@ class _CheckInPageState extends State<CheckInPage> {
       key: const Key('checkin-scroll'),
       slivers: [
         CupertinoSliverNavigationBar(
-          largeTitle: const Text('课程签到'),
+          largeTitle: Text(widget.history ? '签到历史' : '课程签到'),
           border: null,
           trailing: AppleGlassButton(
             label: '刷新签到状态',
@@ -83,6 +145,60 @@ class _CheckInPageState extends State<CheckInPage> {
         CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
         SliverList.list(
           children: [
+            if (widget.history)
+              AppleSection(
+                footer: const Text('按日期查询；未签到和无课程均不自动判定为缺勤。'),
+                children: [
+                  Column(
+                    children: [
+                      AppleListTile(
+                        key: const Key('checkin-date-picker'),
+                        title: Text(dateString(selectedDate)),
+                        trailing: const Icon(CupertinoIcons.calendar),
+                        onTap: pickDate,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          CupertinoButton(
+                            key: const Key('checkin-previous-day'),
+                            onPressed: () => changeDate(
+                              selectedDate.subtract(const Duration(days: 1)),
+                            ),
+                            child: const Text('前一天'),
+                          ),
+                          CupertinoButton(
+                            key: const Key('checkin-next-day'),
+                            onPressed: selectedDate.isBefore(schoolToday)
+                                ? () => changeDate(
+                                    selectedDate.add(const Duration(days: 1)),
+                                  )
+                                : null,
+                            child: const Text('后一天'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              )
+            else
+              AppleSection(
+                children: [
+                  AppleListTile(
+                    key: const Key('checkin-history'),
+                    title: const Text('历史日期查询'),
+                    leading: const Icon(CupertinoIcons.calendar),
+                    trailing: const CupertinoListTileChevron(),
+                    onTap: () => Navigator.of(context).push(
+                      CupertinoPageRoute<void>(
+                        builder: (_) =>
+                            CheckInPage(service: widget.service, history: true),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             if (notice != null)
               AppleSection(
                 children: [
@@ -107,8 +223,8 @@ class _CheckInPageState extends State<CheckInPage> {
                     onAction: () => load(force: true),
                   ),
                 ],
-              )
-            else if (data == null)
+              ),
+            if (data == null && error == null)
               AppleSection(
                 children: const [
                   Padding(
@@ -117,14 +233,30 @@ class _CheckInPageState extends State<CheckInPage> {
                       children: [
                         CupertinoActivityIndicator(),
                         SizedBox(width: 10),
-                        Text('正在读取 iclass 当天课程…'),
+                        Text('正在读取 iclass 课程…'),
                       ],
                     ),
                   ),
                 ],
-              )
-            else
+              ),
+            if (data != null) ...[
+              if (widget.history && data!.date != dateString(selectedDate))
+                AppleSection(
+                  children: [
+                    AppleListTile(
+                      title: Text('正在保留 ${data!.date} 的结果'),
+                      subtitle: const Text('所选日期尚未读取成功，请重试；下方不是所选日期的数据。'),
+                    ),
+                  ],
+                ),
               ..._content(data!),
+            ],
+            if (busy && data != null)
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: CupertinoActivityIndicator(),
+              ),
+            const SizedBox(height: 96),
           ],
         ),
       ],
@@ -149,11 +281,13 @@ class _CheckInPageState extends State<CheckInPage> {
         children: [
           AppleListTile(
             title: Text(
-              data.courses.isEmpty ? '今天没有课程' : '今天 ${data.courses.length} 节课',
+              data.courses.isEmpty
+                  ? (widget.history ? '当天没有课程' : '今天没有课程')
+                  : '${widget.history ? '当天' : '今天'} ${data.courses.length} 节课',
             ),
             subtitle: Text(
               data.courses.isEmpty
-                  ? '学校签到系统返回当天无课程。'
+                  ? '学校返回当天无课程，不代表出勤或缺勤。'
                   : [
                       '已签到 $signed',
                       '未签到 $notSigned',
@@ -176,16 +310,18 @@ class _CheckInPageState extends State<CheckInPage> {
       ),
       if (data.courses.isEmpty)
         AppleSection(
-          children: const [
+          children: [
             AppleEmptyState(
-              title: '今天没有课程',
-              description: '可以到课表确认其他教学周，或稍后下拉刷新。',
+              title: widget.history ? '当天没有课程' : '今天没有课程',
+              description: widget.history
+                  ? '该日期没有可查询课程，不代表出勤或缺勤。'
+                  : '可以到课表确认其他教学周，或稍后下拉刷新。',
             ),
           ],
         )
       else
         AppleSection(
-          header: const Text('当天课程'),
+          header: Text(widget.history ? '该日期课程' : '当天课程'),
           footer: const Text(
             '签到状态来自 iclass 实时查询；同一课程出现多条不一致记录时显示“待确认”，不会据此提交签到。',
           ),

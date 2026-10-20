@@ -60,6 +60,15 @@ Future<CheckInResponse> loadCheckinToday({required bool forceRefresh}) =>
       forceRefresh: forceRefresh,
     );
 
+/// Historical day in Asia/Shanghai, yyyy-MM-dd; no sign-in submission.
+Future<CheckInResponse> loadCheckinOnDate({
+  required String date,
+  required bool forceRefresh,
+}) => RustLib.instance.api.crateApiLiveLoadCheckinOnDate(
+  date: date,
+  forceRefresh: forceRefresh,
+);
+
 Future<GradeTermsResponse> loadGradeTerms() =>
     RustLib.instance.api.crateApiLiveLoadGradeTerms();
 

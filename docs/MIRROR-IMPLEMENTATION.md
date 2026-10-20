@@ -302,3 +302,13 @@
 - 第二次真实会话页面操作：工作台→设置→返回；签到当天课程；课表清单→课程详情→返回；作业→详情→返回，无标准化错误提示。只检查界面状态，不打印或截图真实内容。
 
 最终 `scripts/check-mirror.sh` 通过（134 lib + 1 contract、Clippy、analyze、27 widget）；Android独立schedule smoke更新后1项通过。大字号+减少动态效果检查发现零时长AnimatedSize布局重入，已改为直接跳过动画容器并回归通过；大字号显示方式改为两行选择器。第二次验收结束调用正式signOut返回signedOut，Android保险库XML确认不存在。
+
+
+## 2026-10-20：课程签到历史日期查询
+
+- 复用 API §7.2 的 `get_stu_course_sched.action` 与 `dateStr`，依据 Swift `loadOnDate`；保留当天入口，新增 bridge `loadCheckinOnDate`，不新增签到写接口。上海日期校验拒绝无效/未来日期，五分钟缓存按日期隔离，恢复仍有界。
+- 页面从“历史日期查询”推入，Cupertino 日期滚轮（取消不查询、确定后读取）、前/后一天、日期标题与读取状态。快速切换只接受最后请求；失败保留实际日期结果并明确提示，不把旧日课程冒充新日，不把未签到/无课程推定缺勤。
+- 正常/空/结构漂移/业务拒绝沿用既有 `checkin.course_schedule` 四类 fixture，历史没有新响应协议；新应用回归覆盖日期传参/缓存隔离/失效保留/无效输入不联网；一个 widget 覆盖乱序与失败保留。FRB 重新生成，stem保持 `ginkgo_flutter_bridge`。
+- 验证：21项签到Rust测试、workspace Clippy、Flutter analyze、28项widget通过。真实历史日期尚未登录验收，先标⚠️；先前当天查询成功不替代本次历史验收。
+
+签到历史设备验证：`checkin_test.dart` 独立Android smoke 1项通过（27秒），覆盖当天→历史→前一天→返回；workspace 135 lib + 1 contract通过。未跑mirror长流程（仅补接口实现以保持analyze通过）。

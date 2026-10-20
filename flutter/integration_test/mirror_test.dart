@@ -82,6 +82,11 @@ class FailOnceNativeService implements MirrorService {
       native.checkin(forceRefresh: forceRefresh);
 
   @override
+  Future<CheckInResponse> checkinOnDate(
+    String date, {
+    bool forceRefresh = false,
+  }) => native.checkinOnDate(date, forceRefresh: forceRefresh);
+  @override
   Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false}) =>
       native.libraryVenues(forceRefresh: forceRefresh);
   @override

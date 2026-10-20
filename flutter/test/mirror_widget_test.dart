@@ -315,6 +315,16 @@ class ControlledService implements MirrorService {
     return completer.future;
   }
 
+  final historyDates = <String>[];
+  @override
+  Future<CheckInResponse> checkinOnDate(
+    String date, {
+    bool forceRefresh = false,
+  }) {
+    historyDates.add(date);
+    return checkin(forceRefresh: forceRefresh);
+  }
+
   @override
   Future<LibraryVenuesResponse> libraryVenues({
     bool forceRefresh = false,
@@ -805,6 +815,61 @@ void main() {
     expect(find.text('暂无可用场馆'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'checkin history ignores old requests and retains the actual date on failure',
+    (tester) async {
+      tester.view.physicalSize = const Size(430, 1400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final service = ControlledService();
+      await openCheckin(tester, service);
+      service.checkinRequests.last.complete(checkInFixture);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('checkin-history')));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      final first = service.historyDates.last;
+      await tester.tap(find.byKey(const Key('checkin-previous-day')));
+      await tester.pump();
+      final selected = service.historyDates.last;
+      service.checkinRequests.last.complete(
+        CheckInResponse(
+          date: selected,
+          courses: checkInFixture.courses,
+          fromCache: false,
+          stale: false,
+        ),
+      );
+      await tester.pumpAndSettle();
+      service.checkinRequests[1].complete(
+        CheckInResponse(
+          date: first,
+          courses: [],
+          fromCache: false,
+          stale: false,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('当天 3 节课'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('checkin-previous-day')));
+      await tester.pump();
+      service.checkinRequests.last.complete(
+        const CheckInResponse(
+          date: '',
+          courses: [],
+          fromCache: false,
+          stale: false,
+          failure: FailureCode.serviceUnavailable,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('正在保留 $selected 的结果'), findsOneWidget);
+      expect(find.text('当天 3 节课'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('checkin shows the day, statuses and read-only boundary', (
     tester,

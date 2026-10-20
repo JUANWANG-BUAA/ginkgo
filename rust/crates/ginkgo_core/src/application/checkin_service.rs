@@ -26,9 +26,28 @@ pub struct CheckInOutcome {
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     pub async fn load_checkin(&self, force_refresh: bool) -> Result<CheckInOutcome, AppError> {
+        self.load_checkin_on_date(None, force_refresh).await
+    }
+
+    /// Same read-only query as today, keyed by the requested school-local day.
+    pub async fn load_checkin_on_date(
+        &self,
+        date: Option<String>,
+        force_refresh: bool,
+    ) -> Result<CheckInOutcome, AppError> {
         self.current_account()?;
-        let day = school_time::beijing_day(&now_shanghai())?;
-        let date = day.local_date;
+        let today = school_time::beijing_day(&now_shanghai())?.local_date;
+        let date = match date {
+            Some(date) => {
+                let parsed = chrono::NaiveDate::parse_from_str(&date, "%Y-%m-%d")
+                    .map_err(|_| AppError::invalid())?;
+                if parsed.format("%Y-%m-%d").to_string() != date || date > today {
+                    return Err(AppError::invalid());
+                }
+                date
+            }
+            None => today,
+        };
         let compact = date.replace('-', "");
         if !force_refresh {
             let cached = self.checkin.lock().expect("checkin cache");

@@ -50,6 +50,10 @@ abstract interface class MirrorService {
   Future<GradeResponse> grades({String? termCode, bool forceRefresh = false});
   Future<TodayResponse> today({bool forceRefresh = false});
   Future<CheckInResponse> checkin({bool forceRefresh = false});
+  Future<CheckInResponse> checkinOnDate(
+    String date, {
+    bool forceRefresh = false,
+  });
   Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false});
   Future<LibraryAreasResponse> libraryAreas(String libraryId);
   Future<LibrarySlotsResponse> librarySlots(String areaId);
@@ -123,6 +127,11 @@ final class NativeMirrorService implements MirrorService {
   @override
   Future<CheckInResponse> checkin({bool forceRefresh = false}) =>
       live.loadCheckinToday(forceRefresh: forceRefresh);
+  @override
+  Future<CheckInResponse> checkinOnDate(
+    String date, {
+    bool forceRefresh = false,
+  }) => live.loadCheckinOnDate(date: date, forceRefresh: forceRefresh);
   @override
   Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false}) =>
       live.loadLibraryVenues(forceRefresh: forceRefresh);
@@ -212,6 +221,21 @@ final class DemoMirrorService implements MirrorService {
   @override
   Future<CheckInResponse> checkin({bool forceRefresh = false}) =>
       rust.loadDemoCheckin();
+  @override
+  Future<CheckInResponse> checkinOnDate(
+    String date, {
+    bool forceRefresh = false,
+  }) async {
+    final result = await rust.loadDemoCheckin();
+    return CheckInResponse(
+      date: date,
+      courses: result.courses,
+      fetchedAt: result.fetchedAt,
+      fromCache: false,
+      stale: false,
+    );
+  }
+
   Future<LibraryDemoResponse> _demoLibrary() => rust.loadDemoLibrary();
   @override
   Future<LibraryVenuesResponse> libraryVenues({

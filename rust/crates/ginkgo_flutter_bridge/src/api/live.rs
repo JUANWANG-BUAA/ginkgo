@@ -498,6 +498,22 @@ pub async fn load_checkin_today(force_refresh: bool) -> CheckInResponse {
     }
 }
 
+/// Historical day in Asia/Shanghai, yyyy-MM-dd; no sign-in submission.
+pub async fn load_checkin_on_date(date: String, force_refresh: bool) -> CheckInResponse {
+    let result = match service() {
+        Ok(service) => {
+            service
+                .load_checkin_on_date(Some(date), force_refresh)
+                .await
+        }
+        Err(error) => Err(error),
+    };
+    match result {
+        Ok(outcome) => checkin_response(outcome),
+        Err(error) => checkin_failure(error.code.clone().into(), error.detail),
+    }
+}
+
 fn checkin_failure(failure: FailureCode, detail: Option<String>) -> CheckInResponse {
     CheckInResponse {
         date: String::new(),

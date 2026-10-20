@@ -1458,3 +1458,55 @@ async fn concurrent_library_reads_share_one_cas_exchange() {
         1
     );
 }
+
+#[tokio::test]
+async fn checkin_history_is_cached_per_date_and_failure_preserves_only_that_day() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(checkin_entry_response("fixture-login"));
+    responses.push(checkin_app_login_response());
+    responses.push(checkin_schedule_response(checkin_day_body()));
+    responses.push(checkin_schedule_response(r#"{"STATUS":2}"#));
+    responses.push(checkin_schedule_response("drift"));
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "fixture-password", None, true)
+        .await
+        .expect("login");
+    let first = service
+        .load_checkin_on_date(Some("2026-09-01".into()), false)
+        .await
+        .expect("history");
+    assert_eq!(first.date, "2026-09-01");
+    assert_eq!(first.courses.len(), 2);
+    let empty = service
+        .load_checkin_on_date(Some("2026-09-02".into()), false)
+        .await
+        .expect("empty");
+    assert!(empty.courses.is_empty());
+    let cached = service
+        .load_checkin_on_date(Some("2026-09-01".into()), false)
+        .await
+        .expect("cache");
+    assert!(cached.from_cache);
+    let stale = service
+        .load_checkin_on_date(Some("2026-09-01".into()), true)
+        .await
+        .expect("stale");
+    assert!(stale.stale && stale.failure.is_some());
+    assert_eq!(stale.courses, first.courses);
+    let before = transport.request_count();
+    for date in ["2026-02-30", "20260901", "2099-01-01"] {
+        assert!(service
+            .load_checkin_on_date(Some(date.into()), false)
+            .await
+            .is_err());
+    }
+    assert_eq!(before, transport.request_count());
+    let requests = transport.requests();
+    let queries: Vec<_> = requests
+        .iter()
+        .filter(|r| r.url.contains("dateStr="))
+        .collect();
+    assert!(queries[0].url.contains("dateStr=20260901"));
+    assert!(queries[1].url.contains("dateStr=20260902"));
+}

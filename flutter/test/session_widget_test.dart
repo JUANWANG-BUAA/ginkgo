@@ -140,6 +140,11 @@ class FakeService implements MirrorService {
         stale: false,
       );
   @override
+  Future<CheckInResponse> checkinOnDate(
+    String date, {
+    bool forceRefresh = false,
+  }) => checkin(forceRefresh: forceRefresh);
+  @override
   Future<LibraryVenuesResponse> libraryVenues({
     bool forceRefresh = false,
   }) async =>

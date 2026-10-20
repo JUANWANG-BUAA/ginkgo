@@ -11,6 +11,7 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 镜像签到历史 | iclass只提供当天入口 | 同一get_stu_course_sched只读GET接受所选上海日期dateStr；镜像按日期隔离五分钟缓存、失败保留、快速切换丢弃旧请求 | `CheckInClient.swift:92–94,225–230,667`；UBAA `LocalSigninApi.kt:88`仅佐证参数名，不佐证历史日期真实返回；历史实网⚠️待本机登录 |
 | 镜像会话勘误 | WebVPN头/图书馆登录 | 请求URL映射而Origin/Referer未映射；并发CAS；有网关Cookie即跳过认证 | 对齐Apple路由头映射；图书馆异步登录锁与锁内检查；显式网关挑战不能被预登录Cookie跳过；认证失败保留快照 | `Core/Network/UpstreamRoute.swift:93–99`；UBAA e8a397f `LocalLibBookApi.kt:187,305–332,365–371`；Android授权只读复验成功，未放宽TLS |
 | 镜像时间勘误 | GSMIS时间方案 | 仅外层JCFADM | skjcList条目的JCFADM优先，外层兼容；再按DM匹配 | UBAA e8a397f `GsmisSchedule.kt:35–39,74`；`ScheduleParser.swift:117–121,306–312`；合成回归与Android时间字段完整性检查 |
 | 镜像 CGYY | 教学楼场馆只读 | 镜像未迁移 | 公开场馆/直连SSO/签名/时段/最近20条订单迁移；host公开7个site可读，账号链路⚠️待完成 | §6B、修订53；CgyyClient.swift / CgyySigner.swift；不含写接口 |
@@ -744,6 +745,7 @@ Judge 作业详情页同时包含开始/截止时间、满分、题目表格、�
 - 认证入口：`https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter`。正常 SSO 会话跳转后，最终 URL 查询中含 `loginName`；本项目从重定向 Location/最终 URL 提取，不记录该值。
 - app session：GET `https://iclass.buaa.edu.cn:8347/app/user/login.action`，查询参数 `password`（空值）、`phone`（上一步 loginName）、`userLevel=1`、`verificationType=2`、`verificationUrl`（空值）。本次观察到 HTTP 200、`STATUS=0`，响应 `result` 含 `id` 和 `sessionId`；两值仅用于内存请求，不持久化。
 - 当天列表：GET `https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action`，查询参数 `id`、`dateStr=yyyyMMdd`，请求头 `sessionId`。本次观察到 HTTP 200、`STATUS=0`、`total=2`、返回 2 条记录；字段名包括 `id`、`courseName`、`classBeginTime`、`classEndTime`、`signStatus` 等。脱敏观察到 `signStatus` 值 `0` 和 `1`；BBAA DTO 将其解释为未签到/已签到。
+- 历史日期查询沿用同一 GET 与 `dateStr=yyyyMMdd`，依据当前 `CheckInClient.loadOnDate(account:date:)`（92–94行）与225–230行；返回字段/状态解析不变。镜像限制日期不晚于学校今天；同日期快照复用、跨日期隔离；无课程/未签到不推断缺勤。⚠️ 本次历史日期尚未真实账号验证，不能用先前当天响应替代。
 - 此次真实请求经官方 WebVPN 网关转发。当前开发环境直连 iclass 时 TLS 握手失败；本项目因此仅为只读 iclass 查询增加窄范围回退：直连遇到 `secureConnectionFailed` 后改由 `d.buaa.edu.cn` 转发，并按 BBAA `LocalWebVpnSupport.kt` 的 URL 编码和重定向规则处理。固定向量和模拟请求链测试通过；2026-10-15 CUA 实测收到 WebVPN 网关 HTTP 200 页面，但尚未提取到 loginName。当前错误会明确提示 WebVPN 尚未返回 iclass 认证信息，不能据此宣称签到状态已成功读取。
 - WebVPN CookieStorage 为隔离的进程内临时存储，不写入文件或 UserDefaults。若只读回退收到网关登录页，ViewModel 将暴露 WebVPN 认证不可用状态；UI 在 Keychain 有用户选择保存的凭据时提供显式会话重建按钮，未保存凭据时提示重新登录，不会自动读取/保存新的密码。该恢复按钮仅重建现有 WebVPN CAS 会话，不发送签到写请求；重建成功仍需 iclass 回查成功才算状态已确认。
 - UBAA 原版 `LocalSigninApi.kt` 按学号隔离 iclass session，并在课程查询业务状态拒绝时刷新 session 后仅重试一次幂等 GET（第 38-40、71-103、188-218 行）；本项目现已对齐这两项行为。参考实现将部分其他 HTTP/业务异常转换成成功空列表；本项目仍把失败与真实空列表分开，保留最后成功快照并显示最后核对时间。未识别的 `signStatus` 映射为“状态待确认”。
