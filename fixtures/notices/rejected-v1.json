@@ -1,0 +1,11 @@
+{
+  "contract": "notices.list",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "html": "<html><h1>Access denied</h1></html>"
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

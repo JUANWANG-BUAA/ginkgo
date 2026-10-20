@@ -66,6 +66,10 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
         }
         "tasks.document" => serde_json::to_value(crate::features::tasks::parse(input)?)
             .map_err(|_| AppError::changed())?,
+        "notices.list" => serde_json::to_value(crate::features::notices::parse(
+            input["html"].as_str().ok_or_else(AppError::changed)?,
+        )?)
+        .map_err(|_| AppError::changed())?,
         "graduate.execution" => {
             json!({"sections":crate::features::graduate::parse_execution(&input)?})
         }

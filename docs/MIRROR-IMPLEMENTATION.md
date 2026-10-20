@@ -242,3 +242,8 @@
 - 4份合成文档契约（正常/空/漂移/无效）、CRUD/账号隔离/损坏保护应用测试通过；Flutter analyze通过。Android独立smoke覆盖新增、编辑、完成、重建页面后读取及删除。无提醒/跨设备同步；Windows未实机验收。
 
 - Android tasks_test.dart 1项本机文件真实FFI smoke已通过；初次构建暴露桥接越过用例访问私有账号方法，已改为SessionService用例；未运行mirror长流程。NDK插件提示28.2，项目Rust仍使用27并编译通过；Android路径插件固定2.2.22以避免额外JNI迁移。
+
+## 2026-10-20：校园通知
+
+- 按API §7.3既有5条证据与CampusNoticesClient迁移公开HTML列表，经Session路由读取、五分钟快照、失败保留。标题/日期/摘要/HTTPS同站原文白名单投影，详情显示摘要并可浏览器打开官网。无已证实空标记，空HTML按结构变化处理，不伪造空通知。
+- 4份合成契约（正常/空HTML/漂移/拒绝页面）、公开读取+缓存+失败保留用例通过；Android单项FFI合成smoke覆盖列表到详情，外部浏览器往返仍待人工。镜像真实上游⚠️待验收，Windows未验收。

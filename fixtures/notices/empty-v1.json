@@ -1,0 +1,11 @@
+{
+  "contract": "notices.list",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "html": "<ul></ul>"
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

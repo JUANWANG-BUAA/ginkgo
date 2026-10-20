@@ -6,6 +6,7 @@ import 'checkin_page.dart';
 import 'bykc_page.dart';
 import 'graduate_page.dart';
 import 'tasks_page.dart';
+import 'notices_page.dart';
 import 'classroom_page.dart';
 import 'coming_soon_page.dart';
 import 'grades_page.dart';
@@ -77,6 +78,13 @@ class MorePage extends StatelessWidget {
             AppleSection(
               header: const Text('工作台'),
               children: [
+                _row(
+                  context,
+                  '校园通知',
+                  CupertinoIcons.news_solid,
+                  CupertinoColors.systemBlue,
+                  NoticesPage(demo: service.isDemo),
+                ),
                 _row(
                   context,
                   '课程签到',

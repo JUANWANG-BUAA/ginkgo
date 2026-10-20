@@ -155,6 +155,12 @@ Future<ReadOnlyResponse> editTasks({
   completed: completed,
 );
 
+Future<ReadOnlyResponse> loadNotices({required bool forceRefresh}) =>
+    RustLib.instance.api.crateApiLiveLoadNotices(forceRefresh: forceRefresh);
+
+Future<ReadOnlyResponse> loadDemoNotices() =>
+    RustLib.instance.api.crateApiLiveLoadDemoNotices();
+
 class GradeTermsResponse {
   final List<ScheduleTerm> terms;
   final FailureCode? failure;

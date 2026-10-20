@@ -19,6 +19,7 @@ dependencies:
   path_provider: ^2.1.6
   # Retain the Kotlin plugin path and the project NDK 27 toolchain.
   path_provider_android: 2.2.22
+  url_launcher: ^6.3.3
 
 dev_dependencies:
   flutter_test:

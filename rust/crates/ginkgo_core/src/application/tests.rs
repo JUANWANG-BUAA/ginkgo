@@ -1282,3 +1282,25 @@ async fn graduate_reads_status_whitelist_and_execution_report_then_caches() {
     service.load_graduate(false).await.expect("cached");
     assert_eq!(count, transport.request_count());
 }
+
+#[tokio::test]
+async fn notices_public_list_caches_and_preserves_last_result_on_drift() {
+    let body = fixture("notices", "normal-v1.json")["input"]["html"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let url = "https://news.buaa.edu.cn/tzgg.htm";
+    let (service, transport) = build_service(
+        vec![
+            HttpResponse::new(200, url, body),
+            HttpResponse::new(200, url, "<html>changed</html>"),
+        ],
+        MemoryVault::default(),
+    );
+    assert_eq!(service.load_notices(false).await.unwrap().data.len(), 1);
+    assert_eq!(service.load_notices(false).await.unwrap().data.len(), 1);
+    assert_eq!(transport.request_count(), 1);
+    let stale = service.load_notices(true).await.unwrap();
+    assert_eq!(stale.data[0].title, "合成校园通知");
+    assert_eq!(stale.failure.unwrap().code, ErrorCode::ChangedResponse);
+}

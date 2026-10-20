@@ -1,0 +1,11 @@
+{
+  "contract": "notices.list",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "html": "<li><a href=\"info/1001/000.htm\"><h3>合成校园通知</h3><p>合成摘要，不含真实校园信息</p></a><div class=\"date\"><b>20</b><span>2026.10</span></div></li>"
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}
