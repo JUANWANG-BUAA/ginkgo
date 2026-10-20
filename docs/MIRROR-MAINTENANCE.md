@@ -20,7 +20,8 @@
 - 新增模块按 `<module>.rs`（领域）、`adapters/<module>_http.rs`（协议）、`application/<module>_service.rs`（用例）、`bridge api/<module>.rs`（DTO）、`flutter/lib/<module>_page.dart`（呈现）拆分；任一文件接近 300 行或同时处理两个外部系统时先拆。
 - 认证模块是模板：`cas.rs` 只解析登录页，`login.rs` 只走登录链与重定向，`uc.rs` 只做 UC 激活/校验，`session.rs` 只持 Cookie 与路由，`mod.rs` 只组合类型和用例。
 - 共享测试桩放在 `rust/crates/ginkgo_core/src/test_support.rs`（`cfg(test)`），不要在每个适配器里重复 mock 传输。
-- 桥接只暴露粗粒度用例。Dart 不得持有 Cookie、CASTGC、重定向链或凭据，也不得复制筛选、时区、周次等规则。真实命令是 `login` / `restoreSession` / `signOut` / `sessionStatus` 与四个只读查询；`verifyCredentialStorage` 只用于设备验收。
+- 桥接只暴露粗粒度用例。Dart 不得持有 Cookie、CASTGC、重定向链、iclass sessionId 或 booking.lib token，也不得复制筛选、时区、周次等规则。真实命令是 `login` / `restoreSession` / `signOut` / `sessionStatus` 与空教室/课表/今天/成绩/签到/图书馆只读查询；`verifyCredentialStorage` 只用于设备验收。
+- WebVPN 路由下，`auth/session.rs` 负责把响应的 final URL 与 Location 还原成上游 URL；功能适配器只面对上游 URL。新增业务系统时不要自行 `unwrap` 响应或拼接网关地址，否则相对 Location 会被误判。
 - 平台凭据保险库按平台拆文件：`auth/platform/android_vault.rs` 只做 JNI 调用，Kotlin `CredentialVault.kt` 只做 Keystore/SharedPreferences；`keyring_vault.rs` 只做系统钥匙串映射。不要把加密、账号解析或 UI 文案塞进桥接 DTO。
 
 ## 2. Fixture 与协议变更
@@ -31,7 +32,7 @@
 4. 结构漂移必须返回 `changed_response`，不得降级为空结果；上游业务错误与传输失败保持不同错误码。
 5. 不允许为了通过测试直接改 `expected`；预期变化必须对应协议版本或明确的领域规则变更。
 
-当前十六类契约：`classroom.filter`、`classroom.parse_response`、`school_time.beijing_day`、`schedule.snapshot_retained_weeks`、`bykc.course_filter`、`auth.cas_login_page`、`auth.uc_status`、`schedule.terms`、`schedule.weeks`、`schedule.undergraduate_courses`、`schedule.exams`、`schedule.today_courses`、`grades.buaa_score`、`grades.term_parts`、`homework.spoc_page`、`homework.spoc_encrypt`。详见 [fixtures/README.md](../fixtures/README.md)。
+当前二十四类契约、76 份样例：`classroom.filter`、`classroom.parse_response`、`school_time.beijing_day`、`schedule.snapshot_retained_weeks`、`bykc.course_filter`、`auth.cas_login_page`、`auth.uc_status`、`schedule.terms`、`schedule.weeks`、`schedule.undergraduate_courses`、`schedule.exams`、`schedule.today_courses`、`grades.buaa_score`、`grades.term_parts`、`homework.spoc_page`、`homework.spoc_encrypt`、`checkin.app_login`、`checkin.course_schedule`、`library.login_user`、`library.venues`、`library.areas`、`library.slots`、`library.seats`、`library.bookings`。详见 [fixtures/README.md](../fixtures/README.md)。
 
 ## 3. 桥接维护
 
@@ -41,7 +42,7 @@
 - 真实服务在第一次异步命令时懒初始化；不要在 `init_app` 中创建 `reqwest`/tokio 运行时。Android 上这样会卡在 Flutter 启动画面（2026-10-20 实测），`check-mirror.sh` 也不覆盖这一运行时行为。
 - 错误只传稳定 `code` 与可选上游 `detail`；页面文案在 Flutter 本地化，Rust 不返回中文 UI 文案。
 - 真实会话是 Rust 侧不透明对象；Flutter 只调“登录/查询/刷新/登出/路线/清缓存”等用户级命令。密码只在校验后的登录调用中瞬时经过 Form 状态，持久化由 `CredentialVault` 完成；成功登录后页面只保留会话摘要。
-- 图书馆/签到页面目前是**导航骨架**：可以进入并阅读待补齐项，但没有 Rust 客户端或数据。禁止用合成座位/签到状态填充，完成前必须在页面和文档中保持“未迁移”标记。
+- 图书馆/签到现在是**只读**页面：真实只读用例 + 共享合成 fixture 的设备测试。禁止添加预约/签到/暂离/离馆/取消等提交入口，直到完成写操作评审（二次确认、提交后回查、未知结果不重发）；也禁止用页面上的只读数据推断写操作可用。
 
 ## 4. 证据分层
 
@@ -67,13 +68,14 @@
 
 1. **P1 认证 + 空教室真实只读**：`CredentialVault` 平台实现 → 真实会话 bridge → 空教室只读 bridge → 会话失效单次恢复。Android 已完成并实测；Windows/macOS 待实机。
 2. **P2 课表/考试**：学期与教学周、本科课表/考试解析、真实只读与快照已完成 → 周网格 → 研究生课表 → 真实账号只读。
-3. **P3 成绩、作业、BYKC、图书馆/研讨室/场馆/通知**：成绩真实只读与页面已完成，学期切换/真实账号待补；作业仍为合成；其余按接口稳定度逐项迁移。
+3. **P3 成绩、作业、BYKC、图书馆/签到、研讨室/场馆/通知**：成绩真实只读与页面已完成，学期切换/真实账号待补；签到与图书馆只读已完成（真实上游验收待用户本机登录）；作业仍为合成；其余按接口稳定度逐项迁移。
 4. **P4 本地待办、设置、账号切换与平台适配**。
 5. **P5 写操作**：签到、预约、取消、选课逐项协议评审，二次确认与“未知结果不重发”。
 
 ## 7. 风险与提前布局
 
-- **认证仍缺真实上游验收**：Android Keystore 与登录页已实测，但真实 CAS→UC 登录、真实只读还未执行；验证码图片 UI 也未完成。把 mock 和合成设备测试当真实通过是明确红线。
+- **真实上游验收仍不完整**：Android Keystore 与登录页已实测，2026-10-20 完成过一次真实今天/课表/空教室/成绩只读；签到/图书馆的真实只读尚未执行，验证码图片 UI 也未完成。把 mock 和合成设备测试当真实通过是明确红线。
+- **iclass 依赖 WebVPN 网关会话**：直连 iclass 在当前网络 TLS 连接超时；网关 CAS 会话需要登录时保存的密码。没有保存密码时签到只读会要求重新登录，不能用无限重试掩盖。
 - **Windows/macOS 钥匙串未实机**：`keyring` 适配已编译在 macOS，但 Windows 分支未在本机构建；macOS 未做签名/授权提示验收。Windows CI 通过也不能替代交互验收。
 - **Windows 未实机**：CI 与工程入口已创建，但不能用 macOS/Android 结果替代；布局参照 macOS 时需固定窗口尺寸和最小宽度。
 - **像素一致性**：Flutter 材质与 SF Symbols 存在不可共享差异；以固定状态、固定视口截图为证据，不宣称“100% 相似”。

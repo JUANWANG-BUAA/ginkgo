@@ -1,15 +1,19 @@
 //! Real-account bridge. Cookies, credentials and recovery stay in Rust; these
 //! functions only map coarse use cases to stable DTOs.
 use super::mirror::{
+    CheckInCourse as CheckInCourseDto, CheckInResponse, CheckInStatus as CheckInStatusDto,
     ClassroomBuilding, ClassroomQuery, ClassroomResponse, ClassroomRow, ClassroomSort, FailureCode,
-    GradeCourse, GradeResponse, GradeSummary, ScheduleCourse, ScheduleExam, ScheduleResponse,
-    ScheduleTerm, ScheduleWeek, SectionState, TodayCourse, TodayResponse,
+    GradeCourse, GradeResponse, GradeSummary, LibraryArea as LibraryAreaDto, LibraryAreasResponse,
+    LibraryBooking as LibraryBookingDto, LibraryBookingsResponse, LibrarySeat as LibrarySeatDto,
+    LibrarySeatsResponse, LibrarySlot as LibrarySlotDto, LibrarySlotsResponse,
+    LibraryVenue as LibraryVenueDto, LibraryVenuesResponse, ScheduleCourse, ScheduleExam,
+    ScheduleResponse, ScheduleTerm, ScheduleWeek, SectionState, TodayCourse, TodayResponse,
 };
 use ginkgo_core::{
     adapters::reqwest_transport::ReqwestTransport,
     application::{
-        ClassroomOutcome, ClassroomQueryInput, GradeOutcome, ScheduleOutcome, ScheduleQueryInput,
-        SessionOutcome, SessionService, SessionStatus, TodayOutcome,
+        CheckInOutcome, ClassroomOutcome, ClassroomQueryInput, GradeOutcome, ScheduleOutcome,
+        ScheduleQueryInput, SessionOutcome, SessionService, SessionStatus, TodayOutcome,
     },
     auth::{
         cas::CaptchaChallenge,
@@ -479,6 +483,71 @@ fn today_response(outcome: TodayOutcome) -> TodayResponse {
     }
 }
 
+pub async fn load_checkin_today(force_refresh: bool) -> CheckInResponse {
+    let Ok(service) = service() else {
+        return checkin_failure(FailureCode::CredentialStore, None);
+    };
+    match service.load_checkin(force_refresh).await {
+        Ok(outcome) => checkin_response(outcome),
+        Err(error) => checkin_failure(error.code.clone().into(), error.detail),
+    }
+}
+
+fn checkin_failure(failure: FailureCode, detail: Option<String>) -> CheckInResponse {
+    CheckInResponse {
+        date: String::new(),
+        courses: vec![],
+        fetched_at: None,
+        from_cache: false,
+        stale: false,
+        failure: Some(failure),
+        failure_detail: detail,
+    }
+}
+
+fn checkin_response(outcome: CheckInOutcome) -> CheckInResponse {
+    let (failure, failure_detail) = outcome
+        .failure
+        .as_ref()
+        .map(failure)
+        .unwrap_or((None, None));
+    CheckInResponse {
+        date: outcome.date,
+        courses: outcome
+            .courses
+            .into_iter()
+            .map(|course| CheckInCourseDto {
+                id: course.id,
+                course_id: course.course_id,
+                course_num: course.course_num,
+                course_name: course.course_name,
+                begins_at: course.begins_at,
+                ends_at: course.ends_at,
+                status: match course.status {
+                    ginkgo_core::features::checkin::CheckInStatus::NotSigned => {
+                        CheckInStatusDto::NotSigned
+                    }
+                    ginkgo_core::features::checkin::CheckInStatus::Signed => {
+                        CheckInStatusDto::Signed
+                    }
+                    ginkgo_core::features::checkin::CheckInStatus::Unknown => {
+                        CheckInStatusDto::Unknown
+                    }
+                },
+                teacher_name: course.teacher_name,
+                classroom_name: course.classroom_name,
+                merged_record_count: course.merged_record_count as i32,
+                conflicting: course.conflicting,
+            })
+            .collect(),
+        fetched_at: Some(outcome.fetched_at),
+        from_cache: outcome.from_cache,
+        stale: outcome.stale,
+        failure,
+        failure_detail,
+    }
+}
+
 pub struct GradeTermsResponse {
     pub terms: Vec<ScheduleTerm>,
     pub failure: Option<FailureCode>,
@@ -590,5 +659,205 @@ pub fn verify_credential_storage(account: String, secret: String) -> bool {
     match platform_vault() {
         Ok(vault) => verify_vault_round_trip(&vault, &account, &secret),
         Err(_) => false,
+    }
+}
+
+fn library_venue(value: ginkgo_core::features::library::LibraryVenue) -> LibraryVenueDto {
+    LibraryVenueDto {
+        id: value.id,
+        name: value.name,
+        free: value.free,
+        total: value.total,
+    }
+}
+
+fn library_area(value: ginkgo_core::features::library::LibraryArea) -> LibraryAreaDto {
+    LibraryAreaDto {
+        id: value.id,
+        name: value.name,
+        free: value.free,
+        total: value.total,
+    }
+}
+
+fn library_slot(value: ginkgo_core::features::library::LibrarySlot) -> LibrarySlotDto {
+    LibrarySlotDto {
+        id: value.id,
+        day: value.day,
+        start: value.start,
+        end: value.end,
+    }
+}
+
+fn library_seat(value: ginkgo_core::features::library::LibrarySeat) -> LibrarySeatDto {
+    LibrarySeatDto {
+        id: value.id,
+        name: value.name,
+        status_name: value.status_name,
+        available: value.available,
+    }
+}
+
+fn library_booking(value: ginkgo_core::features::library::LibraryBooking) -> LibraryBookingDto {
+    LibraryBookingDto {
+        id: value.id,
+        title: value.title,
+        area_name: value.area_name,
+        seat_number: value.seat_number,
+        day: value.day,
+        start_time: value.start_time,
+        end_time: value.end_time,
+        status_name: value.status_name,
+    }
+}
+
+pub async fn load_library_venues(force_refresh: bool) -> LibraryVenuesResponse {
+    let Ok(service) = service() else {
+        return LibraryVenuesResponse {
+            venues: vec![],
+            fetched_at: None,
+            from_cache: false,
+            stale: false,
+            failure: Some(FailureCode::CredentialStore),
+            failure_detail: None,
+        };
+    };
+    match service.load_library_venues(force_refresh).await {
+        Ok(outcome) => {
+            let (failure, failure_detail) = outcome
+                .failure
+                .as_ref()
+                .map(failure)
+                .unwrap_or((None, None));
+            LibraryVenuesResponse {
+                venues: outcome.venues.into_iter().map(library_venue).collect(),
+                fetched_at: Some(outcome.fetched_at),
+                from_cache: outcome.from_cache,
+                stale: outcome.stale,
+                failure,
+                failure_detail,
+            }
+        }
+        Err(error) => LibraryVenuesResponse {
+            venues: vec![],
+            fetched_at: None,
+            from_cache: false,
+            stale: false,
+            failure: Some(error.code.clone().into()),
+            failure_detail: error.detail,
+        },
+    }
+}
+
+pub async fn load_library_areas(library_id: String) -> LibraryAreasResponse {
+    let Ok(service) = service() else {
+        return LibraryAreasResponse {
+            areas: vec![],
+            failure: Some(FailureCode::CredentialStore),
+            failure_detail: None,
+        };
+    };
+    match service.load_library_areas(&library_id).await {
+        Ok(areas) => LibraryAreasResponse {
+            areas: areas.into_iter().map(library_area).collect(),
+            failure: None,
+            failure_detail: None,
+        },
+        Err(error) => LibraryAreasResponse {
+            areas: vec![],
+            failure: Some(error.code.clone().into()),
+            failure_detail: error.detail,
+        },
+    }
+}
+
+pub async fn load_library_slots(area_id: String) -> LibrarySlotsResponse {
+    let Ok(service) = service() else {
+        return LibrarySlotsResponse {
+            slots: vec![],
+            failure: Some(FailureCode::CredentialStore),
+            failure_detail: None,
+        };
+    };
+    match service.load_library_slots(&area_id).await {
+        Ok(slots) => LibrarySlotsResponse {
+            slots: slots.into_iter().map(library_slot).collect(),
+            failure: None,
+            failure_detail: None,
+        },
+        Err(error) => LibrarySlotsResponse {
+            slots: vec![],
+            failure: Some(error.code.clone().into()),
+            failure_detail: error.detail,
+        },
+    }
+}
+
+pub async fn load_library_seats(
+    area_id: String,
+    slot_id: String,
+    day: String,
+    start: String,
+    end: String,
+) -> LibrarySeatsResponse {
+    let Ok(service) = service() else {
+        return LibrarySeatsResponse {
+            seats: vec![],
+            failure: Some(FailureCode::CredentialStore),
+            failure_detail: None,
+        };
+    };
+    match service
+        .load_library_seats(&area_id, &slot_id, &day, &start, &end)
+        .await
+    {
+        Ok(seats) => LibrarySeatsResponse {
+            seats: seats.into_iter().map(library_seat).collect(),
+            failure: None,
+            failure_detail: None,
+        },
+        Err(error) => LibrarySeatsResponse {
+            seats: vec![],
+            failure: Some(error.code.clone().into()),
+            failure_detail: error.detail,
+        },
+    }
+}
+
+pub async fn load_library_bookings(force_refresh: bool) -> LibraryBookingsResponse {
+    let Ok(service) = service() else {
+        return LibraryBookingsResponse {
+            bookings: vec![],
+            fetched_at: None,
+            from_cache: false,
+            stale: false,
+            failure: Some(FailureCode::CredentialStore),
+            failure_detail: None,
+        };
+    };
+    match service.load_library_bookings(force_refresh).await {
+        Ok(outcome) => {
+            let (failure, failure_detail) = outcome
+                .failure
+                .as_ref()
+                .map(failure)
+                .unwrap_or((None, None));
+            LibraryBookingsResponse {
+                bookings: outcome.bookings.into_iter().map(library_booking).collect(),
+                fetched_at: Some(outcome.fetched_at),
+                from_cache: outcome.from_cache,
+                stale: outcome.stale,
+                failure,
+                failure_detail,
+            }
+        }
+        Err(error) => LibraryBookingsResponse {
+            bookings: vec![],
+            fetched_at: None,
+            from_cache: false,
+            stale: false,
+            failure: Some(error.code.clone().into()),
+            failure_detail: error.detail,
+        },
     }
 }

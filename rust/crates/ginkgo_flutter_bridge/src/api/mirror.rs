@@ -53,6 +53,7 @@ pub enum FailureCode {
     RedirectLimit,
     UnsupportedPortal,
     CredentialStore,
+    BusinessRejected,
 }
 
 impl From<ErrorCode> for FailureCode {
@@ -70,6 +71,7 @@ impl From<ErrorCode> for FailureCode {
             ErrorCode::RedirectLimit => Self::RedirectLimit,
             ErrorCode::UnsupportedPortal => Self::UnsupportedPortal,
             ErrorCode::CredentialStore => Self::CredentialStore,
+            ErrorCode::BusinessRejected => Self::BusinessRejected,
         }
     }
 }
@@ -601,6 +603,231 @@ pub fn query_demo_classrooms(scope: DemoScope, query: ClassroomQuery) -> Classro
             from_cache: false,
             failure: Some(error.code.into()),
             failure_detail: error.detail,
+        },
+    }
+}
+
+pub enum CheckInStatus {
+    NotSigned,
+    Signed,
+    Unknown,
+}
+
+pub struct CheckInCourse {
+    pub id: String,
+    pub course_id: Option<String>,
+    pub course_num: Option<String>,
+    pub course_name: String,
+    pub begins_at: String,
+    pub ends_at: String,
+    pub status: CheckInStatus,
+    pub teacher_name: Option<String>,
+    pub classroom_name: Option<String>,
+    pub merged_record_count: i32,
+    pub conflicting: bool,
+}
+
+pub struct CheckInResponse {
+    /// School-local date, yyyy-MM-dd.
+    pub date: String,
+    pub courses: Vec<CheckInCourse>,
+    pub fetched_at: Option<String>,
+    pub from_cache: bool,
+    pub stale: bool,
+    pub failure: Option<FailureCode>,
+    pub failure_detail: Option<String>,
+}
+
+fn checkin_course(course: ginkgo_core::features::checkin::CheckInCourse) -> CheckInCourse {
+    CheckInCourse {
+        id: course.id,
+        course_id: course.course_id,
+        course_num: course.course_num,
+        course_name: course.course_name,
+        begins_at: course.begins_at,
+        ends_at: course.ends_at,
+        status: match course.status {
+            ginkgo_core::features::checkin::CheckInStatus::NotSigned => CheckInStatus::NotSigned,
+            ginkgo_core::features::checkin::CheckInStatus::Signed => CheckInStatus::Signed,
+            ginkgo_core::features::checkin::CheckInStatus::Unknown => CheckInStatus::Unknown,
+        },
+        teacher_name: course.teacher_name,
+        classroom_name: course.classroom_name,
+        merged_record_count: course.merged_record_count as i32,
+        conflicting: course.conflicting,
+    }
+}
+
+pub fn load_demo_checkin() -> CheckInResponse {
+    match application::demo_checkin::load() {
+        Ok(day) => CheckInResponse {
+            date: day.date,
+            courses: day.courses.into_iter().map(checkin_course).collect(),
+            fetched_at: None,
+            from_cache: false,
+            stale: false,
+            failure: None,
+            failure_detail: None,
+        },
+        Err(error) => CheckInResponse {
+            date: String::new(),
+            courses: vec![],
+            fetched_at: None,
+            from_cache: false,
+            stale: false,
+            failure: Some(error.code.into()),
+            failure_detail: error.detail,
+        },
+    }
+}
+
+pub struct LibraryVenue {
+    pub id: String,
+    pub name: String,
+    pub free: i32,
+    pub total: i32,
+}
+
+pub struct LibraryArea {
+    pub id: String,
+    pub name: String,
+    pub free: i32,
+    pub total: i32,
+}
+
+pub struct LibrarySlot {
+    pub id: String,
+    pub day: String,
+    pub start: String,
+    pub end: String,
+}
+
+pub struct LibrarySeat {
+    pub id: String,
+    pub name: String,
+    pub status_name: String,
+    pub available: bool,
+}
+
+pub struct LibraryBooking {
+    pub id: String,
+    pub title: String,
+    pub area_name: String,
+    pub seat_number: String,
+    pub day: String,
+    pub start_time: String,
+    pub end_time: String,
+    pub status_name: String,
+}
+
+pub struct LibraryVenuesResponse {
+    pub venues: Vec<LibraryVenue>,
+    pub fetched_at: Option<String>,
+    pub from_cache: bool,
+    pub stale: bool,
+    pub failure: Option<FailureCode>,
+    pub failure_detail: Option<String>,
+}
+
+pub struct LibraryAreasResponse {
+    pub areas: Vec<LibraryArea>,
+    pub failure: Option<FailureCode>,
+    pub failure_detail: Option<String>,
+}
+
+pub struct LibrarySlotsResponse {
+    pub slots: Vec<LibrarySlot>,
+    pub failure: Option<FailureCode>,
+    pub failure_detail: Option<String>,
+}
+
+pub struct LibrarySeatsResponse {
+    pub seats: Vec<LibrarySeat>,
+    pub failure: Option<FailureCode>,
+    pub failure_detail: Option<String>,
+}
+
+pub struct LibraryBookingsResponse {
+    pub bookings: Vec<LibraryBooking>,
+    pub fetched_at: Option<String>,
+    pub from_cache: bool,
+    pub stale: bool,
+    pub failure: Option<FailureCode>,
+    pub failure_detail: Option<String>,
+}
+
+pub struct LibraryDemoResponse {
+    pub venues: Vec<LibraryVenue>,
+    pub areas: Vec<LibraryArea>,
+    pub slots: Vec<LibrarySlot>,
+    pub seats: Vec<LibrarySeat>,
+    pub bookings: Vec<LibraryBooking>,
+}
+
+fn library_venue(value: ginkgo_core::features::library::LibraryVenue) -> LibraryVenue {
+    LibraryVenue {
+        id: value.id,
+        name: value.name,
+        free: value.free,
+        total: value.total,
+    }
+}
+
+fn library_area(value: ginkgo_core::features::library::LibraryArea) -> LibraryArea {
+    LibraryArea {
+        id: value.id,
+        name: value.name,
+        free: value.free,
+        total: value.total,
+    }
+}
+
+fn library_slot(value: ginkgo_core::features::library::LibrarySlot) -> LibrarySlot {
+    LibrarySlot {
+        id: value.id,
+        day: value.day,
+        start: value.start,
+        end: value.end,
+    }
+}
+
+fn library_seat(value: ginkgo_core::features::library::LibrarySeat) -> LibrarySeat {
+    LibrarySeat {
+        id: value.id,
+        name: value.name,
+        status_name: value.status_name,
+        available: value.available,
+    }
+}
+
+fn library_booking(value: ginkgo_core::features::library::LibraryBooking) -> LibraryBooking {
+    LibraryBooking {
+        id: value.id,
+        title: value.title,
+        area_name: value.area_name,
+        seat_number: value.seat_number,
+        day: value.day,
+        start_time: value.start_time,
+        end_time: value.end_time,
+        status_name: value.status_name,
+    }
+}
+
+pub fn load_demo_library() -> LibraryDemoResponse {
+    match application::demo_library::load() {
+        Ok(library) => LibraryDemoResponse {
+            venues: library.venues.into_iter().map(library_venue).collect(),
+            areas: library.areas.into_iter().map(library_area).collect(),
+            slots: library.slots.into_iter().map(library_slot).collect(),
+            seats: library.seats.into_iter().map(library_seat).collect(),
+            bookings: library.bookings.into_iter().map(library_booking).collect(),
+        },
+        Err(_) => LibraryDemoResponse {
+            venues: vec![],
+            areas: vec![],
+            slots: vec![],
+            seats: vec![],
+            bookings: vec![],
         },
     }
 }

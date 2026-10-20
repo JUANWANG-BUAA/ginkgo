@@ -127,6 +127,36 @@ class FakeService implements MirrorService {
   Future<TodayResponse> today({bool forceRefresh = false}) async =>
       const TodayResponse(date: '2026-10-20', courses: []);
   @override
+  Future<CheckInResponse> checkin({bool forceRefresh = false}) async =>
+      const CheckInResponse(
+        date: '2026-10-20',
+        courses: [],
+        fromCache: false,
+        stale: false,
+      );
+  @override
+  Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false}) async =>
+      const LibraryVenuesResponse(venues: [], fromCache: false, stale: false);
+  @override
+  Future<LibraryAreasResponse> libraryAreas(String libraryId) async =>
+      const LibraryAreasResponse(areas: []);
+  @override
+  Future<LibrarySlotsResponse> librarySlots(String areaId) async =>
+      const LibrarySlotsResponse(slots: []);
+  @override
+  Future<LibrarySeatsResponse> librarySeats({
+    required String areaId,
+    required LibrarySlot slot,
+  }) async => const LibrarySeatsResponse(seats: []);
+  @override
+  Future<LibraryBookingsResponse> libraryBookings({
+    bool forceRefresh = false,
+  }) async => const LibraryBookingsResponse(
+    bookings: [],
+    fromCache: false,
+    stale: false,
+  );
+  @override
   Future<HomeworkResponse> homework() async =>
       const HomeworkResponse(termName: '', termCode: '', items: []);
 }

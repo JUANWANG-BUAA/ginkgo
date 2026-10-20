@@ -97,9 +97,9 @@ impl<T: HttpTransport> Session<T> {
             let Some(location) = response.header("location") else {
                 return Ok(response);
             };
-            let base = url::Url::parse(&response.final_url).map_err(|_| AppError::changed())?;
-            let next = base.join(location).map_err(|_| AppError::invalid())?;
-            current = HttpRequest::get(next.to_string());
+            let next = webvpn::resolve_redirect(location, &response.final_url)
+                .ok_or_else(AppError::changed)?;
+            current = HttpRequest::get(next);
         }
         Err(AppError::new(crate::ErrorCode::RedirectLimit))
     }
@@ -162,8 +162,28 @@ impl<T: HttpTransport> Session<T> {
         for header in &response.set_cookies {
             jar.store(&request_url, header, now);
         }
-        Ok(response)
+        // The gateway speaks gateway-shaped URLs while callers reason about the
+        // upstream service. Normalize exactly like the Apple router: final URL
+        // unwrapped, Location resolved back to the upstream service.
+        Ok(if campus_or_gateway {
+            normalize_gateway_response(response)
+        } else {
+            response
+        })
     }
+}
+
+fn normalize_gateway_response(mut response: HttpResponse) -> HttpResponse {
+    response.final_url = webvpn::unwrap(&response.final_url);
+    if let Some(location) = response.headers.get("location").cloned() {
+        if let Some(resolved) = webvpn::resolve_redirect(&location, &response.final_url) {
+            // Gateway-owned pages (/login, /faq) have no upstream equivalent.
+            if !is_gateway(&resolved) {
+                response.headers.insert("location".into(), resolved);
+            }
+        }
+    }
+    response
 }
 
 fn is_gateway(url: &str) -> bool {

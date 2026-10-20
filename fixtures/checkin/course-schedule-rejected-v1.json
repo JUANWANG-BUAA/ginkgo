@@ -1,0 +1,14 @@
+{
+  "contract": "checkin.course_schedule",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "STATUS": 9,
+      "ERRMSG": "fixture rejection"
+    }
+  },
+  "expected": {
+    "error": "business_rejected"
+  }
+}

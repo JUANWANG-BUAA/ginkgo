@@ -70,7 +70,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => -1102194965;
+  int get rustContentHash => -269488144;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -86,10 +86,16 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiMirrorInitApp();
 
+  Future<CheckInResponse> crateApiLiveLoadCheckinToday({
+    required bool forceRefresh,
+  });
+
   Future<ClassroomResponse> crateApiLiveLoadClassrooms({
     required LiveScope scope,
     required ClassroomQuery query,
   });
+
+  Future<CheckInResponse> crateApiMirrorLoadDemoCheckin();
 
   Future<ClassroomResponse> crateApiMirrorLoadDemoClassrooms({
     required ClassroomQuery query,
@@ -99,6 +105,8 @@ abstract class RustLibApi extends BaseApi {
 
   Future<HomeworkResponse> crateApiMirrorLoadDemoHomework();
 
+  Future<LibraryDemoResponse> crateApiMirrorLoadDemoLibrary();
+
   Future<ScheduleResponse> crateApiMirrorLoadDemoSchedule();
 
   Future<TodayResponse> crateApiMirrorLoadDemoToday();
@@ -107,6 +115,30 @@ abstract class RustLibApi extends BaseApi {
 
   Future<GradeResponse> crateApiLiveLoadGrades({
     String? termCode,
+    required bool forceRefresh,
+  });
+
+  Future<LibraryAreasResponse> crateApiLiveLoadLibraryAreas({
+    required String libraryId,
+  });
+
+  Future<LibraryBookingsResponse> crateApiLiveLoadLibraryBookings({
+    required bool forceRefresh,
+  });
+
+  Future<LibrarySeatsResponse> crateApiLiveLoadLibrarySeats({
+    required String areaId,
+    required String slotId,
+    required String day,
+    required String start,
+    required String end,
+  });
+
+  Future<LibrarySlotsResponse> crateApiLiveLoadLibrarySlots({
+    required String areaId,
+  });
+
+  Future<LibraryVenuesResponse> crateApiLiveLoadLibraryVenues({
     required bool forceRefresh,
   });
 
@@ -210,6 +242,39 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "init_app", argNames: []);
 
   @override
+  Future<CheckInResponse> crateApiLiveLoadCheckinToday({
+    required bool forceRefresh,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_bool(forceRefresh, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 3,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_check_in_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveLoadCheckinTodayConstMeta,
+        argValues: [forceRefresh],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveLoadCheckinTodayConstMeta =>
+      const TaskConstMeta(
+        debugName: "load_checkin_today",
+        argNames: ["forceRefresh"],
+      );
+
+  @override
   Future<ClassroomResponse> crateApiLiveLoadClassrooms({
     required LiveScope scope,
     required ClassroomQuery query,
@@ -223,7 +288,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 3,
+            funcId: 4,
             port: port_,
           );
         },
@@ -244,6 +309,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
+  Future<CheckInResponse> crateApiMirrorLoadDemoCheckin() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 5,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_check_in_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiMirrorLoadDemoCheckinConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiMirrorLoadDemoCheckinConstMeta =>
+      const TaskConstMeta(debugName: "load_demo_checkin", argNames: []);
+
+  @override
   Future<ClassroomResponse> crateApiMirrorLoadDemoClassrooms({
     required ClassroomQuery query,
   }) {
@@ -255,7 +347,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 4,
+            funcId: 6,
             port: port_,
           );
         },
@@ -285,7 +377,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 7,
             port: port_,
           );
         },
@@ -312,7 +404,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 6,
+            funcId: 8,
             port: port_,
           );
         },
@@ -331,6 +423,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "load_demo_homework", argNames: []);
 
   @override
+  Future<LibraryDemoResponse> crateApiMirrorLoadDemoLibrary() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 9,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_library_demo_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiMirrorLoadDemoLibraryConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiMirrorLoadDemoLibraryConstMeta =>
+      const TaskConstMeta(debugName: "load_demo_library", argNames: []);
+
+  @override
   Future<ScheduleResponse> crateApiMirrorLoadDemoSchedule() {
     return handler.executeNormal(
       NormalTask(
@@ -339,7 +458,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 10,
             port: port_,
           );
         },
@@ -366,7 +485,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 11,
             port: port_,
           );
         },
@@ -393,7 +512,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 9,
+            funcId: 12,
             port: port_,
           );
         },
@@ -425,7 +544,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 10,
+            funcId: 13,
             port: port_,
           );
         },
@@ -446,6 +565,179 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
+  Future<LibraryAreasResponse> crateApiLiveLoadLibraryAreas({
+    required String libraryId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(libraryId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 14,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_library_areas_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveLoadLibraryAreasConstMeta,
+        argValues: [libraryId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveLoadLibraryAreasConstMeta =>
+      const TaskConstMeta(
+        debugName: "load_library_areas",
+        argNames: ["libraryId"],
+      );
+
+  @override
+  Future<LibraryBookingsResponse> crateApiLiveLoadLibraryBookings({
+    required bool forceRefresh,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_bool(forceRefresh, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 15,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_library_bookings_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveLoadLibraryBookingsConstMeta,
+        argValues: [forceRefresh],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveLoadLibraryBookingsConstMeta =>
+      const TaskConstMeta(
+        debugName: "load_library_bookings",
+        argNames: ["forceRefresh"],
+      );
+
+  @override
+  Future<LibrarySeatsResponse> crateApiLiveLoadLibrarySeats({
+    required String areaId,
+    required String slotId,
+    required String day,
+    required String start,
+    required String end,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(areaId, serializer);
+          sse_encode_String(slotId, serializer);
+          sse_encode_String(day, serializer);
+          sse_encode_String(start, serializer);
+          sse_encode_String(end, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 16,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_library_seats_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveLoadLibrarySeatsConstMeta,
+        argValues: [areaId, slotId, day, start, end],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveLoadLibrarySeatsConstMeta =>
+      const TaskConstMeta(
+        debugName: "load_library_seats",
+        argNames: ["areaId", "slotId", "day", "start", "end"],
+      );
+
+  @override
+  Future<LibrarySlotsResponse> crateApiLiveLoadLibrarySlots({
+    required String areaId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(areaId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 17,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_library_slots_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveLoadLibrarySlotsConstMeta,
+        argValues: [areaId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveLoadLibrarySlotsConstMeta =>
+      const TaskConstMeta(
+        debugName: "load_library_slots",
+        argNames: ["areaId"],
+      );
+
+  @override
+  Future<LibraryVenuesResponse> crateApiLiveLoadLibraryVenues({
+    required bool forceRefresh,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_bool(forceRefresh, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 18,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_library_venues_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveLoadLibraryVenuesConstMeta,
+        argValues: [forceRefresh],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveLoadLibraryVenuesConstMeta =>
+      const TaskConstMeta(
+        debugName: "load_library_venues",
+        argNames: ["forceRefresh"],
+      );
+
+  @override
   Future<QueryDates> crateApiMirrorLoadQueryDates({required String instant}) {
     return handler.executeNormal(
       NormalTask(
@@ -455,7 +747,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 11,
+            funcId: 19,
             port: port_,
           );
         },
@@ -482,7 +774,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 12,
+            funcId: 20,
             port: port_,
           );
         },
@@ -514,7 +806,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 13,
+            funcId: 21,
             port: port_,
           );
         },
@@ -544,7 +836,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 14,
+            funcId: 22,
             port: port_,
           );
         },
@@ -580,7 +872,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 15,
+            funcId: 23,
             port: port_,
           );
         },
@@ -614,7 +906,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 16,
+            funcId: 24,
             port: port_,
           );
         },
@@ -644,7 +936,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 17,
+            funcId: 25,
             port: port_,
           );
         },
@@ -671,7 +963,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 26,
             port: port_,
           );
         },
@@ -699,7 +991,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 19,
+            funcId: 27,
             port: port_,
           );
         },
@@ -726,7 +1018,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 20,
+            funcId: 28,
             port: port_,
           );
         },
@@ -758,7 +1050,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 21,
+            funcId: 29,
             port: port_,
           );
         },
@@ -831,6 +1123,50 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RouteChoice dco_decode_box_autoadd_route_choice(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_route_choice(raw);
+  }
+
+  @protected
+  CheckInCourse dco_decode_check_in_course(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 11)
+      throw Exception('unexpected arr length: expect 11 but see ${arr.length}');
+    return CheckInCourse(
+      id: dco_decode_String(arr[0]),
+      courseId: dco_decode_opt_String(arr[1]),
+      courseNum: dco_decode_opt_String(arr[2]),
+      courseName: dco_decode_String(arr[3]),
+      beginsAt: dco_decode_String(arr[4]),
+      endsAt: dco_decode_String(arr[5]),
+      status: dco_decode_check_in_status(arr[6]),
+      teacherName: dco_decode_opt_String(arr[7]),
+      classroomName: dco_decode_opt_String(arr[8]),
+      mergedRecordCount: dco_decode_i_32(arr[9]),
+      conflicting: dco_decode_bool(arr[10]),
+    );
+  }
+
+  @protected
+  CheckInResponse dco_decode_check_in_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    return CheckInResponse(
+      date: dco_decode_String(arr[0]),
+      courses: dco_decode_list_check_in_course(arr[1]),
+      fetchedAt: dco_decode_opt_String(arr[2]),
+      fromCache: dco_decode_bool(arr[3]),
+      stale: dco_decode_bool(arr[4]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[5]),
+      failureDetail: dco_decode_opt_String(arr[6]),
+    );
+  }
+
+  @protected
+  CheckInStatus dco_decode_check_in_status(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return CheckInStatus.values[raw as int];
   }
 
   @protected
@@ -1034,9 +1370,175 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  LibraryArea dco_decode_library_area(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return LibraryArea(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      free: dco_decode_i_32(arr[2]),
+      total: dco_decode_i_32(arr[3]),
+    );
+  }
+
+  @protected
+  LibraryAreasResponse dco_decode_library_areas_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return LibraryAreasResponse(
+      areas: dco_decode_list_library_area(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+      failureDetail: dco_decode_opt_String(arr[2]),
+    );
+  }
+
+  @protected
+  LibraryBooking dco_decode_library_booking(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 8)
+      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
+    return LibraryBooking(
+      id: dco_decode_String(arr[0]),
+      title: dco_decode_String(arr[1]),
+      areaName: dco_decode_String(arr[2]),
+      seatNumber: dco_decode_String(arr[3]),
+      day: dco_decode_String(arr[4]),
+      startTime: dco_decode_String(arr[5]),
+      endTime: dco_decode_String(arr[6]),
+      statusName: dco_decode_String(arr[7]),
+    );
+  }
+
+  @protected
+  LibraryBookingsResponse dco_decode_library_bookings_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return LibraryBookingsResponse(
+      bookings: dco_decode_list_library_booking(arr[0]),
+      fetchedAt: dco_decode_opt_String(arr[1]),
+      fromCache: dco_decode_bool(arr[2]),
+      stale: dco_decode_bool(arr[3]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[4]),
+      failureDetail: dco_decode_opt_String(arr[5]),
+    );
+  }
+
+  @protected
+  LibraryDemoResponse dco_decode_library_demo_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return LibraryDemoResponse(
+      venues: dco_decode_list_library_venue(arr[0]),
+      areas: dco_decode_list_library_area(arr[1]),
+      slots: dco_decode_list_library_slot(arr[2]),
+      seats: dco_decode_list_library_seat(arr[3]),
+      bookings: dco_decode_list_library_booking(arr[4]),
+    );
+  }
+
+  @protected
+  LibrarySeat dco_decode_library_seat(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return LibrarySeat(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      statusName: dco_decode_String(arr[2]),
+      available: dco_decode_bool(arr[3]),
+    );
+  }
+
+  @protected
+  LibrarySeatsResponse dco_decode_library_seats_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return LibrarySeatsResponse(
+      seats: dco_decode_list_library_seat(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+      failureDetail: dco_decode_opt_String(arr[2]),
+    );
+  }
+
+  @protected
+  LibrarySlot dco_decode_library_slot(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return LibrarySlot(
+      id: dco_decode_String(arr[0]),
+      day: dco_decode_String(arr[1]),
+      start: dco_decode_String(arr[2]),
+      end: dco_decode_String(arr[3]),
+    );
+  }
+
+  @protected
+  LibrarySlotsResponse dco_decode_library_slots_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return LibrarySlotsResponse(
+      slots: dco_decode_list_library_slot(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+      failureDetail: dco_decode_opt_String(arr[2]),
+    );
+  }
+
+  @protected
+  LibraryVenue dco_decode_library_venue(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return LibraryVenue(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      free: dco_decode_i_32(arr[2]),
+      total: dco_decode_i_32(arr[3]),
+    );
+  }
+
+  @protected
+  LibraryVenuesResponse dco_decode_library_venues_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return LibraryVenuesResponse(
+      venues: dco_decode_list_library_venue(arr[0]),
+      fetchedAt: dco_decode_opt_String(arr[1]),
+      fromCache: dco_decode_bool(arr[2]),
+      stale: dco_decode_bool(arr[3]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[4]),
+      failureDetail: dco_decode_opt_String(arr[5]),
+    );
+  }
+
+  @protected
   List<String> dco_decode_list_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_String).toList();
+  }
+
+  @protected
+  List<CheckInCourse> dco_decode_list_check_in_course(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_check_in_course).toList();
   }
 
   @protected
@@ -1061,6 +1563,36 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   List<HomeworkItem> dco_decode_list_homework_item(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_homework_item).toList();
+  }
+
+  @protected
+  List<LibraryArea> dco_decode_list_library_area(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_library_area).toList();
+  }
+
+  @protected
+  List<LibraryBooking> dco_decode_list_library_booking(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_library_booking).toList();
+  }
+
+  @protected
+  List<LibrarySeat> dco_decode_list_library_seat(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_library_seat).toList();
+  }
+
+  @protected
+  List<LibrarySlot> dco_decode_list_library_slot(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_library_slot).toList();
+  }
+
+  @protected
+  List<LibraryVenue> dco_decode_list_library_venue(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_library_venue).toList();
   }
 
   @protected
@@ -1418,6 +1950,63 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CheckInCourse sse_decode_check_in_course(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_courseId = sse_decode_opt_String(deserializer);
+    var var_courseNum = sse_decode_opt_String(deserializer);
+    var var_courseName = sse_decode_String(deserializer);
+    var var_beginsAt = sse_decode_String(deserializer);
+    var var_endsAt = sse_decode_String(deserializer);
+    var var_status = sse_decode_check_in_status(deserializer);
+    var var_teacherName = sse_decode_opt_String(deserializer);
+    var var_classroomName = sse_decode_opt_String(deserializer);
+    var var_mergedRecordCount = sse_decode_i_32(deserializer);
+    var var_conflicting = sse_decode_bool(deserializer);
+    return CheckInCourse(
+      id: var_id,
+      courseId: var_courseId,
+      courseNum: var_courseNum,
+      courseName: var_courseName,
+      beginsAt: var_beginsAt,
+      endsAt: var_endsAt,
+      status: var_status,
+      teacherName: var_teacherName,
+      classroomName: var_classroomName,
+      mergedRecordCount: var_mergedRecordCount,
+      conflicting: var_conflicting,
+    );
+  }
+
+  @protected
+  CheckInResponse sse_decode_check_in_response(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_date = sse_decode_String(deserializer);
+    var var_courses = sse_decode_list_check_in_course(deserializer);
+    var var_fetchedAt = sse_decode_opt_String(deserializer);
+    var var_fromCache = sse_decode_bool(deserializer);
+    var var_stale = sse_decode_bool(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    var var_failureDetail = sse_decode_opt_String(deserializer);
+    return CheckInResponse(
+      date: var_date,
+      courses: var_courses,
+      fetchedAt: var_fetchedAt,
+      fromCache: var_fromCache,
+      stale: var_stale,
+      failure: var_failure,
+      failureDetail: var_failureDetail,
+    );
+  }
+
+  @protected
+  CheckInStatus sse_decode_check_in_status(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return CheckInStatus.values[inner];
+  }
+
+  @protected
   ClassroomBuilding sse_decode_classroom_building(
     SseDeserializer deserializer,
   ) {
@@ -1651,6 +2240,195 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  LibraryArea sse_decode_library_area(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_free = sse_decode_i_32(deserializer);
+    var var_total = sse_decode_i_32(deserializer);
+    return LibraryArea(
+      id: var_id,
+      name: var_name,
+      free: var_free,
+      total: var_total,
+    );
+  }
+
+  @protected
+  LibraryAreasResponse sse_decode_library_areas_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_areas = sse_decode_list_library_area(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    var var_failureDetail = sse_decode_opt_String(deserializer);
+    return LibraryAreasResponse(
+      areas: var_areas,
+      failure: var_failure,
+      failureDetail: var_failureDetail,
+    );
+  }
+
+  @protected
+  LibraryBooking sse_decode_library_booking(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_areaName = sse_decode_String(deserializer);
+    var var_seatNumber = sse_decode_String(deserializer);
+    var var_day = sse_decode_String(deserializer);
+    var var_startTime = sse_decode_String(deserializer);
+    var var_endTime = sse_decode_String(deserializer);
+    var var_statusName = sse_decode_String(deserializer);
+    return LibraryBooking(
+      id: var_id,
+      title: var_title,
+      areaName: var_areaName,
+      seatNumber: var_seatNumber,
+      day: var_day,
+      startTime: var_startTime,
+      endTime: var_endTime,
+      statusName: var_statusName,
+    );
+  }
+
+  @protected
+  LibraryBookingsResponse sse_decode_library_bookings_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_bookings = sse_decode_list_library_booking(deserializer);
+    var var_fetchedAt = sse_decode_opt_String(deserializer);
+    var var_fromCache = sse_decode_bool(deserializer);
+    var var_stale = sse_decode_bool(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    var var_failureDetail = sse_decode_opt_String(deserializer);
+    return LibraryBookingsResponse(
+      bookings: var_bookings,
+      fetchedAt: var_fetchedAt,
+      fromCache: var_fromCache,
+      stale: var_stale,
+      failure: var_failure,
+      failureDetail: var_failureDetail,
+    );
+  }
+
+  @protected
+  LibraryDemoResponse sse_decode_library_demo_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_venues = sse_decode_list_library_venue(deserializer);
+    var var_areas = sse_decode_list_library_area(deserializer);
+    var var_slots = sse_decode_list_library_slot(deserializer);
+    var var_seats = sse_decode_list_library_seat(deserializer);
+    var var_bookings = sse_decode_list_library_booking(deserializer);
+    return LibraryDemoResponse(
+      venues: var_venues,
+      areas: var_areas,
+      slots: var_slots,
+      seats: var_seats,
+      bookings: var_bookings,
+    );
+  }
+
+  @protected
+  LibrarySeat sse_decode_library_seat(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_statusName = sse_decode_String(deserializer);
+    var var_available = sse_decode_bool(deserializer);
+    return LibrarySeat(
+      id: var_id,
+      name: var_name,
+      statusName: var_statusName,
+      available: var_available,
+    );
+  }
+
+  @protected
+  LibrarySeatsResponse sse_decode_library_seats_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_seats = sse_decode_list_library_seat(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    var var_failureDetail = sse_decode_opt_String(deserializer);
+    return LibrarySeatsResponse(
+      seats: var_seats,
+      failure: var_failure,
+      failureDetail: var_failureDetail,
+    );
+  }
+
+  @protected
+  LibrarySlot sse_decode_library_slot(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_day = sse_decode_String(deserializer);
+    var var_start = sse_decode_String(deserializer);
+    var var_end = sse_decode_String(deserializer);
+    return LibrarySlot(
+      id: var_id,
+      day: var_day,
+      start: var_start,
+      end: var_end,
+    );
+  }
+
+  @protected
+  LibrarySlotsResponse sse_decode_library_slots_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_slots = sse_decode_list_library_slot(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    var var_failureDetail = sse_decode_opt_String(deserializer);
+    return LibrarySlotsResponse(
+      slots: var_slots,
+      failure: var_failure,
+      failureDetail: var_failureDetail,
+    );
+  }
+
+  @protected
+  LibraryVenue sse_decode_library_venue(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_free = sse_decode_i_32(deserializer);
+    var var_total = sse_decode_i_32(deserializer);
+    return LibraryVenue(
+      id: var_id,
+      name: var_name,
+      free: var_free,
+      total: var_total,
+    );
+  }
+
+  @protected
+  LibraryVenuesResponse sse_decode_library_venues_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_venues = sse_decode_list_library_venue(deserializer);
+    var var_fetchedAt = sse_decode_opt_String(deserializer);
+    var var_fromCache = sse_decode_bool(deserializer);
+    var var_stale = sse_decode_bool(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    var var_failureDetail = sse_decode_opt_String(deserializer);
+    return LibraryVenuesResponse(
+      venues: var_venues,
+      fetchedAt: var_fetchedAt,
+      fromCache: var_fromCache,
+      stale: var_stale,
+      failure: var_failure,
+      failureDetail: var_failureDetail,
+    );
+  }
+
+  @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -1658,6 +2436,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var ans_ = <String>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_String(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<CheckInCourse> sse_decode_list_check_in_course(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CheckInCourse>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_check_in_course(deserializer));
     }
     return ans_;
   }
@@ -1712,6 +2504,70 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var ans_ = <HomeworkItem>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_homework_item(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<LibraryArea> sse_decode_list_library_area(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <LibraryArea>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_library_area(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<LibraryBooking> sse_decode_list_library_booking(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <LibraryBooking>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_library_booking(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<LibrarySeat> sse_decode_list_library_seat(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <LibrarySeat>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_library_seat(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<LibrarySlot> sse_decode_list_library_slot(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <LibrarySlot>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_library_slot(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<LibraryVenue> sse_decode_list_library_venue(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <LibraryVenue>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_library_venue(deserializer));
     }
     return ans_;
   }
@@ -2185,6 +3041,49 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_check_in_course(
+    CheckInCourse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_opt_String(self.courseId, serializer);
+    sse_encode_opt_String(self.courseNum, serializer);
+    sse_encode_String(self.courseName, serializer);
+    sse_encode_String(self.beginsAt, serializer);
+    sse_encode_String(self.endsAt, serializer);
+    sse_encode_check_in_status(self.status, serializer);
+    sse_encode_opt_String(self.teacherName, serializer);
+    sse_encode_opt_String(self.classroomName, serializer);
+    sse_encode_i_32(self.mergedRecordCount, serializer);
+    sse_encode_bool(self.conflicting, serializer);
+  }
+
+  @protected
+  void sse_encode_check_in_response(
+    CheckInResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.date, serializer);
+    sse_encode_list_check_in_course(self.courses, serializer);
+    sse_encode_opt_String(self.fetchedAt, serializer);
+    sse_encode_bool(self.fromCache, serializer);
+    sse_encode_bool(self.stale, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+    sse_encode_opt_String(self.failureDetail, serializer);
+  }
+
+  @protected
+  void sse_encode_check_in_status(
+    CheckInStatus self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
   void sse_encode_classroom_building(
     ClassroomBuilding self,
     SseSerializer serializer,
@@ -2348,11 +3247,149 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_library_area(LibraryArea self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_i_32(self.free, serializer);
+    sse_encode_i_32(self.total, serializer);
+  }
+
+  @protected
+  void sse_encode_library_areas_response(
+    LibraryAreasResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_library_area(self.areas, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+    sse_encode_opt_String(self.failureDetail, serializer);
+  }
+
+  @protected
+  void sse_encode_library_booking(
+    LibraryBooking self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_String(self.areaName, serializer);
+    sse_encode_String(self.seatNumber, serializer);
+    sse_encode_String(self.day, serializer);
+    sse_encode_String(self.startTime, serializer);
+    sse_encode_String(self.endTime, serializer);
+    sse_encode_String(self.statusName, serializer);
+  }
+
+  @protected
+  void sse_encode_library_bookings_response(
+    LibraryBookingsResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_library_booking(self.bookings, serializer);
+    sse_encode_opt_String(self.fetchedAt, serializer);
+    sse_encode_bool(self.fromCache, serializer);
+    sse_encode_bool(self.stale, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+    sse_encode_opt_String(self.failureDetail, serializer);
+  }
+
+  @protected
+  void sse_encode_library_demo_response(
+    LibraryDemoResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_library_venue(self.venues, serializer);
+    sse_encode_list_library_area(self.areas, serializer);
+    sse_encode_list_library_slot(self.slots, serializer);
+    sse_encode_list_library_seat(self.seats, serializer);
+    sse_encode_list_library_booking(self.bookings, serializer);
+  }
+
+  @protected
+  void sse_encode_library_seat(LibrarySeat self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_String(self.statusName, serializer);
+    sse_encode_bool(self.available, serializer);
+  }
+
+  @protected
+  void sse_encode_library_seats_response(
+    LibrarySeatsResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_library_seat(self.seats, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+    sse_encode_opt_String(self.failureDetail, serializer);
+  }
+
+  @protected
+  void sse_encode_library_slot(LibrarySlot self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.day, serializer);
+    sse_encode_String(self.start, serializer);
+    sse_encode_String(self.end, serializer);
+  }
+
+  @protected
+  void sse_encode_library_slots_response(
+    LibrarySlotsResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_library_slot(self.slots, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+    sse_encode_opt_String(self.failureDetail, serializer);
+  }
+
+  @protected
+  void sse_encode_library_venue(LibraryVenue self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_i_32(self.free, serializer);
+    sse_encode_i_32(self.total, serializer);
+  }
+
+  @protected
+  void sse_encode_library_venues_response(
+    LibraryVenuesResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_library_venue(self.venues, serializer);
+    sse_encode_opt_String(self.fetchedAt, serializer);
+    sse_encode_bool(self.fromCache, serializer);
+    sse_encode_bool(self.stale, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+    sse_encode_opt_String(self.failureDetail, serializer);
+  }
+
+  @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_String(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_check_in_course(
+    List<CheckInCourse> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_check_in_course(item, serializer);
     }
   }
 
@@ -2401,6 +3438,66 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_homework_item(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_library_area(
+    List<LibraryArea> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_library_area(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_library_booking(
+    List<LibraryBooking> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_library_booking(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_library_seat(
+    List<LibrarySeat> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_library_seat(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_library_slot(
+    List<LibrarySlot> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_library_slot(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_library_venue(
+    List<LibraryVenue> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_library_venue(item, serializer);
     }
   }
 

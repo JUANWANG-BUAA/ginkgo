@@ -1,12 +1,16 @@
 //! Coarse use cases. Decode untrusted input here; domain never sees Flutter state.
 mod cache;
+mod checkin_service;
 mod classroom_service;
 pub mod contracts;
+pub mod demo_checkin;
 pub mod demo_grades;
 pub mod demo_homework;
+pub mod demo_library;
 pub mod demo_repository;
 pub mod demo_schedule;
 pub mod demo_today;
+mod library_service;
 mod schedule_service;
 pub mod session_service;
 use crate::{
@@ -14,8 +18,10 @@ use crate::{
     foundation::school_time,
     AppError,
 };
+pub use checkin_service::CheckInOutcome;
 pub use classroom_service::{ClassroomOutcome, ClassroomQueryInput};
 pub use contracts::execute_contract;
+pub use library_service::{LibraryBookingsOutcome, LibraryVenuesOutcome};
 pub use schedule_service::{
     GradeData, GradeOutcome, ScheduleData, ScheduleOutcome, ScheduleQueryInput, TodayOutcome,
 };

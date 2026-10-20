@@ -1,0 +1,42 @@
+{
+  "contract": "checkin.course_schedule",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "STATUS": "0",
+      "total": 2,
+      "result": [
+        {
+          "id": "701",
+          "courseName": "数据结构",
+          "classBeginTime": "14:00",
+          "classEndTime": "15:35",
+          "signStatus": "0"
+        },
+        {
+          "id": "702",
+          "courseName": "数据结构",
+          "classBeginTime": "14:00",
+          "classEndTime": "15:35",
+          "signStatus": "1"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "courses": [
+      {
+        "id": "701",
+        "courseName": "数据结构",
+        "beginsAt": "14:00",
+        "endsAt": "15:35",
+        "status": "unknown",
+        "teacherName": null,
+        "classroomName": null,
+        "mergedRecordCount": 2,
+        "conflicting": true
+      }
+    ]
+  }
+}

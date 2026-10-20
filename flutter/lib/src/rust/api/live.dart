@@ -8,7 +8,7 @@ import 'mirror.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `classroom_response`, `classroom_sort`, `failure_response`, `failure`, `grade_failure`, `grade_response`, `outcome_response`, `schedule_failure`, `schedule_response`, `service`, `signed_out`, `status_response`, `today_response`
+// These functions are ignored because they are not marked as `pub`: `checkin_failure`, `checkin_response`, `classroom_response`, `classroom_sort`, `failure_response`, `failure`, `grade_failure`, `grade_response`, `library_area`, `library_booking`, `library_seat`, `library_slot`, `library_venue`, `outcome_response`, `schedule_failure`, `schedule_response`, `service`, `signed_out`, `status_response`, `today_response`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`
 
 Future<SessionResponse> login({
@@ -53,6 +53,11 @@ Future<ScheduleResponse> loadSchedule({
 Future<TodayResponse> loadToday({required bool forceRefresh}) =>
     RustLib.instance.api.crateApiLiveLoadToday(forceRefresh: forceRefresh);
 
+Future<CheckInResponse> loadCheckinToday({required bool forceRefresh}) =>
+    RustLib.instance.api.crateApiLiveLoadCheckinToday(
+      forceRefresh: forceRefresh,
+    );
+
 Future<GradeTermsResponse> loadGradeTerms() =>
     RustLib.instance.api.crateApiLiveLoadGradeTerms();
 
@@ -72,6 +77,37 @@ Future<bool> verifyCredentialStorage({
 }) => RustLib.instance.api.crateApiLiveVerifyCredentialStorage(
   account: account,
   secret: secret,
+);
+
+Future<LibraryVenuesResponse> loadLibraryVenues({required bool forceRefresh}) =>
+    RustLib.instance.api.crateApiLiveLoadLibraryVenues(
+      forceRefresh: forceRefresh,
+    );
+
+Future<LibraryAreasResponse> loadLibraryAreas({required String libraryId}) =>
+    RustLib.instance.api.crateApiLiveLoadLibraryAreas(libraryId: libraryId);
+
+Future<LibrarySlotsResponse> loadLibrarySlots({required String areaId}) =>
+    RustLib.instance.api.crateApiLiveLoadLibrarySlots(areaId: areaId);
+
+Future<LibrarySeatsResponse> loadLibrarySeats({
+  required String areaId,
+  required String slotId,
+  required String day,
+  required String start,
+  required String end,
+}) => RustLib.instance.api.crateApiLiveLoadLibrarySeats(
+  areaId: areaId,
+  slotId: slotId,
+  day: day,
+  start: start,
+  end: end,
+);
+
+Future<LibraryBookingsResponse> loadLibraryBookings({
+  required bool forceRefresh,
+}) => RustLib.instance.api.crateApiLiveLoadLibraryBookings(
+  forceRefresh: forceRefresh,
 );
 
 class GradeTermsResponse {

@@ -111,6 +111,97 @@ final todayFixture = TodayResponse(
     ),
   ],
 );
+final checkInFixture = CheckInResponse(
+  date: '2026-10-20',
+  courses: const [
+    CheckInCourse(
+      id: '501',
+      courseName: '高等数学',
+      beginsAt: '08:00',
+      endsAt: '09:35',
+      status: CheckInStatus.notSigned,
+      teacherName: '张老师',
+      classroomName: '主楼A101',
+      mergedRecordCount: 1,
+      conflicting: false,
+    ),
+    CheckInCourse(
+      id: '502',
+      courseName: '大学物理',
+      beginsAt: '10:00',
+      endsAt: '11:35',
+      status: CheckInStatus.signed,
+      teacherName: '李老师',
+      classroomName: '主楼B202',
+      mergedRecordCount: 2,
+      conflicting: false,
+    ),
+    CheckInCourse(
+      id: '503',
+      courseName: '数据结构',
+      beginsAt: '14:00',
+      endsAt: '15:35',
+      status: CheckInStatus.unknown,
+      mergedRecordCount: 2,
+      conflicting: true,
+    ),
+  ],
+  fetchedAt: '2026-10-20T15:30:00+08:00',
+  fromCache: false,
+  stale: false,
+);
+
+const emptyCheckIn = CheckInResponse(
+  date: '2026-10-20',
+  courses: [],
+  fromCache: false,
+  stale: false,
+);
+
+final libraryVenuesFixture = LibraryVenuesResponse(
+  venues: const [
+    LibraryVenue(id: 'v1', name: '学院路馆', free: 12, total: 30),
+    LibraryVenue(id: 'v2', name: '沙河馆', free: 0, total: 8),
+  ],
+  fetchedAt: '2026-10-20T15:30:00+08:00',
+  fromCache: false,
+  stale: false,
+);
+
+const libraryBookingsFixture = LibraryBookingsResponse(
+  bookings: [
+    LibraryBooking(
+      id: 'b1',
+      title: '学院路馆 · A区 · 12号',
+      areaName: 'A区',
+      seatNumber: '12',
+      day: '2026-10-20',
+      startTime: '08:00',
+      endTime: '12:00',
+      statusName: '使用中',
+    ),
+  ],
+  fromCache: false,
+  stale: false,
+);
+
+const libraryAreasFixture = LibraryAreasResponse(
+  areas: [LibraryArea(id: 'a1', name: 'A区', free: 4, total: 20)],
+);
+
+const librarySlotsFixture = LibrarySlotsResponse(
+  slots: [
+    LibrarySlot(id: '2026-10-20/t1', day: '2026-10-20', start: '08:00', end: '10:00'),
+  ],
+);
+
+const librarySeatsFixture = LibrarySeatsResponse(
+  seats: [
+    LibrarySeat(id: 's1', name: 'A-01', statusName: '空闲', available: true),
+    LibrarySeat(id: 's2', name: 'A-02', statusName: '已占用', available: false),
+  ],
+);
+
 final homeworkFixture = HomeworkResponse(
   termName: '2026-2027学年第1学期',
   termCode: '2026-2027-1',
@@ -133,6 +224,12 @@ final homeworkFixture = HomeworkResponse(
 
 class ControlledService implements MirrorService {
   final requests = <Completer<ClassroomResponse>>[];
+  final checkinRequests = <Completer<CheckInResponse>>[];
+  LibraryVenuesResponse libraryVenuesResult = libraryVenuesFixture;
+  LibraryBookingsResponse libraryBookingsResult = libraryBookingsFixture;
+  LibraryAreasResponse libraryAreasResult = libraryAreasFixture;
+  LibrarySlotsResponse librarySlotsResult = librarySlotsFixture;
+  LibrarySeatsResponse librarySeatsResult = librarySeatsFixture;
   @override
   bool get isDemo => true;
   @override
@@ -189,6 +286,32 @@ class ControlledService implements MirrorService {
       todayFixture;
 
   @override
+  Future<CheckInResponse> checkin({bool forceRefresh = false}) {
+    final completer = Completer<CheckInResponse>();
+    checkinRequests.add(completer);
+    return completer.future;
+  }
+
+  @override
+  Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false}) async =>
+      libraryVenuesResult;
+  @override
+  Future<LibraryAreasResponse> libraryAreas(String libraryId) async =>
+      libraryAreasResult;
+  @override
+  Future<LibrarySlotsResponse> librarySlots(String areaId) async =>
+      librarySlotsResult;
+  @override
+  Future<LibrarySeatsResponse> librarySeats({
+    required String areaId,
+    required LibrarySlot slot,
+  }) async => librarySeatsResult;
+  @override
+  Future<LibraryBookingsResponse> libraryBookings({
+    bool forceRefresh = false,
+  }) async => libraryBookingsResult;
+
+  @override
   Future<HomeworkResponse> homework() async => homeworkFixture;
 }
 
@@ -209,6 +332,25 @@ Future<void> start(WidgetTester tester, ControlledService service) async {
   await openMore(tester, '空教室');
   await tester.tap(find.text('查询空教室'));
   await tester.pump();
+}
+
+Future<void> openCheckin(
+  WidgetTester tester,
+  ControlledService service,
+) async {
+  tester.view.physicalSize = const Size(430, 1200);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  await tester.pumpWidget(GinkgoApp(service: service));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('更多'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('课程签到'));
+  // The page starts loading immediately; a repeating spinner would make
+  // pumpAndSettle time out, so drive the route transition explicitly.
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
 }
 
 void main() {
@@ -416,6 +558,174 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('作业二'), findsOneWidget);
     expect(find.text('作业一'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+
+  testWidgets('library tab shows current bookings and venues', (tester) async {
+    final service = ControlledService();
+    tester.view.physicalSize = const Size(430, 1300);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(GinkgoApp(service: service));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('图书馆'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('当前预约'), findsOneWidget);
+    expect(find.text('学院路馆 · A区 · 12号'), findsOneWidget);
+    expect(find.text('使用中'), findsOneWidget);
+    expect(find.text('选择场馆'), findsOneWidget);
+    expect(find.text('空闲 12 / 30'), findsOneWidget);
+    expect(find.textContaining('仅用于演示只读座位层级'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('library drills from venue to area, slot and seats', (
+    tester,
+  ) async {
+    final service = ControlledService();
+    tester.view.physicalSize = const Size(430, 1300);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(GinkgoApp(service: service));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('图书馆'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('library-venue-v1')));
+    await tester.pumpAndSettle();
+    expect(find.text('区域'), findsOneWidget);
+    expect(find.text('空闲 4 / 20'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('library-area-a1')));
+    await tester.pumpAndSettle();
+    expect(find.text('时段'), findsOneWidget);
+    expect(find.text('08:00–10:00'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('library-slot-2026-10-20/t1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('library-seat-s1')), findsOneWidget);
+    expect(find.text('A-01'), findsOneWidget);
+    expect(find.text('空闲'), findsOneWidget);
+    expect(find.text('已占用'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('library empty state is explicit, not an error', (tester) async {
+    final service = ControlledService()
+      ..libraryVenuesResult = const LibraryVenuesResponse(
+        venues: [],
+        fromCache: false,
+        stale: false,
+      )
+      ..libraryBookingsResult = const LibraryBookingsResponse(
+        bookings: [],
+        fromCache: false,
+        stale: false,
+      );
+    tester.view.physicalSize = const Size(430, 1300);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(GinkgoApp(service: service));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('图书馆'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('当前没有进行中的预约'), findsOneWidget);
+    expect(find.text('暂无可用场馆'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('checkin shows the day, statuses and read-only boundary', (
+    tester,
+  ) async {
+    final service = ControlledService();
+    await openCheckin(tester, service);
+    service.checkinRequests.single.complete(checkInFixture);
+    await tester.pumpAndSettle();
+
+    expect(find.text('2026年10月20日 · 周二'), findsOneWidget);
+    expect(find.text('今天 3 节课'), findsOneWidget);
+    expect(find.text('已签到 1 · 未签到 1 · 待确认 1'), findsOneWidget);
+    expect(find.text('核对 15:30'), findsOneWidget);
+    expect(find.text('高等数学'), findsOneWidget);
+    expect(find.text('未签到'), findsOneWidget);
+    expect(find.text('已签到'), findsOneWidget);
+    expect(find.text('待确认'), findsOneWidget);
+    expect(find.textContaining('合并 2 条'), findsWidgets);
+    expect(find.textContaining('记录不一致'), findsWidgets);
+    expect(find.textContaining('仅用于演示只读签到页'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('checkin empty day is an empty state, not an error', (
+    tester,
+  ) async {
+    final service = ControlledService();
+    await openCheckin(tester, service);
+    service.checkinRequests.single.complete(emptyCheckIn);
+    await tester.pumpAndSettle();
+
+    expect(find.text('今天没有课程'), findsWidgets);
+    expect(find.textContaining('仅用于演示只读签到页'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('checkin failure is visible and retry can recover', (
+    tester,
+  ) async {
+    final service = ControlledService();
+    await openCheckin(tester, service);
+    service.checkinRequests.single.complete(
+      const CheckInResponse(
+        date: '2026-10-20',
+        courses: [],
+        fromCache: false,
+        stale: false,
+        failure: FailureCode.changedResponse,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('数据格式无法识别，请重试'), findsOneWidget);
+    await tester.ensureVisible(find.text('重试'));
+    await tester.tap(find.text('重试'));
+    await tester.pump();
+    service.checkinRequests.last.complete(checkInFixture);
+    await tester.pumpAndSettle();
+    expect(find.text('高等数学'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('checkin keeps the last snapshot when a refresh fails', (
+    tester,
+  ) async {
+    final service = ControlledService();
+    await openCheckin(tester, service);
+    service.checkinRequests.single.complete(checkInFixture);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(CupertinoIcons.refresh));
+    await tester.pump();
+    service.checkinRequests.last.complete(
+      CheckInResponse(
+        date: '2026-10-20',
+        courses: checkInFixture.courses,
+        fetchedAt: checkInFixture.fetchedAt,
+        fromCache: true,
+        stale: true,
+        failure: FailureCode.serviceUnavailable,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('正在显示上次结果'), findsOneWidget);
+    expect(find.text('高等数学'), findsOneWidget);
+    expect(find.text('待确认'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

@@ -7,6 +7,7 @@ import '../frb_generated.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These functions are ignored because they are not marked as `pub`: `checkin_course`, `library_area`, `library_booking`, `library_seat`, `library_slot`, `library_venue`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `from`
 
 Future<ClassroomResponse> loadDemoClassrooms({required ClassroomQuery query}) =>
@@ -37,6 +38,117 @@ Future<ClassroomResponse> queryDemoClassrooms({
   scope: scope,
   query: query,
 );
+
+Future<CheckInResponse> loadDemoCheckin() =>
+    RustLib.instance.api.crateApiMirrorLoadDemoCheckin();
+
+Future<LibraryDemoResponse> loadDemoLibrary() =>
+    RustLib.instance.api.crateApiMirrorLoadDemoLibrary();
+
+class CheckInCourse {
+  final String id;
+  final String? courseId;
+  final String? courseNum;
+  final String courseName;
+  final String beginsAt;
+  final String endsAt;
+  final CheckInStatus status;
+  final String? teacherName;
+  final String? classroomName;
+  final int mergedRecordCount;
+  final bool conflicting;
+
+  const CheckInCourse({
+    required this.id,
+    this.courseId,
+    this.courseNum,
+    required this.courseName,
+    required this.beginsAt,
+    required this.endsAt,
+    required this.status,
+    this.teacherName,
+    this.classroomName,
+    required this.mergedRecordCount,
+    required this.conflicting,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      courseId.hashCode ^
+      courseNum.hashCode ^
+      courseName.hashCode ^
+      beginsAt.hashCode ^
+      endsAt.hashCode ^
+      status.hashCode ^
+      teacherName.hashCode ^
+      classroomName.hashCode ^
+      mergedRecordCount.hashCode ^
+      conflicting.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CheckInCourse &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          courseId == other.courseId &&
+          courseNum == other.courseNum &&
+          courseName == other.courseName &&
+          beginsAt == other.beginsAt &&
+          endsAt == other.endsAt &&
+          status == other.status &&
+          teacherName == other.teacherName &&
+          classroomName == other.classroomName &&
+          mergedRecordCount == other.mergedRecordCount &&
+          conflicting == other.conflicting;
+}
+
+class CheckInResponse {
+  /// School-local date, yyyy-MM-dd.
+  final String date;
+  final List<CheckInCourse> courses;
+  final String? fetchedAt;
+  final bool fromCache;
+  final bool stale;
+  final FailureCode? failure;
+  final String? failureDetail;
+
+  const CheckInResponse({
+    required this.date,
+    required this.courses,
+    this.fetchedAt,
+    required this.fromCache,
+    required this.stale,
+    this.failure,
+    this.failureDetail,
+  });
+
+  @override
+  int get hashCode =>
+      date.hashCode ^
+      courses.hashCode ^
+      fetchedAt.hashCode ^
+      fromCache.hashCode ^
+      stale.hashCode ^
+      failure.hashCode ^
+      failureDetail.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CheckInResponse &&
+          runtimeType == other.runtimeType &&
+          date == other.date &&
+          courses == other.courses &&
+          fetchedAt == other.fetchedAt &&
+          fromCache == other.fromCache &&
+          stale == other.stale &&
+          failure == other.failure &&
+          failureDetail == other.failureDetail;
+}
+
+enum CheckInStatus { notSigned, signed, unknown }
 
 class ClassroomBuilding {
   final String name;
@@ -220,6 +332,7 @@ enum FailureCode {
   redirectLimit,
   unsupportedPortal,
   credentialStore,
+  businessRejected,
 }
 
 class GradeCourse {
@@ -426,6 +539,353 @@ class HomeworkResponse {
 }
 
 enum HomeworkStatus { pending, submitted, unknown }
+
+class LibraryArea {
+  final String id;
+  final String name;
+  final int free;
+  final int total;
+
+  const LibraryArea({
+    required this.id,
+    required this.name,
+    required this.free,
+    required this.total,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^ name.hashCode ^ free.hashCode ^ total.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibraryArea &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          free == other.free &&
+          total == other.total;
+}
+
+class LibraryAreasResponse {
+  final List<LibraryArea> areas;
+  final FailureCode? failure;
+  final String? failureDetail;
+
+  const LibraryAreasResponse({
+    required this.areas,
+    this.failure,
+    this.failureDetail,
+  });
+
+  @override
+  int get hashCode =>
+      areas.hashCode ^ failure.hashCode ^ failureDetail.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibraryAreasResponse &&
+          runtimeType == other.runtimeType &&
+          areas == other.areas &&
+          failure == other.failure &&
+          failureDetail == other.failureDetail;
+}
+
+class LibraryBooking {
+  final String id;
+  final String title;
+  final String areaName;
+  final String seatNumber;
+  final String day;
+  final String startTime;
+  final String endTime;
+  final String statusName;
+
+  const LibraryBooking({
+    required this.id,
+    required this.title,
+    required this.areaName,
+    required this.seatNumber,
+    required this.day,
+    required this.startTime,
+    required this.endTime,
+    required this.statusName,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      title.hashCode ^
+      areaName.hashCode ^
+      seatNumber.hashCode ^
+      day.hashCode ^
+      startTime.hashCode ^
+      endTime.hashCode ^
+      statusName.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibraryBooking &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          areaName == other.areaName &&
+          seatNumber == other.seatNumber &&
+          day == other.day &&
+          startTime == other.startTime &&
+          endTime == other.endTime &&
+          statusName == other.statusName;
+}
+
+class LibraryBookingsResponse {
+  final List<LibraryBooking> bookings;
+  final String? fetchedAt;
+  final bool fromCache;
+  final bool stale;
+  final FailureCode? failure;
+  final String? failureDetail;
+
+  const LibraryBookingsResponse({
+    required this.bookings,
+    this.fetchedAt,
+    required this.fromCache,
+    required this.stale,
+    this.failure,
+    this.failureDetail,
+  });
+
+  @override
+  int get hashCode =>
+      bookings.hashCode ^
+      fetchedAt.hashCode ^
+      fromCache.hashCode ^
+      stale.hashCode ^
+      failure.hashCode ^
+      failureDetail.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibraryBookingsResponse &&
+          runtimeType == other.runtimeType &&
+          bookings == other.bookings &&
+          fetchedAt == other.fetchedAt &&
+          fromCache == other.fromCache &&
+          stale == other.stale &&
+          failure == other.failure &&
+          failureDetail == other.failureDetail;
+}
+
+class LibraryDemoResponse {
+  final List<LibraryVenue> venues;
+  final List<LibraryArea> areas;
+  final List<LibrarySlot> slots;
+  final List<LibrarySeat> seats;
+  final List<LibraryBooking> bookings;
+
+  const LibraryDemoResponse({
+    required this.venues,
+    required this.areas,
+    required this.slots,
+    required this.seats,
+    required this.bookings,
+  });
+
+  @override
+  int get hashCode =>
+      venues.hashCode ^
+      areas.hashCode ^
+      slots.hashCode ^
+      seats.hashCode ^
+      bookings.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibraryDemoResponse &&
+          runtimeType == other.runtimeType &&
+          venues == other.venues &&
+          areas == other.areas &&
+          slots == other.slots &&
+          seats == other.seats &&
+          bookings == other.bookings;
+}
+
+class LibrarySeat {
+  final String id;
+  final String name;
+  final String statusName;
+  final bool available;
+
+  const LibrarySeat({
+    required this.id,
+    required this.name,
+    required this.statusName,
+    required this.available,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^ name.hashCode ^ statusName.hashCode ^ available.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibrarySeat &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          statusName == other.statusName &&
+          available == other.available;
+}
+
+class LibrarySeatsResponse {
+  final List<LibrarySeat> seats;
+  final FailureCode? failure;
+  final String? failureDetail;
+
+  const LibrarySeatsResponse({
+    required this.seats,
+    this.failure,
+    this.failureDetail,
+  });
+
+  @override
+  int get hashCode =>
+      seats.hashCode ^ failure.hashCode ^ failureDetail.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibrarySeatsResponse &&
+          runtimeType == other.runtimeType &&
+          seats == other.seats &&
+          failure == other.failure &&
+          failureDetail == other.failureDetail;
+}
+
+class LibrarySlot {
+  final String id;
+  final String day;
+  final String start;
+  final String end;
+
+  const LibrarySlot({
+    required this.id,
+    required this.day,
+    required this.start,
+    required this.end,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^ day.hashCode ^ start.hashCode ^ end.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibrarySlot &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          day == other.day &&
+          start == other.start &&
+          end == other.end;
+}
+
+class LibrarySlotsResponse {
+  final List<LibrarySlot> slots;
+  final FailureCode? failure;
+  final String? failureDetail;
+
+  const LibrarySlotsResponse({
+    required this.slots,
+    this.failure,
+    this.failureDetail,
+  });
+
+  @override
+  int get hashCode =>
+      slots.hashCode ^ failure.hashCode ^ failureDetail.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibrarySlotsResponse &&
+          runtimeType == other.runtimeType &&
+          slots == other.slots &&
+          failure == other.failure &&
+          failureDetail == other.failureDetail;
+}
+
+class LibraryVenue {
+  final String id;
+  final String name;
+  final int free;
+  final int total;
+
+  const LibraryVenue({
+    required this.id,
+    required this.name,
+    required this.free,
+    required this.total,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^ name.hashCode ^ free.hashCode ^ total.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibraryVenue &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          free == other.free &&
+          total == other.total;
+}
+
+class LibraryVenuesResponse {
+  final List<LibraryVenue> venues;
+  final String? fetchedAt;
+  final bool fromCache;
+  final bool stale;
+  final FailureCode? failure;
+  final String? failureDetail;
+
+  const LibraryVenuesResponse({
+    required this.venues,
+    this.fetchedAt,
+    required this.fromCache,
+    required this.stale,
+    this.failure,
+    this.failureDetail,
+  });
+
+  @override
+  int get hashCode =>
+      venues.hashCode ^
+      fetchedAt.hashCode ^
+      fromCache.hashCode ^
+      stale.hashCode ^
+      failure.hashCode ^
+      failureDetail.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibraryVenuesResponse &&
+          runtimeType == other.runtimeType &&
+          venues == other.venues &&
+          fetchedAt == other.fetchedAt &&
+          fromCache == other.fromCache &&
+          stale == other.stale &&
+          failure == other.failure &&
+          failureDetail == other.failureDetail;
+}
 
 class QueryDates {
   final String today;

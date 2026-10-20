@@ -552,6 +552,8 @@ xq=1&year=2025-2026
 - 响应外层 `{ code: Int, message|msg, data }`，**`code` 为 0 或 1 都算成功**（LLB:293-301）。
 - 字段名大量存在 `snake_case`/`camelCase` 双写变体（表中用 `|` 列出），解析层两种都要接受。
 
+> 镜像实现（2026-10-20）：Rust/Flutter 已接入 `space/pcTopFor`、`space/pick`、`Space/map`、`Space/seat` 与 `index/subscribe` 的**只读**路径，并通过共享 fixture、mock HTTP 与 Android 合成设备测试。`space/confirm`、`space/signin`、`space/leave`、`space/checkout`、`space/cancel` 等写入未实现，页面没有提交入口；写入需要独立评审、二次确认与提交后回查。真实上游只读验收尚未执行。
+
 ### 5.3 预约请求加密（AES-CBC）
 
 仅 `space/confirm` 需要（LLB:242）：
@@ -747,6 +749,8 @@ Judge 作业详情页同时包含开始/截止时间、满分、题目表格、�
 - 本项目对 SSO、app 登录、课程查询、服务器时间和提交阶段分别记录脱敏 OSLog；日志不得包含 loginName、sessionId、Cookie、查询串或响应正文。应用内状态变化提示与用户授权后的通用 macOS 通知已接入；真实写入往返、通知投递、后台/休眠行为仍待人工验收。
 
 只读字段以真实 WebVPN 转发响应为据；本轮 CUA 已验证当前 App 经 WebVPN CAS 读取当天无课状态。提交协议目前仅以 BBAA 源码为参考，真实签到写入、通知投递和后台/休眠行为仍待验收。
+
+> 镜像实现（2026-10-20）：Rust/Flutter 已接入入口 SSO、app login 与当天课程查询的只读链路，字段与状态语义按本节；STATUS=2 只对当天课程查询解释为空，其他非成功 STATUS 返回业务拒绝；重复记录按 id 或课程时间合并，状态冲突显示待确认。WebVPN 路由下，`session` 把网关响应的 final URL/Location 还原为上游 URL；直连不可达时只对有界安全 GET 回退。网关自身需要 CAS 会话，镜像仅在平台保险库保存了密码时自动建立，否则要求重新登录。镜像没有实现 `stu_scan_sign.action`，页面没有签到提交入口；共享 fixture 与 Android 合成设备测试不能替代真实签到状态验收。
 
 ---
 

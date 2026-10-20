@@ -24,6 +24,10 @@ pub enum ErrorCode {
     RedirectLimit,
     UnsupportedPortal,
     CredentialStore,
+    /// The upstream business endpoint answered, but explicitly rejected this
+    /// request (for example an expired app-level session). This is not a
+    /// logout: the school session may still be valid.
+    BusinessRejected,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

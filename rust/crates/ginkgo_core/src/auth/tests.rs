@@ -229,6 +229,69 @@ async fn following_redirects_carries_cookies_and_resolves_relative_locations() {
 }
 
 #[tokio::test]
+async fn webvpn_responses_are_normalized_before_redirects_are_followed() {
+    use crate::foundation::webvpn;
+    let start = "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter";
+    let landed = "https://iclass.buaa.edu.cn:8346/?loginName=fixture";
+    let wrapped_start = webvpn::wrap(start).expect("wrap start");
+    let wrapped_landed = webvpn::wrap(landed).expect("wrap landed");
+    // Gateway-relative hop: the gateway emits its own path, not the upstream URL.
+    let gateway_relative = wrapped_landed
+        .strip_prefix("https://d.buaa.edu.cn")
+        .expect("gateway prefix")
+        .to_string();
+    let transport = MockTransport::with_responses(vec![
+        HttpResponse::new(302, &wrapped_start, "").with_header("Location", &gateway_relative),
+        HttpResponse::new(200, &wrapped_landed, "{}"),
+    ]);
+    let session = Session::new(transport.clone());
+    session.set_route(SessionRoute::WebVpn);
+    let response = session
+        .send_following_redirects(crate::foundation::http::HttpRequest::get(start))
+        .await
+        .expect("gateway redirect chain");
+    assert_eq!(response.final_url, landed);
+    let requests = transport.requests();
+    assert_eq!(requests.len(), 2);
+    assert_eq!(requests[0].url, wrapped_start);
+    assert_eq!(requests[1].url, wrapped_landed);
+}
+
+#[tokio::test]
+async fn webvpn_absolute_locations_stay_on_the_gateway_when_gateway_owned() {
+    use crate::foundation::webvpn;
+    let start = "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter";
+    let wrapped_start = webvpn::wrap(start).expect("wrap start");
+    let transport = MockTransport::with_responses(vec![
+        HttpResponse::new(302, &wrapped_start, "").with_header(
+            "Location",
+            "https://d.buaa.edu.cn/https-8346/0000/?loginName=fixture",
+        ),
+        HttpResponse::new(
+            200,
+            "https://d.buaa.edu.cn/https-8346/0000/?loginName=fixture",
+            "",
+        ),
+    ]);
+    let session = Session::new(transport.clone());
+    session.set_route(SessionRoute::WebVpn);
+    let response = session
+        .send_following_redirects(crate::foundation::http::HttpRequest::get(start))
+        .await
+        .expect("absolute gateway location");
+    // An undecodable gateway host keeps the gateway URL, but it is still a
+    // resolvable absolute location: no upstream mis-join.
+    assert_eq!(
+        response.final_url,
+        "https://d.buaa.edu.cn/https-8346/0000/?loginName=fixture"
+    );
+    assert_eq!(
+        transport.requests()[1].url,
+        "https://d.buaa.edu.cn/https-8346/0000/?loginName=fixture"
+    );
+}
+
+#[tokio::test]
 async fn redirect_loops_are_bounded() {
     let transport = MockTransport::with_responses(
         (0..11)

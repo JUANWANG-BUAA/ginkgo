@@ -19,6 +19,7 @@ String failureMessage(FailureCode? code) => switch (code) {
   FailureCode.redirectLimit => '学校认证跳转次数过多，请稍后重试',
   FailureCode.unsupportedPortal => '当前教务门户不提供该功能，请切换到本科生账号',
   FailureCode.credentialStore => '系统安全存储暂时不可用，请稍后重试',
+  FailureCode.businessRejected => '学校业务系统暂未确认这次请求，请稍后刷新；这不代表账号已退出',
   null => '本地服务暂时不可用，请重试',
 };
 

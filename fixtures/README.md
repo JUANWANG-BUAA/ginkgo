@@ -2,7 +2,9 @@
 
 每份 JSON 使用 `contract`、整数 `version`、`source`、`input`、`expected`。`source` 只能是 `synthetic` 或 `redacted-upstream`，不存真实个人数据。
 
-当前十六类 v1 契约共有 58 份合成样例：教室筛选与上游解析、博雅筛选、北京时间、课表已知周次保留、CAS 登录页解析、UC 会话状态、本科课表学期/教学周/周课表/考试、今天课程、成绩响应与学期码、SPOC 作业页与分页加密。覆盖成功、空结果、缺字段、类型漂移和无效输入。应用边界拒绝无效输入时，`expected` 使用 `{"error":"invalid_request"}`；结构无法识别使用 `changed_response`，不把它转换为成功的空列表。
+当前二十四类 v1 契约共有 76 份合成样例：教室筛选与上游解析、博雅筛选、北京时间、课表已知周次保留、CAS 登录页解析、UC 会话状态、本科课表学期/教学周/周课表/考试、今天课程、成绩响应与学期码、SPOC 作业页与分页加密、iclass app 登录与当天课程、booking.lib 登录交换/场馆/区域/时段/座位/当前预约。覆盖成功、空结果、缺字段、类型漂移、重复记录冲突和无效输入。应用边界拒绝无效输入时，`expected` 使用 `{"error":"invalid_request"}`；结构无法识别使用 `changed_response`，不把它转换为成功的空列表；上游明确拒绝使用 `business_rejected`，不当作空结果。
+
+签到样例覆盖 STATUS="0" 正常课程、STATUS=2 无课、缺字段、业务拒绝和同课程状态冲突；图书馆样例覆盖正常、空列表、数量矛盾（结构漂移）和当前预约的空/非空。所有样例均为合成或脱敏数据，不含真实学号、姓名、Cookie、票据、座位号或课程数据。
 
 Rust runner 位于 `rust/crates/ginkgo_core/tests/contracts.rs`，递归读取本目录全部 JSON。Swift 现有测试读取四份起始黄金样例；新增的错误码与认证样例目前由 Rust 应用边界验收，不能据此声称 Swift 也已验证这些错误契约。
 

@@ -14,7 +14,12 @@ use crate::{
         session::{RouteMode, Session},
         CredentialVault, Credentials, LoginPage, LoginResult, UserProfile,
     },
-    features::{classroom::Room, today::TodayCourse},
+    features::{
+        checkin::{CheckInCourse, IClassSession},
+        classroom::Room,
+        library::{LibraryBooking, LibraryVenue},
+        today::TodayCourse,
+    },
     foundation::http::HttpTransport,
     AppError, ErrorCode,
 };
@@ -41,6 +46,9 @@ pub(crate) type ClassroomCache = SnapshotCache<(i32, String), BTreeMap<String, V
 pub(crate) type ScheduleCache = SnapshotCache<Option<i32>, ScheduleData>;
 pub(crate) type TodayCache = SnapshotCache<String, Vec<TodayCourse>>;
 pub(crate) type GradeCache = SnapshotCache<String, GradeData>;
+pub(crate) type CheckInCache = SnapshotCache<String, Vec<CheckInCourse>>;
+pub(crate) type LibraryVenueCache = SnapshotCache<String, Vec<LibraryVenue>>;
+pub(crate) type LibraryBookingCache = SnapshotCache<String, Vec<LibraryBooking>>;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SessionStatus {
@@ -76,6 +84,13 @@ pub struct SessionService<T: HttpTransport, V: CredentialVault> {
     pub(crate) schedules: Mutex<ScheduleCache>,
     pub(crate) today: Mutex<TodayCache>,
     pub(crate) grades: Mutex<GradeCache>,
+    pub(crate) checkin: Mutex<CheckInCache>,
+    /// iclass app session. Memory only; cleared on account, route and logout.
+    pub(crate) iclass: Mutex<Option<IClassSession>>,
+    pub(crate) library_venues: Mutex<LibraryVenueCache>,
+    pub(crate) library_bookings: Mutex<LibraryBookingCache>,
+    /// booking.lib business token. Memory only.
+    pub(crate) library_token: Mutex<Option<String>>,
 }
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
@@ -91,6 +106,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             schedules: Mutex::new(ScheduleCache::default()),
             today: Mutex::new(TodayCache::default()),
             grades: Mutex::new(GradeCache::default()),
+            checkin: Mutex::new(CheckInCache::default()),
+            iclass: Mutex::new(None),
+            library_venues: Mutex::new(LibraryVenueCache::default()),
+            library_bookings: Mutex::new(LibraryBookingCache::default()),
+            library_token: Mutex::new(None),
         }
     }
 
@@ -283,6 +303,26 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         }
     }
 
+    /// Establish the WebVPN gateway's own CAS session after an automatic route
+    /// fallback. Requires a saved credential: without one the caller must sign
+    /// in again. On failure the route returns to Automatic so the gateway can
+    /// never leave every later request stranded.
+    pub(crate) async fn ensure_webvpn_session(&self) -> Result<(), AppError> {
+        if self.session.webvpn_cookie_present() {
+            return Ok(());
+        }
+        let account = self.current_account()?;
+        let credentials = self
+            .vault
+            .load(&account)?
+            .ok_or_else(AppError::session_expired)?;
+        let result = auth::establish_webvpn_session(&self.session, &credentials).await;
+        if result.is_err() {
+            self.session.set_route(RouteMode::Automatic);
+        }
+        result
+    }
+
     /// Clear all read snapshots without touching credentials or the session.
     pub fn clear_snapshots(&self) {
         self.clear_caches();
@@ -293,6 +333,12 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         self.schedules.lock().expect("schedule cache").clear();
         self.today.lock().expect("today cache").clear();
         self.grades.lock().expect("grade cache").clear();
+        self.checkin.lock().expect("checkin cache").clear();
+        self.library_venues.lock().expect("library venues").clear();
+        self.library_bookings
+            .lock()
+            .expect("library bookings")
+            .clear();
     }
 
     fn clear_identity(&self) {
@@ -300,6 +346,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         *self.pending_login.lock().expect("pending login") = None;
         *self.account.lock().expect("account lock") = None;
         *self.profile.lock().expect("profile lock") = None;
+        *self.iclass.lock().expect("iclass session") = None;
+        *self.library_token.lock().expect("library token") = None;
         self.clear_caches();
     }
 }
@@ -307,5 +355,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
 /// The mirror only reads; retrying a read after a confirmed expired session is
 /// safe and bounded to one login plus one retry.
 pub(crate) fn is_recoverable(error: &AppError) -> bool {
-    error.code == ErrorCode::ServiceUnavailable || error.code == ErrorCode::ChangedResponse
+    error.code == ErrorCode::ServiceUnavailable
+        || error.code == ErrorCode::ChangedResponse
+        || error.code == ErrorCode::BusinessRejected
+}
+
+/// booking.lib answers 200 with its own login-expired message; that only means
+/// the business token is stale, not that the school session is gone.
+pub(crate) fn is_library_login_error(error: &AppError) -> bool {
+    error.code == ErrorCode::SessionExpired && error.detail.as_deref() == Some("library_login")
 }

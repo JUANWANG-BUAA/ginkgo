@@ -7,8 +7,9 @@ use crate::{
         vault::MemoryVault, CredentialSource, Credentials, LoginResult, UserProfile, LOGIN_URL,
         UC_ACTIVATION_URL, UC_STATUS_URL,
     },
+    features::checkin::CheckInStatus,
     features::classroom::Sort,
-    foundation::http::{HttpMethod, HttpResponse},
+    foundation::http::{HttpMethod, HttpResponse, TransportError},
     test_support::MockTransport,
     ErrorCode,
 };
@@ -667,4 +668,396 @@ async fn graduate_schedule_uses_gsmis_and_today_is_derived_from_the_snapshot() {
     assert!(schedule.data.exams.is_empty());
 
     assert_eq!(transport.request_count(), 11);
+}
+
+fn checkin_entry_response(login_name: &str) -> HttpResponse {
+    HttpResponse::new(
+        302,
+        "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter",
+        "",
+    )
+    .with_header(
+        "Location",
+        &format!("https://iclass.buaa.edu.cn:8346/?loginName={login_name}"),
+    )
+}
+
+fn checkin_app_login_response() -> HttpResponse {
+    HttpResponse::new(
+        200,
+        "https://iclass.buaa.edu.cn:8347/app/user/login.action",
+        r#"{"STATUS":0,"result":{"id":"1001","sessionId":"fixture-session"}}"#,
+    )
+}
+
+fn checkin_schedule_response(body: impl Into<String>) -> HttpResponse {
+    HttpResponse::new(
+        200,
+        "https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action",
+        body,
+    )
+}
+
+fn checkin_day_body() -> String {
+    fixture("checkin", "course-schedule-normal-v1.json")["input"]["body"].to_string()
+}
+
+#[tokio::test]
+async fn checkin_reads_the_day_then_reuses_the_five_minute_snapshot() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(checkin_entry_response("fixture-login"));
+    responses.push(checkin_app_login_response());
+    responses.push(checkin_schedule_response(checkin_day_body()));
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+
+    let first = service.load_checkin(false).await.expect("checkin");
+    assert_eq!(
+        first.date,
+        crate::foundation::school_time::beijing_day(&super::cache::now_shanghai())
+            .expect("day")
+            .local_date
+    );
+    assert_eq!(first.courses.len(), 2);
+    assert_eq!(first.courses[0].status, CheckInStatus::NotSigned);
+    assert_eq!(first.courses[0].merged_record_count, 2);
+    assert_eq!(first.courses[1].status, CheckInStatus::Signed);
+    assert!(!first.from_cache);
+
+    let cached = service.load_checkin(false).await.expect("cached checkin");
+    assert!(cached.from_cache && !cached.stale);
+    assert_eq!(cached.courses.len(), 2);
+    assert_eq!(transport.request_count(), 8);
+}
+
+#[tokio::test]
+async fn checkin_status_two_is_an_empty_day_without_an_error() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(checkin_entry_response("fixture-login"));
+    responses.push(checkin_app_login_response());
+    responses.push(checkin_schedule_response(
+        fixture("checkin", "course-schedule-empty-v1.json")["input"]["body"].to_string(),
+    ));
+    let (service, _) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+    let outcome = service.load_checkin(false).await.expect("empty day");
+    assert!(outcome.courses.is_empty());
+    assert!(outcome.failure.is_none());
+}
+
+#[tokio::test]
+async fn checkin_business_rejection_rebuilds_the_app_session_once_then_keeps_the_snapshot() {
+    let rejected = r#"{"STATUS":9,"ERRMSG":"fixture rejection"}"#;
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(checkin_entry_response("fixture-login"));
+    responses.push(checkin_app_login_response());
+    responses.push(checkin_schedule_response(checkin_day_body()));
+    responses.push(checkin_schedule_response(rejected));
+    responses.push(checkin_entry_response("fixture-login"));
+    responses.push(checkin_app_login_response());
+    responses.push(checkin_schedule_response(rejected));
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+    service.load_checkin(false).await.expect("first");
+
+    let stale = service.load_checkin(true).await.expect("stale checkin");
+    assert!(stale.from_cache && stale.stale);
+    assert_eq!(stale.courses.len(), 2);
+    assert_eq!(
+        stale.failure.expect("failure").code,
+        ErrorCode::BusinessRejected
+    );
+    // One rejected query, one rebuild (entry + app login), one rejected retry.
+    assert_eq!(transport.request_count(), 12);
+}
+
+#[tokio::test]
+async fn checkin_expired_school_session_recovers_once() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(checkin_entry_response("fixture-login"));
+    responses.push(checkin_app_login_response());
+    responses.push(checkin_schedule_response(checkin_day_body()));
+    responses.push(HttpResponse::new(401, "iclass", ""));
+    responses.extend(login_chain("sy2501001", "fixture"));
+    responses.push(checkin_entry_response("fixture-login"));
+    responses.push(checkin_app_login_response());
+    responses.push(checkin_schedule_response(checkin_day_body()));
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+    service.load_checkin(false).await.expect("first");
+
+    let recovered = service.load_checkin(true).await.expect("recovered");
+    assert_eq!(recovered.courses.len(), 2);
+    assert!(recovered.failure.is_none());
+    assert_eq!(
+        transport
+            .requests()
+            .iter()
+            .filter(|request| request.method == HttpMethod::Post)
+            .count(),
+        2
+    );
+}
+
+#[tokio::test]
+async fn checkin_webvpn_fallback_establishes_the_gateway_session_once() {
+    use crate::foundation::webvpn;
+    let entry_wrapped = webvpn::wrap(crate::adapters::checkin_http::ENTRY_URL).expect("entry");
+    let login_wrapped =
+        webvpn::wrap(crate::adapters::checkin_http::APP_LOGIN_URL).expect("app login");
+    let mut results: Vec<Result<HttpResponse, TransportError>> =
+        login_chain("sy2501001", "fixture")
+            .into_iter()
+            .map(Ok)
+            .collect();
+    // Direct iclass is unreachable, then the gateway asks for its own login.
+    results.push(Err(TransportError::Unavailable));
+    results.push(Ok(HttpResponse::new(
+        200,
+        "https://d.buaa.edu.cn/login",
+        "<html>gateway login</html>",
+    )));
+    // WebVPN CAS login chain (routed through the gateway).
+    results.push(Ok(HttpResponse::new(
+        200,
+        crate::auth::LOGIN_URL,
+        FORM_PAGE,
+    )));
+    results.push(Ok(HttpResponse::new(302, crate::auth::LOGIN_URL, "")
+        .with_header("Location", "https://sso.buaa.edu.cn/login?ticket=ST-1")
+        .with_set_cookie("CASTGC=TGT-fixture; Path=/; Secure; HttpOnly")));
+    results.push(Ok(HttpResponse::new(
+        200,
+        "https://sso.buaa.edu.cn/login?ticket=ST-1",
+        "<html>ok</html>",
+    )));
+    results.push(Ok(HttpResponse::new(
+        200,
+        crate::auth::UC_ACTIVATION_URL,
+        "",
+    )));
+    results.push(Ok(uc_ok("sy2501001", "fixture")));
+    results.push(Ok(HttpResponse::new(302, &entry_wrapped, "").with_header(
+        "Location",
+        "https://iclass.buaa.edu.cn:8346/?loginName=fixture-login",
+    )));
+    results.push(Ok(HttpResponse::new(
+        200,
+        &login_wrapped,
+        r#"{"STATUS":0,"result":{"id":"1001","sessionId":"fixture-session"}}"#,
+    )));
+    results.push(Ok(HttpResponse::new(
+        200,
+        &login_wrapped,
+        checkin_day_body(),
+    )));
+
+    let transport = MockTransport::with_results(results);
+    let service = SessionService::new(
+        crate::auth::session::Session::new(transport.clone()),
+        MemoryVault::default(),
+    );
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+
+    let outcome = service.load_checkin(false).await.expect("webvpn checkin");
+    assert_eq!(outcome.courses.len(), 2);
+    assert!(outcome.failure.is_none());
+    assert_eq!(
+        service.session.route(),
+        crate::auth::session::RouteMode::WebVpn
+    );
+    // After the fallback, every iclass request goes through the gateway: the
+    // failed attempt is retried once there, then the rebuilt session and the
+    // app endpoints (port 8347) are all routed.
+    let requests = transport.requests();
+    let entry_routed = requests
+        .iter()
+        .filter(|request| request.url.starts_with("https://d.buaa.edu.cn/https-8346/"))
+        .count();
+    let app_routed = requests
+        .iter()
+        .filter(|request| request.url.starts_with("https://d.buaa.edu.cn/https-8347/"))
+        .count();
+    assert_eq!(entry_routed, 2);
+    assert_eq!(app_routed, 2);
+    // The gateway CAS session was established through the gateway itself.
+    assert!(requests.iter().any(
+        |request| request.url.starts_with("https://d.buaa.edu.cn/https/")
+            && request.method == HttpMethod::Post
+    ));
+}
+
+fn library_login_redirect() -> HttpResponse {
+    HttpResponse::new(302, crate::adapters::library_http::LOGIN_START, "").with_header(
+        "Location",
+        "https://booking.lib.buaa.edu.cn/v4/login/cas?cas=fixture-cas",
+    )
+}
+
+fn library_token_response() -> HttpResponse {
+    HttpResponse::new(
+        200,
+        crate::adapters::library_http::LOGIN_USER,
+        r#"{"code":0,"data":{"member":{"token":"fixture-library-token"}}}"#,
+    )
+}
+
+fn library_body(path: &str) -> HttpResponse {
+    HttpResponse::new(
+        200,
+        format!("https://booking.lib.buaa.edu.cn/v4/{path}"),
+        serde_json::json!({
+            "code": 0,
+            "data": fixture("library", "venues-normal-v1.json")["input"]["data"].clone(),
+        })
+        .to_string(),
+    )
+}
+
+#[tokio::test]
+async fn library_venues_and_bookings_use_the_five_minute_snapshot() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(library_login_redirect());
+    responses.push(library_token_response());
+    responses.push(library_body("space/pcTopFor"));
+    responses.push(HttpResponse::new(
+        200,
+        "https://booking.lib.buaa.edu.cn/v4/index/subscribe",
+        serde_json::json!({
+            "code": 0,
+            "data": fixture("library", "bookings-normal-v1.json")["input"]["data"].clone(),
+        })
+        .to_string(),
+    ));
+    responses.push(HttpResponse::new(500, "library", "temporary"));
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+
+    let venues = service.load_library_venues(false).await.expect("venues");
+    assert_eq!(venues.venues.len(), 2);
+    assert_eq!(venues.venues[0].name, "学院路馆");
+    assert!(!venues.from_cache);
+    assert_eq!(transport.request_count(), 8);
+
+    let cached = service.load_library_venues(false).await.expect("cached");
+    assert!(cached.from_cache);
+    assert_eq!(transport.request_count(), 8);
+
+    let bookings = service
+        .load_library_bookings(false)
+        .await
+        .expect("bookings");
+    assert_eq!(bookings.bookings.len(), 2);
+    assert_eq!(bookings.bookings[0].title, "学院路馆 · A区 · 12号");
+
+    let stale = service.load_library_venues(true).await.expect("stale");
+    assert!(stale.from_cache && stale.stale);
+    assert_eq!(stale.venues.len(), 2);
+    assert_eq!(
+        stale.failure.expect("failure").code,
+        ErrorCode::ServiceUnavailable
+    );
+}
+
+#[tokio::test]
+async fn library_areas_slots_and_seats_follow_the_hierarchy() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(library_login_redirect());
+    responses.push(library_token_response());
+    responses.push(HttpResponse::new(
+        200,
+        "https://booking.lib.buaa.edu.cn/v4/space/pick",
+        serde_json::json!({
+            "code": 0,
+            "data": fixture("library", "areas-normal-v1.json")["input"]["data"].clone(),
+        })
+        .to_string(),
+    ));
+    responses.push(HttpResponse::new(
+        200,
+        "https://booking.lib.buaa.edu.cn/v4/Space/map",
+        serde_json::json!({
+            "code": 0,
+            "data": fixture("library", "slots-normal-v1.json")["input"]["data"].clone(),
+        })
+        .to_string(),
+    ));
+    responses.push(HttpResponse::new(
+        200,
+        "https://booking.lib.buaa.edu.cn/v4/Space/seat",
+        serde_json::json!({
+            "code": 0,
+            "data": fixture("library", "seats-normal-v1.json")["input"]["data"].clone(),
+        })
+        .to_string(),
+    ));
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+
+    let areas = service.load_library_areas("v1").await.expect("areas");
+    assert_eq!(areas.len(), 2);
+    let slots = service.load_library_slots("a1").await.expect("slots");
+    assert_eq!(slots[0].id, "2026-10-20/t1");
+    let seats = service
+        .load_library_seats("a1", "2026-10-20/t1", "2026-10-20", "08:00", "10:00")
+        .await
+        .expect("seats");
+    assert_eq!(seats.len(), 2);
+    assert!(seats[0].available);
+    assert!(!seats[1].available);
+    assert_eq!(transport.request_count(), 10);
+    assert_eq!(
+        service
+            .load_library_areas("")
+            .await
+            .expect_err("empty area")
+            .code,
+        ErrorCode::InvalidRequest
+    );
+}
+
+#[tokio::test]
+async fn library_token_expiry_relogs_exactly_once() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(library_login_redirect());
+    responses.push(library_token_response());
+    responses.push(HttpResponse::new(401, "library", ""));
+    responses.push(library_login_redirect());
+    responses.push(library_token_response());
+    responses.push(library_body("space/pcTopFor"));
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+
+    let venues = service.load_library_venues(false).await.expect("relogin");
+    assert_eq!(venues.venues.len(), 2);
+    let exchanges = transport
+        .requests()
+        .iter()
+        .filter(|request| request.url == crate::adapters::library_http::LOGIN_USER)
+        .count();
+    assert_eq!(exchanges, 2);
 }

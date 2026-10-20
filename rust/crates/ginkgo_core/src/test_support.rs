@@ -18,13 +18,19 @@ struct MockState {
 
 impl MockTransport {
     pub fn with_responses(responses: Vec<HttpResponse>) -> Self {
+        Self::with_results(responses.into_iter().map(Ok).collect())
+    }
+
+    /// Scripted results let a test inject a transport failure inside an
+    /// otherwise successful chain (route fallback, retry boundaries).
+    pub fn with_results(results: Vec<Result<HttpResponse, TransportError>>) -> Self {
         let transport = Self::default();
         transport
             .state
             .responses
             .lock()
             .expect("response lock")
-            .extend(responses.into_iter().map(Ok));
+            .extend(results);
         transport
     }
 

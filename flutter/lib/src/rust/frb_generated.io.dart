@@ -50,6 +50,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RouteChoice dco_decode_box_autoadd_route_choice(dynamic raw);
 
   @protected
+  CheckInCourse dco_decode_check_in_course(dynamic raw);
+
+  @protected
+  CheckInResponse dco_decode_check_in_response(dynamic raw);
+
+  @protected
+  CheckInStatus dco_decode_check_in_status(dynamic raw);
+
+  @protected
   ClassroomBuilding dco_decode_classroom_building(dynamic raw);
 
   @protected
@@ -98,7 +107,43 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_i_32(dynamic raw);
 
   @protected
+  LibraryArea dco_decode_library_area(dynamic raw);
+
+  @protected
+  LibraryAreasResponse dco_decode_library_areas_response(dynamic raw);
+
+  @protected
+  LibraryBooking dco_decode_library_booking(dynamic raw);
+
+  @protected
+  LibraryBookingsResponse dco_decode_library_bookings_response(dynamic raw);
+
+  @protected
+  LibraryDemoResponse dco_decode_library_demo_response(dynamic raw);
+
+  @protected
+  LibrarySeat dco_decode_library_seat(dynamic raw);
+
+  @protected
+  LibrarySeatsResponse dco_decode_library_seats_response(dynamic raw);
+
+  @protected
+  LibrarySlot dco_decode_library_slot(dynamic raw);
+
+  @protected
+  LibrarySlotsResponse dco_decode_library_slots_response(dynamic raw);
+
+  @protected
+  LibraryVenue dco_decode_library_venue(dynamic raw);
+
+  @protected
+  LibraryVenuesResponse dco_decode_library_venues_response(dynamic raw);
+
+  @protected
   List<String> dco_decode_list_String(dynamic raw);
+
+  @protected
+  List<CheckInCourse> dco_decode_list_check_in_course(dynamic raw);
 
   @protected
   List<ClassroomBuilding> dco_decode_list_classroom_building(dynamic raw);
@@ -111,6 +156,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<HomeworkItem> dco_decode_list_homework_item(dynamic raw);
+
+  @protected
+  List<LibraryArea> dco_decode_list_library_area(dynamic raw);
+
+  @protected
+  List<LibraryBooking> dco_decode_list_library_booking(dynamic raw);
+
+  @protected
+  List<LibrarySeat> dco_decode_list_library_seat(dynamic raw);
+
+  @protected
+  List<LibrarySlot> dco_decode_list_library_slot(dynamic raw);
+
+  @protected
+  List<LibraryVenue> dco_decode_list_library_venue(dynamic raw);
 
   @protected
   Int32List dco_decode_list_prim_i_32_strict(dynamic raw);
@@ -229,6 +289,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RouteChoice sse_decode_box_autoadd_route_choice(SseDeserializer deserializer);
 
   @protected
+  CheckInCourse sse_decode_check_in_course(SseDeserializer deserializer);
+
+  @protected
+  CheckInResponse sse_decode_check_in_response(SseDeserializer deserializer);
+
+  @protected
+  CheckInStatus sse_decode_check_in_status(SseDeserializer deserializer);
+
+  @protected
   ClassroomBuilding sse_decode_classroom_building(SseDeserializer deserializer);
 
   @protected
@@ -279,7 +348,57 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
+  LibraryArea sse_decode_library_area(SseDeserializer deserializer);
+
+  @protected
+  LibraryAreasResponse sse_decode_library_areas_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LibraryBooking sse_decode_library_booking(SseDeserializer deserializer);
+
+  @protected
+  LibraryBookingsResponse sse_decode_library_bookings_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LibraryDemoResponse sse_decode_library_demo_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LibrarySeat sse_decode_library_seat(SseDeserializer deserializer);
+
+  @protected
+  LibrarySeatsResponse sse_decode_library_seats_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LibrarySlot sse_decode_library_slot(SseDeserializer deserializer);
+
+  @protected
+  LibrarySlotsResponse sse_decode_library_slots_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LibraryVenue sse_decode_library_venue(SseDeserializer deserializer);
+
+  @protected
+  LibraryVenuesResponse sse_decode_library_venues_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
+
+  @protected
+  List<CheckInCourse> sse_decode_list_check_in_course(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<ClassroomBuilding> sse_decode_list_classroom_building(
@@ -296,6 +415,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<HomeworkItem> sse_decode_list_homework_item(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<LibraryArea> sse_decode_list_library_area(SseDeserializer deserializer);
+
+  @protected
+  List<LibraryBooking> sse_decode_list_library_booking(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<LibrarySeat> sse_decode_list_library_seat(SseDeserializer deserializer);
+
+  @protected
+  List<LibrarySlot> sse_decode_list_library_slot(SseDeserializer deserializer);
+
+  @protected
+  List<LibraryVenue> sse_decode_list_library_venue(
     SseDeserializer deserializer,
   );
 
@@ -443,6 +581,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_check_in_course(CheckInCourse self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_check_in_response(
+    CheckInResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_check_in_status(CheckInStatus self, SseSerializer serializer);
+
+  @protected
   void sse_encode_classroom_building(
     ClassroomBuilding self,
     SseSerializer serializer,
@@ -509,7 +659,67 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
+  void sse_encode_library_area(LibraryArea self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_library_areas_response(
+    LibraryAreasResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_library_booking(
+    LibraryBooking self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_library_bookings_response(
+    LibraryBookingsResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_library_demo_response(
+    LibraryDemoResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_library_seat(LibrarySeat self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_library_seats_response(
+    LibrarySeatsResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_library_slot(LibrarySlot self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_library_slots_response(
+    LibrarySlotsResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_library_venue(LibraryVenue self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_library_venues_response(
+    LibraryVenuesResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_check_in_course(
+    List<CheckInCourse> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_classroom_building(
@@ -532,6 +742,36 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_homework_item(
     List<HomeworkItem> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_library_area(
+    List<LibraryArea> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_library_booking(
+    List<LibraryBooking> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_library_seat(
+    List<LibrarySeat> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_library_slot(
+    List<LibrarySlot> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_library_venue(
+    List<LibraryVenue> self,
     SseSerializer serializer,
   );
 

@@ -1,21 +1,643 @@
 import 'package:flutter/cupertino.dart';
 
-import 'coming_soon_page.dart';
+import 'apple_widgets.dart';
 import 'mirror_service.dart';
+import 'src/rust/api/mirror.dart';
 
-class LibraryPage extends StatelessWidget {
+/// booking.lib read-only hierarchy: current booking, venue, area, segment and
+/// seat. Every write (reserve/sign-in/leave/checkout/cancel) is out of scope
+/// until it gets confirmation and a post-submit re-query.
+class LibraryPage extends StatefulWidget {
   const LibraryPage({super.key, required this.service});
   final MirrorService service;
   @override
-  Widget build(BuildContext context) => const ComingSoonPage(
-    title: '图书馆',
-    description: '图书馆座位预约需要 booking.lib 的独立 CAS 会话、场馆/区域/时段与座位只读数据；当前镜像尚未迁移。',
-    symbol: CupertinoIcons.book,
-    details: [
-      '预约端 SSO 会话与场馆/区域/时段读取',
-      '座位空闲状态与当前预约',
-      '预约、签到、暂离、离馆的二次确认与回查',
-      '写操作未知结果不重试',
-    ],
+  State<LibraryPage> createState() => _LibraryPageState();
+}
+
+class _LibraryPageState extends State<LibraryPage> {
+  LibraryBookingsResponse? bookings;
+  LibraryVenuesResponse? venues;
+  String? error;
+  String? notice;
+  bool busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  Future<void> load({bool force = false}) async {
+    setState(() {
+      busy = true;
+      error = null;
+    });
+    try {
+      final results = await Future.wait<Object>([
+        widget.service.libraryBookings(forceRefresh: force),
+        widget.service.libraryVenues(forceRefresh: force),
+      ]);
+      final bookingResult = results[0] as LibraryBookingsResponse;
+      final venueResult = results[1] as LibraryVenuesResponse;
+      if (!mounted) return;
+      final failure = bookingResult.failure ?? venueResult.failure;
+      final hasData =
+          bookingResult.bookings.isNotEmpty ||
+          venueResult.venues.isNotEmpty ||
+          bookings != null ||
+          venues != null;
+      setState(() {
+        busy = false;
+        if (failure != null && !hasData) {
+          error = failureMessage(failure);
+          return;
+        }
+        if (bookingResult.failure == null || bookingResult.bookings.isNotEmpty) {
+          bookings = bookingResult;
+        }
+        if (venueResult.failure == null || venueResult.venues.isNotEmpty) {
+          venues = venueResult;
+        }
+        error = null;
+        notice = failure == null
+            ? null
+            : '${failureMessage(failure)}，正在显示上次结果。';
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        busy = false;
+        if (bookings == null && venues == null) {
+          error = failureMessage(null);
+        } else {
+          notice = '${failureMessage(null)}，正在显示上次结果。';
+        }
+      });
+    }
+  }
+
+  void _push(Widget page) {
+    Navigator.of(
+      context,
+    ).push(CupertinoPageRoute<void>(builder: (_) => page));
+  }
+
+  @override
+  Widget build(BuildContext context) => CupertinoPageScaffold(
+    backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
+      context,
+    ),
+    child: CustomScrollView(
+      key: const Key('library-scroll'),
+      slivers: [
+        CupertinoSliverNavigationBar(
+          largeTitle: const Text('图书馆'),
+          border: null,
+          trailing: AppleGlassButton(
+            label: '刷新图书馆',
+            onPressed: busy ? null : () => load(force: true),
+            child: busy
+                ? const CupertinoActivityIndicator()
+                : const Icon(CupertinoIcons.refresh, size: 24),
+          ),
+        ),
+        CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
+        SliverList.list(
+          children: [
+            if (notice != null)
+              AppleSection(
+                children: [
+                  AppleListTile(
+                    leading: const Icon(
+                      CupertinoIcons.exclamationmark_triangle,
+                      color: CupertinoColors.systemOrange,
+                      size: 20,
+                    ),
+                    title: Text(notice!),
+                  ),
+                ],
+              ),
+            if (error != null)
+              AppleSection(
+                children: [
+                  AppleEmptyState(
+                    title: error!,
+                    description: '请检查网络后重试；旧结果会保留。',
+                    error: true,
+                    action: '重试',
+                    onAction: () => load(force: true),
+                  ),
+                ],
+              )
+            else if (venues == null && bookings == null)
+              AppleSection(
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        CupertinoActivityIndicator(),
+                        SizedBox(width: 10),
+                        Text('正在读取图书馆座位数据…'),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            else ...[
+              _bookingSection(),
+              _venueSection(),
+              AppleSection(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      widget.service.isDemo
+                          ? '离线合成样例，不连接图书馆账号；仅用于演示只读座位层级。'
+                          : '真实账号只读数据；预约、签到、暂离、离馆与取消尚未开放。',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: CupertinoColors.secondaryLabel,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+            ],
+          ],
+        ),
+      ],
+    ),
+  );
+
+  Widget _bookingSection() {
+    final items = bookings?.bookings ?? const <LibraryBooking>[];
+    return AppleSection(
+      header: const Text('当前预约'),
+      children: [
+        if (items.isEmpty)
+          const AppleListTile(
+            leading: Icon(
+              CupertinoIcons.book,
+              color: CupertinoColors.tertiaryLabel,
+              size: 22,
+            ),
+            title: Text('当前没有进行中的预约'),
+            subtitle: Text('预约座位后，这里会显示学校返回的当前记录。'),
+          )
+        else
+          for (final booking in items)
+            AppleListTile(
+              key: Key('library-booking-${booking.id}'),
+              minimumHeight: 68,
+              leading: const Icon(
+                CupertinoIcons.bookmark_fill,
+                color: CupertinoColors.systemGreen,
+                size: 22,
+              ),
+              title: Text(
+                booking.title.isEmpty ? '图书馆预约' : booking.title,
+              ),
+              subtitle: Text(
+                _bookingDetail(booking),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                ),
+              ),
+              additionalInfo: Text(
+                booking.statusName,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: _bookingEnded(booking)
+                      ? CupertinoColors.secondaryLabel.resolveFrom(context)
+                      : CupertinoColors.systemGreen,
+                ),
+              ),
+            ),
+      ],
+    );
+  }
+
+  bool _bookingEnded(LibraryBooking booking) => ['取消', '结束', '过期', '失效']
+      .any(booking.statusName.contains);
+
+  /// Upstream sends HH:mm:ss; the row only has room for HH:mm.
+  String _clock(String value) {
+    final parts = value.split(':');
+    return parts.length >= 2 ? '${parts[0]}:${parts[1]}' : value;
+  }
+
+  String _bookingDetail(LibraryBooking booking) {
+    final bits = [
+      if (booking.day.isNotEmpty) booking.day,
+      if (booking.startTime.isNotEmpty && booking.endTime.isNotEmpty)
+        '${_clock(booking.startTime)}–${_clock(booking.endTime)}',
+      // The title already names the space/seat; only repeat them when the
+      // upstream row had no title at all.
+      if (booking.title.isEmpty && booking.areaName.isNotEmpty) booking.areaName,
+      if (booking.title.isEmpty && booking.seatNumber.isNotEmpty)
+        '${booking.seatNumber}号',
+    ];
+    return bits.join(' · ');
+  }
+
+  Widget _venueSection() {
+    final items = venues?.venues ?? const <LibraryVenue>[];
+    return AppleSection(
+      header: const Text('选择场馆'),
+      footer: const Text('空闲数来自学校实时座位接口；进入场馆后依次选择区域、时段与座位。'),
+      children: [
+        if (items.isEmpty)
+          const AppleListTile(
+            title: Text('暂无可用场馆'),
+            subtitle: Text('学校接口返回了空列表，请稍后刷新。'),
+          )
+        else
+          for (final venue in items)
+            AppleListTile(
+              key: Key('library-venue-${venue.id}'),
+              leading: const Icon(
+                CupertinoIcons.building_2_fill,
+                color: CupertinoColors.systemIndigo,
+                size: 22,
+              ),
+              title: Text(venue.name),
+              subtitle: Text('空闲 ${venue.free} / ${venue.total}'),
+              trailing: const Icon(
+                CupertinoIcons.chevron_right,
+                size: 16,
+                color: CupertinoColors.tertiaryLabel,
+              ),
+              onTap: () => _push(
+                _LibraryAreaPage(service: widget.service, venue: venue),
+              ),
+            ),
+      ],
+    );
+  }
+}
+
+class _LibraryAreaPage extends StatefulWidget {
+  const _LibraryAreaPage({required this.service, required this.venue});
+  final MirrorService service;
+  final LibraryVenue venue;
+  @override
+  State<_LibraryAreaPage> createState() => _LibraryAreaPageState();
+}
+
+class _LibraryAreaPageState extends State<_LibraryAreaPage> {
+  List<LibraryArea>? areas;
+  String? error;
+  bool busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  Future<void> load() async {
+    setState(() {
+      busy = true;
+      error = null;
+    });
+    try {
+      final result = await widget.service.libraryAreas(widget.venue.id);
+      if (!mounted) return;
+      setState(() {
+        busy = false;
+        if (result.failure != null && result.areas.isEmpty) {
+          error = failureMessage(result.failure);
+          return;
+        }
+        areas = result.areas;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        busy = false;
+        error = failureMessage(null);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => CupertinoPageScaffold(
+    backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
+      context,
+    ),
+    child: CustomScrollView(
+      key: const Key('library-areas-scroll'),
+      slivers: [
+        CupertinoSliverNavigationBar(
+          largeTitle: Text(widget.venue.name),
+          border: null,
+        ),
+        CupertinoSliverRefreshControl(onRefresh: load),
+        SliverList.list(
+          children: [
+            if (error != null)
+              AppleSection(
+                children: [
+                  AppleEmptyState(
+                    title: error!,
+                    description: '区域列表读取失败，请稍后重试。',
+                    error: true,
+                    action: '重试',
+                    onAction: load,
+                  ),
+                ],
+              )
+            else if (areas == null)
+              AppleSection(
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        CupertinoActivityIndicator(),
+                        SizedBox(width: 10),
+                        Text('正在读取区域…'),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            else
+              AppleSection(
+                header: const Text('区域'),
+                children: [
+                  if (areas!.isEmpty)
+                    const AppleListTile(title: Text('暂无开放区域'))
+                  else
+                    for (final area in areas!)
+                      AppleListTile(
+                        key: Key('library-area-${area.id}'),
+                        title: Text(area.name),
+                        subtitle: Text('空闲 ${area.free} / ${area.total}'),
+                        trailing: const Icon(
+                          CupertinoIcons.chevron_right,
+                          size: 16,
+                          color: CupertinoColors.tertiaryLabel,
+                        ),
+                        onTap: () => Navigator.of(context).push(
+                          CupertinoPageRoute<void>(
+                            builder: (_) => _LibrarySlotPage(
+                              service: widget.service,
+                              area: area,
+                            ),
+                          ),
+                        ),
+                      ),
+                ],
+              ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+class _LibrarySlotPage extends StatefulWidget {
+  const _LibrarySlotPage({required this.service, required this.area});
+  final MirrorService service;
+  final LibraryArea area;
+  @override
+  State<_LibrarySlotPage> createState() => _LibrarySlotPageState();
+}
+
+class _LibrarySlotPageState extends State<_LibrarySlotPage> {
+  List<LibrarySlot>? slots;
+  String? error;
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  Future<void> load() async {
+    setState(() => error = null);
+    try {
+      final result = await widget.service.librarySlots(widget.area.id);
+      if (!mounted) return;
+      setState(() {
+        if (result.failure != null && result.slots.isEmpty) {
+          error = failureMessage(result.failure);
+          return;
+        }
+        slots = result.slots;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => error = failureMessage(null));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => CupertinoPageScaffold(
+    backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
+      context,
+    ),
+    child: CustomScrollView(
+      key: const Key('library-slots-scroll'),
+      slivers: [
+        CupertinoSliverNavigationBar(
+          largeTitle: Text(widget.area.name),
+          border: null,
+        ),
+        CupertinoSliverRefreshControl(onRefresh: load),
+        SliverList.list(
+          children: [
+            if (error != null)
+              AppleSection(
+                children: [
+                  AppleEmptyState(
+                    title: error!,
+                    description: '时段读取失败，请稍后重试。',
+                    error: true,
+                    action: '重试',
+                    onAction: load,
+                  ),
+                ],
+              )
+            else if (slots == null)
+              AppleSection(
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        CupertinoActivityIndicator(),
+                        SizedBox(width: 10),
+                        Text('正在读取时段…'),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            else
+              AppleSection(
+                header: const Text('时段'),
+                children: [
+                  if (slots!.isEmpty)
+                    const AppleListTile(title: Text('今天没有可预约时段'))
+                  else
+                    for (final slot in slots!)
+                      AppleListTile(
+                        key: Key('library-slot-${slot.id}'),
+                        title: Text('${slot.start}–${slot.end}'),
+                        subtitle: Text(slot.day),
+                        trailing: const Icon(
+                          CupertinoIcons.chevron_right,
+                          size: 16,
+                          color: CupertinoColors.tertiaryLabel,
+                        ),
+                        onTap: () => Navigator.of(context).push(
+                          CupertinoPageRoute<void>(
+                            builder: (_) => _LibrarySeatPage(
+                              service: widget.service,
+                              area: widget.area,
+                              slot: slot,
+                            ),
+                          ),
+                        ),
+                      ),
+                ],
+              ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+class _LibrarySeatPage extends StatefulWidget {
+  const _LibrarySeatPage({
+    required this.service,
+    required this.area,
+    required this.slot,
+  });
+  final MirrorService service;
+  final LibraryArea area;
+  final LibrarySlot slot;
+  @override
+  State<_LibrarySeatPage> createState() => _LibrarySeatPageState();
+}
+
+class _LibrarySeatPageState extends State<_LibrarySeatPage> {
+  List<LibrarySeat>? seats;
+  String? error;
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  Future<void> load() async {
+    setState(() => error = null);
+    try {
+      final result = await widget.service.librarySeats(
+        areaId: widget.area.id,
+        slot: widget.slot,
+      );
+      if (!mounted) return;
+      setState(() {
+        if (result.failure != null && result.seats.isEmpty) {
+          error = failureMessage(result.failure);
+          return;
+        }
+        seats = result.seats;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => error = failureMessage(null));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => CupertinoPageScaffold(
+    backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
+      context,
+    ),
+    child: CustomScrollView(
+      key: const Key('library-seats-scroll'),
+      slivers: [
+        CupertinoSliverNavigationBar(
+          largeTitle: Text('${widget.slot.start}–${widget.slot.end}'),
+          border: null,
+        ),
+        CupertinoSliverRefreshControl(onRefresh: load),
+        SliverList.list(
+          children: [
+            if (error != null)
+              AppleSection(
+                children: [
+                  AppleEmptyState(
+                    title: error!,
+                    description: '座位列表读取失败，请稍后重试。',
+                    error: true,
+                    action: '重试',
+                    onAction: load,
+                  ),
+                ],
+              )
+            else if (seats == null)
+              AppleSection(
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        CupertinoActivityIndicator(),
+                        SizedBox(width: 10),
+                        Text('正在读取座位…'),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            else
+              AppleSection(
+                header: Text('${widget.area.name} · 座位'),
+                footer: const Text(
+                  '绿色为学校接口标记的空闲座位；预约写操作尚未开放，页面不提供提交按钮。',
+                ),
+                children: [
+                  if (seats!.isEmpty)
+                    const AppleListTile(title: Text('该时段没有座位数据'))
+                  else
+                    for (final seat in seats!)
+                      AppleListTile(
+                        key: Key('library-seat-${seat.id}'),
+                        leading: Icon(
+                          seat.available
+                              ? CupertinoIcons.checkmark_circle_fill
+                              : CupertinoIcons.circle,
+                          color: seat.available
+                              ? CupertinoColors.systemGreen
+                              : CupertinoColors.tertiaryLabel,
+                          size: 22,
+                        ),
+                        title: Text(seat.name),
+                        subtitle: Text(
+                          seat.statusName.isEmpty
+                              ? (seat.available ? '空闲' : '不可用')
+                              : seat.statusName,
+                        ),
+                      ),
+                ],
+              ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ],
+    ),
   );
 }

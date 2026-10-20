@@ -2,7 +2,7 @@
 //! stays in `features` and authentication parsers stay in `auth`.
 use crate::{
     auth::cas,
-    features::{bykc, classroom, grades, homework, schedule, today},
+    features::{bykc, checkin, classroom, grades, homework, library, schedule, today},
     foundation::school_time,
     AppError, ErrorCode,
 };
@@ -173,6 +173,39 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
             }
             let input: BodyInput = decode(input)?;
             json!({"courses": today::parse_courses(input.body)?})
+        }
+        "library.login_user" => {
+            #[derive(Deserialize)]
+            struct BodyInput {
+                body: Value,
+            }
+            let input: BodyInput = decode(input)?;
+            let token = library::parse_login_user(&input.body)?;
+            json!({"hasToken": !token.is_empty()})
+        }
+        "library.venues" | "library.areas" | "library.slots" | "library.seats"
+        | "library.bookings" => {
+            #[derive(Deserialize)]
+            struct DataInput {
+                data: Value,
+            }
+            let input: DataInput = decode(input)?;
+            match contract {
+                "library.venues" => json!({"venues": library::parse_venues(&input.data)?}),
+                "library.areas" => json!({"areas": library::parse_areas(&input.data)?}),
+                "library.slots" => json!({"slots": library::parse_slots(&input.data)?}),
+                "library.seats" => json!({"seats": library::parse_seats(&input.data)?}),
+                _ => json!({"bookings": library::parse_bookings(&input.data)?}),
+            }
+        }
+        "checkin.app_login" => {
+            let input: checkin::DayInput = decode(input)?;
+            let session = checkin::parse_app_login(&input.body)?;
+            json!({"userId": session.user_id, "hasSessionId": !session.session_id.is_empty()})
+        }
+        "checkin.course_schedule" => {
+            let input: checkin::DayInput = decode(input)?;
+            checkin::summary(&checkin::parse_course_schedule(&input.body)?)
         }
         "homework.spoc_page" => {
             #[derive(Deserialize)]

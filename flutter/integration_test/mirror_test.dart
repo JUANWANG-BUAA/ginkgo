@@ -73,6 +73,28 @@ class FailOnceNativeService implements MirrorService {
   Future<TodayResponse> today({bool forceRefresh = false}) =>
       native.today(forceRefresh: forceRefresh);
   @override
+  Future<CheckInResponse> checkin({bool forceRefresh = false}) =>
+      native.checkin(forceRefresh: forceRefresh);
+
+  @override
+  Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false}) =>
+      native.libraryVenues(forceRefresh: forceRefresh);
+  @override
+  Future<LibraryAreasResponse> libraryAreas(String libraryId) =>
+      native.libraryAreas(libraryId);
+  @override
+  Future<LibrarySlotsResponse> librarySlots(String areaId) =>
+      native.librarySlots(areaId);
+  @override
+  Future<LibrarySeatsResponse> librarySeats({
+    required String areaId,
+    required LibrarySlot slot,
+  }) => native.librarySeats(areaId: areaId, slot: slot);
+  @override
+  Future<LibraryBookingsResponse> libraryBookings({
+    bool forceRefresh = false,
+  }) => native.libraryBookings(forceRefresh: forceRefresh);
+  @override
   Future<HomeworkResponse> homework() => native.homework();
 }
 

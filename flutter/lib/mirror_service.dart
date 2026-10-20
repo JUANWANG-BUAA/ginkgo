@@ -4,11 +4,19 @@ import 'src/rust/api/live.dart'
 import 'src/rust/api/mirror.dart' as rust;
 import 'src/rust/api/mirror.dart'
     show
+        CheckInResponse,
         ClassroomQuery,
         ClassroomResponse,
         DemoScope,
         GradeResponse,
         HomeworkResponse,
+        LibraryAreasResponse,
+        LibraryBookingsResponse,
+        LibraryDemoResponse,
+        LibrarySeatsResponse,
+        LibrarySlot,
+        LibrarySlotsResponse,
+        LibraryVenuesResponse,
         QueryDates,
         RuleExamples,
         ScheduleResponse,
@@ -37,6 +45,15 @@ abstract interface class MirrorService {
   Future<GradeTermsResponse> gradeTerms();
   Future<GradeResponse> grades({String? termCode, bool forceRefresh = false});
   Future<TodayResponse> today({bool forceRefresh = false});
+  Future<CheckInResponse> checkin({bool forceRefresh = false});
+  Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false});
+  Future<LibraryAreasResponse> libraryAreas(String libraryId);
+  Future<LibrarySlotsResponse> librarySlots(String areaId);
+  Future<LibrarySeatsResponse> librarySeats({
+    required String areaId,
+    required LibrarySlot slot,
+  });
+  Future<LibraryBookingsResponse> libraryBookings({bool forceRefresh = false});
   Future<HomeworkResponse> homework();
 }
 
@@ -92,6 +109,33 @@ final class NativeMirrorService implements MirrorService {
   Future<TodayResponse> today({bool forceRefresh = false}) =>
       live.loadToday(forceRefresh: forceRefresh);
   @override
+  Future<CheckInResponse> checkin({bool forceRefresh = false}) =>
+      live.loadCheckinToday(forceRefresh: forceRefresh);
+  @override
+  Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false}) =>
+      live.loadLibraryVenues(forceRefresh: forceRefresh);
+  @override
+  Future<LibraryAreasResponse> libraryAreas(String libraryId) =>
+      live.loadLibraryAreas(libraryId: libraryId);
+  @override
+  Future<LibrarySlotsResponse> librarySlots(String areaId) =>
+      live.loadLibrarySlots(areaId: areaId);
+  @override
+  Future<LibrarySeatsResponse> librarySeats({
+    required String areaId,
+    required LibrarySlot slot,
+  }) => live.loadLibrarySeats(
+    areaId: areaId,
+    slotId: slot.id,
+    day: slot.day,
+    start: slot.start,
+    end: slot.end,
+  );
+  @override
+  Future<LibraryBookingsResponse> libraryBookings({
+    bool forceRefresh = false,
+  }) => live.loadLibraryBookings(forceRefresh: forceRefresh);
+  @override
   Future<HomeworkResponse> homework() => rust.loadDemoHomework();
 }
 
@@ -141,6 +185,53 @@ final class DemoMirrorService implements MirrorService {
   @override
   Future<TodayResponse> today({bool forceRefresh = false}) =>
       rust.loadDemoToday();
+  @override
+  Future<CheckInResponse> checkin({bool forceRefresh = false}) =>
+      rust.loadDemoCheckin();
+  Future<LibraryDemoResponse> _demoLibrary() => rust.loadDemoLibrary();
+  @override
+  Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false}) async {
+    final library = await _demoLibrary();
+    return LibraryVenuesResponse(
+      venues: library.venues,
+      fromCache: false,
+      stale: false,
+    );
+  }
+
+  @override
+  Future<LibraryAreasResponse> libraryAreas(String libraryId) async {
+    final library = await _demoLibrary();
+    return LibraryAreasResponse(areas: library.areas);
+  }
+
+  @override
+  Future<LibrarySlotsResponse> librarySlots(String areaId) async {
+    final library = await _demoLibrary();
+    return LibrarySlotsResponse(slots: library.slots);
+  }
+
+  @override
+  Future<LibrarySeatsResponse> librarySeats({
+    required String areaId,
+    required LibrarySlot slot,
+  }) async {
+    final library = await _demoLibrary();
+    return LibrarySeatsResponse(seats: library.seats);
+  }
+
+  @override
+  Future<LibraryBookingsResponse> libraryBookings({
+    bool forceRefresh = false,
+  }) async {
+    final library = await _demoLibrary();
+    return LibraryBookingsResponse(
+      bookings: library.bookings,
+      fromCache: false,
+      stale: false,
+    );
+  }
+
   @override
   Future<HomeworkResponse> homework() => rust.loadDemoHomework();
 }

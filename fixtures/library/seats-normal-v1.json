@@ -1,0 +1,41 @@
+{
+  "contract": "library.seats",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "data": {
+      "list": [
+        {
+          "id": "s1",
+          "name": "A-01",
+          "no": "01",
+          "status": "1",
+          "status_name": "空闲"
+        },
+        {
+          "id": "s2",
+          "name": "A-02",
+          "no": "02",
+          "status": "0",
+          "status_name": "已占用"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "seats": [
+      {
+        "id": "s1",
+        "name": "A-01",
+        "statusName": "空闲",
+        "available": true
+      },
+      {
+        "id": "s2",
+        "name": "A-02",
+        "statusName": "已占用",
+        "available": false
+      }
+    ]
+  }
+}

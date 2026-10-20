@@ -1,0 +1,43 @@
+{
+  "contract": "library.areas",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "data": {
+      "area": [
+        {
+          "id": "a1",
+          "name": "A区",
+          "premises_id": "v1",
+          "storey_id": "1",
+          "free_num": 4,
+          "total_num": 20
+        },
+        {
+          "id": "a2",
+          "name": "B区",
+          "premisesId": "v1",
+          "storeyId": "2",
+          "free_num": 0,
+          "total_num": 10
+        }
+      ]
+    }
+  },
+  "expected": {
+    "areas": [
+      {
+        "id": "a1",
+        "name": "A区",
+        "free": 4,
+        "total": 20
+      },
+      {
+        "id": "a2",
+        "name": "B区",
+        "free": 0,
+        "total": 10
+      }
+    ]
+  }
+}

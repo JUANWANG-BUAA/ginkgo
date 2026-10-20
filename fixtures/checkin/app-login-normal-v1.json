@@ -1,0 +1,18 @@
+{
+  "contract": "checkin.app_login",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "STATUS": 0,
+      "result": {
+        "id": 1001,
+        "sessionId": "fixture-session"
+      }
+    }
+  },
+  "expected": {
+    "userId": "1001",
+    "hasSessionId": true
+  }
+}

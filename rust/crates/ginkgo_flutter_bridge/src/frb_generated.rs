@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1102194965;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -269488144;
 
 // Section: executor
 
@@ -115,6 +115,44 @@ fn wire__crate__api__mirror__init_app_impl(
         },
     )
 }
+fn wire__crate__api__live__load_checkin_today_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_checkin_today",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_force_refresh = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::load_checkin_today(api_force_refresh).await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__live__load_classrooms_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -150,6 +188,38 @@ fn wire__crate__api__live__load_classrooms_impl(
                     })()
                     .await,
                 )
+            }
+        },
+    )
+}
+fn wire__crate__api__mirror__load_demo_checkin_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_demo_checkin",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok(crate::api::mirror::load_demo_checkin())?;
+                    Ok(output_ok)
+                })())
             }
         },
     )
@@ -246,6 +316,38 @@ fn wire__crate__api__mirror__load_demo_homework_impl(
             move |context| {
                 transform_result_sse::<_, ()>((move || {
                     let output_ok = Result::<_, ()>::Ok(crate::api::mirror::load_demo_homework())?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__mirror__load_demo_library_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_demo_library",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok(crate::api::mirror::load_demo_library())?;
                     Ok(output_ok)
                 })())
             }
@@ -382,6 +484,207 @@ fn wire__crate__api__live__load_grades_impl(
                     (move || async move {
                         let output_ok = Result::<_, ()>::Ok(
                             crate::api::live::load_grades(api_term_code, api_force_refresh).await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__load_library_areas_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_library_areas",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_library_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::load_library_areas(api_library_id).await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__load_library_bookings_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_library_bookings",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_force_refresh = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::load_library_bookings(api_force_refresh).await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__load_library_seats_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_library_seats",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_area_id = <String>::sse_decode(&mut deserializer);
+            let api_slot_id = <String>::sse_decode(&mut deserializer);
+            let api_day = <String>::sse_decode(&mut deserializer);
+            let api_start = <String>::sse_decode(&mut deserializer);
+            let api_end = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::load_library_seats(
+                                api_area_id,
+                                api_slot_id,
+                                api_day,
+                                api_start,
+                                api_end,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__load_library_slots_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_library_slots",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_area_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::load_library_slots(api_area_id).await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__load_library_venues_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_library_venues",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_force_refresh = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::load_library_venues(api_force_refresh).await,
                         )?;
                         Ok(output_ok)
                     })()
@@ -815,6 +1118,71 @@ impl SseDecode for bool {
     }
 }
 
+impl SseDecode for crate::api::mirror::CheckInCourse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_courseId = <Option<String>>::sse_decode(deserializer);
+        let mut var_courseNum = <Option<String>>::sse_decode(deserializer);
+        let mut var_courseName = <String>::sse_decode(deserializer);
+        let mut var_beginsAt = <String>::sse_decode(deserializer);
+        let mut var_endsAt = <String>::sse_decode(deserializer);
+        let mut var_status = <crate::api::mirror::CheckInStatus>::sse_decode(deserializer);
+        let mut var_teacherName = <Option<String>>::sse_decode(deserializer);
+        let mut var_classroomName = <Option<String>>::sse_decode(deserializer);
+        let mut var_mergedRecordCount = <i32>::sse_decode(deserializer);
+        let mut var_conflicting = <bool>::sse_decode(deserializer);
+        return crate::api::mirror::CheckInCourse {
+            id: var_id,
+            course_id: var_courseId,
+            course_num: var_courseNum,
+            course_name: var_courseName,
+            begins_at: var_beginsAt,
+            ends_at: var_endsAt,
+            status: var_status,
+            teacher_name: var_teacherName,
+            classroom_name: var_classroomName,
+            merged_record_count: var_mergedRecordCount,
+            conflicting: var_conflicting,
+        };
+    }
+}
+
+impl SseDecode for crate::api::mirror::CheckInResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_date = <String>::sse_decode(deserializer);
+        let mut var_courses = <Vec<crate::api::mirror::CheckInCourse>>::sse_decode(deserializer);
+        let mut var_fetchedAt = <Option<String>>::sse_decode(deserializer);
+        let mut var_fromCache = <bool>::sse_decode(deserializer);
+        let mut var_stale = <bool>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        let mut var_failureDetail = <Option<String>>::sse_decode(deserializer);
+        return crate::api::mirror::CheckInResponse {
+            date: var_date,
+            courses: var_courses,
+            fetched_at: var_fetchedAt,
+            from_cache: var_fromCache,
+            stale: var_stale,
+            failure: var_failure,
+            failure_detail: var_failureDetail,
+        };
+    }
+}
+
+impl SseDecode for crate::api::mirror::CheckInStatus {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::mirror::CheckInStatus::NotSigned,
+            1 => crate::api::mirror::CheckInStatus::Signed,
+            2 => crate::api::mirror::CheckInStatus::Unknown,
+            _ => unreachable!("Invalid variant for CheckInStatus: {}", inner),
+        };
+    }
+}
+
 impl SseDecode for crate::api::mirror::ClassroomBuilding {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -944,6 +1312,7 @@ impl SseDecode for crate::api::mirror::FailureCode {
             9 => crate::api::mirror::FailureCode::RedirectLimit,
             10 => crate::api::mirror::FailureCode::UnsupportedPortal,
             11 => crate::api::mirror::FailureCode::CredentialStore,
+            12 => crate::api::mirror::FailureCode::BusinessRejected,
             _ => unreachable!("Invalid variant for FailureCode: {}", inner),
         };
     }
@@ -1087,6 +1456,194 @@ impl SseDecode for i32 {
     }
 }
 
+impl SseDecode for crate::api::mirror::LibraryArea {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_free = <i32>::sse_decode(deserializer);
+        let mut var_total = <i32>::sse_decode(deserializer);
+        return crate::api::mirror::LibraryArea {
+            id: var_id,
+            name: var_name,
+            free: var_free,
+            total: var_total,
+        };
+    }
+}
+
+impl SseDecode for crate::api::mirror::LibraryAreasResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_areas = <Vec<crate::api::mirror::LibraryArea>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        let mut var_failureDetail = <Option<String>>::sse_decode(deserializer);
+        return crate::api::mirror::LibraryAreasResponse {
+            areas: var_areas,
+            failure: var_failure,
+            failure_detail: var_failureDetail,
+        };
+    }
+}
+
+impl SseDecode for crate::api::mirror::LibraryBooking {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_areaName = <String>::sse_decode(deserializer);
+        let mut var_seatNumber = <String>::sse_decode(deserializer);
+        let mut var_day = <String>::sse_decode(deserializer);
+        let mut var_startTime = <String>::sse_decode(deserializer);
+        let mut var_endTime = <String>::sse_decode(deserializer);
+        let mut var_statusName = <String>::sse_decode(deserializer);
+        return crate::api::mirror::LibraryBooking {
+            id: var_id,
+            title: var_title,
+            area_name: var_areaName,
+            seat_number: var_seatNumber,
+            day: var_day,
+            start_time: var_startTime,
+            end_time: var_endTime,
+            status_name: var_statusName,
+        };
+    }
+}
+
+impl SseDecode for crate::api::mirror::LibraryBookingsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_bookings = <Vec<crate::api::mirror::LibraryBooking>>::sse_decode(deserializer);
+        let mut var_fetchedAt = <Option<String>>::sse_decode(deserializer);
+        let mut var_fromCache = <bool>::sse_decode(deserializer);
+        let mut var_stale = <bool>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        let mut var_failureDetail = <Option<String>>::sse_decode(deserializer);
+        return crate::api::mirror::LibraryBookingsResponse {
+            bookings: var_bookings,
+            fetched_at: var_fetchedAt,
+            from_cache: var_fromCache,
+            stale: var_stale,
+            failure: var_failure,
+            failure_detail: var_failureDetail,
+        };
+    }
+}
+
+impl SseDecode for crate::api::mirror::LibraryDemoResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_venues = <Vec<crate::api::mirror::LibraryVenue>>::sse_decode(deserializer);
+        let mut var_areas = <Vec<crate::api::mirror::LibraryArea>>::sse_decode(deserializer);
+        let mut var_slots = <Vec<crate::api::mirror::LibrarySlot>>::sse_decode(deserializer);
+        let mut var_seats = <Vec<crate::api::mirror::LibrarySeat>>::sse_decode(deserializer);
+        let mut var_bookings = <Vec<crate::api::mirror::LibraryBooking>>::sse_decode(deserializer);
+        return crate::api::mirror::LibraryDemoResponse {
+            venues: var_venues,
+            areas: var_areas,
+            slots: var_slots,
+            seats: var_seats,
+            bookings: var_bookings,
+        };
+    }
+}
+
+impl SseDecode for crate::api::mirror::LibrarySeat {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_statusName = <String>::sse_decode(deserializer);
+        let mut var_available = <bool>::sse_decode(deserializer);
+        return crate::api::mirror::LibrarySeat {
+            id: var_id,
+            name: var_name,
+            status_name: var_statusName,
+            available: var_available,
+        };
+    }
+}
+
+impl SseDecode for crate::api::mirror::LibrarySeatsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_seats = <Vec<crate::api::mirror::LibrarySeat>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        let mut var_failureDetail = <Option<String>>::sse_decode(deserializer);
+        return crate::api::mirror::LibrarySeatsResponse {
+            seats: var_seats,
+            failure: var_failure,
+            failure_detail: var_failureDetail,
+        };
+    }
+}
+
+impl SseDecode for crate::api::mirror::LibrarySlot {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_day = <String>::sse_decode(deserializer);
+        let mut var_start = <String>::sse_decode(deserializer);
+        let mut var_end = <String>::sse_decode(deserializer);
+        return crate::api::mirror::LibrarySlot {
+            id: var_id,
+            day: var_day,
+            start: var_start,
+            end: var_end,
+        };
+    }
+}
+
+impl SseDecode for crate::api::mirror::LibrarySlotsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_slots = <Vec<crate::api::mirror::LibrarySlot>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        let mut var_failureDetail = <Option<String>>::sse_decode(deserializer);
+        return crate::api::mirror::LibrarySlotsResponse {
+            slots: var_slots,
+            failure: var_failure,
+            failure_detail: var_failureDetail,
+        };
+    }
+}
+
+impl SseDecode for crate::api::mirror::LibraryVenue {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_free = <i32>::sse_decode(deserializer);
+        let mut var_total = <i32>::sse_decode(deserializer);
+        return crate::api::mirror::LibraryVenue {
+            id: var_id,
+            name: var_name,
+            free: var_free,
+            total: var_total,
+        };
+    }
+}
+
+impl SseDecode for crate::api::mirror::LibraryVenuesResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_venues = <Vec<crate::api::mirror::LibraryVenue>>::sse_decode(deserializer);
+        let mut var_fetchedAt = <Option<String>>::sse_decode(deserializer);
+        let mut var_fromCache = <bool>::sse_decode(deserializer);
+        let mut var_stale = <bool>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        let mut var_failureDetail = <Option<String>>::sse_decode(deserializer);
+        return crate::api::mirror::LibraryVenuesResponse {
+            venues: var_venues,
+            fetched_at: var_fetchedAt,
+            from_cache: var_fromCache,
+            stale: var_stale,
+            failure: var_failure,
+            failure_detail: var_failureDetail,
+        };
+    }
+}
+
 impl SseDecode for Vec<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1094,6 +1651,20 @@ impl SseDecode for Vec<String> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<String>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::mirror::CheckInCourse> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::mirror::CheckInCourse>::sse_decode(
+                deserializer,
+            ));
         }
         return ans_;
     }
@@ -1144,6 +1715,68 @@ impl SseDecode for Vec<crate::api::mirror::HomeworkItem> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<crate::api::mirror::HomeworkItem>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::mirror::LibraryArea> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::mirror::LibraryArea>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::mirror::LibraryBooking> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::mirror::LibraryBooking>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::mirror::LibrarySeat> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::mirror::LibrarySeat>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::mirror::LibrarySlot> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::mirror::LibrarySlot>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::mirror::LibraryVenue> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::mirror::LibraryVenue>::sse_decode(deserializer));
         }
         return ans_;
     }
@@ -1589,27 +2222,35 @@ fn pde_ffi_dispatcher_primary_impl(
     match func_id {
         1 => wire__crate__api__live__clear_cache_impl(port, ptr, rust_vec_len, data_len),
         2 => wire__crate__api__mirror__init_app_impl(port, ptr, rust_vec_len, data_len),
-        3 => wire__crate__api__live__load_classrooms_impl(port, ptr, rust_vec_len, data_len),
-        4 => wire__crate__api__mirror__load_demo_classrooms_impl(port, ptr, rust_vec_len, data_len),
-        5 => wire__crate__api__mirror__load_demo_grades_impl(port, ptr, rust_vec_len, data_len),
-        6 => wire__crate__api__mirror__load_demo_homework_impl(port, ptr, rust_vec_len, data_len),
-        7 => wire__crate__api__mirror__load_demo_schedule_impl(port, ptr, rust_vec_len, data_len),
-        8 => wire__crate__api__mirror__load_demo_today_impl(port, ptr, rust_vec_len, data_len),
-        9 => wire__crate__api__live__load_grade_terms_impl(port, ptr, rust_vec_len, data_len),
-        10 => wire__crate__api__live__load_grades_impl(port, ptr, rust_vec_len, data_len),
-        11 => wire__crate__api__mirror__load_query_dates_impl(port, ptr, rust_vec_len, data_len),
-        12 => wire__crate__api__mirror__load_rule_examples_impl(port, ptr, rust_vec_len, data_len),
-        13 => wire__crate__api__live__load_schedule_impl(port, ptr, rust_vec_len, data_len),
-        14 => wire__crate__api__live__load_today_impl(port, ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__live__login_impl(port, ptr, rust_vec_len, data_len),
-        16 => {
+        3 => wire__crate__api__live__load_checkin_today_impl(port, ptr, rust_vec_len, data_len),
+        4 => wire__crate__api__live__load_classrooms_impl(port, ptr, rust_vec_len, data_len),
+        5 => wire__crate__api__mirror__load_demo_checkin_impl(port, ptr, rust_vec_len, data_len),
+        6 => wire__crate__api__mirror__load_demo_classrooms_impl(port, ptr, rust_vec_len, data_len),
+        7 => wire__crate__api__mirror__load_demo_grades_impl(port, ptr, rust_vec_len, data_len),
+        8 => wire__crate__api__mirror__load_demo_homework_impl(port, ptr, rust_vec_len, data_len),
+        9 => wire__crate__api__mirror__load_demo_library_impl(port, ptr, rust_vec_len, data_len),
+        10 => wire__crate__api__mirror__load_demo_schedule_impl(port, ptr, rust_vec_len, data_len),
+        11 => wire__crate__api__mirror__load_demo_today_impl(port, ptr, rust_vec_len, data_len),
+        12 => wire__crate__api__live__load_grade_terms_impl(port, ptr, rust_vec_len, data_len),
+        13 => wire__crate__api__live__load_grades_impl(port, ptr, rust_vec_len, data_len),
+        14 => wire__crate__api__live__load_library_areas_impl(port, ptr, rust_vec_len, data_len),
+        15 => wire__crate__api__live__load_library_bookings_impl(port, ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__live__load_library_seats_impl(port, ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__live__load_library_slots_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__live__load_library_venues_impl(port, ptr, rust_vec_len, data_len),
+        19 => wire__crate__api__mirror__load_query_dates_impl(port, ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__mirror__load_rule_examples_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__live__load_schedule_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__live__load_today_impl(port, ptr, rust_vec_len, data_len),
+        23 => wire__crate__api__live__login_impl(port, ptr, rust_vec_len, data_len),
+        24 => {
             wire__crate__api__mirror__query_demo_classrooms_impl(port, ptr, rust_vec_len, data_len)
         }
-        17 => wire__crate__api__live__restore_session_impl(port, ptr, rust_vec_len, data_len),
-        18 => wire__crate__api__live__session_status_impl(port, ptr, rust_vec_len, data_len),
-        19 => wire__crate__api__live__set_route_impl(port, ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__live__sign_out_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__live__verify_credential_storage_impl(
+        25 => wire__crate__api__live__restore_session_impl(port, ptr, rust_vec_len, data_len),
+        26 => wire__crate__api__live__session_status_impl(port, ptr, rust_vec_len, data_len),
+        27 => wire__crate__api__live__set_route_impl(port, ptr, rust_vec_len, data_len),
+        28 => wire__crate__api__live__sign_out_impl(port, ptr, rust_vec_len, data_len),
+        29 => wire__crate__api__live__verify_credential_storage_impl(
             port,
             ptr,
             rust_vec_len,
@@ -1633,6 +2274,84 @@ fn pde_ffi_dispatcher_sync_impl(
 
 // Section: rust2dart
 
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::mirror::CheckInCourse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.course_id.into_into_dart().into_dart(),
+            self.course_num.into_into_dart().into_dart(),
+            self.course_name.into_into_dart().into_dart(),
+            self.begins_at.into_into_dart().into_dart(),
+            self.ends_at.into_into_dart().into_dart(),
+            self.status.into_into_dart().into_dart(),
+            self.teacher_name.into_into_dart().into_dart(),
+            self.classroom_name.into_into_dart().into_dart(),
+            self.merged_record_count.into_into_dart().into_dart(),
+            self.conflicting.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::mirror::CheckInCourse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::CheckInCourse>
+    for crate::api::mirror::CheckInCourse
+{
+    fn into_into_dart(self) -> crate::api::mirror::CheckInCourse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::mirror::CheckInResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.date.into_into_dart().into_dart(),
+            self.courses.into_into_dart().into_dart(),
+            self.fetched_at.into_into_dart().into_dart(),
+            self.from_cache.into_into_dart().into_dart(),
+            self.stale.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+            self.failure_detail.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::mirror::CheckInResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::CheckInResponse>
+    for crate::api::mirror::CheckInResponse
+{
+    fn into_into_dart(self) -> crate::api::mirror::CheckInResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::mirror::CheckInStatus {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::NotSigned => 0.into_dart(),
+            Self::Signed => 1.into_dart(),
+            Self::Unknown => 2.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::mirror::CheckInStatus
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::CheckInStatus>
+    for crate::api::mirror::CheckInStatus
+{
+    fn into_into_dart(self) -> crate::api::mirror::CheckInStatus {
+        self
+    }
+}
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::mirror::ClassroomBuilding {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
@@ -1790,6 +2509,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::mirror::FailureCode {
             Self::RedirectLimit => 9.into_dart(),
             Self::UnsupportedPortal => 10.into_dart(),
             Self::CredentialStore => 11.into_dart(),
+            Self::BusinessRejected => 12.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -1973,6 +2693,265 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::HomeworkStatus>
     for crate::api::mirror::HomeworkStatus
 {
     fn into_into_dart(self) -> crate::api::mirror::HomeworkStatus {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::mirror::LibraryArea {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.free.into_into_dart().into_dart(),
+            self.total.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::mirror::LibraryArea
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::LibraryArea>
+    for crate::api::mirror::LibraryArea
+{
+    fn into_into_dart(self) -> crate::api::mirror::LibraryArea {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::mirror::LibraryAreasResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.areas.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+            self.failure_detail.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::mirror::LibraryAreasResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::LibraryAreasResponse>
+    for crate::api::mirror::LibraryAreasResponse
+{
+    fn into_into_dart(self) -> crate::api::mirror::LibraryAreasResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::mirror::LibraryBooking {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.area_name.into_into_dart().into_dart(),
+            self.seat_number.into_into_dart().into_dart(),
+            self.day.into_into_dart().into_dart(),
+            self.start_time.into_into_dart().into_dart(),
+            self.end_time.into_into_dart().into_dart(),
+            self.status_name.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::mirror::LibraryBooking
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::LibraryBooking>
+    for crate::api::mirror::LibraryBooking
+{
+    fn into_into_dart(self) -> crate::api::mirror::LibraryBooking {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::mirror::LibraryBookingsResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.bookings.into_into_dart().into_dart(),
+            self.fetched_at.into_into_dart().into_dart(),
+            self.from_cache.into_into_dart().into_dart(),
+            self.stale.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+            self.failure_detail.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::mirror::LibraryBookingsResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::LibraryBookingsResponse>
+    for crate::api::mirror::LibraryBookingsResponse
+{
+    fn into_into_dart(self) -> crate::api::mirror::LibraryBookingsResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::mirror::LibraryDemoResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.venues.into_into_dart().into_dart(),
+            self.areas.into_into_dart().into_dart(),
+            self.slots.into_into_dart().into_dart(),
+            self.seats.into_into_dart().into_dart(),
+            self.bookings.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::mirror::LibraryDemoResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::LibraryDemoResponse>
+    for crate::api::mirror::LibraryDemoResponse
+{
+    fn into_into_dart(self) -> crate::api::mirror::LibraryDemoResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::mirror::LibrarySeat {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.status_name.into_into_dart().into_dart(),
+            self.available.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::mirror::LibrarySeat
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::LibrarySeat>
+    for crate::api::mirror::LibrarySeat
+{
+    fn into_into_dart(self) -> crate::api::mirror::LibrarySeat {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::mirror::LibrarySeatsResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.seats.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+            self.failure_detail.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::mirror::LibrarySeatsResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::LibrarySeatsResponse>
+    for crate::api::mirror::LibrarySeatsResponse
+{
+    fn into_into_dart(self) -> crate::api::mirror::LibrarySeatsResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::mirror::LibrarySlot {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.day.into_into_dart().into_dart(),
+            self.start.into_into_dart().into_dart(),
+            self.end.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::mirror::LibrarySlot
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::LibrarySlot>
+    for crate::api::mirror::LibrarySlot
+{
+    fn into_into_dart(self) -> crate::api::mirror::LibrarySlot {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::mirror::LibrarySlotsResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.slots.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+            self.failure_detail.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::mirror::LibrarySlotsResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::LibrarySlotsResponse>
+    for crate::api::mirror::LibrarySlotsResponse
+{
+    fn into_into_dart(self) -> crate::api::mirror::LibrarySlotsResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::mirror::LibraryVenue {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.free.into_into_dart().into_dart(),
+            self.total.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::mirror::LibraryVenue
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::LibraryVenue>
+    for crate::api::mirror::LibraryVenue
+{
+    fn into_into_dart(self) -> crate::api::mirror::LibraryVenue {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::mirror::LibraryVenuesResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.venues.into_into_dart().into_dart(),
+            self.fetched_at.into_into_dart().into_dart(),
+            self.from_cache.into_into_dart().into_dart(),
+            self.stale.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+            self.failure_detail.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::mirror::LibraryVenuesResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::LibraryVenuesResponse>
+    for crate::api::mirror::LibraryVenuesResponse
+{
+    fn into_into_dart(self) -> crate::api::mirror::LibraryVenuesResponse {
         self
     }
 }
@@ -2328,6 +3307,53 @@ impl SseEncode for bool {
     }
 }
 
+impl SseEncode for crate::api::mirror::CheckInCourse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <Option<String>>::sse_encode(self.course_id, serializer);
+        <Option<String>>::sse_encode(self.course_num, serializer);
+        <String>::sse_encode(self.course_name, serializer);
+        <String>::sse_encode(self.begins_at, serializer);
+        <String>::sse_encode(self.ends_at, serializer);
+        <crate::api::mirror::CheckInStatus>::sse_encode(self.status, serializer);
+        <Option<String>>::sse_encode(self.teacher_name, serializer);
+        <Option<String>>::sse_encode(self.classroom_name, serializer);
+        <i32>::sse_encode(self.merged_record_count, serializer);
+        <bool>::sse_encode(self.conflicting, serializer);
+    }
+}
+
+impl SseEncode for crate::api::mirror::CheckInResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.date, serializer);
+        <Vec<crate::api::mirror::CheckInCourse>>::sse_encode(self.courses, serializer);
+        <Option<String>>::sse_encode(self.fetched_at, serializer);
+        <bool>::sse_encode(self.from_cache, serializer);
+        <bool>::sse_encode(self.stale, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+        <Option<String>>::sse_encode(self.failure_detail, serializer);
+    }
+}
+
+impl SseEncode for crate::api::mirror::CheckInStatus {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::mirror::CheckInStatus::NotSigned => 0,
+                crate::api::mirror::CheckInStatus::Signed => 1,
+                crate::api::mirror::CheckInStatus::Unknown => 2,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
 impl SseEncode for crate::api::mirror::ClassroomBuilding {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2424,6 +3450,7 @@ impl SseEncode for crate::api::mirror::FailureCode {
                 crate::api::mirror::FailureCode::RedirectLimit => 9,
                 crate::api::mirror::FailureCode::UnsupportedPortal => 10,
                 crate::api::mirror::FailureCode::CredentialStore => 11,
+                crate::api::mirror::FailureCode::BusinessRejected => 12,
                 _ => {
                     unimplemented!("");
                 }
@@ -2528,12 +3555,138 @@ impl SseEncode for i32 {
     }
 }
 
+impl SseEncode for crate::api::mirror::LibraryArea {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.name, serializer);
+        <i32>::sse_encode(self.free, serializer);
+        <i32>::sse_encode(self.total, serializer);
+    }
+}
+
+impl SseEncode for crate::api::mirror::LibraryAreasResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<crate::api::mirror::LibraryArea>>::sse_encode(self.areas, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+        <Option<String>>::sse_encode(self.failure_detail, serializer);
+    }
+}
+
+impl SseEncode for crate::api::mirror::LibraryBooking {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.title, serializer);
+        <String>::sse_encode(self.area_name, serializer);
+        <String>::sse_encode(self.seat_number, serializer);
+        <String>::sse_encode(self.day, serializer);
+        <String>::sse_encode(self.start_time, serializer);
+        <String>::sse_encode(self.end_time, serializer);
+        <String>::sse_encode(self.status_name, serializer);
+    }
+}
+
+impl SseEncode for crate::api::mirror::LibraryBookingsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<crate::api::mirror::LibraryBooking>>::sse_encode(self.bookings, serializer);
+        <Option<String>>::sse_encode(self.fetched_at, serializer);
+        <bool>::sse_encode(self.from_cache, serializer);
+        <bool>::sse_encode(self.stale, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+        <Option<String>>::sse_encode(self.failure_detail, serializer);
+    }
+}
+
+impl SseEncode for crate::api::mirror::LibraryDemoResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<crate::api::mirror::LibraryVenue>>::sse_encode(self.venues, serializer);
+        <Vec<crate::api::mirror::LibraryArea>>::sse_encode(self.areas, serializer);
+        <Vec<crate::api::mirror::LibrarySlot>>::sse_encode(self.slots, serializer);
+        <Vec<crate::api::mirror::LibrarySeat>>::sse_encode(self.seats, serializer);
+        <Vec<crate::api::mirror::LibraryBooking>>::sse_encode(self.bookings, serializer);
+    }
+}
+
+impl SseEncode for crate::api::mirror::LibrarySeat {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.name, serializer);
+        <String>::sse_encode(self.status_name, serializer);
+        <bool>::sse_encode(self.available, serializer);
+    }
+}
+
+impl SseEncode for crate::api::mirror::LibrarySeatsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<crate::api::mirror::LibrarySeat>>::sse_encode(self.seats, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+        <Option<String>>::sse_encode(self.failure_detail, serializer);
+    }
+}
+
+impl SseEncode for crate::api::mirror::LibrarySlot {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.day, serializer);
+        <String>::sse_encode(self.start, serializer);
+        <String>::sse_encode(self.end, serializer);
+    }
+}
+
+impl SseEncode for crate::api::mirror::LibrarySlotsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<crate::api::mirror::LibrarySlot>>::sse_encode(self.slots, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+        <Option<String>>::sse_encode(self.failure_detail, serializer);
+    }
+}
+
+impl SseEncode for crate::api::mirror::LibraryVenue {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.name, serializer);
+        <i32>::sse_encode(self.free, serializer);
+        <i32>::sse_encode(self.total, serializer);
+    }
+}
+
+impl SseEncode for crate::api::mirror::LibraryVenuesResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<crate::api::mirror::LibraryVenue>>::sse_encode(self.venues, serializer);
+        <Option<String>>::sse_encode(self.fetched_at, serializer);
+        <bool>::sse_encode(self.from_cache, serializer);
+        <bool>::sse_encode(self.stale, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+        <Option<String>>::sse_encode(self.failure_detail, serializer);
+    }
+}
+
 impl SseEncode for Vec<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <String>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::mirror::CheckInCourse> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::mirror::CheckInCourse>::sse_encode(item, serializer);
         }
     }
 }
@@ -2574,6 +3727,56 @@ impl SseEncode for Vec<crate::api::mirror::HomeworkItem> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::mirror::HomeworkItem>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::mirror::LibraryArea> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::mirror::LibraryArea>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::mirror::LibraryBooking> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::mirror::LibraryBooking>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::mirror::LibrarySeat> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::mirror::LibrarySeat>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::mirror::LibrarySlot> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::mirror::LibrarySlot>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::mirror::LibraryVenue> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::mirror::LibraryVenue>::sse_encode(item, serializer);
         }
     }
 }

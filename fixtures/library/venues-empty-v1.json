@@ -1,0 +1,13 @@
+{
+  "contract": "library.venues",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "data": {
+      "list": []
+    }
+  },
+  "expected": {
+    "venues": []
+  }
+}

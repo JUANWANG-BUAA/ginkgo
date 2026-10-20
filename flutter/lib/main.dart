@@ -308,7 +308,16 @@ class _DesktopWorkspace extends StatefulWidget {
 
 class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
   int selected = 0;
+  /// IndexedStack builds every child, which would fire real read requests for
+  /// pages the user never opened. Build a page on first visit and keep it
+  /// mounted afterwards so sidebar state survives switching.
+  final Set<int> visited = {0};
   Future<void> _signOut() => widget.onSignOut?.call() ?? Future.value();
+
+  void select(int index) => setState(() {
+    selected = index;
+    visited.add(index);
+  });
 
   @override
   Widget build(BuildContext context) => Row(
@@ -398,35 +407,40 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
         child: IndexedStack(
           index: selected,
           children: [
-            TodayPage(
-              service: widget.service,
-              accountName: widget.accountName,
-              onAccountAction: widget.onSignOut,
-            ),
-            CheckInPage(service: widget.service),
-            SchedulePage(service: widget.service),
-            GradesPage(service: widget.service),
-            HomeworkPage(service: widget.service),
-            ClassroomPage(service: widget.service),
-            LibraryPage(service: widget.service),
-            ComingSoonPage(
-              title: '待办',
-              description: '本机待办尚未迁移到 Flutter 镜像。',
-              symbol: CupertinoIcons.list_bullet,
-            ),
-            SettingsPage(
-              service: widget.service,
-              onSignOut: _signOut,
-              accountName: widget.accountName,
-              accountId: widget.accountId,
-              route: widget.route,
-            ),
-            RulesPage(service: widget.service),
+            for (var index = 0; index < 10; index++)
+              if (visited.contains(index)) _page(index) else const SizedBox.shrink(),
           ],
         ),
       ),
     ],
   );
+
+  Widget _page(int index) => switch (index) {
+    0 => TodayPage(
+              service: widget.service,
+              accountName: widget.accountName,
+              onAccountAction: widget.onSignOut,
+            ),
+    1 => CheckInPage(service: widget.service),
+    2 => SchedulePage(service: widget.service),
+    3 => GradesPage(service: widget.service),
+    4 => HomeworkPage(service: widget.service),
+    5 => ClassroomPage(service: widget.service),
+    6 => LibraryPage(service: widget.service),
+    7 => ComingSoonPage(
+      title: '待办',
+      description: '本机待办尚未迁移到 Flutter 镜像。',
+      symbol: CupertinoIcons.list_bullet,
+    ),
+    8 => SettingsPage(
+      service: widget.service,
+      onSignOut: _signOut,
+      accountName: widget.accountName,
+      accountId: widget.accountId,
+      route: widget.route,
+    ),
+    _ => RulesPage(service: widget.service),
+  };
 
   Widget _section(String title) => Padding(
     padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
@@ -447,7 +461,7 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
       color: selected == index
           ? CupertinoColors.tertiarySystemFill.resolveFrom(context)
           : null,
-      onPressed: () => setState(() => selected = index),
+      onPressed: () => select(index),
       child: Row(
         children: [
           Icon(icon, size: 18),
