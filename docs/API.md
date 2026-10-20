@@ -11,6 +11,8 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 镜像会话勘误 | WebVPN头/图书馆登录 | 请求URL映射而Origin/Referer未映射；并发CAS；有网关Cookie即跳过认证 | 对齐Apple路由头映射；图书馆异步登录锁与锁内检查；显式网关挑战不能被预登录Cookie跳过；认证失败保留快照 | `Core/Network/UpstreamRoute.swift:93–99`；UBAA e8a397f `LocalLibBookApi.kt:187,305–332,365–371`；Android授权只读复验成功，未放宽TLS |
+| 镜像时间勘误 | GSMIS时间方案 | 仅外层JCFADM | skjcList条目的JCFADM优先，外层兼容；再按DM匹配 | UBAA e8a397f `GsmisSchedule.kt:35–39,74`；`ScheduleParser.swift:117–121,306–312`；合成回归与Android时间字段完整性检查 |
 | 镜像 CGYY | 教学楼场馆只读 | 镜像未迁移 | 公开场馆/直连SSO/签名/时段/最近20条订单迁移；host公开7个site可读，账号链路⚠️待完成 | §6B、修订53；CgyyClient.swift / CgyySigner.swift；不含写接口 |
 | 镜像通知 | 公开通知列表 | 镜像未迁移 | 按现有HTML字段迁移最新5条/摘要外链；Rust host公开5条可读，Android实网/外链⚠️待完成 | §7.3五条既有证据；CampusNoticesClient.swift |
 | 镜像研究生 | 学籍/执行报告 | 尚未迁移 | 按code=1与zxbg层级迁移；学籍白名单；报告失败回退课程池 | §7.4；`GraduateAcademicClient.swift`；真实镜像验收⚠️待完成 |

@@ -314,3 +314,36 @@ async fn redirect_loops_are_bounded() {
     );
     assert_eq!(transport.request_count(), 10);
 }
+
+#[tokio::test]
+async fn webvpn_maps_origin_and_referer_with_the_request() {
+    use crate::foundation::{http::HttpRequest, webvpn};
+    let transport = MockTransport::with_responses(vec![HttpResponse::new(200, UC_STATUS_URL, "")]);
+    let session = Session::new(transport);
+    session.set_route(SessionRoute::WebVpn);
+    session
+        .send(
+            HttpRequest::get(UC_STATUS_URL)
+                .header("Origin", "https://booking.lib.buaa.edu.cn")
+                .header("Referer", "https://booking.lib.buaa.edu.cn/v4/"),
+        )
+        .await
+        .unwrap();
+    let requests = session.transport().requests();
+    assert_eq!(
+        requests[0].header_value("Origin"),
+        Some(
+            webvpn::wrap("https://booking.lib.buaa.edu.cn")
+                .unwrap()
+                .as_str()
+        )
+    );
+    assert_eq!(
+        requests[0].header_value("Referer"),
+        Some(
+            webvpn::wrap("https://booking.lib.buaa.edu.cn/v4/")
+                .unwrap()
+                .as_str()
+        )
+    );
+}

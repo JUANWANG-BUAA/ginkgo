@@ -900,7 +900,8 @@ async fn checkin_webvpn_fallback_establishes_the_gateway_session_once() {
         200,
         "https://d.buaa.edu.cn/login",
         "<html>gateway login</html>",
-    )));
+    )
+    .with_set_cookie("gateway-preauth=fixture; Path=/; Secure")));
     // WebVPN CAS login chain (routed through the gateway).
     results.push(Ok(HttpResponse::new(
         200,
@@ -1201,10 +1202,18 @@ async fn homework_full_read_chain_caches_list_and_reads_detail() {
     );
     assert_eq!(count, transport.request_count());
     let detail = service
-        .load_homework_detail("a", false)
+        .load_homework_detail("spoc:a", false)
         .await
         .expect("detail");
     assert_eq!(detail.data.content.as_deref(), Some("合成说明"));
+    assert!(transport
+        .requests()
+        .iter()
+        .any(|r| r.url.ends_with("/kczy/queryKczyInfoByid?id=a")));
+    assert!(!transport
+        .requests()
+        .iter()
+        .any(|r| r.url.contains("id=spoc")));
     assert_eq!(
         detail.data.status,
         crate::features::homework::HomeworkStatus::Submitted
@@ -1382,4 +1391,70 @@ async fn cgyy_direct_public_login_day_orders_and_stale_snapshot() {
     }
     service.clear_snapshots();
     assert!(service.cgyy_token.lock().unwrap().is_none());
+}
+
+#[tokio::test]
+async fn library_auth_failure_preserves_the_previous_snapshot() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend([
+        library_login_redirect(),
+        library_token_response(),
+        library_body("space/pcTopFor"),
+        HttpResponse::new(200, crate::adapters::library_http::LOGIN_START, FORM_PAGE),
+    ]);
+    let (service, _) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, false)
+        .await
+        .unwrap();
+    let first = service.load_library_venues(false).await.unwrap();
+    *service.library_token.lock().unwrap() = None;
+    let stale = service.load_library_venues(true).await.unwrap();
+    assert!(stale.stale && stale.from_cache);
+    assert_eq!(stale.venues.len(), first.venues.len());
+    assert!(!stale.venues.is_empty());
+    assert_eq!(stale.failure.unwrap().code, ErrorCode::SessionExpired);
+}
+
+#[tokio::test]
+async fn concurrent_library_reads_share_one_cas_exchange() {
+    use crate::foundation::http::{HttpRequest, HttpTransport};
+    #[derive(Clone)]
+    struct YieldingTransport(MockTransport);
+    impl HttpTransport for YieldingTransport {
+        async fn send(&self, request: HttpRequest) -> Result<HttpResponse, TransportError> {
+            tokio::task::yield_now().await;
+            self.0.send(request).await
+        }
+    }
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend([
+        library_login_redirect(),
+        library_token_response(),
+        library_body("space/pcTopFor"),
+        library_body("space/pcTopFor"),
+    ]);
+    let transport = MockTransport::with_responses(responses);
+    let service = SessionService::new(
+        crate::auth::session::Session::new(YieldingTransport(transport.clone())),
+        MemoryVault::default(),
+    );
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, false)
+        .await
+        .unwrap();
+    let (first, second) = tokio::join!(
+        service.load_library_venues(true),
+        service.load_library_venues(true)
+    );
+    assert!(!first.unwrap().venues.is_empty());
+    assert!(!second.unwrap().venues.is_empty());
+    assert_eq!(
+        transport
+            .requests()
+            .iter()
+            .filter(|r| r.url == crate::adapters::library_http::LOGIN_USER)
+            .count(),
+        1
+    );
 }

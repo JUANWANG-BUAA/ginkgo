@@ -146,6 +146,14 @@ impl<T: HttpTransport> Session<T> {
             && (webvpn::should_route(&request.url) || is_gateway(&request.url));
         if mode == RouteMode::WebVpn && webvpn::should_route(&request.url) {
             request.url = webvpn::wrap(&request.url).map_err(|_| AppError::invalid())?;
+            // Ginkgo UpstreamRoute.swift:93: origin and referrer follow URL routing.
+            for (name, value) in &mut request.headers {
+                if (name.eq_ignore_ascii_case("Origin") || name.eq_ignore_ascii_case("Referer"))
+                    && webvpn::should_route(value)
+                {
+                    *value = webvpn::wrap(value).map_err(|_| AppError::invalid())?;
+                }
+            }
         }
         request.headers.remove("Cookie");
 

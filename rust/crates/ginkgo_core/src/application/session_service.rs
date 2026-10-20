@@ -98,6 +98,7 @@ pub struct SessionService<T: HttpTransport, V: CredentialVault> {
     pub(crate) library_bookings: Mutex<LibraryBookingCache>,
     /// booking.lib business token. Memory only.
     pub(crate) library_token: Mutex<Option<String>>,
+    pub(crate) library_login_gate: tokio::sync::Mutex<()>,
 }
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
@@ -125,6 +126,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             library_venues: Mutex::new(LibraryVenueCache::default()),
             library_bookings: Mutex::new(LibraryBookingCache::default()),
             library_token: Mutex::new(None),
+            library_login_gate: tokio::sync::Mutex::new(()),
         }
     }
 
@@ -322,9 +324,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     /// in again. On failure the route returns to Automatic so the gateway can
     /// never leave every later request stranded.
     pub(crate) async fn ensure_webvpn_session(&self) -> Result<(), AppError> {
-        if self.session.webvpn_cookie_present() {
-            return Ok(());
-        }
+        // Called after an explicit gateway challenge. A cookie may be only
+        // the pre-login gateway session, not proof of authenticated access.
         let account = self.current_account()?;
         let credentials = self
             .vault

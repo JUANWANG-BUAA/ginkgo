@@ -86,6 +86,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         force: bool,
     ) -> Result<HomeworkDetailOutcome, AppError> {
         self.current_account()?;
+        // Public item IDs include the source namespace; upstream expects zyid only.
+        let id = id.strip_prefix("spoc:").unwrap_or(id);
         let key = id.to_owned();
         if !force {
             let cache = self.homework_details.lock().expect("homework detail cache");

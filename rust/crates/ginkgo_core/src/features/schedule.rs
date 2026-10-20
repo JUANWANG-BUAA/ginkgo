@@ -484,10 +484,14 @@ pub fn parse_graduate_courses(
             .get("skjcList")
             .and_then(Value::as_array)
             .ok_or_else(AppError::changed)?;
-        let Some(scheme_id) = optional_string(scheme, "JCFADM") else {
-            continue;
-        };
         for entry in entries {
+            // GSMIS carries JCFADM on individual slots; outer scheme metadata
+            // is optional. Match the row's own scheme first (Apple parser).
+            let Some(scheme_id) =
+                optional_string(entry, "JCFADM").or_else(|| optional_string(scheme, "JCFADM"))
+            else {
+                continue;
+            };
             let section = optional_integer(entry, "DM").ok_or_else(AppError::changed)?;
             slots.insert(
                 (scheme_id.clone(), section),
@@ -754,6 +758,24 @@ mod graduate_tests {
         );
         assert!(weeks[6].current);
         assert!(!weeks[5].current);
+    }
+
+    #[test]
+    fn graduate_slot_scheme_can_live_only_on_entries() {
+        let mut value = body("graduate-schedule-v1.json");
+        // Match the real portal hierarchy without using any account data.
+        for scheme in value["jcfaList"].as_array_mut().unwrap() {
+            let id = scheme["JCFADM"].clone();
+            scheme.as_object_mut().unwrap().remove("JCFADM");
+            for entry in scheme["skjcList"].as_array_mut().unwrap() {
+                entry["JCFADM"] = id.clone();
+            }
+        }
+        let courses = parse_graduate_courses(value, "20261", 7).unwrap();
+        assert_eq!(courses.len(), 2);
+        assert!(courses
+            .iter()
+            .all(|c| c.start_time.is_some() && c.end_time.is_some()));
     }
 
     #[test]

@@ -61,13 +61,17 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             }
         }
 
-        let mut token = self.library_token().await?;
-        let mut result = library_http::venues(&self.session, &token, &day).await;
-        if needs_relogin(&result) {
-            self.reset_library_token();
-            token = self.library_token().await?;
-            result = library_http::venues(&self.session, &token, &day).await;
+        let result = async {
+            let mut token = self.library_token().await?;
+            let mut result = library_http::venues(&self.session, &token, &day).await;
+            if needs_relogin(&result) {
+                self.reset_library_token();
+                token = self.library_token().await?;
+                result = library_http::venues(&self.session, &token, &day).await;
+            }
+            result
         }
+        .await;
 
         match result {
             Ok(venues) => {
@@ -182,13 +186,17 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             }
         }
 
-        let mut token = self.library_token().await?;
-        let mut result = library_http::bookings(&self.session, &token).await;
-        if needs_relogin(&result) {
-            self.reset_library_token();
-            token = self.library_token().await?;
-            result = library_http::bookings(&self.session, &token).await;
+        let result = async {
+            let mut token = self.library_token().await?;
+            let mut result = library_http::bookings(&self.session, &token).await;
+            if needs_relogin(&result) {
+                self.reset_library_token();
+                token = self.library_token().await?;
+                result = library_http::bookings(&self.session, &token).await;
+            }
+            result
         }
+        .await;
 
         match result {
             Ok(bookings) => {
@@ -226,7 +234,16 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         if let Some(token) = cached {
             return Ok(token);
         }
+        // Match UBAA loginMutex: only one CAS exchange may build the token.
+        let _login = self.library_login_gate.lock().await;
+        if let Some(token) = self.library_token.lock().expect("library token").clone() {
+            return Ok(token);
+        }
+        let account = self.current_account()?;
         let token = self.login_library().await?;
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
+        }
         *self.library_token.lock().expect("library token") = Some(token.clone());
         Ok(token)
     }
@@ -240,7 +257,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             Ok(token) => return Ok(token),
             Err(error) => error,
         };
-        if first.detail.as_deref() != Some("webvpn_login_required") {
+        let routed_cas_expired = is_library_login_error(&first)
+            && self.session.route() == crate::auth::session::RouteMode::WebVpn;
+        if first.detail.as_deref() != Some("webvpn_login_required") && !routed_cas_expired {
             return Err(first);
         }
         self.ensure_webvpn_session().await?;
