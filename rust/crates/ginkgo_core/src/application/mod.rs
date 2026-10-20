@@ -95,3 +95,5 @@ mod cgyy_service;
 pub use cgyy_service::CgyyOutcome;
 
 mod library_stats_service;
+
+pub mod updates_service;

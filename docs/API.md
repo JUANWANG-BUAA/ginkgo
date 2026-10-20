@@ -76,6 +76,7 @@
 | 54 | §5.5 Rust/Flutter公共统计 | 镜像未迁移 | 独立Cookie会话读取两校区人数/阅览室及资源余量，五分钟进程缓存，缺指标null，失败保留；不包含Apple端60天历史趋势 | `LibraryPublicStats.swift`、`LibraryPublicStatsParserTests.swift`、Rust四份合成契约与应用测试；2026-10-20 host正式Session/reqwest公开GET解析2校区 |
 | 55 | §5.5 公开会话路线 | 复制学校Session已回退的有效路线 | 改为复制用户原始自动/直连/WebVPN偏好；不继承其他业务的自动回退状态，仍隔离Cookie | Android真实只读发现私有业务切网关后公开页失败；Session::activate_automatic_webvpn_fallback源码；应用回归覆盖自动偏好+已回退私有会话；修复后Android无账号真实GET解析2校区 |
 | 56 | 镜像会话/只读刷新边界 | bridge读取与清理可能并发；认证恢复失败直接返回 | 不改变上游端点/参数/成功码；bridge并行读与身份/缓存变更互斥，恢复失败保留已有快照，显式退出清理保存账号 | Rust lifecycle/route logout/expired snapshot合成回归；macOS ScheduleViewModel/GradeViewModel generation与失败保留行为 |
+| 57 | Android 更新 | macOS Releases 仅含 DMG/ZIP | 沿用官方 GitHub Releases GET，Android 使用独立 android-v 语义版本和 arm64 APK 资产；Cookie 隔离、正式/预发布渠道分离，无学校写操作 | Core/Update/UpdateChecker.swift；2026-10-20 公开 API 仅见 macOS 包；新增合成 updates.android 契约 |
 
 ## 0. 文档约定
 
@@ -875,3 +876,8 @@ UBAA 源码另提供操场 CGYY、阳光打卡 YGDK、iHome、课程评教、图
 ### 镜像实现记录（2026-10-20，§7.1）
 
 ✅ 协议依据保持为 §7.1 的 2026-10-18 WebVPN 实测和 `SpocHomeworkClient.swift`：镜像按相同 SPA→CAS→role→term→courses→page/detail 顺序接通真实只读。新增合成详情契约不构成新的上游实测证据；本轮镜像真实账号读取仍 ⚠️ 待本机登录验收。无新增写端点。
+
+
+### Android 镜像更新源（2026-10-20）
+
+`GET https://api.github.com/repos/JUANWANG-BUAA/ginkgo/releases?per_page=100`，Accept `application/vnd.github+json`，User-Agent `Ginkgo-Android-Update`。沿用 Apple UpdateChecker 的公开仓库来源；版本线为项目新增的 `android-v<semver>`，不是学校接口。草稿忽略，正式安装包排除预发布；`*-android-arm64.apk` 非零资产作为可用标志，发布页/资产必须是本项目 HTTPS GitHub URL。新建独立直接 Session，不带学校 Cookie，不使用学校 WebVPN。403/429与其他HTTP/解析失败均不冒充“已是最新版”。最多最近100条发布；尚未覆盖GitHub完整分页或应用内安装。字段依据官方 [Releases REST API](https://docs.github.com/en/rest/releases/releases#list-releases) 与现有 Swift 实现。

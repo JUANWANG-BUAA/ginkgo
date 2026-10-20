@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'apple_design.dart';
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
+import 'maintenance_service.dart';
+import 'maintenance_pages.dart';
 import 'query_cache_scope.dart';
 import 'src/rust/api/live.dart' show RouteChoice, SessionState;
 
@@ -14,8 +16,10 @@ class SettingsPage extends StatefulWidget {
     this.accountName,
     this.accountId,
     this.route,
+    this.maintenance = const NativeMaintenanceService(),
   });
   final MirrorService service;
+  final MaintenanceService maintenance;
   final Future<void> Function() onSignOut;
   final String? accountName;
   final String? accountId;
@@ -27,6 +31,23 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool busy = false;
   String? notice;
+  String versionLabel = '读取中…';
+  @override
+  void initState() {
+    super.initState();
+    widget.maintenance
+        .version()
+        .then((value) {
+          if (mounted) setState(() => versionLabel = value.label);
+        })
+        .catchError((Object _) {
+          if (mounted) setState(() => versionLabel = '暂时无法读取');
+        });
+  }
+
+  void _open(Widget page) {
+    Navigator.of(context).push(CupertinoPageRoute<void>(builder: (_) => page));
+  }
 
   RouteChoice get _route => widget.route ?? RouteChoice.automatic;
 
@@ -110,8 +131,17 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _signOut() async {
+    if (busy) return;
     if (!await _confirm('退出登录？', '退出后会清除本机会话和已保存的密码。')) return;
-    await widget.onSignOut();
+    if (!mounted) return;
+    setState(() => busy = true);
+    try {
+      await widget.onSignOut();
+    } catch (_) {
+      if (mounted) setState(() => notice = '退出未完成，请重试');
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
   }
 
   @override
@@ -120,6 +150,7 @@ class _SettingsPageState extends State<SettingsPage> {
       context,
     ),
     child: CustomScrollView(
+      key: const Key("settings-scroll"),
       slivers: [
         const CupertinoSliverNavigationBar(
           largeTitle: Text('设置'),
@@ -175,8 +206,16 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             AppleSection(
               header: const Text('数据与存储'),
+              footer: const Text('查询快照最多保留 5 分钟，失败时可能显示旧结果。清除后重新读取，不删除本地待办。'),
               children: [
                 AppleListTile(
+                  leading: const Icon(
+                    CupertinoIcons.trash,
+                    color: CupertinoColors.systemOrange,
+                  ),
+                  trailing: busy
+                      ? const CupertinoActivityIndicator()
+                      : const CupertinoListTileChevron(),
                   title: const Text('清除查询快照'),
                   subtitle: const Text('清除已读取的学校数据，不影响个人待办'),
                   onTap: busy ? null : _clearCache,
@@ -197,12 +236,50 @@ class _SettingsPageState extends State<SettingsPage> {
                 ],
               ),
             AppleSection(
-              header: const Text('关于'),
-              footer: const Text('Ginkgo 银杏 · 校园学习与生活'),
-              children: const [
+              header: const Text('支持与更新'),
+              children: [
                 AppleListTile(
-                  title: Text('版本'),
-                  additionalInfo: Text('0.1.0 镜像'),
+                  leading: const Icon(
+                    CupertinoIcons.checkmark_shield,
+                    color: AppleDesign.accent,
+                  ),
+                  title: const Text('运行自检'),
+                  subtitle: const Text('组件、存储与公开服务连通性'),
+                  trailing: const CupertinoListTileChevron(),
+                  onTap: busy
+                      ? null
+                      : () => _open(
+                          DiagnosticsPage(
+                            service: widget.maintenance,
+                            mirror: widget.service,
+                          ),
+                        ),
+                ),
+                AppleListTile(
+                  leading: const Icon(
+                    CupertinoIcons.arrow_down_circle,
+                    color: AppleDesign.accent,
+                  ),
+                  title: const Text('软件更新'),
+                  subtitle: const Text('检查 Android 发布与更新说明'),
+                  trailing: const CupertinoListTileChevron(),
+                  onTap: busy
+                      ? null
+                      : () => _open(
+                          SoftwareUpdatePage(service: widget.maintenance),
+                        ),
+                ),
+              ],
+            ),
+            AppleSection(
+              header: const Text('关于 Ginkgo'),
+              footer: const Text(
+                '银杏 · 校园学习与生活\nAndroid 镜像测试版；签到、预约等上游写操作暂未开放。',
+              ),
+              children: [
+                AppleListTile(
+                  title: const Text('版本'),
+                  subtitle: Text(versionLabel),
                 ),
               ],
             ),

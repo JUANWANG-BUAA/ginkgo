@@ -17,3 +17,5 @@ pub mod cgyy_http;
 pub mod notices_http;
 
 pub mod library_stats_http;
+
+pub mod updates_http;

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -29,11 +31,27 @@ android {
         versionName = flutter.versionName
     }
 
+    val signingFile = file(System.getenv("GINKGO_ANDROID_SIGNING_PROPERTIES")
+        ?: "${System.getProperty("user.home")}/.config/ginkgo/android-alpha/signing.properties")
+    if (signingFile.exists()) {
+        val signing = Properties().apply { signingFile.inputStream().use { load(it) } }
+        signingConfigs {
+            create("alpha") {
+                storeFile = file(signing.getProperty("storeFile"))
+                storePassword = signing.getProperty("storePassword")
+                keyAlias = signing.getProperty("keyAlias")
+                keyPassword = signing.getProperty("keyPassword")
+            }
+        }
+    }
+    // Publishing must never silently fall back to the debug signing key.
+    if (gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }) {
+        require(signingFile.exists()) { "Configure GINKGO_ANDROID_SIGNING_PROPERTIES before a release build" }
+    }
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (signingFile.exists()) signingConfig = signingConfigs.getByName("alpha")
         }
     }
 }

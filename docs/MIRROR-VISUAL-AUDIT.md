@@ -234,3 +234,7 @@ Android `library_stats_test.dart` 独立合成FFI smoke 1项通过（42秒，包
 门禁：139项核心lib、1项契约、1项bridge并发测试、Clippy/analyze、35项widget通过；随后单独新增清缓存页面生命周期回归1项通过（累计36项widget）。Android aarch64交叉检查通过。未重跑mirror_test.dart、未放宽断言、未再次输入真实凭据。持久化/自动刷新/提醒、BYKC已选统计、研究生视图等未迁移项保留，不冒充已修复。
 
 新增TTL/容量/清理测试单独通过（核心累计140）；Android独立refresh_audit合成smoke通过43秒，覆盖成绩刷新及设置清理后回工作台。没有把页面合成通过算作全模块真实验收。
+
+## 2026-10-20：设置与维护页面
+
+设置沿用34pt大标题、原AppleSection/AppleListTile，不添加装饰卡片；账号/路线/存储/支持与更新/关于按用途分组。自检逐行显示状态图标与文字，不仅靠颜色；更新结果、时间、失败提示与原文说明分层显示，按钮运行时禁用。使用系统页面导航，减少动态效果沿用已有封装绕过AnimatedSize。设备浅/深/1.8倍字号检查结果见 MIRROR-ANDROID-ALPHA。未宣称全模块像素对齐或TalkBack完成。

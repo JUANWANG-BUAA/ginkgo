@@ -19,6 +19,11 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
         return Err(AppError::new(ErrorCode::UnsupportedContract));
     }
     let value = match contract {
+        "updates.android" => serde_json::to_value(crate::features::updates::parse(
+            &input["releases"].to_string(),
+            input["current"].as_str().ok_or_else(AppError::invalid)?,
+        )?)
+        .map_err(|_| AppError::changed())?,
         "classroom.filter" => {
             let result = classroom::filter(decode(input)?)?;
             let ids: std::collections::BTreeMap<_, _> = result

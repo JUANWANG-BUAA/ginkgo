@@ -95,3 +95,14 @@
 桥接会话操作现在使用公平RwLock：读取持共享锁，登录/恢复/退出/切路线/清缓存持独占锁，避免旧读取重新填回已清快照。同步待办在独占操作期间明确拒绝而不阻塞FRB线程。禁止把Guard跨await改成std::sync::MutexGuard；Android交叉编译仍必需。清缓存完成后Flutter重建工作区，销毁离屏Tab及其旧详情。
 
 审计工具记录：Today/Grade DTO没有stale字段，使用fetchedAt确认缓存存在；Cupertino刷新sliver在测试中可能offstage，查找需skipOffstage:false；Flutter测试仅在flutter/运行。失败记录已据实际编译/测试结果修正，未改业务断言。
+
+
+### Android Alpha 签名与更新（2026-10-20）
+
+Release 构建要求外部签名配置，禁止静默使用 debug key。默认位置 `~/.config/ginkgo/android-alpha/signing.properties`，也可用 `GINKGO_ANDROID_SIGNING_PROPERTIES` 指向外部文件；字段为 storeFile/storePassword/keyAlias/keyPassword，文件与密钥权限0600，目录0700，不进Git。维护者应安全备份同一密钥和配置，后续相同包名升级必须同签名且增加 versionCode；丢失密钥将无法覆盖旧安装。不要上传配置或日志中的密码。测试包仅arm64，当前versionName 0.1.0-alpha.1/versionCode 2；公开tag android-v0.1.0-alpha.1。用户首次从debug签名版本迁移需要卸载旧版（会清除其本地数据），正式Alpha之间可同签名升级。没有自动更新安装权限。
+
+`dart fix`每次只接受一个文件或目录；所有fixtures JSON均须使用契约信封，不得直接放上游数组。Flutter命令明确使用flutter子目录。
+
+设备测试辅助show使用Key精确类型匹配；PageStorageKey与ValueKey不相等。替换CupertinoApp.home不会自动丢弃已push的Navigator路由，测试切换独立页面前需卸载原root。自检临时目录使用已存在root.createTemp(prefix)，不能对不存在的子目录调用createTemp。
+
+本机插件报告NDK28.2版本提示，保留项目既有NDK27；debug smoke与aarch64交叉检查均通过，release结果以发布记录为准。不因提示升级整个工具链。Android签名依据官方文档 https://developer.android.com/studio/publish/app-signing 。

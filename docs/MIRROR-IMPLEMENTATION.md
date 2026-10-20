@@ -359,3 +359,11 @@ Android `library_stats_test.dart` 独立合成FFI smoke 1项通过（42秒，包
 门禁：139项核心lib、1项契约、1项bridge并发测试、Clippy/analyze、35项widget通过；随后单独新增清缓存页面生命周期回归1项通过（累计36项widget）。Android aarch64交叉检查通过。未重跑mirror_test.dart、未放宽断言、未再次输入真实凭据。持久化/自动刷新/提醒、BYKC已选统计、研究生视图等未迁移项保留，不冒充已修复。
 
 新增TTL/容量/清理测试单独通过（核心累计140）；Android独立refresh_audit合成smoke通过43秒，覆盖成绩刷新及设置清理后回工作台。没有把页面合成通过算作全模块真实验收。
+
+## 2026-10-20：设置、自检与 Android Alpha 更新
+
+- 设置继续采用 Cupertino 大标题和分组列表：账号、网络路线、数据与存储、支持与更新、关于；补充缓存期限与清理边界，版本从安装包读取，退出操作防重复。
+- 运行自检按用户点击执行：Rust 合成课表桥接、本地临时文件写读删除、保留前缀的合成安全存储条目写读删除；删除后确认不存在。可选公开统计强制请求，缓存回退不算连通成功；演示模式不联网。结果逐项显示，不读真实密码、不上传报告。
+- 软件更新沿用 macOS `UpdateChecker.swift` 的 GitHub Releases 来源，Android 独立 `android-v<semver>` 标签。正式版本排除预发布，Alpha 包接收预发布；仅识别可信项目 URL 与 arm64 APK。未提供 APK 不显示可安装更新；失败保留上次结果和时间。浏览器下载后由系统确认安装，未实现应用内下载校验/静默安装。
+- 公开更新请求使用独立直接 Session，完全不共享学校 Cookie/路线，无账号依赖；最多查询最近100条发布。新38类/121份合成fixture；Windows更新尚未接入。
+- 本机完整门禁：143 core lib +1契约 +1 bridge、Clippy、Flutter analyze、38 Flutter tests通过；Android aarch64 cargo check通过。设备与发布结果见 `MIRROR-ANDROID-ALPHA.md`，不将本机测试等同所有学校接口验收。

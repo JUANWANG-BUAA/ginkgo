@@ -1413,6 +1413,44 @@ pub fn load_demo_library_stats() -> ReadOnlyResponse {
     }
 }
 
+/// Deliberately independent from login, school routes and account caches.
+pub async fn check_android_update(current: String) -> ReadOnlyResponse {
+    static TRANSPORT: OnceLock<Result<ReqwestTransport, AppError>> = OnceLock::new();
+    let result = match TRANSPORT
+        .get_or_init(|| ReqwestTransport::new().map_err(|_| AppError::unavailable()))
+    {
+        Ok(transport) => {
+            ginkgo_core::application::updates_service::check(UpdateTransport(transport), &current)
+                .await
+        }
+        Err(error) => Err(error.clone()),
+    };
+    match result {
+        Ok(summary) => ReadOnlyResponse {
+            payload: serde_json::to_string(&summary).ok(),
+            stale: false,
+            failure: None,
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}
+struct UpdateTransport(&'static ReqwestTransport);
+impl ginkgo_core::foundation::http::HttpTransport for UpdateTransport {
+    async fn send(
+        &self,
+        request: ginkgo_core::foundation::http::HttpRequest,
+    ) -> Result<
+        ginkgo_core::foundation::http::HttpResponse,
+        ginkgo_core::foundation::http::TransportError,
+    > {
+        self.0.send(request).await
+    }
+}
+
 #[cfg(test)]
 mod lifecycle_tests {
     use super::*;

@@ -86,8 +86,9 @@ pub fn verify_vault_round_trip<V: CredentialVault + ?Sized>(
         vault.load(account),
         Ok(Some(saved)) if saved.password == secret
     );
-    let _ = vault.delete(account);
-    ok
+    let deleted = vault.delete(account).is_ok();
+    let absent = matches!(vault.load(account), Ok(None));
+    ok && deleted && absent
 }
 
 /// Captcha answers are one-time and must never be persisted.
@@ -96,5 +97,35 @@ pub(crate) fn sanitized(credentials: &Credentials) -> Credentials {
         username: credentials.username.clone(),
         password: credentials.password.clone(),
         captcha_text: None,
+    }
+}
+
+#[cfg(test)]
+mod diagnostic_tests {
+    use super::*;
+    struct StickyVault(MemoryVault);
+    impl CredentialSource for StickyVault {
+        fn load(&self, account: &str) -> Result<Option<Credentials>, AppError> {
+            self.0.load(account)
+        }
+    }
+    impl CredentialVault for StickyVault {
+        fn save(&self, account: &str, value: &Credentials) -> Result<(), AppError> {
+            self.0.save(account, value)
+        }
+        fn delete(&self, _: &str) -> Result<(), AppError> {
+            Ok(())
+        }
+        fn accounts(&self) -> Result<Vec<String>, AppError> {
+            self.0.accounts()
+        }
+    }
+    #[test]
+    fn diagnostic_does_not_pass_when_delete_silently_leaves_data() {
+        assert!(!verify_vault_round_trip(
+            &StickyVault(MemoryVault::default()),
+            "__ginkgo_vault_test__sticky",
+            "synthetic"
+        ));
     }
 }

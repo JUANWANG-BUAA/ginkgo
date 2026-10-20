@@ -1,0 +1,17 @@
+{
+  "contract": "updates.android",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "current": "0.1.0-alpha.2",
+    "releases": []
+  },
+  "expected": {
+    "current": "0.1.0-alpha.2",
+    "latest": null,
+    "available": false,
+    "pageUrl": null,
+    "notes": null,
+    "apkAvailable": false
+  }
+}

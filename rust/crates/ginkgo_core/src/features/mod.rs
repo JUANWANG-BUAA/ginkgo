@@ -15,3 +15,5 @@ pub mod cgyy;
 pub mod notices;
 
 pub mod library_stats;
+
+pub mod updates;
