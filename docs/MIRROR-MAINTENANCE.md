@@ -12,7 +12,7 @@
 | 应用用例 | `.../application/` | 一次用户操作、会话、缓存/恢复/账号边界 | HTML 正则细节 |
 | 认证 | `.../auth/` | `cas` 解析、`login` 登录链、`uc` 会话校验、`session` Cookie/路由、`platform/` 保险库 | 页面布局 |
 | 桥接 | `rust/crates/ginkgo_flutter_bridge/src/api/` | DTO、稳定错误码、映射（`mirror.rs` 演示、`live.rs` 真实） | 业务规则、网络 |
-| 页面 | `flutter/lib/` | 布局、交互、可访问性、本地化 | Cookie、凭据、上游字段解析 |
+| 页面 | `flutter/lib/`（`more_page`、`settings_page`、`library_page`、`checkin_page`、各功能页） | 布局、交互、可访问性、本地化 | Cookie、凭据、上游字段解析 |
 | 设备验收 | `flutter/integration_test/` | 真实 FFI + 页面流程 | 领域规则断言以外的实现细节 |
 
 约束：
@@ -40,7 +40,8 @@
 - Android 端库名与 FRB 外部库 stem 必须保持一致（`ginkgo_flutter_bridge`）。`MainActivity` 先 `System.loadLibrary` 再初始化 Kotlin 保险库，`JNI_OnLoad` 负责缓存类引用；改动加载顺序必须重跑 `auth_test.dart`。
 - 真实服务在第一次异步命令时懒初始化；不要在 `init_app` 中创建 `reqwest`/tokio 运行时。Android 上这样会卡在 Flutter 启动画面（2026-10-20 实测），`check-mirror.sh` 也不覆盖这一运行时行为。
 - 错误只传稳定 `code` 与可选上游 `detail`；页面文案在 Flutter 本地化，Rust 不返回中文 UI 文案。
-- 真实会话是 Rust 侧不透明对象；Flutter 只调“登录/查询/刷新/登出”等用户级命令。密码只在校验后的登录调用中瞬时经过 Form 状态，持久化由 `CredentialVault` 完成；成功登录后页面只保留会话摘要。
+- 真实会话是 Rust 侧不透明对象；Flutter 只调“登录/查询/刷新/登出/路线/清缓存”等用户级命令。密码只在校验后的登录调用中瞬时经过 Form 状态，持久化由 `CredentialVault` 完成；成功登录后页面只保留会话摘要。
+- 图书馆/签到页面目前是**导航骨架**：可以进入并阅读待补齐项，但没有 Rust 客户端或数据。禁止用合成座位/签到状态填充，完成前必须在页面和文档中保持“未迁移”标记。
 
 ## 4. 证据分层
 

@@ -14,7 +14,7 @@ pub async fn load_grades<T: HttpTransport>(
 ) -> Result<Vec<GradeCourse>, AppError> {
     let (year, semester) = grades::term_parts(term_code)?;
     let activation = session
-        .send_with_fallback(HttpRequest::get(GRADE_URL).header(
+        .send_following_redirects(HttpRequest::get(GRADE_URL).header(
             "Accept",
             "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         ))

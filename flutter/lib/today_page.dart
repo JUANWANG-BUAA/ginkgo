@@ -206,9 +206,9 @@ class _TodayPageState extends State<TodayPage> {
         AppleSection(
           header: const Text('课程安排'),
           children: [
-            for (final course in data.courses)
+            for (final (index, course) in data.courses.indexed)
               AppleListTile(
-                key: Key('today-course-${course.name}'),
+                key: Key('today-course-$index-${course.name}'),
                 minimumHeight: 66,
                 leading: Container(
                   width: 4,

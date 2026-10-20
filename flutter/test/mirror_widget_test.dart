@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
-    show SessionResponse, SessionState;
+    show GradeTermsResponse, RouteChoice, SessionResponse, SessionState;
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 
 const empty = ClassroomResponse(
@@ -147,6 +147,11 @@ class ControlledService implements MirrorService {
   }) async =>
       const SessionResponse(state: SessionState.signedIn, remembered: false);
   @override
+  Future<SessionResponse> setRoute(RouteChoice route) async =>
+      const SessionResponse(state: SessionState.signedOut, remembered: false);
+  @override
+  Future<bool> clearCache() async => true;
+  @override
   Future<SessionResponse> signOut() async =>
       const SessionResponse(state: SessionState.signedOut, remembered: false);
   @override
@@ -167,8 +172,17 @@ class ControlledService implements MirrorService {
       scheduleFixture;
 
   @override
-  Future<GradeResponse> grades({bool forceRefresh = false}) async =>
-      gradesFixture;
+  Future<GradeTermsResponse> gradeTerms() async => const GradeTermsResponse(
+    terms: [
+      ScheduleTerm(id: '2026-2027-1', name: '2026-2027学年第1学期', selected: true),
+    ],
+  );
+
+  @override
+  Future<GradeResponse> grades({
+    String? termCode,
+    bool forceRefresh = false,
+  }) async => gradesFixture;
 
   @override
   Future<TodayResponse> today({bool forceRefresh = false}) async =>
@@ -178,6 +192,13 @@ class ControlledService implements MirrorService {
   Future<HomeworkResponse> homework() async => homeworkFixture;
 }
 
+Future<void> openMore(WidgetTester tester, String label) async {
+  await tester.tap(find.text('更多'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(label));
+  await tester.pumpAndSettle();
+}
+
 Future<void> start(WidgetTester tester, ControlledService service) async {
   tester.view.physicalSize = const Size(430, 1100);
   tester.view.devicePixelRatio = 1;
@@ -185,8 +206,7 @@ Future<void> start(WidgetTester tester, ControlledService service) async {
   addTearDown(tester.view.resetDevicePixelRatio);
   await tester.pumpWidget(GinkgoApp(service: service));
   await tester.pumpAndSettle();
-  await tester.tap(find.text('空教室'));
-  await tester.pumpAndSettle();
+  await openMore(tester, '空教室');
   await tester.tap(find.text('查询空教室'));
   await tester.pump();
 }
@@ -256,8 +276,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(GinkgoApp(service: ControlledService()));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('空教室'));
-    await tester.pumpAndSettle();
+    await openMore(tester, '空教室');
     await tester.tap(find.text('校区'));
     await tester.pumpAndSettle();
     expect(find.text('沙河'), findsOneWidget);
@@ -276,8 +295,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(GinkgoApp(service: ControlledService()));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('空教室'));
-    await tester.pumpAndSettle();
+    await openMore(tester, '空教室');
     final rules = find.text('查看共享规则示例');
     await tester.ensureVisible(rules);
     await tester.tap(rules);
@@ -300,7 +318,7 @@ void main() {
     tester.platformDispatcher.textScaleFactorTestValue = 1.8;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     await tester.pumpAndSettle();
-    final context = tester.element(find.text('空教室').first);
+    final context = tester.element(find.text('更多').first);
     expect(CupertinoTheme.brightnessOf(context), Brightness.dark);
     expect(tester.takeException(), isNull);
   });
@@ -354,7 +372,7 @@ void main() {
 
     expect(find.text('2026年10月20日 · 周二'), findsOneWidget);
     expect(find.text('今天 1 节课'), findsOneWidget);
-    expect(find.byKey(const Key('today-course-算法设计与分析')), findsOneWidget);
+    expect(find.byKey(const Key('today-course-0-算法设计与分析')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -366,8 +384,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(GinkgoApp(service: service));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('成绩'));
-    await tester.pumpAndSettle();
+    await openMore(tester, '成绩');
 
     expect(find.text('加权平均'), findsOneWidget);
     expect(find.text('90.3'), findsOneWidget);

@@ -9,7 +9,7 @@ import 'mirror.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `classroom_response`, `classroom_sort`, `failure_response`, `failure`, `grade_failure`, `grade_response`, `outcome_response`, `schedule_failure`, `schedule_response`, `service`, `signed_out`, `status_response`, `today_response`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`
 
 Future<SessionResponse> login({
   required String account,
@@ -27,6 +27,11 @@ Future<SessionResponse> restoreSession() =>
     RustLib.instance.api.crateApiLiveRestoreSession();
 
 Future<SessionResponse> signOut() => RustLib.instance.api.crateApiLiveSignOut();
+
+Future<SessionResponse> setRoute({required RouteChoice route}) =>
+    RustLib.instance.api.crateApiLiveSetRoute(route: route);
+
+Future<bool> clearCache() => RustLib.instance.api.crateApiLiveClearCache();
 
 Future<SessionResponse> sessionStatus() =>
     RustLib.instance.api.crateApiLiveSessionStatus();
@@ -48,6 +53,9 @@ Future<ScheduleResponse> loadSchedule({
 Future<TodayResponse> loadToday({required bool forceRefresh}) =>
     RustLib.instance.api.crateApiLiveLoadToday(forceRefresh: forceRefresh);
 
+Future<GradeTermsResponse> loadGradeTerms() =>
+    RustLib.instance.api.crateApiLiveLoadGradeTerms();
+
 Future<GradeResponse> loadGrades({
   String? termCode,
   required bool forceRefresh,
@@ -65,6 +73,31 @@ Future<bool> verifyCredentialStorage({
   account: account,
   secret: secret,
 );
+
+class GradeTermsResponse {
+  final List<ScheduleTerm> terms;
+  final FailureCode? failure;
+  final String? failureDetail;
+
+  const GradeTermsResponse({
+    required this.terms,
+    this.failure,
+    this.failureDetail,
+  });
+
+  @override
+  int get hashCode =>
+      terms.hashCode ^ failure.hashCode ^ failureDetail.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GradeTermsResponse &&
+          runtimeType == other.runtimeType &&
+          terms == other.terms &&
+          failure == other.failure &&
+          failureDetail == other.failureDetail;
+}
 
 class LiveScope {
   final int campus;
@@ -90,6 +123,8 @@ class LiveScope {
           forceRefresh == other.forceRefresh;
 }
 
+enum RouteChoice { automatic, direct, webVpn }
+
 class SessionResponse {
   final SessionState state;
   final String? account;
@@ -97,6 +132,7 @@ class SessionResponse {
   final String? captchaId;
   final String? captchaImageUrl;
   final bool remembered;
+  final RouteChoice? route;
   final FailureCode? failure;
   final String? failureDetail;
 
@@ -107,6 +143,7 @@ class SessionResponse {
     this.captchaId,
     this.captchaImageUrl,
     required this.remembered,
+    this.route,
     this.failure,
     this.failureDetail,
   });
@@ -119,6 +156,7 @@ class SessionResponse {
       captchaId.hashCode ^
       captchaImageUrl.hashCode ^
       remembered.hashCode ^
+      route.hashCode ^
       failure.hashCode ^
       failureDetail.hashCode;
 
@@ -133,6 +171,7 @@ class SessionResponse {
           captchaId == other.captchaId &&
           captchaImageUrl == other.captchaImageUrl &&
           remembered == other.remembered &&
+          route == other.route &&
           failure == other.failure &&
           failureDetail == other.failureDetail;
 }

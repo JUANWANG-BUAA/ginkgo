@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
-    show SessionResponse, SessionState;
+    show GradeTermsResponse, RouteChoice, SessionResponse, SessionState;
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 
 const signedOut = SessionResponse(
@@ -78,6 +78,11 @@ class FakeService implements MirrorService {
     required bool remember,
   }) async => loginResponse;
   @override
+  Future<SessionResponse> setRoute(RouteChoice route) async =>
+      const SessionResponse(state: SessionState.signedOut, remembered: false);
+  @override
+  Future<bool> clearCache() async => true;
+  @override
   Future<SessionResponse> signOut() async => signedOut;
   @override
   Future<QueryDates> dates(String instant) async =>
@@ -107,12 +112,17 @@ class FakeService implements MirrorService {
         exams: [],
       );
   @override
-  Future<GradeResponse> grades({bool forceRefresh = false}) async =>
-      const GradeResponse(
-        termId: '',
-        courses: [],
-        summary: GradeSummary(courseCount: 0, creditTotal: 0),
-      );
+  Future<GradeTermsResponse> gradeTerms() async =>
+      const GradeTermsResponse(terms: []);
+  @override
+  Future<GradeResponse> grades({
+    String? termCode,
+    bool forceRefresh = false,
+  }) async => const GradeResponse(
+    termId: '',
+    courses: [],
+    summary: GradeSummary(courseCount: 0, creditTotal: 0),
+  );
   @override
   Future<TodayResponse> today({bool forceRefresh = false}) async =>
       const TodayResponse(date: '2026-10-20', courses: []);
@@ -263,6 +273,8 @@ void main() {
         ),
       ),
     );
+    await tester.tap(find.text('更多'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('空教室'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('查询空教室'));

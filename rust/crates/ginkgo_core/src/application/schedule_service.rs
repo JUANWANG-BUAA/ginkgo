@@ -9,7 +9,7 @@ use super::{
 };
 use crate::{
     adapters::{
-        grades_http,
+        grades_http, graduate_schedule_http,
         schedule_http::{self, Portal},
     },
     auth::CredentialVault,
@@ -21,6 +21,7 @@ use crate::{
     foundation::{http::HttpTransport, school_time},
     AppError, ErrorCode,
 };
+use chrono::{Datelike, NaiveDate};
 #[derive(Clone)]
 pub struct ScheduleData {
     pub terms: Vec<Term>,
@@ -133,9 +134,16 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     }
 
     async fn fetch_schedule(&self, week: Option<i32>) -> Result<ScheduleData, AppError> {
-        if schedule_http::detect_portal(&self.session).await? == Portal::Graduate {
-            return Err(AppError::new(ErrorCode::UnsupportedPortal));
+        match schedule_http::detect_portal(&self.session).await? {
+            Portal::Undergraduate => self.fetch_undergraduate_schedule(week).await,
+            Portal::Graduate | Portal::Unconfirmed => self.fetch_graduate_schedule(week).await,
         }
+    }
+
+    async fn fetch_undergraduate_schedule(
+        &self,
+        week: Option<i32>,
+    ) -> Result<ScheduleData, AppError> {
         let terms = schedule_http::load_terms(&self.session).await?;
         let Some(term) = terms
             .iter()
@@ -184,6 +192,116 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         })
     }
 
+    async fn fetch_graduate_schedule(&self, week: Option<i32>) -> Result<ScheduleData, AppError> {
+        let terms = graduate_schedule_http::load_terms(&self.session)
+            .await
+            .map_err(|error| {
+                if error.detail.is_some() {
+                    error
+                } else {
+                    AppError::with_detail(error.code, "graduate_terms")
+                }
+            })?;
+        let Some(term) = terms
+            .iter()
+            .find(|term| term.selected)
+            .or_else(|| terms.first())
+            .cloned()
+        else {
+            return Ok(ScheduleData {
+                terms,
+                weeks: vec![],
+                term_id: String::new(),
+                week_number: 0,
+                courses: vec![],
+                exams: vec![],
+            });
+        };
+        let graduate = graduate_schedule_http::load_schedule(&self.session, &term.id)
+            .await
+            .map_err(|error| {
+                if error.detail.is_some() {
+                    error
+                } else {
+                    AppError::with_detail(error.code, "graduate_schedule")
+                }
+            })?;
+        let week_number = week
+            .or_else(|| {
+                graduate
+                    .weeks
+                    .iter()
+                    .find(|week| week.current)
+                    .map(|week| week.number)
+            })
+            .or_else(|| graduate.weeks.first().map(|week| week.number))
+            .unwrap_or(0);
+        let courses = graduate
+            .courses_by_week
+            .get(&week_number)
+            .cloned()
+            .unwrap_or_default();
+        Ok(ScheduleData {
+            terms,
+            weeks: graduate.weeks,
+            term_id: term.id,
+            week_number,
+            courses,
+            // GSMIS exams are not exposed by the documented graduate portal.
+            exams: vec![],
+        })
+    }
+
+    async fn load_today_from_schedule(
+        &self,
+        date: &str,
+        force_refresh: bool,
+    ) -> Result<TodayOutcome, AppError> {
+        let schedule = self
+            .load_schedule(&ScheduleQueryInput {
+                week: None,
+                force_refresh,
+            })
+            .await?;
+        let today = NaiveDate::parse_from_str(date, "%Y-%m-%d").map_err(|_| AppError::changed())?;
+        let weekday = today.weekday().number_from_monday() as i32;
+        let in_term = schedule
+            .data
+            .weeks
+            .iter()
+            .any(|week| week.start_date <= today && today <= week.end_date);
+        let courses = if in_term {
+            schedule
+                .data
+                .courses
+                .into_iter()
+                .filter(|course| course.day == weekday)
+                .map(|course| TodayCourse {
+                    name: course.name,
+                    place: course.place,
+                    time: match (course.start_time, course.end_time) {
+                        (Some(start), Some(end)) => Some(format!("{start}-{end}")),
+                        _ => Some(format!(
+                            "第{}-{}节",
+                            course.start_section, course.end_section
+                        )),
+                    },
+                    short_name: None,
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
+        Ok(TodayOutcome {
+            date: date.to_owned(),
+            courses,
+            fetched_at: schedule.fetched_at,
+            from_cache: schedule.from_cache,
+            stale: schedule.stale,
+            failure: schedule.failure,
+        })
+    }
+
     pub async fn load_today(&self, force_refresh: bool) -> Result<TodayOutcome, AppError> {
         self.current_account()?;
         let day = school_time::beijing_day(&now_shanghai())?;
@@ -200,6 +318,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                     failure: None,
                 });
             }
+        }
+
+        let portal = schedule_http::detect_portal(&self.session).await?;
+        if portal != Portal::Undergraduate {
+            return self.load_today_from_schedule(&date, force_refresh).await;
         }
 
         let fetched = match schedule_http::load_today(&self.session, &date).await {
@@ -316,6 +439,26 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         }
     }
 
+    pub async fn load_grade_terms(&self) -> Result<Vec<Term>, AppError> {
+        self.current_account()?;
+        match self.fetch_terms().await {
+            Err(error) if error.code == ErrorCode::SessionExpired => {
+                self.silent_login().await?;
+                self.fetch_terms().await
+            }
+            other => other,
+        }
+    }
+
+    async fn fetch_terms(&self) -> Result<Vec<Term>, AppError> {
+        match schedule_http::detect_portal(&self.session).await? {
+            Portal::Undergraduate => schedule_http::load_terms(&self.session).await,
+            Portal::Graduate | Portal::Unconfirmed => {
+                graduate_schedule_http::load_terms(&self.session).await
+            }
+        }
+    }
+
     async fn fetch_grades(
         &self,
         term_code: Option<&str>,
@@ -323,16 +466,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         let term_id = match term_code {
             Some(code) => code.trim().to_owned(),
             None => {
-                if schedule_http::detect_portal(&self.session).await? == Portal::Graduate {
-                    return Err(AppError::new(ErrorCode::UnsupportedPortal));
-                }
-                let terms = schedule_http::load_terms(&self.session).await?;
+                let terms = self.fetch_terms().await?;
                 terms
                     .iter()
                     .find(|term| term.selected)
                     .or_else(|| terms.first())
                     .map(|term| term.id.clone())
-                    .ok_or_else(|| AppError::new(ErrorCode::UnsupportedPortal))?
+                    .ok_or_else(|| AppError::new(ErrorCode::ServiceUnavailable))?
             }
         };
         grades::term_parts(&term_id)?;

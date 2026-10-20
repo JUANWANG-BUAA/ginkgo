@@ -16,6 +16,8 @@ class _GradesPageState extends State<GradesPage> {
   String? error;
   String? notice;
   bool busy = false;
+  List<ScheduleTerm> terms = const [];
+  String? selectedTerm;
 
   @override
   void initState() {
@@ -30,7 +32,27 @@ class _GradesPageState extends State<GradesPage> {
       notice = null;
     });
     try {
-      final result = await widget.service.grades(forceRefresh: force);
+      if (terms.isEmpty) {
+        final termResult = await widget.service.gradeTerms();
+        if (!mounted) return;
+        if (termResult.failure != null && termResult.terms.isEmpty) {
+          setState(() {
+            busy = false;
+            error = failureMessage(termResult.failure);
+          });
+          return;
+        }
+        terms = termResult.terms;
+        selectedTerm ??= terms
+            .where((term) => term.selected)
+            .map((term) => term.id)
+            .firstOrNull;
+        selectedTerm ??= terms.firstOrNull?.id;
+      }
+      final result = await widget.service.grades(
+        termCode: selectedTerm,
+        forceRefresh: force,
+      );
       if (!mounted) return;
       setState(() {
         busy = false;
@@ -39,6 +61,7 @@ class _GradesPageState extends State<GradesPage> {
           return;
         }
         data = result;
+        selectedTerm = result.termId.isEmpty ? selectedTerm : result.termId;
         notice = result.failure == null
             ? null
             : '${failureMessage(result.failure)}，正在显示上次结果。';
@@ -123,8 +146,27 @@ class _GradesPageState extends State<GradesPage> {
   );
 
   List<Widget> _content(GradeResponse data) => [
+    if (terms.length > 1)
+      AppleSection(
+        children: [
+          ApplePickerTile<String>(
+            title: '学期',
+            value: selectedTerm ?? data.termId,
+            values: terms.map((term) => term.id).toList(),
+            label: (id) {
+              final term = terms.where((term) => term.id == id).firstOrNull;
+              return term?.name ?? id;
+            },
+            onSelected: (id) {
+              if (id == selectedTerm) return;
+              setState(() => selectedTerm = id);
+              load(force: true);
+            },
+          ),
+        ],
+      ),
     AppleSection(
-      header: Text(data.termId),
+      header: Text(_termName(data.termId)),
       footer: const Text('加权平均与绩点只统计百分制、且有有效学分的课程；绩点按当前项目公式估算。'),
       children: [_summary(data.summary)],
     ),
@@ -164,7 +206,7 @@ class _GradesPageState extends State<GradesPage> {
           child: Text(
             widget.service.isDemo
                 ? '离线合成样例，不连接学校账号；成绩与学期用于演示迁移后的解析、汇总和页面状态。'
-                : '真实账号只读数据；当前默认显示学校选中的学期。',
+                : '真实账号只读数据；可在上方切换学期。',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
@@ -175,6 +217,11 @@ class _GradesPageState extends State<GradesPage> {
       ],
     ),
   ];
+
+  String _termName(String id) {
+    final term = terms.where((term) => term.id == id).firstOrNull;
+    return term?.name ?? id;
+  }
 
   Widget _summary(GradeSummary summary) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 18),

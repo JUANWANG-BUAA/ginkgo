@@ -41,6 +41,13 @@ fn service() -> Result<&'static LiveService, AppError> {
 }
 
 #[derive(Clone, Copy)]
+pub enum RouteChoice {
+    Automatic,
+    Direct,
+    WebVpn,
+}
+
+#[derive(Clone, Copy)]
 pub enum SessionState {
     SignedOut,
     SignedIn,
@@ -54,6 +61,7 @@ pub struct SessionResponse {
     pub captcha_id: Option<String>,
     pub captcha_image_url: Option<String>,
     pub remembered: bool,
+    pub route: Option<RouteChoice>,
     pub failure: Option<FailureCode>,
     pub failure_detail: Option<String>,
 }
@@ -76,6 +84,7 @@ fn signed_out() -> SessionResponse {
         captcha_id: None,
         captcha_image_url: None,
         remembered: false,
+        route: None,
         failure: None,
         failure_detail: None,
     }
@@ -96,6 +105,11 @@ fn status_response(status: SessionStatus) -> SessionResponse {
             state: SessionState::SignedIn,
             account: Some(account),
             name: Some(profile.name),
+            route: Some(match status.route {
+                ginkgo_core::application::RoutePreference::Automatic => RouteChoice::Automatic,
+                ginkgo_core::application::RoutePreference::Direct => RouteChoice::Direct,
+                ginkgo_core::application::RoutePreference::WebVpn => RouteChoice::WebVpn,
+            }),
             ..signed_out()
         }
     } else {
@@ -190,6 +204,30 @@ pub async fn sign_out() -> SessionResponse {
     };
     service.sign_out().await;
     signed_out()
+}
+
+pub async fn set_route(route: RouteChoice) -> SessionResponse {
+    let service = match service() {
+        Ok(service) => service,
+        Err(error) => return failure_response(error),
+    };
+    let preference = match route {
+        RouteChoice::Automatic => ginkgo_core::application::RoutePreference::Automatic,
+        RouteChoice::Direct => ginkgo_core::application::RoutePreference::Direct,
+        RouteChoice::WebVpn => ginkgo_core::application::RoutePreference::WebVpn,
+    };
+    service.set_route(preference);
+    status_response(service.status())
+}
+
+pub async fn clear_cache() -> bool {
+    match service() {
+        Ok(service) => {
+            service.clear_snapshots();
+            true
+        }
+        Err(_) => false,
+    }
 }
 
 pub async fn session_status() -> SessionResponse {
@@ -438,6 +476,48 @@ fn today_response(outcome: TodayOutcome) -> TodayResponse {
         fetched_at: Some(outcome.fetched_at),
         failure,
         failure_detail,
+    }
+}
+
+pub struct GradeTermsResponse {
+    pub terms: Vec<ScheduleTerm>,
+    pub failure: Option<FailureCode>,
+    pub failure_detail: Option<String>,
+}
+
+pub async fn load_grade_terms() -> GradeTermsResponse {
+    let service = match service() {
+        Ok(service) => service,
+        Err(error) => {
+            let (failure, failure_detail) = failure(&error);
+            return GradeTermsResponse {
+                terms: vec![],
+                failure,
+                failure_detail,
+            };
+        }
+    };
+    match service.load_grade_terms().await {
+        Ok(terms) => GradeTermsResponse {
+            terms: terms
+                .into_iter()
+                .map(|term| ScheduleTerm {
+                    id: term.id,
+                    name: term.name,
+                    selected: term.selected,
+                })
+                .collect(),
+            failure: None,
+            failure_detail: None,
+        },
+        Err(error) => {
+            let (failure, failure_detail) = failure(&error);
+            GradeTermsResponse {
+                terms: vec![],
+                failure,
+                failure_detail,
+            }
+        }
     }
 }
 

@@ -5,7 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
-import 'package:ginkgo_mirror/src/rust/api/live.dart' show SessionResponse;
+import 'package:ginkgo_mirror/src/rust/api/live.dart'
+    show GradeTermsResponse, RouteChoice, SessionResponse, SessionState;
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
 
@@ -31,6 +32,11 @@ class FailOnceNativeService implements MirrorService {
     captcha: captcha,
     remember: remember,
   );
+  @override
+  Future<SessionResponse> setRoute(RouteChoice route) async =>
+      const SessionResponse(state: SessionState.signedOut, remembered: false);
+  @override
+  Future<bool> clearCache() async => true;
   @override
   Future<SessionResponse> signOut() => native.signOut();
   @override
@@ -59,8 +65,10 @@ class FailOnceNativeService implements MirrorService {
   Future<ScheduleResponse> schedule({bool forceRefresh = false}) =>
       native.schedule(forceRefresh: forceRefresh);
   @override
-  Future<GradeResponse> grades({bool forceRefresh = false}) =>
-      native.grades(forceRefresh: forceRefresh);
+  Future<GradeTermsResponse> gradeTerms() => native.gradeTerms();
+  @override
+  Future<GradeResponse> grades({String? termCode, bool forceRefresh = false}) =>
+      native.grades(termCode: termCode, forceRefresh: forceRefresh);
   @override
   Future<TodayResponse> today({bool forceRefresh = false}) =>
       native.today(forceRefresh: forceRefresh);
@@ -73,7 +81,7 @@ Future<void> launchClassroom(
   MirrorService service = native,
 }) async {
   await launch(tester, service: service);
-  await tapTab(tester, '空教室');
+  await tapMore(tester, '空教室');
 }
 
 late IntegrationTestWidgetsFlutterBinding binding;
@@ -393,7 +401,7 @@ void main() {
       GinkgoApp(key: UniqueKey(), brightness: Brightness.dark),
     );
     await settle(tester);
-    await tapTab(tester, '空教室');
+    await tapMore(tester, '空教室');
     await tap(tester, '查询空教室');
     await expectSummary(tester, '3 间 · 1 栋');
     await capture(tester, 'classroom-dark-large');

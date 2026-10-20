@@ -2,7 +2,7 @@
 
 Android 对齐 iPhone SwiftUI，Windows 对齐 macOS SwiftUI。Apple 应用保持独立。
 
-当前实现包含登录页、会话恢复门禁、显式离线演示，以及空教室/课表/今天/成绩的真实只读页面；作业仍是合成切片。Android Keystore 保险库、FRB 真实会话和 mock 只读链路已接入；真实账号只读验收、Windows 实机和写操作尚未完成。阶段状态与验收矩阵见 [实施记录](../docs/MIRROR-IMPLEMENTATION.md)。
+当前实现包含 iOS 五 Tab 外壳（今天/课表/作业/图书馆/更多）、设置页、登录页、会话恢复门禁与显式离线演示，以及空教室/课表/今天/成绩的真实只读页面；研究生 GSMIS 课表已接入。作业仍是合成切片，图书馆/签到的底层客户端尚未迁移（页面为明确标注的骨架）。Android Keystore 保险库、FRB 真实会话和 mock 只读链路已接入；真实账号只读验收、Windows 实机和写操作尚未完成。阶段状态与验收矩阵见 [实施记录](../docs/MIRROR-IMPLEMENTATION.md)。
 
 ## 工具链
 

@@ -27,7 +27,7 @@ pub async fn query_classrooms<T: HttpTransport>(
     }
 
     session
-        .send_with_fallback(HttpRequest::get(ACTIVATION_URL))
+        .send_following_redirects(HttpRequest::get(ACTIVATION_URL))
         .await?;
 
     let request = HttpRequest::get(format!(
@@ -36,7 +36,7 @@ pub async fn query_classrooms<T: HttpTransport>(
     .header("Accept", "application/json, text/javascript, */*; q=0.01")
     .header("X-Requested-With", "XMLHttpRequest")
     .header("Referer", CLASSROOM_REFERER);
-    let response = session.send_with_fallback(request).await?;
+    let response = session.send_following_redirects(request).await?;
 
     if is_login_response(&response) {
         return Err(AppError::session_expired());

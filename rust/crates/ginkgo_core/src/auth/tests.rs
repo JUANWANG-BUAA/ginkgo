@@ -204,3 +204,50 @@ fn vault_diagnostic_only_touches_the_reserved_prefix() {
     ));
     assert!(vault.accounts().expect("accounts").is_empty());
 }
+
+#[tokio::test]
+async fn following_redirects_carries_cookies_and_resolves_relative_locations() {
+    let transport = MockTransport::with_responses(vec![
+        HttpResponse::new(302, "https://byxt.buaa.edu.cn/start", "")
+            .with_header("Location", "/next")
+            .with_set_cookie("JSESSIONID=abc; Path=/; Secure"),
+        HttpResponse::new(302, "https://byxt.buaa.edu.cn/next", "")
+            .with_header("Location", "https://byxt.buaa.edu.cn/final"),
+        HttpResponse::new(200, "https://byxt.buaa.edu.cn/final", r#"{"code":"0"}"#),
+    ]);
+    let session = Session::new(transport.clone());
+    let response = session
+        .send_following_redirects(crate::foundation::http::HttpRequest::get(
+            "https://byxt.buaa.edu.cn/start",
+        ))
+        .await
+        .expect("redirect chain");
+    assert_eq!(response.final_url, "https://byxt.buaa.edu.cn/final");
+    let requests = transport.requests();
+    assert_eq!(requests.len(), 3);
+    assert_eq!(requests[1].header_value("Cookie"), Some("JSESSIONID=abc"));
+}
+
+#[tokio::test]
+async fn redirect_loops_are_bounded() {
+    let transport = MockTransport::with_responses(
+        (0..11)
+            .map(|_| {
+                HttpResponse::new(302, "https://byxt.buaa.edu.cn/loop", "")
+                    .with_header("Location", "/loop")
+            })
+            .collect(),
+    );
+    let session = Session::new(transport.clone());
+    assert_eq!(
+        session
+            .send_following_redirects(crate::foundation::http::HttpRequest::get(
+                "https://byxt.buaa.edu.cn/loop",
+            ))
+            .await
+            .expect_err("loop")
+            .code,
+        ErrorCode::RedirectLimit
+    );
+    assert_eq!(transport.request_count(), 10);
+}

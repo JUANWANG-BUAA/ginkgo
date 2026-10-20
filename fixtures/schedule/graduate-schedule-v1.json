@@ -1,0 +1,92 @@
+{
+  "contract": "schedule.graduate_schedule",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "code": "1",
+      "jgList": [
+        {
+          "BJDM": "B1",
+          "KCDM": "G101",
+          "KCMC": "高级算法",
+          "XNXQDM": "20261",
+          "XQ": 2,
+          "KSJCDM": 1,
+          "JSJCDM": 2,
+          "ZCBH": "111111111111111100000000000000",
+          "JASMC": "主楼A101",
+          "JGJSXM": "张老师",
+          "JCFADM": "S1"
+        },
+        {
+          "BJDM": "B2",
+          "KCDM": "G102",
+          "KCMC": "学术英语",
+          "XNXQDM": "20261",
+          "XQ": 3,
+          "KSJCDM": 3,
+          "JSJCDM": 4,
+          "ZCBH": "111111110000000000000000000000",
+          "JASMC": "主楼B202",
+          "JGJSXM": "李老师",
+          "JCFADM": "S1"
+        }
+      ],
+      "rwList": [
+        {
+          "BJDM": "B1",
+          "XNXQDM": "20261",
+          "XNXQMC": "2026-2027学年第1学期",
+          "XF": 2,
+          "SCSKRQ": "2026-09-08"
+        },
+        {
+          "BJDM": "B2",
+          "XNXQDM": "20261",
+          "XNXQMC": "2026-2027学年第1学期",
+          "XF": 2,
+          "SCSKRQ": "2026-09-09"
+        }
+      ],
+      "jcfaList": [
+        {
+          "JCFADM": "S1",
+          "skjcList": [
+            {
+              "DM": 1,
+              "KSSJ": 800,
+              "JSSJ": 950
+            },
+            {
+              "DM": 2,
+              "KSSJ": 950,
+              "JSSJ": 1140
+            },
+            {
+              "DM": 3,
+              "KSSJ": 1000,
+              "JSSJ": 1150
+            },
+            {
+              "DM": 4,
+              "KSSJ": 1150,
+              "JSSJ": 1340
+            }
+          ]
+        }
+      ]
+    },
+    "term": "20261",
+    "today": "2026-10-20",
+    "week": 7
+  },
+  "expected": {
+    "weeks": 30,
+    "currentWeek": 7,
+    "weekCourses": [
+      "高级算法",
+      "学术英语"
+    ]
+  }
+}

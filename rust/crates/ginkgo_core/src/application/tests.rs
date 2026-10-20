@@ -456,11 +456,13 @@ fn session_outcomes_are_constructible_for_the_bridge() {
 #[tokio::test]
 async fn today_reads_caches_and_keeps_the_last_timeline() {
     let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(HttpResponse::new(200, "portal", r#"{"code":"0"}"#));
     responses.push(HttpResponse::new(
         200,
         "today",
         schedule_body("today-normal-v1.json"),
     ));
+    responses.push(HttpResponse::new(200, "portal", r#"{"code":"0"}"#));
     responses.push(HttpResponse::new(500, "today", "temporary"));
     let (service, transport) = build_service(responses, MemoryVault::default());
     service
@@ -473,7 +475,7 @@ async fn today_reads_caches_and_keeps_the_last_timeline() {
     assert!(!first.from_cache);
     let second = service.load_today(false).await.expect("cached today");
     assert!(second.from_cache);
-    assert_eq!(transport.request_count(), 6);
+    assert_eq!(transport.request_count(), 7);
 
     let stale = service.load_today(true).await.expect("stale today");
     assert!(stale.stale && stale.from_cache);
@@ -606,4 +608,63 @@ async fn captcha_answer_reuses_the_original_login_page() {
         .expect("vault")
         .expect("saved");
     assert_eq!(saved.captcha_text, None);
+}
+
+#[tokio::test]
+async fn graduate_schedule_uses_gsmis_and_today_is_derived_from_the_snapshot() {
+    let mut responses = login_chain("grad2501001", "fixture");
+    // BYXT current-user: SSO, back to the graduate portal marker.
+    responses.push(
+        HttpResponse::new(302, "https://byxt.buaa.edu.cn/currentUser.do", "").with_header(
+            "Location",
+            "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fbyxt.buaa.edu.cn",
+        ),
+    );
+    responses.push(
+        HttpResponse::new(302, "https://sso.buaa.edu.cn/login?service=x", "").with_header(
+            "Location",
+            "https://byxt.buaa.edu.cn/jwapp/sys/byrhmhsy/index.html",
+        ),
+    );
+    responses.push(HttpResponse::new(
+        200,
+        "https://byxt.buaa.edu.cn/jwapp/sys/byrhmhsy/index.html",
+        "<html>graduate</html>",
+    ));
+    // GSMIS activation, terms and full-term schedule.
+    responses.push(HttpResponse::new(
+        200,
+        crate::adapters::graduate_schedule_http::ENTRY_URL,
+        "<html>app</html>",
+    ));
+    responses.push(HttpResponse::new(
+        200,
+        crate::adapters::graduate_schedule_http::TERMS_URL,
+        fixture("schedule", "graduate-terms-v1.json")["input"]["body"].to_string(),
+    ));
+    responses.push(HttpResponse::new(
+        200,
+        crate::adapters::graduate_schedule_http::SCHEDULE_URL,
+        fixture("schedule", "graduate-schedule-v1.json")["input"]["body"].to_string(),
+    ));
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("grad2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+
+    let schedule = service
+        .load_schedule(&ScheduleQueryInput {
+            week: None,
+            force_refresh: false,
+        })
+        .await
+        .expect("graduate schedule");
+    assert_eq!(schedule.data.term_id, "20261");
+    assert_eq!(schedule.data.week_number, 7);
+    assert_eq!(schedule.data.weeks.len(), 30);
+    assert_eq!(schedule.data.courses.len(), 2);
+    assert!(schedule.data.exams.is_empty());
+
+    assert_eq!(transport.request_count(), 11);
 }

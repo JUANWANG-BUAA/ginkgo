@@ -14,7 +14,7 @@ void main() {
     tester,
   ) async {
     await launch(tester);
-    await tapTab(tester, '成绩');
+    await tapMore(tester, '成绩');
     await show(tester, find.text('加权平均'), scrollKey: 'grades-scroll');
     expect(find.text('90.3'), findsOneWidget);
     expect(find.text('3.82'), findsOneWidget);

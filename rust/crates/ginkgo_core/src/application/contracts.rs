@@ -6,6 +6,7 @@ use crate::{
     foundation::school_time,
     AppError, ErrorCode,
 };
+use chrono::NaiveDate;
 use serde::{de::DeserializeOwned, Deserialize};
 use serde_json::{json, Value};
 
@@ -102,6 +103,33 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
                 }
                 Err(_) => json!({"valid": false}),
             }
+        }
+        "schedule.graduate_terms" => {
+            #[derive(Deserialize)]
+            struct BodyInput {
+                body: Value,
+            }
+            let input: BodyInput = decode(input)?;
+            json!({"terms": schedule::parse_graduate_terms(input.body)?})
+        }
+        "schedule.graduate_schedule" => {
+            #[derive(Deserialize)]
+            struct GraduateInput {
+                body: Value,
+                term: String,
+                today: String,
+                week: i32,
+            }
+            let input: GraduateInput = decode(input)?;
+            let today = NaiveDate::parse_from_str(&input.today, "%Y-%m-%d")
+                .map_err(|_| AppError::invalid())?;
+            let weeks = schedule::parse_graduate_weeks_at(input.body.clone(), &input.term, today)?;
+            let courses = schedule::parse_graduate_courses(input.body, &input.term, input.week)?;
+            json!({
+                "weeks": weeks.len(),
+                "currentWeek": weeks.iter().find(|week| week.current).map(|week| week.number),
+                "weekCourses": courses.into_iter().map(|course| course.name).collect::<Vec<_>>(),
+            })
         }
         "schedule.terms"
         | "schedule.weeks"

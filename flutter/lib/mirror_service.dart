@@ -1,5 +1,6 @@
 import 'src/rust/api/live.dart' as live;
-import 'src/rust/api/live.dart' show SessionResponse, SessionState;
+import 'src/rust/api/live.dart'
+    show GradeTermsResponse, RouteChoice, SessionResponse, SessionState;
 import 'src/rust/api/mirror.dart' as rust;
 import 'src/rust/api/mirror.dart'
     show
@@ -26,12 +27,15 @@ abstract interface class MirrorService {
     required bool remember,
   });
   Future<SessionResponse> signOut();
+  Future<SessionResponse> setRoute(RouteChoice route);
+  Future<bool> clearCache();
 
   Future<QueryDates> dates(String instant);
   Future<ClassroomResponse> classrooms(DemoScope scope, ClassroomQuery query);
   Future<RuleExamples> rules();
   Future<ScheduleResponse> schedule({bool forceRefresh = false});
-  Future<GradeResponse> grades({bool forceRefresh = false});
+  Future<GradeTermsResponse> gradeTerms();
+  Future<GradeResponse> grades({String? termCode, bool forceRefresh = false});
   Future<TodayResponse> today({bool forceRefresh = false});
   Future<HomeworkResponse> homework();
 }
@@ -57,6 +61,11 @@ final class NativeMirrorService implements MirrorService {
   @override
   Future<SessionResponse> signOut() => live.signOut();
   @override
+  Future<SessionResponse> setRoute(RouteChoice route) =>
+      live.setRoute(route: route);
+  @override
+  Future<bool> clearCache() => live.clearCache();
+  @override
   Future<QueryDates> dates(String instant) =>
       rust.loadQueryDates(instant: instant);
   @override
@@ -75,8 +84,10 @@ final class NativeMirrorService implements MirrorService {
   Future<ScheduleResponse> schedule({bool forceRefresh = false}) =>
       live.loadSchedule(forceRefresh: forceRefresh);
   @override
-  Future<GradeResponse> grades({bool forceRefresh = false}) =>
-      live.loadGrades(forceRefresh: forceRefresh);
+  Future<GradeTermsResponse> gradeTerms() => live.loadGradeTerms();
+  @override
+  Future<GradeResponse> grades({String? termCode, bool forceRefresh = false}) =>
+      live.loadGrades(termCode: termCode, forceRefresh: forceRefresh);
   @override
   Future<TodayResponse> today({bool forceRefresh = false}) =>
       live.loadToday(forceRefresh: forceRefresh);
@@ -103,6 +114,11 @@ final class DemoMirrorService implements MirrorService {
   Future<SessionResponse> signOut() async =>
       const SessionResponse(state: SessionState.signedOut, remembered: false);
   @override
+  Future<SessionResponse> setRoute(RouteChoice route) async =>
+      const SessionResponse(state: SessionState.signedOut, remembered: false);
+  @override
+  Future<bool> clearCache() async => true;
+  @override
   Future<QueryDates> dates(String instant) =>
       rust.loadQueryDates(instant: instant);
   @override
@@ -114,7 +130,13 @@ final class DemoMirrorService implements MirrorService {
   Future<ScheduleResponse> schedule({bool forceRefresh = false}) =>
       rust.loadDemoSchedule();
   @override
-  Future<GradeResponse> grades({bool forceRefresh = false}) =>
+  Future<GradeTermsResponse> gradeTerms() async {
+    final schedule = await rust.loadDemoSchedule();
+    return GradeTermsResponse(terms: schedule.terms);
+  }
+
+  @override
+  Future<GradeResponse> grades({String? termCode, bool forceRefresh = false}) =>
       rust.loadDemoGrades();
   @override
   Future<TodayResponse> today({bool forceRefresh = false}) =>

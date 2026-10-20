@@ -84,6 +84,14 @@ Future<void> tap(
   await settle(tester);
 }
 
+/// Open a section from the iOS-style "更多" tab.
+Future<void> tapMore(WidgetTester tester, String label) async {
+  await tester.tap(find.text('更多').first);
+  await settle(tester);
+  await tester.tap(find.text(label).first);
+  await settle(tester);
+}
+
 /// Tap a bottom-tab label without invoking the page-scroll helper.
 Future<void> tapTab(WidgetTester tester, String label) async {
   await tester.tap(find.text(label).first);

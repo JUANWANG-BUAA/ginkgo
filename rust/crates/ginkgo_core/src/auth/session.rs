@@ -78,6 +78,32 @@ impl<T: HttpTransport> Session<T> {
         self.send_routed(request, mode).await
     }
 
+    /// Follow browser-style redirects for a safe GET. Business systems such as
+    /// BYXT/GSMIS activate their own session by redirecting through SSO; the
+    /// authentication chain itself still uses manual hops.
+    pub async fn send_following_redirects(
+        &self,
+        request: HttpRequest,
+    ) -> Result<HttpResponse, AppError> {
+        if request.method != HttpMethod::Get {
+            return self.send_with_fallback(request).await;
+        }
+        let mut current = request;
+        for _ in 0..10 {
+            let response = self.send_with_fallback(current).await?;
+            if !(300..400).contains(&response.status) {
+                return Ok(response);
+            }
+            let Some(location) = response.header("location") else {
+                return Ok(response);
+            };
+            let base = url::Url::parse(&response.final_url).map_err(|_| AppError::changed())?;
+            let next = base.join(location).map_err(|_| AppError::invalid())?;
+            current = HttpRequest::get(next.to_string());
+        }
+        Err(AppError::new(crate::ErrorCode::RedirectLimit))
+    }
+
     /// Send once, then retry a safe GET once through WebVPN when automatic
     /// mode sees a school access-policy block. POST bodies are never replayed.
     pub async fn send_with_fallback(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {

@@ -47,6 +47,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   LiveScope dco_decode_box_autoadd_live_scope(dynamic raw);
 
   @protected
+  RouteChoice dco_decode_box_autoadd_route_choice(dynamic raw);
+
+  @protected
   ClassroomBuilding dco_decode_classroom_building(dynamic raw);
 
   @protected
@@ -78,6 +81,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   GradeSummary dco_decode_grade_summary(dynamic raw);
+
+  @protected
+  GradeTermsResponse dco_decode_grade_terms_response(dynamic raw);
 
   @protected
   HomeworkItem dco_decode_homework_item(dynamic raw);
@@ -146,7 +152,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? dco_decode_opt_box_autoadd_i_32(dynamic raw);
 
   @protected
+  RouteChoice? dco_decode_opt_box_autoadd_route_choice(dynamic raw);
+
+  @protected
   QueryDates dco_decode_query_dates(dynamic raw);
+
+  @protected
+  RouteChoice dco_decode_route_choice(dynamic raw);
 
   @protected
   RuleExamples dco_decode_rule_examples(dynamic raw);
@@ -214,6 +226,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   LiveScope sse_decode_box_autoadd_live_scope(SseDeserializer deserializer);
 
   @protected
+  RouteChoice sse_decode_box_autoadd_route_choice(SseDeserializer deserializer);
+
+  @protected
   ClassroomBuilding sse_decode_classroom_building(SseDeserializer deserializer);
 
   @protected
@@ -245,6 +260,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   GradeSummary sse_decode_grade_summary(SseDeserializer deserializer);
+
+  @protected
+  GradeTermsResponse sse_decode_grade_terms_response(
+    SseDeserializer deserializer,
+  );
 
   @protected
   HomeworkItem sse_decode_homework_item(SseDeserializer deserializer);
@@ -331,7 +351,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? sse_decode_opt_box_autoadd_i_32(SseDeserializer deserializer);
 
   @protected
+  RouteChoice? sse_decode_opt_box_autoadd_route_choice(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   QueryDates sse_decode_query_dates(SseDeserializer deserializer);
+
+  @protected
+  RouteChoice sse_decode_route_choice(SseDeserializer deserializer);
 
   @protected
   RuleExamples sse_decode_rule_examples(SseDeserializer deserializer);
@@ -409,6 +437,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_route_choice(
+    RouteChoice self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_classroom_building(
     ClassroomBuilding self,
     SseSerializer serializer,
@@ -449,6 +483,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_grade_summary(GradeSummary self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_grade_terms_response(
+    GradeTermsResponse self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_homework_item(HomeworkItem self, SseSerializer serializer);
@@ -562,7 +602,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_i_32(int? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_box_autoadd_route_choice(
+    RouteChoice? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_query_dates(QueryDates self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_route_choice(RouteChoice self, SseSerializer serializer);
 
   @protected
   void sse_encode_rule_examples(RuleExamples self, SseSerializer serializer);

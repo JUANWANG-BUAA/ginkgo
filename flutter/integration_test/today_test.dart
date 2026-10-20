@@ -20,7 +20,7 @@ void main() {
       scrollKey: 'today-scroll',
     );
     expect(find.text('今天 2 节课'), findsOneWidget);
-    expect(find.byKey(const Key('today-course-算法设计与分析')), findsOneWidget);
+    expect(find.byKey(const Key('today-course-0-算法设计与分析')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

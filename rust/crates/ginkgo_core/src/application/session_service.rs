@@ -283,6 +283,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         }
     }
 
+    /// Clear all read snapshots without touching credentials or the session.
+    pub fn clear_snapshots(&self) {
+        self.clear_caches();
+    }
+
     pub(crate) fn clear_caches(&self) {
         self.classrooms.lock().expect("classroom cache").clear();
         self.schedules.lock().expect("schedule cache").clear();

@@ -25,12 +25,16 @@ const AJAX_ACCEPT: &str = "application/json, text/javascript, */*; q=0.01";
 pub enum Portal {
     Undergraduate,
     Graduate,
+    /// BYXT returned HTML without the graduate path marker. The Apple client
+    /// treats this as unconfirmed and tries GSMIS; do not report a bogus empty
+    /// timetable.
+    Unconfirmed,
 }
 
 /// Probe the shared session once and classify the portal (API.md §2.1).
 pub async fn detect_portal<T: HttpTransport>(session: &Session<T>) -> Result<Portal, AppError> {
     let response = session
-        .send_with_fallback(HttpRequest::get(PORTAL_URL))
+        .send_following_redirects(HttpRequest::get(PORTAL_URL))
         .await?;
     if is_login_response(&response) {
         return Err(AppError::session_expired());
@@ -42,12 +46,15 @@ pub async fn detect_portal<T: HttpTransport>(session: &Session<T>) -> Result<Por
     if (200..300).contains(&response.status) && (body.starts_with('{') || body.starts_with('[')) {
         return Ok(Portal::Undergraduate);
     }
+    if (200..300).contains(&response.status) {
+        return Ok(Portal::Unconfirmed);
+    }
     Err(AppError::new(ErrorCode::ServiceUnavailable))
 }
 
 pub async fn load_terms<T: HttpTransport>(session: &Session<T>) -> Result<Vec<Term>, AppError> {
     let response = session
-        .send_with_fallback(ajax_get(TERMS_URL, HOME_REFERER))
+        .send_following_redirects(ajax_get(TERMS_URL, HOME_REFERER))
         .await?;
     let body = require_body(&response)?;
     schedule::parse_terms(body)
@@ -64,7 +71,7 @@ pub async fn load_weeks<T: HttpTransport>(
         .append_pair("termCode", term_id)
         .finish();
     let response = session
-        .send_with_fallback(ajax_get(&format!("{WEEKS_URL}?{query}"), HOME_REFERER))
+        .send_following_redirects(ajax_get(&format!("{WEEKS_URL}?{query}"), HOME_REFERER))
         .await?;
     let body = require_body(&response)?;
     schedule::parse_weeks(body)
@@ -106,7 +113,7 @@ pub async fn load_exams<T: HttpTransport>(
         .append_pair("termCode", term_id)
         .finish();
     let response = session
-        .send_with_fallback(ajax_get(&format!("{EXAMS_URL}?{query}"), EXAM_REFERER))
+        .send_following_redirects(ajax_get(&format!("{EXAMS_URL}?{query}"), EXAM_REFERER))
         .await?;
     if response.status == 403 {
         return Err(AppError::new(ErrorCode::UnsupportedPortal));
@@ -125,7 +132,7 @@ pub async fn load_today<T: HttpTransport>(
         .append_pair("lxdm", "student")
         .finish();
     let response = session
-        .send_with_fallback(ajax_get(&format!("{TODAY_URL}?{query}"), HOME_REFERER))
+        .send_following_redirects(ajax_get(&format!("{TODAY_URL}?{query}"), HOME_REFERER))
         .await?;
     let body = require_body(&response)?;
     today::parse_courses(body)
@@ -299,6 +306,37 @@ mod tests {
                 .code,
             ErrorCode::SessionExpired
         );
+    }
+
+    #[tokio::test]
+    async fn portal_probe_follows_sso_service_redirect() {
+        let transport = MockTransport::with_responses(vec![
+            HttpResponse::new(302, PORTAL_URL, "").with_header(
+                "Location",
+                "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fbyxt.buaa.edu.cn",
+            ),
+            HttpResponse::new(
+                302,
+                "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fbyxt.buaa.edu.cn",
+                "",
+            )
+            .with_header(
+                "Location",
+                "https://byxt.buaa.edu.cn/jwapp/sys/byrhmhsy/index.html",
+            ),
+            HttpResponse::new(
+                200,
+                "https://byxt.buaa.edu.cn/jwapp/sys/byrhmhsy/index.html",
+                "<html></html>",
+            )
+            .with_set_cookie("JSESSIONID=grad; Path=/"),
+        ]);
+        let session = Session::new(transport.clone());
+        assert_eq!(
+            detect_portal(&session).await.expect("portal"),
+            Portal::Graduate
+        );
+        assert_eq!(transport.request_count(), 3);
     }
 
     #[test]

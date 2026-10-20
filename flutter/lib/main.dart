@@ -3,14 +3,19 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'apple_design.dart';
 import 'apple_widgets.dart';
+import 'checkin_page.dart';
 import 'classroom_page.dart';
+import 'coming_soon_page.dart';
 import 'grades_page.dart';
 import 'homework_page.dart';
+import 'library_page.dart';
 import 'login_page.dart';
+import 'more_page.dart';
 import 'mirror_service.dart';
 import 'rules_page.dart';
 import 'schedule_page.dart';
-import 'src/rust/api/live.dart' show SessionResponse, SessionState;
+import 'settings_page.dart';
+import 'src/rust/api/live.dart' show RouteChoice, SessionResponse, SessionState;
 import 'src/rust/frb_generated.dart';
 import 'today_page.dart';
 
@@ -142,6 +147,8 @@ class _GinkgoRootState extends State<GinkgoRoot> {
     _Stage.signedIn => GinkgoApp(
       service: widget.liveService,
       accountName: session?.name ?? session?.account,
+      accountId: session?.account,
+      route: session?.route,
       onSignOut: signOut,
     ),
   };
@@ -213,11 +220,15 @@ class GinkgoApp extends StatelessWidget {
     this.service = const DemoMirrorService(),
     this.brightness,
     this.accountName,
+    this.accountId,
+    this.route,
     this.onSignOut,
   });
   final MirrorService service;
   final Brightness? brightness;
   final String? accountName;
+  final String? accountId;
+  final RouteChoice? route;
   final Future<void> Function()? onSignOut;
   @override
   Widget build(BuildContext context) => ginkgoApp(
@@ -227,6 +238,8 @@ class GinkgoApp extends StatelessWidget {
           ? _DesktopWorkspace(
               service: service,
               accountName: accountName,
+              accountId: accountId,
+              route: route,
               onSignOut: onSignOut,
             )
           : CupertinoTabScaffold(
@@ -237,10 +250,6 @@ class GinkgoApp extends StatelessWidget {
                     label: '今天',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.building_2_fill),
-                    label: '空教室',
-                  ),
-                  BottomNavigationBarItem(
                     icon: Icon(CupertinoIcons.calendar),
                     label: '课表',
                   ),
@@ -249,8 +258,12 @@ class GinkgoApp extends StatelessWidget {
                     label: '作业',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.chart_bar_alt_fill),
-                    label: '成绩',
+                    icon: Icon(CupertinoIcons.book),
+                    label: '图书馆',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(CupertinoIcons.ellipsis_circle),
+                    label: '更多',
                   ),
                 ],
               ),
@@ -260,10 +273,16 @@ class GinkgoApp extends StatelessWidget {
                   accountName: accountName,
                   onAccountAction: onSignOut,
                 ),
-                1 => ClassroomPage(service: service),
-                2 => SchedulePage(service: service),
-                3 => HomeworkPage(service: service),
-                _ => GradesPage(service: service),
+                1 => SchedulePage(service: service),
+                2 => HomeworkPage(service: service),
+                3 => LibraryPage(service: service),
+                _ => MorePage(
+                  service: service,
+                  accountName: accountName,
+                  accountId: accountId,
+                  route: route,
+                  onSignOut: onSignOut ?? () async {},
+                ),
               },
             ),
     ),
@@ -274,10 +293,14 @@ class _DesktopWorkspace extends StatefulWidget {
   const _DesktopWorkspace({
     required this.service,
     this.accountName,
+    this.accountId,
+    this.route,
     this.onSignOut,
   });
   final MirrorService service;
   final String? accountName;
+  final String? accountId;
+  final RouteChoice? route;
   final Future<void> Function()? onSignOut;
   @override
   State<_DesktopWorkspace> createState() => _DesktopWorkspaceState();
@@ -285,40 +308,46 @@ class _DesktopWorkspace extends StatefulWidget {
 
 class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
   int selected = 0;
+  Future<void> _signOut() => widget.onSignOut?.call() ?? Future.value();
+
   @override
   Widget build(BuildContext context) => Row(
     children: [
       Container(
-        width: 220,
+        width: 232,
         color: CupertinoColors.systemGroupedBackground.resolveFrom(context),
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Padding(
-                padding: EdgeInsets.all(20),
+                padding: EdgeInsets.fromLTRB(20, 20, 20, 6),
                 child: Text(
                   'Ginkgo',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.only(left: 20, top: 16, bottom: 8),
-                child: Text(
-                  '校园',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: CupertinoColors.secondaryLabel,
-                  ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  children: [
+                    _section('工作台'),
+                    _sidebar('今天', CupertinoIcons.sun_max, 0),
+                    _sidebar('课程签到', CupertinoIcons.checkmark_seal, 1),
+                    _section('学习'),
+                    _sidebar('课表', CupertinoIcons.calendar, 2),
+                    _sidebar('成绩', CupertinoIcons.chart_bar_alt_fill, 3),
+                    _sidebar('作业', CupertinoIcons.doc_text, 4),
+                    _sidebar('空教室', CupertinoIcons.building_2_fill, 5),
+                    _section('校园'),
+                    _sidebar('图书馆', CupertinoIcons.book, 6),
+                    _sidebar('待办', CupertinoIcons.list_bullet, 7),
+                    _section('更多'),
+                    _sidebar('设置', CupertinoIcons.gear_alt, 8),
+                    _sidebar('规则示例', CupertinoIcons.checkmark_shield, 9),
+                  ],
                 ),
               ),
-              _sidebar('今天', CupertinoIcons.sun_max, 0),
-              _sidebar('空教室', CupertinoIcons.building_2_fill, 1),
-              _sidebar('课表', CupertinoIcons.calendar, 2),
-              _sidebar('作业', CupertinoIcons.doc_text, 3),
-              _sidebar('成绩', CupertinoIcons.chart_bar_alt_fill, 4),
-              _sidebar('规则示例', CupertinoIcons.checkmark_shield, 5),
-              const Spacer(),
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -334,6 +363,15 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
                         color: CupertinoColors.secondaryLabel,
                       ),
                     ),
+                    if (widget.accountId != null)
+                      Text(
+                        widget.accountId!,
+                        maxLines: 1,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: CupertinoColors.tertiaryLabel,
+                        ),
+                      ),
                     if (widget.onSignOut != null) ...[
                       const SizedBox(height: 6),
                       CupertinoButton(
@@ -365,16 +403,43 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
               accountName: widget.accountName,
               onAccountAction: widget.onSignOut,
             ),
-            ClassroomPage(service: widget.service),
+            CheckInPage(service: widget.service),
             SchedulePage(service: widget.service),
-            HomeworkPage(service: widget.service),
             GradesPage(service: widget.service),
+            HomeworkPage(service: widget.service),
+            ClassroomPage(service: widget.service),
+            LibraryPage(service: widget.service),
+            ComingSoonPage(
+              title: '待办',
+              description: '本机待办尚未迁移到 Flutter 镜像。',
+              symbol: CupertinoIcons.list_bullet,
+            ),
+            SettingsPage(
+              service: widget.service,
+              onSignOut: _signOut,
+              accountName: widget.accountName,
+              accountId: widget.accountId,
+              route: widget.route,
+            ),
             RulesPage(service: widget.service),
           ],
         ),
       ),
     ],
   );
+
+  Widget _section(String title) => Padding(
+    padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
+    child: Text(
+      title,
+      style: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: CupertinoColors.secondaryLabel,
+      ),
+    ),
+  );
+
   Widget _sidebar(String title, IconData icon, int index) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
     child: CupertinoButton(
