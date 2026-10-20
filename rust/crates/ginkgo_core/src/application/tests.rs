@@ -1612,6 +1612,9 @@ async fn library_public_stats_are_cookie_isolated_cached_and_preserved_on_failur
         .send(HttpRequest::get("https://lib.buaa.edu.cn/"))
         .await
         .expect("seed cookie");
+    // A private business request already activated WebVPN fallback. Public
+    // statistics still start from the user's Automatic preference, cookie-free.
+    assert!(service.session.activate_automatic_webvpn_fallback());
     let first = service.load_library_stats(false).await.expect("public");
     assert_eq!(first.campuses.len(), 2);
     assert_eq!(first.campuses[0].people, 120);

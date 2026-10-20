@@ -1,6 +1,6 @@
 //! Cookie-isolated public library HTML read (LibraryPublicStats.swift).
 use crate::{
-    auth::session::Session,
+    auth::session::{RouteMode, Session},
     features::library_stats::{self, CampusStats},
     foundation::http::{HttpRequest, HttpResponse, HttpTransport, TransportError},
     AppError,
@@ -26,9 +26,12 @@ pub fn parse_response(response: &HttpResponse) -> Result<Vec<CampusStats>, AppEr
 }
 pub async fn load<T: HttpTransport + Sync>(
     shared: &Session<T>,
+    preference: RouteMode,
 ) -> Result<Vec<CampusStats>, AppError> {
     let isolated = Session::new(PublicTransport(shared.transport()));
-    isolated.set_route(shared.route());
+    // The authenticated session may already have fallen back to WebVPN.
+    // Start this public session from the user preference, not that transient state.
+    isolated.set_route(preference);
     let response = isolated
         .send_following_redirects(
             HttpRequest::get(URL)

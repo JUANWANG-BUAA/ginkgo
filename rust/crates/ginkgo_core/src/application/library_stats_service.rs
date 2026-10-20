@@ -28,7 +28,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                 });
             }
         }
-        let result = library_stats_http::load(&self.session).await;
+        let result = library_stats_http::load(&self.session, self.preference().into()).await;
         let mut cache = self.library_stats.lock().expect("library stats");
         match result {
             Ok(campuses) => {
