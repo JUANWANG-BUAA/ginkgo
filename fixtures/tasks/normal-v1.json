@@ -1,0 +1,24 @@
+{
+  "contract": "tasks.document",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "version": 1,
+    "tasks": [
+      {
+        "id": "synthetic-task",
+        "title": "合成待办",
+        "due": "2026-10-20",
+        "completed": false
+      }
+    ]
+  },
+  "expected": [
+    {
+      "id": "synthetic-task",
+      "title": "合成待办",
+      "due": "2026-10-20",
+      "completed": false
+    }
+  ]
+}

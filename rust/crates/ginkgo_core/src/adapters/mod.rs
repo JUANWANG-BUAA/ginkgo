@@ -10,3 +10,7 @@ pub mod reqwest_transport;
 pub mod schedule_http;
 
 pub mod graduate_http;
+
+pub mod tasks_store;
+
+

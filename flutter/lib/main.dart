@@ -5,7 +5,7 @@ import 'apple_design.dart';
 import 'apple_widgets.dart';
 import 'checkin_page.dart';
 import 'classroom_page.dart';
-import 'coming_soon_page.dart';
+import 'tasks_page.dart';
 import 'grades_page.dart';
 import 'homework_page.dart';
 import 'library_page.dart';
@@ -308,6 +308,7 @@ class _DesktopWorkspace extends StatefulWidget {
 
 class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
   int selected = 0;
+
   /// IndexedStack builds every child, which would fire real read requests for
   /// pages the user never opened. Build a page on first visit and keep it
   /// mounted afterwards so sidebar state survives switching.
@@ -408,7 +409,10 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
           index: selected,
           children: [
             for (var index = 0; index < 10; index++)
-              if (visited.contains(index)) _page(index) else const SizedBox.shrink(),
+              if (visited.contains(index))
+                _page(index)
+              else
+                const SizedBox.shrink(),
           ],
         ),
       ),
@@ -417,21 +421,17 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
 
   Widget _page(int index) => switch (index) {
     0 => TodayPage(
-              service: widget.service,
-              accountName: widget.accountName,
-              onAccountAction: widget.onSignOut,
-            ),
+      service: widget.service,
+      accountName: widget.accountName,
+      onAccountAction: widget.onSignOut,
+    ),
     1 => CheckInPage(service: widget.service),
     2 => SchedulePage(service: widget.service),
     3 => GradesPage(service: widget.service),
     4 => HomeworkPage(service: widget.service),
     5 => ClassroomPage(service: widget.service),
     6 => LibraryPage(service: widget.service),
-    7 => ComingSoonPage(
-      title: '待办',
-      description: '本机待办尚未迁移到 Flutter 镜像。',
-      symbol: CupertinoIcons.list_bullet,
-    ),
+    7 => TasksPage(demo: widget.service.isDemo),
     8 => SettingsPage(
       service: widget.service,
       onSignOut: _signOut,

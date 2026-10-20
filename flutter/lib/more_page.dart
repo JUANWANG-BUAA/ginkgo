@@ -5,6 +5,7 @@ import 'apple_widgets.dart';
 import 'checkin_page.dart';
 import 'bykc_page.dart';
 import 'graduate_page.dart';
+import 'tasks_page.dart';
 import 'classroom_page.dart';
 import 'coming_soon_page.dart';
 import 'grades_page.dart';
@@ -88,12 +89,7 @@ class MorePage extends StatelessWidget {
                   '待办',
                   CupertinoIcons.list_bullet,
                   CupertinoColors.systemOrange,
-                  const ComingSoonPage(
-                    title: '待办',
-                    description: '本机待办尚未迁移到 Flutter 镜像。',
-                    symbol: CupertinoIcons.list_bullet,
-                    details: ['本机待办增删改', '账号隔离与提醒'],
-                  ),
+                  TasksPage(demo: service.isDemo),
                 ),
               ],
             ),

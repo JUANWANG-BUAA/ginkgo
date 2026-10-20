@@ -8,3 +8,7 @@ pub mod schedule;
 pub mod today;
 
 pub mod graduate;
+
+pub mod tasks;
+
+

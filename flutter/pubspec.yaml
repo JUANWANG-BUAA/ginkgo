@@ -16,6 +16,9 @@ dependencies:
   flutter_rust_bridge: 2.12.0
   rust_lib_ginkgo_mirror:
     path: rust_builder
+  path_provider: ^2.1.6
+  # Retain the Kotlin plugin path and the project NDK 27 toolchain.
+  path_provider_android: 2.2.22
 
 dev_dependencies:
   flutter_test:

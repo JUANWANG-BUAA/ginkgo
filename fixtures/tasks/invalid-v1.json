@@ -1,0 +1,19 @@
+{
+  "contract": "tasks.document",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "version": 1,
+    "tasks": [
+      {
+        "id": "synthetic-task",
+        "title": " ",
+        "due": "2026-10-20",
+        "completed": false
+      }
+    ]
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

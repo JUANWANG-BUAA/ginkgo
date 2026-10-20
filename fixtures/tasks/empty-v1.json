@@ -1,0 +1,10 @@
+{
+  "contract": "tasks.document",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "version": 1,
+    "tasks": []
+  },
+  "expected": []
+}

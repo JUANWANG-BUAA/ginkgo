@@ -136,6 +136,25 @@ Future<ReadOnlyResponse> loadGraduate({required bool forceRefresh}) =>
 Future<ReadOnlyResponse> loadDemoGraduate() =>
     RustLib.instance.api.crateApiLiveLoadDemoGraduate();
 
+/// Local CRUD only. Account identity comes from Rust, never a Dart-supplied identifier.
+Future<ReadOnlyResponse> editTasks({
+  required String root,
+  required bool demo,
+  required String action,
+  String? id,
+  String? title,
+  String? due,
+  bool? completed,
+}) => RustLib.instance.api.crateApiLiveEditTasks(
+  root: root,
+  demo: demo,
+  action: action,
+  id: id,
+  title: title,
+  due: due,
+  completed: completed,
+);
+
 class GradeTermsResponse {
   final List<ScheduleTerm> terms;
   final FailureCode? failure;

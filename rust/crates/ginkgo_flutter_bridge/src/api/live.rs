@@ -1063,3 +1063,49 @@ pub fn load_demo_graduate() -> ReadOnlyResponse {
         },
     }
 }
+
+/// Local CRUD only. Account identity comes from Rust, never a Dart-supplied identifier.
+pub fn edit_tasks(
+    root: String,
+    demo: bool,
+    action: String,
+    id: Option<String>,
+    title: Option<String>,
+    due: Option<String>,
+    completed: Option<bool>,
+) -> ReadOnlyResponse {
+    let result = if demo {
+        ginkgo_core::application::tasks_service::edit(
+            std::path::Path::new(&root),
+            "ginkgo-isolated-demo",
+            &action,
+            id.as_deref(),
+            title.as_deref(),
+            due.as_deref(),
+            completed,
+        )
+    } else {
+        service().and_then(|s| {
+            s.edit_tasks(
+                std::path::Path::new(&root),
+                &action,
+                id.as_deref(),
+                title.as_deref(),
+                due.as_deref(),
+                completed,
+            )
+        })
+    };
+    match result {
+        Ok(tasks) => ReadOnlyResponse {
+            payload: serde_json::to_string(&tasks).ok(),
+            stale: false,
+            failure: None,
+        },
+        Err(e) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(e.code.into()),
+        },
+    }
+}
