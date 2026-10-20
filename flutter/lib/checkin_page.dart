@@ -189,9 +189,7 @@ class _CheckInPageState extends State<CheckInPage> {
           footer: const Text(
             '签到状态来自 iclass 实时查询；同一课程出现多条不一致记录时显示“待确认”，不会据此提交签到。',
           ),
-          children: [
-            for (final course in data.courses) _courseRow(course),
-          ],
+          children: [for (final course in data.courses) _courseRow(course)],
         ),
       AppleSection(
         children: [

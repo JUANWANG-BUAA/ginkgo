@@ -23,6 +23,14 @@ class _SchedulePageState extends State<SchedulePage> {
   int viewMode = 0;
   int requestId = 0;
   String search = '';
+  final weekScroll = ScrollController();
+
+  @override
+  void dispose() {
+    weekScroll.dispose();
+    super.dispose();
+  }
+
   List<ScheduleCourse> sorted = [];
   List<ScheduleCourse> filtered = [];
   Map<int, List<ScheduleCourse>> days = {};
@@ -102,6 +110,15 @@ class _SchedulePageState extends State<SchedulePage> {
             return section == 0 ? a.name.compareTo(b.name) : section;
           });
         filter();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || !weekScroll.hasClients) return;
+          final index = result.weeks.indexWhere(
+            (w) => w.number == selectedWeek,
+          );
+          weekScroll.jumpTo(
+            (index * 120.0 - 120).clamp(0, weekScroll.position.maxScrollExtent),
+          );
+        });
         if (result.exams.isEmpty && viewMode == 2) viewMode = 0;
         notice = result.failure == null
             ? null
@@ -126,7 +143,7 @@ class _SchedulePageState extends State<SchedulePage> {
   }
 
   void selectWeek(int week) {
-    setState(() => viewMode = 0);
+    if (viewMode == 1 || viewMode == 2) setState(() => viewMode = 0);
     load(week: week);
   }
 
@@ -206,7 +223,7 @@ class _SchedulePageState extends State<SchedulePage> {
                   ),
                 ],
               ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 96),
           ],
         ),
       ],
@@ -215,82 +232,124 @@ class _SchedulePageState extends State<SchedulePage> {
 
   List<Widget> _content(ScheduleResponse snapshot) => [
     AppleSection(
-      header: const Text('课表范围'),
       footer: snapshot.fetchedAt == null
           ? (widget.service.isDemo ? const Text('离线合成样例') : null)
           : Text('更新于 ${snapshot.fetchedAt!.replaceFirst('T', ' ')}'),
       children: [
-        Builder(
-          builder: (anchor) => _row(
-            key: const Key('schedule-term-picker'),
-            onTap: () async {
-              final id = await choose<String>(
-                anchor,
-                '学期',
-                terms.keys.toList(),
-                (id) => terms[id]?.name ?? id,
-                selected: selectedTerm,
-              );
-              if (mounted && id != null && id != selectedTerm) load(termId: id);
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('学期', style: secondary(context)),
-                const SizedBox(height: 4),
-                Text(
-                  terms[selectedTerm]?.name ?? snapshot.termId,
-                  style: TextStyle(
-                    color: CupertinoTheme.of(context).primaryColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (snapshot.weeks.isNotEmpty) ...[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    '第 $selectedWeek 周',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
-                if (snapshot.weeks.any((item) => item.current))
-                  CupertinoButton(
-                    key: const Key('schedule-current-week'),
-                    onPressed: () => selectWeek(
-                      snapshot.weeks.firstWhere((item) => item.current).number,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Builder(
+              builder: (anchor) => _row(
+                key: const Key('schedule-term-picker'),
+                onTap: () async {
+                  final id = await choose<String>(
+                    anchor,
+                    '学期',
+                    terms.keys.toList(),
+                    (id) => terms[id]?.name ?? id,
+                    selected: selectedTerm,
+                  );
+                  if (mounted && id != null && id != selectedTerm) {
+                    load(termId: id);
+                  }
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      terms[selectedTerm]?.name ?? snapshot.termId,
+                      style: TextStyle(
+                        color: CupertinoColors.secondaryLabel.resolveFrom(
+                          context,
+                        ),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                    child: const Text('本周'),
+                  ],
+                ),
+              ),
+            ),
+            if (snapshot.weeks.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '第 $selectedWeek 周',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    if (snapshot.weeks.any((item) => item.current))
+                      CupertinoButton(
+                        key: const Key('schedule-current-week'),
+                        onPressed: () => selectWeek(
+                          snapshot.weeks
+                              .firstWhere((item) => item.current)
+                              .number,
+                        ),
+                        child: const Text('本周'),
+                      ),
+                  ],
+                ),
+              ),
+              if (weeks[selectedWeek] case final ScheduleWeek range)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '${shortDate(range.startDate)} – ${shortDate(range.endDate)}',
+                      style: secondary(context),
+                    ),
                   ),
-              ],
-            ),
-          ),
-          _weekStrip(snapshot),
-        ],
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: SizedBox(
-            width: double.infinity,
-            child: CupertinoSlidingSegmentedControl<int>(
-              groupValue: viewMode,
-              onValueChanged: (value) => setState(() => viewMode = value ?? 0),
-              children: {
-                0: const Text('课程'),
-                1: const Text('学期'),
-                if (snapshot.exams.isNotEmpty) 2: const Text('考试'),
-              },
-            ),
-          ),
+                ),
+              _weekStrip(snapshot),
+            ],
+          ],
         ),
       ],
     ),
-    if (viewMode == 0) ...[
+    if (MediaQuery.textScalerOf(context).scale(1) > 1.4)
+      AppleSection(
+        children: [
+          ApplePickerTile<int>(
+            title: '显示方式',
+            value: viewMode,
+            values: [0, 3, 1, if (snapshot.exams.isNotEmpty) 2],
+            label: (value) => switch (value) {
+              0 => '周课表 · 大字号使用每日清单',
+              3 => '每日清单',
+              1 => '学期',
+              _ => '考试',
+            },
+            onSelected: (value) => setState(() => viewMode = value),
+          ),
+        ],
+      )
+    else
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        child: SizedBox(
+          width: double.infinity,
+          child: CupertinoSlidingSegmentedControl<int>(
+            groupValue: viewMode,
+            onValueChanged: (value) => setState(() => viewMode = value ?? 0),
+            children: {
+              0: const Text('周课表'),
+              3: const Text('每日清单'),
+              1: const Text('学期'),
+              if (snapshot.exams.isNotEmpty) 2: const Text('考试'),
+            },
+          ),
+        ),
+      ),
+    if (viewMode == 0 || viewMode == 3) ...[
       Padding(
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
         child: CupertinoSearchTextField(
@@ -317,22 +376,63 @@ class _SchedulePageState extends State<SchedulePage> {
             ),
           ],
         )
-      else if (MediaQuery.sizeOf(context).width >= 760 &&
-          MediaQuery.textScalerOf(context).scale(1) <= 1.4)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
-          child: ScheduleGrid(
-            courses: filtered,
-            weekStart: weeks[snapshot.weekNumber]?.startDate,
-            onCourseTap: showCourse,
-          ),
-        )
       else
-        for (final day in days.entries)
-          AppleSection(
-            header: Text(dayTitle(day.key, snapshot.weekNumber)),
-            children: [for (final course in day.value) _courseRow(course)],
-          ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.4;
+            final grid = !largeText && viewMode == 0;
+            return AppleContentTransition(
+              identity: (
+                snapshot.termId,
+                snapshot.weekNumber,
+                viewMode,
+                largeText,
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${filtered.length} 项课程${largeText && viewMode == 0 ? ' · 大字号使用每日清单' : ''}',
+                            style: secondary(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (grid) ...[
+                    if (constraints.maxWidth < 760)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                        child: Text(
+                          '左右滑动查看整周 · 点按课程查看详情',
+                          style: secondary(context),
+                        ),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: ScheduleGrid(
+                        courses: filtered,
+                        weekStart: weeks[snapshot.weekNumber]?.startDate,
+                        onCourseTap: showCourse,
+                      ),
+                    ),
+                  ] else
+                    for (final day in days.entries)
+                      AppleSection(
+                        header: Text(dayTitle(day.key, snapshot.weekNumber)),
+                        children: [
+                          for (final course in day.value) _courseRow(course),
+                        ],
+                      ),
+                ],
+              ),
+            );
+          },
+        ),
     ] else if (viewMode == 1)
       AppleSection(
         header: const Text('学期周次'),
@@ -403,6 +503,7 @@ class _SchedulePageState extends State<SchedulePage> {
         MediaQuery.textScalerOf(context).scale(11) * 1.8,
     child: ListView.separated(
       key: const Key('schedule-weeks'),
+      controller: weekScroll,
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
       itemCount: snapshot.weeks.length,
@@ -413,7 +514,8 @@ class _SchedulePageState extends State<SchedulePage> {
         final color = CupertinoTheme.of(context).primaryColor;
         return CupertinoButton(
           key: Key('schedule-week-${week.number}'),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          minimumSize: const Size(112, 0),
           color: active
               ? color.withValues(alpha: 0.14)
               : CupertinoColors.tertiarySystemFill.resolveFrom(context),
@@ -462,8 +564,13 @@ class _SchedulePageState extends State<SchedulePage> {
       children: [
         Text(
           course.startTime ?? '时间待定',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
         ),
+        if (course.endTime != null)
+          Text(
+            course.endTime!,
+            style: secondary(context).copyWith(fontSize: 13),
+          ),
         const SizedBox(height: 5),
         Text(
           '第${course.startSection}–${course.endSection}节',
@@ -498,13 +605,13 @@ class _SchedulePageState extends State<SchedulePage> {
           : Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(width: 72, child: time),
+                SizedBox(width: 78, child: time),
                 Container(
                   width: 4,
                   height: 52,
                   margin: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
-                    color: courseColor(context, course.color),
+                    color: courseColor(context, course.color, course.name),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -579,7 +686,6 @@ class _SchedulePageState extends State<SchedulePage> {
                   ],
                 ),
                 AppleSection(
-                  header: const Text('课表范围'),
                   children: [
                     _detail(
                       '学期',
@@ -594,7 +700,7 @@ class _SchedulePageState extends State<SchedulePage> {
                     _detail('上课日期', dayTitle(course.day, snapshot.weekNumber)),
                   ],
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 96),
               ],
             ),
           ),

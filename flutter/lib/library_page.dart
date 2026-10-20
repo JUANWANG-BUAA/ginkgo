@@ -34,11 +34,11 @@ class _LibraryPageState extends State<LibraryPage> {
     });
     try {
       final results = await Future.wait<Object>([
-        widget.service.libraryBookings(forceRefresh: force),
         widget.service.libraryVenues(forceRefresh: force),
+        widget.service.libraryBookings(forceRefresh: force),
       ]);
-      final bookingResult = results[0] as LibraryBookingsResponse;
-      final venueResult = results[1] as LibraryVenuesResponse;
+      final venueResult = results[0] as LibraryVenuesResponse;
+      final bookingResult = results[1] as LibraryBookingsResponse;
       if (!mounted) return;
       final failure = bookingResult.failure ?? venueResult.failure;
       final hasData =
@@ -52,7 +52,8 @@ class _LibraryPageState extends State<LibraryPage> {
           error = failureMessage(failure);
           return;
         }
-        if (bookingResult.failure == null || bookingResult.bookings.isNotEmpty) {
+        if (bookingResult.failure == null ||
+            bookingResult.bookings.isNotEmpty) {
           bookings = bookingResult;
         }
         if (venueResult.failure == null || venueResult.venues.isNotEmpty) {
@@ -77,9 +78,7 @@ class _LibraryPageState extends State<LibraryPage> {
   }
 
   void _push(Widget page) {
-    Navigator.of(
-      context,
-    ).push(CupertinoPageRoute<void>(builder: (_) => page));
+    Navigator.of(context).push(CupertinoPageRoute<void>(builder: (_) => page));
   }
 
   @override
@@ -164,7 +163,7 @@ class _LibraryPageState extends State<LibraryPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 96),
             ],
           ],
         ),
@@ -197,9 +196,7 @@ class _LibraryPageState extends State<LibraryPage> {
                 color: CupertinoColors.systemGreen,
                 size: 22,
               ),
-              title: Text(
-                booking.title.isEmpty ? '图书馆预约' : booking.title,
-              ),
+              title: Text(booking.title.isEmpty ? '图书馆预约' : booking.title),
               subtitle: Text(
                 _bookingDetail(booking),
                 style: TextStyle(
@@ -221,8 +218,8 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  bool _bookingEnded(LibraryBooking booking) => ['取消', '结束', '过期', '失效']
-      .any(booking.statusName.contains);
+  bool _bookingEnded(LibraryBooking booking) =>
+      ['取消', '结束', '过期', '失效'].any(booking.statusName.contains);
 
   /// Upstream sends HH:mm:ss; the row only has room for HH:mm.
   String _clock(String value) {
@@ -237,7 +234,8 @@ class _LibraryPageState extends State<LibraryPage> {
         '${_clock(booking.startTime)}–${_clock(booking.endTime)}',
       // The title already names the space/seat; only repeat them when the
       // upstream row had no title at all.
-      if (booking.title.isEmpty && booking.areaName.isNotEmpty) booking.areaName,
+      if (booking.title.isEmpty && booking.areaName.isNotEmpty)
+        booking.areaName,
       if (booking.title.isEmpty && booking.seatNumber.isNotEmpty)
         '${booking.seatNumber}号',
     ];
@@ -394,7 +392,7 @@ class _LibraryAreaPageState extends State<_LibraryAreaPage> {
                       ),
                 ],
               ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 96),
           ],
         ),
       ],
@@ -509,7 +507,7 @@ class _LibrarySlotPageState extends State<_LibrarySlotPage> {
                       ),
                 ],
               ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 96),
           ],
         ),
       ],
@@ -533,6 +531,19 @@ class _LibrarySeatPage extends StatefulWidget {
 class _LibrarySeatPageState extends State<_LibrarySeatPage> {
   List<LibrarySeat>? seats;
   String? error;
+  String search = '';
+  bool availableOnly = false;
+  List<LibrarySeat> visible = [];
+  void prepare() {
+    final query = search.trim().toLowerCase();
+    visible = (seats ?? <LibrarySeat>[])
+        .where(
+          (seat) =>
+              (!availableOnly || seat.available) &&
+              (query.isEmpty || seat.name.toLowerCase().contains(query)),
+        )
+        .toList();
+  }
 
   @override
   void initState() {
@@ -554,6 +565,7 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
           return;
         }
         seats = result.seats;
+        prepare();
       });
     } catch (_) {
       if (!mounted) return;
@@ -603,17 +615,42 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
                   ),
                 ],
               )
-            else
-              AppleSection(
-                header: Text('${widget.area.name} · 座位'),
-                footer: const Text(
-                  '绿色为学校接口标记的空闲座位；预约写操作尚未开放，页面不提供提交按钮。',
+            else ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: CupertinoSearchTextField(
+                  key: const Key('library-seat-search'),
+                  placeholder: '搜索座位编号',
+                  onChanged: (value) => setState(() {
+                    search = value;
+                    prepare();
+                  }),
                 ),
+              ),
+              AppleSection(
                 children: [
-                  if (seats!.isEmpty)
-                    const AppleListTile(title: Text('该时段没有座位数据'))
+                  AppleListTile(
+                    title: const Text('只看空闲座位'),
+                    trailing: CupertinoSwitch(
+                      value: availableOnly,
+                      onChanged: (value) => setState(() {
+                        availableOnly = value;
+                        prepare();
+                      }),
+                    ),
+                  ),
+                ],
+              ),
+              AppleSection(
+                header: Text('${widget.area.name} · ${visible.length} 个座位'),
+                footer: const Text('绿色为学校接口标记的空闲座位；预约写操作尚未开放，页面不提供提交按钮。'),
+                children: [
+                  if (visible.isEmpty)
+                    AppleListTile(
+                      title: Text(seats!.isEmpty ? '该时段没有座位数据' : '没有符合条件的座位'),
+                    )
                   else
-                    for (final seat in seats!)
+                    for (final seat in visible)
                       AppleListTile(
                         key: Key('library-seat-${seat.id}'),
                         leading: Icon(
@@ -634,7 +671,8 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
                       ),
                 ],
               ),
-            const SizedBox(height: 24),
+            ],
+            const SizedBox(height: 96),
           ],
         ),
       ],

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
+import 'schedule_style.dart';
 import 'src/rust/api/mirror.dart';
 
 const _weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
@@ -12,8 +13,14 @@ class TodayPage extends StatefulWidget {
     required this.service,
     this.accountName,
     this.onAccountAction,
+    this.directory,
+    this.onOpenFeature,
+    this.onOpenSettings,
   });
   final MirrorService service;
+  final Widget? directory;
+  final ValueChanged<int>? onOpenFeature;
+  final VoidCallback? onOpenSettings;
   final String? accountName;
   final Future<void> Function()? onAccountAction;
   @override
@@ -97,17 +104,25 @@ class _TodayPageState extends State<TodayPage> {
       key: const Key('today-scroll'),
       slivers: [
         CupertinoSliverNavigationBar(
-          largeTitle: const Text('今天'),
+          largeTitle: Text(widget.directory == null ? '今天' : '工作台'),
           border: null,
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (widget.onAccountAction != null) ...[
+              if (widget.onOpenSettings != null ||
+                  widget.onAccountAction != null) ...[
                 AppleGlassButton(
-                  label: widget.service.isDemo ? '演示模式' : '账号',
-                  onPressed: busy ? null : accountAction,
+                  label: widget.onOpenSettings != null
+                      ? '设置'
+                      : widget.service.isDemo
+                      ? '演示模式'
+                      : '账号',
+                  onPressed:
+                      widget.onOpenSettings ?? (busy ? null : accountAction),
                   child: Icon(
-                    widget.service.isDemo
+                    widget.onOpenSettings != null
+                        ? CupertinoIcons.gear_alt
+                        : widget.service.isDemo
                         ? CupertinoIcons.eye
                         : CupertinoIcons.person_crop_circle,
                     size: 22,
@@ -128,6 +143,31 @@ class _TodayPageState extends State<TodayPage> {
         CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
         SliverList.list(
           children: [
+            if (widget.onOpenSettings != null)
+              AppleSection(
+                children: [
+                  AppleListTile(
+                    key: const Key('workspace-settings'),
+                    leading: const Icon(
+                      CupertinoIcons.person_crop_circle_fill,
+                      size: 34,
+                      color: CupertinoColors.systemBlue,
+                    ),
+                    title: const Text(
+                      '账户与设置',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      widget.service.isDemo
+                          ? '离线演示 · 连接与数据管理'
+                          : '学校账户 · 连接与数据管理',
+                    ),
+                    trailing: const CupertinoListTileChevron(),
+                    onTap: widget.onOpenSettings,
+                  ),
+                ],
+              ),
+            if (widget.onOpenFeature != null) _shortcuts(),
             if (notice != null)
               AppleSection(
                 children: [
@@ -153,7 +193,7 @@ class _TodayPageState extends State<TodayPage> {
                   ),
                 ],
               )
-            else if (busy || data == null)
+            else if (data == null)
               AppleSection(
                 children: const [
                   Padding(
@@ -170,11 +210,89 @@ class _TodayPageState extends State<TodayPage> {
               )
             else
               ..._content(data!),
+            if (widget.directory != null) widget.directory!,
+            const SizedBox(height: 96),
           ],
         ),
       ],
     ),
   );
+
+  Widget _shortcuts() {
+    const labels = ['课程签到', '查看课表', '学校作业', '空间预约'];
+    const icons = [
+      CupertinoIcons.checkmark_seal_fill,
+      CupertinoIcons.calendar,
+      CupertinoIcons.doc_text_fill,
+      CupertinoIcons.square_grid_2x2_fill,
+    ];
+    const colors = [
+      CupertinoColors.systemOrange,
+      CupertinoColors.systemBlue,
+      CupertinoColors.systemIndigo,
+      CupertinoColors.systemPurple,
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final columns =
+              MediaQuery.textScalerOf(context).scale(1) > 1.5 ||
+                  constraints.maxWidth < 280
+              ? 1
+              : 2;
+          final width = ((constraints.maxWidth - (columns - 1) * 12) / columns)
+              .clamp(0.0, double.infinity);
+          return Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              for (var i = 0; i < 4; i++)
+                SizedBox(
+                  width: width,
+                  child: CupertinoButton(
+                    padding: const EdgeInsets.all(18),
+                    color: CupertinoColors.secondarySystemGroupedBackground
+                        .resolveFrom(context),
+                    borderRadius: BorderRadius.circular(26),
+                    onPressed: () => widget.onOpenFeature!(i + 1),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          icons[i],
+                          size: 28,
+                          color: colors[i].resolveFrom(context),
+                        ),
+                        const SizedBox(height: 18),
+                        Text(
+                          labels[i],
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                            color: CupertinoColors.label.resolveFrom(context),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          const ['查看当天状态', '安排本周学习', '截止与提交状态', '座位 · 研讨室'][i],
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: CupertinoColors.secondaryLabel.resolveFrom(
+                              context,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
 
   List<Widget> _content(TodayResponse data) {
     final date = DateTime.tryParse(data.date);
@@ -184,7 +302,7 @@ class _TodayPageState extends State<TodayPage> {
     return [
       AppleSection(
         header: Text(dateLabel),
-        footer: const Text('今天页只组合课表模块已读取的当天课程，不复制筛选或周次规则。'),
+
         children: [
           AppleListTile(
             title: Text(
@@ -214,7 +332,7 @@ class _TodayPageState extends State<TodayPage> {
                   width: 4,
                   height: 38,
                   decoration: BoxDecoration(
-                    color: CupertinoTheme.of(context).primaryColor,
+                    color: courseColor(context, null, course.name),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -242,7 +360,7 @@ class _TodayPageState extends State<TodayPage> {
             child: Text(
               widget.service.isDemo
                   ? '离线合成样例，不连接学校账号；日期与课程用于演示迁移后的今天页。'
-                  : '真实账号只读数据；今天页只组合课表模块读取的当天课程。',
+                  : '课程来自教务课表。签到是否开放，请进入签到查看。',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 13,

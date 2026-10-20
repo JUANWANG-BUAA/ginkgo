@@ -15,6 +15,13 @@ void main() {
     (tester) async {
       await launch(tester);
       await tapTab(tester, '课表');
+      await show(
+        tester,
+        find.byKey(const Key('schedule-grid-course-u-0-1-1')),
+        scrollKey: 'schedule-scroll',
+      );
+      expect(find.text('左右滑动查看整周 · 点按课程查看详情'), findsOneWidget);
+      await tap(tester, '每日清单', scrollKey: 'schedule-scroll');
       final course = find.byKey(const Key('schedule-course-u-0-1-1'));
       await show(tester, course, scrollKey: 'schedule-scroll');
       await tester.tap(course);
@@ -25,7 +32,7 @@ void main() {
       await tap(tester, '考试', scrollKey: 'schedule-scroll');
       await show(tester, find.text('考试安排'), scrollKey: 'schedule-scroll');
       expect(find.text('考试安排'), findsOneWidget);
-      await tap(tester, '课程', scrollKey: 'schedule-scroll');
+      await tap(tester, '每日清单', scrollKey: 'schedule-scroll');
       final search = find.byKey(const Key('schedule-search'));
       await show(tester, search, scrollKey: 'schedule-scroll');
       await tester.enterText(search, '不存在');

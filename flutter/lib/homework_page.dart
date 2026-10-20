@@ -18,6 +18,49 @@ class _HomeworkPageState extends State<HomeworkPage> {
   String? notice;
   bool busy = false;
   int filter = 0;
+  int pending = 0, submitted = 0, overdue = 0, unknown = 0;
+  String search = '';
+  List<HomeworkItem> visible = [];
+
+  void prepare() {
+    final items = data?.items ?? <HomeworkItem>[];
+    pending = items
+        .where((item) => item.status == HomeworkStatus.pending)
+        .length;
+    submitted = items
+        .where((item) => item.status == HomeworkStatus.submitted)
+        .length;
+    overdue = items
+        .where(
+          (item) =>
+              item.status == HomeworkStatus.pending && _isOverdue(item.dueAt),
+        )
+        .length;
+    unknown = items
+        .where((item) => item.status == HomeworkStatus.unknown)
+        .length;
+    final query = search.trim().toLowerCase();
+    visible = items
+        .where(
+          (item) =>
+              filter == 0 ||
+              (filter == 1 && item.status == HomeworkStatus.pending) ||
+              (filter == 2 && item.status == HomeworkStatus.submitted) ||
+              (filter == 3 &&
+                  item.status == HomeworkStatus.pending &&
+                  _isOverdue(item.dueAt)) ||
+              (filter == 4 && item.status == HomeworkStatus.unknown),
+        )
+        .where(
+          (item) =>
+              query.isEmpty ||
+              [
+                item.title,
+                item.courseName,
+              ].any((s) => s.toLowerCase().contains(query)),
+        )
+        .toList();
+  }
 
   @override
   void initState() {
@@ -45,6 +88,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
           if (result.termCode.isEmpty) return;
         }
         data = result;
+        prepare();
       });
     } catch (_) {
       if (!mounted) return;
@@ -133,17 +177,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
   );
 
   List<Widget> _content(HomeworkResponse data) {
-    final pending = data.items
-        .where((item) => item.status == HomeworkStatus.pending)
-        .length;
-    final submitted = data.items
-        .where((item) => item.status == HomeworkStatus.submitted)
-        .length;
-    final visible = data.items.where((item) {
-      if (filter == 1) return item.status == HomeworkStatus.pending;
-      if (filter == 2) return item.status == HomeworkStatus.submitted;
-      return true;
-    }).toList();
     return [
       AppleSection(
         header: Text(
@@ -152,17 +185,23 @@ class _HomeworkPageState extends State<HomeworkPage> {
             data.termCode,
           ].where((value) => value.isNotEmpty).join(' · '),
         ),
-        footer: const Text('只读作业列表；不包含提交、附件上传或评分写操作。'),
+
         children: [
           AppleListTile(
             title: const Text('待完成 / 已提交'),
-            additionalInfo: Text('$pending / $submitted'),
+            additionalInfo: Text(
+              '$pending / $submitted',
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
             child: CupertinoSlidingSegmentedControl<int>(
-              groupValue: filter,
-              onValueChanged: (value) => setState(() => filter = value ?? 0),
+              groupValue: filter <= 2 ? filter : null,
+              onValueChanged: (value) => setState(() {
+                filter = value ?? 0;
+                prepare();
+              }),
               children: const {
                 0: Padding(
                   padding: EdgeInsets.symmetric(vertical: 6),
@@ -181,32 +220,96 @@ class _HomeworkPageState extends State<HomeworkPage> {
           ),
         ],
       ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        child: CupertinoSearchTextField(
+          key: const Key('homework-search'),
+          placeholder: '搜索作业或课程',
+          onChanged: (value) => setState(() {
+            search = value;
+            prepare();
+          }),
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _quickFilter(3, '已截止 $overdue', CupertinoColors.systemOrange),
+            _quickFilter(4, '待确认 $unknown', CupertinoColors.secondaryLabel),
+          ],
+        ),
+      ),
       if (visible.isEmpty)
         AppleSection(
-          children: const [
-            AppleEmptyState(title: '没有符合条件的作业', description: '切换筛选或稍后刷新。'),
+          children: [
+            AppleEmptyState(
+              title: search.trim().isEmpty ? '没有符合条件的作业' : '没有匹配的作业',
+              description: '切换筛选或修改关键词。',
+            ),
           ],
         )
       else
-        AppleSection(
-          header: Text('${visible.length} 项作业'),
-          children: [
-            for (final item in visible)
-              AppleListTile(
-                key: Key('homework-${item.id}'),
-                onTap: () => Navigator.of(context).push(
-                  CupertinoPageRoute<void>(
-                    builder: (context) =>
-                        HomeworkDetailPage(item: item, service: widget.service),
+        AppleContentTransition(
+          identity: (filter, search, data),
+          child: AppleSection(
+            header: Text('${visible.length} 项作业'),
+            children: [
+              for (final item in visible)
+                AppleListTile(
+                  key: Key('homework-${item.id}'),
+                  onTap: () => Navigator.of(context).push(
+                    CupertinoPageRoute<void>(
+                      builder: (context) => HomeworkDetailPage(
+                        item: item,
+                        service: widget.service,
+                      ),
+                    ),
+                  ),
+                  trailing: const CupertinoListTileChevron(),
+                  minimumHeight: 112,
+                  leading: Container(
+                    width: 4,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.systemIndigo.resolveFrom(context),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  title: Text(
+                    item.title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 6),
+                      Text(item.courseName),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          _statusBadge(context, item),
+                          Text(
+                            item.dueAt == null
+                                ? '截止时间未确认'
+                                : '截止 ${_format(item.dueAt!)}',
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                trailing: const CupertinoListTileChevron(),
-                minimumHeight: 68,
-                title: Text(item.title),
-                subtitle: Text(_subtitle(item)),
-                additionalInfo: _statusBadge(context, item),
-              ),
-          ],
+            ],
+          ),
         ),
       AppleSection(
         children: [
@@ -215,7 +318,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
             child: Text(
               widget.service.isDemo
                   ? '离线合成样例，不连接学校账号；状态与时间用于演示 SPOC 迁移后的列表。'
-                  : 'SPOC 真实只读数据；希冀来源暂未接入。',
+                  : '来源：SPOC · 希冀尚未接入 · 提交请前往原站点',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -228,22 +331,37 @@ class _HomeworkPageState extends State<HomeworkPage> {
     ];
   }
 
-  String _subtitle(HomeworkItem item) {
-    final parts = [item.courseName];
-    if (item.publishedAt != null) parts.add('发布 ${_format(item.publishedAt!)}');
-    if (item.dueAt != null) parts.add('截止 ${_format(item.dueAt!)}');
-    if (item.score != null) parts.add('${item.score} 分');
-    return parts.join(' · ');
-  }
+  Widget _quickFilter(int value, String label, CupertinoDynamicColor tint) =>
+      CupertinoButton(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        color: tint
+            .resolveFrom(context)
+            .withValues(alpha: filter == value ? 0.2 : 0.08),
+        minimumSize: const Size(44, 44),
+        onPressed: () => setState(() {
+          filter = filter == value ? 0 : value;
+          prepare();
+        }),
+        child: Text(
+          label,
+          style: TextStyle(fontSize: 14, color: tint.resolveFrom(context)),
+        ),
+      );
 
   Widget _statusBadge(BuildContext context, HomeworkItem item) {
     final (label, color) = switch (item.status) {
-      HomeworkStatus.submitted => ('已提交', const Color(0xFF189840)),
+      HomeworkStatus.submitted => (
+        '已提交',
+        CupertinoColors.systemGreen.resolveFrom(context),
+      ),
       HomeworkStatus.pending =>
         _isOverdue(item.dueAt)
-            ? ('已截止', const Color(0xFFC62828))
-            : ('待完成', const Color(0xFFB26A00)),
-      HomeworkStatus.unknown => ('待确认', const Color(0xFF6B7280)),
+            ? ('已截止', CupertinoColors.systemRed.resolveFrom(context))
+            : ('待完成', CupertinoColors.systemOrange.resolveFrom(context)),
+      HomeworkStatus.unknown => (
+        '待确认',
+        CupertinoColors.secondaryLabel.resolveFrom(context),
+      ),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -263,8 +381,22 @@ class _HomeworkPageState extends State<HomeworkPage> {
   }
 
   bool _isOverdue(String? due) {
-    final date = due == null ? null : DateTime.tryParse(due);
-    return date != null && date.isBefore(DateTime.now());
+    if (due == null) return false;
+    final date = DateTime.tryParse(due);
+    if (date == null) return false;
+    // Offset-free school timestamps are Beijing civil time, not device time.
+    final explicitZone = RegExp(r'(Z|[+-]\d{2}:?\d{2})$').hasMatch(due);
+    final instant = explicitZone
+        ? date.toUtc()
+        : DateTime.utc(
+            date.year,
+            date.month,
+            date.day,
+            date.hour,
+            date.minute,
+            date.second,
+          ).subtract(const Duration(hours: 8));
+    return instant.isBefore(DateTime.now().toUtc());
   }
 }
 

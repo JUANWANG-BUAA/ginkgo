@@ -4,7 +4,7 @@ import 'src/rust/api/mirror.dart';
 
 const weekdayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
-Color courseColor(BuildContext context, String? value) {
+Color courseColor(BuildContext context, String? value, [String name = '']) {
   if (value != null) {
     final hex = value.replaceFirst('#', '');
     if (hex.length == 6) {
@@ -12,7 +12,21 @@ Color courseColor(BuildContext context, String? value) {
       if (parsed != null) return Color(0xFF000000 | parsed);
     }
   }
-  return CupertinoTheme.of(context).primaryColor;
+  const palette = [
+    CupertinoColors.systemBlue,
+    CupertinoColors.systemTeal,
+    CupertinoColors.systemIndigo,
+    CupertinoColors.systemOrange,
+    CupertinoColors.systemPurple,
+    CupertinoColors.systemPink,
+    CupertinoColors.systemGreen,
+    CupertinoColors.systemRed,
+  ];
+  var hash = 5381;
+  for (final scalar in name.runes) {
+    hash = ((hash * 33) + scalar) & 0x7fffffff;
+  }
+  return palette[hash % palette.length].resolveFrom(context);
 }
 
 String courseDetail(ScheduleCourse course) {

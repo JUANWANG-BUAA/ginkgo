@@ -124,9 +124,7 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             AppleSection(
               header: const Text('账号'),
-              footer: const Text(
-                '密码只保存在 Android Keystore 或系统钥匙串；退出登录会删除已保存凭据。',
-              ),
+              footer: const Text('已记住的密码保存在系统安全存储中，退出登录会删除。'),
               children: [
                 AppleListTile(
                   leading: const Icon(
@@ -134,8 +132,16 @@ class _SettingsPageState extends State<SettingsPage> {
                     color: AppleDesign.accent,
                     size: 30,
                   ),
-                  title: Text(widget.accountName ?? '当前账号'),
-                  subtitle: Text(widget.accountId ?? '未获取学号'),
+                  title: Text(
+                    widget.service.isDemo
+                        ? '离线演示'
+                        : widget.accountName ?? '当前账号',
+                  ),
+                  subtitle: Text(
+                    widget.service.isDemo
+                        ? '演示数据不会连接学校账号'
+                        : widget.accountId ?? '学校统一身份认证',
+                  ),
                 ),
                 AppleListTile(
                   title: Text(
@@ -167,7 +173,7 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 AppleListTile(
                   title: const Text('清除查询快照'),
-                  subtitle: const Text('课表、成绩、今天、空教室的 5 分钟内存缓存'),
+                  subtitle: const Text('清除已读取的学校数据，不影响个人待办'),
                   onTap: busy ? null : _clearCache,
                 ),
               ],
@@ -187,20 +193,15 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             AppleSection(
               header: const Text('关于'),
-              footer: const Text(
-                'Ginkgo 镜像仍在开发中；Apple 端 SwiftUI 应用继续作为产品与视觉参照。',
-              ),
+              footer: const Text('Ginkgo 银杏 · 校园学习与生活'),
               children: const [
                 AppleListTile(
                   title: Text('版本'),
                   additionalInfo: Text('0.1.0 镜像'),
                 ),
-                AppleListTile(
-                  title: Text('核心'),
-                  additionalInfo: Text('Rust · Flutter · FRB 2.12'),
-                ),
               ],
             ),
+            const SizedBox(height: 96),
           ],
         ),
       ],

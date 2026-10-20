@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show SelectableText;
+import 'package:url_launcher/url_launcher.dart';
 
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
@@ -112,10 +114,13 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
             AppleSection(
               children: [
                 _field('提交状态', detail.status),
-                _field('发布时间', detail.publishedAt ?? '未确认'),
-                _field('截止时间', detail.dueAt ?? '未确认'),
+                _field(
+                  '发布时间',
+                  detail.publishedAt ?? widget.item.publishedAt ?? '未确认',
+                ),
+                _field('截止时间', detail.dueAt ?? widget.item.dueAt ?? '未确认'),
                 _field('提交时间', detail.submittedAt ?? '未确认'),
-                _field('分值', detail.score ?? '未确认'),
+                _field('作业分值', detail.score ?? widget.item.score ?? '未确认'),
               ],
             ),
             AppleSection(
@@ -125,7 +130,34 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
               ],
             ),
           ],
-          const SizedBox(height: 32),
+          if (widget.item.status == HomeworkStatus.unknown &&
+              widget.item.statusDetail != null)
+            AppleSection(children: [_field('上游状态', widget.item.statusDetail!)]),
+          AppleSection(
+            footer: const Text('提交和附件请在 SPOC 官网处理；打开后需自行定位本项作业。'),
+            children: [
+              AppleListTile(
+                title: const Text('在 SPOC 官网继续处理'),
+                trailing: const Icon(CupertinoIcons.arrow_up_right_square),
+                onTap: () async {
+                  try {
+                    final opened = await launchUrl(
+                      Uri.parse('https://spoc.buaa.edu.cn/spocnew/'),
+                      mode: LaunchMode.externalApplication,
+                    );
+                    if (!opened && mounted) {
+                      setState(() => error = '无法打开浏览器，请稍后重试。');
+                    }
+                  } catch (_) {
+                    if (mounted) {
+                      setState(() => error = '无法打开浏览器，请稍后重试。');
+                    }
+                  }
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 96),
         ],
       ),
     ),
@@ -145,7 +177,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
             ),
           ),
           const SizedBox(height: 6),
-          Text(value),
+          SelectableText(value),
         ],
       ),
     ),

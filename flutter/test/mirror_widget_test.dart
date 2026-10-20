@@ -6,6 +6,7 @@ import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show HomeworkDetailResponse;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/main.dart';
+import 'package:ginkgo_mirror/schedule_grid.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show GradeTermsResponse, RouteChoice, SessionResponse, SessionState;
@@ -349,8 +350,20 @@ class ControlledService implements MirrorService {
 }
 
 Future<void> openMore(WidgetTester tester, String label) async {
-  await tester.tap(find.text('更多'));
+  await tester.tap(find.text(label == '空教室' ? '预约' : '工作台').first);
   await tester.pumpAndSettle();
+  if (label != '空教室') {
+    await tester.scrollUntilVisible(
+      find.text(label),
+      250,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('today-scroll')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+  }
   await tester.tap(find.text(label));
   await tester.pumpAndSettle();
 }
@@ -374,9 +387,7 @@ Future<void> openCheckin(WidgetTester tester, ControlledService service) async {
   addTearDown(tester.view.resetDevicePixelRatio);
   await tester.pumpWidget(GinkgoApp(service: service));
   await tester.pumpAndSettle();
-  await tester.tap(find.text('更多'));
-  await tester.pumpAndSettle();
-  await tester.tap(find.text('课程签到'));
+  await tester.tap(find.text('签到'));
   // The page starts loading immediately; a repeating spinner would make
   // pumpAndSettle time out, so drive the route transition explicitly.
   await tester.pump();
@@ -427,18 +438,91 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
-  testWidgets('wide layout has a sidebar and rule examples', (tester) async {
+  testWidgets('wide layout groups services and opens schedule lazily', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1200, 1000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(GinkgoApp(service: ControlledService()));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('规则示例'));
+    await tester.tap(find.text('课表'));
     await tester.pumpAndSettle();
-    expect(find.text('2026-10-19 · Asia/Shanghai'), findsOneWidget);
+    expect(find.byKey(const Key('schedule-search')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+  testWidgets(
+    'workspace exposes settings before scrolling and returns to its tab',
+    (tester) async {
+      tester.view.physicalSize = const Size(430, 932);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(GinkgoApp(service: ControlledService()));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(CupertinoIcons.gear_alt), findsOneWidget);
+      final entry = find.byKey(const Key('workspace-settings'));
+      expect(tester.getRect(entry).top, lessThan(300));
+      await tester.tap(entry);
+      await tester.pumpAndSettle();
+      expect(find.text('网络路线'), findsOneWidget);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('签到').last);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byKey(const Key('checkin-scroll')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'overlapping timetable courses share the day without covering each other',
+    (tester) async {
+      const first = ScheduleCourse(
+        id: 'overlap-a',
+        name: '示例课程甲',
+        day: 1,
+        startSection: 1,
+        endSection: 3,
+        startTime: '08:00',
+        endTime: '10:45',
+      );
+      const second = ScheduleCourse(
+        id: 'overlap-b',
+        name: '示例课程乙',
+        day: 1,
+        startSection: 2,
+        endSection: 4,
+        startTime: '08:55',
+        endTime: '11:40',
+      );
+      await tester.pumpWidget(
+        CupertinoApp(
+          home: CupertinoPageScaffold(
+            child: SingleChildScrollView(
+              child: ScheduleGrid(
+                courses: const [first, second],
+                onCourseTap: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+      final a = tester.getRect(
+        find.byKey(const Key('schedule-grid-course-overlap-a')),
+      );
+      final b = tester.getRect(
+        find.byKey(const Key('schedule-grid-course-overlap-b')),
+      );
+      expect(a.right, lessThanOrEqualTo(b.left));
+      expect(a.width, greaterThan(30));
+      expect(find.text('08:00'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('floating campus menu remains accessible and applies selection', (
     tester,
   ) async {
@@ -490,8 +574,16 @@ void main() {
     tester.platformDispatcher.textScaleFactorTestValue = 1.8;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     await tester.pumpAndSettle();
-    final context = tester.element(find.text('更多').first);
+    final context = tester.element(find.text('工作台').first);
     expect(CupertinoTheme.brightnessOf(context), Brightness.dark);
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    for (final title in ['课表', '作业', '预约']) {
+      await tester.tap(find.text(title).last);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: title);
+    }
     expect(tester.takeException(), isNull);
   });
 
@@ -506,6 +598,8 @@ void main() {
       await tester.pumpWidget(GinkgoApp(service: service));
       await tester.pumpAndSettle();
       await tester.tap(find.text('课表'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('每日清单'));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('schedule-course-u-0-1-1')), findsOneWidget);
       await tester.tap(find.byKey(const Key('schedule-course-u-0-1-1')));
@@ -538,6 +632,8 @@ void main() {
       await tester.pumpWidget(GinkgoApp(service: ControlledService()));
       await tester.pumpAndSettle();
       await tester.tap(find.text('课表'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('每日清单'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byKey(const Key('schedule-search')), '张三');
       await tester.pumpAndSettle();
@@ -614,6 +710,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('作业二'), findsOneWidget);
     expect(find.text('作业一'), findsNothing);
+    await tester.enterText(find.byKey(const Key('homework-search')), '不存在');
+    await tester.pumpAndSettle();
+    expect(find.text('没有匹配的作业'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -625,7 +724,9 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(GinkgoApp(service: service));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('图书馆'));
+    await tester.tap(find.text('预约'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('图书馆座位'));
     await tester.pumpAndSettle();
 
     expect(find.text('当前预约'), findsOneWidget);
@@ -647,7 +748,9 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(GinkgoApp(service: service));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('图书馆'));
+    await tester.tap(find.text('预约'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('图书馆座位'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('library-venue-v1')));
@@ -666,6 +769,12 @@ void main() {
     expect(find.text('A-01'), findsOneWidget);
     expect(find.text('空闲'), findsOneWidget);
     expect(find.text('已占用'), findsOneWidget);
+    await tester.tap(find.byType(CupertinoSwitch));
+    await tester.pumpAndSettle();
+    expect(find.text('A-02'), findsNothing);
+    await tester.enterText(find.byKey(const Key('library-seat-search')), '不存在');
+    await tester.pumpAndSettle();
+    expect(find.text('没有符合条件的座位'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -687,7 +796,9 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(GinkgoApp(service: service));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('图书馆'));
+    await tester.tap(find.text('预约'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('图书馆座位'));
     await tester.pumpAndSettle();
 
     expect(find.text('当前没有进行中的预约'), findsOneWidget);

@@ -7,7 +7,7 @@ import 'src/rust/api/mirror.dart';
 
 /// Seven-day timetable grid. Course blocks span their section range and open
 /// a course detail page on tap.
-class ScheduleGrid extends StatelessWidget {
+class ScheduleGrid extends StatefulWidget {
   const ScheduleGrid({
     super.key,
     required this.courses,
@@ -18,16 +18,106 @@ class ScheduleGrid extends StatelessWidget {
   final String? weekStart;
   final ValueChanged<ScheduleCourse> onCourseTap;
 
-  static const double axisWidth = 30;
-  static const double headerHeight = 48;
+  @override
+  State<ScheduleGrid> createState() => _ScheduleGridState();
+}
+
+class _ScheduleGridState extends State<ScheduleGrid> {
+  final horizontalScroll = ScrollController();
+  @override
+  void dispose() {
+    horizontalScroll.dispose();
+    super.dispose();
+  }
+
+  List<ScheduleCourse> get courses => widget.courses;
+  String? get weekStart => widget.weekStart;
+  void onCourseTap(ScheduleCourse course) => widget.onCourseTap(course);
+  Map<String, ({int lane, int count})> placements = {};
+  Map<int, String> times = {};
+  @override
+  void initState() {
+    super.initState();
+    prepare();
+  }
+
+  @override
+  void didUpdateWidget(covariant ScheduleGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.courses, widget.courses)) prepare();
+  }
+
+  void prepare() {
+    placements = {};
+    times = {};
+    final conflicts = <int>{};
+    for (final course in courses) {
+      final time = course.startTime;
+      if (time == null) continue;
+      if (times.containsKey(course.startSection) &&
+          times[course.startSection] != time) {
+        conflicts.add(course.startSection);
+      }
+      times[course.startSection] = time;
+    }
+    // Different schemes may share section numbers with different clock times.
+    // Keep the section axis neutral in that case; each block shows its own time.
+    for (final section in conflicts) {
+      times.remove(section);
+    }
+    // Same interval grouping as macOS TimetableLayout: conflicts use lanes.
+    for (var day = 1; day <= 7; day++) {
+      final ordered = courses.where((c) => c.day == day).toList()
+        ..sort((a, b) {
+          final n = a.startSection.compareTo(b.startSection);
+          return n == 0 ? a.id.compareTo(b.id) : n;
+        });
+      var group = <ScheduleCourse>[];
+      var end = 0;
+      void commit() {
+        final laneEnds = <int>[];
+        final lanes = <String, int>{};
+        for (final course in group) {
+          var lane = laneEnds.indexWhere((end) => end < course.startSection);
+          if (lane < 0) {
+            lane = laneEnds.length;
+            laneEnds.add(course.endSection);
+          } else {
+            laneEnds[lane] = course.endSection;
+          }
+          lanes[course.id] = lane;
+        }
+        for (final course in group) {
+          placements[course.id] = (
+            lane: lanes[course.id]!,
+            count: laneEnds.length,
+          );
+        }
+      }
+
+      for (final course in ordered) {
+        if (group.isNotEmpty && course.startSection > end) {
+          commit();
+          group = [];
+          end = 0;
+        }
+        group.add(course);
+        end = math.max(end, course.endSection);
+      }
+      commit();
+    }
+  }
+
+  static const double axisWidth = 60;
+  static const double headerHeight = 58;
   static const int sectionCount = 14;
-  static const double cellHeight = 52;
+  static const double cellHeight = 58;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
       final columnWidth = math.max(
-        64.0,
+        106.0,
         (constraints.maxWidth - axisWidth) / 7,
       );
       final totalWidth = axisWidth + columnWidth * 7;
@@ -86,10 +176,11 @@ class ScheduleGrid extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      '$section',
+                      '${times[section] ?? '第$section节'}${times[section] == null ? '' : '\n第$section节'}',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 11,
-                        color: CupertinoColors.tertiaryLabel.resolveFrom(
+                        color: CupertinoColors.secondaryLabel.resolveFrom(
                           context,
                         ),
                       ),
@@ -99,9 +190,15 @@ class ScheduleGrid extends StatelessWidget {
               ),
             for (final course in courses)
               Positioned(
-                left: axisWidth + (course.day - 1) * columnWidth + 2,
+                left:
+                    axisWidth +
+                    (course.day - 1) * columnWidth +
+                    (placements[course.id]?.lane ?? 0) *
+                        columnWidth /
+                        (placements[course.id]?.count ?? 1) +
+                    3,
                 top: headerHeight + (course.startSection - 1) * cellHeight + 2,
-                width: columnWidth - 4,
+                width: columnWidth / (placements[course.id]?.count ?? 1) - 6,
                 height:
                     (course.endSection - course.startSection + 1) * cellHeight -
                     4,
@@ -115,10 +212,15 @@ class ScheduleGrid extends StatelessWidget {
       );
       return totalWidth <= constraints.maxWidth
           ? grid
-          : SingleChildScrollView(
-              key: const Key('schedule-grid-horizontal'),
-              scrollDirection: Axis.horizontal,
-              child: grid,
+          : CupertinoScrollbar(
+              controller: horizontalScroll,
+              thumbVisibility: true,
+              child: SingleChildScrollView(
+                key: const Key('schedule-grid-horizontal'),
+                controller: horizontalScroll,
+                scrollDirection: Axis.horizontal,
+                child: grid,
+              ),
             );
     },
   );
@@ -139,48 +241,65 @@ class _CourseBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = courseColor(context, course.color);
+    final color = courseColor(context, course.color, course.name);
     return Semantics(
       button: true,
       label:
           '${course.name}，${weekdayNames[course.day - 1]}，${courseDetail(course)}',
-      child: GestureDetector(
+      child: CupertinoButton(
         key: Key('schedule-grid-course-${course.id}'),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(5, 5, 4, 4),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.14),
-            borderRadius: BorderRadius.circular(8),
-            border: Border(left: BorderSide(color: color, width: 3)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Flexible(
-                child: Text(
-                  course.name,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 11,
-                    height: 1.15,
-                    fontWeight: FontWeight.w600,
-                    color: CupertinoColors.label.resolveFrom(context),
+        padding: EdgeInsets.zero,
+        minimumSize: Size.zero,
+        onPressed: onTap,
+        child: SizedBox.expand(
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(8, 8, 6, 6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(12),
+              border: Border(left: BorderSide(color: color, width: 3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Flexible(
+                  child: Text(
+                    course.name,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1.25,
+                      fontWeight: FontWeight.w600,
+                      color: CupertinoColors.label.resolveFrom(context),
+                    ),
                   ),
                 ),
-              ),
-              if (course.place != null)
-                Text(
-                  course.place!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 9,
-                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                if (course.startTime != null)
+                  Text(
+                    course.startTime!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                    ),
                   ),
-                ),
-            ],
+                if (course.place != null)
+                  Text(
+                    course.place!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: CupertinoColors.secondaryLabel.resolveFrom(
+                        context,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -196,15 +315,15 @@ class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final line = Paint()
-      ..color = lineColor.withValues(alpha: 0.3)
+      ..color = lineColor.withValues(alpha: 0.45)
       ..strokeWidth = 0.5;
-    final header = ScheduleGrid.headerHeight;
-    for (var row = 0; row <= ScheduleGrid.sectionCount; row++) {
-      final y = header + row * ScheduleGrid.cellHeight;
+    final header = _ScheduleGridState.headerHeight;
+    for (var row = 0; row <= _ScheduleGridState.sectionCount; row++) {
+      final y = header + row * _ScheduleGridState.cellHeight;
       canvas.drawLine(Offset(0, y), Offset(size.width, y), line);
     }
     for (var column = 0; column <= 7; column++) {
-      final x = ScheduleGrid.axisWidth + column * columnWidth;
+      final x = _ScheduleGridState.axisWidth + column * columnWidth;
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), line);
     }
   }

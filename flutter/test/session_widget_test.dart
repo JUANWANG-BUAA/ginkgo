@@ -319,7 +319,7 @@ void main() {
         ),
       ),
     );
-    await tester.tap(find.text('更多'));
+    await tester.tap(find.text('预约'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('空教室'));
     await tester.pumpAndSettle();

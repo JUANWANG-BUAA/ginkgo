@@ -82,7 +82,12 @@ Future<T?> choose<T>(
   final screen = MediaQuery.sizeOf(context);
   final safe = MediaQuery.paddingOf(context);
   final width = (screen.width - 32).clamp(200.0, 280.0);
-  final height = (values.length * 48.0 + 12).clamp(60.0, screen.height * 0.55);
+  final rowHeight = (MediaQuery.textScalerOf(context).scale(17) * 1.5 + 20)
+      .clamp(48.0, 100.0);
+  final height = (values.length * rowHeight + 12).clamp(
+    60.0,
+    screen.height * 0.55,
+  );
   final left = (rect.right - width).clamp(16.0, screen.width - width - 16);
   // The phone shell keeps a CupertinoTabBar below the page; menus must stay
   // above it or their lower options become untappable.
@@ -229,10 +234,7 @@ class AppleSection extends StatelessWidget {
           ),
           child: ClipRSuperellipse(
             borderRadius: BorderRadius.circular(AppleDesign.groupRadius),
-            child: AnimatedSize(
-              duration: AppleDesign.duration(context, 220),
-              curve: Curves.easeInOutCubic,
-              alignment: Alignment.topCenter,
+            child: _AppleGroupResize(
               child: ColoredBox(
                 color: CupertinoColors.secondarySystemGroupedBackground
                     .resolveFrom(context),
@@ -338,7 +340,7 @@ class _AppleGlassButtonState extends State<AppleGlassButton> {
         onPointerUp: (_) => setState(() => pressed = false),
         onPointerCancel: (_) => setState(() => pressed = false),
         child: AnimatedScale(
-          scale: pressed ? 0.94 : 1,
+          scale: pressed && !MediaQuery.disableAnimationsOf(context) ? 0.94 : 1,
           duration: AppleDesign.duration(context, pressed ? 90 : 260),
           curve: pressed ? Curves.easeOut : Curves.easeOutBack,
           child: DecoratedBox(
@@ -404,7 +406,7 @@ class ApplePickerTile<T> extends StatelessWidget {
   Widget build(BuildContext context) => Builder(
     builder: (anchorContext) => AppleListTile(
       title: Text(title),
-      additionalInfo: Text(
+      subtitle: Text(
         label(value),
         style: TextStyle(
           color: enabled
@@ -435,4 +437,123 @@ class ApplePickerTile<T> extends StatelessWidget {
             },
     ),
   );
+}
+
+/// macOS reference uses 180–200ms easeInOut for content/state changes.
+/// Fade only the incoming snapshot, keeping hit targets and list position stable.
+class AppleContentTransition extends StatelessWidget {
+  const AppleContentTransition({
+    super.key,
+    required this.identity,
+    required this.child,
+  });
+  final Object identity;
+  final Widget child;
+  @override
+  Widget build(BuildContext context) => TweenAnimationBuilder<double>(
+    key: ValueKey(identity),
+    tween: Tween(begin: 0, end: 1),
+    duration: AppleDesign.duration(context, 180),
+    curve: Curves.easeInOut,
+    builder: (context, value, child) => Opacity(opacity: value, child: child),
+    child: child,
+  );
+}
+
+/// A persistent desktop destination with pointer, focus and selection feedback.
+class AppleNavigationItem extends StatefulWidget {
+  const AppleNavigationItem({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.selected,
+    required this.onPressed,
+  });
+  final String title;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onPressed;
+  @override
+  State<AppleNavigationItem> createState() => _AppleNavigationItemState();
+}
+
+class _AppleNavigationItemState extends State<AppleNavigationItem> {
+  bool hovered = false;
+  bool focused = false;
+  @override
+  Widget build(BuildContext context) {
+    final accent = CupertinoTheme.of(context).primaryColor;
+    return Semantics(
+      selected: widget.selected,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => hovered = true),
+        onExit: (_) => setState(() => hovered = false),
+        child: Focus(
+          canRequestFocus: false,
+          onFocusChange: (value) => setState(() => focused = value),
+          child: AnimatedContainer(
+            duration: AppleDesign.duration(context, 140),
+            curve: Curves.easeOut,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: widget.selected
+                  ? accent.withValues(alpha: 0.12)
+                  : hovered || focused
+                  ? CupertinoColors.tertiarySystemFill.resolveFrom(context)
+                  : CupertinoColors.tertiarySystemFill
+                        .resolveFrom(context)
+                        .withValues(alpha: 0),
+              border: Border.all(
+                color: focused ? accent : accent.withValues(alpha: 0),
+              ),
+            ),
+            child: CupertinoButton(
+              padding: const EdgeInsets.all(10),
+              onPressed: widget.onPressed,
+              child: Row(
+                children: [
+                  Icon(
+                    widget.icon,
+                    size: 18,
+                    color: widget.selected
+                        ? accent
+                        : CupertinoColors.secondaryLabel.resolveFrom(context),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      widget.title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: widget.selected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        color: CupertinoColors.label.resolveFrom(context),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AppleGroupResize extends StatelessWidget {
+  const _AppleGroupResize({required this.child});
+  final Widget child;
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.disableAnimationsOf(context)) return child;
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeInOutCubic,
+      alignment: Alignment.topCenter,
+      child: child,
+    );
+  }
 }

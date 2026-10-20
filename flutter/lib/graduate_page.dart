@@ -61,7 +61,7 @@ class _GraduatePageState extends State<GraduatePage> {
       slivers: [
         CupertinoSliverNavigationBar(
           largeTitle: const Text('研究生教务'),
-          previousPageTitle: '更多',
+          previousPageTitle: '工作台',
           border: null,
           trailing: AppleGlassButton(
             label: '刷新研究生教务',

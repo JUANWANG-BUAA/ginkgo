@@ -159,3 +159,25 @@ PNG 写入 `flutter/build/visual/`；保存初始、结果、详情、零匹配�
 
 - macOS host经Rust真实Session/reqwest只读GET：新闻网解析5条，CGYY签名公开场馆解析7个site，通过；只记录条数，未保存正文或网页。此结果仅证明当前网络下公开接口可读，不代表Android真实账号或CGYY登录/时段/订单已验收。临时probe已删除。
 - 当前正常Android APK已安装并确认登录页，ginkgo_secure_credentials.xml不存在；本轮没有输入真实凭据。真实账号验收等待用户本机登录。
+
+## 2026-10-20：任务入口与课表重设计复核
+
+本轮采用 [模块聚类与设计](MIRROR-EXPERIENCE-DESIGN.md)，Apple源码用于行为/协议对照，不沿用旧五Tab的信息架构。
+
+- 手机：工作台/签到/课表/作业/预约；工作台四项任务入口带蓝/橙/靛/紫识别色，次级服务按任务分组。账户与设置首屏文字行+右上齿轮，演示同样显示；桌面设置固定侧栏底部。
+- 课表：学期次级、当前周和日期为主范围；视图分段与搜索独立。课程名稳定多色，开始20pt/结束13pt/节次与地点教师分级；无时间不猜。宽屏七列与时间轴，冲突分栏，窄屏周视图有左右滑动提示；1.8倍字号回退清单。
+- 作业：标题/课程/截止/提交状态分层，状态动态语义色，不再用技术写操作列表占据范围区域。
+- 实际模拟器已查看合成课表浅色、深色、1.8倍字截图（/tmp/ginkgo-rework-*.png），工作台与设置深色截图；均无真实账号数据，不入库。检查发现启动过渡零宽约束和设置长路线溢出，已修正；27项widget包含首屏设置进入/返回和大字号回归。
+- 课表独立设备smoke 1项通过；未重跑已知不收敛的mirror_test.dart。真实链路响应检查另记实施文档，没有保存真实页面截图。
+- 这是实现迭代复核，仍非用户最终视觉验收；没有宣称像素一致、原生macOS控件或Windows通过。
+
+
+### 周视图与组件交互收尾
+
+参考 Apple [Motion](https://developer.apple.com/design/human-interface-guidelines/motion)、[Segmented controls](https://developer.apple.com/design/human-interface-guidelines/segmented-controls) 和 [Accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility)，用Dart/Cupertino还原导航与控件行为。课表默认周网格（用户确认），不隐藏入口；按压与滚动反馈、180ms内容淡入、220ms分组尺寸、桌面140ms悬停/焦点。减少动态效果直接跳过分组动画，规避Flutter零时长AnimatedSize布局期自重排。保持现有导航玻璃按钮，不新增装饰材质。
+
+作业和座位的搜索/空态并入现有测试；1.8倍深色+减少动态效果覆盖课表/作业/预约。新增信息及未迁移项详见 [逐模块对照](MIRROR-MACOS-PARITY.md)。独立schedule设备smoke更新后1项通过（约2分钟），未运行mirror_test.dart。真实会话的课程/作业详情可达，仅检查状态，无真实截图。
+
+最终合成截图 `/tmp/ginkgo-final-{light,dark,large}.png` 自查：普通字号周网格多色与时间轴可读；大字号四段文字过密，改为两行“显示方式”选择器，课程清单回退。深色时间轴由三级文字提升二级、分隔线加强。截图仅合成，未入库。
+
+已用最终预览重新检查大字号选择器，并查看作业合成首屏（搜索、筛选、截止/提交状态、详情入口）；无真实数据。普通APK已重新构建，通过独立安装恢复正式登录入口，避免保留integration_test入口。

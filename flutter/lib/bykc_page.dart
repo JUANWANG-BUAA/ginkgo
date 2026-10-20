@@ -107,7 +107,7 @@ class _BykcPageState extends State<BykcPage> {
       slivers: [
         CupertinoSliverNavigationBar(
           largeTitle: const Text('博雅'),
-          previousPageTitle: '更多',
+          previousPageTitle: '工作台',
           border: null,
           trailing: AppleGlassButton(
             label: '刷新博雅',
