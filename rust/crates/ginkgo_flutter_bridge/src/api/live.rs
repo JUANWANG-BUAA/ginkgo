@@ -28,6 +28,10 @@ use std::sync::OnceLock;
 
 type LiveService = SessionService<ReqwestTransport, PlatformVault>;
 
+// Concurrent reads are allowed. Identity/cache mutations wait for all existing
+// reads, preventing an old request from repopulating a cleared/new account cache.
+static SESSION_ACCESS: tokio::sync::RwLock<()> = tokio::sync::RwLock::const_new(());
+
 static SERVICE: OnceLock<Result<LiveService, AppError>> = OnceLock::new();
 
 fn service() -> Result<&'static LiveService, AppError> {
@@ -149,6 +153,7 @@ pub async fn login(
     captcha: Option<String>,
     remember: bool,
 ) -> SessionResponse {
+    let _access = SESSION_ACCESS.write().await;
     let service = match service() {
         Ok(service) => service,
         Err(error) => return failure_response(error),
@@ -172,6 +177,7 @@ pub async fn login(
 }
 
 pub async fn restore_session() -> SessionResponse {
+    let _access = SESSION_ACCESS.write().await;
     if SERVICE.get().is_none() {
         let vault = match platform_vault() {
             Ok(vault) => vault,
@@ -203,6 +209,7 @@ pub async fn restore_session() -> SessionResponse {
 }
 
 pub async fn sign_out() -> SessionResponse {
+    let _access = SESSION_ACCESS.write().await;
     let Some(Ok(service)) = SERVICE.get() else {
         return signed_out();
     };
@@ -211,6 +218,7 @@ pub async fn sign_out() -> SessionResponse {
 }
 
 pub async fn set_route(route: RouteChoice) -> SessionResponse {
+    let _access = SESSION_ACCESS.write().await;
     let service = match service() {
         Ok(service) => service,
         Err(error) => return failure_response(error),
@@ -225,6 +233,7 @@ pub async fn set_route(route: RouteChoice) -> SessionResponse {
 }
 
 pub async fn clear_cache() -> bool {
+    let _access = SESSION_ACCESS.write().await;
     match service() {
         Ok(service) => {
             service.clear_snapshots();
@@ -235,6 +244,7 @@ pub async fn clear_cache() -> bool {
 }
 
 pub async fn session_status() -> SessionResponse {
+    let _access = SESSION_ACCESS.read().await;
     match SERVICE.get() {
         Some(Ok(service)) => status_response(service.status()),
         Some(Err(error)) => failure_response(error.clone()),
@@ -291,6 +301,7 @@ fn classroom_response(outcome: ClassroomOutcome) -> ClassroomResponse {
 }
 
 pub async fn load_classrooms(scope: LiveScope, query: ClassroomQuery) -> ClassroomResponse {
+    let _access = SESSION_ACCESS.read().await;
     let Ok(service) = service() else {
         return ClassroomResponse {
             buildings: vec![],
@@ -337,6 +348,7 @@ pub async fn load_schedule(
     week: Option<i32>,
     force_refresh: bool,
 ) -> ScheduleResponse {
+    let _access = SESSION_ACCESS.read().await;
     let Ok(service) = service() else {
         return schedule_failure(FailureCode::CredentialStore, None);
     };
@@ -440,6 +452,7 @@ fn schedule_response(outcome: ScheduleOutcome) -> ScheduleResponse {
 }
 
 pub async fn load_today(force_refresh: bool) -> TodayResponse {
+    let _access = SESSION_ACCESS.read().await;
     let Ok(service) = service() else {
         return TodayResponse {
             date: String::new(),
@@ -489,6 +502,7 @@ fn today_response(outcome: TodayOutcome) -> TodayResponse {
 }
 
 pub async fn load_checkin_today(force_refresh: bool) -> CheckInResponse {
+    let _access = SESSION_ACCESS.read().await;
     let Ok(service) = service() else {
         return checkin_failure(FailureCode::CredentialStore, None);
     };
@@ -500,6 +514,7 @@ pub async fn load_checkin_today(force_refresh: bool) -> CheckInResponse {
 
 /// Historical day in Asia/Shanghai, yyyy-MM-dd; no sign-in submission.
 pub async fn load_checkin_on_date(date: String, force_refresh: bool) -> CheckInResponse {
+    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
         Ok(service) => {
             service
@@ -576,6 +591,7 @@ pub struct GradeTermsResponse {
 }
 
 pub async fn load_grade_terms() -> GradeTermsResponse {
+    let _access = SESSION_ACCESS.read().await;
     let service = match service() {
         Ok(service) => service,
         Err(error) => {
@@ -612,6 +628,7 @@ pub async fn load_grade_terms() -> GradeTermsResponse {
 }
 
 pub async fn load_grades(term_code: Option<String>, force_refresh: bool) -> GradeResponse {
+    let _access = SESSION_ACCESS.read().await;
     let Ok(service) = service() else {
         return grade_failure(FailureCode::CredentialStore, None);
     };
@@ -733,6 +750,7 @@ fn library_booking(value: ginkgo_core::features::library::LibraryBooking) -> Lib
 }
 
 pub async fn load_library_venues(force_refresh: bool) -> LibraryVenuesResponse {
+    let _access = SESSION_ACCESS.read().await;
     let Ok(service) = service() else {
         return LibraryVenuesResponse {
             venues: vec![],
@@ -771,6 +789,7 @@ pub async fn load_library_venues(force_refresh: bool) -> LibraryVenuesResponse {
 }
 
 pub async fn load_library_areas(library_id: String) -> LibraryAreasResponse {
+    let _access = SESSION_ACCESS.read().await;
     let Ok(service) = service() else {
         return LibraryAreasResponse {
             areas: vec![],
@@ -793,6 +812,7 @@ pub async fn load_library_areas(library_id: String) -> LibraryAreasResponse {
 }
 
 pub async fn load_library_slots(area_id: String) -> LibrarySlotsResponse {
+    let _access = SESSION_ACCESS.read().await;
     let Ok(service) = service() else {
         return LibrarySlotsResponse {
             slots: vec![],
@@ -821,6 +841,7 @@ pub async fn load_library_seats(
     start: String,
     end: String,
 ) -> LibrarySeatsResponse {
+    let _access = SESSION_ACCESS.read().await;
     let Ok(service) = service() else {
         return LibrarySeatsResponse {
             seats: vec![],
@@ -846,6 +867,7 @@ pub async fn load_library_seats(
 }
 
 pub async fn load_library_bookings(force_refresh: bool) -> LibraryBookingsResponse {
+    let _access = SESSION_ACCESS.read().await;
     let Ok(service) = service() else {
         return LibraryBookingsResponse {
             bookings: vec![],
@@ -897,6 +919,7 @@ pub struct LibraryHistoryResponse {
 }
 
 pub async fn load_library_history(page: i32, force_refresh: bool) -> LibraryHistoryResponse {
+    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
         Ok(service) => service.load_library_history(page, force_refresh).await,
         Err(error) => Err(error),
@@ -983,6 +1006,7 @@ pub fn load_demo_library_history(page: i32) -> LibraryHistoryResponse {
 
 /// Real SPOC list, API.md §7.1. Demo remains an explicit separate command.
 pub async fn load_homework(force_refresh: bool) -> super::mirror::HomeworkResponse {
+    let _access = SESSION_ACCESS.read().await;
     use super::mirror::{HomeworkItem, HomeworkResponse, HomeworkStatus};
     let result = match service() {
         Ok(service) => service.load_homework(force_refresh).await,
@@ -1046,6 +1070,7 @@ pub async fn load_homework_detail(
     assignment_id: String,
     force_refresh: bool,
 ) -> HomeworkDetailResponse {
+    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
         Ok(service) => {
             service
@@ -1089,6 +1114,7 @@ pub struct ReadOnlyResponse {
     pub failure: Option<FailureCode>,
 }
 pub async fn load_bykc(force_refresh: bool) -> ReadOnlyResponse {
+    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
         Ok(service) => service.load_bykc(force_refresh).await,
         Err(error) => Err(error),
@@ -1135,6 +1161,7 @@ pub fn load_demo_bykc() -> ReadOnlyResponse {
 }
 
 pub async fn load_graduate(force_refresh: bool) -> ReadOnlyResponse {
+    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
         Ok(service) => service.load_graduate(force_refresh).await,
         Err(error) => Err(error),
@@ -1188,6 +1215,13 @@ pub fn edit_tasks(
     due: Option<String>,
     completed: Option<bool>,
 ) -> ReadOnlyResponse {
+    let Ok(_access) = SESSION_ACCESS.try_read() else {
+        return ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(FailureCode::ServiceUnavailable),
+        };
+    };
     let result = if demo {
         ginkgo_core::application::tasks_service::edit(
             std::path::Path::new(&root),
@@ -1225,6 +1259,7 @@ pub fn edit_tasks(
 }
 
 pub async fn load_notices(force_refresh: bool) -> ReadOnlyResponse {
+    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
         Ok(service) => service.load_notices(force_refresh).await,
         Err(error) => Err(error),
@@ -1275,6 +1310,7 @@ pub async fn load_cgyy(
     date: String,
     force_refresh: bool,
 ) -> ReadOnlyResponse {
+    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
         Ok(service) => {
             service
@@ -1328,6 +1364,7 @@ pub fn load_demo_cgyy(kind: String) -> ReadOnlyResponse {
 
 /// Public counts only. No school identity or library token is serialized.
 pub async fn load_library_stats(force_refresh: bool) -> ReadOnlyResponse {
+    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
         Ok(service) => service.load_library_stats(force_refresh).await,
         Err(error) => Err(error),
@@ -1373,5 +1410,30 @@ pub fn load_demo_library_stats() -> ReadOnlyResponse {
             stale: false,
             failure: Some(error.code.into()),
         },
+    }
+}
+
+#[cfg(test)]
+mod lifecycle_tests {
+    use super::*;
+    use std::{
+        future::Future,
+        pin::pin,
+        task::{Context, Poll, Waker},
+    };
+
+    #[test]
+    fn sign_out_waits_for_active_bridge_reads() {
+        let read = SESSION_ACCESS.try_read().expect("initial read");
+        let mut logout = pin!(sign_out());
+        let mut context = Context::from_waker(Waker::noop());
+        assert!(logout.as_mut().poll(&mut context).is_pending());
+        assert!(SESSION_ACCESS.try_read().is_err());
+        drop(read);
+        let Poll::Ready(response) = logout.as_mut().poll(&mut context) else {
+            panic!("logout ready")
+        };
+        assert!(matches!(response.state, SessionState::SignedOut));
+        assert!(SESSION_ACCESS.try_read().is_ok());
     }
 }

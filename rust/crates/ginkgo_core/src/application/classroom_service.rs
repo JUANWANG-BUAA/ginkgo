@@ -1,5 +1,5 @@
 //! Real read-only classroom use case with the mirror's five-minute snapshot.
-use super::session_service::{is_recoverable, SessionService};
+use super::session_service::SessionService;
 use crate::{
     adapters::classroom_http::query_classrooms,
     auth::CredentialVault,
@@ -56,8 +56,10 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
 
         let fetched = match query_classrooms(&self.session, input.campus, &input.date).await {
             Err(error) if error.code == crate::ErrorCode::SessionExpired => {
-                self.silent_login().await?;
-                query_classrooms(&self.session, input.campus, &input.date).await
+                match self.silent_login().await {
+                    Ok(()) => query_classrooms(&self.session, input.campus, &input.date).await,
+                    Err(error) => Err(error),
+                }
             }
             other => other,
         };
@@ -77,7 +79,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                     failure: None,
                 })
             }
-            Err(error) if is_recoverable(&error) => {
+            Err(error) => {
                 let cached = self.classrooms.lock().expect("classroom cache");
                 match cached.any(&key) {
                     Some(entry) => Ok(ClassroomOutcome {
@@ -90,7 +92,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                     None => Err(error),
                 }
             }
-            Err(error) => Err(error),
         }
     }
 }

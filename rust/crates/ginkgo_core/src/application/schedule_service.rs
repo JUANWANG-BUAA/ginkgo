@@ -3,10 +3,7 @@
 //! The mirror keeps the Apple recovery rule: a confirmed expired session gets
 //! exactly one silent re-login and one retry; refresh failures keep the last
 //! snapshot instead of clearing the page.
-use super::{
-    cache::now_shanghai,
-    session_service::{is_recoverable, SessionService},
-};
+use super::{cache::now_shanghai, session_service::SessionService};
 use crate::{
     adapters::{
         grades_http, graduate_schedule_http,
@@ -99,9 +96,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             .await
         {
             Err(error) if error.code == ErrorCode::SessionExpired => {
-                self.silent_login().await?;
-                self.fetch_schedule(input.term_id.as_deref(), input.week)
-                    .await
+                match self.silent_login().await {
+                    Ok(()) => {
+                        self.fetch_schedule(input.term_id.as_deref(), input.week)
+                            .await
+                    }
+                    Err(error) => Err(error),
+                }
             }
             other => other,
         };
@@ -121,7 +122,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                     failure: None,
                 })
             }
-            Err(error) if is_recoverable(&error) => {
+            Err(error) => {
                 let cached = self.schedules.lock().expect("schedule cache");
                 match cached.any(&key) {
                     Some(entry) => Ok(ScheduleOutcome {
@@ -134,7 +135,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                     None => Err(error),
                 }
             }
-            Err(error) => Err(error),
         }
     }
 
@@ -346,8 +346,10 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
 
         let fetched = match schedule_http::load_today(&self.session, &date).await {
             Err(error) if error.code == ErrorCode::SessionExpired => {
-                self.silent_login().await?;
-                schedule_http::load_today(&self.session, &date).await
+                match self.silent_login().await {
+                    Ok(()) => schedule_http::load_today(&self.session, &date).await,
+                    Err(error) => Err(error),
+                }
             }
             other => other,
         };
@@ -368,7 +370,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                     failure: None,
                 })
             }
-            Err(error) if is_recoverable(&error) => {
+            Err(error) => {
                 let cached = self.today.lock().expect("today cache");
                 match cached.any(&date) {
                     Some(entry) => Ok(TodayOutcome {
@@ -382,7 +384,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                     None => Err(error),
                 }
             }
-            Err(error) => Err(error),
         }
     }
 
@@ -414,8 +415,10 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
 
         let fetched = match self.fetch_grades(term_code).await {
             Err(error) if error.code == ErrorCode::SessionExpired => {
-                self.silent_login().await?;
-                self.fetch_grades(term_code).await
+                match self.silent_login().await {
+                    Ok(()) => self.fetch_grades(term_code).await,
+                    Err(error) => Err(error),
+                }
             }
             other => other,
         };
@@ -439,7 +442,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                     failure: None,
                 })
             }
-            Err(error) if is_recoverable(&error) => {
+            Err(error) => {
                 let cached = self.grades.lock().expect("grade cache");
                 match cached.any(&cache_key) {
                     Some(entry) => Ok(GradeOutcome {
@@ -454,7 +457,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                     None => Err(error),
                 }
             }
-            Err(error) => Err(error),
         }
     }
 

@@ -671,6 +671,7 @@ dependencies = [
  "flutter_rust_bridge",
  "ginkgo_core",
  "serde_json",
+ "tokio",
 ]
 
 [[package]]

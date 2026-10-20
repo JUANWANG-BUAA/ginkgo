@@ -72,3 +72,32 @@ pub(crate) fn now_shanghai() -> String {
     let now: DateTime<Utc> = SystemTime::now().into();
     now.with_timezone(&chrono_tz::Asia::Shanghai).to_rfc3339()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn expiry_retains_fallback_and_capacity_evicts_oldest_not_lexical_key() {
+        let mut cache = SnapshotCache::<String, i32>::default();
+        cache.insert("z-oldest".into(), 7);
+        let old = cache.entries.get_mut("z-oldest").expect("entry");
+        old.fetched_at = Instant::now() - CACHE_TTL;
+        let timestamp = old.timestamp.clone();
+        assert!(cache.fresh(&"z-oldest".into()).is_none());
+        assert_eq!(
+            cache.any(&"z-oldest".into()).expect("fallback").timestamp,
+            timestamp
+        );
+        for i in 0..CAPACITY {
+            cache.insert(format!("a-{i}"), i as i32);
+        }
+        assert_eq!(cache.entries.len(), CAPACITY);
+        assert!(cache.any(&"z-oldest".into()).is_none());
+        cache.insert("a-0".into(), 99);
+        assert_eq!(cache.entries.len(), CAPACITY);
+        assert_eq!(cache.fresh(&"a-0".into()).expect("replacement").value, 99);
+        cache.clear();
+        assert!(cache.any(&"a-0".into()).is_none());
+    }
+}

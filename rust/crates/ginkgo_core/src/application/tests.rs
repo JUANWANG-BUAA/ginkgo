@@ -1633,3 +1633,61 @@ async fn library_public_stats_are_cookie_isolated_cached_and_preserved_on_failur
     assert_eq!(stats.len(), 2);
     assert!(stats.iter().all(|r| r.header_value("Cookie").is_none()));
 }
+
+#[tokio::test]
+async fn schedule_expired_session_without_saved_password_keeps_snapshot() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend(vec![
+        HttpResponse::new(200, "portal", r#"{"code":"0"}"#),
+        HttpResponse::new(200, "terms", schedule_body("terms-normal-v1.json")),
+        HttpResponse::new(200, "weeks", schedule_body("weeks-normal-v1.json")),
+        HttpResponse::new(200, "courses", schedule_body("courses-normal-v1.json")),
+        HttpResponse::new(200, "exams", schedule_body("exams-normal-v1.json")),
+        HttpResponse::new(200, LOGIN_URL, FORM_PAGE),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "fixture-password", None, false)
+        .await
+        .expect("login");
+    let first = service
+        .load_schedule(&ScheduleQueryInput {
+            term_id: None,
+            week: None,
+            force_refresh: false,
+        })
+        .await
+        .expect("snapshot");
+    let stale = service
+        .load_schedule(&ScheduleQueryInput {
+            term_id: None,
+            week: None,
+            force_refresh: true,
+        })
+        .await
+        .expect("retained snapshot");
+    assert!(stale.stale);
+    assert_eq!(
+        stale.failure.expect("failure").code,
+        ErrorCode::SessionExpired
+    );
+    assert_eq!(stale.fetched_at, first.fetched_at);
+    assert_eq!(stale.data.courses, first.data.courses);
+    assert_eq!(transport.request_count(), 11);
+}
+
+#[tokio::test]
+async fn sign_out_after_route_change_removes_saved_account() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(HttpResponse::new(200, "logout", ""));
+    let (service, _) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "fixture-password", None, true)
+        .await
+        .expect("login");
+    service.set_route(RoutePreference::Direct);
+    assert!(!service.status().signed_in());
+    assert_eq!(service.vault.names().len(), 1);
+    service.sign_out().await;
+    assert!(service.vault.names().is_empty());
+}

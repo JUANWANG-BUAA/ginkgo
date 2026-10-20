@@ -280,8 +280,16 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     pub async fn sign_out(&self) {
         let account = self.account.lock().expect("account lock").take();
         let _ = auth::logout(&self.session).await;
-        if let Some(account) = &account {
-            let _ = self.vault.delete(account);
+        // A route change or failed restore can already have cleared identity.
+        // Explicit logout must still remove saved accounts to prevent restoration.
+        let mut accounts = self.vault.accounts().unwrap_or_default();
+        if let Some(account) = account {
+            if !accounts.contains(&account) {
+                accounts.push(account);
+            }
+        }
+        for account in accounts {
+            let _ = self.vault.delete(&account);
         }
         self.clear_identity();
     }
@@ -384,14 +392,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         *self.library_token.lock().expect("library token") = None;
         self.clear_caches();
     }
-}
-
-/// The mirror only reads; retrying a read after a confirmed expired session is
-/// safe and bounded to one login plus one retry.
-pub(crate) fn is_recoverable(error: &AppError) -> bool {
-    error.code == ErrorCode::ServiceUnavailable
-        || error.code == ErrorCode::ChangedResponse
-        || error.code == ErrorCode::BusinessRejected
 }
 
 /// booking.lib answers 200 with its own login-expired message; that only means
