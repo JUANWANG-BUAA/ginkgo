@@ -225,3 +225,12 @@ Android `library_stats_test.dart` 独立合成FFI smoke 1项通过（42秒，包
 启动独立设备smoke 1项通过（1秒测试体）；第一次设备发现阶段模拟器断开，重启后执行一次，未重跑既有长流程。真实验收后正式signOut返回signedOut，重新连接设备后保险库XML条目数确认为0。
 
 公共统计路线修复后，Android使用NativeMirrorService/正式Rust adapter无账号真实GET成功解析2校区（仅输出状态/条数）。正常main入口debug APK已构建并重新安装；最终设备不保留测试入口。Windows、60天趋势、非空签到历史与真实多页预约仍未验收。
+
+
+## 全面核对与正确性修复（2026-10-20）
+
+详见[MIRROR-FULL-AUDIT](MIRROR-FULL-AUDIT.md)：逐模块记录UI/接口/缓存/刷新差距，不宣称100%对齐。修复长文本截断、今天/成绩错误时隐藏旧结果、成绩请求乱序、重复刷新、清缓存后旧页面保留、bridge读取与身份变更竞争、路线切换后退出残留保存账号、认证恢复失败绕过快照、CGYY北京时间与日期取消。
+
+门禁：139项核心lib、1项契约、1项bridge并发测试、Clippy/analyze、35项widget通过；随后单独新增清缓存页面生命周期回归1项通过（累计36项widget）。Android aarch64交叉检查通过。未重跑mirror_test.dart、未放宽断言、未再次输入真实凭据。持久化/自动刷新/提醒、BYKC已选统计、研究生视图等未迁移项保留，不冒充已修复。
+
+新增TTL/容量/清理测试单独通过（核心累计140）；Android独立refresh_audit合成smoke通过43秒，覆盖成绩刷新及设置清理后回工作台。没有把页面合成通过算作全模块真实验收。

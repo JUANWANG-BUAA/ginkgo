@@ -75,6 +75,7 @@
 | 53 | CGYY 路由与写入结果 | CGYY 跟随全局 WebVPN 路由；公开场馆可读但 SSO/业务会话失败 | CGYY 的 SSO Cookie 和全部业务请求固定直连，忽略全局 WebVPN 选择（与 UBAA 当前实现一致）；401 后仅 GET 可重新登录并重查，预约/取消写入不重发，未知结果进入待核实。当前轮未发送预约/取消请求 | [UBAA `LocalCgyyApi.kt`](https://github.com/BUAASubnet/UBAA/blob/main/shared/src/commonMain/kotlin/cn/edu/ubaa/api/local/LocalCgyyApi.kt)、[UBAA CGYY 文档](https://github.com/BUAASubnet/UBAA/blob/main/docs/features/cgyy.md)；本项目 `CgyyClient.swift` |
 | 54 | §5.5 Rust/Flutter公共统计 | 镜像未迁移 | 独立Cookie会话读取两校区人数/阅览室及资源余量，五分钟进程缓存，缺指标null，失败保留；不包含Apple端60天历史趋势 | `LibraryPublicStats.swift`、`LibraryPublicStatsParserTests.swift`、Rust四份合成契约与应用测试；2026-10-20 host正式Session/reqwest公开GET解析2校区 |
 | 55 | §5.5 公开会话路线 | 复制学校Session已回退的有效路线 | 改为复制用户原始自动/直连/WebVPN偏好；不继承其他业务的自动回退状态，仍隔离Cookie | Android真实只读发现私有业务切网关后公开页失败；Session::activate_automatic_webvpn_fallback源码；应用回归覆盖自动偏好+已回退私有会话；修复后Android无账号真实GET解析2校区 |
+| 56 | 镜像会话/只读刷新边界 | bridge读取与清理可能并发；认证恢复失败直接返回 | 不改变上游端点/参数/成功码；bridge并行读与身份/缓存变更互斥，恢复失败保留已有快照，显式退出清理保存账号 | Rust lifecycle/route logout/expired snapshot合成回归；macOS ScheduleViewModel/GradeViewModel generation与失败保留行为 |
 
 ## 0. 文档约定
 

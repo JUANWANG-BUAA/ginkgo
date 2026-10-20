@@ -90,3 +90,8 @@
 本轮工具记录：临时预览的flutter run若未分配TTY，stdin不可热重载；使用明确PID的SIGUSR1（reload）/SIGUSR2（restart）。main里的外观参数需要restart。Flutter测试必须以flutter/为工作目录；启动widget初次从仓库根误运行未执行，改目录后8项通过。均未放宽断言。
 
 调试器评估可能在Flutter build栈中执行：直接调用submit触发setState during build，且在网络调用前终止。诊断操作应排入Future.microtask或正常UI事件，不把探针错误归因上游。真实输入仅通过无回显stdin进入正常表单，未放入文件/命令参数。
+
+
+桥接会话操作现在使用公平RwLock：读取持共享锁，登录/恢复/退出/切路线/清缓存持独占锁，避免旧读取重新填回已清快照。同步待办在独占操作期间明确拒绝而不阻塞FRB线程。禁止把Guard跨await改成std::sync::MutexGuard；Android交叉编译仍必需。清缓存完成后Flutter重建工作区，销毁离屏Tab及其旧详情。
+
+审计工具记录：Today/Grade DTO没有stale字段，使用fetchedAt确认缓存存在；Cupertino刷新sliver在测试中可能offstage，查找需skipOffstage:false；Flutter测试仅在flutter/运行。失败记录已据实际编译/测试结果修正，未改业务断言。
