@@ -11,7 +11,8 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
-| 镜像通知 | 公开通知列表 | 镜像未迁移 | 按现有HTML字段迁移最新5条/摘要外链，镜像验收⚠️待完成 | §7.3五条既有证据；CampusNoticesClient.swift |
+| 镜像 CGYY | 教学楼场馆只读 | 镜像未迁移 | 公开场馆/直连SSO/签名/时段/最近20条订单迁移；host公开7个site可读，账号链路⚠️待完成 | §6B、修订53；CgyyClient.swift / CgyySigner.swift；不含写接口 |
+| 镜像通知 | 公开通知列表 | 镜像未迁移 | 按现有HTML字段迁移最新5条/摘要外链；Rust host公开5条可读，Android实网/外链⚠️待完成 | §7.3五条既有证据；CampusNoticesClient.swift |
 | 镜像研究生 | 学籍/执行报告 | 尚未迁移 | 按code=1与zxbg层级迁移；学籍白名单；报告失败回退课程池 | §7.4；`GraduateAcademicClient.swift`；真实镜像验收⚠️待完成 |
 | 镜像 BYKC | 博雅课程目录 | 镜像仅纯过滤规则 | 迁移CAS/加密/配置/课程分页，只读，真实验收⚠️待完成 | `BykcClient.swift`；`EDUCATION-DATA-MAP.md` §2既有实测 |
 | 镜像 2026-10-20 | SPOC 真实只读迁移 | 镜像仅合成列表 | 按既有协议接通认证、上下文、列表与详情；真实验收待本机登录 | §7.1 2026-10-18 实测；`SpocHomeworkClient.swift`；合成契约不替代上游证据 |

@@ -21,6 +21,7 @@ tokio = { version = "1", features = ["rt-multi-thread", "time"], optional = true
 rsa = "0.9"
 rand = "0.8"
 sha1 = "0.10"
+md-5 = "0.10"
 
 [features]
 default = []

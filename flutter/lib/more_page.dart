@@ -8,7 +8,7 @@ import 'graduate_page.dart';
 import 'tasks_page.dart';
 import 'notices_page.dart';
 import 'classroom_page.dart';
-import 'coming_soon_page.dart';
+import 'cgyy_page.dart';
 import 'grades_page.dart';
 import 'mirror_service.dart';
 import 'settings_page.dart';
@@ -137,12 +137,7 @@ class MorePage extends StatelessWidget {
                   '研讨室',
                   CupertinoIcons.person_3_fill,
                   CupertinoColors.systemPurple,
-                  const ComingSoonPage(
-                    title: '研讨室',
-                    description: '教学楼 CGYY 研讨室需要独立的 CAS 会话、签名与时段数据。',
-                    symbol: CupertinoIcons.person_3,
-                    details: ['场馆与时段只读', '预约/取消二次确认', '门锁密码仅内存展示'],
-                  ),
+                  CgyyPage(demo: service.isDemo),
                 ),
               ],
             ),

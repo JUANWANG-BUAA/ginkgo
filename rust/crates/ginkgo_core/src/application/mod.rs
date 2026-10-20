@@ -91,3 +91,5 @@ pub mod tasks_service;
 
 mod notices_service;
 pub use notices_service::NoticesOutcome;
+mod cgyy_service;
+pub use cgyy_service::CgyyOutcome;

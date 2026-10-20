@@ -6,6 +6,10 @@ import 'apple_widgets.dart';
 import 'checkin_page.dart';
 import 'classroom_page.dart';
 import 'tasks_page.dart';
+import 'bykc_page.dart';
+import 'graduate_page.dart';
+import 'notices_page.dart';
+import 'cgyy_page.dart';
 import 'grades_page.dart';
 import 'homework_page.dart';
 import 'library_page.dart';
@@ -349,8 +353,12 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
                     _sidebar('成绩', CupertinoIcons.chart_bar_alt_fill, 3),
                     _sidebar('作业', CupertinoIcons.doc_text, 4),
                     _sidebar('空教室', CupertinoIcons.building_2_fill, 5),
+                    _sidebar('博雅', CupertinoIcons.book_solid, 10),
+                    _sidebar('研究生教务', CupertinoIcons.building_2_fill, 11),
                     _section('校园'),
                     _sidebar('图书馆', CupertinoIcons.book, 6),
+                    _sidebar('校园通知', CupertinoIcons.news_solid, 12),
+                    _sidebar('研讨室', CupertinoIcons.person_3, 13),
                     _sidebar('待办', CupertinoIcons.list_bullet, 7),
                     _section('更多'),
                     _sidebar('设置', CupertinoIcons.gear_alt, 8),
@@ -408,7 +416,7 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
         child: IndexedStack(
           index: selected,
           children: [
-            for (var index = 0; index < 10; index++)
+            for (var index = 0; index < 14; index++)
               if (visited.contains(index))
                 _page(index)
               else
@@ -439,6 +447,10 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
       accountId: widget.accountId,
       route: widget.route,
     ),
+    10 => BykcPage(demo: widget.service.isDemo),
+    11 => GraduatePage(demo: widget.service.isDemo),
+    12 => NoticesPage(demo: widget.service.isDemo),
+    13 => CgyyPage(demo: widget.service.isDemo),
     _ => RulesPage(service: widget.service),
   };
 

@@ -73,6 +73,24 @@ impl<T: HttpTransport> Session<T> {
         !self.direct_jar.lock().expect("direct jar").is_empty()
     }
 
+    /// CGYY is direct-only. Never mutate the shared route across an await.
+    pub async fn send_direct(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {
+        self.send_routed(request, RouteMode::Direct).await
+    }
+
+    /// Rust-only access for CGYY's documented SSO cookie; never bridged to Dart.
+    pub(crate) fn cgyy_sso_token(&self) -> Option<String> {
+        let header = self.direct_jar.lock().expect("direct jar").header_for(
+            "https://cgyy.buaa.edu.cn/venue-zhjs-server/",
+            CookieJar::now_ms(),
+        )?;
+        header.split(';').map(str::trim).find_map(|part| {
+            part.strip_prefix("sso_buaa_zhjs_token=")
+                .filter(|v| !v.is_empty())
+                .map(str::to_owned)
+        })
+    }
+
     pub async fn send(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {
         let mode = self.route();
         self.send_routed(request, mode).await

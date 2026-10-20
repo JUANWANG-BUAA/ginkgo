@@ -11,4 +11,5 @@ pub mod graduate;
 
 pub mod tasks;
 
+pub mod cgyy;
 pub mod notices;

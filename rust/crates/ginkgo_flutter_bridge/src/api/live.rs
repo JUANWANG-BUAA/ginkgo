@@ -1154,3 +1154,60 @@ pub fn load_demo_notices() -> ReadOnlyResponse {
         },
     }
 }
+
+pub async fn load_cgyy(
+    kind: String,
+    site_id: i64,
+    date: String,
+    force_refresh: bool,
+) -> ReadOnlyResponse {
+    let result = match service() {
+        Ok(service) => {
+            service
+                .load_cgyy(&kind, site_id, &date, force_refresh)
+                .await
+        }
+        Err(error) => Err(error),
+    };
+    match result {
+        Ok(outcome) => ReadOnlyResponse {
+            payload: serde_json::to_string(&outcome.data).ok(),
+            stale: outcome.failure.is_some(),
+            failure: outcome.failure.map(|e| e.code.into()),
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}
+
+pub fn load_demo_cgyy(kind: String) -> ReadOnlyResponse {
+    let result = (|| -> Result<_, AppError> {
+        let fixture: serde_json::Value = serde_json::from_str(match kind.as_str() {
+            "venues" => include_str!("../../../../../fixtures/cgyy/venues-normal-v1.json"),
+            "day" => include_str!("../../../../../fixtures/cgyy/day-normal-v1.json"),
+            "orders" => include_str!("../../../../../fixtures/cgyy/orders-normal-v1.json"),
+            _ => return Err(AppError::invalid()),
+        })
+        .map_err(|_| AppError::changed())?;
+        ginkgo_core::application::execute_contract(
+            &format!("cgyy.{kind}"),
+            1,
+            fixture["input"].clone(),
+        )
+    })();
+    match result {
+        Ok(data) => ReadOnlyResponse {
+            payload: serde_json::to_string(&data).ok(),
+            stale: false,
+            failure: None,
+        },
+        Err(e) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(e.code.into()),
+        },
+    }
+}

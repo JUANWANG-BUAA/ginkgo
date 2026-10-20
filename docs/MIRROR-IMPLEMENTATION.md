@@ -11,19 +11,19 @@
 - Rust 进程内 Cookie jar、CAS 登录页解析与表单提交、手动重定向与错误分类、UC 激活/会话校验、自动/直连/WebVPN 路由隔离、过期会话单次恢复。
 - 平台凭据保险库：Android 使用 Kotlin `CredentialVault` + Android Keystore AES-GCM + 私有 SharedPreferences，由 `JNI_OnLoad` 缓存类引用后从 Rust 调用；Windows 使用 Credential Manager，macOS 使用 Keychain，二者共用 `keyring` 适配。密码不以明文落盘，验证码答案不持久化。
 - bridge 暴露 `login` / `restoreSession` / `signOut` / `sessionStatus`；Cookie、凭据和重定向链不进入 Dart。`verifyCredentialStorage` 是设备验收用的合成密钥往返诊断，不读写账号数据。
-- 真实只读 bridge：空教室、课表、今天、成绩、课程签到、图书馆。每类查询使用 5 分钟进程内快照；刷新失败保留旧结果；确认会话过期时仅静默重登并重试一次。账号切换、登出和路由变化都会清空快照。
+- 真实只读 bridge：空教室、课表、今天、成绩、课程签到、图书馆、SPOC作业、博雅、研究生教务、校园通知与CGYY。每类查询使用 5 分钟进程内快照；刷新失败保留旧结果；确认会话过期时仅静默重登并重试一次。账号切换、登出和路由变化都会清空快照。
 - 课程签到与图书馆各自拥有独立的短生命周期业务会话：iclass 的 loginName 只在一次请求内使用、sessionId 只留在 Rust；booking.lib 的 CAS 票据只用于换取业务 token，token 只留在 Rust。两者都不会进入 Dart。
 - 应用层在 WebVPN 自动回退后，会按需用平台保险库中的凭据建立网关自身的 CAS 会话；没有保存密码时明确返回需要重新登录，而不是反复重试直连。网关响应的 final URL 与 Location 统一还原为上游 URL（见 `auth/session.rs`）。
 - `load_demo_*` 保留为明确的离线演示入口，页面脚注会区分“离线合成样例”和“真实账号只读数据”。
 
-当前可执行的页面包括今天、空教室、课表、作业、成绩、课程签到与图书馆。今天/空教室/课表/成绩/签到/图书馆已具备真实只读 use case；作业仍只使用共享合成 fixture，尚未迁移 SPOC token/CAS 与详情。签到与图书馆的写操作按独立评审暂不实现。真实账号验收目前只覆盖 2026-10-20 的今天/课表/空教室/成绩；签到/图书馆的真实上游读取仍待用户在本机登录后验收，不能把 mock、编译或合成设备测试当作真实上游通过。
+当前可执行页面：今天、课表、作业、图书馆、更多，以及空教室、成绩、签到、博雅、研究生教务、本地待办、校园通知和CGYY。新增六模块均已接入实际只读用例或本地存储，保留独立演示数据；希冀与全部上游写操作关闭。本轮真实账号未登录，新增模块与课表学期切换仍待真实验收。历史今天/课表/空教室/成绩空结果记录仅代表先前版本，不扩展为本轮通过。
 
 ## 完成度快照（2026-10-20 晚）
 
 | 能力 | 状态 | 证据 |
 | --- | --- | --- |
 | Rust workspace、FRB 桥接、Flutter Android/Windows 壳 | 完成 | `scripts/check-mirror.sh` 通过；Android debug APK 构建通过；`mirror.yml` 已入库 |
-| 共享契约与 fixture | 24 类、76 份 | Rust runner 递归执行全部 fixture；121 项 lib 测试 + 1 项契约测试通过 |
+| 共享契约与 fixture | 35 类、108 份 | Rust runner全部通过；130 项 lib + 1 项契约测试 |
 | 课程签到真实只读 | 完成（mock + 设备合成） | iclass SSO/当天课程/signStatus 解析、重复记录合并与冲突归一、快照/失败保留/单次重建、WebVPN 网关会话回退；Android `checkin_test.dart` 通过 |
 | 图书馆真实只读 | 完成（mock + 设备合成） | booking.lib CAS、场馆/区域/时段/座位/当前预约解析、业务 token 单次重建、快照/失败保留；Android `library_test.dart` 通过 |
 | 认证核心（Cookie/CAS/UC/WebVPN/恢复） | 完成（mock） | 认证单元/流程/mock HTTP 测试 |
@@ -34,12 +34,12 @@
 | 课表真实只读 | 完成（mock + 真实研究生账号） | BYXT 302 跟随、GSMIS 学期/周次/整学期课程；第 7 周真实读取 |
 | 今天真实只读 | 完成（mock + 真实账号） | 研究生今天课程由 GSMIS 课表推导并合并相邻节次；BYXT mock + 快照/恢复测试 |
 | 成绩真实只读 | 完成（mock + 真实账号空结果） | 学期发现、学期切换与 buaascore；真实账号当前/历史学期均无已发布成绩，不能据此验收非空成绩 |
-| 作业 | 合成切片 | SPOC 分页加密/列表解析；真实来源未接入 |
+| 作业 | 实际只读链路已接入 | SPOC CAS/token/课程学期/分页/详情；mock与Android合成smoke通过；真实待验收 |
 | Flutter 登录页与会话门禁 | 完成 | 6 项会话 widget 测试；Android 真实登录页启动验收 |
 | 真实账号只读验收 | 已完成一次（只读） | 授权账号登录、今天/课表/空教室/成绩读取；未保存截图中的姓名学号，未执行写操作 |
 | Windows 构建与实机 | 未开始 | 只有工程与 CI 入口；keyring Windows 分支未在本机编译 |
-| 研究生课表、BYKC、研讨室/场馆、校园通知 | 未开始 | 仅有 BYKC 纯规则与现有文档 |
-| 本地待办/账号切换/通知 | 未开始 | 设置页已有账号、路线、清缓存与登出 |
+| BYKC、研究生教务、校园通知、CGYY | 实际只读链路已接入 | 各模块独立Android合成FFI smoke通过；真实与Windows待验收 |
+| 本地待办 | Rust持久化CRUD已接入 | 账号隔离/损坏保护与Android文件往返通过；无提醒与同步 |
 | 签到/图书馆写操作 | 未开始（按设计关闭） | 页面只展示只读状态，不提供提交入口；写协议需独立评审、二次确认与回查 |
 | 写操作与发布 | 未开始 | — |
 
@@ -49,10 +49,10 @@
 2. **既有模块真实只读复验**：CAS→UC、空教室/课表/今天/成绩的真实响应与错误分类；不执行写操作。
 3. **验证码图片与交互**：当前 bridge 能返回 `captchaId`/`captchaImageUrl`，但 Rust 传输只保留文本响应，Flutter 也还没有图片展示；登录页只显示“需要验证码”的说明和输入框。
 4. **Windows/macOS 凭据保险库验收**：Windows 主机构建并验证 Credential Manager 往返；macOS Keychain 在签名/未签名运行下的授权提示需要单独记录。
-5. **课表/成绩剩余**：研究生 GSMIS、学期切换 UI、缓存周次刷新与旧快照保留的设备验收。
-6. **作业剩余**：SPOC token/CAS 登录链、课程/学期上下文、只读详情；希冀来源继续关闭。
-7. **P3 其余模块**：BYKC、研讨室、场馆、校园通知（只读优先）。
-8. **P4 本地能力**：本地待办、账号切换、缓存清理、通知权限、外链与日志脱敏适配器。
+5. **课表/成绩剩余**：真实学期切换/搜索/详情对照与真实非空成绩；新课表UI、未缓存保留已通过合成设备smoke。
+6. **新模块真实验收**：SPOC、BYKC、研究生教务、校园通知、CGYY；希冀来源继续关闭。
+7. **模块完善**：CGYY订单下一页、更多跨模块可访问性；目前只读链路均已接入。
+8. **P4 本地能力**：提醒/同步及权限；待办CRUD、登出清快照和通知原文外链已接入。
 9. **Windows 主机构建与实机验收**；当前没有任何 Windows 通过记录。
 10. **视觉与可访问性闭环**：签到/图书馆新页面与登录页、真实/演示状态的固定视口浅色/深色/大字号截图、TalkBack/VoiceOver、减少动态效果。
 11. **写操作**：签到、预约、取消、选课等，逐项协议证据、二次确认、提交后回查与“未知结果不重发”。
@@ -82,7 +82,7 @@
 
 | 用例 | Rust | Flutter widget | Android 设备 |
 | --- | --- | --- | --- |
-| 共享契约，含正常/空结果/结构漂移/无效输入 | 24 类 76 份 fixture runner | — | 七个合成切片经过真实 FFI |
+| 共享契约，含正常/空结果/结构漂移/无效输入 | 35 类 108 份 fixture runner | — | 七个合成切片经过真实 FFI |
 | 平台保险库写入/读回/删除 | Android JNI 适配 + MemoryVault 测试 | — | `auth_test.dart` 两次往返通过 |
 | 无保存账号时进入登录页 | `restore` SignedOut | 会话门禁测试 | `auth_test.dart` 通过 |
 | CAS 登录页/验证码/提示解析 | 2 份共享 auth fixture + 单元测试 | 验证码提示测试 | — |
@@ -247,3 +247,19 @@
 
 - 按API §7.3既有5条证据与CampusNoticesClient迁移公开HTML列表，经Session路由读取、五分钟快照、失败保留。标题/日期/摘要/HTTPS同站原文白名单投影，详情显示摘要并可浏览器打开官网。无已证实空标记，空HTML按结构变化处理，不伪造空通知。
 - 4份合成契约（正常/空HTML/漂移/拒绝页面）、公开读取+缓存+失败保留用例通过；Android单项FFI合成smoke覆盖列表到详情，外部浏览器往返仍待人工。镜像真实上游⚠️待验收，Windows未验收。
+
+## 2026-10-20：CGYY教学楼场馆只读
+
+- 公开场馆目录、独立直连SSO/业务Token、MD5签名、按场馆/日期查询时段、最近20条订单真实链路与页面已接入。全程Session显式直连，不改全局路线；GET会话失效最多重建一次；五分钟快照、刷新失败保留实际日期范围。公开目录不依赖登录成功。
+- 12份合成契约覆盖场馆/时段/订单正常、空、漂移与业务拒绝；签名对齐Apple固定向量，应用mock覆盖登录→公开场馆→业务登录→时段→订单→缓存/失败保留，校验WebVPN偏好下仍直连。Android cgyy_test.dart独立FFI合成smoke 1项通过；真实账号与Windows仍待验收。
+- 预约Token、手机号、参与人及门锁密码不进入桥接投影；没有预约、取消、滑块或其他写入口。桌面仍首次访问才构建，并补齐博雅/研究生/通知/研讨室侧栏入口。
+
+### 本轮最终门禁
+
+- scripts/check-mirror.sh通过：Rust fmt/Clippy、130项lib、1项契约（35类108份样例）、Flutter analyze、25项widget。最后补桌面入口后再次analyze/widget通过。Android NDK27 aarch64 bridge check通过；正常debug APK构建并安装，登录页等待用户本机输入。
+- schedule/homework/bykc/graduate/tasks/notices/cgyy各保留一个独立Android设备smoke，本轮均通过；网络模块用合成fixture，待办用真实本机文件，均不冒充真实上游验收。未跑mirror_test.dart已知长流程。课表浅/深/大字号截图只在/tmp。Windows未验收。
+
+### 无账号公开接口探测（2026-10-20）
+
+- macOS host经Rust真实Session/reqwest只读GET：新闻网解析5条，CGYY签名公开场馆解析7个site，通过；只记录条数，未保存正文或网页。此结果仅证明当前网络下公开接口可读，不代表Android真实账号或CGYY登录/时段/订单已验收。临时probe已删除。
+- 当前正常Android APK已安装并确认登录页，ginkgo_secure_credentials.xml不存在；本轮没有输入真实凭据。真实账号验收等待用户本机登录。

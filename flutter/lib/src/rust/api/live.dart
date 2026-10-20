@@ -161,6 +161,21 @@ Future<ReadOnlyResponse> loadNotices({required bool forceRefresh}) =>
 Future<ReadOnlyResponse> loadDemoNotices() =>
     RustLib.instance.api.crateApiLiveLoadDemoNotices();
 
+Future<ReadOnlyResponse> loadCgyy({
+  required String kind,
+  required PlatformInt64 siteId,
+  required String date,
+  required bool forceRefresh,
+}) => RustLib.instance.api.crateApiLiveLoadCgyy(
+  kind: kind,
+  siteId: siteId,
+  date: date,
+  forceRefresh: forceRefresh,
+);
+
+Future<ReadOnlyResponse> loadDemoCgyy({required String kind}) =>
+    RustLib.instance.api.crateApiLiveLoadDemoCgyy(kind: kind);
+
 class GradeTermsResponse {
   final List<ScheduleTerm> terms;
   final FailureCode? failure;

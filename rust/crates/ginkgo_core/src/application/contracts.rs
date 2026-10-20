@@ -70,6 +70,16 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
             input["html"].as_str().ok_or_else(AppError::changed)?,
         )?)
         .map_err(|_| AppError::changed())?,
+        "cgyy.venues" => serde_json::to_value(crate::features::cgyy::sites(&input)?)
+            .map_err(|_| AppError::changed())?,
+        "cgyy.orders" => serde_json::to_value(crate::features::cgyy::orders(&input)?)
+            .map_err(|_| AppError::changed())?,
+        "cgyy.day" => serde_json::to_value(crate::features::cgyy::day(
+            &input["response"],
+            input["site_id"].as_i64().ok_or_else(AppError::invalid)?,
+            input["date"].as_str().ok_or_else(AppError::invalid)?,
+        )?)
+        .map_err(|_| AppError::changed())?,
         "graduate.execution" => {
             json!({"sections":crate::features::graduate::parse_execution(&input)?})
         }

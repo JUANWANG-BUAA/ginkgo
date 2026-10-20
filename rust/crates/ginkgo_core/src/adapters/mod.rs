@@ -13,4 +13,5 @@ pub mod graduate_http;
 
 pub mod tasks_store;
 
+pub mod cgyy_http;
 pub mod notices_http;

@@ -29,7 +29,15 @@ async fn post<T: HttpTransport>(
         return Err(AppError::unavailable());
     }
     let value: Value = serde_json::from_str(&response.body).map_err(|_| AppError::changed())?;
-    if value["success"] == false {
+    let execution = path.ends_with("zxbg/loadXspyfazxbgInfo.do");
+    let rejected_code = value.get("code").is_some_and(|code| {
+        let code = code
+            .as_str()
+            .map(str::to_owned)
+            .unwrap_or_else(|| code.to_string());
+        code != if execution { "1" } else { "0" }
+    });
+    if value["success"] == false || rejected_code {
         return Err(AppError::new(ErrorCode::BusinessRejected));
     }
     Ok(value)
@@ -38,7 +46,9 @@ async fn get<T: HttpTransport>(session: &Session<T>, path: &str) -> Result<Value
     let response = session
         .send_following_redirects(HttpRequest::get(format!("{BASE}/{path}")))
         .await?;
-    if cas::is_login_redirect(&response.final_url, &response.body) {
+    if matches!(response.status, 401 | 403)
+        || cas::is_login_redirect(&response.final_url, &response.body)
+    {
         return Err(AppError::session_expired());
     }
     if response.status != 200 {

@@ -32,7 +32,7 @@
 4. 结构漂移必须返回 `changed_response`，不得降级为空结果；上游业务错误与传输失败保持不同错误码。
 5. 不允许为了通过测试直接改 `expected`；预期变化必须对应协议版本或明确的领域规则变更。
 
-当前二十四类契约、76 份样例：`classroom.filter`、`classroom.parse_response`、`school_time.beijing_day`、`schedule.snapshot_retained_weeks`、`bykc.course_filter`、`auth.cas_login_page`、`auth.uc_status`、`schedule.terms`、`schedule.weeks`、`schedule.undergraduate_courses`、`schedule.exams`、`schedule.today_courses`、`grades.buaa_score`、`grades.term_parts`、`homework.spoc_page`、`homework.spoc_encrypt`、`checkin.app_login`、`checkin.course_schedule`、`library.login_user`、`library.venues`、`library.areas`、`library.slots`、`library.seats`、`library.bookings`。详见 [fixtures/README.md](../fixtures/README.md)。
+初始二十四类契约、76 份样例：`classroom.filter`、`classroom.parse_response`、`school_time.beijing_day`、`schedule.snapshot_retained_weeks`、`bykc.course_filter`、`auth.cas_login_page`、`auth.uc_status`、`schedule.terms`、`schedule.weeks`、`schedule.undergraduate_courses`、`schedule.exams`、`schedule.today_courses`、`grades.buaa_score`、`grades.term_parts`、`homework.spoc_page`、`homework.spoc_encrypt`、`checkin.app_login`、`checkin.course_schedule`、`library.login_user`、`library.venues`、`library.areas`、`library.slots`、`library.seats`、`library.bookings`。详见 [fixtures/README.md](../fixtures/README.md)。
 
 ## 3. 桥接维护
 
@@ -82,3 +82,5 @@
 - **上游漂移**：CAS 页面、UC 状态、WebVPN 编码都可能变化；认证 fixture 与 Swift/Rust 同源测试是提前量。
 - **性能**：应用为 I/O bound；不因性能引入额外架构复杂度，但真实传输必须保持 30 秒超时、无自动重定向和单次恢复上限。
 - **设备渲染**：headless + SwiftShader 的 Android 模拟器会让 integration_test 的 `pump` 长时间不返回；设备验收使用带窗口的硬件 GPU 模拟器（本机 `-gpu host`）。这属于测试环境问题，不应通过放宽业务断言绕过。
+
+2026-10-20本轮扩展到35类108份：新增SPOC详情、BYKC信封/目录、研究生执行报告、待办文档、校园通知、CGYY场馆/时段/订单；均已登记contracts router，保留正常/空/漂移/拒绝或无效文档覆盖。设备每模块只运行独立smoke，不重跑已知mirror长流程。

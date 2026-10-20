@@ -1,0 +1,36 @@
+{
+  "contract": "cgyy.day",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "site_id": 1,
+    "date": "2026-10-20",
+    "response": {
+      "code": 200,
+      "data": {
+        "spaceTimeInfo": [
+          {
+            "id": 1,
+            "beginTime": "08:00",
+            "endTime": "09:00"
+          }
+        ],
+        "reservationDateSpaceInfo": {
+          "2026-10-20": []
+        },
+        "ableReservationDateList": [
+          "2026-10-20"
+        ],
+        "token": "synthetic-must-not-cross-bridge"
+      }
+    }
+  },
+  "expected": {
+    "site_id": 1,
+    "date": "2026-10-20",
+    "dates": [
+      "2026-10-20"
+    ],
+    "spaces": []
+  }
+}
