@@ -83,3 +83,6 @@ pub fn demo_rules() -> Result<(school_time::SchoolDay, schedule::Snapshot), AppE
 
 #[cfg(test)]
 mod tests;
+
+mod graduate_service;
+pub use graduate_service::GraduateOutcome;

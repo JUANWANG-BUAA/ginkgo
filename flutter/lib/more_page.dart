@@ -4,6 +4,7 @@ import 'apple_design.dart';
 import 'apple_widgets.dart';
 import 'checkin_page.dart';
 import 'bykc_page.dart';
+import 'graduate_page.dart';
 import 'classroom_page.dart';
 import 'coming_soon_page.dart';
 import 'grades_page.dart';
@@ -125,12 +126,7 @@ class MorePage extends StatelessWidget {
                   '研究生教务',
                   CupertinoIcons.building_2_fill,
                   CupertinoColors.systemBrown,
-                  const ComingSoonPage(
-                    title: '研究生教务',
-                    description: '研究生培养方案、成绩、学籍等页面尚未迁移。',
-                    symbol: CupertinoIcons.building_2_fill,
-                    details: ['培养方案执行报告', '研究生成绩与学籍', '课程学习与培养环节'],
-                  ),
+                  GraduatePage(demo: service.isDemo),
                 ),
                 _row(
                   context,

@@ -11,6 +11,7 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 镜像研究生 | 学籍/执行报告 | 尚未迁移 | 按code=1与zxbg层级迁移；学籍白名单；报告失败回退课程池 | §7.4；`GraduateAcademicClient.swift`；真实镜像验收⚠️待完成 |
 | 镜像 BYKC | 博雅课程目录 | 镜像仅纯过滤规则 | 迁移CAS/加密/配置/课程分页，只读，真实验收⚠️待完成 | `BykcClient.swift`；`EDUCATION-DATA-MAP.md` §2既有实测 |
 | 镜像 2026-10-20 | SPOC 真实只读迁移 | 镜像仅合成列表 | 按既有协议接通认证、上下文、列表与详情；真实验收待本机登录 | §7.1 2026-10-18 实测；`SpocHomeworkClient.swift`；合成契约不替代上游证据 |
 | 1 | GSMIS 课表请求体 | `ZC=10&XNXQDM=2025-2026-1&XH=<学号>&XQDM=1` | `ZC=&XNXQDM=<学期码>&XH=&XQDM=`（仅学期码有值） | `GraduateScheduleUpstream.kt:50-55` |

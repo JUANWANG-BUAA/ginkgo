@@ -1,0 +1,18 @@
+{
+  "contract": "graduate.execution",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "code": 1,
+    "fa": {
+      "ZDXF": 32
+    },
+    "yhpyfaxf": 2,
+    "yxxf": 4,
+    "dkhxf": 1,
+    "zxbg": "{}"
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

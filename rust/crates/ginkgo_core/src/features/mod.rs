@@ -6,3 +6,5 @@ pub mod homework;
 pub mod library;
 pub mod schedule;
 pub mod today;
+
+pub mod graduate;

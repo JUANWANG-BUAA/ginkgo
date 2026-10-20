@@ -1,0 +1,11 @@
+{
+  "contract": "graduate.execution",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "code": 0
+  },
+  "expected": {
+    "error": "business_rejected"
+  }
+}

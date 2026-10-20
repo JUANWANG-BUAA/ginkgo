@@ -64,6 +64,9 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
                 .map(|s| s.week_number);
             json!({"courseIDsByWeek": ids, "selectableCachedWeek": selectable})
         }
+        "graduate.execution" => {
+            json!({"sections":crate::features::graduate::parse_execution(&input)?})
+        }
         "bykc.envelope" => crate::adapters::bykc_http::decode_envelope(&input)?,
         "bykc.catalog" => serde_json::to_value(bykc::parse_catalog(
             &input["config"],

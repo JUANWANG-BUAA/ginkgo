@@ -1019,3 +1019,47 @@ pub fn load_demo_bykc() -> ReadOnlyResponse {
         },
     }
 }
+
+pub async fn load_graduate(force_refresh: bool) -> ReadOnlyResponse {
+    let result = match service() {
+        Ok(service) => service.load_graduate(force_refresh).await,
+        Err(error) => Err(error),
+    };
+    match result {
+        Ok(outcome) => ReadOnlyResponse {
+            payload: serde_json::to_string(&outcome.data).ok(),
+            stale: outcome.failure.is_some(),
+            failure: outcome.failure.map(|e| e.code.into()),
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}
+
+pub fn load_demo_graduate() -> ReadOnlyResponse {
+    let result = (|| -> Result<_, AppError> {
+        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../../../fixtures/graduate/execution-normal-v1.json"
+        ))
+        .map_err(|_| AppError::changed())?;
+        Ok(ginkgo_core::features::graduate::AcademicData {
+            sections: ginkgo_core::features::graduate::parse_execution(&fixture["input"])?,
+            notice: None,
+        })
+    })();
+    match result {
+        Ok(data) => ReadOnlyResponse {
+            payload: serde_json::to_string(&data).ok(),
+            stale: false,
+            failure: None,
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}

@@ -8,3 +8,5 @@ pub mod library_http;
 #[cfg(feature = "network")]
 pub mod reqwest_transport;
 pub mod schedule_http;
+
+pub mod graduate_http;

@@ -130,6 +130,12 @@ Future<ReadOnlyResponse> loadBykc({required bool forceRefresh}) =>
 Future<ReadOnlyResponse> loadDemoBykc() =>
     RustLib.instance.api.crateApiLiveLoadDemoBykc();
 
+Future<ReadOnlyResponse> loadGraduate({required bool forceRefresh}) =>
+    RustLib.instance.api.crateApiLiveLoadGraduate(forceRefresh: forceRefresh);
+
+Future<ReadOnlyResponse> loadDemoGraduate() =>
+    RustLib.instance.api.crateApiLiveLoadDemoGraduate();
+
 class GradeTermsResponse {
   final List<ScheduleTerm> terms;
   final FailureCode? failure;

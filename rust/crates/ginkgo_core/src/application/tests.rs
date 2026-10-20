@@ -1259,3 +1259,26 @@ async fn bykc_failure_retains_cached_catalog_and_logout_isolates_account() {
     service.sign_out().await;
     assert!(service.load_bykc(false).await.is_err());
 }
+
+#[tokio::test]
+async fn graduate_reads_status_whitelist_and_execution_report_then_caches() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend([
+        HttpResponse::new(200,"status app","app"),HttpResponse::new(200,"execution app","app"),
+        HttpResponse::new(200,"status",serde_json::json!({"code":0,"datas":{"xsjcxxcx":{"rows":[{"YXDM_DISPLAY":"合成学院","SFZH":"must-not-leave-rust"}]}}}).to_string()),
+        HttpResponse::new(200,"execution",fixture("graduate","execution-normal-v1.json")["input"].to_string()),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("login");
+    let report = service.load_graduate(false).await.expect("report");
+    let serialized = serde_json::to_string(&report.data).expect("json");
+    assert!(serialized.contains("合成学院"));
+    assert!(!serialized.contains("must-not-leave-rust"));
+    assert!(serialized.contains("要求 6"));
+    let count = transport.request_count();
+    service.load_graduate(false).await.expect("cached");
+    assert_eq!(count, transport.request_count());
+}
