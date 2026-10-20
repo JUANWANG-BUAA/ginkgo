@@ -15,6 +15,7 @@ import 'homework_page.dart';
 import 'library_page.dart';
 import 'login_page.dart';
 import 'startup_page.dart';
+import 'query_cache_scope.dart';
 import 'service_directory.dart';
 import 'reservations_page.dart';
 import 'mirror_service.dart';
@@ -222,22 +223,24 @@ class GinkgoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ginkgoApp(
     brightness: brightness,
-    home: LayoutBuilder(
-      builder: (context, constraints) => constraints.maxWidth >= 760
-          ? _DesktopWorkspace(
-              service: service,
-              accountName: accountName,
-              accountId: accountId,
-              route: route,
-              onSignOut: onSignOut,
-            )
-          : _MobileWorkspace(
-              service: service,
-              accountName: accountName,
-              accountId: accountId,
-              route: route,
-              onSignOut: onSignOut,
-            ),
+    home: QueryCacheScope(
+      child: LayoutBuilder(
+        builder: (context, constraints) => constraints.maxWidth >= 760
+            ? _DesktopWorkspace(
+                service: service,
+                accountName: accountName,
+                accountId: accountId,
+                route: route,
+                onSignOut: onSignOut,
+              )
+            : _MobileWorkspace(
+                service: service,
+                accountName: accountName,
+                accountId: accountId,
+                route: route,
+                onSignOut: onSignOut,
+              ),
+      ),
     ),
   );
 }

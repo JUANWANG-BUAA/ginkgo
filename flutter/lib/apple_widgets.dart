@@ -295,14 +295,22 @@ class AppleListTile extends StatelessWidget {
   Widget build(BuildContext context) => ConstrainedBox(
     constraints: BoxConstraints(minHeight: minimumHeight),
     child: CupertinoListTile(
-      title: title,
-      subtitle: subtitle,
+      title: _wrapText(title),
+      subtitle: subtitle == null ? null : _wrapText(subtitle!),
       additionalInfo: additionalInfo,
       leading: leading,
       trailing: trailing,
       onTap: onTap,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       leadingToTitle: 12,
+    ),
+  );
+  Widget _wrapText(Widget child) => Builder(
+    builder: (context) => DefaultTextStyle(
+      style: DefaultTextStyle.of(context).style,
+      softWrap: true,
+      overflow: TextOverflow.visible,
+      child: child,
     ),
   );
 }

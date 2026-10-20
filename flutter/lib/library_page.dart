@@ -30,6 +30,7 @@ class _LibraryPageState extends State<LibraryPage> {
   }
 
   Future<void> load({bool force = false}) async {
+    if (busy) return;
     setState(() {
       busy = true;
       error = null;

@@ -30,6 +30,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
   }
 
   Future<void> load({bool force = false}) async {
+    if (busy) return;
     setState(() {
       busy = true;
       error = null;

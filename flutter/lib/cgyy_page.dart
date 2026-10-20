@@ -23,6 +23,7 @@ class _CgyyPageState extends State<CgyyPage> {
   }
 
   Future<void> load({bool force = false}) async {
+    if (busy) return;
     setState(() {
       busy = true;
       error = null;
@@ -170,12 +171,17 @@ class _CgyyReadPage extends StatefulWidget {
 class _CgyyReadPageState extends State<_CgyyReadPage> {
   late DateTime selected = widget.demo
       ? DateTime(2026, 10, 20)
-      : DateTime.now();
+      : _schoolToday();
   Map<String, dynamic>? day;
   List<Map<String, dynamic>>? orders;
   String? error;
   bool busy = false;
   int request = 0;
+  static DateTime _schoolToday() {
+    final now = DateTime.now().toUtc().add(const Duration(hours: 8));
+    return DateTime(now.year, now.month, now.day);
+  }
+
   String get date =>
       '${selected.year}-${selected.month.toString().padLeft(2, '0')}-${selected.day.toString().padLeft(2, '0')}';
   @override
@@ -226,7 +232,7 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
 
   Future<void> chooseDate() async {
     var draft = selected;
-    await showCupertinoModalPopup<void>(
+    final confirmed = await showCupertinoModalPopup<bool>(
       context: context,
       builder: (context) => Container(
         height: 310,
@@ -235,9 +241,18 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
           top: false,
           child: Column(
             children: [
-              CupertinoButton(
-                child: const Text('选定日期'),
-                onPressed: () => Navigator.pop(context),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CupertinoButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('取消'),
+                  ),
+                  CupertinoButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('确定'),
+                  ),
+                ],
               ),
               Expanded(
                 child: CupertinoDatePicker(
@@ -251,7 +266,7 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
         ),
       ),
     );
-    if (!mounted) return;
+    if (!mounted || confirmed != true) return;
     if (draft.year != selected.year ||
         draft.month != selected.month ||
         draft.day != selected.day) {

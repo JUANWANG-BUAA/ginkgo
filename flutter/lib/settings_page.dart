@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'apple_design.dart';
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
+import 'query_cache_scope.dart';
 import 'src/rust/api/live.dart' show RouteChoice, SessionState;
 
 class SettingsPage extends StatefulWidget {
@@ -84,7 +85,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _clearCache() async {
     if (busy) return;
-    if (!await _confirm('清除本机查询快照？', '只清除课表、成绩、空教室等内存快照，不删除账号。')) {
+    if (!await _confirm(
+      '清除本机查询快照？',
+      '清除查询快照与已打开页面的旧结果，然后返回工作台重新读取。账号和本地待办会保留。',
+    )) {
       return;
     }
     setState(() => busy = true);
@@ -95,6 +99,7 @@ class _SettingsPageState extends State<SettingsPage> {
         busy = false;
         notice = cleared ? '已清除本机查询快照' : failureMessage(null);
       });
+      if (cleared) QueryCacheScope.invalidate(context);
     } catch (_) {
       if (!mounted) return;
       setState(() {

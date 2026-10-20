@@ -24,6 +24,7 @@ class _NoticesPageState extends State<NoticesPage> {
   }
 
   Future<void> load({bool force = false}) async {
+    if (busy) return;
     setState(() {
       busy = true;
       error = null;

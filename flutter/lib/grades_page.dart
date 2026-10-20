@@ -16,6 +16,7 @@ class _GradesPageState extends State<GradesPage> {
   String? error;
   String? notice;
   bool busy = false;
+  int requestSerial = 0;
   List<ScheduleTerm> terms = const [];
   String? selectedTerm;
 
@@ -26,6 +27,7 @@ class _GradesPageState extends State<GradesPage> {
   }
 
   Future<void> load({bool force = false}) async {
+    final serial = ++requestSerial;
     setState(() {
       busy = true;
       error = null;
@@ -34,7 +36,7 @@ class _GradesPageState extends State<GradesPage> {
     try {
       if (terms.isEmpty) {
         final termResult = await widget.service.gradeTerms();
-        if (!mounted) return;
+        if (!mounted || serial != requestSerial) return;
         if (termResult.failure != null && termResult.terms.isEmpty) {
           setState(() {
             busy = false;
@@ -53,10 +55,10 @@ class _GradesPageState extends State<GradesPage> {
         termCode: selectedTerm,
         forceRefresh: force,
       );
-      if (!mounted) return;
+      if (!mounted || serial != requestSerial) return;
       setState(() {
         busy = false;
-        if (result.failure != null && result.courses.isEmpty) {
+        if (result.failure != null && result.fetchedAt == null) {
           error = failureMessage(result.failure);
           return;
         }
@@ -67,7 +69,7 @@ class _GradesPageState extends State<GradesPage> {
             : '${failureMessage(result.failure)}，正在显示上次结果。';
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || serial != requestSerial) return;
       setState(() {
         busy = false;
         error = failureMessage(null);
@@ -115,14 +117,16 @@ class _GradesPageState extends State<GradesPage> {
                 children: [
                   AppleEmptyState(
                     title: error!,
-                    description: '请检查网络后重试。',
+                    description: data == null
+                        ? '请检查网络后重试。'
+                        : '正在保留${_termName(data!.termId)}的成绩。',
                     error: true,
                     action: '重试',
                     onAction: () => load(force: true),
                   ),
                 ],
               )
-            else if (busy || data == null)
+            else if (data == null && busy)
               AppleSection(
                 children: const [
                   Padding(
@@ -136,9 +140,8 @@ class _GradesPageState extends State<GradesPage> {
                     ),
                   ),
                 ],
-              )
-            else
-              ..._content(data!),
+              ),
+            if (data != null) ..._content(data!),
           ],
         ),
       ],

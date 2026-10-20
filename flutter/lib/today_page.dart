@@ -40,6 +40,7 @@ class _TodayPageState extends State<TodayPage> {
   }
 
   Future<void> load({bool force = false}) async {
+    if (busy) return;
     setState(() {
       busy = true;
       error = null;
@@ -49,7 +50,7 @@ class _TodayPageState extends State<TodayPage> {
       if (!mounted) return;
       setState(() {
         busy = false;
-        if (result.failure != null && result.courses.isEmpty) {
+        if (result.failure != null && result.fetchedAt == null) {
           error = failureMessage(result.failure);
           notice = null;
           return;
@@ -186,7 +187,9 @@ class _TodayPageState extends State<TodayPage> {
                 children: [
                   AppleEmptyState(
                     title: error!,
-                    description: '请检查网络后重试。',
+                    description: data == null
+                        ? '请检查网络后重试。'
+                        : '正在保留上次结果，请核对实际日期。',
                     error: true,
                     action: '重试',
                     onAction: () => load(force: true),
@@ -207,9 +210,8 @@ class _TodayPageState extends State<TodayPage> {
                     ),
                   ),
                 ],
-              )
-            else
-              ..._content(data!),
+              ),
+            if (data != null) ..._content(data!),
             if (widget.directory != null) widget.directory!,
             const SizedBox(height: 96),
           ],

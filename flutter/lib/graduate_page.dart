@@ -23,6 +23,7 @@ class _GraduatePageState extends State<GraduatePage> {
   }
 
   Future<void> load({bool force = false}) async {
+    if (busy) return;
     setState(() {
       busy = true;
       error = null;
