@@ -18,6 +18,9 @@ cipher = "0.4"
 base64 = "0.22"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "gzip"], optional = true }
 tokio = { version = "1", features = ["rt-multi-thread", "time"], optional = true }
+rsa = "0.9"
+rand = "0.8"
+sha1 = "0.10"
 
 [features]
 default = []

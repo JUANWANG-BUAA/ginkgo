@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'apple_design.dart';
 import 'apple_widgets.dart';
 import 'checkin_page.dart';
+import 'bykc_page.dart';
 import 'classroom_page.dart';
 import 'coming_soon_page.dart';
 import 'grades_page.dart';
@@ -117,12 +118,7 @@ class MorePage extends StatelessWidget {
                   '博雅',
                   CupertinoIcons.book_solid,
                   CupertinoColors.systemTeal,
-                  const ComingSoonPage(
-                    title: '博雅',
-                    description: 'BYKC 课程目录、搜索与学期策略尚未迁移到 Rust/Flutter。',
-                    symbol: CupertinoIcons.book,
-                    details: ['学期课程目录', '类别筛选与搜索', '选课写操作评审'],
-                  ),
+                  BykcPage(demo: service.isDemo),
                 ),
                 _row(
                   context,

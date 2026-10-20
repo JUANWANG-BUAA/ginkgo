@@ -2,7 +2,7 @@ use crate::AppError;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Course {
     pub id: i64,
     pub name: String,
@@ -90,4 +90,76 @@ pub fn filter(request: Request) -> Result<ResultSet, AppError> {
         matching_course_ids,
         category_counts,
     })
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Catalog {
+    pub terms: Vec<Semester>,
+    pub courses: Vec<Course>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Semester {
+    pub id: String,
+    pub name: String,
+    pub start: Option<String>,
+    pub end: Option<String>,
+}
+
+pub fn parse_catalog(
+    config: &serde_json::Value,
+    pages: &[serde_json::Value],
+) -> Result<Catalog, AppError> {
+    use serde_json::Value;
+    let string = |row: &Value, key: &str| {
+        row.get(key).and_then(|v| {
+            v.as_str()
+                .map(str::to_owned)
+                .or_else(|| v.as_i64().map(|n| n.to_string()))
+        })
+    };
+    let rows = config["semester"]
+        .as_array()
+        .ok_or_else(AppError::changed)?;
+    let mut terms = Vec::new();
+    for row in rows {
+        terms.push(Semester {
+            id: string(row, "id").ok_or_else(AppError::changed)?,
+            name: string(row, "semesterName")
+                .filter(|s| !s.trim().is_empty())
+                .ok_or_else(AppError::changed)?,
+            start: string(row, "semesterStartDate"),
+            end: string(row, "semesterEndDate"),
+        });
+    }
+    let mut courses = Vec::new();
+    let mut ids = std::collections::BTreeSet::new();
+    for page in pages {
+        let rows = page["content"].as_array().ok_or_else(AppError::changed)?;
+        for row in rows {
+            let id = string(row, "id")
+                .and_then(|v| v.parse::<i64>().ok())
+                .ok_or_else(AppError::changed)?;
+            if !ids.insert(id) {
+                return Err(AppError::changed());
+            }
+            courses.push(Course {
+                id,
+                name: string(row, "courseName")
+                    .filter(|s| !s.trim().is_empty())
+                    .ok_or_else(AppError::changed)?,
+                teacher: string(row, "courseTeacher"),
+                position: string(row, "coursePosition"),
+                category: row["courseNewKind1"]["kindName"]
+                    .as_str()
+                    .map(str::to_owned)
+                    .or_else(|| string(row, "courseKind1")),
+                subcategory: row["courseNewKind2"]["kindName"]
+                    .as_str()
+                    .map(str::to_owned)
+                    .or_else(|| string(row, "courseKind2")),
+            });
+        }
+    }
+    Ok(Catalog { terms, courses })
 }

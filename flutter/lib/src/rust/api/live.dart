@@ -124,6 +124,12 @@ Future<HomeworkDetailResponse> loadHomeworkDetail({
   forceRefresh: forceRefresh,
 );
 
+Future<ReadOnlyResponse> loadBykc({required bool forceRefresh}) =>
+    RustLib.instance.api.crateApiLiveLoadBykc(forceRefresh: forceRefresh);
+
+Future<ReadOnlyResponse> loadDemoBykc() =>
+    RustLib.instance.api.crateApiLiveLoadDemoBykc();
+
 class GradeTermsResponse {
   final List<ScheduleTerm> terms;
   final FailureCode? failure;
@@ -218,6 +224,27 @@ class LiveScope {
           campus == other.campus &&
           date == other.date &&
           forceRefresh == other.forceRefresh;
+}
+
+/// Sanitized domain JSON, never raw upstream data, credentials or tokens.
+class ReadOnlyResponse {
+  final String? payload;
+  final bool stale;
+  final FailureCode? failure;
+
+  const ReadOnlyResponse({this.payload, required this.stale, this.failure});
+
+  @override
+  int get hashCode => payload.hashCode ^ stale.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ReadOnlyResponse &&
+          runtimeType == other.runtimeType &&
+          payload == other.payload &&
+          stale == other.stale &&
+          failure == other.failure;
 }
 
 enum RouteChoice { automatic, direct, webVpn }

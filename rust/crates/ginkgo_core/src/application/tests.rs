@@ -1219,3 +1219,43 @@ async fn homework_full_read_chain_caches_list_and_reads_detail() {
     service.sign_out().await;
     assert!(service.load_homework(false).await.is_err());
 }
+
+#[tokio::test]
+async fn bykc_failure_retains_cached_catalog_and_logout_isolates_account() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(HttpResponse::new(503, "bykc", "unavailable"));
+    let (service, _) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("login");
+    let fixture = fixture("bykc", "catalog-normal-v1.json");
+    let catalog = crate::features::bykc::parse_catalog(
+        &fixture["input"]["config"],
+        fixture["input"]["pages"].as_array().expect("pages"),
+    )
+    .expect("catalog");
+    service
+        .bykc
+        .lock()
+        .expect("cache")
+        .insert("catalog".into(), catalog);
+    assert_eq!(
+        service
+            .load_bykc(false)
+            .await
+            .expect("fresh")
+            .data
+            .courses
+            .len(),
+        1
+    );
+    assert!(service
+        .load_bykc(true)
+        .await
+        .expect("stale")
+        .failure
+        .is_some());
+    service.sign_out().await;
+    assert!(service.load_bykc(false).await.is_err());
+}

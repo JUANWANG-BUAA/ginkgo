@@ -64,6 +64,12 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
                 .map(|s| s.week_number);
             json!({"courseIDsByWeek": ids, "selectableCachedWeek": selectable})
         }
+        "bykc.envelope" => crate::adapters::bykc_http::decode_envelope(&input)?,
+        "bykc.catalog" => serde_json::to_value(bykc::parse_catalog(
+            &input["config"],
+            input["pages"].as_array().ok_or_else(AppError::changed)?,
+        )?)
+        .map_err(|_| AppError::changed())?,
         "bykc.course_filter" => {
             serde_json::to_value(bykc::filter(decode(input)?)?).map_err(|_| AppError::changed())?
         }

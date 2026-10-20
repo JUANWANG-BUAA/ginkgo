@@ -1,3 +1,4 @@
+pub mod bykc_http;
 pub mod checkin_http;
 pub mod classroom_http;
 pub mod grades_http;

@@ -1,0 +1,12 @@
+{
+  "contract": "bykc.envelope",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "status": "1",
+    "errmsg": "合成业务拒绝"
+  },
+  "expected": {
+    "error": "business_rejected"
+  }
+}

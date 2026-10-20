@@ -967,3 +967,55 @@ pub async fn load_homework_detail(
         },
     }
 }
+
+/// Sanitized domain JSON, never raw upstream data, credentials or tokens.
+pub struct ReadOnlyResponse {
+    pub payload: Option<String>,
+    pub stale: bool,
+    pub failure: Option<FailureCode>,
+}
+pub async fn load_bykc(force_refresh: bool) -> ReadOnlyResponse {
+    let result = match service() {
+        Ok(service) => service.load_bykc(force_refresh).await,
+        Err(error) => Err(error),
+    };
+    match result {
+        Ok(outcome) => ReadOnlyResponse {
+            payload: serde_json::to_string(&outcome.data).ok(),
+            stale: outcome.failure.is_some(),
+            failure: outcome.failure.map(|e| e.code.into()),
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}
+
+pub fn load_demo_bykc() -> ReadOnlyResponse {
+    let result = (|| -> Result<_, AppError> {
+        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../../../fixtures/bykc/catalog-normal-v1.json"
+        ))
+        .map_err(|_| AppError::changed())?;
+        ginkgo_core::features::bykc::parse_catalog(
+            &fixture["input"]["config"],
+            fixture["input"]["pages"]
+                .as_array()
+                .ok_or_else(AppError::changed)?,
+        )
+    })();
+    match result {
+        Ok(data) => ReadOnlyResponse {
+            payload: serde_json::to_string(&data).ok(),
+            stale: false,
+            failure: None,
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}

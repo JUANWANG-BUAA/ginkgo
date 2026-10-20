@@ -221,6 +221,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   QueryDates dco_decode_query_dates(dynamic raw);
 
   @protected
+  ReadOnlyResponse dco_decode_read_only_response(dynamic raw);
+
+  @protected
   RouteChoice dco_decode_route_choice(dynamic raw);
 
   @protected
@@ -503,6 +506,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   QueryDates sse_decode_query_dates(SseDeserializer deserializer);
+
+  @protected
+  ReadOnlyResponse sse_decode_read_only_response(SseDeserializer deserializer);
 
   @protected
   RouteChoice sse_decode_route_choice(SseDeserializer deserializer);
@@ -863,6 +869,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_query_dates(QueryDates self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_read_only_response(
+    ReadOnlyResponse self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_route_choice(RouteChoice self, SseSerializer serializer);

@@ -1,0 +1,19 @@
+{
+  "contract": "bykc.catalog",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "config": {
+      "semester": []
+    },
+    "pages": [
+      {
+        "content": []
+      }
+    ]
+  },
+  "expected": {
+    "terms": [],
+    "courses": []
+  }
+}

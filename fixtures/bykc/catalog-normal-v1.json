@@ -1,0 +1,50 @@
+{
+  "contract": "bykc.catalog",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "config": {
+      "semester": [
+        {
+          "id": 1,
+          "semesterName": "合成学期"
+        }
+      ]
+    },
+    "pages": [
+      {
+        "content": [
+          {
+            "id": 1,
+            "courseName": "合成博雅课程",
+            "courseTeacher": "合成教师",
+            "coursePosition": "合成教室",
+            "courseNewKind1": {
+              "kindName": "美育"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "expected": {
+    "terms": [
+      {
+        "id": "1",
+        "name": "合成学期",
+        "start": null,
+        "end": null
+      }
+    ],
+    "courses": [
+      {
+        "id": 1,
+        "name": "合成博雅课程",
+        "teacher": "合成教师",
+        "position": "合成教室",
+        "category": "美育",
+        "subcategory": null
+      }
+    ]
+  }
+}
