@@ -10,7 +10,7 @@ final class ExamViewModelTests: XCTestCase {
                     examPlace: "主楼 201", examSeatNo: "A12", week: 17,
                     examStatus: nil, examType: "期末", taskId: "exam-1")
     let service = StubExamService(results: [.success([exam]), .failure(ScheduleError.unavailable("本科教务"))])
-    let model = ExamViewModel(service: service)
+    let model = ExamViewModel(repository: DefaultExamRepository(service: service))
 
     await model.load(termID: "2026-2027-1")
     await model.load(termID: "2026-2027-1", force: true)
@@ -27,7 +27,7 @@ final class ExamViewModelTests: XCTestCase {
                    examDate: nil, startTime: nil, endTime: nil, examPlace: nil,
                    examSeatNo: nil, week: nil, examStatus: nil, examType: nil, taskId: "old")
     let service = StubExamService(results: [.success([old]), .failure(ScheduleError.unavailable("本科教务"))])
-    let model = ExamViewModel(service: service)
+    let model = ExamViewModel(repository: DefaultExamRepository(service: service))
 
     await model.load(termID: "2025-2026-1")
     await model.load(termID: "2026-2027-1")
@@ -50,8 +50,10 @@ final class ExamViewModelTests: XCTestCase {
     let cachedAt = Date(timeIntervalSinceNow: -60 * 60)
     try await cache.save(ExamCacheEntry(exams: [exam], fetchedAt: cachedAt), account: "account-1", termID: termID)
     let model = ExamViewModel(
-      service: StubExamService(results: [.failure(ScheduleError.unavailable("本科教务"))]),
-      cache: cache
+      repository: DefaultExamRepository(
+        service: StubExamService(results: [.failure(ScheduleError.unavailable("本科教务"))]),
+        cache: cache
+      )
     )
 
     await model.load(termID: termID, account: "account-1")

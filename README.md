@@ -7,7 +7,7 @@
 ## 快速开始
 
 1. 用 Xcode 16+（工程为文件系统同步格式；本机已用 Xcode 27.1 验证可编译、测试全绿）打开 `BUAA-Assistant.xcodeproj`；
-2. ⌘R 运行，⌘U 跑测试（源码现有 212 个测试方法；当前全量通过）；
+2. ⌘R 运行，⌘U 跑测试（当前源码声明 215 个测试方法；最近一次已记录的 212 项通过基线与本工作树验证状态见 [docs/TESTING.md](docs/TESTING.md)）；
 3. 按顺序阅读 [docs/ROADMAP.md](docs/ROADMAP.md) 开始开发——它回答"先写什么、后写什么、每步怎么验收"；
 4. iOS 版打开 `BUAA-Assistant-iOS/Ginkgo-iOS.xcodeproj`（iOS 17+）；工程由 [XcodeGen](https://github.com/yonaskolb/XcodeGen) 根据 `project.yml` 生成，详见 [iOS 子项目说明](docs/IOS.md)。
 
@@ -48,6 +48,10 @@ xcodebuild test \
 ```
 
 平台边界、复用矩阵、真机验收清单见 [docs/IOS.md](docs/IOS.md)；项目改进优先级见 [docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md)。
+
+## Android / Windows 镜像项目准备
+
+项目开始为 Android 与 Windows 的 Rust + Flutter 镜像做边界准备；现阶段仍由 macOS/iOS SwiftUI 应用提供正式产品，Rust/Flutter 工程尚未创建，也尚未开始协议移植。跨语言契约、FFI 边界与迁移顺序见 [Rust + Flutter 准备说明](docs/RUST-FLUTTER-PORT.md)；平台路线见 [多平台策略](docs/MULTI-PLATFORM-STRATEGY.md)。
 
 ## 界面预览
 
@@ -131,10 +135,10 @@ BUAA-Assistant/
 ├── BUAA-Assistant.xcodeproj       # macOS Xcode 16+ 工程（objectVersion 70 文件系统同步）
 ├── BUAA-Assistant-iOS/            # iOS 17+ 子项目（XcodeGen project.yml + 自适应 SwiftUI 应用壳）
 ├── BUAA-Assistant.entitlements    # macOS App Sandbox + 网络客户端权限
-├── BUAA-Assistant/                # 跨平台共享源码（新增 .swift 文件自动纳入 macOS 编译）
+├── BUAA-Assistant/                # macOS/iOS 共用的 Swift 源码（新增 .swift 文件自动纳入 macOS 编译）
 │   ├── Features/                  # Auth / Today / Schedule / Grade / Library / Classroom / Homework / CheckIn / Campus / Tasks / Settings
 │   └── Core/                      # Network / Storage / Logging / UI（共享提示、跨平台语义色与空态组件）
-├── BUAA-AssistantTests/           # 单元测试（当前 167 个测试方法；iOS target 复用）
+├── BUAA-AssistantTests/           # 单元测试（当前 215 个测试方法；iOS target 复用）
 ├── LICENSE                        # MIT License（含 UBAA 参考实现版权声明）
 └── docs/                          # 全部文档与界面截图（单一事实源）
 ```

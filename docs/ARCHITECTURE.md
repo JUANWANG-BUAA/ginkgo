@@ -1,13 +1,13 @@
 # BUAA Assistant - 架构设计文档
 
-## 当前实现说明（2026-10-17）
+## 当前实现说明（2026-10-20）
 
-本文件包含目标架构与历史设计示例，不能据此推断所有能力已经实现。当前模块为 Auth、Today、Schedule、Grade、Homework、Library、Classroom、CheckIn、Tasks、Settings，并新增 BYKC、GraduateAcademic 与研讨室只读数据模型；入口与全局状态仍在源码根目录。2026-10-17 新增 `BUAA-Assistant-iOS/` 子项目，2026-10-18 进一步将其页面层改为独立原生 SwiftUI：iOS 壳、资源、登录与十二个功能入口全部位于 `BUAA-Assistant-iOS/Sources/`，只共享 CAS、网络、模型、解析器、缓存和 ViewModel。跨平台语义色与平台图片适配集中在 `Core/UI/CrossPlatformSupport.swift`。当前仍是“共享源码 + target membership”的过渡结构，长期应抽取 `GinkgoCore` Swift Package，详见 [IMPROVEMENTS.md](IMPROVEMENTS.md)。
+本文件包含目标架构与历史设计示例，不能据此推断所有能力已经实现。当前模块为 Auth、Today、Schedule、Grade、Homework、Library、Classroom、CheckIn、Tasks、Settings，并新增 BYKC、GraduateAcademic 与研讨室只读数据模型；入口与全局状态仍在源码根目录。2026-10-17 新增 `BUAA-Assistant-iOS/` 子项目，2026-10-18 进一步将其页面层改为独立原生 SwiftUI：iOS 壳、资源、登录与十二个功能入口全部位于 `BUAA-Assistant-iOS/Sources/`，只共享 CAS、网络、模型、解析器、缓存和 ViewModel。跨平台语义色与平台图片适配集中在 `Core/UI/CrossPlatformSupport.swift`。Apple 两端当前仍是“共享源码 + target membership”的过渡结构；`GinkgoCore` Swift Package 是 Apple 工程内部可选的模块化改进，不是 Rust + Flutter 镜像项目的前置条件。跨语言边界以 [RUST-FLUTTER-PORT.md](RUST-FLUTTER-PORT.md) 为准，优先级见 [IMPROVEMENTS.md](IMPROVEMENTS.md)。
 
 - 网络：APIClient 提供共享 Cookie 的普通会话与禁止自动重定向的认证会话；CasClient、ScheduleClient、GradeClient、LibraryClient、ClassroomClient 分别接入上游。图书馆业务 token 仅保存在 LibraryClient 内存；官网实时空间数据由独立的 `LibraryPublicStatsClient` 通过无 Cookie ephemeral 会话只读获取。
-- 状态：`WorkspaceHost` 创建 `WorkspaceCoordinator` 并持有全部模块 ViewModel，macOS `MainView` 与 iOS `IOSMainView` 通过共享的 `WorkspaceLifecycleModifier` 处理签到轮询、WebVPN 会话、课程提醒、前后台/网络恢复刷新与 UC 会话复核；切换页面不重建同步状态，账号切换时整个工作区随 `.id(account)` 释放。签到页将 iclass 业务拒绝与学校 CAS 失效分开，并限制 session 刷新回查次数。尚未统一成目标架构中的 Service/Repository 层。
+- 状态：`WorkspaceHost` 创建 `WorkspaceCoordinator` 并持有全部模块 ViewModel，macOS `MainView` 与 iOS `IOSMainView` 通过共享的 `WorkspaceLifecycleModifier` 处理签到轮询、WebVPN 会话、课程提醒、前后台/网络恢复刷新与 UC 会话复核；切换页面不重建同步状态，账号切换时整个工作区随 `.id(account)` 释放。签到页将 iclass 业务拒绝与学校 CAS 失效分开，并限制 session 刷新回查次数。课表、考试、空教室、成绩、学校作业和 BYKC 已建立对应 Repository 边界，ViewModel 不再直接依赖上游客户端与磁盘缓存；签到、校园通知和研究生教务仍待收敛。
 - 存储：凭据可选保存到钥匙串；课表、考试、成绩、作业、图书馆、空教室和签到快照使用 Codable JSON 文件，个人数据文件名按账号 SHA-256 摘要隔离；摘要不是内容加密。课表快照可含已查询周次，空教室最多保留 12 组校区/日期结果，考试最多保留 12 个学期，签到缓存当天状态和最多 180 个历史日期。校园通知缓存最近 5 条公开内容。图书馆最多缓存 2,000 个座位；图书馆分区余量与官网人数另按本机小时聚合，不含账号或座位标识，最多保存 60 天/4,000 条。设置可清理查询快照及图书馆聚合历史，不删除个人待办。尚未实现 SwiftData 或完整的多学期成绩仓库。
-- 界面：NavigationSplitView 的导航为今天、课程签到、课表、成绩、研究生教务、学校作业、博雅、图书馆、研讨室、空教室、待办、设置。研究生教务与博雅只读展示白名单/课程数据；研讨室为教学楼 CGYY 预约、订单与门锁密码（自动滑块识别需用户确认）；图书馆研讨间代码已于 2026-10-19 瘦身时整体删除（协议资料仍见 API.md / EDUCATION-DATA-MAP）；图书馆“我的预约”分为进行中与历史并支持座位签到/暂离/完全离开。主窗口默认 1200 × 800 pt，最小 800 × 560 pt。课表网格使用 TimetableLayout 分配重叠课程栏位；同日同课、同教室的连续节次合并，保留教师差异供详情查看。周网格保留可读的最小日列宽，不够时横向滚动，SemesterOverview 显示查询覆盖范围。
+- 界面：NavigationSplitView 的导航为今天、课程签到、课表、成绩、研究生教务、学校作业、博雅、图书馆、研讨室、空教室、待办、设置。研究生教务与博雅只读展示白名单/课程数据；研讨室为教学楼 CGYY 预约、订单与门锁密码（自动滑块识别需用户确认）；图书馆研讨间代码已于 2026-10-19 瘦身时整体删除（协议资料仍见 API.md / EDUCATION-DATA-MAP）；图书馆“我的预约”分为进行中与历史并支持座位签到/暂离/完全离开。主窗口默认 1200 × 800 pt，最小 800 × 560 pt。课表网格使用 TimetableLayout 分配重叠课程栏位；同日同课、同教室的连续节次合并，保留教师差异供详情查看。周网格保留可读的最小日列宽，不够时横向滚动，SemesterOverview 显示查询覆盖范围。macOS 课表、成绩、学校作业和博雅统一使用 `AcademicPageHeader`、`AcademicSectionHeading` 与摘要/列表分层；详细视觉规则及未验收项见 [UI-DESIGN.md](UI-DESIGN.md)。
 - 图书馆预约自动定位北航时区当前时段；预约端分区数据展示空闲/总座位并按本机历史估算不可预约座位数量。官网公开数据另提供两校区在馆人数和沙河特色阅览室人数；人数按校区/日期/小时采样，趋势及估算基于相同星期和时段的本机历史均值，不能推断官网未提供的楼层人数，也不等同于官方预测。
 - 快捷键：全局快捷键由 Carbon `RegisterEventHotKey` 注册，⌃⌥B 用于恢复并聚焦主窗口；默认关闭，可从应用菜单启停，偏好保存在本机 UserDefaults。
 - 启动：设置页使用 `SMAppService.mainApp` 注册或注销当前应用登录项；批准状态以 macOS Service Management 为准，可跳转系统登录项设置。
@@ -25,6 +25,44 @@
 研究生教务首页改为共享的 `GraduateRequirementDashboard`，基于 `GraduateRequirementBuilder` 保留“总要求 → 类别 → 课组 → 修读记录”的层级。每层分别计算要求减已获，不累加父子缺口，不将待考核/在修计入已获。校企课程与分阶段培养作为独立约束；合并要求保留原文。查询快照记录分项错误与成功时间，部分刷新失败保留对应旧数据。缓存使用原目录内的版本 2 envelope，旧语义快照不再读入，下次成功刷新覆盖。
 
 图书馆产品范围仅为座位预约，维护者已验证可行；历史 seminar 提交已停用。教学楼 CGYY 补齐有界 WebVPN 登录与统一路由，认证后仅 GET 可重查；预约/取消结果未知时暂停重复操作，要求核对订单。真实 CGYY 写操作仍待人工验收。
+
+### 2026-10-19 · 空教室数据边界拆分
+
+默认仓库由共享工作区入口 `WorkspaceCoordinator` 组装，`ClassroomViewModel` 只接收仓库接口。
+
+新增 `ClassroomRepository` 协议，由默认实现组合上游 `ClassroomServing` 与本地 `ClassroomCache`；`ClassroomViewModel` 通过仓库读取快照、查询、保存和清理缓存。搜索索引、筛选与排序移至独立的 `ClassroomResults.swift`，不依赖 SwiftUI 或数据获取。此处作为后续按功能迁移 Repository 边界的参考；缓存新鲜度和页面状态仍由 ViewModel 编排。
+
+### 2026-10-19 · 成绩数据边界拆分
+
+新增 `GradeRepository`，将学期发现、成绩查询和账号快照存取组合到默认仓库。`GradeViewModel` 只处理学期选择、刷新节流、页面状态与错误呈现；设置页通过 ViewModel 清理缓存。
+
+### 2026-10-19 · 课表数据边界拆分
+
+新增 `ScheduleRepository`，组合课表上游服务和账号快照读写。`ScheduleViewModel` 只依赖仓库；macOS/iOS 设置页及菜单栏摘要不再直接实例化 `ScheduleCache`。
+
+课表快照的缓存周次选择与同学期已知周次保留提取为 `ScheduleSnapshot` 的纯值操作。ViewModel 负责加载状态、刷新并发与缓存提交，不再直接拼装快照内容；跨语言行为由 `fixtures/schedule/week-snapshot-v1.json` 固定。
+
+### 2026-10-19 · 考试数据边界拆分
+
+新增 `ExamRepository`，将考试上游查询、按账号/学期缓存与清理集中到仓库。`ExamViewModel` 只依赖仓库并保留缓存回退、新鲜度与页面状态编排。
+
+### 2026-10-19 · 学校作业数据边界拆分
+
+新增 `HomeworkRepository`，将作业快照读取/保存、上游加载、可选详情加载与账号缓存清理集中到默认仓库。`HomeworkViewModel` 只依赖仓库；macOS/iOS 设置页通过 ViewModel 清理缓存，不再直接创建 `HomeworkCache`。刷新节流、页面状态和错误呈现仍由 ViewModel 负责。
+
+### 2026-10-19 · Rust + Flutter 镜像准备
+
+按 Rust + Flutter 镜像方向开始整理跨语言边界；当前假设覆盖 Android/Windows，Apple 继续使用 SwiftUI。应用不运行自建 HTTP 后端：Flutter 经粗粒度绑定调用 Rust 完整用例，协议、Cookie 会话、缓存与业务规则留在 Rust core；API.md 仍是上游协议事实源。新增版本化 fixture 约定，并将空教室排序枚举改为稳定 wire code、将中文标题移至独立 presentation adapter。详细范围见 [RUST-FLUTTER-PORT.md](RUST-FLUTTER-PORT.md)。
+
+### 2026-10-20 · BYKC 数据与课程目录边界
+
+新增 `BykcRepository` / `BykcServing`：仓库组合 BYKC 上游服务与按账号隔离的快照缓存，`BykcViewModel` 负责页面状态、缓存回退与账号生命周期；macOS 与 iOS 设置页都通过 ViewModel 清理 BYKC 缓存。上游 token、加密信封和请求解析仍留在 `BykcClient`，本次没有改变学校协议或快照存储格式。
+
+课程目录过滤抽到无界面的 `BykcCourseCatalog`。`BykcCourseFilter` 使用 `all` / `named` / `unclassified` 类别选择，不把本地化标签作为规则值；分类计数、空类别归一化和定 locale 的大小写不敏感搜索都有确定性测试。`BykcSemesterPolicy` 将学期选择从网络 actor 分离；“全部/未分类”和人数格式移到 `BykcCoursePresentation`。共享合成契约见 `fixtures/bykc/course-filter-v1.json`，供未来 Rust 实现直接复用。
+
+### 2026-10-20 · macOS 教务界面层级
+
+新增 macOS 页面组件 `AcademicPageHeader`、`AcademicSectionHeading`、`AcademicMetricStrip` 和 `academicPanel`；它们使用语义色、轻分组和一致的标题层级，不引入跨平台 UI 依赖。成绩页按“学期/新鲜度 → 汇总指标 → 统计口径 → 课程成绩”组织；作业状态计数与状态筛选联动，结果采用连续行；博雅摘要不再将统计网格嵌入整个内容大卡片；课表把学期、周次控件放在同一分组。`ProgressiveList` 新增默认值兼容的行距参数。代码实现不代表浅/深色、窄窗口和 VoiceOver 的真实设备验收已经完成。
 
 ## 1. 项目概述
 
@@ -73,7 +111,8 @@
 |------|------|
 | Electron/Tauri | 非原生，包体大 |
 | React Native | 非原生 macOS 体验 |
-| KMP/Compose | 已在 UBAA 中使用，本项目探索原生方案 |
+| KMP/Compose Multiplatform | 不是当前跨平台路线；历史选型说明见 [MULTI-PLATFORM-STRATEGY.md](MULTI-PLATFORM-STRATEGY.md) |
+| Rust + Flutter | 尚未用于 Apple 应用；当前仅作为 Android/Windows 镜像项目的准备方向，边界见 [RUST-FLUTTER-PORT.md](RUST-FLUTTER-PORT.md) |
 | Core Data | SwiftData 更现代 |
 
 ---
@@ -462,6 +501,8 @@ class MockAPI: AcademicAPI { ... }        // 测试用
 
 #### 9.1.1 KMP 跨平台抽象的代价
 
+> **历史选型记录**：以下评价针对早期“仅做 macOS 原生应用”的决策背景，不是当前多平台路线的总评，也不代表本项目仍然只做一个平台。当前方向已更新为 Apple 继续 SwiftUI、Android/Windows 准备 Rust + Flutter 镜像；见 [MULTI-PLATFORM-STRATEGY.md](MULTI-PLATFORM-STRATEGY.md)。
+
 UBAA 选择 Kotlin Multiplatform + Compose Multiplatform 覆盖 6 个平台（Android/iOS/Desktop/Web Wasm/Web JS/Server）。这一选择的代价远大于收益：
 
 | 问题 | 具体表现 | 教训 |
@@ -471,7 +512,7 @@ UBAA 选择 Kotlin Multiplatform + Compose Multiplatform 覆盖 6 个平台（An
 | Wasm 目标限制严重 | Ktor client 在 Wasm 上不支持 Cookie jar、不支持 multipart、TLS 受限 | 不要为了覆盖一个边缘平台而污染整个架构 |
 | 构建系统复杂度 | Gradle 多模块 + KMP 插件 + 6 平台 target，冷启动 >3 分钟，增量编译频繁失败 | 构建时间直接影响开发体验，Mac 原生项目用 Xcode + SPM 即可 |
 
-**本项目的决策**：放弃跨平台，使用 Swift + SwiftUI 只做 macOS 原生。代码量更小、构建更快、体验更好。
+**当时的决策（仅 macOS 阶段）**：使用 Swift + SwiftUI 做原生 macOS 客户端。2026-10-19 起，项目新增 Android/Windows Rust + Flutter 镜像准备方向；Apple 客户端仍维持 SwiftUI。该历史判断不再表达整个项目的当前平台范围。
 
 #### 9.1.2 三层架构的边界模糊
 
@@ -651,7 +692,7 @@ UBAA 的 `commonTest` 中大量使用硬编码的 Mock 响应。这些 Mock 数�
 
 | 原则 | UBAA 的做法 | 本项目的做法 |
 |------|-------------|-------------|
-| 平台选择 | 6 平台 KMP | macOS 原生 Swift |
+| 平台选择 | 6 平台 KMP | Apple：SwiftUI；Android/Windows：Rust + Flutter 镜像准备 |
 | 连接模式 | 三种模式 × N 个接口 | 自动 / 直连 / WebVPN；无 ServerRelay，统一 `routedData` 传输层 |
 | 凭据存储 | 明文 Preferences | Keychain + Access Control |
 | 并发模型 | 受管 CoroutineScope（viewModelScope 等；旧版误记 GlobalScope，更正见 §9.3.1） | Swift Concurrency + Actor 隔离 |

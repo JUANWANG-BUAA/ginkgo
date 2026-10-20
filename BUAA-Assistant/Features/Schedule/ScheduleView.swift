@@ -9,8 +9,13 @@ struct ScheduleView: View {
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 24) {
-        PageHeading(eyebrow: "ACADEMIC / SCHEDULE", title: "我的课表", subtitle: "按周查看课程与上课地点")
+      VStack(alignment: .leading, spacing: 20) {
+        AcademicPageHeader(
+          section: "教务 · 时间安排",
+          title: "我的课表",
+          subtitle: "按学期和周次查看课程与上课地点",
+          symbol: "calendar"
+        )
         if let snapshot = model.snapshot {
           controls(snapshot)
           if let error = model.errorMessage {
@@ -18,8 +23,13 @@ struct ScheduleView: View {
           } else if let feedback = model.feedback {
             StatusNotice(message: feedback, kind: .success)
           }
-          Text("上次同步：\(snapshot.fetchedAt.formatted(date: .abbreviated, time: .shortened)) · \(snapshot.portal == .graduate ? "研究生教务" : "本科教务")")
-            .font(.caption).foregroundStyle(.secondary)
+          Label(
+            "同步于 \(snapshot.fetchedAt.formatted(date: .abbreviated, time: .shortened)) · \(snapshot.portal == .graduate ? "研究生教务" : "本科教务")",
+            systemImage: "clock"
+          )
+          .font(.caption)
+          .foregroundStyle(.secondary)
+          AcademicSectionHeading(title: "课表视图", detail: "选择周课表、学期总览或每日清单")
           Picker("显示方式", selection: $mode) {
             Text("周课表").tag("周课表")
             Text("学期总览").tag("学期总览")
@@ -118,8 +128,7 @@ struct ScheduleView: View {
       Spacer(minLength: 0)
       if model.isLoading { ProgressView().controlSize(.small).accessibilityLabel("正在更新课表") }
     }
-    .padding(16)
-    .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 12))
+    .academicPanel(inset: 12)
   }
 
   private func termPicker(_ snapshot: ScheduleSnapshot) -> some View {
@@ -144,8 +153,10 @@ struct ScheduleView: View {
     let selected = snapshot.weeks.first(where: { $0.number == snapshot.weekNumber })
     return VStack(alignment: .leading, spacing: 12) {
       if let selected {
-        Text("\(selected.start.formatted(date: .abbreviated, time: .omitted)) – \(selected.end.formatted(date: .abbreviated, time: .omitted))")
-          .font(.headline)
+        AcademicSectionHeading(
+          title: "第 \(selected.number) 周",
+          detail: "\(selected.start.formatted(date: .abbreviated, time: .omitted)) – \(selected.end.formatted(date: .abbreviated, time: .omitted))"
+        )
       }
       LazyVGrid(columns: [GridItem(.adaptive(minimum: 210), spacing: 12)], alignment: .leading, spacing: 12) {
         ForEach(1...7, id: \.self) { day in dayColumn(day, snapshot: snapshot) }

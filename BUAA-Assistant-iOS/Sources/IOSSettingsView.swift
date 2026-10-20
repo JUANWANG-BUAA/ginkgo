@@ -8,6 +8,7 @@ struct IOSSettingsView: View {
   @EnvironmentObject private var exams: ExamViewModel
   @EnvironmentObject private var classroom: ClassroomViewModel
   @EnvironmentObject private var homework: HomeworkViewModel
+  @EnvironmentObject private var bykc: BykcViewModel
   @EnvironmentObject private var library: LibraryViewModel
   @EnvironmentObject private var campusNotices: CampusNoticesViewModel
   @EnvironmentObject private var checkIn: CheckInViewModel
@@ -296,19 +297,16 @@ struct IOSSettingsView: View {
     Task {
       defer { clearing = false }
       do {
-        try await ScheduleCache().clear(account: account)
-        try await GradeCache().clear(account: account)
-        try await HomeworkCache().clear(account: account)
+        try await schedule.clearCache(account: account)
+        try await grades.clearCache(account: account)
+        try await homework.clearCache(account: account)
         try await GraduateAcademicCache().clear(account: account)
-        try await BykcCache().clear(account: account)
+        try await bykc.clearCache(account: account)
         try await exams.clearCache(account: account)
         try await library.clearCache(account: account)
         try await checkIn.clearCache(account: account)
         try await classroom.clearCache(account: account)
         try await campusNotices.clearCache()
-        schedule.reset()
-        grades.reset()
-        homework.reset()
         appState.showToast("查询缓存已清除，个人待办已保留")
       } catch {
         AppLog.cacheWriteFailed(feature: "settings-clear", error: error)

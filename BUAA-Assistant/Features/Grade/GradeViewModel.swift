@@ -9,17 +9,13 @@ final class GradeViewModel: ObservableObject {
   @Published private(set) var feedback: String?
   @Published private(set) var needsSessionCheck = false
 
-  private let termService: TermServing
-  private let grades: GradeServing
-  private let cache: GradeCache
+  private let repository: GradeRepository
   private var account: String?
   private var generation = 0
   private var autoRefresh = AutoRefreshGate()
 
-  init(termService: TermServing = ScheduleClient(), grades: GradeServing = GradeClient(), cache: GradeCache = GradeCache()) {
-    self.termService = termService
-    self.grades = grades
-    self.cache = cache
+  init(repository: GradeRepository) {
+    self.repository = repository
   }
 
   func start(account: String) async {
@@ -28,7 +24,7 @@ final class GradeViewModel: ObservableObject {
     self.account = account
     isLoading = true
     let current = generation
-    let cached = await cache.read(account: account)
+    let cached = await repository.cachedSnapshot(account: account)
     guard current == generation else { return }
     snapshot = cached
     await refresh()
@@ -44,6 +40,12 @@ final class GradeViewModel: ObservableObject {
     errorMessage = nil
     feedback = nil
     needsSessionCheck = false
+  }
+
+  func clearCache(account overrideAccount: String? = nil) async throws {
+    guard let account = overrideAccount ?? self.account else { return }
+    try await repository.clearCache(account: account)
+    reset()
   }
 
   func refreshIfStale(
@@ -70,19 +72,19 @@ final class GradeViewModel: ObservableObject {
     defer { finishRefresh(current: current) }
     do {
       if terms.isEmpty {
-        let available = try await termService.availableTerms()
+        let available = try await repository.availableTerms()
         guard current == generation else { return }
         terms = available
       }
       let chosen = term ?? terms.first(where: { $0.id == snapshot?.term.id })
         ?? terms.first(where: \.isSelected) ?? terms.first
       guard let chosen else { throw ScheduleError.invalidTerm }
-      let result = try await grades.load(term: chosen)
+      let result = try await repository.load(term: chosen)
       guard current == generation else { return }
       snapshot = result
       feedback = "成绩已更新"
       if let account {
-        do { try await cache.save(result, account: account) }
+        do { try await repository.save(result, account: account) }
         catch { AppLog.cacheWriteFailed(feature: "grades", error: error) }
       }
     } catch {

@@ -58,6 +58,38 @@ struct ScheduleSnapshot: Codable {
   let fetchedAt: Date
   var termCourses: [String: [CourseMeeting]]? = nil
 
+  /// Selects a previously cached week without changing the set of known weeks.
+  func selectingCachedWeek(_ week: Int) -> ScheduleSnapshot? {
+    guard let courses = termCourses?[String(week)] else { return nil }
+    return ScheduleSnapshot(
+      portal: portal,
+      terms: terms,
+      termID: termID,
+      weeks: weeks,
+      weekNumber: week,
+      courses: courses,
+      fetchedAt: fetchedAt,
+      termCourses: termCourses
+    )
+  }
+
+  /// Retains known weeks when an upstream response only contains one week.
+  /// A prior snapshot's displayed week is itself a known result even if its map is nil.
+  func retainingKnownWeeks(from previous: ScheduleSnapshot?) -> ScheduleSnapshot {
+    guard termCourses == nil else { return self }
+
+    var knownWeeks: [String: [CourseMeeting]] = [:]
+    if let previous, previous.termID == termID {
+      knownWeeks = previous.termCourses ?? [:]
+      knownWeeks[String(previous.weekNumber)] = previous.courses
+    }
+    knownWeeks[String(weekNumber)] = courses
+
+    var result = self
+    result.termCourses = knownWeeks
+    return result
+  }
+
   func containsToday(now: Date = Date()) -> Bool {
     guard let week = weekContaining(now),
           let end = SchoolTime.calendar.date(byAdding: .day, value: 1, to: week.end) else { return false }

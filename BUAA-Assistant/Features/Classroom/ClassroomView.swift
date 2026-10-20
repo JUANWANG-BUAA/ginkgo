@@ -218,7 +218,7 @@ struct ClassroomView: View {
             Text("至少 4 节").tag(4)
           }
           Picker("排序", selection: $model.sort) {
-            ForEach(ClassroomSort.allCases) { Text($0.rawValue).tag($0) }
+            ForEach(ClassroomSort.allCases) { Text(ClassroomSortPresentation.title(for: $0)).tag($0) }
           }
         }
         .padding(.top, 10)

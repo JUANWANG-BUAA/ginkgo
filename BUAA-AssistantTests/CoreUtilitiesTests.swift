@@ -13,11 +13,35 @@ final class CoreUtilitiesTests: XCTestCase {
   }
 
   func testSchoolTimeUsesBeijingDateRegardlessOfDeviceZone() throws {
-    // 2026-10-18 16:30 UTC 是北京时间 10-19 00:30。
-    let instant = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-10-18T16:30:00Z"))
-    XCTAssertEqual(SchoolTime.dayString(instant), "2026-10-19")
-    XCTAssertEqual(SchoolTime.minutesSinceMidnight(instant), 30)
-    XCTAssertEqual(SchoolTime.date(from: "2026-10-19 00:30", formats: ["yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm"]), instant)
+    let fixtureURL = URL(fileURLWithPath: #filePath)
+      .deletingLastPathComponent()
+      .deletingLastPathComponent()
+      .appendingPathComponent("fixtures/time/beijing-day-v1.json")
+    let fixture = try JSONDecoder().decode(
+      SchoolTimeContractFixture.self,
+      from: Data(contentsOf: fixtureURL)
+    )
+
+    XCTAssertEqual(fixture.contract, "school_time.beijing_day")
+    XCTAssertEqual(fixture.version, 1)
+    XCTAssertEqual(fixture.source, "synthetic")
+    XCTAssertEqual(SchoolTime.timeZone.identifier, fixture.expected.timeZone)
+
+    let instant = try XCTUnwrap(ISO8601DateFormatter().date(from: fixture.input.instant))
+    XCTAssertEqual(SchoolTime.dayString(instant), fixture.expected.localDate)
+    XCTAssertEqual(SchoolTime.minutesSinceMidnight(instant), fixture.expected.minutesSinceMidnight)
+    let clock = String(
+      format: "%02d:%02d",
+      fixture.expected.minutesSinceMidnight / 60,
+      fixture.expected.minutesSinceMidnight % 60
+    )
+    XCTAssertEqual(
+      SchoolTime.date(
+        from: "\(fixture.expected.localDate) \(clock)",
+        formats: ["yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm"]
+      ),
+      instant
+    )
     XCTAssertNil(SchoolTime.date(from: "待定", formats: ["yyyy-MM-dd"]))
   }
 
@@ -81,5 +105,23 @@ final class CoreUtilitiesTests: XCTestCase {
     try store.remove(account: "sy2501001")
     try store.remove(account: "sy2501001")
     XCTAssertNil(store.read([String: Int].self, account: "sy2501001"))
+  }
+}
+
+private struct SchoolTimeContractFixture: Decodable {
+  let contract: String
+  let version: Int
+  let source: String
+  let input: Input
+  let expected: Expected
+
+  struct Input: Decodable {
+    let instant: String
+  }
+
+  struct Expected: Decodable {
+    let timeZone: String
+    let localDate: String
+    let minutesSinceMidnight: Int
   }
 }

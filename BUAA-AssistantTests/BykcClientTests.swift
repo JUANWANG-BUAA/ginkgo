@@ -26,7 +26,7 @@ final class BykcClientTests: XCTestCase {
       BykcSemester(id: 1, name: "春季", startDate: "2026-02-01 00:00:00", endDate: "2026-06-30 23:59:59"),
       BykcSemester(id: 2, name: "秋季", startDate: "2026-09-01 00:00:00", endDate: "2027-01-31 23:59:59")
     ]
-    XCTAssertEqual(BykcClient.currentSemester(semesters, now: now)?.name, "秋季")
+    XCTAssertEqual(BykcSemesterPolicy.currentSemester(semesters, now: now)?.name, "秋季")
   }
 
   func testCurrentSemesterFallsBackToLatestEndDate() throws {
@@ -39,7 +39,7 @@ final class BykcClientTests: XCTestCase {
       BykcSemester(id: 1, name: "较早", startDate: "2026-02-01 00:00:00", endDate: "2026-06-30 23:59:59"),
       BykcSemester(id: 2, name: "较晚", startDate: "2026-09-01 00:00:00", endDate: "2027-01-31 23:59:59")
     ]
-    XCTAssertEqual(BykcClient.currentSemester(semesters, now: now)?.name, "较晚")
+    XCTAssertEqual(BykcSemesterPolicy.currentSemester(semesters, now: now)?.name, "较晚")
   }
 
   func testCategoryUsesSubcategoryForFiltering() {
@@ -62,6 +62,6 @@ final class BykcClientTests: XCTestCase {
       selected: false,
       hasSignConfig: false
     )
-    XCTAssertEqual(course.filterCategory, "美育")
+    XCTAssertEqual(BykcCourseCatalog.category(for: course), .named("美育"))
   }
 }

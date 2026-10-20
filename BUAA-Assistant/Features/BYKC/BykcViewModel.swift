@@ -7,77 +7,80 @@ final class BykcViewModel: ObservableObject {
   @Published private(set) var errorMessage: String?
   @Published private(set) var isShowingCachedData = false
   @Published var searchText = ""
-  @Published var selectedCategory = "全部"
+  @Published var selectedCategory: BykcCourseCategorySelection = .all
 
-  private let client: BykcClient
-  private let cache: BykcCache
+  private let repository: BykcRepository
   private var account: String?
   private var hasLoaded = false
+  private var generation = 0
 
-  init(client: BykcClient = BykcClient(), cache: BykcCache = BykcCache()) {
-    self.client = client
-    self.cache = cache
+  init(repository: BykcRepository) {
+    self.repository = repository
   }
 
-  var categories: [String] {
-    ["全部"] + (snapshot?.categoryCounts.map(\.0) ?? [])
+  var categories: [BykcCourseCategorySelection] {
+    [.all] + BykcCourseCatalog.categoryCounts(in: snapshot?.courses ?? []).map(\.category)
   }
 
   var filteredCourses: [BykcCourse] {
-    guard let courses = snapshot?.courses else { return [] }
-    return courses.filter { course in
-      let categoryMatches = selectedCategory == "全部" || course.filterCategory == selectedCategory
-      let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-      let searchMatches = query.isEmpty
-        || course.name.localizedCaseInsensitiveContains(query)
-        || (course.teacher?.localizedCaseInsensitiveContains(query) ?? false)
-        || (course.position?.localizedCaseInsensitiveContains(query) ?? false)
-      return categoryMatches && searchMatches
-    }
+    BykcCourseCatalog.filtered(
+      snapshot?.courses ?? [],
+      by: BykcCourseFilter(searchText: searchText, category: selectedCategory)
+    )
   }
 
   func start(account: String) async {
+    guard account.isEmpty == false else { return }
     if self.account != account {
+      generation += 1
+      isLoading = false
       snapshot = nil
       hasLoaded = false
       isShowingCachedData = false
+      errorMessage = nil
+      searchText = ""
+      selectedCategory = .all
       self.account = account
     }
-    guard hasLoaded == false else { return }
-    if let cached = await cache.read(account: account) {
+    guard hasLoaded == false, isLoading == false else { return }
+    let current = generation
+    isLoading = true
+    defer {
+      if current == generation { isLoading = false }
+    }
+    errorMessage = nil
+    if let cached = await repository.cachedSnapshot(account: account) {
+      guard current == generation else { return }
       snapshot = cached
       isShowingCachedData = true
     }
-    await refresh(account: account)
-    hasLoaded = snapshot != nil
+    await loadFreshSnapshot(account: account, generation: current)
+    if current == generation { hasLoaded = snapshot != nil }
   }
 
   func refresh(account overrideAccount: String? = nil) async {
-    guard isLoading == false else { return }
     let target = overrideAccount ?? account
     guard let target, target.isEmpty == false else { return }
-    isLoading = true
-    defer { isLoading = false }
-    errorMessage = nil
-    do {
-      let loaded = try await client.load()
-      snapshot = loaded
-      isShowingCachedData = false
-      do { try await cache.save(loaded, account: target) }
-      catch { AppLog.cacheWriteFailed(feature: "bykc", error: error) }
-    } catch {
-      if RequestCancellation.isCancellation(error) == false {
-        AppLog.operationFailed(feature: "bykc", stage: "refresh", error: error)
-        errorMessage = error.localizedDescription
-      }
-      if snapshot == nil {
-        hasLoaded = false
-      }
+    if account != target {
+      await start(account: target)
+      return
     }
+    guard isLoading == false else { return }
+    let current = generation
+    isLoading = true
+    defer {
+      if current == generation { isLoading = false }
+    }
+    await loadFreshSnapshot(account: target, generation: current)
+    if current == generation { hasLoaded = snapshot != nil }
   }
 
   /// 进入页面时先显示缓存，再按时间阈值主动刷新。
   func refreshIfStale(account: String, maxAge: TimeInterval = 2 * 60) async {
+    if self.account != account {
+      await start(account: account)
+      return
+    }
     if let snapshot,
        Date().timeIntervalSince(snapshot.fetchedAt) < maxAge,
        errorMessage == nil {
@@ -87,10 +90,34 @@ final class BykcViewModel: ObservableObject {
   }
 
   func clearCache(account: String) async throws {
-    try await cache.clear(account: account)
+    generation += 1
+    let current = generation
+    isLoading = false
+    try await repository.clearCache(account: account)
+    guard current == generation else { return }
     snapshot = nil
     self.account = nil
     hasLoaded = false
     isShowingCachedData = false
+    errorMessage = nil
+    searchText = ""
+    selectedCategory = .all
+  }
+
+  private func loadFreshSnapshot(account: String, generation current: Int) async {
+    errorMessage = nil
+    do {
+      let loaded = try await repository.refresh(account: account)
+      guard current == generation, self.account == account else { return }
+      snapshot = loaded
+      isShowingCachedData = false
+    } catch {
+      guard current == generation, self.account == account else { return }
+      if RequestCancellation.isCancellation(error) == false {
+        AppLog.operationFailed(feature: "bykc", stage: "refresh", error: error)
+        errorMessage = (error as? LocalizedError)?.errorDescription ?? "博雅更新失败，请检查网络后重试"
+      }
+      if snapshot == nil { hasLoaded = false }
+    }
   }
 }

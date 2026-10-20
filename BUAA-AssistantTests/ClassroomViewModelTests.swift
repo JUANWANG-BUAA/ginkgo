@@ -4,6 +4,27 @@ import XCTest
 
 @MainActor
 final class ClassroomViewModelTests: XCTestCase {
+  func testPortableClassroomFilterFixtureV1() throws {
+    let fixtureURL = URL(fileURLWithPath: #filePath)
+      .deletingLastPathComponent()
+      .deletingLastPathComponent()
+      .appendingPathComponent("fixtures/classroom/filter-v1.json")
+    let fixture = try JSONDecoder().decode(
+      ClassroomFilterContractFixture.self,
+      from: Data(contentsOf: fixtureURL)
+    )
+
+    XCTAssertEqual(fixture.contract, "classroom.filter")
+    XCTAssertEqual(fixture.version, 1)
+    XCTAssertEqual(fixture.input.sort.rawValue, "availability")
+
+    let result = ClassroomResultProcessor.process(fixture.input.makeInput())
+    XCTAssertEqual(result.filtered.mapValues { $0.map(\.id) }, fixture.expected.roomIDsByBuilding)
+    XCTAssertEqual(result.summary.roomCount, fixture.expected.summary.roomCount)
+    XCTAssertEqual(result.summary.buildingCount, fixture.expected.summary.buildingCount)
+    XCTAssertEqual(result.summary.freeSlotCount, fixture.expected.summary.freeSlotCount)
+  }
+
   func testSectionNormalizationAndConsecutiveAvailability() {
     let room = FreeClassroom(id: "test", floorid: "opaque", name: "101", kxsds: "1, 2,2,4,5,6,14,0,15,unknown")
     XCTAssertEqual(room.availableSections, [1, 2, 4, 5, 6, 14])
@@ -21,7 +42,7 @@ final class ClassroomViewModelTests: XCTestCase {
       ],
       "主楼北": [FreeClassroom(id: "3", floorid: "", name: "201", kxsds: "1,2,3,4,5")]
     ]
-    let model = ClassroomViewModel(client: service)
+    let model = ClassroomViewModel(repository: DefaultClassroomRepository(client: service))
     await model.query()
     model.building = "主楼"
     model.sort = .availability
@@ -52,7 +73,7 @@ final class ClassroomViewModelTests: XCTestCase {
     service.rooms = ["测试楼": (1...2000).map {
       FreeClassroom(id: "\($0)", floorid: "", name: "教室 \($0)", kxsds: $0.isMultiple(of: 2) ? "1,2,3,4" : "8,10")
     }]
-    let model = ClassroomViewModel(client: service)
+    let model = ClassroomViewModel(repository: DefaultClassroomRepository(client: service))
     await model.query()
     XCTAssertEqual(model.roomCount, 2000)
     model.minimumConsecutiveSections = 4
@@ -72,7 +93,7 @@ final class ClassroomViewModelTests: XCTestCase {
       FreeClassroom(id: "105", floorid: "", name: "(三)105", kxsds: "1,2,3"),
       FreeClassroom(id: "205", floorid: "", name: "(三)205", kxsds: "1,2,3")
     ]]
-    let model = ClassroomViewModel(client: service)
+    let model = ClassroomViewModel(repository: DefaultClassroomRepository(client: service))
     await model.query()
 
     model.search = "三105"
@@ -83,7 +104,7 @@ final class ClassroomViewModelTests: XCTestCase {
 
   func testFailedRefreshPreservesResultsAndFiltersByBuildingAndSection() async {
     let service = FakeClassroomService()
-    let model = ClassroomViewModel(client: service)
+    let model = ClassroomViewModel(repository: DefaultClassroomRepository(client: service))
     await model.query()
     model.search = " 主楼 "
     model.section = 2
@@ -106,7 +127,7 @@ final class ClassroomViewModelTests: XCTestCase {
 
   func testResetDiscardsInFlightResult() async {
     let service = DelayedClassroomService()
-    let model = ClassroomViewModel(client: service)
+    let model = ClassroomViewModel(repository: DefaultClassroomRepository(client: service))
     let request = Task { await model.query() }
     while service.continuation == nil { await Task.yield() }
     model.campus = 2
@@ -120,7 +141,7 @@ final class ClassroomViewModelTests: XCTestCase {
   func testSessionFailureIsDistinctFromEmptySuccess() async {
     let service = FakeClassroomService()
     service.fail = true
-    let model = ClassroomViewModel(client: service)
+    let model = ClassroomViewModel(repository: DefaultClassroomRepository(client: service))
     await model.query()
     XCTAssertFalse(model.queried)
     XCTAssertTrue(model.needsSessionCheck)
@@ -129,7 +150,7 @@ final class ClassroomViewModelTests: XCTestCase {
 
   func testFreshQueryUsesCacheUntilForceRefresh() async {
     let service = FakeClassroomService()
-    let model = ClassroomViewModel(client: service)
+    let model = ClassroomViewModel(repository: DefaultClassroomRepository(client: service))
     await model.query()
     XCTAssertEqual(service.callCount, 1)
     service.rooms = [:]
@@ -148,7 +169,9 @@ final class ClassroomViewModelTests: XCTestCase {
     let cache = ClassroomCache(directory: directory)
     let initialService = FakeClassroomService()
     initialService.rooms = ["主楼": [FreeClassroom(id: "cached-101", floorid: "1", name: "101", kxsds: "1,2,3")]]
-    let firstWindow = ClassroomViewModel(client: initialService, cache: cache)
+    let firstWindow = ClassroomViewModel(
+      repository: DefaultClassroomRepository(client: initialService, cache: cache)
+    )
     let cachedDate = try XCTUnwrap(SchoolTime.calendar.date(byAdding: .day, value: 1, to: Date()))
     firstWindow.campus = 2
     firstWindow.date = cachedDate
@@ -157,7 +180,9 @@ final class ClassroomViewModelTests: XCTestCase {
 
     let nextWindowService = FakeClassroomService()
     nextWindowService.fail = true
-    let nextWindow = ClassroomViewModel(client: nextWindowService, cache: cache)
+    let nextWindow = ClassroomViewModel(
+      repository: DefaultClassroomRepository(client: nextWindowService, cache: cache)
+    )
     await nextWindow.start(account: "account-1")
     await nextWindow.query()
 
@@ -184,5 +209,46 @@ private final class DelayedClassroomService: ClassroomServing {
   var continuation: CheckedContinuation<[String: [FreeClassroom]], Error>?
   func query(campus: Int, date: Date) async throws -> [String: [FreeClassroom]] {
     try await withCheckedThrowingContinuation { continuation = $0 }
+  }
+}
+
+private struct ClassroomFilterContractFixture: Decodable {
+  let contract: String
+  let version: Int
+  let input: ClassroomFilterInputFixture
+  let expected: Expected
+
+  struct Expected: Decodable {
+    let roomIDsByBuilding: [String: [String]]
+    let summary: Summary
+  }
+
+  struct Summary: Decodable {
+    let roomCount: Int
+    let buildingCount: Int
+    let freeSlotCount: Int
+  }
+}
+
+private struct ClassroomFilterInputFixture: Decodable {
+  let sourceRooms: [String: [FreeClassroom]]
+  let search: String
+  let section: Int
+  let minimumFreeSections: Int
+  let minimumConsecutiveSections: Int
+  let building: String?
+  let sort: ClassroomSort
+
+  func makeInput() -> ClassroomFilterInput {
+    ClassroomFilterInput(
+      sourceRooms: sourceRooms,
+      indexedRooms: nil,
+      search: search,
+      section: section,
+      minimumFreeSections: minimumFreeSections,
+      minimumConsecutiveSections: minimumConsecutiveSections,
+      building: building,
+      sort: sort
+    )
   }
 }

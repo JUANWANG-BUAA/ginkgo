@@ -1,8 +1,8 @@
 # BUAA Assistant - 测试计划
 
-## 当前测试证据（2026-10-18）
+## 已记录测试证据（截至 2026-10-20）
 
-源码现有 212 个 test 方法。2026-10-19 新增 `CoreUtilitiesTests`、`SharedHelpersTests`（共享日历/取值/编码/缓存、刷新节流、状态展示、成绩与作业筛选），并删除随图书馆研讨间功能一并移除的 9 项测试。此前新增 `LibraryBookingLifecycleTests`（座位动作提示、研讨室提交体、时长/空档校验与标题 ID）、`GraduateProgressTests`（总学分/课程池、状态、类别、结构化执行报告、缓存）、`CgyyClientTests`（MD5 签名、AES-ECB、订单状态、门锁密码展示）与 `CheckInTargetMatcherTests`（按课表教室/教师从多条同课程记录中选择签到目标）。当前 macOS 全量单元测试通过；iOS generic build 通过，iOS 模拟器全量 XCTest 为本轮之前的结果；另验证了 iOS UI 冒烟测试。空教室筛选改为后台计算后，`ClassroomViewModelTests` 曾出现未等待结果的回归，已由 `ClassroomViewModel.waitForFilterUpdate()` 修复并重新纳入回归；`ScheduleParserTests` 新增研究生不可推算教学班跳过、全部无排课行拒绝与“只有一周标记本周”的回归；`HomeworkViewModelTests` 新增希冀来源暂时下线的配置回归；`UpdateCheckerTests` 覆盖版本比较、更新检查、下载源回退与校验和解析。
+当前静态统计为 219 个 XCTest 方法。2026-10-20 本轮 macOS 全量 XCTest 通过；iOS 27.0 / iPhone 17 Pro 模拟器全量 XCTest 通过（`xcodebuild test` 均以退出码 0 完成）。iOS 测试期间 Xcode 输出模拟器系统版本解析和 debugger 元数据警告，但未阻止测试通过。真实设备、网络写操作和签名分发验收仍单独记录，不能由模拟器测试或构建代替。此前真机证据按各自日期留档。测试覆盖包括共享日历/取值/编码/缓存、刷新节流、状态展示、成绩与作业筛选；`LibraryBookingLifecycleTests`（座位动作提示、研讨室提交体、时长/空档校验与标题 ID）、`GraduateProgressTests`（总学分/课程池、状态、类别、结构化执行报告、缓存）、`CgyyClientTests`（MD5 签名、AES-ECB、订单状态、门锁密码展示）与 `CheckInTargetMatcherTests`（按课表教室/教师从多条同课程记录中选择签到目标）。空教室筛选改为后台计算后，`ClassroomViewModelTests` 曾出现未等待结果的回归，已由 `ClassroomViewModel.waitForFilterUpdate()` 修复并重新纳入回归；`ScheduleParserTests` 覆盖研究生不可推算教学班跳过、全部无排课行拒绝与“只有一周标记本周”；`HomeworkViewModelTests` 覆盖希冀来源暂时下线；`UpdateCheckerTests` 覆盖版本比较、更新检查、下载源回退与校验和解析。
 
 ```sh
 xcodebuild build -project BUAA-Assistant.xcodeproj -scheme BUAA-Assistant -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
@@ -34,7 +34,7 @@ xcodebuild test \
 | CasPageParserTests / CasFormParserTests | 页面字段、验证码识别、隐藏表单与编码 |
 | CasClientTests / AppStateSessionTests | 模拟认证响应、会话恢复、4xx/483 错误、WebVPN 显式路由与本地清理 |
 | UpstreamRouteTests | 自动回退、URL/Cookie 隔离、Referer/Origin 重写、网关相对重定向与表单 action |
-| BykcClientTests | BYKC AES-ECB 往返、RSA 请求信封、当前学期判定与类别过滤 |
+| BykcClientTests / BykcRepositoryTests / BykcCourseCatalogTests | BYKC 加密信封、纯学期规则、服务/账号缓存边界、共享课程筛选 fixture 与未分类类别语义 |
 | SeminarParserTests | 研讨室筛选、空间列表、占用区间、空档扣除与详情轴数据 |
 | GraduateAcademicClientTests | 学籍白名单映射、教务应用目录与培养方案课程格式 |
 | ScheduleParserTests | 本科结构、研究生周次位图、开学日期、学期码缺省与节次合并 |

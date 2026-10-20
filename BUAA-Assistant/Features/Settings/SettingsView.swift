@@ -402,9 +402,9 @@ struct SettingsView: View {
     Task {
       defer { clearing = false }
       do {
-        try await ScheduleCache().clear(account: account)
-        try await GradeCache().clear(account: account)
-        try await HomeworkCache().clear(account: account)
+        try await schedule.clearCache(account: account)
+        try await grades.clearCache(account: account)
+        try await homework.clearCache(account: account)
         try await graduateAcademic.clearCache(account: account)
         try await bykc.clearCache(account: account)
         try await exams.clearCache(account: account)
@@ -412,7 +412,6 @@ struct SettingsView: View {
         try await checkIn.clearCache(account: account)
         try await classroom.clearCache(account: account)
         try await campusNotices.clearCache()
-        schedule.reset(); grades.reset(); homework.reset()
         appState.showToast("查询缓存已清除")
       } catch {
         AppLog.network.error("缓存清理失败")

@@ -155,7 +155,7 @@ struct IOSClassroomView: View {
         }
         Picker("排序", selection: $model.sort) {
           ForEach(ClassroomSort.allCases) { sort in
-            Text(sort.rawValue).tag(sort)
+            Text(ClassroomSortPresentation.title(for: sort)).tag(sort)
           }
         }
       }

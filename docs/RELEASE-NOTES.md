@@ -1,5 +1,19 @@
 # 发布说明
 
+## Ginkgo 0.1.0-alpha.8（2026-10-20，草稿）
+
+### 本轮重构与体验改进
+
+- **业务边界继续收敛**：课表、考试、成绩、作业、空教室和 BYKC 的默认组装经 Repository 注入；筛选、排序、学期策略和课表快照操作进一步从 ViewModel/网络客户端中拆出，便于独立测试和后续跨语言复用。缓存键与既有 JSON 快照格式保持兼容。
+- **教务界面层次优化**：新增统一的学术页面标题、分区标题和指标摘要组件；成绩、作业、博雅与课表页面按“上下文—摘要—筛选/统计口径—结果”的阅读顺序组织，使用 macOS 语义色与轻分组增强层级。
+- **iOS 边界维护**：由 XcodeGen 规范更新 iOS 工程文件；原生博雅/空教室页面与设置页同步适配 Repository、筛选结果和缓存清理边界。
+- **镜像工程准备**：新增 classroom、BYKC、北京时间和课表快照跨语言 fixtures；更新 Rust + Flutter 实施计划，冻结 Android + Windows 范围，并定义 workspace、首个垂直切片、只读 MVP 顺序与阶段完成标准。此版本不包含 Rust/Flutter 可执行工程，也未改变上游协议。
+- **验证**：2026-10-20 macOS 全量 XCTest 与 iOS 27.0 / iPhone 17 Pro 模拟器 XCTest 均通过；`git diff --check` 通过。发布工作流的 Release 构建及草稿资产校验将在 tag CI 中完成。
+
+### 发布边界
+
+本版本作为 Swift/SwiftUI 阶段的 Alpha 基线草稿包。发布工作流会先生成 GitHub Draft Release 及 ZIP、DMG、校验和，需人工检查后才可公开；当前仍未配置 Developer ID 公证。真实上游写操作未纳入本轮验证。
+
 ## Ginkgo 0.1.0-alpha.7（2026-10-19）
 
 ### 本轮重构与修复

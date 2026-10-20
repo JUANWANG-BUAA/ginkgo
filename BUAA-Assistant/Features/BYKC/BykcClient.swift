@@ -2,7 +2,7 @@ import CryptoKit
 import Foundation
 import Security
 
-actor BykcClient {
+actor BykcClient: BykcServing {
   private let session: URLSession
   private let base = URL(string: "https://bykc.buaa.edu.cn")
   private var token: String?
@@ -18,7 +18,7 @@ actor BykcClient {
     let profile = Self.profile(profileData)
     let semesters = Self.semesters(configData)
     let now = Date()
-    let currentSemester = Self.currentSemester(semesters, now: now)
+    let currentSemester = BykcSemesterPolicy.currentSemester(semesters, now: now)
 
     var courses: [BykcCourse] = []
     var page = 1
@@ -170,19 +170,6 @@ actor BykcClient {
         startDate: string(row["semesterStartDate"]),
         endDate: string(row["semesterEndDate"])
       )
-    }
-  }
-
-  static func currentSemester(_ semesters: [BykcSemester], now: Date = Date()) -> BykcSemester? {
-    if let active = semesters.first(where: { semester in
-      guard let start = BykcDate.parse(semester.startDate),
-            let end = BykcDate.parse(semester.endDate) else { return false }
-      return start <= now && now <= end
-    }) {
-      return active
-    }
-    return semesters.max { lhs, rhs in
-      (BykcDate.parse(lhs.endDate) ?? .distantPast) < (BykcDate.parse(rhs.endDate) ?? .distantPast)
     }
   }
 
