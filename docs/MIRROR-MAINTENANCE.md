@@ -86,3 +86,7 @@
 2026-10-20本轮扩展到35类108份：新增SPOC详情、BYKC信封/目录、研究生执行报告、待办文档、校园通知、CGYY场馆/时段/订单；均已登记contracts router，保留正常/空/漂移/拒绝或无效文档覆盖。设备每模块只运行独立smoke，不重跑已知mirror长流程。
 
 公共统计新增独立短生命周期Session，只借用transport并复制路线，不复制登录Cookie；37类/118份合成契约。页面仅解码桥接JSON投影，不在build解析HTML；没有自动轮询或趋势持久化。
+
+本轮工具记录：临时预览的flutter run若未分配TTY，stdin不可热重载；使用明确PID的SIGUSR1（reload）/SIGUSR2（restart）。main里的外观参数需要restart。Flutter测试必须以flutter/为工作目录；启动widget初次从仓库根误运行未执行，改目录后8项通过。均未放宽断言。
+
+调试器评估可能在Flutter build栈中执行：直接调用submit触发setState during build，且在网络调用前终止。诊断操作应排入Future.microtask或正常UI事件，不把探针错误归因上游。真实输入仅通过无回显stdin进入正常表单，未放入文件/命令参数。

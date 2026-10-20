@@ -14,6 +14,7 @@ import 'grades_page.dart';
 import 'homework_page.dart';
 import 'library_page.dart';
 import 'login_page.dart';
+import 'startup_page.dart';
 import 'service_directory.dart';
 import 'reservations_page.dart';
 import 'mirror_service.dart';
@@ -131,7 +132,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
 
   @override
   Widget build(BuildContext context) => switch (stage) {
-    _Stage.restoring => ginkgoApp(home: const _StartupPage()),
+    _Stage.restoring => ginkgoApp(home: const StartupPage()),
     _Stage.demo => GinkgoApp(
       service: widget.demoService,
       onSignOut: () async => setState(() => stage = _Stage.signedOut),
@@ -201,23 +202,6 @@ CupertinoApp ginkgoApp({required Widget home, Brightness? brightness}) =>
       theme: ginkgoTheme(brightness),
       home: home,
     );
-
-class _StartupPage extends StatelessWidget {
-  const _StartupPage();
-  @override
-  Widget build(BuildContext context) => const CupertinoPageScaffold(
-    child: Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CupertinoActivityIndicator(radius: 14),
-          SizedBox(height: 14),
-          Text('正在恢复本地会话…'),
-        ],
-      ),
-    ),
-  );
-}
 
 class GinkgoApp extends StatelessWidget {
   const GinkgoApp({
