@@ -6,11 +6,36 @@ use serde_json::Value;
 pub struct ReadRow {
     pub title: String,
     pub detail: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub completed: Option<bool>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReadSection {
     pub title: String,
     pub rows: Vec<ReadRow>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub progress: Option<CreditProgress>,
+}
+/// Requirement and officially recognized credits; pending never reduces the gap.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreditProgress {
+    pub required: Option<f64>,
+    pub earned: Option<f64>,
+    pub pending: Option<f64>,
+}
+fn credit(value: &Value) -> Option<f64> {
+    let number = value
+        .as_f64()
+        .or_else(|| value.as_str()?.trim().parse().ok())?;
+    (number.is_finite() && number >= 0.0).then_some(number)
+}
+fn progress(required: &Value, earned: &Value, pending: &Value) -> CreditProgress {
+    CreditProgress {
+        required: credit(required),
+        earned: credit(earned),
+        pending: credit(pending),
+    }
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AcademicData {
@@ -59,7 +84,15 @@ fn courses(value: &Value) -> Result<Vec<ReadRow>, AppError> {
                     detail.push_str(&format!(" · {v}"));
                 }
             }
-            Ok(ReadRow { title, detail })
+            Ok(ReadRow {
+                title,
+                detail,
+                completed: match status {
+                    "已完成" => Some(true),
+                    "未完成" => Some(false),
+                    _ => None,
+                },
+            })
         })
         .collect()
 }
@@ -76,20 +109,29 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
     let categories = raw.as_array().ok_or_else(AppError::changed)?;
     let mut sections = vec![ReadSection {
         title: "培养方案执行报告".into(),
+        progress: Some(progress(
+            &root["fa"]["ZDXF"],
+            &root["yhpyfaxf"],
+            &root["dkhxf"],
+        )),
         rows: vec![
             ReadRow {
+                completed: None,
                 title: "总学分要求".into(),
                 detail: number(&root["fa"]["ZDXF"]),
             },
             ReadRow {
+                completed: None,
                 title: "方案已认定学分".into(),
                 detail: number(&root["yhpyfaxf"]),
             },
             ReadRow {
+                completed: None,
                 title: "全校累计已修学分".into(),
                 detail: number(&root["yxxf"]),
             },
             ReadRow {
+                completed: None,
                 title: "待考核学分".into(),
                 detail: number(&root["dkhxf"]),
             },
@@ -98,11 +140,13 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
     for category in categories {
         let title = text(&category["kclbmc"]).ok_or_else(AppError::changed)?;
         let mut rows = vec![ReadRow {
+            completed: None,
             title: "类别要求与进度".into(),
             detail: credits(category),
         }];
         if let Some(note) = text(&category["kclbhbzyq"]) {
             rows.push(ReadRow {
+                completed: None,
                 title: "合并组说明".into(),
                 detail: note,
             });
@@ -110,6 +154,11 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
         rows.extend(courses(&category["kcList"])?);
         sections.push(ReadSection {
             title: title.clone(),
+            progress: Some(progress(
+                &category["yqxf"],
+                &category["yhxf"],
+                &category["dkhxf"],
+            )),
             rows,
         });
         for group in category["dxzList"]
@@ -118,12 +167,14 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
         {
             let name = text(&group["dxzmc"]).ok_or_else(AppError::changed)?;
             let mut rows = vec![ReadRow {
+                completed: None,
                 title: "课组要求与进度".into(),
                 detail: credits(group),
             }];
             rows.extend(courses(&group["kcList"])?);
             sections.push(ReadSection {
                 title: format!("{title} · {name}"),
+                progress: Some(progress(&group["yqxf"], &group["yhxf"], &group["dkhxf"])),
                 rows,
             });
         }
@@ -149,10 +200,12 @@ pub fn parse_status(value: &Value) -> Result<ReadSection, AppError> {
     ];
     Ok(ReadSection {
         title: "学籍信息".into(),
+        progress: None,
         rows: fields
             .into_iter()
             .filter_map(|(label, key)| {
                 text(&row[key]).map(|detail| ReadRow {
+                    completed: None,
                     title: label.into(),
                     detail,
                 })
@@ -167,7 +220,9 @@ pub fn parse_plan(header: &Value, pool: &Value) -> Result<Vec<ReadSection>, AppE
         .ok_or_else(AppError::changed)?;
     let mut sections = vec![ReadSection {
         title: "培养方案".into(),
+        progress: None,
         rows: vec![ReadRow {
+            completed: None,
             title: text(&row["MC"]).unwrap_or_else(|| "方案名称未确认".into()),
             detail: format!(
                 "最低总学分 {} · 学位课学分 {}",
@@ -182,6 +237,7 @@ pub fn parse_plan(header: &Value, pool: &Value) -> Result<Vec<ReadSection>, AppE
         .iter()
         .map(|course| {
             Ok(ReadRow {
+                completed: None,
                 title: text(&course["KCMC"]).ok_or_else(AppError::changed)?,
                 detail: format!(
                     "{} 学分 · {} · {}",
@@ -194,6 +250,7 @@ pub fn parse_plan(header: &Value, pool: &Value) -> Result<Vec<ReadSection>, AppE
         .collect::<Result<Vec<_>, AppError>>()?;
     sections.push(ReadSection {
         title: "计划课程池（不等于毕业学分要求）".into(),
+        progress: None,
         rows,
     });
     Ok(sections)

@@ -1181,6 +1181,62 @@ pub async fn load_graduate(force_refresh: bool) -> ReadOnlyResponse {
     }
 }
 
+/// Independently cached sections, allowing Flutter to render the first response
+/// while the remaining academic request is still in flight.
+pub async fn load_graduate_part(report: bool, force_refresh: bool) -> ReadOnlyResponse {
+    use ginkgo_core::application::GraduatePart;
+    let _access = SESSION_ACCESS.read().await;
+    let result = match service() {
+        Ok(service) => {
+            service
+                .load_graduate_part(
+                    if report {
+                        GraduatePart::Report
+                    } else {
+                        GraduatePart::Status
+                    },
+                    force_refresh,
+                )
+                .await
+        }
+        Err(error) => Err(error),
+    };
+    match result {
+        Ok(outcome) => ReadOnlyResponse {
+            payload: serde_json::to_string(&outcome.data).ok(),
+            stale: outcome.failure.is_some(),
+            failure: outcome.failure.map(|e| e.code.into()),
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}
+
+pub fn load_demo_graduate_status() -> ReadOnlyResponse {
+    let status = serde_json::json!({"datas":{"xsjcxxcx":{"rows":[{
+        "YXDM_DISPLAY":"合成学院", "ZYDM_DISPLAY":"合成专业", "NJDM_DISPLAY":"2026级", "XJZTDM_DISPLAY":"在读"
+    }]}}});
+    match ginkgo_core::features::graduate::parse_status(&status) {
+        Ok(section) => ReadOnlyResponse {
+            payload: serde_json::to_string(&ginkgo_core::features::graduate::AcademicData {
+                sections: vec![section],
+                notice: None,
+            })
+            .ok(),
+            stale: false,
+            failure: None,
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}
+
 pub fn load_demo_graduate() -> ReadOnlyResponse {
     let result = (|| -> Result<_, AppError> {
         let fixture: serde_json::Value = serde_json::from_str(include_str!(

@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 246813252;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1602595655;
 
 // Section: executor
 
@@ -598,6 +598,39 @@ fn wire__crate__api__live__load_demo_graduate_impl(
         },
     )
 }
+fn wire__crate__api__live__load_demo_graduate_status_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_demo_graduate_status",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok =
+                        Result::<_, ()>::Ok(crate::api::live::load_demo_graduate_status())?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__mirror__load_demo_homework_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -929,6 +962,46 @@ fn wire__crate__api__live__load_graduate_impl(
                     (move || async move {
                         let output_ok = Result::<_, ()>::Ok(
                             crate::api::live::load_graduate(api_force_refresh).await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__load_graduate_part_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_graduate_part",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_report = <bool>::sse_decode(&mut deserializer);
+            let api_force_refresh = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::load_graduate_part(api_report, api_force_refresh)
+                                .await,
                         )?;
                         Ok(output_ok)
                     })()
@@ -2971,46 +3044,53 @@ fn pde_ffi_dispatcher_primary_impl(
         }
         14 => wire__crate__api__mirror__load_demo_grades_impl(port, ptr, rust_vec_len, data_len),
         15 => wire__crate__api__live__load_demo_graduate_impl(port, ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__mirror__load_demo_homework_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__mirror__load_demo_library_impl(port, ptr, rust_vec_len, data_len),
-        18 => wire__crate__api__live__load_demo_library_history_impl(
+        16 => wire__crate__api__live__load_demo_graduate_status_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        19 => {
+        17 => wire__crate__api__mirror__load_demo_homework_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__mirror__load_demo_library_impl(port, ptr, rust_vec_len, data_len),
+        19 => wire__crate__api__live__load_demo_library_history_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        20 => {
             wire__crate__api__live__load_demo_library_stats_impl(port, ptr, rust_vec_len, data_len)
         }
-        20 => wire__crate__api__live__load_demo_notices_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__mirror__load_demo_schedule_impl(port, ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__mirror__load_demo_today_impl(port, ptr, rust_vec_len, data_len),
-        23 => wire__crate__api__live__load_grade_terms_impl(port, ptr, rust_vec_len, data_len),
-        24 => wire__crate__api__live__load_grades_impl(port, ptr, rust_vec_len, data_len),
-        25 => wire__crate__api__live__load_graduate_impl(port, ptr, rust_vec_len, data_len),
-        26 => wire__crate__api__live__load_homework_impl(port, ptr, rust_vec_len, data_len),
-        27 => wire__crate__api__live__load_homework_detail_impl(port, ptr, rust_vec_len, data_len),
-        28 => wire__crate__api__live__load_library_areas_impl(port, ptr, rust_vec_len, data_len),
-        29 => wire__crate__api__live__load_library_bookings_impl(port, ptr, rust_vec_len, data_len),
-        30 => wire__crate__api__live__load_library_history_impl(port, ptr, rust_vec_len, data_len),
-        31 => wire__crate__api__live__load_library_seats_impl(port, ptr, rust_vec_len, data_len),
-        32 => wire__crate__api__live__load_library_slots_impl(port, ptr, rust_vec_len, data_len),
-        33 => wire__crate__api__live__load_library_stats_impl(port, ptr, rust_vec_len, data_len),
-        34 => wire__crate__api__live__load_library_venues_impl(port, ptr, rust_vec_len, data_len),
-        35 => wire__crate__api__live__load_notices_impl(port, ptr, rust_vec_len, data_len),
-        36 => wire__crate__api__mirror__load_query_dates_impl(port, ptr, rust_vec_len, data_len),
-        37 => wire__crate__api__mirror__load_rule_examples_impl(port, ptr, rust_vec_len, data_len),
-        38 => wire__crate__api__live__load_schedule_impl(port, ptr, rust_vec_len, data_len),
-        39 => wire__crate__api__live__load_today_impl(port, ptr, rust_vec_len, data_len),
-        40 => wire__crate__api__live__login_impl(port, ptr, rust_vec_len, data_len),
-        41 => {
+        21 => wire__crate__api__live__load_demo_notices_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__mirror__load_demo_schedule_impl(port, ptr, rust_vec_len, data_len),
+        23 => wire__crate__api__mirror__load_demo_today_impl(port, ptr, rust_vec_len, data_len),
+        24 => wire__crate__api__live__load_grade_terms_impl(port, ptr, rust_vec_len, data_len),
+        25 => wire__crate__api__live__load_grades_impl(port, ptr, rust_vec_len, data_len),
+        26 => wire__crate__api__live__load_graduate_impl(port, ptr, rust_vec_len, data_len),
+        27 => wire__crate__api__live__load_graduate_part_impl(port, ptr, rust_vec_len, data_len),
+        28 => wire__crate__api__live__load_homework_impl(port, ptr, rust_vec_len, data_len),
+        29 => wire__crate__api__live__load_homework_detail_impl(port, ptr, rust_vec_len, data_len),
+        30 => wire__crate__api__live__load_library_areas_impl(port, ptr, rust_vec_len, data_len),
+        31 => wire__crate__api__live__load_library_bookings_impl(port, ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__live__load_library_history_impl(port, ptr, rust_vec_len, data_len),
+        33 => wire__crate__api__live__load_library_seats_impl(port, ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__live__load_library_slots_impl(port, ptr, rust_vec_len, data_len),
+        35 => wire__crate__api__live__load_library_stats_impl(port, ptr, rust_vec_len, data_len),
+        36 => wire__crate__api__live__load_library_venues_impl(port, ptr, rust_vec_len, data_len),
+        37 => wire__crate__api__live__load_notices_impl(port, ptr, rust_vec_len, data_len),
+        38 => wire__crate__api__mirror__load_query_dates_impl(port, ptr, rust_vec_len, data_len),
+        39 => wire__crate__api__mirror__load_rule_examples_impl(port, ptr, rust_vec_len, data_len),
+        40 => wire__crate__api__live__load_schedule_impl(port, ptr, rust_vec_len, data_len),
+        41 => wire__crate__api__live__load_today_impl(port, ptr, rust_vec_len, data_len),
+        42 => wire__crate__api__live__login_impl(port, ptr, rust_vec_len, data_len),
+        43 => {
             wire__crate__api__mirror__query_demo_classrooms_impl(port, ptr, rust_vec_len, data_len)
         }
-        42 => wire__crate__api__live__restore_session_impl(port, ptr, rust_vec_len, data_len),
-        43 => wire__crate__api__live__session_status_impl(port, ptr, rust_vec_len, data_len),
-        44 => wire__crate__api__live__set_route_impl(port, ptr, rust_vec_len, data_len),
-        45 => wire__crate__api__live__sign_out_impl(port, ptr, rust_vec_len, data_len),
-        46 => wire__crate__api__live__verify_credential_storage_impl(
+        44 => wire__crate__api__live__restore_session_impl(port, ptr, rust_vec_len, data_len),
+        45 => wire__crate__api__live__session_status_impl(port, ptr, rust_vec_len, data_len),
+        46 => wire__crate__api__live__set_route_impl(port, ptr, rust_vec_len, data_len),
+        47 => wire__crate__api__live__sign_out_impl(port, ptr, rust_vec_len, data_len),
+        48 => wire__crate__api__live__verify_credential_storage_impl(
             port,
             ptr,
             rust_vec_len,

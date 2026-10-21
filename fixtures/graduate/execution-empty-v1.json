@@ -33,7 +33,12 @@
             "title": "待考核学分",
             "detail": "1"
           }
-        ]
+        ],
+        "progress": {
+          "required": 32.0,
+          "earned": 2.0,
+          "pending": 1.0
+        }
       }
     ]
   }

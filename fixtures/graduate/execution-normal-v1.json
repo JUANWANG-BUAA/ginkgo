@@ -33,7 +33,12 @@
             "title": "待考核学分",
             "detail": "1"
           }
-        ]
+        ],
+        "progress": {
+          "required": 32.0,
+          "earned": 2.0,
+          "pending": 1.0
+        }
       },
       {
         "title": "合成类别",
@@ -44,9 +49,15 @@
           },
           {
             "title": "合成课程",
-            "detail": "2 学分 · 已完成"
+            "detail": "2 学分 · 已完成",
+            "completed": true
           }
-        ]
+        ],
+        "progress": {
+          "required": 6.0,
+          "earned": 2.0,
+          "pending": 1.0
+        }
       }
     ]
   }

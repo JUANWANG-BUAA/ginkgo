@@ -100,6 +100,7 @@ pub struct SessionService<T: HttpTransport, V: CredentialVault> {
     pub(crate) library_history: Mutex<SnapshotCache<i32, LibraryHistoryPage>>,
     /// booking.lib business token. Memory only.
     pub(crate) library_token: Mutex<Option<String>>,
+    pub(crate) graduate_request_gate: tokio::sync::Mutex<()>,
     pub(crate) library_login_gate: tokio::sync::Mutex<()>,
 }
 
@@ -130,6 +131,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             library_bookings: Mutex::new(LibraryBookingCache::default()),
             library_history: Mutex::new(SnapshotCache::default()),
             library_token: Mutex::new(None),
+            graduate_request_gate: tokio::sync::Mutex::new(()),
             library_login_gate: tokio::sync::Mutex::new(()),
         }
     }

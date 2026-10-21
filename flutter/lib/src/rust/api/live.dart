@@ -155,6 +155,19 @@ Future<ReadOnlyResponse> loadDemoBykc() =>
 Future<ReadOnlyResponse> loadGraduate({required bool forceRefresh}) =>
     RustLib.instance.api.crateApiLiveLoadGraduate(forceRefresh: forceRefresh);
 
+/// Independently cached sections, allowing Flutter to render the first response
+/// while the remaining academic request is still in flight.
+Future<ReadOnlyResponse> loadGraduatePart({
+  required bool report,
+  required bool forceRefresh,
+}) => RustLib.instance.api.crateApiLiveLoadGraduatePart(
+  report: report,
+  forceRefresh: forceRefresh,
+);
+
+Future<ReadOnlyResponse> loadDemoGraduateStatus() =>
+    RustLib.instance.api.crateApiLiveLoadDemoGraduateStatus();
+
 Future<ReadOnlyResponse> loadDemoGraduate() =>
     RustLib.instance.api.crateApiLiveLoadDemoGraduate();
 

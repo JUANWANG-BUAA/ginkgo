@@ -883,3 +883,7 @@ UBAA 源码另提供操场 CGYY、阳光打卡 YGDK、iHome、课程评教、图
 ### Android 镜像更新源（2026-10-20）
 
 `GET https://api.github.com/repos/JUANWANG-BUAA/ginkgo/releases?per_page=100`，Accept `application/vnd.github+json`，User-Agent `Ginkgo-Android-Update`。沿用 Apple UpdateChecker 的公开仓库来源；版本线为项目新增的 `android-v<semver>`，不是学校接口。草稿忽略，正式安装包排除预发布；`*-android-arm64.apk` 非零资产作为可用标志，发布页/资产必须是本项目 HTTPS GitHub URL。新建独立直接 Session，不带学校 Cookie，不使用学校 WebVPN。403/429与其他HTTP/解析失败均不冒充“已是最新版”。最多最近100条发布；尚未覆盖GitHub完整分页或应用内安装。字段依据官方 [Releases REST API](https://docs.github.com/en/rest/releases/releases#list-releases) 与现有 Swift 实现。
+
+### 2026-10-21 镜像补充：研究生分区与数值进度
+
+无上游端点变化。依GraduateAcademicClient/GraduateProgress及既有§7.4，将学籍/报告独立调用和缓存；progress来自fa.ZDXF/yhpyfaxf/dkhxf、类别/课组yqxf/yhxf/dkhxf，完成来自sfwc。缺失与非有限/负数指标不产生进度；不将待考核计入已获。

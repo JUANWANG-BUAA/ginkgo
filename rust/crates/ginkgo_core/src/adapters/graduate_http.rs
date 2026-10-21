@@ -56,20 +56,47 @@ async fn get<T: HttpTransport>(session: &Session<T>, path: &str) -> Result<Value
     }
     serde_json::from_str(&response.body).map_err(|_| AppError::changed())
 }
-pub async fn load<T: HttpTransport>(
+pub async fn load_status<T: HttpTransport>(
     session: &Session<T>,
     account: &str,
 ) -> Result<AcademicData, AppError> {
-    for app in ["wdxjappbuaa", "wdpyfazxbgappbuaa"] {
-        session
-            .send_following_redirects(HttpRequest::get(format!("{BASE}/{app}/*default/index.do")))
-            .await?;
-    }
-    let form = url::form_urlencoded::Serializer::new(String::new())
-        .append_pair("XH", account)
-        .finish();
+    activate(session, "wdxjappbuaa").await?;
+    let form = account_form(account);
     let status = post(session, "wdxjappbuaa/modules/wdxj/xsjcxxcx.do", &form).await?;
-    let mut sections = vec![graduate::parse_status(&status)?];
+    Ok(AcademicData {
+        sections: vec![graduate::parse_status(&status)?],
+        notice: None,
+    })
+}
+
+fn account_form(account: &str) -> String {
+    url::form_urlencoded::Serializer::new(String::new())
+        .append_pair("XH", account)
+        .finish()
+}
+
+async fn activate<T: HttpTransport>(session: &Session<T>, app: &str) -> Result<(), AppError> {
+    let response = session
+        .send_following_redirects(HttpRequest::get(format!("{BASE}/{app}/*default/index.do")))
+        .await?;
+    if matches!(response.status, 401 | 403)
+        || cas::is_login_redirect(&response.final_url, &response.body)
+    {
+        return Err(AppError::session_expired());
+    }
+    if response.status != 200 {
+        return Err(AppError::unavailable());
+    }
+    Ok(())
+}
+
+pub async fn load_report<T: HttpTransport>(
+    session: &Session<T>,
+    account: &str,
+) -> Result<AcademicData, AppError> {
+    activate(session, "wdpyfazxbgappbuaa").await?;
+    let form = account_form(account);
+    let mut sections = Vec::new();
     let execution = post(
         session,
         "wdpyfazxbgappbuaa/zxbg/loadXspyfazxbgInfo.do",

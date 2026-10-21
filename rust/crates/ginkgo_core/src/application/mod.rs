@@ -85,7 +85,7 @@ pub fn demo_rules() -> Result<(school_time::SchoolDay, schedule::Snapshot), AppE
 mod tests;
 
 mod graduate_service;
-pub use graduate_service::GraduateOutcome;
+pub use graduate_service::{GraduateOutcome, GraduatePart};
 
 pub mod tasks_service;
 
