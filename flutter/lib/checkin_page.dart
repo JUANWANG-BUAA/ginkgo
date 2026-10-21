@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
+import 'school_timestamp.dart';
 import 'src/rust/api/mirror.dart';
 
 const _weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
@@ -143,7 +144,9 @@ class _CheckInPageState extends State<CheckInPage> {
       builder: (context) => CupertinoAlertDialog(
         title: const Text('确认签到？'),
         content: Text(
-          '${course.courseName}\n${course.beginsAt}–${course.endsAt}\n${course.classroomName ?? ""}',
+          '${course.courseName}\n${data?.date ?? dateString(schoolToday)}\n'
+          '${schoolTimeRange(course.beginsAt, course.endsAt)}\n'
+          '${course.classroomName ?? ""}',
         ),
         actions: [
           CupertinoDialogAction(
@@ -182,6 +185,30 @@ class _CheckInPageState extends State<CheckInPage> {
       notice = message;
     });
   }
+
+  Widget _countLegend(String title, int count, CupertinoDynamicColor color) =>
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(
+              color: color.resolveFrom(context),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            '$title $count',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+            ),
+          ),
+        ],
+      );
 
   @override
   Widget build(BuildContext context) => CupertinoPageScaffold(
@@ -368,6 +395,78 @@ class _CheckInPageState extends State<CheckInPage> {
               ),
             ),
           ),
+          if (data.courses.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Semantics(
+                    label: '当天签到状态分布',
+                    value: '已签到 $signed，未签到 $notSigned，待确认 $unknown',
+                    child: ExcludeSemantics(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(5),
+                        child: SizedBox(
+                          key: const Key('checkin-status-meter'),
+                          height: 8,
+                          child: Row(
+                            children: [
+                              if (signed > 0)
+                                Expanded(
+                                  flex: signed,
+                                  child: ColoredBox(
+                                    color: CupertinoColors.systemGreen
+                                        .resolveFrom(context),
+                                    child: const SizedBox.expand(),
+                                  ),
+                                ),
+                              if (notSigned > 0)
+                                Expanded(
+                                  flex: notSigned,
+                                  child: ColoredBox(
+                                    color: CupertinoColors.systemOrange
+                                        .resolveFrom(context),
+                                    child: const SizedBox.expand(),
+                                  ),
+                                ),
+                              if (unknown > 0)
+                                Expanded(
+                                  flex: unknown,
+                                  child: ColoredBox(
+                                    color: CupertinoColors.systemGrey
+                                        .resolveFrom(context),
+                                    child: const SizedBox.expand(),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 16,
+                    runSpacing: 8,
+                    children: [
+                      _countLegend('已签', signed, CupertinoColors.systemGreen),
+                      _countLegend(
+                        '待签',
+                        notSigned,
+                        CupertinoColors.systemOrange,
+                      ),
+                      if (unknown > 0)
+                        _countLegend(
+                          '待核实',
+                          unknown,
+                          CupertinoColors.systemGrey,
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
       if (data.courses.isEmpty)
@@ -394,9 +493,9 @@ class _CheckInPageState extends State<CheckInPage> {
             child: Text(
               widget.service.isDemo ? '演示模式不会提交签到' : '签到后将自动刷新学校状态。',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: CupertinoColors.secondaryLabel,
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
               ),
             ),
           ),
@@ -425,7 +524,7 @@ class _CheckInPageState extends State<CheckInPage> {
     };
     final color = semanticColor.resolveFrom(context);
     final details = [
-      '${course.beginsAt}–${course.endsAt}',
+      schoolTimeRange(course.beginsAt, course.endsAt),
       if (course.classroomName != null) course.classroomName!,
       if (course.teacherName != null) course.teacherName!,
     ];
@@ -481,6 +580,14 @@ class _CheckInPageState extends State<CheckInPage> {
                   color: color,
                 ),
               ),
+              if (course.mergedRecordCount > 1)
+                Text(
+                  '合并 ${course.mergedRecordCount} 条',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                  ),
+                ),
               if (course.conflicting)
                 const Text(
                   '记录不一致',
@@ -517,12 +624,6 @@ class _CheckInPageState extends State<CheckInPage> {
     );
   }
 
-  /// The bridge sends Asia/Shanghai RFC 3339 timestamps; keep the school clock
-  /// rather than the device time zone.
-  String _fetchedLabel(String? fetchedAt) {
-    if (fetchedAt == null) return '';
-    final match = RegExp(r'T(\d{2}):(\d{2})').firstMatch(fetchedAt);
-    if (match == null) return '';
-    return '核对 ${match.group(1)}:${match.group(2)}';
-  }
+  String _fetchedLabel(String? fetchedAt) =>
+      '核对 ${schoolClockLabel(fetchedAt)}';
 }

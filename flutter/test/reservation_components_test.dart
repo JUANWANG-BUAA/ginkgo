@@ -66,6 +66,20 @@ void main() {
                   total: 12,
                   unit: '座',
                 ),
+                ResourceMeter(
+                  key: Key('unknown-free'),
+                  label: '仅有总量',
+                  available: null,
+                  total: 20,
+                  unit: '座',
+                ),
+                ResourceMeter(
+                  key: Key('unknown-both'),
+                  label: '没有数量',
+                  available: null,
+                  total: null,
+                  unit: '座',
+                ),
               ],
             ),
           ),
@@ -73,7 +87,9 @@ void main() {
       ),
     );
     expect(find.text('8'), findsOneWidget);
-    expect(find.text('官网未提供'), findsOneWidget);
+    expect(find.text('座可用 · 总量未提供'), findsOneWidget);
+    expect(find.text('可用数量未提供 · 共 20 座'), findsOneWidget);
+    expect(find.text('官网未提供数量'), findsOneWidget);
     expect(find.text('座可用 · 共 0 座'), findsOneWidget);
     expect(find.text('暂未提供此类资源'), findsOneWidget);
     expect(find.text('14'), findsOneWidget);
@@ -139,6 +155,7 @@ void main() {
   testWidgets(
     'busy disabled actions and reduced motion do not accumulate animation work',
     (tester) async {
+      var submissions = 0;
       await tester.pumpWidget(
         ginkgoApp(
           home: Center(
@@ -147,7 +164,8 @@ void main() {
               label: '预约',
               icon: CupertinoIcons.add_circled,
               busy: true,
-              onPressed: null,
+              primary: true,
+              onPressed: () => submissions++,
             ),
           ),
         ),
@@ -159,6 +177,16 @@ void main() {
         isNull,
       );
       expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
+      expect(
+        tester.widget<CupertinoActivityIndicator>(
+          find.byType(CupertinoActivityIndicator),
+        ).color,
+        CupertinoTheme.of(
+          tester.element(find.byKey(const Key('busy-action'))),
+        ).primaryContrastingColor,
+      );
+      await tester.tap(find.byKey(const Key('busy-action')));
+      expect(submissions, 0);
       final disabled = await tester.startGesture(
         tester.getCenter(find.byKey(const Key('busy-action'))),
       );
@@ -168,7 +196,6 @@ void main() {
       // A busy indicator legitimately schedules frames; fixed pumps keep this
       // assertion bounded and avoid pumpAndSettle waiting on the spinner.
       await tester.pump(const Duration(milliseconds: 140));
-      var submissions = 0;
       await tester.pumpWidget(
         ginkgoApp(
           home: Builder(

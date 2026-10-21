@@ -500,52 +500,49 @@ class _AppleNavigationItemState extends State<AppleNavigationItem> {
         cursor: SystemMouseCursors.click,
         onEnter: (_) => setState(() => hovered = true),
         onExit: (_) => setState(() => hovered = false),
-        child: Focus(
-          canRequestFocus: false,
-          onFocusChange: (value) => setState(() => focused = value),
-          child: AnimatedContainer(
-            duration: AppleDesign.duration(context, 140),
-            curve: Curves.easeOut,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: widget.selected
-                  ? accent.withValues(alpha: 0.12)
-                  : hovered || focused
-                  ? CupertinoColors.tertiarySystemFill.resolveFrom(context)
-                  : CupertinoColors.tertiarySystemFill
-                        .resolveFrom(context)
-                        .withValues(alpha: 0),
-              border: Border.all(
-                color: focused ? accent : accent.withValues(alpha: 0),
-              ),
+        child: AnimatedContainer(
+          duration: AppleDesign.duration(context, 140),
+          curve: Curves.easeOut,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: widget.selected
+                ? accent.withValues(alpha: 0.12)
+                : hovered || focused
+                ? CupertinoColors.tertiarySystemFill.resolveFrom(context)
+                : CupertinoColors.tertiarySystemFill
+                      .resolveFrom(context)
+                      .withValues(alpha: 0),
+            border: Border.all(
+              color: focused ? accent : accent.withValues(alpha: 0),
             ),
-            child: CupertinoButton(
-              padding: const EdgeInsets.all(10),
-              onPressed: widget.onPressed,
-              child: Row(
-                children: [
-                  Icon(
-                    widget.icon,
-                    size: 18,
-                    color: widget.selected
-                        ? accent
-                        : CupertinoColors.secondaryLabel.resolveFrom(context),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      widget.title,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: widget.selected
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                        color: CupertinoColors.label.resolveFrom(context),
-                      ),
+          ),
+          child: CupertinoButton(
+            padding: const EdgeInsets.all(10),
+            onPressed: widget.onPressed,
+            onFocusChange: (value) => setState(() => focused = value),
+            child: Row(
+              children: [
+                Icon(
+                  widget.icon,
+                  size: 18,
+                  color: widget.selected
+                      ? accent
+                      : CupertinoColors.secondaryLabel.resolveFrom(context),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: widget.selected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                      color: CupertinoColors.label.resolveFrom(context),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

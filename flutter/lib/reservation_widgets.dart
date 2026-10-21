@@ -30,10 +30,14 @@ class _ReservationActionButtonState extends State<ReservationActionButton> {
   bool hovered = false, pressed = false;
   @override
   Widget build(BuildContext context) {
-    final enabled = widget.onPressed != null;
+    final enabled = widget.onPressed != null && !widget.busy;
     final tint = widget.tint.resolveFrom(context);
     final child = widget.busy
-        ? const CupertinoActivityIndicator()
+        ? CupertinoActivityIndicator(
+            color: widget.primary
+                ? CupertinoTheme.of(context).primaryContrastingColor
+                : tint,
+          )
         : Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -86,7 +90,7 @@ class _ReservationActionButtonState extends State<ReservationActionButton> {
                         horizontal: 16,
                         vertical: 10,
                       ),
-                      onPressed: widget.onPressed,
+                      onPressed: enabled ? widget.onPressed : null,
                       child: child,
                     )
                   : CupertinoButton.tinted(
@@ -95,7 +99,7 @@ class _ReservationActionButtonState extends State<ReservationActionButton> {
                         horizontal: 14,
                         vertical: 10,
                       ),
-                      onPressed: widget.onPressed,
+                      onPressed: enabled ? widget.onPressed : null,
                       child: child,
                     ),
             ),

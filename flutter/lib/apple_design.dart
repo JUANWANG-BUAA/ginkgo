@@ -10,6 +10,18 @@ abstract final class AppleDesign {
     color: Color(0xff189840),
     darkColor: Color(0xff47bd6b),
   );
+  static const resourceBlue = CupertinoDynamicColor.withBrightness(
+    color: Color(0xff0066cc),
+    darkColor: Color(0xff69adff),
+  );
+  static const resourcePurple = CupertinoDynamicColor.withBrightness(
+    color: Color(0xff7446b8),
+    darkColor: Color(0xffcfadff),
+  );
+  static const resourceTeal = CupertinoDynamicColor.withBrightness(
+    color: Color(0xff08777c),
+    darkColor: Color(0xff66d9df),
+  );
   static const font = 'Ginkgo Sans';
   static const fallback = ['Ginkgo Han'];
   static const body = TextStyle(

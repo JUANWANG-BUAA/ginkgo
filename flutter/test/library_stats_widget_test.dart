@@ -93,7 +93,7 @@ void main() {
             .first,
       );
       await tester.pumpAndSettle();
-      expect(find.text('官网未提供'), findsWidgets);
+      expect(find.text('官网未提供数量'), findsWidgets);
       expect(find.text('个可用 · 共 6 个'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.tap(find.byType(CupertinoNavigationBarBackButton));

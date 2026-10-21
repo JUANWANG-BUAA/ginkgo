@@ -126,8 +126,8 @@ final checkInFixture = CheckInResponse(
     CheckInCourse(
       id: '501',
       courseName: '高等数学',
-      beginsAt: '08:00',
-      endsAt: '09:35',
+      beginsAt: '2026-10-20 08:00:00',
+      endsAt: '2026-10-20 09:35:00',
       status: CheckInStatus.notSigned,
       teacherName: '张老师',
       classroomName: '主楼A101',
@@ -308,6 +308,7 @@ class ControlledService implements MirrorService {
       weekNumber: scheduleFixture.weekNumber,
       courses: scheduleFixture.courses,
       exams: scheduleFixture.exams,
+      fetchedAt: '2026-10-21T03:10:33.396123Z',
     );
   }
 
@@ -645,6 +646,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('课表'));
       await tester.pumpAndSettle();
+      expect(find.text('更新于 10月21日 11:10'), findsOneWidget);
+      expect(find.textContaining('03:10:33.396'), findsNothing);
       await tester.tap(find.text('每日清单'));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('schedule-course-u-0-1-1')), findsOneWidget);
@@ -806,7 +809,8 @@ void main() {
     expect(find.text('学院路馆 · A区 · 12号'), findsOneWidget);
     expect(find.text('使用中'), findsOneWidget);
     expect(find.text('选择场馆'), findsOneWidget);
-    expect(find.text('空闲 12 / 30'), findsOneWidget);
+    expect(find.text('12'), findsOneWidget);
+    expect(find.text('座可用 · 共 30 座'), findsOneWidget);
     expect(find.byKey(const Key('library-public-stats')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -829,7 +833,8 @@ void main() {
     await tester.tap(find.byKey(const Key('library-venue-v1')));
     await tester.pumpAndSettle();
     expect(find.text('区域'), findsOneWidget);
-    expect(find.text('空闲 4 / 20'), findsOneWidget);
+    expect(find.text('4'), findsOneWidget);
+    expect(find.text('座可用 · 共 20 座'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('library-area-a1')));
     await tester.pumpAndSettle();
@@ -1017,6 +1022,8 @@ void main() {
     expect(find.text('今天 3 节课'), findsOneWidget);
     expect(find.text('已签到 1 · 未签到 1 · 待确认 1'), findsOneWidget);
     expect(find.text('核对 15:30'), findsOneWidget);
+    expect(find.text('08:00–09:35 · 主楼A101 · 张老师'), findsOneWidget);
+    expect(find.textContaining('2026-10-20 08:00:00'), findsNothing);
     expect(find.text('高等数学'), findsOneWidget);
     expect(find.text('未签到'), findsOneWidget);
     expect(find.text('已签到'), findsOneWidget);

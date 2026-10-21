@@ -367,6 +367,14 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('学分信息不完整'), findsOneWidget);
+      final bars = find.byWidgetPredicate(
+        (widget) =>
+            widget is SizedBox &&
+            widget.height == 5 &&
+            widget.width == double.infinity,
+      );
+      expect(bars, findsOneWidget);
+      expect(tester.getSize(bars).width, greaterThan(100));
       expect(find.text('本项无最低学分要求'), findsOneWidget);
       expect(find.text('尚需 未确认'), findsOneWidget);
       expect(find.text('尚需 0'), findsNWidgets(2));

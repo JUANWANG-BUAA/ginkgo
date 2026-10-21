@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'apple_design.dart';
 import 'cgyy_page.dart';
 import 'classroom_page.dart';
 import 'library_page.dart';
@@ -44,7 +45,7 @@ class ReservationsPage extends StatelessWidget {
                       '图书馆座位',
                       '选座预约、查看记录与管理入座状态',
                       CupertinoIcons.book_fill,
-                      CupertinoColors.systemBlue,
+                      AppleDesign.resourceBlue,
                       LibraryPage(service: service),
                     ),
                     _resource(
@@ -52,7 +53,7 @@ class ReservationsPage extends StatelessWidget {
                       '研讨室与场馆',
                       '查看场地、可用时段与订单',
                       CupertinoIcons.person_3_fill,
-                      CupertinoColors.systemPurple,
+                      AppleDesign.resourcePurple,
                       CgyyPage(demo: service.isDemo),
                     ),
                   ],
@@ -66,7 +67,7 @@ class ReservationsPage extends StatelessWidget {
                       '空教室',
                       '按校区、日期与节次查询',
                       CupertinoIcons.building_2_fill,
-                      CupertinoColors.systemTeal,
+                      AppleDesign.resourceTeal,
                       ClassroomPage(service: service),
                     ),
                   ],

@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
+import 'apple_design.dart';
+
 /// A resource snapshot. A free fraction is not a booking guarantee; unknown
 /// totals and empty resources are kept distinct from a fully occupied one.
 class ResourceMeter extends StatelessWidget {
@@ -22,6 +24,13 @@ class ResourceMeter extends StatelessWidget {
     final free = available;
     final capacity = total;
     final known = free != null && capacity != null;
+    final countsLabel = free == null
+        ? (capacity == null
+              ? '官网未提供数量'
+              : '可用数量未提供 · 共 $capacity $unit')
+        : capacity == null
+        ? '$unit可用 · 总量未提供'
+        : '$unit可用 · 共 $capacity $unit';
     final ratio = known && capacity > 0
         ? (free / capacity).clamp(0.0, 1.0)
         : null;
@@ -31,10 +40,7 @@ class ResourceMeter extends StatelessWidget {
                     color: Color(0xffa24c00),
                     darkColor: Color(0xffffb46b),
                   )
-                : const CupertinoDynamicColor.withBrightness(
-                    color: Color(0xff087e83),
-                    darkColor: Color(0xff66d9df),
-                  ))
+                : AppleDesign.resourceTeal)
             .resolveFrom(context);
     final content = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -77,7 +83,7 @@ class ResourceMeter extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 2),
                 child: Text(
-                  known ? '$unit可用 · 共 $capacity $unit' : '官网未提供',
+                  countsLabel,
                   style: TextStyle(
                     fontSize: 13,
                     color: CupertinoColors.secondaryLabel.resolveFrom(context),

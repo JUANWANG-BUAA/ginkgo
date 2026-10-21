@@ -32,6 +32,10 @@ enum _GraduateView { credits, courses, profile }
 class _GraduatePageState extends State<GraduatePage> {
   final status = _AcademicPart(), report = _AcademicPart();
   final search = TextEditingController();
+  final scrollController = ScrollController();
+  final viewOffsets = <_GraduateView, double>{};
+  final expandedReportSections = <String>{};
+  bool reportDataExpanded = false;
   _GraduateView view = _GraduateView.credits;
   GraduateCourseFilter courseFilter = GraduateCourseFilter.all;
   String category = '全部类别';
@@ -47,6 +51,7 @@ class _GraduatePageState extends State<GraduatePage> {
   @override
   void dispose() {
     search.dispose();
+    scrollController.dispose();
     super.dispose();
   }
 
@@ -64,9 +69,23 @@ class _GraduatePageState extends State<GraduatePage> {
         .toList(growable: false);
   }
 
-  void selectView(_GraduateView value) {
+  void selectView(_GraduateView value, {bool fromTop = false}) {
     FocusManager.instance.primaryFocus?.unfocus();
+    if (scrollController.hasClients) {
+      viewOffsets[view] = scrollController.offset;
+    }
+    if (fromTop) viewOffsets[value] = 0;
     setState(() => view = value);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || view != value || !scrollController.hasClients) return;
+      final position = scrollController.position;
+      scrollController.jumpTo(
+        (viewOffsets[value] ?? 0).clamp(
+          position.minScrollExtent,
+          position.maxScrollExtent,
+        ),
+      );
+    });
   }
 
   Future<void> load({bool force = false}) => Future.wait([
@@ -190,7 +209,7 @@ class _GraduatePageState extends State<GraduatePage> {
       search.clear();
       filterCourses();
     });
-    selectView(_GraduateView.courses);
+    selectView(_GraduateView.courses, fromTop: true);
   }
 
   List<Widget> _overview() {
@@ -207,6 +226,8 @@ class _GraduatePageState extends State<GraduatePage> {
           _GraduateDisclosure(
             title: '报告原始数据',
             subtitle: summary.title,
+            initiallyExpanded: reportDataExpanded,
+            onExpanded: (value) => reportDataExpanded = value,
             children: [
               for (final row in summary.rows)
                 AcademicFactRow(label: row.title, value: row.detail),
@@ -222,6 +243,14 @@ class _GraduatePageState extends State<GraduatePage> {
             for (final section in sections.skip(1))
               _GraduateCategoryRow(
                 section: section,
+                expanded: expandedReportSections.contains(section.title),
+                onExpanded: (value) {
+                  if (value) {
+                    expandedReportSections.add(section.title);
+                  } else {
+                    expandedReportSections.remove(section.title);
+                  }
+                },
                 onCourses: () => _openCategory(section),
               ),
           ],
@@ -361,6 +390,7 @@ class _GraduatePageState extends State<GraduatePage> {
     ),
     child: CustomScrollView(
       key: const Key('graduate-scroll'),
+      controller: scrollController,
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       slivers: [
         CupertinoSliverNavigationBar(
@@ -550,6 +580,7 @@ class _AcademicProgressBar extends StatelessWidget {
     child: ClipRRect(
       borderRadius: BorderRadius.circular(3),
       child: SizedBox(
+        width: double.infinity,
         height: 5,
         child: Stack(
           children: [
@@ -606,18 +637,22 @@ class _GraduateDisclosure extends StatefulWidget {
     required this.title,
     this.subtitle,
     this.summary,
+    this.initiallyExpanded = false,
+    this.onExpanded,
     required this.children,
   });
   final String title;
   final String? subtitle;
   final Widget? summary;
+  final bool initiallyExpanded;
+  final ValueChanged<bool>? onExpanded;
   final List<Widget> children;
   @override
   State<_GraduateDisclosure> createState() => _GraduateDisclosureState();
 }
 
 class _GraduateDisclosureState extends State<_GraduateDisclosure> {
-  bool expanded = false;
+  late bool expanded = widget.initiallyExpanded;
   @override
   Widget build(BuildContext context) => Column(
     children: [
@@ -650,7 +685,10 @@ class _GraduateDisclosureState extends State<_GraduateDisclosure> {
           size: 14,
           color: CupertinoColors.secondaryLabel.resolveFrom(context),
         ),
-        onTap: () => setState(() => expanded = !expanded),
+        onTap: () {
+          setState(() => expanded = !expanded);
+          widget.onExpanded?.call(expanded);
+        },
       ),
       if (expanded) ...widget.children,
     ],
@@ -658,9 +696,16 @@ class _GraduateDisclosureState extends State<_GraduateDisclosure> {
 }
 
 class _GraduateCategoryRow extends StatelessWidget {
-  const _GraduateCategoryRow({required this.section, required this.onCourses});
+  const _GraduateCategoryRow({
+    required this.section,
+    required this.onCourses,
+    required this.expanded,
+    required this.onExpanded,
+  });
   final GraduateSection section;
   final VoidCallback onCourses;
+  final bool expanded;
+  final ValueChanged<bool> onExpanded;
   @override
   Widget build(BuildContext context) {
     final progress = section.progress;
@@ -672,6 +717,8 @@ class _GraduateCategoryRow extends StatelessWidget {
     final count = section.rows.where((row) => row.isCourse).length;
     return _GraduateDisclosure(
       key: ValueKey(section.title),
+      initiallyExpanded: expanded,
+      onExpanded: onExpanded,
       title: section.title,
       subtitle: progress == null
           ? '$count 条课程记录'

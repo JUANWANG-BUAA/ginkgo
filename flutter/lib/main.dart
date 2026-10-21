@@ -351,6 +351,7 @@ class _DesktopWorkspace extends StatefulWidget {
 
 class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
   int selected = 0;
+  final navigators = <int, GlobalKey<NavigatorState>>{};
 
   /// IndexedStack builds every child, which would fire real read requests for
   /// pages the user never opened. Build a page on first visit and keep it
@@ -358,15 +359,22 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
   final Set<int> visited = {0};
   Future<void> _signOut() => widget.onSignOut?.call() ?? Future.value();
 
-  void select(int index) => setState(() {
-    selected = index;
-    visited.add(index);
-  });
+  void select(int index) {
+    if (selected == index) {
+      navigators[index]?.currentState?.popUntil((route) => route.isFirst);
+      return;
+    }
+    setState(() {
+      selected = index;
+      visited.add(index);
+    });
+  }
 
   @override
   Widget build(BuildContext context) => Row(
     children: [
       Container(
+        key: const Key('desktop-sidebar'),
         width: 232,
         color: CupertinoColors.systemGroupedBackground.resolveFrom(context),
         child: SafeArea(
@@ -407,41 +415,16 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
               ),
               _sidebar('设置', CupertinoIcons.gear_alt, 8),
               Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      widget.accountName ??
-                          (widget.service.isDemo ? '离线合成样例' : '未登录'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: CupertinoColors.secondaryLabel,
-                      ),
-                    ),
-                    if (widget.accountId != null)
-                      Text(
-                        widget.accountId!,
-                        maxLines: 1,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: CupertinoColors.tertiaryLabel,
-                        ),
-                      ),
-                    if (widget.onSignOut != null) ...[
-                      const SizedBox(height: 6),
-                      CupertinoButton(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        onPressed: () => widget.onSignOut!(),
-                        child: Text(
-                          widget.service.isDemo ? '返回登录' : '退出登录',
-                          style: const TextStyle(fontSize: 13),
-                        ),
-                      ),
-                    ],
-                  ],
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                child: Text(
+                  widget.accountName ??
+                      (widget.service.isDemo ? '离线演示' : '学校账户'),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                  ),
                 ),
               ),
             ],
@@ -458,7 +441,28 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
           children: [
             for (var index = 0; index < 14; index++)
               if (visited.contains(index))
-                _page(index)
+                NavigatorPopHandler<void>(
+                  enabled: selected == index,
+                  onPopWithResult: (_) {
+                    if (selected == index) {
+                      navigators[index]?.currentState?.pop();
+                    }
+                  },
+                  child: ExcludeFocus(
+                    excluding: selected != index,
+                    child: TickerMode(
+                      enabled: selected == index,
+                      child: CupertinoTabView(
+                        key: ValueKey('desktop-destination-$index'),
+                        navigatorKey: navigators.putIfAbsent(
+                          index,
+                          () => GlobalKey<NavigatorState>(),
+                        ),
+                        builder: (_) => _page(index),
+                      ),
+                    ),
+                  ),
+                )
               else
                 const SizedBox.shrink(),
           ],
@@ -472,6 +476,13 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
       service: widget.service,
       accountName: widget.accountName,
       onAccountAction: widget.onSignOut,
+      onOpenSettings: () => select(8),
+      onOpenFeature: (index) => select(switch (index) {
+        1 => 1,
+        2 => 2,
+        3 => 4,
+        _ => 6,
+      }),
     ),
     1 => CheckInPage(service: widget.service),
     2 => SchedulePage(service: widget.service),
@@ -509,6 +520,7 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
   Widget _sidebar(String title, IconData icon, int index) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
     child: AppleNavigationItem(
+      key: ValueKey('desktop-sidebar-$index'),
       title: title,
       icon: icon,
       selected: selected == index,

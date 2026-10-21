@@ -70,6 +70,26 @@ class _LoginPageState extends State<LoginPage> {
       );
       if (!mounted) return;
       if (response.state == SessionState.signedIn) {
+        if (remember && !response.remembered) {
+          setState(() => busy = false);
+          await showCupertinoDialog<void>(
+            context: context,
+            builder: (context) => CupertinoAlertDialog(
+              title: const Text('已登录，密码未保存'),
+              content: const Text(
+                '系统安全存储未能保存密码。仍可继续使用，下次启动需要重新登录；部分校外服务可能需要再次认证。',
+              ),
+              actions: [
+                CupertinoDialogAction(
+                  isDefaultAction: true,
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('继续使用'),
+                ),
+              ],
+            ),
+          );
+          if (!mounted) return;
+        }
         widget.onSignedIn(response);
         return;
       }

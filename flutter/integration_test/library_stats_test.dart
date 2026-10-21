@@ -47,7 +47,7 @@ void main() {
         find.text('个可用 · 共 6 个'),
         scrollKey: 'library-stats-scroll',
       );
-      expect(find.text('官网未提供'), findsWidgets);
+      expect(find.text('官网未提供数量'), findsWidgets);
       expect(tester.takeException(), isNull);
     }
   });

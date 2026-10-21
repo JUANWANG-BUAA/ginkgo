@@ -274,6 +274,40 @@ void main() {
     expect(find.byKey(const Key('today-scroll')), findsOneWidget);
   });
 
+  testWidgets('failed remember explains the storage result before continuing', (
+    tester,
+  ) async {
+    await phone(
+      tester,
+      GinkgoRoot(
+        liveService: FakeService(
+          restoreResponse: signedOut,
+          loginResponse: const SessionResponse(
+            state: SessionState.signedIn,
+            account: 'synthetic-account',
+            remembered: false,
+          ),
+        ),
+      ),
+    );
+    await tester.enterText(
+      find.byKey(const Key('login-account')),
+      'synthetic-account',
+    );
+    await tester.enterText(
+      find.byKey(const Key('login-password')),
+      'fixture-secret',
+    );
+    await tester.tap(find.byKey(const Key('login-submit')));
+    await tester.pumpAndSettle();
+    expect(find.text('已登录，密码未保存'), findsOneWidget);
+    expect(find.byKey(const Key('today-scroll')), findsNothing);
+    await tester.tap(find.text('继续使用'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('today-scroll')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('captcha requirement remains actionable on the login page', (
     tester,
   ) async {

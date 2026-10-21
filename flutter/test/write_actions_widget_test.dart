@@ -66,6 +66,10 @@ void main() {
       await tester.tap(button);
       await tester.pumpAndSettle();
       expect(service.writes, 0);
+      expect(
+        find.text('高等数学\n2026-10-20\n08:00–09:35\n主楼A101'),
+        findsOneWidget,
+      );
       await tester.tap(find.text('取消'));
       await tester.pumpAndSettle();
       expect(service.writes, 0);
@@ -101,6 +105,13 @@ void main() {
       tester.element(label),
     );
     expect(tester.widget<Text>(label).style!.color, expected);
+    final footer = find.text('演示模式不会提交签到');
+    await tester.scrollUntilVisible(
+      footer,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(tester.widget<Text>(footer).style!.color, expected);
   });
 
   testWidgets(
