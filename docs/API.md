@@ -11,6 +11,7 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 62 | UC 激活 HTTP SSO 跳转 | 假定认证跳转均为 HTTPS；桌面将不安全 scheme 同样报成缺 Location | 2026-10-21 真实单次登录及无账号 GET 均观察 UC 激活 302 到 http SSO /login；桌面 HTTPS guard 拒绝，镜像跟随 HTTP 后 UC status=10600。仅精确已知 CAS GET 地址提升 HTTPS，保留编码、Secure Cookie 和 TLS；不能据此归因早前 SPOC 500 或账号限制，修复后真实登录待验收 | [诊断记录](_audit/2026-10-21-auth-redirect-incident.md)；CasClient.swift::redirectURL；Rust auth/uc.rs / Cookie::matches |
 | — | 镜像SPOC正文 | 对象/数组正文被按缺失展示 | zynr沿用原生String?契约，类型漂移拒绝并保留旧详情；缺失/null仍允许元数据与提交状态显示 | `SpocHomeworkClient.swift:42,216–233`；2份漂移契约、HTTP编码及应用缓存回归 |
 | — | 镜像 2026-10-21 实网与详情类型 | 部分只读模块待真实账号；正文类型异常被当成缺正文 | Android 授权账号只读检查覆盖已接入模块及详情/历史/分段；空成绩、空已选/当前预约/订单保留空态。SPOC 正文对象/数组报结构错误并保留缓存；合法空正文不冒充请求失败 | [本轮验收](MIRROR-ACCEPTANCE-2026-10-21.md)；`SpocHomeworkClient.swift`、UBAA `LocalSpocAssignmentDetailRaw.zynr` 可空字符串；2 份类型漂移合成 fixture 和先红后绿缓存回归 |
 | — | 镜像研究生展示 | 课程与报告元数据共用文字行 | 明确课程标记及可选学分/学期，未知完成值不删除课程，缺学分不伪造0；无新端点 | `GraduateAcademicClient.swift:220–265`；合成领域与契约验证，真实验收仍单列 |
