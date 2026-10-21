@@ -76,7 +76,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             let token = self.library_token().await?;
             let result = library_http::history(&self.session, &token, page, 40).await;
             if needs_relogin(&result) {
-                self.reset_library_token();
+                self.invalidate_library_token(&token);
                 let token = self.library_token().await?;
                 library_http::history(&self.session, &token, page, 40).await
             } else {
@@ -135,7 +135,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             let mut token = self.library_token().await?;
             let mut result = library_http::venues(&self.session, &token, &day).await;
             if needs_relogin(&result) {
-                self.reset_library_token();
+                self.invalidate_library_token(&token);
                 token = self.library_token().await?;
                 result = library_http::venues(&self.session, &token, &day).await;
             }
@@ -183,7 +183,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         let mut token = self.library_token().await?;
         let mut result = library_http::areas(&self.session, &token, library_id, &day).await;
         if needs_relogin(&result) {
-            self.reset_library_token();
+            self.invalidate_library_token(&token);
             token = self.library_token().await?;
             result = library_http::areas(&self.session, &token, library_id, &day).await;
         }
@@ -198,7 +198,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         let mut token = self.library_token().await?;
         let mut result = library_http::slots(&self.session, &token, area_id).await;
         if needs_relogin(&result) {
-            self.reset_library_token();
+            self.invalidate_library_token(&token);
             token = self.library_token().await?;
             result = library_http::slots(&self.session, &token, area_id).await;
         }
@@ -231,7 +231,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         let mut token = self.library_token().await?;
         let mut result = library_http::seats(&self.session, &token, area_id, &slot).await;
         if needs_relogin(&result) {
-            self.reset_library_token();
+            self.invalidate_library_token(&token);
             token = self.library_token().await?;
             result = library_http::seats(&self.session, &token, area_id, &slot).await;
         }
@@ -260,7 +260,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             let mut token = self.library_token().await?;
             let mut result = library_http::bookings(&self.session, &token).await;
             if needs_relogin(&result) {
-                self.reset_library_token();
+                self.invalidate_library_token(&token);
                 token = self.library_token().await?;
                 result = library_http::bookings(&self.session, &token).await;
             }
@@ -318,8 +318,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         Ok(token)
     }
 
-    fn reset_library_token(&self) {
-        *self.library_token.lock().expect("library token") = None;
+    fn invalidate_library_token(&self, rejected: &str) {
+        let mut token = self.library_token.lock().expect("library token");
+        // A late failure only invalidates the credential actually used by that
+        // request. A peer may already have completed a successful recovery.
+        if token.as_deref() == Some(rejected) {
+            *token = None;
+        }
     }
 
     async fn login_library(&self) -> Result<String, AppError> {
@@ -334,5 +339,29 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         }
         self.ensure_webvpn_session().await?;
         library_http::login(&self.session).await
+    }
+}
+
+#[cfg(test)]
+mod token_recovery_tests {
+    use super::*;
+    use crate::{auth::session::Session, auth::vault::MemoryVault, test_support::MockTransport};
+
+    #[tokio::test]
+    async fn late_expiry_must_not_erase_a_token_already_replaced_by_another_read() {
+        let transport = MockTransport::default();
+        let service = SessionService::new(Session::new(transport.clone()), MemoryVault::default());
+        // Two reads used old-token. The first has already recovered; the late
+        // response from the second is only evidence against old-token.
+        *service.library_token.lock().expect("token") = Some("synthetic-new-token".into());
+        service.invalidate_library_token("synthetic-old-token");
+        let token = service.library_token().await.expect("reuse peer recovery");
+        assert_eq!(token, "synthetic-new-token");
+        assert_eq!(transport.request_count(), 0);
+        service.invalidate_library_token("synthetic-new-token");
+        assert!(service.library_token.lock().expect("token").is_none());
+        // An earlier token cannot invalidate the absence of a token either.
+        service.invalidate_library_token("synthetic-old-token");
+        assert!(service.library_token.lock().expect("token").is_none());
     }
 }
