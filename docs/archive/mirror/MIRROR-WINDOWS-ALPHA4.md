@@ -44,7 +44,15 @@ Parallels Windows 11 ARM64 来宾运行 x64 Flutter / Rust 工具链，结果见
 | `flutter test --no-pub integration_test/windows_test.dart -d windows` | 2 项通过 |
 | `flutter build windows --release --no-pub --target lib/main.dart` | 通过 |
 | 相邻运行资源 | exe、Rust bridge DLL、Flutter DLL、`icudtl.dat`、`AssetManifest.bin`、AOT `app.so` 齐全 |
+| Inno Setup 打包与安装 | 单文件安装器编译、静默安装、关键文件检查、静默卸载均通过 |
 | 实际窗口 | 200% DPI 下宽屏显示侧栏，窄屏切换五个底部标签，拉宽后恢复侧栏 |
+
+单文件安装器由 GitHub Actions 在 `windows-latest` 上从已验证便携 ZIP 重新封装：
+
+- 文件：`Ginkgo-0.1.0-alpha.4-windows-x64-setup.exe`
+- 大小：`21,661,892` 字节
+- SHA-256：`3249f3be0575421c30cf02622e741b9aadbcbcda21eb5618ff61e4aa8620fcd4`
+- 2026-10-21 经 gh-proxy 备用入口完整下载，摘要与 Release `checksums.txt` 一致，文件识别为 Windows PE 安装程序。
 
 便携 ZIP 由 Release 工作流在 `windows-latest` 上重新构建并打包：
 
