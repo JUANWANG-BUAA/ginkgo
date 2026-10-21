@@ -6,8 +6,18 @@ use serde_json::Value;
 pub struct ReadRow {
     pub title: String,
     pub detail: String,
+    /// Explicitly distinguishes a course with an unknown result from report metadata.
+    #[serde(default, rename = "isCourse", skip_serializing_if = "is_false")]
+    pub is_course: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub completed: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub credit: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub semester: Option<String>,
+}
+fn is_false(value: &bool) -> bool {
+    !value
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReadSection {
@@ -85,6 +95,9 @@ fn courses(value: &Value) -> Result<Vec<ReadRow>, AppError> {
                 }
             }
             Ok(ReadRow {
+                is_course: true,
+                credit: credit(&course["xf"]),
+                semester: text(&course["xnxqmc"]),
                 title,
                 detail,
                 completed: match status {
@@ -116,22 +129,34 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
         )),
         rows: vec![
             ReadRow {
+                is_course: false,
                 completed: None,
+                credit: None,
+                semester: None,
                 title: "总学分要求".into(),
                 detail: number(&root["fa"]["ZDXF"]),
             },
             ReadRow {
+                is_course: false,
                 completed: None,
+                credit: None,
+                semester: None,
                 title: "方案已认定学分".into(),
                 detail: number(&root["yhpyfaxf"]),
             },
             ReadRow {
+                is_course: false,
                 completed: None,
+                credit: None,
+                semester: None,
                 title: "全校累计已修学分".into(),
                 detail: number(&root["yxxf"]),
             },
             ReadRow {
+                is_course: false,
                 completed: None,
+                credit: None,
+                semester: None,
                 title: "待考核学分".into(),
                 detail: number(&root["dkhxf"]),
             },
@@ -140,13 +165,19 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
     for category in categories {
         let title = text(&category["kclbmc"]).ok_or_else(AppError::changed)?;
         let mut rows = vec![ReadRow {
+            is_course: false,
             completed: None,
+            credit: None,
+            semester: None,
             title: "类别要求与进度".into(),
             detail: credits(category),
         }];
         if let Some(note) = text(&category["kclbhbzyq"]) {
             rows.push(ReadRow {
+                is_course: false,
                 completed: None,
+                credit: None,
+                semester: None,
                 title: "合并组说明".into(),
                 detail: note,
             });
@@ -167,7 +198,10 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
         {
             let name = text(&group["dxzmc"]).ok_or_else(AppError::changed)?;
             let mut rows = vec![ReadRow {
+                is_course: false,
                 completed: None,
+                credit: None,
+                semester: None,
                 title: "课组要求与进度".into(),
                 detail: credits(group),
             }];
@@ -181,6 +215,7 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
     }
     Ok(sections)
 }
+
 pub fn parse_status(value: &Value) -> Result<ReadSection, AppError> {
     let row = value["datas"]["xsjcxxcx"]["rows"]
         .as_array()
@@ -205,7 +240,10 @@ pub fn parse_status(value: &Value) -> Result<ReadSection, AppError> {
             .into_iter()
             .filter_map(|(label, key)| {
                 text(&row[key]).map(|detail| ReadRow {
+                    is_course: false,
                     completed: None,
+                    credit: None,
+                    semester: None,
                     title: label.into(),
                     detail,
                 })
@@ -222,7 +260,10 @@ pub fn parse_plan(header: &Value, pool: &Value) -> Result<Vec<ReadSection>, AppE
         title: "培养方案".into(),
         progress: None,
         rows: vec![ReadRow {
+            is_course: false,
             completed: None,
+            credit: None,
+            semester: None,
             title: text(&row["MC"]).unwrap_or_else(|| "方案名称未确认".into()),
             detail: format!(
                 "最低总学分 {} · 学位课学分 {}",
@@ -237,7 +278,10 @@ pub fn parse_plan(header: &Value, pool: &Value) -> Result<Vec<ReadSection>, AppE
         .iter()
         .map(|course| {
             Ok(ReadRow {
+                is_course: true,
                 completed: None,
+                credit: credit(&course["XF"]),
+                semester: text(&course["KKXQDM_DISPLAY"]),
                 title: text(&course["KCMC"]).ok_or_else(AppError::changed)?,
                 detail: format!(
                     "{} 学分 · {} · {}",
@@ -254,4 +298,65 @@ pub fn parse_plan(header: &Value, pool: &Value) -> Result<Vec<ReadSection>, AppE
         rows,
     });
     Ok(sections)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn unknown_course_results_stay_courses_and_metadata_stays_separate() {
+        let sections = parse_execution(&json!({
+            "code": 1,
+            "zxbg": [{
+                "kclbmc": "合成类别",
+                "kcList": [{"kcmc": "状态未知课程", "xf": 2, "sfwc": "unknown", "xnxqmc": "合成学期", "privateField": "discard"}],
+                "dxzList": []
+            }]
+        }))
+        .expect("valid report with unknown completion");
+        assert!(!sections[0].rows[0].is_course);
+        let row = &sections[1].rows[1];
+        assert!(row.is_course);
+        assert_eq!(row.completed, None);
+        let encoded = serde_json::to_value(row).expect("course projection");
+        assert_eq!(encoded["isCourse"], true);
+        assert_eq!(encoded["credit"], 2.0);
+        assert_eq!(encoded["semester"], "合成学期");
+        assert!(encoded.get("privateField").is_none());
+        assert!(encoded.get("completed").is_none());
+    }
+
+    #[test]
+    fn plan_pool_does_not_infer_completion_or_requirements() {
+        let sections = parse_plan(
+            &json!({"datas":{"facx":{"rows":[{"MC":"合成方案"}]}}}),
+            &json!({"datas":{"pyfakcxxcx":{"rows":[{"KCMC":"合成课程","XF":2,"KKXQDM_DISPLAY":"合成学期"}]}}}),
+        )
+        .expect("valid pool");
+        assert!(!sections[0].rows[0].is_course);
+        assert!(sections[1].rows[0].is_course);
+        assert_eq!(sections[1].rows[0].completed, None);
+        assert_eq!(sections[1].rows[0].credit, Some(2.0));
+        assert_eq!(sections[1].rows[0].semester.as_deref(), Some("合成学期"));
+        assert!(sections[1].progress.is_none());
+    }
+
+    #[test]
+    fn optional_course_credit_does_not_infer_missing_or_negative_numbers() {
+        let rows = courses(&json!([
+            {"kcmc": "缺失", "sfwc": null},
+            {"kcmc": "负值", "xf": -1, "sfwc": null},
+            {"kcmc": "文字", "xf": "未确定", "sfwc": null},
+            {"kcmc": "零值", "xf": "0", "sfwc": null}
+        ]))
+        .expect("valid course rows");
+        for row in &rows[..3] {
+            let encoded = serde_json::to_value(row).expect("projection");
+            assert!(encoded.get("credit").is_none());
+            assert!(encoded.get("semester").is_none());
+        }
+        assert_eq!(rows[3].credit, Some(0.0));
+    }
 }

@@ -50,7 +50,9 @@
           {
             "title": "合成课程",
             "detail": "2 学分 · 已完成",
-            "completed": true
+            "isCourse": true,
+            "completed": true,
+            "credit": 2.0
           }
         ],
         "progress": {
