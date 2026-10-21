@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'bykc_detail_page.dart';
 import 'src/rust/api/live.dart' as live;
 
 class BykcPage extends StatefulWidget {
@@ -181,33 +182,20 @@ class _BykcPageState extends State<BykcPage> {
                       description: '可调整类别或搜索关键词。',
                     ),
                   for (final course in visible)
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              course['name'] as String,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              [
-                                categoryOf(course),
-                                course['teacher'],
-                                course['position'],
-                              ].whereType<String>().join(' · '),
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: CupertinoColors.secondaryLabel
-                                    .resolveFrom(context),
-                              ),
-                            ),
-                          ],
+                    AppleListTile(
+                      key: ValueKey('bykc-course-${course['id']}'),
+                      title: Text(course['name'] as String),
+                      subtitle: Text(
+                        [
+                          categoryOf(course),
+                          course['teacher'],
+                          course['position'],
+                        ].whereType<String>().join(' · '),
+                      ),
+                      trailing: const CupertinoListTileChevron(),
+                      onTap: () => Navigator.of(context).push(
+                        CupertinoPageRoute<void>(
+                          builder: (_) => BykcDetailPage(course: course),
                         ),
                       ),
                     ),

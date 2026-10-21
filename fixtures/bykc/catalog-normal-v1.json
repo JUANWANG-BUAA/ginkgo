@@ -21,7 +21,19 @@
             "coursePosition": "合成教室",
             "courseNewKind1": {
               "kindName": "美育"
-            }
+            },
+            "courseStartDate": "2026-10-22 14:00:00",
+            "courseEndDate": "2026-10-22 16:00:00",
+            "courseMaxCount": 40,
+            "courseCurrentCount": 12,
+            "courseCampusList": [
+              "沙河",
+              "学院路",
+              "沙河"
+            ],
+            "courseDesc": "合成课程简介：讨论艺术与生活。",
+            "selected": false,
+            "courseSignConfig": "synthetic-configuration-not-to-be-exported"
           }
         ]
       }
@@ -43,7 +55,23 @@
         "teacher": "合成教师",
         "position": "合成教室",
         "category": "美育",
-        "subcategory": null
+        "subcategory": null,
+        "details": {
+          "start": "2026-10-22 14:00:00",
+          "end": "2026-10-22 16:00:00",
+          "selectStart": null,
+          "selectEnd": null,
+          "cancelEnd": null,
+          "capacity": 40,
+          "enrolled": 12,
+          "campuses": [
+            "学院路",
+            "沙河"
+          ],
+          "summary": "合成课程简介：讨论艺术与生活。",
+          "selected": false,
+          "hasSignConfig": true
+        }
       }
     ]
   }

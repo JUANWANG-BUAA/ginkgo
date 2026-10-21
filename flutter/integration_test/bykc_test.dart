@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:ginkgo_mirror/bykc_page.dart';
+import 'package:ginkgo_mirror/bykc_detail_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
 
@@ -15,6 +16,18 @@ void main() {
     await tester.pumpWidget(ginkgoApp(home: const BykcPage(demo: true)));
     await settle(tester);
     expect(find.text('合成博雅课程'), findsOneWidget);
+    await tester.tap(find.text('合成博雅课程'));
+    await settle(tester);
+    expect(find.byType(BykcDetailPage), findsOneWidget);
+    expect(find.text('学院路、沙河'), findsOneWidget);
+    await show(
+      tester,
+      find.text('合成课程简介：讨论艺术与生活。'),
+      scrollKey: 'bykc-detail-scroll',
+    );
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.byType(CupertinoNavigationBarBackButton));
+    await settle(tester);
     await tester.enterText(find.byKey(const Key('bykc-search')), '不存在');
     await settle(tester);
     expect(find.text('没有匹配的课程'), findsOneWidget);

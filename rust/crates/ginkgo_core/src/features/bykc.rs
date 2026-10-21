@@ -10,6 +10,104 @@ pub struct Course {
     pub position: Option<String>,
     pub category: Option<String>,
     pub subcategory: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub details: Option<CourseDetails>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CourseDetails {
+    pub start: Option<String>,
+    pub end: Option<String>,
+    pub select_start: Option<String>,
+    pub select_end: Option<String>,
+    pub cancel_end: Option<String>,
+    pub capacity: Option<i64>,
+    pub enrolled: Option<i64>,
+    pub campuses: Vec<String>,
+    pub summary: Option<String>,
+    pub selected: Option<bool>,
+    pub has_sign_config: Option<bool>,
+}
+fn details(row: &serde_json::Value) -> Result<Option<CourseDetails>, AppError> {
+    use serde_json::Value;
+    let keys = [
+        "courseStartDate",
+        "courseEndDate",
+        "courseSelectStartDate",
+        "courseSelectEndDate",
+        "courseCancelEndDate",
+        "courseMaxCount",
+        "courseCurrentCount",
+        "courseCampusList",
+        "courseCampus",
+        "courseDesc",
+        "selected",
+        "courseSignConfig",
+    ];
+    if !keys.iter().any(|key| row.get(key).is_some()) {
+        return Ok(None);
+    }
+    let text = |key: &str| -> Result<Option<String>, AppError> {
+        match row.get(key) {
+            None | Some(Value::Null) => Ok(None),
+            Some(Value::String(s)) => Ok(Some(s.trim().to_owned()).filter(|s| !s.is_empty())),
+            _ => Err(AppError::changed()),
+        }
+    };
+    let number = |key: &str| -> Result<Option<i64>, AppError> {
+        match row.get(key) {
+            None | Some(Value::Null) => Ok(None),
+            Some(v) => v
+                .as_i64()
+                .or_else(|| v.as_str()?.parse().ok())
+                .filter(|n| *n >= 0)
+                .map(Some)
+                .ok_or_else(AppError::changed),
+        }
+    };
+    let mut campuses = std::collections::BTreeSet::new();
+    if let Some(value) = row.get("courseCampusList").filter(|v| !v.is_null()) {
+        for value in value.as_array().ok_or_else(AppError::changed)? {
+            let name = value.as_str().ok_or_else(AppError::changed)?.trim();
+            if !name.is_empty() {
+                campuses.insert(name.to_owned());
+            }
+        }
+    }
+    if let Some(name) = text("courseCampus")? {
+        campuses.insert(name);
+    }
+    let selected = match row.get("selected") {
+        None | Some(Value::Null) => None,
+        Some(Value::Bool(value)) => Some(*value),
+        Some(v) => match v
+            .as_str()
+            .map(str::to_owned)
+            .or_else(|| v.as_i64().map(|n| n.to_string()))
+            .as_deref()
+        {
+            Some("true" | "1") => Some(true),
+            Some("false" | "0") => Some(false),
+            _ => return Err(AppError::changed()),
+        },
+    };
+    Ok(Some(CourseDetails {
+        start: text("courseStartDate")?,
+        end: text("courseEndDate")?,
+        select_start: text("courseSelectStartDate")?,
+        select_end: text("courseSelectEndDate")?,
+        cancel_end: text("courseCancelEndDate")?,
+        capacity: number("courseMaxCount")?,
+        enrolled: number("courseCurrentCount")?,
+        campuses: campuses.into_iter().collect(),
+        summary: text("courseDesc")?,
+        selected,
+        has_sign_config: if row.get("courseSignConfig").is_some() {
+            Some(text("courseSignConfig")?.is_some())
+        } else {
+            None
+        },
+    }))
 }
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(tag = "kind", content = "value", rename_all = "snake_case")]
@@ -144,6 +242,7 @@ pub fn parse_catalog(
                 return Err(AppError::changed());
             }
             courses.push(Course {
+                details: details(row)?,
                 id,
                 name: string(row, "courseName")
                     .filter(|s| !s.trim().is_empty())

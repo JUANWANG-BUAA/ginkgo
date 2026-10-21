@@ -1,0 +1,41 @@
+{
+  "contract": "bykc.catalog",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "config": {
+      "semester": [
+        {
+          "id": 1,
+          "semesterName": "合成学期"
+        }
+      ]
+    },
+    "pages": [
+      {
+        "content": [
+          {
+            "id": 1,
+            "courseName": "合成博雅课程",
+            "courseTeacher": "合成教师",
+            "coursePosition": "合成教室",
+            "courseNewKind1": {
+              "kindName": "美育"
+            },
+            "courseStartDate": "2026-10-22 14:00:00",
+            "courseEndDate": "2026-10-22 16:00:00",
+            "courseMaxCount": 40,
+            "courseCurrentCount": 12,
+            "courseCampusList": {},
+            "courseDesc": "合成课程简介：讨论艺术与生活。",
+            "selected": false,
+            "courseSignConfig": "synthetic-configuration-not-to-be-exported"
+          }
+        ]
+      }
+    ]
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

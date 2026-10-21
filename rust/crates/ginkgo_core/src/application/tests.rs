@@ -1261,12 +1261,18 @@ async fn bykc_failure_retains_cached_catalog_and_logout_isolates_account() {
             .len(),
         1
     );
-    assert!(service
-        .load_bykc(true)
-        .await
-        .expect("stale")
-        .failure
-        .is_some());
+    let stale = service.load_bykc(true).await.expect("stale");
+    assert!(stale.failure.is_some());
+    let details = stale.data.courses[0]
+        .details
+        .as_ref()
+        .expect("cached course details");
+    assert_eq!(details.capacity, Some(40));
+    assert_eq!(details.enrolled, Some(12));
+    assert_eq!(details.campuses, ["学院路", "沙河"]);
+    assert!(!serde_json::to_string(&stale.data)
+        .expect("projection")
+        .contains("synthetic-configuration-not-to-be-exported"));
     service.sign_out().await;
     assert!(service.load_bykc(false).await.is_err());
 }

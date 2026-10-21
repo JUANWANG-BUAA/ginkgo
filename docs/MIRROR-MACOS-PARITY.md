@@ -10,7 +10,7 @@
 | 作业 | Homework/HomeworkView.swift:58,214,284,319,419；SpocHomeworkClient.swift | SPOC 真实列表/详情；全部/待完成/已提交、截止与待确认快捷筛选；本地标题/课程搜索；说明、发布/截止/提交时间和分值；原站点入口；180ms 状态切换 | 教师上下文已贯通列表/搜索/详情（新增真实字段待复验）；希冀关闭；提交、下载附件与题目作答未迁移；来源只有 SPOC，不造多来源筛选 |
 | 课程签到 | CheckIn/CheckInSummaryView.swift:140,280；CheckInClient.swift | 当天课程、已签/未签/待确认计数、时间、地点、合并冲突和核对时间；网关认证已真实恢复 | 历史日期已迁移；Android前一天真实空结果通过（非空历史待验收）；30秒自动轮询、提醒通知未迁移；提交签到按本轮范围关闭 |
 | 图书馆 | Library/LibraryView.swift:182,317,431；LibraryPublicStats.swift、LibraryOccupancyHistory.swift | 真实馆→区→时段→座位及当前预约；CAS并发锁、网关恢复；本地座位搜索/只看空闲；状态同时用图标与文字；独立公共人数/阅览室/资源余量页，预约认证失败仍可达 | 历史预约已迁移；Android真实第一页10条/末页通过（多页待验收）；公共统计host实网两校区解析通过；60天本地历史趋势未迁移；预约/入座签到/暂离/离馆/取消关闭 |
-| 博雅 | BYKC/BykcView.swift:5,27,202,257 | 当前学期目录、搜索和类别筛选；真实响应通过 | 已选记录、完成统计、课程详情尚未迁移；选退课关闭 |
+| 博雅 | BYKC/BykcView.swift:5,27,202,257 | 当前学期目录、搜索和类别筛选；真实响应通过 | 课程详情已迁移，真实字段待复验；已选记录、完成统计尚未迁移；选退课关闭 |
 | 研究生教务 | Graduate/GraduateAcademicView.swift:6–9,417,452；GraduateProgress.swift | 学籍白名单、zxbg 原结构报告和课程学习；真实响应通过 | macOS 学分地图、分类/完成状态筛选、课程原文和成绩考试组合视图未完整对齐；不能宣称已覆盖研究生全部信息 |
 | 成绩 | Grade/GradeView.swift、GradeClient.swift | 学期、课程原始成绩、加权均分/GPA | 当前轮没有重新逐项人工对照；Windows 未验收 |
 | 空教室 | Classroom/ClassroomView.swift、ClassroomClient.swift | 校区/日期/空闲节次、缓存与错误区分 | 当前轮不重跑已知不收敛的校区/日期/缓存长流程 |
@@ -65,3 +65,11 @@ Apple 官方依据：[Motion](https://developer.apple.com/design/human-interface
 - 完整门禁143 core lib +1契约 +1bridge、Clippy/analyze、38 widget通过；随后扩展原应用测试与原作业widget覆盖教师、缺值、失败缓存及教师搜索，定向通过。新增3fixture，39类/124份。设备结果补记于本段后。
 
 Android作业独立smoke通过（40秒，真实FFI+合成数据）：列表→教师详情→返回→筛选。未登录真实账号，教师实网字段仍待复验。Android编译含新版bridge通过，未重复执行mirror_test。
+
+## 2026-10-21：博雅课程详情
+
+按BykcClient.course与BykcCourseCard/详情源码迁移目录中已返回的时间、选课窗口、退选截止、校区、当前人数/容量、简介、已选与签到配置存在性。课程行可推入Cupertino详情；打开详情零网络请求。缺字段显示上游未提供，不伪造0或可选保证；签到配置正文不离开Rust。
+
+完整门禁143 core lib +1契约 +1 bridge、Clippy/analyze、38 widget通过；新增1项深色1.8倍字号/缺容量测试通过（累计39 widget），增强BYKC缓存失败测试验证详情保留与配置正文裁剪，定向通过。39类126份fixture。已选记录与完成统计仍单独推进，选退课关闭。
+
+Android博雅详情独立smoke通过：真实FFI合成目录→详情校区/简介→返回→搜索空态。首次Cupertino双标题定位已改为唯一页面类型定位，内容断言保留。真实目录新增字段尚未账号复验。

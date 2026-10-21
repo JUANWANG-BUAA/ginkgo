@@ -376,3 +376,11 @@ Android `library_stats_test.dart` 独立合成FFI smoke 1项通过（42秒，包
 - 完整门禁143 core lib +1契约 +1bridge、Clippy/analyze、38 widget通过；随后扩展原应用测试与原作业widget覆盖教师、缺值、失败缓存及教师搜索，定向通过。新增3fixture，39类/124份。设备结果补记于本段后。
 
 Android作业独立smoke通过（40秒，真实FFI+合成数据）：列表→教师详情→返回→筛选。未登录真实账号，教师实网字段仍待复验。Android编译含新版bridge通过，未重复执行mirror_test。
+
+## 2026-10-21：博雅课程详情
+
+按BykcClient.course与BykcCourseCard/详情源码迁移目录中已返回的时间、选课窗口、退选截止、校区、当前人数/容量、简介、已选与签到配置存在性。课程行可推入Cupertino详情；打开详情零网络请求。缺字段显示上游未提供，不伪造0或可选保证；签到配置正文不离开Rust。
+
+完整门禁143 core lib +1契约 +1 bridge、Clippy/analyze、38 widget通过；新增1项深色1.8倍字号/缺容量测试通过（累计39 widget），增强BYKC缓存失败测试验证详情保留与配置正文裁剪，定向通过。39类126份fixture。已选记录与完成统计仍单独推进，选退课关闭。
+
+Android博雅详情独立smoke通过：真实FFI合成目录→详情校区/简介→返回→搜索空态。首次Cupertino双标题定位已改为唯一页面类型定位，内容断言保留。真实目录新增字段尚未账号复验。
