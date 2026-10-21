@@ -23,3 +23,10 @@
 - 使用产品字体生成并亲自读图：390×844 浅色/深色/深色1.8字号；修正读图发现的大字号字段居中。图片仅 `/tmp/ginkgo-plan-{light,dark,large}.png`，全部合成，不入库。此为 widget 渲染读图，不是 Android 设备验收。
 
 模拟器由另一项任务独占，本切片未跑设备 smoke、未真实查询方案，也未发布 APK。下一步在正常账号会话中核对章节、课程池、首次耗时/缓存命中/强制刷新以及返回状态；结束后退出并检查保险库为空。已准备 `flutter/integration_test/graduate_plan_test.dart`（analyze 通过，尚未执行），用于单项合成 FFI smoke；新页面仍待该项设备验收，完整学分地图和其他研究生服务不据此宣布对齐。
+
+
+## 最新基线兼容性复核
+
+已在独立 `feat/mirror-graduate-integration` 分支以 `16e4ac6` 为基线整合两个提交；API修订表冲突保留双方记录，新增行遵守现有五列表头。代码自动合并后核对研究生滚动位置、分段展开状态及进度条宽度修复均保留。整合版本离线重新执行：19项研究生Rust（其余148项未跑）、契约遍历1项、7项widget、7文件analyze通过；FRB重新生成后工作树无绑定差异。全workspace Clippy/fmt通过。
+
+此为供根任务review的整合分支，未合入 `feat/rust-flutter-mirror`，未改版本/主页/下载入口，未构建发布包或操作模拟器；不纳入正在发布的Alpha2验收结论。
