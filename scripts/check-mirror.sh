@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 # Reuse a matching installed stable toolchain; do not download it twice.
-if rustup toolchain list | rg -q '^stable(-| )' && rustc +stable --version | head -1 | rg -q '^rustc 1\.99\.0 '; then
+if rustup toolchain list | grep -Eq '^stable(-| )' && rustc +stable --version | head -1 | grep -Eq '^rustc 1\.99\.0 '; then
   export RUSTUP_TOOLCHAIN=stable
 else
   export RUSTUP_TOOLCHAIN=1.99.0

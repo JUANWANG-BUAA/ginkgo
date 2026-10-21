@@ -60,12 +60,15 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      # Do not depend on tools preinstalled by ubuntu-latest.
+      - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0 ndk;27.0.12077973'
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.47.0
           channel: stable
           cache: true
-      - run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'ndk;27.0.12077973'
       - run: flutter build apk --debug --target-platform android-arm64
         working-directory: flutter
       - uses: actions/upload-artifact@v4
