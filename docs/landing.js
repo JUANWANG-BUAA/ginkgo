@@ -126,7 +126,8 @@ async function updateReleaseLinks() {
     const windows = releases.find(
       (item) =>
         /^windows-v\d/.test(item.tag_name) &&
-        releaseAsset(item, "-windows-x64.zip"),
+        (releaseAsset(item, "-windows-x64-setup.exe") ||
+          releaseAsset(item, "-windows-x64.zip")),
     );
     if (mac) {
       updateLinks(
@@ -157,9 +158,16 @@ async function updateReleaseLinks() {
         updateLinks("[data-android-checksums]", sums.browser_download_url);
     }
     if (windows) {
-      const zip = releaseAsset(windows, "-windows-x64.zip").browser_download_url;
-      updateLinks("[data-download-windows]", zip);
-      updateLinks("[data-download-windows-proxy]", "https://gh-proxy.com/" + zip);
+      const installer = releaseAsset(windows, "-windows-x64-setup.exe");
+      const zip = releaseAsset(windows, "-windows-x64.zip");
+      const primary = (installer || zip).browser_download_url;
+      updateLinks("[data-download-windows]", primary);
+      updateLinks(
+        "[data-download-windows-proxy]",
+        "https://gh-proxy.com/" + primary,
+      );
+      if (zip)
+        updateLinks("[data-download-windows-zip]", zip.browser_download_url);
       updateText(
         "[data-windows-version]",
         windows.tag_name.slice("windows-v".length),

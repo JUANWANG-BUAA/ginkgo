@@ -51,11 +51,11 @@ xcodebuild test \
 
 ## Android / Windows Alpha
 
-Android 与 Windows 使用 Rust + Flutter，Apple 端继续使用 SwiftUI。两者的 Alpha.4 均已公开：Android 提供 arm64 APK，Windows 提供首个 Windows 10 / 11 x64 ZIP。Windows 支持宽屏分组侧栏、窄屏底部导航、离线演示与 Windows Credential Manager，并复用 Android 的 Rust 核心和 Flutter 页面层。
+Android 与 Windows 使用 Rust + Flutter，Apple 端继续使用 SwiftUI。两者的 Alpha.4 均已公开：Android 提供 arm64 APK，Windows 主推首个 Windows 10 / 11 x64 单文件安装器，并保留便携 ZIP。Windows 支持宽屏分组侧栏、窄屏底部导航、离线演示与 Windows Credential Manager，并复用 Android 的 Rust 核心和 Flutter 页面层。
 
 - [Windows Alpha.4 下载与发布说明](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/windows-v0.1.0-alpha.4)
 - [Android Alpha.4 下载与发布说明](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.4)
-- Windows 包未签名，需完整解压并保留相邻 DLL 与 `data` 文件夹；物理 x64、干净系统运行依赖、真实学校业务、签名与更新仍未验收。
+- Windows 安装器按当前用户安装并创建开始菜单与卸载入口；便携 ZIP 需完整解压并保留相邻 DLL 与 `data` 文件夹。包未签名，物理 x64、干净系统运行依赖、真实学校业务、签名与更新仍未验收。
 - 两端的签到及图书馆写路径仍属实验功能，须逐次人工确认，真实写入尚未验收；功能尚未与 macOS 完全对齐。
 
 Windows 源码、验收证据与待办位于 `feat/rust-flutter-mirror` 分支；公开包状态以对应 GitHub Release 为准。

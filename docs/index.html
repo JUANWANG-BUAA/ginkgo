@@ -442,8 +442,8 @@
             <h3 id="windows-title" lang="en">Windows</h3>
             <div class="platform-requirement">Windows 10 / 11 · x64</div>
             <p>
-              首个公开测试包。宽屏呈现分组侧栏，窄窗口切换到底部导航；
-              与 Android 共用 Rust 核心和 Flutter 界面。
+              单文件安装器，双击即可安装。宽屏呈现分组侧栏，窄窗口切换到底部导航；
+              同时保留便携 ZIP 备用。
             </p>
             <div class="version">
               版本 <span data-windows-version>0.1.0-alpha.4</span>
@@ -451,15 +451,19 @@
             <a
               class="button button-primary"
               data-download-windows
-              href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/windows-v0.1.0-alpha.4/Ginkgo-0.1.0-alpha.4-windows-x64.zip"
-              >下载 Windows x64 ZIP <span aria-hidden="true">↓</span></a
+              href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/windows-v0.1.0-alpha.4/Ginkgo-0.1.0-alpha.4-windows-x64-setup.exe"
+              >下载 Windows 安装包 <span aria-hidden="true">↓</span></a
             >
             <div class="download-links">
               <a
                 data-download-windows-proxy
-                href="https://gh-proxy.com/https://github.com/JUANWANG-BUAA/ginkgo/releases/download/windows-v0.1.0-alpha.4/Ginkgo-0.1.0-alpha.4-windows-x64.zip"
+                href="https://gh-proxy.com/https://github.com/JUANWANG-BUAA/ginkgo/releases/download/windows-v0.1.0-alpha.4/Ginkgo-0.1.0-alpha.4-windows-x64-setup.exe"
                 title="经 gh-proxy.com 第三方代理下载，请核对校验和"
                 >第三方备用入口</a
+              ><a
+                data-download-windows-zip
+                href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/windows-v0.1.0-alpha.4/Ginkgo-0.1.0-alpha.4-windows-x64.zip"
+                >便携 ZIP</a
               ><a
                 data-windows-checksums
                 href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/windows-v0.1.0-alpha.4/checksums.txt"
@@ -478,8 +482,9 @@
             这里列出已发布安装包与源码入口。Android 与 Windows Alpha.4
             尚未与 macOS 功能完全对齐。Android
             应用内更新支持断点续传、两个 GitHub
-            官方入口和安装包校验。Windows 包未签名，首次运行可能触发
-            SmartScreen；请完整解压，不能只复制 exe。签到与图书馆操作已接入逐次确认，真实写入仍待验收；博雅选退课与研讨室写操作尚未开放。各平台的预约与签到请逐项核对并确认，数据请以学校官方渠道为准。
+            官方入口和安装包校验。Windows 推荐单文件安装器；便携 ZIP
+            需完整解压。当前安装包未签名，首次运行可能触发
+            SmartScreen。签到与图书馆操作已接入逐次确认，真实写入仍待验收；博雅选退课与研讨室写操作尚未开放。各平台的预约与签到请逐项核对并确认，数据请以学校官方渠道为准。
           </p>
           <a
             class="text-link"
@@ -583,18 +588,16 @@
           </details>
           <details>
             <summary>
-              为什么 Windows 下载是 ZIP，不是 exe 或 MSI？<span
+              Windows 的安装包为什么仍是未签名程序？<span
                 aria-hidden="true"
                 >＋</span
               >
             </summary>
             <p>
-              Flutter Windows
-              程序运行时还依赖相邻的 Rust / Flutter DLL 与 data
-              目录，单独复制或改名一个 exe 无法启动，因此当前提供保留完整目录结构的便携
-              ZIP。MSI
-              安装器需要独立的安装、卸载、快捷方式与干净系统验收，本版尚未提供；请完整解压后运行
-              ginkgo_mirror.exe。
+              Windows 主下载是包含全部运行文件的单文件安装器，安装后会写入程序目录并创建开始菜单入口。当前 Alpha
+              尚未配置 Microsoft Authenticode / EV
+              代码签名，因此 SmartScreen 可能提示未知发布者；请先核对发布页的 SHA-256。便携
+              ZIP 仍保留给不想安装的用户，但它必须完整解压，不能只复制 exe。
             </p>
           </details>
           <details>
@@ -604,9 +607,11 @@
             <p>
               macOS 可从发布页选择 DMG 或 ZIP；Android 请确认设备为
               arm64、系统为 Android 7.0 或更高，按系统提示允许安装
-              APK；Windows 请下载 x64
-              ZIP，完整解压后运行，保留同目录 DLL 与 data
-              文件夹。若缺少 Visual C++ Redistributable，请先安装微软官方运行库。曾安装调试版的设备可能需要先卸载旧版，卸载会清除本机数据。请先阅读<a
+              APK；Windows 推荐下载 x64
+              安装包并按向导完成安装。若缺少 Visual C++
+              Redistributable，请先安装微软官方运行库。便携 ZIP
+              需完整解压，保留同目录 DLL 与 data
+              文件夹。曾安装调试版的设备可能需要先卸载旧版，卸载会清除本机数据。请先阅读<a
                 href="https://github.com/JUANWANG-BUAA/ginkgo/blob/feat/rust-flutter-mirror/docs/archive/mirror/MIRROR-ANDROID-ALPHA3.md"
                 >Android 安装说明</a
               >，反馈时不要附上密码、Cookie 或个人信息。
