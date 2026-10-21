@@ -316,12 +316,13 @@
             <p style="color:var(--muted)">Android 7.0+ · arm64 · APK</p>
           </div>
           <div class="cta">
-            <a class="btn primary" data-download-apk href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.1/Ginkgo-0.1.0-alpha.1-android-arm64.apk">下载 APK</a>
+            <a class="btn primary" data-download-apk href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.1/Ginkgo-0.1.0-alpha.1-android-arm64.apk">GitHub 下载</a>
+            <a class="btn ghost" data-download-apk-proxy href="https://gh-proxy.com/https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.1/Ginkgo-0.1.0-alpha.1-android-arm64.apk">加速下载</a>
             <a class="btn ghost" data-android-release href="https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.1">发布说明</a>
             <a class="btn ghost" data-android-checksums href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.1/checksums.txt">校验和</a>
           </div>
         </div>
-        <p style="color:var(--muted)">用手机浏览器下载，打开 APK 后按 Android 提示安装。以后可在「设置 → 软件更新」检查新版，再打开发布页下载。</p>
+        <p style="color:var(--muted)">打开 APK 后按 Android 提示安装。GitHub 下载较慢时可选「加速下载」（第三方 gh-proxy.com），两个入口为同一安装包；更新可在「设置 → 软件更新」检查。</p>
         <p class="notice">如装过 adb 调试版，可能需要卸载旧包再安装；请先保存个人待办，卸载会清除本地数据。后续 Alpha 使用同一签名覆盖升级。</p>
       </div>
       <div data-reveal>
@@ -674,7 +675,9 @@ xcodebuild test -project BUAA-Assistant.xcodeproj \
         if (sums) links('[data-checksums]', sums.browser_download_url);
       }
       if (android) {
-        links('[data-download-apk]', asset(android, '-android-arm64.apk').browser_download_url);
+        const apk = asset(android, '-android-arm64.apk').browser_download_url;
+        links('[data-download-apk]', apk);
+        links('[data-download-apk-proxy]', 'https://gh-proxy.com/' + apk);
         document.querySelectorAll('[data-android-version]').forEach(el => { el.textContent = android.tag_name.slice(9); });
         if (trustedGithub(android.html_url, 'tag/android-v')) links('[data-android-release]', android.html_url);
         const sums = asset(android, 'checksums.txt');
