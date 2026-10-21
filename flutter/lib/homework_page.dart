@@ -57,6 +57,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
               [
                 item.title,
                 item.courseName,
+                item.teacherName ?? "",
               ].any((s) => s.toLowerCase().contains(query)),
         )
         .toList();
@@ -225,7 +226,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
         child: CupertinoSearchTextField(
           key: const Key('homework-search'),
-          placeholder: '搜索作业或课程',
+          placeholder: '搜索作业、课程或教师',
           onChanged: (value) => setState(() {
             search = value;
             prepare();
@@ -291,6 +292,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                     children: [
                       const SizedBox(height: 6),
                       Text(item.courseName),
+                      if (item.teacherName != null) Text(item.teacherName!),
                       const SizedBox(height: 8),
                       Wrap(
                         spacing: 8,

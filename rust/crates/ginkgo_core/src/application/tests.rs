@@ -1165,7 +1165,7 @@ async fn homework_full_read_chain_caches_list_and_reads_detail() {
         HttpResponse::new(
             200,
             "courses",
-            envelope(serde_json::json!([{"kcid":"c1","kcmc":"合成课程"}])),
+            envelope(serde_json::json!([{"kcid":"c1","kcmc":"合成课程","skjs":"合成教师"}])),
         ),
         HttpResponse::new(
             200,
@@ -1190,6 +1190,8 @@ async fn homework_full_read_chain_caches_list_and_reads_detail() {
         .expect("login");
     let list = service.load_homework(false).await.expect("list");
     assert_eq!(list.data.items.len(), 2);
+    assert_eq!(list.data.items[0].teacher_name.as_deref(), Some("合成教师"));
+    assert!(list.data.items[1].teacher_name.is_none());
     let count = transport.request_count();
     assert_eq!(
         service
@@ -1218,13 +1220,13 @@ async fn homework_full_read_chain_caches_list_and_reads_detail() {
         detail.data.status,
         crate::features::homework::HomeworkStatus::Submitted
     );
-    // An unavailable refresh retains the last real snapshot.
-    assert!(service
-        .load_homework(true)
-        .await
-        .expect("stale")
-        .failure
-        .is_some());
+    // Teacher context belongs to the cached snapshot, including failed refresh.
+    let stale = service.load_homework(true).await.expect("stale");
+    assert!(stale.failure.is_some());
+    assert_eq!(
+        stale.data.items[0].teacher_name.as_deref(),
+        Some("合成教师")
+    );
     service.sign_out().await;
     assert!(service.load_homework(false).await.is_err());
 }

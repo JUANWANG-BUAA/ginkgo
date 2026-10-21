@@ -367,3 +367,12 @@ Android `library_stats_test.dart` 独立合成FFI smoke 1项通过（42秒，包
 - 软件更新沿用 macOS `UpdateChecker.swift` 的 GitHub Releases 来源，Android 独立 `android-v<semver>` 标签。正式版本排除预发布，Alpha 包接收预发布；仅识别可信项目 URL 与 arm64 APK。未提供 APK 不显示可安装更新；失败保留上次结果和时间。浏览器下载后由系统确认安装，未实现应用内下载校验/静默安装。
 - 公开更新请求使用独立直接 Session，完全不共享学校 Cookie/路线，无账号依赖；最多查询最近100条发布。新38类/121份合成fixture；Windows更新尚未接入。
 - 本机完整门禁：143 core lib +1契约 +1 bridge、Clippy、Flutter analyze、38 Flutter tests通过；Android aarch64 cargo check通过。设备与发布结果见 `MIRROR-ANDROID-ALPHA.md`，不将本机测试等同所有学校接口验收。
+
+## 2026-10-21：SPOC 教师上下文与宣传页
+
+- 官网首页已发布Android Alpha下载与平台差异说明；Mac/Android release资产独立选择，API失败保留静态APK入口，390/1440宽度无横向溢出。不将macOS写操作、持久缓存和截图冒充Android实现。
+- 按`SpocHomeworkClient.swift` Course.skjs和sskcid→kcid关联，把教师从领域/HTTP/context缓存贯通FRB、列表搜索和详情；缺值显示上游未提供，重复课程ID/教师类型漂移拒绝，刷新失败保留原教师快照。演示使用合成课程上下文fixture。
+- 附件证据核查：macOS也只提供原站点处理说明，当前源码无已验证附件下载链路；镜像保留相同边界，不猜端点，不标记附件下载完成。
+- 完整门禁143 core lib +1契约 +1bridge、Clippy/analyze、38 widget通过；随后扩展原应用测试与原作业widget覆盖教师、缺值、失败缓存及教师搜索，定向通过。新增3fixture，39类/124份。设备结果补记于本段后。
+
+Android作业独立smoke通过（40秒，真实FFI+合成数据）：列表→教师详情→返回→筛选。未登录真实账号，教师实网字段仍待复验。Android编译含新版bridge通过，未重复执行mirror_test。

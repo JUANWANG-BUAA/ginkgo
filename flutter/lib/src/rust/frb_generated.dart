@@ -1968,18 +1968,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   HomeworkItem dco_decode_homework_item(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 9)
-      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
+    if (arr.length != 10)
+      throw Exception('unexpected arr length: expect 10 but see ${arr.length}');
     return HomeworkItem(
-      id: dco_decode_String(arr[0]),
-      courseId: dco_decode_opt_String(arr[1]),
-      courseName: dco_decode_String(arr[2]),
-      title: dco_decode_String(arr[3]),
-      publishedAt: dco_decode_opt_String(arr[4]),
-      dueAt: dco_decode_opt_String(arr[5]),
-      status: dco_decode_homework_status(arr[6]),
-      statusDetail: dco_decode_opt_String(arr[7]),
-      score: dco_decode_opt_String(arr[8]),
+      teacherName: dco_decode_opt_String(arr[0]),
+      id: dco_decode_String(arr[1]),
+      courseId: dco_decode_opt_String(arr[2]),
+      courseName: dco_decode_String(arr[3]),
+      title: dco_decode_String(arr[4]),
+      publishedAt: dco_decode_opt_String(arr[5]),
+      dueAt: dco_decode_opt_String(arr[6]),
+      status: dco_decode_homework_status(arr[7]),
+      statusDetail: dco_decode_opt_String(arr[8]),
+      score: dco_decode_opt_String(arr[9]),
     );
   }
 
@@ -2904,6 +2905,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   HomeworkItem sse_decode_homework_item(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_teacherName = sse_decode_opt_String(deserializer);
     var var_id = sse_decode_String(deserializer);
     var var_courseId = sse_decode_opt_String(deserializer);
     var var_courseName = sse_decode_String(deserializer);
@@ -2914,6 +2916,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_statusDetail = sse_decode_opt_String(deserializer);
     var var_score = sse_decode_opt_String(deserializer);
     return HomeworkItem(
+      teacherName: var_teacherName,
       id: var_id,
       courseId: var_courseId,
       courseName: var_courseName,
@@ -4005,6 +4008,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   void sse_encode_homework_item(HomeworkItem self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_String(self.teacherName, serializer);
     sse_encode_String(self.id, serializer);
     sse_encode_opt_String(self.courseId, serializer);
     sse_encode_String(self.courseName, serializer);

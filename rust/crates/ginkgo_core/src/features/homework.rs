@@ -28,6 +28,8 @@ pub struct HomeworkItem {
     pub id: String,
     pub course_id: Option<String>,
     pub course_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub teacher_name: Option<String>,
     pub title: String,
     pub published_at: Option<String>,
     pub due_at: Option<String>,
@@ -99,6 +101,7 @@ pub fn parse_page(value: Value) -> Result<HomeworkPage, AppError> {
                 course_name: optional_string(row, "kcmc")
                     .filter(|name| !name.trim().is_empty())
                     .unwrap_or_else(|| "SPOC 课程".into()),
+                teacher_name: None,
                 title,
                 published_at: optional_string(row, "zykssj"),
                 due_at: optional_string(row, "zyjzsj"),
@@ -114,6 +117,41 @@ pub fn parse_page(value: Value) -> Result<HomeworkPage, AppError> {
         has_next,
         items,
     })
+}
+
+/// Course context uses kcid/kcmc/skjs, matching SpocHomeworkClient.Course.
+/// Never infer the teacher from a title, list position or a different course.
+pub fn apply_course_context(items: &mut [HomeworkItem], courses: &Value) -> Result<(), AppError> {
+    let rows = courses.as_array().ok_or_else(AppError::changed)?;
+    let mut context = std::collections::BTreeMap::new();
+    for row in rows {
+        let id = row["kcid"]
+            .as_str()
+            .filter(|s| !s.trim().is_empty())
+            .ok_or_else(AppError::changed)?;
+        let name = row["kcmc"]
+            .as_str()
+            .filter(|s| !s.trim().is_empty())
+            .ok_or_else(AppError::changed)?;
+        let teacher = match row.get("skjs") {
+            None | Some(Value::Null) => None,
+            Some(Value::String(value)) => Some(value.trim()).filter(|s| !s.is_empty()),
+            _ => return Err(AppError::changed()),
+        };
+        if context.insert(id, (name, teacher)).is_some() {
+            return Err(AppError::changed());
+        }
+    }
+    for item in items {
+        item.teacher_name = None;
+        if let Some((name, teacher)) = item.course_id.as_deref().and_then(|id| context.get(id)) {
+            if item.course_name == "SPOC 课程" {
+                item.course_name = (*name).to_owned();
+            }
+            item.teacher_name = teacher.map(str::to_owned);
+        }
+    }
+    Ok(())
 }
 
 fn map_status(raw: Option<&str>) -> (HomeworkStatus, Option<String>) {

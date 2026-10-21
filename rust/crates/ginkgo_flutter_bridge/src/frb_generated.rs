@@ -2067,6 +2067,7 @@ impl SseDecode for crate::api::live::HomeworkDetailResponse {
 impl SseDecode for crate::api::mirror::HomeworkItem {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_teacherName = <Option<String>>::sse_decode(deserializer);
         let mut var_id = <String>::sse_decode(deserializer);
         let mut var_courseId = <Option<String>>::sse_decode(deserializer);
         let mut var_courseName = <String>::sse_decode(deserializer);
@@ -2077,6 +2078,7 @@ impl SseDecode for crate::api::mirror::HomeworkItem {
         let mut var_statusDetail = <Option<String>>::sse_decode(deserializer);
         let mut var_score = <Option<String>>::sse_decode(deserializer);
         return crate::api::mirror::HomeworkItem {
+            teacher_name: var_teacherName,
             id: var_id,
             course_id: var_courseId,
             course_name: var_courseName,
@@ -3411,6 +3413,7 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkDetailResponse>
 impl flutter_rust_bridge::IntoDart for crate::api::mirror::HomeworkItem {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
+            self.teacher_name.into_into_dart().into_dart(),
             self.id.into_into_dart().into_dart(),
             self.course_id.into_into_dart().into_dart(),
             self.course_name.into_into_dart().into_dart(),
@@ -4358,6 +4361,7 @@ impl SseEncode for crate::api::live::HomeworkDetailResponse {
 impl SseEncode for crate::api::mirror::HomeworkItem {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<String>>::sse_encode(self.teacher_name, serializer);
         <String>::sse_encode(self.id, serializer);
         <Option<String>>::sse_encode(self.course_id, serializer);
         <String>::sse_encode(self.course_name, serializer);

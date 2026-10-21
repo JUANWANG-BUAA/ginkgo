@@ -1024,6 +1024,7 @@ pub async fn load_homework(force_refresh: bool) -> super::mirror::HomeworkRespon
                     id: item.id,
                     course_id: item.course_id,
                     course_name: item.course_name,
+                    teacher_name: item.teacher_name,
                     title: item.title,
                     published_at: item.published_at,
                     due_at: item.due_at,

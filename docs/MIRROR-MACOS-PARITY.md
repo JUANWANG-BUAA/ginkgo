@@ -7,7 +7,7 @@
 | 模块 | macOS 源码证据（BUAA-Assistant/Features/ 下） | Flutter 当前 | 明确未迁移或未验收 |
 |---|---|---|---|
 | 课表 | Schedule/ScheduleView.swift、TimetableGrid.swift、TimetableLayout.swift、CoursePalette.swift | 周网格默认；每日清单/学期/有数据时考试；学期切换、日期、今天列、节次/时间/地点/教师详情；稳定多色、冲突分栏、搜索；研究生条目时间方案已修正 | 课程提醒未迁移；真实时间仅核验字段完整，未逐门与教务人工比对；窄屏网格横滑，大字号改清单 |
-| 作业 | Homework/HomeworkView.swift:58,214,284,319,419；SpocHomeworkClient.swift | SPOC 真实列表/详情；全部/待完成/已提交、截止与待确认快捷筛选；本地标题/课程搜索；说明、发布/截止/提交时间和分值；原站点入口；180ms 状态切换 | 教师字段尚未从课程上下文贯通 DTO；希冀关闭；提交、下载附件与题目作答未迁移；来源只有 SPOC，不造多来源筛选 |
+| 作业 | Homework/HomeworkView.swift:58,214,284,319,419；SpocHomeworkClient.swift | SPOC 真实列表/详情；全部/待完成/已提交、截止与待确认快捷筛选；本地标题/课程搜索；说明、发布/截止/提交时间和分值；原站点入口；180ms 状态切换 | 教师上下文已贯通列表/搜索/详情（新增真实字段待复验）；希冀关闭；提交、下载附件与题目作答未迁移；来源只有 SPOC，不造多来源筛选 |
 | 课程签到 | CheckIn/CheckInSummaryView.swift:140,280；CheckInClient.swift | 当天课程、已签/未签/待确认计数、时间、地点、合并冲突和核对时间；网关认证已真实恢复 | 历史日期已迁移；Android前一天真实空结果通过（非空历史待验收）；30秒自动轮询、提醒通知未迁移；提交签到按本轮范围关闭 |
 | 图书馆 | Library/LibraryView.swift:182,317,431；LibraryPublicStats.swift、LibraryOccupancyHistory.swift | 真实馆→区→时段→座位及当前预约；CAS并发锁、网关恢复；本地座位搜索/只看空闲；状态同时用图标与文字；独立公共人数/阅览室/资源余量页，预约认证失败仍可达 | 历史预约已迁移；Android真实第一页10条/末页通过（多页待验收）；公共统计host实网两校区解析通过；60天本地历史趋势未迁移；预约/入座签到/暂离/离馆/取消关闭 |
 | 博雅 | BYKC/BykcView.swift:5,27,202,257 | 当前学期目录、搜索和类别筛选；真实响应通过 | 已选记录、完成统计、课程详情尚未迁移；选退课关闭 |
@@ -56,3 +56,12 @@ Apple 官方依据：[Motion](https://developer.apple.com/design/human-interface
 - 软件更新沿用 macOS `UpdateChecker.swift` 的 GitHub Releases 来源，Android 独立 `android-v<semver>` 标签。正式版本排除预发布，Alpha 包接收预发布；仅识别可信项目 URL 与 arm64 APK。未提供 APK 不显示可安装更新；失败保留上次结果和时间。浏览器下载后由系统确认安装，未实现应用内下载校验/静默安装。
 - 公开更新请求使用独立直接 Session，完全不共享学校 Cookie/路线，无账号依赖；最多查询最近100条发布。新38类/121份合成fixture；Windows更新尚未接入。
 - 本机完整门禁：143 core lib +1契约 +1 bridge、Clippy、Flutter analyze、38 Flutter tests通过；Android aarch64 cargo check通过。设备与发布结果见 `MIRROR-ANDROID-ALPHA.md`，不将本机测试等同所有学校接口验收。
+
+## 2026-10-21：SPOC 教师上下文与宣传页
+
+- 官网首页已发布Android Alpha下载与平台差异说明；Mac/Android release资产独立选择，API失败保留静态APK入口，390/1440宽度无横向溢出。不将macOS写操作、持久缓存和截图冒充Android实现。
+- 按`SpocHomeworkClient.swift` Course.skjs和sskcid→kcid关联，把教师从领域/HTTP/context缓存贯通FRB、列表搜索和详情；缺值显示上游未提供，重复课程ID/教师类型漂移拒绝，刷新失败保留原教师快照。演示使用合成课程上下文fixture。
+- 附件证据核查：macOS也只提供原站点处理说明，当前源码无已验证附件下载链路；镜像保留相同边界，不猜端点，不标记附件下载完成。
+- 完整门禁143 core lib +1契约 +1bridge、Clippy/analyze、38 widget通过；随后扩展原应用测试与原作业widget覆盖教师、缺值、失败缓存及教师搜索，定向通过。新增3fixture，39类/124份。设备结果补记于本段后。
+
+Android作业独立smoke通过（40秒，真实FFI+合成数据）：列表→教师详情→返回→筛选。未登录真实账号，教师实网字段仍待复验。Android编译含新版bridge通过，未重复执行mirror_test。

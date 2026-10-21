@@ -1,0 +1,49 @@
+{
+  "contract": "homework.course_context",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "page": {
+      "pageNum": 1,
+      "pages": 1,
+      "hasNextPage": false,
+      "list": [
+        {
+          "zyid": "a",
+          "zymc": "作业一",
+          "tjzt": "1",
+          "zykssj": "2025-09-01T08:00:00",
+          "zyjzsj": "2025-09-20T23:59:59",
+          "sskcid": "c1",
+          "kcmc": "软件工程",
+          "mf": "100"
+        },
+        {
+          "zyid": "b",
+          "zymc": "作业二",
+          "tjzt": "0"
+        }
+      ]
+    },
+    "courses": [
+      {
+        "kcid": "c1",
+        "kcmc": "软件工程",
+        "skjs": "  张三  "
+      },
+      {
+        "kcid": "c2",
+        "kcmc": "合成课程二",
+        "skjs": null
+      },
+      {
+        "kcid": "c1",
+        "kcmc": "软件工程",
+        "skjs": "  张三  "
+      }
+    ]
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

@@ -19,6 +19,11 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
         return Err(AppError::new(ErrorCode::UnsupportedContract));
     }
     let value = match contract {
+        "homework.course_context" => {
+            let mut page = homework::parse_page(input["page"].clone())?;
+            homework::apply_course_context(&mut page.items, &input["courses"])?;
+            serde_json::to_value(page).map_err(|_| AppError::changed())?
+        }
         "updates.android" => serde_json::to_value(crate::features::updates::parse(
             &input["releases"].to_string(),
             input["current"].as_str().ok_or_else(AppError::invalid)?,

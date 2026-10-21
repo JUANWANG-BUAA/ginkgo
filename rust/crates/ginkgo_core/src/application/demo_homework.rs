@@ -21,10 +21,16 @@ pub fn load() -> Result<DemoHomework, AppError> {
         .and_then(|input| input.get("body"))
         .cloned()
         .ok_or_else(AppError::changed)?;
+    let context: Value = serde_json::from_str(include_str!(
+        "../../../../../fixtures/homework/course-context-v1.json"
+    ))
+    .map_err(|_| AppError::changed())?;
+    let mut page = homework::parse_page(body)?;
+    homework::apply_course_context(&mut page.items, &context["input"]["courses"])?;
     Ok(DemoHomework {
         term_name: "2026-2027学年第1学期".into(),
         term_code: "2026-2027-1".into(),
-        page: homework::parse_page(body)?,
+        page,
     })
 }
 

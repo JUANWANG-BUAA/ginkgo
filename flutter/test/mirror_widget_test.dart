@@ -222,6 +222,7 @@ final homeworkFixture = HomeworkResponse(
     HomeworkItem(
       id: 'spoc:a',
       courseName: '软件工程',
+      teacherName: '张三',
       title: '作业一',
       status: HomeworkStatus.submitted,
       score: '100',
@@ -730,9 +731,18 @@ void main() {
     expect(find.text('作业一'), findsOneWidget);
     expect(find.text('作业二'), findsOneWidget);
 
+    await tester.enterText(find.byKey(const Key('homework-search')), '张三');
+    await tester.pumpAndSettle();
+    expect(find.text('作业一'), findsOneWidget);
+    expect(find.text('作业二'), findsNothing);
+    await tester.enterText(find.byKey(const Key('homework-search')), '');
+    await tester.pumpAndSettle();
+
     await tester.tap(find.byKey(const Key('homework-spoc:a')));
     await tester.pumpAndSettle();
     expect(find.text('作业详情'), findsOneWidget);
+    expect(find.text('授课教师'), findsOneWidget);
+    expect(find.text('张三'), findsOneWidget);
     expect(find.text('合成作业说明'), findsOneWidget);
     await tester.tap(find.byType(CupertinoNavigationBarBackButton));
     await tester.pumpAndSettle();

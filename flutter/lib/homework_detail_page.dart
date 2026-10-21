@@ -85,7 +85,12 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
               style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
             ),
           ),
-          AppleSection(children: [_field('课程', widget.item.courseName)]),
+          AppleSection(
+            children: [
+              _field('课程', widget.item.courseName),
+              _field('授课教师', widget.item.teacherName ?? '上游未提供'),
+            ],
+          ),
           if (error != null)
             AppleSection(
               children: [

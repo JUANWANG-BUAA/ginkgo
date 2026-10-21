@@ -177,36 +177,18 @@ pub async fn load<T: HttpTransport>(
         .append_pair("xnxq", code)
         .finish();
     let courses = get(session, &auth, &format!("/jxkj/queryKclb?{query}")).await?;
-    let rows = courses.as_array().ok_or_else(AppError::changed)?;
-    let mut context = std::collections::BTreeMap::new();
-    for course in rows {
-        let id = course["kcid"]
-            .as_str()
-            .filter(|s| !s.is_empty())
-            .ok_or_else(AppError::changed)?;
-        let name = course["kcmc"]
-            .as_str()
-            .filter(|s| !s.trim().is_empty())
-            .ok_or_else(AppError::changed)?;
-        if context.insert(id.to_owned(), name.to_owned()).is_some() {
-            return Err(AppError::changed());
-        }
-    }
+    homework::apply_course_context(&mut [], &courses)?;
     let mut items = Vec::new();
     let mut ids = std::collections::BTreeSet::new();
     for number in 1..=100 {
-        let page = load_page(session, &auth, code, number).await?;
+        let mut page = load_page(session, &auth, code, number).await?;
+        homework::apply_course_context(&mut page.items, &courses)?;
         let has_next = page
             .has_next
             .unwrap_or_else(|| page.pages.is_some_and(|pages| number < pages));
-        for mut item in page.items {
+        for item in page.items {
             if !ids.insert(item.id.clone()) {
                 return Err(AppError::changed());
-            }
-            if item.course_name == "SPOC 课程" {
-                if let Some(name) = item.course_id.as_ref().and_then(|id| context.get(id)) {
-                    item.course_name.clone_from(name);
-                }
             }
             items.push(item);
         }

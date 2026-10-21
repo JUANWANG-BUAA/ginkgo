@@ -444,6 +444,7 @@ pub enum HomeworkStatus {
 }
 
 pub struct HomeworkItem {
+    pub teacher_name: Option<String>,
     pub id: String,
     pub course_id: Option<String>,
     pub course_name: String,
@@ -476,6 +477,7 @@ pub fn load_demo_homework() -> HomeworkResponse {
                     id: item.id,
                     course_id: item.course_id,
                     course_name: item.course_name,
+                    teacher_name: item.teacher_name,
                     title: item.title,
                     published_at: item.published_at,
                     due_at: item.due_at,
