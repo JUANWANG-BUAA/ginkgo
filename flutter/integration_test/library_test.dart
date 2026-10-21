@@ -21,7 +21,8 @@ void main() {
     expect(find.text('当前预约'), findsOneWidget);
     expect(find.text('选择场馆'), findsOneWidget);
     expect(find.text('学院路馆'), findsOneWidget);
-    expect(find.text('空闲 12 / 30'), findsOneWidget);
+    expect(find.text('12'), findsOneWidget);
+    expect(find.text('座可用 · 共 30 座'), findsOneWidget);
     expect(find.byKey(const Key('library-public-stats')), findsOneWidget);
 
     await tap(tester, '全部预约记录', scrollKey: 'library-scroll');
@@ -39,7 +40,8 @@ void main() {
     await settle(tester);
     await tap(tester, '学院路馆', scrollKey: 'library-scroll');
     expect(find.text('区域'), findsOneWidget);
-    expect(find.text('空闲 4 / 20'), findsOneWidget);
+    expect(find.text('4'), findsOneWidget);
+    expect(find.text('座可用 · 共 20 座'), findsOneWidget);
 
     await tap(tester, 'A区', scrollKey: 'library-areas-scroll');
     expect(find.text('时段'), findsOneWidget);

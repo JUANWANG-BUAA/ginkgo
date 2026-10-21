@@ -1,10 +1,13 @@
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'apple_design.dart';
 import 'mirror_service.dart';
 import 'mutation_dialog.dart';
 import 'library_history_page.dart';
 import 'library_stats_page.dart';
+import 'resource_meter.dart';
+import 'reservation_widgets.dart';
 import 'src/rust/api/mirror.dart';
 
 /// Library hierarchy and explicit, single-attempt booking actions.
@@ -244,13 +247,13 @@ class _LibraryPageState extends State<LibraryPage> {
             retry: () => _loadBookings(force: true),
           ),
         if (bookings != null && items.isEmpty)
-          const AppleListTile(
+          AppleListTile(
             leading: Icon(
               CupertinoIcons.book,
-              color: CupertinoColors.tertiaryLabel,
+              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
               size: 22,
             ),
-            title: Text('当前没有进行中的预约'),
+            title: const Text('当前没有进行中的预约'),
           )
         else
           for (final booking in items)
@@ -291,8 +294,22 @@ class _LibraryPageState extends State<LibraryPage> {
                       spacing: 8,
                       children: [
                         for (final action in booking.actions!)
-                          CupertinoButton(
-                            key: Key('library-action-${booking.id}-$action'),
+                          ReservationActionButton(
+                            buttonKey: Key(
+                              'library-action-${booking.id}-$action',
+                            ),
+                            label: _actionLabel(action),
+                            icon: switch (action) {
+                              'signin' => CupertinoIcons.checkmark_seal,
+                              'leave' => CupertinoIcons.pause_circle,
+                              'checkout' => CupertinoIcons.arrow_right_circle,
+                              _ => CupertinoIcons.xmark_circle,
+                            },
+                            tint: switch (action) {
+                              'cancel' => CupertinoColors.systemRed,
+                              'leave' => CupertinoColors.systemOrange,
+                              _ => CupertinoColors.systemBlue,
+                            },
                             onPressed:
                                 submitting ||
                                     uncertainActions.contains(
@@ -300,14 +317,6 @@ class _LibraryPageState extends State<LibraryPage> {
                                     )
                                 ? null
                                 : () => perform(booking, action),
-                            child: Text(
-                              _actionLabel(action),
-                              style: TextStyle(
-                                color: action == 'cancel'
-                                    ? CupertinoColors.systemRed
-                                    : null,
-                              ),
-                            ),
                           ),
                       ],
                     ),
@@ -372,20 +381,12 @@ class _LibraryPageState extends State<LibraryPage> {
           )
         else
           for (final venue in items)
-            AppleListTile(
+            ResourceMeter(
               key: Key('library-venue-${venue.id}'),
-              leading: const Icon(
-                CupertinoIcons.building_2_fill,
-                color: CupertinoColors.systemIndigo,
-                size: 22,
-              ),
-              title: Text(venue.name),
-              subtitle: Text('空闲 ${venue.free} / ${venue.total}'),
-              trailing: const Icon(
-                CupertinoIcons.chevron_right,
-                size: 16,
-                color: CupertinoColors.tertiaryLabel,
-              ),
+              label: venue.name,
+              available: venue.free,
+              total: venue.total,
+              unit: '座',
               onTap: () => _push(
                 _LibraryAreaPage(
                   service: widget.service,
@@ -513,15 +514,12 @@ class _LibraryAreaPageState extends State<_LibraryAreaPage> {
                     const AppleListTile(title: Text('暂无开放区域'))
                   else
                     for (final area in areas!)
-                      AppleListTile(
+                      ResourceMeter(
                         key: Key('library-area-${area.id}'),
-                        title: Text(area.name),
-                        subtitle: Text('空闲 ${area.free} / ${area.total}'),
-                        trailing: const Icon(
-                          CupertinoIcons.chevron_right,
-                          size: 16,
-                          color: CupertinoColors.tertiaryLabel,
-                        ),
+                        label: area.name,
+                        available: area.free,
+                        total: area.total,
+                        unit: '座',
                         onTap: busy || error != null
                             ? null
                             : () => Navigator.of(context).push(
@@ -711,6 +709,7 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
   String search = '';
   bool availableOnly = false;
   List<LibrarySeat> visible = [];
+  Map<String, int> visibleIndices = {};
   void prepare() {
     final query = search.trim().toLowerCase();
     visible = (seats ?? <LibrarySeat>[])
@@ -720,6 +719,10 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
               (query.isEmpty || seat.name.toLowerCase().contains(query)),
         )
         .toList();
+    visibleIndices = {
+      for (final (index, seat) in visible.indexed)
+        'library-seat-group-${seat.id}': index,
+    };
   }
 
   bool submitting = false;
@@ -894,57 +897,134 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
                   ),
                 ],
               ),
-              AppleSection(
-                header: Text('${widget.area.name} · ${visible.length} 个座位'),
-                footer: const Text('选择空闲座位后确认预约。'),
-                children: [
-                  if (visible.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(32, 24, 32, 10),
+                child: Text(
+                  '${widget.area.name} · ${visible.length} 个座位',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                  ),
+                ),
+              ),
+              if (visible.isEmpty)
+                AppleSection(
+                  children: [
                     AppleListTile(
                       title: Text(seats!.isEmpty ? '该时段没有座位数据' : '没有符合条件的座位'),
-                    )
-                  else
-                    for (final seat in visible)
-                      AppleListTile(
-                        key: Key('library-seat-${seat.id}'),
-                        trailing: seat.available
-                            ? CupertinoButton(
-                                key: Key('library-reserve-${seat.id}'),
-                                onPressed:
-                                    busy ||
-                                        error != null ||
-                                        submitting ||
-                                        awaitingVerification
-                                    ? null
-                                    : () => reserve(seat),
-                                child: submitting
-                                    ? const CupertinoActivityIndicator()
-                                    : const Text('预约'),
-                              )
-                            : null,
-
-                        leading: Icon(
-                          seat.available
-                              ? CupertinoIcons.checkmark_circle_fill
-                              : CupertinoIcons.circle,
-                          color: seat.available
-                              ? CupertinoColors.systemGreen
-                              : CupertinoColors.tertiaryLabel,
-                          size: 22,
-                        ),
-                        title: Text(seat.name),
-                        subtitle: Text(
-                          seat.statusName.isEmpty
-                              ? (seat.available ? '空闲' : '不可用')
-                              : seat.statusName,
-                        ),
-                      ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
             ],
-            const SizedBox(height: 96),
           ],
         ),
+        if (visible.isNotEmpty)
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppleDesign.pageInset,
+            ),
+            sliver: SliverList.builder(
+              itemCount: visible.length,
+              findChildIndexCallback: (key) {
+                if (key is! ValueKey<String>) return null;
+                return visibleIndices[key.value];
+              },
+              itemBuilder: (context, index) => _seatRow(visible[index], index),
+            ),
+          ),
+        if (seats != null)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(32, 10, 32, 0),
+              child: Text(
+                '选择空闲座位后确认预约。',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                ),
+              ),
+            ),
+          ),
+        const SliverToBoxAdapter(child: SizedBox(height: 96)),
       ],
+    ),
+  );
+
+  Widget _seatRow(LibrarySeat seat, int index) => ClipRRect(
+    key: ValueKey('library-seat-group-${seat.id}'),
+    borderRadius: BorderRadius.vertical(
+      top: index == 0
+          ? const Radius.circular(AppleDesign.groupRadius)
+          : Radius.zero,
+      bottom: index == visible.length - 1
+          ? const Radius.circular(AppleDesign.groupRadius)
+          : Radius.zero,
+    ),
+    child: ColoredBox(
+      color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(
+        context,
+      ),
+      child: Column(
+        children: [
+          AppleListTile(
+            key: Key('library-seat-${seat.id}'),
+            trailing: seat.available
+                ? ReservationActionButton(
+                    buttonKey: Key('library-reserve-${seat.id}'),
+                    label: '预约',
+                    icon: CupertinoIcons.add_circled,
+                    primary: true,
+                    busy: submitting,
+                    onPressed:
+                        busy ||
+                            error != null ||
+                            submitting ||
+                            awaitingVerification
+                        ? null
+                        : () => reserve(seat),
+                  )
+                : null,
+            leading: Icon(
+              seat.available
+                  ? CupertinoIcons.checkmark_circle_fill
+                  : CupertinoIcons.circle,
+              color:
+                  (seat.available
+                          ? CupertinoColors.systemGreen
+                          : CupertinoColors.tertiaryLabel)
+                      .resolveFrom(context),
+              size: 22,
+            ),
+            title: Text(
+              seat.name,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(
+              seat.statusName.isEmpty
+                  ? (seat.available ? '空闲' : '不可用')
+                  : seat.statusName,
+              style: TextStyle(
+                color:
+                    (seat.available
+                            ? CupertinoColors.systemGreen
+                            : CupertinoColors.secondaryLabel)
+                        .resolveFrom(context),
+              ),
+            ),
+          ),
+          if (index != visible.length - 1)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                height: 0.5,
+                color: CupertinoColors.separator
+                    .resolveFrom(context)
+                    .withValues(alpha: 0.16),
+              ),
+            ),
+        ],
+      ),
     ),
   );
 }

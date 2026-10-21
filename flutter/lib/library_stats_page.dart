@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
+import 'resource_meter.dart';
 
 /// Public counts are a snapshot, not a promise that a resource is bookable.
 class LibraryStatsPage extends StatefulWidget {
@@ -127,13 +128,13 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
               ),
             if (campuses case final items?)
               for (final campus in items) _campus(campus),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(32, 20, 32, 32),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(32, 20, 32, 32),
               child: Text(
                 '人数与空间余量由图书馆官网提供，可能存在更新延迟。空闲不代表一定可预约，请以预约系统为准。',
                 style: TextStyle(
                   fontSize: 13,
-                  color: CupertinoColors.secondaryLabel,
+                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
                   height: 1.4,
                 ),
               ),
@@ -195,12 +196,10 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
     ],
   );
 
-  Widget _metric(String name, String unit, dynamic pair) => AppleListTile(
-    title: Text(name),
-    subtitle: Text(
-      pair == null
-          ? '官网未提供'
-          : '空闲 ${pair['available']} $unit / 共 ${pair['total']} $unit',
-    ),
+  Widget _metric(String name, String unit, dynamic pair) => ResourceMeter(
+    label: name,
+    unit: unit,
+    available: pair?['available'] as int?,
+    total: pair?['total'] as int?,
   );
 }

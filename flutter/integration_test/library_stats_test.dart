@@ -44,7 +44,7 @@ void main() {
       expect(find.text('60 人', findRichText: true), findsOneWidget);
       await show(
         tester,
-        find.text('空闲 0 个 / 共 6 个'),
+        find.text('个可用 · 共 6 个'),
         scrollKey: 'library-stats-scroll',
       );
       expect(find.text('官网未提供'), findsWidgets);

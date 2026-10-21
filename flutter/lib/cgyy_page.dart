@@ -2,12 +2,22 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 
+import 'academic_widgets.dart';
 import 'apple_widgets.dart';
+import 'reservation_widgets.dart';
 import 'src/rust/api/live.dart' as live;
 
+typedef CgyyLoader = Future<live.ReadOnlyResponse> Function({
+  required String kind,
+  required int siteId,
+  required String date,
+  required bool forceRefresh,
+});
+
 class CgyyPage extends StatefulWidget {
-  const CgyyPage({super.key, this.demo = false});
+  const CgyyPage({super.key, this.demo = false, this.loader});
   final bool demo;
+  final CgyyLoader? loader;
   @override
   State<CgyyPage> createState() => _CgyyPageState();
 }
@@ -29,7 +39,14 @@ class _CgyyPageState extends State<CgyyPage> {
       error = null;
     });
     try {
-      final result = widget.demo
+      final result = widget.loader != null
+          ? await widget.loader!(
+              kind: 'venues',
+              siteId: 0,
+              date: '',
+              forceRefresh: force,
+            )
+          : widget.demo
           ? await live.loadDemoCgyy(kind: 'venues')
           : await live.loadCgyy(
               kind: 'venues',
@@ -58,7 +75,8 @@ class _CgyyPageState extends State<CgyyPage> {
 
   void open({Map<String, dynamic>? site}) => Navigator.of(context).push(
     CupertinoPageRoute<void>(
-      builder: (_) => _CgyyReadPage(demo: widget.demo, site: site),
+      builder: (_) =>
+          _CgyyReadPage(demo: widget.demo, site: site, loader: widget.loader),
     ),
   );
   @override
@@ -84,9 +102,9 @@ class _CgyyPageState extends State<CgyyPage> {
         SliverList.list(
           children: [
             const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              padding: EdgeInsets.fromLTRB(24, 12, 24, 0),
               child: Text(
-                '教学楼 CGYY · 只读查询',
+                '教学楼空间与时段',
                 style: TextStyle(
                   fontSize: 13,
                   color: CupertinoColors.secondaryLabel,
@@ -95,11 +113,15 @@ class _CgyyPageState extends State<CgyyPage> {
             ),
             AppleSection(
               children: [
-                AppleListTile(
-                  title: const Text('我的预约记录'),
-                  subtitle: const Text('最近 20 条 · 直连学校 SSO'),
-                  trailing: const Icon(CupertinoIcons.chevron_right, size: 16),
+                _CgyyInteractiveRow(
                   onTap: () => open(),
+                  child: _CgyyTileContent(
+                    icon: CupertinoIcons.calendar_badge_plus,
+                    tint: CupertinoColors.systemIndigo,
+                    title: '我的预约记录',
+                    detail: '最近 20 条',
+                    chevron: true,
+                  ),
                 ),
               ],
             ),
@@ -131,24 +153,10 @@ class _CgyyPageState extends State<CgyyPage> {
                 header: const Text('公开场馆'),
                 children: [
                   for (final site in sites!)
-                    AppleListTile(
-                      title: Text(
-                        (site['name'] as String).isEmpty
-                            ? site['venue'] as String
-                            : site['name'] as String,
-                      ),
-                      subtitle: Text(
-                        [
-                          site['venue'],
-                          site['campus'],
-                          if (site['seats'] != null) '${site['seats']} 座',
-                        ].where((s) => s != null && s != '').join(' · '),
-                      ),
-                      trailing: const Icon(
-                        CupertinoIcons.chevron_right,
-                        size: 16,
-                      ),
+                    _CgyyInteractiveRow(
+                      key: ValueKey('cgyy-site-${site['id']}'),
                       onTap: () => open(site: site),
+                      child: _siteContent(site, chevron: true),
                     ),
                 ],
               ),
@@ -161,9 +169,10 @@ class _CgyyPageState extends State<CgyyPage> {
 }
 
 class _CgyyReadPage extends StatefulWidget {
-  const _CgyyReadPage({required this.demo, this.site});
+  const _CgyyReadPage({required this.demo, this.site, this.loader});
   final bool demo;
   final Map<String, dynamic>? site;
+  final CgyyLoader? loader;
   @override
   State<_CgyyReadPage> createState() => _CgyyReadPageState();
 }
@@ -199,7 +208,14 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
     });
     try {
       final kind = widget.site == null ? 'orders' : 'day';
-      final result = widget.demo
+      final result = widget.loader != null
+          ? await widget.loader!(
+              kind: kind,
+              siteId: widget.site?['id'] as int? ?? 0,
+              date: queriedDate,
+              forceRefresh: force,
+            )
+          : widget.demo
           ? await live.loadDemoCgyy(kind: kind)
           : await live.loadCgyy(
               kind: kind,
@@ -295,15 +311,45 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
           if (widget.site != null)
             AppleSection(
               children: [
-                AppleListTile(
-                  title: Text(widget.site!['name'] as String),
-                  subtitle: Text(widget.site!['venue'] as String),
-                ),
-                AppleListTile(
-                  title: const Text('查询日期'),
-                  subtitle: Text(date),
-                  trailing: const Icon(CupertinoIcons.calendar),
-                  onTap: busy ? null : chooseDate,
+                _siteContent(widget.site!),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  child: Wrap(
+                    spacing: 16,
+                    runSpacing: 12,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '查询日期',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: CupertinoColors.secondaryLabel.resolveFrom(
+                                context,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            _displayDate(date),
+                            style: const TextStyle(
+                              fontSize: 21,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      ReservationActionButton(
+                        buttonKey: const Key('cgyy-choose-date'),
+                        label: '更改日期',
+                        icon: CupertinoIcons.calendar,
+                        tint: CupertinoColors.systemTeal,
+                        onPressed: busy ? null : chooseDate,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -328,8 +374,35 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
             ),
           if (day != null) ...[
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-              child: Text('实际显示 ${day!['date']} · 仅供查询'),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '空间时段',
+                    style: const TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '实际显示 ${_displayDate(day!['date'] as String)}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: CupertinoColors.secondaryLabel.resolveFrom(
+                        context,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const AcademicBadge(
+                    '仅供查询',
+                    tint: CupertinoColors.systemTeal,
+                    icon: CupertinoIcons.info_circle,
+                  ),
+                ],
+              ),
             ),
             if ((day!['spaces'] as List).isEmpty)
               const AppleSection(
@@ -347,9 +420,9 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
                       child: Text('暂无时段'),
                     ),
                   for (final slot in space['slots'] as List)
-                    AppleListTile(
-                      title: Text(slot['time'] as String),
-                      subtitle: Text(slot['status'] as String),
+                    _CgyySlotRow(
+                      time: slot['time'] as String,
+                      status: slot['status'] as String,
                     ),
                 ],
               ),
@@ -365,15 +438,21 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
               header: const Text('最近 20 条'),
               children: [
                 for (final order in orders!)
-                  AppleListTile(
-                    title: Text(
-                      (order['place'] as String).isEmpty
-                          ? '预约记录'
-                          : order['place'] as String,
-                    ),
-                    subtitle: Text(
-                      '${order['date']}\n${order['time']} · ${order['status']}',
-                    ),
+                  _CgyyTileContent(
+                    icon: CupertinoIcons.doc_text,
+                    tint: CupertinoColors.systemIndigo,
+                    title: (order['place'] as String).isEmpty
+                        ? '预约记录'
+                        : order['place'] as String,
+                    detail:
+                        '${_displayDate(order['date'] as String)}\n${order['time']}',
+                    badges: [
+                      AcademicBadge(
+                        order['status'] as String,
+                        tint: CupertinoColors.systemIndigo,
+                        icon: CupertinoIcons.info_circle,
+                      ),
+                    ],
                   ),
               ],
             ),
@@ -382,4 +461,198 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
       ),
     ),
   );
+}
+
+String _displayDate(String value) {
+  final date = DateTime.tryParse(value);
+  if (date == null) return value;
+  const weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+  return '${date.year}年${date.month}月${date.day}日 · ${weekdays[date.weekday - 1]}';
+}
+
+Widget _siteContent(Map<String, dynamic> site, {bool chevron = false}) {
+  final name = site['name'] as String;
+  final campus = site['campus'] as String? ?? '';
+  final tint = campus.contains('沙河')
+      ? CupertinoColors.systemBlue
+      : CupertinoColors.systemTeal;
+  return _CgyyTileContent(
+    icon: CupertinoIcons.building_2_fill,
+    tint: tint,
+    title: name.isEmpty ? site['venue'] as String : name,
+    detail: [site['venue'], campus]
+        .whereType<String>()
+        .where((value) => value.isNotEmpty && value != name)
+        .join(' · '),
+    badges: [
+      if (site['seats'] != null)
+        AcademicBadge(
+          '${site['seats']} 座',
+          tint: tint,
+          icon: CupertinoIcons.person_2,
+        ),
+    ],
+    chevron: chevron,
+  );
+}
+
+/// Inset rows inherit Cupertino press feedback and add a quiet pointer state.
+/// The whole row remains a single action with its full readable label.
+class _CgyyInteractiveRow extends StatefulWidget {
+  const _CgyyInteractiveRow({
+    super.key,
+    required this.child,
+    required this.onTap,
+  });
+  final Widget child;
+  final VoidCallback onTap;
+  @override
+  State<_CgyyInteractiveRow> createState() => _CgyyInteractiveRowState();
+}
+
+class _CgyyInteractiveRowState extends State<_CgyyInteractiveRow> {
+  bool hovered = false;
+  @override
+  Widget build(BuildContext context) => MouseRegion(
+    cursor: SystemMouseCursors.click,
+    onEnter: (_) => setState(() => hovered = true),
+    onExit: (_) => setState(() => hovered = false),
+    child: AnimatedContainer(
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 140),
+      color: CupertinoColors.systemTeal
+          .resolveFrom(context)
+          .withValues(alpha: hovered ? 0.045 : 0),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: widget.onTap,
+        child: widget.child,
+      ),
+    ),
+  );
+}
+
+class _CgyyTileContent extends StatelessWidget {
+  const _CgyyTileContent({
+    required this.icon,
+    required this.tint,
+    required this.title,
+    required this.detail,
+    this.badges = const [],
+    this.chevron = false,
+  });
+  final IconData icon;
+  final CupertinoDynamicColor tint;
+  final String title, detail;
+  final List<Widget> badges;
+  final bool chevron;
+  @override
+  Widget build(BuildContext context) {
+    final color = tint.resolveFrom(context);
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: CupertinoColors.label.resolveFrom(context),
+                  ),
+                ),
+                if (detail.isNotEmpty) ...[
+                  const SizedBox(height: 5),
+                  Text(
+                    detail,
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1.45,
+                      color: CupertinoColors.secondaryLabel.resolveFrom(
+                        context,
+                      ),
+                    ),
+                  ),
+                ],
+                if (badges.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Wrap(spacing: 8, runSpacing: 8, children: badges),
+                ],
+              ],
+            ),
+          ),
+          if (chevron) ...[
+            const SizedBox(width: 6),
+            Padding(
+              padding: const EdgeInsets.only(top: 9),
+              child: Icon(
+                CupertinoIcons.chevron_right,
+                size: 14,
+                color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CgyySlotRow extends StatelessWidget {
+  const _CgyySlotRow({required this.time, required this.status});
+  final String time, status;
+  @override
+  Widget build(BuildContext context) {
+    final (tint, icon) = switch (status) {
+      '空闲' => (CupertinoColors.systemGreen, CupertinoIcons.checkmark_circle),
+      '不可预约' => (CupertinoColors.secondaryLabel, CupertinoIcons.minus_circle),
+      _ => (CupertinoColors.systemOrange, CupertinoIcons.question_circle),
+    };
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final label = Text(
+            time,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
+          );
+          final badge = AcademicBadge(status, tint: tint, icon: icon);
+          if (constraints.maxWidth < 300 ||
+              MediaQuery.textScalerOf(context).scale(1) > 1.4) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [label, const SizedBox(height: 9), badge],
+            );
+          }
+          return Row(
+            children: [
+              Expanded(child: label),
+              const SizedBox(width: 12),
+              badge,
+            ],
+          );
+        },
+      ),
+    );
+  }
 }

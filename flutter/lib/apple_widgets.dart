@@ -286,11 +286,13 @@ class AppleListTile extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.minimumHeight = AppleDesign.rowHeight,
+    this.leadingSize = 30,
   });
   final Widget title;
   final Widget? subtitle, additionalInfo, leading, trailing;
   final VoidCallback? onTap;
   final double minimumHeight;
+  final double leadingSize;
   @override
   Widget build(BuildContext context) => ConstrainedBox(
     constraints: BoxConstraints(minHeight: minimumHeight),
@@ -303,6 +305,7 @@ class AppleListTile extends StatelessWidget {
       onTap: onTap,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       leadingToTitle: 12,
+      leadingSize: leadingSize,
     ),
   );
   Widget _wrapText(Widget child) => Builder(
