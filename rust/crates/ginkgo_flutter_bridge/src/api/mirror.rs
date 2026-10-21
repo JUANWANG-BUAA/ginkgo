@@ -720,6 +720,7 @@ pub struct LibraryBooking {
     pub start_time: String,
     pub end_time: String,
     pub status_name: String,
+    pub actions: Option<Vec<String>>,
 }
 
 pub struct LibraryVenuesResponse {
@@ -803,7 +804,9 @@ fn library_seat(value: ginkgo_core::features::library::LibrarySeat) -> LibrarySe
 }
 
 fn library_booking(value: ginkgo_core::features::library::LibraryBooking) -> LibraryBooking {
+    let actions = Some(ginkgo_core::features::library::current_actions(&value));
     LibraryBooking {
+        actions,
         id: value.id,
         title: value.title,
         area_name: value.area_name,

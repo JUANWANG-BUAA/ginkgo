@@ -1,3 +1,4 @@
+import 'package:ginkgo_mirror/src/rust/api/live.dart' show MutationResponse;
 import 'package:ginkgo_mirror/src/rust/api/live.dart' show ReadOnlyResponse;
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show LibraryHistoryResponse;
@@ -245,6 +246,20 @@ class ControlledService implements MirrorService {
   LibraryAreasResponse libraryAreasResult = libraryAreasFixture;
   LibrarySlotsResponse librarySlotsResult = librarySlotsFixture;
   LibrarySeatsResponse librarySeatsResult = librarySeatsFixture;
+  @override
+  Future<MutationResponse> reserveLibrarySeat({
+    required String areaId,
+    required String seatId,
+    required LibrarySlot slot,
+  }) async => const MutationResponse(state: 'notSubmitted', message: '合成测试未提交');
+  @override
+  Future<MutationResponse> performLibraryAction(
+    String bookingId,
+    String action,
+  ) async => const MutationResponse(state: 'notSubmitted', message: '合成测试未提交');
+  @override
+  Future<MutationResponse> submitCheckin(String courseId) async =>
+      const MutationResponse(state: 'notSubmitted', message: '合成测试未提交');
   @override
   bool get isDemo => true;
   @override
@@ -990,7 +1005,7 @@ void main() {
     expect(find.text('待确认'), findsOneWidget);
     expect(find.textContaining('合并 2 条'), findsWidgets);
     expect(find.textContaining('记录不一致'), findsWidgets);
-    expect(find.textContaining('仅用于演示只读签到页'), findsOneWidget);
+    expect(find.textContaining('演示模式不会提交签到'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -1003,7 +1018,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('今天没有课程'), findsWidgets);
-    expect(find.textContaining('仅用于演示只读签到页'), findsOneWidget);
+    expect(find.textContaining('演示模式不会提交签到'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

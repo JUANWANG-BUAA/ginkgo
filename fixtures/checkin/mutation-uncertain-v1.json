@@ -1,0 +1,13 @@
+{
+  "contract": "checkin.mutation",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "STATUS": 0,
+    "result": {}
+  },
+  "expected": {
+    "state": "uncertain",
+    "message": "提交结果待确认，请刷新状态核实，勿重复提交"
+  }
+}

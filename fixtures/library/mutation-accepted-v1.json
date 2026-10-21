@@ -1,0 +1,12 @@
+{
+  "contract": "library.mutation",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "code": 1
+  },
+  "expected": {
+    "state": "accepted",
+    "message": "学校已受理，请核对刷新后的预约记录"
+  }
+}

@@ -606,6 +606,7 @@ class LibraryBooking {
   final String startTime;
   final String endTime;
   final String statusName;
+  final List<String>? actions;
 
   const LibraryBooking({
     required this.id,
@@ -616,6 +617,7 @@ class LibraryBooking {
     required this.startTime,
     required this.endTime,
     required this.statusName,
+    this.actions,
   });
 
   @override
@@ -627,7 +629,8 @@ class LibraryBooking {
       day.hashCode ^
       startTime.hashCode ^
       endTime.hashCode ^
-      statusName.hashCode;
+      statusName.hashCode ^
+      actions.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -641,7 +644,8 @@ class LibraryBooking {
           day == other.day &&
           startTime == other.startTime &&
           endTime == other.endTime &&
-          statusName == other.statusName;
+          statusName == other.statusName &&
+          actions == other.actions;
 }
 
 class LibraryBookingsResponse {

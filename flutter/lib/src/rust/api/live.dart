@@ -8,7 +8,7 @@ import 'mirror.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `checkin_failure`, `checkin_response`, `classroom_response`, `classroom_sort`, `failure_response`, `failure`, `grade_failure`, `grade_response`, `library_area`, `library_booking`, `library_seat`, `library_slot`, `library_venue`, `outcome_response`, `schedule_failure`, `schedule_response`, `service`, `signed_out`, `status_response`, `today_response`
+// These functions are ignored because they are not marked as `pub`: `checkin_failure`, `checkin_response`, `classroom_response`, `classroom_sort`, `failure_response`, `failure`, `grade_failure`, `grade_response`, `library_area`, `library_booking`, `library_seat`, `library_slot`, `library_venue`, `mutation_response`, `outcome_response`, `schedule_failure`, `schedule_response`, `service`, `signed_out`, `status_response`, `today_response`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `UpdateTransport`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `send`
 
@@ -224,6 +224,27 @@ Future<ReadOnlyResponse> loadDemoLibraryStats() =>
 Future<ReadOnlyResponse> checkAndroidUpdate({required String current}) =>
     RustLib.instance.api.crateApiLiveCheckAndroidUpdate(current: current);
 
+Future<MutationResponse> submitCheckin({required String courseId}) =>
+    RustLib.instance.api.crateApiLiveSubmitCheckin(courseId: courseId);
+
+Future<MutationResponse> reserveLibrarySeat({
+  required String areaId,
+  required String seatId,
+  required LibrarySlot slot,
+}) => RustLib.instance.api.crateApiLiveReserveLibrarySeat(
+  areaId: areaId,
+  seatId: seatId,
+  slot: slot,
+);
+
+Future<MutationResponse> performLibraryAction({
+  required String bookingId,
+  required String action,
+}) => RustLib.instance.api.crateApiLivePerformLibraryAction(
+  bookingId: bookingId,
+  action: action,
+);
+
 class GradeTermsResponse {
   final List<ScheduleTerm> terms;
   final FailureCode? failure;
@@ -373,6 +394,26 @@ class LiveScope {
           campus == other.campus &&
           date == other.date &&
           forceRefresh == other.forceRefresh;
+}
+
+/// User-confirmed write. Never retries the mutation and never exposes raw upstream text.
+/// The module gate rejects double taps rather than queuing a second write.
+class MutationResponse {
+  final String state;
+  final String message;
+
+  const MutationResponse({required this.state, required this.message});
+
+  @override
+  int get hashCode => state.hashCode ^ message.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MutationResponse &&
+          runtimeType == other.runtimeType &&
+          state == other.state &&
+          message == other.message;
 }
 
 /// Sanitized domain JSON, never raw upstream data, credentials or tokens.

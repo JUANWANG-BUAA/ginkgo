@@ -1,0 +1,122 @@
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:ginkgo_mirror/checkin_page.dart';
+import 'package:ginkgo_mirror/library_page.dart';
+import 'package:ginkgo_mirror/main.dart';
+import 'package:ginkgo_mirror/src/rust/api/live.dart';
+import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
+
+import 'mirror_widget_test.dart' show ControlledService, checkInFixture;
+
+class WriteService extends ControlledService {
+  int writes = 0, readbacks = 0;
+  final pending = Completer<MutationResponse>();
+  @override
+  Future<CheckInResponse> checkin({bool forceRefresh = false}) async {
+    if (forceRefresh) readbacks++;
+    return checkInFixture;
+  }
+
+  @override
+  Future<MutationResponse> submitCheckin(String courseId) {
+    writes++;
+    return pending.future;
+  }
+
+  @override
+  Future<MutationResponse> reserveLibrarySeat({
+    required String areaId,
+    required String seatId,
+    required LibrarySlot slot,
+  }) {
+    writes++;
+    return pending.future;
+  }
+
+  @override
+  Future<LibraryBookingsResponse> libraryBookings({bool forceRefresh = false}) {
+    if (forceRefresh) readbacks++;
+    return super.libraryBookings(forceRefresh: forceRefresh);
+  }
+}
+
+void main() {
+  testWidgets(
+    'checkin requires confirmation, prevents double submit and reads back uncertain outcome',
+    (tester) async {
+      final service = WriteService();
+      tester.view.physicalSize = const Size(430, 1300);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(ginkgoApp(home: CheckInPage(service: service)));
+      await tester.pumpAndSettle();
+      final button = find.byKey(const Key('checkin-submit-501'));
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      expect(service.writes, 0);
+      await tester.tap(find.text('取消'));
+      await tester.pumpAndSettle();
+      expect(service.writes, 0);
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('确认签到'));
+      await tester.pump();
+      expect(service.writes, 1);
+      expect(tester.widget<CupertinoButton>(button).onPressed, isNull);
+      service.pending.complete(
+        const MutationResponse(state: 'uncertain', message: '测试：结果待核实'),
+      );
+      await tester.pumpAndSettle();
+      expect(service.readbacks, 1);
+      expect(find.text('测试：结果待核实'), findsOneWidget);
+      expect(tester.widget<CupertinoButton>(button).onPressed, isNull);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'seat reservation confirms exact date and seat and rechecks bookings',
+    (tester) async {
+      final service = WriteService();
+      tester.view.physicalSize = const Size(430, 1300);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(ginkgoApp(home: LibraryPage(service: service)));
+      await tester.pumpAndSettle();
+      for (final key in [
+        'library-venue-v1',
+        'library-area-a1',
+        'library-slot-2026-10-20/t1',
+      ]) {
+        await tester.tap(find.byKey(Key(key)));
+        await tester.pumpAndSettle();
+      }
+      await tester.tap(find.byKey(const Key('library-reserve-s1')));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('A-01\n2026-10-20'), findsOneWidget);
+      expect(service.writes, 0);
+      await tester.tap(find.text('确认预约'));
+      await tester.pump();
+      expect(service.writes, 1);
+      service.pending.complete(
+        const MutationResponse(state: 'accepted', message: '测试：学校已受理'),
+      );
+      await tester.pumpAndSettle();
+      expect(service.readbacks, 1);
+      expect(find.text('查看预约'), findsOneWidget);
+      expect(
+        tester
+            .widget<CupertinoButton>(
+              find.byKey(const Key('library-reserve-s1')),
+            )
+            .onPressed,
+        isNull,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+}

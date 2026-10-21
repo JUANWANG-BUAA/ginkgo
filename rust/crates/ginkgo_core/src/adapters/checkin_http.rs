@@ -143,6 +143,58 @@ fn is_gateway_login(response: &HttpResponse) -> bool {
     })
 }
 
+/// CheckInClient.performSignIn / API.md §7.2. Timestamp is a safe read;
+/// the final POST deliberately uses send, without fallback, redirect or retry.
+pub async fn sign_in<T: HttpTransport>(
+    session: &Session<T>,
+    iclass: &IClassSession,
+    course_id: &str,
+) -> crate::features::mutation::MutationOutcome {
+    use crate::features::mutation::MutationOutcome as Outcome;
+    const TIMESTAMP: &str = "https://iclass.buaa.edu.cn:8347/app/common/get_timestamp.action";
+    let timestamp = async {
+        let response = session
+            .send_with_fallback(HttpRequest::get(TIMESTAMP))
+            .await?;
+        classify_json(&response)?;
+        let value: serde_json::Value =
+            serde_json::from_str(&response.body).map_err(|_| AppError::changed())?;
+        match &value["timestamp"] {
+            serde_json::Value::String(s) if !s.trim().is_empty() => Ok(s.trim().to_owned()),
+            serde_json::Value::Number(n) => Ok(n.to_string()),
+            _ => Err(AppError::changed()),
+        }
+    }
+    .await;
+    let Ok(timestamp) = timestamp else {
+        return Outcome::not_submitted("无法取得学校时间，未提交签到");
+    };
+    let Ok(mut url) =
+        url::Url::parse("https://iclass.buaa.edu.cn:8347/app/course/stu_scan_sign.action")
+    else {
+        return Outcome::not_submitted("签到地址无效");
+    };
+    url.query_pairs_mut()
+        .append_pair("courseSchedId", course_id)
+        .append_pair("timestamp", &timestamp);
+    let body = url::form_urlencoded::Serializer::new(String::new())
+        .append_pair("id", &iclass.user_id)
+        .finish();
+    let response = session
+        .send(HttpRequest::post_form(url.to_string(), body).header("sessionId", &iclass.session_id))
+        .await;
+    let Ok(response) = response else {
+        return Outcome::uncertain();
+    };
+    if response.status != 200 || classify_json(&response).is_err() {
+        return Outcome::uncertain();
+    }
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(&response.body) else {
+        return Outcome::uncertain();
+    };
+    checkin::parse_sign_in(&value)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

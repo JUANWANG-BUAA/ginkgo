@@ -1,3 +1,4 @@
+import 'package:ginkgo_mirror/src/rust/api/live.dart' show MutationResponse;
 import 'package:ginkgo_mirror/src/rust/api/live.dart' show ReadOnlyResponse;
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show LibraryHistoryResponse;
@@ -72,6 +73,20 @@ class FakeService implements MirrorService {
   final SessionResponse loginResponse;
   final ClassroomResponse classroomResponse;
   final bool demo;
+  @override
+  Future<MutationResponse> reserveLibrarySeat({
+    required String areaId,
+    required String seatId,
+    required LibrarySlot slot,
+  }) async => const MutationResponse(state: 'notSubmitted', message: '合成测试未提交');
+  @override
+  Future<MutationResponse> performLibraryAction(
+    String bookingId,
+    String action,
+  ) async => const MutationResponse(state: 'notSubmitted', message: '合成测试未提交');
+  @override
+  Future<MutationResponse> submitCheckin(String courseId) async =>
+      const MutationResponse(state: 'notSubmitted', message: '合成测试未提交');
   @override
   bool get isDemo => demo;
   @override

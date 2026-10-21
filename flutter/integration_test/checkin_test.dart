@@ -25,7 +25,7 @@ void main() {
     expect(find.text('大学物理'), findsOneWidget);
     expect(find.text('未签到'), findsOneWidget);
     expect(find.text('已签到'), findsOneWidget);
-    expect(find.textContaining('仅用于演示只读签到页'), findsOneWidget);
+    expect(find.textContaining('演示模式不会提交签到'), findsOneWidget);
     await tap(tester, '历史日期查询', scrollKey: 'checkin-scroll');
     expect(
       find.byWidgetPredicate(

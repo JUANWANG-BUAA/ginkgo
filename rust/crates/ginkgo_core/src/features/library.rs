@@ -1,9 +1,4 @@
-//! booking.lib v4 read-only models (API.md §5.2, §5.6).
-//!
-//! Strict parsing keeps "empty", "structure changed" and "business rejected"
-//! apart. The seat-lifecycle fields (flag_in/flag_out/...) are deliberately not
-//! modeled yet: this module covers venues, areas, slots, seats and the current
-//! and paginated booking history.
+//! booking.lib v4 whitelist models and action hints (API.md §5.2, §5.6).
 use crate::AppError;
 use serde::Serialize;
 use serde_json::Value;
@@ -58,6 +53,16 @@ pub struct LibraryBooking {
     pub end_time: String,
     pub status: String,
     pub status_name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub booking_type: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub can_cancel: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub flag_in: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub flag_out: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub flag_leave: Option<bool>,
 }
 
 pub fn parse_login_user(value: &Value) -> Result<String, AppError> {
@@ -251,6 +256,18 @@ pub fn parse_bookings(data: &Value) -> Result<Vec<LibraryBooking>, AppError> {
                 end_time,
                 status,
                 status_name,
+                booking_type: row
+                    .get("type")
+                    .or_else(|| row.get("type_id"))
+                    .and_then(|v| {
+                        v.as_i64()
+                            .and_then(|n| i32::try_from(n).ok())
+                            .or_else(|| v.as_str()?.parse().ok())
+                    }),
+                can_cancel: flag(row.get("oksign").or_else(|| row.get("okSign"))),
+                flag_in: flag(row.get("flag_in").or_else(|| row.get("flagIn"))),
+                flag_out: flag(row.get("flag_out").or_else(|| row.get("flagOut"))),
+                flag_leave: flag(row.get("flag_leave").or_else(|| row.get("flagLeave"))),
             })
         })
         .collect::<Result<Vec<_>, AppError>>()?;
@@ -549,4 +566,60 @@ pub fn parse_history(
             .or(by_total)
             .unwrap_or(rows.len() as i64 == page_size),
     })
+}
+
+fn flag(value: Option<&Value>) -> Option<bool> {
+    match value? {
+        Value::Bool(b) => Some(*b),
+        Value::Number(n) => n.as_i64().map(|n| n != 0),
+        Value::String(s) => match s.trim().to_ascii_lowercase().as_str() {
+            "1" | "true" | "yes" => Some(true),
+            "0" | "false" | "no" | "" => Some(false),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+impl LibraryBooking {
+    pub fn active_at(&self, now: chrono::NaiveDateTime) -> bool {
+        if ["6", "8"].contains(&self.status.trim())
+            || ["取消", "结束", "已完成", "过期", "失效"]
+                .iter()
+                .any(|s| self.status_name.contains(s))
+        {
+            return false;
+        }
+        let end = format!("{} {}", self.day, self.end_time);
+        ["%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"]
+            .iter()
+            .find_map(|format| chrono::NaiveDateTime::parse_from_str(&end, format).ok())
+            .is_some_and(|end| end > now)
+    }
+    pub fn allows(&self, action: &str, now: chrono::NaiveDateTime) -> bool {
+        if !self.active_at(now) {
+            return false;
+        }
+        if action == "cancel" {
+            return self.can_cancel != Some(false);
+        }
+        if !matches!(self.booking_type, None | Some(1)) {
+            return false;
+        }
+        match action {
+            "signin" => self.flag_in == Some(true) || self.flag_leave == Some(true),
+            "leave" => self.flag_out == Some(true) && self.flag_leave != Some(true),
+            "checkout" => self.flag_out == Some(true) || self.flag_leave == Some(true),
+            _ => false,
+        }
+    }
+}
+
+pub fn current_actions(booking: &LibraryBooking) -> Vec<String> {
+    let now: chrono::DateTime<chrono::Utc> = std::time::SystemTime::now().into();
+    let now = now.with_timezone(&chrono_tz::Asia::Shanghai).naive_local();
+    ["signin", "leave", "checkout", "cancel"]
+        .into_iter()
+        .filter(|action| booking.allows(action, now))
+        .map(str::to_owned)
+        .collect()
 }

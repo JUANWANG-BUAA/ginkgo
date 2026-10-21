@@ -6,8 +6,7 @@ import 'src/rust/api/mirror.dart';
 
 const _weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
-/// iclass read-only status. This page never submits a sign-in: writes need
-/// per-course confirmation, a post-submit re-query and an unknown-result rule.
+/// Confirmed per-course submission with a subsequent status read.
 class CheckInPage extends StatefulWidget {
   const CheckInPage({super.key, required this.service, this.history = false});
   final MirrorService service;
@@ -21,6 +20,8 @@ class _CheckInPageState extends State<CheckInPage> {
   String? error;
   String? notice;
   bool busy = false;
+  String? submitting;
+  final Set<String> awaitingVerification = {};
   int requestSerial = 0;
   late DateTime selectedDate;
   DateTime get schoolToday {
@@ -90,13 +91,20 @@ class _CheckInPageState extends State<CheckInPage> {
     setState(() {
       busy = true;
       error = null;
-      notice = null;
+      if (submitting == null) notice = null;
     });
     try {
       final result = widget.history
           ? await widget.service.checkinOnDate(requested, forceRefresh: force)
           : await widget.service.checkin(forceRefresh: force);
       if (!mounted || serial != requestSerial) return;
+      if (result.failure == null && !result.stale) {
+        for (final course in result.courses) {
+          if (course.status == CheckInStatus.signed) {
+            awaitingVerification.remove(course.id);
+          }
+        }
+      }
       setState(() {
         busy = false;
         if (result.failure != null && !result.stale) {
@@ -123,6 +131,58 @@ class _CheckInPageState extends State<CheckInPage> {
     }
   }
 
+  Future<void> submit(CheckInCourse course) async {
+    if (submitting != null ||
+        busy ||
+        widget.history ||
+        awaitingVerification.contains(course.id)) {
+      return;
+    }
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('确认签到？'),
+        content: Text(
+          '${course.courseName}\n${course.beginsAt}–${course.endsAt}\n${course.classroomName ?? ""}',
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('确认签到'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted || submitting != null) return;
+    setState(() {
+      submitting = course.id;
+      awaitingVerification.add(course.id);
+    });
+    var message = '提交结果待确认，请刷新状态核实，勿重复提交';
+    try {
+      final response = await widget.service.submitCheckin(course.id);
+      message = response.message;
+      if (response.state == 'notSubmitted' || response.state == 'rejected') {
+        awaitingVerification.remove(course.id);
+      }
+    } catch (_) {
+      // The Dart exception cannot prove that the server did not receive the write.
+    }
+    if (!mounted) return;
+    setState(() => notice = message);
+    await load(force: true);
+    if (!mounted) return;
+    setState(() {
+      submitting = null;
+      notice = message;
+    });
+  }
+
   @override
   Widget build(BuildContext context) => CupertinoPageScaffold(
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
@@ -136,7 +196,9 @@ class _CheckInPageState extends State<CheckInPage> {
           border: null,
           trailing: AppleGlassButton(
             label: '刷新签到状态',
-            onPressed: busy ? null : () => load(force: true),
+            onPressed: busy || submitting != null
+                ? null
+                : () => load(force: true),
             child: busy
                 ? const CupertinoActivityIndicator()
                 : const Icon(CupertinoIcons.refresh, size: 24),
@@ -332,9 +394,7 @@ class _CheckInPageState extends State<CheckInPage> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              widget.service.isDemo
-                  ? '离线合成样例，不连接学校账号；仅用于演示只读签到页。'
-                  : '真实账号只读数据；签到提交尚未开放，开放后会逐课程二次确认并在提交后回查状态。',
+              widget.service.isDemo ? '演示模式不会提交签到' : '签到后将自动刷新学校状态。',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 13,
@@ -383,6 +443,26 @@ class _CheckInPageState extends State<CheckInPage> {
           color: CupertinoColors.secondaryLabel.resolveFrom(context),
         ),
       ),
+      trailing:
+          !widget.history &&
+              course.status == CheckInStatus.notSigned &&
+              !course.conflicting
+          ? CupertinoButton(
+              key: Key('checkin-submit-${course.id}'),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              onPressed:
+                  submitting != null ||
+                      busy ||
+                      awaitingVerification.contains(course.id)
+                  ? null
+                  : () => submit(course),
+              child: submitting == course.id
+                  ? const CupertinoActivityIndicator()
+                  : Text(
+                      awaitingVerification.contains(course.id) ? '待核实' : '签到',
+                    ),
+            )
+          : null,
       additionalInfo: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,

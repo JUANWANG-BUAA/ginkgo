@@ -1,3 +1,4 @@
+import 'package:ginkgo_mirror/src/rust/api/live.dart' show MutationResponse;
 import 'package:ginkgo_mirror/src/rust/api/live.dart' show ReadOnlyResponse;
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show LibraryHistoryResponse;
@@ -22,6 +23,20 @@ const native = DemoMirrorService();
 
 class FailOnceNativeService implements MirrorService {
   bool first = true;
+  @override
+  Future<MutationResponse> submitCheckin(String courseId) =>
+      native.submitCheckin(courseId);
+  @override
+  Future<MutationResponse> reserveLibrarySeat({
+    required String areaId,
+    required String seatId,
+    required LibrarySlot slot,
+  }) => native.reserveLibrarySeat(areaId: areaId, seatId: seatId, slot: slot);
+  @override
+  Future<MutationResponse> performLibraryAction(
+    String bookingId,
+    String action,
+  ) => native.performLibraryAction(bookingId, action);
   @override
   bool get isDemo => true;
   @override

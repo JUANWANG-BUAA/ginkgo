@@ -1746,6 +1746,139 @@ async fn sign_out_after_route_change_removes_saved_account() {
 }
 
 #[tokio::test]
+async fn checkin_write_revalidates_today_sends_once_and_invalidates_snapshot() {
+    use crate::features::mutation::MutationState;
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend([
+        checkin_entry_response("fixture-login"),
+        checkin_app_login_response(),
+        checkin_schedule_response(checkin_day_body()),
+        HttpResponse::new(200, "timestamp", r#"{"timestamp":"1720000000+1"}"#),
+        HttpResponse::new(503, "sign", ""),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, false)
+        .await
+        .unwrap();
+    let id = fixture("checkin", "course-schedule-normal-v1.json")["input"]["body"]["result"][0]
+        ["id"]
+        .as_str()
+        .unwrap_or("501")
+        .to_owned();
+    let outcome = service.submit_checkin(&id).await;
+    assert_eq!(outcome.state, MutationState::Uncertain);
+    let writes: Vec<_> = transport
+        .requests()
+        .into_iter()
+        .filter(|r| r.url.contains("stu_scan_sign.action"))
+        .collect();
+    assert_eq!(writes.len(), 1);
+    assert_eq!(writes[0].method, HttpMethod::Post);
+    assert!(writes[0].url.contains("timestamp=1720000000%2B1"));
+    assert!(writes[0].header_value("sessionId").is_some());
+    let day = crate::foundation::school_time::beijing_day(&super::cache::now_shanghai())
+        .unwrap()
+        .local_date;
+    assert!(service.checkin.lock().unwrap().any(&day).is_none());
+}
+
+#[tokio::test]
+async fn library_write_failure_is_not_replayed_or_route_switched() {
+    use crate::{
+        adapters::library_http,
+        auth::session::{RouteMode, Session},
+        features::mutation::MutationState,
+    };
+    let transport = MockTransport::with_results(vec![Err(TransportError::Unavailable)]);
+    let session = Session::new(transport.clone());
+    let outcome = library_http::mutate(
+        &session,
+        "synthetic",
+        "space/cancel",
+        &serde_json::json!({"id":"b1"}),
+    )
+    .await;
+    assert_eq!(outcome.state, MutationState::Uncertain);
+    assert_eq!(transport.request_count(), 1);
+    assert_eq!(session.route(), RouteMode::Automatic);
+}
+
+#[tokio::test]
+async fn library_reserve_rechecks_slot_and_seat_then_submits_once() {
+    use crate::features::{library::LibrarySlot, mutation::MutationState};
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend([
+        library_login_redirect(), library_token_response(),
+        HttpResponse::new(200, "slots", serde_json::json!({"code":0,"data":fixture("library","slots-normal-v1.json")["input"]["data"]}).to_string()),
+        HttpResponse::new(200, "seats", serde_json::json!({"code":0,"data":fixture("library","seats-normal-v1.json")["input"]["data"]}).to_string()),
+        HttpResponse::new(200, "reserve", r#"{"code":1}"#),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, false)
+        .await
+        .unwrap();
+    let outcome = service
+        .reserve_library_seat(
+            "a1",
+            "s1",
+            LibrarySlot {
+                id: "2026-10-20/t1".into(),
+                day: "2026-10-20".into(),
+                start: "08:00".into(),
+                end: "10:00".into(),
+            },
+        )
+        .await;
+    assert_eq!(outcome.state, MutationState::Accepted);
+    let writes: Vec<_> = transport
+        .requests()
+        .into_iter()
+        .filter(|r| r.url.ends_with("space/confirm"))
+        .collect();
+    assert_eq!(writes.len(), 1);
+    assert_eq!(
+        writes[0].header_value("Authorization"),
+        Some("bearerfixture-library-token")
+    );
+    let body: Value = serde_json::from_str(writes[0].body.as_deref().unwrap()).unwrap();
+    assert!(body["aesjson"].is_string());
+    assert!(!writes[0].body.as_ref().unwrap().contains("seat_id"));
+}
+
+#[tokio::test]
+async fn library_cancel_revalidates_kind_and_never_cancels_an_ended_booking() {
+    use crate::features::mutation::MutationState;
+    for (day, expected, posts) in [
+        ("2099-10-20", MutationState::Accepted, 1),
+        ("2000-01-01", MutationState::NotSubmitted, 0),
+    ] {
+        let mut responses = login_chain("sy2501001", "fixture");
+        responses.extend([
+            library_login_redirect(), library_token_response(),
+            HttpResponse::new(200, "bookings", serde_json::json!({"code":0,"data":[{"id":"b1","type":2,"status":1,"day":day,"end_time":"12:00","oksign":1}]}).to_string()),
+            HttpResponse::new(200, "cancel", r#"{"code":0}"#),
+        ]);
+        let (service, transport) = build_service(responses, MemoryVault::default());
+        service
+            .sign_in("sy2501001", "pa+ss/word", None, false)
+            .await
+            .unwrap();
+        let outcome = service.perform_library_action("b1", "cancel").await;
+        assert_eq!(outcome.state, expected);
+        assert_eq!(
+            transport
+                .requests()
+                .iter()
+                .filter(|r| r.url.ends_with("seminar/cancel"))
+                .count(),
+            posts
+        );
+    }
+}
+
+#[tokio::test]
 async fn concurrent_school_recovery_joins_one_login_chain() {
     use crate::foundation::http::HttpTransport;
     #[derive(Clone)]

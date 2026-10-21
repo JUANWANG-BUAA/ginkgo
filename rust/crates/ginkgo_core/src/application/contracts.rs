@@ -277,6 +277,13 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
             serde_json::to_value(library::parse_history(&data, input.page, input.limit)?)
                 .map_err(|_| AppError::changed())?
         }
+        "checkin.mutation" => {
+            serde_json::to_value(checkin::parse_sign_in(&input)).map_err(|_| AppError::changed())?
+        }
+        "library.mutation" => {
+            serde_json::to_value(crate::features::library_mutation::parse_result(&input))
+                .map_err(|_| AppError::changed())?
+        }
         "checkin.app_login" => {
             let input: checkin::DayInput = decode(input)?;
             let session = checkin::parse_app_login(&input.body)?;

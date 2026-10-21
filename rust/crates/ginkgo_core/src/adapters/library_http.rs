@@ -1,8 +1,4 @@
-//! booking.lib v4 read-only HTTP flow (API.md §5.1, §5.2).
-//!
-//! The library has its own CAS exchange and a non-standard Authorization header
-//! ("bearer" + token, no space). Writes (confirm/signin/leave/checkout/cancel)
-//! are intentionally absent until they get an approval and a re-query design.
+//! booking.lib v4 HTTP. Read recovery and single-attempt mutations are separate (API.md §5).
 use crate::{
     auth::{cas, session::Session},
     features::library::{
@@ -308,6 +304,33 @@ fn percent_decode(input: &str) -> Option<String> {
         }
     }
     String::from_utf8(output).ok()
+}
+
+/// Single attempt: never route-fallback, replay on auth failure, or follow a redirect.
+pub async fn mutate<T: HttpTransport>(
+    session: &Session<T>,
+    token: &str,
+    path: &str,
+    body: &Value,
+) -> crate::features::mutation::MutationOutcome {
+    use crate::features::{library_mutation, mutation::MutationOutcome};
+    let response = session
+        .send(json_request(
+            &format!("{BASE}/v4/{path}"),
+            Some(token),
+            body,
+        ))
+        .await;
+    let Ok(response) = response else {
+        return MutationOutcome::uncertain();
+    };
+    if !(200..300).contains(&response.status) {
+        return MutationOutcome::uncertain();
+    }
+    match serde_json::from_str::<Value>(&response.body) {
+        Ok(value) => library_mutation::parse_result(&value),
+        Err(_) => MutationOutcome::uncertain(),
+    }
 }
 
 #[cfg(test)]

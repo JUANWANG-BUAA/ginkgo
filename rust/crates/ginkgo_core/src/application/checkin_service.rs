@@ -157,3 +157,38 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         checkin_http::app_login(&self.session, &login_name).await
     }
 }
+
+impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
+    /// Caller holds the bridge's exclusive session access for this single user action.
+    /// Re-read today first: never submit an old date, ambiguous merged ID, or cached status.
+    pub async fn submit_checkin(
+        &self,
+        course_id: &str,
+    ) -> crate::features::mutation::MutationOutcome {
+        use crate::features::{checkin::CheckInStatus, mutation::MutationOutcome};
+        let snapshot = match self.load_checkin(true).await {
+            Ok(snapshot) if snapshot.failure.is_none() => snapshot,
+            _ => {
+                return MutationOutcome::not_submitted("无法核对当天课程，未提交签到，请刷新后重试")
+            }
+        };
+        let Some(course) = snapshot
+            .courses
+            .iter()
+            .find(|course| course.id == course_id)
+        else {
+            return MutationOutcome::not_submitted("当天课程已变化，未提交签到");
+        };
+        if !course.sign_in_allowed || course.status != CheckInStatus::NotSigned {
+            return MutationOutcome::not_submitted("课程已签到或记录待确认，未重复提交");
+        }
+        let iclass = self.iclass.lock().expect("iclass session").clone();
+        let Some(iclass) = iclass else {
+            return MutationOutcome::not_submitted("签到会话失效，请刷新后重试");
+        };
+        let result = checkin_http::sign_in(&self.session, &iclass, course_id).await;
+        // Invalidate only this module; subsequent reads must contact upstream.
+        self.checkin.lock().expect("checkin cache").clear();
+        result
+    }
+}

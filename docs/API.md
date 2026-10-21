@@ -78,6 +78,7 @@
 | 56 | 镜像会话/只读刷新边界 | bridge读取与清理可能并发；认证恢复失败直接返回 | 不改变上游端点/参数/成功码；bridge并行读与身份/缓存变更互斥，恢复失败保留已有快照，显式退出清理保存账号 | Rust lifecycle/route logout/expired snapshot合成回归；macOS ScheduleViewModel/GradeViewModel generation与失败保留行为 |
 | 57 | Android 更新 | macOS Releases 仅含 DMG/ZIP | 沿用官方 GitHub Releases GET，Android 使用独立 android-v 语义版本和 arm64 APK 资产；Cookie 隔离、正式/预发布渠道分离，无学校写操作 | Core/Update/UpdateChecker.swift；2026-10-20 公开 API 仅见 macOS 包；新增合成 updates.android 契约 |
 | 58 | SPOC教师上下文 | 镜像忽略课程skjs | queryKclb现有响应中sskcid→kcid关联skjs，缺值保留None；不新增接口 | SpocHomeworkClient.swift:29,168–180；homework.course_context合成契约与缓存回归 |
+| 60 | 镜像签到/图书馆写入 | 全部关闭 | 依现有源码接通手动签到、座位预约、类型匹配取消与生命周期；不重发、二次确认、提交后回查；真实写入待验收 | §5.3/§5.6/§7.2；CheckInClient.performSignIn、LibraryClient.reserve/perform/cancel；合成测试 |
 | 59 | BYKC课程目录详情 | 镜像裁剪时间/人数/校区/简介 | 按BykcClient.course投影现有目录字段，详情无需新请求；签到配置仅布尔存在性 | BykcClient.swift:course；EDUCATION-DATA-MAP §2.3；目录契约/缓存隐私回归 |
 
 ## 0. 文档约定

@@ -299,7 +299,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         }
     }
 
-    async fn library_token(&self) -> Result<String, AppError> {
+    pub(crate) async fn library_token(&self) -> Result<String, AppError> {
         let cached = { self.library_token.lock().expect("library token").clone() };
         if let Some(token) = cached {
             return Ok(token);

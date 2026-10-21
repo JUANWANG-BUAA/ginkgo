@@ -2,13 +2,12 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
+import 'mutation_dialog.dart';
 import 'library_history_page.dart';
 import 'library_stats_page.dart';
 import 'src/rust/api/mirror.dart';
 
-/// booking.lib read-only hierarchy: current booking, venue, area, segment and
-/// seat. Every write (reserve/sign-in/leave/checkout/cancel) is out of scope
-/// until it gets confirmation and a post-submit re-query.
+/// Library hierarchy and explicit, single-attempt booking actions.
 class LibraryPage extends StatefulWidget {
   const LibraryPage({super.key, required this.service});
   final MirrorService service;
@@ -20,6 +19,9 @@ class _LibraryPageState extends State<LibraryPage> {
   LibraryBookingsResponse? bookings;
   LibraryVenuesResponse? venues;
   String? bookingError, venueError;
+  String? mutationNotice;
+  bool submitting = false;
+  final Set<String> uncertainActions = {};
   bool loadingBookings = false, loadingVenues = false;
   Future<void>? _bookingTask, _venueTask;
   bool get busy => loadingBookings || loadingVenues;
@@ -113,6 +115,56 @@ class _LibraryPageState extends State<LibraryPage> {
           ),
   );
 
+  Future<void> perform(LibraryBooking booking, String action) async {
+    if (submitting) return;
+    final label = _actionLabel(action);
+    final key = '${booking.id}/$action';
+    if (uncertainActions.contains(key)) return;
+    final confirmed = await confirmMutation(
+      context,
+      title: '确认$label？',
+      detail:
+          '${booking.title}\n${booking.day} ${booking.startTime}–${booking.endTime}',
+      action: label,
+      destructive: action == 'cancel' || action == 'checkout',
+    );
+    if (!confirmed || !mounted || submitting) return;
+    setState(() {
+      submitting = true;
+      uncertainActions.add(key);
+    });
+    var message = '操作结果待核实，请刷新预约记录，勿重复提交';
+    try {
+      final result = await widget.service.performLibraryAction(
+        booking.id,
+        action,
+      );
+      message = result.message;
+      if (result.state == 'notSubmitted' || result.state == 'rejected') {
+        uncertainActions.remove(key);
+      }
+    } catch (_) {
+      /* The server may have received the write. Do not replay. */
+    }
+    if (!mounted) return;
+    setState(() => mutationNotice = message);
+    await load(force: true);
+    if (mounted) {
+      setState(() {
+        submitting = false;
+        mutationNotice = message;
+      });
+    }
+  }
+
+  String _actionLabel(String action) => switch (action) {
+    'signin' => '签到入座 / 返回',
+    'leave' => '暂离',
+    'checkout' => '离馆',
+    'cancel' => '取消预约',
+    _ => action,
+  };
+
   void _push(Widget page) {
     Navigator.of(context).push(CupertinoPageRoute<void>(builder: (_) => page));
   }
@@ -152,6 +204,10 @@ class _LibraryPageState extends State<LibraryPage> {
               ],
             ),
             ...[
+              if (mutationNotice != null)
+                AppleSection(
+                  children: [AppleListTile(title: Text(mutationNotice!))],
+                ),
               _bookingSection(),
               AppleSection(
                 children: [
@@ -198,31 +254,65 @@ class _LibraryPageState extends State<LibraryPage> {
           )
         else
           for (final booking in items)
-            AppleListTile(
-              key: Key('library-booking-${booking.id}'),
-              minimumHeight: 68,
-              leading: const Icon(
-                CupertinoIcons.bookmark_fill,
-                color: CupertinoColors.systemGreen,
-                size: 22,
-              ),
-              title: Text(booking.title.isEmpty ? '图书馆预约' : booking.title),
-              subtitle: Text(
-                _bookingDetail(booking),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+            Column(
+              children: [
+                AppleListTile(
+                  key: Key('library-booking-${booking.id}'),
+                  minimumHeight: 68,
+                  leading: const Icon(
+                    CupertinoIcons.bookmark_fill,
+                    color: CupertinoColors.systemGreen,
+                    size: 22,
+                  ),
+                  title: Text(booking.title.isEmpty ? '图书馆预约' : booking.title),
+                  subtitle: Text(
+                    _bookingDetail(booking),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: CupertinoColors.secondaryLabel.resolveFrom(
+                        context,
+                      ),
+                    ),
+                  ),
+                  additionalInfo: Text(
+                    booking.statusName,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: _bookingEnded(booking)
+                          ? CupertinoColors.secondaryLabel.resolveFrom(context)
+                          : CupertinoColors.systemGreen,
+                    ),
+                  ),
                 ),
-              ),
-              additionalInfo: Text(
-                booking.statusName,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: _bookingEnded(booking)
-                      ? CupertinoColors.secondaryLabel.resolveFrom(context)
-                      : CupertinoColors.systemGreen,
-                ),
-              ),
+                if ((booking.actions ?? []).isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: Wrap(
+                      spacing: 8,
+                      children: [
+                        for (final action in booking.actions!)
+                          CupertinoButton(
+                            key: Key('library-action-${booking.id}-$action'),
+                            onPressed:
+                                submitting ||
+                                    uncertainActions.contains(
+                                      '${booking.id}/$action',
+                                    )
+                                ? null
+                                : () => perform(booking, action),
+                            child: Text(
+                              _actionLabel(action),
+                              style: TextStyle(
+                                color: action == 'cancel'
+                                    ? CupertinoColors.systemRed
+                                    : null,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
       ],
     );
@@ -563,6 +653,51 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
         .toList();
   }
 
+  bool submitting = false;
+  bool awaitingVerification = false;
+  String? mutationNotice;
+  Future<void> reserve(LibrarySeat seat) async {
+    if (submitting || awaitingVerification) return;
+    final confirmed = await confirmMutation(
+      context,
+      title: '确认预约？',
+      detail:
+          '${widget.area.name} · ${seat.name}\n${widget.slot.day} ${widget.slot.start}–${widget.slot.end}',
+      action: '确认预约',
+    );
+    if (!confirmed || !mounted || submitting) return;
+    setState(() {
+      submitting = true;
+      awaitingVerification = true;
+    });
+    var message = '预约结果待核实，请查看当前预约，勿重复提交';
+    try {
+      final result = await widget.service.reserveLibrarySeat(
+        areaId: widget.area.id,
+        seatId: seat.id,
+        slot: widget.slot,
+      );
+      message = result.message;
+      if (result.state == 'notSubmitted' || result.state == 'rejected') {
+        awaitingVerification = false;
+      }
+    } catch (_) {
+      /* Unknown result is never a retry prompt. */
+    }
+    if (!mounted) return;
+    setState(() => mutationNotice = message);
+    await load();
+    try {
+      await widget.service.libraryBookings(forceRefresh: true);
+    } catch (_) {}
+    if (mounted) {
+      setState(() {
+        submitting = false;
+        mutationNotice = message;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -606,6 +741,22 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
         CupertinoSliverRefreshControl(onRefresh: load),
         SliverList.list(
           children: [
+            if (mutationNotice != null)
+              AppleSection(
+                children: [
+                  AppleListTile(
+                    title: Text(mutationNotice!),
+                    trailing: CupertinoButton(
+                      onPressed: () => Navigator.of(context).push(
+                        CupertinoPageRoute<void>(
+                          builder: (_) => LibraryPage(service: widget.service),
+                        ),
+                      ),
+                      child: const Text('查看预约'),
+                    ),
+                  ),
+                ],
+              ),
             if (error != null)
               AppleSection(
                 children: [
@@ -661,7 +812,7 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
               ),
               AppleSection(
                 header: Text('${widget.area.name} · ${visible.length} 个座位'),
-                footer: const Text('绿色为学校接口标记的空闲座位；预约写操作尚未开放，页面不提供提交按钮。'),
+                footer: const Text('选择空闲座位后确认预约。'),
                 children: [
                   if (visible.isEmpty)
                     AppleListTile(
@@ -671,6 +822,18 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
                     for (final seat in visible)
                       AppleListTile(
                         key: Key('library-seat-${seat.id}'),
+                        trailing: seat.available
+                            ? CupertinoButton(
+                                key: Key('library-reserve-${seat.id}'),
+                                onPressed: submitting || awaitingVerification
+                                    ? null
+                                    : () => reserve(seat),
+                                child: submitting
+                                    ? const CupertinoActivityIndicator()
+                                    : const Text('预约'),
+                              )
+                            : null,
+
                         leading: Icon(
                           seat.available
                               ? CupertinoIcons.checkmark_circle_fill

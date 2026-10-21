@@ -1,0 +1,13 @@
+{
+  "contract": "library.mutation",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "code": 0,
+    "msg": "该时段已满"
+  },
+  "expected": {
+    "state": "rejected",
+    "message": "学校未接受本次操作，请核对可用时段与预约规则"
+  }
+}

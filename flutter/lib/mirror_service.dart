@@ -55,6 +55,16 @@ abstract interface class MirrorService {
     bool forceRefresh = false,
   });
   Future<live.ReadOnlyResponse> libraryStats({bool forceRefresh = false});
+  Future<live.MutationResponse> reserveLibrarySeat({
+    required String areaId,
+    required String seatId,
+    required LibrarySlot slot,
+  });
+  Future<live.MutationResponse> performLibraryAction(
+    String bookingId,
+    String action,
+  );
+  Future<live.MutationResponse> submitCheckin(String courseId);
   Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false});
   Future<LibraryAreasResponse> libraryAreas(String libraryId);
   Future<LibrarySlotsResponse> librarySlots(String areaId);
@@ -76,6 +86,20 @@ abstract interface class MirrorService {
 
 final class NativeMirrorService implements MirrorService {
   const NativeMirrorService();
+  @override
+  Future<live.MutationResponse> reserveLibrarySeat({
+    required String areaId,
+    required String seatId,
+    required LibrarySlot slot,
+  }) => live.reserveLibrarySeat(areaId: areaId, seatId: seatId, slot: slot);
+  @override
+  Future<live.MutationResponse> performLibraryAction(
+    String bookingId,
+    String action,
+  ) => live.performLibraryAction(bookingId: bookingId, action: action);
+  @override
+  Future<live.MutationResponse> submitCheckin(String courseId) =>
+      live.submitCheckin(courseId: courseId);
   @override
   bool get isDemo => false;
   @override
@@ -184,6 +208,22 @@ final class NativeMirrorService implements MirrorService {
 
 final class DemoMirrorService implements MirrorService {
   const DemoMirrorService();
+  @override
+  Future<live.MutationResponse> reserveLibrarySeat({
+    required String areaId,
+    required String seatId,
+    required LibrarySlot slot,
+  }) async =>
+      const live.MutationResponse(state: 'notSubmitted', message: '演示模式不会提交预约');
+  @override
+  Future<live.MutationResponse> performLibraryAction(
+    String bookingId,
+    String action,
+  ) async =>
+      const live.MutationResponse(state: 'notSubmitted', message: '演示模式不会修改预约');
+  @override
+  Future<live.MutationResponse> submitCheckin(String courseId) async =>
+      const live.MutationResponse(state: 'notSubmitted', message: '演示模式不会提交签到');
   @override
   bool get isDemo => true;
   @override

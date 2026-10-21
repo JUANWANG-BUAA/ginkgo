@@ -1,8 +1,4 @@
-//! iclass check-in read-only domain rules (API.md §7.2).
-//!
-//! Only the documented read path lives here: app login fields, the day's
-//! course list, sign-status normalization and the duplicate/conflict rule.
-//! Signing itself is deliberately absent until writes are reviewed.
+//! iclass domain rules: status, ambiguity and explicit mutation confirmation (API.md §7.2).
 use crate::{AppError, ErrorCode};
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -52,6 +48,7 @@ pub struct CheckInCourse {
     pub classroom_name: Option<String>,
     pub merged_record_count: usize,
     pub conflicting: bool,
+    pub sign_in_allowed: bool,
 }
 
 /// iclass answers 200 on business outcomes, so STATUS decides success.
@@ -247,6 +244,7 @@ fn merge_candidates(candidates: Vec<Candidate>) -> Vec<CheckInCourse> {
                 teacher_name: first.teacher_name.clone(),
                 classroom_name: first.classroom_name.clone(),
                 merged_record_count: indices.len(),
+                sign_in_allowed: ids.len() == 1 && !conflicting,
                 conflicting,
             }
         })
@@ -403,5 +401,72 @@ mod tests {
         let url = "https://iclass.buaa.edu.cn:8346/?loginName=abc%2Bdef%2Fghi%3D#/MyCenter";
         assert_eq!(login_name_from_url(url).as_deref(), Some("abc+def/ghi="));
         assert!(login_name_from_url("https://iclass.buaa.edu.cn:8346/#/MyCenter").is_none());
+    }
+}
+
+/// Match Apple STATUS + result.stuSignStatus confirmation, never assume HTTP 200.
+pub fn parse_sign_in(value: &Value) -> super::mutation::MutationOutcome {
+    use super::mutation::{MutationOutcome as Outcome, MutationState};
+    let Some(status) = text(value, "STATUS") else {
+        return Outcome::uncertain();
+    };
+    if is_success(&status) {
+        return match text(&value["result"], "stuSignStatus").as_deref() {
+            Some("1") => Outcome::new(
+                MutationState::Accepted,
+                "学校已受理签到，请核对刷新后的课程状态",
+            ),
+            Some(_) => Outcome::new(
+                MutationState::Rejected,
+                "学校未确认签到成功，请核对课程状态",
+            ),
+            None => Outcome::uncertain(),
+        };
+    }
+    let message = text(value, "ERRMSG").unwrap_or_default();
+    let safe = if message.contains("已签到") {
+        "该课程已签到，请刷新核实"
+    } else if message.contains("未开始") {
+        "签到尚未开始"
+    } else if message.contains("已结束") {
+        "本次签到已结束"
+    } else if message.contains("不是上课时间") {
+        "当前不在可签到时间"
+    } else if message.contains("范围") {
+        "当前不在允许的签到范围内"
+    } else {
+        "学校未接受本次签到，请核对课程安排"
+    };
+    Outcome::new(MutationState::Rejected, safe)
+}
+
+#[cfg(test)]
+mod mutation_tests {
+    use super::*;
+    use crate::features::mutation::MutationState;
+    #[test]
+    fn sign_in_requires_business_and_student_confirmation() {
+        assert_eq!(
+            parse_sign_in(&json!({"STATUS":0,"result":{"stuSignStatus":1}})).state,
+            MutationState::Accepted
+        );
+        assert_eq!(
+            parse_sign_in(&json!({"STATUS":0,"result":{}})).state,
+            MutationState::Uncertain
+        );
+        assert_eq!(
+            parse_sign_in(&json!({"STATUS":0,"result":{"stuSignStatus":0}})).state,
+            MutationState::Rejected
+        );
+        let rejected =
+            parse_sign_in(&json!({"STATUS":9,"ERRMSG":"synthetic secret should not escape"}));
+        assert_eq!(rejected.state, MutationState::Rejected);
+        assert!(!rejected.message.contains("secret"));
+        let rows = json!({"STATUS":0,"result":[
+            {"id":"1","courseName":"synthetic","classBeginTime":"08:00","classEndTime":"10:00","signStatus":0},
+            {"id":"2","courseName":"synthetic","classBeginTime":"08:00","classEndTime":"10:00","signStatus":0}
+        ]});
+        let courses = parse_course_schedule(&rows).unwrap();
+        assert!(!courses[0].sign_in_allowed);
     }
 }

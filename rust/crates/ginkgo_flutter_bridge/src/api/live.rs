@@ -32,7 +32,23 @@ type LiveService = SessionService<ReqwestTransport, PlatformVault>;
 // reads, preventing an old request from repopulating a cleared/new account cache.
 static SESSION_ACCESS: tokio::sync::RwLock<()> = tokio::sync::RwLock::const_new(());
 
+// Read/write exclusion belongs to the affected business module. A slow report
+// must not hold up a user's check-in or seat action. Identity changes still
+// use SESSION_ACCESS exclusively.
+static CHECKIN_ACCESS: tokio::sync::RwLock<()> = tokio::sync::RwLock::const_new(());
+static LIBRARY_ACCESS: tokio::sync::RwLock<()> = tokio::sync::RwLock::const_new(());
+
 static SERVICE: OnceLock<Result<LiveService, AppError>> = OnceLock::new();
+
+/// Total budget for a read including SSO redirects and fallback. Mutations
+/// deliberately do not use this helper: a submitted result is never retried.
+async fn bounded_read<T>(
+    future: impl std::future::Future<Output = Result<T, AppError>>,
+) -> Result<T, AppError> {
+    tokio::time::timeout(std::time::Duration::from_secs(45), future)
+        .await
+        .map_err(|_| AppError::unavailable())?
+}
 
 fn service() -> Result<&'static LiveService, AppError> {
     SERVICE
@@ -503,10 +519,11 @@ fn today_response(outcome: TodayOutcome) -> TodayResponse {
 
 pub async fn load_checkin_today(force_refresh: bool) -> CheckInResponse {
     let _access = SESSION_ACCESS.read().await;
+    let _module = CHECKIN_ACCESS.read().await;
     let Ok(service) = service() else {
         return checkin_failure(FailureCode::CredentialStore, None);
     };
-    match service.load_checkin(force_refresh).await {
+    match bounded_read(service.load_checkin(force_refresh)).await {
         Ok(outcome) => checkin_response(outcome),
         Err(error) => checkin_failure(error.code.clone().into(), error.detail),
     }
@@ -515,12 +532,9 @@ pub async fn load_checkin_today(force_refresh: bool) -> CheckInResponse {
 /// Historical day in Asia/Shanghai, yyyy-MM-dd; no sign-in submission.
 pub async fn load_checkin_on_date(date: String, force_refresh: bool) -> CheckInResponse {
     let _access = SESSION_ACCESS.read().await;
+    let _module = CHECKIN_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => {
-            service
-                .load_checkin_on_date(Some(date), force_refresh)
-                .await
-        }
+        Ok(service) => bounded_read(service.load_checkin_on_date(Some(date), force_refresh)).await,
         Err(error) => Err(error),
     };
     match result {
@@ -738,6 +752,7 @@ fn library_seat(value: ginkgo_core::features::library::LibrarySeat) -> LibrarySe
 
 fn library_booking(value: ginkgo_core::features::library::LibraryBooking) -> LibraryBookingDto {
     LibraryBookingDto {
+        actions: Some(ginkgo_core::features::library::current_actions(&value)),
         id: value.id,
         title: value.title,
         area_name: value.area_name,
@@ -751,6 +766,7 @@ fn library_booking(value: ginkgo_core::features::library::LibraryBooking) -> Lib
 
 pub async fn load_library_venues(force_refresh: bool) -> LibraryVenuesResponse {
     let _access = SESSION_ACCESS.read().await;
+    let _module = LIBRARY_ACCESS.read().await;
     let Ok(service) = service() else {
         return LibraryVenuesResponse {
             venues: vec![],
@@ -761,7 +777,7 @@ pub async fn load_library_venues(force_refresh: bool) -> LibraryVenuesResponse {
             failure_detail: None,
         };
     };
-    match service.load_library_venues(force_refresh).await {
+    match bounded_read(service.load_library_venues(force_refresh)).await {
         Ok(outcome) => {
             let (failure, failure_detail) = outcome
                 .failure
@@ -790,6 +806,7 @@ pub async fn load_library_venues(force_refresh: bool) -> LibraryVenuesResponse {
 
 pub async fn load_library_areas(library_id: String) -> LibraryAreasResponse {
     let _access = SESSION_ACCESS.read().await;
+    let _module = LIBRARY_ACCESS.read().await;
     let Ok(service) = service() else {
         return LibraryAreasResponse {
             areas: vec![],
@@ -813,6 +830,7 @@ pub async fn load_library_areas(library_id: String) -> LibraryAreasResponse {
 
 pub async fn load_library_slots(area_id: String) -> LibrarySlotsResponse {
     let _access = SESSION_ACCESS.read().await;
+    let _module = LIBRARY_ACCESS.read().await;
     let Ok(service) = service() else {
         return LibrarySlotsResponse {
             slots: vec![],
@@ -842,6 +860,7 @@ pub async fn load_library_seats(
     end: String,
 ) -> LibrarySeatsResponse {
     let _access = SESSION_ACCESS.read().await;
+    let _module = LIBRARY_ACCESS.read().await;
     let Ok(service) = service() else {
         return LibrarySeatsResponse {
             seats: vec![],
@@ -868,6 +887,7 @@ pub async fn load_library_seats(
 
 pub async fn load_library_bookings(force_refresh: bool) -> LibraryBookingsResponse {
     let _access = SESSION_ACCESS.read().await;
+    let _module = LIBRARY_ACCESS.read().await;
     let Ok(service) = service() else {
         return LibraryBookingsResponse {
             bookings: vec![],
@@ -878,7 +898,7 @@ pub async fn load_library_bookings(force_refresh: bool) -> LibraryBookingsRespon
             failure_detail: None,
         };
     };
-    match service.load_library_bookings(force_refresh).await {
+    match bounded_read(service.load_library_bookings(force_refresh)).await {
         Ok(outcome) => {
             let (failure, failure_detail) = outcome
                 .failure
@@ -920,8 +940,9 @@ pub struct LibraryHistoryResponse {
 
 pub async fn load_library_history(page: i32, force_refresh: bool) -> LibraryHistoryResponse {
     let _access = SESSION_ACCESS.read().await;
+    let _module = LIBRARY_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => service.load_library_history(page, force_refresh).await,
+        Ok(service) => bounded_read(service.load_library_history(page, force_refresh)).await,
         Err(error) => Err(error),
     };
     match result {
@@ -1164,7 +1185,7 @@ pub fn load_demo_bykc() -> ReadOnlyResponse {
 pub async fn load_graduate(force_refresh: bool) -> ReadOnlyResponse {
     let _access = SESSION_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => service.load_graduate(force_refresh).await,
+        Ok(service) => bounded_read(service.load_graduate(force_refresh)).await,
         Err(error) => Err(error),
     };
     match result {
@@ -1188,16 +1209,15 @@ pub async fn load_graduate_part(report: bool, force_refresh: bool) -> ReadOnlyRe
     let _access = SESSION_ACCESS.read().await;
     let result = match service() {
         Ok(service) => {
-            service
-                .load_graduate_part(
-                    if report {
-                        GraduatePart::Report
-                    } else {
-                        GraduatePart::Status
-                    },
-                    force_refresh,
-                )
-                .await
+            bounded_read(service.load_graduate_part(
+                if report {
+                    GraduatePart::Report
+                } else {
+                    GraduatePart::Status
+                },
+                force_refresh,
+            ))
+            .await
         }
         Err(error) => Err(error),
     };
@@ -1505,6 +1525,101 @@ impl ginkgo_core::foundation::http::HttpTransport for UpdateTransport {
         ginkgo_core::foundation::http::TransportError,
     > {
         self.0.send(request).await
+    }
+}
+
+/// User-confirmed write. Never retries the mutation and never exposes raw upstream text.
+/// The module gate rejects double taps rather than queuing a second write.
+pub struct MutationResponse {
+    pub state: String,
+    pub message: String,
+}
+fn mutation_response(
+    outcome: ginkgo_core::features::mutation::MutationOutcome,
+) -> MutationResponse {
+    use ginkgo_core::features::mutation::MutationState;
+    MutationResponse {
+        state: match outcome.state {
+            MutationState::Accepted => "accepted",
+            MutationState::Rejected => "rejected",
+            MutationState::Uncertain => "uncertain",
+            MutationState::NotSubmitted => "notSubmitted",
+        }
+        .into(),
+        message: outcome.message,
+    }
+}
+static CHECKIN_WRITE: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+pub async fn submit_checkin(course_id: String) -> MutationResponse {
+    let Ok(_write) = CHECKIN_WRITE.try_lock() else {
+        return MutationResponse {
+            state: "notSubmitted".into(),
+            message: "签到正在处理，请勿重复提交".into(),
+        };
+    };
+    let _access = SESSION_ACCESS.read().await;
+    let _module = CHECKIN_ACCESS.write().await;
+    match service() {
+        Ok(service) => mutation_response(service.submit_checkin(&course_id).await),
+        Err(_) => MutationResponse {
+            state: "notSubmitted".into(),
+            message: "本地服务不可用，未提交签到".into(),
+        },
+    }
+}
+
+static LIBRARY_WRITE: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+pub async fn reserve_library_seat(
+    area_id: String,
+    seat_id: String,
+    slot: crate::api::mirror::LibrarySlot,
+) -> MutationResponse {
+    let Ok(_write) = LIBRARY_WRITE.try_lock() else {
+        return MutationResponse {
+            state: "notSubmitted".into(),
+            message: "预约正在处理，请勿重复提交".into(),
+        };
+    };
+    let _access = SESSION_ACCESS.read().await;
+    let _module = LIBRARY_ACCESS.write().await;
+    match service() {
+        Ok(service) => mutation_response(
+            service
+                .reserve_library_seat(
+                    &area_id,
+                    &seat_id,
+                    ginkgo_core::features::library::LibrarySlot {
+                        id: slot.id,
+                        day: slot.day,
+                        start: slot.start,
+                        end: slot.end,
+                    },
+                )
+                .await,
+        ),
+        Err(_) => MutationResponse {
+            state: "notSubmitted".into(),
+            message: "本地服务不可用，未提交预约".into(),
+        },
+    }
+}
+pub async fn perform_library_action(booking_id: String, action: String) -> MutationResponse {
+    let Ok(_write) = LIBRARY_WRITE.try_lock() else {
+        return MutationResponse {
+            state: "notSubmitted".into(),
+            message: "预约正在处理，请勿重复提交".into(),
+        };
+    };
+    let _access = SESSION_ACCESS.read().await;
+    let _module = LIBRARY_ACCESS.write().await;
+    match service() {
+        Ok(service) => {
+            mutation_response(service.perform_library_action(&booking_id, &action).await)
+        }
+        Err(_) => MutationResponse {
+            state: "notSubmitted".into(),
+            message: "本地服务不可用，未提交操作".into(),
+        },
     }
 }
 
