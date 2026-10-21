@@ -89,7 +89,7 @@
 | 只读成功不能证明写安全 | 采纳；已有单次写入 / 确认 / 回查，真实签到与预约尚未验收 | 人工逐次操作并回查，未知结果禁重发 |
 | 缺高频提醒 / 后台 / 作业提交 | 当前 Flutter 仍有这些差距 | 按平台能力和真实协议逐项实现，不以 UI 对齐替代 |
 | 首次登录解释不足 | Keychain、CAS、WebVPN 与路线切换确有多步门槛 | 就地说明依赖与失败后选择；不削弱会话或 Secure Cookie 约束 |
-| Windows 构建“已通” | 旧描述证据不足：本轮开始时只有工程 / CI / 结构验证 | 已使用用户指定 Parallels Windows 11 ARM 完成 x64 构建、保险库与合成集成；详见 Windows 记录，不宣称物理 x64 或真实业务通过 |
+| Windows 构建“已通” | 工程、CI 和结构验证已有基础；这些结果不代替用户指定 PD 来宾上的交互验收 | 已使用 Parallels Windows 11 ARM 完成 x64 构建、保险库与合成集成；详见 Windows 记录，不宣称物理 x64 或真实业务通过 |
 
 ## 本轮自动化与人工检查
 
@@ -106,5 +106,7 @@
 | iOS `xcodegen generate --spec project.yml` 后共享单元测试 | iOS 27.0 / Ginkgo iPhone 17 Pro：220 项通过，未运行 UI / live |
 | `flutter build apk --debug --target-platform android-arm64 --no-pub` | 成功；含 aarch64 Rust 动态库。插件 NDK 28 提示仍存在，沿用项目 NDK 27，未为提示更换工具链 |
 | Chromium / Serif Enforcer / 对比度 | 1440 / 390 检查通过；字体和宿主边界见上文 |
+
+远端 CI 补充：运行 39581062229 的 Rust 契约、Android 构建、Windows 构建 / 测试 / 产物检查均通过；bindings 因 CI 未安装 rustfmt 而得到未格式化的 Rust 生成物，触发差异门禁。补装组件，并在生成脚本先检查 rustfmt；本地重新生成无差异，缺失工具的故障注入正确退出。修复后的远端结果另以对应 CI 运行记录为准。
 
 本轮未改 TLS 信任、平台 Keychain API、权限或上游写协议；身份锁重构仍需关注退出 / 切路线与业务凭据清理。Android 签名 Release、覆盖升级与合成设备测试见 [发布记录](../archive/mirror/MIRROR-ANDROID-ALPHA3.md)；Windows 主机两项集成、91 项 Flutter 回归、Rust 全量及 Debug / Release 已通过，证据与限制见 [Windows 记录](../archive/mirror/WINDOWS-2026-10-21.md)。

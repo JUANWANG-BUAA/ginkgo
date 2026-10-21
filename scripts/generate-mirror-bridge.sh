@@ -10,6 +10,10 @@ if rustup toolchain list | grep -Eq '^stable(-| )' && rustc +stable --version | 
 else
   export RUSTUP_TOOLCHAIN=1.99.0
 fi
+if ! rustfmt --version >/dev/null 2>&1; then
+  echo "Install rustfmt for $RUSTUP_TOOLCHAIN before generating bindings." >&2
+  exit 1
+fi
 cd flutter
 flutter_rust_bridge_codegen generate
 if grep -Fq "stem: 'UNKNOWN'" lib/src/rust/frb_generated.dart; then
