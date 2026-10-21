@@ -8,7 +8,10 @@ SET BASEDIR=%~dp0
 if not exist "%CARGOKIT_TOOL_TEMP_DIR%" (
     mkdir "%CARGOKIT_TOOL_TEMP_DIR%"
 )
-cd /D "%CARGOKIT_TOOL_TEMP_DIR%"
+cd /D "%CARGOKIT_TOOL_TEMP_DIR%" || exit /b 1
+if not exist ".dart_tool" (
+    mkdir ".dart_tool" || exit /b 1
+)
 
 SET BUILD_TOOL_PKG_DIR=%BASEDIR%build_tool
 SET DART=%FLUTTER_ROOT%\bin\cache\dart-sdk\bin\dart
@@ -78,7 +81,9 @@ REM which means  we need to do pub get and precompile
 if not exist "%PRECOMPILED%" (
     echo Running pub get in "%cd%"
     "%DART%" pub get --no-precompile
+    if errorlevel 1 exit /b 1
     "%DART%" compile kernel bin/build_tool_runner.dart
+    if errorlevel 1 exit /b 1
 )
 
 "%DART%" "%PRECOMPILED%" %*
@@ -86,6 +91,10 @@ if not exist "%PRECOMPILED%" (
 REM 253 means invalid snapshot version.
 If %ERRORLEVEL% equ 253 (
     "%DART%" pub get --no-precompile
+    if errorlevel 1 exit /b 1
     "%DART%" compile kernel bin/build_tool_runner.dart
+    if errorlevel 1 exit /b 1
     "%DART%" "%PRECOMPILED%" %*
 )
+
+exit /b %ERRORLEVEL%

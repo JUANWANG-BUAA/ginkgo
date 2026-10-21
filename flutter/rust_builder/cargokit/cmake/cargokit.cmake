@@ -33,10 +33,17 @@ function(apply_cargokit target manifest_dir lib_name any_symbol_name)
         set(CARGOKIT_TARGET_PLATFORM "windows-x64")
     endif()
 
+    if(IS_ABSOLUTE "${manifest_dir}")
+        set(CARGOKIT_MANIFEST_DIR "${manifest_dir}")
+    else()
+        get_filename_component(CARGOKIT_MANIFEST_DIR
+            "${CMAKE_CURRENT_SOURCE_DIR}/${manifest_dir}" ABSOLUTE)
+    endif()
+
     set(CARGOKIT_ENV
         "CARGOKIT_CMAKE=${CMAKE_COMMAND}"
         "CARGOKIT_CONFIGURATION=$<CONFIG>"
-        "CARGOKIT_MANIFEST_DIR=${CMAKE_CURRENT_SOURCE_DIR}/${manifest_dir}"
+        "CARGOKIT_MANIFEST_DIR=${CARGOKIT_MANIFEST_DIR}"
         "CARGOKIT_TARGET_TEMP_DIR=${CARGOKIT_TEMP_DIR}"
         "CARGOKIT_OUTPUT_DIR=${CARGOKIT_OUTPUT_DIR}"
         "CARGOKIT_TARGET_PLATFORM=${CARGOKIT_TARGET_PLATFORM}"
@@ -60,6 +67,7 @@ function(apply_cargokit target manifest_dir lib_name any_symbol_name)
                 OUTPUT
                 "${CMAKE_CURRENT_BINARY_DIR}/${CONFIG}/${CARGOKIT_LIB_FULL_NAME}"
                 "${CMAKE_CURRENT_BINARY_DIR}/_phony_"
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/${CONFIG}"
                 COMMAND ${CMAKE_COMMAND} -E env ${CARGOKIT_ENV}
                 "${cargokit_cmake_root}/run_build_tool${SCRIPT_EXTENSION}" build-cmake
                 VERBATIM
@@ -70,6 +78,7 @@ function(apply_cargokit target manifest_dir lib_name any_symbol_name)
             OUTPUT
             ${OUTPUT_LIB}
             "${CMAKE_CURRENT_BINARY_DIR}/_phony_"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CARGOKIT_OUTPUT_DIR}"
             COMMAND ${CMAKE_COMMAND} -E env ${CARGOKIT_ENV}
             "${cargokit_cmake_root}/run_build_tool${SCRIPT_EXTENSION}" build-cmake
             VERBATIM

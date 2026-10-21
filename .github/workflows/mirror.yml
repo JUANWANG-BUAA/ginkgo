@@ -41,6 +41,7 @@ jobs:
         working-directory: flutter
       - run: scripts/generate-mirror-bridge.sh
       - run: git diff --exit-code -- flutter/lib/src/rust rust/crates/ginkgo_flutter_bridge/src/frb_generated.rs
+      - run: python3 scripts/check-mirror-windows-cmake.py
       - run: flutter analyze
         working-directory: flutter
       - run: flutter test test
@@ -87,9 +88,27 @@ jobs:
           cache: true
       - run: flutter build windows --debug
         working-directory: flutter
-      - run: flutter test integration_test/mirror_test.dart -d windows
+      - run: flutter test test
         working-directory: flutter
+      # Keep desktop acceptance independent of the known, unbounded classroom
+      # interaction flow. This smoke also exercises Windows Credential Manager.
+      - run: flutter test integration_test/windows_test.dart -d windows
+        working-directory: flutter
+      # Integration tests rebuild the runner with their own Dart entrypoint.
+      # Restore the product main.dart before publishing a runnable artifact.
+      - run: flutter build windows --debug --target lib/main.dart
+        working-directory: flutter
+      - name: Verify Windows application bundle
+        shell: pwsh
+        run: |
+          $bundle = 'flutter/build/windows/x64/runner/Debug'
+          foreach ($relative in @('ginkgo_mirror.exe', 'ginkgo_flutter_bridge.dll', 'flutter_windows.dll', 'data/icudtl.dat', 'data/flutter_assets/AssetManifest.bin')) {
+            if (-not (Test-Path -LiteralPath "$bundle/$relative" -PathType Leaf)) {
+              throw "Missing Windows bundle asset: $relative"
+            }
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: ginkgo-windows-debug
           path: flutter/build/windows/x64/runner/Debug/
+          if-no-files-found: error
