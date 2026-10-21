@@ -20,7 +20,8 @@ void main() {
         find.byKey(const Key('schedule-grid-course-u-0-1-1')),
         scrollKey: 'schedule-scroll',
       );
-      expect(find.text('左右滑动查看整周 · 点按课程查看详情'), findsOneWidget);
+      expect(find.byKey(const Key('schedule-grid-next-days')), findsOneWidget);
+      expect(find.byKey(const Key('schedule-grid-top-scrollbar')), findsOneWidget);
       await tap(tester, '每日清单', scrollKey: 'schedule-scroll');
       final course = find.byKey(const Key('schedule-course-u-0-1-1'));
       await show(tester, course, scrollKey: 'schedule-scroll');

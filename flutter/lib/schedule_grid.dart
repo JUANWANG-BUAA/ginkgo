@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
 
+import 'apple_design.dart';
 import 'schedule_style.dart';
 import 'src/rust/api/mirror.dart';
 
@@ -212,18 +213,98 @@ class _ScheduleGridState extends State<ScheduleGrid> {
       );
       return totalWidth <= constraints.maxWidth
           ? grid
-          : CupertinoScrollbar(
-              controller: horizontalScroll,
-              thumbVisibility: true,
-              child: SingleChildScrollView(
-                key: const Key('schedule-grid-horizontal'),
-                controller: horizontalScroll,
-                scrollDirection: Axis.horizontal,
-                child: grid,
-              ),
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _horizontalControls(columnWidth, constraints.maxWidth),
+                CupertinoScrollbar(
+                  key: const Key('schedule-grid-top-scrollbar'),
+                  controller: horizontalScroll,
+                  thumbVisibility: true,
+                  scrollbarOrientation: ScrollbarOrientation.top,
+                  notificationPredicate: (notification) =>
+                      notification.metrics.axis == Axis.horizontal,
+                  child: SingleChildScrollView(
+                    key: const Key('schedule-grid-horizontal'),
+                    controller: horizontalScroll,
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.only(top: 12),
+                    child: grid,
+                  ),
+                ),
+              ],
             );
     },
   );
+  Widget _horizontalControls(
+    double columnWidth,
+    double viewportWidth,
+  ) => AnimatedBuilder(
+    animation: horizontalScroll,
+    builder: (context, _) {
+      final offset = horizontalScroll.hasClients
+          ? horizontalScroll.offset
+          : 0.0;
+      final maxExtent = horizontalScroll.hasClients
+          ? horizontalScroll.position.maxScrollExtent
+          : axisWidth + columnWidth * 7 - viewportWidth;
+      final first = ((offset - axisWidth) / columnWidth).floor().clamp(0, 6);
+      final last =
+          ((offset + viewportWidth - axisWidth) / columnWidth).ceil().clamp(
+            1,
+            7,
+          ) -
+          1;
+      void move(double delta) {
+        final target = (horizontalScroll.offset + delta).clamp(0.0, maxExtent);
+        if (MediaQuery.disableAnimationsOf(context)) {
+          horizontalScroll.jumpTo(target);
+        } else {
+          horizontalScroll.animateTo(
+            target,
+            duration: AppleDesign.duration(context, 180),
+            curve: Curves.easeOut,
+          );
+        }
+      }
+
+      Widget arrow({required bool next}) => CupertinoButton(
+        key: Key(
+          next ? 'schedule-grid-next-days' : 'schedule-grid-previous-days',
+        ),
+        padding: EdgeInsets.zero,
+        minimumSize: const Size(44, 44),
+        onPressed: next
+            ? (offset < maxExtent - 1 ? () => move(columnWidth * 2) : null)
+            : (offset > 1 ? () => move(-columnWidth * 2) : null),
+        child: Semantics(
+          label: next ? '查看后面的日期' : '查看前面的日期',
+          child: Icon(
+            next ? CupertinoIcons.chevron_right : CupertinoIcons.chevron_left,
+            size: 17,
+          ),
+        ),
+      );
+      return Row(
+        children: [
+          arrow(next: false),
+          Expanded(
+            child: Text(
+              '${weekdayNames[first]}–${weekdayNames[last]} · 左右滑动',
+              key: const Key('schedule-grid-visible-days'),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              ),
+            ),
+          ),
+          arrow(next: true),
+        ],
+      );
+    },
+  );
+
   int? _todayColumn() {
     final start = DateTime.tryParse(weekStart ?? '');
     if (start == null) return null;
