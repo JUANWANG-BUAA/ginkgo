@@ -1,6 +1,6 @@
 # Rust + Flutter 本轮验收（2026-10-21）
 
-适用对象：本轮工作树中的 Android / Windows 镜像及宣传首页；公开 Android Alpha.1 仍以其 [发布记录](MIRROR-ANDROID-ALPHA.md) 为准。当前模块状态见 [macOS 对照表](MIRROR-MACOS-PARITY.md)，协议、缓存和分段迁移见 [本轮对齐记录](MIRROR-PARITY-2026-10-21.md)。
+适用对象：本轮工作树中的 Android / Windows 镜像及宣传首页；Android Alpha.2 已公开发布，最终签名包、校验和及安装检查见 [发布记录](MIRROR-ANDROID-ALPHA2.md)。当前模块状态见 [macOS 对照表](MIRROR-MACOS-PARITY.md)，协议、缓存和分段迁移见 [本轮对齐记录](MIRROR-PARITY-2026-10-21.md)。
 
 ## 已实施
 
@@ -30,7 +30,7 @@
 
 最终整合运行 `bash scripts/check-mirror.sh`：Rust 核心 165 项、144 份 fixture 的契约遍历 1 项、bridge 生命周期 1 项、BYKC doc-test 1 项通过；fmt、全 workspace / all-targets / all-features Clippy `-D warnings`、Flutter analyze 均通过。Flutter 全量当次 88 项通过。研究生进度轨道宽度、430px 长文字成绩、深处类别打开课程后的筛选可见性、320px / 1.8 倍字号 / 深浅色、预约忙碌禁用与未知资源数量均有定向回归；不累加重复测试。
 
-`scripts/generate-mirror-bridge.sh` 成功，生成前后 Dart/Rust 绑定哈希一致。`flutter build apk --debug --target-platform android-arm64` 成功，包含最新 Rust/Dart；测试后重新安装正常 main 入口。未签署或发布新版 Alpha，Windows 专用 smoke 未在本机执行。
+`scripts/generate-mirror-bridge.sh` 成功，生成前后 Dart/Rust 绑定哈希一致。`flutter build apk --debug --target-platform android-arm64` 成功，包含最新 Rust/Dart；测试后重新安装正常 main 入口。随后完成 Alpha.2 正式签名、16 KB 对齐检查、最终包安装与公开发布，详见 [发布记录](MIRROR-ANDROID-ALPHA2.md)。Windows 专用 smoke 未在本机执行。
 
 本机可安装调试包：`artifacts/local/mirror/Ginkgo-0.1.0-alpha.2-android-arm64-debug.apk`（被 Git 忽略，非公开发布）。最后颜色收尾后定向资源 / 预约 5 项与全目录 analyze 通过，普通 main 重建并安装；工作台、学分轨道与预约入口完成普通应用读图。资源场景色集中于 `AppleDesign`，浅色文字在最浓的 9% 同色底上对比度均超过 4.5:1。
 

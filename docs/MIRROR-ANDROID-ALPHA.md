@@ -1,5 +1,7 @@
 # Android Alpha 安装与验收
 
+> 当前新版已发布：[Android Alpha.2](MIRROR-ANDROID-ALPHA2.md)。本文以下保留 Alpha.1 的历史发布记录。
+
 版本：`0.1.0-alpha.1`（build 2），GitHub tag `android-v0.1.0-alpha.1`。
 适用：Android arm64，Android 7.0+（minSdk 24）。此包不适用于 Windows/iOS/macOS。
 
