@@ -267,3 +267,8 @@ Android博雅详情独立smoke通过：真实FFI合成目录→详情校区/简�
 ## 2026-10-21 研究生课程学校字段（离线切片）
 
 按 macOS 源码补齐课程代码、成绩、类别、属性及课程池考核/必修字段，课程代码可搜索，详情沿用快照。18 项研究生 Rust 测试、契约、Clippy/fmt、定向 analyze 和 5 项 widget 通过。尚未合入发布包、设备读图或实网验收；详见 [字段对照与验证](MIRROR-GRADUATE-COURSE-FIELDS.md)。
+
+
+## 2026-10-21 培养方案与原文（独立分支）
+
+按 macOS `loadPlan` 接通方案头部、章节原文与课程池，独立 `plan` 快照，入口打开后请求，既有学籍/报告首屏不增加请求。19 项研究生 Rust 测试、契约、Clippy/fmt、Android 交叉检查和 7 项 widget/定向 analyze 通过；三种合成外观读图后修正大字号字段对齐。设备 smoke 与真实账号仍待验收，尚未纳入发布包。见 [方案协议与验收记录](MIRROR-GRADUATE-PLAN-AUDIT.md)。

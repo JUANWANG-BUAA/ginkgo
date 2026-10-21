@@ -11,6 +11,7 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 镜像研究生培养方案 | 仅执行报告失败时读取方案头部/池，无章节原文 | 按需独立读取完整方案、章节和课程池，保持首屏请求不变 | `GraduateAcademicClient.swift:87–154`、`EDUCATION-DATA-MAP.md` §4.2；[离线验证](MIRROR-GRADUATE-PLAN-AUDIT.md)，新镜像链路实网⚠️待验收 |
 | 镜像研究生课程字段 | 课程代码丢失，学校字段混在摘要 | `courseInfo` 可选白名单投影，缺值不补造；既有请求与缓存不变 | `GraduateAcademicClient.swift:131–143,252–265`；[离线验证](MIRROR-GRADUATE-COURSE-FIELDS.md)，设备和实网待验收 |
 | 镜像SPOC正文 | 对象/数组正文被按缺失展示 | zynr沿用原生String?契约，类型漂移拒绝并保留旧详情；缺失/null仍允许元数据与提交状态显示 | `SpocHomeworkClient.swift:42,216–233`；2份漂移契约、HTTP编码及应用缓存回归 |
 | 镜像研究生展示 | 课程与报告元数据共用文字行 | 明确课程标记及可选学分/学期，未知完成值不删除课程，缺学分不伪造0；无新端点 | `GraduateAcademicClient.swift:220–265`；合成领域与契约验证，真实验收仍单列 |

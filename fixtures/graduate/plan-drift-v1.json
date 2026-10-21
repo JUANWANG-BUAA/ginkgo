@@ -1,0 +1,70 @@
+{
+  "contract": "graduate.plan",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "header": {
+      "code": 0,
+      "datas": {
+        "facx": {
+          "rows": [
+            {
+              "MC": "合成培养方案",
+              "ZDXF": 32,
+              "XWKZDXF": 16,
+              "XQLHKCXF": 2,
+              "YXDM_DISPLAY": "合成学院",
+              "ZYDM_DISPLAY": "合成专业",
+              "SHZT_DISPLAY": "已审核",
+              "privateField": "synthetic-not-exported"
+            }
+          ]
+        }
+      }
+    },
+    "chapters": {
+      "code": 0,
+      "datas": {
+        "gjfadmhqdydpyfanr": {
+          "rows": [
+            {
+              "MC": "培养目标",
+              "MRZ": {
+                "drift": true
+              }
+            },
+            {
+              "MC": "其他说明",
+              "SM": "合成补充说明"
+            },
+            {
+              "MC": "空章节",
+              "MRZ": ""
+            }
+          ]
+        }
+      }
+    },
+    "pool": {
+      "code": 0,
+      "datas": {
+        "pyfakcxxcx": {
+          "rows": [
+            {
+              "KCMC": "合成计划课程",
+              "KCDM": "SYN-POOL",
+              "XF": 2,
+              "KCLBLXMC": "合成类别",
+              "KKXQDM_DISPLAY": "合成学期",
+              "KKSX_DISPLAY": "考试",
+              "SFBX_DISPLAY": "必修"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

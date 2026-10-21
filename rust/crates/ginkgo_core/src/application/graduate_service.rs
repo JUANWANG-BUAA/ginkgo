@@ -11,12 +11,14 @@ pub struct GraduateOutcome {
 pub enum GraduatePart {
     Status,
     Report,
+    Plan,
 }
 impl GraduatePart {
     fn key(self) -> &'static str {
         match self {
             Self::Status => "status",
             Self::Report => "report",
+            Self::Plan => "plan",
         }
     }
     async fn load<T: HttpTransport>(
@@ -27,6 +29,7 @@ impl GraduatePart {
         match self {
             Self::Status => graduate_http::load_status(session, account).await,
             Self::Report => graduate_http::load_report(session, account).await,
+            Self::Plan => graduate_http::load_plan(session, account).await,
         }
     }
 }
