@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'apple_widgets.dart';
 import 'academic_widgets.dart';
 import 'graduate_models.dart';
+import 'graduate_plan_page.dart';
 import 'src/rust/api/live.dart' as live;
 
 typedef GraduateLoader = Future<live.ReadOnlyResponse> Function({
@@ -13,9 +14,15 @@ typedef GraduateLoader = Future<live.ReadOnlyResponse> Function({
 });
 
 class GraduatePage extends StatefulWidget {
-  const GraduatePage({super.key, this.demo = false, this.loader});
+  const GraduatePage({
+    super.key,
+    this.demo = false,
+    this.loader,
+    this.planLoader,
+  });
   final bool demo;
   final GraduateLoader? loader;
+  final GraduatePlanLoader? planLoader;
   @override
   State<GraduatePage> createState() => _GraduatePageState();
 }
@@ -466,6 +473,26 @@ class _GraduatePageState extends State<GraduatePage> {
                     ),
                 ],
                 if (view == _GraduateView.credits) ...[
+                  AppleSection(
+                    children: [
+                      AppleListTile(
+                        leading: const Icon(
+                          CupertinoIcons.doc_text,
+                          color: CupertinoColors.activeBlue,
+                        ),
+                        title: const Text('培养方案与原文'),
+                        trailing: const CupertinoListTileChevron(),
+                        onTap: () => Navigator.of(context).push(
+                          CupertinoPageRoute<void>(
+                            builder: (_) => GraduatePlanPage(
+                              demo: widget.demo,
+                              loader: widget.planLoader,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   if (status.sections
                           ?.expand((section) => section.rows)
                           .firstOrNull

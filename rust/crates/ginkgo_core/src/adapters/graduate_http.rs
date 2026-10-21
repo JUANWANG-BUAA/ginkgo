@@ -43,8 +43,12 @@ async fn post<T: HttpTransport>(
     Ok(value)
 }
 async fn get<T: HttpTransport>(session: &Session<T>, path: &str) -> Result<Value, AppError> {
+    let app = path.split('/').next().ok_or_else(AppError::invalid)?;
     let response = session
-        .send_following_redirects(HttpRequest::get(format!("{BASE}/{path}")))
+        .send_following_redirects(
+            HttpRequest::get(format!("{BASE}/{path}"))
+                .header("Referer", &format!("{BASE}/{app}/*default/index.do")),
+        )
         .await?;
     if matches!(response.status, 401 | 403)
         || cas::is_login_redirect(&response.final_url, &response.body)
@@ -145,4 +149,58 @@ pub async fn load_report<T: HttpTransport>(
         }
     }
     Ok(AcademicData { sections, notice })
+}
+
+/// API.md §7.4 / EDUCATION-DATA-MAP §4.2; native loadPlan:87–154.
+/// Kept independent of the execution report so chapters never delay first paint.
+pub async fn load_plan<T: HttpTransport>(
+    session: &Session<T>,
+    account: &str,
+) -> Result<AcademicData, AppError> {
+    activate(session, "wdpyfaappbuaa").await?;
+    let mapping = post(
+        session,
+        "wdpyfaappbuaa/modules/pyfaxq/gjxhcxdyfadm.do",
+        &account_form(account),
+    )
+    .await?;
+    let rows = mapping["datas"]["gjxhcxdyfadm"]["rows"]
+        .as_array()
+        .ok_or_else(AppError::changed)?;
+    let Some(row) = rows.first() else {
+        return Ok(AcademicData {
+            sections: vec![],
+            notice: None,
+        });
+    };
+    let code = row["FADM"]
+        .as_str()
+        .filter(|code| !code.trim().is_empty())
+        .ok_or_else(AppError::changed)?;
+    let query = url::form_urlencoded::Serializer::new(String::new())
+        .append_pair("DM", code)
+        .append_pair("EN", "zh")
+        .finish();
+    let header = get(
+        session,
+        &format!("wdpyfaappbuaa/modules/pyfaxq/facx.do?{query}"),
+    )
+    .await?;
+    let query = url::form_urlencoded::Serializer::new(String::new())
+        .append_pair("DM", code)
+        .finish();
+    let chapters = get(
+        session,
+        &format!("wdpyfaappbuaa/modules/pyfaxq/gjfadmhqdydpyfanr.do?{query}"),
+    )
+    .await?;
+    let setting = serde_json::json!([{"name":"FADM","value":code}]).to_string();
+    let form = url::form_urlencoded::Serializer::new(String::new())
+        .append_pair("setting", &setting)
+        .finish();
+    let pool = post(session, "wdpyfaappbuaa/modules/pyfaxq/pyfakcxxcx.do", &form).await?;
+    Ok(AcademicData {
+        sections: graduate::parse_full_plan(&header, &chapters, &pool)?,
+        notice: None,
+    })
 }

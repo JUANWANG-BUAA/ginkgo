@@ -1328,6 +1328,64 @@ pub async fn load_graduate_part(report: bool, force_refresh: bool) -> ReadOnlyRe
     }
 }
 
+/// On-demand plan chapters use a distinct application cache key.
+pub async fn load_graduate_plan(force_refresh: bool) -> ReadOnlyResponse {
+    let _access = SESSION_ACCESS.read().await;
+    let result =
+        match service() {
+            Ok(service) => {
+                bounded_read(service.load_graduate_part(
+                    ginkgo_core::application::GraduatePart::Plan,
+                    force_refresh,
+                ))
+                .await
+            }
+            Err(error) => Err(error),
+        };
+    match result {
+        Ok(outcome) => ReadOnlyResponse {
+            payload: serde_json::to_string(&outcome.data).ok(),
+            stale: outcome.failure.is_some(),
+            failure: outcome.failure.map(|e| e.code.into()),
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}
+
+pub fn load_demo_graduate_plan() -> ReadOnlyResponse {
+    let result = (|| -> Result<_, AppError> {
+        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../../../fixtures/graduate/plan-normal-v1.json"
+        ))
+        .map_err(|_| AppError::changed())?;
+        let input = &fixture["input"];
+        Ok(ginkgo_core::features::graduate::AcademicData {
+            sections: ginkgo_core::features::graduate::parse_full_plan(
+                &input["header"],
+                &input["chapters"],
+                &input["pool"],
+            )?,
+            notice: None,
+        })
+    })();
+    match result {
+        Ok(data) => ReadOnlyResponse {
+            payload: serde_json::to_string(&data).ok(),
+            stale: false,
+            failure: None,
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}
+
 pub fn load_demo_graduate_status() -> ReadOnlyResponse {
     let status = serde_json::json!({"datas":{"xsjcxxcx":{"rows":[{
         "YXDM_DISPLAY":"合成学院", "ZYDM_DISPLAY":"合成专业", "NJDM_DISPLAY":"2026级", "XJZTDM_DISPLAY":"在读"

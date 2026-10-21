@@ -2319,3 +2319,86 @@ async fn concurrent_school_recovery_joins_one_login_chain() {
     assert!(a.is_ok() && b.is_ok());
     assert_eq!(transport.request_count() - before, 5);
 }
+
+#[tokio::test]
+async fn graduate_plan_is_on_demand_independently_cached_and_preserved_on_failure() {
+    use crate::application::GraduatePart;
+    let input = fixture("graduate", "plan-normal-v1.json")["input"].clone();
+    let base = "https://gsmis.buaa.edu.cn/gsapp/sys/wdpyfaappbuaa";
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend([
+        HttpResponse::new(200, format!("{base}/*default/index.do"), "app"),
+        HttpResponse::new(200, format!("{base}/modules/pyfaxq/gjxhcxdyfadm.do"),
+            serde_json::json!({"code":0,"datas":{"gjxhcxdyfadm":{"rows":[{"FADM":"synthetic+/code"}]}}}).to_string()),
+        HttpResponse::new(200, format!("{base}/modules/pyfaxq/facx.do"), input["header"].to_string()),
+        HttpResponse::new(200, format!("{base}/modules/pyfaxq/gjfadmhqdydpyfanr.do"), input["chapters"].to_string()),
+        HttpResponse::new(200, format!("{base}/modules/pyfaxq/pyfakcxxcx.do"), input["pool"].to_string()),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("login");
+    let before = transport.request_count();
+    assert_eq!(before, 5, "login must not prefetch the plan");
+    let plan = service
+        .load_graduate_part(GraduatePart::Plan, false)
+        .await
+        .expect("plan");
+    let projected = serde_json::to_value(&plan.data).expect("projection");
+    assert_eq!(
+        projected["sections"],
+        fixture("graduate", "plan-normal-v1.json")["expected"]["sections"]
+    );
+    assert!(!projected.to_string().contains("synthetic-not-exported"));
+    let requests = transport.requests();
+    assert_eq!(requests.len(), before + 5);
+    assert_eq!(requests[before + 2].method, HttpMethod::Get);
+    assert!(requests[before + 2]
+        .url
+        .ends_with("facx.do?DM=synthetic%2B%2Fcode&EN=zh"));
+    assert_eq!(
+        requests[before + 3]
+            .headers
+            .get("Referer")
+            .map(String::as_str),
+        Some(format!("{base}/*default/index.do").as_str())
+    );
+    assert!(requests[before + 3]
+        .url
+        .ends_with("gjfadmhqdydpyfanr.do?DM=synthetic%2B%2Fcode"));
+    let form: std::collections::HashMap<_, _> = url::form_urlencoded::parse(
+        requests[before + 4]
+            .body
+            .as_ref()
+            .expect("form body")
+            .as_bytes(),
+    )
+    .into_owned()
+    .collect();
+    assert_eq!(
+        form.get("setting").map(String::as_str),
+        Some("[{\"name\":\"FADM\",\"value\":\"synthetic+/code\"}]")
+    );
+    service
+        .load_graduate_part(GraduatePart::Plan, false)
+        .await
+        .expect("cached");
+    assert_eq!(transport.request_count(), before + 5);
+    // A failed unrelated report must not fall back to the plan snapshot.
+    assert!(service
+        .load_graduate_part(GraduatePart::Report, false)
+        .await
+        .is_err());
+    let failed = service
+        .load_graduate_part(GraduatePart::Plan, true)
+        .await
+        .expect("stale plan");
+    assert!(failed.failure.is_some());
+    assert_eq!(failed.data.sections.len(), plan.data.sections.len());
+    service.clear_snapshots();
+    assert!(service
+        .load_graduate_part(GraduatePart::Plan, false)
+        .await
+        .is_err());
+}

@@ -1,0 +1,75 @@
+{
+  "contract": "graduate.plan",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "header": {
+      "code": 0,
+      "datas": {
+        "facx": {
+          "rows": [
+            {
+              "MC": "合成培养方案",
+              "ZDXF": 32,
+              "XWKZDXF": 16,
+              "XQLHKCXF": 2,
+              "YXDM_DISPLAY": "合成学院",
+              "ZYDM_DISPLAY": "合成专业",
+              "SHZT_DISPLAY": "已审核",
+              "privateField": "synthetic-not-exported"
+            }
+          ]
+        }
+      }
+    },
+    "chapters": {
+      "code": 0,
+      "datas": {
+        "gjfadmhqdydpyfanr": {
+          "rows": []
+        }
+      }
+    },
+    "pool": {
+      "code": 0,
+      "datas": {
+        "pyfakcxxcx": {
+          "rows": []
+        }
+      }
+    }
+  },
+  "expected": {
+    "sections": [
+      {
+        "title": "培养方案",
+        "rows": [
+          {
+            "title": "合成培养方案",
+            "detail": "最低总学分 32 · 学位课学分 16"
+          },
+          {
+            "title": "学院",
+            "detail": "合成学院"
+          },
+          {
+            "title": "专业",
+            "detail": "合成专业"
+          },
+          {
+            "title": "校企课程学分要求",
+            "detail": "2"
+          },
+          {
+            "title": "审核状态",
+            "detail": "已审核"
+          }
+        ]
+      },
+      {
+        "title": "计划课程池（不等于毕业学分要求）",
+        "rows": []
+      }
+    ]
+  }
+}

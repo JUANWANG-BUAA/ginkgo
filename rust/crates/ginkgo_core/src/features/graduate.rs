@@ -368,6 +368,96 @@ pub fn parse_plan(header: &Value, pool: &Value) -> Result<Vec<ReadSection>, AppE
     Ok(sections)
 }
 
+/// Full plan read on demand; chapter text is separate from course requirements.
+/// Native evidence: GraduateAcademicClient.swift:103–154.
+pub fn parse_full_plan(
+    header: &Value,
+    chapters: &Value,
+    pool: &Value,
+) -> Result<Vec<ReadSection>, AppError> {
+    for envelope in [header, chapters, pool] {
+        if envelope["success"] == false
+            || envelope.get("code").is_some_and(|code| {
+                code.as_str()
+                    .map_or_else(|| code != &serde_json::json!(0), |code| code != "0")
+            })
+        {
+            return Err(AppError::new(crate::ErrorCode::BusinessRejected));
+        }
+    }
+    let mut sections = parse_plan(header, pool)?;
+    let head = &header["datas"]["facx"]["rows"][0];
+    for (label, key) in [
+        ("学院", "YXDM_DISPLAY"),
+        ("专业", "ZYDM_DISPLAY"),
+        ("校企课程学分要求", "XQLHKCXF"),
+        ("审核状态", "SHZT_DISPLAY"),
+    ] {
+        if let Some(detail) = text(&head[key]) {
+            sections[0].rows.push(ReadRow {
+                title: label.into(),
+                detail,
+                is_course: false,
+                completed: None,
+                credit: None,
+                semester: None,
+                course_info: None,
+            });
+        }
+    }
+    let rows = chapters["datas"]["gjfadmhqdydpyfanr"]["rows"]
+        .as_array()
+        .ok_or_else(AppError::changed)?;
+    let tags = regex::Regex::new("<[^>]*>").expect("constant tag pattern");
+    let plain = |value: &str| {
+        tags.replace_all(value, " ")
+            .replace("&nbsp;", " ")
+            .replace("&quot;", "\"")
+            .replace("&#39;", "'")
+            .replace("&lt;", "<")
+            .replace("&gt;", ">")
+            .replace("&amp;", "&")
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ")
+    };
+    let optional = |row: &Value, key: &str| -> Result<Option<String>, AppError> {
+        match row.get(key) {
+            None | Some(Value::Null) => Ok(None),
+            Some(Value::String(value)) => Ok(Some(plain(value))),
+            _ => Err(AppError::changed()),
+        }
+    };
+    let mut chapter_sections = Vec::with_capacity(rows.len());
+    for row in rows {
+        let title = optional(row, "MC")?
+            .filter(|s| !s.is_empty())
+            .ok_or_else(AppError::changed)?;
+        // Native MRZ takes priority even when it is an empty string.
+        let detail = match optional(row, "MRZ")? {
+            Some(value) => Some(value),
+            None => optional(row, "SM")?,
+        }
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "该章节未返回正文。".into());
+        chapter_sections.push(ReadSection {
+            title,
+            progress: None,
+            rows: vec![ReadRow {
+                title: "方案说明".into(),
+                detail,
+                is_course: false,
+                completed: None,
+                credit: None,
+                semester: None,
+                course_info: None,
+            }],
+        });
+    }
+    sections.splice(1..1, chapter_sections);
+    Ok(sections)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

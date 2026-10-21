@@ -90,6 +90,9 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
             input["date"].as_str().ok_or_else(AppError::invalid)?,
         )?)
         .map_err(|_| AppError::changed())?,
+        "graduate.plan" => {
+            json!({"sections":crate::features::graduate::parse_full_plan(&input["header"], &input["chapters"], &input["pool"])?})
+        }
         "graduate.execution" => {
             json!({"sections":crate::features::graduate::parse_execution(&input)?})
         }

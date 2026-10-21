@@ -179,6 +179,15 @@ Future<ReadOnlyResponse> loadGraduatePart({
   forceRefresh: forceRefresh,
 );
 
+/// On-demand plan chapters use a distinct application cache key.
+Future<ReadOnlyResponse> loadGraduatePlan({required bool forceRefresh}) =>
+    RustLib.instance.api.crateApiLiveLoadGraduatePlan(
+      forceRefresh: forceRefresh,
+    );
+
+Future<ReadOnlyResponse> loadDemoGraduatePlan() =>
+    RustLib.instance.api.crateApiLiveLoadDemoGraduatePlan();
+
 Future<ReadOnlyResponse> loadDemoGraduateStatus() =>
     RustLib.instance.api.crateApiLiveLoadDemoGraduateStatus();
 
