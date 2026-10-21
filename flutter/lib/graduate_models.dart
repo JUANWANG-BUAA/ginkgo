@@ -6,13 +6,17 @@ class GraduateRow {
       isCourse = json['isCourse'] == true,
       completed = json['completed'] as bool?,
       credit = json['credit'] as num?,
-      semester = json['semester'] as String?;
+      semester = json['semester'] as String?,
+      courseInfo = GraduateCourseInfo.fromJson(
+        json['courseInfo'] as Map<String, dynamic>?,
+      );
 
   final String title, detail;
   final bool isCourse;
   final bool? completed;
   final num? credit;
   final String? semester;
+  final GraduateCourseInfo courseInfo;
 
   String get completionLabel => switch (completed) {
     true => '已完成',
@@ -55,4 +59,15 @@ enum GraduateCourseFilter {
     completed => row.completed == true,
     unknown => row.completed == null,
   };
+}
+
+class GraduateCourseInfo {
+  GraduateCourseInfo.fromJson(Map<String, dynamic>? json)
+    : code = json?['code'] as String?,
+      grade = json?['grade'] as String?,
+      category = json?['category'] as String?,
+      attribute = json?['attribute'] as String?,
+      examMode = json?['examMode'] as String?,
+      required = json?['required'] as String?;
+  final String? code, grade, category, attribute, examMode, required;
 }

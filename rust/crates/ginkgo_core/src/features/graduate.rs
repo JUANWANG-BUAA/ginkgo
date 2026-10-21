@@ -15,6 +15,63 @@ pub struct ReadRow {
     pub credit: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub semester: Option<String>,
+    #[serde(
+        default,
+        rename = "courseInfo",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub course_info: Option<CourseInfo>,
+}
+/// Whitelisted course fields already displayed by the native client.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CourseInfo {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub grade: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attribute: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exam_mode: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub required: Option<String>,
+}
+impl CourseInfo {
+    fn from_row(row: &Value, plan_pool: bool) -> Option<Self> {
+        let info = if plan_pool {
+            Self {
+                code: text(&row["KCDM"]),
+                grade: None,
+                category: text(&row["KCLBLXMC"]).or_else(|| text(&row["KCLBDM_DISPLAY"])),
+                attribute: None,
+                exam_mode: text(&row["KKSX_DISPLAY"]),
+                required: text(&row["SFBX_DISPLAY"]),
+            }
+        } else {
+            Self {
+                code: text(&row["kcdm"]),
+                grade: text(&row["cjxsz"]),
+                category: text(&row["kclbmc"]),
+                attribute: text(&row["kksx"]),
+                exam_mode: None,
+                required: None,
+            }
+        };
+        [
+            &info.code,
+            &info.grade,
+            &info.category,
+            &info.attribute,
+            &info.exam_mode,
+            &info.required,
+        ]
+        .iter()
+        .any(|value| value.is_some())
+        .then_some(info)
+    }
 }
 fn is_false(value: &bool) -> bool {
     !value
@@ -95,6 +152,7 @@ fn courses(value: &Value) -> Result<Vec<ReadRow>, AppError> {
                 }
             }
             Ok(ReadRow {
+                course_info: CourseInfo::from_row(course, false),
                 is_course: true,
                 credit: credit(&course["xf"]),
                 semester: text(&course["xnxqmc"]),
@@ -130,6 +188,7 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
         rows: vec![
             ReadRow {
                 is_course: false,
+                course_info: None,
                 completed: None,
                 credit: None,
                 semester: None,
@@ -138,6 +197,7 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
             },
             ReadRow {
                 is_course: false,
+                course_info: None,
                 completed: None,
                 credit: None,
                 semester: None,
@@ -146,6 +206,7 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
             },
             ReadRow {
                 is_course: false,
+                course_info: None,
                 completed: None,
                 credit: None,
                 semester: None,
@@ -154,6 +215,7 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
             },
             ReadRow {
                 is_course: false,
+                course_info: None,
                 completed: None,
                 credit: None,
                 semester: None,
@@ -166,6 +228,7 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
         let title = text(&category["kclbmc"]).ok_or_else(AppError::changed)?;
         let mut rows = vec![ReadRow {
             is_course: false,
+            course_info: None,
             completed: None,
             credit: None,
             semester: None,
@@ -175,6 +238,7 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
         if let Some(note) = text(&category["kclbhbzyq"]) {
             rows.push(ReadRow {
                 is_course: false,
+                course_info: None,
                 completed: None,
                 credit: None,
                 semester: None,
@@ -199,6 +263,7 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
             let name = text(&group["dxzmc"]).ok_or_else(AppError::changed)?;
             let mut rows = vec![ReadRow {
                 is_course: false,
+                course_info: None,
                 completed: None,
                 credit: None,
                 semester: None,
@@ -241,6 +306,7 @@ pub fn parse_status(value: &Value) -> Result<ReadSection, AppError> {
             .filter_map(|(label, key)| {
                 text(&row[key]).map(|detail| ReadRow {
                     is_course: false,
+                    course_info: None,
                     completed: None,
                     credit: None,
                     semester: None,
@@ -261,6 +327,7 @@ pub fn parse_plan(header: &Value, pool: &Value) -> Result<Vec<ReadSection>, AppE
         progress: None,
         rows: vec![ReadRow {
             is_course: false,
+            course_info: None,
             completed: None,
             credit: None,
             semester: None,
@@ -278,6 +345,7 @@ pub fn parse_plan(header: &Value, pool: &Value) -> Result<Vec<ReadSection>, AppE
         .iter()
         .map(|course| {
             Ok(ReadRow {
+                course_info: CourseInfo::from_row(course, true),
                 is_course: true,
                 completed: None,
                 credit: credit(&course["XF"]),
@@ -304,6 +372,46 @@ pub fn parse_plan(header: &Value, pool: &Value) -> Result<Vec<ReadSection>, AppE
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn course_information_is_whitelisted_without_inventing_missing_values() {
+        let rows = courses(&json!([{
+            "kcmc": "合成课程", "sfwc": null, "kcdm": "SYN-101",
+            "cjxsz": "优秀", "kclbmc": "专业选修", "kksx": "学校原值",
+            "privateField": "discard", "studentName": "discard"
+        }]))
+        .expect("course rows");
+        let row = serde_json::to_value(&rows[0]).expect("projection");
+        assert_eq!(
+            row["courseInfo"],
+            json!({
+                "code":"SYN-101", "grade":"优秀", "category":"专业选修", "attribute":"学校原值"
+            })
+        );
+        assert!(row.get("completed").is_none());
+        let missing =
+            courses(&json!([{"kcmc":"缺值课程","sfwc":null}])).expect("missing optional values");
+        assert!(serde_json::to_value(&missing[0])
+            .expect("projection")
+            .get("courseInfo")
+            .is_none());
+        let sections = parse_plan(
+            &json!({"datas":{"facx":{"rows":[{"MC":"合成方案"}]}}}),
+            &json!({"datas":{"pyfakcxxcx":{"rows":[{
+                "KCMC":"合成课程", "KCDM":"SYN-POOL", "KCLBDM_DISPLAY":"学校类别",
+                "KKSX_DISPLAY":"考试", "SFBX_DISPLAY":"选修", "studentName":"discard"
+            }]}}}),
+        )
+        .expect("plan pool");
+        let row = serde_json::to_value(&sections[1].rows[0]).expect("pool projection");
+        assert_eq!(
+            row["courseInfo"],
+            json!({
+                "code":"SYN-POOL", "category":"学校类别", "examMode":"考试", "required":"选修"
+            })
+        );
+        assert!(row.get("completed").is_none());
+    }
 
     #[test]
     fn unknown_course_results_stay_courses_and_metadata_stays_separate() {

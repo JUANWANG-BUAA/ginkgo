@@ -1,0 +1,73 @@
+{
+  "contract": "graduate.execution",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "code": 1,
+    "fa": {
+      "ZDXF": 32
+    },
+    "yhpyfaxf": 2,
+    "yxxf": 4,
+    "dkhxf": 1,
+    "zxbg": "[{\"kclbmc\": \"合成类别\", \"yqxf\": 6, \"yhxf\": 2, \"dkhxf\": 1, \"kcList\": [{\"kcmc\": \"合成课程\", \"xf\": 2, \"sfwc\": \"1\", \"kcdm\": \"SYN-101\", \"cjxsz\": \"优秀\", \"kclbmc\": \"合成课程类别\", \"kksx\": \"学校原值\", \"xnxqmc\": \"合成学期\", \"privateField\": \"synthetic-private-not-exported\"}], \"dxzList\": []}]"
+  },
+  "expected": {
+    "sections": [
+      {
+        "title": "培养方案执行报告",
+        "rows": [
+          {
+            "title": "总学分要求",
+            "detail": "32"
+          },
+          {
+            "title": "方案已认定学分",
+            "detail": "2"
+          },
+          {
+            "title": "全校累计已修学分",
+            "detail": "4"
+          },
+          {
+            "title": "待考核学分",
+            "detail": "1"
+          }
+        ],
+        "progress": {
+          "required": 32.0,
+          "earned": 2.0,
+          "pending": 1.0
+        }
+      },
+      {
+        "title": "合成类别",
+        "rows": [
+          {
+            "title": "类别要求与进度",
+            "detail": "要求 6 · 已获 2 · 待考核 1 学分"
+          },
+          {
+            "title": "合成课程",
+            "detail": "2 学分 · 已完成 · 优秀 · 合成学期 · 学校原值",
+            "isCourse": true,
+            "completed": true,
+            "credit": 2.0,
+            "semester": "合成学期",
+            "courseInfo": {
+              "code": "SYN-101",
+              "grade": "优秀",
+              "category": "合成课程类别",
+              "attribute": "学校原值"
+            }
+          }
+        ],
+        "progress": {
+          "required": 6.0,
+          "earned": 2.0,
+          "pending": 1.0
+        }
+      }
+    ]
+  }
+}

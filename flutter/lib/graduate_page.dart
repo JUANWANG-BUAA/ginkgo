@@ -62,9 +62,9 @@ class _GraduatePageState extends State<GraduatePage> {
           (entry) =>
               (category == '全部类别' || entry.section == category) &&
               courseFilter.accepts(entry.row) &&
-              '${entry.row.title} ${entry.row.detail}'.toLowerCase().contains(
-                query,
-              ),
+              '${entry.row.title} ${entry.row.detail} ${entry.row.courseInfo.code ?? ''}'
+                  .toLowerCase()
+                  .contains(query),
         )
         .toList(growable: false);
   }
@@ -806,6 +806,18 @@ class _GraduateCourseDetails extends StatelessWidget {
             header: const Text('课程信息'),
             children: [
               AcademicFactRow(label: '培养类别', value: entry.section),
+              if (entry.row.courseInfo.code case final code?)
+                AcademicFactRow(label: '课程代码', value: code),
+              if (entry.row.courseInfo.grade case final grade?)
+                AcademicFactRow(label: '学校成绩', value: grade),
+              if (entry.row.courseInfo.category case final category?)
+                AcademicFactRow(label: '课程类别', value: category),
+              if (entry.row.courseInfo.attribute case final attribute?)
+                AcademicFactRow(label: '课程属性', value: attribute),
+              if (entry.row.courseInfo.examMode case final examMode?)
+                AcademicFactRow(label: '考核方式', value: examMode),
+              if (entry.row.courseInfo.required case final required?)
+                AcademicFactRow(label: '必修标记', value: required),
               AcademicFactRow(
                 label: '学期',
                 value: entry.row.semester ?? '学校未提供',
