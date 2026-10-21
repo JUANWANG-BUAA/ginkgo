@@ -469,6 +469,9 @@ figcaption span {
   gap: var(--grid-gap);
   margin-top: var(--space-8);
 }
+.windows-preview {
+  grid-column: 1 / -1;
+}
 .gallery-more {
   margin-top: var(--space-6);
 }

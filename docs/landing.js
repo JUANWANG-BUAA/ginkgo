@@ -56,8 +56,9 @@ if (preview && previewImage && typeof preview.showModal === "function") {
   });
 }
 
-// Mac and Android are independent release streams. A newer Android release must
-// never replace the Mac CTA. Verified static assets survive API/network failure.
+// Mac, Android and Windows are independent release streams. A newer build on one
+// platform must never replace another platform's CTA. Verified static assets
+// survive API/network failure.
 const releaseRoot = "/JUANWANG-BUAA/ginkgo/releases/";
 function trustedReleaseURL(value, prefix) {
   if (typeof value !== "string") return false;
@@ -122,6 +123,11 @@ async function updateReleaseLinks() {
         /^android-v\d/.test(item.tag_name) &&
         releaseAsset(item, "-android-arm64.apk"),
     );
+    const windows = releases.find(
+      (item) =>
+        /^windows-v\d/.test(item.tag_name) &&
+        releaseAsset(item, "-windows-x64.zip"),
+    );
     if (mac) {
       updateLinks(
         "[data-download-dmg]",
@@ -149,6 +155,20 @@ async function updateReleaseLinks() {
       const sums = releaseAsset(android, "checksums.txt");
       if (sums)
         updateLinks("[data-android-checksums]", sums.browser_download_url);
+    }
+    if (windows) {
+      const zip = releaseAsset(windows, "-windows-x64.zip").browser_download_url;
+      updateLinks("[data-download-windows]", zip);
+      updateLinks("[data-download-windows-proxy]", "https://gh-proxy.com/" + zip);
+      updateText(
+        "[data-windows-version]",
+        windows.tag_name.slice("windows-v".length),
+      );
+      if (trustedReleaseURL(windows.html_url, "tag/windows-v"))
+        updateLinks("[data-windows-release]", windows.html_url);
+      const sums = releaseAsset(windows, "checksums.txt");
+      if (sums)
+        updateLinks("[data-windows-checksums]", sums.browser_download_url);
     }
   } catch {
     // Static, verified download URLs stay available when GitHub cannot be reached.
