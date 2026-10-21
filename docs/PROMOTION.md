@@ -10,7 +10,7 @@
 | 平台 | 首页状态与入口 |
 |------|----------------|
 | macOS | 已发布 Alpha，macOS 14+，DMG / ZIP 下载 |
-| Android | Alpha.2，Android 7.0+ / arm64 APK；课表、作业、博雅与校园服务；签到及图书馆操作已接入逐次确认，真实写入仍待验收 |
+| Android | Alpha.3，Android 7.0+ / arm64 APK；课表、作业、博雅与校园服务；签到及图书馆操作已接入逐次确认，真实写入仍待验收 |
 | iOS / iPadOS | iOS 17+，原生工作台，从源码使用 Xcode 构建；暂无 App Store / TestFlight 入口 |
 | Windows | 开发中，仍待实机验收，暂无公开安装包 |
 
