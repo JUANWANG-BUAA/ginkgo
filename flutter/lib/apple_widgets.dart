@@ -3,8 +3,126 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/cupertino.dart';
 
 import 'apple_design.dart';
+import 'app_preferences.dart';
 
 import 'src/rust/api/mirror.dart';
+
+/// Phone pages keep the native collapsing title. Wide windows use the same
+/// section / title / description hierarchy as Swift's AcademicPageHeader.
+class ApplePageHeader extends StatelessWidget {
+  const ApplePageHeader({
+    super.key,
+    required this.largeTitle,
+    this.trailing,
+    this.previousPageTitle,
+    this.border,
+  });
+  final Widget largeTitle;
+  final Widget? trailing;
+  final String? previousPageTitle;
+  final Border? border;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!AppleDesign.desktop(context)) {
+      return CupertinoSliverNavigationBar(
+        largeTitle: largeTitle,
+        previousPageTitle: previousPageTitle,
+        border: border,
+        trailing: trailing,
+      );
+    }
+    final title = largeTitle is Text ? (largeTitle as Text).data : null;
+    final (section, subtitle) = switch (title) {
+      '课表' => ('学业', '按学期与教学周查看课程和考试'),
+      '成绩' => ('学业', '查看课程成绩、学分与加权统计'),
+      '作业' => ('学业', '区分个人作业状态与助教课程'),
+      '博雅' => ('学业', '查看活动、课程与个人记录'),
+      '研究生教务' => ('学业', '学籍、培养方案与研究生学业查询'),
+      '图书馆' => ('空间资源', '选择场馆、区域与可预约时段'),
+      '研讨室' => ('空间资源', '选择场馆并查看可预约空间'),
+      '空教室' => ('空间资源', '按校区、日期与节次查询空闲教室'),
+      '课程签到' || '签到历史' => ('工作台', '查看课程签到状态与记录'),
+      '待办' => ('工作台', '安排个人任务与截止时间'),
+      '校园通知' => ('校园', '查看通知与校内资讯'),
+      '今天' => ('工作台', '从今日课程开始安排一天'),
+      '设置' => ('Ginkgo', '管理账号、显示偏好与系统设置'),
+      _ => ('Ginkgo', null),
+    };
+    final canPop = Navigator.of(context).canPop();
+    return PinnedHeaderSliver(
+      child: ColoredBox(
+        color: CupertinoColors.systemGroupedBackground.resolveFrom(context),
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            key: const Key('desktop-page-heading'),
+            padding: const EdgeInsets.fromLTRB(24, 22, 24, 2),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (canPop) ...[
+                  CupertinoButton(
+                    key: const Key('desktop-page-back'),
+                    padding: const EdgeInsets.all(8),
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    child: Semantics(
+                      label: '返回上一页',
+                      child: const Icon(CupertinoIcons.chevron_left, size: 20),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        section,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: CupertinoColors.secondaryLabel.resolveFrom(
+                            context,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Semantics(
+                        header: true,
+                        child: DefaultTextStyle.merge(
+                          style: const TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.5,
+                          ),
+                          child: largeTitle,
+                        ),
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: CupertinoColors.secondaryLabel.resolveFrom(
+                              context,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (trailing != null) ...[const SizedBox(width: 16), trailing!],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 String failureMessage(FailureCode? code) => switch (code) {
   FailureCode.invalidRequest => '查询或筛选条件无效，请调整后重试',
@@ -212,7 +330,7 @@ class AppleSection extends StatelessWidget {
   final Widget? header, footer;
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: 24),
+    padding: EdgeInsets.only(top: AppleDesign.desktop(context) ? 20 : 24),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -233,11 +351,26 @@ class AppleSection extends StatelessWidget {
             horizontal: AppleDesign.pageInset,
           ),
           child: ClipRSuperellipse(
-            borderRadius: BorderRadius.circular(AppleDesign.groupRadius),
+            borderRadius: BorderRadius.circular(
+              AppleDesign.panelRadius(context),
+            ),
             child: _AppleGroupResize(
-              child: ColoredBox(
-                color: CupertinoColors.secondarySystemGroupedBackground
-                    .resolveFrom(context),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: CupertinoColors.secondarySystemGroupedBackground
+                      .resolveFrom(context),
+                  borderRadius: BorderRadius.circular(
+                    AppleDesign.panelRadius(context),
+                  ),
+                  border: AppleDesign.desktop(context)
+                      ? Border.all(
+                          color: CupertinoColors.separator
+                              .resolveFrom(context)
+                              .withValues(alpha: 0.3),
+                          width: 0.5,
+                        )
+                      : null,
+                ),
                 child: Column(
                   children: [
                     for (var i = 0; i < children.length; i++) ...[
@@ -303,7 +436,10 @@ class AppleListTile extends StatelessWidget {
       leading: leading,
       trailing: trailing,
       onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: AppPreferencesScope.of(context).compactLists ? 6 : 10,
+      ),
       leadingToTitle: 12,
       leadingSize: leadingSize,
     ),
@@ -336,6 +472,40 @@ class _AppleGlassButtonState extends State<AppleGlassButton> {
   bool pressed = false;
   @override
   Widget build(BuildContext context) {
+    if (AppleDesign.desktop(context)) {
+      return Semantics(
+        label: widget.label,
+        button: true,
+        child: CupertinoButton(
+          padding: const EdgeInsets.all(8),
+          minimumSize: const Size(36, 36),
+          onPressed: widget.onPressed,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: CupertinoColors.secondarySystemGroupedBackground
+                  .resolveFrom(context),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: CupertinoColors.separator
+                    .resolveFrom(context)
+                    .withValues(alpha: 0.35),
+                width: 0.5,
+              ),
+            ),
+            child: SizedBox(
+              width: 34,
+              height: 32,
+              child: Center(
+                child: IconTheme.merge(
+                  data: const IconThemeData(size: 19),
+                  child: widget.child,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     final opaque =
         MediaQuery.highContrastOf(context) ||
         MediaQuery.disableAnimationsOf(context);

@@ -453,6 +453,7 @@ class GradeSummary {
 }
 
 class HomeworkItem {
+  final String? courseRole;
   final String? teacherName;
   final String id;
   final String? courseId;
@@ -465,6 +466,7 @@ class HomeworkItem {
   final String? score;
 
   const HomeworkItem({
+    this.courseRole,
     this.teacherName,
     required this.id,
     this.courseId,
@@ -479,6 +481,7 @@ class HomeworkItem {
 
   @override
   int get hashCode =>
+      courseRole.hashCode ^
       teacherName.hashCode ^
       id.hashCode ^
       courseId.hashCode ^
@@ -495,6 +498,7 @@ class HomeworkItem {
       identical(this, other) ||
       other is HomeworkItem &&
           runtimeType == other.runtimeType &&
+          courseRole == other.courseRole &&
           teacherName == other.teacherName &&
           id == other.id &&
           courseId == other.courseId &&

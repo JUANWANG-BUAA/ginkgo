@@ -61,6 +61,10 @@ Future<CheckInResponse> loadCheckinToday({required bool forceRefresh}) =>
       forceRefresh: forceRefresh,
     );
 
+/// Observe the current read without issuing any school request.
+Future<ReadOnlyResponse> checkinLoadProgress() =>
+    RustLib.instance.api.crateApiLiveCheckinLoadProgress();
+
 /// Historical day in Asia/Shanghai, yyyy-MM-dd; no sign-in submission.
 Future<CheckInResponse> loadCheckinOnDate({
   required String date,

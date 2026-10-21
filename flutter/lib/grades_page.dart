@@ -86,7 +86,7 @@ class _GradesPageState extends State<GradesPage> {
     child: CustomScrollView(
       key: const Key('grades-scroll'),
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: const Text('成绩'),
           border: null,
           trailing: AppleGlassButton(

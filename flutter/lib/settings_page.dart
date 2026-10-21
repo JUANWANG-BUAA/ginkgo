@@ -2,11 +2,13 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_design.dart';
 import 'apple_widgets.dart';
+import 'app_preferences.dart';
 import 'mirror_service.dart';
 import 'maintenance_service.dart';
 import 'maintenance_pages.dart';
 import 'network_diagnostics_page.dart';
 import 'query_cache_scope.dart';
+import 'preferences_pages.dart';
 import 'src/rust/api/live.dart' show RouteChoice, SessionState;
 
 class SettingsPage extends StatefulWidget {
@@ -153,7 +155,7 @@ class _SettingsPageState extends State<SettingsPage> {
     child: CustomScrollView(
       key: const Key("settings-scroll"),
       slivers: [
-        const CupertinoSliverNavigationBar(
+        const ApplePageHeader(
           largeTitle: Text('设置'),
           border: null,
         ),
@@ -186,6 +188,43 @@ class _SettingsPageState extends State<SettingsPage> {
                     style: const TextStyle(color: CupertinoColors.systemRed),
                   ),
                   onTap: busy ? null : _signOut,
+                ),
+              ],
+            ),
+            AppleSection(
+              header: const Text('偏好与系统'),
+              children: [
+                AppleListTile(
+                  leading: const Icon(
+                    CupertinoIcons.paintbrush,
+                    color: AppleDesign.resourcePurple,
+                  ),
+                  title: const Text('显示与阅读'),
+                  subtitle: Text(
+                    AppPreferencesScope.of(context).appearance.label,
+                  ),
+                  trailing: const CupertinoListTileChevron(),
+                  onTap: () => _open(const AppearancePage()),
+                ),
+                AppleListTile(
+                  leading: const Icon(
+                    CupertinoIcons.bell,
+                    color: AppleDesign.resourceBlue,
+                  ),
+                  title: const Text('通知与后台'),
+                  subtitle: const Text('通知权限、系统启动与电池管理'),
+                  trailing: const CupertinoListTileChevron(),
+                  onTap: () => _open(const SystemPreferencesPage()),
+                ),
+                AppleListTile(
+                  leading: const Icon(
+                    CupertinoIcons.lock_shield,
+                    color: AppleDesign.accent,
+                  ),
+                  title: const Text('账号与隐私'),
+                  subtitle: const Text('自动登录、本机数据与请求去向'),
+                  trailing: const CupertinoListTileChevron(),
+                  onTap: () => _open(const PrivacyPage()),
                 ),
               ],
             ),
@@ -288,11 +327,17 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             AppleSection(
               header: const Text('关于 Ginkgo'),
-              footer: const Text('银杏 · 校园学习与生活\nAndroid Alpha'),
+              footer: const Text('北航校园工作台 · 校园日常，从容有序'),
               children: [
                 AppleListTile(
                   title: const Text('版本'),
                   subtitle: Text(versionLabel),
+                ),
+                AppleListTile(
+                  title: const Text('关于与致谢'),
+                  subtitle: const Text('UBAA、开源项目与分享 Ginkgo'),
+                  trailing: const CupertinoListTileChevron(),
+                  onTap: () => _open(const AboutPage()),
                 ),
               ],
             ),

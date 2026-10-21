@@ -546,7 +546,7 @@ class _BykcPageState extends State<BykcPage> {
       key: const Key('bykc-scroll'),
       controller: scrollController,
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: const Text('博雅'),
           previousPageTitle: '工作台',
           border: null,

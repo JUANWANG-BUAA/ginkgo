@@ -7,12 +7,16 @@
 | 平台 | 当前状态 | 证据与限制 |
 | --- | --- | --- |
 | macOS / iOS | 独立 SwiftUI 应用，共享 Swift 客户端、模型与工作区编排 | Apple 测试见 [TESTING](TESTING.md)；模拟器通过不代表真机、签名分发或真实写入通过 |
-| Android | Rust + Flutter；公开包 Alpha.3（build 4） | [发布记录](archive/mirror/MIRROR-ANDROID-ALPHA3.md)；已接入主要只读模块，签到及图书馆写路径属实验功能，真实写入未验收 |
-| Windows | Parallels Windows 11 ARM 主机已通过 x64 Debug / Release 构建与合成集成 | [主机验证](archive/mirror/WINDOWS-2026-10-21.md)；系统保险库、宽窄切换与键盘基础通过，尚无公开包 / 物理 x64 / 真实学校业务验收 |
+| Android | Rust + Flutter；公开包 Alpha.4（build 5） | [发布记录](archive/mirror/MIRROR-ANDROID-ALPHA4.md)；已接入主要只读模块，签到及图书馆写路径属实验功能，真实写入未验收 |
+| Windows | Parallels Windows 11 ARM 主机已通过 x64 Debug / Release 构建与合成集成 | [主机验证](archive/mirror/WINDOWS-2026-10-21.md)；系统保险库、macOS 风格宽屏层次、手机式窄屏回退、键盘与返回栈基础通过，尚无公开包 / 物理 x64 / 真实学校业务验收 |
 
 既往真实账号只读检查已覆盖已接入模块，但最近一次集成登录失败；两次结果分别保留于 [验收记录](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md) 与 [认证异常诊断](_audit/2026-10-21-auth-redirect-incident.md)。不能把早先通过推广为当前所有网络均可用，也不能将工作树改动当作已经发布。
 
 手机一级入口为工作台、签到、课表、作业、预约；桌面使用分组侧栏与独立目的地栈。`main.dart` 已按可用宽度 760px 选择手机或桌面布局。Android 保险库使用 Keystore；Windows Credential Manager 合成往返已通过，macOS 镜像保险库分支仍待验收。
+
+Alpha.4 起，手机端使用 iOS 式大标题、分组卡片和触控尺寸；宽度达到 760px 后切换为 macOS 式“分区 / 标题 / 说明 / 操作”固定页头、较小圆角和桌面侧栏。系统返回一次先离开非工作台主页面，详情只退一层；工作台第一次返回只显示退出提示。显示与阅读、通知与后台、账号与隐私、UBAA 致谢和分享入口均已进入设置；未接入的后台提醒或品牌自启动能力在页面中明确说明。
+
+Android 更新检查仍读取 GitHub Releases，但 Alpha.4 可在应用内下载官方 APK，支持暂停、断点续传、GitHub 发布与 API 两个官方入口、SHA-256、包名、版本和签名证书校验。安装始终交由 Android 系统确认。没有自控国内 CDN 时，直接下载速度仍取决于 GitHub 连通性；页面保留手动发布入口。
 
 ## 实现与维护边界
 
@@ -41,6 +45,8 @@
 
 本次落地：Swift 扩展共享解析契约、Rust 锁中毒恢复与统一身份、Flutter 图书馆状态容器、跨页面状态色，以及落地页最小字号修正。未以大规模重写替代平台特性；剩余解析器拆分、契约覆盖、无障碍和设备验收见待办。
 
+随后根据用户真机反馈完成的 Alpha.4 收口见 [发布记录](archive/mirror/MIRROR-ANDROID-ALPHA4.md)：手机视觉层级、Android 返回手势、设置完整性、SPOC 助教课程分类、iClass 首次读取反馈与应用内更新。Opus 5.5 原评审中仍成立的结构性问题继续保留在待办，不把本轮修复扩大为三端完全对齐。
+
 ## 开发验证入口
 
 工具版本和设备命令见 [Flutter README](../flutter/README.md)；Apple 构建与模拟器命令见 [TESTING](TESTING.md)。
@@ -51,7 +57,7 @@ bash scripts/check-mirror.sh
 bash scripts/generate-mirror-bridge.sh
 # Android 普通 main 入口（集成测试 APK 不能作为普通应用包）
 cd flutter
-flutter build apk --debug --target-platform android-arm64
+flutter build apk --release --target-platform android-arm64 --target lib/main.dart
 # 必须在 Windows 主机执行
 flutter test integration_test/windows_test.dart -d windows
 ```

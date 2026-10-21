@@ -444,6 +444,7 @@ pub enum HomeworkStatus {
 }
 
 pub struct HomeworkItem {
+    pub course_role: Option<String>,
     pub teacher_name: Option<String>,
     pub id: String,
     pub course_id: Option<String>,
@@ -474,6 +475,7 @@ pub fn load_demo_homework() -> HomeworkResponse {
                 .items
                 .into_iter()
                 .map(|item| HomeworkItem {
+                    course_role: item.course_role,
                     id: item.id,
                     course_id: item.course_id,
                     course_name: item.course_name,

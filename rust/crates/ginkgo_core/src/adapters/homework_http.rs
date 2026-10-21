@@ -103,14 +103,28 @@ pub async fn authenticate<T: HttpTransport>(session: &Session<T>) -> Result<Spoc
             _ => None,
         }
     }
-    let code = ["jsdm", "rolecode", "jsdmList"]
-        .iter()
-        .find_map(|key| role(&role_data[key]))
+    // The school's SPA presents role[].jsmc and sends the selected jsdm as
+    // RoleCode. Prefer an explicitly named student role; never guess numeric
+    // codes or infer per-course membership from the account-level role.
+    let student_role = role_data["role"].as_array().and_then(|roles| {
+        roles.iter().find_map(|item| {
+            let label = item["jsmc"].as_str()?.trim();
+            matches!(label, "学生" | "本科生" | "研究生")
+                .then(|| role(&item["jsdm"]))
+                .flatten()
+        })
+    });
+    let code = student_role
         .or_else(|| {
-            role_data["role"]
-                .as_array()?
+            ["jsdm", "rolecode", "jsdmList"]
                 .iter()
-                .find_map(|item| role(&item["jsdm"]))
+                .find_map(|key| role(&role_data[key]))
+                .or_else(|| {
+                    role_data["role"]
+                        .as_array()?
+                        .iter()
+                        .find_map(|item| role(&item["jsdm"]))
+                })
         })
         .ok_or_else(AppError::changed)?;
     Ok(SpocAuth { token, role: code })
@@ -193,11 +207,78 @@ pub async fn load<T: HttpTransport>(
             items.push(item);
         }
         if !has_next {
+            // Public SPA mycourse/index: getXsList -> queryXskcListPage,
+            // getZhuJiaoList -> queryZjkcListPage (audit 2026-10-21).
+            // Classification is optional: errors never erase assignments.
+            // Optional course membership must not hold a complete assignment
+            // list hostage to an unavailable role endpoint.
+            if let Ok((Ok(students), Ok(assistants))) =
+                tokio::time::timeout(std::time::Duration::from_secs(4), async {
+                    tokio::join!(
+                        course_ids(session, &auth, "/kc/queryXskcListPage"),
+                        course_ids(session, &auth, "/kc/queryZjkcListPage"),
+                    )
+                })
+                .await
+            {
+                apply_course_roles(&mut items, &students, &assistants);
+            }
             return Ok(homework::HomeworkData {
                 term_code: code.to_owned(),
                 term_name: term["dqxq"].as_str().unwrap_or("").to_owned(),
                 items,
             });
+        }
+    }
+    Err(AppError::changed())
+}
+
+fn apply_course_roles(
+    items: &mut [homework::HomeworkItem],
+    students: &std::collections::BTreeSet<String>,
+    assistants: &std::collections::BTreeSet<String>,
+) {
+    for item in items {
+        item.course_role = item.course_id.as_ref().and_then(|id| {
+            if students.contains(id) {
+                Some("student".into())
+            } else if assistants.contains(id) {
+                Some("assistant".into())
+            } else {
+                None
+            }
+        });
+    }
+}
+
+async fn course_ids<T: HttpTransport>(
+    session: &Session<T>,
+    auth: &SpocAuth,
+    path: &str,
+) -> Result<std::collections::BTreeSet<String>, AppError> {
+    let mut ids = std::collections::BTreeSet::new();
+    for page in 1..=100 {
+        let value = get(
+            session,
+            auth,
+            &format!("{path}?pageSize=100&pageNum={page}"),
+        )
+        .await?;
+        let rows = value["list"].as_array().ok_or_else(AppError::changed)?;
+        for row in rows {
+            let id = row["kcid"]
+                .as_str()
+                .filter(|id| !id.trim().is_empty())
+                .ok_or_else(AppError::changed)?;
+            ids.insert(id.to_owned());
+        }
+        let has_next = match value.get("hasNextPage") {
+            Some(serde_json::Value::Bool(next)) => *next,
+            None | Some(serde_json::Value::Null) => rows.len() >= 100,
+            _ => return Err(AppError::changed()),
+        };
+        if !has_next {
+            return Ok(ids);
         }
     }
     Err(AppError::changed())
@@ -264,6 +345,109 @@ mod tests {
         SpocAuth {
             token: "fixture-token".into(),
             role: "01".into(),
+        }
+    }
+    #[test]
+    fn per_course_membership_preserves_students_unknown_and_missing_ids() {
+        let mut page = content("spoc-page-v1.json");
+        page["list"] = json!([
+            {"zyid":"student","zymc":"学生作业","sskcid":"student-course","kcmc":"合成课程"},
+            {"zyid":"assistant","zymc":"助教作业","sskcid":"assistant-course","kcmc":"另一合成课程"},
+            {"zyid":"unknown","zymc":"未知课程作业","sskcid":"unknown-course"},
+            {"zyid":"missing","zymc":"缺少课程归属"}
+        ]);
+        let mut items = homework::parse_page(page).unwrap().items;
+        let students = ["student-course".to_owned()].into();
+        let assistants = ["student-course".to_owned(), "assistant-course".to_owned()].into();
+        apply_course_roles(&mut items, &students, &assistants);
+        assert_eq!(items[0].course_role.as_deref(), Some("student"));
+        assert_eq!(items[1].course_role.as_deref(), Some("assistant"));
+        assert_eq!(items[2].course_role, None);
+        assert_eq!(items[3].course_role, None);
+    }
+
+    #[tokio::test]
+    async fn course_membership_paginates_and_rejects_ambiguous_shapes() {
+        let transport = MockTransport::with_responses(vec![
+            HttpResponse::new(
+                200,
+                "page-one",
+                json!({"code":200,"content":{
+                    "list":[{"kcid":"student-one"}], "hasNextPage":true
+                }})
+                .to_string(),
+            ),
+            HttpResponse::new(
+                200,
+                "page-two",
+                json!({"code":200,"content":{
+                    "list":[{"kcid":"student-two"}], "hasNextPage":false
+                }})
+                .to_string(),
+            ),
+            HttpResponse::new(
+                200,
+                "changed",
+                json!({"code":200,"content":{
+                    "list":[{"unexpected":"course-id"}]
+                }})
+                .to_string(),
+            ),
+        ]);
+        let session = Session::new(transport.clone());
+        let ids = course_ids(&session, &auth(), "/kc/queryXskcListPage")
+            .await
+            .unwrap();
+        assert_eq!(ids.len(), 2);
+        assert!(transport.requests()[1]
+            .url
+            .ends_with("pageSize=100&pageNum=2"));
+        assert_eq!(
+            course_ids(&session, &auth(), "/kc/queryZjkcListPage")
+                .await
+                .unwrap_err()
+                .code,
+            ErrorCode::ChangedResponse
+        );
+    }
+    #[tokio::test]
+    async fn explicit_student_role_wins_without_guessing_numeric_codes() {
+        for (payload, expected) in [
+            (
+                json!({"jsdm": "teacher-code", "role": [
+                    {"jsdm": "ta-code", "jsmc": "助教"},
+                    {"jsdm": "student-code", "jsmc": "学生"}
+                ]}),
+                "student-code",
+            ),
+            (
+                json!({"role": [{"jsdm": "ta-code", "jsmc": "助教"}]}),
+                "ta-code",
+            ),
+            (
+                json!({"jsdm": "existing-code", "role": [
+                    {"jsdm": "unknown-code", "jsmc": "未知身份"}
+                ]}),
+                "existing-code",
+            ),
+        ] {
+            let transport = MockTransport::with_responses(vec![
+                HttpResponse::new(200, "https://spoc.buaa.edu.cn/spocnew/", "spa"),
+                HttpResponse::new(
+                    404,
+                    "https://spoc.buaa.edu.cn/spocnew/cas?token=fixture",
+                    "",
+                ),
+                HttpResponse::new(
+                    200,
+                    "role",
+                    json!({"code":200,"content":payload}).to_string(),
+                ),
+            ]);
+            assert_eq!(
+                authenticate(&Session::new(transport)).await.unwrap().role,
+                expected
+            );
         }
     }
 

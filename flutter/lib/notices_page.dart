@@ -60,7 +60,7 @@ class _NoticesPageState extends State<NoticesPage> {
     child: CustomScrollView(
       key: const Key('notices-scroll'),
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: const Text('校园通知'),
           border: null,
           trailing: AppleGlassButton(

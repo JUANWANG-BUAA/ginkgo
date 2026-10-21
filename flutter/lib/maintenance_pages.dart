@@ -4,6 +4,8 @@ import 'apple_design.dart';
 import 'apple_widgets.dart';
 import 'maintenance_service.dart';
 import 'mirror_service.dart';
+import 'android_update_controller.dart';
+import 'update_download_section.dart';
 
 String _time(DateTime date) =>
     '${date.month}月${date.day}日 '
@@ -30,7 +32,7 @@ class MaintenanceScaffold extends StatelessWidget {
     child: CustomScrollView(
       key: ValueKey('maintenance-$title'),
       slivers: [
-        CupertinoSliverNavigationBar(largeTitle: Text(title), border: null),
+        ApplePageHeader(largeTitle: Text(title), border: null),
         if (onRefresh != null)
           CupertinoSliverRefreshControl(onRefresh: onRefresh),
         SliverList.list(children: [...children, const SizedBox(height: 96)]),
@@ -40,8 +42,9 @@ class MaintenanceScaffold extends StatelessWidget {
 }
 
 class SoftwareUpdatePage extends StatefulWidget {
-  const SoftwareUpdatePage({super.key, required this.service});
+  const SoftwareUpdatePage({super.key, required this.service, this.downloader});
   final MaintenanceService service;
+  final AndroidUpdateController? downloader;
   @override
   State<SoftwareUpdatePage> createState() => _SoftwareUpdatePageState();
 }
@@ -184,10 +187,15 @@ class _SoftwareUpdatePageState extends State<SoftwareUpdatePage> {
               ),
           ],
         ),
+      if (result?.available == true && result?.download != null)
+        UpdateDownloadSection(
+          asset: result!.download!,
+          controller: widget.downloader ?? AndroidUpdateController.shared,
+        ),
       AppleSection(
         header: const Text('发布来源'),
         footer: const Text(
-          '在浏览器中下载 APK，再由 Android 系统确认安装。应用不会自动下载或安装；没有 Android 安装包时，不会把 macOS 包标为可更新。',
+          '可在应用内下载并由 Android 确认安装。GitHub 发布入口和 API 入口都使用官方服务；国内网络速度仍取决于 GitHub 的连接情况。下载信息不完整时，可前往发布页手动下载。',
         ),
         children: [
           AppleListTile(

@@ -40,7 +40,7 @@ class MorePage extends StatelessWidget {
     ),
     child: CustomScrollView(
       slivers: [
-        const CupertinoSliverNavigationBar(
+        const ApplePageHeader(
           largeTitle: Text('更多'),
           border: null,
         ),

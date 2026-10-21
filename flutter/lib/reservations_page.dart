@@ -23,7 +23,7 @@ class ReservationsPage extends StatelessWidget {
     ),
     child: CustomScrollView(
       slivers: [
-        const CupertinoSliverNavigationBar(
+        const ApplePageHeader(
           largeTitle: Text('预约'),
           border: null,
         ),

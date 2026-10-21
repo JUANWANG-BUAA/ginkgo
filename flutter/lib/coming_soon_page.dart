@@ -21,7 +21,7 @@ class ComingSoonPage extends StatelessWidget {
     ),
     child: CustomScrollView(
       slivers: [
-        CupertinoSliverNavigationBar(largeTitle: Text(title), border: null),
+        ApplePageHeader(largeTitle: Text(title), border: null),
         SliverList.list(
           children: [
             AppleSection(

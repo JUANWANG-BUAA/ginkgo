@@ -24,7 +24,48 @@ pub struct CheckInOutcome {
     pub failure: Option<AppError>,
 }
 
+/// Local timing only: no account, URLs, cookies, course names or session IDs.
+#[derive(Default)]
+pub(crate) struct CheckInProgress {
+    started: Option<std::time::Instant>,
+    stage_started: Option<std::time::Instant>,
+    phase: &'static str,
+    stages: Vec<(&'static str, u128)>,
+}
+
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
+    fn checkin_stage(&self, phase: &'static str) {
+        let now = std::time::Instant::now();
+        let mut progress = self.checkin_progress.lock();
+        if phase == "authenticating" || (phase == "courses" && progress.started.is_none()) {
+            *progress = CheckInProgress {
+                started: Some(now),
+                stage_started: Some(now),
+                phase,
+                stages: Vec::new(),
+            };
+            return;
+        }
+        if let Some(started) = progress.stage_started {
+            let previous = progress.phase;
+            progress
+                .stages
+                .push((previous, started.elapsed().as_millis()));
+        }
+        progress.phase = phase;
+        progress.stage_started = Some(now);
+    }
+
+    pub fn checkin_load_progress(&self) -> serde_json::Value {
+        let progress = self.checkin_progress.lock();
+        serde_json::json!({
+            "phase": progress.phase,
+            "elapsedMs": progress.started.map(|at| at.elapsed().as_millis()),
+            "stages": progress.stages.iter().map(|(phase, milliseconds)| {
+                serde_json::json!({"phase":phase, "milliseconds":milliseconds})
+            }).collect::<Vec<_>>()
+        })
+    }
     pub async fn load_checkin(&self, force_refresh: bool) -> Result<CheckInOutcome, AppError> {
         self.load_checkin_on_date(None, force_refresh).await
     }
@@ -49,6 +90,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             None => today,
         };
         let compact = date.replace('-', "");
+        let requested_at = std::time::Instant::now();
         if !force_refresh {
             let cached = self.checkin.lock();
             if let Some(entry) = cached.fresh(&date) {
@@ -70,9 +112,12 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         if self.current_account()? != account {
             return Err(AppError::session_expired());
         }
-        if !force_refresh {
+        {
             let cached = self.checkin.lock();
-            if let Some(entry) = cached.fresh(&date) {
+            if let Some(entry) = cached
+                .fresh(&date)
+                .filter(|entry| !force_refresh || entry.fetched_at >= requested_at)
+            {
                 return Ok(CheckInOutcome {
                     date,
                     courses: entry.value.clone(),
@@ -84,7 +129,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             }
         }
 
+        *self.checkin_progress.lock() = CheckInProgress::default();
         let fetched = self.fetch_checkin(&compact).await;
+        self.checkin_stage(if fetched.is_ok() {
+            "complete"
+        } else {
+            "failed"
+        });
         if self.current_account()? != account {
             return Err(AppError::session_expired());
         }
@@ -136,6 +187,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     async fn try_fetch_checkin(&self, compact: &str) -> Result<Vec<CheckInCourse>, AppError> {
         let cached = { self.identity.lock().iclass.clone() };
         if let Some(iclass) = cached {
+            self.checkin_stage("courses");
             match checkin_http::course_schedule(&self.session, &iclass, compact).await {
                 Ok(courses) => return Ok(courses),
                 // The app session is unusable; rebuild it, do not retry the
@@ -151,6 +203,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         // A temporary course-read failure does not invalidate that login; do
         // not repeat the SSO redirects and app login on the next user retry.
         self.identity.lock().iclass = Some(iclass.clone());
+        self.checkin_stage("courses");
         let result = checkin_http::course_schedule(&self.session, &iclass, compact).await;
         if result.as_ref().is_err_and(|error| {
             matches!(
@@ -181,7 +234,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     async fn try_establish_iclass(
         &self,
     ) -> Result<crate::features::checkin::IClassSession, AppError> {
+        self.checkin_stage("authenticating");
         let login_name = checkin_http::resolve_login_name(&self.session).await?;
+        self.checkin_stage("appLogin");
         checkin_http::app_login(&self.session, &login_name).await
     }
 }

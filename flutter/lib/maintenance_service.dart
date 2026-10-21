@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'mirror_service.dart';
+import 'android_update_controller.dart';
 import 'src/rust/api/live.dart' as live;
 import 'src/rust/api/mirror.dart' as bridge;
 
@@ -22,6 +23,7 @@ class UpdateResult {
     required this.apkAvailable,
     this.pageUrl,
     this.notes,
+    this.download,
   });
   factory UpdateResult.fromJson(Map<String, dynamic> json) => UpdateResult(
     latest: json['latest'] as String?,
@@ -29,9 +31,13 @@ class UpdateResult {
     apkAvailable: json['apkAvailable'] as bool,
     pageUrl: json['pageUrl'] as String?,
     notes: json['notes'] as String?,
+    download: json['download'] == null
+        ? null
+        : AndroidDownload.fromJson(json['download'] as Map<String, dynamic>),
   );
   final String? latest, pageUrl, notes;
   final bool available, apkAvailable;
+  final AndroidDownload? download;
   String get headline => latest == null
       ? '尚无 Android 发布'
       : !apkAvailable

@@ -11,6 +11,7 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 64 | SPOC 课程归属 | 直接取首个账号角色，通用课程上下文未区分学生与助教 | 优先名称明确的学生账号角色，按学校 SPA 的学生/助教列表 kcid 分类。学生优先，未知或归属读取失败保留原作业；页面可查看助教项，不按名称删除 | [E1/E2 静态代码取证](_audit/2026-10-21-spoc-course-roles.md)；真实身份列表与 iClass 归属待验收 |
 | — | 镜像证据文档归档 | 验收记录位于 docs 根目录 | 将链接更新至 archive/mirror；不修改端点、请求、字段或成功码规则 | [历史索引](archive/mirror/README.md)，2026-10-21 |
 | 63 | Apple UC 激活跳转兼容 | 已知 HTTP SSO GET 跳转仍被合并报为缺 Location | Swift 与 Rust 对齐：仅精确 sso.buaa.edu.cn /login 的 HTTP GET 跳转提升 HTTPS，保留原查询编码；未知不安全目标单独报错，密码 POST、TLS、Cookie 策略不变。无账号复查仍见同一跳转，不由此判断账号或 IP 限制 | [诊断追加](_audit/2026-10-21-auth-redirect-incident.md#再次报告与无账号复查)；CasClientTests 合成先红后绿；真实完整登录仍待用户复验 |
 | 62 | UC 激活 HTTP SSO 跳转 | 假定认证跳转均为 HTTPS；桌面将不安全 scheme 同样报成缺 Location | 2026-10-21 真实单次登录及无账号 GET 均观察 UC 激活 302 到 http SSO /login；桌面 HTTPS guard 拒绝，镜像跟随 HTTP 后 UC status=10600。仅精确已知 CAS GET 地址提升 HTTPS，保留编码、Secure Cookie 和 TLS；不能据此归因早前 SPOC 500 或账号限制，修复后真实登录待验收 | [诊断记录](_audit/2026-10-21-auth-redirect-incident.md)；CasClient.swift::redirectURL；Rust auth/uc.rs / Cookie::matches |

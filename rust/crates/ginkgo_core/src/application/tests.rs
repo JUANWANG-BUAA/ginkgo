@@ -946,7 +946,7 @@ async fn checkin_concurrent_cold_reads_share_authentication_and_the_day_snapshot
 }
 
 #[tokio::test]
-async fn checkin_concurrent_forced_reads_still_refresh_upstream() {
+async fn checkin_overlapping_forced_reads_share_new_result_but_later_refresh_is_fresh() {
     let mut responses = login_chain("sy2501001", "fixture");
     responses.push(checkin_entry_response("fixture-login"));
     responses.push(checkin_app_login_response());
@@ -964,9 +964,31 @@ async fn checkin_concurrent_forced_reads_still_refresh_upstream() {
 
     let (first, second) = tokio::join!(service.load_checkin(true), service.load_checkin(true));
     assert!(!first.expect("first refresh").from_cache);
-    assert!(!second.expect("second refresh").from_cache);
-    // One SSO entry, one app login, and two deliberately forced day queries.
+    assert!(second.expect("overlapping refresh").from_cache);
+    assert_eq!(transport.request_count(), 8);
+    let progress = service.checkin_load_progress();
+    assert_eq!(progress["phase"], "complete");
+    let stages: Vec<_> = progress["stages"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|stage| stage["phase"].as_str().unwrap())
+        .collect();
+    assert_eq!(stages, ["authenticating", "appLogin", "courses"]);
+    assert!(!progress.to_string().contains("sy2501001"));
+    assert!(!progress.to_string().contains("fixture"));
+    assert!(
+        !service
+            .load_checkin(true)
+            .await
+            .expect("later refresh")
+            .from_cache
+    );
+    // Overlapping reads share only a result fetched since their request began.
+    // A subsequent deliberate refresh still goes upstream.
     assert_eq!(transport.request_count(), 9);
+    service.sign_out().await;
+    assert_eq!(service.checkin_load_progress()["phase"], "");
 }
 
 #[tokio::test]
@@ -1450,6 +1472,16 @@ async fn homework_full_read_chain_caches_list_and_reads_detail() {
             "page",
             envelope(fixture("homework", "spoc-page-v1.json")["input"]["body"].clone()),
         ),
+        HttpResponse::new(
+            200,
+            "student-courses",
+            envelope(serde_json::json!({"list":[{"kcid":"c1"}],"hasNextPage":false})),
+        ),
+        HttpResponse::new(
+            200,
+            "assistant-courses",
+            envelope(serde_json::json!({"list":[],"hasNextPage":false})),
+        ),
     ]);
     responses.extend(spoc_auth());
     responses.extend([
@@ -1469,6 +1501,7 @@ async fn homework_full_read_chain_caches_list_and_reads_detail() {
     let list = service.load_homework(false).await.expect("list");
     assert_eq!(list.data.items.len(), 2);
     assert_eq!(list.data.items[0].teacher_name.as_deref(), Some("合成教师"));
+    assert_eq!(list.data.items[0].course_role.as_deref(), Some("student"));
     assert!(list.data.items[1].teacher_name.is_none());
     let count = transport.request_count();
     assert_eq!(

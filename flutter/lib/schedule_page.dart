@@ -150,7 +150,7 @@ class _SchedulePageState extends State<SchedulePage> {
     child: CustomScrollView(
       key: const Key('schedule-scroll'),
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: const Text('课表'),
           border: null,
           trailing: AppleGlassButton(

@@ -123,6 +123,7 @@ pub struct SessionService<T: HttpTransport, V: CredentialVault> {
     pub(crate) grades: Mutex<GradeCache>,
     pub(crate) checkin: Mutex<CheckInCache>,
     pub(crate) checkin_request_gate: tokio::sync::Mutex<()>,
+    pub(crate) checkin_progress: Mutex<super::checkin_service::CheckInProgress>,
     pub(crate) library_stats: Mutex<super::library_stats_service::LibraryStatsCache>,
     pub(crate) library_venues: Mutex<LibraryVenueCache>,
     pub(crate) library_bookings: Mutex<LibraryBookingCache>,
@@ -157,6 +158,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             grades: Mutex::new(GradeCache::default()),
             checkin: Mutex::new(CheckInCache::default()),
             checkin_request_gate: tokio::sync::Mutex::new(()),
+            checkin_progress: Mutex::default(),
             library_stats: Mutex::new(super::library_stats_service::LibraryStatsCache::default()),
             library_venues: Mutex::new(LibraryVenueCache::default()),
             library_bookings: Mutex::new(LibraryBookingCache::default()),
@@ -475,6 +477,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         self.today.lock().clear();
         self.grades.lock().clear();
         self.checkin.lock().clear();
+        *self.checkin_progress.lock() = Default::default();
         self.library_venues.lock().clear();
         self.library_stats.lock().clear();
         self.library_history.lock().clear();

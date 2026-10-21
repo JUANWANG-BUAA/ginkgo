@@ -13,6 +13,18 @@ pub struct UpdateSummary {
     pub page_url: Option<String>,
     pub notes: Option<String>,
     pub apk_available: bool,
+    /// Present only when GitHub supplies a complete, verifiable arm64 asset.
+    pub download: Option<AndroidDownload>,
+}
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AndroidDownload {
+    pub version: String,
+    pub name: String,
+    pub url: String,
+    pub api_url: String,
+    pub size: u64,
+    pub sha256: String,
 }
 #[derive(Deserialize)]
 struct Release {
@@ -28,6 +40,8 @@ struct Asset {
     name: String,
     browser_download_url: String,
     size: u64,
+    id: Option<u64>,
+    digest: Option<String>,
 }
 fn trusted_url(value: &str, path: &str) -> bool {
     url::Url::parse(value).is_ok_and(|u| {
@@ -72,6 +86,7 @@ pub fn parse(body: &str, current: &str) -> Result<UpdateSummary, AppError> {
         page_url: None,
         notes: None,
         apk_available: false,
+        download: None,
     };
     if let Some((version, release)) = candidates.into_iter().next() {
         summary.available = version.cmp_precedence(&current_version).is_gt();
@@ -83,6 +98,31 @@ pub fn parse(body: &str, current: &str) -> Result<UpdateSummary, AppError> {
                     &a.browser_download_url,
                     "/JUANWANG-BUAA/ginkgo/releases/download/android-v",
                 )
+        });
+        let expected_name = format!("Ginkgo-{version}-android-arm64.apk");
+        let expected_url =
+            format!("{REPOSITORY}/releases/download/android-v{version}/{expected_name}");
+        summary.download = release.assets.iter().find_map(|asset| {
+            let digest = asset.digest.as_deref()?.strip_prefix("sha256:")?;
+            let id = asset.id.filter(|id| *id > 0)?;
+            if asset.name != expected_name
+                || asset.browser_download_url != expected_url
+                || !(1..=268_435_456).contains(&asset.size)
+                || digest.len() != 64
+                || !digest.bytes().all(|byte| byte.is_ascii_hexdigit())
+            {
+                return None;
+            }
+            Some(AndroidDownload {
+                version: version.to_string(),
+                name: asset.name.clone(),
+                url: expected_url.clone(),
+                api_url: format!(
+                    "https://api.github.com/repos/JUANWANG-BUAA/ginkgo/releases/assets/{id}"
+                ),
+                size: asset.size,
+                sha256: digest.to_ascii_lowercase(),
+            })
         });
         summary.page_url = Some(release.html_url);
         summary.notes = release.body;
@@ -112,5 +152,32 @@ mod tests {
         assert!(parse(&spoof, "0.1.0-alpha.1").is_err());
         let missing = body.replace("-android-arm64.apk", ".dmg");
         assert!(!parse(&missing, "0.1.0-alpha.1").unwrap().apk_available);
+    }
+
+    #[test]
+    fn in_app_download_requires_exact_release_asset_and_digest() {
+        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../../../fixtures/updates/releases-v1.json"
+        ))
+        .unwrap();
+        let mut releases = fixture["input"]["releases"].clone();
+        let asset = &mut releases[2]["assets"][0];
+        asset["id"] = serde_json::json!(123);
+        asset["digest"] = serde_json::json!(format!("sha256:{}", "a".repeat(64)));
+        let result = parse(&releases.to_string(), "0.1.0-alpha.1").unwrap();
+        assert_eq!(result.download.unwrap().sha256, "a".repeat(64));
+        for (key, value) in [
+            ("digest", serde_json::json!("sha256:123")),
+            ("id", serde_json::json!(0)),
+            ("size", serde_json::json!(268_435_457)),
+            ("name", serde_json::json!("unrelated-android-arm64.apk")),
+            ("browser_download_url", serde_json::json!(
+                "https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.2/Ginkgo-0.1.0-alpha.10-android-arm64.apk"
+            )),
+        ] {
+            let mut invalid = releases.clone();
+            invalid[2]["assets"][0][key] = value;
+            assert!(parse(&invalid.to_string(), "0.1.0-alpha.1").unwrap().download.is_none());
+        }
     }
 }

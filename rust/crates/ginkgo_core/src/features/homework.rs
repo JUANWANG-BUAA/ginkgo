@@ -25,6 +25,8 @@ pub enum HomeworkStatus {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HomeworkItem {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub course_role: Option<String>,
     pub id: String,
     pub course_id: Option<String>,
     pub course_name: String,
@@ -96,6 +98,7 @@ pub fn parse_page(value: Value) -> Result<HomeworkPage, AppError> {
             let title = required_string(row, "zymc")?;
             let (status, status_detail) = map_status(optional_string(row, "tjzt").as_deref());
             Ok(HomeworkItem {
+                course_role: None,
                 id: format!("spoc:{raw_id}"),
                 course_id: optional_string(row, "sskcid"),
                 course_name: optional_string(row, "kcmc")

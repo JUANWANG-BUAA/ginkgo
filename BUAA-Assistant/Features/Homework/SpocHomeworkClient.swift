@@ -46,7 +46,7 @@ struct SpocHomeworkClient {
   }
   struct Submission: Decodable { let tjzt: String?; let tjsj: String? }
   struct Role: Decodable {
-    struct Entry: Decodable { let jsdm: String? }
+    struct Entry: Decodable { let jsdm: String?; let jsmc: String? }
 
     let jsdm: String?
     let rolecode: String?
@@ -64,7 +64,14 @@ struct SpocHomeworkClient {
     }
 
     var resolvedCode: String? {
-      jsdm ?? rolecode ?? jsdmList ?? roles.compactMap(\.jsdm).first(where: { $0.isEmpty == false })
+      // The SPA labels role[].jsmc and sends the selected jsdm as RoleCode.
+      // Never assume that a particular numeric code means "student".
+      let student = roles.first {
+        ["学生", "本科生", "研究生"].contains($0.jsmc?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
+          && $0.jsdm?.isEmpty == false
+      }
+      return student?.jsdm ?? jsdm ?? rolecode ?? jsdmList
+        ?? roles.compactMap(\.jsdm).first(where: { $0.isEmpty == false })
     }
 
     private static func firstString(

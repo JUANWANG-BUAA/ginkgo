@@ -5,6 +5,8 @@ import 'apple_design.dart';
 import 'mirror_service.dart';
 import 'school_timestamp.dart';
 import 'src/rust/api/mirror.dart';
+import 'course_visibility.dart';
+import 'checkin_loading.dart';
 
 const _weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
@@ -22,6 +24,15 @@ class _CheckInPageState extends State<CheckInPage> {
   String? error;
   String? notice;
   bool busy = false;
+  CourseVisibility? range;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    range = CourseVisibilityScope.of(context);
+  }
+
+  String courseKey(CheckInCourse course) =>
+      course.courseId ?? course.courseNum ?? course.id;
   String? submitting;
   final Set<String> awaitingVerification = {};
   int requestSerial = 0;
@@ -219,7 +230,7 @@ class _CheckInPageState extends State<CheckInPage> {
     child: CustomScrollView(
       key: const Key('checkin-scroll'),
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: Text(widget.history ? '签到历史' : '课程签到'),
           border: null,
           trailing: AppleGlassButton(
@@ -315,20 +326,7 @@ class _CheckInPageState extends State<CheckInPage> {
                 ],
               ),
             if (data == null && error == null)
-              AppleSection(
-                children: const [
-                  Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        CupertinoActivityIndicator(),
-                        SizedBox(width: 10),
-                        Text('正在读取 iclass 课程…'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              CheckInLoading(isDemo: widget.service.isDemo),
             if (data != null) ...[
               if (widget.history && data!.date != dateString(selectedDate))
                 AppleSection(
@@ -354,6 +352,21 @@ class _CheckInPageState extends State<CheckInPage> {
   );
 
   List<Widget> _content(CheckInResponse data) {
+    final original = data;
+    final courses = original.courses
+        .where(
+          (course) => !(range?.hidden('iclass', courseKey(course)) ?? false),
+        )
+        .toList();
+    data = CheckInResponse(
+      date: original.date,
+      courses: courses,
+      fetchedAt: original.fetchedAt,
+      fromCache: original.fromCache,
+      stale: original.stale,
+      failure: original.failure,
+      failureDetail: original.failureDetail,
+    );
     final date = DateTime.tryParse(data.date);
     final dateLabel = date == null
         ? data.date
@@ -366,6 +379,32 @@ class _CheckInPageState extends State<CheckInPage> {
         .length;
     final notSigned = data.courses.length - signed - unknown;
     return [
+      if (range != null && original.courses.isNotEmpty)
+        AppleSection(
+          children: [
+            AppleListTile(
+              title: const Text('我的课程范围'),
+              subtitle: Text(
+                courses.length == original.courses.length
+                    ? '管理学生课程与助教 / 教师课程'
+                    : '已收起 ${original.courses.length - courses.length} 节非个人课程',
+              ),
+              trailing: const CupertinoListTileChevron(),
+              onTap: () => Navigator.of(context).push(
+                CupertinoPageRoute<void>(
+                  builder: (_) => CourseRangePage(
+                    preferences: range!,
+                    system: 'iclass',
+                    courses: {
+                      for (final item in original.courses)
+                        courseKey(item): item.courseName,
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       AppleSection(
         header: Text(dateLabel),
         children: [
@@ -377,7 +416,9 @@ class _CheckInPageState extends State<CheckInPage> {
             ),
             subtitle: Text(
               data.courses.isEmpty
-                  ? '学校返回当天无课程，不代表出勤或缺勤。'
+                  ? (original.courses.isNotEmpty
+                        ? '课程已按你的本机范围收起，可在“我的课程范围”恢复。'
+                        : '学校返回当天无课程，不代表出勤或缺勤。')
                   : [
                       '已签到 $signed',
                       '未签到 $notSigned',

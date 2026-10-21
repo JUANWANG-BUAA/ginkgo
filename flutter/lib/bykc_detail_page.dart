@@ -62,7 +62,7 @@ class BykcDetailPage extends StatelessWidget {
       child: CustomScrollView(
         key: const Key('bykc-detail-scroll'),
         slivers: [
-          const CupertinoSliverNavigationBar(
+          const ApplePageHeader(
             largeTitle: Text('课程详情'),
             previousPageTitle: '博雅',
             border: null,

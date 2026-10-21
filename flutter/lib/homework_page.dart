@@ -6,6 +6,7 @@ import 'mirror_service.dart';
 import 'homework_detail_page.dart';
 import 'school_timestamp.dart';
 import 'src/rust/api/mirror.dart';
+import 'course_visibility.dart';
 
 class HomeworkPage extends StatefulWidget {
   const HomeworkPage({super.key, required this.service});
@@ -24,46 +25,68 @@ class _HomeworkPageState extends State<HomeworkPage> {
   String search = '';
   final searchController = TextEditingController();
   List<HomeworkItem> visible = [];
+  bool includeTeaching = false;
+  CourseVisibility? range;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    range = CourseVisibilityScope.of(context);
+    prepare();
+  }
 
   void prepare() {
-    final items = data?.items ?? <HomeworkItem>[];
-    pending = items
+    final all = data?.items ?? <HomeworkItem>[];
+    final personal = all
+        .where(
+          (item) =>
+              item.courseRole != 'assistant' &&
+              !(range?.hidden('spoc', item.courseId ?? item.id) ?? false),
+        )
+        .toList();
+    pending = personal
         .where((item) => item.status == HomeworkStatus.pending)
         .length;
-    submitted = items
+    submitted = personal
         .where((item) => item.status == HomeworkStatus.submitted)
         .length;
-    overdue = items
+    overdue = personal
         .where(
           (item) =>
               item.status == HomeworkStatus.pending && _isOverdue(item.dueAt),
         )
         .length;
-    unknown = items
+    unknown = personal
         .where((item) => item.status == HomeworkStatus.unknown)
         .length;
     final query = search.trim().toLowerCase();
-    visible = items
-        .where(
-          (item) =>
-              filter == 0 ||
-              (filter == 1 && item.status == HomeworkStatus.pending) ||
-              (filter == 2 && item.status == HomeworkStatus.submitted) ||
-              (filter == 3 &&
-                  item.status == HomeworkStatus.pending &&
-                  _isOverdue(item.dueAt)) ||
-              (filter == 4 && item.status == HomeworkStatus.unknown),
-        )
-        .where(
-          (item) =>
-              query.isEmpty ||
-              [
-                item.title,
-                item.courseName,
-                item.teacherName ?? "",
-              ].any((s) => s.toLowerCase().contains(query)),
-        )
-        .toList();
+    visible =
+        (includeTeaching
+                ? all.where(
+                    (item) =>
+                        !(range?.hidden('spoc', item.courseId ?? item.id) ??
+                            false),
+                  )
+                : personal)
+            .where(
+              (item) =>
+                  filter == 0 ||
+                  (filter == 1 && item.status == HomeworkStatus.pending) ||
+                  (filter == 2 && item.status == HomeworkStatus.submitted) ||
+                  (filter == 3 &&
+                      item.status == HomeworkStatus.pending &&
+                      _isOverdue(item.dueAt)) ||
+                  (filter == 4 && item.status == HomeworkStatus.unknown),
+            )
+            .where(
+              (item) =>
+                  query.isEmpty ||
+                  [
+                    item.title,
+                    item.courseName,
+                    item.teacherName ?? "",
+                  ].any((s) => s.toLowerCase().contains(query)),
+            )
+            .toList();
   }
 
   @override
@@ -122,7 +145,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
     child: CustomScrollView(
       key: const Key('homework-scroll'),
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: const Text('作业'),
           border: null,
           trailing: AppleGlassButton(
@@ -184,6 +207,48 @@ class _HomeworkPageState extends State<HomeworkPage> {
   };
 
   List<Widget> _content(HomeworkResponse data) => [
+    if (range != null && data.items.isNotEmpty)
+      SliverToBoxAdapter(
+        child: AppleSection(
+          children: [
+            AppleListTile(
+              title: const Text('我的课程范围'),
+              subtitle: const Text('管理学生课程与助教 / 教师课程'),
+              trailing: const CupertinoListTileChevron(),
+              onTap: () => Navigator.of(context).push(
+                CupertinoPageRoute<void>(
+                  builder: (_) => CourseRangePage(
+                    preferences: range!,
+                    system: 'spoc',
+                    courses: {
+                      for (final item in data.items)
+                        item.courseId ?? item.id: item.courseName,
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    if (data.items.any((item) => item.courseRole == 'assistant'))
+      SliverToBoxAdapter(
+        child: AppleSection(
+          footer: const Text('学校课程归属已确认的助教课程默认收起，不计入个人待完成统计；归属未知的课程会保留。'),
+          children: [
+            AppleListTile(
+              title: const Text('包含助教课程'),
+              trailing: CupertinoSwitch(
+                value: includeTeaching,
+                onChanged: (value) => setState(() {
+                  includeTeaching = value;
+                  prepare();
+                }),
+              ),
+            ),
+          ],
+        ),
+      ),
     SliverToBoxAdapter(
       child: AppleSection(
         header: Text(data.termName.isEmpty ? '本学期作业' : data.termName),
@@ -359,6 +424,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            if (item.courseRole == 'assistant')
+                              const Text('助教课程 · 不代表个人待交作业'),
                             Wrap(
                               spacing: 10,
                               runSpacing: 7,

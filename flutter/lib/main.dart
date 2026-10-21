@@ -3,6 +3,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'apple_design.dart';
 import 'apple_widgets.dart';
+import 'app_preferences.dart';
+import 'course_visibility.dart';
 import 'checkin_page.dart';
 import 'classroom_page.dart';
 import 'tasks_page.dart';
@@ -25,9 +27,11 @@ import 'settings_page.dart';
 import 'src/rust/api/live.dart' show RouteChoice, SessionResponse, SessionState;
 import 'src/rust/frb_generated.dart';
 import 'today_page.dart';
+import 'workspace_back_guard.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppPreferences.shared.restore();
   try {
     await RustLib.init();
     runApp(const GinkgoRoot());
@@ -161,11 +165,14 @@ class _GinkgoRootState extends State<GinkgoRoot> {
   };
 }
 
-CupertinoThemeData ginkgoTheme([Brightness? brightness]) => CupertinoThemeData(
-  primaryColor: AppleDesign.accent,
-  textTheme: const CupertinoTextThemeData(
+CupertinoThemeData ginkgoTheme([
+  Brightness? brightness,
+  Color accent = AppleDesign.accent,
+]) => CupertinoThemeData(
+  primaryColor: accent,
+  textTheme: CupertinoTextThemeData(
     textStyle: AppleDesign.body,
-    navTitleTextStyle: TextStyle(
+    navTitleTextStyle: const TextStyle(
       inherit: false,
       fontFamily: AppleDesign.font,
       fontFamilyFallback: AppleDesign.fallback,
@@ -180,9 +187,9 @@ CupertinoThemeData ginkgoTheme([Brightness? brightness]) => CupertinoThemeData(
       fontFamilyFallback: AppleDesign.fallback,
       fontSize: 17,
       letterSpacing: -0.25,
-      color: AppleDesign.accent,
+      color: accent,
     ),
-    dateTimePickerTextStyle: TextStyle(
+    dateTimePickerTextStyle: const TextStyle(
       inherit: false,
       fontFamily: AppleDesign.font,
       fontFamilyFallback: AppleDesign.fallback,
@@ -193,16 +200,46 @@ CupertinoThemeData ginkgoTheme([Brightness? brightness]) => CupertinoThemeData(
   brightness: brightness,
 );
 
-CupertinoApp ginkgoApp({required Widget home, Brightness? brightness}) =>
-    CupertinoApp(
-      title: 'Ginkgo 银杏',
-      debugShowCheckedModeBanner: false,
-      locale: const Locale('zh', 'CN'),
-      supportedLocales: const [Locale('zh', 'CN')],
-      localizationsDelegates: GlobalCupertinoLocalizations.delegates,
-      theme: ginkgoTheme(brightness),
-      home: home,
-    );
+Widget ginkgoApp({
+  required Widget home,
+  Brightness? brightness,
+  AppPreferences? preferences,
+}) {
+  final settings = preferences ?? AppPreferences.shared;
+  return ListenableBuilder(
+    listenable: settings,
+    builder: (context, _) => AppPreferencesScope(
+      preferences: settings,
+      child: CupertinoApp(
+        title: 'Ginkgo 银杏',
+        debugShowCheckedModeBanner: false,
+        locale: const Locale('zh', 'CN'),
+        supportedLocales: const [Locale('zh', 'CN')],
+        localizationsDelegates: GlobalCupertinoLocalizations.delegates,
+        theme: ginkgoTheme(
+          brightness ?? settings.appearance.brightness,
+          settings.accent.color,
+        ),
+        builder: (context, child) {
+          final media = MediaQuery.of(context);
+          return MediaQuery(
+            data: media.copyWith(
+              textScaler: settings.textSize == 1
+                  ? media.textScaler
+                  : TextScaler.linear(
+                      media.textScaler.scale(14) / 14 * settings.textSize,
+                    ),
+              disableAnimations:
+                  media.disableAnimations || settings.reduceMotion,
+            ),
+            child: child!,
+          );
+        },
+        home: home,
+      ),
+    ),
+  );
+}
 
 class GinkgoApp extends StatelessWidget {
   const GinkgoApp({
@@ -223,23 +260,27 @@ class GinkgoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ginkgoApp(
     brightness: brightness,
-    home: QueryCacheScope(
-      child: LayoutBuilder(
-        builder: (context, constraints) => constraints.maxWidth >= 760
-            ? _DesktopWorkspace(
-                service: service,
-                accountName: accountName,
-                accountId: accountId,
-                route: route,
-                onSignOut: onSignOut,
-              )
-            : _MobileWorkspace(
-                service: service,
-                accountName: accountName,
-                accountId: accountId,
-                route: route,
-                onSignOut: onSignOut,
-              ),
+    home: CourseVisibilityScope(
+      key: ValueKey(service.isDemo ? 'demo' : accountId ?? 'account'),
+      account: service.isDemo ? '__demo__' : accountId ?? '__account__',
+      child: QueryCacheScope(
+        child: LayoutBuilder(
+          builder: (context, constraints) => constraints.maxWidth >= 760
+              ? _DesktopWorkspace(
+                  service: service,
+                  accountName: accountName,
+                  accountId: accountId,
+                  route: route,
+                  onSignOut: onSignOut,
+                )
+              : _MobileWorkspace(
+                  service: service,
+                  accountName: accountName,
+                  accountId: accountId,
+                  route: route,
+                  onSignOut: onSignOut,
+                ),
+        ),
       ),
     ),
   );
@@ -264,8 +305,18 @@ class _MobileWorkspace extends StatefulWidget {
 
 class _MobileWorkspaceState extends State<_MobileWorkspace> {
   final tabs = CupertinoTabController();
+  final back = WorkspaceBackController();
+
+  @override
+  void initState() {
+    super.initState();
+    tabs.addListener(back.disarm);
+  }
+
   @override
   void dispose() {
+    tabs.removeListener(back.disarm);
+    back.dispose();
     tabs.dispose();
     super.dispose();
   }
@@ -279,57 +330,84 @@ class _MobileWorkspaceState extends State<_MobileWorkspace> {
   );
 
   @override
-  Widget build(BuildContext context) => CupertinoTabScaffold(
-    controller: tabs,
-    tabBar: CupertinoTabBar(
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(CupertinoIcons.square_grid_2x2),
-          label: '工作台',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(CupertinoIcons.checkmark_seal),
-          label: '签到',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(CupertinoIcons.calendar),
-          label: '课表',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(CupertinoIcons.doc_text),
-          label: '作业',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(CupertinoIcons.square_stack_3d_up),
-          label: '预约',
-        ),
-      ],
-    ),
-    tabBuilder: (_, index) => CupertinoTabView(
-      builder: (context) => switch (index) {
-        0 => TodayPage(
-          service: widget.service,
-          accountName: widget.accountName,
-          onAccountAction: widget.onSignOut,
-          onOpenSettings: () =>
-              Navigator.of(context)
-                  .push(CupertinoPageRoute<void>(builder: (_) => settings())),
-          onOpenFeature: (index) => tabs.index = index,
-          directory: ServiceDirectory(
-            service: widget.service,
-            accountName: widget.accountName,
-            accountId: widget.accountId,
-            route: widget.route,
-            onSignOut: widget.onSignOut ?? () async {},
+  Widget build(BuildContext context) => guardWorkspaceBack(
+    // Keep Android back delivery in Flutter while a newly selected tab's
+    // navigator is mounting. Its own first-route guard handles the action.
+    onBack: () {},
+    child: Stack(
+      children: [
+        CupertinoTabScaffold(
+          controller: tabs,
+          tabBar: CupertinoTabBar(
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(CupertinoIcons.square_grid_2x2),
+                label: '工作台',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(CupertinoIcons.checkmark_seal),
+                label: '签到',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(CupertinoIcons.calendar),
+                label: '课表',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(CupertinoIcons.doc_text),
+                label: '作业',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(CupertinoIcons.square_stack_3d_up),
+                label: '预约',
+              ),
+            ],
+          ),
+          tabBuilder: (_, index) => CupertinoTabView(
+            navigatorObservers: [_DisarmExitOnNavigation(back)],
+            builder: (context) => guardWorkspaceBack(
+              onBack: () => back.back(
+                atWorkspace: tabs.index == 0,
+                goToWorkspace: () => tabs.index = 0,
+              ),
+              child: switch (index) {
+                0 => TodayPage(
+                  service: widget.service,
+                  accountName: widget.accountName,
+                  onAccountAction: widget.onSignOut,
+                  onOpenSettings: () => Navigator.of(
+                    context,
+                  ).push(CupertinoPageRoute<void>(builder: (_) => settings())),
+                  onOpenFeature: (index) => tabs.index = index,
+                  directory: ServiceDirectory(
+                    service: widget.service,
+                    accountName: widget.accountName,
+                    accountId: widget.accountId,
+                    route: widget.route,
+                    onSignOut: widget.onSignOut ?? () async {},
+                  ),
+                ),
+                1 => CheckInPage(service: widget.service),
+                2 => SchedulePage(service: widget.service),
+                3 => HomeworkPage(service: widget.service),
+                _ => ReservationsPage(service: widget.service),
+              },
+            ),
           ),
         ),
-        1 => CheckInPage(service: widget.service),
-        2 => SchedulePage(service: widget.service),
-        3 => HomeworkPage(service: widget.service),
-        _ => ReservationsPage(service: widget.service),
-      },
+        WorkspaceBackHint(controller: back),
+      ],
     ),
   );
+}
+
+class _DisarmExitOnNavigation extends NavigatorObserver {
+  _DisarmExitOnNavigation(this.back);
+  final WorkspaceBackController back;
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    back.disarm();
+  }
 }
 
 class _DesktopWorkspace extends StatefulWidget {
@@ -441,25 +519,17 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
           children: [
             for (var index = 0; index < 14; index++)
               if (visited.contains(index))
-                NavigatorPopHandler<void>(
-                  enabled: selected == index,
-                  onPopWithResult: (_) {
-                    if (selected == index) {
-                      navigators[index]?.currentState?.pop();
-                    }
-                  },
-                  child: ExcludeFocus(
-                    excluding: selected != index,
-                    child: TickerMode(
-                      enabled: selected == index,
-                      child: CupertinoTabView(
-                        key: ValueKey('desktop-destination-$index'),
-                        navigatorKey: navigators.putIfAbsent(
-                          index,
-                          () => GlobalKey<NavigatorState>(),
-                        ),
-                        builder: (_) => _page(index),
+                ExcludeFocus(
+                  excluding: selected != index,
+                  child: TickerMode(
+                    enabled: selected == index,
+                    child: CupertinoTabView(
+                      key: ValueKey('desktop-destination-$index'),
+                      navigatorKey: navigators.putIfAbsent(
+                        index,
+                        () => GlobalKey<NavigatorState>(),
                       ),
+                      builder: (_) => _page(index),
                     ),
                   ),
                 )

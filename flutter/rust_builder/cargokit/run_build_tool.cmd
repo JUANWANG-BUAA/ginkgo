@@ -80,7 +80,8 @@ REM There is no CUR_PACKAGE_INFO it was renamed in previous step to %PREV_PACKAG
 REM which means  we need to do pub get and precompile
 if not exist "%PRECOMPILED%" (
     echo Running pub get in "%cd%"
-    "%DART%" pub get --no-precompile
+    "%DART%" pub get --offline --no-precompile
+    if errorlevel 1 "%DART%" pub get --no-precompile
     if errorlevel 1 exit /b 1
     "%DART%" compile kernel bin/build_tool_runner.dart
     if errorlevel 1 exit /b 1
@@ -90,7 +91,8 @@ if not exist "%PRECOMPILED%" (
 
 REM 253 means invalid snapshot version.
 If %ERRORLEVEL% equ 253 (
-    "%DART%" pub get --no-precompile
+    "%DART%" pub get --offline --no-precompile
+    if errorlevel 1 "%DART%" pub get --no-precompile
     if errorlevel 1 exit /b 1
     "%DART%" compile kernel bin/build_tool_runner.dart
     if errorlevel 1 exit /b 1

@@ -131,7 +131,7 @@ class _TasksPageState extends State<TasksPage> {
     child: CustomScrollView(
       key: const Key('tasks-scroll'),
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: const Text('待办'),
           border: null,
           trailing: AppleGlassButton(

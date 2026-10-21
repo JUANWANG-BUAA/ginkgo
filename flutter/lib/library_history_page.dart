@@ -62,7 +62,7 @@ class _LibraryHistoryPageState extends State<LibraryHistoryPage> {
     child: CustomScrollView(
       key: const Key('library-history-scroll'),
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: const Text('预约记录'),
           border: null,
           trailing: AppleGlassButton(

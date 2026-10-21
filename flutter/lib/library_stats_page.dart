@@ -79,7 +79,7 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
     child: CustomScrollView(
       key: const Key('library-stats-scroll'),
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: const Text('在馆与空间'),
           border: null,
           trailing: AppleGlassButton(

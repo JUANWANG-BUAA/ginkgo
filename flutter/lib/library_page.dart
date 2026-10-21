@@ -100,7 +100,7 @@ class _LibraryPageState extends State<LibraryPage> {
     child: CustomScrollView(
       key: const Key('library-scroll'),
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: const Text('图书馆'),
           border: null,
           trailing: AppleGlassButton(
@@ -380,7 +380,7 @@ class _LibraryAreaPageState extends State<_LibraryAreaPage> {
     child: CustomScrollView(
       key: const Key('library-areas-scroll'),
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: Text(widget.venue.name),
           border: null,
           trailing: AppleGlassButton(
@@ -519,7 +519,7 @@ class _LibrarySlotPageState extends State<_LibrarySlotPage> {
     child: CustomScrollView(
       key: const Key('library-slots-scroll'),
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: Text(widget.area.name),
           border: null,
           trailing: AppleGlassButton(
@@ -729,7 +729,7 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
     child: CustomScrollView(
       key: const Key('library-seats-scroll'),
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: Text('${widget.slot.start}–${widget.slot.end}'),
           border: null,
           trailing: AppleGlassButton(

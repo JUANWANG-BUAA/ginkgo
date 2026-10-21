@@ -88,7 +88,7 @@ class _CgyyPageState extends State<CgyyPage> {
     child: CustomScrollView(
       key: const Key('cgyy-scroll'),
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: const Text('研讨室'),
           border: null,
           trailing: AppleGlassButton(

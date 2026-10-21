@@ -529,6 +529,22 @@ pub async fn load_checkin_today(force_refresh: bool) -> CheckInResponse {
     }
 }
 
+/// Observe the current read without issuing any school request.
+pub async fn checkin_load_progress() -> ReadOnlyResponse {
+    match service() {
+        Ok(service) => ReadOnlyResponse {
+            payload: Some(service.checkin_load_progress().to_string()),
+            failure: None,
+            stale: false,
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            failure: Some(error.code.into()),
+            stale: false,
+        },
+    }
+}
+
 /// Historical day in Asia/Shanghai, yyyy-MM-dd; no sign-in submission.
 pub async fn load_checkin_on_date(date: String, force_refresh: bool) -> CheckInResponse {
     let _access = SESSION_ACCESS.read().await;
@@ -1030,7 +1046,7 @@ pub async fn load_homework(force_refresh: bool) -> super::mirror::HomeworkRespon
     let _access = SESSION_ACCESS.read().await;
     use super::mirror::{HomeworkItem, HomeworkResponse, HomeworkStatus};
     let result = match service() {
-        Ok(service) => service.load_homework(force_refresh).await,
+        Ok(service) => bounded_read(service.load_homework(force_refresh)).await,
         Err(error) => Err(error),
     };
     match result {
@@ -1042,6 +1058,7 @@ pub async fn load_homework(force_refresh: bool) -> super::mirror::HomeworkRespon
                 .items
                 .into_iter()
                 .map(|item| HomeworkItem {
+                    course_role: item.course_role,
                     id: item.id,
                     course_id: item.course_id,
                     course_name: item.course_name,

@@ -104,7 +104,7 @@ class _TodayPageState extends State<TodayPage> {
     child: CustomScrollView(
       key: const Key('today-scroll'),
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: Text(widget.directory == null ? '今天' : '工作台'),
           border: null,
           trailing: Row(

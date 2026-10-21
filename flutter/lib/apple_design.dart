@@ -6,6 +6,10 @@ abstract final class AppleDesign {
   static const groupRadius = 26.0;
   static const rowHeight = 52.0;
   static const pageInset = 16.0;
+  static bool desktop(BuildContext context) =>
+      MediaQuery.sizeOf(context).width >= 760;
+  static double panelRadius(BuildContext context) =>
+      desktop(context) ? 12 : groupRadius;
   static const accent = CupertinoDynamicColor.withBrightness(
     color: Color(0xff189840),
     darkColor: Color(0xff47bd6b),

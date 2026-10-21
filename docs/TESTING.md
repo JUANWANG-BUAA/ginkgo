@@ -1,6 +1,6 @@
 # BUAA Assistant - 测试计划
 
-Rust / Flutter 本轮跨语言、锁恢复和平台结果见 [评审落实](_audit/2026-10-21-opus-review-followup.md)、[Android Alpha.3](archive/mirror/MIRROR-ANDROID-ALPHA3.md) 与 [PD Windows 11 主机验证](archive/mirror/WINDOWS-2026-10-21.md)；合成测试与真实业务验收分别记录。
+Rust / Flutter 本轮跨语言、锁恢复和平台结果见 [Opus 5.5 原评审落实](_audit/2026-10-21-opus-review-followup.md)、[Android Alpha.4](archive/mirror/MIRROR-ANDROID-ALPHA4.md) 与 [PD Windows 11 主机验证](archive/mirror/WINDOWS-2026-10-21.md)；合成测试与真实业务验收分别记录。
 
 ## 已记录测试证据（2026-10-21）
 

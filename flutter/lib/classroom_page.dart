@@ -204,7 +204,7 @@ class _ClassroomPageState extends State<ClassroomPage> {
     child: CustomScrollView(
       key: const Key('classroom-scroll'),
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: const Text('空教室'),
           border: null,
           trailing: AppleGlassButton(

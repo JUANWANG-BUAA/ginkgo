@@ -393,7 +393,7 @@ class _GraduatePageState extends State<GraduatePage> {
       controller: scrollController,
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       slivers: [
-        CupertinoSliverNavigationBar(
+        ApplePageHeader(
           largeTitle: const Text('研究生教务'),
           previousPageTitle: '工作台',
           border: null,
