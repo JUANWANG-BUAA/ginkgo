@@ -106,6 +106,7 @@ pub struct SessionService<T: HttpTransport, V: CredentialVault> {
     /// iclass app session. Memory only; cleared on account, route and logout.
     pub(crate) iclass: Mutex<Option<IClassSession>>,
     pub(crate) library_stats: Mutex<super::library_stats_service::LibraryStatsCache>,
+    pub(crate) library_stats_request_gate: tokio::sync::Mutex<()>,
     pub(crate) library_venues: Mutex<LibraryVenueCache>,
     pub(crate) library_bookings: Mutex<LibraryBookingCache>,
     pub(crate) library_history: Mutex<SnapshotCache<i32, LibraryHistoryPage>>,
@@ -145,6 +146,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             checkin_request_gate: tokio::sync::Mutex::new(()),
             iclass: Mutex::new(None),
             library_stats: Mutex::new(super::library_stats_service::LibraryStatsCache::default()),
+            library_stats_request_gate: tokio::sync::Mutex::new(()),
             library_venues: Mutex::new(LibraryVenueCache::default()),
             library_bookings: Mutex::new(LibraryBookingCache::default()),
             library_history: Mutex::new(SnapshotCache::default()),
