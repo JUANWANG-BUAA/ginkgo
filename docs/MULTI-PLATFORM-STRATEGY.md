@@ -1,6 +1,6 @@
 # 多平台路线与 Rust + Flutter 镜像准备
 
-> 当前路线记录（2026-10-20）。Apple 产品继续使用现有 SwiftUI 应用；Rust + Flutter 镜像项目范围冻结为 Android + Windows。`0.1.0-alpha.8` 作为 Apple 端当前基线草稿包；草稿构建通过后即可开始 Rust/Flutter 工程实施，不需要等待 Apple 功能全部收尾。
+> 当前路线记录（2026-10-20，状态更新 2026-10-21）。Apple 产品继续使用现有 SwiftUI 应用；Rust + Flutter 镜像项目范围冻结为 Android + Windows，两端 Alpha.4 均已公开。`0.1.0-alpha.8` 作为 Apple 端当前基线草稿包；公开状态与验收边界统一见 [镜像实施现状](MIRROR-IMPLEMENTATION.md) 与 [Windows 首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)。
 > 本文取代旧版 Kotlin/Compose 推荐方案。历史候选方案不再作为当前实施建议；Rust/Flutter 的具体边界以 [RUST-FLUTTER-PORT.md](RUST-FLUTTER-PORT.md) 为准。实施已启动，当前进度见 [MIRROR-IMPLEMENTATION.md](MIRROR-IMPLEMENTATION.md)。
 
 ## 当前项目与迁移起点

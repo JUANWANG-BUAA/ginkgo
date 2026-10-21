@@ -6,7 +6,7 @@
 
 首页主任务是了解产品并选择平台。首屏采用“校园日常，有个好安排。”，配真实 macOS 周课表截图。功能介绍按出门前、学习安排、自习空间组织；完整功能清单与技术实现留在项目文档。界面区展示今天、学期总览、研究生教务，标明 macOS、深色模式、开发截图和已打码范围。
 
-平台入口明确区分：macOS 已发布 Alpha 的 DMG / ZIP、Android arm64 APK Alpha、iOS / iPadOS 源码构建、Windows 开发进展。Windows 没有下载按钮，iOS 没有虚构商店链接；公开 Android Alpha.1 的只读边界与已知限制可见；源码中后续功能的实现不等于安装包已更新。保留原有 `#top`、`#features`、`#screenshots`、`#privacy`、`#start`、`#android`、`#disclaimer` 锚点及 APK / 加速 / 校验和链接；Mac 也使用已核对的静态发布资产，不再依赖 GitHub API 才能直接下载。
+平台入口明确区分：macOS 已发布 Alpha 的 DMG / ZIP、Android arm64 APK Alpha、iOS / iPadOS 源码构建、Windows x64 ZIP Alpha。Windows 与 Android 均连到各自独立 Release，并提供校验和与第三方备用入口；iOS 没有虚构商店链接。保留原有 `#top`、`#features`、`#screenshots`、`#privacy`、`#start`、`#android`、`#windows`、`#disclaimer` 锚点；Mac、Android 与 Windows 都使用已核对的静态发布资产，不依赖 GitHub API 才能直接下载。
 
 使用 serif-editorial-console 的 retreat 页面语法、forest 自然色、spacious 密度与浅色页面。主要层级来自字号、留白与边线。阅读段落使用本机衬线字体，控制与导航使用系统无衬线，版本使用等宽字体；不请求外部字体。CSS 与脚本拆为 `landing.css` / `landing.js`，无需框架与构建。首页不再加载循环 GIF、滚动显隐脚本或重复的大量截图；首屏课表优先加载，下方图片延迟加载并声明宽高。
 
@@ -35,10 +35,10 @@
 
 - 1440×1000 桌面、390×844 手机已截图并目视检查；320、768、1024、1440 宽度均无横向溢出。
 - 移动导航可展开；Esc 关闭并回焦到导航摘要；选择锚点关闭导航。
-- 截图链接打开原生 dialog；Esc 关闭，焦点回到触发截图链接；无 JS 时原链接仍可直接查看图片。
+- 截图链接打开原生 dialog；Esc 关闭，焦点回到触发截图链接；无 JS 时原链接仍可直接查看图片。Windows 入口使用离线演示截图，不包含真实账号、课程或个人内容。
 - `prefers-reduced-motion: reduce` 时滚动为 `auto`、按钮过渡为 `0s`。
 - 控制台 0 错误、0 警告；首屏本地资源正确加载。
-- GitHub Releases 实际核对：macOS `v0.1.0-alpha.7` 的 DMG / ZIP / checksums 与 Android `android-v0.1.0-alpha.1` 的 APK / checksums 均存在。没有执行安装包下载或安装。
+- GitHub Releases 实际核对：macOS `v0.1.0-alpha.7` 的 DMG / ZIP / checksums、Android `android-v0.1.0-alpha.4` 的 APK / checksums 与 Windows `windows-v0.1.0-alpha.4` 的 x64 ZIP / checksums 均存在。没有在页面验收中执行安装包下载或安装。
 
 本地截图在未跟踪的 `output/playwright/ginkgo-landing-{desktop,mobile,platforms}.png`，未作为新的个人账号素材入库。未验证 Safari / Firefox、真实读屏或线上 GitHub Pages 部署；浏览器检查不代表 Android / Windows 客户端验收。
 

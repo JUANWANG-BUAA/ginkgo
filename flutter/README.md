@@ -2,7 +2,7 @@
 
 Android 对齐 iPhone SwiftUI，Windows 对齐 macOS SwiftUI。Apple 应用保持独立。
 
-当前手机入口为工作台 / 签到 / 课表 / 作业 / 预约，宽屏切换桌面侧栏；各目的地保留独立导航。认证、主要只读模块、Android Keystore、离线演示和本地待办已接入；签到及图书馆实验写路径包含确认、单次提交与回查，真实写入未验收。Android Alpha.3 已发布，最近实网登录失败仍需复验；Windows 已在 Parallels Windows 11 运行 x64 主机构建与合成桌面集成，暂无公开发行版。范围见 [实施现状](../docs/MIRROR-IMPLEMENTATION.md)、[模块对照](../docs/MIRROR-PARITY.md) 和 [待办](../docs/MIRROR-TODO.md)。
+当前手机入口为工作台 / 签到 / 课表 / 作业 / 预约，宽屏切换桌面侧栏；各目的地保留独立导航。认证、主要只读模块、Android Keystore、Windows Credential Manager、离线演示和本地待办已接入；签到及图书馆实验写路径包含确认、单次提交与回查，真实写入未验收。Android 与 Windows Alpha.4 均已发布，最近实网登录失败仍需复验。Windows 以未签名 x64 ZIP 首发，需完整解压；物理 x64、干净系统运行依赖和真实学校业务仍待验收。范围见 [实施现状](../docs/MIRROR-IMPLEMENTATION.md)、[Windows Alpha.4](../docs/archive/mirror/MIRROR-WINDOWS-ALPHA4.md)、[模块对照](../docs/MIRROR-PARITY.md) 和 [待办](../docs/MIRROR-TODO.md)。
 
 ## 工具链
 

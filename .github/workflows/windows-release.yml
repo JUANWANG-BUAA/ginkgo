@@ -1,0 +1,113 @@
+name: Windows Alpha Release
+
+on:
+  push:
+    tags: ['windows-v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.99.0
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.0
+          channel: stable
+          cache: true
+
+      - name: Check Windows PowerShell plugin paths
+        shell: powershell
+        run: scripts/check-mirror-windows-paths.ps1
+
+      - name: Resolve locked dependencies
+        working-directory: flutter
+        run: flutter pub get
+
+      - name: Test Flutter
+        working-directory: flutter
+        run: flutter test --no-pub test
+
+      - name: Test Windows integration
+        working-directory: flutter
+        run: flutter test --no-pub integration_test/windows_test.dart -d windows
+
+      # Integration tests build a test entrypoint. Rebuild the product entrypoint
+      # so the published ZIP starts at login instead of waiting for a test driver.
+      - name: Build Windows release
+        working-directory: flutter
+        run: flutter build windows --release --no-pub --target lib/main.dart
+
+      - name: Package and verify Windows release
+        shell: pwsh
+        run: |
+          $bundle = Join-Path $PWD 'flutter/build/windows/x64/runner/Release'
+          foreach ($relative in @('ginkgo_mirror.exe', 'ginkgo_flutter_bridge.dll', 'flutter_windows.dll', 'data/icudtl.dat', 'data/flutter_assets/AssetManifest.bin', 'data/app.so')) {
+            if (-not (Test-Path -LiteralPath (Join-Path $bundle $relative) -PathType Leaf)) {
+              throw "Missing Windows release asset: $relative"
+            }
+          }
+
+          $version = $env:GITHUB_REF_NAME -replace '^windows-v', ''
+          $zipName = "Ginkgo-$version-windows-x64.zip"
+          $zipPath = Join-Path $PWD $zipName
+          Remove-Item -LiteralPath $zipPath -ErrorAction SilentlyContinue
+          Compress-Archive -Path (Join-Path $bundle '*') -DestinationPath $zipPath -CompressionLevel Optimal
+
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $archive = [System.IO.Compression.ZipFile]::OpenRead($zipPath)
+          try {
+            if ($archive.Entries.Count -lt 10) {
+              throw "Windows release ZIP has too few entries: $($archive.Entries.Count)"
+            }
+          } finally {
+            $archive.Dispose()
+          }
+
+          $hash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $zipName" | Set-Content -LiteralPath checksums.txt -Encoding ascii
+          Get-Content -LiteralPath checksums.txt
+
+      - name: Create Windows prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Ginkgo Windows Alpha
+          body: |
+            Ginkgo Windows 0.1.0-alpha.4 是首个公开 Windows 测试包，面向 Windows 10 / 11 x64。
+
+            ## 安装
+
+            1. 下载 `Ginkgo-0.1.0-alpha.4-windows-x64.zip` 并核对 `checksums.txt` 中的 SHA-256。
+            2. 完整解压到普通可写目录，保留 exe、DLL 与 `data` 文件夹。
+            3. 运行 `ginkgo_mirror.exe`；缺少运行库时先安装 Microsoft Visual C++ Redistributable。
+
+            当前包未签名，SmartScreen 可能提示未知发布者。请只从本 Release 或已核对摘要的来源安装。
+
+            ## 本版范围
+
+            - 宽屏分组侧栏，逻辑宽度低于 760px 时切换到底部导航。
+            - 今天、签到、课表、作业、预约、成绩、博雅、研究生教务与设置入口。
+            - Windows Credential Manager 合成凭据往返、独立详情返回栈、Tab 焦点与 Enter 激活通过。
+            - Rust 核心、Flutter 测试与 Windows 集成测试通过后重新构建 `main.dart` Release。
+
+            ## 已知限制
+
+            - 未在物理 x64 和干净系统完成运行库、输入法、多屏与完整读屏验收。
+            - 未完成真实学校账号登录或上游写入验收；写操作仍须逐次人工确认。
+            - 未签名，无安装器和应用内更新；功能未与 macOS 完全对齐。
+
+            完整证据与边界见仓库 `docs/archive/mirror/MIRROR-WINDOWS-ALPHA4.md`。
+          draft: false
+          prerelease: true
+          fail_on_unmatched_files: true
+          files: |
+            Ginkgo-*-windows-x64.zip
+            checksums.txt

@@ -29,4 +29,5 @@
 | [MIRROR-SCHEDULE-SCROLL-AUDIT.md](MIRROR-SCHEDULE-SCROLL-AUDIT.md) | 课表周次定位与横向控制（2026-10-21） |
 | [MIRROR-TODO-BEFORE-REVIEW-2026-10-21.md](MIRROR-TODO-BEFORE-REVIEW-2026-10-21.md) | Rust + Flutter 镜像迁移待办 |
 | [MIRROR-VISUAL-AUDIT.md](MIRROR-VISUAL-AUDIT.md) | 镜像视觉审查 |
+| [MIRROR-WINDOWS-ALPHA4.md](MIRROR-WINDOWS-ALPHA4.md) | Windows Alpha.4 首发包、安装方式、验证边界与已知限制 |
 | [WINDOWS-2026-10-21.md](WINDOWS-2026-10-21.md) | Parallels Windows 11 主机构建与交互验证 |

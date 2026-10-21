@@ -7,7 +7,7 @@
 Ginkgo 已经越过“能查询”的阶段：CAS、课表、成绩、作业、图书馆、空教室、签到、待办都有实际实现。Apple 自动化证据按日期维护于 [TESTING](TESTING.md)。新增博雅、研讨室空档和研究生教务页面后，数据面已从基础教务扩展到课程素养、空间预约与培养过程。当前最大的改进空间不在继续堆功能，而在以下三条主线：
 
 1. **把跨语言行为固定为可执行契约**：Swift / Rust 已共用规则样例和部分解析契约，下一步扩签到 / 图书馆 / 博雅等高风险模块；范围见 [fixtures](../fixtures/README.md)。
-2. **维护 Rust + Flutter 的分层与验收边界**：Android Alpha.2 已发布，主要只读链路和部分实验写路径已接入；真实写入、Windows 和最近认证异常仍待验收。当前事实只维护在 [镜像入口](MIRROR-IMPLEMENTATION.md)，本次架构修复见 [Opus 5.5 评审落实](_audit/2026-10-21-opus-review-followup.md)。
+2. **维护 Rust + Flutter 的分层与验收边界**：Android 与 Windows Alpha.4 均已发布，主要只读链路和部分实验写路径已接入；真实写入、Windows 实机覆盖和最近认证异常仍待验收。当前事实只维护在 [镜像入口](MIRROR-IMPLEMENTATION.md)，Windows 发布边界见 [首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)，本次架构修复见 [Opus 5.5 评审落实](_audit/2026-10-21-opus-review-followup.md)。
 3. **并行完成 Apple 产品质量闭环**：iOS 真机、可访问性、隐私生命周期和 CI 仍是 Apple 端自己的验收事项，不应被新平台准备取代。
 
 ## 1. P0：应先解决的工程与质量风险
