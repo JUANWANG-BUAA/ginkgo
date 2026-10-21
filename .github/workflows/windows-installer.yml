@@ -22,23 +22,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: 1.99.0
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: 3.47.0
-          channel: stable
-          cache: true
-
-      - name: Resolve locked dependencies
-        working-directory: flutter
-        run: flutter pub get
-
-      - name: Build Windows release
-        working-directory: flutter
-        run: flutter build windows --release --no-pub --target lib/main.dart
+      - name: Download verified portable ZIP
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download $env:RELEASE_TAG --pattern 'Ginkgo-*-windows-x64.zip' --dir release-input --clobber
+          $portable = Get-ChildItem -LiteralPath 'release-input' -Filter 'Ginkgo-*-windows-x64.zip' | Select-Object -First 1
+          if (-not $portable) { throw 'Portable ZIP was not found in the release' }
+          Expand-Archive -LiteralPath $portable.FullName -DestinationPath 'dist\bundle' -Force
+          foreach ($relative in @('ginkgo_mirror.exe', 'ginkgo_flutter_bridge.dll', 'flutter_windows.dll', 'data/icudtl.dat', 'data/flutter_assets/AssetManifest.bin', 'data/app.so')) {
+            if (-not (Test-Path -LiteralPath (Join-Path 'dist\bundle' $relative) -PathType Leaf)) {
+              throw "Portable ZIP is missing: $relative"
+            }
+          }
 
       - name: Install Inno Setup
         shell: pwsh
@@ -51,9 +48,13 @@ jobs:
           if (-not (Test-Path -LiteralPath $iscc -PathType Leaf)) {
             throw 'Inno Setup compiler was not installed'
           }
-          & $iscc "/DAppVersion=$env:APP_VERSION" 'packaging\windows\Ginkgo.iss'
+          $bundle = (Resolve-Path 'dist\bundle').Path
+          $compileLog = Join-Path $PWD 'inno-compile.log'
+          & $iscc "/DAppVersion=$env:APP_VERSION" "/DBundleDir=$bundle" 'packaging\windows\Ginkgo.iss' 2>&1 | Tee-Object -FilePath $compileLog
           if ($LASTEXITCODE -ne 0) {
-            throw "Inno Setup failed with exit code $LASTEXITCODE"
+            $summary = (Get-Content -LiteralPath $compileLog -Tail 8) -join ' | '
+            Write-Output "::error title=Inno Setup compile failed::$summary"
+            exit $LASTEXITCODE
           }
           $installer = "dist\Ginkgo-$env:APP_VERSION-windows-x64-setup.exe"
           if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) {
@@ -91,11 +92,8 @@ jobs:
 
       - name: Checksum installer and existing portable ZIP
         shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download $env:RELEASE_TAG --pattern 'Ginkgo-*-windows-x64.zip' --dir . --clobber
-          $portable = Get-ChildItem -LiteralPath $PWD -Filter 'Ginkgo-*-windows-x64.zip' | Select-Object -First 1
+          $portable = Get-ChildItem -LiteralPath 'release-input' -Filter 'Ginkgo-*-windows-x64.zip' | Select-Object -First 1
           if (-not $portable) { throw 'Existing portable ZIP was not found in the release' }
           $installer = Get-Item -LiteralPath "dist\Ginkgo-$env:APP_VERSION-windows-x64-setup.exe"
           $lines = @(

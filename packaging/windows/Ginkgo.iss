@@ -7,6 +7,10 @@
   #define AppVersion "0.1.0-alpha.4"
 #endif
 
+#ifndef BundleDir
+  #define BundleDir "flutter\build\windows\x64\runner\Release"
+#endif
+
 [Setup]
 AppId={{D3A06D5D-4416-46D2-80AC-D6524D9E2114}
 AppName={#AppName}
@@ -24,11 +28,10 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.17763
-SourceDir=..\..
-OutputDir=dist
+OutputDir=..\..\dist
 OutputBaseFilename=Ginkgo-{#AppVersion}-windows-x64-setup
-SetupIconFile=flutter\windows\runner\resources\app_icon.ico
-LicenseFile=LICENSE
+SetupIconFile=..\..\flutter\windows\runner\resources\app_icon.ico
+LicenseFile=..\..\LICENSE
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
@@ -50,7 +53,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "flutter\build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#BundleDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExeName}"
