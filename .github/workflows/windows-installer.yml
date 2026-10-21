@@ -1,0 +1,118 @@
+name: Windows Installer
+
+on:
+  push:
+    branches: [feat/rust-flutter-mirror]
+    paths:
+      - '.github/workflows/windows-installer.yml'
+      - 'packaging/windows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  APP_VERSION: 0.1.0-alpha.4
+  RELEASE_TAG: windows-v0.1.0-alpha.4
+
+jobs:
+  installer:
+    runs-on: windows-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.99.0
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.0
+          channel: stable
+          cache: true
+
+      - name: Resolve locked dependencies
+        working-directory: flutter
+        run: flutter pub get
+
+      - name: Build Windows release
+        working-directory: flutter
+        run: flutter build windows --release --no-pub --target lib/main.dart
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --yes --no-progress
+
+      - name: Compile single-file installer
+        shell: pwsh
+        run: |
+          $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          if (-not (Test-Path -LiteralPath $iscc -PathType Leaf)) {
+            throw 'Inno Setup compiler was not installed'
+          }
+          & $iscc "/DAppVersion=$env:APP_VERSION" 'packaging\windows\Ginkgo.iss'
+          if ($LASTEXITCODE -ne 0) {
+            throw "Inno Setup failed with exit code $LASTEXITCODE"
+          }
+          $installer = "dist\Ginkgo-$env:APP_VERSION-windows-x64-setup.exe"
+          if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) {
+            throw "Missing installer: $installer"
+          }
+          Get-Item -LiteralPath $installer | Select-Object FullName, Length
+
+      - name: Verify silent install and uninstall
+        shell: pwsh
+        run: |
+          $installer = (Resolve-Path "dist\Ginkgo-$env:APP_VERSION-windows-x64-setup.exe").Path
+          $installDir = Join-Path $env:RUNNER_TEMP 'GinkgoInstalled'
+          $installLog = Join-Path $env:RUNNER_TEMP 'ginkgo-install.log'
+          $installArgs = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', ('/DIR="{0}"' -f $installDir), ('/LOG="{0}"' -f $installLog))
+          $process = Start-Process -FilePath $installer -ArgumentList $installArgs -Wait -PassThru
+          if ($process.ExitCode -ne 0) {
+            if (Test-Path -LiteralPath $installLog) { Get-Content -LiteralPath $installLog }
+            throw "Installer failed with exit code $($process.ExitCode)"
+          }
+          foreach ($relative in @('ginkgo_mirror.exe', 'ginkgo_flutter_bridge.dll', 'flutter_windows.dll', 'data/icudtl.dat', 'data/flutter_assets/AssetManifest.bin', 'data/app.so', 'unins000.exe')) {
+            if (-not (Test-Path -LiteralPath (Join-Path $installDir $relative) -PathType Leaf)) {
+              throw "Installed bundle is missing: $relative"
+            }
+          }
+
+          $uninstaller = Join-Path $installDir 'unins000.exe'
+          $uninstallArgs = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART')
+          $process = Start-Process -FilePath $uninstaller -ArgumentList $uninstallArgs -Wait -PassThru
+          if ($process.ExitCode -ne 0) {
+            throw "Uninstaller failed with exit code $($process.ExitCode)"
+          }
+          if (Test-Path -LiteralPath (Join-Path $installDir 'ginkgo_mirror.exe')) {
+            throw 'Uninstaller left ginkgo_mirror.exe behind'
+          }
+
+      - name: Checksum installer and existing portable ZIP
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download $env:RELEASE_TAG --pattern 'Ginkgo-*-windows-x64.zip' --dir . --clobber
+          $portable = Get-ChildItem -LiteralPath $PWD -Filter 'Ginkgo-*-windows-x64.zip' | Select-Object -First 1
+          if (-not $portable) { throw 'Existing portable ZIP was not found in the release' }
+          $installer = Get-Item -LiteralPath "dist\Ginkgo-$env:APP_VERSION-windows-x64-setup.exe"
+          $lines = @(
+            "$((Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($installer.Name)"
+            "$((Get-FileHash -LiteralPath $portable.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($portable.Name)"
+          )
+          $lines | Set-Content -LiteralPath checksums.txt -Encoding ascii
+          Get-Content -LiteralPath checksums.txt
+
+      - name: Publish installer to Windows Alpha.4
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: Ginkgo Windows Alpha
+          body_path: docs/releases/windows-alpha4.md
+          prerelease: true
+          fail_on_unmatched_files: true
+          files: |
+            dist/Ginkgo-*-windows-x64-setup.exe
+            checksums.txt

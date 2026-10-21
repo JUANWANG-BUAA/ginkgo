@@ -18,7 +18,7 @@
 | 校园通知 | Campus/CampusNoticesClient.swift | 列表、摘要和原文链接 | 外部浏览器往返与全量读屏 |
 | CGYY | Venue/CgyyClient.swift、CgyyView.swift | 场馆 / 校区 / 容量、日期时段和订单只读，语义资源状态色 | 写入 / 门锁码未迁移；非空订单和场馆日期覆盖仍需补 |
 | 导航 / 设置 | Auth/、Settings/、Core/Network/UpstreamRoute.swift | 760px 宽度切换 iOS 式手机布局与 macOS 式桌面层次；独立导航栈；非工作台返回、工作台二次确认；显示与阅读、通知与后台、账号隐私、UBAA 致谢与分享；应用内 Android 更新 | Windows 真实业务 / 完整读屏；验证码图片、系统通知调度与后台签到仍未接通 |
-| Windows | 原生 macOS 作为行为参照 | Alpha.4 未签名 x64 ZIP 已公开；Parallels Windows 11 ARM 上的 Release、保险库、独立详情栈、宽窄切换、固定桌面页头、Tab / Enter 与返回栈回归已通过 | [首发边界](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)：物理 x64、干净系统依赖、读屏、真实业务、签名与更新仍待验收 |
+| Windows | 原生 macOS 作为行为参照 | Alpha.4 未签名 x64 单文件安装器已公开，便携 ZIP 备用；Parallels Windows 11 ARM 上的 Release、保险库、独立详情栈、宽窄切换、固定桌面页头、Tab / Enter 与返回栈回归已通过 | [首发边界](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)：物理 x64、干净系统依赖、读屏、真实业务、签名与更新仍待验收 |
 
 当前状态色在 [AppleDesign](../flutter/lib/apple_design.dart) 集中定义，覆盖签到、作业、图书馆与场馆的成功 / 待处理 / 待核实 / 错误 / 未激活呈现。文字仍保留具体业务状态，不由颜色反推“可签到 / 可预约”。
 

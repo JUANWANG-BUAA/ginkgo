@@ -2,7 +2,7 @@
 
 ## Ginkgo Windows 0.1.0-alpha.4（2026-10-21，首个公开 Windows Alpha）
 
-Windows 版以 Rust + Flutter 构建，首个公开包面向 Windows 10 / 11 x64。下载 ZIP 后需完整解压，保留 exe、DLL 与 `data` 目录，再运行 `ginkgo_mirror.exe`。
+Windows 版以 Rust + Flutter 构建，首个公开包面向 Windows 10 / 11 x64。主下载为单文件安装器，按当前用户安装并提供开始菜单与卸载入口；便携 ZIP 需完整解压，保留 exe、DLL 与 `data` 目录。
 
 ### 本版范围
 
@@ -13,14 +13,14 @@ Windows 版以 Rust + Flutter 构建，首个公开包面向 Windows 10 / 11 x64
 ### 下载与验证
 
 - [Windows Alpha.4 Release](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/windows-v0.1.0-alpha.4)
-- 发布资产包含 `Ginkgo-0.1.0-alpha.4-windows-x64.zip` 与 `checksums.txt`；请核对 SHA-256。
+- 发布资产包含主推的 `Ginkgo-0.1.0-alpha.4-windows-x64-setup.exe`、便携 `Ginkgo-0.1.0-alpha.4-windows-x64.zip` 与 `checksums.txt`；请核对 SHA-256。
 - 当前 ZIP 为 `28,180,865` 字节，SHA-256 `6938a8dfbe80c83baf8e29093f467f9d5156954e481273645ba54d1c2ab5f1e1`；已通过备用入口完整下载、摘要比对和 ZIP 完整性检查。
-- ZIP 内包含 `ginkgo_mirror.exe`、Rust / Flutter DLL 与 `data` 目录，必须完整解压；当前未提供 MSI 安装器。
+- 安装器由 Inno Setup 编译，CI 会执行静默安装、安装目录完整性与静默卸载检查。ZIP 内包含 `ginkgo_mirror.exe`、Rust / Flutter DLL 与 `data` 目录，必须完整解压。
 - Parallels Windows 11 ARM64 来宾上的 x64 Debug / Release 构建、Rust 测试、Flutter 单元测试、Windows 集成测试与普通 `main.dart` Release 启动已通过。详细证据见 [Windows 首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)。
 
 ### 已知限制
 
-- 包未签名，SmartScreen 可能提示未知发布者；当前没有应用内更新或安装器。
+- 安装包与便携 ZIP 均未签名，SmartScreen 可能提示未知发布者；当前没有应用内更新。
 - 尚未在物理 x64 Windows 和干净系统上验证 VC++ 运行库、输入法、多屏与完整读屏。
 - 本次公开包没有完成真实学校账号登录或上游业务写入验收；签到与图书馆写操作仍须逐次人工确认。
 

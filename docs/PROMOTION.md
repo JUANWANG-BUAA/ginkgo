@@ -12,9 +12,9 @@
 | macOS | 已发布 Alpha，macOS 14+，DMG / ZIP 下载 |
 | Android | Alpha.4，Android 7.0+ / arm64 APK；课表、作业、博雅与校园服务；设置、返回手势、课程范围与应用内更新已收口；签到及图书馆真实写入仍待验收 |
 | iOS / iPadOS | iOS 17+，原生工作台，从源码使用 Xcode 构建；暂无 App Store / TestFlight 入口 |
-| Windows | Alpha.4 首发，Windows 10 / 11 x64 ZIP；宽屏侧栏、窄屏底部导航、Credential Manager 合成往返和桌面导航已通过；包未签名，物理 x64、干净系统运行依赖与真实业务仍待验收 |
+| Windows | Alpha.4 首发，Windows 10 / 11 x64 单文件安装器，便携 ZIP 备用；宽屏侧栏、窄屏底部导航、Credential Manager 合成往返和桌面导航已通过；包未签名，物理 x64、干净系统运行依赖与真实业务仍待验收 |
 
-首页默认链接指向 `android-v0.1.0-alpha.4` 与 `windows-v0.1.0-alpha.4`，正式包和校验和公开。Android 应用内更新支持 GitHub 官方入口、暂停续传和安装包校验，但国内下载速度仍取决于 GitHub 连通性。Windows 需完整解压后运行，不能只复制 exe；当前包未签名，SmartScreen 可能拦截。博雅选退课、CGYY 写入、作业提交与附件下载仍未迁移；发布证据见 [Android Alpha.4](archive/mirror/MIRROR-ANDROID-ALPHA4.md) 与 [Windows Alpha.4](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)。避免用“四端功能完全一致”“全平台已稳定”概括当前状态。主页使用脱敏 macOS 截图与离线演示 Windows 截图，并在平台入口说明范围；不使用虚构下载量或用户评价。首页设计参考与验证见 [LANDING-REDESIGN-2026-10-21.md](LANDING-REDESIGN-2026-10-21.md)。
+首页默认链接指向 `android-v0.1.0-alpha.4` 与 `windows-v0.1.0-alpha.4`，正式包和校验和公开。Android 应用内更新支持 GitHub 官方入口、暂停续传和安装包校验，但国内下载速度仍取决于 GitHub 连通性。Windows 主按钮下载单文件 `setup.exe`，安装器按当前用户安装并提供开始菜单与卸载入口；ZIP 仅作为便携备用，需完整解压。当前安装包未签名，SmartScreen 可能拦截。博雅选退课、CGYY 写入、作业提交与附件下载仍未迁移；发布证据见 [Android Alpha.4](archive/mirror/MIRROR-ANDROID-ALPHA4.md) 与 [Windows Alpha.4](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)。避免用“四端功能完全一致”“全平台已稳定”概括当前状态。主页使用脱敏 macOS 截图与离线演示 Windows 截图，并在平台入口说明范围；不使用虚构下载量或用户评价。首页设计参考与验证见 [LANDING-REDESIGN-2026-10-21.md](LANDING-REDESIGN-2026-10-21.md)。
 
 ## 命名与品牌
 
@@ -37,7 +37,7 @@
 
 ## 关键词
 
-北航、BUAA、Beihang、北航助手、校园助手、macOS 客户端、Windows 客户端、iOS、SwiftUI、Flutter、Rust、菜单栏、课表、课程表、签到、打卡、iclass、图书馆预约、座位预约、研讨室预约、CGYY、研究生教务、培养方案、学分地图、博雅、成绩查询、GPA、空教室、学校作业、SPOC、希冀（Judge）、校园通知、待办、内置更新、DMG 下载、Windows ZIP 下载、原生应用、直连、隐私、本地缓存
+北航、BUAA、Beihang、北航助手、校园助手、macOS 客户端、Windows 客户端、iOS、SwiftUI、Flutter、Rust、菜单栏、课表、课程表、签到、打卡、iclass、图书馆预约、座位预约、研讨室预约、CGYY、研究生教务、培养方案、学分地图、博雅、成绩查询、GPA、空教室、学校作业、SPOC、希冀（Judge）、校园通知、待办、内置更新、DMG 下载、Windows EXE 安装包、Windows ZIP 便携版、原生应用、直连、隐私、本地缓存
 
 ## 一句话介绍
 
