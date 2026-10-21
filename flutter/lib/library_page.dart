@@ -416,6 +416,7 @@ class _LibraryAreaPageState extends State<_LibraryAreaPage> {
   List<LibraryArea>? areas;
   String? error;
   bool busy = false;
+  Future<void>? _loadTask;
 
   @override
   void initState() {
@@ -423,7 +424,10 @@ class _LibraryAreaPageState extends State<_LibraryAreaPage> {
     load();
   }
 
-  Future<void> load() async {
+  Future<void> load() =>
+      _loadTask ??= _fetch().whenComplete(() => _loadTask = null);
+
+  Future<void> _fetch() async {
     setState(() {
       busy = true;
       error = null;
@@ -433,7 +437,7 @@ class _LibraryAreaPageState extends State<_LibraryAreaPage> {
       if (!mounted) return;
       setState(() {
         busy = false;
-        if (result.failure != null && result.areas.isEmpty) {
+        if (result.failure != null) {
           error = failureMessage(result.failure);
           return;
         }
@@ -445,6 +449,8 @@ class _LibraryAreaPageState extends State<_LibraryAreaPage> {
         busy = false;
         error = failureMessage(null);
       });
+    } finally {
+      if (mounted) setState(() => busy = false);
     }
   }
 
@@ -459,6 +465,13 @@ class _LibraryAreaPageState extends State<_LibraryAreaPage> {
         CupertinoSliverNavigationBar(
           largeTitle: Text(widget.venue.name),
           border: null,
+          trailing: AppleGlassButton(
+            label: '刷新列表',
+            onPressed: busy ? null : load,
+            child: busy
+                ? const CupertinoActivityIndicator()
+                : const Icon(CupertinoIcons.refresh, size: 24),
+          ),
         ),
         CupertinoSliverRefreshControl(onRefresh: load),
         SliverList.list(
@@ -468,14 +481,16 @@ class _LibraryAreaPageState extends State<_LibraryAreaPage> {
                 children: [
                   AppleEmptyState(
                     title: error!,
-                    description: '区域列表读取失败，请稍后重试。',
+                    description: areas == null
+                        ? '区域列表读取失败，请稍后重试。'
+                        : '保留上次区域列表，请刷新后确认状态。',
                     error: true,
                     action: '重试',
                     onAction: load,
                   ),
                 ],
-              )
-            else if (areas == null)
+              ),
+            if (areas == null && error == null)
               AppleSection(
                 children: const [
                   Padding(
@@ -489,8 +504,8 @@ class _LibraryAreaPageState extends State<_LibraryAreaPage> {
                     ),
                   ),
                 ],
-              )
-            else
+              ),
+            if (areas != null)
               AppleSection(
                 header: const Text('区域'),
                 children: [
@@ -507,15 +522,18 @@ class _LibraryAreaPageState extends State<_LibraryAreaPage> {
                           size: 16,
                           color: CupertinoColors.tertiaryLabel,
                         ),
-                        onTap: () => Navigator.of(context).push(
-                          CupertinoPageRoute<void>(
-                            builder: (_) => _LibrarySlotPage(
-                              service: widget.service,
-                              area: area,
-                              onReservationChanged: widget.onReservationChanged,
-                            ),
-                          ),
-                        ),
+                        onTap: busy || error != null
+                            ? null
+                            : () => Navigator.of(context).push(
+                                CupertinoPageRoute<void>(
+                                  builder: (_) => _LibrarySlotPage(
+                                    service: widget.service,
+                                    area: area,
+                                    onReservationChanged:
+                                        widget.onReservationChanged,
+                                  ),
+                                ),
+                              ),
                       ),
                 ],
               ),
@@ -543,6 +561,8 @@ class _LibrarySlotPage extends StatefulWidget {
 class _LibrarySlotPageState extends State<_LibrarySlotPage> {
   List<LibrarySlot>? slots;
   String? error;
+  bool busy = false;
+  Future<void>? _loadTask;
 
   @override
   void initState() {
@@ -550,13 +570,19 @@ class _LibrarySlotPageState extends State<_LibrarySlotPage> {
     load();
   }
 
-  Future<void> load() async {
-    setState(() => error = null);
+  Future<void> load() =>
+      _loadTask ??= _fetch().whenComplete(() => _loadTask = null);
+
+  Future<void> _fetch() async {
+    setState(() {
+      busy = true;
+      error = null;
+    });
     try {
       final result = await widget.service.librarySlots(widget.area.id);
       if (!mounted) return;
       setState(() {
-        if (result.failure != null && result.slots.isEmpty) {
+        if (result.failure != null) {
           error = failureMessage(result.failure);
           return;
         }
@@ -565,6 +591,8 @@ class _LibrarySlotPageState extends State<_LibrarySlotPage> {
     } catch (_) {
       if (!mounted) return;
       setState(() => error = failureMessage(null));
+    } finally {
+      if (mounted) setState(() => busy = false);
     }
   }
 
@@ -579,6 +607,13 @@ class _LibrarySlotPageState extends State<_LibrarySlotPage> {
         CupertinoSliverNavigationBar(
           largeTitle: Text(widget.area.name),
           border: null,
+          trailing: AppleGlassButton(
+            label: '刷新列表',
+            onPressed: busy ? null : load,
+            child: busy
+                ? const CupertinoActivityIndicator()
+                : const Icon(CupertinoIcons.refresh, size: 24),
+          ),
         ),
         CupertinoSliverRefreshControl(onRefresh: load),
         SliverList.list(
@@ -588,14 +623,16 @@ class _LibrarySlotPageState extends State<_LibrarySlotPage> {
                 children: [
                   AppleEmptyState(
                     title: error!,
-                    description: '时段读取失败，请稍后重试。',
+                    description: slots == null
+                        ? '时段列表读取失败，请稍后重试。'
+                        : '保留上次时段列表，请刷新后确认状态。',
                     error: true,
                     action: '重试',
                     onAction: load,
                   ),
                 ],
-              )
-            else if (slots == null)
+              ),
+            if (slots == null && error == null)
               AppleSection(
                 children: const [
                   Padding(
@@ -609,8 +646,8 @@ class _LibrarySlotPageState extends State<_LibrarySlotPage> {
                     ),
                   ),
                 ],
-              )
-            else
+              ),
+            if (slots != null)
               AppleSection(
                 header: const Text('时段'),
                 children: [
@@ -627,16 +664,19 @@ class _LibrarySlotPageState extends State<_LibrarySlotPage> {
                           size: 16,
                           color: CupertinoColors.tertiaryLabel,
                         ),
-                        onTap: () => Navigator.of(context).push(
-                          CupertinoPageRoute<void>(
-                            builder: (_) => _LibrarySeatPage(
-                              service: widget.service,
-                              area: widget.area,
-                              slot: slot,
-                              onReservationChanged: widget.onReservationChanged,
-                            ),
-                          ),
-                        ),
+                        onTap: busy || error != null
+                            ? null
+                            : () => Navigator.of(context).push(
+                                CupertinoPageRoute<void>(
+                                  builder: (_) => _LibrarySeatPage(
+                                    service: widget.service,
+                                    area: widget.area,
+                                    slot: slot,
+                                    onReservationChanged:
+                                        widget.onReservationChanged,
+                                  ),
+                                ),
+                              ),
                       ),
                 ],
               ),
@@ -666,6 +706,8 @@ class _LibrarySeatPage extends StatefulWidget {
 class _LibrarySeatPageState extends State<_LibrarySeatPage> {
   List<LibrarySeat>? seats;
   String? error;
+  bool busy = false;
+  Future<void>? _loadTask;
   String search = '';
   bool availableOnly = false;
   List<LibrarySeat> visible = [];
@@ -729,8 +771,14 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
     load();
   }
 
-  Future<void> load() async {
-    setState(() => error = null);
+  Future<void> load() =>
+      _loadTask ??= _fetch().whenComplete(() => _loadTask = null);
+
+  Future<void> _fetch() async {
+    setState(() {
+      busy = true;
+      error = null;
+    });
     try {
       final result = await widget.service.librarySeats(
         areaId: widget.area.id,
@@ -738,7 +786,7 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
       );
       if (!mounted) return;
       setState(() {
-        if (result.failure != null && result.seats.isEmpty) {
+        if (result.failure != null) {
           error = failureMessage(result.failure);
           return;
         }
@@ -748,6 +796,8 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
     } catch (_) {
       if (!mounted) return;
       setState(() => error = failureMessage(null));
+    } finally {
+      if (mounted) setState(() => busy = false);
     }
   }
 
@@ -762,6 +812,13 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
         CupertinoSliverNavigationBar(
           largeTitle: Text('${widget.slot.start}–${widget.slot.end}'),
           border: null,
+          trailing: AppleGlassButton(
+            label: '刷新列表',
+            onPressed: busy ? null : load,
+            child: busy
+                ? const CupertinoActivityIndicator()
+                : const Icon(CupertinoIcons.refresh, size: 24),
+          ),
         ),
         CupertinoSliverRefreshControl(onRefresh: load),
         SliverList.list(
@@ -787,14 +844,16 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
                 children: [
                   AppleEmptyState(
                     title: error!,
-                    description: '座位列表读取失败，请稍后重试。',
+                    description: seats == null
+                        ? '座位列表读取失败，请稍后重试。'
+                        : '保留上次座位列表，请刷新后确认状态。',
                     error: true,
                     action: '重试',
                     onAction: load,
                   ),
                 ],
-              )
-            else if (seats == null)
+              ),
+            if (seats == null && error == null)
               AppleSection(
                 children: const [
                   Padding(
@@ -808,8 +867,8 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
                     ),
                   ),
                 ],
-              )
-            else ...[
+              ),
+            if (seats != null) ...[
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 child: CupertinoSearchTextField(
@@ -850,7 +909,11 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
                         trailing: seat.available
                             ? CupertinoButton(
                                 key: Key('library-reserve-${seat.id}'),
-                                onPressed: submitting || awaitingVerification
+                                onPressed:
+                                    busy ||
+                                        error != null ||
+                                        submitting ||
+                                        awaitingVerification
                                     ? null
                                     : () => reserve(seat),
                                 child: submitting
