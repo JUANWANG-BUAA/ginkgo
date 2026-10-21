@@ -14,6 +14,8 @@ Windows 版以 Rust + Flutter 构建，首个公开包面向 Windows 10 / 11 x64
 
 - [Windows Alpha.4 Release](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/windows-v0.1.0-alpha.4)
 - 发布资产包含 `Ginkgo-0.1.0-alpha.4-windows-x64.zip` 与 `checksums.txt`；请核对 SHA-256。
+- 当前 ZIP 为 `28,180,865` 字节，SHA-256 `6938a8dfbe80c83baf8e29093f467f9d5156954e481273645ba54d1c2ab5f1e1`；已通过备用入口完整下载、摘要比对和 ZIP 完整性检查。
+- ZIP 内包含 `ginkgo_mirror.exe`、Rust / Flutter DLL 与 `data` 目录，必须完整解压；当前未提供 MSI 安装器。
 - Parallels Windows 11 ARM64 来宾上的 x64 Debug / Release 构建、Rust 测试、Flutter 单元测试、Windows 集成测试与普通 `main.dart` Release 启动已通过。详细证据见 [Windows 首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)。
 
 ### 已知限制

@@ -452,7 +452,7 @@
               class="button button-primary"
               data-download-windows
               href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/windows-v0.1.0-alpha.4/Ginkgo-0.1.0-alpha.4-windows-x64.zip"
-              >下载 Windows x64 <span aria-hidden="true">↓</span></a
+              >下载 Windows x64 ZIP <span aria-hidden="true">↓</span></a
             >
             <div class="download-links">
               <a
@@ -579,6 +579,22 @@
               当前各平台有差异。macOS 提供最完整的工作台，iOS
               使用原生界面并复用校园服务。Android 与 Windows 提供 Alpha
               体验，功能尚未完全对齐。详细范围以各平台发布说明和开发记录为准。
+            </p>
+          </details>
+          <details>
+            <summary>
+              为什么 Windows 下载是 ZIP，不是 exe 或 MSI？<span
+                aria-hidden="true"
+                >＋</span
+              >
+            </summary>
+            <p>
+              Flutter Windows
+              程序运行时还依赖相邻的 Rust / Flutter DLL 与 data
+              目录，单独复制或改名一个 exe 无法启动，因此当前提供保留完整目录结构的便携
+              ZIP。MSI
+              安装器需要独立的安装、卸载、快捷方式与干净系统验收，本版尚未提供；请完整解压后运行
+              ginkgo_mirror.exe。
             </p>
           </details>
           <details>

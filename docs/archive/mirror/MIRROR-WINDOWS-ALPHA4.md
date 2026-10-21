@@ -41,7 +41,14 @@ Parallels Windows 11 ARM64 来宾运行 x64 Flutter / Rust 工具链，结果见
 | 相邻运行资源 | exe、Rust bridge DLL、Flutter DLL、`icudtl.dat`、`AssetManifest.bin`、AOT `app.so` 齐全 |
 | 实际窗口 | 200% DPI 下宽屏显示侧栏，窄屏切换五个底部标签，拉宽后恢复侧栏 |
 
-公开 ZIP 由 Release 工作流在 `windows-latest` 上重新构建并打包，发布资产哈希以对应 `checksums.txt` 为准。CI 构建不会替代真实设备验收。
+公开 ZIP 由 Release 工作流在 `windows-latest` 上重新构建并打包：
+
+- 文件：`Ginkgo-0.1.0-alpha.4-windows-x64.zip`
+- 大小：`28,180,865` 字节
+- SHA-256：`6938a8dfbe80c83baf8e29093f467f9d5156954e481273645ba54d1c2ab5f1e1`
+- 2026-10-21 经 gh-proxy 备用入口完整下载，摘要与 Release `checksums.txt` 一致，ZIP 完整性检查通过。
+
+CI 构建不会替代真实设备验收。
 
 ## 已知限制
 
