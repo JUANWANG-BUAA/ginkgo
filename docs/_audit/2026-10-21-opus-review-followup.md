@@ -4,7 +4,7 @@
 >
 > **本文件的核实、取舍、代码修复与测试记录：Codex，2026-10-21。** 本文件整理原意见并校正过时结论，不将本次实现冒署为 Opus 5.5；原评审中的规模统计和“实际跑过”属于原作者陈述，本次不直接继承。
 
-核对基线：分支 `feat/rust-flutter-mirror`，起始 HEAD `e1d78c0`。本文记录本轮实现；Android Alpha.3 包含本次修复，发布与升级证据见 [Alpha.3 记录](../archive/mirror/MIRROR-ANDROID-ALPHA3.md)。Windows 主机结果单独附证据；旧 Alpha.2 不包含本次修复。
+核对基线：分支 `feat/rust-flutter-mirror`，起始 HEAD `e1d78c0`。本文记录本轮实现；Android Alpha.3 包含本次修复，发布与升级证据见 [Alpha.3 记录](../archive/mirror/MIRROR-ANDROID-ALPHA3.md)。Windows 主机结果见 [PD Windows 11 记录](../archive/mirror/WINDOWS-2026-10-21.md)；旧 Alpha.2 不包含本次修复。
 
 ## 采纳并实施
 
@@ -84,12 +84,12 @@
 | 三套 UI 与大文件带来重复 | macOS / iOS 壳不同且共享 Swift 业务层；Flutter 服务 Android / Windows。平台 UI 分开不是自动成立的缺陷 | 优先共享领域规则、测试与状态语义，按变化职责拆文件；不要求三端控件同源 |
 | 生成代码稀释统计 | FRB 生成物占比随版本变化，不复用旧百分比 | 审查排除生成目录，修改 API 后检查生成漂移 |
 | Flutter 无障碍不足 | Semantics / textScaler 次数只是线索；全量 TalkBack / VoiceOver、大字号 / 减少动态效果仍未闭环 | 按模块任务实测，不能用 palette 测试替代 |
-| 桌面 / 手机完全不按宽度切换 | **已过时**：main.dart 的 LayoutBuilder 已按 760px 切换 | Windows 宿主窄窗和详情返回仍需实际验收 |
+| 桌面 / 手机完全不按宽度切换 | **已过时**：main.dart 的 LayoutBuilder 已按 760px 切换 | 本轮 Windows 宿主窄窗 / 回宽、独立详情栈与键盘基础已通过；完整平台验收仍有边界 |
 | Android 仅 Alpha.1、作业等未接入 | **已过时**：仓库已有 Alpha.2 发布与多模块真实只读记录 | 源码、发布包、实网三者分开；最新认证失败不能抹掉，也不能隐瞒 |
 | 只读成功不能证明写安全 | 采纳；已有单次写入 / 确认 / 回查，真实签到与预约尚未验收 | 人工逐次操作并回查，未知结果禁重发 |
 | 缺高频提醒 / 后台 / 作业提交 | 当前 Flutter 仍有这些差距 | 按平台能力和真实协议逐项实现，不以 UI 对齐替代 |
 | 首次登录解释不足 | Keychain、CAS、WebVPN 与路线切换确有多步门槛 | 就地说明依赖与失败后选择；不削弱会话或 Secure Cookie 约束 |
-| Windows 构建“已通” | 旧描述证据不足：本轮开始时只有工程 / CI / 结构验证 | 使用用户指定的 Parallels Windows 11 做主机构建、保险库合成往返与交互，另记真实结果 |
+| Windows 构建“已通” | 旧描述证据不足：本轮开始时只有工程 / CI / 结构验证 | 已使用用户指定 Parallels Windows 11 ARM 完成 x64 构建、保险库与合成集成；详见 Windows 记录，不宣称物理 x64 或真实业务通过 |
 
 ## 本轮自动化与人工检查
 
@@ -107,4 +107,4 @@
 | `flutter build apk --debug --target-platform android-arm64 --no-pub` | 成功；含 aarch64 Rust 动态库。插件 NDK 28 提示仍存在，沿用项目 NDK 27，未为提示更换工具链 |
 | Chromium / Serif Enforcer / 对比度 | 1440 / 390 检查通过；字体和宿主边界见上文 |
 
-本轮未改 TLS 信任、平台 Keychain API、权限或上游写协议；身份锁重构仍需关注退出 / 切路线与业务凭据清理。Android 签名 Release、覆盖升级与合成设备测试见 [发布记录](../archive/mirror/MIRROR-ANDROID-ALPHA3.md)；Windows 后续执行证据按实际结果补记。
+本轮未改 TLS 信任、平台 Keychain API、权限或上游写协议；身份锁重构仍需关注退出 / 切路线与业务凭据清理。Android 签名 Release、覆盖升级与合成设备测试见 [发布记录](../archive/mirror/MIRROR-ANDROID-ALPHA3.md)；Windows 主机两项集成、91 项 Flutter 回归、Rust 全量及 Debug / Release 已通过，证据与限制见 [Windows 记录](../archive/mirror/WINDOWS-2026-10-21.md)。

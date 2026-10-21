@@ -12,7 +12,7 @@
 | macOS | 已发布 Alpha，macOS 14+，DMG / ZIP 下载 |
 | Android | Alpha.3，Android 7.0+ / arm64 APK；课表、作业、博雅与校园服务；签到及图书馆操作已接入逐次确认，真实写入仍待验收 |
 | iOS / iPadOS | iOS 17+，原生工作台，从源码使用 Xcode 构建；暂无 App Store / TestFlight 入口 |
-| Windows | 开发中，仍待实机验收，暂无公开安装包 |
+| Windows | 开发中，PD Windows 11 基础构建与合成交互已通过；真实业务与分发仍待验收，暂无公开安装包 |
 
 首页默认链接已指向 `android-v0.1.0-alpha.3`，正式 APK 与校验和已公开。博雅选退课、CGYY 写入、作业提交与附件下载仍未迁移；开发实现与真实验收见 [本轮验收](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md)。避免用“四端功能完全一致”“全平台可下载”概括当前状态。主页使用已打码的真实 macOS 截图，并在截图和平台入口说明范围；不使用虚构设备界面、下载量或用户评价。首页设计参考与验证见 [LANDING-REDESIGN-2026-10-21.md](LANDING-REDESIGN-2026-10-21.md)。
 

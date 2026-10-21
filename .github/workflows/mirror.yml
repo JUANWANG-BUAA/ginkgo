@@ -89,6 +89,9 @@ jobs:
           flutter-version: 3.47.0
           channel: stable
           cache: true
+      - name: Check Windows PowerShell plugin paths
+        shell: powershell
+        run: scripts/check-mirror-windows-paths.ps1
       - run: flutter build windows --debug
         working-directory: flutter
       - run: flutter test test

@@ -37,3 +37,5 @@ Android API 37 arm64 模拟器，普通 Release 包完成 Alpha.2（versionCode 
 同一源码的 Android `write_actions_test.dart` 合成集成测试 1 项、`auth_test.dart` 2 项通过；Flutter 单元 / widget 当次 91 项通过。Rust、Swift 契约与全部回归结果详见评审落实记录。集成测试会另编译测试入口，因此最后安装与发布的均为上述普通 main Release APK。
 
 旧 Alpha.1 / Alpha.2 正式包可覆盖升级。若装的是不同签名的调试包，应先备份本地待办再自行卸载；卸载会清除本机数据。应用只打开浏览器下载，不自动安装。
+
+发布后复核：GitHub 公开资产摘要与上述 SHA-256 一致，标签指向 `f695a8d`。公开首页默认 APK / 校验和 / 发布说明均已切换至 Alpha.3；在旧 Alpha.2 正式包的「软件更新」点击检查，实际发现 Android 0.1.0-alpha.3 并显示本次发布说明，随后再次覆盖升级至 Alpha.3 成功。

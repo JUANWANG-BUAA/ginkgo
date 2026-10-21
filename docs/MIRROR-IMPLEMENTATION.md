@@ -8,11 +8,11 @@
 | --- | --- | --- |
 | macOS / iOS | 独立 SwiftUI 应用，共享 Swift 客户端、模型与工作区编排 | Apple 测试见 [TESTING](TESTING.md)；模拟器通过不代表真机、签名分发或真实写入通过 |
 | Android | Rust + Flutter；公开包 Alpha.3（build 4） | [发布记录](archive/mirror/MIRROR-ANDROID-ALPHA3.md)；已接入主要只读模块，签到及图书馆写路径属实验功能，真实写入未验收 |
-| Windows | 工程、构建 CI 和独立集成入口已建立 | 尚无 Windows 主机通过记录，也没有公开安装包 |
+| Windows | Parallels Windows 11 ARM 主机已通过 x64 Debug / Release 构建与合成集成 | [主机验证](archive/mirror/WINDOWS-2026-10-21.md)；系统保险库、宽窄切换与键盘基础通过，尚无公开包 / 物理 x64 / 真实学校业务验收 |
 
 既往真实账号只读检查已覆盖已接入模块，但最近一次集成登录失败；两次结果分别保留于 [验收记录](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md) 与 [认证异常诊断](_audit/2026-10-21-auth-redirect-incident.md)。不能把早先通过推广为当前所有网络均可用，也不能将工作树改动当作已经发布。
 
-手机一级入口为工作台、签到、课表、作业、预约；桌面使用分组侧栏与独立目的地栈。`main.dart` 已按可用宽度 760px 选择手机或桌面布局。Android 保险库使用 Keystore；Windows / macOS 镜像保险库分支仍需各自主机验收。
+手机一级入口为工作台、签到、课表、作业、预约；桌面使用分组侧栏与独立目的地栈。`main.dart` 已按可用宽度 760px 选择手机或桌面布局。Android 保险库使用 Keystore；Windows Credential Manager 合成往返已通过，macOS 镜像保险库分支仍待验收。
 
 ## 实现与维护边界
 
@@ -56,4 +56,4 @@ flutter build apk --debug --target-platform android-arm64
 flutter test integration_test/windows_test.dart -d windows
 ```
 
-CI 入口为 [mirror.yml](../.github/workflows/mirror.yml)。本地通过不代表远端 CI 或 Windows 主机通过。稳定入口不手写测试/fixture 总数；某次运行的结果、环境和限制保存在带日期的验收记录中。
+CI 入口为 [mirror.yml](../.github/workflows/mirror.yml)。本地通过不代表远端 CI 通过，平台结果只适用于记录中的环境与场景。稳定入口不手写测试/fixture 总数；某次运行的结果、环境和限制保存在带日期的验收记录中。

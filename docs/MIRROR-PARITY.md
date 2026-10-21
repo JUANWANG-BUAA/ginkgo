@@ -2,7 +2,7 @@
 
 更新：2026-10-21；对象为当前源码，公开包内容另见 [发布记录](archive/mirror/MIRROR-ANDROID-ALPHA3.md)。Apple 维持 SwiftUI，Android / Windows 使用 Rust + Flutter；共享领域语义和交互目标，不要求控件像素相同。
 
-下表的“已接入”表示代码链路存在。真实只读证据和最近登录失败均保留于 [验收归档](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md)，不推导真实写入或 Windows 已通过。
+下表的“已接入”表示代码链路存在。真实只读证据和最近登录失败均保留于 [验收归档](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md)，不推导真实写入或未覆盖的平台验收。
 
 | 模块 | Apple 定位（BUAA-Assistant/Features/） | Flutter 当前实现 | 缺口 / 待验收 |
 | --- | --- | --- | --- |
@@ -17,8 +17,8 @@
 | 本地待办 | Tasks/ | 按账号隔离的本机增删改、完成状态 | 精确截止时刻、提醒、跨设备同步 |
 | 校园通知 | Campus/CampusNoticesClient.swift | 列表、摘要和原文链接 | 外部浏览器往返与全量读屏 |
 | CGYY | Venue/CgyyClient.swift、CgyyView.swift | 场馆 / 校区 / 容量、日期时段和订单只读，语义资源状态色 | 写入 / 门锁码未迁移；非空订单和场馆日期覆盖仍需补 |
-| 导航 / 设置 | Auth/、Settings/、Core/Network/UpstreamRoute.swift | 760px 宽度切换手机 / 桌面；独立导航栈；账户、路线、缓存、自检、Android 更新与离线演示 | Windows 窄窗 / 键盘 / 读屏；验证码图片、外观偏好及后台能力 |
-| Windows | 原生 macOS 作为行为参照 | 工程、CI、独立 windows_test.dart | 尚无 Windows 主机构建 / 集成通过记录，无公开包 |
+| 导航 / 设置 | Auth/、Settings/、Core/Network/UpstreamRoute.swift | 760px 宽度切换手机 / 桌面；独立导航栈；账户、路线、缓存、自检、Android 更新与离线演示 | Windows 真实业务 / 完整读屏；验证码图片、外观偏好及后台能力 |
+| Windows | 原生 macOS 作为行为参照 | Parallels Windows 11 ARM 上的 x64 Debug / Release、保险库、独立详情栈、宽窄切换、Tab / Enter 已通过 | [验证边界](archive/mirror/WINDOWS-2026-10-21.md)：暂无公开包；物理 x64、干净系统依赖、读屏和真实业务仍待验收 |
 
 当前状态色在 [AppleDesign](../flutter/lib/apple_design.dart) 集中定义，覆盖签到、作业、图书馆与场馆的成功 / 待处理 / 待核实 / 错误 / 未激活呈现。文字仍保留具体业务状态，不由颜色反推“可签到 / 可预约”。
 

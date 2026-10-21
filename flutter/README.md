@@ -2,7 +2,7 @@
 
 Android 对齐 iPhone SwiftUI，Windows 对齐 macOS SwiftUI。Apple 应用保持独立。
 
-当前手机入口为工作台 / 签到 / 课表 / 作业 / 预约，宽屏切换桌面侧栏；各目的地保留独立导航。认证、主要只读模块、Android Keystore、离线演示和本地待办已接入；签到及图书馆实验写路径包含确认、单次提交与回查，真实写入未验收。Android Alpha.3 已发布，最近实网登录失败仍需复验；Windows 尚无主机通过记录。范围见 [实施现状](../docs/MIRROR-IMPLEMENTATION.md)、[模块对照](../docs/MIRROR-PARITY.md) 和 [待办](../docs/MIRROR-TODO.md)。
+当前手机入口为工作台 / 签到 / 课表 / 作业 / 预约，宽屏切换桌面侧栏；各目的地保留独立导航。认证、主要只读模块、Android Keystore、离线演示和本地待办已接入；签到及图书馆实验写路径包含确认、单次提交与回查，真实写入未验收。Android Alpha.3 已发布，最近实网登录失败仍需复验；Windows 已在 Parallels Windows 11 运行 x64 主机构建与合成桌面集成，暂无公开发行版。范围见 [实施现状](../docs/MIRROR-IMPLEMENTATION.md)、[模块对照](../docs/MIRROR-PARITY.md) 和 [待办](../docs/MIRROR-TODO.md)。
 
 ## 工具链
 
@@ -20,7 +20,7 @@ Android 对齐 iPhone SwiftUI，Windows 对齐 macOS SwiftUI。Apple 应用保�
 
 `../rust/rust-toolchain.toml` 和本目录 `.fvmrc` 固定版本；Cargo 和 Dart 锁文件入库。升级时同时更新 CI、工具链文件、Cargokit 的版本选择、依赖锁及本文，并重新执行两端验收。
 
-Android Studio 打开本目录；Windows 需要 Visual Studio C++ 桌面工具链。Flutter 的 Android `local.properties` 由本机生成，不入库。
+Android Studio 打开本目录；Windows 需要 Visual Studio C++ 桌面工具链。Windows PowerShell 5.1 路径回归用 `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-mirror-windows-paths.ps1`（仓库根目录）。Parallels 共享目录只用于复制源码，构建放在来宾本地 NTFS，具体环境与本轮结果见 [Windows 验证](../docs/archive/mirror/WINDOWS-2026-10-21.md)。Flutter 的 Android `local.properties` 由本机生成，不入库。
 
 ## 运行
 
@@ -40,7 +40,7 @@ flutter test integration_test/mirror_test.dart -d emulator-5554
 
 # Windows 主机
 flutter run -d windows
-flutter test integration_test/mirror_test.dart -d windows
+flutter test integration_test/windows_test.dart -d windows
 ```
 
 Rust Android 目标随选定设备确定；当前 ARM64 模拟器使用 `aarch64-linux-android`。安装缺失目标前可用 `rustup target list --installed` 检查。
@@ -53,7 +53,7 @@ Rust Android 目标随选定设备确定；当前 ARM64 模拟器使用 `aarch64
 - 设备上的 `mirror_test.dart` 仍有一个校区/日期/缓存长流程未收敛；`today/schedule/grades/homework` 与 `auth_test.dart` 可分别独立验收，不要用一个长文件的失败/通过替代模块结论。
 - `flutter test integration_test/...` 会把**测试入口**打包进 `build/app/outputs/flutter-apk/app-debug.apk`；直接安装并启动这个 APK 会停在 Flutter 启动页等待测试驱动。要看真实登录页/演示页，必须重新运行 `flutter build apk` 再安装。
 - 演示仓库仅保留进程内合成查询元数据，不读取 Swift 缓存，不保存账号。学院路/沙河分别使用共享样例中的两组房间，杭州为空；日期参与缓存隔离，不代表当天真实学校安排。
-- 当前 Windows 提供工程及 CI 入口，本机 macOS 不作为 Windows 构建/运行验收环境。
+- Windows 本轮结果来自 Parallels Windows 11 ARM 中运行的 x64 工具链，具体通过项与剩余验收见主机记录；宿主 macOS 的构建结果不替代 Windows。
 
 ## Vendored Cargokit
 

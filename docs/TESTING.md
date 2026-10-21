@@ -1,5 +1,7 @@
 # BUAA Assistant - 测试计划
 
+Rust / Flutter 本轮跨语言、锁恢复和平台结果见 [评审落实](_audit/2026-10-21-opus-review-followup.md)、[Android Alpha.3](archive/mirror/MIRROR-ANDROID-ALPHA3.md) 与 [PD Windows 11 主机验证](archive/mirror/WINDOWS-2026-10-21.md)；合成测试与真实业务验收分别记录。
+
 ## 已记录测试证据（2026-10-21）
 
 本次本机运行：macOS 全量 XCTest **220 项通过**；iOS 27.0 / Ginkgo iPhone 17 Pro 模拟器的共享单元测试 **220 项通过**，均无失败（`xcodebuild test` 退出码 0，`xcresulttool get test-results summary` 确认）。iOS 工程由既有 `project.yml` 经 XcodeGen 重新生成以纳入新增共享测试；本次未跑 UI / live 测试。Xcode 的模拟器系统版本解析警告未阻止测试。数量只表示本次运行，不作为后续源码总数承诺。

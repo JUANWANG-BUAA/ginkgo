@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:ginkgo_mirror/main.dart';
+import 'package:ginkgo_mirror/apple_widgets.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart' as live;
 import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
@@ -71,6 +73,43 @@ void main() {
     await tester.tap(find.byKey(const Key('desktop-sidebar-4')));
     await settle(tester);
     expect(find.text('作业详情'), findsOneWidget);
+    // Match the width breakpoint on the actual Windows engine. Native window
+    // resizing is a separate manual smoke; the test changes logical constraints.
+    await binding.setSurfaceSize(const Size(600, 900));
+    await settle(tester);
+    expect(find.byKey(const Key('desktop-sidebar')), findsNothing);
+    expect(find.byType(CupertinoTabBar), findsOneWidget);
+    await binding.setSurfaceSize(const Size(1280, 900));
+    await settle(tester);
+    expect(find.byKey(const Key('desktop-sidebar')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Windows keyboard focuses and activates a destination', (
+    tester,
+  ) async {
+    var activated = 0;
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: Center(
+          child: SizedBox(
+            width: 220,
+            child: AppleNavigationItem(
+              title: '合成导航',
+              icon: CupertinoIcons.calendar,
+              selected: false,
+              onPressed: () => activated++,
+            ),
+          ),
+        ),
+      ),
+    );
+    await settle(tester);
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await settle(tester);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await settle(tester);
+    expect(activated, 1);
     expect(tester.takeException(), isNull);
   });
 }

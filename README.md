@@ -51,7 +51,7 @@ xcodebuild test \
 
 ## Android / Windows 镜像
 
-Android / Windows 使用 Rust + Flutter，Apple 继续 SwiftUI。Android Alpha.3 已发布；课表、成绩、SPOC、图书馆、签到、博雅、研究生教务等主要只读链路已接入，也有真实账号只读记录。签到和图书馆写路径已有确认、单次提交与回查，但真实写入尚未验收；最近实网登录失败仍需复验。Windows 有工程和 CI，尚无主机通过记录或公开包。源码、公开版本与验收边界见 [镜像现状](docs/MIRROR-IMPLEMENTATION.md)、[模块对照](docs/MIRROR-PARITY.md) 和 [待办](docs/MIRROR-TODO.md)；架构边界见 [Rust + Flutter 计划](docs/RUST-FLUTTER-PORT.md)。
+Android / Windows 使用 Rust + Flutter，Apple 继续 SwiftUI。Android Alpha.3 已发布；课表、成绩、SPOC、图书馆、签到、博雅、研究生教务等主要只读链路已接入，也有真实账号只读记录。签到和图书馆写路径已有确认、单次提交与回查，但真实写入尚未验收；最近实网登录失败仍需复验。Windows 已在 Parallels Windows 11 完成 x64 构建、合成保险库与桌面集成验证；尚无公开包和真实学校业务验收。源码、公开版本与验收边界见 [镜像现状](docs/MIRROR-IMPLEMENTATION.md)、[模块对照](docs/MIRROR-PARITY.md) 和 [待办](docs/MIRROR-TODO.md)；架构边界见 [Rust + Flutter 计划](docs/RUST-FLUTTER-PORT.md)。
 
 ## 界面预览
 
