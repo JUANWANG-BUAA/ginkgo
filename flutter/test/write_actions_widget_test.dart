@@ -86,6 +86,23 @@ void main() {
     },
   );
 
+  testWidgets('unsigned status resolves its contrast in dark mode', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      CupertinoApp(
+        theme: const CupertinoThemeData(brightness: Brightness.dark),
+        home: CheckInPage(service: WriteService()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final label = find.text('未签到');
+    final expected = CupertinoColors.secondaryLabel.resolveFrom(
+      tester.element(label),
+    );
+    expect(tester.widget<Text>(label).style!.color, expected);
+  });
+
   testWidgets(
     'seat reservation confirms exact date and seat and rechecks bookings',
     (tester) async {

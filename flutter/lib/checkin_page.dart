@@ -406,7 +406,7 @@ class _CheckInPageState extends State<CheckInPage> {
   }
 
   Widget _courseRow(CheckInCourse course) {
-    final (icon, color, label) = switch (course.status) {
+    final (icon, semanticColor, label) = switch (course.status) {
       CheckInStatus.signed => (
         CupertinoIcons.checkmark_circle_fill,
         CupertinoColors.systemGreen,
@@ -414,7 +414,7 @@ class _CheckInPageState extends State<CheckInPage> {
       ),
       CheckInStatus.notSigned => (
         CupertinoIcons.circle,
-        CupertinoColors.tertiaryLabel,
+        CupertinoColors.secondaryLabel,
         '未签到',
       ),
       CheckInStatus.unknown => (
@@ -423,6 +423,7 @@ class _CheckInPageState extends State<CheckInPage> {
         '待确认',
       ),
     };
+    final color = semanticColor.resolveFrom(context);
     final details = [
       '${course.beginsAt}–${course.endsAt}',
       if (course.classroomName != null) course.classroomName!,
