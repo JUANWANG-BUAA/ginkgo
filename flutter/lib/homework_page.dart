@@ -319,9 +319,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              widget.service.isDemo
-                  ? '离线合成样例，不连接学校账号；状态与时间用于演示 SPOC 迁移后的列表。'
-                  : '来源：SPOC · 希冀尚未接入 · 提交请前往原站点',
+              widget.service.isDemo ? '演示数据' : '来源：SPOC',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,

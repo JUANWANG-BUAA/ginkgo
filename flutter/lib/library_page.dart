@@ -19,9 +19,10 @@ class LibraryPage extends StatefulWidget {
 class _LibraryPageState extends State<LibraryPage> {
   LibraryBookingsResponse? bookings;
   LibraryVenuesResponse? venues;
-  String? error;
-  String? notice;
-  bool busy = false;
+  String? bookingError, venueError;
+  bool loadingBookings = false, loadingVenues = false;
+  Future<void>? _bookingTask, _venueTask;
+  bool get busy => loadingBookings || loadingVenues;
 
   @override
   void initState() {
@@ -29,56 +30,88 @@ class _LibraryPageState extends State<LibraryPage> {
     load();
   }
 
-  Future<void> load({bool force = false}) async {
-    if (busy) return;
+  // Each section publishes as soon as its own request completes. Waiting here
+  // only controls the pull-to-refresh indicator, never the rendering of data.
+  Future<void> load({bool force = false}) =>
+      Future.wait([_loadVenues(force: force), _loadBookings(force: force)]);
+
+  Future<void> _loadVenues({bool force = false}) =>
+      _venueTask ??= _fetchVenues(force: force).whenComplete(() {
+        _venueTask = null;
+      });
+
+  Future<void> _fetchVenues({required bool force}) async {
     setState(() {
-      busy = true;
-      error = null;
+      loadingVenues = true;
+      venueError = null;
     });
     try {
-      final results = await Future.wait<Object>([
-        widget.service.libraryVenues(forceRefresh: force),
-        widget.service.libraryBookings(forceRefresh: force),
-      ]);
-      final venueResult = results[0] as LibraryVenuesResponse;
-      final bookingResult = results[1] as LibraryBookingsResponse;
+      final result = await widget.service.libraryVenues(forceRefresh: force);
       if (!mounted) return;
-      final failure = bookingResult.failure ?? venueResult.failure;
-      final hasData =
-          bookingResult.bookings.isNotEmpty ||
-          venueResult.venues.isNotEmpty ||
-          bookings != null ||
-          venues != null;
       setState(() {
-        busy = false;
-        if (failure != null && !hasData) {
-          error = failureMessage(failure);
-          return;
-        }
-        if (bookingResult.failure == null ||
-            bookingResult.bookings.isNotEmpty) {
-          bookings = bookingResult;
-        }
-        if (venueResult.failure == null || venueResult.venues.isNotEmpty) {
-          venues = venueResult;
-        }
-        error = null;
-        notice = failure == null
+        if (result.failure == null || result.stale) venues = result;
+        venueError = result.failure == null
             ? null
-            : '${failureMessage(failure)}，正在显示上次结果。';
+            : failureMessage(result.failure);
       });
     } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        busy = false;
-        if (bookings == null && venues == null) {
-          error = failureMessage(null);
-        } else {
-          notice = '${failureMessage(null)}，正在显示上次结果。';
-        }
-      });
+      if (mounted) setState(() => venueError = failureMessage(null));
+    } finally {
+      if (mounted) setState(() => loadingVenues = false);
     }
   }
+
+  Future<void> _loadBookings({bool force = false}) =>
+      _bookingTask ??= _fetchBookings(force: force).whenComplete(() {
+        _bookingTask = null;
+      });
+
+  Future<void> _fetchBookings({required bool force}) async {
+    setState(() {
+      loadingBookings = true;
+      bookingError = null;
+    });
+    try {
+      final result = await widget.service.libraryBookings(forceRefresh: force);
+      if (!mounted) return;
+      setState(() {
+        if (result.failure == null || result.stale) bookings = result;
+        bookingError = result.failure == null
+            ? null
+            : failureMessage(result.failure);
+      });
+    } catch (_) {
+      if (mounted) setState(() => bookingError = failureMessage(null));
+    } finally {
+      if (mounted) setState(() => loadingBookings = false);
+    }
+  }
+
+  Widget _sectionStatus({
+    required String id,
+    required bool loading,
+    required bool hasSnapshot,
+    required String? failure,
+    required VoidCallback retry,
+  }) => AppleListTile(
+    key: Key('library-$id-status'),
+    leading: loading
+        ? const CupertinoActivityIndicator()
+        : const Icon(
+            CupertinoIcons.exclamationmark_triangle,
+            color: CupertinoColors.systemOrange,
+            size: 20,
+          ),
+    title: Text(loading ? (hasSnapshot ? '正在更新…' : '正在加载…') : failure!),
+    subtitle: hasSnapshot ? const Text('保留上次结果') : null,
+    trailing: loading
+        ? null
+        : CupertinoButton(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            onPressed: retry,
+            child: const Text('重试'),
+          ),
+  );
 
   void _push(Widget page) {
     Navigator.of(context).push(CupertinoPageRoute<void>(builder: (_) => page));
@@ -111,61 +144,20 @@ class _LibraryPageState extends State<LibraryPage> {
                 AppleListTile(
                   key: const Key('library-public-stats'),
                   title: const Text('在馆人数与空间余量'),
-                  subtitle: const Text('两校区官网公开信息，无需预约登录'),
+                  subtitle: const Text('学院路 · 沙河'),
                   leading: const Icon(CupertinoIcons.person_2),
                   trailing: const CupertinoListTileChevron(),
                   onTap: () => _push(LibraryStatsPage(service: widget.service)),
                 ),
               ],
             ),
-            if (notice != null)
-              AppleSection(
-                children: [
-                  AppleListTile(
-                    leading: const Icon(
-                      CupertinoIcons.exclamationmark_triangle,
-                      color: CupertinoColors.systemOrange,
-                      size: 20,
-                    ),
-                    title: Text(notice!),
-                  ),
-                ],
-              ),
-            if (error != null)
-              AppleSection(
-                children: [
-                  AppleEmptyState(
-                    title: error!,
-                    description: '请检查网络后重试；旧结果会保留。',
-                    error: true,
-                    action: '重试',
-                    onAction: () => load(force: true),
-                  ),
-                ],
-              )
-            else if (venues == null && bookings == null)
-              AppleSection(
-                children: const [
-                  Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        CupertinoActivityIndicator(),
-                        SizedBox(width: 10),
-                        Text('正在读取图书馆座位数据…'),
-                      ],
-                    ),
-                  ),
-                ],
-              )
-            else ...[
+            ...[
               _bookingSection(),
               AppleSection(
                 children: [
                   AppleListTile(
                     key: const Key('library-history'),
                     title: const Text('全部预约记录'),
-                    subtitle: const Text('按页查看进行中、已结束与已取消记录'),
                     leading: const Icon(CupertinoIcons.clock),
                     trailing: const CupertinoListTileChevron(),
                     onTap: () =>
@@ -174,23 +166,6 @@ class _LibraryPageState extends State<LibraryPage> {
                 ],
               ),
               _venueSection(),
-              AppleSection(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      widget.service.isDemo
-                          ? '离线合成样例，不连接图书馆账号；仅用于演示只读座位层级。'
-                          : '真实账号只读数据；预约、签到、暂离、离馆与取消尚未开放。',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: CupertinoColors.secondaryLabel,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
               const SizedBox(height: 96),
             ],
           ],
@@ -204,7 +179,15 @@ class _LibraryPageState extends State<LibraryPage> {
     return AppleSection(
       header: const Text('当前预约'),
       children: [
-        if (items.isEmpty)
+        if (loadingBookings || bookingError != null)
+          _sectionStatus(
+            id: 'bookings',
+            loading: loadingBookings,
+            hasSnapshot: bookings != null,
+            failure: bookingError,
+            retry: () => _loadBookings(force: true),
+          ),
+        if (bookings != null && items.isEmpty)
           const AppleListTile(
             leading: Icon(
               CupertinoIcons.book,
@@ -212,7 +195,6 @@ class _LibraryPageState extends State<LibraryPage> {
               size: 22,
             ),
             title: Text('当前没有进行中的预约'),
-            subtitle: Text('预约座位后，这里会显示学校返回的当前记录。'),
           )
         else
           for (final booking in items)
@@ -274,9 +256,17 @@ class _LibraryPageState extends State<LibraryPage> {
     final items = venues?.venues ?? const <LibraryVenue>[];
     return AppleSection(
       header: const Text('选择场馆'),
-      footer: const Text('空闲数来自学校实时座位接口；进入场馆后依次选择区域、时段与座位。'),
+      footer: const Text('空闲数以学校实时查询为准。'),
       children: [
-        if (items.isEmpty)
+        if (loadingVenues || venueError != null)
+          _sectionStatus(
+            id: 'venues',
+            loading: loadingVenues,
+            hasSnapshot: venues != null,
+            failure: venueError,
+            retry: () => _loadVenues(force: true),
+          ),
+        if (venues != null && items.isEmpty)
           const AppleListTile(
             title: Text('暂无可用场馆'),
             subtitle: Text('学校接口返回了空列表，请稍后刷新。'),

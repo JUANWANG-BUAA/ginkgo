@@ -82,7 +82,7 @@ class BykcDetailPage extends StatelessWidget {
               ),
               AppleSection(
                 header: const Text('课程简介'),
-                footer: const Text('本页仅展示已读取的信息。选课、退选和签到仍需前往学校系统。'),
+                footer: const Text('选课安排以学校系统为准。'),
                 children: [field('原文', text('summary'))],
               ),
               const SizedBox(height: 96),

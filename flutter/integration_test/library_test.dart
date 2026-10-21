@@ -22,7 +22,7 @@ void main() {
     expect(find.text('选择场馆'), findsOneWidget);
     expect(find.text('学院路馆'), findsOneWidget);
     expect(find.text('空闲 12 / 30'), findsOneWidget);
-    expect(find.textContaining('仅用于演示只读座位层级'), findsOneWidget);
+    expect(find.byKey(const Key('library-public-stats')), findsOneWidget);
 
     await tap(tester, '全部预约记录', scrollKey: 'library-scroll');
     await show(tester, find.text('已取消'), scrollKey: 'library-history-scroll');

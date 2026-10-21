@@ -774,7 +774,7 @@ void main() {
     expect(find.text('使用中'), findsOneWidget);
     expect(find.text('选择场馆'), findsOneWidget);
     expect(find.text('空闲 12 / 30'), findsOneWidget);
-    expect(find.textContaining('仅用于演示只读座位层级'), findsOneWidget);
+    expect(find.byKey(const Key('library-public-stats')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

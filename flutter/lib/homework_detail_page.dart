@@ -140,7 +140,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
               widget.item.statusDetail != null)
             AppleSection(children: [_field('上游状态', widget.item.statusDetail!)]),
           AppleSection(
-            footer: const Text('提交和附件请在 SPOC 官网处理；打开后需自行定位本项作业。'),
+            footer: const Text('附件与提交请前往 SPOC。'),
             children: [
               AppleListTile(
                 title: const Text('在 SPOC 官网继续处理'),

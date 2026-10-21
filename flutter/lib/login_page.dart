@@ -31,6 +31,7 @@ class _LoginPageState extends State<LoginPage> {
   final captcha = TextEditingController();
   bool remember = true;
   bool busy = false;
+  bool showPassword = false;
   late bool needCaptcha = widget.initialCaptcha;
   String? error;
 
@@ -96,104 +97,180 @@ class _LoginPageState extends State<LoginPage> {
       context,
     ),
     child: SafeArea(
-      child: AutofillGroup(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 36, 20, 28),
-          children: [
-            const Icon(
-              CupertinoIcons.leaf_arrow_circlepath,
-              size: 56,
-              color: AppleDesign.accent,
-            ),
-            const SizedBox(height: 18),
-            const Text(
-              'Ginkgo 银杏',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '北航校园服务 · Android 与 Windows 镜像',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 28),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: AutofillGroup(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(height: constraints.maxHeight > 650 ? 48 : 8),
+                    Center(
+                      child: Container(
+                        width: 84,
+                        height: 84,
+                        decoration: BoxDecoration(
+                          color: AppleDesign.accent.withValues(alpha: .1),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: const Icon(
+                          CupertinoIcons.leaf_arrow_circlepath,
+                          size: 46,
+                          color: AppleDesign.accent,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 22),
+                    const Text(
+                      'Ginkgo 银杏',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -.7,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '让校园生活井然有序',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: CupertinoColors.secondaryLabel.resolveFrom(
+                          context,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 44),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, bottom: 12),
+                      child: Text(
+                        '统一身份认证',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: CupertinoColors.secondaryLabel.resolveFrom(
+                            context,
+                          ),
+                        ),
+                      ),
+                    ),
+                    ClipRSuperellipse(
+                      borderRadius: BorderRadius.circular(18),
+                      child: ColoredBox(
+                        key: const Key('login-fields'),
+                        color: CupertinoColors.secondarySystemGroupedBackground
+                            .resolveFrom(context),
+                        child: Column(
+                          children: [
+                            _field(
+                              key: const Key('login-account'),
+                              controller: account,
+                              placeholder: '学号',
+                              label: '学号',
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [AutofillHints.username],
+                            ),
+                            Container(
+                              height: .5,
+                              margin: const EdgeInsets.only(left: 48),
+                              color: CupertinoColors.separator.resolveFrom(
+                                context,
+                              ),
+                            ),
+                            _field(
+                              key: const Key('login-password'),
+                              controller: password,
+                              placeholder: '密码',
+                              label: '密码',
+                              obscure: true,
+                              textInputAction: needCaptcha
+                                  ? TextInputAction.next
+                                  : TextInputAction.done,
+                              autofillHints: const [AutofillHints.password],
+                              onSubmitted: (_) => submit(),
+                            ),
+                            if (needCaptcha)
+                              _field(
+                                key: const Key('login-captcha'),
+                                controller: captcha,
+                                placeholder: '验证码',
+                                label: '验证码',
+                                textInputAction: TextInputAction.done,
+                                onSubmitted: (_) => submit(),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text('记住密码', style: TextStyle(fontSize: 15)),
+                        ),
+                        CupertinoSwitch(
+                          value: remember,
+                          onChanged: busy
+                              ? null
+                              : (value) => setState(() => remember = value),
+                        ),
+                      ],
+                    ),
+                    if (error != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 14),
+                        child: Semantics(
+                          liveRegion: true,
+                          child: Text(
+                            error!,
+                            style: const TextStyle(
+                              color: CupertinoColors.systemRed,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 24),
+                    CupertinoButton.filled(
+                      key: const Key('login-submit'),
+                      borderRadius: BorderRadius.circular(16),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      onPressed: busy ? null : submit,
+                      child: busy
+                          ? const CupertinoActivityIndicator(
+                              color: CupertinoColors.white,
+                            )
+                          : const Text(
+                              '登录',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      '记住的密码保存在本机，退出登录时删除',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: CupertinoColors.secondaryLabel.resolveFrom(
+                          context,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    CupertinoButton(
+                      onPressed: busy ? null : widget.onDemo,
+                      child: const Text('先看看离线演示'),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 28),
-            AppleSection(
-              header: const Text('统一身份认证'),
-              footer: const Text('密码只交给本地 Rust 会话并写入系统安全存储，页面不记录密码。'),
-              children: [
-                _field(
-                  key: const Key('login-account'),
-                  controller: account,
-                  placeholder: '学号',
-                  label: '学号',
-                  textInputAction: TextInputAction.next,
-                  autofillHints: const [AutofillHints.username],
-                ),
-                _field(
-                  key: const Key('login-password'),
-                  controller: password,
-                  placeholder: '密码',
-                  label: '密码',
-                  obscure: true,
-                  textInputAction: needCaptcha
-                      ? TextInputAction.next
-                      : TextInputAction.done,
-                  autofillHints: const [AutofillHints.password],
-                  onSubmitted: (_) => submit(),
-                ),
-                if (needCaptcha)
-                  _field(
-                    key: const Key('login-captcha'),
-                    controller: captcha,
-                    placeholder: '验证码',
-                    label: '验证码',
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: (_) => submit(),
-                  ),
-                AppleListTile(
-                  title: const Text('记住密码'),
-                  subtitle: const Text('交给 Android Keystore / 系统钥匙串保存'),
-                  additionalInfo: CupertinoSwitch(
-                    value: remember,
-                    onChanged: busy
-                        ? null
-                        : (value) => setState(() => remember = value),
-                  ),
-                ),
-              ],
-            ),
-            if (error != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 14),
-                child: Text(
-                  error!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: CupertinoColors.systemRed,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            const SizedBox(height: 20),
-            CupertinoButton.filled(
-              key: const Key('login-submit'),
-              onPressed: busy ? null : submit,
-              child: busy
-                  ? const CupertinoActivityIndicator(
-                      color: CupertinoColors.white,
-                    )
-                  : const Text('登录'),
-            ),
-            const SizedBox(height: 10),
-            CupertinoButton(
-              onPressed: busy ? null : widget.onDemo,
-              child: const Text('先看看离线演示'),
-            ),
-          ],
+          ),
         ),
       ),
     ),
@@ -215,13 +292,36 @@ class _LoginPageState extends State<LoginPage> {
       key: key,
       controller: controller,
       placeholder: placeholder,
-      obscureText: obscure,
+      enabled: !busy,
+      obscureText: obscure && !showPassword,
+      prefix: Padding(
+        padding: const EdgeInsets.only(left: 16),
+        child: Icon(
+          obscure ? CupertinoIcons.lock : CupertinoIcons.person,
+          size: 20,
+          color: CupertinoColors.secondaryLabel.resolveFrom(context),
+        ),
+      ),
+      suffix: !obscure
+          ? null
+          : CupertinoButton(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              onPressed: busy
+                  ? null
+                  : () => setState(() => showPassword = !showPassword),
+              child: Icon(
+                showPassword ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
+                size: 20,
+                semanticLabel: showPassword ? '隐藏密码' : '显示密码',
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              ),
+            ),
       enableSuggestions: !obscure,
       autocorrect: false,
       textInputAction: textInputAction,
       autofillHints: autofillHints,
       onSubmitted: onSubmitted,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
       decoration: const BoxDecoration(),
     ),
   );

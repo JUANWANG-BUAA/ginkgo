@@ -206,7 +206,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             AppleSection(
               header: const Text('数据与存储'),
-              footer: const Text('查询快照最多保留 5 分钟，失败时可能显示旧结果。清除后重新读取，不删除本地待办。'),
+              footer: const Text('查询结果 5 分钟内复用，刷新失败时保留旧结果。'),
               children: [
                 AppleListTile(
                   leading: const Icon(
@@ -273,9 +273,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             AppleSection(
               header: const Text('关于 Ginkgo'),
-              footer: const Text(
-                '银杏 · 校园学习与生活\nAndroid 镜像测试版；签到、预约等上游写操作暂未开放。',
-              ),
+              footer: const Text('银杏 · 校园学习与生活\nAndroid Alpha'),
               children: [
                 AppleListTile(
                   title: const Text('版本'),
