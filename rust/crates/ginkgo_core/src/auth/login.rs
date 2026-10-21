@@ -1,5 +1,5 @@
 //! Login-page fetch and manual redirect chain (API.md §1.2–§1.6).
-use super::{cas, session::Session, LoginPage, LOGIN_URL};
+use super::{cas, redirect, session::Session, LoginPage, LOGIN_URL};
 use crate::{
     foundation::{
         http::{HttpRequest, HttpResponse, HttpTransport},
@@ -26,7 +26,7 @@ pub async fn fetch_login_page<T: HttpTransport>(
                 return Err(AppError::new(ErrorCode::RedirectLimit));
             }
             let location = response.header("location").ok_or_else(AppError::changed)?;
-            let target = webvpn::resolve_redirect(location, &url).ok_or_else(AppError::changed)?;
+            let target = redirect::resolve_get(location, &url)?;
             if is_login_page_target(&target) {
                 url = target;
                 continue;
@@ -76,8 +76,7 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
                 return Err(AppError::new(ErrorCode::RedirectLimit));
             }
             let location = response.header("location").ok_or_else(AppError::changed)?;
-            let target =
-                webvpn::resolve_redirect(location, &current_url).ok_or_else(AppError::changed)?;
+            let target = redirect::resolve_get(location, &current_url)?;
             response = session
                 .send_with_fallback(HttpRequest::get(&target))
                 .await?;

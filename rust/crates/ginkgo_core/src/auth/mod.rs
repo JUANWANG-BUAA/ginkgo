@@ -11,6 +11,7 @@
 pub mod cas;
 pub mod login;
 pub mod platform;
+pub(crate) mod redirect;
 pub mod session;
 pub mod uc;
 pub mod vault;

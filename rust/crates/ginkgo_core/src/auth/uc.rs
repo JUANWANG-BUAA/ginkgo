@@ -1,10 +1,7 @@
 //! UC activation and session verification (API.md §1.7–§1.8).
-use super::{cas, session::Session, UserProfile, UC_ACTIVATION_URL, UC_STATUS_URL};
+use super::{cas, redirect, session::Session, UserProfile, UC_ACTIVATION_URL, UC_STATUS_URL};
 use crate::{
-    foundation::{
-        http::{HttpRequest, HttpTransport},
-        webvpn,
-    },
+    foundation::http::{HttpRequest, HttpTransport},
     AppError, ErrorCode,
 };
 use serde::Deserialize;
@@ -18,7 +15,7 @@ pub async fn activate_uc<T: HttpTransport>(session: &Session<T>) -> Result<(), A
                 return Err(AppError::new(ErrorCode::RedirectLimit));
             }
             let location = response.header("location").ok_or_else(AppError::changed)?;
-            url = webvpn::resolve_redirect(location, &url).ok_or_else(AppError::changed)?;
+            url = redirect::resolve_get(location, &url)?;
             continue;
         }
         if response.status == 483 || cas::is_access_policy_denied(&response.body) {

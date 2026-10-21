@@ -49,9 +49,7 @@ pub async fn login<T: HttpTransport>(session: &Session<T>) -> Result<String, App
             let Some(location) = response.header("location") else {
                 return Err(AppError::changed());
             };
-            let Some(next) = webvpn::resolve_redirect(location, &response.final_url) else {
-                return Err(AppError::changed());
-            };
+            let next = crate::auth::redirect::resolve_get(location, &response.final_url)?;
             let Ok(parsed) = url::Url::parse(&next) else {
                 return Err(library_auth_error());
             };

@@ -4,7 +4,7 @@
 //! domain rules live in features::checkin. The app session stays in memory and
 //! never crosses the bridge.
 use crate::{
-    auth::{cas, session::Session},
+    auth::{cas, redirect, session::Session},
     features::checkin::{self, CheckInCourse, IClassSession},
     foundation::{
         http::{HttpRequest, HttpResponse, HttpTransport},
@@ -45,9 +45,7 @@ pub async fn resolve_login_name<T: HttpTransport>(
             let Some(location) = response.header("location") else {
                 return Err(AppError::changed());
             };
-            let Some(next) = webvpn::resolve_redirect(location, &response.final_url) else {
-                return Err(AppError::changed());
-            };
+            let next = redirect::resolve_get(location, &response.final_url)?;
             if hop == 7 {
                 return Err(AppError::new(ErrorCode::RedirectLimit));
             }

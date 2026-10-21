@@ -1,6 +1,6 @@
 //! Cookie-owning HTTP session. Direct and WebVPN cookies are isolated so a
 //! gateway login can never overwrite or leak a campus session.
-use super::cas;
+use super::{cas, redirect};
 use crate::{
     foundation::{
         cookie::CookieJar,
@@ -115,8 +115,7 @@ impl<T: HttpTransport> Session<T> {
             let Some(location) = response.header("location") else {
                 return Ok(response);
             };
-            let next = webvpn::resolve_redirect(location, &response.final_url)
-                .ok_or_else(AppError::changed)?;
+            let next = redirect::resolve_get(location, &response.final_url)?;
             current = HttpRequest::get(next);
         }
         Err(AppError::new(crate::ErrorCode::RedirectLimit))

@@ -34,6 +34,161 @@ fn uc_ok() -> HttpResponse {
 }
 
 #[tokio::test]
+async fn uc_activation_known_http_cas_redirect_uses_https_secure_cookie_and_one_password_post() {
+    let legacy_cas = "http://sso.buaa.edu.cn/login?service=https%3A%2F%2Fuc.buaa.edu.cn%2Fapi%2Fcallback%3Ftarget%3Da%252Bb%252Fc%2525&dup=1&dup=2&literal=a+b";
+    let secure_cas = legacy_cas.replacen("http:", "https:", 1);
+    let home = "https://uc.buaa.edu.cn/";
+    let callback = "https://uc.buaa.edu.cn/api/callback?ticket=ST-synthetic";
+    let transport = MockTransport::with_responses(vec![
+        login_page(),
+        HttpResponse::new(302, LOGIN_URL, "")
+            .with_header("Location", home)
+            .with_set_cookie("CASTGC=TGT-synthetic; Path=/; Secure; HttpOnly"),
+        HttpResponse::new(200, home, "<html>home</html>"),
+        HttpResponse::new(302, UC_ACTIVATION_URL, "").with_header("Location", legacy_cas),
+        HttpResponse::new(302, &secure_cas, "").with_header("Location", callback),
+        HttpResponse::new(200, callback, "activated"),
+        uc_ok(),
+    ]);
+    let session = Session::new(transport.clone());
+    assert!(matches!(
+        login(&session, &credentials()).await.expect("activated"),
+        LoginResult::SignedIn(_)
+    ));
+    let requests = transport.requests();
+    assert_eq!(requests.len(), 7);
+    assert_eq!(
+        requests
+            .iter()
+            .filter(|r| r.method == HttpMethod::Post)
+            .count(),
+        1
+    );
+    assert_eq!(
+        requests[4].url, secure_cas,
+        "only the scheme changes, including duplicate and encoded query values"
+    );
+    assert_eq!(requests[4].method, HttpMethod::Get);
+    assert_eq!(
+        requests[4].header_value("Cookie"),
+        Some("CASTGC=TGT-synthetic")
+    );
+    assert!(requests.iter().all(|r| r.url.starts_with("https://")));
+}
+
+#[tokio::test]
+async fn unknown_http_redirects_fail_before_following_in_auth_and_generic_get_chains() {
+    for location in [
+        "http://uc.buaa.edu.cn/api/login",
+        "http://sso.buaa.edu.cn/cas/login",
+        "http://sso.buaa.edu.cn/login/extra",
+        "http://sso.buaa.edu.cn:8080/login",
+        "http://sso.buaa.edu.cn:80/login",
+        "http://user@sso.buaa.edu.cn/login",
+        "http://sso.buaa.edu.cn.evil.example/login",
+    ] {
+        for flow in 0..3 {
+            let transport = MockTransport::with_responses(vec![
+                HttpResponse::new(302, LOGIN_URL, "").with_header("Location", location),
+                HttpResponse::new(200, location, FORM_PAGE),
+            ]);
+            let session = Session::new(transport.clone());
+            let error = match flow {
+                0 => activate_uc(&session)
+                    .await
+                    .expect_err("unknown insecure UC hop"),
+                1 => fetch_login_page(&session)
+                    .await
+                    .expect_err("unknown insecure CAS hop"),
+                _ => session
+                    .send_following_redirects(crate::foundation::http::HttpRequest::get(LOGIN_URL))
+                    .await
+                    .expect_err("unknown insecure business GET hop"),
+            };
+            assert_eq!(error.detail.as_deref(), Some("insecure_redirect"));
+            assert_eq!(
+                transport.request_count(),
+                1,
+                "no request is sent to an unconfirmed HTTP target"
+            );
+        }
+    }
+}
+
+#[tokio::test]
+async fn generic_get_and_cas_entry_upgrade_only_the_known_http_location() {
+    let legacy =
+        "http://sso.buaa.edu.cn/login?service=https%3A%2F%2Fexample.test%2Fcb%3Fx%3D%252B%252F";
+    let secure = legacy.replacen("http:", "https:", 1);
+    for flow in 0..2 {
+        let transport = MockTransport::with_responses(vec![
+            HttpResponse::new(302, LOGIN_URL, "").with_header("Location", legacy),
+            HttpResponse::new(200, &secure, FORM_PAGE),
+        ]);
+        let session = Session::new(transport.clone());
+        if flow == 0 {
+            assert!(matches!(
+                fetch_login_page(&session).await.unwrap(),
+                LoginPage::Form { .. }
+            ));
+        } else {
+            session
+                .send_following_redirects(crate::foundation::http::HttpRequest::get(LOGIN_URL))
+                .await
+                .unwrap();
+        }
+        assert_eq!(transport.requests()[1].url, secure);
+        assert!(transport
+            .requests()
+            .iter()
+            .all(|request| request.method == HttpMethod::Get));
+    }
+}
+
+#[tokio::test]
+async fn secure_cookie_rule_is_unchanged_and_form_post_actions_are_not_rewritten() {
+    let form_action = "https://sso.buaa.edu.cn/login?service=unchanged%2B";
+    let body = FORM_PAGE.replace(r#"action="/login""#, &format!(r#"action="{form_action}""#));
+    let transport = MockTransport::with_responses(vec![
+        HttpResponse::new(200, LOGIN_URL, body)
+            .with_set_cookie("CASTGC=TGT-synthetic; Path=/; Secure; HttpOnly"),
+        HttpResponse::new(500, form_action, "synthetic"),
+    ]);
+    let session = Session::new(transport.clone());
+    assert_eq!(
+        login(&session, &credentials())
+            .await
+            .expect_err("upstream rejected")
+            .code,
+        ErrorCode::ServiceUnavailable
+    );
+    let requests = transport.requests();
+    assert_eq!(requests.len(), 2);
+    assert_eq!(requests[1].method, HttpMethod::Post);
+    assert_eq!(
+        requests[1].url, form_action,
+        "form POST targets and encoded query values are unchanged"
+    );
+    assert_eq!(
+        requests[1].header_value("Cookie"),
+        Some("CASTGC=TGT-synthetic")
+    );
+    let mut cookies = crate::foundation::cookie::CookieJar::new();
+    cookies.store(
+        LOGIN_URL,
+        "CASTGC=TGT-synthetic; Path=/; Secure; HttpOnly",
+        0,
+    );
+    assert!(cookies
+        .header_for("http://sso.buaa.edu.cn/login", 1)
+        .is_none());
+    assert_eq!(
+        cookies.header_for(LOGIN_URL, 1).as_deref(),
+        Some("CASTGC=TGT-synthetic")
+    );
+}
+
+#[tokio::test]
 async fn captcha_page_returns_a_challenge_without_submitting() {
     let captcha_page = FORM_PAGE.replace(
         "</form>",
