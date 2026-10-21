@@ -276,7 +276,7 @@ class GraduateCreditProgress extends StatelessWidget {
             )
           else
             Text(
-              '学分信息不完整',
+              required == 0 ? '本项无最低学分要求' : '学分信息不完整',
               style: TextStyle(
                 color: CupertinoColors.secondaryLabel.resolveFrom(context),
                 fontSize: 14,

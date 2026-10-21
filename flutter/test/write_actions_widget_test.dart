@@ -8,7 +8,8 @@ import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 
-import 'mirror_widget_test.dart' show ControlledService, checkInFixture;
+import 'mirror_widget_test.dart'
+    show ControlledService, checkInFixture, libraryBookingsFixture;
 
 class WriteService extends ControlledService {
   int writes = 0, readbacks = 0;
@@ -38,7 +39,15 @@ class WriteService extends ControlledService {
   @override
   Future<LibraryBookingsResponse> libraryBookings({bool forceRefresh = false}) {
     if (forceRefresh) readbacks++;
-    return super.libraryBookings(forceRefresh: forceRefresh);
+    return Future.value(
+      writes == 0
+          ? const LibraryBookingsResponse(
+              bookings: [],
+              fromCache: false,
+              stale: false,
+            )
+          : libraryBookingsFixture,
+    );
   }
 }
 
@@ -116,6 +125,20 @@ void main() {
             .onPressed,
         isNull,
       );
+      // The original route must receive the readback, not only a new page.
+      final navigator = tester.state<NavigatorState>(
+        find.byType(Navigator).first,
+      );
+      for (var i = 0; i < 3; i++) {
+        navigator.pop();
+        await tester.pumpAndSettle();
+      }
+      expect(find.text('当前没有进行中的预约'), findsNothing);
+      expect(
+        find.text(libraryBookingsFixture.bookings.single.title),
+        findsOneWidget,
+      );
+      expect(service.readbacks, 1);
       expect(tester.takeException(), isNull);
     },
   );

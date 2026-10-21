@@ -148,7 +148,7 @@ class _LibraryPageState extends State<LibraryPage> {
     }
     if (!mounted) return;
     setState(() => mutationNotice = message);
-    await load(force: true);
+    await _reservationChanged();
     if (mounted) {
       setState(() {
         submitting = false;
@@ -342,6 +342,15 @@ class _LibraryPageState extends State<LibraryPage> {
     return bits.join(' · ');
   }
 
+  Future<void> _reservationChanged() async {
+    // Finish any older read before forcing the post-write snapshot. The original
+    // page stays mounted beneath the three selection routes.
+    await _bookingTask;
+    if (mounted) {
+      await _loadBookings(force: true);
+    }
+  }
+
   Widget _venueSection() {
     final items = venues?.venues ?? const <LibraryVenue>[];
     return AppleSection(
@@ -378,7 +387,11 @@ class _LibraryPageState extends State<LibraryPage> {
                 color: CupertinoColors.tertiaryLabel,
               ),
               onTap: () => _push(
-                _LibraryAreaPage(service: widget.service, venue: venue),
+                _LibraryAreaPage(
+                  service: widget.service,
+                  venue: venue,
+                  onReservationChanged: _reservationChanged,
+                ),
               ),
             ),
       ],
@@ -387,7 +400,12 @@ class _LibraryPageState extends State<LibraryPage> {
 }
 
 class _LibraryAreaPage extends StatefulWidget {
-  const _LibraryAreaPage({required this.service, required this.venue});
+  const _LibraryAreaPage({
+    required this.service,
+    required this.venue,
+    required this.onReservationChanged,
+  });
+  final Future<void> Function() onReservationChanged;
   final MirrorService service;
   final LibraryVenue venue;
   @override
@@ -494,6 +512,7 @@ class _LibraryAreaPageState extends State<_LibraryAreaPage> {
                             builder: (_) => _LibrarySlotPage(
                               service: widget.service,
                               area: area,
+                              onReservationChanged: widget.onReservationChanged,
                             ),
                           ),
                         ),
@@ -509,7 +528,12 @@ class _LibraryAreaPageState extends State<_LibraryAreaPage> {
 }
 
 class _LibrarySlotPage extends StatefulWidget {
-  const _LibrarySlotPage({required this.service, required this.area});
+  const _LibrarySlotPage({
+    required this.service,
+    required this.area,
+    required this.onReservationChanged,
+  });
+  final Future<void> Function() onReservationChanged;
   final MirrorService service;
   final LibraryArea area;
   @override
@@ -609,6 +633,7 @@ class _LibrarySlotPageState extends State<_LibrarySlotPage> {
                               service: widget.service,
                               area: widget.area,
                               slot: slot,
+                              onReservationChanged: widget.onReservationChanged,
                             ),
                           ),
                         ),
@@ -628,7 +653,9 @@ class _LibrarySeatPage extends StatefulWidget {
     required this.service,
     required this.area,
     required this.slot,
+    required this.onReservationChanged,
   });
+  final Future<void> Function() onReservationChanged;
   final MirrorService service;
   final LibraryArea area;
   final LibrarySlot slot;
@@ -684,12 +711,10 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
     } catch (_) {
       /* Unknown result is never a retry prompt. */
     }
-    if (!mounted) return;
-    setState(() => mutationNotice = message);
-    await load();
-    try {
-      await widget.service.libraryBookings(forceRefresh: true);
-    } catch (_) {}
+    if (mounted) setState(() => mutationNotice = message);
+    // Publish the readback to the original page even if this route was popped
+    // during submission. Seat availability must not delay the booking result.
+    await Future.wait([widget.onReservationChanged(), if (mounted) load()]);
     if (mounted) {
       setState(() {
         submitting = false;

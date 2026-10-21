@@ -384,9 +384,7 @@ class _CheckInPageState extends State<CheckInPage> {
       else
         AppleSection(
           header: Text(widget.history ? '该日期课程' : '当天课程'),
-          footer: const Text(
-            '签到状态来自 iclass 实时查询；同一课程出现多条不一致记录时显示“待确认”，不会据此提交签到。',
-          ),
+          footer: const Text('来源：iclass。记录不一致时需先核实。'),
           children: [for (final course in data.courses) _courseRow(course)],
         ),
       AppleSection(
@@ -430,67 +428,89 @@ class _CheckInPageState extends State<CheckInPage> {
       if (course.classroomName != null) course.classroomName!,
       if (course.teacherName != null) course.teacherName!,
     ];
-    return AppleListTile(
+    final canSubmit =
+        !widget.history &&
+        course.status == CheckInStatus.notSigned &&
+        !course.conflicting;
+    return Padding(
       key: Key('checkin-course-${course.id}'),
-      minimumHeight: 68,
-      leading: Icon(icon, size: 26, color: color),
-      title: Text(course.courseName),
-      subtitle: Text(
-        details.join(' · '),
-        maxLines: 2,
-        style: TextStyle(
-          fontSize: 14,
-          color: CupertinoColors.secondaryLabel.resolveFrom(context),
-        ),
-      ),
-      trailing:
-          !widget.history &&
-              course.status == CheckInStatus.notSigned &&
-              !course.conflicting
-          ? CupertinoButton(
-              key: Key('checkin-submit-${course.id}'),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              onPressed:
-                  submitting != null ||
-                      busy ||
-                      awaitingVerification.contains(course.id)
-                  ? null
-                  : () => submit(course),
-              child: submitting == course.id
-                  ? const CupertinoActivityIndicator()
-                  : Text(
-                      awaitingVerification.contains(course.id) ? '待核实' : '签到',
-                    ),
-            )
-          : null,
-      additionalInfo: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 3),
+                child: Icon(icon, size: 25, color: color),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  course.courseName,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           Text(
-            label,
+            details.join(' · '),
             style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: color,
+              fontSize: 14,
+              height: 1.4,
+              color: CupertinoColors.secondaryLabel.resolveFrom(context),
             ),
           ),
-          if (course.mergedRecordCount > 1)
-            Text(
-              '合并 ${course.mergedRecordCount} 条',
-              style: TextStyle(
-                fontSize: 12,
-                color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 12,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
               ),
-            ),
-          if (course.conflicting)
-            Text(
-              '记录不一致',
-              style: TextStyle(
-                fontSize: 12,
-                color: CupertinoColors.systemOrange.resolveFrom(context),
-              ),
-            ),
+              if (course.conflicting)
+                const Text(
+                  '记录不一致',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: CupertinoColors.systemOrange,
+                  ),
+                ),
+              if (canSubmit)
+                CupertinoButton.tinted(
+                  key: Key('checkin-submit-${course.id}'),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 8,
+                  ),
+                  onPressed:
+                      submitting != null ||
+                          busy ||
+                          awaitingVerification.contains(course.id)
+                      ? null
+                      : () => submit(course),
+                  child: submitting == course.id
+                      ? const CupertinoActivityIndicator()
+                      : Text(
+                          awaitingVerification.contains(course.id)
+                              ? '待核实'
+                              : '签到',
+                        ),
+                ),
+            ],
+          ),
         ],
       ),
     );

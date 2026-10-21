@@ -78,6 +78,7 @@
 | 56 | 镜像会话/只读刷新边界 | bridge读取与清理可能并发；认证恢复失败直接返回 | 不改变上游端点/参数/成功码；bridge并行读与身份/缓存变更互斥，恢复失败保留已有快照，显式退出清理保存账号 | Rust lifecycle/route logout/expired snapshot合成回归；macOS ScheduleViewModel/GradeViewModel generation与失败保留行为 |
 | 57 | Android 更新 | macOS Releases 仅含 DMG/ZIP | 沿用官方 GitHub Releases GET，Android 使用独立 android-v 语义版本和 arm64 APK 资产；Cookie 隔离、正式/预发布渠道分离，无学校写操作 | Core/Update/UpdateChecker.swift；2026-10-20 公开 API 仅见 macOS 包；新增合成 updates.android 契约 |
 | 58 | SPOC教师上下文 | 镜像忽略课程skjs | queryKclb现有响应中sskcid→kcid关联skjs，缺值保留None；不新增接口 | SpocHomeworkClient.swift:29,168–180；homework.course_context合成契约与缓存回归 |
+| 61 | 图书馆加密范围与镜像状态 | §5.3仅confirm加密、镜像写入未实现 | 更正为预约及§5.6生命周期加密；更新镜像写入与真实验收边界；记录UBAA直连端口差异 | LibraryClient.swift / CheckInClient.swift；LocalSigninApi.kt:263–268；镜像提交9f2a8a0 |
 | 60 | 镜像签到/图书馆写入 | 全部关闭 | 依现有源码接通手动签到、座位预约、类型匹配取消与生命周期；不重发、二次确认、提交后回查；真实写入待验收 | §5.3/§5.6/§7.2；CheckInClient.performSignIn、LibraryClient.reserve/perform/cancel；合成测试 |
 | 59 | BYKC课程目录详情 | 镜像裁剪时间/人数/校区/简介 | 按BykcClient.course投影现有目录字段，详情无需新请求；签到配置仅布尔存在性 | BykcClient.swift:course；EDUCATION-DATA-MAP §2.3；目录契约/缓存隐私回归 |
 
@@ -569,11 +570,11 @@ xq=1&year=2025-2026
 - 响应外层 `{ code: Int, message|msg, data }`，**`code` 为 0 或 1 都算成功**（LLB:293-301）。
 - 字段名大量存在 `snake_case`/`camelCase` 双写变体（表中用 `|` 列出），解析层两种都要接受。
 
-> 镜像实现（2026-10-20）：Rust/Flutter 已接入 `space/pcTopFor`、`space/pick`、`Space/map`、`Space/seat` 与 `index/subscribe` 的**只读**路径，并通过共享 fixture、mock HTTP 与 Android 合成设备测试。`space/confirm`、`space/signin`、`space/leave`、`space/checkout`、`space/cancel` 等写入未实现，页面没有提交入口；写入需要独立评审、二次确认与提交后回查。真实上游只读验收尚未执行。
+> 镜像实现（2026-10-21）：上述只读链路已接入。按用户本轮授权，`space/confirm`、`space/signin`、`space/leave`、`space/checkout` 及类型匹配的取消已贯通 Rust/Flutter；逐次确认、单次提交、未知结果不重发、提交后回查。只读历史与新写入仍待真实账号复验，合成测试不替代上游验收。
 
 ### 5.3 预约请求加密（AES-CBC）
 
-仅 `space/confirm` 需要（LLB:242）：
+`space/confirm` 的预约明文如下（LLB:242）；签到/暂离/离馆也使用 AES-CBC，但明文与日期规则见 §5.6：
 
 ```
 明文 JSON：{ "seat_id": ..., "segment": ..., "day": "2026-10-13", "start_time": "", "end_time": "" }
@@ -756,6 +757,7 @@ Judge 作业详情页同时包含开始/截止时间、满分、题目表格、�
 - 认证入口：`https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter`。正常 SSO 会话跳转后，最终 URL 查询中含 `loginName`；本项目从重定向 Location/最终 URL 提取，不记录该值。
 - app session：GET `https://iclass.buaa.edu.cn:8347/app/user/login.action`，查询参数 `password`（空值）、`phone`（上一步 loginName）、`userLevel=1`、`verificationType=2`、`verificationUrl`（空值）。本次观察到 HTTP 200、`STATUS=0`，响应 `result` 含 `id` 和 `sessionId`；两值仅用于内存请求，不持久化。
 - 当天列表：GET `https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action`，查询参数 `id`、`dateStr=yyyyMMdd`，请求头 `sessionId`。本次观察到 HTTP 200、`STATUS=0`、`total=2`、返回 2 条记录；字段名包括 `id`、`courseName`、`classBeginTime`、`classEndTime`、`signStatus` 等。脱敏观察到 `signStatus` 值 `0` 和 `1`；BBAA DTO 将其解释为未签到/已签到。
+- 源码差异复核（2026-10-21）：当前 UBAA `LocalSigninApi.kt:263–268` 的签到辅助函数在直连采用 HTTP 8081（提交带 `/eschool/`），WebVPN采用 HTTPS 8347（提交不带该前缀）。Ginkgo macOS与Rust镜像沿用HTTPS 8347；尚无本轮直连写入实测，不宣称两条路线完全等价，也不自动降级到明文HTTP。
 - 历史日期查询沿用同一 GET 与 `dateStr=yyyyMMdd`，依据当前 `CheckInClient.loadOnDate(account:date:)`（92–94行）与225–230行；返回字段/状态解析不变。镜像限制日期不晚于学校今天；同日期快照复用、跨日期隔离；无课程/未签到不推断缺勤。⚠️ 本次历史日期尚未真实账号验证，不能用先前当天响应替代。
 - 此次真实请求经官方 WebVPN 网关转发。当前开发环境直连 iclass 时 TLS 握手失败；本项目因此仅为只读 iclass 查询增加窄范围回退：直连遇到 `secureConnectionFailed` 后改由 `d.buaa.edu.cn` 转发，并按 BBAA `LocalWebVpnSupport.kt` 的 URL 编码和重定向规则处理。固定向量和模拟请求链测试通过；2026-10-15 CUA 实测收到 WebVPN 网关 HTTP 200 页面，但尚未提取到 loginName。当前错误会明确提示 WebVPN 尚未返回 iclass 认证信息，不能据此宣称签到状态已成功读取。
 - WebVPN CookieStorage 为隔离的进程内临时存储，不写入文件或 UserDefaults。若只读回退收到网关登录页，ViewModel 将暴露 WebVPN 认证不可用状态；UI 在 Keychain 有用户选择保存的凭据时提供显式会话重建按钮，未保存凭据时提示重新登录，不会自动读取/保存新的密码。该恢复按钮仅重建现有 WebVPN CAS 会话，不发送签到写请求；重建成功仍需 iclass 回查成功才算状态已确认。

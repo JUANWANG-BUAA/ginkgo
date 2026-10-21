@@ -134,7 +134,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('学分信息不完整'), findsNWidgets(2));
+      expect(find.text('学分信息不完整'), findsOneWidget);
+      expect(find.text('本项无最低学分要求'), findsOneWidget);
       expect(find.text('尚需 未确认'), findsOneWidget);
       expect(find.text('尚需 0'), findsNWidgets(2));
       expect(find.text('待考核 5'), findsOneWidget);
