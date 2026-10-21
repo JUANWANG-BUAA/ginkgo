@@ -11,5 +11,6 @@ cargo fmt --manifest-path rust/Cargo.toml --all --check
 cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets --all-features --locked -- -D warnings
 cargo test --manifest-path rust/Cargo.toml --workspace --locked
 cd flutter
+(cd rust_builder/cargokit/build_tool && dart pub get)
 flutter analyze
 flutter test test

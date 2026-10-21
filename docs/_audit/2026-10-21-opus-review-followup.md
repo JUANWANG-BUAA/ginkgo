@@ -109,4 +109,6 @@
 
 远端 CI 补充：运行 39581062229 的 Rust 契约、Android 构建、Windows 构建 / 测试 / 产物检查均通过；bindings 因 CI 未安装 rustfmt 而得到未格式化的 Rust 生成物，触发差异门禁。补装组件，并在生成脚本先检查 rustfmt；本地重新生成无差异，缺失工具的故障注入正确退出。修复后的远端结果另以对应 CI 运行记录为准。
 
+随后生成门禁已通过，冷环境分析暴露 vendored Cargokit 独立 Dart 包未解析依赖；本地已有构建缓存曾掩盖此项。移开该包的 .dart_tool 可复现，执行其 dart pub get 后分析恢复通过。CI 与本地检查入口补齐这一准备步骤，不排除目录或降低诊断级别。
+
 本轮未改 TLS 信任、平台 Keychain API、权限或上游写协议；身份锁重构仍需关注退出 / 切路线与业务凭据清理。Android 签名 Release、覆盖升级与合成设备测试见 [发布记录](../archive/mirror/MIRROR-ANDROID-ALPHA3.md)；Windows 主机两项集成、91 项 Flutter 回归、Rust 全量及 Debug / Release 已通过，证据与限制见 [Windows 记录](../archive/mirror/WINDOWS-2026-10-21.md)。

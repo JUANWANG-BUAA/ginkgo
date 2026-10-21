@@ -57,6 +57,8 @@ Rust Android 目标随选定设备确定；当前 ARM64 模拟器使用 `aarch64
 
 ## Vendored Cargokit
 
+独立 build_tool Dart 包需先解析依赖，冷目录的全量分析前执行 `(cd rust_builder/cargokit/build_tool && dart pub get)`；`scripts/check-mirror.sh` 与 CI 已包含此步。产品构建会由 Cargokit 自行准备工具，不能用本机已有缓存推断冷环境分析通过。
+
 来自 FRB 2.12.0 官方 `integrate` 模板，保留 MIT 许可。为本工程做了有限适配：
 
 1. Gradle 9 使用注入的 `ExecOperations`。

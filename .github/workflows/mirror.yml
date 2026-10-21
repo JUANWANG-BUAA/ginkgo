@@ -40,6 +40,9 @@ jobs:
       - run: cargo install cargo-expand --version 1.0.127 --locked
       - run: flutter pub get
         working-directory: flutter
+      - name: Resolve standalone Cargokit analyzer dependencies
+        run: dart pub get
+        working-directory: flutter/rust_builder/cargokit/build_tool
       - run: scripts/generate-mirror-bridge.sh
       - run: git diff --exit-code -- flutter/lib/src/rust rust/crates/ginkgo_flutter_bridge/src/frb_generated.rs
       - run: python3 scripts/check-mirror-windows-cmake.py
