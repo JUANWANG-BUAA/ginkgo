@@ -126,12 +126,21 @@ impl<T: HttpTransport> Session<T> {
     /// mode sees a school access-policy block. POST bodies are never replayed.
     pub async fn send_with_fallback(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {
         let safe_to_retry = request.method == HttpMethod::Get;
-        let response = self.send(request.clone()).await;
+        // Capture the route actually used by this attempt. Another concurrent
+        // read may switch Automatic -> WebVpn while this direct request waits.
+        let attempted_route = self.route();
+        let response = self.send_routed(request.clone(), attempted_route).await;
         let should_fallback = match &response {
             Ok(response) => response.status == 483 || cas::is_access_policy_denied(&response.body),
             Err(_) => safe_to_retry,
         };
-        if !should_fallback || !self.activate_automatic_webvpn_fallback() || !safe_to_retry {
+        if !should_fallback || attempted_route != RouteMode::Automatic || !safe_to_retry {
+            return response;
+        }
+        // Every failed automatic direct read gets its own one-time fallback,
+        // even when a peer already switched the shared route. Writes never do.
+        self.activate_automatic_webvpn_fallback();
+        if self.route() != RouteMode::WebVpn {
             return response;
         }
         self.send_routed(request, RouteMode::WebVpn).await
@@ -217,4 +226,46 @@ fn is_gateway(url: &str) -> bool {
         .ok()
         .and_then(|url| url.host_str().map(str::to_ascii_lowercase))
         .is_some_and(|host| host == webvpn::GATEWAY_HOST)
+}
+
+#[cfg(test)]
+mod concurrent_fallback_tests {
+    use super::*;
+    use crate::foundation::http::TransportError;
+    use std::sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    };
+    struct RacingTransport {
+        gate: tokio::sync::Barrier,
+        gateway_calls: Arc<AtomicUsize>,
+    }
+    impl HttpTransport for RacingTransport {
+        async fn send(&self, request: HttpRequest) -> Result<HttpResponse, TransportError> {
+            if request.url.contains("d.buaa.edu.cn") {
+                self.gateway_calls.fetch_add(1, Ordering::SeqCst);
+                Ok(HttpResponse::new(200, request.url, "synthetic"))
+            } else {
+                self.gate.wait().await;
+                Err(TransportError::Unavailable)
+            }
+        }
+    }
+    #[tokio::test]
+    async fn concurrent_automatic_reads_both_fallback_after_direct_failure() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let session = Session::new(RacingTransport {
+            gate: tokio::sync::Barrier::new(2),
+            gateway_calls: calls.clone(),
+        });
+        let (a, b) = tokio::join!(
+            session.send_with_fallback(HttpRequest::get("https://iclass.buaa.edu.cn:8346/")),
+            session.send_with_fallback(HttpRequest::get("https://gsmis.buaa.edu.cn/")),
+        );
+        assert!(
+            a.is_ok() && b.is_ok(),
+            "a route switch by another read must not suppress this read's fallback"
+        );
+        assert_eq!(calls.load(Ordering::SeqCst), 2);
+    }
 }

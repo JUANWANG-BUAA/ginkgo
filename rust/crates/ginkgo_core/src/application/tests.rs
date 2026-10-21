@@ -1744,3 +1744,31 @@ async fn sign_out_after_route_change_removes_saved_account() {
     service.sign_out().await;
     assert!(service.vault.names().is_empty());
 }
+
+#[tokio::test]
+async fn concurrent_school_recovery_joins_one_login_chain() {
+    use crate::foundation::http::HttpTransport;
+    #[derive(Clone)]
+    struct Yielding(MockTransport);
+    impl HttpTransport for Yielding {
+        async fn send(&self, request: HttpRequest) -> Result<HttpResponse, TransportError> {
+            tokio::task::yield_now().await;
+            self.0.send(request).await
+        }
+    }
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend(login_chain("sy2501001", "fixture"));
+    let transport = MockTransport::with_responses(responses);
+    let service = SessionService::new(
+        crate::auth::session::Session::new(Yielding(transport.clone())),
+        MemoryVault::default(),
+    );
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .unwrap();
+    let before = transport.request_count();
+    let (a, b) = tokio::join!(service.silent_login(), service.silent_login());
+    assert!(a.is_ok() && b.is_ok());
+    assert_eq!(transport.request_count() - before, 5);
+}

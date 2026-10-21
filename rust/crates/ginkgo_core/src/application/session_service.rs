@@ -23,7 +23,13 @@ use crate::{
     foundation::http::HttpTransport,
     AppError, ErrorCode,
 };
-use std::{collections::BTreeMap, sync::Mutex};
+use std::{
+    collections::BTreeMap,
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Mutex,
+    },
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RoutePreference {
@@ -100,6 +106,9 @@ pub struct SessionService<T: HttpTransport, V: CredentialVault> {
     pub(crate) library_history: Mutex<SnapshotCache<i32, LibraryHistoryPage>>,
     /// booking.lib business token. Memory only.
     pub(crate) library_token: Mutex<Option<String>>,
+    recovery_gate: tokio::sync::Mutex<()>,
+    school_generation: AtomicU64,
+    gateway_generation: AtomicU64,
     pub(crate) graduate_request_gate: tokio::sync::Mutex<()>,
     pub(crate) library_login_gate: tokio::sync::Mutex<()>,
 }
@@ -131,6 +140,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             library_bookings: Mutex::new(LibraryBookingCache::default()),
             library_history: Mutex::new(SnapshotCache::default()),
             library_token: Mutex::new(None),
+            recovery_gate: tokio::sync::Mutex::new(()),
+            school_generation: AtomicU64::new(0),
+            gateway_generation: AtomicU64::new(0),
             graduate_request_gate: tokio::sync::Mutex::new(()),
             library_login_gate: tokio::sync::Mutex::new(()),
         }
@@ -319,6 +331,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     }
 
     pub(crate) async fn silent_login(&self) -> Result<(), AppError> {
+        let generation = self.school_generation.load(Ordering::Acquire);
+        let _recovery = self.recovery_gate.lock().await;
+        if self.school_generation.load(Ordering::Acquire) != generation {
+            return Ok(());
+        }
         let account = self.current_account()?;
         let credentials = self
             .vault
@@ -327,6 +344,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         match auth::login(&self.session, &credentials).await? {
             LoginResult::SignedIn(profile) => {
                 *self.profile.lock().expect("profile lock") = Some(profile);
+                self.school_generation.fetch_add(1, Ordering::Release);
                 Ok(())
             }
             LoginResult::CaptchaRequired(_) => Err(AppError::new(ErrorCode::CaptchaRequired)),
@@ -338,6 +356,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     /// in again. On failure the route returns to Automatic so the gateway can
     /// never leave every later request stranded.
     pub(crate) async fn ensure_webvpn_session(&self) -> Result<(), AppError> {
+        let generation = self.gateway_generation.load(Ordering::Acquire);
+        let _recovery = self.recovery_gate.lock().await;
+        if self.gateway_generation.load(Ordering::Acquire) != generation {
+            return Ok(());
+        }
         // Called after an explicit gateway challenge. A cookie may be only
         // the pre-login gateway session, not proof of authenticated access.
         let account = self.current_account()?;
@@ -348,6 +371,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         let result = auth::establish_webvpn_session(&self.session, &credentials).await;
         if result.is_err() {
             self.session.set_route(RouteMode::Automatic);
+        } else {
+            self.gateway_generation.fetch_add(1, Ordering::Release);
         }
         result
     }

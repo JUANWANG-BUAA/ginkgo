@@ -106,3 +106,9 @@ Release 构建要求外部签名配置，禁止静默使用 debug key。默认�
 设备测试辅助show使用Key精确类型匹配；PageStorageKey与ValueKey不相等。替换CupertinoApp.home不会自动丢弃已push的Navigator路由，测试切换独立页面前需卸载原root。自检临时目录使用已存在root.createTemp(prefix)，不能对不存在的子目录调用createTemp。
 
 本机插件报告NDK28.2版本提示，保留项目既有NDK27；debug smoke与aarch64交叉检查均通过，release结果以发布记录为准。不因提示升级整个工具链。Android签名依据官方文档 https://developer.android.com/studio/publish/app-signing 。
+
+## 2026-10-21 普通Wi-Fi自动路线排查
+
+确定复现：两个自动直连GET同时失败，首个切换全局WebVPN后，第二个因activate返回false而丢失自身回退。Barrier回归在旧实现失败，修复按实际尝试路线判定后通过；只读各自最多回退一次，写操作不使用该路径。并发学校/网关恢复串行且成功代数合并；重复学校登录测试只产生一条5请求认证链。reqwest增加6秒连接上限，保留30秒响应预算；图书馆首页/iclass/研究生读取45秒总预算，超时丢弃HTTP任务，不积累后台孤儿请求。
+
+用户“切页才显示”仍未在本机受控延迟/后台tab返回两项widget复现，不把网络修复宣称为该视觉问题已完全验收。未使用真实账号或保存真实页面截图。

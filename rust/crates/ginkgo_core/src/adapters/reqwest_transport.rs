@@ -18,6 +18,8 @@ impl ReqwestTransport {
     pub fn new() -> Result<Self, TransportError> {
         let client = Client::builder()
             .redirect(Policy::none())
+            // Bound unreachable DNS/TCP/TLS before a safe read can route-fallback.
+            .connect_timeout(Duration::from_secs(6))
             .timeout(Duration::from_secs(30))
             .user_agent(USER_AGENT)
             .build()
@@ -39,11 +41,19 @@ impl HttpTransport for ReqwestTransport {
         let client = self.client.clone();
         let handle = self.runtime.handle().clone();
         async move {
-            handle
-                .spawn(execute(client, request))
-                .await
-                .map_err(|_| TransportError::Unavailable)?
+            let task = handle.spawn(execute(client, request));
+            // Dropping a timed-out read must also stop its HTTP task, otherwise
+            // repeated refreshes accumulate orphan work on the private runtime.
+            let _abort = AbortOnDrop(task.abort_handle());
+            task.await.map_err(|_| TransportError::Unavailable)?
         }
+    }
+}
+
+struct AbortOnDrop(tokio::task::AbortHandle);
+impl Drop for AbortOnDrop {
+    fn drop(&mut self) {
+        self.0.abort();
     }
 }
 
