@@ -46,6 +46,39 @@ jobs:
         working-directory: flutter
         run: flutter build windows --release --no-pub --target lib/main.dart
 
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --yes --no-progress
+
+      - name: Build and verify single-file installer
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace '^windows-v', ''
+          $bundle = (Resolve-Path 'flutter\build\windows\x64\runner\Release').Path
+          $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          if (-not (Test-Path -LiteralPath $iscc -PathType Leaf)) {
+            throw 'Inno Setup compiler was not installed'
+          }
+          & $iscc "/DAppVersion=$version" "/DBundleDir=$bundle" 'packaging\windows\Ginkgo.iss'
+          if ($LASTEXITCODE -ne 0) {
+            throw "Inno Setup failed with exit code $LASTEXITCODE"
+          }
+
+          $installer = "dist\Ginkgo-$version-windows-x64-setup.exe"
+          if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) {
+            throw "Missing installer: $installer"
+          }
+          $installDir = Join-Path $env:RUNNER_TEMP 'GinkgoInstalled'
+          $installArgs = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', ('/DIR="{0}"' -f $installDir))
+          $process = Start-Process -FilePath (Resolve-Path $installer).Path -ArgumentList $installArgs -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Installer failed with exit code $($process.ExitCode)" }
+          if (-not (Test-Path -LiteralPath (Join-Path $installDir 'ginkgo_mirror.exe') -PathType Leaf)) {
+            throw 'Installer did not place ginkgo_mirror.exe'
+          }
+          $uninstaller = Join-Path $installDir 'unins000.exe'
+          $process = Start-Process -FilePath $uninstaller -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Uninstaller failed with exit code $($process.ExitCode)" }
+
       - name: Package and verify Windows release
         shell: pwsh
         run: |
@@ -72,8 +105,12 @@ jobs:
             $archive.Dispose()
           }
 
-          $hash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$hash  $zipName" | Set-Content -LiteralPath checksums.txt -Encoding ascii
+          $installer = Get-Item -LiteralPath "dist\Ginkgo-$version-windows-x64-setup.exe"
+          $lines = @(
+            "$((Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($installer.Name)"
+            "$((Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant())  $zipName"
+          )
+          $lines | Set-Content -LiteralPath checksums.txt -Encoding ascii
           Get-Content -LiteralPath checksums.txt
 
       - name: Create Windows prerelease
@@ -85,9 +122,9 @@ jobs:
 
             ## 安装
 
-            1. 下载 `Ginkgo-0.1.0-alpha.4-windows-x64.zip` 并核对 `checksums.txt` 中的 SHA-256。
-            2. 完整解压到普通可写目录，保留 exe、DLL 与 `data` 文件夹。
-            3. 运行 `ginkgo_mirror.exe`；缺少运行库时先安装 Microsoft Visual C++ Redistributable。
+            推荐下载 `Ginkgo-*-windows-x64-setup.exe`，核对 `checksums.txt` 中的 SHA-256 后运行。安装器按当前用户安装，不需要管理员权限，并提供开始菜单与卸载入口。
+
+            便携 ZIP 需完整解压到普通可写目录，保留 exe、DLL 与 `data` 文件夹。若系统缺少 Microsoft Visual C++ Redistributable，请先安装微软官方运行库。
 
             当前包未签名，SmartScreen 可能提示未知发布者。请只从本 Release 或已核对摘要的来源安装。
 
@@ -96,18 +133,19 @@ jobs:
             - 宽屏分组侧栏，逻辑宽度低于 760px 时切换到底部导航。
             - 今天、签到、课表、作业、预约、成绩、博雅、研究生教务与设置入口。
             - Windows Credential Manager 合成凭据往返、独立详情返回栈、Tab 焦点与 Enter 激活通过。
-            - Rust 核心、Flutter 测试与 Windows 集成测试通过后重新构建 `main.dart` Release。
+            - Rust 核心、Flutter 测试与 Windows 集成测试通过后重新构建 `main.dart` Release；安装器执行静默安装和卸载检查。
 
             ## 已知限制
 
             - 未在物理 x64 和干净系统完成运行库、输入法、多屏与完整读屏验收。
             - 未完成真实学校账号登录或上游写入验收；写操作仍须逐次人工确认。
-            - 未签名，无安装器和应用内更新；功能未与 macOS 完全对齐。
+            - 未签名，尚无应用内更新；功能未与 macOS 完全对齐。
 
             完整证据与边界见仓库 `docs/archive/mirror/MIRROR-WINDOWS-ALPHA4.md`。
           draft: false
           prerelease: true
           fail_on_unmatched_files: true
           files: |
+            dist/Ginkgo-*-windows-x64-setup.exe
             Ginkgo-*-windows-x64.zip
             checksums.txt
