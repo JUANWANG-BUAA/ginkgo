@@ -2319,3 +2319,234 @@ async fn concurrent_school_recovery_joins_one_login_chain() {
     assert!(a.is_ok() && b.is_ok());
     assert_eq!(transport.request_count() - before, 5);
 }
+
+/// Offline auth service: expired business reads, then a configurable CAS 500.
+/// Yield before every response so both business readers can enter recovery.
+#[derive(Clone, Default)]
+struct RecoveryFailureTransport {
+    requests: std::sync::Arc<std::sync::Mutex<Vec<HttpRequest>>>,
+    password_posts: std::sync::Arc<std::sync::atomic::AtomicUsize>,
+    allow_login: std::sync::Arc<std::sync::atomic::AtomicBool>,
+}
+
+impl crate::foundation::http::HttpTransport for RecoveryFailureTransport {
+    async fn send(&self, request: HttpRequest) -> Result<HttpResponse, TransportError> {
+        use std::sync::atomic::Ordering;
+        tokio::task::yield_now().await;
+        let upstream = crate::foundation::webvpn::unwrap(&request.url);
+        self.requests
+            .lock()
+            .expect("requests")
+            .push(request.clone());
+        if upstream == LOGIN_URL {
+            if request.method == HttpMethod::Post {
+                let fields: std::collections::BTreeMap<_, _> = url::form_urlencoded::parse(
+                    request.body.as_deref().unwrap_or_default().as_bytes(),
+                )
+                .into_owned()
+                .collect();
+                assert_eq!(
+                    fields.get("username").map(String::as_str),
+                    Some("sy2501001")
+                );
+                assert_eq!(
+                    fields.get("password").map(String::as_str),
+                    Some("pa+ss/word")
+                );
+                self.password_posts.fetch_add(1, Ordering::Relaxed);
+                return Ok(if self.allow_login.load(Ordering::Relaxed) {
+                    HttpResponse::new(302, &request.url, "")
+                        .with_header(
+                            "Location",
+                            "https://sso.buaa.edu.cn/login?ticket=ST-synthetic",
+                        )
+                        .with_set_cookie("CASTGC=TGT-synthetic; Path=/; Secure; HttpOnly")
+                } else {
+                    HttpResponse::new(500, &request.url, "synthetic authentication failure")
+                });
+            }
+            return Ok(HttpResponse::new(200, &request.url, FORM_PAGE));
+        }
+        if upstream == UC_STATUS_URL {
+            return Ok(HttpResponse::new(
+                200,
+                &request.url,
+                uc_ok("sy2501001", "synthetic").body,
+            ));
+        }
+        if upstream.contains("/buaafreeclass/") {
+            return Ok(HttpResponse::new(401, &request.url, ""));
+        }
+        Ok(HttpResponse::new(
+            200,
+            &request.url,
+            "<html>synthetic</html>",
+        ))
+    }
+}
+
+fn recovery_failure_service() -> (
+    SessionService<RecoveryFailureTransport, MemoryVault>,
+    RecoveryFailureTransport,
+) {
+    let transport = RecoveryFailureTransport::default();
+    let service = SessionService::new(
+        crate::auth::session::Session::new(transport.clone()),
+        seeded("sy2501001"),
+    );
+    *service.account.lock().expect("account") = Some("sy2501001".into());
+    *service.profile.lock().expect("profile") = Some(UserProfile {
+        school_id: "sy2501001".into(),
+        name: "synthetic".into(),
+    });
+    (service, transport)
+}
+
+#[tokio::test]
+async fn concurrent_expired_business_reads_share_a_failed_password_post() {
+    use std::sync::atomic::Ordering;
+    let (service, transport) = recovery_failure_service();
+    let mut first = input();
+    first.force_refresh = true;
+    let mut second = first.clone();
+    second.campus = 3;
+    let (a, b) = tokio::join!(
+        service.load_classrooms(&first),
+        service.load_classrooms(&second)
+    );
+    assert_eq!(
+        a.expect_err("first recovery failed").code,
+        ErrorCode::ServiceUnavailable
+    );
+    assert_eq!(
+        b.expect_err("waiting recovery shares failure").code,
+        ErrorCode::ServiceUnavailable
+    );
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 1);
+    assert_eq!(
+        service.current_account().expect("identity is retained"),
+        "sy2501001"
+    );
+}
+
+#[tokio::test]
+async fn automatic_school_and_gateway_recovery_share_failure_until_explicit_login() {
+    use std::sync::atomic::Ordering;
+    let (service, transport) = recovery_failure_service();
+    assert_eq!(
+        service.silent_login().await.expect_err("CAS 500").code,
+        ErrorCode::ServiceUnavailable
+    );
+    assert_eq!(
+        service
+            .ensure_webvpn_session()
+            .await
+            .expect_err("gateway shares failure")
+            .code,
+        ErrorCode::ServiceUnavailable
+    );
+    assert_eq!(
+        service
+            .silent_login()
+            .await
+            .expect_err("no automatic replay")
+            .code,
+        ErrorCode::ServiceUnavailable
+    );
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 1);
+
+    // Explicit user login bypasses the automatic cooldown, but a 500 remains a
+    // failure. Once the server recovers, a successful manual login clears it.
+    assert!(service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .is_err());
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 2);
+    transport.allow_login.store(true, Ordering::Relaxed);
+    assert!(matches!(
+        service
+            .sign_in("sy2501001", "pa+ss/word", None, true)
+            .await
+            .expect("manual recovery"),
+        SessionOutcome::SignedIn { .. }
+    ));
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 3);
+    service
+        .silent_login()
+        .await
+        .expect("manual success cleared prior failure");
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 4);
+}
+
+#[tokio::test]
+async fn automatic_login_failure_cooldown_expires_and_identity_changes_clear_it() {
+    use std::{
+        sync::atomic::Ordering,
+        time::{Duration, Instant},
+    };
+    let (service, transport) = recovery_failure_service();
+    let error = service.silent_login().await.expect_err("CAS 500");
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 1);
+    // Advance only the stored monotonic timestamp: this test never sleeps.
+    *service.automatic_login_failure.lock().expect("failure") =
+        Some((Instant::now() - Duration::from_secs(61), error));
+    assert_eq!(
+        service
+            .silent_login()
+            .await
+            .expect_err("one later attempt")
+            .code,
+        ErrorCode::ServiceUnavailable
+    );
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 2);
+    service.set_route(RoutePreference::WebVpn);
+    assert!(service
+        .automatic_login_failure
+        .lock()
+        .expect("failure")
+        .is_none());
+    assert_eq!(
+        service
+            .silent_login()
+            .await
+            .expect_err("route invalidated identity")
+            .code,
+        ErrorCode::SessionExpired
+    );
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 2);
+}
+
+#[tokio::test]
+async fn failed_gateway_recovery_is_shared_with_school_recovery() {
+    use std::sync::atomic::Ordering;
+    let (service, transport) = recovery_failure_service();
+    assert_eq!(
+        service
+            .ensure_webvpn_session()
+            .await
+            .expect_err("gateway CAS 500")
+            .code,
+        ErrorCode::ServiceUnavailable
+    );
+    assert_eq!(
+        service.session.route(),
+        crate::auth::session::RouteMode::Automatic
+    );
+    let (school, gateway) = tokio::join!(service.silent_login(), service.ensure_webvpn_session());
+    assert_eq!(
+        school.expect_err("school shares failure").code,
+        ErrorCode::ServiceUnavailable
+    );
+    assert_eq!(
+        gateway.expect_err("gateway shares failure").code,
+        ErrorCode::ServiceUnavailable
+    );
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 1);
+    assert!(transport
+        .requests
+        .lock()
+        .expect("requests")
+        .iter()
+        .filter(|request| request.method == HttpMethod::Post)
+        .all(|request| request.url.starts_with("https://d.buaa.edu.cn/")));
+}

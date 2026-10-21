@@ -29,7 +29,12 @@ use std::{
         atomic::{AtomicU64, Ordering},
         Mutex,
     },
+    time::{Duration, Instant},
 };
+
+/// Failed automatic password authentication is shared by both school and
+/// gateway recovery. User-triggered login does not consult this cooldown.
+const AUTOMATIC_LOGIN_FAILURE_TTL: Duration = Duration::from_secs(60);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RoutePreference {
@@ -112,6 +117,7 @@ pub struct SessionService<T: HttpTransport, V: CredentialVault> {
     /// booking.lib business token. Memory only.
     pub(crate) library_token: Mutex<Option<String>>,
     recovery_gate: tokio::sync::Mutex<()>,
+    pub(crate) automatic_login_failure: Mutex<Option<(Instant, AppError)>>,
     school_generation: AtomicU64,
     gateway_generation: AtomicU64,
     pub(crate) graduate_request_gate: tokio::sync::Mutex<()>,
@@ -150,6 +156,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             library_history: Mutex::new(SnapshotCache::default()),
             library_token: Mutex::new(None),
             recovery_gate: tokio::sync::Mutex::new(()),
+            automatic_login_failure: Mutex::new(None),
             school_generation: AtomicU64::new(0),
             gateway_generation: AtomicU64::new(0),
             graduate_request_gate: tokio::sync::Mutex::new(()),
@@ -221,6 +228,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                 Ok(SessionOutcome::CaptchaRequired(challenge))
             }
             Ok(LoginResult::SignedIn(profile)) => {
+                self.clear_automatic_login_failure();
                 let remembered = if remember {
                     self.vault.save(account, &credentials).is_ok()
                 } else {
@@ -277,6 +285,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             let page = auth::fetch_login_page(&self.session).await?;
             match auth::complete_login(&self.session, &credentials, page.clone()).await {
                 Ok(LoginResult::SignedIn(profile)) => {
+                    self.clear_automatic_login_failure();
                     self.clear_caches();
                     *self.account.lock().expect("account lock") = Some(credentials.username);
                     *self.profile.lock().expect("profile lock") = Some(profile.clone());
@@ -345,19 +354,23 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         if self.school_generation.load(Ordering::Acquire) != generation {
             return Ok(());
         }
+        self.check_automatic_login_failure()?;
         let account = self.current_account()?;
         let credentials = self
             .vault
             .load(&account)?
             .ok_or_else(AppError::session_expired)?;
-        match auth::login(&self.session, &credentials).await? {
-            LoginResult::SignedIn(profile) => {
+        let result = match auth::login(&self.session, &credentials).await {
+            Ok(LoginResult::SignedIn(profile)) => {
                 *self.profile.lock().expect("profile lock") = Some(profile);
                 self.school_generation.fetch_add(1, Ordering::Release);
                 Ok(())
             }
-            LoginResult::CaptchaRequired(_) => Err(AppError::new(ErrorCode::CaptchaRequired)),
-        }
+            Ok(LoginResult::CaptchaRequired(_)) => Err(AppError::new(ErrorCode::CaptchaRequired)),
+            Err(error) => Err(error),
+        };
+        self.record_automatic_login_result(&result);
+        result
     }
 
     /// Establish the WebVPN gateway's own CAS session after an automatic route
@@ -369,6 +382,10 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         let _recovery = self.recovery_gate.lock().await;
         if self.gateway_generation.load(Ordering::Acquire) != generation {
             return Ok(());
+        }
+        if let Err(error) = self.check_automatic_login_failure() {
+            self.session.set_route(RouteMode::Automatic);
+            return Err(error);
         }
         // Called after an explicit gateway challenge. A cookie may be only
         // the pre-login gateway session, not proof of authenticated access.
@@ -383,7 +400,36 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         } else {
             self.gateway_generation.fetch_add(1, Ordering::Release);
         }
+        self.record_automatic_login_result(&result);
         result
+    }
+
+    fn check_automatic_login_failure(&self) -> Result<(), AppError> {
+        let failure = self
+            .automatic_login_failure
+            .lock()
+            .expect("automatic login failure");
+        match failure.as_ref() {
+            Some((at, error)) if at.elapsed() < AUTOMATIC_LOGIN_FAILURE_TTL => Err(error.clone()),
+            _ => Ok(()),
+        }
+    }
+
+    fn record_automatic_login_result(&self, result: &Result<(), AppError>) {
+        *self
+            .automatic_login_failure
+            .lock()
+            .expect("automatic login failure") = result
+            .as_ref()
+            .err()
+            .map(|error| (Instant::now(), error.clone()));
+    }
+
+    fn clear_automatic_login_failure(&self) {
+        *self
+            .automatic_login_failure
+            .lock()
+            .expect("automatic login failure") = None;
     }
 
     /// Clear all read snapshots without touching credentials or the session.
@@ -425,6 +471,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     }
 
     fn clear_identity(&self) {
+        self.clear_automatic_login_failure();
         self.session.clear_cookies();
         *self.pending_login.lock().expect("pending login") = None;
         *self.account.lock().expect("account lock") = None;
