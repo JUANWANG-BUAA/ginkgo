@@ -50,7 +50,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         };
         let compact = date.replace('-', "");
         if !force_refresh {
-            let cached = self.checkin.lock().expect("checkin cache");
+            let cached = self.checkin.lock();
             if let Some(entry) = cached.fresh(&date) {
                 return Ok(CheckInOutcome {
                     date,
@@ -71,7 +71,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             return Err(AppError::session_expired());
         }
         if !force_refresh {
-            let cached = self.checkin.lock().expect("checkin cache");
+            let cached = self.checkin.lock();
             if let Some(entry) = cached.fresh(&date) {
                 return Ok(CheckInOutcome {
                     date,
@@ -90,11 +90,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         }
         match fetched {
             Ok(courses) => {
-                let timestamp = self
-                    .checkin
-                    .lock()
-                    .expect("checkin cache")
-                    .insert(date.clone(), courses.clone());
+                let timestamp = self.checkin.lock().insert(date.clone(), courses.clone());
                 Ok(CheckInOutcome {
                     date,
                     courses,
@@ -106,9 +102,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             }
             Err(error) => {
                 if error.code == ErrorCode::SessionExpired {
-                    *self.iclass.lock().expect("iclass session") = None;
+                    self.identity.lock().iclass = None;
                 }
-                let cached = self.checkin.lock().expect("checkin cache");
+                let cached = self.checkin.lock();
                 match cached.any(&date) {
                     Some(entry) => Ok(CheckInOutcome {
                         date,
@@ -130,7 +126,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                 // The school session may really be gone; re-confirm it once
                 // through the platform credential vault, then rebuild iclass.
                 self.silent_login().await?;
-                *self.iclass.lock().expect("iclass session") = None;
+                self.identity.lock().iclass = None;
                 self.try_fetch_checkin(compact).await
             }
             other => other,
@@ -138,14 +134,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     }
 
     async fn try_fetch_checkin(&self, compact: &str) -> Result<Vec<CheckInCourse>, AppError> {
-        let cached = { self.iclass.lock().expect("iclass session").clone() };
+        let cached = { self.identity.lock().iclass.clone() };
         if let Some(iclass) = cached {
             match checkin_http::course_schedule(&self.session, &iclass, compact).await {
                 Ok(courses) => return Ok(courses),
                 // The app session is unusable; rebuild it, do not retry the
                 // query against the same rejected session.
                 Err(error) if error.code == ErrorCode::BusinessRejected => {
-                    *self.iclass.lock().expect("iclass session") = None;
+                    self.identity.lock().iclass = None;
                 }
                 Err(error) => return Err(error),
             }
@@ -154,7 +150,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         // Swift's currentSession caches immediately after app login succeeds.
         // A temporary course-read failure does not invalidate that login; do
         // not repeat the SSO redirects and app login on the next user retry.
-        *self.iclass.lock().expect("iclass session") = Some(iclass.clone());
+        self.identity.lock().iclass = Some(iclass.clone());
         let result = checkin_http::course_schedule(&self.session, &iclass, compact).await;
         if result.as_ref().is_err_and(|error| {
             matches!(
@@ -162,7 +158,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                 ErrorCode::BusinessRejected | ErrorCode::SessionExpired
             )
         }) {
-            *self.iclass.lock().expect("iclass session") = None;
+            self.identity.lock().iclass = None;
         }
         result
     }
@@ -214,13 +210,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         if !course.sign_in_allowed || course.status != CheckInStatus::NotSigned {
             return MutationOutcome::not_submitted("课程已签到或记录待确认，未重复提交");
         }
-        let iclass = self.iclass.lock().expect("iclass session").clone();
+        let iclass = self.identity.lock().iclass.clone();
         let Some(iclass) = iclass else {
             return MutationOutcome::not_submitted("签到会话失效，请刷新后重试");
         };
         let result = checkin_http::sign_in(&self.session, &iclass, course_id).await;
         // Invalidate only this module; subsequent reads must contact upstream.
-        self.checkin.lock().expect("checkin cache").clear();
+        self.checkin.lock().clear();
         result
     }
 }

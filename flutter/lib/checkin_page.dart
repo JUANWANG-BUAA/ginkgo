@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'apple_design.dart';
 import 'mirror_service.dart';
 import 'school_timestamp.dart';
 import 'src/rust/api/mirror.dart';
@@ -294,7 +295,7 @@ class _CheckInPageState extends State<CheckInPage> {
                   AppleListTile(
                     leading: const Icon(
                       CupertinoIcons.exclamationmark_triangle,
-                      color: CupertinoColors.systemOrange,
+                      color: AppleDesign.statusPending,
                       size: 20,
                     ),
                     title: Text(notice!),
@@ -416,7 +417,7 @@ class _CheckInPageState extends State<CheckInPage> {
                                 Expanded(
                                   flex: signed,
                                   child: ColoredBox(
-                                    color: CupertinoColors.systemGreen
+                                    color: AppleDesign.statusSuccess
                                         .resolveFrom(context),
                                     child: const SizedBox.expand(),
                                   ),
@@ -425,7 +426,7 @@ class _CheckInPageState extends State<CheckInPage> {
                                 Expanded(
                                   flex: notSigned,
                                   child: ColoredBox(
-                                    color: CupertinoColors.systemOrange
+                                    color: AppleDesign.statusPending
                                         .resolveFrom(context),
                                     child: const SizedBox.expand(),
                                   ),
@@ -434,7 +435,7 @@ class _CheckInPageState extends State<CheckInPage> {
                                 Expanded(
                                   flex: unknown,
                                   child: ColoredBox(
-                                    color: CupertinoColors.systemGrey
+                                    color: AppleDesign.statusUncertain
                                         .resolveFrom(context),
                                     child: const SizedBox.expand(),
                                   ),
@@ -450,17 +451,13 @@ class _CheckInPageState extends State<CheckInPage> {
                     spacing: 16,
                     runSpacing: 8,
                     children: [
-                      _countLegend('已签', signed, CupertinoColors.systemGreen),
-                      _countLegend(
-                        '待签',
-                        notSigned,
-                        CupertinoColors.systemOrange,
-                      ),
+                      _countLegend('已签', signed, AppleDesign.statusSuccess),
+                      _countLegend('待签', notSigned, AppleDesign.statusPending),
                       if (unknown > 0)
                         _countLegend(
                           '待核实',
                           unknown,
-                          CupertinoColors.systemGrey,
+                          AppleDesign.statusUncertain,
                         ),
                     ],
                   ),
@@ -508,17 +505,17 @@ class _CheckInPageState extends State<CheckInPage> {
     final (icon, semanticColor, label) = switch (course.status) {
       CheckInStatus.signed => (
         CupertinoIcons.checkmark_circle_fill,
-        CupertinoColors.systemGreen,
+        AppleDesign.statusSuccess,
         '已签到',
       ),
       CheckInStatus.notSigned => (
         CupertinoIcons.circle,
-        CupertinoColors.secondaryLabel,
+        AppleDesign.statusInactive,
         '未签到',
       ),
       CheckInStatus.unknown => (
         CupertinoIcons.question_circle_fill,
-        CupertinoColors.systemOrange,
+        AppleDesign.statusUncertain,
         '待确认',
       ),
     };
@@ -593,7 +590,7 @@ class _CheckInPageState extends State<CheckInPage> {
                   '记录不一致',
                   style: TextStyle(
                     fontSize: 13,
-                    color: CupertinoColors.systemOrange,
+                    color: AppleDesign.statusPending,
                   ),
                 ),
               if (canSubmit)

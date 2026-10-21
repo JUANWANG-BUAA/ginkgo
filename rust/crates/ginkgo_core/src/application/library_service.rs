@@ -61,7 +61,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             return Err(AppError::invalid());
         }
         if !force_refresh {
-            let cache = self.library_history.lock().expect("library history");
+            let cache = self.library_history.lock();
             if let Some(entry) = cache.fresh(&page) {
                 return Ok(LibraryHistoryOutcome {
                     data: entry.value.clone(),
@@ -87,7 +87,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         if self.current_account()? != account {
             return Err(AppError::session_expired());
         }
-        let mut cache = self.library_history.lock().expect("library history");
+        let mut cache = self.library_history.lock();
         match result {
             Ok(data) => {
                 let fetched_at = cache.insert(page, data.clone());
@@ -119,7 +119,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         self.current_account()?;
         let day = school_time::beijing_day(&now_shanghai())?.local_date;
         if !force_refresh {
-            let cached = self.library_venues.lock().expect("library venues");
+            let cached = self.library_venues.lock();
             if let Some(entry) = cached.fresh(&VENUES_KEY.to_owned()) {
                 return Ok(LibraryVenuesOutcome {
                     venues: entry.value.clone(),
@@ -148,7 +148,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                 let timestamp = self
                     .library_venues
                     .lock()
-                    .expect("library venues")
                     .insert(VENUES_KEY.to_owned(), venues.clone());
                 Ok(LibraryVenuesOutcome {
                     venues,
@@ -159,7 +158,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                 })
             }
             Err(error) => {
-                let cached = self.library_venues.lock().expect("library venues");
+                let cached = self.library_venues.lock();
                 match cached.any(&VENUES_KEY.to_owned()) {
                     Some(entry) => Ok(LibraryVenuesOutcome {
                         venues: entry.value.clone(),
@@ -244,7 +243,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     ) -> Result<LibraryBookingsOutcome, AppError> {
         self.current_account()?;
         if !force_refresh {
-            let cached = self.library_bookings.lock().expect("library bookings");
+            let cached = self.library_bookings.lock();
             if let Some(entry) = cached.fresh(&BOOKINGS_KEY.to_owned()) {
                 return Ok(LibraryBookingsOutcome {
                     bookings: entry.value.clone(),
@@ -273,7 +272,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                 let timestamp = self
                     .library_bookings
                     .lock()
-                    .expect("library bookings")
                     .insert(BOOKINGS_KEY.to_owned(), bookings.clone());
                 Ok(LibraryBookingsOutcome {
                     bookings,
@@ -284,7 +282,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                 })
             }
             Err(error) => {
-                let cached = self.library_bookings.lock().expect("library bookings");
+                let cached = self.library_bookings.lock();
                 match cached.any(&BOOKINGS_KEY.to_owned()) {
                     Some(entry) => Ok(LibraryBookingsOutcome {
                         bookings: entry.value.clone(),
@@ -300,13 +298,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     }
 
     pub(crate) async fn library_token(&self) -> Result<String, AppError> {
-        let cached = { self.library_token.lock().expect("library token").clone() };
+        let cached = { self.identity.lock().library_token.clone() };
         if let Some(token) = cached {
             return Ok(token);
         }
         // Match UBAA loginMutex: only one CAS exchange may build the token.
         let _login = self.library_login_gate.lock().await;
-        if let Some(token) = self.library_token.lock().expect("library token").clone() {
+        if let Some(token) = self.identity.lock().library_token.clone() {
             return Ok(token);
         }
         let account = self.current_account()?;
@@ -314,12 +312,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         if self.current_account()? != account {
             return Err(AppError::session_expired());
         }
-        *self.library_token.lock().expect("library token") = Some(token.clone());
+        self.identity.lock().library_token = Some(token.clone());
         Ok(token)
     }
 
     fn invalidate_library_token(&self, rejected: &str) {
-        let mut token = self.library_token.lock().expect("library token");
+        let mut identity = self.identity.lock();
+        let token = &mut identity.library_token;
         // A late failure only invalidates the credential actually used by that
         // request. A peer may already have completed a successful recovery.
         if token.as_deref() == Some(rejected) {
@@ -353,15 +352,15 @@ mod token_recovery_tests {
         let service = SessionService::new(Session::new(transport.clone()), MemoryVault::default());
         // Two reads used old-token. The first has already recovered; the late
         // response from the second is only evidence against old-token.
-        *service.library_token.lock().expect("token") = Some("synthetic-new-token".into());
+        service.identity.lock().library_token = Some("synthetic-new-token".into());
         service.invalidate_library_token("synthetic-old-token");
         let token = service.library_token().await.expect("reuse peer recovery");
         assert_eq!(token, "synthetic-new-token");
         assert_eq!(transport.request_count(), 0);
         service.invalidate_library_token("synthetic-new-token");
-        assert!(service.library_token.lock().expect("token").is_none());
+        assert!(service.identity.lock().library_token.is_none());
         // An earlier token cannot invalidate the absence of a token either.
         service.invalidate_library_token("synthetic-old-token");
-        assert!(service.library_token.lock().expect("token").is_none());
+        assert!(service.identity.lock().library_token.is_none());
     }
 }

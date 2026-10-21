@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'academic_widgets.dart';
 import 'apple_widgets.dart';
+import 'apple_design.dart';
 import 'reservation_widgets.dart';
 import 'src/rust/api/live.dart' as live;
 
@@ -620,9 +621,9 @@ class _CgyySlotRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (tint, icon) = switch (status) {
-      '空闲' => (CupertinoColors.systemGreen, CupertinoIcons.checkmark_circle),
-      '不可预约' => (CupertinoColors.secondaryLabel, CupertinoIcons.minus_circle),
-      _ => (CupertinoColors.systemOrange, CupertinoIcons.question_circle),
+      '空闲' => (AppleDesign.statusSuccess, CupertinoIcons.checkmark_circle),
+      '不可预约' => (AppleDesign.statusInactive, CupertinoIcons.minus_circle),
+      _ => (AppleDesign.statusUncertain, CupertinoIcons.question_circle),
     };
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

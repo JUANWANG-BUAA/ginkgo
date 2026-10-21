@@ -14,12 +14,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     pub async fn load_library_stats(&self, force: bool) -> Result<LibraryStatsOutcome, AppError> {
         let key = "public".to_owned();
         if !force {
-            if let Some(entry) = self
-                .library_stats
-                .lock()
-                .expect("library stats")
-                .fresh(&key)
-            {
+            if let Some(entry) = self.library_stats.lock().fresh(&key) {
                 return Ok(LibraryStatsOutcome {
                     campuses: entry.value.clone(),
                     fetched_at: entry.timestamp.clone(),
@@ -29,7 +24,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             }
         }
         let result = library_stats_http::load(&self.session, self.preference().into()).await;
-        let mut cache = self.library_stats.lock().expect("library stats");
+        let mut cache = self.library_stats.lock();
         match result {
             Ok(campuses) => {
                 let fetched_at = cache.insert(key, campuses.clone());

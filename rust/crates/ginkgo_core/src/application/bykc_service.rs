@@ -24,7 +24,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         self.current_account()?;
         let key = "catalog".to_owned();
         if !force {
-            let cache = self.bykc.lock().expect("bykc cache");
+            let cache = self.bykc.lock();
             if let Some(entry) = cache.fresh(&key) {
                 return Ok(BykcOutcome {
                     data: entry.value.clone(),
@@ -36,7 +36,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         // Another queued read may have filled this snapshot while we waited.
         self.current_account()?;
         if !force {
-            if let Some(entry) = self.bykc.lock().expect("bykc cache").fresh(&key) {
+            if let Some(entry) = self.bykc.lock().fresh(&key) {
                 return Ok(BykcOutcome {
                     data: entry.value.clone(),
                     failure: None,
@@ -55,17 +55,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         }
         match result {
             Ok(data) => {
-                self.bykc
-                    .lock()
-                    .expect("bykc cache")
-                    .insert(key, data.clone());
+                self.bykc.lock().insert(key, data.clone());
                 Ok(BykcOutcome {
                     data,
                     failure: None,
                 })
             }
             Err(error) => {
-                let cache = self.bykc.lock().expect("bykc cache");
+                let cache = self.bykc.lock();
                 match cache.any(&key) {
                     Some(entry) => Ok(BykcOutcome {
                         data: entry.value.clone(),
@@ -81,12 +78,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         self.current_account()?;
         let key = "chosen".to_owned();
         if !force {
-            if let Some(entry) = self
-                .bykc_chosen
-                .lock()
-                .expect("bykc chosen cache")
-                .fresh(&key)
-            {
+            if let Some(entry) = self.bykc_chosen.lock().fresh(&key) {
                 return Ok(BykcChosenOutcome {
                     data: entry.value.clone(),
                     failure: None,
@@ -97,7 +89,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         // Another queued read may have filled this snapshot while we waited.
         self.current_account()?;
         if !force {
-            if let Some(entry) = self.bykc_chosen.lock().expect("bykc cache").fresh(&key) {
+            if let Some(entry) = self.bykc_chosen.lock().fresh(&key) {
                 return Ok(BykcChosenOutcome {
                     data: entry.value.clone(),
                     failure: None,
@@ -116,21 +108,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         }
         match result {
             Ok(data) => {
-                self.bykc_chosen
-                    .lock()
-                    .expect("bykc chosen cache")
-                    .insert(key, data.clone());
+                self.bykc_chosen.lock().insert(key, data.clone());
                 Ok(BykcChosenOutcome {
                     data,
                     failure: None,
                 })
             }
-            Err(error) => match self
-                .bykc_chosen
-                .lock()
-                .expect("bykc chosen cache")
-                .any(&key)
-            {
+            Err(error) => match self.bykc_chosen.lock().any(&key) {
                 Some(entry) => Ok(BykcChosenOutcome {
                     data: entry.value.clone(),
                     failure: Some(error),
@@ -147,12 +131,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         self.current_account()?;
         let key = "statistics".to_owned();
         if !force {
-            if let Some(entry) = self
-                .bykc_statistics
-                .lock()
-                .expect("bykc statistics cache")
-                .fresh(&key)
-            {
+            if let Some(entry) = self.bykc_statistics.lock().fresh(&key) {
                 return Ok(BykcStatisticsOutcome {
                     data: entry.value.clone(),
                     failure: None,
@@ -163,7 +142,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         // Another queued read may have filled this snapshot while we waited.
         self.current_account()?;
         if !force {
-            if let Some(entry) = self.bykc_statistics.lock().expect("bykc cache").fresh(&key) {
+            if let Some(entry) = self.bykc_statistics.lock().fresh(&key) {
                 return Ok(BykcStatisticsOutcome {
                     data: entry.value.clone(),
                     failure: None,
@@ -182,21 +161,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         }
         match result {
             Ok(data) => {
-                self.bykc_statistics
-                    .lock()
-                    .expect("bykc statistics cache")
-                    .insert(key, data.clone());
+                self.bykc_statistics.lock().insert(key, data.clone());
                 Ok(BykcStatisticsOutcome {
                     data,
                     failure: None,
                 })
             }
-            Err(error) => match self
-                .bykc_statistics
-                .lock()
-                .expect("bykc statistics cache")
-                .any(&key)
-            {
+            Err(error) => match self.bykc_statistics.lock().any(&key) {
                 Some(entry) => Ok(BykcStatisticsOutcome {
                     data: entry.value.clone(),
                     failure: Some(error),

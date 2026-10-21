@@ -42,7 +42,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         let key = (input.campus, input.date.clone());
 
         if !input.force_refresh {
-            let cached = self.classrooms.lock().expect("classroom cache");
+            let cached = self.classrooms.lock();
             if let Some(entry) = cached.fresh(&key) {
                 return Ok(ClassroomOutcome {
                     result: filter(entry.value.clone(), input)?,
@@ -66,11 +66,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
 
         match fetched {
             Ok(rooms) => {
-                let timestamp = self
-                    .classrooms
-                    .lock()
-                    .expect("classroom cache")
-                    .insert(key, rooms.clone());
+                let timestamp = self.classrooms.lock().insert(key, rooms.clone());
                 Ok(ClassroomOutcome {
                     result: filter(rooms, input)?,
                     fetched_at: timestamp,
@@ -80,7 +76,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                 })
             }
             Err(error) => {
-                let cached = self.classrooms.lock().expect("classroom cache");
+                let cached = self.classrooms.lock();
                 match cached.any(&key) {
                     Some(entry) => Ok(ClassroomOutcome {
                         result: filter(entry.value.clone(), input)?,

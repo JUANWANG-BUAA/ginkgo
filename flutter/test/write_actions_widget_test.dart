@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/checkin_page.dart';
+import 'package:ginkgo_mirror/apple_design.dart';
 import 'package:ginkgo_mirror/library_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart';
@@ -101,7 +102,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     final label = find.text('未签到');
-    final expected = CupertinoColors.secondaryLabel.resolveFrom(
+    final expected = AppleDesign.statusInactive.resolveFrom(
       tester.element(label),
     );
     expect(tester.widget<Text>(label).style!.color, expected);
@@ -111,7 +112,10 @@ void main() {
       300,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(tester.widget<Text>(footer).style!.color, expected);
+    expect(
+      tester.widget<Text>(footer).style!.color,
+      CupertinoColors.secondaryLabel.resolveFrom(tester.element(footer)),
+    );
   });
 
   testWidgets(

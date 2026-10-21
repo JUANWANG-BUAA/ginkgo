@@ -4,17 +4,17 @@
 
 ## 0. 结论摘要
 
-Ginkgo 已经越过“能查询”的阶段：CAS、课表、成绩、作业、图书馆、空教室、签到、待办都有实际实现。当前静态统计有 219 个 XCTest 方法；截至 2026-10-20，macOS 全量 XCTest 与 iOS 27.0 / iPhone 17 Pro 模拟器 XCTest 均通过。新增博雅、研讨室空档和研究生教务三个只读页面后，数据面已从基础教务扩展到课程素养、空间预约与培养过程。当前最大的改进空间不在继续堆功能，而在以下三条主线：
+Ginkgo 已经越过“能查询”的阶段：CAS、课表、成绩、作业、图书馆、空教室、签到、待办都有实际实现。Apple 自动化证据按日期维护于 [TESTING](TESTING.md)。新增博雅、研讨室空档和研究生教务页面后，数据面已从基础教务扩展到课程素养、空间预约与培养过程。当前最大的改进空间不在继续堆功能，而在以下三条主线：
 
-1. **把跨语言行为固定为可执行契约**：`fixtures/` 已有空教室筛选、BYKC 课程过滤、学校时区和课表周次快照合成样例；下一步扩展错误与解析边界，供 Swift 和未来 Rust 共用。
-2. **为 Rust + Flutter 镜像项目分层**：当前准备范围是 Android + Windows，Apple 继续 SwiftUI；Rust/Flutter 骨架与共享规则已开始落地；当前是 Android 离线空教室切片，继续完善设备验收和 Apple 视觉对齐，详见 MIRROR-IMPLEMENTATION.md。
+1. **把跨语言行为固定为可执行契约**：Swift / Rust 已共用规则样例和部分解析契约，下一步扩签到 / 图书馆 / 博雅等高风险模块；范围见 [fixtures](../fixtures/README.md)。
+2. **维护 Rust + Flutter 的分层与验收边界**：Android Alpha.2 已发布，主要只读链路和部分实验写路径已接入；真实写入、Windows 和最近认证异常仍待验收。当前事实只维护在 [镜像入口](MIRROR-IMPLEMENTATION.md)，本次架构修复见 [Opus 5.5 评审落实](_audit/2026-10-21-opus-review-followup.md)。
 3. **并行完成 Apple 产品质量闭环**：iOS 真机、可访问性、隐私生命周期和 CI 仍是 Apple 端自己的验收事项，不应被新平台准备取代。
 
 ## 1. P0：应先解决的工程与质量风险
 
 ### 1.1 iOS 自动化与真机验收缺口
 
-**现状**：截至 2026-10-20，macOS 全量 XCTest 和 iOS 27.0 / iPhone 17 Pro 模拟器 XCTest 均通过；静态统计为 219 个 XCTest 方法。此前已记录的 iPhone 17 Pro、iPhone SE 和 iPad Pro UI 冒烟及临时凭据 live UI 证据仍按原日期有效。仓库已新增 `.github/workflows/ios.yml`，但尚未取得 GitHub Actions 远端结果。真实账号直连被 HTTP 483 拦截后，客户端已自动切换到北航 WebVPN 并完成 CAS 登录，`uc/status` 返回 `code == 0 + data`。
+**现状**：macOS 全量 XCTest 和 iOS 模拟器共享单元测试的最新结果见 [TESTING](TESTING.md)。此前已记录的 iPhone 17 Pro、iPhone SE 和 iPad Pro UI 冒烟及临时凭据 live UI 证据仍按原日期有效。仓库已新增 `.github/workflows/ios.yml`，但尚未取得 GitHub Actions 远端结果。此前真实账号直连被 HTTP 483 拦截后，客户端已自动切换到北航 WebVPN 并完成 CAS 登录，`uc/status` 返回 `code == 0 + data`；历史通过不保证当前上游可用。
 
 **风险**：iOS 真机上的 Cookie 生命周期、后台挂起、Keychain 权限、横屏/动态字体和 VoiceOver 仍可能与模拟器不同。
 
@@ -65,7 +65,7 @@ Ginkgo 已经越过“能查询”的阶段：CAS、课表、成绩、作业、�
 
 ### 1.4 真实上游契约测试与解析器韧性
 
-**现状**：CAS、课表、成绩、作业、图书馆等依赖 HTML/JSON 形状。项目已有严格字段校验、结构变化提示和大量合成数据测试；`fixtures/` 刚开始作为跨语言语义契约，当前含空教室与 BYKC 筛选、学校时区和课表快照样例，尚未形成系统的脱敏上游样本库。
+**现状**：CAS、课表、成绩、作业、图书馆等依赖 HTML/JSON 形状。Rust 递归执行共享 fixture，Swift 已覆盖规则样例及部分 CAS / 教务 / 加密解析契约；两端共享范围仍小于全部 Rust 契约，尚未形成系统的脱敏上游样本库。覆盖边界见 [fixtures](../fixtures/README.md)。
 
 **建议**：
 

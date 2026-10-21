@@ -26,7 +26,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         self.current_account()?;
         let key = "current".to_owned();
         if !force {
-            let cache = self.homework.lock().expect("homework cache");
+            let cache = self.homework.lock();
             if let Some(entry) = cache.fresh(&key) {
                 return Ok(HomeworkOutcome {
                     data: entry.value.clone(),
@@ -55,11 +55,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         }
         match result {
             Ok(data) => {
-                let fetched_at = self
-                    .homework
-                    .lock()
-                    .expect("homework cache")
-                    .insert(key, data.clone());
+                let fetched_at = self.homework.lock().insert(key, data.clone());
                 Ok(HomeworkOutcome {
                     data,
                     fetched_at,
@@ -67,7 +63,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                 })
             }
             Err(error) => {
-                let cache = self.homework.lock().expect("homework cache");
+                let cache = self.homework.lock();
                 match cache.any(&key) {
                     Some(entry) => Ok(HomeworkOutcome {
                         data: entry.value.clone(),
@@ -90,7 +86,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         let id = id.strip_prefix("spoc:").unwrap_or(id);
         let key = id.to_owned();
         if !force {
-            let cache = self.homework_details.lock().expect("homework detail cache");
+            let cache = self.homework_details.lock();
             if let Some(entry) = cache.fresh(&key) {
                 return Ok(HomeworkDetailOutcome {
                     data: entry.value.clone(),
@@ -110,17 +106,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         }
         match result {
             Ok(data) => {
-                self.homework_details
-                    .lock()
-                    .expect("homework detail cache")
-                    .insert(key, data.clone());
+                self.homework_details.lock().insert(key, data.clone());
                 Ok(HomeworkDetailOutcome {
                     data,
                     failure: None,
                 })
             }
             Err(error) => {
-                let cache = self.homework_details.lock().expect("homework detail cache");
+                let cache = self.homework_details.lock();
                 match cache.any(&key) {
                     Some(entry) => Ok(HomeworkDetailOutcome {
                         data: entry.value.clone(),

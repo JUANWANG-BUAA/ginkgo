@@ -2,7 +2,7 @@
 
 Android 对齐 iPhone SwiftUI，Windows 对齐 macOS SwiftUI。Apple 应用保持独立。
 
-当前实现包含 iOS 五 Tab 外壳（今天/课表/作业/图书馆/更多）、设置页、登录页、会话恢复门禁与显式离线演示，以及空教室/课表/今天/成绩的真实只读页面；研究生 GSMIS 课表已接入。作业仍是合成切片，图书馆/签到的底层客户端尚未迁移（页面为明确标注的骨架）。Android Keystore 保险库、FRB 真实会话和 mock 只读链路已接入；真实账号只读验收、Windows 实机和写操作尚未完成。阶段状态与验收矩阵见 [实施记录](../docs/MIRROR-IMPLEMENTATION.md)。
+当前手机入口为工作台 / 签到 / 课表 / 作业 / 预约，宽屏切换桌面侧栏；各目的地保留独立导航。认证、主要只读模块、Android Keystore、离线演示和本地待办已接入；签到及图书馆实验写路径包含确认、单次提交与回查，真实写入未验收。Android Alpha.3 已发布，最近实网登录失败仍需复验；Windows 尚无主机通过记录。范围见 [实施现状](../docs/MIRROR-IMPLEMENTATION.md)、[模块对照](../docs/MIRROR-PARITY.md) 和 [待办](../docs/MIRROR-TODO.md)。
 
 ## 工具链
 
@@ -48,7 +48,7 @@ Rust Android 目标随选定设备确定；当前 ARM64 模拟器使用 `aarch64
 ## 边界
 
 - `lib/src/rust/` 与 Rust `frb_generated.rs` 是生成物；改 `rust/crates/ginkgo_flutter_bridge/src/api/` 后运行生成脚本。生成结果的 `stem` 必须是 `ginkgo_flutter_bridge`，脚本会拒绝 `UNKNOWN`。
-- Dart 只保存页面选择、导航和加载状态。学校日期、教室节次解析、过滤/排序、缓存 TTL、课表周次与认证会话都在 Rust。真实服务只在第一次异步命令时创建网络运行时；不要在 `init_app` 预热，否则 Android 会卡启动。
+- Dart 只保存页面选择、导航和呈现状态；图书馆共享快照、请求合并和写后回查集中在 `LibraryController`，状态色集中在 `AppleDesign.status*`。学校日期、教室节次解析、过滤/排序、缓存 TTL、课表周次与认证会话都在 Rust。真实服务只在第一次异步命令时创建网络运行时；不要在 `init_app` 预热，否则 Android 会卡启动。
 - `mirror_service.dart` 是页面测试注入点：`NativeMirrorService` 走真实 bridge，`DemoMirrorService` 走 `load_demo_*`。`auth_test.dart` 只写入并删除 `__ginkgo_vault_test__` 前缀的合成密钥，不需要真实账号。
 - 设备上的 `mirror_test.dart` 仍有一个校区/日期/缓存长流程未收敛；`today/schedule/grades/homework` 与 `auth_test.dart` 可分别独立验收，不要用一个长文件的失败/通过替代模块结论。
 - `flutter test integration_test/...` 会把**测试入口**打包进 `build/app/outputs/flutter-apk/app-debug.apk`；直接安装并启动这个 APK 会停在 Flutter 启动页等待测试驱动。要看真实登录页/演示页，必须重新运行 `flutter build apk` 再安装。

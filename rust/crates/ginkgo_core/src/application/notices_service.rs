@@ -11,7 +11,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     pub async fn load_notices(&self, force: bool) -> Result<NoticesOutcome, AppError> {
         let key = "public".to_owned();
         if !force {
-            if let Some(entry) = self.notices.lock().expect("notices cache").fresh(&key) {
+            if let Some(entry) = self.notices.lock().fresh(&key) {
                 return Ok(NoticesOutcome {
                     data: entry.value.clone(),
                     failure: None,
@@ -20,16 +20,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         }
         match notices_http::load(&self.session).await {
             Ok(data) => {
-                self.notices
-                    .lock()
-                    .expect("notices cache")
-                    .insert(key, data.clone());
+                self.notices.lock().insert(key, data.clone());
                 Ok(NoticesOutcome {
                     data,
                     failure: None,
                 })
             }
-            Err(error) => match self.notices.lock().expect("notices cache").any(&key) {
+            Err(error) => match self.notices.lock().any(&key) {
                 Some(entry) => Ok(NoticesOutcome {
                     data: entry.value.clone(),
                     failure: Some(error),

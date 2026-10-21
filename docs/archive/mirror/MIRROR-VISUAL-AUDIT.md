@@ -1,5 +1,7 @@
 # 镜像视觉审查
 
+> **历史归档（2026-10-21 收敛）**：本文保留当时的实现、计划或验收证据，文内“当前”与计数仅适用于原记录。最新状态见 [实施现状](../../MIRROR-IMPLEMENTATION.md)、[待办](../../MIRROR-TODO.md)、[功能对照](../../MIRROR-PARITY.md)。普通文字中的源码路径仍以仓库根目录为基准。
+
 ## 2026-10-21 登录与分区刷新
 
 登录页统一输入组/按钮宽度（最大420pt），使用系统分组背景、绿色主按钮和显隐控件。模拟器浅色、深色、1.8倍字号已亲自读图，截图仅存 /tmp；390/1200宽度及大字号 widget 通过。图书馆区块独立更新与重试，刷新保留原内容，减少整页突然出现；专用设备 smoke 通过。尚未宣称全模块视觉对齐。
@@ -180,7 +182,7 @@ PNG 写入 `flutter/build/visual/`；保存初始、结果、详情、零匹配�
 
 参考 Apple [Motion](https://developer.apple.com/design/human-interface-guidelines/motion)、[Segmented controls](https://developer.apple.com/design/human-interface-guidelines/segmented-controls) 和 [Accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility)，用Dart/Cupertino还原导航与控件行为。课表默认周网格（用户确认），不隐藏入口；按压与滚动反馈、180ms内容淡入、220ms分组尺寸、桌面140ms悬停/焦点。减少动态效果直接跳过分组动画，规避Flutter零时长AnimatedSize布局期自重排。保持现有导航玻璃按钮，不新增装饰材质。
 
-作业和座位的搜索/空态并入现有测试；1.8倍深色+减少动态效果覆盖课表/作业/预约。新增信息及未迁移项详见 [逐模块对照](MIRROR-MACOS-PARITY.md)。独立schedule设备smoke更新后1项通过（约2分钟），未运行mirror_test.dart。真实会话的课程/作业详情可达，仅检查状态，无真实截图。
+作业和座位的搜索/空态并入现有测试；1.8倍深色+减少动态效果覆盖课表/作业/预约。新增信息及未迁移项详见 [逐模块对照](../../MIRROR-PARITY.md)。独立schedule设备smoke更新后1项通过（约2分钟），未运行mirror_test.dart。真实会话的课程/作业详情可达，仅检查状态，无真实截图。
 
 最终合成截图 `/tmp/ginkgo-final-{light,dark,large}.png` 自查：普通字号周网格多色与时间轴可读；大字号四段文字过密，改为两行“显示方式”选择器，课程清单回退。深色时间轴由三级文字提升二级、分隔线加强。截图仅合成，未入库。
 

@@ -21,13 +21,14 @@ use crate::{
         today::TodayCourse,
     },
     foundation::http::HttpTransport,
+    foundation::mutex::{lock_value, Mutex},
     AppError, ErrorCode,
 };
 use std::{
     collections::BTreeMap,
     sync::{
         atomic::{AtomicU64, Ordering},
-        Mutex,
+        Mutex as StdMutex,
     },
     time::{Duration, Instant},
 };
@@ -84,17 +85,31 @@ pub enum SessionOutcome {
     SignedOut,
 }
 
+/// Published together so readers never observe an account without its profile.
+pub(crate) struct AuthenticatedIdentity {
+    pub account: String,
+    pub profile: UserProfile,
+}
+
+/// All account-scoped authentication state has one lifetime and one reset.
+/// Keep secrets out of Debug/serialization; this state never crosses the bridge.
+#[derive(Default)]
+pub(crate) struct Identity {
+    pub authenticated: Option<AuthenticatedIdentity>,
+    pub pending_login: Option<LoginPage>,
+    pub iclass: Option<IClassSession>,
+    pub library_token: Option<String>,
+    pub cgyy_token: Option<String>,
+}
+
 pub struct SessionService<T: HttpTransport, V: CredentialVault> {
     pub(crate) session: Session<T>,
     pub(crate) vault: V,
-    pub(crate) account: Mutex<Option<String>>,
-    pub(crate) profile: Mutex<Option<UserProfile>>,
-    pub(crate) pending_login: Mutex<Option<LoginPage>>,
-    pub(crate) route: Mutex<RoutePreference>,
+    pub(crate) identity: Mutex<Identity>,
+    pub(crate) route: StdMutex<RoutePreference>,
     pub(crate) classrooms: Mutex<ClassroomCache>,
     pub(crate) schedules: Mutex<ScheduleCache>,
     pub(crate) cgyy: Mutex<SnapshotCache<String, serde_json::Value>>,
-    pub(crate) cgyy_token: Mutex<Option<String>>,
     pub(crate) notices: Mutex<SnapshotCache<String, Vec<crate::features::notices::Notice>>>,
     pub(crate) graduate: Mutex<SnapshotCache<String, crate::features::graduate::AcademicData>>,
     pub(crate) bykc: Mutex<SnapshotCache<String, crate::features::bykc::Catalog>>,
@@ -108,14 +123,10 @@ pub struct SessionService<T: HttpTransport, V: CredentialVault> {
     pub(crate) grades: Mutex<GradeCache>,
     pub(crate) checkin: Mutex<CheckInCache>,
     pub(crate) checkin_request_gate: tokio::sync::Mutex<()>,
-    /// iclass app session. Memory only; cleared on account, route and logout.
-    pub(crate) iclass: Mutex<Option<IClassSession>>,
     pub(crate) library_stats: Mutex<super::library_stats_service::LibraryStatsCache>,
     pub(crate) library_venues: Mutex<LibraryVenueCache>,
     pub(crate) library_bookings: Mutex<LibraryBookingCache>,
     pub(crate) library_history: Mutex<SnapshotCache<i32, LibraryHistoryPage>>,
-    /// booking.lib business token. Memory only.
-    pub(crate) library_token: Mutex<Option<String>>,
     recovery_gate: tokio::sync::Mutex<()>,
     pub(crate) automatic_login_failure: Mutex<Option<(Instant, AppError)>>,
     school_generation: AtomicU64,
@@ -129,16 +140,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         Self {
             session,
             vault,
-            account: Mutex::new(None),
-            profile: Mutex::new(None),
-            pending_login: Mutex::new(None),
-            route: Mutex::new(RoutePreference::Automatic),
+            identity: Mutex::default(),
+            route: StdMutex::new(RoutePreference::Automatic),
             classrooms: Mutex::new(ClassroomCache::default()),
             schedules: Mutex::new(ScheduleCache::default()),
             graduate: Mutex::new(SnapshotCache::default()),
             notices: Mutex::new(SnapshotCache::default()),
             cgyy: Mutex::new(SnapshotCache::default()),
-            cgyy_token: Mutex::new(None),
             bykc: Mutex::new(SnapshotCache::default()),
             bykc_chosen: Mutex::new(SnapshotCache::default()),
             bykc_statistics: Mutex::new(SnapshotCache::default()),
@@ -149,12 +157,10 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             grades: Mutex::new(GradeCache::default()),
             checkin: Mutex::new(CheckInCache::default()),
             checkin_request_gate: tokio::sync::Mutex::new(()),
-            iclass: Mutex::new(None),
             library_stats: Mutex::new(super::library_stats_service::LibraryStatsCache::default()),
             library_venues: Mutex::new(LibraryVenueCache::default()),
             library_bookings: Mutex::new(LibraryBookingCache::default()),
             library_history: Mutex::new(SnapshotCache::default()),
-            library_token: Mutex::new(None),
             recovery_gate: tokio::sync::Mutex::new(()),
             automatic_login_failure: Mutex::new(None),
             school_generation: AtomicU64::new(0),
@@ -165,18 +171,43 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     }
 
     pub fn status(&self) -> SessionStatus {
+        let identity = self.identity.lock();
         SessionStatus {
-            account: self.account.lock().expect("account lock").clone(),
-            profile: self.profile.lock().expect("profile lock").clone(),
-            route: *self.route.lock().expect("route lock"),
+            account: identity
+                .authenticated
+                .as_ref()
+                .map(|user| user.account.clone()),
+            profile: identity
+                .authenticated
+                .as_ref()
+                .map(|user| user.profile.clone()),
+            route: self.preference(),
         }
+    }
+
+    pub(crate) fn set_authenticated(&self, account: String, profile: UserProfile) {
+        *self.identity.lock() = Identity {
+            authenticated: Some(AuthenticatedIdentity { account, profile }),
+            ..Identity::default()
+        };
+    }
+
+    fn update_profile(&self, account: &str, profile: UserProfile) -> Result<(), AppError> {
+        let mut identity = self.identity.lock();
+        let user = identity
+            .authenticated
+            .as_mut()
+            .filter(|user| user.account == account)
+            .ok_or_else(AppError::session_expired)?;
+        user.profile = profile;
+        Ok(())
     }
 
     /// Route changes invalidate the cookie jars and cached snapshots, matching
     /// the Apple rule that direct and WebVPN sessions never mix.
     pub fn set_route(&self, preference: RoutePreference) {
         let changed = {
-            let mut route = self.route.lock().expect("route lock");
+            let mut route = lock_value(&self.route);
             let changed = *route != preference;
             *route = preference;
             changed
@@ -198,13 +229,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         if account.is_empty() || password.is_empty() {
             return Err(AppError::invalid());
         }
-        if self
-            .account
+        let switching_account = self
+            .identity
             .lock()
-            .expect("account lock")
-            .as_deref()
-            .is_some_and(|current| current != account)
-        {
+            .authenticated
+            .as_ref()
+            .is_some_and(|current| current.account != account);
+        if switching_account {
             self.clear_identity();
         }
         self.session.set_route(self.preference().into());
@@ -216,7 +247,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                 .filter(|value| !value.is_empty())
                 .map(str::to_owned),
         };
-        let pending = { self.pending_login.lock().expect("pending login").take() };
+        let pending = { self.identity.lock().pending_login.take() };
         let page = match pending {
             Some(page) => page,
             None => auth::fetch_login_page(&self.session).await?,
@@ -224,7 +255,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         let retry_page = page.clone();
         match auth::complete_login(&self.session, &credentials, page).await {
             Ok(LoginResult::CaptchaRequired(challenge)) => {
-                *self.pending_login.lock().expect("pending login") = Some(retry_page);
+                self.identity.lock().pending_login = Some(retry_page);
                 Ok(SessionOutcome::CaptchaRequired(challenge))
             }
             Ok(LoginResult::SignedIn(profile)) => {
@@ -236,16 +267,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                     false
                 };
                 self.clear_caches();
-                *self.pending_login.lock().expect("pending login") = None;
-                *self.account.lock().expect("account lock") = Some(account.to_owned());
-                *self.profile.lock().expect("profile lock") = Some(profile.clone());
+                self.set_authenticated(account.to_owned(), profile.clone());
                 Ok(SessionOutcome::SignedIn {
                     profile,
                     remembered,
                 })
             }
             Err(error) => {
-                *self.pending_login.lock().expect("pending login") = None;
+                self.identity.lock().pending_login = None;
                 Err(error)
             }
         }
@@ -255,14 +284,18 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     /// a saved account is only re-logged-in when that confirmation fails.
     pub async fn restore(&self) -> Result<SessionOutcome, AppError> {
         self.session.set_route(self.preference().into());
-        let has_identity = self.account.lock().expect("account lock").is_some()
-            && self.profile.lock().expect("profile lock").is_some();
+        let account = self
+            .identity
+            .lock()
+            .authenticated
+            .as_ref()
+            .map(|user| user.account.clone());
         let has_cookies =
             self.session.direct_cookie_present() || self.session.webvpn_cookie_present();
-        if has_identity && has_cookies {
+        if let Some(account) = account.filter(|_| has_cookies) {
             match auth::validate_session(&self.session).await {
                 Ok(profile) => {
-                    *self.profile.lock().expect("profile lock") = Some(profile.clone());
+                    self.update_profile(&account, profile.clone())?;
                     return Ok(SessionOutcome::SignedIn {
                         profile,
                         remembered: true,
@@ -287,15 +320,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                 Ok(LoginResult::SignedIn(profile)) => {
                     self.clear_automatic_login_failure();
                     self.clear_caches();
-                    *self.account.lock().expect("account lock") = Some(credentials.username);
-                    *self.profile.lock().expect("profile lock") = Some(profile.clone());
+                    self.set_authenticated(credentials.username, profile.clone());
                     return Ok(SessionOutcome::SignedIn {
                         profile,
                         remembered: true,
                     });
                 }
                 Ok(LoginResult::CaptchaRequired(challenge)) => {
-                    *self.pending_login.lock().expect("pending login") = Some(page);
+                    self.identity.lock().pending_login = Some(page);
                     return Ok(SessionOutcome::CaptchaRequired(challenge));
                 }
                 Err(error) if error.code == ErrorCode::InvalidCredentials => {
@@ -310,7 +342,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     /// Best-effort upstream logout; local identity and snapshots are always
     /// cleared and the saved password is removed.
     pub async fn sign_out(&self) {
-        let account = self.account.lock().expect("account lock").take();
+        let account = std::mem::take(&mut *self.identity.lock())
+            .authenticated
+            .map(|user| user.account);
         let _ = auth::logout(&self.session).await;
         // A route change or failed restore can already have cleared identity.
         // Explicit logout must still remove saved accounts to prevent restoration.
@@ -334,17 +368,15 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     }
 
     pub(crate) fn preference(&self) -> RoutePreference {
-        *self.route.lock().expect("route lock")
+        *lock_value(&self.route)
     }
 
     pub(crate) fn current_account(&self) -> Result<String, AppError> {
-        if !self.status().signed_in() {
-            return Err(AppError::session_expired());
-        }
-        self.account
+        self.identity
             .lock()
-            .expect("account lock")
-            .clone()
+            .authenticated
+            .as_ref()
+            .map(|user| user.account.clone())
             .ok_or_else(AppError::session_expired)
     }
 
@@ -362,7 +394,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             .ok_or_else(AppError::session_expired)?;
         let result = match auth::login(&self.session, &credentials).await {
             Ok(LoginResult::SignedIn(profile)) => {
-                *self.profile.lock().expect("profile lock") = Some(profile);
+                self.update_profile(&account, profile)?;
                 self.school_generation.fetch_add(1, Ordering::Release);
                 Ok(())
             }
@@ -405,10 +437,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     }
 
     fn check_automatic_login_failure(&self) -> Result<(), AppError> {
-        let failure = self
-            .automatic_login_failure
-            .lock()
-            .expect("automatic login failure");
+        let failure = self.automatic_login_failure.lock();
         match failure.as_ref() {
             Some((at, error)) if at.elapsed() < AUTOMATIC_LOGIN_FAILURE_TTL => Err(error.clone()),
             _ => Ok(()),
@@ -416,20 +445,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     }
 
     fn record_automatic_login_result(&self, result: &Result<(), AppError>) {
-        *self
-            .automatic_login_failure
-            .lock()
-            .expect("automatic login failure") = result
+        *self.automatic_login_failure.lock() = result
             .as_ref()
             .err()
             .map(|error| (Instant::now(), error.clone()));
     }
 
     fn clear_automatic_login_failure(&self) {
-        *self
-            .automatic_login_failure
-            .lock()
-            .expect("automatic login failure") = None;
+        *self.automatic_login_failure.lock() = None;
     }
 
     /// Clear all read snapshots without touching credentials or the session.
@@ -438,46 +461,30 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
     }
 
     pub(crate) fn clear_caches(&self) {
-        self.classrooms.lock().expect("classroom cache").clear();
-        self.schedules.lock().expect("schedule cache").clear();
-        self.cgyy.lock().expect("cgyy cache").clear();
-        *self.cgyy_token.lock().expect("cgyy token") = None;
-        self.notices.lock().expect("notices cache").clear();
-        self.graduate.lock().expect("graduate cache").clear();
-        self.bykc.lock().expect("bykc cache").clear();
-        self.bykc_chosen.lock().expect("bykc chosen cache").clear();
-        self.bykc_statistics
-            .lock()
-            .expect("bykc statistics cache")
-            .clear();
-        self.homework.lock().expect("homework cache").clear();
-        self.homework_details
-            .lock()
-            .expect("homework detail cache")
-            .clear();
-        self.today.lock().expect("today cache").clear();
-        self.grades.lock().expect("grade cache").clear();
-        self.checkin.lock().expect("checkin cache").clear();
-        self.library_venues.lock().expect("library venues").clear();
-        self.library_stats.lock().expect("library stats").clear();
-        self.library_history
-            .lock()
-            .expect("library history")
-            .clear();
-        self.library_bookings
-            .lock()
-            .expect("library bookings")
-            .clear();
+        self.classrooms.lock().clear();
+        self.schedules.lock().clear();
+        self.cgyy.lock().clear();
+        self.identity.lock().cgyy_token = None;
+        self.notices.lock().clear();
+        self.graduate.lock().clear();
+        self.bykc.lock().clear();
+        self.bykc_chosen.lock().clear();
+        self.bykc_statistics.lock().clear();
+        self.homework.lock().clear();
+        self.homework_details.lock().clear();
+        self.today.lock().clear();
+        self.grades.lock().clear();
+        self.checkin.lock().clear();
+        self.library_venues.lock().clear();
+        self.library_stats.lock().clear();
+        self.library_history.lock().clear();
+        self.library_bookings.lock().clear();
     }
 
     fn clear_identity(&self) {
+        *self.identity.lock() = Identity::default();
         self.clear_automatic_login_failure();
         self.session.clear_cookies();
-        *self.pending_login.lock().expect("pending login") = None;
-        *self.account.lock().expect("account lock") = None;
-        *self.profile.lock().expect("profile lock") = None;
-        *self.iclass.lock().expect("iclass session") = None;
-        *self.library_token.lock().expect("library token") = None;
         self.clear_caches();
     }
 }

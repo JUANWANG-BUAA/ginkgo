@@ -79,7 +79,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         }
         let key = (input.term_id.clone(), input.week);
         if !input.force_refresh {
-            let cached = self.schedules.lock().expect("schedule cache");
+            let cached = self.schedules.lock();
             if let Some(entry) = cached.fresh(&key) {
                 return Ok(ScheduleOutcome {
                     data: entry.value.clone(),
@@ -109,11 +109,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
 
         match fetched {
             Ok(data) => {
-                let timestamp = self
-                    .schedules
-                    .lock()
-                    .expect("schedule cache")
-                    .insert(key, data.clone());
+                let timestamp = self.schedules.lock().insert(key, data.clone());
                 Ok(ScheduleOutcome {
                     data,
                     fetched_at: timestamp,
@@ -123,7 +119,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                 })
             }
             Err(error) => {
-                let cached = self.schedules.lock().expect("schedule cache");
+                let cached = self.schedules.lock();
                 match cached.any(&key) {
                     Some(entry) => Ok(ScheduleOutcome {
                         data: entry.value.clone(),
@@ -326,7 +322,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         let day = school_time::beijing_day(&now_shanghai())?;
         let date = day.local_date;
         if !force_refresh {
-            let cached = self.today.lock().expect("today cache");
+            let cached = self.today.lock();
             if let Some(entry) = cached.fresh(&date) {
                 return Ok(TodayOutcome {
                     date,
@@ -356,11 +352,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
 
         match fetched {
             Ok(courses) => {
-                let timestamp = self
-                    .today
-                    .lock()
-                    .expect("today cache")
-                    .insert(date.clone(), courses.clone());
+                let timestamp = self.today.lock().insert(date.clone(), courses.clone());
                 Ok(TodayOutcome {
                     date,
                     courses,
@@ -371,7 +363,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                 })
             }
             Err(error) => {
-                let cached = self.today.lock().expect("today cache");
+                let cached = self.today.lock();
                 match cached.any(&date) {
                     Some(entry) => Ok(TodayOutcome {
                         date,
@@ -400,7 +392,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             .map(|code| code.trim().to_owned())
             .unwrap_or_else(|| "__current__".into());
         if !force_refresh {
-            if let Some(entry) = self.grades.lock().expect("grade cache").fresh(&cache_key) {
+            if let Some(entry) = self.grades.lock().fresh(&cache_key) {
                 return Ok(GradeOutcome {
                     term_id: entry.value.term_id.clone(),
                     courses: entry.value.courses.clone(),
@@ -425,7 +417,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
 
         match fetched {
             Ok((term_id, courses)) => {
-                let timestamp = self.grades.lock().expect("grade cache").insert(
+                let timestamp = self.grades.lock().insert(
                     cache_key,
                     GradeData {
                         term_id: term_id.clone(),
@@ -443,7 +435,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
                 })
             }
             Err(error) => {
-                let cached = self.grades.lock().expect("grade cache");
+                let cached = self.grades.lock();
                 match cached.any(&cache_key) {
                     Some(entry) => Ok(GradeOutcome {
                         term_id: entry.value.term_id.clone(),

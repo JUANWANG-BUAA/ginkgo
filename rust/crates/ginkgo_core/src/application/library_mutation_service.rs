@@ -98,14 +98,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         result
     }
     fn invalidate_library_after_write(&self) {
-        self.library_bookings
-            .lock()
-            .expect("library bookings")
-            .clear();
-        self.library_history
-            .lock()
-            .expect("library history")
-            .clear();
-        self.library_venues.lock().expect("library venues").clear();
+        self.library_bookings.lock().clear();
+        self.library_history.lock().clear();
+        self.library_venues.lock().clear();
     }
 }

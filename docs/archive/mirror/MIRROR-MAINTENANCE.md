@@ -1,5 +1,7 @@
 # 镜像维护与耦合边界
 
+> **历史归档（2026-10-21 收敛）**：本文保留当时的实现、计划或验收证据，文内“当前”与计数仅适用于原记录。最新状态见 [实施现状](../../MIRROR-IMPLEMENTATION.md)、[待办](../../MIRROR-TODO.md)、[功能对照](../../MIRROR-PARITY.md)。普通文字中的源码路径仍以仓库根目录为基准。
+
 > 2026-10-20。适用于 `rust/` 与 `flutter/` 镜像工程。Apple 端继续使用 SwiftUI，不引入 Rust 运行时；Apple 仍是产品与视觉参照。
 
 ## 1. 一个文件只承担一个变化原因
@@ -26,13 +28,13 @@
 
 ## 2. Fixture 与协议变更
 
-1. 先改 [API.md](API.md) 的协议证据与修订表，再动实现。
+1. 先改 [API.md](../../API.md) 的协议证据与修订表，再动实现。
 2. 在 `fixtures/<domain>/` 新增版本化样例；`source` 只允许 `synthetic` 或 `redacted-upstream`，不得含真实学号、姓名、Cookie、票据或成绩。
 3. 新契约先接入 `execute_contract`，让 `rust/crates/ginkgo_core/tests/contracts.rs` 递归执行；Swift 能读取的样例同时补 Swift 测试。
 4. 结构漂移必须返回 `changed_response`，不得降级为空结果；上游业务错误与传输失败保持不同错误码。
 5. 不允许为了通过测试直接改 `expected`；预期变化必须对应协议版本或明确的领域规则变更。
 
-初始二十四类契约、76 份样例：`classroom.filter`、`classroom.parse_response`、`school_time.beijing_day`、`schedule.snapshot_retained_weeks`、`bykc.course_filter`、`auth.cas_login_page`、`auth.uc_status`、`schedule.terms`、`schedule.weeks`、`schedule.undergraduate_courses`、`schedule.exams`、`schedule.today_courses`、`grades.buaa_score`、`grades.term_parts`、`homework.spoc_page`、`homework.spoc_encrypt`、`checkin.app_login`、`checkin.course_schedule`、`library.login_user`、`library.venues`、`library.areas`、`library.slots`、`library.seats`、`library.bookings`。详见 [fixtures/README.md](../fixtures/README.md)。
+初始二十四类契约、76 份样例：`classroom.filter`、`classroom.parse_response`、`school_time.beijing_day`、`schedule.snapshot_retained_weeks`、`bykc.course_filter`、`auth.cas_login_page`、`auth.uc_status`、`schedule.terms`、`schedule.weeks`、`schedule.undergraduate_courses`、`schedule.exams`、`schedule.today_courses`、`grades.buaa_score`、`grades.term_parts`、`homework.spoc_page`、`homework.spoc_encrypt`、`checkin.app_login`、`checkin.course_schedule`、`library.login_user`、`library.venues`、`library.areas`、`library.slots`、`library.seats`、`library.bookings`。详见 [fixtures/README.md](../../../fixtures/README.md)。
 
 ## 3. 桥接维护
 
@@ -61,7 +63,7 @@
 
 - 每个提交：`scripts/check-mirror.sh`；涉及桥接再跑生成脚本与 Flutter 集成测试。
 - 每周：在模拟器跑一次 `flutter drive`，对比 `flutter/build/visual/` 的固定状态截图；检查 CAS/UC mock 是否仍覆盖新增分支。
-- 每月：按 [API.md](API.md) 复核一次上游端点、字段与错误码；把变化先转到 fixture，再改两端实现。
+- 每月：按 [API.md](../../API.md) 复核一次上游端点、字段与错误码；把变化先转到 fixture，再改两端实现。
 - 新增模块完成定义：协议证据 + 领域/应用/桥接 + Android 与 Windows 验收 + 账号隔离/缓存/恢复测试 + 文档更新，缺一不可。
 
 ## 6. 推进顺序与依赖

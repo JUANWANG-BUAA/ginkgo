@@ -1,6 +1,6 @@
 # Rust + Flutter 镜像项目开发计划
 
-> 状态（2026-10-20 晚）：`rust/` workspace、FRB 桥接与 Flutter Android/Windows 工程已建立；认证核心（Cookie/CAS/UC/WebVPN/恢复）、平台凭据保险库和 bridge 登录/恢复/登出已完成。Android Keystore 适配已通过模拟器真实 JNI 往返验收，Windows/macOS 走系统钥匙串（代码完成，Windows 主机构建与实机仍待验收）。空教室、课表、今天和成绩已从合成 `load_demo_*` 增加真实只读 use case（5 分钟内存快照、失败保留旧结果、会话失效单次恢复）；作业仍为合成切片。真实账号只读验收、验证码图片、研究生课表、BYKC/图书馆/场馆/通知、本地功能、Windows 实机与写操作仍未完成。Apple 继续使用 SwiftUI；进度与验收见 [MIRROR-IMPLEMENTATION.md](MIRROR-IMPLEMENTATION.md)。
+> 本文保留架构约束与分阶段计划，不作为当前完成度清单。2026-10-21：主要只读模块与签到 / 图书馆实验写路径已接入，Android Alpha.2 已发布；真实写入、Windows 主机及最近登录异常仍待验收。现状、待办和模块差距统一维护在 [实施入口](MIRROR-IMPLEMENTATION.md)。
 
 ## 目标边界
 
@@ -29,7 +29,7 @@ Rust Application Use Cases
 - 时间点统一用带时区的 RFC 3339 表示；学期、教学周和日期规则固定使用 `Asia/Shanghai`，不继承设备时区。学号、门户 ID、上游不透明键均按字符串传递。
 - 每个领域规则至少有正常、空结果、缺字段/类型漂移、错误四类合成样例；写操作额外覆盖成功、拒绝、结果未知。Rust 不得把结构变化解释为空结果。
 
-当前跨语言 fixtures 包含 [`classroom.filter` v1](../fixtures/classroom/filter-v1.json)、[`bykc.course_filter` v1](../fixtures/bykc/course-filter-v1.json)、[`school_time.beijing_day` v1](../fixtures/time/beijing-day-v1.json) 和 [`schedule.snapshot_retained_weeks` v1](../fixtures/schedule/week-snapshot-v1.json)。Swift 测试直接读取这些合成文件，验证筛选/排序、BYKC 搜索与分类选择、北京时间语义和学期内已知周次保留；Rust 契约测试应加载相同文件，而不是复制 JSON 常量。
+跨语言共享范围包括起始的教室 / BYKC 筛选、北京时间、课表快照，以及后续 CAS、课表、成绩和 SPOC 加密解析契约。两端直接读取同一目录，不复制 JSON 常量；准确的 runner 与尚未接入 Swift 的范围见 [fixtures 说明](../fixtures/README.md)。
 
 ## 启动阶段与首个里程碑
 

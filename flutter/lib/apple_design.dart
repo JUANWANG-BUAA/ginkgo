@@ -22,6 +22,28 @@ abstract final class AppleDesign {
     color: Color(0xff08777c),
     darkColor: Color(0xff66d9df),
   );
+  // State text must remain legible on grouped surfaces and tinted badges.
+  // Colors complement a visible label/icon; they never determine business state.
+  static const statusSuccess = CupertinoDynamicColor.withBrightness(
+    color: Color(0xff125a2d),
+    darkColor: Color(0xff72d991),
+  );
+  static const statusPending = CupertinoDynamicColor.withBrightness(
+    color: Color(0xff713900),
+    darkColor: Color(0xffffbd70),
+  );
+  static const statusUncertain = CupertinoDynamicColor.withBrightness(
+    color: Color(0xff4a4f58),
+    darkColor: Color(0xffc4c8d0),
+  );
+  static const statusDanger = CupertinoDynamicColor.withBrightness(
+    color: Color(0xff982020),
+    darkColor: Color(0xffffaaa4),
+  );
+  static const statusInactive = CupertinoDynamicColor.withBrightness(
+    color: Color(0xff4a4f58),
+    darkColor: Color(0xffc4c8d0),
+  );
   static const font = 'Ginkgo Sans';
   static const fallback = ['Ginkgo Han'];
   static const body = TextStyle(

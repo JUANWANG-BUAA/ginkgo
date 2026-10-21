@@ -104,6 +104,7 @@
 		C6C1DEB93A0B18036C2D74B4 /* CoursePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = A82D2A1F6A61A85177FF38E7 /* CoursePalette.swift */; };
 		C9CAA2AE94F114C1E96CA4B2 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8691165602C5BBEC04AE50 /* UpdateChecker.swift */; };
 		CC3D816ADB1A0A2D15397D3E /* BykcSemesterPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC1CB7DDEB4D526CF8B1E0E3 /* BykcSemesterPolicy.swift */; };
+		CC70F3C180CFE03F7A5DF8AF /* SharedParserContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFD64380A2BA83BAA89EA066 /* SharedParserContractTests.swift */; };
 		CE181313CF1A13574BE08DFD /* ExamViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A064C6E6C8DF817639FF11 /* ExamViewModelTests.swift */; };
 		CE5A8E6428FAFFFEAC1AB109 /* BykcModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC5978750287C82573DF0317 /* BykcModels.swift */; };
 		CE9317DB06B22E87CAA17D77 /* CheckInClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E8CA6999E42ADB99C986880 /* CheckInClientTests.swift */; };
@@ -268,6 +269,7 @@
 		BC1CB7DDEB4D526CF8B1E0E3 /* BykcSemesterPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BykcSemesterPolicy.swift; sourceTree = "<group>"; };
 		BCB90D75C05A2D5D1582CBDC /* AppVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersion.swift; sourceTree = "<group>"; };
 		BEADAA99FD5B76D7FAE825E4 /* WorkspaceIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceIntegrationTests.swift; sourceTree = "<group>"; };
+		BFD64380A2BA83BAA89EA066 /* SharedParserContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedParserContractTests.swift; sourceTree = "<group>"; };
 		C0D3C083A7B336992F73C273 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		C76F112D35F8B62F0B8E6F61 /* JudgeHomeworkClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JudgeHomeworkClientTests.swift; sourceTree = "<group>"; };
 		C9841BEDA1E69FC6CA0C4F06 /* GradeRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradeRepository.swift; sourceTree = "<group>"; };
@@ -334,6 +336,7 @@
 				AD11442B297E310A133041E8 /* LibraryPublicStatsParserTests.swift */,
 				32AF7F026EFFC994B6D0C49E /* ScheduleParserTests.swift */,
 				2B17AB673CA5A560C6397190 /* SharedHelpersTests.swift */,
+				BFD64380A2BA83BAA89EA066 /* SharedParserContractTests.swift */,
 				784BE515E8385576C895F869 /* SpocHomeworkClientTests.swift */,
 				095375EE9D7E4D9765824D43 /* TimetableAndLibraryTests.swift */,
 				B97204BFB3ADC98E3197CB35 /* UpdateCheckerTests.swift */,
@@ -963,6 +966,7 @@
 				102994296A41F4757B0368DF /* LibraryPublicStatsParserTests.swift in Sources */,
 				94961502D3109D7C2DFF7345 /* ScheduleParserTests.swift in Sources */,
 				75D532B860FD04E60F54FCE0 /* SharedHelpersTests.swift in Sources */,
+				CC70F3C180CFE03F7A5DF8AF /* SharedParserContractTests.swift in Sources */,
 				F08134660EBAA82AEDD6E044 /* SpocHomeworkClientTests.swift in Sources */,
 				4B26F9C3C8F8711CA515791B /* TimetableAndLibraryTests.swift in Sources */,
 				AA69212369AF592543F47B6A /* UpdateCheckerTests.swift in Sources */,

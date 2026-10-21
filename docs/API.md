@@ -11,9 +11,10 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| — | 镜像证据文档归档 | 验收记录位于 docs 根目录 | 将链接更新至 archive/mirror；不修改端点、请求、字段或成功码规则 | [历史索引](archive/mirror/README.md)，2026-10-21 |
 | 62 | UC 激活 HTTP SSO 跳转 | 假定认证跳转均为 HTTPS；桌面将不安全 scheme 同样报成缺 Location | 2026-10-21 真实单次登录及无账号 GET 均观察 UC 激活 302 到 http SSO /login；桌面 HTTPS guard 拒绝，镜像跟随 HTTP 后 UC status=10600。仅精确已知 CAS GET 地址提升 HTTPS，保留编码、Secure Cookie 和 TLS；不能据此归因早前 SPOC 500 或账号限制，修复后真实登录待验收 | [诊断记录](_audit/2026-10-21-auth-redirect-incident.md)；CasClient.swift::redirectURL；Rust auth/uc.rs / Cookie::matches |
 | — | 镜像SPOC正文 | 对象/数组正文被按缺失展示 | zynr沿用原生String?契约，类型漂移拒绝并保留旧详情；缺失/null仍允许元数据与提交状态显示 | `SpocHomeworkClient.swift:42,216–233`；2份漂移契约、HTTP编码及应用缓存回归 |
-| — | 镜像 2026-10-21 实网与详情类型 | 部分只读模块待真实账号；正文类型异常被当成缺正文 | Android 授权账号只读检查覆盖已接入模块及详情/历史/分段；空成绩、空已选/当前预约/订单保留空态。SPOC 正文对象/数组报结构错误并保留缓存；合法空正文不冒充请求失败 | [本轮验收](MIRROR-ACCEPTANCE-2026-10-21.md)；`SpocHomeworkClient.swift`、UBAA `LocalSpocAssignmentDetailRaw.zynr` 可空字符串；2 份类型漂移合成 fixture 和先红后绿缓存回归 |
+| — | 镜像 2026-10-21 实网与详情类型 | 部分只读模块待真实账号；正文类型异常被当成缺正文 | Android 授权账号只读检查覆盖已接入模块及详情/历史/分段；空成绩、空已选/当前预约/订单保留空态。SPOC 正文对象/数组报结构错误并保留缓存；合法空正文不冒充请求失败 | [本轮验收](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md)；`SpocHomeworkClient.swift`、UBAA `LocalSpocAssignmentDetailRaw.zynr` 可空字符串；2 份类型漂移合成 fixture 和先红后绿缓存回归 |
 | — | 镜像研究生展示 | 课程与报告元数据共用文字行 | 明确课程标记及可选学分/学期，未知完成值不删除课程，缺学分不伪造0；无新端点 | `GraduateAcademicClient.swift:220–265`；合成领域与契约验证，真实验收仍单列 |
 | — | 镜像博雅学习记录 | 仅课程目录 | 已选记录与累计完成统计分别读取/缓存，按北京时间学期范围查询已选；缺范围保留未知，统计零要求不伪造成欠缺 | `BykcClient.swift:38–63,212–251`、`BykcSemesterPolicy.swift`；EDUCATION-DATA-MAP §2.3 既有协议；本次镜像实网⚠️待验收 |
 | — | 镜像图书馆历史 | 镜像仅当前预约 | 接入member/seat只读分页，type=1、page、limit=40；token恢复一次、按页快照；分页矛盾/漂移报错 | `LibraryClient.swift:392–453`；UBAA e8a397f `LocalLibBookApi.kt:247–258`；合成契约，⚠️历史实网待登录 |
@@ -898,6 +899,6 @@ UBAA 源码另提供操场 CGYY、阳光打卡 YGDK、iHome、课程评教、图
 
 ### 2026-10-21 镜像真实只读复验
 
-Android 上经用户授权，通过实际登录表单及 Rust 会话读取今天、课表与另一周、成绩学期/成绩、三个校区空教室、当天/前一天签到、SPOC 列表/首条详情、博雅目录/已选/统计、研究生学籍/执行报告、图书馆场馆/预约/历史/区域/时段/座位、通知和 CGYY 场馆/当日/订单。均未返回失败码；空结果不构成非空路径验收，未执行任何上游写操作。详细设备、耗时与视觉边界见 [验收记录](MIRROR-ACCEPTANCE-2026-10-21.md)。
+Android 上经用户授权，通过实际登录表单及 Rust 会话读取今天、课表与另一周、成绩学期/成绩、三个校区空教室、当天/前一天签到、SPOC 列表/首条详情、博雅目录/已选/统计、研究生学籍/执行报告、图书馆场馆/预约/历史/区域/时段/座位、通知和 CGYY 场馆/当日/订单。均未返回失败码；空结果不构成非空路径验收，未执行任何上游写操作。详细设备、耗时与视觉边界见 [验收记录](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md)。
 
 SPOC 抽样详情的发布时间、截止时间和分值有值，正文与提交时间为空，与 §7.1 的可空字段边界一致，不推广为所有作业均无正文。对 `zynr` 的对象/数组类型漂移现返回结构错误，防止以假空结果覆盖已有完整详情；没有新增端点或修改请求参数。

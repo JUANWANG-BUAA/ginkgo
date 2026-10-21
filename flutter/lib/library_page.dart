@@ -5,6 +5,7 @@ import 'apple_design.dart';
 import 'mirror_service.dart';
 import 'mutation_dialog.dart';
 import 'library_history_page.dart';
+import 'library_controller.dart';
 import 'library_stats_page.dart';
 import 'resource_meter.dart';
 import 'reservation_widgets.dart';
@@ -19,77 +20,22 @@ class LibraryPage extends StatefulWidget {
 }
 
 class _LibraryPageState extends State<LibraryPage> {
-  LibraryBookingsResponse? bookings;
-  LibraryVenuesResponse? venues;
-  String? bookingError, venueError;
-  String? mutationNotice;
-  bool submitting = false;
-  final Set<String> uncertainActions = {};
-  bool loadingBookings = false, loadingVenues = false;
-  Future<void>? _bookingTask, _venueTask;
-  bool get busy => loadingBookings || loadingVenues;
+  late final LibraryController controller;
 
   @override
   void initState() {
     super.initState();
-    load();
+    controller = LibraryController(widget.service)..addListener(_changed);
+    controller.load();
   }
 
-  // Each section publishes as soon as its own request completes. Waiting here
-  // only controls the pull-to-refresh indicator, never the rendering of data.
-  Future<void> load({bool force = false}) =>
-      Future.wait([_loadVenues(force: force), _loadBookings(force: force)]);
+  void _changed() => setState(() {});
 
-  Future<void> _loadVenues({bool force = false}) =>
-      _venueTask ??= _fetchVenues(force: force).whenComplete(() {
-        _venueTask = null;
-      });
-
-  Future<void> _fetchVenues({required bool force}) async {
-    setState(() {
-      loadingVenues = true;
-      venueError = null;
-    });
-    try {
-      final result = await widget.service.libraryVenues(forceRefresh: force);
-      if (!mounted) return;
-      setState(() {
-        if (result.failure == null || result.stale) venues = result;
-        venueError = result.failure == null
-            ? null
-            : failureMessage(result.failure);
-      });
-    } catch (_) {
-      if (mounted) setState(() => venueError = failureMessage(null));
-    } finally {
-      if (mounted) setState(() => loadingVenues = false);
-    }
-  }
-
-  Future<void> _loadBookings({bool force = false}) =>
-      _bookingTask ??= _fetchBookings(force: force).whenComplete(() {
-        _bookingTask = null;
-      });
-
-  Future<void> _fetchBookings({required bool force}) async {
-    setState(() {
-      loadingBookings = true;
-      bookingError = null;
-    });
-    try {
-      final result = await widget.service.libraryBookings(forceRefresh: force);
-      if (!mounted) return;
-      setState(() {
-        if (result.failure == null || result.stale) bookings = result;
-        bookingError = result.failure == null
-            ? null
-            : failureMessage(result.failure);
-      });
-    } catch (_) {
-      if (mounted) setState(() => bookingError = failureMessage(null));
-    } finally {
-      if (mounted) setState(() => loadingBookings = false);
-    }
+  @override
+  void dispose() {
+    controller.removeListener(_changed);
+    controller.dispose();
+    super.dispose();
   }
 
   Widget _sectionStatus({
@@ -104,7 +50,7 @@ class _LibraryPageState extends State<LibraryPage> {
         ? const CupertinoActivityIndicator()
         : const Icon(
             CupertinoIcons.exclamationmark_triangle,
-            color: CupertinoColors.systemOrange,
+            color: AppleDesign.statusPending,
             size: 20,
           ),
     title: Text(loading ? (hasSnapshot ? '正在更新…' : '正在加载…') : failure!),
@@ -119,10 +65,10 @@ class _LibraryPageState extends State<LibraryPage> {
   );
 
   Future<void> perform(LibraryBooking booking, String action) async {
-    if (submitting) return;
+    if (controller.submitting) return;
     final label = _actionLabel(action);
     final key = '${booking.id}/$action';
-    if (uncertainActions.contains(key)) return;
+    if (controller.uncertainActions.contains(key)) return;
     final confirmed = await confirmMutation(
       context,
       title: '确认$label？',
@@ -131,33 +77,7 @@ class _LibraryPageState extends State<LibraryPage> {
       action: label,
       destructive: action == 'cancel' || action == 'checkout',
     );
-    if (!confirmed || !mounted || submitting) return;
-    setState(() {
-      submitting = true;
-      uncertainActions.add(key);
-    });
-    var message = '操作结果待核实，请刷新预约记录，勿重复提交';
-    try {
-      final result = await widget.service.performLibraryAction(
-        booking.id,
-        action,
-      );
-      message = result.message;
-      if (result.state == 'notSubmitted' || result.state == 'rejected') {
-        uncertainActions.remove(key);
-      }
-    } catch (_) {
-      /* The server may have received the write. Do not replay. */
-    }
-    if (!mounted) return;
-    setState(() => mutationNotice = message);
-    await _reservationChanged();
-    if (mounted) {
-      setState(() {
-        submitting = false;
-        mutationNotice = message;
-      });
-    }
+    if (confirmed && mounted) await controller.perform(booking, action);
   }
 
   String _actionLabel(String action) => switch (action) {
@@ -185,13 +105,17 @@ class _LibraryPageState extends State<LibraryPage> {
           border: null,
           trailing: AppleGlassButton(
             label: '刷新图书馆',
-            onPressed: busy ? null : () => load(force: true),
-            child: busy
+            onPressed: controller.busy
+                ? null
+                : () => controller.load(force: true),
+            child: controller.busy
                 ? const CupertinoActivityIndicator()
                 : const Icon(CupertinoIcons.refresh, size: 24),
           ),
         ),
-        CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
+        CupertinoSliverRefreshControl(
+          onRefresh: () => controller.load(force: true),
+        ),
         SliverList.list(
           children: [
             AppleSection(
@@ -207,9 +131,11 @@ class _LibraryPageState extends State<LibraryPage> {
               ],
             ),
             ...[
-              if (mutationNotice != null)
+              if (controller.mutationNotice != null)
                 AppleSection(
-                  children: [AppleListTile(title: Text(mutationNotice!))],
+                  children: [
+                    AppleListTile(title: Text(controller.mutationNotice!)),
+                  ],
                 ),
               _bookingSection(),
               AppleSection(
@@ -234,19 +160,19 @@ class _LibraryPageState extends State<LibraryPage> {
   );
 
   Widget _bookingSection() {
-    final items = bookings?.bookings ?? const <LibraryBooking>[];
+    final items = controller.bookings?.bookings ?? const <LibraryBooking>[];
     return AppleSection(
       header: const Text('当前预约'),
       children: [
-        if (loadingBookings || bookingError != null)
+        if (controller.loadingBookings || controller.bookingError != null)
           _sectionStatus(
             id: 'bookings',
-            loading: loadingBookings,
-            hasSnapshot: bookings != null,
-            failure: bookingError,
-            retry: () => _loadBookings(force: true),
+            loading: controller.loadingBookings,
+            hasSnapshot: controller.bookings != null,
+            failure: controller.bookingError,
+            retry: () => controller.loadBookings(force: true),
           ),
-        if (bookings != null && items.isEmpty)
+        if (controller.bookings != null && items.isEmpty)
           AppleListTile(
             leading: Icon(
               CupertinoIcons.book,
@@ -264,7 +190,7 @@ class _LibraryPageState extends State<LibraryPage> {
                   minimumHeight: 68,
                   leading: const Icon(
                     CupertinoIcons.bookmark_fill,
-                    color: CupertinoColors.systemGreen,
+                    color: AppleDesign.statusSuccess,
                     size: 22,
                   ),
                   title: Text(booking.title.isEmpty ? '图书馆预约' : booking.title),
@@ -282,8 +208,8 @@ class _LibraryPageState extends State<LibraryPage> {
                     style: TextStyle(
                       fontSize: 14,
                       color: _bookingEnded(booking)
-                          ? CupertinoColors.secondaryLabel.resolveFrom(context)
-                          : CupertinoColors.systemGreen,
+                          ? AppleDesign.statusInactive.resolveFrom(context)
+                          : AppleDesign.statusSuccess.resolveFrom(context),
                     ),
                   ),
                 ),
@@ -306,13 +232,13 @@ class _LibraryPageState extends State<LibraryPage> {
                               _ => CupertinoIcons.xmark_circle,
                             },
                             tint: switch (action) {
-                              'cancel' => CupertinoColors.systemRed,
-                              'leave' => CupertinoColors.systemOrange,
+                              'cancel' => AppleDesign.statusDanger,
+                              'leave' => AppleDesign.statusPending,
                               _ => CupertinoColors.systemBlue,
                             },
                             onPressed:
-                                submitting ||
-                                    uncertainActions.contains(
+                                controller.submitting ||
+                                    controller.uncertainActions.contains(
                                       '${booking.id}/$action',
                                     )
                                 ? null
@@ -351,30 +277,21 @@ class _LibraryPageState extends State<LibraryPage> {
     return bits.join(' · ');
   }
 
-  Future<void> _reservationChanged() async {
-    // Finish any older read before forcing the post-write snapshot. The original
-    // page stays mounted beneath the three selection routes.
-    await _bookingTask;
-    if (mounted) {
-      await _loadBookings(force: true);
-    }
-  }
-
   Widget _venueSection() {
-    final items = venues?.venues ?? const <LibraryVenue>[];
+    final items = controller.venues?.venues ?? const <LibraryVenue>[];
     return AppleSection(
       header: const Text('选择场馆'),
       footer: const Text('空闲数以学校实时查询为准。'),
       children: [
-        if (loadingVenues || venueError != null)
+        if (controller.loadingVenues || controller.venueError != null)
           _sectionStatus(
             id: 'venues',
-            loading: loadingVenues,
-            hasSnapshot: venues != null,
-            failure: venueError,
-            retry: () => _loadVenues(force: true),
+            loading: controller.loadingVenues,
+            hasSnapshot: controller.venues != null,
+            failure: controller.venueError,
+            retry: () => controller.loadVenues(force: true),
           ),
-        if (venues != null && items.isEmpty)
+        if (controller.venues != null && items.isEmpty)
           const AppleListTile(
             title: Text('暂无可用场馆'),
             subtitle: Text('学校接口返回了空列表，请稍后刷新。'),
@@ -391,7 +308,7 @@ class _LibraryPageState extends State<LibraryPage> {
                 _LibraryAreaPage(
                   service: widget.service,
                   venue: venue,
-                  onReservationChanged: _reservationChanged,
+                  onReservationChanged: controller.reservationChanged,
                 ),
               ),
             ),
@@ -991,7 +908,7 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
                   : CupertinoIcons.circle,
               color:
                   (seat.available
-                          ? CupertinoColors.systemGreen
+                          ? AppleDesign.statusSuccess
                           : CupertinoColors.tertiaryLabel)
                       .resolveFrom(context),
               size: 22,
@@ -1007,7 +924,7 @@ class _LibrarySeatPageState extends State<_LibrarySeatPage> {
               style: TextStyle(
                 color:
                     (seat.available
-                            ? CupertinoColors.systemGreen
+                            ? AppleDesign.statusSuccess
                             : CupertinoColors.secondaryLabel)
                         .resolveFrom(context),
               ),

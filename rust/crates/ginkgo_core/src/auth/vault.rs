@@ -4,8 +4,9 @@
 //! exists so mock-HTTP tests can exercise login and recovery without touching
 //! a real keychain.
 use super::{CredentialSource, CredentialVault, Credentials};
+use crate::foundation::mutex::Mutex;
 use crate::AppError;
-use std::{collections::BTreeMap, sync::Mutex};
+use std::collections::BTreeMap;
 
 #[derive(Default)]
 pub struct MemoryVault {
@@ -15,32 +16,18 @@ pub struct MemoryVault {
 impl MemoryVault {
     pub fn with(account: &str, credentials: Credentials) -> Self {
         let vault = Self::default();
-        vault
-            .entries
-            .lock()
-            .expect("memory vault")
-            .insert(account.to_owned(), credentials);
+        vault.entries.lock().insert(account.to_owned(), credentials);
         vault
     }
 
     pub fn names(&self) -> Vec<String> {
-        self.entries
-            .lock()
-            .expect("memory vault")
-            .keys()
-            .cloned()
-            .collect()
+        self.entries.lock().keys().cloned().collect()
     }
 }
 
 impl CredentialSource for MemoryVault {
     fn load(&self, account: &str) -> Result<Option<Credentials>, AppError> {
-        Ok(self
-            .entries
-            .lock()
-            .expect("memory vault")
-            .get(account)
-            .cloned())
+        Ok(self.entries.lock().get(account).cloned())
     }
 }
 
@@ -48,13 +35,12 @@ impl CredentialVault for MemoryVault {
     fn save(&self, account: &str, credentials: &Credentials) -> Result<(), AppError> {
         self.entries
             .lock()
-            .expect("memory vault")
             .insert(account.to_owned(), sanitized(credentials));
         Ok(())
     }
 
     fn delete(&self, account: &str) -> Result<(), AppError> {
-        self.entries.lock().expect("memory vault").remove(account);
+        self.entries.lock().remove(account);
         Ok(())
     }
 

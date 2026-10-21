@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'apple_design.dart';
 import 'mirror_service.dart';
 import 'homework_detail_page.dart';
 import 'school_timestamp.dart';
@@ -143,7 +144,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                     notice!,
                     style: TextStyle(
                       fontSize: 14,
-                      color: CupertinoColors.systemOrange.resolveFrom(context),
+                      color: AppleDesign.statusPending.resolveFrom(context),
                     ),
                   ),
                 ),
@@ -292,8 +293,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _quickFilter(3, '已截止 $overdue', CupertinoColors.systemOrange),
-            _quickFilter(4, '待确认 $unknown', CupertinoColors.secondaryLabel),
+            _quickFilter(3, '已截止 $overdue', AppleDesign.statusDanger),
+            _quickFilter(4, '待确认 $unknown', AppleDesign.statusUncertain),
           ],
         ),
       ),
@@ -371,7 +372,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                     color: late
-                                        ? CupertinoColors.systemRed.resolveFrom(
+                                        ? AppleDesign.statusDanger.resolveFrom(
                                             context,
                                           )
                                         : CupertinoColors.label.resolveFrom(
@@ -459,15 +460,15 @@ class _HomeworkPageState extends State<HomeworkPage> {
     final (label, color) = switch (item.status) {
       HomeworkStatus.submitted => (
         '已提交',
-        CupertinoColors.systemGreen.resolveFrom(context),
+        AppleDesign.statusSuccess.resolveFrom(context),
       ),
       HomeworkStatus.pending =>
         _isOverdue(item.dueAt)
-            ? ('已截止', CupertinoColors.systemRed.resolveFrom(context))
-            : ('待完成', CupertinoColors.systemOrange.resolveFrom(context)),
+            ? ('已截止', AppleDesign.statusDanger.resolveFrom(context))
+            : ('待完成', AppleDesign.statusPending.resolveFrom(context)),
       HomeworkStatus.unknown => (
         '待确认',
-        CupertinoColors.secondaryLabel.resolveFrom(context),
+        AppleDesign.statusUncertain.resolveFrom(context),
       ),
     };
     return Container(

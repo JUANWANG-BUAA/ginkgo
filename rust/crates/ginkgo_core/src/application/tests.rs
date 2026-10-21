@@ -52,6 +52,130 @@ fn uc_ok(account: &str, name: &str) -> HttpResponse {
     )
 }
 
+#[test]
+fn poisoned_identity_is_discarded_instead_of_panicking_on_every_later_read() {
+    let (service, _) = build_service(vec![], MemoryVault::default());
+    let panic = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let mut identity = service.identity.lock();
+        identity.authenticated = Some(super::session_service::AuthenticatedIdentity {
+            account: "sy2501001".into(),
+            profile: UserProfile {
+                school_id: "sy2501001".into(),
+                name: "synthetic".into(),
+            },
+        });
+        panic!("synthetic interrupted identity update");
+    }));
+    assert!(panic.is_err());
+    assert!(!service.status().signed_in());
+    assert_eq!(service.status().account, None);
+    assert_eq!(
+        service.current_account().unwrap_err().code,
+        ErrorCode::SessionExpired
+    );
+}
+
+#[test]
+fn poisoned_snapshot_is_dropped_and_can_be_populated_again() {
+    let (service, _) = build_service(vec![], MemoryVault::default());
+    let panic = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let mut cache = service.checkin.lock();
+        cache.insert("2026-10-21".into(), vec![]);
+        panic!("synthetic interrupted cache update");
+    }));
+    assert!(panic.is_err());
+    service.clear_snapshots();
+    service.checkin.lock().insert("2026-10-21".into(), vec![]);
+    assert!(service.checkin.lock().any(&"2026-10-21".into()).is_some());
+}
+
+#[test]
+fn readers_observe_complete_identity_snapshots_during_account_changes() {
+    use std::sync::{
+        atomic::{AtomicBool, Ordering},
+        Barrier,
+    };
+    let (service, _) = build_service(vec![], MemoryVault::default());
+    let ready = Barrier::new(2);
+    let done = AtomicBool::new(false);
+    std::thread::scope(|scope| {
+        scope.spawn(|| {
+            ready.wait();
+            for index in 0..10_000 {
+                let account = format!("synthetic-{index}");
+                service.set_authenticated(
+                    account.clone(),
+                    UserProfile {
+                        school_id: account,
+                        name: "synthetic".into(),
+                    },
+                );
+                if index % 3 == 0 {
+                    service.set_route(if index % 2 == 0 {
+                        RoutePreference::Direct
+                    } else {
+                        RoutePreference::WebVpn
+                    });
+                }
+            }
+            done.store(true, Ordering::Release);
+        });
+        ready.wait();
+        loop {
+            let status = service.status();
+            match (status.account, status.profile) {
+                (Some(account), Some(profile)) => assert_eq!(account, profile.school_id),
+                (None, None) => {}
+                _ => panic!("account and profile must be published together"),
+            }
+            if done.load(Ordering::Acquire) {
+                break;
+            }
+        }
+    });
+}
+
+#[test]
+fn replacing_or_clearing_identity_drops_every_business_credential() {
+    use super::session_service::{AuthenticatedIdentity, Identity};
+    let (service, _) = build_service(vec![], MemoryVault::default());
+    for clear_by_route in [false, true] {
+        *service.identity.lock() = Identity {
+            authenticated: Some(AuthenticatedIdentity {
+                account: "synthetic-old".into(),
+                profile: UserProfile {
+                    school_id: "synthetic-old".into(),
+                    name: "synthetic".into(),
+                },
+            }),
+            pending_login: None,
+            iclass: Some(crate::features::checkin::IClassSession {
+                user_id: "synthetic".into(),
+                session_id: "synthetic".into(),
+            }),
+            library_token: Some("synthetic".into()),
+            cgyy_token: Some("synthetic".into()),
+        };
+        if clear_by_route {
+            service.set_route(RoutePreference::Direct);
+        } else {
+            service.set_authenticated(
+                "synthetic-new".into(),
+                UserProfile {
+                    school_id: "synthetic-new".into(),
+                    name: "synthetic".into(),
+                },
+            );
+        }
+        let identity = service.identity.lock();
+        assert!(identity.iclass.is_none());
+        assert!(identity.library_token.is_none());
+        assert!(identity.cgyy_token.is_none());
+        assert!(identity.pending_login.is_none());
+        assert_eq!(identity.authenticated.is_none(), clear_by_route);
+    }
+}
+
 fn credentials(account: &str) -> Credentials {
     Credentials {
         username: account.into(),
@@ -899,17 +1023,15 @@ async fn checkin_fresh_snapshot_does_not_wait_for_another_day_network_query() {
         crate::auth::session::Session::new(transport.clone()),
         MemoryVault::default(),
     );
-    *service.account.lock().expect("account") = Some("sy2501001".into());
-    *service.profile.lock().expect("profile") = Some(UserProfile {
-        school_id: "sy2501001".into(),
-        name: "synthetic".into(),
-    });
+    service.set_authenticated(
+        "sy2501001".into(),
+        UserProfile {
+            school_id: "sy2501001".into(),
+            name: "synthetic".into(),
+        },
+    );
     let date = "2026-01-01".to_owned();
-    let timestamp = service
-        .checkin
-        .lock()
-        .expect("cache")
-        .insert(date.clone(), vec![]);
+    let timestamp = service.checkin.lock().insert(date.clone(), vec![]);
     let gate = service.checkin_request_gate.lock().await;
     let mut cached = Box::pin(service.load_checkin_on_date(Some(date.clone()), false));
     match std::future::poll_fn(|cx| Poll::Ready(cached.as_mut().poll(cx))).await {
@@ -1422,7 +1544,6 @@ async fn homework_changed_body_preserves_cached_text_and_native_ids_share_cache(
     service
         .homework_details
         .lock()
-        .expect("detail cache")
         .insert("synthetic+a/b".into(), cached);
     let initial = transport.request_count();
     assert_eq!(
@@ -1465,11 +1586,7 @@ async fn bykc_failure_retains_cached_catalog_and_logout_isolates_account() {
         fixture["input"]["pages"].as_array().expect("pages"),
     )
     .expect("catalog");
-    service
-        .bykc
-        .lock()
-        .expect("cache")
-        .insert("catalog".into(), catalog);
+    service.bykc.lock().insert("catalog".into(), catalog);
     assert_eq!(
         service
             .load_bykc(false)
@@ -1527,20 +1644,11 @@ async fn bykc_queued_cache_misses_reuse_snapshots_filled_while_waiting() {
         std::task::Poll::Ready(())
     })
     .await;
-    service
-        .bykc
-        .lock()
-        .expect("catalog")
-        .insert("catalog".into(), catalog);
-    service
-        .bykc_chosen
-        .lock()
-        .expect("chosen")
-        .insert("chosen".into(), chosen);
+    service.bykc.lock().insert("catalog".into(), catalog);
+    service.bykc_chosen.lock().insert("chosen".into(), chosen);
     service
         .bykc_statistics
         .lock()
-        .expect("statistics")
         .insert("statistics".into(), statistics);
     drop(access);
     assert!(catalog_read
@@ -1597,15 +1705,10 @@ async fn bykc_learning_caches_are_independent_preserve_failures_and_clear_for_id
     };
     let statistics = bykc::parse_statistics(&fixture("bykc", "statistics-normal-v1.json")["input"])
         .expect("statistics");
-    service
-        .bykc_chosen
-        .lock()
-        .expect("chosen cache")
-        .insert("chosen".into(), chosen);
+    service.bykc_chosen.lock().insert("chosen".into(), chosen);
     service
         .bykc_statistics
         .lock()
-        .expect("statistics cache")
         .insert("statistics".into(), statistics);
     let initial = transport.requests().len();
     assert_eq!(
@@ -1662,16 +1765,10 @@ async fn bykc_learning_caches_are_independent_preserve_failures_and_clear_for_id
     assert!(statistics.failure.is_some());
     assert_eq!(statistics.data.entries[2].completed, 3);
     service.clear_caches();
-    assert!(service
-        .bykc_chosen
-        .lock()
-        .expect("chosen cache")
-        .any(&"chosen".into())
-        .is_none());
+    assert!(service.bykc_chosen.lock().any(&"chosen".into()).is_none());
     assert!(service
         .bykc_statistics
         .lock()
-        .expect("statistics cache")
         .any(&"statistics".into())
         .is_none());
     service.sign_out().await;
@@ -1857,7 +1954,7 @@ async fn cgyy_direct_public_login_day_orders_and_stale_snapshot() {
         assert!(req.method == HttpMethod::Get || req.url.ends_with("/api/login"));
     }
     service.clear_snapshots();
-    assert!(service.cgyy_token.lock().unwrap().is_none());
+    assert!(service.identity.lock().cgyy_token.is_none());
 }
 
 #[tokio::test]
@@ -1875,7 +1972,7 @@ async fn library_auth_failure_preserves_the_previous_snapshot() {
         .await
         .unwrap();
     let first = service.load_library_venues(false).await.unwrap();
-    *service.library_token.lock().unwrap() = None;
+    service.identity.lock().library_token = None;
     let stale = service.load_library_venues(true).await.unwrap();
     assert!(stale.stale && stale.from_cache);
     assert_eq!(stale.venues.len(), first.venues.len());
@@ -2194,7 +2291,7 @@ async fn checkin_write_revalidates_today_sends_once_and_invalidates_snapshot() {
     let day = crate::foundation::school_time::beijing_day(&super::cache::now_shanghai())
         .unwrap()
         .local_date;
-    assert!(service.checkin.lock().unwrap().any(&day).is_none());
+    assert!(service.checkin.lock().any(&day).is_none());
 }
 
 #[tokio::test]
@@ -2394,11 +2491,13 @@ fn recovery_failure_service() -> (
         crate::auth::session::Session::new(transport.clone()),
         seeded("sy2501001"),
     );
-    *service.account.lock().expect("account") = Some("sy2501001".into());
-    *service.profile.lock().expect("profile") = Some(UserProfile {
-        school_id: "sy2501001".into(),
-        name: "synthetic".into(),
-    });
+    service.set_authenticated(
+        "sy2501001".into(),
+        UserProfile {
+            school_id: "sy2501001".into(),
+            name: "synthetic".into(),
+        },
+    );
     (service, transport)
 }
 
@@ -2488,7 +2587,7 @@ async fn automatic_login_failure_cooldown_expires_and_identity_changes_clear_it(
     let error = service.silent_login().await.expect_err("CAS 500");
     assert_eq!(transport.password_posts.load(Ordering::Relaxed), 1);
     // Advance only the stored monotonic timestamp: this test never sleeps.
-    *service.automatic_login_failure.lock().expect("failure") =
+    *service.automatic_login_failure.lock() =
         Some((Instant::now() - Duration::from_secs(61), error));
     assert_eq!(
         service
@@ -2500,11 +2599,7 @@ async fn automatic_login_failure_cooldown_expires_and_identity_changes_clear_it(
     );
     assert_eq!(transport.password_posts.load(Ordering::Relaxed), 2);
     service.set_route(RoutePreference::WebVpn);
-    assert!(service
-        .automatic_login_failure
-        .lock()
-        .expect("failure")
-        .is_none());
+    assert!(service.automatic_login_failure.lock().is_none());
     assert_eq!(
         service
             .silent_login()

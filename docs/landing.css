@@ -292,7 +292,7 @@ h1 {
 .hero-platforms span {
   display: block;
   color: var(--text-faint);
-  font-size: 10px;
+  font-size: 12px;
   margin-top: var(--space-1);
 }
 .hero-visual {
@@ -325,7 +325,7 @@ a[data-preview]:focus-visible {
   justify-content: space-between;
   gap: var(--space-3);
   color: var(--text-soft);
-  font-size: 10px;
+  font-size: 12px;
   border-top: 1px solid var(--line);
 }
 .visual-note {
@@ -447,7 +447,7 @@ figcaption b {
   font-weight: 500;
 }
 figcaption span {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-soft);
 }
 .showcase-side h3 {
@@ -508,7 +508,7 @@ figcaption span {
 .status {
   font-family: var(--sans);
   color: var(--accent);
-  font-size: 10px;
+  font-size: 12px;
   border: 1px solid var(--line-strong);
   background: var(--panel-soft);
   padding: 3px 7px;
@@ -527,7 +527,7 @@ figcaption span {
 .platform-requirement {
   color: var(--text-soft);
   font-family: var(--sans);
-  font-size: 10px;
+  font-size: 12px;
   min-height: 35px;
 }
 .download-panel p {
@@ -537,7 +537,7 @@ figcaption span {
 }
 .version {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-soft);
   margin-bottom: var(--space-3);
 }
@@ -555,7 +555,7 @@ figcaption span {
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-3);
   font-family: var(--sans);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-soft);
   margin-top: var(--space-4);
 }
@@ -658,7 +658,7 @@ summary::-webkit-details-marker {
   margin-bottom: var(--space-3);
 }
 .disclaimer p {
-  font-size: 11px;
+  font-size: 12px;
 }
 .site-footer {
   border-top: 1px solid var(--line);
@@ -680,7 +680,7 @@ summary::-webkit-details-marker {
 .footer-note {
   margin-top: var(--space-3);
   color: var(--text-faint);
-  font-size: 10px;
+  font-size: 12px;
 }
 .footer-inner nav {
   display: flex;
@@ -701,7 +701,7 @@ summary::-webkit-details-marker {
   padding-top: var(--space-5);
   border-top: 1px solid var(--line);
   color: var(--text-soft);
-  font-size: 10px;
+  font-size: 12px;
   gap: var(--space-4);
 }
 .footer-credit a:last-child {
@@ -735,7 +735,7 @@ summary::-webkit-details-marker {
 .preview-caption {
   text-align: center;
   padding: var(--space-3);
-  font-size: 11px;
+  font-size: 12px;
 }
 @media (max-width: 1080px) {
   .wrap {
@@ -946,7 +946,7 @@ summary::-webkit-details-marker {
     font-size: 15px;
   }
   .eyebrow {
-    font-size: 11px;
+    font-size: 12px;
     margin-bottom: var(--space-4);
   }
   .actions {
@@ -962,13 +962,13 @@ summary::-webkit-details-marker {
   }
   .hero-shot figcaption {
     padding: var(--space-3);
-    font-size: 9px;
+    font-size: 12px;
   }
   .hero-shot figcaption span {
-    font-size: 9px;
+    font-size: 12px;
   }
   .visual-note {
-    font-size: 11px;
+    font-size: 12px;
     margin-top: var(--space-4);
   }
   .principles {
@@ -976,7 +976,7 @@ summary::-webkit-details-marker {
     grid-template-columns: 1fr 1fr;
     gap: var(--space-3);
     padding-block: var(--space-5);
-    font-size: 10px;
+    font-size: 12px;
   }
   .principles span::before {
     margin-right: 5px;
@@ -1048,14 +1048,14 @@ summary::-webkit-details-marker {
     font-size: 12px;
   }
   .version {
-    font-size: 11px;
+    font-size: 12px;
   }
   .download-links {
     font-size: 12px;
     gap: var(--space-4);
   }
   .status {
-    font-size: 11px;
+    font-size: 12px;
   }
   .alpha-note {
     display: flex;

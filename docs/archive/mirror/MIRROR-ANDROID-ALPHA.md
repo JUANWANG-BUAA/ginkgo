@@ -1,5 +1,7 @@
 # Android Alpha 安装与验收
 
+> **历史归档（2026-10-21 收敛）**：本文保留当时的实现、计划或验收证据，文内“当前”与计数仅适用于原记录。最新状态见 [实施现状](../../MIRROR-IMPLEMENTATION.md)、[待办](../../MIRROR-TODO.md)、[功能对照](../../MIRROR-PARITY.md)。普通文字中的源码路径仍以仓库根目录为基准。
+
 > 当前新版已发布：[Android Alpha.2](MIRROR-ANDROID-ALPHA2.md)。本文以下保留 Alpha.1 的历史发布记录。
 
 版本：`0.1.0-alpha.1`（build 2），GitHub tag `android-v0.1.0-alpha.1`。

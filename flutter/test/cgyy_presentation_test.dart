@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/academic_widgets.dart';
+import 'package:ginkgo_mirror/apple_design.dart';
 import 'package:ginkgo_mirror/cgyy_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/reservation_widgets.dart';
@@ -70,15 +71,15 @@ void main() {
           .toList();
       expect(
         statuses.singleWhere((badge) => badge.label == '空闲').tint,
-        CupertinoColors.systemGreen,
+        AppleDesign.statusSuccess,
       );
       expect(
         statuses.singleWhere((badge) => badge.label == '不可预约').tint,
-        CupertinoColors.secondaryLabel,
+        AppleDesign.statusInactive,
       );
       expect(
         statuses.singleWhere((badge) => badge.label == '状态待确认').tint,
-        CupertinoColors.systemOrange,
+        AppleDesign.statusUncertain,
       );
       await tester.tap(find.byType(CupertinoNavigationBarBackButton));
       await tester.pumpAndSettle();

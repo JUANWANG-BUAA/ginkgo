@@ -1,6 +1,7 @@
 //! Cookie-owning HTTP session. Direct and WebVPN cookies are isolated so a
 //! gateway login can never overwrite or leak a campus session.
 use super::{cas, redirect};
+use crate::foundation::mutex::{lock_value, Mutex};
 use crate::{
     foundation::{
         cookie::CookieJar,
@@ -9,7 +10,7 @@ use crate::{
     },
     AppError,
 };
-use std::sync::Mutex;
+use std::sync::Mutex as StdMutex;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RouteMode {
@@ -20,7 +21,7 @@ pub enum RouteMode {
 
 pub struct Session<T: HttpTransport> {
     transport: T,
-    route: Mutex<RouteMode>,
+    route: StdMutex<RouteMode>,
     direct_jar: Mutex<CookieJar>,
     webvpn_jar: Mutex<CookieJar>,
 }
@@ -29,14 +30,14 @@ impl<T: HttpTransport> Session<T> {
     pub fn new(transport: T) -> Self {
         Self {
             transport,
-            route: Mutex::new(RouteMode::Automatic),
+            route: StdMutex::new(RouteMode::Automatic),
             direct_jar: Mutex::new(CookieJar::new()),
             webvpn_jar: Mutex::new(CookieJar::new()),
         }
     }
 
     pub fn route(&self) -> RouteMode {
-        *self.route.lock().expect("route lock")
+        *lock_value(&self.route)
     }
 
     /// Read-only access to the injected transport, used by tests and adapters
@@ -46,13 +47,13 @@ impl<T: HttpTransport> Session<T> {
     }
 
     pub fn set_route(&self, mode: RouteMode) {
-        *self.route.lock().expect("route lock") = mode;
+        *lock_value(&self.route) = mode;
     }
 
     /// Automatic mode remembers the first confirmed access-policy block and
     /// switches to WebVPN for the rest of the session, matching the Apple app.
     pub fn activate_automatic_webvpn_fallback(&self) -> bool {
-        let mut route = self.route.lock().expect("route lock");
+        let mut route = lock_value(&self.route);
         if *route != RouteMode::Automatic {
             return false;
         }
@@ -61,16 +62,16 @@ impl<T: HttpTransport> Session<T> {
     }
 
     pub fn clear_cookies(&self) {
-        self.direct_jar.lock().expect("direct jar").clear();
-        self.webvpn_jar.lock().expect("webvpn jar").clear();
+        self.direct_jar.lock().clear();
+        self.webvpn_jar.lock().clear();
     }
 
     pub fn webvpn_cookie_present(&self) -> bool {
-        !self.webvpn_jar.lock().expect("webvpn jar").is_empty()
+        !self.webvpn_jar.lock().is_empty()
     }
 
     pub fn direct_cookie_present(&self) -> bool {
-        !self.direct_jar.lock().expect("direct jar").is_empty()
+        !self.direct_jar.lock().is_empty()
     }
 
     /// CGYY is direct-only. Never mutate the shared route across an await.
@@ -80,7 +81,7 @@ impl<T: HttpTransport> Session<T> {
 
     /// Rust-only access for CGYY's documented SSO cookie; never bridged to Dart.
     pub(crate) fn cgyy_sso_token(&self) -> Option<String> {
-        let header = self.direct_jar.lock().expect("direct jar").header_for(
+        let header = self.direct_jar.lock().header_for(
             "https://cgyy.buaa.edu.cn/venue-zhjs-server/",
             CookieJar::now_ms(),
         )?;
@@ -167,15 +168,9 @@ impl<T: HttpTransport> Session<T> {
 
         let now = CookieJar::now_ms();
         let cookie_header = if campus_or_gateway {
-            self.webvpn_jar
-                .lock()
-                .expect("webvpn jar")
-                .header_for(&request.url, now)
+            self.webvpn_jar.lock().header_for(&request.url, now)
         } else {
-            self.direct_jar
-                .lock()
-                .expect("direct jar")
-                .header_for(&request.url, now)
+            self.direct_jar.lock().header_for(&request.url, now)
         };
         if let Some(cookie) = cookie_header {
             request.headers.insert("Cookie".into(), cookie);
@@ -192,7 +187,7 @@ impl<T: HttpTransport> Session<T> {
         } else {
             &self.direct_jar
         };
-        let mut jar = jar.lock().expect("cookie jar");
+        let mut jar = jar.lock();
         for header in &response.set_cookies {
             jar.store(&request_url, header, now);
         }

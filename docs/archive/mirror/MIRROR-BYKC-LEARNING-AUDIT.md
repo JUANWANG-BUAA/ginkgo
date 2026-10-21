@@ -1,5 +1,7 @@
 # 博雅学习记录与完成统计验收（2026-10-21）
 
+> **历史归档（2026-10-21 收敛）**：本文保留当时的实现、计划或验收证据，文内“当前”与计数仅适用于原记录。最新状态见 [实施现状](../../MIRROR-IMPLEMENTATION.md)、[待办](../../MIRROR-TODO.md)、[功能对照](../../MIRROR-PARITY.md)。普通文字中的源码路径仍以仓库根目录为基准。
+
 ## 协议依据
 
 `BUAA-Assistant/Features/BYKC/BykcClient.swift` 的 `load`、`chosenCourses`、`statistics` 与 `BykcSemesterPolicy.swift`，以及 API.md §7.3 / EDUCATION-DATA-MAP §2.3。沿用已有加密信封，已选查询使用当前北京时间学期的 startDate/endDate；累计统计独立查询。不新增接口假设。

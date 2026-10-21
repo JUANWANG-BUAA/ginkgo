@@ -50,7 +50,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         // slow report block an already cached status (or the reverse).
         self.current_account()?;
         if !force {
-            let cache = self.graduate.lock().expect("graduate cache");
+            let cache = self.graduate.lock();
             if let Some(entry) = cache.fresh(&key) {
                 return Ok(GraduateOutcome {
                     data: entry.value.clone(),
@@ -63,7 +63,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         let _gate = self.graduate_request_gate.lock().await;
         let account = self.current_account()?;
         if !force {
-            let cache = self.graduate.lock().expect("graduate cache");
+            let cache = self.graduate.lock();
             if let Some(entry) = cache.fresh(&key) {
                 return Ok(GraduateOutcome {
                     data: entry.value.clone(),
@@ -83,17 +83,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         }
         match result {
             Ok(data) => {
-                self.graduate
-                    .lock()
-                    .expect("graduate cache")
-                    .insert(key, data.clone());
+                self.graduate.lock().insert(key, data.clone());
                 Ok(GraduateOutcome {
                     data,
                     failure: None,
                 })
             }
             Err(error) => {
-                let cache = self.graduate.lock().expect("graduate cache");
+                let cache = self.graduate.lock();
                 match cache.any(&key) {
                     Some(entry) => Ok(GraduateOutcome {
                         data: entry.value.clone(),
@@ -118,12 +115,14 @@ mod tests {
             Session::new(MockTransport::default()),
             MemoryVault::default(),
         );
-        *service.account.lock().expect("account") = Some("sy2501001".into());
-        *service.profile.lock().expect("profile") = Some(crate::auth::UserProfile {
-            school_id: "sy2501001".into(),
-            name: "synthetic".into(),
-        });
-        service.graduate.lock().expect("cache").insert(
+        service.set_authenticated(
+            "sy2501001".into(),
+            crate::auth::UserProfile {
+                school_id: "sy2501001".into(),
+                name: "synthetic".into(),
+            },
+        );
+        service.graduate.lock().insert(
             "status".into(),
             AcademicData {
                 sections: vec![],
@@ -158,11 +157,13 @@ mod tests {
             Session::new(MockTransport::default()),
             MemoryVault::default(),
         );
-        *service.account.lock().expect("account") = Some("sy2501001".into());
-        *service.profile.lock().expect("profile") = Some(crate::auth::UserProfile {
-            school_id: "sy2501001".into(),
-            name: "synthetic".into(),
-        });
+        service.set_authenticated(
+            "sy2501001".into(),
+            crate::auth::UserProfile {
+                school_id: "sy2501001".into(),
+                name: "synthetic".into(),
+            },
+        );
         let gate = service.graduate_request_gate.lock().await;
         let mut waiting = Box::pin(service.load_graduate_part(GraduatePart::Status, false));
         assert!(
@@ -170,7 +171,7 @@ mod tests {
                 .await
                 .is_pending()
         );
-        service.graduate.lock().expect("cache").insert(
+        service.graduate.lock().insert(
             "status".into(),
             AcademicData {
                 sections: vec![],

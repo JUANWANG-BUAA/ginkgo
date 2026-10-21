@@ -1,6 +1,8 @@
 # Rust + Flutter 本轮验收（2026-10-21）
 
-适用对象：本轮工作树中的 Android / Windows 镜像及宣传首页；Android Alpha.2 已公开发布，最终签名包、校验和及安装检查见 [发布记录](MIRROR-ANDROID-ALPHA2.md)。当前模块状态见 [macOS 对照表](MIRROR-MACOS-PARITY.md)，协议、缓存和分段迁移见 [本轮对齐记录](MIRROR-PARITY-2026-10-21.md)。
+> **历史归档（2026-10-21 收敛）**：本文保留当时的实现、计划或验收证据，文内“当前”与计数仅适用于原记录。最新状态见 [实施现状](../../MIRROR-IMPLEMENTATION.md)、[待办](../../MIRROR-TODO.md)、[功能对照](../../MIRROR-PARITY.md)。普通文字中的源码路径仍以仓库根目录为基准。
+
+适用对象：本轮工作树中的 Android / Windows 镜像及宣传首页；Android Alpha.2 已公开发布，最终签名包、校验和及安装检查见 [发布记录](MIRROR-ANDROID-ALPHA2.md)。当前模块状态见 [macOS 对照表](../../MIRROR-PARITY.md)，协议、缓存和分段迁移见 [本轮对齐记录](MIRROR-PARITY-2026-10-21.md)。
 
 ## 已实施
 
@@ -26,7 +28,7 @@
 
 已完成的定向回归：博雅学习 / 详情、作业层级、原页面回归 4 个文件共 32 项通过；7 个对应改动文件 analyze 无问题。覆盖按需加载、失败缓存、搜索 / 详情保留、500 条懒构建、零要求 / 超额、大字号和纯 Cupertino 长按复制菜单。
 
-首页已完成 Chromium 桌面 / 手机读图与 320–1440 宽度检查、导航和 dialog 键盘交互、减少动态效果、发布资产隔离检查；Serif Enforcer 0 违规 / 0 警告，6 对配色对比度均通过。详细命令和边界见 [首页改版记录](LANDING-REDESIGN-2026-10-21.md)。
+首页已完成 Chromium 桌面 / 手机读图与 320–1440 宽度检查、导航和 dialog 键盘交互、减少动态效果、发布资产隔离检查；Serif Enforcer 0 违规 / 0 警告，6 对配色对比度均通过。详细命令和边界见 [首页改版记录](../../LANDING-REDESIGN-2026-10-21.md)。
 
 最终整合运行 `bash scripts/check-mirror.sh`：Rust 核心 165 项、144 份 fixture 的契约遍历 1 项、bridge 生命周期 1 项、BYKC doc-test 1 项通过；fmt、全 workspace / all-targets / all-features Clippy `-D warnings`、Flutter analyze 均通过。Flutter 全量当次 88 项通过。研究生进度轨道宽度、430px 长文字成绩、深处类别打开课程后的筛选可见性、320px / 1.8 倍字号 / 深浅色、预约忙碌禁用与未知资源数量均有定向回归；不累加重复测试。
 
