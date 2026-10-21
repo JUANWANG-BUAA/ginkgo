@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
 import 'homework_detail_page.dart';
+import 'school_timestamp.dart';
 import 'src/rust/api/mirror.dart';
 
 class HomeworkPage extends StatefulWidget {
@@ -20,6 +21,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
   int filter = 0;
   int pending = 0, submitted = 0, overdue = 0, unknown = 0;
   String search = '';
+  final searchController = TextEditingController();
   List<HomeworkItem> visible = [];
 
   void prepare() {
@@ -67,6 +69,12 @@ class _HomeworkPageState extends State<HomeworkPage> {
   void initState() {
     super.initState();
     load();
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
   }
 
   Future<void> load({bool force = false}) async {
@@ -125,107 +133,150 @@ class _HomeworkPageState extends State<HomeworkPage> {
           ),
         ),
         CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
-        SliverList.list(
-          children: [
-            if (notice != null)
-              AppleSection(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      notice!,
-                      style: TextStyle(
-                        color: CupertinoColors.systemOrange.resolveFrom(
-                          context,
-                        ),
-                      ),
+        if (notice != null)
+          SliverToBoxAdapter(
+            child: AppleSection(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    notice!,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: CupertinoColors.systemOrange.resolveFrom(context),
                     ),
                   ),
-                ],
-              ),
-            if (error != null)
-              AppleSection(
-                children: [
-                  AppleEmptyState(
-                    title: error!,
-                    description: '请检查网络后重试。',
-                    error: true,
-                    action: '重试',
-                    onAction: () => load(force: true),
-                  ),
-                ],
-              )
-            else if (data == null)
-              AppleSection(
-                children: const [
-                  Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        CupertinoActivityIndicator(),
-                        SizedBox(width: 10),
-                        Text('正在读取作业…'),
-                      ],
-                    ),
-                  ),
-                ],
-              )
-            else
-              ..._content(data!),
-          ],
-        ),
+                ),
+              ],
+            ),
+          ),
+        if (error != null)
+          SliverToBoxAdapter(
+            child: AppleEmptyState(
+              title: error!,
+              description: '请检查网络后重试。',
+              error: true,
+              action: '重试',
+              onAction: () => load(force: true),
+            ),
+          )
+        else if (data == null)
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Center(child: CupertinoActivityIndicator()),
+            ),
+          )
+        else
+          ..._content(data!),
+        const SliverToBoxAdapter(child: SizedBox(height: 96)),
       ],
     ),
   );
 
-  List<Widget> _content(HomeworkResponse data) {
-    return [
-      AppleSection(
-        header: Text(
-          [
-            data.termName,
-            data.termCode,
-          ].where((value) => value.isNotEmpty).join(' · '),
-        ),
+  String _filterLabel(int value) => switch (value) {
+    1 => '待完成',
+    2 => '已提交',
+    3 => '已截止',
+    4 => '待确认',
+    _ => '全部',
+  };
 
+  List<Widget> _content(HomeworkResponse data) => [
+    SliverToBoxAdapter(
+      child: AppleSection(
+        header: Text(data.termName.isEmpty ? '本学期作业' : data.termName),
         children: [
-          AppleListTile(
-            title: const Text('待完成 / 已提交'),
-            additionalInfo: Text(
-              '$pending / $submitted',
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-            ),
-          ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-            child: CupertinoSlidingSegmentedControl<int>(
-              groupValue: filter <= 2 ? filter : null,
-              onValueChanged: (value) => setState(() {
-                filter = value ?? 0;
-                prepare();
-              }),
-              children: const {
-                0: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 6),
-                  child: Text('全部'),
-                ),
-                1: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 6),
-                  child: Text('待完成', key: Key('homework-filter-pending')),
-                ),
-                2: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 6),
-                  child: Text('已提交', key: Key('homework-filter-submitted')),
-                ),
-              },
+            padding: const EdgeInsets.all(16),
+            child: LayoutBuilder(
+              builder: (context, constraints) => Wrap(
+                spacing: 20,
+                runSpacing: 16,
+                children: [
+                  for (final metric in [
+                    (label: '待完成', count: pending),
+                    (label: '已提交', count: submitted),
+                    (label: '已截止', count: overdue),
+                  ])
+                    SizedBox(
+                      key: ValueKey('homework-summary-${metric.label}'),
+                      width: MediaQuery.textScalerOf(context).scale(14) > 20
+                          ? constraints.maxWidth
+                          : (constraints.maxWidth - 40) / 3,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${metric.count}',
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            metric.label,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: CupertinoColors.secondaryLabel.resolveFrom(
+                                context,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ],
       ),
-      Padding(
+    ),
+    SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+        child: MediaQuery.textScalerOf(context).scale(14) > 20
+            ? ApplePickerTile<int>(
+                title: '作业状态',
+                value: filter,
+                values: const [0, 1, 2, 3, 4],
+                label: _filterLabel,
+                onSelected: (value) => setState(() {
+                  filter = value;
+                  prepare();
+                }),
+              )
+            : CupertinoSlidingSegmentedControl<int>(
+                groupValue: filter <= 2 ? filter : null,
+                onValueChanged: (value) => setState(() {
+                  filter = value ?? 0;
+                  prepare();
+                }),
+                children: const {
+                  0: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 6),
+                    child: Text('全部'),
+                  ),
+                  1: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 6),
+                    child: Text('待完成', key: Key('homework-filter-pending')),
+                  ),
+                  2: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 6),
+                    child: Text('已提交', key: Key('homework-filter-submitted')),
+                  ),
+                },
+              ),
+      ),
+    ),
+    SliverToBoxAdapter(
+      child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
         child: CupertinoSearchTextField(
           key: const Key('homework-search'),
+          controller: searchController,
           placeholder: '搜索作业、课程或教师',
           onChanged: (value) => setState(() {
             search = value;
@@ -233,7 +284,9 @@ class _HomeworkPageState extends State<HomeworkPage> {
           }),
         ),
       ),
-      Padding(
+    ),
+    SliverToBoxAdapter(
+      child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
         child: Wrap(
           spacing: 8,
@@ -244,93 +297,146 @@ class _HomeworkPageState extends State<HomeworkPage> {
           ],
         ),
       ),
-      if (visible.isEmpty)
-        AppleSection(
-          children: [
-            AppleEmptyState(
-              title: search.trim().isEmpty ? '没有符合条件的作业' : '没有匹配的作业',
-              description: '切换筛选或修改关键词。',
-            ),
-          ],
-        )
-      else
-        AppleContentTransition(
-          identity: (filter, search, data),
-          child: AppleSection(
-            header: Text('${visible.length} 项作业'),
-            children: [
-              for (final item in visible)
-                AppleListTile(
-                  key: Key('homework-${item.id}'),
-                  onTap: () => Navigator.of(context).push(
-                    CupertinoPageRoute<void>(
-                      builder: (context) => HomeworkDetailPage(
-                        item: item,
-                        service: widget.service,
-                      ),
-                    ),
-                  ),
-                  trailing: const CupertinoListTileChevron(),
-                  minimumHeight: 112,
-                  leading: Container(
-                    width: 4,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.systemIndigo.resolveFrom(context),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  title: Text(
-                    item.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 6),
-                      Text(item.courseName),
-                      if (item.teacherName != null) Text(item.teacherName!),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 6,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          _statusBadge(context, item),
-                          Text(
-                            item.dueAt == null
-                                ? '截止时间未确认'
-                                : '截止 ${_format(item.dueAt!)}',
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
+    ),
+    SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 10),
+        child: Text(
+          '${visible.length} 项作业',
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
-      AppleSection(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              widget.service.isDemo ? '演示数据' : '来源：SPOC',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                color: CupertinoColors.secondaryLabel,
+      ),
+    ),
+    if (visible.isEmpty)
+      SliverToBoxAdapter(
+        child: AppleEmptyState(
+          title: search.trim().isEmpty ? '没有符合条件的作业' : '没有匹配的作业',
+          description: '切换筛选或修改关键词。',
+        ),
+      )
+    else
+      SliverList.builder(
+        itemCount: visible.length,
+        addAutomaticKeepAlives: false,
+        itemBuilder: (context, index) {
+          final item = visible[index];
+          final late =
+              item.status == HomeworkStatus.pending && _isOverdue(item.dueAt);
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ClipRSuperellipse(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(index == 0 ? 20 : 0),
+                bottom: Radius.circular(index == visible.length - 1 ? 20 : 0),
+              ),
+              child: ColoredBox(
+                color: CupertinoColors.secondarySystemGroupedBackground
+                    .resolveFrom(context),
+                child: Column(
+                  children: [
+                    AppleListTile(
+                      key: Key('homework-${item.id}'),
+                      onTap: () => Navigator.of(context).push(
+                        CupertinoPageRoute<void>(
+                          builder: (_) => HomeworkDetailPage(
+                            item: item,
+                            service: widget.service,
+                          ),
+                        ),
+                      ),
+                      trailing: const CupertinoListTileChevron(),
+                      title: Text(
+                        item.title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          height: 1.35,
+                        ),
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 9),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Wrap(
+                              spacing: 10,
+                              runSpacing: 7,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(
+                                  item.dueAt == null
+                                      ? '截止时间未确认'
+                                      : '截止 ${schoolTimestampLabel(item.dueAt)}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: late
+                                        ? CupertinoColors.systemRed.resolveFrom(
+                                            context,
+                                          )
+                                        : CupertinoColors.label.resolveFrom(
+                                            context,
+                                          ),
+                                  ),
+                                ),
+                                _statusBadge(context, item),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              item.courseName,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: CupertinoColors.secondaryLabel
+                                    .resolveFrom(context),
+                              ),
+                            ),
+                            if (item.teacherName?.trim().isNotEmpty ==
+                                true) ...[
+                              const SizedBox(height: 3),
+                              Text(
+                                '教师 · ${item.teacherName}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: CupertinoColors.secondaryLabel
+                                      .resolveFrom(context),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (index != visible.length - 1)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Container(
+                          height: 0.5,
+                          color: CupertinoColors.separator
+                              .resolveFrom(context)
+                              .withValues(alpha: 0.2),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          );
+        },
       ),
-    ];
-  }
+    SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+        child: Text(
+          widget.service.isDemo ? '演示数据 · 截止时间为北京时间' : '来源：SPOC · 截止时间为北京时间',
+          style: TextStyle(
+            fontSize: 12,
+            color: CupertinoColors.secondaryLabel.resolveFrom(context),
+          ),
+        ),
+      ),
+    ),
+  ];
 
   Widget _quickFilter(int value, String label, CupertinoDynamicColor tint) =>
       CupertinoButton(
@@ -365,15 +471,15 @@ class _HomeworkPageState extends State<HomeworkPage> {
       ),
     };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
           color: color,
         ),
@@ -399,11 +505,4 @@ class _HomeworkPageState extends State<HomeworkPage> {
           ).subtract(const Duration(hours: 8));
     return instant.isBefore(DateTime.now().toUtc());
   }
-}
-
-String _format(String value) {
-  final date = DateTime.tryParse(value);
-  if (date == null) return value;
-  return '${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} '
-      '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
 }

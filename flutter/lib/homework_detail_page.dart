@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
+import 'school_timestamp.dart';
 import 'src/rust/api/live.dart' show HomeworkDetailResponse;
 import 'src/rust/api/mirror.dart';
 
@@ -80,15 +81,84 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-            child: Text(
-              widget.item.title,
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.item.courseName,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                  ),
+                ),
+                const SizedBox(height: 9),
+                Text(
+                  widget.item.title,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    height: 1.3,
+                  ),
+                ),
+              ],
             ),
           ),
           AppleSection(
             children: [
-              _field('课程', widget.item.courseName),
-              _field('授课教师', widget.item.teacherName ?? '上游未提供'),
+              Padding(
+                key: const Key('homework-deadline-summary'),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      '截止时间 · 北京时间',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: CupertinoColors.secondaryLabel.resolveFrom(
+                          context,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      schoolTimestampLabel(data?.dueAt ?? widget.item.dueAt),
+                      style: const TextStyle(
+                        fontSize: 23,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          CupertinoIcons.doc_text,
+                          size: 16,
+                          color: CupertinoColors.secondaryLabel.resolveFrom(
+                            context,
+                          ),
+                        ),
+                        const SizedBox(width: 7),
+                        Expanded(
+                          child: Text(
+                            data?.status ??
+                                switch (widget.item.status) {
+                                  HomeworkStatus.pending => '待完成',
+                                  HomeworkStatus.submitted => '已提交',
+                                  HomeworkStatus.unknown => '待确认',
+                                },
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
           if (error != null)
@@ -118,21 +188,33 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                 children: [_field('上次结果', failureMessage(detail.failure))],
               ),
             AppleSection(
+              header: const Text('作业说明'),
               children: [
-                _field('提交状态', detail.status),
-                _field(
-                  '发布时间',
-                  detail.publishedAt ?? widget.item.publishedAt ?? '未确认',
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: SelectableText(
+                      detail.content ?? '上游未返回正文，请在 SPOC 原站点查看。',
+                      style: const TextStyle(fontSize: 16, height: 1.5),
+                      contextMenuBuilder: _cupertinoSelectionMenu,
+                    ),
+                  ),
                 ),
-                _field('截止时间', detail.dueAt ?? widget.item.dueAt ?? '未确认'),
-                _field('提交时间', detail.submittedAt ?? '未确认'),
-                _field('作业分值', detail.score ?? widget.item.score ?? '未确认'),
               ],
             ),
             AppleSection(
-              header: const Text('作业说明'),
+              header: const Text('发布与提交'),
               children: [
-                _field('正文', detail.content ?? '上游未返回正文，请在 SPOC 原站点查看。'),
+                _field('授课教师', widget.item.teacherName ?? '上游未提供'),
+                _field(
+                  '发布时间',
+                  schoolTimestampLabel(
+                    detail.publishedAt ?? widget.item.publishedAt,
+                  ),
+                ),
+                _field('提交时间', schoolTimestampLabel(detail.submittedAt)),
+                _field('作业分值', detail.score ?? widget.item.score ?? '未确认'),
               ],
             ),
           ],
@@ -143,7 +225,12 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
             footer: const Text('附件与提交请前往 SPOC。'),
             children: [
               AppleListTile(
+                leading: const Icon(
+                  CupertinoIcons.globe,
+                  color: CupertinoColors.activeBlue,
+                ),
                 title: const Text('在 SPOC 官网继续处理'),
+                subtitle: const Text('查看附件、作答与提交'),
                 trailing: const Icon(CupertinoIcons.arrow_up_right_square),
                 onTap: () async {
                   try {
@@ -183,9 +270,24 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
             ),
           ),
           const SizedBox(height: 6),
-          SelectableText(value),
+          SelectableText(
+            value,
+            contextMenuBuilder: _cupertinoSelectionMenu,
+            style: TextStyle(
+              fontSize: 16,
+              color: CupertinoColors.label.resolveFrom(context),
+            ),
+          ),
         ],
       ),
     ),
   );
 }
+
+// The app deliberately provides Cupertino localizations on Android/Windows.
+// Keep copy/select-all menus Cupertino too, so selection never asks for a
+// MaterialLocalizations ancestor that does not exist in CupertinoApp.
+Widget _cupertinoSelectionMenu(BuildContext context, EditableTextState state) =>
+    CupertinoAdaptiveTextSelectionToolbar.editableText(
+      editableTextState: state,
+    );

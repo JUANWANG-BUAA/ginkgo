@@ -267,8 +267,16 @@ pub fn parse_detail(value: &Value) -> Result<HomeworkDetail, AppError> {
     if !submission.is_null() && optional_string(submission, "tjzt").is_none() {
         status = HomeworkStatus::Unknown;
     }
+    // Swift AssignmentDetail.zynr and UBAA LocalSpocAssignmentDetailRaw.zynr
+    // accept string/null. A changed object/array must not look like a valid
+    // empty body or overwrite a prior complete detail snapshot.
+    let html = match assignment.get("zynr") {
+        None | Some(Value::Null) => None,
+        Some(Value::String(value)) => Some(value),
+        _ => return Err(AppError::changed()),
+    };
     // Display plain text only; never execute untrusted upstream HTML.
-    let text = optional_string(assignment, "zynr")
+    let text = html
         .map(|html| {
             let mut out = String::new();
             let mut inside = false;

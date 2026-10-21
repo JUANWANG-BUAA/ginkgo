@@ -742,7 +742,15 @@ void main() {
     await tester.tap(find.text('作业'));
     await tester.pumpAndSettle();
 
-    expect(find.text('1 / 1'), findsOneWidget);
+    for (final label in ['待完成', '已提交']) {
+      expect(
+        find.descendant(
+          of: find.byKey(ValueKey('homework-summary-$label')),
+          matching: find.text('1'),
+        ),
+        findsOneWidget,
+      );
+    }
     expect(find.text('作业一'), findsOneWidget);
     expect(find.text('作业二'), findsOneWidget);
 
@@ -756,12 +764,22 @@ void main() {
     await tester.tap(find.byKey(const Key('homework-spoc:a')));
     await tester.pumpAndSettle();
     expect(find.text('作业详情'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('授课教师'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('授课教师'), findsOneWidget);
     expect(find.text('张三'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('合成作业说明'),
+      -200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('合成作业说明'), findsOneWidget);
     await tester.tap(find.byType(CupertinoNavigationBarBackButton));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('待完成').first);
+    await tester.tap(find.byKey(const Key('homework-filter-pending')));
     await tester.pumpAndSettle();
     expect(find.text('作业二'), findsOneWidget);
     expect(find.text('作业一'), findsNothing);

@@ -1232,6 +1232,69 @@ async fn homework_full_read_chain_caches_list_and_reads_detail() {
 }
 
 #[tokio::test]
+async fn homework_changed_body_preserves_cached_text_and_native_ids_share_cache() {
+    use crate::{adapters::homework_http::SPOC_BASE, features::homework};
+    let envelope = |content: Value| serde_json::json!({"code":200,"content":content}).to_string();
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend([
+        HttpResponse::new(200, "https://spoc.buaa.edu.cn/spocnew/", "spa"),
+        HttpResponse::new(
+            404,
+            "https://spoc.buaa.edu.cn/spocnew/cas?token=fixture",
+            "callback",
+        ),
+        HttpResponse::new(
+            200,
+            format!("{SPOC_BASE}/sys/casLogin"),
+            envelope(serde_json::json!({"rolecode":"01"})),
+        ),
+        HttpResponse::new(
+            200,
+            "detail",
+            envelope(serde_json::json!({"zynr":{"text":"invalid structure"}})),
+        ),
+        HttpResponse::new(200, "submission", envelope(Value::Null)),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+    let cached =
+        homework::parse_detail(&fixture("homework", "spoc-detail-normal-v1.json")["input"])
+            .expect("synthetic detail");
+    service
+        .homework_details
+        .lock()
+        .expect("detail cache")
+        .insert("synthetic+a/b".into(), cached);
+    let initial = transport.request_count();
+    assert_eq!(
+        service
+            .load_homework_detail("spoc:synthetic+a/b", false)
+            .await
+            .expect("cache")
+            .data
+            .content
+            .as_deref(),
+        Some("合成说明")
+    );
+    assert_eq!(transport.request_count(), initial);
+    let result = service
+        .load_homework_detail("synthetic+a/b", true)
+        .await
+        .expect("prior snapshot");
+    assert_eq!(
+        result.failure.expect("structure failure").code,
+        ErrorCode::ChangedResponse
+    );
+    assert_eq!(result.data.content.as_deref(), Some("合成说明"));
+    assert!(transport.requests().iter().any(|request| request
+        .url
+        .ends_with("queryKczyInfoByid?id=synthetic%2Ba%2Fb")));
+}
+
+#[tokio::test]
 async fn bykc_failure_retains_cached_catalog_and_logout_isolates_account() {
     let mut responses = login_chain("sy2501001", "fixture");
     responses.push(HttpResponse::new(503, "bykc", "unavailable"));

@@ -325,4 +325,48 @@ mod tests {
             ErrorCode::ChangedResponse
         );
     }
+    #[tokio::test]
+    async fn detail_ids_are_encoded_once_and_valid_absent_body_is_not_a_protocol_error() {
+        // Golden shape from Swift loadDetailOnce / UBAA LocalSpocClient. A
+        // missing optional zynr is independent of metadata/submission reads.
+        let envelope = |content: Value| json!({"code": 200, "content": content}).to_string();
+        let transport = MockTransport::with_responses(vec![
+            HttpResponse::new(200, "https://spoc.buaa.edu.cn/spocnew/", "spa"),
+            HttpResponse::new(
+                404,
+                "https://spoc.buaa.edu.cn/spocnew/cas?token=fixture",
+                "callback",
+            ),
+            HttpResponse::new(200, "role", envelope(json!({"rolecode": "01"}))),
+            HttpResponse::new(
+                200,
+                "detail",
+                envelope(
+                    json!({"id": "synthetic", "zymc": "合成作业", "zykssj": "2026-10-01 08:00:00", "zyjzsj": "2026-10-08 23:59:00", "zyfs": "100"}),
+                ),
+            ),
+            HttpResponse::new(
+                200,
+                "submission",
+                envelope(json!({"tjzt": "1", "tjsj": "2026-10-02 09:00:00"})),
+            ),
+        ]);
+        let detail = load_detail(&Session::new(transport.clone()), "synthetic+a/b%2F")
+            .await
+            .expect("metadata with optional absent body");
+        assert!(detail.content.is_none());
+        assert_eq!(detail.due_at.as_deref(), Some("2026-10-08 23:59:00"));
+        assert_eq!(detail.score.as_deref(), Some("100"));
+        assert_eq!(detail.status, homework::HomeworkStatus::Submitted);
+        assert!(detail.submitted_at.is_some());
+        let requests = transport.requests();
+        for (index, key) in [(3, "id"), (4, "kczyid")] {
+            let url = url::Url::parse(&requests[index].url).expect("detail url");
+            assert_eq!(
+                url.query_pairs().collect::<Vec<_>>(),
+                [(key.into(), "synthetic+a/b%2F".into())]
+            );
+            assert!(requests[index].url.ends_with("synthetic%2Ba%2Fb%252F"));
+        }
+    }
 }
