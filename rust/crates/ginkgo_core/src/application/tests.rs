@@ -774,6 +774,162 @@ fn checkin_day_body() -> String {
     fixture("checkin", "course-schedule-normal-v1.json")["input"]["body"].to_string()
 }
 
+/// Suspend each request once so concurrent callers reach the same cold read
+/// before the first caller can populate the session or snapshot.
+struct YieldingTransport(MockTransport);
+
+impl crate::foundation::http::HttpTransport for YieldingTransport {
+    async fn send(&self, request: HttpRequest) -> Result<HttpResponse, TransportError> {
+        let mut yielded = false;
+        std::future::poll_fn(|cx| {
+            if yielded {
+                std::task::Poll::Ready(())
+            } else {
+                yielded = true;
+                cx.waker().wake_by_ref();
+                std::task::Poll::Pending
+            }
+        })
+        .await;
+        self.0.send(request).await
+    }
+}
+
+#[tokio::test]
+async fn checkin_concurrent_cold_reads_share_authentication_and_the_day_snapshot() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(checkin_entry_response("fixture-login"));
+    responses.push(checkin_app_login_response());
+    responses.push(checkin_schedule_response(checkin_day_body()));
+    let transport = MockTransport::with_responses(responses);
+    let service = SessionService::new(
+        crate::auth::session::Session::new(YieldingTransport(transport.clone())),
+        MemoryVault::default(),
+    );
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+
+    let (first, page) = tokio::join!(service.load_checkin(false), service.load_checkin(false));
+    let first = first.expect("first caller");
+    let page = page.expect("check-in page");
+    assert_eq!(first.courses.len(), 2);
+    assert_eq!(page.courses.len(), 2);
+    assert_ne!(first.from_cache, page.from_cache);
+    assert_eq!(first.fetched_at, page.fetched_at);
+    assert_eq!(transport.request_count(), 8);
+}
+
+#[tokio::test]
+async fn checkin_concurrent_forced_reads_still_refresh_upstream() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(checkin_entry_response("fixture-login"));
+    responses.push(checkin_app_login_response());
+    responses.push(checkin_schedule_response(checkin_day_body()));
+    responses.push(checkin_schedule_response(checkin_day_body()));
+    let transport = MockTransport::with_responses(responses);
+    let service = SessionService::new(
+        crate::auth::session::Session::new(YieldingTransport(transport.clone())),
+        MemoryVault::default(),
+    );
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+
+    let (first, second) = tokio::join!(service.load_checkin(true), service.load_checkin(true));
+    assert!(!first.expect("first refresh").from_cache);
+    assert!(!second.expect("second refresh").from_cache);
+    // One SSO entry, one app login, and two deliberately forced day queries.
+    assert_eq!(transport.request_count(), 9);
+}
+
+#[tokio::test]
+async fn checkin_retry_after_a_failed_day_read_keeps_the_successful_app_login() {
+    for (status, body, expected) in [
+        (503, "temporary", ErrorCode::ServiceUnavailable),
+        (200, "{}", ErrorCode::ChangedResponse),
+    ] {
+        let mut responses = login_chain("sy2501001", "fixture");
+        responses.push(checkin_entry_response("fixture-login"));
+        responses.push(checkin_app_login_response());
+        responses.push(HttpResponse::new(
+            status,
+            crate::adapters::checkin_http::COURSE_SCHEDULE_URL,
+            body,
+        ));
+        responses.push(checkin_schedule_response(checkin_day_body()));
+        let (service, transport) = build_service(responses, MemoryVault::default());
+        service
+            .sign_in("sy2501001", "pa+ss/word", None, true)
+            .await
+            .expect("signed in");
+
+        assert_eq!(
+            service
+                .load_checkin(false)
+                .await
+                .expect_err("day failed")
+                .code,
+            expected
+        );
+        let retry = service.load_checkin(true).await.expect("retry day only");
+        assert_eq!(retry.courses.len(), 2);
+        assert!(!retry.from_cache);
+        assert_eq!(transport.request_count(), 9);
+        assert_eq!(
+            transport
+                .requests()
+                .iter()
+                .filter(|request| request
+                    .url
+                    .starts_with(crate::adapters::checkin_http::APP_LOGIN_URL))
+                .count(),
+            1
+        );
+    }
+}
+
+#[tokio::test]
+async fn checkin_fresh_snapshot_does_not_wait_for_another_day_network_query() {
+    use std::{future::Future, task::Poll};
+    let transport = MockTransport::default();
+    let service = SessionService::new(
+        crate::auth::session::Session::new(transport.clone()),
+        MemoryVault::default(),
+    );
+    *service.account.lock().expect("account") = Some("sy2501001".into());
+    *service.profile.lock().expect("profile") = Some(UserProfile {
+        school_id: "sy2501001".into(),
+        name: "synthetic".into(),
+    });
+    let date = "2026-01-01".to_owned();
+    let timestamp = service
+        .checkin
+        .lock()
+        .expect("cache")
+        .insert(date.clone(), vec![]);
+    let gate = service.checkin_request_gate.lock().await;
+    let mut cached = Box::pin(service.load_checkin_on_date(Some(date.clone()), false));
+    match std::future::poll_fn(|cx| Poll::Ready(cached.as_mut().poll(cx))).await {
+        Poll::Ready(Ok(outcome)) => {
+            assert!(outcome.from_cache && !outcome.stale);
+            assert_eq!(outcome.fetched_at, timestamp);
+        }
+        _ => panic!("a cached day must not wait for a different day's network query"),
+    }
+    let mut forced = Box::pin(service.load_checkin_on_date(Some(date), true));
+    assert!(
+        std::future::poll_fn(|cx| Poll::Ready(forced.as_mut().poll(cx)))
+            .await
+            .is_pending()
+    );
+    assert_eq!(transport.request_count(), 0);
+    drop(forced);
+    drop(gate);
+}
+
 #[tokio::test]
 async fn checkin_reads_the_day_then_reuses_the_five_minute_snapshot() {
     let mut responses = login_chain("sy2501001", "fixture");
@@ -1547,6 +1703,7 @@ async fn graduate_reads_status_whitelist_and_execution_report_then_caches() {
     assert!(!serialized.contains("must-not-leave-rust"));
     // Only status activation + status query have occurred. No report needed to render it.
     let count = transport.request_count();
+    assert_eq!(count, 7); // Login (5) + status activation (1) + status read (1).
     service
         .load_graduate_part(GraduatePart::Status, false)
         .await
@@ -1568,6 +1725,17 @@ async fn graduate_reads_status_whitelist_and_execution_report_then_caches() {
         Some(2.0)
     );
     let count = transport.request_count();
+    // Successful report never fetches the fallback plan or re-authenticates.
+    assert_eq!(count, 9);
+    let requests = transport.requests();
+    let report_requests = &requests[7..];
+    assert!(report_requests[0]
+        .url
+        .ends_with("wdpyfazxbgappbuaa/*default/index.do"));
+    assert!(report_requests[1]
+        .url
+        .ends_with("wdpyfazxbgappbuaa/zxbg/loadXspyfazxbgInfo.do"));
+    assert_eq!(report_requests[1].body.as_deref(), Some("isShowSszxbg=0"));
     service.load_graduate(false).await.expect("both cached");
     assert_eq!(count, transport.request_count());
     // Force failures must retain the matching section, never another section's snapshot.

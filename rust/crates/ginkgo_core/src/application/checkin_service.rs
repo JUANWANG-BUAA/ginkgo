@@ -63,6 +63,27 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             }
         }
 
+        // Concurrent callers can request the same uncached day at once.
+        // Stage their network chains so they share one app login and
+        // snapshot; fresh days above never wait for a different day's query.
+        let _gate = self.checkin_request_gate.lock().await;
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
+        }
+        if !force_refresh {
+            let cached = self.checkin.lock().expect("checkin cache");
+            if let Some(entry) = cached.fresh(&date) {
+                return Ok(CheckInOutcome {
+                    date,
+                    courses: entry.value.clone(),
+                    fetched_at: entry.timestamp.clone(),
+                    from_cache: true,
+                    stale: false,
+                    failure: None,
+                });
+            }
+        }
+
         let fetched = self.fetch_checkin(&compact).await;
         if self.current_account()? != account {
             return Err(AppError::session_expired());
@@ -130,9 +151,20 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             }
         }
         let iclass = self.establish_iclass().await?;
-        let courses = checkin_http::course_schedule(&self.session, &iclass, compact).await?;
-        *self.iclass.lock().expect("iclass session") = Some(iclass);
-        Ok(courses)
+        // Swift's currentSession caches immediately after app login succeeds.
+        // A temporary course-read failure does not invalidate that login; do
+        // not repeat the SSO redirects and app login on the next user retry.
+        *self.iclass.lock().expect("iclass session") = Some(iclass.clone());
+        let result = checkin_http::course_schedule(&self.session, &iclass, compact).await;
+        if result.as_ref().is_err_and(|error| {
+            matches!(
+                error.code,
+                ErrorCode::BusinessRejected | ErrorCode::SessionExpired
+            )
+        }) {
+            *self.iclass.lock().expect("iclass session") = None;
+        }
+        result
     }
 
     async fn establish_iclass(&self) -> Result<crate::features::checkin::IClassSession, AppError> {
