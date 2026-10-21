@@ -31,3 +31,5 @@ SPOC 详情新增四份合成契约（正常/空/结构漂移/业务拒绝），
 2026-10-21 博雅学习记录新增 `bykc.chosen`、`bykc.statistics`、`bykc.semester` 三类12份合成契约，覆盖字段漂移/重复/空数据、负统计、北京时间边界及缺少学期范围。递归实数44类/142份JSON；研究生后续展示字段不新增文件。
 
 SPOC正文对象/数组漂移新增2份合成契约，确认changed_response而非空正文；44类144份JSON（本切片实数）。
+
+Android更新现有 releases/empty 契约增加 `downloadUrl`（精确版本的公开APK或null）；两份已有文件更新，契约类数/JSON份数不增加。

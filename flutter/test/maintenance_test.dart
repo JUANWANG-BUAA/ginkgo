@@ -10,6 +10,7 @@ import 'mirror_widget_test.dart' show ControlledService;
 
 class TestMaintenance implements MaintenanceService {
   int calls = 0;
+  final downloads = <(String, bool)>[];
   Completer<UpdateResult>? pending;
   @override
   bool get supportsUpdates => true;
@@ -24,6 +25,12 @@ class TestMaintenance implements MaintenanceService {
 
   @override
   Future<bool> openReleases(String? page) async => false;
+  @override
+  Future<bool> openDownload(String url, {required bool accelerated}) async {
+    downloads.add((url, accelerated));
+    return true;
+  }
+
   @override
   Future<bool> checkBridge() async => true;
   @override
@@ -62,6 +69,63 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+  test('download links accept only the matching Android APK and wrap public URL', () {
+    const url =
+        'https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.2/Ginkgo-0.1.0-alpha.2-android-arm64.apk';
+    expect(updateDownloadUri(url, accelerated: false).toString(), url);
+    expect(
+      updateDownloadUri(url, accelerated: true).toString(),
+      'https://gh-proxy.com/$url',
+    );
+    for (final invalid in [
+      url.replaceFirst('github.com', 'github.com.evil.example'),
+      url.replaceFirst('github.com', 'name:secret@github.com'),
+      url.replaceFirst('github.com', 'github.com:8443'),
+      url.replaceFirst('JUANWANG-BUAA', 'other'),
+      url.replaceFirst('Ginkgo-0.1.0-alpha.2', 'Ginkgo-0.1.0-alpha.1'),
+      '$url?token=synthetic',
+      '$url#fragment',
+      url.replaceFirst('https:', 'http:'),
+    ]) {
+      expect(updateDownloadUri(invalid, accelerated: true), isNull);
+    }
+  });
+
+  testWidgets(
+    'verified download choices keep official and proxy actions separate',
+    (tester) async {
+      final service = TestMaintenance();
+      await tester.pumpWidget(
+        ginkgoApp(home: SoftwareUpdatePage(service: service)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('检查更新'));
+      const url =
+          'https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.2/Ginkgo-0.1.0-alpha.2-android-arm64.apk';
+      service.pending!.complete(
+        const UpdateResult(
+          latest: '0.1.0-alpha.2',
+          available: true,
+          apkAvailable: true,
+          downloadUrl: url,
+        ),
+      );
+      await tester.pumpAndSettle();
+      for (final title in ['GitHub 下载 APK', '第三方加速下载']) {
+        await tester.scrollUntilVisible(
+          find.text(title),
+          160,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.tap(find.text(title));
+        await tester.pumpAndSettle();
+      }
+      expect(service.downloads, [(url, false), (url, true)]);
+      expect(find.text('gh-proxy.com'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets(
     'diagnostic reports per-item failure at large text without networking',
     (tester) async {

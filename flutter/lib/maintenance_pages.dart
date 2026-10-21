@@ -104,6 +104,19 @@ class _SoftwareUpdatePageState extends State<SoftwareUpdatePage> {
     if (mounted) setState(() => error = '无法打开浏览器，请稍后重试');
   }
 
+  Future<void> download(bool accelerated) async {
+    final url = result?.downloadUrl;
+    if (url == null) return;
+    try {
+      if (await widget.service.openDownload(url, accelerated: accelerated)) {
+        return;
+      }
+    } catch (_) {
+      // Do not expose platform exception text or upstream URLs.
+    }
+    if (mounted) setState(() => error = '无法打开下载链接，请稍后重试');
+  }
+
   @override
   Widget build(BuildContext context) => MaintenanceScaffold(
     title: '软件更新',
@@ -182,6 +195,34 @@ class _SoftwareUpdatePageState extends State<SoftwareUpdatePage> {
                   ),
                 ),
               ),
+          ],
+        ),
+      if (result?.downloadUrl != null)
+        AppleSection(
+          header: const Text('下载安装包'),
+          footer: const Text(
+            '第三方加速经 gh-proxy.com 下载，仅用于 GitHub 公开安装包。安装由 Android 系统确认；可在发布页核对 SHA-256。',
+          ),
+          children: [
+            AppleListTile(
+              leading: const Icon(
+                CupertinoIcons.arrow_down_circle,
+                color: AppleDesign.accent,
+              ),
+              title: const Text('GitHub 下载 APK'),
+              trailing: const Icon(CupertinoIcons.arrow_up_right, size: 18),
+              onTap: () => download(false),
+            ),
+            AppleListTile(
+              leading: const Icon(
+                CupertinoIcons.bolt,
+                color: CupertinoColors.activeBlue,
+              ),
+              title: const Text('第三方加速下载'),
+              subtitle: const Text('gh-proxy.com'),
+              trailing: const Icon(CupertinoIcons.arrow_up_right, size: 18),
+              onTap: () => download(true),
+            ),
           ],
         ),
       AppleSection(

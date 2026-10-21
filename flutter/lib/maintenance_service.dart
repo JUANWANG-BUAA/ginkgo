@@ -22,6 +22,7 @@ class UpdateResult {
     required this.apkAvailable,
     this.pageUrl,
     this.notes,
+    this.downloadUrl,
   });
   factory UpdateResult.fromJson(Map<String, dynamic> json) => UpdateResult(
     latest: json['latest'] as String?,
@@ -29,8 +30,9 @@ class UpdateResult {
     apkAvailable: json['apkAvailable'] as bool,
     pageUrl: json['pageUrl'] as String?,
     notes: json['notes'] as String?,
+    downloadUrl: json['downloadUrl'] as String?,
   );
-  final String? latest, pageUrl, notes;
+  final String? latest, pageUrl, notes, downloadUrl;
   final bool available, apkAvailable;
   String get headline => latest == null
       ? '尚无 Android 发布'
@@ -46,6 +48,7 @@ abstract interface class MaintenanceService {
   Future<InstalledVersion> version();
   Future<UpdateResult> checkUpdate(String current);
   Future<bool> openReleases(String? page);
+  Future<bool> openDownload(String url, {required bool accelerated});
   Future<bool> checkBridge();
   Future<bool> checkStorage();
   Future<bool> checkVault();
@@ -87,6 +90,13 @@ class NativeMaintenanceService implements MaintenanceService {
       return false;
     }
     return launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  @override
+  Future<bool> openDownload(String url, {required bool accelerated}) async {
+    final uri = updateDownloadUri(url, accelerated: accelerated);
+    return uri != null &&
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   @override
@@ -133,4 +143,35 @@ Future<bool> checkPublicService(MirrorService service) async {
   }
   final json = jsonDecode(result.payload!) as Map<String, dynamic>;
   return json['fromCache'] == false && json['campuses'] is List;
+}
+
+/// Only an exact Android release asset can be wrapped by the optional proxy.
+Uri? updateDownloadUri(String value, {required bool accelerated}) {
+  final uri = Uri.tryParse(value);
+  if (uri == null ||
+      uri.scheme != 'https' ||
+      uri.host != 'github.com' ||
+      uri.userInfo.isNotEmpty ||
+      uri.hasPort ||
+      uri.hasQuery ||
+      uri.hasFragment) {
+    return null;
+  }
+  final parts = uri.pathSegments;
+  if (parts.length != 6 ||
+      parts[0] != 'JUANWANG-BUAA' ||
+      parts[1] != 'ginkgo' ||
+      parts[2] != 'releases' ||
+      parts[3] != 'download' ||
+      !parts[4].startsWith('android-v')) {
+    return null;
+  }
+  final version = parts[4].substring('android-v'.length);
+  if (!RegExp(
+        r'^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$',
+      ).hasMatch(version) ||
+      parts[5] != 'Ginkgo-$version-android-arm64.apk') {
+    return null;
+  }
+  return accelerated ? Uri.parse('https://gh-proxy.com/$value') : uri;
 }

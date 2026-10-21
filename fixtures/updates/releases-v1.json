@@ -51,6 +51,7 @@
     "available": true,
     "pageUrl": "https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.10",
     "notes": "合成测试：设置、自检与更新",
-    "apkAvailable": true
+    "apkAvailable": true,
+    "downloadUrl": "https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.10/Ginkgo-0.1.0-alpha.10-android-arm64.apk"
   }
 }

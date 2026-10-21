@@ -122,3 +122,8 @@ Rust 149项lib+1bridge与契约通过；随后路线修复新增回归另记。2
 ## 2026-10-21 课表周次与横向操作
 
 周次定位按实际字号与宽度，当前周和选择周保持可见；横向控制及滑条固定日期上方。3项widget、4文件analyze通过，见 [验收记录](MIRROR-SCHEDULE-SCROLL-AUDIT.md)。保留默认周网格与大字号清单。
+
+
+## 2026-10-21 设置内 APK 下载入口（独立分支）
+
+更新结果增加精确版本/仓库校验的 APK 官方链接和明确标注的 gh-proxy 第三方加速；缺 APK 不展示下载入口，浏览器下载后由系统确认安装。2项Rust、契约、4项maintenance测试、analyze、Clippy/fmt通过；现有Alpha1官方/代理HEAD均200，不代表大陆手机测速。未合入发布包、未操作模拟器，设备验收待执行。见 [下载入口审计](MIRROR-UPDATE-DOWNLOAD-AUDIT.md)。

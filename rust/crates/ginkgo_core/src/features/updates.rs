@@ -13,6 +13,7 @@ pub struct UpdateSummary {
     pub page_url: Option<String>,
     pub notes: Option<String>,
     pub apk_available: bool,
+    pub download_url: Option<String>,
 }
 #[derive(Deserialize)]
 struct Release {
@@ -59,7 +60,8 @@ pub fn parse(body: &str, current: &str) -> Result<UpdateSummary, AppError> {
         if !trusted_url(
             &release.html_url,
             "/JUANWANG-BUAA/ginkgo/releases/tag/android-v",
-        ) {
+        ) || release.html_url != format!("{REPOSITORY}/releases/tag/{}", release.tag_name)
+        {
             return Err(AppError::changed());
         }
         candidates.push((version, release));
@@ -72,18 +74,30 @@ pub fn parse(body: &str, current: &str) -> Result<UpdateSummary, AppError> {
         page_url: None,
         notes: None,
         apk_available: false,
+        download_url: None,
     };
     if let Some((version, release)) = candidates.into_iter().next() {
         summary.available = version.cmp_precedence(&current_version).is_gt();
         summary.latest = Some(version.to_string());
-        summary.apk_available = release.assets.iter().any(|a| {
-            a.name.ends_with("-android-arm64.apk")
-                && a.size > 0
-                && trusted_url(
-                    &a.browser_download_url,
-                    "/JUANWANG-BUAA/ginkgo/releases/download/android-v",
-                )
-        });
+        let expected_name = format!("Ginkgo-{version}-android-arm64.apk");
+        let expected_url = format!(
+            "{REPOSITORY}/releases/download/{}/{}",
+            release.tag_name, expected_name
+        );
+        summary.download_url = release
+            .assets
+            .iter()
+            .find(|asset| {
+                asset.name == expected_name
+                    && asset.size > 0
+                    && asset.browser_download_url == expected_url
+                    && trusted_url(
+                        &asset.browser_download_url,
+                        "/JUANWANG-BUAA/ginkgo/releases/download/android-v",
+                    )
+            })
+            .map(|asset| asset.browser_download_url.clone());
+        summary.apk_available = summary.download_url.is_some();
         summary.page_url = Some(release.html_url);
         summary.notes = release.body;
     }
@@ -112,5 +126,36 @@ mod tests {
         assert!(parse(&spoof, "0.1.0-alpha.1").is_err());
         let missing = body.replace("-android-arm64.apk", ".dmg");
         assert!(!parse(&missing, "0.1.0-alpha.1").unwrap().apk_available);
+    }
+    #[test]
+    fn download_must_match_release_tag_filename_and_repository() {
+        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../../../fixtures/updates/releases-v1.json"
+        ))
+        .expect("fixture");
+        let releases = fixture["input"]["releases"].clone();
+        let parsed = parse(&releases.to_string(), "0.1.0-alpha.1").expect("release");
+        assert_eq!(parsed.download_url.as_deref(), Some("https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.10/Ginkgo-0.1.0-alpha.10-android-arm64.apk"));
+        for path in [
+            "https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.2/Ginkgo-0.1.0-alpha.10-android-arm64.apk",
+            "https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.10/Other-android-arm64.apk",
+            "https://github.com/other/ginkgo/releases/download/android-v0.1.0-alpha.10/Ginkgo-0.1.0-alpha.10-android-arm64.apk",
+            "https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.10/Ginkgo-0.1.0-alpha.10-android-arm64.apk?redirect=1",
+        ] {
+            let mut changed = releases.clone();
+            changed[2]["assets"][0]["browser_download_url"] = serde_json::json!(path);
+            let parsed = parse(&changed.to_string(), "0.1.0-alpha.1").expect("missing compatible asset");
+            assert!(!parsed.apk_available);
+            assert!(parsed.download_url.is_none());
+        }
+        let mut changed = releases.clone();
+        changed[2]["html_url"] = changed[1]["html_url"].clone();
+        assert!(parse(&changed.to_string(), "0.1.0-alpha.1").is_err());
+        let mut changed = releases;
+        changed[2]["assets"][0]["size"] = serde_json::json!(0);
+        assert!(parse(&changed.to_string(), "0.1.0-alpha.1")
+            .expect("empty asset")
+            .download_url
+            .is_none());
     }
 }

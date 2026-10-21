@@ -120,3 +120,8 @@ Release 构建要求外部签名配置，禁止静默使用 debug key。默认�
 - 已提交6b637f7：图书馆仅清除本次失败请求所用的旧token，迟到失效响应不再抹掉其他读取已恢复的新token；library相关24项、Clippy通过。见[MIRROR-LIBRARY-RECOVERY-AUDIT](MIRROR-LIBRARY-RECOVERY-AUDIT.md)。
 - 设置新增“学校接口耗时”，只在用户点击后顺序读取图书馆/iclass/研究生，逐项显示耗时/条数/缓存标记/错误码，不保留正文或异常文本；演示模式不可测学校网络。3项定向widget、原维护2项widget、产品目录analyze、22秒独立设备合成smoke通过；未重复mirror_test。真实账号尚未完成本轮延迟测量，不能据此关闭“切页才刷新”的全部问题。
 - 候选分支release/android-alpha-2-candidate与主工作区并行修改隔离；本轮候选正常main入口release重建成功，Android签名保持Alpha1同证书。尚未公开发布Alpha2，也未完成Windows/全模块真实验收。现有BYKC/研究生/宣传页未提交改动予以保留，不混入本轮修复提交。
+
+
+## 2026-10-21 设置内 APK 下载入口（独立分支）
+
+更新结果增加精确版本/仓库校验的 APK 官方链接和明确标注的 gh-proxy 第三方加速；缺 APK 不展示下载入口，浏览器下载后由系统确认安装。2项Rust、契约、4项maintenance测试、analyze、Clippy/fmt通过；现有Alpha1官方/代理HEAD均200，不代表大陆手机测速。未合入发布包、未操作模拟器，设备验收待执行。见 [下载入口审计](MIRROR-UPDATE-DOWNLOAD-AUDIT.md)。
