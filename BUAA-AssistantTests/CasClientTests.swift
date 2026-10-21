@@ -149,6 +149,106 @@ final class CasClientTests: XCTestCase {
     XCTAssertEqual(postCount, 2)
   }
 
+  func test_login_withLegacyUcRedirect_usesHTTPSWithoutRepostingPassword() async throws {
+    let legacy = "http://sso.buaa.edu.cn/login?service=https%3a%2f%2fuc.buaa.edu.cn%2Fapi%2Flogin&x=&x=2+3#part%2f"
+    let secure = legacy.replacingOccurrences(of: "http:", with: "https:", options: .anchored)
+    var passwordPosts = 0
+    var activationGets = 0
+    CasMockURLProtocol.handler = { request in
+      XCTAssertEqual(request.url?.scheme, "https", "密码与后续请求均不得降级为 HTTP")
+      let url = request.url!.absoluteString
+      if request.httpMethod == "POST" {
+        passwordPosts += 1
+        XCTAssertEqual(url, "https://sso.buaa.edu.cn/login")
+        return (302, ["Location": "/cas/done"], Data())
+      }
+      if url == "https://sso.buaa.edu.cn/cas/done" { return (200, [:], Data()) }
+      if url.hasPrefix("https://uc.buaa.edu.cn/api/login?") {
+        return (302, ["Location": legacy], Data())
+      }
+      if url == secure {
+        activationGets += 1
+        return (200, [:], Data())
+      }
+      if url == "https://uc.buaa.edu.cn/api/uc/status" {
+        return (200, [:], Data(#"{"code":0,"data":{"schoolid":"sy2501001","name":"李文"}}"#.utf8))
+      }
+      XCTFail("意外合成请求")
+      return (404, [:], Data())
+    }
+    let page = LoginPageInfo(execution: "e-1", captcha: nil, html: #"<input name="execution" value="e-1">"#)
+    let user = try await client.login(page: page, username: "sy2501001", password: "synthetic-password", captchaText: nil)
+    XCTAssertEqual(user.schoolid, "sy2501001")
+    XCTAssertEqual(passwordPosts, 1)
+    XCTAssertEqual(activationGets, 1)
+  }
+
+  func test_fetchLoginPage_withLegacyRedirect_preservesQueryAndGatewayEncoding() async throws {
+    let legacy = "http://sso.buaa.edu.cn/login?service=https%3a%2f%2fuc.buaa.edu.cn%2Fcb%3Fx%3Da%252Bb%252Fc%2525&x=&x=2+3#part%2f"
+    let secure = legacy.replacingOccurrences(of: "http:", with: "https:", options: .anchored)
+    for location in [legacy, try WebVPNRouter.wrap(URL(string: legacy)!).absoluteString] {
+      CasMockURLProtocol.handler = { _ in (302, ["Location": location], Data()) }
+      guard case .existingSession(let url) = try await client.fetchLoginPage() else {
+        return XCTFail("应保留升级后的 GET 跳转")
+      }
+      XCTAssertEqual(url.absoluteString, secure)
+    }
+  }
+
+  func test_fetchLoginPage_withUnknownInsecureRedirect_stopsBeforeFollowing() async throws {
+    let targets = [
+      "http://sso.buaa.edu.cn:80/login",
+      "http://sso.buaa.edu.cn:443/login",
+      "http://sso.buaa.edu.cn:8080/login",
+      "http://sso.buaa.edu.cn/login/",
+      "http://sso.buaa.edu.cn/cas/login",
+      "http://sso.buaa.edu.cn/other/../login",
+      "http://sso.buaa.edu.cn/log%69n",
+      "http://sso.buaa.edu.cn./login",
+      "http://user:synthetic@sso.buaa.edu.cn/login",
+      "http://@sso.buaa.edu.cn/login",
+      "http://sso.buaa.edu.cn.evil.example/login",
+      "http://uc.buaa.edu.cn/login",
+      "ftp://sso.buaa.edu.cn/login"
+    ]
+    for target in targets {
+      var locations = [target]
+      // Gateway wrapping omits userinfo/default ports. Only compare wrapped
+      // cases that preserve the exact unsafe target.
+      let url = URL(string: target)!
+      if url.scheme == "http", url.user == nil {
+        let wrapped = try WebVPNRouter.wrap(url)
+        if WebVPNRouter.unwrap(wrapped)?.absoluteString == target {
+          locations.append(wrapped.absoluteString)
+        }
+      }
+      for location in locations {
+        var requests = 0
+        CasMockURLProtocol.handler = { _ in
+          requests += 1
+          return (302, ["Location": location], Data())
+        }
+        do {
+          _ = try await client.fetchLoginPage()
+          XCTFail("未知不安全地址不得继续：\(location)")
+        } catch {
+          XCTAssertEqual(error.localizedDescription, "认证服务返回了不安全的跳转地址，已停止登录")
+        }
+        XCTAssertEqual(requests, 1)
+      }
+    }
+  }
+
+  func test_fetchLoginPage_withoutRedirectLocation_keepsMissingLocationError() async throws {
+    CasMockURLProtocol.handler = { _ in (302, [:], Data()) }
+    do {
+      _ = try await client.fetchLoginPage()
+      XCTFail("缺失地址应停止")
+    } catch CasClientError.missingRedirectLocation {
+      // 与已存在但不安全的地址分别呈现。
+    }
+  }
+
   func test_login_withHTTP483_usesServerErrorMessage() async throws {
     CasMockURLProtocol.handler = { request in
       if request.httpMethod == "POST" {

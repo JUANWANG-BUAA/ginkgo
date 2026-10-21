@@ -36,6 +36,7 @@ protocol WebVPNSessionPreparing {
 enum CasClientError: LocalizedError {
   case invalidResponse
   case missingRedirectLocation
+  case insecureRedirectLocation
   case unexpectedStatus(Int)
   case invalidPageEncoding
   case missingExecution
@@ -51,6 +52,7 @@ enum CasClientError: LocalizedError {
     switch self {
     case .invalidResponse: "认证服务返回了无效响应"
     case .missingRedirectLocation: "认证服务的跳转地址缺失"
+    case .insecureRedirectLocation: "认证服务返回了不安全的跳转地址，已停止登录"
     case .unexpectedStatus(let status): "认证服务暂时不可用（HTTP \(status)）"
     case .invalidPageEncoding: "无法读取认证页面"
     case .missingExecution: "认证页面格式已变化，请稍后重试"
@@ -133,8 +135,8 @@ actor CasClient: AuthSessionClient, WebVPNSessionPreparing {
       do {
         targetURL = try redirectURL(from: response, relativeTo: currentURL)
       } catch {
-        AppLog.auth.error("CAS 登录页跳转缺少有效的 HTTPS Location")
-        throw CasClientError.missingRedirectLocation
+        AppLog.auth.error("CAS 登录页跳转地址无效或不安全")
+        throw error
       }
 
       // WebVPN 的入口会先把网关登录页 302 到 CAS 登录页；这是正常取页，
@@ -442,10 +444,23 @@ actor CasClient: AuthSessionClient, WebVPNSessionPreparing {
 
   private func redirectURL(from response: HTTPURLResponse, relativeTo url: URL) throws -> URL {
     guard let location = response.value(forHTTPHeaderField: "Location"),
-          let target = WebVPNRouter.resolveRedirect(location, relativeTo: response.url.flatMap(WebVPNRouter.unwrap) ?? url),
-          target.scheme == "https"
+          let target = WebVPNRouter.resolveRedirect(location, relativeTo: response.url.flatMap(WebVPNRouter.unwrap) ?? url)
     else { throw CasClientError.missingRedirectLocation }
-    return target
+    if target.scheme?.lowercased() == "https" { return target }
+
+    // API.md §1.7 / 修订 62：UC 实测会返回此旧 HTTP CAS GET 地址。
+    // 只替换精确 authority/path 的 scheme，保留查询编码；不改密码 POST。
+    let raw = target.absoluteString
+    guard let separator = raw.range(of: "://"),
+          raw[..<separator.lowerBound].lowercased() == "http"
+    else { throw CasClientError.insecureRedirectLocation }
+    let remainder = raw[separator.upperBound...]
+    guard let slash = remainder.firstIndex(of: "/"),
+          remainder[..<slash].lowercased() == "sso.buaa.edu.cn",
+          remainder[slash...].prefix(while: { $0 != "?" && $0 != "#" }) == "/login",
+          let secure = URL(string: "https" + raw[separator.lowerBound...])
+    else { throw CasClientError.insecureRedirectLocation }
+    return secure
   }
 }
 

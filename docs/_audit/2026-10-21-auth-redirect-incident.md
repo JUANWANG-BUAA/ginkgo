@@ -34,3 +34,15 @@
 对已确认的 `http://sso.buaa.edu.cn/login` GET 重定向，窄范围提升到同主机 HTTPS，原样保留 service 等编码；其他不可信或未知 HTTP 认证重定向明确拒绝。保持 Secure Cookie、TLS 验证和 POST 不重放。真实密码提交已结束，不为验证修复自动再次登录。自动恢复失败合并单独处理，不将失败当成功，不定时重试。
 
 参考：协议依据见 [API.md §1](../API.md)；Secure Cookie 规则见 [RFC 6265 §4.1.2.5](https://httpwg.org/specs/rfc6265.html#the-secure-attribute)。
+
+## 再次报告与无账号复查
+
+2026-10-21 约 19:07（北京时间），用户反馈常用手机、QEMU 模拟器、macOS 与 UBAA 间歇登录失败，新 Windows 客户端曾成功。各端准确版本、路线、是否同一出口以及 Windows 是否读到真实业务数据尚未确认，不将这些条件当成已知事实。
+
+本次仅在宿主机各请求一次 SSO 登录入口和 UC 激活入口，不提供凭据，不携带或保存 Cookie，不跟随跳转，不读取业务数据。SSO GET 返回 200，存在普通登录表单；UC 激活 GET 返回 302，Location 仍是 http scheme 的 SSO /login。两次均无 Retry-After 或已知策略提示。该结果只证明匿名入口可达及旧跳转仍存在，不排除密码提交阶段限流、账号风控、其他路线或学校后端间歇失败。Win11 当时已停止，未重新启动或伪称有同时对照；QEMU 在枚举后断开，未能取得当前版本和错误。
+
+源码复查确认：Rust 已有已知跳转升级规则；Swift 仍把非 HTTPS 目标归为 missingRedirectLocation。Swift 补齐相同范围的 GET 处理，并将真正缺地址与未知不安全目标分开呈现。保持密码 POST 单次发送、TLS 和 Secure Cookie 约束；不加真实登录重试。合成用例覆盖完整 CAS→UC 链（只发一次密码 POST）、WebVPN 编码与查询原字节、端口 / 用户信息 / 相似域名 / 路径变体拒绝、缺 Location。旧实现回归失败，修复后认证测试 19 项通过。没有证明手机与 UBAA 的间歇问题具有同一根因。
+
+没有在当前 Ginkgo 的 Swift / Rust 登录构造中发现发送 IMEI、Android ID 或独立设备码的路径；这不意味着上游无法依据 Cookie、请求特征等作会话识别。既有并发自动恢复失败放大缺口及其合成复现见 [恢复审计](../archive/mirror/MIRROR-AUTH-RECOVERY-FAILURE-AUDIT.md)，Alpha.3 已包含失败合并 / 冷却修复。它说明旧版可能额外提交认证，不证明实际触发过学校限流或限制。
+
+后续区分应在用户停止其他客户端自动恢复后，分别记录同一路线的官方入口结果、各客户端版本和失败阶段，避免连续提交密码；若出现学校明确锁定提示或持续跨客户端失败，以学校支持侧日志核对。HTTP 429 / Retry-After 是限流线索（[RFC 6585 §4](https://www.rfc-editor.org/rfc/rfc6585.html#section-4)），缺少它们并不能排除风控。未进行换 IP 绕过或修改设备指纹。
