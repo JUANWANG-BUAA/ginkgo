@@ -42,7 +42,7 @@ UninstallDisplayIcon={app}\{#AppExeName}
 VersionInfoCompany={#AppPublisher}
 VersionInfoDescription=Ginkgo Windows installer
 VersionInfoProductName={#AppName}
-VersionInfoProductVersion={#AppVersion}
+VersionInfoProductVersion=0.1.0.4
 VersionInfoVersion=0.1.0.4
 
 [Languages]
