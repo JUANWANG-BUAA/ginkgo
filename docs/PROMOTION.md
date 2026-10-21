@@ -1,7 +1,20 @@
 # 宣传文案与关键词
 
 > 用途：GitHub 仓库信息、社区发帖、社交分享的统一口径。发布时直接复制，避免各文档说法不一致。
-> 当前版本：Ginkgo 0.1.0-alpha.7（2026-10-19）
+> macOS 当前版本：Ginkgo 0.1.0-alpha.7（2026-10-19）；Android 已发布 0.1.0-alpha.1。下方社区发帖模板面向 macOS，跨平台宣传以本节口径为准。
+
+## 当前首页口径（2026-10-21）
+
+**核心介绍**：校园日常，有个好安排。Ginkgo 把课表、作业、成绩与校园服务收进一个日常工作台，为北航同学而做，免费开源，账号数据保存在本机。
+
+| 平台 | 首页状态与入口 |
+|------|----------------|
+| macOS | 已发布 Alpha，macOS 14+，DMG / ZIP 下载 |
+| Android | 已发布 Alpha.1，Android 7.0+ / arm64 APK；此发行包以查询体验为主，上游写操作未开放 |
+| iOS / iPadOS | iOS 17+，原生工作台，从源码使用 Xcode 构建；暂无 App Store / TestFlight 入口 |
+| Windows | 开发中，仍待实机验收，暂无公开安装包 |
+
+本轮源码更新不等于已经发布，开发实现与真实验收见 [本轮验收](MIRROR-ACCEPTANCE-2026-10-21.md)。避免用“四端功能完全一致”“全平台可下载”概括当前状态。主页使用已打码的真实 macOS 截图，并在截图和平台入口说明范围；不使用虚构设备界面、下载量或用户评价。首页设计参考与验证见 [LANDING-REDESIGN-2026-10-21.md](LANDING-REDESIGN-2026-10-21.md)。
 
 ## 命名与品牌
 
@@ -17,10 +30,10 @@
 
 - **仓库名**：`ginkgo`（完整地址 `github.com/JUANWANG-BUAA/ginkgo`，"BUAA"在账号名里）
 - **Description（≤ 120 字符）**：
-  `北航（BUAA）校园服务聚合的 macOS 原生客户端 · 课表 / 签到 / 图书馆与研讨室预约 / 成绩 / 作业 / 研究生教务`
+  `北航校园工作台 · macOS / iOS 原生客户端与 Android Alpha · 课表 / 作业 / 成绩 / 校园服务 · Windows 开发中`
 - **Website**：`https://juanwang-buaa.github.io/ginkgo/`（启用 GitHub Pages 后填写）
 - **Topics**：
-  `buaa` `beihang` `macos` `ios` `swiftui` `menubar` `campus` `schedule` `checkin` `library-booking` `graduate` `student-tools` `open-source`
+  `buaa` `beihang` `macos` `ios` `android` `windows` `flutter` `rust` `swiftui` `menubar` `campus` `schedule` `checkin` `library-booking` `graduate` `student-tools` `open-source`
 
 ## 关键词
 
