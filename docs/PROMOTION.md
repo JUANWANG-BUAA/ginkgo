@@ -1,7 +1,7 @@
 # 宣传文案与关键词
 
 > 用途：GitHub 仓库信息、社区发帖、社交分享的统一口径。发布时直接复制，避免各文档说法不一致。
-> macOS 当前版本：Ginkgo 0.1.0-alpha.7（2026-10-19）；Android 已发布 0.1.0-alpha.1。下方社区发帖模板面向 macOS，跨平台宣传以本节口径为准。
+> macOS 当前版本：Ginkgo 0.1.0-alpha.7（2026-10-19）；Android 0.1.0-alpha.3（build 4）已发布。下方社区发帖模板面向 macOS，跨平台宣传以本节口径为准。
 
 ## 当前首页口径（2026-10-21）
 
@@ -10,11 +10,11 @@
 | 平台 | 首页状态与入口 |
 |------|----------------|
 | macOS | 已发布 Alpha，macOS 14+，DMG / ZIP 下载 |
-| Android | 已发布 Alpha.1，Android 7.0+ / arm64 APK；此发行包以查询体验为主，上游写操作未开放 |
+| Android | Alpha.3，Android 7.0+ / arm64 APK；课表、作业、博雅与校园服务；签到及图书馆操作已接入逐次确认，真实写入仍待验收 |
 | iOS / iPadOS | iOS 17+，原生工作台，从源码使用 Xcode 构建；暂无 App Store / TestFlight 入口 |
 | Windows | 开发中，仍待实机验收，暂无公开安装包 |
 
-本轮源码更新不等于已经发布，开发实现与真实验收见 [本轮验收](MIRROR-ACCEPTANCE-2026-10-21.md)。避免用“四端功能完全一致”“全平台可下载”概括当前状态。主页使用已打码的真实 macOS 截图，并在截图和平台入口说明范围；不使用虚构设备界面、下载量或用户评价。首页设计参考与验证见 [LANDING-REDESIGN-2026-10-21.md](LANDING-REDESIGN-2026-10-21.md)。
+首页默认链接已指向 `android-v0.1.0-alpha.3`，正式 APK 与校验和已公开。博雅选退课、CGYY 写入、作业提交与附件下载仍未迁移；开发实现与真实验收见 [本轮验收](https://github.com/JUANWANG-BUAA/ginkgo/blob/feat/rust-flutter-mirror/docs/archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md)。避免用“四端功能完全一致”“全平台可下载”概括当前状态。主页使用已打码的真实 macOS 截图，并在截图和平台入口说明范围；不使用虚构设备界面、下载量或用户评价。首页设计参考与验证见 [LANDING-REDESIGN-2026-10-21.md](LANDING-REDESIGN-2026-10-21.md)。
 
 ## 命名与品牌
 
