@@ -112,3 +112,11 @@ Release 构建要求外部签名配置，禁止静默使用 debug key。默认�
 确定复现：两个自动直连GET同时失败，首个切换全局WebVPN后，第二个因activate返回false而丢失自身回退。Barrier回归在旧实现失败，修复按实际尝试路线判定后通过；只读各自最多回退一次，写操作不使用该路径。并发学校/网关恢复串行且成功代数合并；重复学校登录测试只产生一条5请求认证链。reqwest增加6秒连接上限，保留30秒响应预算；图书馆首页/iclass/研究生读取45秒总预算，超时丢弃HTTP任务，不积累后台孤儿请求。
 
 用户“切页才显示”仍未在本机受控延迟/后台tab返回两项widget复现，不把网络修复宣称为该视觉问题已完全验收。未使用真实账号或保存真实页面截图。
+
+
+### 2026-10-21：缓存等待与会话恢复增量
+
+- 已提交11837ef：研究生有效快照先于GSMIS请求锁返回，等待锁后重新检查缓存。两个确定性poll回归，其中缓存命中阻塞在旧实现失败；研究生相关14项通过，Clippy通过。见[MIRROR-GRADUATE-CACHE-AUDIT](MIRROR-GRADUATE-CACHE-AUDIT.md)。
+- 已提交6b637f7：图书馆仅清除本次失败请求所用的旧token，迟到失效响应不再抹掉其他读取已恢复的新token；library相关24项、Clippy通过。见[MIRROR-LIBRARY-RECOVERY-AUDIT](MIRROR-LIBRARY-RECOVERY-AUDIT.md)。
+- 设置新增“学校接口耗时”，只在用户点击后顺序读取图书馆/iclass/研究生，逐项显示耗时/条数/缓存标记/错误码，不保留正文或异常文本；演示模式不可测学校网络。3项定向widget、原维护2项widget、产品目录analyze、22秒独立设备合成smoke通过；未重复mirror_test。真实账号尚未完成本轮延迟测量，不能据此关闭“切页才刷新”的全部问题。
+- 候选分支release/android-alpha-2-candidate与主工作区并行修改隔离；本轮候选正常main入口release重建成功，Android签名保持Alpha1同证书。尚未公开发布Alpha2，也未完成Windows/全模块真实验收。现有BYKC/研究生/宣传页未提交改动予以保留，不混入本轮修复提交。

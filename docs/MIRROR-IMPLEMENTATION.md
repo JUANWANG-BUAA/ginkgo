@@ -403,3 +403,11 @@ Rust 149项lib+1bridge与契约通过；随后路线修复新增回归另记。2
 
 
 2026-10-21 后续复核：对照 LibraryViewModel.reserve 的回查发布行为，修复座位页回查结果未同步原图书馆页面的问题；预约回查与座位刷新同时进行，已退出座位页也发布原页面结果。返回三级导航的回归在旧实现失败、修复后通过。签到行改为自适应纵向详情与状态/操作换行，避免固定列表行重叠；研究生零最低学分要求不显示“尚未完成”。4项相关widget与analyze通过，真实网络延迟仍待本机登录测量，未将本次修复当作用户全部卡顿的验收。
+
+
+### 2026-10-21：缓存等待与会话恢复增量
+
+- 已提交11837ef：研究生有效快照先于GSMIS请求锁返回，等待锁后重新检查缓存。两个确定性poll回归，其中缓存命中阻塞在旧实现失败；研究生相关14项通过，Clippy通过。见[MIRROR-GRADUATE-CACHE-AUDIT](MIRROR-GRADUATE-CACHE-AUDIT.md)。
+- 已提交6b637f7：图书馆仅清除本次失败请求所用的旧token，迟到失效响应不再抹掉其他读取已恢复的新token；library相关24项、Clippy通过。见[MIRROR-LIBRARY-RECOVERY-AUDIT](MIRROR-LIBRARY-RECOVERY-AUDIT.md)。
+- 设置新增“学校接口耗时”，只在用户点击后顺序读取图书馆/iclass/研究生，逐项显示耗时/条数/缓存标记/错误码，不保留正文或异常文本；演示模式不可测学校网络。3项定向widget、原维护2项widget、产品目录analyze、22秒独立设备合成smoke通过；未重复mirror_test。真实账号尚未完成本轮延迟测量，不能据此关闭“切页才刷新”的全部问题。
+- 候选分支release/android-alpha-2-candidate与主工作区并行修改隔离；本轮候选正常main入口release重建成功，Android签名保持Alpha1同证书。尚未公开发布Alpha2，也未完成Windows/全模块真实验收。现有BYKC/研究生/宣传页未提交改动予以保留，不混入本轮修复提交。
