@@ -11,6 +11,7 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 镜像博雅学习记录 | 仅课程目录 | 已选记录与累计完成统计分别读取/缓存，按北京时间学期范围查询已选；缺范围保留未知，统计零要求不伪造成欠缺 | `BykcClient.swift:38–63,212–251`、`BykcSemesterPolicy.swift`；EDUCATION-DATA-MAP §2.3 既有协议；本次镜像实网⚠️待验收 |
 | 镜像图书馆历史 | 镜像仅当前预约 | 接入member/seat只读分页，type=1、page、limit=40；token恢复一次、按页快照；分页矛盾/漂移报错 | `LibraryClient.swift:392–453`；UBAA e8a397f `LocalLibBookApi.kt:247–258`；合成契约，⚠️历史实网待登录 |
 | 镜像签到历史 | iclass只提供当天入口 | 同一get_stu_course_sched只读GET接受所选上海日期dateStr；镜像按日期隔离五分钟缓存、失败保留、快速切换丢弃旧请求 | `CheckInClient.swift:92–94,225–230,667`；UBAA `LocalSigninApi.kt:88`仅佐证参数名，不佐证历史日期真实返回；历史实网⚠️待本机登录 |
 | 镜像会话勘误 | WebVPN头/图书馆登录 | 请求URL映射而Origin/Referer未映射；并发CAS；有网关Cookie即跳过认证 | 对齐Apple路由头映射；图书馆异步登录锁与锁内检查；显式网关挑战不能被预登录Cookie跳过；认证失败保留快照 | `Core/Network/UpstreamRoute.swift:93–99`；UBAA e8a397f `LocalLibBookApi.kt:187,305–332,365–371`；Android授权只读复验成功，未放宽TLS |

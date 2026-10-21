@@ -1,7 +1,7 @@
 //! Coarse use cases. Decode untrusted input here; domain never sees Flutter state.
 mod bykc_service;
 mod cache;
-pub use bykc_service::BykcOutcome;
+pub use bykc_service::{BykcChosenOutcome, BykcOutcome, BykcStatisticsOutcome};
 mod checkin_service;
 mod classroom_service;
 pub mod contracts;

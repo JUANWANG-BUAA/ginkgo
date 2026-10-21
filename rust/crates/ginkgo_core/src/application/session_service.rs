@@ -93,6 +93,10 @@ pub struct SessionService<T: HttpTransport, V: CredentialVault> {
     pub(crate) notices: Mutex<SnapshotCache<String, Vec<crate::features::notices::Notice>>>,
     pub(crate) graduate: Mutex<SnapshotCache<String, crate::features::graduate::AcademicData>>,
     pub(crate) bykc: Mutex<SnapshotCache<String, crate::features::bykc::Catalog>>,
+    pub(crate) bykc_chosen: Mutex<SnapshotCache<String, crate::features::bykc::ChosenCourses>>,
+    pub(crate) bykc_statistics:
+        Mutex<SnapshotCache<String, crate::features::bykc::LearningStatistics>>,
+    pub(crate) bykc_access: tokio::sync::Mutex<()>,
     pub(crate) homework: Mutex<super::homework_service::HomeworkCache>,
     pub(crate) homework_details: Mutex<super::homework_service::HomeworkDetailCache>,
     pub(crate) today: Mutex<TodayCache>,
@@ -129,6 +133,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
             cgyy: Mutex::new(SnapshotCache::default()),
             cgyy_token: Mutex::new(None),
             bykc: Mutex::new(SnapshotCache::default()),
+            bykc_chosen: Mutex::new(SnapshotCache::default()),
+            bykc_statistics: Mutex::new(SnapshotCache::default()),
+            bykc_access: tokio::sync::Mutex::new(()),
             homework: Mutex::new(super::homework_service::HomeworkCache::default()),
             homework_details: Mutex::new(super::homework_service::HomeworkDetailCache::default()),
             today: Mutex::new(TodayCache::default()),
@@ -390,6 +397,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionService<T, V> {
         self.notices.lock().expect("notices cache").clear();
         self.graduate.lock().expect("graduate cache").clear();
         self.bykc.lock().expect("bykc cache").clear();
+        self.bykc_chosen.lock().expect("bykc chosen cache").clear();
+        self.bykc_statistics
+            .lock()
+            .expect("bykc statistics cache")
+            .clear();
         self.homework.lock().expect("homework cache").clear();
         self.homework_details
             .lock()

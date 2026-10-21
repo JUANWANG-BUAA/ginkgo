@@ -1,7 +1,7 @@
 //! BYKC read-only catalog, API.md §7.3 / EDUCATION-DATA-MAP §2.
 use crate::{
     auth::session::Session,
-    features::bykc::{self, Catalog},
+    features::bykc::{self, Catalog, ChosenCourses, LearningStatistics},
     foundation::http::{HttpRequest, HttpTransport},
     AppError, ErrorCode,
 };
@@ -117,16 +117,27 @@ pub fn decode_envelope(envelope: &Value) -> Result<Value, AppError> {
         .ok_or_else(AppError::changed)
 }
 
-pub async fn load<T: HttpTransport>(session: &Session<T>) -> Result<Catalog, AppError> {
+async fn login_token<T: HttpTransport>(session: &Session<T>) -> Result<String, AppError> {
     let response = session
         .send_following_redirects(HttpRequest::get(format!("{BASE}/cas/login")))
         .await?;
+    if matches!(response.status, 401 | 403)
+        || crate::auth::cas::is_login_redirect(&response.final_url, &response.body)
+    {
+        return Err(AppError::session_expired());
+    }
+    if response.status != 200 {
+        return Err(AppError::unavailable());
+    }
     let url = url::Url::parse(&response.final_url).map_err(|_| AppError::changed())?;
-    let token = url
-        .query_pairs()
+    url.query_pairs()
         .find(|(k, v)| k == "token" && !v.is_empty())
         .map(|(_, v)| v.into_owned())
-        .ok_or_else(AppError::session_expired)?;
+        .ok_or_else(AppError::session_expired)
+}
+
+pub async fn load<T: HttpTransport>(session: &Session<T>) -> Result<Catalog, AppError> {
+    let token = login_token(session).await?;
     let config = request(session, &token, "getAllConfig", json!({})).await?;
     let mut pages = Vec::new();
     for page in 1..=20 {
@@ -148,6 +159,50 @@ pub async fn load<T: HttpTransport>(session: &Session<T>) -> Result<Catalog, App
         }
     }
     Err(AppError::changed())
+}
+
+/// Native BykcClient.load, queryChosenCourse; EDUCATION-DATA-MAP §2.3.
+/// Catalog pagination is intentionally independent of this account-specific read.
+pub async fn load_chosen<T: HttpTransport>(
+    session: &Session<T>,
+) -> Result<ChosenCourses, AppError> {
+    let token = login_token(session).await?;
+    let config = request(session, &token, "getAllConfig", json!({})).await?;
+    let terms = bykc::parse_catalog(&config, &[])?.terms;
+    let seconds = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|_| AppError::changed())?
+        .as_secs();
+    let instant = chrono::DateTime::from_timestamp(
+        i64::try_from(seconds).map_err(|_| AppError::changed())?,
+        0,
+    )
+    .ok_or_else(AppError::changed)?
+    .to_rfc3339();
+    let term = bykc::current_semester(&terms, &instant)?;
+    let courses = match term.as_ref().and_then(bykc::semester_range) {
+        Some((start, end)) => {
+            let data = request(
+                session,
+                &token,
+                "queryChosenCourse",
+                json!({"startDate":start,"endDate":end}),
+            )
+            .await?;
+            Some(bykc::parse_chosen(&data)?)
+        }
+        None => None,
+    };
+    Ok(ChosenCourses { term, courses })
+}
+
+/// Native BykcClient.statistics; independent of catalog or chosen-course errors.
+pub async fn load_statistics<T: HttpTransport>(
+    session: &Session<T>,
+) -> Result<LearningStatistics, AppError> {
+    let token = login_token(session).await?;
+    let data = request(session, &token, "queryStatisticByUserId", json!({})).await?;
+    bykc::parse_statistics(&data)
 }
 
 #[cfg(test)]

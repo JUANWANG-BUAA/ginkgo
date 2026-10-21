@@ -1,0 +1,52 @@
+{
+  "contract": "bykc.statistics",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "validCount": "5",
+    "statistical": {
+      "1|美育": {
+        "1|艺术欣赏": {
+          "assessmentCount": 2,
+          "completeAssessmentCount": "3"
+        }
+      },
+      "2|安全健康": {
+        "2|安全教育": {
+          "assessmentCount": "2",
+          "completeAssessmentCount": 1
+        }
+      },
+      "3|劳动教育": {
+        "3|劳动实践": {
+          "assessmentCount": 0,
+          "completeAssessmentCount": 0
+        }
+      }
+    },
+    "userName": "synthetic-private-field"
+  },
+  "expected": {
+    "validCourseCount": 5,
+    "entries": [
+      {
+        "category": "劳动教育",
+        "subcategory": "劳动实践",
+        "required": 0,
+        "completed": 0
+      },
+      {
+        "category": "安全健康",
+        "subcategory": "安全教育",
+        "required": 2,
+        "completed": 1
+      },
+      {
+        "category": "美育",
+        "subcategory": "艺术欣赏",
+        "required": 2,
+        "completed": 3
+      }
+    ]
+  }
+}

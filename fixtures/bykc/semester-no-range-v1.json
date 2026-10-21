@@ -1,0 +1,25 @@
+{
+  "contract": "bykc.semester",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "config": {
+      "semester": [
+        {
+          "id": 1,
+          "semesterName": "合成未知时间学期"
+        }
+      ]
+    },
+    "instant": "2026-10-21T00:00:00Z"
+  },
+  "expected": {
+    "range": null,
+    "term": {
+      "id": "1",
+      "name": "合成未知时间学期",
+      "start": null,
+      "end": null
+    }
+  }
+}

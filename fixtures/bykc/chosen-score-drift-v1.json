@@ -1,0 +1,34 @@
+{
+  "contract": "bykc.chosen",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "courseList": [
+      {
+        "id": "701",
+        "courseInfo": {
+          "id": 501,
+          "courseName": "合成已选课程",
+          "courseTeacher": "合成教师",
+          "coursePosition": "合成教室",
+          "courseNewKind1": {
+            "kindName": "美育"
+          },
+          "selected": true,
+          "courseSignConfig": "synthetic-configuration-not-to-be-exported",
+          "studentName": "synthetic-private-field"
+        },
+        "selectDate": "2026-10-20 09:00:00",
+        "checkin": "1",
+        "pass": 1,
+        "score": {
+          "value": 92
+        },
+        "homework": "synthetic-homework-not-to-be-exported"
+      }
+    ]
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

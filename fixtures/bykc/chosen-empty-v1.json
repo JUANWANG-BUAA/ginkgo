@@ -1,0 +1,9 @@
+{
+  "contract": "bykc.chosen",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "courseList": []
+  },
+  "expected": []
+}

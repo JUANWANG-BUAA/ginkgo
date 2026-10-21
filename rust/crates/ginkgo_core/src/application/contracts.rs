@@ -99,6 +99,19 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
             input["pages"].as_array().ok_or_else(AppError::changed)?,
         )?)
         .map_err(|_| AppError::changed())?,
+        "bykc.chosen" => {
+            serde_json::to_value(bykc::parse_chosen(&input)?).map_err(|_| AppError::changed())?
+        }
+        "bykc.statistics" => serde_json::to_value(bykc::parse_statistics(&input)?)
+            .map_err(|_| AppError::changed())?,
+        "bykc.semester" => {
+            let terms = bykc::parse_catalog(&input["config"], &[])?.terms;
+            let term = bykc::current_semester(
+                &terms,
+                input["instant"].as_str().ok_or_else(AppError::invalid)?,
+            )?;
+            serde_json::json!({"range": term.as_ref().and_then(bykc::semester_range), "term": term})
+        }
         "bykc.course_filter" => {
             serde_json::to_value(bykc::filter(decode(input)?)?).map_err(|_| AppError::changed())?
         }

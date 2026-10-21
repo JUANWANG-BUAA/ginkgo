@@ -1278,6 +1278,189 @@ async fn bykc_failure_retains_cached_catalog_and_logout_isolates_account() {
 }
 
 #[tokio::test]
+async fn bykc_queued_cache_misses_reuse_snapshots_filled_while_waiting() {
+    use crate::features::bykc;
+    let (service, transport) =
+        build_service(login_chain("sy2501001", "fixture"), MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("login");
+    let initial = transport.requests().len();
+    let catalog = bykc::Catalog {
+        terms: vec![],
+        courses: vec![],
+    };
+    let chosen = bykc::ChosenCourses {
+        term: None,
+        courses: None,
+    };
+    let statistics = bykc::parse_statistics(&fixture("bykc", "statistics-normal-v1.json")["input"])
+        .expect("statistics");
+    let access = service.bykc_access.lock().await;
+    let mut catalog_read = std::pin::pin!(service.load_bykc(false));
+    let mut chosen_read = std::pin::pin!(service.load_bykc_chosen(false));
+    let mut statistics_read = std::pin::pin!(service.load_bykc_statistics(false));
+    std::future::poll_fn(|cx| {
+        assert!(std::future::Future::poll(catalog_read.as_mut(), cx).is_pending());
+        assert!(std::future::Future::poll(chosen_read.as_mut(), cx).is_pending());
+        assert!(std::future::Future::poll(statistics_read.as_mut(), cx).is_pending());
+        std::task::Poll::Ready(())
+    })
+    .await;
+    service
+        .bykc
+        .lock()
+        .expect("catalog")
+        .insert("catalog".into(), catalog);
+    service
+        .bykc_chosen
+        .lock()
+        .expect("chosen")
+        .insert("chosen".into(), chosen);
+    service
+        .bykc_statistics
+        .lock()
+        .expect("statistics")
+        .insert("statistics".into(), statistics);
+    drop(access);
+    assert!(catalog_read
+        .await
+        .expect("catalog snapshot")
+        .failure
+        .is_none());
+    assert!(chosen_read
+        .await
+        .expect("chosen snapshot")
+        .failure
+        .is_none());
+    assert_eq!(
+        statistics_read
+            .await
+            .expect("statistics snapshot")
+            .data
+            .valid_course_count,
+        Some(5)
+    );
+    assert_eq!(
+        transport.requests().len(),
+        initial,
+        "queued reads must not repeat HTTP after cache fill"
+    );
+}
+
+#[tokio::test]
+async fn bykc_learning_caches_are_independent_preserve_failures_and_clear_for_identity() {
+    use crate::features::bykc;
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend([
+        HttpResponse::new(
+            503,
+            "https://bykc.buaa.edu.cn/sscv/cas/login",
+            "unavailable",
+        ),
+        HttpResponse::new(
+            503,
+            "https://bykc.buaa.edu.cn/sscv/cas/login",
+            "unavailable",
+        ),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("login");
+    let chosen = bykc::ChosenCourses {
+        term: None,
+        courses: Some(
+            bykc::parse_chosen(&fixture("bykc", "chosen-normal-v1.json")["input"]).expect("chosen"),
+        ),
+    };
+    let statistics = bykc::parse_statistics(&fixture("bykc", "statistics-normal-v1.json")["input"])
+        .expect("statistics");
+    service
+        .bykc_chosen
+        .lock()
+        .expect("chosen cache")
+        .insert("chosen".into(), chosen);
+    service
+        .bykc_statistics
+        .lock()
+        .expect("statistics cache")
+        .insert("statistics".into(), statistics);
+    let initial = transport.requests().len();
+    assert_eq!(
+        service
+            .load_bykc_chosen(false)
+            .await
+            .expect("fresh chosen")
+            .data
+            .courses
+            .expect("known range")[0]
+            .score,
+        Some(92)
+    );
+    assert_eq!(
+        service
+            .load_bykc_statistics(false)
+            .await
+            .expect("fresh statistics")
+            .data
+            .valid_course_count,
+        Some(5)
+    );
+    assert_eq!(
+        transport.requests().len(),
+        initial,
+        "fresh reads send no requests"
+    );
+    // Cached data remains available while another BYKC read holds the SSO guard.
+    let access = service.bykc_access.lock().await;
+    std::future::poll_fn(|cx| {
+        let mut read = std::pin::pin!(service.load_bykc_statistics(false));
+        assert!(std::future::Future::poll(read.as_mut(), cx).is_ready());
+        std::task::Poll::Ready(())
+    })
+    .await;
+    drop(access);
+    let stale = service.load_bykc_chosen(true).await.expect("stale chosen");
+    assert!(stale.failure.is_some());
+    assert_eq!(stale.data.courses.as_ref().expect("snapshot").len(), 1);
+    let projected = serde_json::to_string(&stale.data).expect("projection");
+    assert!(!projected.contains("synthetic-configuration-not-to-be-exported"));
+    assert!(!projected.contains("synthetic-homework-not-to-be-exported"));
+    assert!(!projected.contains("synthetic-private-field"));
+    let statistics = service
+        .load_bykc_statistics(false)
+        .await
+        .expect("independent fresh statistics");
+    assert!(statistics.failure.is_none());
+    assert_eq!(transport.requests().len(), initial + 1);
+    let statistics = service
+        .load_bykc_statistics(true)
+        .await
+        .expect("stale statistics");
+    assert!(statistics.failure.is_some());
+    assert_eq!(statistics.data.entries[2].completed, 3);
+    service.clear_caches();
+    assert!(service
+        .bykc_chosen
+        .lock()
+        .expect("chosen cache")
+        .any(&"chosen".into())
+        .is_none());
+    assert!(service
+        .bykc_statistics
+        .lock()
+        .expect("statistics cache")
+        .any(&"statistics".into())
+        .is_none());
+    service.sign_out().await;
+    assert!(service.load_bykc_chosen(false).await.is_err());
+    assert!(service.load_bykc_statistics(false).await.is_err());
+}
+
+#[tokio::test]
 async fn graduate_reads_status_whitelist_and_execution_report_then_caches() {
     let mut responses = login_chain("sy2501001", "fixture");
     responses.extend([

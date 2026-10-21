@@ -1138,7 +1138,7 @@ pub struct ReadOnlyResponse {
 pub async fn load_bykc(force_refresh: bool) -> ReadOnlyResponse {
     let _access = SESSION_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => service.load_bykc(force_refresh).await,
+        Ok(service) => bounded_read(service.load_bykc(force_refresh)).await,
         Err(error) => Err(error),
     };
     match result {
@@ -1167,6 +1167,99 @@ pub fn load_demo_bykc() -> ReadOnlyResponse {
                 .as_array()
                 .ok_or_else(AppError::changed)?,
         )
+    })();
+    match result {
+        Ok(data) => ReadOnlyResponse {
+            payload: serde_json::to_string(&data).ok(),
+            stale: false,
+            failure: None,
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}
+
+pub async fn load_bykc_chosen(force_refresh: bool) -> ReadOnlyResponse {
+    let _access = SESSION_ACCESS.read().await;
+    let result = match service() {
+        Ok(service) => bounded_read(service.load_bykc_chosen(force_refresh)).await,
+        Err(error) => Err(error),
+    };
+    match result {
+        Ok(outcome) => ReadOnlyResponse {
+            payload: serde_json::to_string(&outcome.data).ok(),
+            stale: outcome.failure.is_some(),
+            failure: outcome.failure.map(|e| e.code.into()),
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}
+
+pub async fn load_bykc_statistics(force_refresh: bool) -> ReadOnlyResponse {
+    let _access = SESSION_ACCESS.read().await;
+    let result = match service() {
+        Ok(service) => bounded_read(service.load_bykc_statistics(force_refresh)).await,
+        Err(error) => Err(error),
+    };
+    match result {
+        Ok(outcome) => ReadOnlyResponse {
+            payload: serde_json::to_string(&outcome.data).ok(),
+            stale: outcome.failure.is_some(),
+            failure: outcome.failure.map(|e| e.code.into()),
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}
+
+pub fn load_demo_bykc_chosen() -> ReadOnlyResponse {
+    let result = (|| -> Result<_, AppError> {
+        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../../../fixtures/bykc/chosen-normal-v1.json"
+        ))
+        .map_err(|_| AppError::changed())?;
+        let courses = ginkgo_core::features::bykc::parse_chosen(&fixture["input"])?;
+        Ok(ginkgo_core::features::bykc::ChosenCourses {
+            term: Some(ginkgo_core::features::bykc::Semester {
+                id: "1".into(),
+                name: "合成学期".into(),
+                start: Some("2026-09-01 00:00:00".into()),
+                end: Some("2027-01-31 23:59:59".into()),
+            }),
+            courses: Some(courses),
+        })
+    })();
+    match result {
+        Ok(data) => ReadOnlyResponse {
+            payload: serde_json::to_string(&data).ok(),
+            stale: false,
+            failure: None,
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}
+
+pub fn load_demo_bykc_statistics() -> ReadOnlyResponse {
+    let result = (|| -> Result<_, AppError> {
+        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../../../fixtures/bykc/statistics-normal-v1.json"
+        ))
+        .map_err(|_| AppError::changed())?;
+        ginkgo_core::features::bykc::parse_statistics(&fixture["input"])
     })();
     match result {
         Ok(data) => ReadOnlyResponse {

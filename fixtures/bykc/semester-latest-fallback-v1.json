@@ -1,0 +1,42 @@
+{
+  "contract": "bykc.semester",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "config": {
+      "semester": [
+        {
+          "id": 1,
+          "semesterName": "合成旧学期",
+          "semesterStartDate": "2026-02-01 00:00:00",
+          "semesterEndDate": "2026-08-31 23:59:59"
+        },
+        {
+          "id": 2,
+          "semesterName": "合成当前学期",
+          "semesterStartDate": "2026-09-01T00:00:00.000",
+          "semesterEndDate": "2027-01-31T23:59:59.000"
+        },
+        {
+          "id": 3,
+          "semesterName": "合成未来学期",
+          "semesterStartDate": "2027-02-01 00:00:00",
+          "semesterEndDate": "2027-08-31 23:59:59"
+        }
+      ]
+    },
+    "instant": "2028-01-01T00:00:00Z"
+  },
+  "expected": {
+    "range": [
+      "2027-02-01 00:00:00",
+      "2027-08-31 23:59:59"
+    ],
+    "term": {
+      "id": "3",
+      "name": "合成未来学期",
+      "start": "2027-02-01 00:00:00",
+      "end": "2027-08-31 23:59:59"
+    }
+  }
+}

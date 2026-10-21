@@ -8,7 +8,7 @@ import 'mirror.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `checkin_failure`, `checkin_response`, `classroom_response`, `classroom_sort`, `failure_response`, `failure`, `grade_failure`, `grade_response`, `library_area`, `library_booking`, `library_seat`, `library_slot`, `library_venue`, `mutation_response`, `outcome_response`, `schedule_failure`, `schedule_response`, `service`, `signed_out`, `status_response`, `today_response`
+// These functions are ignored because they are not marked as `pub`: `bounded_read`, `checkin_failure`, `checkin_response`, `classroom_response`, `classroom_sort`, `failure_response`, `failure`, `grade_failure`, `grade_response`, `library_area`, `library_booking`, `library_seat`, `library_slot`, `library_venue`, `mutation_response`, `outcome_response`, `schedule_failure`, `schedule_response`, `service`, `signed_out`, `status_response`, `today_response`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `UpdateTransport`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `send`
 
@@ -151,6 +151,20 @@ Future<ReadOnlyResponse> loadBykc({required bool forceRefresh}) =>
 
 Future<ReadOnlyResponse> loadDemoBykc() =>
     RustLib.instance.api.crateApiLiveLoadDemoBykc();
+
+Future<ReadOnlyResponse> loadBykcChosen({required bool forceRefresh}) =>
+    RustLib.instance.api.crateApiLiveLoadBykcChosen(forceRefresh: forceRefresh);
+
+Future<ReadOnlyResponse> loadBykcStatistics({required bool forceRefresh}) =>
+    RustLib.instance.api.crateApiLiveLoadBykcStatistics(
+      forceRefresh: forceRefresh,
+    );
+
+Future<ReadOnlyResponse> loadDemoBykcChosen() =>
+    RustLib.instance.api.crateApiLiveLoadDemoBykcChosen();
+
+Future<ReadOnlyResponse> loadDemoBykcStatistics() =>
+    RustLib.instance.api.crateApiLiveLoadDemoBykcStatistics();
 
 Future<ReadOnlyResponse> loadGraduate({required bool forceRefresh}) =>
     RustLib.instance.api.crateApiLiveLoadGraduate(forceRefresh: forceRefresh);

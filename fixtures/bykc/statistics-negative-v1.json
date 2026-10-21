@@ -1,0 +1,18 @@
+{
+  "contract": "bykc.statistics",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "statistical": {
+      "1|美育": {
+        "1|艺术欣赏": {
+          "assessmentCount": -1,
+          "completeAssessmentCount": 0
+        }
+      }
+    }
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

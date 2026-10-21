@@ -204,6 +204,202 @@ pub struct Semester {
     pub end: Option<String>,
 }
 
+/// A chosen-record ID is distinct from its nested course ID. Only fields shown
+/// by the native client leave this boundary; sign configuration and homework
+/// payloads are deliberately omitted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChosenCourse {
+    pub id: i64,
+    pub course: Course,
+    pub selected_at: Option<String>,
+    pub checkin: Option<i64>,
+    pub passed: Option<i64>,
+    pub score: Option<i64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChosenCourses {
+    pub term: Option<Semester>,
+    /// None means no valid semester range was available, not zero selections.
+    pub courses: Option<Vec<ChosenCourse>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StatisticsEntry {
+    pub category: String,
+    pub subcategory: String,
+    pub required: i64,
+    pub completed: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LearningStatistics {
+    pub valid_course_count: Option<i64>,
+    pub entries: Vec<StatisticsEntry>,
+}
+
+fn optional_integer(row: &serde_json::Value, key: &str) -> Result<Option<i64>, AppError> {
+    match row.get(key) {
+        None | Some(serde_json::Value::Null) => Ok(None),
+        Some(value) => value
+            .as_i64()
+            .or_else(|| value.as_str()?.parse().ok())
+            .map(Some)
+            .ok_or_else(AppError::changed),
+    }
+}
+
+fn semester_date(value: &str) -> Option<chrono::DateTime<chrono_tz::Tz>> {
+    use chrono::{NaiveDate, NaiveDateTime, TimeZone};
+    let zone = chrono_tz::Asia::Shanghai;
+    if let Ok(date) = chrono::DateTime::parse_from_rfc3339(value) {
+        return Some(date.with_timezone(&zone));
+    }
+    ["%Y-%m-%d %H:%M:%S%.f", "%Y-%m-%dT%H:%M:%S%.f"]
+        .iter()
+        .find_map(|format| NaiveDateTime::parse_from_str(value, format).ok())
+        .or_else(|| {
+            NaiveDate::parse_from_str(value, "%Y-%m-%d")
+                .ok()?
+                .and_hms_opt(0, 0, 0)
+        })
+        .and_then(|date| zone.from_local_datetime(&date).single())
+}
+
+/// Same active-first, latest-end fallback as BykcSemesterPolicy.swift. Naive
+/// school timestamps are interpreted in Beijing independently of device locale.
+///
+/// ```
+/// use ginkgo_core::features::bykc::{current_semester, Semester};
+/// let terms = vec![Semester {
+///     id: "1".into(), name: "Synthetic term".into(),
+///     start: Some("2026-09-01 00:00:00".into()),
+///     end: Some("2027-01-31 23:59:59".into()),
+/// }];
+/// let active = current_semester(&terms, "2026-08-31T16:00:00Z")?;
+/// assert_eq!(active.map(|term| term.id), Some("1".into()));
+/// # Ok::<(), ginkgo_core::AppError>(())
+/// ```
+pub fn current_semester(terms: &[Semester], instant: &str) -> Result<Option<Semester>, AppError> {
+    let now = chrono::DateTime::parse_from_rfc3339(instant).map_err(|_| AppError::invalid())?;
+    Ok(terms
+        .iter()
+        .find(|term| {
+            term.start
+                .as_deref()
+                .and_then(semester_date)
+                .is_some_and(|start| {
+                    term.end
+                        .as_deref()
+                        .and_then(semester_date)
+                        .is_some_and(|end| start <= now && now <= end)
+                })
+        })
+        .or_else(|| {
+            terms
+                .iter()
+                .max_by_key(|term| term.end.as_deref().and_then(semester_date))
+        })
+        .cloned())
+}
+
+pub fn semester_range(term: &Semester) -> Option<(String, String)> {
+    let start = semester_date(term.start.as_deref()?)?;
+    let end = semester_date(term.end.as_deref()?)?;
+    (start <= end).then(|| {
+        (
+            start.format("%Y-%m-%d %H:%M:%S").to_string(),
+            end.format("%Y-%m-%d %H:%M:%S").to_string(),
+        )
+    })
+}
+
+/// BykcClient.chosenCourses / EDUCATION-DATA-MAP §2.3. Reject a partial or
+/// changed response so it cannot replace the last complete account snapshot.
+pub fn parse_chosen(data: &serde_json::Value) -> Result<Vec<ChosenCourse>, AppError> {
+    let rows = data["courseList"]
+        .as_array()
+        .ok_or_else(AppError::changed)?;
+    let mut ids = std::collections::BTreeSet::new();
+    rows.iter()
+        .map(|row| {
+            let id = optional_integer(row, "id")?.ok_or_else(AppError::changed)?;
+            if !ids.insert(id) {
+                return Err(AppError::changed());
+            }
+            let mut catalog = parse_catalog(
+                &serde_json::json!({"semester": []}),
+                &[serde_json::json!({"content": [row["courseInfo"]]})],
+            )?;
+            let course = catalog.courses.pop().ok_or_else(AppError::changed)?;
+            let selected_at = match row.get("selectDate") {
+                None | Some(serde_json::Value::Null) => None,
+                Some(serde_json::Value::String(text)) => {
+                    Some(text.trim().to_owned()).filter(|v| !v.is_empty())
+                }
+                _ => return Err(AppError::changed()),
+            };
+            Ok(ChosenCourse {
+                id,
+                course,
+                selected_at,
+                checkin: optional_integer(row, "checkin")?,
+                passed: optional_integer(row, "pass")?,
+                score: optional_integer(row, "score")?,
+            })
+        })
+        .collect()
+}
+
+/// BykcClient.statistics / EDUCATION-DATA-MAP §2.3. Counts remain exact,
+/// including over-completion and zero requirements; presentation caps the bar.
+pub fn parse_statistics(data: &serde_json::Value) -> Result<LearningStatistics, AppError> {
+    let statistical = data["statistical"]
+        .as_object()
+        .ok_or_else(AppError::changed)?;
+    let count = |row: &serde_json::Value, key: &str| -> Result<i64, AppError> {
+        optional_integer(row, key)?
+            .filter(|n| *n >= 0)
+            .ok_or_else(AppError::changed)
+    };
+    let mut entries = Vec::new();
+    for (category, subcategories) in statistical {
+        let category = category
+            .rsplit('|')
+            .next()
+            .filter(|v| !v.trim().is_empty())
+            .ok_or_else(AppError::changed)?;
+        for (subcategory, row) in subcategories.as_object().ok_or_else(AppError::changed)? {
+            let subcategory = subcategory
+                .rsplit('|')
+                .next()
+                .filter(|v| !v.trim().is_empty())
+                .ok_or_else(AppError::changed)?;
+            entries.push(StatisticsEntry {
+                category: category.to_owned(),
+                subcategory: subcategory.to_owned(),
+                required: count(row, "assessmentCount")?,
+                completed: count(row, "completeAssessmentCount")?,
+            });
+        }
+    }
+    entries.sort_by(|a, b| {
+        a.category
+            .cmp(&b.category)
+            .then_with(|| a.subcategory.cmp(&b.subcategory))
+    });
+    let valid_course_count = optional_integer(data, "validCount")?;
+    if valid_course_count.is_some_and(|n| n < 0) {
+        return Err(AppError::changed());
+    }
+    Ok(LearningStatistics {
+        valid_course_count,
+        entries,
+    })
+}
+
 pub fn parse_catalog(
     config: &serde_json::Value,
     pages: &[serde_json::Value],

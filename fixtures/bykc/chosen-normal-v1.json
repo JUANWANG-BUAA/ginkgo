@@ -1,0 +1,59 @@
+{
+  "contract": "bykc.chosen",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "courseList": [
+      {
+        "id": "701",
+        "courseInfo": {
+          "id": 501,
+          "courseName": "合成已选课程",
+          "courseTeacher": "合成教师",
+          "coursePosition": "合成教室",
+          "courseNewKind1": {
+            "kindName": "美育"
+          },
+          "selected": true,
+          "courseSignConfig": "synthetic-configuration-not-to-be-exported",
+          "studentName": "synthetic-private-field"
+        },
+        "selectDate": "2026-10-20 09:00:00",
+        "checkin": "1",
+        "pass": 1,
+        "score": "92",
+        "homework": "synthetic-homework-not-to-be-exported"
+      }
+    ]
+  },
+  "expected": [
+    {
+      "id": 701,
+      "course": {
+        "id": 501,
+        "name": "合成已选课程",
+        "teacher": "合成教师",
+        "position": "合成教室",
+        "category": "美育",
+        "subcategory": null,
+        "details": {
+          "start": null,
+          "end": null,
+          "selectStart": null,
+          "selectEnd": null,
+          "cancelEnd": null,
+          "capacity": null,
+          "enrolled": null,
+          "campuses": [],
+          "summary": null,
+          "selected": true,
+          "hasSignConfig": true
+        }
+      },
+      "selectedAt": "2026-10-20 09:00:00",
+      "checkin": 1,
+      "passed": 1,
+      "score": 92
+    }
+  ]
+}

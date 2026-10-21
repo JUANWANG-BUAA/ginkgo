@@ -31,6 +31,24 @@ void main() {
     await tester.enterText(find.byKey(const Key('bykc-search')), '不存在');
     await settle(tester);
     expect(find.text('没有匹配的课程'), findsOneWidget);
+    await tester.tap(find.text('已选课程'));
+    await settle(tester);
+    expect(find.text('合成已选课程'), findsOneWidget);
+    expect(find.text('已签到'), findsOneWidget);
+    expect(find.text('已通过'), findsOneWidget);
+    expect(find.text('成绩 92'), findsOneWidget);
+    await tester.tap(find.text('合成已选课程'));
+    await settle(tester);
+    expect(find.text('学习记录'), findsOneWidget);
+    expect(find.text('10月20日 09:00'), findsOneWidget);
+    await tester.tap(find.byType(CupertinoNavigationBarBackButton));
+    await settle(tester);
+    await tester.tap(find.text('完成统计'));
+    await settle(tester);
+    expect(find.text('5 门'), findsOneWidget);
+    expect(find.text('本项暂无要求'), findsOneWidget);
+    await show(tester, find.text('3 / 2'), scrollKey: 'bykc-scroll');
+    expect(find.text('已完成'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
