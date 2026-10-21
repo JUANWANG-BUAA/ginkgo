@@ -1,0 +1,63 @@
+{
+  "contract": "bykc.course_filter",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "courses": [
+      {
+        "id": 1,
+        "name": "World Arts",
+        "teacher": "Wang Lei",
+        "position": "North Hall",
+        "category": "General Education",
+        "subcategory": "Arts",
+        "campuses": [],
+        "selected": false,
+        "hasSignConfig": false
+      },
+      {
+        "id": 2,
+        "name": "Music Appreciation",
+        "teacher": "Synthetic Teacher",
+        "position": "South Hall",
+        "category": "General Education",
+        "subcategory": "Arts",
+        "campuses": [],
+        "selected": false,
+        "hasSignConfig": false
+      },
+      {
+        "id": 3,
+        "name": "Sports History",
+        "teacher": null,
+        "position": "Synthetic Gym",
+        "category": "General Education",
+        "subcategory": "Sports",
+        "campuses": [],
+        "selected": false,
+        "hasSignConfig": false
+      },
+      {
+        "id": 4,
+        "name": "Unclassified Seminar",
+        "teacher": null,
+        "position": null,
+        "category": null,
+        "subcategory": null,
+        "campuses": [],
+        "selected": false,
+        "hasSignConfig": false
+      }
+    ],
+    "filter": {
+      "searchText": " WANG ",
+      "category": {
+        "kind": "named",
+        "value": " "
+      }
+    }
+  },
+  "expected": {
+    "error": "invalid_request"
+  }
+}

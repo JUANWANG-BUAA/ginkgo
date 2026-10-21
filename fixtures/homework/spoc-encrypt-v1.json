@@ -1,0 +1,11 @@
+{
+  "contract": "homework.spoc_encrypt",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "plain": "{\"pageSize\":15,\"pageNum\":1,\"sqlid\":\"1713252980496efac7d5d9985e81693116d3e8a52ebf2b\",\"xnxq\":\"2025-20262\",\"kcid\":\"\",\"yzwz\":\"\"}"
+  },
+  "expected": {
+    "encoded": "hkJ9jAFVEMFUgJEjbOLv4eRZqXHIsmF+WbYaG1ipT1L1N+BbxRXtBj6Gcjri4Mo+y6q22/FkNm/isiC2+B+/hNejBx2cQJfNp9zoxorVJBa86sID0ROtPQ/2V07JCmVC3qsgIWBokL7EYyiPfilw+0ryJ6e61jRnLn90sQFosew="
+  }
+}

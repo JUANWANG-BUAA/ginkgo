@@ -1,0 +1,17 @@
+{
+  "contract": "auth.cas_login_page",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "html": "<html><body><form action=\"/login\" method=\"post\"><input type=\"hidden\" name=\"execution\" value=\"fixture-execution\" /><script>config.captcha = { type: 'slider', id: 'fixture-cap' };</script></form></body></html>"
+  },
+  "expected": {
+    "execution": "fixture-execution",
+    "formAction": "/login",
+    "captcha": {
+      "type": "slider",
+      "id": "fixture-cap",
+      "imageURL": "https://sso.buaa.edu.cn/captcha?captchaId=fixture-cap"
+    }
+  }
+}

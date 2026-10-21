@@ -1,0 +1,40 @@
+{
+  "contract": "schedule.today_courses",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "code": "0",
+      "datas": [
+        {
+          "bizName": "操作系统",
+          "place": "主楼B202",
+          "time": "10:00-11:35",
+          "shortName": "操作系统"
+        },
+        {
+          "bizName": "算法设计与分析",
+          "place": "新主楼A101",
+          "time": "08:00-09:35",
+          "shortName": "算法"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "courses": [
+      {
+        "name": "算法设计与分析",
+        "place": "新主楼A101",
+        "time": "08:00-09:35",
+        "shortName": "算法"
+      },
+      {
+        "name": "操作系统",
+        "place": "主楼B202",
+        "time": "10:00-11:35",
+        "shortName": "操作系统"
+      }
+    ]
+  }
+}

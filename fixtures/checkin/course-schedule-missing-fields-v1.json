@@ -1,0 +1,22 @@
+{
+  "contract": "checkin.course_schedule",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "STATUS": "0",
+      "total": 1,
+      "result": [
+        {
+          "id": "601",
+          "courseName": "操作系统",
+          "classEndTime": "09:35",
+          "signStatus": 0
+        }
+      ]
+    }
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

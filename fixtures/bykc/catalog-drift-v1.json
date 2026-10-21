@@ -1,0 +1,27 @@
+{
+  "contract": "bykc.catalog",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "config": {
+      "semester": [
+        {
+          "id": 1,
+          "semesterName": "合成学期"
+        }
+      ]
+    },
+    "pages": [
+      {
+        "content": [
+          {
+            "id": 1
+          }
+        ]
+      }
+    ]
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

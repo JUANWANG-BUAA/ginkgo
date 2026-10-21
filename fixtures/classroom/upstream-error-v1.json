@@ -1,0 +1,15 @@
+{
+  "contract": "classroom.parse_response",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "e": 1,
+    "m": "upstream rejected the query",
+    "d": {
+      "list": {}
+    }
+  },
+  "expected": {
+    "error": "service_unavailable"
+  }
+}

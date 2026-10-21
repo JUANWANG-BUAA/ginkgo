@@ -1,0 +1,16 @@
+{
+  "contract": "library.history",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "code": 5,
+      "message": "synthetic rejection"
+    },
+    "page": 1,
+    "limit": 40
+  },
+  "expected": {
+    "error": "business_rejected"
+  }
+}

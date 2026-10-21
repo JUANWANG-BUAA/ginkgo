@@ -1,0 +1,25 @@
+{
+  "contract": "homework.spoc_detail",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "assignment": {
+      "code": 200,
+      "content": {
+        "zynr": {
+          "text": "合成正文"
+        },
+        "zyfs": "100"
+      }
+    },
+    "submission": {
+      "code": 200,
+      "content": {
+        "tjzt": "1"
+      }
+    }
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

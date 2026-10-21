@@ -22,3 +22,12 @@ Package.resolved
 
 # Playwright 预览截图（本地工具输出）
 .playwright-mcp/
+.playwright-cli/
+output/playwright/
+
+# Rust / Flutter mirror
+rust/target/
+flutter/rust_builder/cargokit/build_tool/.dart_tool/
+flutter/rust_builder/cargokit/build_tool/pubspec.lock
+artifacts/local/
+.workbuddy/

@@ -1,0 +1,12 @@
+{
+  "contract": "bykc.statistics",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "statistical": {}
+  },
+  "expected": {
+    "validCourseCount": null,
+    "entries": []
+  }
+}

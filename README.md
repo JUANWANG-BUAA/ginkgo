@@ -7,7 +7,7 @@
 ## 快速开始
 
 1. 用 Xcode 16+（工程为文件系统同步格式；本机已用 Xcode 27.1 验证可编译、测试全绿）打开 `BUAA-Assistant.xcodeproj`；
-2. ⌘R 运行，⌘U 跑测试（源码现有 212 个测试方法；当前全量通过）；
+2. ⌘R 运行，⌘U 跑测试（最近运行结果与验证范围见 [docs/TESTING.md](docs/TESTING.md)）；
 3. 按顺序阅读 [docs/ROADMAP.md](docs/ROADMAP.md) 开始开发——它回答"先写什么、后写什么、每步怎么验收"；
 4. iOS 版打开 `BUAA-Assistant-iOS/Ginkgo-iOS.xcodeproj`（iOS 17+）；工程由 [XcodeGen](https://github.com/yonaskolb/XcodeGen) 根据 `project.yml` 生成，详见 [iOS 子项目说明](docs/IOS.md)。
 
@@ -17,11 +17,11 @@
 
 ## 当前版本：0.1.0-alpha.7（2026-10-19）
 
-本版完成一次工程瘦身：抽取共享存储、时间、解析、加密与刷新节流基础设施，macOS 与 iOS 共用工作区编排；删除未挂载的图书馆研讨间代码。功能面覆盖课表与考试、成绩、研究生教务（学分地图）、博雅、学校作业、图书馆座位、教学楼研讨室（CGYY）、空教室、iclass 签到、待办与校园通知。源码 212 项测试全绿（见 [docs/TESTING.md](docs/TESTING.md)）；内置更新会从 GitHub Releases 检查新版本，下载安装后**保留课表、成绩缓存与本机待办**。已知限制与风险见 [docs/RELEASE-NOTES.md](docs/RELEASE-NOTES.md)。
+本版完成一次工程瘦身：抽取共享存储、时间、解析、加密与刷新节流基础设施，macOS 与 iOS 共用工作区编排；删除未挂载的图书馆研讨间代码。功能面覆盖课表与考试、成绩、研究生教务（学分地图）、博雅、学校作业、图书馆座位、教学楼研讨室（CGYY）、空教室、iclass 签到、待办与校园通知。自动化验证见 [docs/TESTING.md](docs/TESTING.md)；内置更新会从 GitHub Releases 检查新版本，下载安装后**保留课表、成绩缓存与本机待办**。已知限制与风险见 [docs/RELEASE-NOTES.md](docs/RELEASE-NOTES.md)。
 
 项目主页（GitHub Pages）：<https://juanwang-buaa.github.io/ginkgo/>
 
-> 验证范围：macOS 212 项、iOS 27.0 模拟器 212 项单元测试通过；正式签名包的真实账号全链路与 CGYY 写入仍待人工验收。
+> 验证范围：macOS 与 iOS 模拟器单元测试结果按日期记入 TESTING；正式签名包的真实账号全链路与 CGYY 写入仍待人工验收。
 
 ## iOS 子项目
 
@@ -36,7 +36,7 @@
 | 网络路线 | 自动 / 直连 / WebVPN，登录页与设置均可切换 | 同左 |
 | 校园服务 | 共享 CAS、网络、缓存与 ViewModel | 共享 |
 
-当前状态：已在标准 **iOS 27.0 Runtime** 的 iPhone 17 Pro、iPhone SE (3rd generation) 和 iPad Pro 11 上运行原生 UI 冒烟测试；iPhone/iPad UI 测试通过。iOS 单元测试 **212 项、0 失败**；真实账号 UI 测试在未注入凭据时按设计跳过。产物已包含 AppIcon、LaunchBackground、PrivacyInfo，Application Support 被排除出系统备份。
+当前状态：已在标准 **iOS 27.0 Runtime** 的 iPhone 17 Pro、iPhone SE (3rd generation) 和 iPad Pro 11 上运行原生 UI 冒烟测试；iPhone/iPad UI 测试通过。单元测试与 UI 冒烟的日期和范围见 [测试记录](docs/TESTING.md)；真实账号 UI 测试在未注入凭据时按设计跳过。产物已包含 AppIcon、LaunchBackground、PrivacyInfo，Application Support 被排除出系统备份。
 
 真实账号会话测试于 2026-10-18 在 iPhone 17 Pro 模拟器通过：直连 UC 被学校访问策略以 HTTP 483 拦截后，客户端自动切换到北航 WebVPN（`d.buaa.edu.cn`），重新完成 CAS 登录，并以 `uc/status` 的 `code == 0 + data` 确认会话有效。iOS 提供博雅课程库（74 门课程、已选与完成统计）与研究生教务（学籍摘要、10 章培养方案、59 门计划课程、学分地图）两个原生只读页面，以及教学楼研讨室（CGYY）预约、订单与门锁密码页面；图书馆仅提供座位预约（研讨间只读代码已删除）。真实账号 live UI 已进入博雅与研究生教务并读回数据；CGYY 与座位写操作仍待真实往返验收，希冀课程列表结构仍需适配。
 
@@ -48,6 +48,10 @@ xcodebuild test \
 ```
 
 平台边界、复用矩阵、真机验收清单见 [docs/IOS.md](docs/IOS.md)；项目改进优先级见 [docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md)。
+
+## Android / Windows 镜像
+
+Android / Windows 使用 Rust + Flutter，Apple 继续 SwiftUI。Android Alpha.4 已发布；课表、成绩、SPOC、图书馆、签到、博雅、研究生教务等主要只读链路已接入，也有真实账号只读记录。Alpha.4 增加手机端设置、返回手势保护、课程范围与助教作业分类、iClass 首次加载进度反馈，以及带暂停续传和安装包校验的应用内更新。签到和图书馆写路径已有确认、单次提交与回查，但真实写入尚未验收；最近实网登录失败仍需复验。Windows 已在 Parallels Windows 11 完成 x64 构建、合成保险库、宽窄布局与桌面集成验证；尚无公开包和真实学校业务验收。源码、公开版本与验收边界见 [镜像现状](docs/MIRROR-IMPLEMENTATION.md)、[模块对照](docs/MIRROR-PARITY.md) 和 [待办](docs/MIRROR-TODO.md)；架构边界见 [Rust + Flutter 计划](docs/RUST-FLUTTER-PORT.md)。
 
 ## 界面预览
 
@@ -113,6 +117,8 @@ xcodebuild test \
 | [docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md) | 项目改进点分析与 P0/P1/P2 执行路线 |
 | [docs/UI-DESIGN.md](docs/UI-DESIGN.md) | macOS 原生 UI 设计准则：信息架构、页面状态、通知、无障碍与验收 |
 | [docs/TESTING.md](docs/TESTING.md) | 测试策略 |
+| [docs/MIRROR-IMPLEMENTATION.md](docs/MIRROR-IMPLEMENTATION.md) | Rust + Flutter 现状、待办与功能对照入口 |
+| [Opus 5.5 评审落实](docs/_audit/2026-10-21-opus-review-followup.md) | 原评审来源、本次核实、修复定位与验证边界 |
 | [docs/COLLABORATION.md](docs/COLLABORATION.md) | 人 + AI 协作规则（分工/红线/审查清单/提示词模板） |
 | [docs/BACKLOG.md](docs/BACKLOG.md) | 候选功能储备（A-D 级分级；接入前须先取证转正） |
 | [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md) | 验收记录（每 Step 验收后追加，规则见 ROADMAP 附录 A） |
@@ -131,10 +137,10 @@ BUAA-Assistant/
 ├── BUAA-Assistant.xcodeproj       # macOS Xcode 16+ 工程（objectVersion 70 文件系统同步）
 ├── BUAA-Assistant-iOS/            # iOS 17+ 子项目（XcodeGen project.yml + 自适应 SwiftUI 应用壳）
 ├── BUAA-Assistant.entitlements    # macOS App Sandbox + 网络客户端权限
-├── BUAA-Assistant/                # 跨平台共享源码（新增 .swift 文件自动纳入 macOS 编译）
+├── BUAA-Assistant/                # macOS/iOS 共用的 Swift 源码（新增 .swift 文件自动纳入 macOS 编译）
 │   ├── Features/                  # Auth / Today / Schedule / Grade / Library / Classroom / Homework / CheckIn / Campus / Tasks / Settings
 │   └── Core/                      # Network / Storage / Logging / UI（共享提示、跨平台语义色与空态组件）
-├── BUAA-AssistantTests/           # 单元测试（当前 167 个测试方法；iOS target 复用）
+├── BUAA-AssistantTests/           # 共享 XCTest 与跨语言契约测试（iOS target 复用）
 ├── LICENSE                        # MIT License（含 UBAA 参考实现版权声明）
 └── docs/                          # 全部文档与界面截图（单一事实源）
 ```

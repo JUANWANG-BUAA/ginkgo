@@ -1,0 +1,20 @@
+{
+  "contract": "homework.spoc_page",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "pageNum": 1,
+      "pages": 1,
+      "hasNextPage": false,
+      "list": [
+        {
+          "zyid": "a"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

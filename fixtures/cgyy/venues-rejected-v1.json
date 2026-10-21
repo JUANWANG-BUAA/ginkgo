@@ -1,0 +1,20 @@
+{
+  "contract": "cgyy.venues",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "code": 500,
+    "data": [
+      {
+        "id": 1,
+        "siteName": "合成研讨室",
+        "venueName": "合成场馆",
+        "campusName": "合成校区",
+        "seatCount": 8
+      }
+    ]
+  },
+  "expected": {
+    "error": "business_rejected"
+  }
+}

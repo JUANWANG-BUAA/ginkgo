@@ -1,0 +1,12 @@
+{
+  "contract": "library.public_stats",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "html": "denied",
+    "status": 403
+  },
+  "expected": {
+    "error": "service_unavailable"
+  }
+}

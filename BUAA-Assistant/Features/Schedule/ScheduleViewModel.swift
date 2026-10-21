@@ -9,16 +9,14 @@ final class ScheduleViewModel: ObservableObject {
   @Published private(set) var needsSessionCheck = false
   @Published private(set) var reminderRevision = 0
 
-  private let service: ScheduleServing
-  private let cache: ScheduleCache
+  private let repository: ScheduleRepository
   private var account: String?
   private var generation = 0
   private var autoRefresh = AutoRefreshGate()
   private var pendingRefreshTargetsCurrentWeek = false
 
-  init(service: ScheduleServing = ScheduleClient(), cache: ScheduleCache = ScheduleCache()) {
-    self.service = service
-    self.cache = cache
+  init(repository: ScheduleRepository) {
+    self.repository = repository
   }
 
   func start(account: String) async {
@@ -27,7 +25,7 @@ final class ScheduleViewModel: ObservableObject {
     self.account = account
     isLoading = true
     let current = generation
-    let cached = await cache.read(account: account)
+    let cached = await repository.cachedSnapshot(account: account)
     guard current == generation else { return }
     snapshot = cached
     reminderRevision += 1
@@ -45,6 +43,12 @@ final class ScheduleViewModel: ObservableObject {
     errorMessage = nil
     feedback = nil
     needsSessionCheck = false
+  }
+
+  func clearCache(account overrideAccount: String? = nil) async throws {
+    guard let account = overrideAccount ?? self.account else { return }
+    try await repository.clearCache(account: account)
+    reset()
   }
 
   func refreshToday() async {
@@ -71,13 +75,11 @@ final class ScheduleViewModel: ObservableObject {
   }
 
   func refresh(termID: String? = nil, week: Int? = nil, currentWeek: Bool = false) async {
-    if let week, let snapshot, termID == nil, let courses = snapshot.termCourses?[String(week)] {
+    if let week, termID == nil, let selectedWeek = snapshot?.selectingCachedWeek(week) {
       generation += 1
       isLoading = false
       feedback = nil
-      self.snapshot = ScheduleSnapshot(portal: snapshot.portal, terms: snapshot.terms, termID: snapshot.termID,
-                                       weeks: snapshot.weeks, weekNumber: week, courses: courses, fetchedAt: snapshot.fetchedAt,
-                                       termCourses: snapshot.termCourses)
+      snapshot = selectedWeek
       reminderRevision += 1
       return
     }
@@ -89,19 +91,15 @@ final class ScheduleViewModel: ObservableObject {
     needsSessionCheck = false
     defer { finishRefresh(current: current) }
     do {
-      var newSnapshot = try await service.load(termID: termID ?? snapshot?.termID,
-                                               week: currentWeek ? nil : week ?? (termID == nil ? snapshot?.weekNumber : nil))
+      var newSnapshot = try await repository.load(termID: termID ?? snapshot?.termID,
+                                                  week: currentWeek ? nil : week ?? (termID == nil ? snapshot?.weekNumber : nil))
       guard current == generation else { return }
-      if newSnapshot.termCourses == nil {
-        var known = snapshot?.termID == newSnapshot.termID ? snapshot?.termCourses ?? [:] : [:]
-        known[String(newSnapshot.weekNumber)] = newSnapshot.courses
-        newSnapshot.termCourses = known
-      }
+      newSnapshot = newSnapshot.retainingKnownWeeks(from: snapshot)
       snapshot = newSnapshot
       reminderRevision += 1
       feedback = "课表已更新"
       if let account {
-        do { try await cache.save(newSnapshot, account: account) }
+        do { try await repository.save(newSnapshot, account: account) }
         catch { AppLog.cacheWriteFailed(feature: "schedule", error: error) }
       }
     } catch {

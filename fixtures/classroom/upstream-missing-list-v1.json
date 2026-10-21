@@ -1,0 +1,13 @@
+{
+  "contract": "classroom.parse_response",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "e": 0,
+    "m": "",
+    "d": {}
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

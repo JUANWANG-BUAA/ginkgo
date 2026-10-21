@@ -14,12 +14,12 @@ struct BykcView: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 20) {
-        PageHeading(
-          eyebrow: "ACADEMIC / BYKC",
+        AcademicPageHeader(
+          section: "教务 · 通识课程",
           title: "博雅",
-          subtitle: "课程库、已选记录与完成统计；只读取学校数据，不执行选课、退选或签到"
+          subtitle: "课程库、已选记录与完成统计；仅读取学校数据",
+          symbol: "books.vertical"
         )
-        toolbar
         if let snapshot = model.snapshot {
           summary(snapshot)
           Picker("查看", selection: $mode) {
@@ -70,6 +70,20 @@ struct BykcView: View {
       .frame(maxWidth: .infinity)
     }
     .background(Color.ginkgoWindowBackground)
+    .toolbar {
+      ToolbarItem(placement: .primaryAction) {
+        Button { Task { await model.refresh(account: appState.user?.schoolid) } } label: {
+          if model.isLoading {
+            ProgressView().controlSize(.small)
+          } else {
+            Label("刷新博雅", systemImage: "arrow.clockwise")
+          }
+        }
+        .disabled(model.isLoading)
+        .accessibilityLabel("刷新博雅")
+        .keyboardShortcut("r", modifiers: .command)
+      }
+    }
     .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: mode)
     .task(id: appState.user?.schoolid) {
       guard let account = appState.user?.schoolid else { return }
@@ -81,85 +95,57 @@ struct BykcView: View {
     }
   }
 
-  private var toolbar: some View {
-    HStack(spacing: 12) {
-      if let snapshot = model.snapshot {
-        Label(
-          "\(model.isShowingCachedData ? "缓存" : "更新") · \(snapshot.courses.count) 门课程 · \(snapshot.chosen.count) 门已选",
-          systemImage: model.isShowingCachedData ? "clock.arrow.circlepath" : "books.vertical"
-        )
-        .font(.caption)
-        .foregroundStyle(.secondary)
-      }
-      if let error = model.errorMessage, model.snapshot != nil {
-        Label(error, systemImage: "exclamationmark.triangle.fill")
-          .font(.caption)
-          .foregroundStyle(.orange)
-          .lineLimit(2)
-      }
-      Spacer()
-      Button { Task { await model.refresh(account: appState.user?.schoolid) } } label: {
-        if model.isLoading {
-          ProgressView().controlSize(.small)
-        } else {
-          Label("刷新", systemImage: "arrow.clockwise")
-        }
-      }
-      .buttonStyle(.bordered)
-      .disabled(model.isLoading)
-      .accessibilityLabel("刷新博雅")
-    }
-  }
-
   private func summary(_ snapshot: BykcSnapshot) -> some View {
-    VStack(alignment: .leading, spacing: 14) {
-      LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
-        metric("课程库", "\(snapshot.courses.count)", symbol: "books.vertical")
-        metric("已选课程", "\(snapshot.chosen.count)", symbol: "checkmark.circle")
-        metric("有效课程", "\(snapshot.validCourseCount)", symbol: "checkmark.seal")
-        if let semester = snapshot.currentSemester {
-          metric("当前学期", semester.name, symbol: "calendar")
+    let semesterRange: String? = {
+      guard let semester = snapshot.currentSemester,
+            let start = BykcDate.display(semester.startDate),
+            let end = BykcDate.display(semester.endDate) else { return nil }
+      return "\(start) – \(end)"
+    }()
+    let metrics = [
+      AcademicMetric(id: "catalog", title: "课程库", value: "\(snapshot.courses.count) 门", symbol: "books.vertical", tint: .primary),
+      AcademicMetric(id: "chosen", title: "已选课程", value: "\(snapshot.chosen.count) 门", symbol: "checkmark.circle", tint: .primary),
+      AcademicMetric(id: "valid", title: "有效课程", value: "\(snapshot.validCourseCount) 门", symbol: "checkmark.seal", tint: .primary),
+      AcademicMetric(
+        id: "semester",
+        title: "当前学期",
+        value: snapshot.currentSemester?.name ?? "未确认",
+        detail: semesterRange,
+        symbol: "calendar",
+        tint: .primary
+      )
+    ]
+    let profileItems: [(String, String)] = [
+      snapshot.profile.termName.map { ("博雅学期：\($0)", "calendar.badge.clock") },
+      snapshot.profile.collegeName.map { ($0, "building.columns") },
+      snapshot.profile.studentType.map { ($0, "person.text.rectangle") },
+      snapshot.profile.className.map { ($0, "person.3") }
+    ].compactMap { $0 }
+
+    return VStack(alignment: .leading, spacing: 10) {
+      AcademicMetricStrip(metrics: metrics)
+      if !profileItems.isEmpty {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 180), alignment: .leading)], alignment: .leading, spacing: 8) {
+          ForEach(profileItems.indices, id: \.self) { index in
+            Label(profileItems[index].0, systemImage: profileItems[index].1)
+              .font(.caption)
+              .foregroundStyle(.secondary)
+              .lineLimit(1)
+          }
         }
+        .padding(.horizontal, 6)
       }
-      HStack(spacing: 16) {
-        if let termName = snapshot.profile.termName, termName.isEmpty == false {
-          Label("博雅学期：\(termName)", systemImage: "calendar.badge.clock")
-        }
-        if let college = snapshot.profile.collegeName, college.isEmpty == false {
-          Label(college, systemImage: "building.columns")
-        }
-        if let studentType = snapshot.profile.studentType, studentType.isEmpty == false {
-          Label(studentType, systemImage: "person.text.rectangle")
-        }
-        if let className = snapshot.profile.className, className.isEmpty == false {
-          Label(className, systemImage: "person.3")
-        }
-        if let semester = snapshot.currentSemester,
-           let start = BykcDate.display(semester.startDate),
-           let end = BykcDate.display(semester.endDate) {
-          Label("\(start) – \(end)", systemImage: "calendar")
-        }
+      HStack {
+        Label(
+          model.isShowingCachedData ? "显示缓存数据" : "数据已同步",
+          systemImage: model.isShowingCachedData ? "clock.arrow.circlepath" : "checkmark.circle"
+        )
         Spacer()
+        Text("更新于 \(snapshot.fetchedAt.formatted(date: .abbreviated, time: .shortened))")
       }
       .font(.caption)
       .foregroundStyle(.secondary)
     }
-    .bykcCard()
-  }
-
-  private func metric(_ title: String, _ value: String, symbol: String) -> some View {
-    VStack(alignment: .leading, spacing: 6) {
-      Label(title, systemImage: symbol)
-        .font(.caption)
-        .foregroundStyle(.secondary)
-      Text(value)
-        .font(.title3.monospacedDigit().weight(.semibold))
-        .lineLimit(2)
-        .minimumScaleFactor(0.8)
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(12)
-    .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 10))
   }
 
   private func courseContent(_ snapshot: BykcSnapshot) -> some View {
@@ -168,31 +154,28 @@ struct BykcView: View {
         SearchField(prompt: "搜索课程、教师或地点", text: $model.searchText)
           .frame(maxWidth: .infinity)
         Menu {
-          ForEach(model.categories, id: \.self) { category in
+          ForEach(model.categories) { category in
             Button {
               model.selectedCategory = category
             } label: {
               if category == model.selectedCategory {
-                Label(category, systemImage: "checkmark")
+                Label(BykcCoursePresentation.categoryTitle(category), systemImage: "checkmark")
               } else {
-                Text(category)
+                Text(BykcCoursePresentation.categoryTitle(category))
               }
             }
           }
         } label: {
-          Label(model.selectedCategory, systemImage: "line.3.horizontal.decrease.circle")
+          Label(
+            BykcCoursePresentation.categoryTitle(model.selectedCategory),
+            systemImage: "line.3.horizontal.decrease.circle"
+          )
         }
         .menuStyle(.borderlessButton)
         .frame(maxWidth: 180)
       }
-      HStack {
-        Text("课程库 · \(model.filteredCourses.count)")
-          .font(.headline)
-        Spacer()
-        Text("按类别筛选")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      }
+      .academicPanel(inset: 10)
+      AcademicSectionHeading(title: "课程库", detail: "显示 \(model.filteredCourses.count) 门")
       if snapshot.courses.isEmpty {
         PageEmptyState(
           symbol: "books.vertical",
@@ -212,7 +195,6 @@ struct BykcView: View {
         }
       }
     }
-    .bykcCard()
   }
 
   private func chosenContent(_ snapshot: BykcSnapshot) -> some View {
@@ -340,7 +322,7 @@ private struct BykcCourseCard: View {
           Label(position, systemImage: "mappin.and.ellipse").font(.caption)
         }
         HStack(spacing: 10) {
-          if let availability = course.availability {
+          if let availability = BykcCoursePresentation.availabilityText(for: course) {
             Label(availability, systemImage: "person.2")
           }
           if course.campuses.isEmpty == false {
@@ -394,7 +376,7 @@ private struct BykcCourseDetailSheet: View {
           row("教师", course.teacher)
           row("地点", course.position)
           row("校区", course.campuses.isEmpty ? nil : course.campuses.joined(separator: "、"))
-          row("人数", course.availability)
+          row("人数", BykcCoursePresentation.availabilityText(for: course))
           row("签到", course.hasSignConfig ? "含签到配置" : "无签到配置")
         }
         .bykcCard()

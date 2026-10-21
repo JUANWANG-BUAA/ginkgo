@@ -1,0 +1,50 @@
+{
+  "contract": "grades.buaa_score",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "e": 0,
+      "m": "",
+      "d": {
+        "a": {
+          "kcmc": "算法设计与分析",
+          "kch": "CS101",
+          "xf": "4.0",
+          "kccj": 92,
+          "fslx": "百分制",
+          "kclx": "必修"
+        },
+        "b": {
+          "kcmc": "操作系统",
+          "xf": 3,
+          "kccj": "88"
+        }
+      }
+    }
+  },
+  "expected": {
+    "courses": [
+      {
+        "id": "b",
+        "name": "操作系统",
+        "code": null,
+        "credit": 3.0,
+        "score": "88",
+        "scoreValue": 88.0,
+        "scoreType": null,
+        "courseType": null
+      },
+      {
+        "id": "a",
+        "name": "算法设计与分析",
+        "code": "CS101",
+        "credit": 4.0,
+        "score": "92",
+        "scoreValue": 92.0,
+        "scoreType": "百分制",
+        "courseType": "必修"
+      }
+    ]
+  }
+}

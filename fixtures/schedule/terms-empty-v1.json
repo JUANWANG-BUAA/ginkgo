@@ -1,0 +1,14 @@
+{
+  "contract": "schedule.terms",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "code": "0",
+      "datas": []
+    }
+  },
+  "expected": {
+    "terms": []
+  }
+}

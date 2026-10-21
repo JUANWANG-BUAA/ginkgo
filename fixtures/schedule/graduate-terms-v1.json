@@ -1,0 +1,39 @@
+{
+  "contract": "schedule.graduate_terms",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "code": "0",
+      "datas": {
+        "kfdxnxqcx": {
+          "totalSize": 2,
+          "rows": [
+            {
+              "XNXQDM": "20261",
+              "XNXQDM_DISPLAY": "2026-2027学年第1学期"
+            },
+            {
+              "XNXQDM": "20252",
+              "XNXQDM_DISPLAY": "2025-2026学年第2学期"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "expected": {
+    "terms": [
+      {
+        "id": "20261",
+        "name": "2026-2027学年第1学期",
+        "selected": true
+      },
+      {
+        "id": "20252",
+        "name": "2025-2026学年第2学期",
+        "selected": false
+      }
+    ]
+  }
+}

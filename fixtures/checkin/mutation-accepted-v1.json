@@ -1,0 +1,15 @@
+{
+  "contract": "checkin.mutation",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "STATUS": 0,
+    "result": {
+      "stuSignStatus": 1
+    }
+  },
+  "expected": {
+    "state": "accepted",
+    "message": "学校已受理签到，请核对刷新后的课程状态"
+  }
+}

@@ -4,9 +4,67 @@ import XCTest
 
 @MainActor
 final class WorkspaceIntegrationTests: XCTestCase {
+  func testScheduleSnapshotRetainsKnownWeeksFromPortableFixture() throws {
+    let fixtureURL = URL(fileURLWithPath: #filePath)
+      .deletingLastPathComponent()
+      .deletingLastPathComponent()
+      .appendingPathComponent("fixtures/schedule/week-snapshot-v1.json")
+    let fixture = try JSONDecoder().decode(
+      ScheduleSnapshotContractFixture.self,
+      from: Data(contentsOf: fixtureURL)
+    )
+
+    XCTAssertEqual(fixture.contract, "schedule.snapshot_retained_weeks")
+    XCTAssertEqual(fixture.version, 1)
+    XCTAssertEqual(fixture.source, "synthetic")
+
+    let previous = fixture.input.previous.makeSnapshot()
+    let fetched = fixture.input.fetched.makeSnapshot()
+    let merged = fetched.retainingKnownWeeks(from: previous)
+    let courseIDsByWeek = try XCTUnwrap(merged.termCourses).mapValues { $0.map(\.id) }
+    XCTAssertEqual(courseIDsByWeek, fixture.expected.courseIDsByWeek)
+
+    let selected = try XCTUnwrap(merged.selectingCachedWeek(fixture.expected.selectableCachedWeek))
+    XCTAssertEqual(selected.weekNumber, fixture.expected.selectableCachedWeek)
+    XCTAssertEqual(
+      selected.courses.map(\.id),
+      fixture.expected.courseIDsByWeek[String(selected.weekNumber)] ?? []
+    )
+  }
+
+  func testScheduleSnapshotDoesNotRetainWeeksAcrossTerms() {
+    let oldCourse = CourseMeeting(id: "old-term", name: "旧学期", day: 1, startSection: 1,
+      endSection: 2, startTime: nil, endTime: nil, place: nil, teacher: nil, color: nil)
+    let newCourse = CourseMeeting(id: "new-term", name: "新学期", day: 1, startSection: 1,
+      endSection: 2, startTime: nil, endTime: nil, place: nil, teacher: nil, color: nil)
+    let previous = ScheduleSnapshot(
+      portal: .undergraduate,
+      terms: [],
+      termID: "old-term",
+      weeks: [],
+      weekNumber: 1,
+      courses: [oldCourse],
+      fetchedAt: Date(timeIntervalSince1970: 1),
+      termCourses: ["1": [oldCourse]]
+    )
+    let fetched = ScheduleSnapshot(
+      portal: .undergraduate,
+      terms: [],
+      termID: "new-term",
+      weeks: [],
+      weekNumber: 2,
+      courses: [newCourse],
+      fetchedAt: Date(timeIntervalSince1970: 2)
+    )
+
+    let merged = fetched.retainingKnownWeeks(from: previous)
+
+    XCTAssertEqual(merged.termCourses?.mapValues { $0.map(\.id) } ?? [:], ["2": ["new-term"]])
+  }
+
   func testResetDiscardsInFlightScheduleResponse() async {
     let service = SuspendedScheduleService()
-    let model = ScheduleViewModel(service: service)
+    let model = ScheduleViewModel(repository: DefaultScheduleRepository(service: service))
     let request = Task { await model.refresh() }
     while service.continuation == nil { await Task.yield() }
     model.reset()
@@ -53,6 +111,44 @@ final class WorkspaceIntegrationTests: XCTestCase {
     snapshot.termCourses = nil
     XCTAssertFalse(snapshot.containsToday(now: monday))
     XCTAssertTrue(snapshot.todayCourses(now: monday).isEmpty)
+  }
+}
+
+private struct ScheduleSnapshotContractFixture: Decodable {
+  let contract: String
+  let version: Int
+  let source: String
+  let input: Input
+  let expected: Expected
+
+  struct Input: Decodable {
+    let previous: SnapshotInput
+    let fetched: SnapshotInput
+  }
+
+  struct SnapshotInput: Decodable {
+    let termID: String
+    let weekNumber: Int
+    let courses: [CourseMeeting]
+    let termCourses: [String: [CourseMeeting]]?
+
+    func makeSnapshot() -> ScheduleSnapshot {
+      ScheduleSnapshot(
+        portal: .undergraduate,
+        terms: [],
+        termID: termID,
+        weeks: [],
+        weekNumber: weekNumber,
+        courses: courses,
+        fetchedAt: Date(timeIntervalSince1970: 0),
+        termCourses: termCourses
+      )
+    }
+  }
+
+  struct Expected: Decodable {
+    let courseIDsByWeek: [String: [String]]
+    let selectableCachedWeek: Int
   }
 }
 

@@ -1,0 +1,18 @@
+{
+  "contract": "library.login_user",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "code": 0,
+      "data": {
+        "member": {
+          "token": "fixture-library-token"
+        }
+      }
+    }
+  },
+  "expected": {
+    "hasToken": true
+  }
+}

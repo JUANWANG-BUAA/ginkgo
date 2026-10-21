@@ -1,0 +1,14 @@
+[workspace]
+members = ["crates/ginkgo_core", "crates/ginkgo_flutter_bridge"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+
+[workspace.dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[profile.release]
+lto = "thin"
+strip = "debuginfo"

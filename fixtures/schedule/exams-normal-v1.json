@@ -1,0 +1,70 @@
+{
+  "contract": "schedule.exams",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "code": "0",
+      "datas": [
+        {
+          "courseName": "操作系统",
+          "courseNo": "CS102",
+          "examDate": "2026-11-18",
+          "startTime": "14:00",
+          "endTime": "16:00",
+          "examPlace": "主楼B202",
+          "week": "11",
+          "taskId": "exam-2"
+        },
+        {
+          "courseName": "算法设计与分析",
+          "courseNo": "CS101",
+          "examTimeDescription": "第10周 周一 08:00-10:00",
+          "examDate": "2026-11-16",
+          "startTime": "08:00",
+          "endTime": "10:00",
+          "examPlace": "主楼A101",
+          "examSeatNo": "12",
+          "week": 10,
+          "examStatus": "未开始",
+          "examType": "闭卷",
+          "taskId": "exam-1"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "exams": [
+      {
+        "id": "exam-1",
+        "courseName": "算法设计与分析",
+        "courseNo": "CS101",
+        "examTimeDescription": "第10周 周一 08:00-10:00",
+        "examDate": "2026-11-16",
+        "startTime": "08:00",
+        "endTime": "10:00",
+        "examPlace": "主楼A101",
+        "examSeatNo": "12",
+        "week": 10,
+        "examStatus": "未开始",
+        "examType": "闭卷",
+        "taskId": "exam-1"
+      },
+      {
+        "id": "exam-2",
+        "courseName": "操作系统",
+        "courseNo": "CS102",
+        "examTimeDescription": null,
+        "examDate": "2026-11-18",
+        "startTime": "14:00",
+        "endTime": "16:00",
+        "examPlace": "主楼B202",
+        "examSeatNo": null,
+        "week": 11,
+        "examStatus": null,
+        "examType": null,
+        "taskId": "exam-2"
+      }
+    ]
+  }
+}

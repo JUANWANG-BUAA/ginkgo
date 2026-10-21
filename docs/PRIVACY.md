@@ -1,6 +1,6 @@
 # 隐私与数据管理
 
-> 适用范围：Ginkgo（BUAA Assistant）macOS 与 iOS 客户端、本仓库的文档与截图。
+> 适用范围：Ginkgo（BUAA Assistant）macOS 与 iOS 客户端、Android/Windows Rust + Flutter 镜像、本仓库的文档与截图。
 > 核心原则：不经过本项目自建中转服务器；可选直连学校系统或北航官方 WebVPN 网关，账号数据只留在本机，仓库永远不包含个人数据。
 
 ## 1. 应用接触哪些数据、放在哪里
@@ -20,7 +20,19 @@
 | 通知与提醒 | 系统通知中心 | 正文不含课程名、地点、学号等敏感信息；课程提醒与签到通知可分别关闭 |
 | 运行日志 | Apple 统一日志 OSLog（subsystem `com.buaaassistant.app`） | 只记录模块、阶段、HTTP/业务状态、错误域与错误码；不含响应正文、账号、Cookie、票据或课程内容 |
 
-应用不向任何第三方服务器发送数据；除学校上游域名外没有其他网络出口。座位生命周期与座位预约的写请求发送到 `booking.lib.buaa.edu.cn`；教学楼研讨室写请求发送到 `cgyy.buaa.edu.cn`。两者都必须由用户逐次确认。
+### 1.1 Rust + Flutter 镜像（Android / Windows）
+
+| 数据 | 存放位置 | 生命周期与说明 |
+|------|----------|----------------|
+| 学号、密码 | Android Keystore + 私有 SharedPreferences；Windows Credential Manager；macOS Keychain | 仅在用户勾选「记住密码」后写入；Android 使用 AES-GCM，密钥不出 Android Keystore，账号名以 SHA-256 摘要作为偏好键；验证码答案不持久化；关闭开关或登出即删除 |
+| 会话 Cookie（CASTGC 等） | Rust 进程内存 | 不落盘；进程重启后通过平台保险库静默重登；直连与 WebVPN Cookie 分离 |
+| 空教室、课表、今天、成绩、作业、博雅、研究生、签到、预约等查询快照 | Rust 进程内存 | 5 分钟 TTL、容量上限；登出、账号切换、路由变化即清空；不读取 Apple 缓存文件，不写磁盘 |
+| 设备验收诊断 | 平台保险库 | `verifyCredentialStorage` 只写入并删除调用方提供的合成密钥，用于验证 JNI/Keystore 往返，不接触账号数据 |
+| 运行日志 | 平台日志 / Flutter debugPrint | 不记录密码、Cookie、票据、账号或上游响应正文；Kotlin 保险库只记录通用失败类别 |
+
+Android 清单关闭 `allowBackup`，避免保险库密文与账号元数据进入系统备份；重启后由 Keystore 解密，密钥本身不离开设备。镜像端已有用户授权的真实账号只读记录；本轮结果及边界见 [2026-10-21 验收](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md)。未经用户授权，不得用真实凭据运行自动化登录或查询；只读授权不包括自动提交上游写操作。
+
+学校账号与查询请求不经过本项目自建中转服务器。应用的公开版本检查访问 GitHub Releases，不携带学校 Cookie 或账号凭据；浏览器下载安装包可由用户选择第三方加速。座位生命周期与座位预约的写请求发送到 `booking.lib.buaa.edu.cn`；教学楼研讨室写请求发送到 `cgyy.buaa.edu.cn`。两者都必须由用户逐次确认。
 
 iOS 端在启动时把 Application Support 根目录标记为 `isExcludedFromBackup`，避免课表、成绩、作业、座位、签到历史等查询快照进入 iCloud/iTunes 备份；个人待办当前仍存于 UserDefaults，尚未纳入这一备份排除范围。Keychain 凭据仍使用 `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`。iOS 隐私清单声明应用不跟踪、不收集数据，并列出 UserDefaults 与文件时间戳 required-reason API。
 

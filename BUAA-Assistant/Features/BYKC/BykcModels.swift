@@ -33,12 +33,6 @@ struct BykcCourse: Codable, Equatable, Identifiable, Hashable {
   let selected: Bool
   let hasSignConfig: Bool
 
-  var availability: String? {
-    guard let maxCount else { return nil }
-    return "\(currentCount ?? 0)/\(maxCount) 人"
-  }
-
-  var filterCategory: String { subcategory ?? category ?? "未分类" }
 }
 
 struct BykcChosenCourse: Codable, Equatable, Identifiable {
@@ -74,11 +68,6 @@ struct BykcSnapshot: Codable, Equatable {
   let validCourseCount: Int
   let fetchedAt: Date
 
-  var categoryCounts: [(String, Int)] {
-    Dictionary(grouping: courses, by: \.filterCategory)
-      .map { ($0.key, $0.value.count) }
-      .sorted { $0.1 == $1.1 ? $0.0 < $1.0 : $0.1 > $1.1 }
-  }
 }
 
 enum BykcError: LocalizedError {

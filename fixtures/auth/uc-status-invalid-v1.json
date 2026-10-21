@@ -1,0 +1,11 @@
+{
+  "contract": "auth.uc_status",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": "{\"code\":1,\"data\":null}"
+  },
+  "expected": {
+    "valid": false
+  }
+}

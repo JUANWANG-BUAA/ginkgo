@@ -31,23 +31,30 @@ struct HomeworkView: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 20) {
-        PageHeading(eyebrow: "ACADEMIC / HOMEWORK", title: "学校作业", subtitle: "集中查看 \(enabledSourceNames) 作业、截止时间和提交状态")
+        AcademicPageHeader(
+          section: "教务 · 课程任务",
+          title: "学校作业",
+          subtitle: "集中查看 \(enabledSourceNames) 作业、截止时间和提交状态",
+          symbol: "doc.text"
+        )
         if let snapshot = model.snapshot {
           summary(snapshot)
           freshness(snapshot)
           controls
 
           let visibleItems = filteredItems(snapshot.items)
-          Text("显示 \(visibleItems.count) / \(snapshot.items.count) 项")
-            .font(.caption)
-            .foregroundStyle(.secondary)
+          AcademicSectionHeading(title: "作业清单", detail: "显示 \(visibleItems.count) / \(snapshot.items.count) 项")
             .accessibilityAddTraits(.updatesFrequently)
           if visibleItems.isEmpty {
             emptyState(snapshot)
           } else {
-            ProgressiveList(items: visibleItems, pageSize: 40) { item in
-              HomeworkAssignmentRow(item: item) { selectedItem = item }
+            ProgressiveList(items: visibleItems, pageSize: 40, rowSpacing: 0) { item in
+              VStack(spacing: 0) {
+                HomeworkAssignmentRow(item: item) { selectedItem = item }
+                Divider().padding(.leading, 48)
+              }
             }
+            .academicPanel(inset: 0)
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: filter)
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: source)
           }
@@ -61,7 +68,7 @@ struct HomeworkView: View {
         }
       }
       .ginkgoPagePadding()
-      .frame(maxWidth: 820, alignment: .leading)
+      .frame(maxWidth: 940, alignment: .leading)
       .frame(maxWidth: .infinity)
     }
     .background(Color.ginkgoWindowBackground)
@@ -108,45 +115,25 @@ struct HomeworkView: View {
     return entries
   }
 
-  @ViewBuilder
   private func summary(_ snapshot: HomeworkSnapshot) -> some View {
     let entries = summaryEntries(snapshot)
-
-    HStack(spacing: 10) {
-      ForEach(entries) { entry in
-        countCard(entry.title, count: entry.count, symbol: entry.symbol, tint: entry.tint, filter: entry.filter)
-      }
-    }
-  }
-
-  private func countCard(_ title: String, count: Int, symbol: String, tint: Color, filter target: Filter) -> some View {
-    let isSelected = filter == target
-    return Button {
+    return AcademicMetricStrip(
+      metrics: entries.map { entry in
+        AcademicMetric(
+          id: entry.filter.rawValue,
+          title: entry.title,
+          value: "\(entry.count)",
+          symbol: entry.symbol,
+          tint: entry.tint
+        )
+      },
+      selectedID: filter.rawValue
+    ) { id in
+      guard let target = Filter(rawValue: id) else { return }
       withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
         filter = target
       }
-    } label: {
-      VStack(alignment: .leading, spacing: 8) {
-        Label(title, systemImage: symbol).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-        Text("\(count)")
-          .font(.title2.weight(.semibold).monospacedDigit())
-          .foregroundStyle(tint)
-          .contentTransition(.numericText())
-          .animation(reduceMotion ? nil : .snappy(duration: 0.22), value: count)
-      }
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(12)
-      .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 10))
-      .overlay {
-        RoundedRectangle(cornerRadius: 10)
-          .strokeBorder(isSelected ? Color.accentColor.opacity(0.5) : .clear, lineWidth: 1)
-      }
     }
-    .buttonStyle(.plain)
-    .contentShape(RoundedRectangle(cornerRadius: 10))
-    .accessibilityLabel("\(title)作业，\(count)项")
-    .accessibilityHint("筛选显示\(title)作业")
-    .accessibilityAddTraits(isSelected ? .isSelected : [])
   }
 
   @ViewBuilder
@@ -195,6 +182,7 @@ struct HomeworkView: View {
         ForEach(Filter.allCases) { Text($0.rawValue).tag($0) }
       }
       .pickerStyle(.segmented)
+      .labelsHidden()
 
       HStack(spacing: 10) {
         SearchField(prompt: "搜索作业或课程", text: $search)
@@ -205,6 +193,7 @@ struct HomeworkView: View {
         .frame(width: 140)
       }
     }
+    .academicPanel(inset: 12)
   }
 
   private var enabledSourceNames: String {
@@ -287,12 +276,8 @@ private struct HomeworkAssignmentRow: View {
       }
       .padding(14)
       .frame(maxWidth: .infinity, alignment: .leading)
-      .background(Color.ginkgoCardBackground, in: RoundedRectangle(cornerRadius: 10))
-      .overlay {
-        RoundedRectangle(cornerRadius: 10)
-          .strokeBorder(Color.accentColor.opacity(isHovered ? 0.42 : 0), lineWidth: 1)
-      }
-      .contentShape(RoundedRectangle(cornerRadius: 10))
+      .background(isHovered ? Color.accentColor.opacity(0.045) : Color.clear)
+      .contentShape(Rectangle())
     }
     .buttonStyle(HomeworkCardButtonStyle())
     .ginkgoOnHover { isHovered = $0 }

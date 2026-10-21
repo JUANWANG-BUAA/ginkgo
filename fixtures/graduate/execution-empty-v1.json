@@ -1,0 +1,45 @@
+{
+  "contract": "graduate.execution",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "code": 1,
+    "fa": {
+      "ZDXF": 32
+    },
+    "yhpyfaxf": 2,
+    "yxxf": 4,
+    "dkhxf": 1,
+    "zxbg": "[]"
+  },
+  "expected": {
+    "sections": [
+      {
+        "title": "培养方案执行报告",
+        "rows": [
+          {
+            "title": "总学分要求",
+            "detail": "32"
+          },
+          {
+            "title": "方案已认定学分",
+            "detail": "2"
+          },
+          {
+            "title": "全校累计已修学分",
+            "detail": "4"
+          },
+          {
+            "title": "待考核学分",
+            "detail": "1"
+          }
+        ],
+        "progress": {
+          "required": 32.0,
+          "earned": 2.0,
+          "pending": 1.0
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "contract": "library.venues",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "data": {
+      "list": [
+        {
+          "id": "v1",
+          "name": "学院路馆",
+          "free_num": 31,
+          "total_num": 30
+        }
+      ]
+    }
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

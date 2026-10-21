@@ -1,0 +1,38 @@
+{
+  "contract": "schedule.snapshot_retained_weeks",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "previous": {
+      "termID": "term-2026-fall",
+      "weekNumber": 5,
+      "courses": [
+        {
+          "id": "week-5",
+          "name": "缓存第5周",
+          "day": 1,
+          "startSection": 1,
+          "endSection": 2
+        }
+      ],
+      "termCourses": {
+        "4": [
+          {
+            "id": "week-4",
+            "name": "缓存第4周",
+            "day": 2,
+            "startSection": 3,
+            "endSection": 4
+          }
+        ]
+      }
+    },
+    "fetched": {
+      "termID": "term-2026-fall",
+      "weekNumber": 6
+    }
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "contract": "schedule.today_courses",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "code": "0",
+      "datas": [
+        {
+          "place": "主楼B202",
+          "time": "10:00-11:35"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

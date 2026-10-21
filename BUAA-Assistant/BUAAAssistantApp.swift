@@ -9,6 +9,8 @@ struct BUAAAssistantApp: App {
   @StateObject private var globalShortcut = GlobalShortcutController()
   @StateObject private var courseReminders = CourseReminderScheduler()
   @StateObject private var updates = UpdateCenter()
+  private let scheduleRepository = DefaultScheduleRepository()
+  private let gradeRepository = DefaultGradeRepository()
 
   init() {
     UNUserNotificationCenter.current().delegate = AppNotificationDelegate.shared
@@ -33,7 +35,7 @@ struct BUAAAssistantApp: App {
     }
 
     MenuBarExtra(appState.isLoggedIn ? "Ginkgo（已连接）" : "Ginkgo", systemImage: menuBarIcon) {
-      MenuBarPanel()
+      MenuBarPanel(scheduleRepository: scheduleRepository, gradeRepository: gradeRepository)
         .environmentObject(appState)
         .frame(width: 360)
     }
@@ -48,8 +50,15 @@ struct BUAAAssistantApp: App {
 /// 菜单栏只展示最近同步的摘要；打开主窗口后各模块会主动刷新。
 struct MenuBarPanel: View {
   @EnvironmentObject private var appState: AppState
+  private let scheduleRepository: ScheduleRepository
+  private let gradeRepository: GradeRepository
   @State private var schedule: ScheduleSnapshot?
   @State private var grades: GradeSnapshot?
+
+  init(scheduleRepository: ScheduleRepository, gradeRepository: GradeRepository) {
+    self.scheduleRepository = scheduleRepository
+    self.gradeRepository = gradeRepository
+  }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -120,14 +129,14 @@ struct MenuBarPanel: View {
     .padding(16)
     .task(id: appState.user?.schoolid) {
       guard let account = appState.user?.schoolid else { schedule = nil; grades = nil; return }
-      schedule = await ScheduleCache().read(account: account)
-      grades = await GradeCache().read(account: account)
+      schedule = await scheduleRepository.cachedSnapshot(account: account)
+      grades = await gradeRepository.cachedSnapshot(account: account)
     }
     .onAppear {
       Task {
         guard let account = appState.user?.schoolid else { return }
-        schedule = await ScheduleCache().read(account: account)
-        grades = await GradeCache().read(account: account)
+        schedule = await scheduleRepository.cachedSnapshot(account: account)
+        grades = await gradeRepository.cachedSnapshot(account: account)
       }
     }
   }

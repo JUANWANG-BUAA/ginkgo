@@ -1,0 +1,19 @@
+{
+  "contract": "classroom.parse_response",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "e": 0,
+    "m": "",
+    "d": {
+      "list": {
+        "主楼": [
+          { "id": "A101", "floorid": "1", "name": "101", "kxsds": 42 }
+        ]
+      }
+    }
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "contract": "updates.android",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "current": "0.1.0-alpha.2",
+    "releases": {}
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

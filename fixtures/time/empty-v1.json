@@ -1,0 +1,11 @@
+{
+  "contract": "school_time.beijing_day",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "instant": ""
+  },
+  "expected": {
+    "error": "invalid_request"
+  }
+}

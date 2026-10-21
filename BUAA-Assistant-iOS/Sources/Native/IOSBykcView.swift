@@ -153,19 +153,22 @@ struct IOSBykcView: View {
         Text("课程库 · \(model.filteredCourses.count)")
         Spacer()
         Menu {
-          ForEach(model.categories, id: \.self) { category in
+          ForEach(model.categories) { category in
             Button {
               model.selectedCategory = category
             } label: {
               if category == model.selectedCategory {
-                Label(category, systemImage: "checkmark")
+                Label(BykcCoursePresentation.categoryTitle(category), systemImage: "checkmark")
               } else {
-                Text(category)
+                Text(BykcCoursePresentation.categoryTitle(category))
               }
             }
           }
         } label: {
-          Label(model.selectedCategory, systemImage: "line.3.horizontal.decrease.circle")
+          Label(
+            BykcCoursePresentation.categoryTitle(model.selectedCategory),
+            systemImage: "line.3.horizontal.decrease.circle"
+          )
             .font(.caption)
         }
       }
@@ -287,7 +290,7 @@ private struct IOSBykcCourseRow: View {
         Label(position, systemImage: "mappin.and.ellipse")
       }
       HStack(spacing: 12) {
-        if let availability = course.availability {
+        if let availability = BykcCoursePresentation.availabilityText(for: course) {
           Label(availability, systemImage: "person.2")
         }
         if course.campuses.isEmpty == false {
@@ -324,7 +327,7 @@ private struct IOSBykcCourseDetailView: View {
         if course.campuses.isEmpty == false {
           LabeledContent("校区", value: course.campuses.joined(separator: "、"))
         }
-        if let availability = course.availability {
+        if let availability = BykcCoursePresentation.availabilityText(for: course) {
           LabeledContent("人数", value: availability)
         }
         LabeledContent("签到", value: course.hasSignConfig ? "含签到配置" : "无签到配置")

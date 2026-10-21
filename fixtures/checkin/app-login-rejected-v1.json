@@ -1,0 +1,14 @@
+{
+  "contract": "checkin.app_login",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "STATUS": "1",
+      "ERRMSG": "fixture rejection"
+    }
+  },
+  "expected": {
+    "error": "business_rejected"
+  }
+}

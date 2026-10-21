@@ -1,0 +1,16 @@
+{
+  "contract": "cgyy.day",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "site_id": 1,
+    "date": "2026-10-20",
+    "response": {
+      "code": 200,
+      "data": {}
+    }
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

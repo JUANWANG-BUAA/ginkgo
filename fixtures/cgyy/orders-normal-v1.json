@@ -1,0 +1,32 @@
+{
+  "contract": "cgyy.orders",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "code": 200,
+    "data": {
+      "content": [
+        {
+          "id": 1,
+          "venueName": "合成场馆",
+          "siteName": "合成研讨室",
+          "venueSpaceName": "合成空间",
+          "reservationDate": "2026-10-20",
+          "reservationStartDate": "08:00",
+          "reservationEndDate": "09:00",
+          "orderStatus": 1,
+          "phone": "synthetic-must-not-cross-bridge"
+        }
+      ]
+    }
+  },
+  "expected": [
+    {
+      "id": 1,
+      "place": "合成场馆 · 合成研讨室 · 合成空间",
+      "date": "2026-10-20",
+      "time": "08:00–09:00",
+      "status": "订单状态 1"
+    }
+  ]
+}

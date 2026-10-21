@@ -1,0 +1,11 @@
+{
+  "contract": "library.bookings",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "data": null
+  },
+  "expected": {
+    "bookings": []
+  }
+}

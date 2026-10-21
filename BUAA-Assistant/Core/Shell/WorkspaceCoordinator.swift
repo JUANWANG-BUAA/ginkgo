@@ -61,16 +61,16 @@ enum WorkspaceFeature: String, CaseIterable, Identifiable, Hashable {
 /// 这里只负责跨模块的生命周期与节流。
 @MainActor
 final class WorkspaceCoordinator: ObservableObject {
-  let schedule = ScheduleViewModel()
-  let exams = ExamViewModel()
-  let grades = GradeViewModel()
+  let schedule = ScheduleViewModel(repository: DefaultScheduleRepository())
+  let exams = ExamViewModel(repository: DefaultExamRepository())
+  let grades = GradeViewModel(repository: DefaultGradeRepository())
   let graduateAcademic = GraduateAcademicViewModel()
-  let homework = HomeworkViewModel()
-  let bykc = BykcViewModel()
+  let homework = HomeworkViewModel(repository: DefaultHomeworkRepository())
+  let bykc = BykcViewModel(repository: DefaultBykcRepository())
   let library = LibraryViewModel()
   let cgyy = CgyyViewModel()
   let campusNotices = CampusNoticesViewModel()
-  let classroom = ClassroomViewModel()
+  let classroom = ClassroomViewModel(repository: DefaultClassroomRepository())
   let checkIn = CheckInViewModel()
   let tasks = PersonalTaskStore()
 

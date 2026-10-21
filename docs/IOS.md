@@ -11,6 +11,8 @@
 
 当前基线：iOS 17.0+，Xcode 16+，SwiftUI + URLSession + Keychain，无第三方运行时依赖。iOS 页面层已改为独立原生 SwiftUI，业务层与 macOS 共享。
 
+> 本文只定义 Apple iOS 子项目的复用边界、原生交互和验收要求，不约束 Android/Windows 镜像项目的 Flutter 页面；后者见 [RUST-FLUTTER-PORT.md](RUST-FLUTTER-PORT.md)。
+
 ## 2. 目录
 
 ```text

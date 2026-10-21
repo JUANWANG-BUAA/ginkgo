@@ -1,0 +1,57 @@
+{
+  "contract": "updates.android",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "current": "0.1.0-alpha.2",
+    "releases": [
+      {
+        "tag_name": "v99.0.0",
+        "html_url": "https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/v99.0.0",
+        "draft": false,
+        "prerelease": false,
+        "body": "macOS release, ignored on Android",
+        "assets": []
+      },
+      {
+        "tag_name": "android-v0.1.0-alpha.2",
+        "html_url": "https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.2",
+        "draft": false,
+        "prerelease": true,
+        "body": "Older synthetic release",
+        "assets": []
+      },
+      {
+        "tag_name": "android-v0.1.0-alpha.10",
+        "html_url": "https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.10",
+        "draft": false,
+        "prerelease": true,
+        "body": "合成测试：设置、自检与更新",
+        "assets": [
+          {
+            "name": "Ginkgo-0.1.0-alpha.10-android-arm64.apk",
+            "browser_download_url": "https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.10/Ginkgo-0.1.0-alpha.10-android-arm64.apk",
+            "size": 1024
+          }
+        ]
+      },
+      {
+        "tag_name": "android-v9.0.0",
+        "html_url": "https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v9.0.0",
+        "draft": true,
+        "prerelease": false,
+        "body": "Draft ignored",
+        "assets": []
+      }
+    ]
+  },
+  "expected": {
+    "current": "0.1.0-alpha.2",
+    "latest": "0.1.0-alpha.10",
+    "available": true,
+    "pageUrl": "https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.10",
+    "notes": "合成测试：设置、自检与更新",
+    "apkAvailable": true,
+    "download": null
+  }
+}

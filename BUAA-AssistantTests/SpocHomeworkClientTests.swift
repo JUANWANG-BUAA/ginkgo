@@ -34,6 +34,19 @@ final class SpocHomeworkClientTests: XCTestCase {
     XCTAssertEqual(role.resolvedCode, "02")
   }
 
+  func testRoleDecoderPrefersExplicitStudentAndKeepsUnknownFallback() throws {
+    let student = try JSONDecoder().decode(
+      SpocHomeworkClient.Role.self,
+      from: Data(#"{"jsdm":"teacher-code","role":[{"jsdm":"ta-code","jsmc":"助教"},{"jsdm":"student-code","jsmc":"学生"}]}"#.utf8)
+    )
+    XCTAssertEqual(student.resolvedCode, "student-code")
+    let unknown = try JSONDecoder().decode(
+      SpocHomeworkClient.Role.self,
+      from: Data(#"{"jsdm":"existing-code","role":[{"jsdm":"unknown-code","jsmc":"未知身份"}]}"#.utf8)
+    )
+    XCTAssertEqual(unknown.resolvedCode, "existing-code")
+  }
+
   func testCurrentTermKeepsHumanNameAndQueryCode() throws {
     let term = try JSONDecoder().decode(
       SpocHomeworkClient.Term.self,

@@ -1,0 +1,16 @@
+{
+  "contract": "classroom.filter",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "search": "",
+    "section": 0,
+    "minimumFreeSections": 3,
+    "minimumConsecutiveSections": 0,
+    "building": null,
+    "sort": "availability"
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

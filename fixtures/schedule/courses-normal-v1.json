@@ -1,0 +1,75 @@
+{
+  "contract": "schedule.undergraduate_courses",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "code": "0",
+      "datas": {
+        "arrangedList": [
+          {
+            "courseCode": "CS101",
+            "courseName": "算法设计与分析",
+            "credit": 4.0,
+            "beginTime": "08:00",
+            "endTime": "09:35",
+            "beginSection": 1,
+            "endSection": 2,
+            "placeName": "新主楼A101",
+            "weeksAndTeachers": "1-16周 张三",
+            "color": "#4A90D9",
+            "dayOfWeek": 1
+          },
+          {
+            "courseCode": "CS101",
+            "courseName": "算法设计与分析",
+            "beginSection": 1,
+            "endSection": 2,
+            "placeName": "新主楼A101",
+            "dayOfWeek": 1
+          },
+          {
+            "courseName": "操作系统",
+            "beginTime": "10:00",
+            "endTime": "11:35",
+            "beginSection": 3,
+            "endSection": 4,
+            "placeName": "主楼B202",
+            "weeksAndTeachers": "1-8周 李四",
+            "dayOfWeek": 3
+          }
+        ],
+        "code": "sy2501001",
+        "name": "2026-2027学年第1学期"
+      }
+    }
+  },
+  "expected": {
+    "courses": [
+      {
+        "id": "u-0-1-1",
+        "name": "算法设计与分析",
+        "day": 1,
+        "startSection": 1,
+        "endSection": 2,
+        "startTime": "08:00",
+        "endTime": "09:35",
+        "place": "新主楼A101",
+        "teacher": "1-16周 张三",
+        "color": "#4A90D9"
+      },
+      {
+        "id": "u-2-3-3",
+        "name": "操作系统",
+        "day": 3,
+        "startSection": 3,
+        "endSection": 4,
+        "startTime": "10:00",
+        "endTime": "11:35",
+        "place": "主楼B202",
+        "teacher": "1-8周 李四",
+        "color": null
+      }
+    ]
+  }
+}

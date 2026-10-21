@@ -1,0 +1,17 @@
+{
+  "contract": "bykc.course_filter",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "filter": {
+      "searchText": " WANG ",
+      "category": {
+        "kind": "named",
+        "value": "Arts"
+      }
+    }
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

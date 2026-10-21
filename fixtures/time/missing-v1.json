@@ -1,0 +1,9 @@
+{
+  "contract": "school_time.beijing_day",
+  "version": 1,
+  "source": "synthetic",
+  "input": {},
+  "expected": {
+    "error": "changed_response"
+  }
+}

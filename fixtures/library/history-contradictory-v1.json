@@ -1,0 +1,19 @@
+{
+  "contract": "library.history",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "data": {
+      "data": [],
+      "page": 1,
+      "limit": 40,
+      "total": 0,
+      "has_more": true
+    },
+    "page": 1,
+    "limit": 40
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

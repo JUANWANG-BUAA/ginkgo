@@ -1,0 +1,72 @@
+{
+  "contract": "checkin.course_schedule",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "body": {
+      "STATUS": "0",
+      "total": 3,
+      "result": [
+        {
+          "id": "501",
+          "courseId": "C1",
+          "courseNum": "B1-01",
+          "courseName": "高等数学",
+          "classBeginTime": "08:00",
+          "classEndTime": "09:35",
+          "signStatus": "0",
+          "teacherName": "张老师",
+          "classroomName": "主楼A101"
+        },
+        {
+          "id": "502",
+          "courseId": "C2",
+          "courseNum": "B1-02",
+          "courseName": "大学物理",
+          "classBeginTime": "10:00",
+          "classEndTime": "11:35",
+          "signStatus": 1,
+          "teacherName": "李老师",
+          "classroomName": "主楼B202"
+        },
+        {
+          "id": "501",
+          "courseId": "C1",
+          "courseNum": "B1-01",
+          "courseName": "高等数学",
+          "classBeginTime": "08:00",
+          "classEndTime": "09:35",
+          "signStatus": 0,
+          "teacherName": "张老师",
+          "classroomName": "主楼A101"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "courses": [
+      {
+        "id": "501",
+        "courseName": "高等数学",
+        "beginsAt": "08:00",
+        "endsAt": "09:35",
+        "status": "notSigned",
+        "teacherName": "张老师",
+        "classroomName": "主楼A101",
+        "mergedRecordCount": 2,
+        "conflicting": false
+      },
+      {
+        "id": "502",
+        "courseName": "大学物理",
+        "beginsAt": "10:00",
+        "endsAt": "11:35",
+        "status": "signed",
+        "teacherName": "李老师",
+        "classroomName": "主楼B202",
+        "mergedRecordCount": 1,
+        "conflicting": false
+      }
+    ]
+  }
+}

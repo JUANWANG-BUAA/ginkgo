@@ -1,0 +1,41 @@
+{
+  "contract": "library.venues",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "data": {
+      "list": [
+        {
+          "id": "v1",
+          "name": "学院路馆",
+          "free_num": 12,
+          "total_num": 30,
+          "children": []
+        },
+        {
+          "id": "v2",
+          "name": "沙河馆",
+          "free_num": 0,
+          "total_num": 8,
+          "children": []
+        }
+      ]
+    }
+  },
+  "expected": {
+    "venues": [
+      {
+        "id": "v1",
+        "name": "学院路馆",
+        "free": 12,
+        "total": 30
+      },
+      {
+        "id": "v2",
+        "name": "沙河馆",
+        "free": 0,
+        "total": 8
+      }
+    ]
+  }
+}

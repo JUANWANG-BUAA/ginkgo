@@ -1,0 +1,18 @@
+{
+  "contract": "homework.spoc_detail",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "assignment": {
+      "code": 500,
+      "content": null
+    },
+    "submission": {
+      "code": 200,
+      "content": null
+    }
+  },
+  "expected": {
+    "error": "business_rejected"
+  }
+}

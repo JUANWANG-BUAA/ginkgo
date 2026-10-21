@@ -11,16 +11,14 @@ final class HomeworkViewModel: ObservableObject {
   @Published private(set) var isLoadingDetail = false
   @Published private(set) var detailErrorMessage: String?
 
-  private let service: HomeworkServing
-  private let cache: HomeworkCache
+  private let repository: HomeworkRepository
   private var account: String?
   private var generation = 0
   private var detailGeneration = 0
   private var autoRefresh = AutoRefreshGate()
 
-  init(service: HomeworkServing = HomeworkClient(), cache: HomeworkCache = HomeworkCache()) {
-    self.service = service
-    self.cache = cache
+  init(repository: HomeworkRepository) {
+    self.repository = repository
   }
 
   var pendingItems: [HomeworkItem] {
@@ -42,7 +40,7 @@ final class HomeworkViewModel: ObservableObject {
     self.account = account
     isLoading = true
     let current = generation
-    snapshot = await cache.read(account: account)
+    snapshot = await repository.cachedSnapshot(account: account)
     guard current == generation else { return }
     await refresh()
   }
@@ -85,11 +83,11 @@ final class HomeworkViewModel: ObservableObject {
     needsSessionCheck = false
     defer { finishRefresh(current: current) }
     do {
-      let result = try await service.load()
+      let result = try await repository.loadSnapshot()
       guard current == generation else { return }
       snapshot = result
       if let account {
-        do { try await cache.save(result, account: account) }
+        do { try await repository.save(result, account: account) }
         catch { AppLog.cacheWriteFailed(feature: "homework", error: error) }
       }
     } catch {
@@ -127,13 +125,11 @@ final class HomeworkViewModel: ObservableObject {
       if current == detailGeneration { isLoadingDetail = false }
     }
 
-    guard let detailService = service as? HomeworkDetailServing else {
-      detailErrorMessage = "当前作业来源暂不支持应用内详情，请打开原作业页面查看。"
-      return
-    }
-
     do {
-      let result = try await detailService.loadDetail(for: item)
+      guard let result = try await repository.loadDetail(for: item) else {
+        detailErrorMessage = "当前作业来源暂不支持应用内详情，请打开原作业页面查看。"
+        return
+      }
       guard current == detailGeneration else { return }
       detail = result
     } catch {
@@ -158,9 +154,9 @@ final class HomeworkViewModel: ObservableObject {
     detailErrorMessage = nil
   }
 
-  func clearCache() async throws {
-    guard let account else { return }
-    try await cache.clear(account: account)
+  func clearCache(account overrideAccount: String? = nil) async throws {
+    guard let account = overrideAccount ?? self.account else { return }
+    try await repository.clearCache(account: account)
     reset()
   }
 }

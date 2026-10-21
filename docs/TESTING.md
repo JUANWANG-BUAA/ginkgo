@@ -1,8 +1,16 @@
 # BUAA Assistant - 测试计划
 
-## 当前测试证据（2026-10-18）
+Rust / Flutter 本轮跨语言、锁恢复和平台结果见 [Opus 5.5 原评审落实](_audit/2026-10-21-opus-review-followup.md)、[Android Alpha.4](archive/mirror/MIRROR-ANDROID-ALPHA4.md) 与 [PD Windows 11 主机验证](archive/mirror/WINDOWS-2026-10-21.md)；合成测试与真实业务验收分别记录。
 
-源码现有 212 个 test 方法。2026-10-19 新增 `CoreUtilitiesTests`、`SharedHelpersTests`（共享日历/取值/编码/缓存、刷新节流、状态展示、成绩与作业筛选），并删除随图书馆研讨间功能一并移除的 9 项测试。此前新增 `LibraryBookingLifecycleTests`（座位动作提示、研讨室提交体、时长/空档校验与标题 ID）、`GraduateProgressTests`（总学分/课程池、状态、类别、结构化执行报告、缓存）、`CgyyClientTests`（MD5 签名、AES-ECB、订单状态、门锁密码展示）与 `CheckInTargetMatcherTests`（按课表教室/教师从多条同课程记录中选择签到目标）。当前 macOS 全量单元测试通过；iOS generic build 通过，iOS 模拟器全量 XCTest 为本轮之前的结果；另验证了 iOS UI 冒烟测试。空教室筛选改为后台计算后，`ClassroomViewModelTests` 曾出现未等待结果的回归，已由 `ClassroomViewModel.waitForFilterUpdate()` 修复并重新纳入回归；`ScheduleParserTests` 新增研究生不可推算教学班跳过、全部无排课行拒绝与“只有一周标记本周”的回归；`HomeworkViewModelTests` 新增希冀来源暂时下线的配置回归；`UpdateCheckerTests` 覆盖版本比较、更新检查、下载源回退与校验和解析。
+## 已记录测试证据（2026-10-21）
+
+本次本机运行：macOS 全量 XCTest **220 项通过**；iOS 27.0 / Ginkgo iPhone 17 Pro 模拟器的共享单元测试 **220 项通过**，均无失败（`xcodebuild test` 退出码 0，`xcresulttool get test-results summary` 确认）。iOS 工程由既有 `project.yml` 经 XcodeGen 重新生成以纳入新增共享测试；本次未跑 UI / live 测试。Xcode 的模拟器系统版本解析警告未阻止测试。数量只表示本次运行，不作为后续源码总数承诺。
+
+新增 [SharedParserContractTests](../BUAA-AssistantTests/SharedParserContractTests.swift) 直接读取 Rust runner 使用的同一份 fixture，覆盖 9 类契约、17 份样例的 CAS / 教务 / 成绩 / SPOC 加密投影；原有共享规则样例继续执行。未覆盖到 Swift 的模块清单见 [fixtures](../fixtures/README.md)。本次未改 Swift 生产代码。
+
+Rust workspace 测试、严格 Clippy、Flutter analyze / widget tests、Android arm64 调试包与落地页浏览器检查的结果和边界统一记录于 [评审落实](_audit/2026-10-21-opus-review-followup.md)。真实设备、网络写入和签名分发单独验收，不由模拟器或构建替代；此前真机证据按原日期保留。
+
+现有覆盖包括共享日历 / 编码 / 缓存、刷新节流、筛选与状态呈现；图书馆生命周期、研究生学分、CGYY 加密 / 订单、签到目标匹配、认证 / 路由和学校解析器等。下表用于定位，不重复维护总数。
 
 ```sh
 xcodebuild build -project BUAA-Assistant.xcodeproj -scheme BUAA-Assistant -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
@@ -34,7 +42,7 @@ xcodebuild test \
 | CasPageParserTests / CasFormParserTests | 页面字段、验证码识别、隐藏表单与编码 |
 | CasClientTests / AppStateSessionTests | 模拟认证响应、会话恢复、4xx/483 错误、WebVPN 显式路由与本地清理 |
 | UpstreamRouteTests | 自动回退、URL/Cookie 隔离、Referer/Origin 重写、网关相对重定向与表单 action |
-| BykcClientTests | BYKC AES-ECB 往返、RSA 请求信封、当前学期判定与类别过滤 |
+| BykcClientTests / BykcRepositoryTests / BykcCourseCatalogTests | BYKC 加密信封、纯学期规则、服务/账号缓存边界、共享课程筛选 fixture 与未分类类别语义 |
 | SeminarParserTests | 研讨室筛选、空间列表、占用区间、空档扣除与详情轴数据 |
 | GraduateAcademicClientTests | 学籍白名单映射、教务应用目录与培养方案课程格式 |
 | ScheduleParserTests | 本科结构、研究生周次位图、开学日期、学期码缺省与节次合并 |

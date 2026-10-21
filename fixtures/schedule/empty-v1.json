@@ -1,0 +1,19 @@
+{
+  "contract": "schedule.snapshot_retained_weeks",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "previous": null,
+    "fetched": {
+      "termID": "term-2026-fall",
+      "weekNumber": 6,
+      "courses": []
+    }
+  },
+  "expected": {
+    "courseIDsByWeek": {
+      "6": []
+    },
+    "selectableCachedWeek": null
+  }
+}

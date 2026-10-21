@@ -1,16 +1,17 @@
 # BUAA Assistant - 开发说明书（详细版）
 
 > **本文档回答一个问题：从零到成品，每一步具体做什么、怎么做、怎么确认做对了。**
+> **适用范围**：本文是现有 SwiftUI macOS/iOS 产品的实施手册，不是 Rust + Flutter 镜像项目计划；新项目边界见 [RUST-FLUTTER-PORT.md](RUST-FLUTTER-PORT.md)。
 > 读者假设：你不熟 Swift 和 macOS 开发，AI 负责写代码，你负责决策、验收和把关。
 > 严格按顺序推进，不跳步——每一步以前一步的**真机验收**为前提。
 >
 > 配套文档：协议细节查 [API.md](API.md)；界面实现与验收查 [UI-DESIGN.md](UI-DESIGN.md)；协作规则查 [COLLABORATION.md](COLLABORATION.md)；测试策略查 [TESTING.md](TESTING.md)；功能储备查 [BACKLOG.md](BACKLOG.md)。
 >
-> 版本：2026-10-13 详细版（初版纲要同日）；2026-10-14 勘误（Xcode 版本口径、objectVersion、骨架文件数、Step 2 会话恢复、execution 编码注意事项、arrangedList 拼写）；2026-10-15 更新扩展模块顺序；2026-10-16 更新实施状态。
+> 版本：2026-10-13 详细版（初版纲要同日）；2026-10-14 勘误（Xcode 版本口径、objectVersion、骨架文件数、Step 2 会话恢复、execution 编码注意事项、arrangedList 拼写）；2026-10-15 更新扩展模块顺序；2026-10-16 更新实施状态；2026-10-19 补充 Apple 产品与 Rust + Flutter 准备文档的适用边界。
 
 ---
 
-## 当前推进位置（2026-10-16）
+## 当前推进位置（2026-10-19）
 
 本文件保留从骨架开始的实施说明；下文 Step 0 的占位页面和测试数量是历史步骤，不是当前运行表现。当前代码状态以 [IMPLEMENTATION.md](IMPLEMENTATION.md) 为准；0.1.0-alpha 的收口状态与已知限制见 [RELEASE-NOTES.md](RELEASE-NOTES.md)。
 

@@ -64,7 +64,9 @@ final class HomeworkViewModelTests: XCTestCase {
   }
 
   func testUnavailableServiceIsShownAsErrorNotEmpty() async {
-    let model = HomeworkViewModel(service: StubHomeworkService(result: .failure(HomeworkError.unavailable)))
+    let model = HomeworkViewModel(
+      repository: DefaultHomeworkRepository(service: StubHomeworkService(result: .failure(HomeworkError.unavailable)))
+    )
     await model.refresh()
     XCTAssertNil(model.snapshot)
     XCTAssertEqual(model.errorMessage, HomeworkError.unavailable.errorDescription)
@@ -77,7 +79,11 @@ final class HomeworkViewModelTests: XCTestCase {
       HomeworkItem(id: "done", courseName: "课程 A", title: "已交作业", dueAt: now, sourceURL: nil, status: .submitted, source: .spoc, fetchedAt: now),
       HomeworkItem(id: "soon", courseName: "课程 A", title: "近期作业", dueAt: now.addingTimeInterval(60), sourceURL: nil, status: .pending, source: .judge, fetchedAt: now)
     ]
-    let model = HomeworkViewModel(service: StubHomeworkService(result: .success(HomeworkSnapshot(items: items, fetchedAt: now))))
+    let model = HomeworkViewModel(
+      repository: DefaultHomeworkRepository(
+        service: StubHomeworkService(result: .success(HomeworkSnapshot(items: items, fetchedAt: now)))
+      )
+    )
     await model.refresh()
     XCTAssertEqual(model.pendingItems.map(\.id), ["soon", "late"])
   }
@@ -90,7 +96,11 @@ final class HomeworkViewModelTests: XCTestCase {
       HomeworkItem(id: "unknown", courseName: "课程", title: "未给截止时间", dueAt: nil, sourceURL: nil, status: .pending, source: .spoc, fetchedAt: now),
       HomeworkItem(id: "overdue", courseName: "课程", title: "已逾期", dueAt: now.addingTimeInterval(-7 * 24 * 60 * 60), sourceURL: nil, status: .overdue, source: .judge, fetchedAt: now)
     ]
-    let model = HomeworkViewModel(service: StubHomeworkService(result: .success(HomeworkSnapshot(items: items, fetchedAt: now))))
+    let model = HomeworkViewModel(
+      repository: DefaultHomeworkRepository(
+        service: StubHomeworkService(result: .success(HomeworkSnapshot(items: items, fetchedAt: now)))
+      )
+    )
 
     await model.refresh()
 
@@ -108,7 +118,12 @@ final class HomeworkViewModelTests: XCTestCase {
       submittedAt: nil, score: "100", publishedAt: now, dueAt: now.addingTimeInterval(3600), fetchedAt: now
     )
     let model = HomeworkViewModel(
-      service: StubHomeworkService(result: .success(HomeworkSnapshot(items: [item], fetchedAt: now)), detailResult: .success(detail))
+      repository: DefaultHomeworkRepository(
+        service: StubHomeworkService(
+          result: .success(HomeworkSnapshot(items: [item], fetchedAt: now)),
+          detailResult: .success(detail)
+        )
+      )
     )
 
     await model.loadDetail(for: item)
@@ -126,9 +141,11 @@ final class HomeworkViewModelTests: XCTestCase {
       sourceURL: nil, status: .pending, source: .spoc, fetchedAt: now
     )
     let model = HomeworkViewModel(
-      service: StubHomeworkService(
-        result: .success(HomeworkSnapshot(items: [item], fetchedAt: now)),
-        detailResult: .failure(HomeworkError.spocAuthenticationExpired(stage: "作业详情"))
+      repository: DefaultHomeworkRepository(
+        service: StubHomeworkService(
+          result: .success(HomeworkSnapshot(items: [item], fetchedAt: now)),
+          detailResult: .failure(HomeworkError.spocAuthenticationExpired(stage: "作业详情"))
+        )
       )
     )
 
