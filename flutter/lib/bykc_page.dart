@@ -32,6 +32,7 @@ class _BykcSnapshot {
 class _BykcPageState extends State<BykcPage> {
   final parts = {for (final part in BykcPart.values) part: _BykcSnapshot()};
   final scrollController = ScrollController();
+  final scrollOffsets = <BykcPart, double>{};
   final searchController = TextEditingController();
   BykcPart selection = BykcPart.catalog;
   List<Map<String, dynamic>> visible = [];
@@ -174,9 +175,24 @@ class _BykcPageState extends State<BykcPage> {
 
   void _select(BykcPart part) {
     FocusScope.of(context).unfocus();
-    if (scrollController.hasClients) scrollController.jumpTo(0);
+    if (part == selection) return;
+    if (scrollController.hasClients) {
+      scrollOffsets[selection] = scrollController.offset;
+      // Clear the outgoing sliver anchor before changing the list structure.
+      scrollController.jumpTo(0);
+    }
     setState(() => selection = part);
     if (!parts[part]!.attempted) load(part);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || selection != part || !scrollController.hasClients) return;
+      final position = scrollController.position;
+      scrollController.jumpTo(
+        (scrollOffsets[part] ?? 0).clamp(
+          position.minScrollExtent,
+          position.maxScrollExtent,
+        ),
+      );
+    });
   }
 
   void _open(Map<String, dynamic> course, {Map<String, dynamic>? record}) =>
