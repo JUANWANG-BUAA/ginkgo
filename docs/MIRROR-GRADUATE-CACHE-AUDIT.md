@@ -30,3 +30,5 @@ macOS `GraduateAcademicViewModel.load` 先发布已有缓存再执行刷新；�
 2026-10-21 验证：耗时页3项定向测试、原设置2项测试通过；`flutter analyze lib test integration_test`无问题。独立设备 `network_diagnostics_test.dart` 22秒通过，深色1.8字号、真实Flutter设备合成检查结果，不登录或请求学校。设备测试因debug签名与Alpha签名不同按Flutter流程卸载旧包后安装；此前确认处于空登录页。测试完成后必须恢复release正常main入口。
 
 独立worktree首次全目录analyze扫描到cargokit嵌套工具包未解析依赖而失败，后续明确扫描产品lib/test/integration_test通过；没有隐藏产品代码告警。一次建测试文件时误带flutter/前缀导致未写入，纠正工作目录后重新执行成功。上述失败不计为通过。
+
+2026-10-21 少量无账号host探测：图书馆公开页HTTP200、总耗时0.875秒；iclass HTTPS8347服务器时间端点在6.004秒连接超时（HTTP000，未取得响应）。curl只输出HTTP状态及计时，不输出正文。这是开发机当前网络证据，不替代Android普通Wi-Fi、WebVPN已登录会话或真实业务响应验收。
