@@ -5,6 +5,7 @@ import 'apple_widgets.dart';
 import 'mirror_service.dart';
 import 'maintenance_service.dart';
 import 'maintenance_pages.dart';
+import 'network_diagnostics_page.dart';
 import 'query_cache_scope.dart';
 import 'src/rust/api/live.dart' show RouteChoice, SessionState;
 
@@ -253,6 +254,20 @@ class _SettingsPageState extends State<SettingsPage> {
                             service: widget.maintenance,
                             mirror: widget.service,
                           ),
+                        ),
+                ),
+                AppleListTile(
+                  leading: const Icon(
+                    CupertinoIcons.timer,
+                    color: AppleDesign.accent,
+                  ),
+                  title: const Text('学校接口耗时'),
+                  subtitle: const Text('比较当前账号的缓存与刷新等待'),
+                  trailing: const CupertinoListTileChevron(),
+                  onTap: busy
+                      ? null
+                      : () => _open(
+                          NetworkDiagnosticsPage(service: widget.service),
                         ),
                 ),
                 AppleListTile(
