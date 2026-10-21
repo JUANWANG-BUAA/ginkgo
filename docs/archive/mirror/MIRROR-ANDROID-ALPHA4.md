@@ -48,3 +48,5 @@ Flutter 静态分析、widget 测试、Rust Clippy / workspace 回归、Swift ma
 ## 发布后复核
 
 GitHub Release 的两个资产均为 `uploaded`；公开 APK 的 API 摘要与本地 APK、`checksums.txt` 均为 `80d78ffb9e1a9bbcb768d73e9c6d827e8cda26c47f3c5c3dd13b94cd9fdd73f6`，大小 40,350,260 字节。落地页在 390px 宽度自动读取到 `0.1.0-alpha.4`，APK、校验和与发布说明链接均指向本次标签，`scrollWidth == 390`，无横向溢出。
+
+另在一次性 Android API 37 arm64 模拟器安装 Alpha.3，打开“软件更新”后从公开 GitHub Releases 实际发现 `Android 0.1.0-alpha.4`；随后用相同签名包覆盖安装到 Alpha.4。由于 Alpha.3 二进制本身还没有应用内下载器，这次只能证明公开版本发现和覆盖安装；真实的 Alpha.4 → 后续版本应用内下载、系统未知来源授权和中断续传，仍要在下一次发布或真实设备上完成闭环。
