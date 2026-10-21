@@ -1,0 +1,430 @@
+{
+  "date": "2026-10-21",
+  "device": "Android API 37 arm64 QEMU",
+  "test": "integration_test/live_acceptance_test.dart",
+  "durationSeconds": 154,
+  "result": "passed",
+  "upstreamWrites": false,
+  "measurements": [
+    {
+      "name": "login-form",
+      "ms": 2847,
+      "signedIn": true,
+      "remembered": true
+    },
+    {
+      "name": "today",
+      "ms": 2279,
+      "failure": null,
+      "count": 3
+    },
+    {
+      "name": "schedule",
+      "ms": 812,
+      "failure": null,
+      "count": 7,
+      "terms": 20,
+      "weeks": 30,
+      "exams": 0
+    },
+    {
+      "name": "schedule-other-week",
+      "ms": 555,
+      "failure": null,
+      "count": 6
+    },
+    {
+      "name": "grade-terms",
+      "ms": 232,
+      "failure": null,
+      "count": 20
+    },
+    {
+      "name": "grades",
+      "ms": 1543,
+      "failure": null,
+      "count": 0
+    },
+    {
+      "name": "classrooms-1",
+      "ms": 3862,
+      "failure": null,
+      "count": 158,
+      "buildings": 3
+    },
+    {
+      "name": "classrooms-2",
+      "ms": 3194,
+      "failure": null,
+      "count": 144,
+      "buildings": 7
+    },
+    {
+      "name": "classrooms-3",
+      "ms": 2835,
+      "failure": null,
+      "count": 68,
+      "buildings": 5
+    },
+    {
+      "name": "checkin-today",
+      "ms": 9863,
+      "failure": null,
+      "count": 2
+    },
+    {
+      "name": "checkin-history",
+      "ms": 208,
+      "failure": null,
+      "count": 1
+    },
+    {
+      "name": "homework",
+      "ms": 895,
+      "failure": null,
+      "count": 15
+    },
+    {
+      "name": "homework-detail",
+      "ms": 521,
+      "failure": null,
+      "hasContent": false,
+      "hasPublished": true,
+      "hasDue": true,
+      "hasScore": true,
+      "hasSubmitted": false
+    },
+    {
+      "name": "bykc-catalog",
+      "ms": 8177,
+      "failure": null,
+      "stale": false,
+      "hasPayload": true,
+      "bytes": 35923
+    },
+    {
+      "name": "bykc-chosen",
+      "ms": 144,
+      "failure": null,
+      "stale": false,
+      "hasPayload": true,
+      "bytes": 120
+    },
+    {
+      "name": "bykc-statistics",
+      "ms": 143,
+      "failure": null,
+      "stale": false,
+      "hasPayload": true,
+      "bytes": 302
+    },
+    {
+      "name": "graduate-status",
+      "ms": 537,
+      "failure": null,
+      "stale": false,
+      "hasPayload": true,
+      "bytes": 331
+    },
+    {
+      "name": "graduate-report",
+      "ms": 10226,
+      "failure": null,
+      "stale": false,
+      "hasPayload": true,
+      "bytes": 4515
+    },
+    {
+      "name": "library-public",
+      "ms": 3481,
+      "failure": null,
+      "stale": false,
+      "hasPayload": true,
+      "bytes": 503
+    },
+    {
+      "name": "library-venues",
+      "ms": 1063,
+      "failure": null,
+      "count": 3
+    },
+    {
+      "name": "library-bookings",
+      "ms": 434,
+      "failure": null,
+      "count": 0
+    },
+    {
+      "name": "library-history",
+      "ms": 234,
+      "failure": null,
+      "count": 10,
+      "hasNext": false
+    },
+    {
+      "name": "library-areas",
+      "ms": 363,
+      "failure": null,
+      "count": 15
+    },
+    {
+      "name": "library-slots",
+      "ms": 274,
+      "failure": null,
+      "count": 1
+    },
+    {
+      "name": "library-seats",
+      "ms": 391,
+      "failure": null,
+      "count": 175
+    },
+    {
+      "name": "notices",
+      "ms": 302,
+      "failure": null,
+      "stale": false,
+      "hasPayload": true,
+      "bytes": 1692
+    },
+    {
+      "name": "cgyy-venues",
+      "ms": 571,
+      "failure": null,
+      "stale": false,
+      "hasPayload": true,
+      "bytes": 696
+    },
+    {
+      "name": "cgyy-day",
+      "ms": 433,
+      "failure": null,
+      "stale": false,
+      "hasPayload": true,
+      "bytes": 2855
+    },
+    {
+      "name": "cgyy-orders",
+      "ms": 684,
+      "failure": null,
+      "stale": false,
+      "hasPayload": true,
+      "bytes": 2
+    },
+    {
+      "name": "diagnostic-bridge",
+      "ms": 16,
+      "passed": true
+    },
+    {
+      "name": "diagnostic-storage",
+      "ms": 142,
+      "passed": true
+    },
+    {
+      "name": "diagnostic-vault",
+      "ms": 95,
+      "passed": true
+    },
+    {
+      "name": "update",
+      "ms": 3854,
+      "latest": "0.1.0-alpha.1",
+      "apkAvailable": true
+    },
+    {
+      "name": "schedule-cache",
+      "ms": 4,
+      "failure": null,
+      "count": 7
+    },
+    {
+      "name": "homework-cache",
+      "ms": 1,
+      "failure": null,
+      "count": 15
+    },
+    {
+      "name": "graduate-report-cache",
+      "ms": 10,
+      "failure": null,
+      "stale": false,
+      "hasPayload": true,
+      "bytes": 4515
+    },
+    {
+      "name": "ui-today",
+      "readyMs": 1055,
+      "ready": true
+    },
+    {
+      "name": "ui-schedule",
+      "readyMs": 1091,
+      "ready": true
+    },
+    {
+      "name": "ui-grades",
+      "readyMs": 1682,
+      "ready": true
+    },
+    {
+      "name": "ui-checkin",
+      "readyMs": 700,
+      "ready": true
+    },
+    {
+      "name": "ui-checkin-history",
+      "readyMs": 690,
+      "ready": true
+    },
+    {
+      "name": "ui-homework",
+      "readyMs": 739,
+      "ready": true
+    },
+    {
+      "name": "ui-homework-detail",
+      "readyMs": 1060,
+      "ready": true
+    },
+    {
+      "name": "ui-homework-return",
+      "readyMs": 599,
+      "ready": true
+    },
+    {
+      "name": "ui-bykc",
+      "readyMs": 586,
+      "ready": true
+    },
+    {
+      "name": "ui-bykc-chosen",
+      "readyMs": 575,
+      "ready": true
+    },
+    {
+      "name": "ui-bykc-statistics",
+      "readyMs": 583,
+      "ready": true
+    },
+    {
+      "name": "ui-graduate",
+      "readyMs": 599,
+      "ready": true
+    },
+    {
+      "name": "ui-graduate-courses",
+      "readyMs": 576,
+      "ready": true
+    },
+    {
+      "name": "ui-graduate-profile",
+      "readyMs": 587,
+      "ready": true
+    },
+    {
+      "name": "ui-library",
+      "readyMs": 581,
+      "ready": true
+    },
+    {
+      "name": "ui-library-areas",
+      "readyMs": 1078,
+      "ready": true
+    },
+    {
+      "name": "ui-library-slots",
+      "readyMs": 1046,
+      "ready": true
+    },
+    {
+      "name": "ui-library-seats",
+      "readyMs": 1064,
+      "ready": true
+    },
+    {
+      "name": "ui-library-history",
+      "readyMs": 572,
+      "ready": true
+    },
+    {
+      "name": "ui-library-public",
+      "readyMs": 585,
+      "ready": true
+    },
+    {
+      "name": "ui-classroom",
+      "readyMs": 578,
+      "ready": true
+    },
+    {
+      "name": "ui-notices",
+      "readyMs": 584,
+      "ready": true
+    },
+    {
+      "name": "ui-cgyy",
+      "readyMs": 580,
+      "ready": true
+    },
+    {
+      "name": "ui-cgyy-orders",
+      "readyMs": 594,
+      "ready": true
+    },
+    {
+      "name": "ui-tasks",
+      "readyMs": 584,
+      "ready": true
+    },
+    {
+      "name": "ui-tasks-empty",
+      "readyMs": 573,
+      "ready": true
+    },
+    {
+      "name": "ui-tasks-created",
+      "readyMs": 652,
+      "ready": true
+    },
+    {
+      "name": "ui-tasks-edited",
+      "readyMs": 604,
+      "ready": true
+    },
+    {
+      "name": "ui-tasks-completed",
+      "readyMs": 581,
+      "ready": true
+    },
+    {
+      "name": "ui-tasks-deleted",
+      "readyMs": 579,
+      "ready": true
+    },
+    {
+      "name": "ui-settings",
+      "readyMs": 595,
+      "ready": true
+    },
+    {
+      "name": "ui-library-dark-large",
+      "readyMs": 581,
+      "ready": true
+    },
+    {
+      "name": "ui-homework-dark-large",
+      "readyMs": 578,
+      "ready": true
+    },
+    {
+      "name": "ui-bykc-dark-large",
+      "readyMs": 580,
+      "ready": true
+    },
+    {
+      "name": "signout",
+      "signedOut": true
+    }
+  ]
+}

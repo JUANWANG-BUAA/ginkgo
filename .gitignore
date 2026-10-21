@@ -22,6 +22,8 @@ Package.resolved
 
 # Playwright 预览截图（本地工具输出）
 .playwright-mcp/
+.playwright-cli/
+output/playwright/
 
 # Rust / Flutter mirror
 rust/target/

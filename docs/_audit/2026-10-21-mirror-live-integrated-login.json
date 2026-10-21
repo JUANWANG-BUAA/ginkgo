@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-21",
+  "device": "Android API 37 arm64 QEMU",
+  "test": "integration_test/live_acceptance_test.dart",
+  "result": "login-failed",
+  "durationSeconds": 149,
+  "upstreamWrites": false,
+  "observedUI": "serviceUnavailable",
+  "measurements": [
+    {
+      "name": "login-form",
+      "ms": 146665,
+      "signedIn": false,
+      "remembered": null
+    },
+    {
+      "name": "signout",
+      "signedOut": true
+    }
+  ],
+  "scope": "Login failed before business reads; earlier complete acceptance recorded separately."
+}

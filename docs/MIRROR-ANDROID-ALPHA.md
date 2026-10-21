@@ -3,6 +3,8 @@
 版本：`0.1.0-alpha.1`（build 2），GitHub tag `android-v0.1.0-alpha.1`。
 适用：Android arm64，Android 7.0+（minSdk 24）。此包不适用于 Windows/iOS/macOS。
 
+本文件描述已公开的 Alpha.1 包，以下“未迁移 / 关闭”不代表后续工作树状态；2026-10-21 源码更新与验收见 [本轮验收](MIRROR-ACCEPTANCE-2026-10-21.md)，不据此宣称更新包已发布。
+
 ## 下载与安装
 
 在手机浏览器访问 [Android Alpha 发布页](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.1)，下载 `Ginkgo-0.1.0-alpha.1-android-arm64.apk`，打开后按 Android 系统提示安装。无需 adb。`checksums.txt` 提供 SHA-256；应用本身不会自动下载安装。
