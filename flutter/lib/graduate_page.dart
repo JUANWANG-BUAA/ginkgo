@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'long_page_scroll.dart';
+import 'loading_widgets.dart';
 import 'academic_widgets.dart';
 import 'graduate_models.dart';
 import 'graduate_widgets.dart';
@@ -34,7 +36,8 @@ class _AcademicPart {
 enum _GraduateView { credits, courses, profile }
 
 class _GraduatePageState extends State<GraduatePage> {
-  final status = _AcademicPart(), report = _AcademicPart();
+  var status = _AcademicPart(), report = _AcademicPart();
+  int generation = 0;
   final search = TextEditingController();
   final scrollController = ScrollController();
   final viewOffsets = <_GraduateView, double>{};
@@ -53,7 +56,29 @@ class _GraduatePageState extends State<GraduatePage> {
   }
 
   @override
+  void didUpdateWidget(GraduatePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service ||
+        oldWidget.loader != widget.loader ||
+        oldWidget.demo != widget.demo) {
+      generation++;
+      status = _AcademicPart();
+      report = _AcademicPart();
+      courses = [];
+      visibleCourses = [];
+      categories = ['全部类别'];
+      category = '全部类别';
+      expandedReportSections.clear();
+      reportDataExpanded = false;
+      viewOffsets.clear();
+      search.clear();
+      load();
+    }
+  }
+
+  @override
   void dispose() {
+    generation++;
     search.dispose();
     scrollController.dispose();
     super.dispose();
@@ -104,6 +129,7 @@ class _GraduatePageState extends State<GraduatePage> {
       ).whenComplete(() => part.task = null);
 
   Future<void> _fetchPart(_AcademicPart part, {required bool force}) async {
+    final requestGeneration = generation;
     setState(() {
       part.loading = true;
       part.error = null;
@@ -124,7 +150,7 @@ class _GraduatePageState extends State<GraduatePage> {
                 GraduateSection.fromJson(section as Map<String, dynamic>),
           )
           .toList(growable: false);
-      if (!mounted) return;
+      if (!mounted || generation != requestGeneration) return;
       setState(() {
         part.error = result.failure == null
             ? null
@@ -148,34 +174,25 @@ class _GraduatePageState extends State<GraduatePage> {
         }
       });
     } catch (_) {
-      if (mounted) setState(() => part.error = failureMessage(null));
+      if (mounted && generation == requestGeneration) {
+        setState(() => part.error = failureMessage(null));
+      }
     } finally {
-      if (mounted) setState(() => part.loading = false);
+      if (mounted && generation == requestGeneration) {
+        setState(() => part.loading = false);
+      }
     }
   }
 
   Widget _partStatus(_AcademicPart part, String title) => AppleSection(
     header: Text(title),
     children: [
-      AppleListTile(
-        leading: part.loading
-            ? const CupertinoActivityIndicator()
-            : const Icon(
-                CupertinoIcons.exclamationmark_triangle,
-                color: CupertinoColors.systemOrange,
-              ),
-        title: Text(
-          part.loading
-              ? (part.sections == null ? '正在加载…' : '正在更新…')
-              : part.error!,
-        ),
-        subtitle: part.sections == null ? null : const Text('保留上次结果'),
-        trailing: part.loading
-            ? null
-            : CupertinoButton(
-                onPressed: () => _loadPart(part, force: true),
-                child: const Text('重试'),
-              ),
+      SectionFeedback(
+        loading: part.loading,
+        label: part.sections == null ? '正在加载$title…' : '正在更新$title…',
+        hasData: part.sections != null,
+        error: part.error,
+        onRetry: () => _loadPart(part, force: true),
       ),
     ],
   );
@@ -385,127 +402,145 @@ class _GraduatePageState extends State<GraduatePage> {
   ];
 
   @override
-  Widget build(BuildContext context) => CupertinoPageScaffold(
-    backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
-      context,
-    ),
-    child: CustomScrollView(
-      key: const Key('graduate-scroll'),
-      controller: scrollController,
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      slivers: [
-        ApplePageHeader(
-          largeTitle: const Text('研究生教务'),
-          previousPageTitle: '工作台',
-          border: null,
-          trailing: AppleGlassButton(
-            label: '刷新研究生教务',
-            onPressed: busy ? null : () => load(force: true),
-            child: busy
-                ? const CupertinoActivityIndicator()
-                : const Icon(CupertinoIcons.refresh),
-          ),
-        ),
-        CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
-        SliverLayoutBuilder(
-          builder: (context, constraints) => SliverPadding(
-            padding: EdgeInsets.symmetric(
-              horizontal: ((constraints.crossAxisExtent - 900) / 2).clamp(
-                0,
-                double.infinity,
+  Widget build(BuildContext context) => PageRefreshShortcut(
+    onRefresh: busy ? null : () => load(force: true),
+    child: CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
+        context,
+      ),
+      child: LongPageScroll(
+        controller: scrollController,
+        child: CustomScrollView(
+          key: const Key('graduate-scroll'),
+          controller: scrollController,
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          slivers: [
+            ApplePageHeader(
+              largeTitle: const Text('研究生教务'),
+              previousPageTitle: '工作台',
+              border: null,
+              trailing: AppleGlassButton(
+                label: '刷新研究生教务',
+                onPressed: busy ? null : () => load(force: true),
+                child: busy
+                    ? const GinkgoActivity()
+                    : const Icon(CupertinoIcons.refresh),
               ),
             ),
-            sliver: SliverList.list(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) => SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minWidth: constraints.maxWidth,
-                        ),
-                        child: CupertinoSlidingSegmentedControl<_GraduateView>(
-                          groupValue: view,
-                          children: const {
-                            _GraduateView.credits: Padding(
-                              padding: EdgeInsets.all(8),
-                              child: Text('学分地图'),
-                            ),
-                            _GraduateView.courses: Padding(
-                              padding: EdgeInsets.all(8),
-                              child: Text('课程'),
-                            ),
-                            _GraduateView.profile: Padding(
-                              padding: EdgeInsets.all(8),
-                              child: Text('学籍'),
-                            ),
-                          },
-                          onValueChanged: (value) {
-                            if (value != null) selectView(value);
-                          },
-                        ),
-                      ),
-                    ),
+            CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
+            SliverLayoutBuilder(
+              builder: (context, constraints) => SliverPadding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: ((constraints.crossAxisExtent - 900) / 2).clamp(
+                    0,
+                    double.infinity,
                   ),
                 ),
-                if (view != _GraduateView.profile)
-                  ..._partNotices(report, '培养方案执行报告'),
-                if (view == _GraduateView.profile) ...[
-                  ..._partNotices(status, '学籍信息'),
-                  for (final section in status.sections ?? <GraduateSection>[])
-                    _profileSection(section),
-                  if (status.sections?.isEmpty == true)
-                    const AppleSection(
-                      children: [
-                        AppleEmptyState(
-                          title: '暂无学籍信息',
-                          description: '学校未返回可展示的学籍字段。',
-                        ),
-                      ],
+                sliver: SliverList.list(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) =>
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minWidth: constraints.maxWidth,
+                                ),
+                                child:
+                                    CupertinoSlidingSegmentedControl<
+                                      _GraduateView
+                                    >(
+                                      groupValue: view,
+                                      children: const {
+                                        _GraduateView.credits: Padding(
+                                          padding: EdgeInsets.all(8),
+                                          child: Text('学分地图'),
+                                        ),
+                                        _GraduateView.courses: Padding(
+                                          padding: EdgeInsets.all(8),
+                                          child: Text('课程'),
+                                        ),
+                                        _GraduateView.profile: Padding(
+                                          padding: EdgeInsets.all(8),
+                                          child: Text('学籍'),
+                                        ),
+                                      },
+                                      onValueChanged: (value) {
+                                        if (value != null) selectView(value);
+                                      },
+                                    ),
+                              ),
+                            ),
+                      ),
                     ),
-                ],
-                if (view == _GraduateView.credits) ...[
-                  if (status.sections
-                          ?.expand((section) => section.rows)
-                          .firstOrNull
-                      case final row?)
-                    AppleSection(
-                      children: [
-                        AppleListTile(
-                          title: const Text('学籍信息'),
-                          subtitle: Text(row.detail),
-                          trailing: const CupertinoListTileChevron(),
-                          onTap: () => selectView(_GraduateView.profile),
+                    if (view != _GraduateView.profile)
+                      ..._partNotices(report, '培养方案执行报告'),
+                    if (view == _GraduateView.profile) ...[
+                      ..._partNotices(status, '学籍信息'),
+                      for (final section
+                          in status.sections ?? <GraduateSection>[])
+                        _profileSection(section),
+                      if (status.sections?.isEmpty == true)
+                        const AppleSection(
+                          children: [
+                            AppleEmptyState(
+                              title: '暂无学籍信息',
+                              description: '学校未返回可展示的学籍字段。',
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ..._overview(),
-                ],
-                if (view == _GraduateView.courses && report.sections != null)
-                  ..._controls(),
-              ],
-            ),
-          ),
-        ),
-        if (view == _GraduateView.courses && report.sections != null)
-          SliverLayoutBuilder(
-            builder: (context, constraints) => SliverPadding(
-              padding: EdgeInsets.symmetric(
-                horizontal: ((constraints.crossAxisExtent - 900) / 2).clamp(
-                  0,
-                  double.infinity,
+                    ],
+                    if (view == _GraduateView.credits) ...[
+                      ..._partNotices(status, '学籍信息'),
+                      if (status.sections
+                              ?.expand((section) => section.rows)
+                              .firstOrNull
+                          case final row?)
+                        AppleSection(
+                          children: [
+                            AppleListTile(
+                              title: const Text('学籍信息'),
+                              subtitle: Text(row.detail),
+                              trailing: const CupertinoListTileChevron(),
+                              onTap: () => selectView(_GraduateView.profile),
+                            ),
+                          ],
+                        ),
+                      if (report.sections != null)
+                        SectionReveal(
+                          key: const Key('graduate-report-content'),
+                          child: Column(children: _overview()),
+                        ),
+                    ],
+                    if (view == _GraduateView.courses &&
+                        report.sections != null)
+                      ..._controls(),
+                  ],
                 ),
               ),
-              sliver: SliverList.builder(
-                itemCount: visibleCourses.length,
-                itemBuilder: (context, index) => _course(visibleCourses[index]),
-              ),
             ),
-          ),
-        const SliverToBoxAdapter(child: SizedBox(height: 32)),
-      ],
+            if (view == _GraduateView.courses && report.sections != null)
+              SliverLayoutBuilder(
+                builder: (context, constraints) => SliverPadding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: ((constraints.crossAxisExtent - 900) / 2).clamp(
+                      0,
+                      double.infinity,
+                    ),
+                  ),
+                  sliver: SliverList.builder(
+                    itemCount: visibleCourses.length,
+                    itemBuilder: (context, index) =>
+                        _course(visibleCourses[index]),
+                  ),
+                ),
+              ),
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
+          ],
+        ),
+      ),
     ),
   );
 }

@@ -1679,3 +1679,38 @@ macOS 全量 210 项通过；iPhone SE（iOS 27.0）教务相关 43 项通过。
 学校响应解析、CAS/UC/网关、Cookie、业务 token 与恢复时序的旧断言保留在独立上游测试中。CGYY 的请求/结果和签到进度改为有类型的业务值，序列化后的既有页面数据形状保持兼容。学校通知的 HTTPS/域名限制由上游统一维护，并新增白名单回归；作业官网入口作为上游元数据返回。新增 Flutter 导航回归验证子页面继续使用注入的服务。没有改动学校成功码、TLS 信任规则或新增写重试，也没有向真实账号发送请求。
 
 本轮未执行 Windows 主机构建、真实学校登录/写入或设备交互验收。APK 编译通过只证明构建与链接，不代替这些验收。
+
+## 2026-10-22 · 工作台与研究生页渐进加载样板
+
+参考原生 `IOSTodayView.swift`、`IOSGraduateAcademicView.swift` 的分组列表、局部状态及保留缓存呈现，以及 macOS `TodayView.swift` 的刷新快捷键。本轮只修改 Flutter 呈现与状态管理，Rust/FFI 和学校协议未改动。
+
+| 检查 | 结果 |
+| --- | --- |
+| `flutter analyze --no-pub` | 无问题 |
+| `flutter test --no-pub test` | 117 项通过（原有 109 项，新增 8 项） |
+| 架构边界检查及其回归 | 检查通过，5 项回归通过 |
+| Dart 格式与 `git diff --check` | 通过 |
+| Android ARM64 Debug APK | `flutter build apk --debug --target-platform android-arm64 --no-pub` 通过 |
+
+新增回归覆盖：工作台作业先于课表完成即可显示；摘要排除助教课程、保留状态待确认提示；失败后保留原课程；局部重试不重读其他区域；切换工作台或研究生 provider 后拒绝旧请求迟到结果；重复刷新共享进行中的读取、成功空结果覆盖旧内容；桌面刷新快捷键；减少动态效果或关闭 ticker 后不再安排动画帧；320px 窄屏、双倍字体和深色环境的加载与内容布局。
+
+既有刷新回归改为在完成模拟请求后同时等待两个刷新调用，以验证“加入已有读取并等待结束”的语义，避免测试在完成响应前等待自身的进行中任务。
+
+另用临时 widget 渲染脚本检查合成的手机加载态、手机内容、桌面内容及研究生学分地图；这是宿主渲染检查，不是真机截图或真实账号验收。临时脚本和图像未纳入源码。尚未执行 Android 设备交互、Windows 主机运行、读屏或真实学校请求验收；未测量设备帧率及端到端速度。
+
+## 2026-10-22 · 集合窗口、长页滚动与课表对齐
+
+本轮仍只改 Flutter 呈现层：座位与空教室接入公共 `CollectionWindow` / `CollectionToolbar`，课表固定节次轴并支持按天对齐与周次 / 星期直达，长页统一纵向滚动条与返回顶部。交互约束、未完成项与热更新范围见 [MIRROR-INTERACTION.md](MIRROR-INTERACTION.md)；Rust、FFI 与学校协议未改动。
+
+| 检查 | 结果 |
+| --- | --- |
+| `flutter analyze --no-pub` | 无问题 |
+| `flutter test --no-pub test` | 124 项通过 |
+| 本轮 31 个 Dart 文件 `dart format --set-exit-if-changed` | 无改动 |
+| `python3 scripts/check-mirror-architecture.py` 及其回归 | 通过 |
+| Android ARM64 Debug APK | `flutter build apk --debug --target-platform android-arm64 --no-pub` 通过，包含 Cargokit / Rust ARM64 链接 |
+| `git diff --check` | 通过 |
+
+新增回归覆盖：刷新按原页首 ID 跟随（插入 50 条后仍落在第 251–300 条）、锚点消失收敛到有效页、空查询保持合法边界、换筛选显式回第一页；工具栏在 320px 宽、双倍字号下直接跳页（551–600）；长页深处显示返回顶部且不改变滚动位置；座位翻页后首条不被固定查询区遮挡；空教室搜索按 250ms 合并、同查询刷新保留当前页；课表横滑松手后落在整日边界、固定节次轴不随横向偏移移动、星期直达可跳到末尾；研究生页更换 provider 后丢弃迟到快照。
+
+已知未完成：空教室刷新后 sliver 重排仍可能出现可见位置偏移（合成观察约 119px），未做精确像素锚定；设备滚动性能、读屏与真实账号未验收。

@@ -54,9 +54,16 @@ void main() {
       final first = tester.getTopLeft(
         find.byKey(const Key('schedule-grid-course-first-day')),
       );
+      final axis = tester.getTopLeft(
+        find.byKey(const Key('schedule-fixed-time-axis')),
+      );
       await tester.tap(find.byKey(const Key('schedule-grid-next-days')));
       await tester.pumpAndSettle();
       expect(scroll.offset, greaterThan(100));
+      expect(
+        tester.getTopLeft(find.byKey(const Key('schedule-fixed-time-axis'))),
+        axis,
+      );
       expect(
         tester
             .getTopLeft(find.byKey(const Key('schedule-grid-course-first-day')))
@@ -69,6 +76,18 @@ void main() {
       await tester.drag(horizontal, const Offset(-180, 0));
       await tester.pumpAndSettle();
       expect(scroll.offset, greaterThan(0));
+      expect(
+        scroll.offset == scroll.position.maxScrollExtent ||
+            (scroll.offset / 106 - (scroll.offset / 106).round()).abs() < 0.01,
+        isTrue,
+      );
+      await tester.tap(find.byKey(const Key('schedule-day-jump')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('周日').last);
+      await tester.pumpAndSettle();
+      expect(scroll.offset, closeTo(scroll.position.maxScrollExtent, 1));
+      await tester.tap(find.byKey(const Key('schedule-grid-previous-days')));
+      await tester.pumpAndSettle();
       // Trackpads/wheels continue to target the actual horizontal viewport.
       final beforeWheel = scroll.offset;
       await tester.sendEventToBinding(

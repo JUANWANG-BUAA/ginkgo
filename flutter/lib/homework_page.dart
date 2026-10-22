@@ -7,6 +7,7 @@ import 'homework_detail_page.dart';
 import 'school_timestamp.dart';
 import 'application/contracts.dart';
 import 'course_visibility.dart';
+import 'homework_projection.dart';
 
 class HomeworkPage extends StatefulWidget {
   const HomeworkPage({super.key, required this.service});
@@ -36,13 +37,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
   void prepare() {
     final all = data?.items ?? <HomeworkItem>[];
-    final personal = all
-        .where(
-          (item) =>
-              item.courseRole != 'assistant' &&
-              !(range?.hidden('spoc', item.courseId ?? item.id) ?? false),
-        )
-        .toList();
+    final personal = personalHomeworkItems(all, range);
     pending = personal
         .where((item) => item.status == HomeworkStatus.pending)
         .length;

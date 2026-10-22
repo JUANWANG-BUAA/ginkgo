@@ -10,6 +10,70 @@ import 'package:ginkgo_mirror/src/rust/api/live.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 
 void main() {
+  testWidgets('replacing the academic provider rejects its delayed snapshots', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 1500);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final oldStatus = Completer<ReadOnlyResponse>();
+    final oldReport = Completer<ReadOnlyResponse>();
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: GraduatePage(
+          loader: ({required report, required forceRefresh}) =>
+              (report ? oldReport : oldStatus).future,
+        ),
+      ),
+    );
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: GraduatePage(
+          loader: ({required report, required forceRefresh}) async =>
+              ReadOnlyResponse(
+                stale: false,
+                payload: jsonEncode({
+                  'sections': report
+                      ? []
+                      : [
+                          {
+                            'title': '学籍信息',
+                            'rows': [
+                              {'title': '学院', 'detail': '当前合成学院'},
+                            ],
+                          },
+                        ],
+                }),
+              ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    oldStatus.complete(
+      ReadOnlyResponse(
+        stale: false,
+        payload: jsonEncode({
+          'sections': [
+            {
+              'title': '学籍信息',
+              'rows': [
+                {'title': '学院', 'detail': '旧合成学院'},
+              ],
+            },
+          ],
+        }),
+      ),
+    );
+    oldReport.complete(
+      const ReadOnlyResponse(stale: false, payload: '{"sections":[]}'),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('当前合成学院'), findsOneWidget);
+    expect(find.text('旧合成学院'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'academic sections publish independently and keep snapshots after report failure',
     (tester) async {

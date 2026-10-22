@@ -74,3 +74,7 @@ Rust Android 目标随选定设备确定；当前 ARM64 模拟器使用 `aarch64
 学校协议与会话实现已独立到 `ginkgo_upstream`；core 只消费 domain 中的业务端口，`ginkgo_runtime` 负责真实客户端与保险库的组装。学校响应 fixture 的解析不再进入 FFI API。独立验证和更新位置见上述工程边界文档。
 
 作业详情的官网入口由上游通过可空 `sourceUrl` 返回，页面只校验通用 HTTPS URI。本轮同时移除了未使用的 FFI 命令，Rust 动态库与 Dart 生成绑定需配套构建，不能混用旧版本。
+
+工作台与研究生页作为渐进加载样板：分区完成即显示、刷新保留旧结果、局部失败单独重试，配合轻量银杏呼吸与首次淡入。动画遵循减少动态效果及标签页 `TickerMode`；桌面通过 `Ctrl+R` / `⌘R` 刷新。工作台课程与作业使用既有独立业务命令，不增加轮询；状态容器见 `application/refresh_section.dart`，通用呈现组件见 `loading_widgets.dart`。
+
+座位与空教室采用公共 `CollectionWindow` / `CollectionToolbar`，固定查询区、每页 50 条、直接跳页及局部状态；结果列表按需构建，同一查询刷新保持当前页。课表固定节次轴并提供周次/星期直达入口；长页滚动入口见 `long_page_scroll.dart`。后续大数据功能的接入规则及热更新限制见 [交互与更新边界](../docs/MIRROR-INTERACTION.md)。

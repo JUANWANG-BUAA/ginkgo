@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'long_page_scroll.dart';
 import 'bykc_detail_page.dart';
 import 'bykc_widgets.dart';
 export 'bykc_widgets.dart' show BykcStatisticsCard;
@@ -512,73 +513,76 @@ class _BykcPageState extends State<BykcPage> {
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
       context,
     ),
-    child: CustomScrollView(
-      key: const Key('bykc-scroll'),
+    child: LongPageScroll(
       controller: scrollController,
-      slivers: [
-        ApplePageHeader(
-          largeTitle: const Text('博雅'),
-          previousPageTitle: '工作台',
-          border: null,
-          trailing: AppleGlassButton(
-            label: '刷新博雅',
-            onPressed: current.loading
-                ? null
-                : () => load(selection, force: true),
-            child: current.loading
-                ? const CupertinoActivityIndicator()
-                : const Icon(CupertinoIcons.refresh),
+      child: CustomScrollView(
+        key: const Key('bykc-scroll'),
+        controller: scrollController,
+        slivers: [
+          ApplePageHeader(
+            largeTitle: const Text('博雅'),
+            previousPageTitle: '工作台',
+            border: null,
+            trailing: AppleGlassButton(
+              label: '刷新博雅',
+              onPressed: current.loading
+                  ? null
+                  : () => load(selection, force: true),
+              child: current.loading
+                  ? const CupertinoActivityIndicator()
+                  : const Icon(CupertinoIcons.refresh),
+            ),
           ),
-        ),
-        CupertinoSliverRefreshControl(
-          onRefresh: () => load(selection, force: true),
-        ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-            child: MediaQuery.textScalerOf(context).scale(14) > 20
-                ? ApplePickerTile<BykcPart>(
-                    title: '查看',
-                    value: selection,
-                    values: BykcPart.values,
-                    label: _label,
-                    onSelected: _select,
-                  )
-                : CupertinoSlidingSegmentedControl<BykcPart>(
-                    groupValue: selection,
-                    children: {
-                      for (final part in BykcPart.values)
-                        part: Text(_label(part)),
-                    },
-                    onValueChanged: (value) {
-                      if (value != null) _select(value);
-                    },
-                  ),
+          CupertinoSliverRefreshControl(
+            onRefresh: () => load(selection, force: true),
           ),
-        ),
-        if (widget.demo)
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-              child: Text(
-                '离线合成样例',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+              child: MediaQuery.textScalerOf(context).scale(14) > 20
+                  ? ApplePickerTile<BykcPart>(
+                      title: '查看',
+                      value: selection,
+                      values: BykcPart.values,
+                      label: _label,
+                      onSelected: _select,
+                    )
+                  : CupertinoSlidingSegmentedControl<BykcPart>(
+                      groupValue: selection,
+                      children: {
+                        for (final part in BykcPart.values)
+                          part: Text(_label(part)),
+                      },
+                      onValueChanged: (value) {
+                        if (value != null) _select(value);
+                      },
+                    ),
+            ),
+          ),
+          if (widget.demo)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                child: Text(
+                  '离线合成样例',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                  ),
                 ),
               ),
             ),
-          ),
-        if (current.loading || current.error != null)
-          SliverToBoxAdapter(child: _status()),
-        if (current.data != null)
-          ...switch (selection) {
-            BykcPart.catalog => _catalog(),
-            BykcPart.chosen => _chosen(),
-            BykcPart.statistics => _statistics(),
-          },
-        const SliverToBoxAdapter(child: SizedBox(height: 96)),
-      ],
+          if (current.loading || current.error != null)
+            SliverToBoxAdapter(child: _status()),
+          if (current.data != null)
+            ...switch (selection) {
+              BykcPart.catalog => _catalog(),
+              BykcPart.chosen => _chosen(),
+              BykcPart.statistics => _statistics(),
+            },
+          const SliverToBoxAdapter(child: SizedBox(height: 96)),
+        ],
+      ),
     ),
   );
 }

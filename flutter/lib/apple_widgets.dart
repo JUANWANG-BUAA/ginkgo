@@ -45,7 +45,7 @@ class ApplePageHeader extends StatelessWidget {
       '课程签到' || '签到历史' => ('工作台', '查看课程签到状态与记录'),
       '待办' => ('工作台', '安排个人任务与截止时间'),
       '校园通知' => ('校园', '查看通知与校内资讯'),
-      '今天' => ('工作台', '从今日课程开始安排一天'),
+      '今天' || '工作台' => ('工作台', '从今日课程开始安排一天'),
       '设置' => ('Ginkgo', '管理账号、显示偏好与系统设置'),
       _ => ('Ginkgo', null),
     };
@@ -258,44 +258,45 @@ Future<T?> choose<T>(
                     color: CupertinoColors.secondarySystemGroupedBackground
                         .resolveFrom(context)
                         .withValues(alpha: 0.96),
-                    child: ListView(
+                    child: ListView.builder(
                       padding: const EdgeInsets.symmetric(vertical: 6),
-                      children: [
-                        for (final value in values)
-                          CupertinoButton(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
-                            ),
-                            onPressed: () => Navigator.pop(context, value),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 18,
-                                  child: value == selected
-                                      ? Icon(
-                                          CupertinoIcons.check_mark,
-                                          size: 16,
-                                          color: CupertinoTheme.of(context)
-                                              .primaryColor,
-                                        )
-                                      : null,
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    label(value),
-                                    style: AppleDesign.body.copyWith(
-                                      color: CupertinoColors.label.resolveFrom(
-                                        context,
-                                      ),
+                      itemCount: values.length,
+                      itemBuilder: (context, index) {
+                        final value = values[index];
+                        return CupertinoButton(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          onPressed: () => Navigator.pop(context, value),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 18,
+                                child: value == selected
+                                    ? Icon(
+                                        CupertinoIcons.check_mark,
+                                        size: 16,
+                                        color: CupertinoTheme.of(context)
+                                            .primaryColor,
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  label(value),
+                                  style: AppleDesign.body.copyWith(
+                                    color: CupertinoColors.label.resolveFrom(
+                                      context,
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                      ],
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -325,9 +326,11 @@ class AppleSection extends StatelessWidget {
     required this.children,
     this.header,
     this.footer,
+    this.animateSize = true,
   });
   final List<Widget> children;
   final Widget? header, footer;
+  final bool animateSize;
   @override
   Widget build(BuildContext context) => Padding(
     padding: EdgeInsets.only(top: AppleDesign.desktop(context) ? 20 : 24),
@@ -355,6 +358,7 @@ class AppleSection extends StatelessWidget {
               AppleDesign.panelRadius(context),
             ),
             child: _AppleGroupResize(
+              enabled: animateSize,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: CupertinoColors.secondarySystemGroupedBackground
@@ -722,11 +726,12 @@ class _AppleNavigationItemState extends State<AppleNavigationItem> {
 }
 
 class _AppleGroupResize extends StatelessWidget {
-  const _AppleGroupResize({required this.child});
+  const _AppleGroupResize({required this.child, this.enabled = true});
   final Widget child;
+  final bool enabled;
   @override
   Widget build(BuildContext context) {
-    if (MediaQuery.disableAnimationsOf(context)) return child;
+    if (!enabled || MediaQuery.disableAnimationsOf(context)) return child;
     return AnimatedSize(
       duration: const Duration(milliseconds: 220),
       curve: Curves.easeInOutCubic,

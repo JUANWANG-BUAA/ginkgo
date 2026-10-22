@@ -450,7 +450,9 @@ void main() {
     service.requests[0].complete(empty);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(CupertinoSearchTextField), '101');
+    await tester.pump(const Duration(milliseconds: 260));
     await tester.enterText(find.byType(CupertinoSearchTextField), '不存在');
+    await tester.pump(const Duration(milliseconds: 260));
     service.requests.last.complete(empty);
     await tester.pumpAndSettle();
     service.requests[1].complete(failure);
@@ -478,6 +480,7 @@ void main() {
     service.requests.single.complete(empty);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(CupertinoSearchTextField), '101');
+    await tester.pump(const Duration(milliseconds: 260));
     // A scope change is allowed after a pending filter result is superseded by
     // another interaction; refresh completion after disposal must also be safe.
     await tester.pumpWidget(const CupertinoApp(home: Text('其他页面')));

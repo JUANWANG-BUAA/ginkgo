@@ -1,6 +1,9 @@
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'application/refresh_section.dart';
+import 'loading_widgets.dart';
+import 'today_homework_section.dart';
 import 'mirror_service.dart';
 import 'schedule_style.dart';
 import 'application/contracts.dart';
@@ -28,47 +31,67 @@ class TodayPage extends StatefulWidget {
 }
 
 class _TodayPageState extends State<TodayPage> {
-  TodayResponse? data;
-  String? error;
-  String? notice;
-  bool busy = false;
+  late RefreshSection<TodayResponse> courses;
+  late RefreshSection<HomeworkResponse> homework;
+  TodayResponse? get data => courses.value;
+  String? get error => courses.error;
+  bool get busy => courses.loading || homework.loading;
 
   @override
   void initState() {
     super.initState();
+    _createSection();
+  }
+
+  void _createSection() {
+    courses = RefreshSection<TodayResponse>()..addListener(_changed);
+    homework = RefreshSection<HomeworkResponse>()..addListener(_changed);
     load();
   }
 
-  Future<void> load({bool force = false}) async {
-    if (busy) return;
-    setState(() {
-      busy = true;
-      error = null;
-    });
-    try {
-      final result = await widget.service.today(forceRefresh: force);
-      if (!mounted) return;
-      setState(() {
-        busy = false;
-        if (result.failure != null && result.fetchedAt == null) {
-          error = failureMessage(result.failure);
-          notice = null;
-          return;
-        }
-        data = result;
-        error = null;
-        notice = result.failure == null
-            ? null
-            : '${failureMessage(result.failure)}，正在显示上次结果。';
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        busy = false;
-        error = failureMessage(null);
-      });
+  void _changed() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void didUpdateWidget(TodayPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service ||
+        oldWidget.accountName != widget.accountName) {
+      courses.dispose();
+      homework.dispose();
+      _createSection();
     }
   }
+
+  @override
+  void dispose() {
+    courses.dispose();
+    homework.dispose();
+    super.dispose();
+  }
+
+  Future<void> load({bool force = false}) =>
+      Future.wait([_loadCourses(force: force), _loadHomework(force: force)]);
+
+  Future<void> _loadCourses({bool force = false}) => courses.refresh(() async {
+    final result = await widget.service.today(forceRefresh: force);
+    return SectionResult(
+      value: result.failure == null || result.fetchedAt != null ? result : null,
+      error: result.failure == null ? null : failureMessage(result.failure),
+    );
+  }, fallbackError: failureMessage(null));
+
+  Future<void> _loadHomework({bool force = false}) =>
+      homework.refresh(() async {
+        final result = await widget.service.homework(forceRefresh: force);
+        return SectionResult(
+          value: result.failure == null || result.termCode.isNotEmpty
+              ? result
+              : null,
+          error: result.failure == null ? null : failureMessage(result.failure),
+        );
+      }, fallbackError: failureMessage(null));
 
   Future<void> accountAction() async {
     final demo = widget.service.isDemo;
@@ -97,137 +120,122 @@ class _TodayPageState extends State<TodayPage> {
   }
 
   @override
-  Widget build(BuildContext context) => CupertinoPageScaffold(
-    backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
-      context,
-    ),
-    child: CustomScrollView(
-      key: const Key('today-scroll'),
-      slivers: [
-        ApplePageHeader(
-          largeTitle: Text(widget.directory == null ? '今天' : '工作台'),
-          border: null,
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (widget.onOpenSettings != null ||
-                  widget.onAccountAction != null) ...[
-                AppleGlassButton(
-                  label: widget.onOpenSettings != null
-                      ? '设置'
-                      : widget.service.isDemo
-                      ? '演示模式'
-                      : '账号',
-                  onPressed:
-                      widget.onOpenSettings ?? (busy ? null : accountAction),
-                  child: Icon(
-                    widget.onOpenSettings != null
-                        ? CupertinoIcons.gear_alt
-                        : widget.service.isDemo
-                        ? CupertinoIcons.eye
-                        : CupertinoIcons.person_crop_circle,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 8),
-              ],
-              AppleGlassButton(
-                label: '刷新今天',
-                onPressed: busy ? null : () => load(force: true),
-                child: busy
-                    ? const CupertinoActivityIndicator()
-                    : const Icon(CupertinoIcons.refresh, size: 24),
-              ),
-            ],
-          ),
-        ),
-        CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
-        SliverLayoutBuilder(
-          builder: (context, constraints) => SliverPadding(
-            padding: EdgeInsets.symmetric(
-              horizontal: ((constraints.crossAxisExtent - 820) / 2).clamp(
-                0,
-                double.infinity,
-              ),
-            ),
-            sliver: SliverList.list(
+  Widget build(BuildContext context) => PageRefreshShortcut(
+    onRefresh: busy ? null : () => load(force: true),
+    child: CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
+        context,
+      ),
+      child: CustomScrollView(
+        key: const Key('today-scroll'),
+        slivers: [
+          ApplePageHeader(
+            largeTitle: Text(widget.directory == null ? '今天' : '工作台'),
+            border: null,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                if (widget.onOpenSettings != null)
-                  AppleSection(
-                    children: [
-                      AppleListTile(
-                        key: const Key('workspace-settings'),
-                        leadingSize: 36,
-                        leading: const Icon(
-                          CupertinoIcons.person_crop_circle_fill,
-                          size: 34,
-                          color: CupertinoColors.systemBlue,
-                        ),
-                        title: const Text(
-                          '账户与设置',
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        subtitle: Text(
-                          widget.service.isDemo
-                              ? '离线演示 · 连接与数据管理'
-                              : '学校账户 · 连接与数据管理',
-                        ),
-                        trailing: const CupertinoListTileChevron(),
-                        onTap: widget.onOpenSettings,
-                      ),
-                    ],
+                if (widget.onOpenSettings != null ||
+                    widget.onAccountAction != null) ...[
+                  AppleGlassButton(
+                    label: widget.onOpenSettings != null
+                        ? '设置'
+                        : widget.service.isDemo
+                        ? '演示模式'
+                        : '账号',
+                    onPressed:
+                        widget.onOpenSettings ?? (busy ? null : accountAction),
+                    child: Icon(
+                      widget.onOpenSettings != null
+                          ? CupertinoIcons.gear_alt
+                          : widget.service.isDemo
+                          ? CupertinoIcons.eye
+                          : CupertinoIcons.person_crop_circle,
+                      size: 22,
+                    ),
                   ),
-                if (notice != null)
-                  AppleSection(
-                    children: [
-                      AppleListTile(
-                        leading: const Icon(
-                          CupertinoIcons.exclamationmark_triangle,
-                          color: CupertinoColors.systemOrange,
-                          size: 20,
-                        ),
-                        title: Text(notice!),
-                      ),
-                    ],
-                  ),
-                if (error != null)
-                  AppleSection(
-                    children: [
-                      AppleEmptyState(
-                        title: error!,
-                        description: data == null
-                            ? '请检查网络后重试。'
-                            : '正在保留上次结果，请核对实际日期。',
-                        error: true,
-                        action: '重试',
-                        onAction: () => load(force: true),
-                      ),
-                    ],
-                  )
-                else if (data == null)
-                  AppleSection(
-                    children: const [
-                      Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            CupertinoActivityIndicator(),
-                            SizedBox(width: 10),
-                            Expanded(child: Text('正在读取今天课程…')),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                if (data != null) ..._content(data!),
-                if (widget.onOpenFeature != null) _shortcuts(),
-                if (widget.directory != null) widget.directory!,
-                const SizedBox(height: 96),
+                  const SizedBox(width: 8),
+                ],
+                AppleGlassButton(
+                  label: '刷新今天',
+                  onPressed: busy ? null : () => load(force: true),
+                  child: busy
+                      ? const GinkgoActivity()
+                      : const Icon(CupertinoIcons.refresh, size: 24),
+                ),
               ],
             ),
           ),
-        ),
-      ],
+          CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
+          SliverLayoutBuilder(
+            builder: (context, constraints) => SliverPadding(
+              padding: EdgeInsets.symmetric(
+                horizontal: ((constraints.crossAxisExtent - 820) / 2).clamp(
+                  0,
+                  double.infinity,
+                ),
+              ),
+              sliver: SliverList.list(
+                children: [
+                  if (widget.onOpenSettings != null)
+                    AppleSection(
+                      children: [
+                        AppleListTile(
+                          key: const Key('workspace-settings'),
+                          leadingSize: 36,
+                          leading: Icon(
+                            CupertinoIcons.person_crop_circle_fill,
+                            size: 34,
+                            color: CupertinoTheme.of(context).primaryColor,
+                          ),
+                          title: const Text(
+                            '账户与设置',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          subtitle: Text(
+                            widget.service.isDemo
+                                ? '离线演示 · 连接与数据管理'
+                                : '学校账户 · 连接与数据管理',
+                          ),
+                          trailing: const CupertinoListTileChevron(),
+                          onTap: widget.onOpenSettings,
+                        ),
+                      ],
+                    ),
+                  if (data == null)
+                    AppleSection(
+                      header: const Text('今日课程'),
+                      children: [
+                        SectionFeedback(
+                          loading: courses.loading,
+                          label: '正在读取今天课程…',
+                          hasData: false,
+                          error: error,
+                          onRetry: () => _loadCourses(force: true),
+                        ),
+                      ],
+                    ),
+                  if (data != null)
+                    SectionReveal(
+                      key: const Key('today-course-content'),
+                      child: Column(children: _content(data!)),
+                    ),
+                  TodayHomeworkSection(
+                    section: homework,
+                    onRetry: () => _loadHomework(force: true),
+                    onOpen: widget.onOpenFeature == null
+                        ? null
+                        : () => widget.onOpenFeature!(3),
+                  ),
+                  if (widget.onOpenFeature != null) _shortcuts(),
+                  if (widget.directory != null) widget.directory!,
+                  const SizedBox(height: 96),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     ),
   );
 
@@ -321,7 +329,6 @@ class _TodayPageState extends State<TodayPage> {
         footer: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (busy) const Text('正在更新课程，显示上次结果…'),
             if (data.fetchedAt != null)
               Text('课表同步：${_updatedAt(data.fetchedAt!)}'),
             Text(
@@ -332,10 +339,18 @@ class _TodayPageState extends State<TodayPage> {
           ],
         ),
         children: [
+          if (courses.loading || error != null)
+            SectionFeedback(
+              loading: courses.loading,
+              label: '正在更新今天课程…',
+              hasData: true,
+              error: error,
+              onRetry: () => _loadCourses(force: true),
+            ),
           if (data.courses.isEmpty)
             AppleEmptyState(
-              title: notice != null || error != null ? '今日课程尚未确认' : '今天没有课程',
-              description: notice != null || error != null
+              title: error != null ? '今日课程尚未确认' : '今天没有课程',
+              description: error != null
                   ? '课表更新失败，请刷新后再确认今天的安排。'
                   : '当前课表中没有当天课程，可查看完整课表安排学习。',
               action: widget.onOpenFeature == null ? null : '查看完整课表',

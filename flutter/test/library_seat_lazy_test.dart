@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/apple_widgets.dart';
+import 'package:ginkgo_mirror/collection_toolbar.dart';
 import 'package:ginkgo_mirror/library_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart';
@@ -82,6 +83,15 @@ void main() {
       expect(
         first.borderRadius,
         const BorderRadius.vertical(top: Radius.circular(26)),
+      );
+      await tester.tap(find.byKey(const Key('collection-next-page')));
+      await tester.pumpAndSettle();
+      expect(find.text('51–100 / 600 个座位'), findsOneWidget);
+      expect(
+        tester.getRect(find.byKey(const Key('library-seat-lazy-50'))).top,
+        greaterThanOrEqualTo(
+          tester.getRect(find.byType(CollectionQuerySurface)).bottom - 1,
+        ),
       );
       await tester.scrollUntilVisible(
         find.byKey(const Key('library-seat-lazy-90')),

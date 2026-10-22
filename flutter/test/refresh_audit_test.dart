@@ -42,14 +42,15 @@ void main() {
         find.byType(CupertinoSliverRefreshControl, skipOffstage: false),
       );
       final first = refresh.onRefresh!();
-      await refresh.onRefresh!();
+      final repeated = refresh.onRefresh!();
       expect(service.todayCalls.length, 2);
       service.todayCalls.last.completeError(
         StateError('synthetic transport failure'),
       );
-      await first;
+      // Both callers wait for the same in-flight section reads to finish.
+      await Future.wait([first, repeated]);
       await tester.pumpAndSettle();
-      expect(find.textContaining('正在保留上次结果'), findsOneWidget);
+      expect(find.text('保留上次结果'), findsOneWidget);
       expect(find.text(todayFixture.courses.first.name), findsWidgets);
     },
   );

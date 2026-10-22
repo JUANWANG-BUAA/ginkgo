@@ -74,14 +74,14 @@ void main() {
       await joined;
       await tester.pumpAndSettle();
       expect(find.text('合成座位'), findsOneWidget);
-      expect(find.text('保留上次座位列表，请刷新后确认状态。'), findsOneWidget);
+      expect(find.text('保留上次结果'), findsOneWidget);
       expect(tester.widget<CupertinoButton>(button).onPressed, isNull);
       await tester.tap(find.text('重试'));
       await tester.pump();
       service.seatRequests.last.complete(snapshot);
       await tester.pumpAndSettle();
       expect(tester.widget<CupertinoButton>(button).onPressed, isNotNull);
-      expect(find.text('保留上次座位列表，请刷新后确认状态。'), findsNothing);
+      expect(find.text('保留上次结果'), findsNothing);
       expect(tester.takeException(), isNull);
     },
   );

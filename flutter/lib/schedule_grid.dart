@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 
 import 'apple_design.dart';
+import 'apple_widgets.dart' show choose;
+import 'day_scroll_physics.dart';
 import 'schedule_style.dart';
 import 'application/contracts.dart';
 
@@ -166,29 +168,6 @@ class _ScheduleGridState extends State<ScheduleGrid> {
                   ),
                 ),
               ),
-            for (var section = 1; section <= sectionCount; section++)
-              Positioned(
-                left: 0,
-                top: headerHeight + (section - 1) * cellHeight,
-                width: axisWidth,
-                height: cellHeight,
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      '${times[section] ?? '第$section节'}${times[section] == null ? '' : '\n第$section节'}',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: CupertinoColors.secondaryLabel.resolveFrom(
-                          context,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             for (final course in courses)
               Positioned(
                 left:
@@ -212,7 +191,7 @@ class _ScheduleGridState extends State<ScheduleGrid> {
         ),
       );
       return totalWidth <= constraints.maxWidth
-          ? grid
+          ? Stack(children: [grid, _timeAxis()])
           : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -221,21 +200,83 @@ class _ScheduleGridState extends State<ScheduleGrid> {
                   key: const Key('schedule-grid-top-scrollbar'),
                   controller: horizontalScroll,
                   thumbVisibility: true,
+                  thickness: 5,
+                  thicknessWhileDragging: 10,
                   scrollbarOrientation: ScrollbarOrientation.top,
                   notificationPredicate: (notification) =>
                       notification.metrics.axis == Axis.horizontal,
-                  child: SingleChildScrollView(
-                    key: const Key('schedule-grid-horizontal'),
-                    controller: horizontalScroll,
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.only(top: 12),
-                    child: grid,
+                  child: Stack(
+                    children: [
+                      SingleChildScrollView(
+                        key: const Key('schedule-grid-horizontal'),
+                        controller: horizontalScroll,
+                        physics: DayScrollPhysics(dayWidth: columnWidth),
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.only(top: 12),
+                        child: grid,
+                      ),
+                      Positioned(
+                        left: 0,
+                        top: 12,
+                        bottom: 0,
+                        child: _timeAxis(),
+                      ),
+                    ],
                   ),
                 ),
               ],
             );
     },
   );
+  Widget _timeAxis() => AbsorbPointer(
+    child: Container(
+      key: const Key('schedule-fixed-time-axis'),
+      width: axisWidth,
+      height: headerHeight + sectionCount * cellHeight,
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemGroupedBackground.resolveFrom(context),
+        border: Border(
+          right: BorderSide(
+            color: CupertinoColors.separator.resolveFrom(context),
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: Stack(
+        children: [
+          const Positioned(
+            top: 20,
+            left: 15,
+            child: Text('节次', style: TextStyle(fontSize: 12)),
+          ),
+          for (var section = 1; section <= sectionCount; section++)
+            Positioned(
+              left: 0,
+              top: headerHeight + (section - 1) * cellHeight,
+              width: axisWidth,
+              height: cellHeight,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    '${times[section] ?? '第$section节'}${times[section] == null ? '' : '\n第$section节'}',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: CupertinoColors.secondaryLabel.resolveFrom(
+                        context,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
+
   Widget _horizontalControls(
     double columnWidth,
     double viewportWidth,
@@ -248,7 +289,7 @@ class _ScheduleGridState extends State<ScheduleGrid> {
       final maxExtent = horizontalScroll.hasClients
           ? horizontalScroll.position.maxScrollExtent
           : axisWidth + columnWidth * 7 - viewportWidth;
-      final first = ((offset - axisWidth) / columnWidth).floor().clamp(0, 6);
+      final first = (offset / columnWidth).floor().clamp(0, 6);
       final last =
           ((offset + viewportWidth - axisWidth) / columnWidth).ceil().clamp(
             1,
@@ -256,6 +297,7 @@ class _ScheduleGridState extends State<ScheduleGrid> {
           ) -
           1;
       void move(double delta) {
+        if (!horizontalScroll.hasClients) return;
         final target = (horizontalScroll.offset + delta).clamp(0.0, maxExtent);
         if (MediaQuery.disableAnimationsOf(context)) {
           horizontalScroll.jumpTo(target);
@@ -289,13 +331,39 @@ class _ScheduleGridState extends State<ScheduleGrid> {
         children: [
           arrow(next: false),
           Expanded(
-            child: Text(
-              '${weekdayNames[first]}–${weekdayNames[last]} · 左右滑动',
-              key: const Key('schedule-grid-visible-days'),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+            child: Builder(
+              builder: (anchor) => CupertinoButton(
+                key: const Key('schedule-day-jump'),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                onPressed: () async {
+                  final day = await choose<int>(
+                    anchor,
+                    '跳转到星期',
+                    [1, 2, 3, 4, 5, 6, 7],
+                    (day) => weekdayNames[day - 1],
+                    selected: first + 1,
+                  );
+                  if (!mounted || day == null || !horizontalScroll.hasClients) {
+                    return;
+                  }
+                  move((day - 1) * columnWidth - horizontalScroll.offset);
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(CupertinoIcons.arrow_left_right, size: 15),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        '${weekdayNames[first]}–${weekdayNames[last]}',
+                        key: const Key('schedule-grid-visible-days'),
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(CupertinoIcons.chevron_down, size: 11),
+                  ],
+                ),
               ),
             ),
           ),

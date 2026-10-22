@@ -1,6 +1,9 @@
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'long_page_scroll.dart';
+import 'application/collection_window.dart';
+import 'collection_toolbar.dart';
 import 'apple_design.dart';
 import 'mirror_service.dart';
 import 'mutation_dialog.dart';
@@ -27,6 +30,16 @@ class LibrarySeatPage extends StatefulWidget {
 }
 
 class LibrarySeatPageState extends State<LibrarySeatPage> {
+  final scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
+  }
+
+  final window = CollectionWindow();
+  final resultsAnchor = CollectionAnchor();
   List<LibrarySeat>? seats;
   String? error;
   bool busy = false;
@@ -35,7 +48,7 @@ class LibrarySeatPageState extends State<LibrarySeatPage> {
   bool availableOnly = false;
   List<LibrarySeat> visible = [];
   Map<String, int> visibleIndices = {};
-  void prepare() {
+  void prepare({bool reset = false}) {
     final query = search.trim().toLowerCase();
     visible = (seats ?? <LibrarySeat>[])
         .where(
@@ -44,9 +57,10 @@ class LibrarySeatPageState extends State<LibrarySeatPage> {
               (query.isEmpty || seat.name.toLowerCase().contains(query)),
         )
         .toList();
+    window.reconcile(visible.map((seat) => seat.id), reset: reset);
     visibleIndices = {
-      for (final (index, seat) in visible.indexed)
-        'library-seat-group-${seat.id}': index,
+      for (var index = window.start; index < window.end; index++)
+        'library-seat-group-${visible[index].id}': index - window.start,
     };
   }
 
@@ -134,141 +148,176 @@ class LibrarySeatPageState extends State<LibrarySeatPage> {
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
       context,
     ),
-    child: CustomScrollView(
-      key: const Key('library-seats-scroll'),
-      slivers: [
-        ApplePageHeader(
-          largeTitle: Text('${widget.slot.start}–${widget.slot.end}'),
-          border: null,
-          trailing: AppleGlassButton(
-            label: '刷新列表',
-            onPressed: busy ? null : load,
-            child: busy
-                ? const CupertinoActivityIndicator()
-                : const Icon(CupertinoIcons.refresh, size: 24),
+    child: LongPageScroll(
+      controller: scrollController,
+      child: CustomScrollView(
+        controller: scrollController,
+        key: const Key('library-seats-scroll'),
+        slivers: [
+          ApplePageHeader(
+            largeTitle: Text('${widget.slot.start}–${widget.slot.end}'),
+            border: null,
+            trailing: AppleGlassButton(
+              label: '刷新列表',
+              onPressed: busy ? null : load,
+              child: busy
+                  ? const CupertinoActivityIndicator()
+                  : const Icon(CupertinoIcons.refresh, size: 24),
+            ),
           ),
-        ),
-        CupertinoSliverRefreshControl(onRefresh: load),
-        SliverList.list(
-          children: [
-            if (mutationNotice != null)
-              AppleSection(
-                children: [
-                  AppleListTile(
-                    title: Text(mutationNotice!),
-                    trailing: CupertinoButton(
-                      onPressed: widget.onViewReservations,
-                      child: const Text('查看预约'),
+          CupertinoSliverRefreshControl(onRefresh: load),
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                if (mutationNotice != null)
+                  AppleSection(
+                    animateSize: false,
+                    children: [
+                      AppleListTile(
+                        title: Text(mutationNotice!),
+                        trailing: CupertinoButton(
+                          onPressed: widget.onViewReservations,
+                          child: const Text('查看预约'),
+                        ),
+                      ),
+                    ],
+                  ),
+                if (error != null && seats == null)
+                  AppleSection(
+                    animateSize: false,
+                    children: [
+                      AppleEmptyState(
+                        title: error!,
+                        description: seats == null
+                            ? '座位列表读取失败，请稍后重试。'
+                            : '保留上次座位列表，请刷新后确认状态。',
+                        error: true,
+                        action: '重试',
+                        onAction: load,
+                      ),
+                    ],
+                  ),
+                if (seats == null && error == null)
+                  AppleSection(
+                    animateSize: false,
+                    children: const [
+                      Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            CupertinoActivityIndicator(),
+                            SizedBox(width: 10),
+                            Text('正在读取座位…'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+          resultsAnchor.sliver,
+          if (seats != null)
+            PinnedHeaderSliver(
+              child: CollectionQuerySurface(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: Text(
+                        widget.area.name,
+                        style: const TextStyle(fontSize: 13),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            if (error != null)
-              AppleSection(
-                children: [
-                  AppleEmptyState(
-                    title: error!,
-                    description: seats == null
-                        ? '座位列表读取失败，请稍后重试。'
-                        : '保留上次座位列表，请刷新后确认状态。',
-                    error: true,
-                    action: '重试',
-                    onAction: load,
-                  ),
-                ],
-              ),
-            if (seats == null && error == null)
-              AppleSection(
-                children: const [
-                  Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        CupertinoActivityIndicator(),
-                        SizedBox(width: 10),
-                        Text('正在读取座位…'),
-                      ],
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: CupertinoSearchTextField(
+                        key: const Key('library-seat-search'),
+                        placeholder: '搜索座位编号',
+                        onChanged: (value) => setState(() {
+                          search = value;
+                          prepare(reset: true);
+                          resultsAnchor.reveal(scrollController);
+                        }),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            if (seats != null) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: CupertinoSearchTextField(
-                  key: const Key('library-seat-search'),
-                  placeholder: '搜索座位编号',
-                  onChanged: (value) => setState(() {
-                    search = value;
-                    prepare();
-                  }),
+                    AppleListTile(
+                      leading: const Icon(
+                        CupertinoIcons.line_horizontal_3_decrease_circle,
+                        size: 20,
+                      ),
+                      title: const Text('只看空闲座位'),
+                      trailing: CupertinoSwitch(
+                        value: availableOnly,
+                        onChanged: (value) => setState(() {
+                          availableOnly = value;
+                          prepare(reset: true);
+                          resultsAnchor.reveal(scrollController);
+                        }),
+                      ),
+                    ),
+
+                    CollectionToolbar(
+                      window: window,
+                      unit: '个座位',
+                      error: error,
+                      onRetry: load,
+                      busy: busy || submitting,
+                      onPageChanged: (page) {
+                        setState(() {
+                          window.select(page);
+                          prepare();
+                        });
+                        resultsAnchor.reveal(scrollController);
+                      },
+                    ),
+                  ],
                 ),
               ),
-              AppleSection(
+            ),
+          if (seats != null && visible.isEmpty)
+            SliverToBoxAdapter(
+              child: AppleSection(
+                animateSize: false,
                 children: [
                   AppleListTile(
-                    title: const Text('只看空闲座位'),
-                    trailing: CupertinoSwitch(
-                      value: availableOnly,
-                      onChanged: (value) => setState(() {
-                        availableOnly = value;
-                        prepare();
-                      }),
-                    ),
+                    title: Text(seats!.isEmpty ? '该时段没有座位数据' : '没有符合条件的座位'),
                   ),
                 ],
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(32, 24, 32, 10),
+            ),
+          if (visible.isNotEmpty)
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppleDesign.pageInset,
+              ),
+              sliver: SliverList.builder(
+                itemCount: window.end - window.start,
+                findChildIndexCallback: (key) {
+                  if (key is! ValueKey<String>) return null;
+                  return visibleIndices[key.value];
+                },
+                itemBuilder: (context, index) =>
+                    _seatRow(visible[window.start + index], index),
+              ),
+            ),
+          if (seats != null)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(32, 10, 32, 0),
                 child: Text(
-                  '${widget.area.name} · ${visible.length} 个座位',
+                  '选择空闲座位后确认预约。',
                   style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
                     color: CupertinoColors.secondaryLabel.resolveFrom(context),
                   ),
                 ),
               ),
-              if (visible.isEmpty)
-                AppleSection(
-                  children: [
-                    AppleListTile(
-                      title: Text(seats!.isEmpty ? '该时段没有座位数据' : '没有符合条件的座位'),
-                    ),
-                  ],
-                ),
-            ],
-          ],
-        ),
-        if (visible.isNotEmpty)
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppleDesign.pageInset,
             ),
-            sliver: SliverList.builder(
-              itemCount: visible.length,
-              findChildIndexCallback: (key) {
-                if (key is! ValueKey<String>) return null;
-                return visibleIndices[key.value];
-              },
-              itemBuilder: (context, index) => _seatRow(visible[index], index),
-            ),
-          ),
-        if (seats != null)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(32, 10, 32, 0),
-              child: Text(
-                '选择空闲座位后确认预约。',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                ),
-              ),
-            ),
-          ),
-        const SliverToBoxAdapter(child: SizedBox(height: 96)),
-      ],
+          const SliverToBoxAdapter(child: SizedBox(height: 96)),
+        ],
+      ),
     ),
   );
 
@@ -278,7 +327,7 @@ class LibrarySeatPageState extends State<LibrarySeatPage> {
       top: index == 0
           ? const Radius.circular(AppleDesign.groupRadius)
           : Radius.zero,
-      bottom: index == visible.length - 1
+      bottom: index == window.end - window.start - 1
           ? const Radius.circular(AppleDesign.groupRadius)
           : Radius.zero,
     ),

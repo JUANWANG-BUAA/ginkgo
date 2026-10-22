@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'application/contracts.dart';
+import 'apple_design.dart';
 
 /// Owns week-chip measurement, scrolling and post-layout synchronization.
 class ScheduleWeekStrip extends StatefulWidget {
@@ -25,7 +26,13 @@ class _ScheduleWeekStripState extends State<ScheduleWeekStrip> {
   @override
   void didUpdateWidget(ScheduleWeekStrip oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.weeks != widget.weeks) weekStripLayout = null;
+    if (oldWidget.weeks.length != widget.weeks.length ||
+        List.generate(widget.weeks.length, (index) => index).any(
+          (index) =>
+              oldWidget.weeks[index].number != widget.weeks[index].number,
+        )) {
+      weekStripLayout = null;
+    }
   }
 
   @override
@@ -70,6 +77,7 @@ class _ScheduleWeekStripState extends State<ScheduleWeekStrip> {
             widget.weeks.length,
           );
           if (weekStripLayout != layout) {
+            final oldLayout = weekStripLayout;
             weekStripLayout = layout;
             final generation = ++weekStripGeneration;
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -82,58 +90,84 @@ class _ScheduleWeekStripState extends State<ScheduleWeekStrip> {
               final position = weekScroll.position;
               if (!position.hasContentDimensions) return;
               final center = padding + index * extent + chipWidth / 2;
-              weekScroll.jumpTo(
-                (center - position.viewportDimension / 2).clamp(
-                  position.minScrollExtent,
-                  position.maxScrollExtent,
-                ),
+              final target = (center - position.viewportDimension / 2).clamp(
+                position.minScrollExtent,
+                position.maxScrollExtent,
               );
+              if (oldLayout == null ||
+                  MediaQuery.disableAnimationsOf(context)) {
+                weekScroll.jumpTo(target);
+              } else {
+                weekScroll.animateTo(
+                  target,
+                  duration: AppleDesign.duration(context, 220),
+                  curve: Curves.easeOutCubic,
+                );
+              }
             });
           }
-          return ListView.builder(
-            key: const Key('schedule-weeks'),
+          return CupertinoScrollbar(
             controller: weekScroll,
-            itemExtent: extent,
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.fromLTRB(padding, 4, padding, 8),
-            itemCount: widget.weeks.length,
-            itemBuilder: (context, index) {
-              final week = widget.weeks[index];
-              final active = week.number == widget.selectedWeek;
-              final color = CupertinoTheme.of(context).primaryColor;
-              return Padding(
-                padding: const EdgeInsets.only(right: gap),
-                child: CupertinoButton(
-                  key: Key('schedule-week-${week.number}'),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  minimumSize: const Size(76, 0),
-                  color: active
-                      ? color.withValues(alpha: 0.14)
-                      : CupertinoColors.tertiarySystemFill.resolveFrom(context),
-                  onPressed: () => widget.onSelected(week.number),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '第 ${week.number} 周',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: active
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                          color: active
-                              ? color
-                              : CupertinoColors.label.resolveFrom(context),
-                        ),
+            thumbVisibility: true,
+            thickness: 3,
+            thicknessWhileDragging: 8,
+            scrollbarOrientation: ScrollbarOrientation.bottom,
+            notificationPredicate: (notification) =>
+                notification.metrics.axis == Axis.horizontal,
+            child: ListView.builder(
+              key: const Key('schedule-weeks'),
+              controller: weekScroll,
+              itemExtent: extent,
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(padding, 4, padding, 8),
+              itemCount: widget.weeks.length,
+              itemBuilder: (context, index) {
+                final week = widget.weeks[index];
+                final active = week.number == widget.selectedWeek;
+                final color = CupertinoTheme.of(context).primaryColor;
+                return Padding(
+                  padding: const EdgeInsets.only(right: gap),
+                  child: CupertinoButton(
+                    key: Key('schedule-week-${week.number}'),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    minimumSize: const Size(76, 0),
+                    color: active
+                        ? color.withValues(alpha: 0.14)
+                        : CupertinoColors.tertiarySystemFill.resolveFrom(
+                            context,
+                          ),
+                    onPressed: () => widget.onSelected(week.number),
+                    child: Semantics(
+                      selected: active,
+                      label: week.current
+                          ? '第 ${week.number} 周，本周'
+                          : '第 ${week.number} 周',
+                      excludeSemantics: true,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '第 ${week.number} 周',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: active
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
+                              color: active
+                                  ? color
+                                  : CupertinoColors.label.resolveFrom(context),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           );
         },
       ),

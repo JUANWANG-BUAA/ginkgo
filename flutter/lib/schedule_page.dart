@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'long_page_scroll.dart';
 import 'mirror_service.dart';
 import 'schedule_grid.dart';
 import 'schedule_week_strip.dart';
@@ -16,6 +17,14 @@ class SchedulePage extends StatefulWidget {
 }
 
 class _SchedulePageState extends State<SchedulePage> {
+  final scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
+  }
+
   ScheduleResponse? data;
   String? error;
   String? notice;
@@ -137,81 +146,85 @@ class _SchedulePageState extends State<SchedulePage> {
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
       context,
     ),
-    child: CustomScrollView(
-      key: const Key('schedule-scroll'),
-      slivers: [
-        ApplePageHeader(
-          largeTitle: const Text('课表'),
-          border: null,
-          trailing: AppleGlassButton(
-            label: '刷新课表',
-            onPressed: busy ? null : () => load(force: true),
-            child: busy
-                ? const CupertinoActivityIndicator()
-                : const Icon(CupertinoIcons.refresh, size: 24),
+    child: LongPageScroll(
+      controller: scrollController,
+      child: CustomScrollView(
+        controller: scrollController,
+        key: const Key('schedule-scroll'),
+        slivers: [
+          ApplePageHeader(
+            largeTitle: const Text('课表'),
+            border: null,
+            trailing: AppleGlassButton(
+              label: '刷新课表',
+              onPressed: busy ? null : () => load(force: true),
+              child: busy
+                  ? const CupertinoActivityIndicator()
+                  : const Icon(CupertinoIcons.refresh, size: 24),
+            ),
           ),
-        ),
-        CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
-        SliverList.list(
-          children: [
-            if (data != null) ..._content(data!),
-            if (notice != null)
-              AppleSection(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          notice!,
-                          style: TextStyle(
-                            color: CupertinoColors.systemOrange.resolveFrom(
-                              context,
+          CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
+          SliverList.list(
+            children: [
+              if (data != null) ..._content(data!),
+              if (notice != null)
+                AppleSection(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            notice!,
+                            style: TextStyle(
+                              color: CupertinoColors.systemOrange.resolveFrom(
+                                context,
+                              ),
                             ),
                           ),
-                        ),
-                        CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: busy ? null : () => load(force: true),
-                          child: const Text('重试'),
-                        ),
-                      ],
+                          CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: busy ? null : () => load(force: true),
+                            child: const Text('重试'),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            if (data == null && error != null)
-              AppleSection(
-                children: [
-                  AppleEmptyState(
-                    title: error!,
-                    description: '请检查网络后重试。',
-                    error: true,
-                    action: '重试',
-                    onAction: () => load(force: true),
-                  ),
-                ],
-              )
-            else if (data == null)
-              const AppleSection(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Row(
-                      children: [
-                        CupertinoActivityIndicator(),
-                        SizedBox(width: 10),
-                        Text('正在读取课表…'),
-                      ],
+                  ],
+                ),
+              if (data == null && error != null)
+                AppleSection(
+                  children: [
+                    AppleEmptyState(
+                      title: error!,
+                      description: '请检查网络后重试。',
+                      error: true,
+                      action: '重试',
+                      onAction: () => load(force: true),
                     ),
-                  ),
-                ],
-              ),
-            const SizedBox(height: 96),
-          ],
-        ),
-      ],
+                  ],
+                )
+              else if (data == null)
+                const AppleSection(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Row(
+                        children: [
+                          CupertinoActivityIndicator(),
+                          SizedBox(width: 10),
+                          Text('正在读取课表…'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 96),
+            ],
+          ),
+        ],
+      ),
     ),
   );
 
@@ -262,11 +275,46 @@ class _SchedulePageState extends State<SchedulePage> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        '第 $selectedWeek 周',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
+                      child: Builder(
+                        builder: (anchor) => CupertinoButton(
+                          key: const Key('schedule-week-picker'),
+                          padding: EdgeInsets.zero,
+                          alignment: Alignment.centerLeft,
+                          onPressed: () async {
+                            final value = await choose<int>(
+                              anchor,
+                              '选择周次',
+                              snapshot.weeks
+                                  .map((week) => week.number)
+                                  .toList(),
+                              (week) => '第 $week 周',
+                              selected: selectedWeek,
+                            );
+                            if (mounted &&
+                                value != null &&
+                                value != selectedWeek) {
+                              selectWeek(value);
+                            }
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  '第 $selectedWeek 周',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w700,
+                                    color: CupertinoColors.label.resolveFrom(
+                                      context,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              const Icon(CupertinoIcons.chevron_down, size: 14),
+                            ],
+                          ),
                         ),
                       ),
                     ),
