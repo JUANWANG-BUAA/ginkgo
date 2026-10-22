@@ -47,6 +47,10 @@ Android 更新检查仍读取 GitHub Releases，但 Alpha.4 起可在应用内�
 - 修改桥接 API 才重新生成 FRB 绑定；禁止手改生成文件。代码搜索和规模审查排除 `flutter/lib/src/rust/` 与 Rust `frb_generated.rs`。
 - 真实网络、设备交互、人工视觉与自动化合成测试分别记录。演示入口不得访问真实账号；仓库不保存凭据、票据或个人内容。
 
+## Alpha.6 工作树增强
+
+签到新增课前十分钟的双层时间门禁；作业截止前 48 / 24 小时提醒、按账号未读角标、脱敏错误 hint 和 CGYY 用户确认写流程已接入。新增 UI 逐项对照 `IOSCgyyView` 的分组、时段网格、表单、人数步进与确认语义。Android 使用非精确本地系统提醒；Windows 暂仅应用内提示。设备覆盖与真实写入边界见 [Alpha.6 记录](archive/mirror/MIRROR-ALPHA6.md)，公开包以对应 Release 资产为准。
+
 ## 本次评审落实
 
 原评审由用户提供，署名 **Opus 5.5**；本次核实与实现由 Codex 完成。逐项定位、采纳理由、已过时结论及回归证据见 [评审落实记录](_audit/2026-10-21-opus-review-followup.md)。

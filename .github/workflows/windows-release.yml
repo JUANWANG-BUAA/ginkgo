@@ -116,32 +116,8 @@ jobs:
       - name: Create Windows prerelease
         uses: softprops/action-gh-release@v2
         with:
-          name: Ginkgo Windows Alpha
-          body: |
-            Ginkgo Windows 0.1.0-alpha.4 是首个公开 Windows 测试包，面向 Windows 10 / 11 x64。
-
-            ## 安装
-
-            推荐下载 `Ginkgo-*-windows-x64-setup.exe`，核对 `checksums.txt` 中的 SHA-256 后运行。安装器按当前用户安装，不需要管理员权限，并提供开始菜单与卸载入口。
-
-            便携 ZIP 需完整解压到普通可写目录，保留 exe、DLL 与 `data` 文件夹。若系统缺少 Microsoft Visual C++ Redistributable，请先安装微软官方运行库。
-
-            当前包未签名，SmartScreen 可能提示未知发布者。请只从本 Release 或已核对摘要的来源安装。
-
-            ## 本版范围
-
-            - 宽屏分组侧栏，逻辑宽度低于 760px 时切换到底部导航。
-            - 今天、签到、课表、作业、预约、成绩、博雅、研究生教务与设置入口。
-            - Windows Credential Manager 合成凭据往返、独立详情返回栈、Tab 焦点与 Enter 激活通过。
-            - Rust 核心、Flutter 测试与 Windows 集成测试通过后重新构建 `main.dart` Release；安装器执行静默安装和卸载检查。
-
-            ## 已知限制
-
-            - 未在物理 x64 和干净系统完成运行库、输入法、多屏与完整读屏验收。
-            - 未完成真实学校账号登录或上游写入验收；写操作仍须逐次人工确认。
-            - 未签名，尚无应用内更新；功能未与 macOS 完全对齐。
-
-            完整证据与边界见仓库 `docs/archive/mirror/MIRROR-WINDOWS-ALPHA4.md`。
+          name: Ginkgo Windows 0.1.0-alpha.6
+          body_path: docs/releases/windows-alpha6.md
           draft: false
           prerelease: true
           fail_on_unmatched_files: true

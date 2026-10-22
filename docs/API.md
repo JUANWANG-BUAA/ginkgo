@@ -11,6 +11,7 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 65 | 镜像 CGYY 与提醒 | CGYY 仅查询；镜像无定时提醒 | 沿用 §6B 的直连、签名、草稿 / 验证 / 提交 / 取消；镜像采用手动拼图，不自动识别；POST 单次、回查和不确定保护。课前十分钟门禁及截止前 48 / 24 小时提醒是本地产品规则，不是新增上游协议 | `CgyyClient.swift:141–274` / UBAA 既有取证；`cgyy_booking_service.rs` / 合成 HTTP 回归；[Alpha.6 记录](archive/mirror/MIRROR-ALPHA6.md)，真实写入未执行 |
 | 64 | SPOC 课程归属 | 直接取首个账号角色，通用课程上下文未区分学生与助教 | 优先名称明确的学生账号角色，按学校 SPA 的学生/助教列表 kcid 分类。学生优先，未知或归属读取失败保留原作业；页面可查看助教项，不按名称删除 | [E1/E2 静态代码取证](_audit/2026-10-21-spoc-course-roles.md)；真实身份列表与 iClass 归属待验收 |
 | — | 镜像证据文档归档 | 验收记录位于 docs 根目录 | 将链接更新至 archive/mirror；不修改端点、请求、字段或成功码规则 | [历史索引](archive/mirror/README.md)，2026-10-21 |
 | 63 | Apple UC 激活跳转兼容 | 已知 HTTP SSO GET 跳转仍被合并报为缺 Location | Swift 与 Rust 对齐：仅精确 sso.buaa.edu.cn /login 的 HTTP GET 跳转提升 HTTPS，保留原查询编码；未知不安全目标单独报错，密码 POST、TLS、Cookie 策略不变。无账号复查仍见同一跳转，不由此判断账号或 IP 限制 | [诊断追加](_audit/2026-10-21-auth-redirect-incident.md#再次报告与无账号复查)；CasClientTests 合成先红后绿；真实完整登录仍待用户复验 |
@@ -724,6 +725,8 @@ Rust/Flutter镜像采用借用共享transport的独立Session，复制用户原�
    - POST `/api/reservation/order/submit`：草稿字段 + `captchaVerification`（AES-ECB 加密的 `<captchaToken>---{"x":N,"y":5}`）+ `token`。
    - POST `/api/orders/new/cancel/{orderId}`：取消。
 5. **验证码**：UBAA 的做法是灰度边缘匹配求解滑块；本项目已按用户明确要求移植该算法。该行为会改动项目原先“不自动绕过验证码”的红线，使用者需自行承担上游使用条款与风控风险；实现中不保存验证码图片，只在内存中完成一次匹配。
+
+2026-10-22 镜像实现：Rust 沿用本节端点与字段，验证码采用用户手动拖动，AES-ECB 与签名仍由 Rust 完成；学校 token、密钥、预约 token 不跨 FFI。草稿前、手动验证后均复核空档，未知单元格不可提交。提交 / 取消只发送一次；受理不等于成功，须查回匹配订单 / 取消状态。无明确结果时保持写入保护，用户先只读回查并确认已核对。该实现仅有合成与界面证据，不能标记为真实写入验收。
 
 > 图书馆空间预约系统（`booking.lib.buaa.edu.cn/v4/seminar/*`）是另一套系统，本页不再作为“研讨室”入口；其只读/预约代码保留在 `Features/Library/`，但与教学楼 CGYY 不可混用。
 

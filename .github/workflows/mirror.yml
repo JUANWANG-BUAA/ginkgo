@@ -71,7 +71,7 @@ jobs:
       # Do not depend on tools preinstalled by ubuntu-latest.
       - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
         with:
-          packages: 'platform-tools platforms;android-36 build-tools;36.0.0 ndk;27.0.12077973'
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0 ndk;28.2.13676358'
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.47.0
