@@ -23,7 +23,9 @@ pub enum CgyyCommand {
     Prepare { booking: BookingRequest },
     Submit { challenge_id: String, x: i32 },
     Cancel { order_id: i64 },
-    Acknowledge,
+    Status,
+    Review,
+    Acknowledge { review_id: String },
 }
 #[derive(Serialize)]
 pub struct BookingChoice {
@@ -49,6 +51,11 @@ pub struct BookingChallenge {
     pub jigsaw: String,
 }
 #[derive(Serialize)]
+pub struct BookingReview {
+    pub id: String,
+    pub orders: Vec<super::cgyy::Order>,
+}
+#[derive(Serialize)]
 pub struct CgyyActionResult {
     pub state: String,
     pub message: String,
@@ -56,6 +63,8 @@ pub struct CgyyActionResult {
     pub options: Option<BookingOptions>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub challenge: Option<BookingChallenge>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub review: Option<BookingReview>,
 }
 impl CgyyActionResult {
     pub fn message(state: &str, message: &str) -> Self {
@@ -64,6 +73,7 @@ impl CgyyActionResult {
             message: message.into(),
             options: None,
             challenge: None,
+            review: None,
         }
     }
 }

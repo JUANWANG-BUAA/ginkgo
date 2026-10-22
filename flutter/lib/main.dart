@@ -212,7 +212,9 @@ class _GinkgoRootState extends State<GinkgoRoot> {
         ),
       ),
       _Stage.signedIn => GinkgoApp(
-        service: widget.liveService,
+        service: widget.liveService is NativeMirrorService
+            ? NativeMirrorService(expectedAccount: session?.account)
+            : widget.liveService,
         startupUpdate: startupUpdate,
         accountName: session?.name ?? session?.account,
         accountId: session?.account,

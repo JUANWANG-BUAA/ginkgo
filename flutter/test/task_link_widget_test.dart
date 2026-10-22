@@ -214,6 +214,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await press(tester, 'task-more-old');
       await press(tester, 'task-edit-old');
       expect(
         tester
@@ -467,6 +468,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await press(tester, 'task-more-precise');
       await press(tester, 'task-edit-precise');
       await tester.enterText(find.byKey(const Key('task-title')), '只改个人标题');
       await press(tester, 'task-save');

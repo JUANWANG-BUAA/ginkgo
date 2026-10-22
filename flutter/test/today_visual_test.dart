@@ -107,6 +107,10 @@ void main() {
             matching: find.text('合成焦点课程'),
           );
           expect(tester.widget<Text>(focusTitle).style!.fontSize, 20);
+          final toggle = find.byKey(const Key('today-toggle-courses'));
+          await tester.ensureVisible(toggle);
+          await tester.tap(toggle);
+          await tester.pumpAndSettle();
           final ordinary = find.byKey(const Key('today-course-1-合成普通课程'));
           expect(
             tester

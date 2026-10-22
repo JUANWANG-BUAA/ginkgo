@@ -117,6 +117,8 @@ void main() {
       expect(find.text('正在读取今天课程…'), findsOneWidget);
       service.courses.single.complete(todayFixture);
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('today-toggle-courses')));
+      await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('刷新今天').first);
       await tester.pump();
       expect(find.text('算法设计与分析'), findsOneWidget);

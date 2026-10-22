@@ -16,6 +16,7 @@ import 'service_directory.dart';
 import 'settings_page.dart';
 import 'tasks_page.dart';
 import 'today_page.dart';
+import 'workspace_shortcuts.dart';
 import 'application/contracts.dart' show RouteChoice;
 
 /// 侧栏分组。顺序即桌面侧栏的呈现顺序；新增功能只登记到既有分组即可。
@@ -107,6 +108,19 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
       onAccountAction: context.onSignOut,
       onOpenSettings: context.openSettings,
       onOpenFeature: context.openFeature,
+      shortcutChoices: [
+        for (final destination in workspaceDestinations)
+          if (destination.id != 'today' && destination.id != 'settings')
+            WorkspaceShortcut(
+              id: destination.id,
+              title: switch (destination.id) {
+                'schedule' => '查看课表',
+                'reservations' => '空间预约',
+                _ => destination.title,
+              },
+              icon: destination.icon,
+            ),
+      ],
       directory: context.mobile
           ? ServiceDirectory(
               service: context.service,

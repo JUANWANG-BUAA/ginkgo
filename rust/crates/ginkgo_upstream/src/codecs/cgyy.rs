@@ -1,5 +1,5 @@
 //! Read-only CGYY projections. No reservation tokens, lock codes or participant data.
-use crate::{AppError, ErrorCode};
+use crate::AppError;
 pub use ginkgo_domain::features::cgyy::*;
 use serde_json::Value;
 pub fn number(v: &Value) -> Option<i64> {
@@ -17,7 +17,10 @@ pub fn envelope(value: &Value) -> Result<&Value, AppError> {
         return Err(AppError::session_expired());
     }
     if code != 200 {
-        return Err(AppError::new(ErrorCode::BusinessRejected));
+        // Preserve the v1 read-parser classification. Mutation callers must not
+        // interpret this as proof of non-commit: booking_failure always keeps
+        // pending protection for generic envelope errors, including body 500.
+        return Err(AppError::new(crate::ErrorCode::BusinessRejected));
     }
     value.get("data").ok_or_else(AppError::changed)
 }
@@ -137,6 +140,19 @@ pub fn day(value: &Value, site_id: i64, date: &str) -> Result<Day, AppError> {
         spaces,
     })
 }
+/// Conservative local cancellation gate; the mutation service rechecks fresh data.
+pub(crate) fn can_cancel(row: &Value) -> bool {
+    let start = chrono::NaiveDateTime::parse_from_str(
+        &text(&row["reservationStartDate"]),
+        "%Y-%m-%d %H:%M:%S",
+    )
+    .ok();
+    let now: chrono::DateTime<chrono::Utc> = std::time::SystemTime::now().into();
+    let now = now.with_timezone(&chrono_tz::Asia::Shanghai).naive_local();
+    matches!(number(&row["orderStatus"]), Some(1 | 3))
+        && number(&row["checkStatus"]).is_some_and(|s| (0..=6).contains(&s))
+        && start.is_some_and(|start| now < start - chrono::Duration::hours(4))
+}
 pub fn orders(value: &Value) -> Result<Vec<Order>, AppError> {
     let data = envelope(value)?;
     let rows = data["content"]
@@ -146,6 +162,9 @@ pub fn orders(value: &Value) -> Result<Vec<Order>, AppError> {
     rows.iter()
         .map(|row| {
             Ok(Order {
+                order_status: number(&row["orderStatus"]),
+                check_status: number(&row["checkStatus"]),
+                can_cancel: can_cancel(row),
                 id: number(&row["id"]).ok_or_else(AppError::changed)?,
                 place: ["venueName", "siteName", "venueSpaceName"]
                     .iter()

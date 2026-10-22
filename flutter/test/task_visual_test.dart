@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/apple_design.dart';
 import 'package:ginkgo_mirror/apple_widgets.dart';
 import 'package:ginkgo_mirror/homework_detail_page.dart';
 import 'package:ginkgo_mirror/homework_task_link.dart';
@@ -8,7 +7,7 @@ import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/task_editor.dart';
 import 'package:ginkgo_mirror/tasks_page.dart';
 
-import 'task_link_widget_test.dart' show TaskFake, assignment, record;
+import 'task_link_widget_test.dart' show TaskFake, assignment, record, press;
 
 Widget visualApp(Widget page, Brightness brightness, double scale) => ginkgoApp(
   brightness: brightness,
@@ -92,8 +91,7 @@ void main() {
         for (final key in [
           'task-source-visual',
           'task-toggle-visual',
-          'task-edit-visual',
-          'task-delete-visual',
+          'task-more-visual',
         ]) {
           await reveal(tester, find.byKey(Key(key)));
           expectTouchTarget(tester, key);
@@ -101,20 +99,28 @@ void main() {
         final toggle = tester.widget<CupertinoButton>(
           find.byKey(const Key('task-toggle-visual')),
         );
-        final edit = tester.widget<CupertinoButton>(
-          find.byKey(const Key('task-edit-visual')),
-        );
-        final delete = tester.widget<CupertinoButton>(
-          find.byKey(const Key('task-delete-visual')),
+        final more = tester.widget<CupertinoButton>(
+          find.byKey(const Key('task-more-visual')),
         );
         expect(toggle.color, isNotNull);
-        expect(edit.color, isNull);
+        expect(more.color, isNull);
+        expect(find.byKey(const Key('task-edit-visual')), findsNothing);
+        expect(find.byKey(const Key('task-delete-visual')), findsNothing);
+        await press(tester, 'task-more-visual');
+        for (final key in ['task-edit-visual', 'task-delete-visual']) {
+          await reveal(tester, find.byKey(Key(key)));
+          expectTouchTarget(tester, key);
+        }
         expect(
-          (delete.child as Text).style!.color,
-          AppleDesign.statusDanger.resolveFrom(
-            tester.element(find.byType(TasksPage)),
-          ),
+          tester
+              .widget<CupertinoActionSheetAction>(
+                find.byKey(const Key('task-delete-visual')),
+              )
+              .isDestructiveAction,
+          isTrue,
         );
+        await tester.tap(find.text('取消'));
+        await tester.pumpAndSettle();
         expect(fake.calls, ['load']);
         expect(tester.takeException(), isNull);
       });

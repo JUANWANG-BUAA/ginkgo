@@ -4,6 +4,8 @@ import 'package:flutter/cupertino.dart';
 
 import 'academic_widgets.dart';
 import 'cgyy_booking_page.dart';
+import 'cgyy_order_presentation.dart';
+import 'cgyy_review_page.dart';
 import 'apple_widgets.dart';
 import 'apple_design.dart';
 import 'mirror_service.dart';
@@ -198,6 +200,9 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
   String? error;
   bool busy = false;
   int request = 0;
+  bool actionBusy = false;
+  bool guardKnown = false;
+  bool reviewRequired = true;
   static DateTime _schoolToday() {
     final now = DateTime.now().toUtc().add(const Duration(hours: 8));
     return DateTime(now.year, now.month, now.day);
@@ -233,6 +238,7 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
               date: queriedDate,
               forceRefresh: force,
             );
+      await readGuard();
       if (!mounted || serial != request) return;
       setState(() {
         busy = false;
@@ -262,46 +268,148 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
     return source is CgyyBookingGateway ? source as CgyyBookingGateway : null;
   }
 
-  Future<void> bookingAction(String action, {int? orderId}) async {
-    if (busy || bookingGateway == null) return;
-    final confirmed = await showCupertinoDialog<bool>(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: Text(action == 'cancel' ? '取消这条预约？' : '已核对预约结果？'),
-        content: const Text('请先核对学校预约记录。操作只提交一次，结果不明时不会重发。'),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('返回'),
-          ),
-          CupertinoDialogAction(
-            isDestructiveAction: action == 'cancel',
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('确认'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-    setState(() => busy = true);
-    String message = '结果待核实，请刷新记录核对，勿重复提交';
+  Future<void> readGuard() async {
+    final gateway = bookingGateway;
+    if (gateway == null) return;
     try {
-      final response = await bookingGateway!.executeCgyy({
-        'action': action,
-        'order_id': ?orderId,
-      });
-      if (response.payload != null && response.failure == null) {
-        message =
-            (jsonDecode(response.payload!) as Map<String, dynamic>)['message']
-                as String;
+      final response = await gateway.executeCgyy({'action': 'status'});
+      if (response.failure != null ||
+          response.stale ||
+          response.payload == null) {
+        throw const FormatException('Missing write status');
+      }
+      final result = jsonDecode(response.payload!) as Map<String, dynamic>;
+      if (!['ready', 'uncertain'].contains(result['state'])) {
+        throw const FormatException('Unknown write status');
+      }
+      if (mounted) {
+        setState(() {
+          guardKnown = true;
+          reviewRequired = result['state'] != 'ready';
+        });
       }
     } catch (_) {
-      /* Never retry a mutation. */
+      if (mounted) {
+        setState(() {
+          guardKnown = false;
+          reviewRequired = true;
+        });
+      }
     }
+  }
+
+  Future<void> openReview() async {
+    if (busy || actionBusy || bookingGateway == null) return;
+    setState(() => actionBusy = true);
+    await Navigator.of(context).push<bool>(
+      CupertinoPageRoute(
+        builder: (_) => CgyyReviewPage(gateway: bookingGateway!),
+      ),
+    );
     if (!mounted) return;
-    setState(() => busy = false);
+    setState(() => actionBusy = false);
     await load(force: true);
-    if (mounted) setState(() => error = message);
+  }
+
+  Future<void> openBooking() async {
+    if (busy ||
+        actionBusy ||
+        !guardKnown ||
+        reviewRequired ||
+        bookingGateway == null) {
+      return;
+    }
+    setState(() => actionBusy = true);
+    final result = await Navigator.of(context).push<Object?>(
+      CupertinoPageRoute(
+        builder: (_) => CgyyBookingPage(
+          gateway: bookingGateway!,
+          siteId: widget.site!['id'] as int,
+          siteName: widget.site!['name'] as String,
+          date: date,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    await load(force: true);
+    if (!mounted) return;
+    setState(() => actionBusy = false);
+    // Accepted and uncertain outcomes both lead to records, not back to slots.
+    if (result != null || reviewRequired) {
+      await Navigator.of(context).push<void>(
+        CupertinoPageRoute(
+          builder: (_) => _CgyyReadPage(
+            demo: widget.demo,
+            loader: widget.loader,
+            service: widget.service,
+          ),
+        ),
+      );
+      if (mounted) await load(force: true);
+    }
+  }
+
+  Future<void> cancelOrder(Map<String, dynamic> order) async {
+    if (busy ||
+        actionBusy ||
+        !guardKnown ||
+        reviewRequired ||
+        bookingGateway == null) {
+      return;
+    }
+    setState(() => actionBusy = true);
+    String? message;
+    try {
+      final confirmed = await showCupertinoDialog<bool>(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: const Text('取消这条预约？'),
+          content: Text(
+            '${cgyyOrderSummary(order)}\n\n确认后仅发送一次取消请求；会重新核对状态与开始前 4 小时限制，结果不明时不会重发。',
+          ),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () {
+                if (ModalRoute.of(context)?.isCurrent ?? false) {
+                  Navigator.pop(context, false);
+                }
+              },
+              child: const Text('保留预约'),
+            ),
+            CupertinoDialogAction(
+              key: const Key('cgyy-cancel-confirm'),
+              isDestructiveAction: true,
+              onPressed: () {
+                if (ModalRoute.of(context)?.isCurrent ?? false) {
+                  Navigator.pop(context, true);
+                }
+              },
+              child: const Text('确认取消预约'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+      final response = await bookingGateway!.executeCgyy({
+        'action': 'cancel',
+        'order_id': order['id'],
+      });
+      message = response.failure == null && response.payload != null
+          ? (jsonDecode(response.payload!) as Map<String, dynamic>)['message']
+                as String
+          : '取消结果待核实，请核对最新记录，勿重复提交';
+      if (mounted) await load(force: true);
+    } catch (_) {
+      message = '取消结果待核实，请核对最新记录，勿重复提交';
+      if (mounted) await readGuard();
+    } finally {
+      if (mounted) {
+        setState(() {
+          actionBusy = false;
+          if (message != null) error = message;
+        });
+      }
+    }
   }
 
   Future<void> chooseDate() async {
@@ -319,11 +427,19 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CupertinoButton(
-                    onPressed: () => Navigator.pop(context, false),
+                    onPressed: () {
+                      if (ModalRoute.of(context)?.isCurrent ?? false) {
+                        Navigator.pop(context, false);
+                      }
+                    },
                     child: const Text('取消'),
                   ),
                   CupertinoButton(
-                    onPressed: () => Navigator.pop(context, true),
+                    onPressed: () {
+                      if (ModalRoute.of(context)?.isCurrent ?? false) {
+                        Navigator.pop(context, true);
+                      }
+                    },
                     child: const Text('确定'),
                   ),
                 ],
@@ -350,222 +466,240 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
   }
 
   @override
-  Widget build(BuildContext context) => CupertinoPageScaffold(
-    backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
-      context,
-    ),
-    navigationBar: CupertinoNavigationBar(
-      middle: Text(widget.site == null ? '预约记录' : '时段查询'),
-      previousPageTitle: '研讨室',
-      trailing: AppleGlassButton(
-        label: '刷新查询',
-        onPressed: busy ? null : () => load(force: true),
-        child: const Icon(CupertinoIcons.refresh),
+  Widget build(BuildContext context) => PopScope(
+    canPop: !actionBusy,
+    child: CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
+        context,
       ),
-    ),
-    child: SafeArea(
-      child: ListView(
-        children: [
-          if (widget.site != null)
-            AppleSection(
-              children: [
-                _siteContent(widget.site!),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                  child: Wrap(
-                    spacing: 16,
-                    runSpacing: 12,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '查询日期',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: CupertinoColors.secondaryLabel.resolveFrom(
-                                context,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            _displayDate(date),
-                            style: const TextStyle(
-                              fontSize: 21,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      ReservationActionButton(
-                        buttonKey: const Key('cgyy-choose-date'),
-                        label: '更改日期',
-                        icon: CupertinoIcons.calendar,
-                        tint: CupertinoColors.systemTeal,
-                        onPressed: busy ? null : chooseDate,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          if (widget.site != null && bookingGateway != null)
-            AppleSection(
-              footer: const Text('提交前重新核对空档；实验写入功能，需手动验证并确认。'),
-              children: [
-                AppleListTile(
-                  leading: const Icon(CupertinoIcons.calendar_badge_plus),
-                  title: const Text('预约研讨室'),
-                  trailing: const CupertinoListTileChevron(),
-                  onTap: busy
-                      ? null
-                      : () async {
-                          await Navigator.of(context).push(
-                            CupertinoPageRoute<void>(
-                              builder: (_) => CgyyBookingPage(
-                                gateway: bookingGateway!,
-                                siteId: widget.site!['id'] as int,
-                                siteName: widget.site!['name'] as String,
-                                date: date,
-                              ),
-                            ),
-                          );
-                          if (mounted) await load(force: true);
-                        },
-                ),
-              ],
-            ),
-          if (busy)
-            const Padding(
-              padding: EdgeInsets.all(24),
-              child: CupertinoActivityIndicator(),
-            ),
-          if (error != null)
-            AppleSection(
-              children: [
-                AppleEmptyState(
-                  title: error!,
-                  description: day != null || orders != null
-                      ? '保留上次结果，请核对下方实际日期。'
-                      : '需要可用的直连学校会话；可记住密码后重试。',
-                  action: '重试',
-                  onAction: () => load(force: true),
-                  error: true,
-                ),
-              ],
-            ),
-          if (day != null) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(widget.site == null ? '预约记录' : '时段查询'),
+        automaticallyImplyLeading: bookingGateway == null,
+        previousPageTitle: bookingGateway == null ? '研讨室' : null,
+        leading: bookingGateway == null
+            ? null
+            : CupertinoButton(
+                key: const Key('cgyy-records-back'),
+                minimumSize: const Size(48, 48),
+                padding: EdgeInsets.zero,
+                onPressed: actionBusy
+                    ? null
+                    : () => Navigator.of(context).pop(),
+                child: const Icon(CupertinoIcons.back, semanticLabel: '返回研讨室'),
+              ),
+        trailing: AppleGlassButton(
+          label: '刷新查询',
+          onPressed: busy || actionBusy ? null : () => load(force: true),
+          child: const Icon(CupertinoIcons.refresh),
+        ),
+      ),
+      child: SafeArea(
+        child: ListView(
+          children: [
+            if (bookingGateway != null && (!guardKnown || reviewRequired))
+              AppleSection(
+                header: const Text('写入保护'),
+                footer: const Text('预约记录出现不代表审批通过。核实前不会再次预约或取消。'),
                 children: [
-                  Text(
-                    '空间时段',
-                    style: const TextStyle(
-                      fontSize: 19,
-                      fontWeight: FontWeight.w600,
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      guardKnown
+                          ? '上次操作结果待核实，请先核对最新预约记录。'
+                          : '尚未确认写入状态，暂不可提交。请刷新或读取最新记录核对。',
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '实际显示 ${_displayDate(day!['date'] as String)}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: CupertinoColors.secondaryLabel.resolveFrom(
-                        context,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const AcademicBadge(
-                    '仅供查询',
-                    tint: CupertinoColors.systemTeal,
-                    icon: CupertinoIcons.info_circle,
+                  CupertinoButton(
+                    key: const Key('cgyy-open-review'),
+                    minimumSize: const Size(48, 48),
+                    onPressed: busy || actionBusy ? null : openReview,
+                    child: const Text('读取最新记录并核对'),
                   ),
                 ],
               ),
-            ),
-            if ((day!['spaces'] as List).isEmpty)
+            if (widget.site != null)
+              AppleSection(
+                children: [
+                  _siteContent(widget.site!),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                    child: Wrap(
+                      spacing: 16,
+                      runSpacing: 12,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '查询日期',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: CupertinoColors.secondaryLabel
+                                    .resolveFrom(context),
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              _displayDate(date),
+                              style: const TextStyle(
+                                fontSize: 21,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        ReservationActionButton(
+                          buttonKey: const Key('cgyy-choose-date'),
+                          label: '更改日期',
+                          icon: CupertinoIcons.calendar,
+                          tint: CupertinoColors.systemTeal,
+                          onPressed: busy ? null : chooseDate,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            if (widget.site != null && bookingGateway != null)
+              AppleSection(
+                footer: const Text('提交前重新核对空档；实验写入功能，需手动验证并确认。'),
+                children: [
+                  AppleListTile(
+                    leading: const Icon(CupertinoIcons.calendar_badge_plus),
+                    title: const Text('预约研讨室'),
+                    trailing: const CupertinoListTileChevron(),
+                    key: const Key('cgyy-open-booking'),
+                    onTap: busy || actionBusy || !guardKnown || reviewRequired
+                        ? null
+                        : openBooking,
+                  ),
+                ],
+              ),
+            if (busy)
+              const Padding(
+                padding: EdgeInsets.all(24),
+                child: CupertinoActivityIndicator(),
+              ),
+            if (error != null)
+              AppleSection(
+                children: [
+                  AppleEmptyState(
+                    title: error!,
+                    description: day != null || orders != null
+                        ? '保留上次结果，请核对下方实际日期。'
+                        : '需要可用的直连学校会话；可记住密码后重试。',
+                    action: '重试',
+                    onAction: () => load(force: true),
+                    error: true,
+                  ),
+                ],
+              ),
+            if (day != null) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '空间时段',
+                      style: const TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '实际显示 ${_displayDate(day!['date'] as String)}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: CupertinoColors.secondaryLabel.resolveFrom(
+                          context,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const AcademicBadge(
+                      '仅供查询',
+                      tint: CupertinoColors.systemTeal,
+                      icon: CupertinoIcons.info_circle,
+                    ),
+                  ],
+                ),
+              ),
+              if ((day!['spaces'] as List).isEmpty)
+                const AppleSection(
+                  children: [
+                    AppleEmptyState(title: '当天暂无空间时段', description: '可切换其他日期。'),
+                  ],
+                ),
+              for (final space in day!['spaces'] as List)
+                AppleSection(
+                  header: Text(space['name'] as String),
+                  children: [
+                    if ((space['slots'] as List).isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('暂无时段'),
+                      ),
+                    for (final slot in space['slots'] as List)
+                      _CgyySlotRow(
+                        time: slot['time'] as String,
+                        status: slot['status'] as String,
+                      ),
+                  ],
+                ),
+            ],
+            if (orders?.isEmpty == true)
               const AppleSection(
                 children: [
-                  AppleEmptyState(title: '当天暂无空间时段', description: '可切换其他日期。'),
+                  AppleEmptyState(title: '暂无预约记录', description: '学校返回的最近记录为空。'),
                 ],
               ),
-            for (final space in day!['spaces'] as List)
+            if (orders != null && orders!.isNotEmpty)
               AppleSection(
-                header: Text(space['name'] as String),
+                header: const Text('最近 20 条'),
                 children: [
-                  if ((space['slots'] as List).isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Text('暂无时段'),
-                    ),
-                  for (final slot in space['slots'] as List)
-                    _CgyySlotRow(
-                      time: slot['time'] as String,
-                      status: slot['status'] as String,
+                  for (final order in orders!)
+                    _CgyyTileContent(
+                      icon: CupertinoIcons.doc_text,
+                      tint: CupertinoColors.systemIndigo,
+                      title: (order['place'] as String).isEmpty
+                          ? '预约记录'
+                          : order['place'] as String,
+                      detail:
+                          '${_displayDate(order['date'] as String)}\n${order['time']}',
+                      badges: [
+                        AcademicBadge(
+                          cgyyOrderStatus(order),
+                          tint: CupertinoColors.systemIndigo,
+                          icon: CupertinoIcons.info_circle,
+                        ),
+                      ],
                     ),
                 ],
               ),
-          ],
-          if (orders?.isEmpty == true)
-            const AppleSection(
-              children: [
-                AppleEmptyState(title: '暂无预约记录', description: '学校返回的最近记录为空。'),
-              ],
-            ),
-          if (orders != null && orders!.isNotEmpty)
-            AppleSection(
-              header: const Text('最近 20 条'),
-              children: [
-                for (final order in orders!)
-                  _CgyyTileContent(
-                    icon: CupertinoIcons.doc_text,
-                    tint: CupertinoColors.systemIndigo,
-                    title: (order['place'] as String).isEmpty
-                        ? '预约记录'
-                        : order['place'] as String,
-                    detail:
-                        '${_displayDate(order['date'] as String)}\n${order['time']}',
-                    badges: [
-                      AcademicBadge(
-                        order['status'] as String,
-                        tint: CupertinoColors.systemIndigo,
-                        icon: CupertinoIcons.info_circle,
+            if (widget.site == null && bookingGateway != null)
+              AppleSection(
+                header: const Text('预约管理'),
+                footer: const Text('取消前会核对订单状态及开始前 4 小时限制；不符合条件不会发送请求。'),
+                children: [
+                  for (final order in orders ?? <Map<String, dynamic>>[])
+                    if (order['can_cancel'] == true)
+                      AppleListTile(
+                        key: ValueKey('cgyy-cancel-${order['id']}'),
+                        title: Text('取消 · ${order['place'] as String}'),
+                        subtitle: Text(cgyyOrderSummary(order)),
+                        onTap:
+                            busy || actionBusy || !guardKnown || reviewRequired
+                            ? null
+                            : () => cancelOrder(order),
                       ),
-                    ],
-                  ),
-              ],
-            ),
-          if (widget.site == null && bookingGateway != null)
-            AppleSection(
-              header: const Text('预约管理'),
-              footer: const Text('取消前会核对订单状态及开始前 4 小时限制；不符合条件不会发送请求。'),
-              children: [
-                for (final order in orders ?? <Map<String, dynamic>>[])
-                  if (['订单状态 1', '订单状态 3'].contains(order['status']))
-                    AppleListTile(
-                      title: Text('取消 · ${order['place']}'),
-                      subtitle: Text('${order['date']} · ${order['time']}'),
-                      onTap: busy
-                          ? null
-                          : () => bookingAction(
-                              'cancel',
-                              orderId: order['id'] as int,
-                            ),
-                    ),
-                AppleListTile(
-                  title: const Text('我已核对上次操作结果'),
-                  subtitle: const Text('回查成功后，手动解除结果待核实保护'),
-                  onTap: busy ? null : () => bookingAction('acknowledge'),
-                ),
-              ],
-            ),
-          const SizedBox(height: 32),
-        ],
+                ],
+              ),
+            const SizedBox(height: 32),
+          ],
+        ),
       ),
     ),
   );

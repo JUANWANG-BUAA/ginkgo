@@ -40,6 +40,15 @@ void main() {
         find.byWidgetPredicate(
           (widget) =>
               widget.key is ValueKey<String> &&
+              (widget.key! as ValueKey<String>).value.startsWith('task-more-'),
+        ),
+      );
+
+      await tapTask(
+        tester,
+        find.byWidgetPredicate(
+          (widget) =>
+              widget.key is ValueKey<String> &&
               (widget.key! as ValueKey<String>).value.startsWith('task-edit-'),
         ),
       );
@@ -55,15 +64,25 @@ void main() {
               ),
         ),
       );
-      expect(find.text('已完成'), findsOneWidget);
+      expect(find.text('已完成（1）'), findsOneWidget);
       await tester.pumpWidget(ginkgoApp(home: const SizedBox()));
       await settle(tester);
       await tester.pumpWidget(
         ginkgoApp(home: TasksPage(demo: true, storageRoot: directory.path)),
       );
       await settle(tester);
+      await tapTask(tester, find.byKey(const Key('tasks-completed-toggle')));
       expect(find.text('修改设备待办'), findsOneWidget);
-      expect(find.text('已完成'), findsOneWidget);
+      expect(find.text('已完成（1）'), findsOneWidget);
+      await tapTask(
+        tester,
+        find.byWidgetPredicate(
+          (widget) =>
+              widget.key is ValueKey<String> &&
+              (widget.key! as ValueKey<String>).value.startsWith('task-more-'),
+        ),
+      );
+
       await tapTask(
         tester,
         find.byWidgetPredicate(

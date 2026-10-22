@@ -10,16 +10,32 @@ import 'mirror_service.dart';
 import 'query_cache_scope.dart';
 import 'workspace_back_guard.dart';
 import 'workspace_catalog.dart';
+import 'workspace_tab_transition.dart';
 import 'reminders.dart';
 import 'reminder_badge.dart';
 import 'diagnostic_hints.dart';
 import 'startup_update.dart';
+
+Color _accentForeground(Color accent) {
+  Color foreground(Color background) => background.computeLuminance() > 0.179
+      ? CupertinoColors.black
+      : CupertinoColors.white;
+  if (accent is CupertinoDynamicColor) {
+    return CupertinoDynamicColor.withBrightness(
+      color: foreground(accent.color),
+      darkColor: foreground(accent.darkColor),
+    );
+  }
+  return foreground(accent);
+}
 
 CupertinoThemeData ginkgoTheme([
   Brightness? brightness,
   Color accent = GinkgoColors.accent,
 ]) => CupertinoThemeData(
   primaryColor: accent,
+  // Filled controls need a contrasting foreground for both palette variants.
+  primaryContrastingColor: _accentForeground(accent),
   textTheme: CupertinoTextThemeData(
     textStyle: GinkgoTypography.body,
     navTitleTextStyle: const TextStyle(
@@ -203,7 +219,19 @@ class _MobileWorkspaceState extends State<_MobileWorkspace> {
           final index = mobileDestinations.indexWhere(
             (destination) => destination.id == id,
           );
-          if (index >= 0) tabs.index = index;
+          if (!mounted || !navigatorContext.mounted) return;
+          if (index >= 0) {
+            tabs.index = index;
+            return;
+          }
+          final destination = destinationById(id);
+          if (destination == null) return;
+          Navigator.of(navigatorContext).push(
+            CupertinoPageRoute<void>(
+              builder: (detailContext) =>
+                  destination.build(_contextFor(detailContext)),
+            ),
+          );
         },
         openSettings: () => Navigator.of(navigatorContext).push(
           CupertinoPageRoute<void>(
@@ -223,30 +251,38 @@ class _MobileWorkspaceState extends State<_MobileWorkspace> {
       onBack: () {},
       child: Stack(
         children: [
-          CupertinoTabScaffold(
+          WorkspaceTabMotion(
             controller: tabs,
-            tabBar: CupertinoTabBar(
-              items: [
-                for (final destination in destinations)
-                  BottomNavigationBarItem(
-                    icon: ReminderBadge(
-                      count:
-                          ReminderScope.of(context)?.unread(destination.id) ??
-                          0,
-                      child: Icon(destination.icon),
+            child: CupertinoTabScaffold(
+              controller: tabs,
+              tabBar: CupertinoTabBar(
+                items: [
+                  for (final destination in destinations)
+                    BottomNavigationBarItem(
+                      icon: ReminderBadge(
+                        count:
+                            ReminderScope.of(context)?.unread(destination.id) ??
+                            0,
+                        child: Icon(destination.icon),
+                      ),
+                      label: destination.mobileLabel ?? destination.title,
                     ),
-                    label: destination.mobileLabel ?? destination.title,
+                ],
+              ),
+              tabBuilder: (tabContext, index) => WorkspaceTabTransition(
+                index: index,
+                child: CupertinoTabView(
+                  navigatorObservers: [_DisarmExitOnNavigation(back)],
+                  builder: (navigatorContext) => guardWorkspaceBack(
+                    onBack: () => back.back(
+                      atWorkspace: tabs.index == 0,
+                      goToWorkspace: () => tabs.index = 0,
+                    ),
+                    child: destinations[index].build(
+                      _contextFor(navigatorContext),
+                    ),
                   ),
-              ],
-            ),
-            tabBuilder: (tabContext, index) => CupertinoTabView(
-              navigatorObservers: [_DisarmExitOnNavigation(back)],
-              builder: (navigatorContext) => guardWorkspaceBack(
-                onBack: () => back.back(
-                  atWorkspace: tabs.index == 0,
-                  goToWorkspace: () => tabs.index = 0,
                 ),
-                child: destinations[index].build(_contextFor(navigatorContext)),
               ),
             ),
           ),

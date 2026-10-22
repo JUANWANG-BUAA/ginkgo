@@ -1,15 +1,32 @@
 import 'dart:convert';
 
+import 'package:path_provider/path_provider.dart';
+
 import '../application/contracts.dart';
 import '../application/mirror_service.dart';
 import '../src/rust/api/live.dart' as live;
 import '../src/rust/api/mirror.dart' as rust;
 
 final class NativeMirrorService implements MirrorService, CgyyBookingGateway {
-  const NativeMirrorService();
+  const NativeMirrorService({this.expectedAccount});
+  final String? expectedAccount;
   @override
-  Future<ReadOnlyResponse> executeCgyy(Map<String, Object?> command) =>
-      live.executeCgyy(command: jsonEncode(command));
+  Future<ReadOnlyResponse> executeCgyy(Map<String, Object?> command) async {
+    // Old routes/callbacks must not mutate a newly authenticated account.
+    // This value is a precondition only; Rust still derives the actual owner.
+    if (expectedAccount?.isNotEmpty != true) {
+      throw StateError('CGYY requires an account-bound workspace');
+    }
+    final root = await getApplicationSupportDirectory();
+    return live.executeCgyy(
+      command: jsonEncode({
+        ...command,
+        'storage_root': root.path,
+        'expected_account': expectedAccount,
+      }),
+    );
+  }
+
   @override
   Future<live.ReadOnlyResponse> checkinProgress() => live.checkinLoadProgress();
   @override

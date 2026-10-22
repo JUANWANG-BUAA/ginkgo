@@ -744,6 +744,9 @@ void main() {
 
     expect(find.text('2026年10月20日 · 周二'), findsOneWidget);
     expect(find.text('今天 1 节课'), findsOneWidget);
+    expect(find.byKey(const Key('today-course-0-算法设计与分析')), findsNothing);
+    await tester.tap(find.byKey(const Key('today-toggle-courses')));
+    await tester.pumpAndSettle();
     expect(find.byKey(const Key('today-course-0-算法设计与分析')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

@@ -45,9 +45,11 @@ set -eu
 (
   cd flutter
   flutter pub get
-  flutter build apk --release --target-platform android-arm64 --target lib/main.dart --no-pub
+  flutter build apk --release --target-platform android-arm64 --target lib/main.dart --pub
 )
 ```
+
+2026-10-23 勘误：本机Flutter 3.47生产构建勿用 `--no-pub`，它会跳过release模式插件注册器重生成，造成integration_test的dev注册残留；不能手改生成文件。后继发布见 [Alpha.7记录](2026-10-23-android-alpha7-release.md)。
 
 不得在该构建后再运行 integration_test 覆写同名产物。Android 的 `.github/workflows/mirror.yml` 当前只构建Debug artifact，不能将其当签名发布流水线；Windows 的tag发布流程也不能用于Android。
 

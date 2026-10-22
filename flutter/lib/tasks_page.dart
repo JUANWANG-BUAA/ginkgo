@@ -8,6 +8,8 @@ import 'homework_detail_page.dart';
 import 'mirror_service.dart';
 import 'task_editor.dart';
 
+enum _TaskAction { edit, delete }
+
 class TasksPage extends StatefulWidget {
   const TasksPage({
     super.key,
@@ -33,6 +35,7 @@ class _TasksPageState extends State<TasksPage> {
   int generation = 0;
   final targetKey = GlobalKey();
   bool located = false;
+  bool completedExpanded = false;
   CampusGateway get service =>
       widget.service ?? mirrorServiceFor(demo: widget.demo);
 
@@ -53,6 +56,7 @@ class _TasksPageState extends State<TasksPage> {
       busy = false;
       readable = false;
       located = false;
+      completedExpanded = false;
       load();
     } else if (oldWidget.initialTaskId != widget.initialTaskId) {
       located = false;
@@ -62,6 +66,12 @@ class _TasksPageState extends State<TasksPage> {
 
   void locate() {
     if (located || widget.initialTaskId == null) return;
+    if (!completedExpanded &&
+        tasks.any(
+          (task) => task.id == widget.initialTaskId && task.completed,
+        )) {
+      setState(() => completedExpanded = true);
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || located) return;
       final target = targetKey.currentContext;
@@ -141,6 +151,66 @@ class _TasksPageState extends State<TasksPage> {
         ),
       ),
     );
+  }
+
+  Future<void> taskMenu(LocalTaskRecord task) async {
+    final epoch = generation;
+    final action = await showCupertinoModalPopup<_TaskAction>(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: Text(task.title),
+        actions: [
+          CupertinoActionSheetAction(
+            key: Key('task-edit-${task.id}'),
+            onPressed: () => Navigator.pop(context, _TaskAction.edit),
+            child: const Text('编辑'),
+          ),
+          CupertinoActionSheetAction(
+            key: Key('task-delete-${task.id}'),
+            isDestructiveAction: true,
+            onPressed: () => Navigator.pop(context, _TaskAction.delete),
+            child: const Text('删除'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('取消'),
+        ),
+      ),
+    );
+    if (!mounted || epoch != generation || busy || !readable) return;
+    switch (action) {
+      case _TaskAction.edit:
+        await editor(task);
+      case _TaskAction.delete:
+        await remove(task);
+      case null:
+        break;
+    }
+  }
+
+  Future<void> pageMenu() async {
+    final epoch = generation;
+    final refresh = await showCupertinoModalPopup<bool>(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: const Text('待办操作'),
+        actions: [
+          CupertinoActionSheetAction(
+            key: const Key('tasks-refresh'),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('刷新待办'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('取消'),
+        ),
+      ),
+    );
+    if (refresh == true && mounted && epoch == generation && !busy) {
+      await load();
+    }
   }
 
   Future<void> remove(LocalTaskRecord task) async {
@@ -318,39 +388,92 @@ class _TasksPageState extends State<TasksPage> {
                   ),
                 ),
               ),
-              CupertinoButton(
-                key: Key('task-edit-${task.id}'),
-                minimumSize: const Size(48, 48),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                onPressed: busy || !readable ? null : () => editor(task),
-                child: Text(
-                  '编辑',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color:
-                        (busy || !readable
-                                ? CupertinoColors.secondaryLabel
-                                : AppleDesign.statusInactive)
-                            .resolveFrom(context),
-                  ),
-                ),
-              ),
-              CupertinoButton(
-                key: Key('task-delete-${task.id}'),
-                minimumSize: const Size(48, 48),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                onPressed: busy || !readable ? null : () => remove(task),
-                child: Text(
-                  '删除',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: AppleDesign.statusDanger.resolveFrom(context),
-                  ),
+              Semantics(
+                label: '${task.title}，更多操作',
+                button: true,
+                child: CupertinoButton(
+                  key: Key('task-more-${task.id}'),
+                  minimumSize: const Size(48, 48),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  onPressed: busy || !readable ? null : () => taskMenu(task),
+                  child: const Text('更多', style: TextStyle(fontSize: 15)),
                 ),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget headerActions() => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Semantics(
+        label: '待办更多操作',
+        button: true,
+        child: CupertinoButton(
+          key: const Key('tasks-more'),
+          minimumSize: const Size(48, 48),
+          padding: EdgeInsets.zero,
+          onPressed: busy ? null : pageMenu,
+          child: const Icon(CupertinoIcons.ellipsis),
+        ),
+      ),
+      Semantics(
+        label: '新增待办',
+        button: true,
+        child: CupertinoButton(
+          key: const Key('tasks-add'),
+          minimumSize: const Size(48, 48),
+          padding: EdgeInsets.zero,
+          onPressed: busy || !readable ? null : () => editor(),
+          child: const Icon(CupertinoIcons.add),
+        ),
+      ),
+    ],
+  );
+
+  Widget pageHeader() {
+    if (AppleDesign.desktop(context)) {
+      return ApplePageHeader(
+        largeTitle: const Text('待办'),
+        border: null,
+        trailing: headerActions(),
+      );
+    }
+    // Cupertino's navigation toolbar constrains trailing controls to 44dp.
+    // A page-local header keeps all phone actions at least 48dp without
+    // changing the shared navigation components.
+    return PinnedHeaderSliver(
+      child: ColoredBox(
+        color: CupertinoColors.systemGroupedBackground.resolveFrom(context),
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Row(
+              children: [
+                if (Navigator.of(context).canPop())
+                  SizedBox(
+                    height: 48,
+                    child: CupertinoNavigationBarBackButton(
+                      key: const Key('tasks-back'),
+                      previousPageTitle: '',
+                      onPressed: () => Navigator.of(context).maybePop(),
+                    ),
+                  ),
+                Expanded(
+                  child: Semantics(
+                    header: true,
+                    child: Text('待办', style: GinkgoTypography.title2),
+                  ),
+                ),
+                headerActions(),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -363,15 +486,7 @@ class _TasksPageState extends State<TasksPage> {
     child: CustomScrollView(
       key: const Key('tasks-scroll'),
       slivers: [
-        ApplePageHeader(
-          largeTitle: const Text('待办'),
-          border: null,
-          trailing: AppleGlassButton(
-            label: '新增待办',
-            onPressed: busy || !readable ? null : () => editor(),
-            child: const Icon(CupertinoIcons.add),
-          ),
-        ),
+        pageHeader(),
         SliverToBoxAdapter(
           child: Column(
             children: [
@@ -382,21 +497,6 @@ class _TasksPageState extends State<TasksPage> {
                   style: GinkgoTypography.footnote.copyWith(
                     color: AppleDesign.statusInactive.resolveFrom(context),
                     height: 1.4,
-                  ),
-                ),
-              ),
-              CupertinoButton(
-                minimumSize: const Size(48, 48),
-                onPressed: busy ? null : load,
-                child: Text(
-                  '刷新待办',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color:
-                        (busy
-                                ? CupertinoColors.secondaryLabel
-                                : AppleDesign.statusInactive)
-                            .resolveFrom(context),
                   ),
                 ),
               ),
@@ -433,28 +533,58 @@ class _TasksPageState extends State<TasksPage> {
                   padding: EdgeInsets.all(24),
                   child: Text('该待办已不在当前账号的本机列表中。'),
                 ),
-              for (final completed in [false, true])
-                for (final noDue in [false, true])
-                  if (tasks.any(
-                    (t) => t.completed == completed && t.due.isEmpty == noDue,
-                  ))
-                    AppleSection(
-                      header: Text(
-                        completed
-                            ? '已完成'
-                            : noDue
-                            ? '无截止时间'
-                            : '待完成 · 有截止',
+              for (final noDue in [false, true])
+                if (tasks.any((t) => !t.completed && t.due.isEmpty == noDue))
+                  AppleSection(
+                    header: Text(noDue ? '无截止时间' : '待完成 · 有截止'),
+                    children: [
+                      for (final task in tasks.where(
+                        (t) => !t.completed && t.due.isEmpty == noDue,
+                      ))
+                        row(task),
+                    ],
+                  ),
+              if (tasks.any((t) => t.completed))
+                AppleSection(
+                  key: const Key('tasks-completed-section'),
+                  // Keep target geometry stable when opening a located task.
+                  animateSize: false,
+                  children: [
+                    Semantics(
+                      expanded: completedExpanded,
+                      child: CupertinoButton(
+                        key: const Key('tasks-completed-toggle'),
+                        minimumSize: const Size(48, 48),
+                        padding: const EdgeInsets.all(16),
+                        onPressed: () => setState(
+                          () => completedExpanded = !completedExpanded,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '已完成（${tasks.where((t) => t.completed).length}）',
+                                style: GinkgoTypography.headline.copyWith(
+                                  color: CupertinoColors.secondaryLabel
+                                      .resolveFrom(context),
+                                ),
+                              ),
+                            ),
+                            Icon(
+                              completedExpanded
+                                  ? CupertinoIcons.chevron_up
+                                  : CupertinoIcons.chevron_down,
+                              size: 18,
+                            ),
+                          ],
+                        ),
                       ),
-                      children: [
-                        for (final task in tasks.where(
-                          (t) =>
-                              t.completed == completed &&
-                              t.due.isEmpty == noDue,
-                        ))
-                          row(task),
-                      ],
                     ),
+                    if (completedExpanded)
+                      for (final task in tasks.where((t) => t.completed))
+                        row(task),
+                  ],
+                ),
               const SizedBox(height: 96),
             ],
           ),

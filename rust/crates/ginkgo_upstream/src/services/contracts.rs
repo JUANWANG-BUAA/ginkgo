@@ -82,8 +82,17 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
         .map_err(|_| AppError::changed())?,
         "cgyy.venues" => serde_json::to_value(crate::features::cgyy::sites(&input)?)
             .map_err(|_| AppError::changed())?,
-        "cgyy.orders" => serde_json::to_value(crate::features::cgyy::orders(&input)?)
-            .map_err(|_| AppError::changed())?,
+        // The shared v1 contract predates live approval/cancellation metadata.
+        // Keep its exact named projection, while live APIs retain the richer Order.
+        "cgyy.orders" => Value::Array(
+            crate::features::cgyy::orders(&input)?
+                .into_iter()
+                .map(|order| {
+                    json!({"id": order.id, "place": order.place, "date": order.date,
+                "time": order.time, "status": order.status})
+                })
+                .collect(),
+        ),
         "cgyy.day" => serde_json::to_value(crate::features::cgyy::day(
             &input["response"],
             input["site_id"].as_i64().ok_or_else(AppError::invalid)?,

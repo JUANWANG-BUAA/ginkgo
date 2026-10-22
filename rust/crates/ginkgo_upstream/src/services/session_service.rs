@@ -60,7 +60,7 @@ pub(crate) struct Identity {
     pub library_token: Option<String>,
     pub cgyy_token: Option<String>,
     pub cgyy_booking: Option<super::cgyy_booking_service::BookingContext>,
-    pub cgyy_review_required: bool,
+    pub generation: u64,
 }
 
 pub struct SchoolClient<T: HttpTransport, V: CredentialVault> {
@@ -78,6 +78,10 @@ pub struct SchoolClient<T: HttpTransport, V: CredentialVault> {
     gateway_generation: AtomicU64,
     pub(crate) graduate_request_gate: tokio::sync::Mutex<()>,
     pub(crate) library_login_gate: tokio::sync::Mutex<()>,
+    // In-memory safety journal, deliberately outside the resettable Identity.
+    pub(crate) cgyy_safety:
+        Mutex<std::collections::BTreeMap<String, super::cgyy_booking_service::BookingSafety>>,
+    pub(crate) cgyy_mutation_gate: tokio::sync::Mutex<()>,
 }
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
@@ -97,11 +101,15 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             gateway_generation: AtomicU64::new(0),
             graduate_request_gate: tokio::sync::Mutex::new(()),
             library_login_gate: tokio::sync::Mutex::new(()),
+            cgyy_safety: Mutex::default(),
+            cgyy_mutation_gate: tokio::sync::Mutex::new(()),
         }
     }
 
     pub(crate) fn set_authenticated(&self, account: String, profile: UserProfile) {
-        *self.identity.lock() = Identity {
+        let mut identity = self.identity.lock();
+        *identity = Identity {
+            generation: identity.generation.wrapping_add(1),
             authenticated: Some(AuthenticatedIdentity { account, profile }),
             ..Identity::default()
         };
@@ -145,14 +153,29 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             return Ok(());
         }
         self.check_automatic_login_failure()?;
-        let account = self.current_account()?;
+        let owner = self.booking_owner()?;
+        let account = owner.account.clone();
         let credentials = self
             .vault
             .load(&account)?
             .ok_or_else(AppError::session_expired)?;
         let result = match auth::login(&self.session, &credentials).await {
             Ok(LoginResult::SignedIn(profile)) => {
-                self.update_profile(&account, profile)?;
+                {
+                    let mut identity = self.identity.lock();
+                    if identity.generation != owner.generation {
+                        return Err(AppError::session_expired());
+                    }
+                    let user = identity
+                        .authenticated
+                        .as_mut()
+                        .filter(|u| u.account == account)
+                        .ok_or_else(AppError::session_expired)?;
+                    user.profile = profile;
+                    identity.generation = identity.generation.wrapping_add(1);
+                    identity.cgyy_booking = None;
+                    identity.cgyy_token = None;
+                }
                 self.school_generation.fetch_add(1, Ordering::Release);
                 Ok(())
             }
@@ -224,7 +247,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     }
 
     fn clear_identity(&self) {
-        *self.identity.lock() = Identity::default();
+        {
+            let mut identity = self.identity.lock();
+            *identity = Identity {
+                generation: identity.generation.wrapping_add(1),
+                ..Identity::default()
+            };
+        }
         self.clear_automatic_login_failure();
         self.session.clear_cookies();
         self.clear_caches();
@@ -391,9 +420,15 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
     /// Best-effort upstream logout; local identity and snapshots are always
     /// cleared and the saved password is removed.
     async fn sign_out(&self) {
-        let account = std::mem::take(&mut *self.identity.lock())
-            .authenticated
-            .map(|user| user.account);
+        let account = {
+            let mut identity = self.identity.lock();
+            let account = identity.authenticated.take().map(|user| user.account);
+            *identity = Identity {
+                generation: identity.generation.wrapping_add(1),
+                ..Identity::default()
+            };
+            account
+        };
         let _ = auth::logout(&self.session).await;
         // A route change or failed restore can already have cleared identity.
         // Explicit logout must still remove saved accounts to prevent restoration.

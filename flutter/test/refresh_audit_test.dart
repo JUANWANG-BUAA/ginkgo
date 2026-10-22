@@ -43,6 +43,8 @@ void main() {
       await tester.pumpWidget(ginkgoApp(home: TodayPage(service: service)));
       service.todayCalls.single.complete(todayFixture);
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('today-toggle-courses')));
+      await tester.pumpAndSettle();
       final refresh = tester.widget<CupertinoSliverRefreshControl>(
         find.byType(CupertinoSliverRefreshControl, skipOffstage: false),
       );

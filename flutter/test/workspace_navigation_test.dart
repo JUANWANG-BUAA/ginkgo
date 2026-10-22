@@ -5,6 +5,7 @@ import 'package:ginkgo_mirror/apple_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 import 'package:ginkgo_mirror/today_page.dart';
+import 'package:ginkgo_mirror/today_course_focus.dart';
 
 import 'mirror_widget_test.dart'
     show ControlledService, mockLocalTaskSupportDirectory;
@@ -212,8 +213,12 @@ void main() {
     viewport(tester, const Size(430, 932));
     await tester.pumpWidget(GinkgoApp(service: WorkspaceService()));
     await tester.pumpAndSettle();
+    expect(find.text('账户与设置'), findsNothing);
+    expect(tester.getRect(find.byType(TodayCourseFocus)).top, lessThan(400));
+    await tester.tap(find.byKey(const Key('today-toggle-courses')));
+    await tester.pumpAndSettle();
     final course = find.byKey(const Key('today-course-0-合成课程名称'));
-    expect(tester.getRect(course).top, lessThan(400));
+    expect(course, findsOneWidget);
     final courseTop = tester.getRect(course).top;
     expect(find.text('08:00'), findsOneWidget);
     expect(find.text('09:35'), findsOneWidget);
@@ -302,6 +307,8 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('today-toggle-courses')));
       await tester.pumpAndSettle();
       expect(find.text('时间未提供'), findsOneWidget);
       expect(find.text('地点未提供'), findsOneWidget);

@@ -1,0 +1,413 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:ginkgo_mirror/app_preferences.dart';
+import 'package:ginkgo_mirror/grades_page.dart';
+import 'package:ginkgo_mirror/library_page.dart';
+import 'package:ginkgo_mirror/tasks_page.dart';
+import 'package:ginkgo_mirror/today_page.dart';
+import 'package:ginkgo_mirror/workspace_shell.dart';
+import 'package:ginkgo_mirror/workspace_tab_transition.dart';
+
+import 'mirror_widget_test.dart'
+    show ControlledService, mockLocalTaskSupportDirectory;
+
+Finder transition(int index, {bool skipOffstage = true}) =>
+    find.byWidgetPredicate(
+      (widget) => widget is WorkspaceTabTransition && widget.index == index,
+      skipOffstage: skipOffstage,
+    );
+
+double displacement(WidgetTester tester, int index) => tester
+    .widget<Transform>(
+      find
+          .descendant(of: transition(index), matching: find.byType(Transform))
+          .first,
+    )
+    .transform
+    .storage[12];
+
+double opacity(WidgetTester tester, int index) => tester
+    .widget<Opacity>(
+      find
+          .descendant(of: transition(index), matching: find.byType(Opacity))
+          .first,
+    )
+    .opacity;
+
+Widget motionHarness(
+  CupertinoTabController tabs, {
+  bool tickerEnabled = true,
+  AppPreferences? preferences,
+  Widget Function(int)? page,
+}) => ginkgoApp(
+  preferences: preferences,
+  home: TickerMode(
+    enabled: tickerEnabled,
+    child: WorkspaceTabMotion(
+      controller: tabs,
+      child: CupertinoTabScaffold(
+        controller: tabs,
+        tabBar: CupertinoTabBar(
+          items: [
+            for (var i = 0; i < 5; i++)
+              BottomNavigationBarItem(
+                icon: const Icon(CupertinoIcons.circle),
+                label: 'tab$i',
+              ),
+          ],
+        ),
+        tabBuilder: (_, index) => WorkspaceTabTransition(
+          index: index,
+          child: CupertinoTabView(
+            builder: (_) => page?.call(index) ?? Text('page$index'),
+          ),
+        ),
+      ),
+    ),
+  ),
+);
+
+void phone(WidgetTester tester) {
+  tester.view.physicalSize = const Size(430, 932);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+}
+
+Future<void> tapTab(WidgetTester tester, String label) => tester.tap(
+  find.descendant(of: find.byType(CupertinoTabBar), matching: find.text(label)),
+);
+
+void main() {
+  setUp(mockLocalTaskSupportDirectory);
+
+  testWidgets(
+    'first page is still; index direction, fade and 210ms completion',
+    (tester) async {
+      phone(tester);
+      final tabs = CupertinoTabController();
+      addTearDown(tabs.dispose);
+      await tester.pumpWidget(motionHarness(tabs));
+      expect(displacement(tester, 0), 0);
+      expect(opacity(tester, 0), 1);
+      expect(
+        find.byType(CupertinoTabView, skipOffstage: false),
+        findsOneWidget,
+      );
+      for (final index in [1, 2, 3, 4, 2, 0]) {
+        final previous = tabs.index;
+        await tapTab(tester, 'tab$index');
+        await tester.pump();
+        expect(displacement(tester, index), index > previous ? 16 : -16);
+        expect(opacity(tester, index), closeTo(0.86, 0.001));
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(displacement(tester, index).abs(), inExclusiveRange(0, 16));
+        expect(opacity(tester, index), inExclusiveRange(0.86, 1));
+        await tester.pump(const Duration(milliseconds: 110));
+        expect(displacement(tester, index), 0);
+        expect(opacity(tester, index), 1);
+      }
+      expect(
+        find.byType(CupertinoTabView, skipOffstage: false),
+        findsNWidgets(5),
+      );
+      await tester.pumpAndSettle();
+      tabs.index = 0;
+      await tester.pump();
+      expect(displacement(tester, 0), 0);
+      expect(tester.binding.transientCallbackCount, 0);
+    },
+  );
+
+  testWidgets(
+    'system and app reduce motion are zero-frame and cancel active motion',
+    (tester) async {
+      phone(tester);
+      final tabs = CupertinoTabController();
+      final preferences = AppPreferences(writer: (_) async {});
+      addTearDown(tabs.dispose);
+      addTearDown(preferences.dispose);
+      await tester.pumpWidget(motionHarness(tabs, preferences: preferences));
+      tabs.index = 2;
+      await tester.pump();
+      expect(displacement(tester, 2), 16);
+      await preferences.update(reduceMotion: true);
+      await tester.pump();
+      expect(displacement(tester, 2), 0);
+      tabs.index = 0;
+      await tester.pump();
+      expect(opacity(tester, 0), 1);
+      expect(tester.binding.transientCallbackCount, 0);
+      await preferences.update(reduceMotion: false);
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      await tester.pump();
+      tabs.index = 4;
+      await tester.pump();
+      expect(displacement(tester, 4), 0);
+      expect(opacity(tester, 4), 1);
+      expect(tester.binding.transientCallbackCount, 0);
+    },
+  );
+
+  testWidgets(
+    'rapid selection, inactive ticker and lifecycle never replay stale motion',
+    (tester) async {
+      phone(tester);
+      final tabs = CupertinoTabController();
+      addTearDown(tabs.dispose);
+      await tester.pumpWidget(motionHarness(tabs));
+      tabs.index = 4;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 30));
+      tabs.index = 1;
+      await tester.pump();
+      expect(displacement(tester, 1), -16);
+      tabs.index = 3;
+      tabs.index = 0;
+      await tester.pump();
+      expect(displacement(tester, 0), -16);
+      await tester.pumpWidget(motionHarness(tabs, tickerEnabled: false));
+      expect(displacement(tester, 0), 0);
+      tabs.index = 2;
+      await tester.pump();
+      expect(displacement(tester, 2), 0);
+      await tester.pumpWidget(motionHarness(tabs));
+      expect(displacement(tester, 2), 0);
+      tabs.index = 3;
+      await tester.pump();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      expect(displacement(tester, 3), 0);
+      tabs.index = 4;
+      await tester.pump();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(displacement(tester, 4), 0);
+      expect(tester.binding.transientCallbackCount, 0);
+      // Dispose while a ticker is active as well.
+      tabs.index = 0;
+      await tester.pump();
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'animation frames do not rebuild pages or replace their navigator',
+    (tester) async {
+      phone(tester);
+      final tabs = CupertinoTabController();
+      addTearDown(tabs.dispose);
+      final builds = <int, int>{};
+      await tester.pumpWidget(
+        motionHarness(
+          tabs,
+          page: (index) => Builder(
+            builder: (_) {
+              builds[index] = (builds[index] ?? 0) + 1;
+              return Text('page$index');
+            },
+          ),
+        ),
+      );
+      final original = tester.state<NavigatorState>(
+        find.descendant(of: transition(0), matching: find.byType(Navigator)),
+      );
+      tabs.index = 4;
+      await tester.pump();
+      final count = builds[4];
+      for (var frame = 0; frame < 15; frame++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(builds[4], count);
+      expect(builds.keys, unorderedEquals([0, 4]));
+      expect(
+        tester.state<NavigatorState>(
+          find.descendant(
+            of: transition(0, skipOffstage: false),
+            matching: find.byType(Navigator, skipOffstage: false),
+          ),
+        ),
+        same(original),
+      );
+      expect(
+        TickerMode.valuesOf(
+          tester.element(find.text('page0', skipOffstage: false)),
+        ).enabled,
+        isFalse,
+      );
+    },
+  );
+
+  testWidgets(
+    'mobile preserves detail stack and filter through rapid switching and back during motion',
+    (tester) async {
+      phone(tester);
+      await tester.pumpWidget(GinkgoApp(service: ControlledService()));
+      await tester.pumpAndSettle();
+      await tapTab(tester, '课表');
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('schedule-search')), '合成筛选');
+      await tester.pumpAndSettle();
+      await tapTab(tester, '作业');
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('homework-spoc:a')));
+      await tester.pumpAndSettle();
+      final detailNavigator = Navigator.of(tester.element(find.text('作业详情')));
+      await tapTab(tester, '预约');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 30));
+      await tapTab(tester, '作业');
+      await tester.pump();
+      expect(find.text('作业详情'), findsOneWidget);
+      expect(
+        Navigator.of(tester.element(find.text('作业详情'))),
+        same(detailNavigator),
+      );
+      expect(displacement(tester, 3), -16);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text('作业详情'), findsNothing);
+      expect(find.text('再返回一次退出 Ginkgo'), findsNothing);
+      await tapTab(tester, '课表');
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<EditableText>(
+              find.descendant(
+                of: find.byKey(const Key('schedule-search')),
+                matching: find.byType(EditableText),
+              ),
+            )
+            .controller
+            .text,
+        '合成筛选',
+      );
+      // Root back during entry goes to workspace, rather than exiting.
+      await tapTab(tester, '预约');
+      await tester.pump();
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.byType(TodayPage), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'schedule horizontal drag and both scroll positions survive switching',
+    (tester) async {
+      phone(tester);
+      await tester.pumpWidget(GinkgoApp(service: ControlledService()));
+      await tester.pumpAndSettle();
+      await tapTab(tester, '课表');
+      await tester.pumpAndSettle();
+      final horizontal = find.byKey(const Key('schedule-grid-horizontal'));
+      final horizontalState = tester.state<ScrollableState>(
+        find
+            .descendant(of: horizontal, matching: find.byType(Scrollable))
+            .first,
+      );
+      // The grid extends below the viewport; drag its visible upper rows,
+      // not its geometric center (which is behind the bottom tab bar).
+      await tester.dragFrom(
+        tester.getTopLeft(horizontal) + const Offset(280, 100),
+        const Offset(-210, 0),
+      );
+      await tester.pumpAndSettle();
+      expect(horizontalState.position.pixels, greaterThan(0));
+      final x = horizontalState.position.pixels;
+      final verticalState = tester.state<ScrollableState>(
+        find
+            .descendant(of: transition(2), matching: find.byType(Scrollable))
+            .first,
+      );
+      verticalState.position.jumpTo(120);
+      await tester.pump();
+      expect(verticalState.position.pixels, 120);
+      expect(
+        tester
+            .widget<CupertinoTabScaffold>(find.byType(CupertinoTabScaffold))
+            .controller!
+            .index,
+        2,
+      );
+      await tapTab(tester, '预约');
+      await tester.pump();
+      await tapTab(tester, '课表');
+      await tester.pumpAndSettle();
+      expect(horizontalState.mounted, isTrue);
+      expect(verticalState.mounted, isTrue);
+      expect(horizontalState.position.pixels, x);
+      expect(verticalState.position.pixels, 120);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'secondary shortcut routes push current stack and disarm root exit',
+    (tester) async {
+      phone(tester);
+      var exits = 0;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'SystemNavigator.pop') exits++;
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      await tester.pumpWidget(GinkgoApp(service: ControlledService()));
+      await tester.pumpAndSettle();
+      final open = tester
+          .widget<TodayPage>(find.byType(TodayPage))
+          .onOpenFeature!;
+      final rootNavigator = Navigator.of(
+        tester.element(find.byType(TodayPage)),
+      );
+      for (final entry in <String, Type>{
+        'tasks': TasksPage,
+        'grades': GradesPage,
+        'library': LibraryPage,
+      }.entries) {
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        expect(find.text('再返回一次退出 Ginkgo'), findsOneWidget, reason: entry.key);
+        open(entry.key);
+        await tester.pumpAndSettle();
+        expect(find.byType(entry.value), findsOneWidget);
+        expect(
+          Navigator.of(tester.element(find.byType(entry.value))),
+          same(rootNavigator),
+        );
+        expect(find.text('再返回一次退出 Ginkgo'), findsNothing);
+        await tapTab(tester, '预约');
+        await tester.pump();
+        await tapTab(tester, '工作台');
+        await tester.pump();
+        expect(find.byType(entry.value), findsOneWidget);
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        expect(find.byType(TodayPage), findsOneWidget);
+        expect(find.text('再返回一次退出 Ginkgo'), findsNothing);
+        expect(exits, 0);
+      }
+      open('not-a-destination');
+      await tester.pump();
+      expect(rootNavigator.canPop(), isFalse);
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+}

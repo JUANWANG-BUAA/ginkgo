@@ -9,6 +9,7 @@ import 'today_course_focus.dart';
 import 'today_tasks_section.dart';
 import 'today_time.dart';
 import 'today_presentation.dart';
+import 'workspace_shortcuts.dart';
 
 import 'reminders.dart';
 
@@ -34,8 +35,10 @@ class TodayPage extends StatefulWidget {
     this.directory,
     this.onOpenFeature,
     this.onOpenSettings,
+    this.shortcutChoices = const [],
   });
   final MirrorService service;
+  final List<WorkspaceShortcut> shortcutChoices;
   final Widget? directory;
   final ValueChanged<String>? onOpenFeature;
   final VoidCallback? onOpenSettings;
@@ -56,6 +59,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   Timer? _clock;
   bool? _active;
   bool _internalRouteInactive = false;
+  bool _coursesExpanded = false;
 
   @override
   void didChangeDependencies() {
@@ -113,6 +117,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
 
   void _createSection() {
     _generation++;
+    _coursesExpanded = false;
     tasks = RefreshSection<TodayTasksSnapshot>()..addListener(_changed);
     courses = RefreshSection<TodayResponse>()..addListener(_changed);
     homework = RefreshSection<HomeworkResponse>()..addListener(_changed);
@@ -293,6 +298,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
                 if (widget.onOpenSettings != null ||
                     widget.onAccountAction != null) ...[
                   AppleGlassButton(
+                    key: const Key('workspace-settings'),
                     label: widget.onOpenSettings != null
                         ? '设置'
                         : widget.service.isDemo
@@ -332,38 +338,6 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
               ),
               sliver: SliverList.list(
                 children: [
-                  if (widget.onOpenSettings != null)
-                    TodayVisualSection(
-                      children: [
-                        AppleListTile(
-                          key: const Key('workspace-settings'),
-                          leadingSize: 36,
-                          leading: Icon(
-                            CupertinoIcons.person_crop_circle_fill,
-                            size: 34,
-                            color: CupertinoColors.secondaryLabel.resolveFrom(
-                              context,
-                            ),
-                          ),
-                          title: const Text(
-                            '账户与设置',
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          subtitle: Text(
-                            widget.service.isDemo
-                                ? '离线演示 · 连接与数据管理'
-                                : '学校账户 · 连接与数据管理',
-                            style: TextStyle(
-                              color: AppleDesign.statusInactive.resolveFrom(
-                                context,
-                              ),
-                            ),
-                          ),
-                          trailing: const CupertinoListTileChevron(),
-                          onTap: widget.onOpenSettings,
-                        ),
-                      ],
-                    ),
                   if (data == null)
                     TodayVisualSection(
                       header: const Text('今日课程'),
@@ -409,71 +383,13 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     ),
   );
 
-  Widget _shortcuts() {
-    const labels = ['课程签到', '查看课表', '学校作业', '空间预约'];
-    const shortcutIds = ['checkin', 'schedule', 'homework', 'reservations'];
-    const icons = [
-      CupertinoIcons.checkmark_seal_fill,
-      CupertinoIcons.calendar,
-      CupertinoIcons.doc_text_fill,
-      CupertinoIcons.square_grid_2x2_fill,
-    ];
-    return TodayVisualSection(
-      header: const Text('常用服务'),
-      children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final columns =
-                MediaQuery.textScalerOf(context).scale(1) > 1.5 ||
-                    constraints.maxWidth < 280
-                ? 1
-                : 2;
-            final width = constraints.maxWidth / columns;
-            return Wrap(
-              children: [
-                for (var i = 0; i < 4; i++)
-                  SizedBox(
-                    width: width,
-                    child: CupertinoButton(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      borderRadius: BorderRadius.zero,
-                      onPressed: () => widget.onOpenFeature!(shortcutIds[i]),
-                      child: Row(
-                        children: [
-                          Icon(
-                            icons[i],
-                            size: 24,
-                            color: CupertinoColors.secondaryLabel.resolveFrom(
-                              context,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              labels[i],
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w500,
-                                color: CupertinoColors.label.resolveFrom(
-                                  context,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
-        ),
-      ],
-    );
-  }
+  Widget _shortcuts() => WorkspaceShortcuts(
+    accountId: widget.accountId,
+    demo: widget.service.isDemo,
+    choices: widget.shortcutChoices,
+    storageRoot: widget.storageRoot,
+    onOpen: widget.onOpenFeature!,
+  );
 
   List<Widget> _content(TodayResponse data) {
     final date = DateTime.tryParse(data.date);
@@ -540,17 +456,45 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
                   ? null
                   : () => widget.onOpenFeature!('schedule'),
             ),
-          for (final (index, course) in data.courses.indexed)
-            _TodayCourseRow(
-              key: Key('today-course-$index-${course.name}'),
-              course: course,
-              status:
-                  TodayCourseWindow.parse(
-                    data.date,
-                    course.time,
-                  )?.status(_now) ??
-                  '时间待确认',
+          if (data.courses.isNotEmpty)
+            Semantics(
+              expanded: _coursesExpanded,
+              child: CupertinoButton(
+                key: const Key('today-toggle-courses'),
+                minimumSize: const Size(48, 48),
+                onPressed: () =>
+                    setState(() => _coursesExpanded = !_coursesExpanded),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _coursesExpanded
+                            ? '收起今日课程'
+                            : '展开今日课程（${data.courses.length}）',
+                      ),
+                    ),
+                    Icon(
+                      _coursesExpanded
+                          ? CupertinoIcons.chevron_up
+                          : CupertinoIcons.chevron_down,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
             ),
+          if (_coursesExpanded)
+            for (final (index, course) in data.courses.indexed)
+              _TodayCourseRow(
+                key: Key('today-course-$index-${course.name}'),
+                course: course,
+                status:
+                    TodayCourseWindow.parse(
+                      data.date,
+                      course.time,
+                    )?.status(_now) ??
+                    '时间待确认',
+              ),
           if (data.courses.isNotEmpty && widget.onOpenFeature != null)
             AppleListTile(
               title: Text(

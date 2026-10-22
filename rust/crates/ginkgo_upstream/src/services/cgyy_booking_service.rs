@@ -12,8 +12,27 @@ use std::{
     time::{Duration, Instant},
 };
 
+const REVIEW_TTL: Duration = Duration::from_secs(120);
+
+#[derive(Default)]
+pub(crate) struct BookingSafety {
+    pub(crate) pending: bool,
+    pub(crate) review: Option<ReviewCredential>,
+}
+pub(crate) struct ReviewCredential {
+    pub(crate) id: String,
+    pub(crate) created: Instant,
+    generation: u64,
+}
+#[derive(Clone)]
+pub(super) struct BookingOwner {
+    pub(super) account: String,
+    pub(super) generation: u64,
+}
+
 pub(crate) struct BookingContext {
     id: String,
+    owner: BookingOwner,
     booking: BookingRequest,
     selections: String,
     reservation_token: String,
@@ -180,18 +199,177 @@ fn encrypt(text: &str, secret: &str) -> Result<String, AppError> {
 }
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
+    pub(super) fn booking_owner(&self) -> Result<BookingOwner, AppError> {
+        let identity = self.identity.lock();
+        Ok(BookingOwner {
+            account: identity
+                .authenticated
+                .as_ref()
+                .ok_or_else(AppError::session_expired)?
+                .account
+                .clone(),
+            generation: identity.generation,
+        })
+    }
+    pub(super) fn check_booking_owner(&self, owner: &BookingOwner) -> Result<(), AppError> {
+        let identity = self.identity.lock();
+        if identity.generation != owner.generation
+            || !identity
+                .authenticated
+                .as_ref()
+                .is_some_and(|u| u.account == owner.account)
+        {
+            return Err(AppError::session_expired());
+        }
+        Ok(())
+    }
+    fn booking_pending(&self, owner: &BookingOwner) -> bool {
+        self.cgyy_safety
+            .lock()
+            .get(&owner.account)
+            .is_some_and(|s| s.pending)
+    }
+    fn set_booking_pending(&self, owner: &BookingOwner, pending: bool) -> Result<(), AppError> {
+        let identity = self.identity.lock();
+        if identity.generation != owner.generation
+            || !identity
+                .authenticated
+                .as_ref()
+                .is_some_and(|u| u.account == owner.account)
+        {
+            return Err(AppError::session_expired());
+        }
+        let mut safety = self.cgyy_safety.lock();
+        let state = safety.entry(owner.account.clone()).or_default();
+        state.pending = pending;
+        state.review = None;
+        // Invalidate before dispatch too: cancellation/drop cannot retain stale snapshots.
+        if pending {
+            self.snapshots.cgyy.lock().clear();
+        }
+        Ok(())
+    }
+    // Only review/options use this uncached read path. Mutation prechecks and POSTs
+    // deliberately retain their single-attempt policy.
+    async fn load_booking_read(
+        &self,
+        owner: &BookingOwner,
+        kind: &str,
+        site: i64,
+        date: &str,
+    ) -> Result<(Value, String), AppError> {
+        if !matches!(kind, "orders" | "day") {
+            return Err(AppError::invalid());
+        }
+        for renew in [false, true] {
+            self.check_booking_owner(owner)?;
+            let token = self.cgyy_token(renew).await;
+            self.check_booking_owner(owner)?;
+            let token = token?;
+            let result = cgyy_http::load(&self.session, kind, site, date, Some(&token)).await;
+            self.check_booking_owner(owner)?;
+            if result
+                .as_ref()
+                .is_err_and(|error| error.code == ErrorCode::SessionExpired)
+            {
+                let mut identity = self.identity.lock();
+                // An old account's late 401 must not invalidate the new token.
+                if identity.generation != owner.generation
+                    || !identity
+                        .authenticated
+                        .as_ref()
+                        .is_some_and(|user| user.account == owner.account)
+                {
+                    return Err(AppError::session_expired());
+                }
+                if identity.cgyy_token.as_deref() == Some(token.as_str()) {
+                    identity.cgyy_token = None;
+                }
+                if !renew {
+                    continue;
+                }
+            }
+            return result.map(|value| (value, token));
+        }
+        unreachable!("the renewed GET always returns")
+    }
+    async fn review_booking(&self, owner: &BookingOwner) -> Result<CgyyActionResult, AppError> {
+        self.check_booking_owner(owner)?;
+        self.cgyy_safety
+            .lock()
+            .entry(owner.account.clone())
+            .or_default()
+            .review = None;
+        // Bypass snapshots: failed refresh/fallback must never mint an acknowledgement.
+        let (value, _) = self.load_booking_read(owner, "orders", 0, "").await?;
+        let orders = crate::features::cgyy::orders(&value)?;
+        let identity = self.identity.lock();
+        if identity.generation != owner.generation
+            || !identity
+                .authenticated
+                .as_ref()
+                .is_some_and(|u| u.account == owner.account)
+        {
+            return Err(AppError::session_expired());
+        }
+        let id = format!("{:032x}", rand::random::<u128>());
+        self.cgyy_safety
+            .lock()
+            .entry(owner.account.clone())
+            .or_default()
+            .review = Some(ReviewCredential {
+            id: id.clone(),
+            created: Instant::now(),
+            generation: owner.generation,
+        });
+        let mut result = CgyyActionResult::message(
+            "reviewRequired",
+            "请核对以下最近20条预约；列表未覆盖全部历史，请必要时到学校页面核实",
+        );
+        result.review = Some(BookingReview { id, orders });
+        Ok(result)
+    }
+    fn acknowledge_booking(
+        &self,
+        owner: &BookingOwner,
+        id: &str,
+    ) -> Result<CgyyActionResult, AppError> {
+        let identity = self.identity.lock();
+        if identity.generation != owner.generation
+            || !identity
+                .authenticated
+                .as_ref()
+                .is_some_and(|u| u.account == owner.account)
+        {
+            return Err(AppError::session_expired());
+        }
+        let mut safety = self.cgyy_safety.lock();
+        let state = safety.entry(owner.account.clone()).or_default();
+        if !state.review.as_ref().is_some_and(|r| {
+            r.id == id && r.generation == owner.generation && r.created.elapsed() < REVIEW_TTL
+        }) {
+            return Err(AppError::invalid());
+        }
+        state.review = None;
+        state.pending = false;
+        Ok(CgyyActionResult::message(
+            "reviewed",
+            "已确认核对；请勿重复预约",
+        ))
+    }
     async fn booking_options(
         &self,
+        owner: &BookingOwner,
         site_id: i64,
         date: &str,
     ) -> Result<CgyyActionResult, AppError> {
         if site_id <= 0 || chrono::NaiveDate::parse_from_str(date, "%Y-%m-%d").is_err() {
             return Err(AppError::invalid());
         }
-        let token = self.cgyy_token(false).await?;
-        let day = cgyy_http::load(&self.session, "day", site_id, date, Some(&token)).await?;
-        let codes =
-            cgyy_http::business(&self.session, "/api/codes", BTreeMap::new(), &token).await?;
+        let (day, token) = self.load_booking_read(owner, "day", site_id, date).await?;
+        let codes = cgyy_http::business(&self.session, "/api/codes", BTreeMap::new(), &token).await;
+        self.check_booking_owner(owner)?;
+        let codes = codes?;
         let mut result = CgyyActionResult::message("options", "请填写用途并选择空闲时段");
         let purposes = purposes(data(&codes)?);
         if purposes.is_empty() {
@@ -203,9 +381,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         });
         Ok(result)
     }
-    async fn prepare_booking(&self, booking: BookingRequest) -> Result<CgyyActionResult, AppError> {
+    async fn prepare_booking(
+        &self,
+        owner: &BookingOwner,
+        booking: BookingRequest,
+    ) -> Result<CgyyActionResult, AppError> {
         validate(&booking)?;
         let token = self.cgyy_token(false).await?;
+        self.check_booking_owner(owner)?;
         let day = cgyy_http::load(
             &self.session,
             "day",
@@ -218,7 +401,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         let reservation_token = text(&data(&day)?["token"])
             .ok_or_else(AppError::changed)?
             .to_owned();
+        self.check_booking_owner(owner)?;
         let mut context = BookingContext {
+            owner: owner.clone(),
             id: format!("{:032x}", rand::random::<u128>()),
             booking,
             selections: selected,
@@ -228,7 +413,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             created: Instant::now(),
         };
         // Before the first POST, require review on interruption/unknown result.
-        self.identity.lock().cgyy_review_required = true;
+        self.set_booking_pending(owner, true)?;
         let draft = cgyy_http::business(
             &self.session,
             "/api/reservation/order/info",
@@ -237,10 +422,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         )
         .await;
         if let Err(error) = draft {
-            return Ok(self.booking_failure(error));
+            return Ok(self.booking_failure(owner, error));
         }
-        // Draft was acknowledged; a captcha failure is not a final order submission.
-        self.identity.lock().cgyy_review_required = false;
+        self.check_booking_owner(owner)?;
         let timestamp = chrono::DateTime::parse_from_rfc3339(&super::cache::now_shanghai())
             .map_err(|_| AppError::unavailable())?
             .timestamp_millis()
@@ -275,29 +459,37 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 .ok_or_else(AppError::changed)?
                 .into(),
         };
-        self.identity.lock().cgyy_booking = Some(context);
+        {
+            let mut identity = self.identity.lock();
+            if identity.generation != owner.generation {
+                return Err(AppError::session_expired());
+            }
+            identity.cgyy_booking = Some(context);
+        }
+        self.set_booking_pending(owner, false)?;
         let mut result = CgyyActionResult::message("challenge", "请手动拖动拼图完成学校验证");
         result.challenge = Some(challenge);
         Ok(result)
     }
-    fn booking_failure(&self, error: AppError) -> CgyyActionResult {
+    fn booking_failure(&self, owner: &BookingOwner, error: AppError) -> CgyyActionResult {
+        // No verified upstream rejection codes exist in §6B. Never turn a generic
+        // BusinessRejected, authentication error, 5xx or parse error into unlock.
+        self.snapshots.cgyy.lock().clear();
         let mut identity = self.identity.lock();
-        identity.cgyy_booking = None;
-        if error.code == ErrorCode::BusinessRejected {
-            identity.cgyy_review_required = false;
-            CgyyActionResult::message(
-                "rejected",
-                "学校拒绝了本次操作，请检查条件后刷新；未自动重发",
-            )
-        } else {
-            identity.cgyy_review_required = true;
+        if identity.generation == owner.generation {
+            identity.cgyy_booking = None;
             if error.code == ErrorCode::SessionExpired {
                 identity.cgyy_token = None;
             }
-            CgyyActionResult::message("uncertain", "结果待核实，请先到我的预约回查，勿重复提交")
         }
+        CgyyActionResult::message("uncertain", "结果待核实，请先回查我的预约，勿重复提交")
     }
-    async fn submit_booking(&self, id: &str, x: i32) -> Result<CgyyActionResult, AppError> {
+    async fn submit_booking(
+        &self,
+        owner: &BookingOwner,
+        id: &str,
+        x: i32,
+    ) -> Result<CgyyActionResult, AppError> {
         // Consume before awaiting. Repeated callbacks cannot replay this challenge.
         let context = self
             .identity
@@ -305,6 +497,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             .cgyy_booking
             .take()
             .ok_or_else(AppError::invalid)?;
+        self.check_booking_owner(&context.owner)?;
         if context.id != id
             || context.created.elapsed() > Duration::from_secs(120)
             || !(0..=310).contains(&x)
@@ -313,6 +506,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         }
         let token = self.cgyy_token(false).await?;
         let point = format!("{{\"x\":{x},\"y\":5}}");
+        self.set_booking_pending(owner, true)?;
         let checked = cgyy_http::business(
             &self.session,
             "/api/captcha/check",
@@ -322,12 +516,21 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             ]),
             &token,
         )
-        .await?;
-        if data(&checked)?["success"] != true {
+        .await;
+        let checked = match checked {
+            Ok(v) => v,
+            Err(e) => return Ok(self.booking_failure(owner, e)),
+        };
+        self.check_booking_owner(owner)?;
+        if data(&checked)?["success"] == false {
+            self.set_booking_pending(owner, false)?;
             return Ok(CgyyActionResult::message(
                 "rejected",
                 "拼图验证未通过，请返回后重新准备；未提交预约",
             ));
+        }
+        if data(&checked)?["success"] != true {
+            return Ok(self.booking_failure(owner, AppError::changed()));
         }
         let latest = cgyy_http::load(
             &self.session,
@@ -337,9 +540,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             Some(&token),
         )
         .await?;
-        if selections(&latest, &context.booking).ok().as_deref()
-            != Some(context.selections.as_str())
-        {
+        self.check_booking_owner(owner)?;
+        let selected = match selections(&latest, &context.booking) {
+            Ok(selected) => selected,
+            Err(error) if error.code == ErrorCode::BusinessRejected => String::new(),
+            Err(error) => return Ok(self.booking_failure(owner, error)),
+        };
+        if selected != context.selections {
+            self.set_booking_pending(owner, false)?;
             return Ok(CgyyActionResult::message(
                 "notSubmitted",
                 "所选空档已变化，请重新选择；未提交预约",
@@ -370,23 +578,25 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 )?,
             ),
         ]));
-        self.identity.lock().cgyy_review_required = true;
+        self.set_booking_pending(owner, true)?;
         let response =
             match cgyy_http::business(&self.session, "/api/reservation/order/submit", form, &token)
                 .await
             {
                 Ok(response) => response,
-                Err(error) => return Ok(self.booking_failure(error)),
+                Err(error) => return Ok(self.booking_failure(owner, error)),
             };
         self.snapshots.cgyy.lock().clear();
+        self.check_booking_owner(owner)?;
         let order_id = number(&data(&response)?["orderInfo"]["id"]);
         let readback = cgyy_http::load(&self.session, "orders", 0, "", Some(&token)).await;
         if let (Some(id), Ok(readback)) = (order_id, readback) {
+            self.check_booking_owner(owner)?;
             if crate::features::cgyy::orders(&readback)?
                 .iter()
                 .any(|o| o.id == id)
             {
-                self.identity.lock().cgyy_review_required = false;
+                self.set_booking_pending(owner, false)?;
                 return Ok(CgyyActionResult::message(
                     "accepted",
                     "已查回预约记录，请在我的预约查看审批状态",
@@ -398,11 +608,16 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             "学校已受理，请到我的预约核对，确认前暂停再次提交",
         ))
     }
-    async fn cancel_booking(&self, order_id: i64) -> Result<CgyyActionResult, AppError> {
+    async fn cancel_booking(
+        &self,
+        owner: &BookingOwner,
+        order_id: i64,
+    ) -> Result<CgyyActionResult, AppError> {
         if order_id <= 0 {
             return Err(AppError::invalid());
         }
         let token = self.cgyy_token(false).await?;
+        self.check_booking_owner(owner)?;
         let value = cgyy_http::load(&self.session, "orders", 0, "", Some(&token)).await?;
         let rows = data(&value)?["content"]
             .as_array()
@@ -418,7 +633,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             .map_err(|_| AppError::unavailable())?
             .naive_local();
         if !matches!(number(&row["orderStatus"]), Some(1 | 3))
-            || number(&row["checkStatus"]).is_some_and(|s| s < 0)
+            || number(&row["checkStatus"]).is_none_or(|s| !(0..=6).contains(&s))
             || start.is_none_or(|start| now >= start - chrono::Duration::hours(4))
         {
             return Ok(CgyyActionResult::message(
@@ -426,7 +641,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 "当前订单不可取消或已进入开始前 4 小时，未发送请求",
             ));
         }
-        self.identity.lock().cgyy_review_required = true;
+        self.set_booking_pending(owner, true)?;
         if let Err(error) = cgyy_http::business(
             &self.session,
             &format!("/api/orders/new/cancel/{order_id}"),
@@ -435,10 +650,12 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         )
         .await
         {
-            return Ok(self.booking_failure(error));
+            return Ok(self.booking_failure(owner, error));
         }
         self.snapshots.cgyy.lock().clear();
+        self.check_booking_owner(owner)?;
         if let Ok(value) = cgyy_http::load(&self.session, "orders", 0, "", Some(&token)).await {
+            self.check_booking_owner(owner)?;
             let root = data(&value)?;
             if root["content"]
                 .as_array()
@@ -449,7 +666,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                     })
                 })
             {
-                self.identity.lock().cgyy_review_required = false;
+                self.set_booking_pending(owner, false)?;
                 return Ok(CgyyActionResult::message("accepted", "已查回取消状态"));
             }
         }
@@ -461,32 +678,51 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
 }
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> CgyyMutationSource for SchoolClient<T, V> {
     async fn execute_cgyy(&self, command: CgyyCommand) -> Result<CgyyActionResult, AppError> {
-        self.current_account()?;
-        if matches!(command, CgyyCommand::Acknowledge) {
-            // Explicit user acknowledgement after a successful readback only.
-            let token = self.cgyy_token(false).await?;
-            let value = cgyy_http::load(&self.session, "orders", 0, "", Some(&token)).await?;
-            crate::features::cgyy::orders(&value)?;
-            self.identity.lock().cgyy_review_required = false;
-            return Ok(CgyyActionResult::message(
-                "reviewed",
-                "请确认没有重复预约后再操作",
-            ));
+        // Defensive service single-flight; bridge already serializes writes globally.
+        let _gate = self
+            .cgyy_mutation_gate
+            .try_lock()
+            .map_err(|_| AppError::invalid())?;
+        let owner = self.booking_owner()?;
+        match command {
+            CgyyCommand::Status => {
+                return Ok(CgyyActionResult::message(
+                    if self.booking_pending(&owner) {
+                        "uncertain"
+                    } else {
+                        "ready"
+                    },
+                    "预约写入保护状态",
+                ))
+            }
+            CgyyCommand::Review => return self.review_booking(&owner).await,
+            CgyyCommand::Acknowledge { review_id } => {
+                return self.acknowledge_booking(&owner, &review_id)
+            }
+            _ => {}
         }
-        if self.identity.lock().cgyy_review_required
-            && !matches!(command, CgyyCommand::Options { .. })
-        {
+        if self.booking_pending(&owner) && !matches!(command, CgyyCommand::Options { .. }) {
             return Ok(CgyyActionResult::message(
                 "uncertain",
-                "请先在我的预约核对上次结果，并手动确认已核对",
+                "请先回查上次结果，并手动确认已核对",
             ));
         }
-        match command {
-            CgyyCommand::Options { site_id, date } => self.booking_options(site_id, &date).await,
-            CgyyCommand::Prepare { booking } => self.prepare_booking(booking).await,
-            CgyyCommand::Submit { challenge_id, x } => self.submit_booking(&challenge_id, x).await,
-            CgyyCommand::Cancel { order_id } => self.cancel_booking(order_id).await,
-            CgyyCommand::Acknowledge => unreachable!(),
+        let result = match command {
+            CgyyCommand::Options { site_id, date } => {
+                self.booking_options(&owner, site_id, &date).await
+            }
+            CgyyCommand::Prepare { booking } => self.prepare_booking(&owner, booking).await,
+            CgyyCommand::Submit { challenge_id, x } => {
+                self.submit_booking(&owner, &challenge_id, x).await
+            }
+            CgyyCommand::Cancel { order_id } => self.cancel_booking(&owner, order_id).await,
+            _ => unreachable!(),
+        };
+        // Parse/readback errors after dispatch still preserve pending and invalidate.
+        self.check_booking_owner(&owner)?;
+        match result {
+            Err(error) if self.booking_pending(&owner) => Ok(self.booking_failure(&owner, error)),
+            result => result,
         }
     }
 }

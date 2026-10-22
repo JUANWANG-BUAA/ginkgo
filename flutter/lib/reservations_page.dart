@@ -48,7 +48,7 @@ class ReservationsPage extends StatelessWidget {
                     _resource(
                       context,
                       '研讨室与场馆',
-                      '查看场地、可用时段与订单',
+                      '查询时段、手动验证预约与管理订单',
                       CupertinoIcons.person_3_fill,
                       AppleDesign.resourcePurple,
                       CgyyPage(demo: service.isDemo, service: service),
@@ -72,7 +72,7 @@ class ReservationsPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(24),
                   child: Text(
-                    '图书馆支持选座与预约管理；研讨室和场馆提供查询，提交以各页面提示为准。',
+                    '图书馆支持选座与预约管理；研讨室提交前需手动验证和确认，结果待核实时请先查订单，不要重复提交。',
                     style: TextStyle(
                       fontSize: 13,
                       color: CupertinoColors.secondaryLabel.resolveFrom(

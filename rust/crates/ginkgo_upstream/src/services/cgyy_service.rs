@@ -8,15 +8,27 @@ use ginkgo_domain::ports::*;
 use ginkgo_domain::ports::{CgyyData, CgyyQuery};
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     pub(super) async fn cgyy_token(&self, renew: bool) -> Result<String, AppError> {
-        let account = self.current_account()?;
-        if !renew {
-            if let Some(token) = self.identity.lock().cgyy_token.clone() {
-                return Ok(token);
+        let owner = self.booking_owner()?;
+        {
+            let identity = self.identity.lock();
+            if identity.generation != owner.generation {
+                return Err(AppError::session_expired());
+            }
+            if !renew {
+                if let Some(token) = identity.cgyy_token.clone() {
+                    return Ok(token);
+                }
             }
         }
-        let credentials = self.vault.load(&account)?;
+        let credentials = self.vault.load(&owner.account)?;
         let token = cgyy_http::login(&self.session, credentials.as_ref()).await?;
-        self.identity.lock().cgyy_token = Some(token.clone());
+        self.check_booking_owner(&owner)?;
+        let mut identity = self.identity.lock();
+        // Recheck while holding the publication lock.
+        if identity.generation != owner.generation {
+            return Err(AppError::session_expired());
+        }
+        identity.cgyy_token = Some(token.clone());
         Ok(token)
     }
 }

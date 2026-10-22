@@ -29,6 +29,11 @@ pub struct Day {
 }
 #[derive(Clone, Debug, Serialize)]
 pub struct Order {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub order_status: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub check_status: Option<i64>,
+    pub can_cancel: bool,
     pub id: i64,
     pub place: String,
     pub date: String,

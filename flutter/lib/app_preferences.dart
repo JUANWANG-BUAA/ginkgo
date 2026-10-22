@@ -16,10 +16,34 @@ enum AppAppearance {
   final Brightness? brightness;
 }
 
+// Names are persisted in display-preferences-v1.json: keep existing names stable.
+// Accent choices deliberately do not replace semantic warning/error colors.
 enum AppAccent {
   green('银杏绿', AppleDesign.accent),
   blue('蓝色', AppleDesign.resourceBlue),
-  purple('紫色', AppleDesign.resourcePurple);
+  purple('紫色', AppleDesign.resourcePurple),
+  teal('湖水青', AppleDesign.resourceTeal),
+  amber(
+    '琥珀金',
+    CupertinoDynamicColor.withBrightness(
+      color: Color(0xff805500),
+      darkColor: Color(0xffffce70),
+    ),
+  ),
+  coral(
+    '珊瑚橙',
+    CupertinoDynamicColor.withBrightness(
+      color: Color(0xffa64020),
+      darkColor: Color(0xffffaa87),
+    ),
+  ),
+  rose(
+    '玫瑰红',
+    CupertinoDynamicColor.withBrightness(
+      color: Color(0xffac3058),
+      darkColor: Color(0xffffa3c0),
+    ),
+  );
 
   const AppAccent(this.label, this.color);
   final String label;
@@ -27,13 +51,17 @@ enum AppAccent {
 }
 
 typedef PreferencesWriter = Future<void> Function(Map<String, Object> value);
+typedef PreferencesReader = Future<Map<String, dynamic>?> Function();
 
 /// Device-wide display choices only. Credentials and school data never enter
 /// this file. Serial writes prevent a slower old choice overwriting a new one.
 class AppPreferences extends ChangeNotifier {
-  AppPreferences({PreferencesWriter? writer}) : _writer = writer ?? _write;
+  AppPreferences({PreferencesWriter? writer, PreferencesReader? reader})
+    : _writer = writer ?? _write,
+      _reader = reader ?? _read;
   static final shared = AppPreferences();
   final PreferencesWriter _writer;
+  final PreferencesReader _reader;
   Future<void> _pending = Future.value();
   AppAppearance appearance = AppAppearance.system;
   AppAccent accent = AppAccent.green;
@@ -55,12 +83,16 @@ class AppPreferences extends ChangeNotifier {
     await temporary.rename(file.path);
   }
 
+  static Future<Map<String, dynamic>?> _read() async {
+    final file = await _file();
+    if (!await file.exists()) return null;
+    return jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+  }
+
   Future<void> restore() async {
     try {
-      final file = await _file();
-      if (!await file.exists()) return;
-      final value =
-          jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      final value = await _reader();
+      if (value == null) return;
       appearance = AppAppearance.values.firstWhere(
         (item) => item.name == value['appearance'],
         orElse: () => AppAppearance.system,

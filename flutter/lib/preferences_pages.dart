@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'app_preferences.dart';
+import 'accent_theme_preview.dart';
 import 'apple_design.dart';
 import 'apple_widgets.dart';
 import 'maintenance_pages.dart';
@@ -39,16 +40,14 @@ class AppearancePage extends StatelessWidget {
               ),
           ],
         ),
+        const AppleSection(
+          header: Text('强调色'),
+          footer: Text('点选即刻应用，深浅色自动搭配。仅更改本机显示，不改变警告和错误等状态色。'),
+          children: [AccentThemePicker()],
+        ),
         AppleSection(
-          header: const Text('个性化'),
+          header: const Text('阅读与动效'),
           children: [
-            ApplePickerTile(
-              title: '强调色',
-              value: preferences.accent,
-              values: AppAccent.values,
-              label: (item) => item.label,
-              onSelected: (item) => preferences.update(accent: item),
-            ),
             ApplePickerTile<double>(
               title: '文字大小',
               value: preferences.textSize,
