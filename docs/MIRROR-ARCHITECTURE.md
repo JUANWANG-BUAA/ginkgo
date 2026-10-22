@@ -87,6 +87,12 @@ Flutter 中的学校网址常量和新闻域名白名单已收回上游；作业
 
 大量记录的浏览独立于加载协议：`CollectionWindow` 维护本地有界页与刷新锚点，公共查询工具栏管理搜索/范围/页码入口，页面继续消费原业务结果。座位和空教室已接入；课表横纵滚动控制器保持独立。组件约束、iOS 对照与热更新适用范围见 [MIRROR-INTERACTION.md](MIRROR-INTERACTION.md)。
 
+### 工作区功能登记表
+
+壳层与功能页之间以 `flutter/lib/workspace_catalog.dart` 为唯一登记点：每个功能登记稳定 id、标题、图标、桌面分组、移动端标签位置与页面构建器。移动端标签、桌面侧栏、今日快捷入口与返回栈都从该表派生，`main.dart` 只保留启动与登录状态机，`workspace_shell.dart` 只负责移动/桌面两种布局。
+
+登记是编译期静态表：没有运行时插件加载、远程下发或动态符号查找；新增功能仍需显式登记、接入 gateway 并重新构建。桌面侧栏与目的地 key 使用功能 id（如 `desktop-sidebar-grades`），列表顺序调整不再影响测试与深链。`workspace_catalog_test.dart` 固定 id 唯一、移动端标签连续、分组非空与每个功能都有可达入口。
+
 ## 自动防回退与测试
 
 `scripts/check-mirror-architecture.py` 与 5 项边界检查回归已接入 `check-mirror.sh` 和 CI：

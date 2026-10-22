@@ -49,11 +49,11 @@ void main() {
     await settle(tester, frames: 30);
     expect(find.byKey(const Key('desktop-sidebar')), findsOneWidget);
     expect(tester.getSize(find.byType(Row).first).width, 1280);
-    await tester.tap(find.byKey(const Key('desktop-sidebar-3')));
+    await tester.tap(find.byKey(const Key('desktop-sidebar-grades')));
     await settle(tester);
     await show(tester, find.text('加权平均'), scrollKey: 'grades-scroll');
     expect(find.text('90.3'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('desktop-sidebar-4')));
+    await tester.tap(find.byKey(const Key('desktop-sidebar-homework')));
     await settle(tester);
     final homework = find.byKey(const Key('homework-spoc:a'));
     await show(tester, homework, scrollKey: 'homework-scroll');
@@ -61,16 +61,16 @@ void main() {
     await settle(tester);
     expect(find.byKey(const Key('desktop-sidebar')), findsOneWidget);
     expect(find.text('作业详情'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('desktop-sidebar-3')));
+    await tester.tap(find.byKey(const Key('desktop-sidebar-grades')));
     await settle(tester);
     expect(find.text('90.3'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('desktop-sidebar-4')));
+    await tester.tap(find.byKey(const Key('desktop-sidebar-homework')));
     await settle(tester);
     expect(find.text('作业详情'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('desktop-sidebar-8')));
+    await tester.tap(find.byKey(const Key('desktop-sidebar-settings')));
     await settle(tester);
     expect(find.byKey(const Key('settings-scroll')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('desktop-sidebar-4')));
+    await tester.tap(find.byKey(const Key('desktop-sidebar-homework')));
     await settle(tester);
     expect(find.text('作业详情'), findsOneWidget);
     // Match the width breakpoint on the actual Windows engine. Native window

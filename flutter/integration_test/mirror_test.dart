@@ -494,7 +494,11 @@ void main() {
     tester.platformDispatcher.textScaleFactorTestValue = 1.6;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     await tester.pumpWidget(
-      GinkgoApp(key: UniqueKey(), brightness: Brightness.dark),
+      GinkgoApp(
+        key: UniqueKey(),
+        brightness: Brightness.dark,
+        service: mirrorServiceFor(demo: true),
+      ),
     );
     await settle(tester);
     await tapMore(tester, '空教室');

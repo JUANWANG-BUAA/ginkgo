@@ -22,7 +22,7 @@ class TodayPage extends StatefulWidget {
   });
   final MirrorService service;
   final Widget? directory;
-  final ValueChanged<int>? onOpenFeature;
+  final ValueChanged<String>? onOpenFeature;
   final VoidCallback? onOpenSettings;
   final String? accountName;
   final Future<void> Function()? onAccountAction;
@@ -225,7 +225,7 @@ class _TodayPageState extends State<TodayPage> {
                     onRetry: () => _loadHomework(force: true),
                     onOpen: widget.onOpenFeature == null
                         ? null
-                        : () => widget.onOpenFeature!(3),
+                        : () => widget.onOpenFeature!('homework'),
                   ),
                   if (widget.onOpenFeature != null) _shortcuts(),
                   if (widget.directory != null) widget.directory!,
@@ -241,6 +241,7 @@ class _TodayPageState extends State<TodayPage> {
 
   Widget _shortcuts() {
     const labels = ['课程签到', '查看课表', '学校作业', '空间预约'];
+    const shortcutIds = ['checkin', 'schedule', 'homework', 'reservations'];
     const icons = [
       CupertinoIcons.checkmark_seal_fill,
       CupertinoIcons.calendar,
@@ -275,7 +276,7 @@ class _TodayPageState extends State<TodayPage> {
                         vertical: 16,
                       ),
                       borderRadius: BorderRadius.zero,
-                      onPressed: () => widget.onOpenFeature!(i + 1),
+                      onPressed: () => widget.onOpenFeature!(shortcutIds[i]),
                       child: Row(
                         children: [
                           Icon(
@@ -354,7 +355,7 @@ class _TodayPageState extends State<TodayPage> {
                   ? '课表更新失败，请刷新后再确认今天的安排。'
                   : '当前课表中没有当天课程，可查看完整课表安排学习。',
               action: widget.onOpenFeature == null ? null : '查看完整课表',
-              onAction: () => widget.onOpenFeature?.call(2),
+              onAction: () => widget.onOpenFeature?.call('schedule'),
             ),
           for (final (index, course) in data.courses.indexed)
             _TodayCourseRow(
@@ -371,7 +372,7 @@ class _TodayPageState extends State<TodayPage> {
               ),
               additionalInfo: Text('共 ${data.courses.length} 门课'),
               trailing: const CupertinoListTileChevron(),
-              onTap: () => widget.onOpenFeature!(2),
+              onTap: () => widget.onOpenFeature!('schedule'),
             ),
         ],
       ),

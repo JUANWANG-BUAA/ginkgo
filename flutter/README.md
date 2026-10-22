@@ -78,3 +78,5 @@ Rust Android 目标随选定设备确定；当前 ARM64 模拟器使用 `aarch64
 工作台与研究生页作为渐进加载样板：分区完成即显示、刷新保留旧结果、局部失败单独重试，配合轻量银杏呼吸与首次淡入。动画遵循减少动态效果及标签页 `TickerMode`；桌面通过 `Ctrl+R` / `⌘R` 刷新。工作台课程与作业使用既有独立业务命令，不增加轮询；状态容器见 `application/refresh_section.dart`，通用呈现组件见 `loading_widgets.dart`。
 
 座位与空教室采用公共 `CollectionWindow` / `CollectionToolbar`，固定查询区、每页 50 条、直接跳页及局部状态；结果列表按需构建，同一查询刷新保持当前页。课表固定节次轴并提供周次/星期直达入口；长页滚动入口见 `long_page_scroll.dart`。后续大数据功能的接入规则及热更新限制见 [交互与更新边界](../docs/MIRROR-INTERACTION.md)。
+
+工作区导航由 `workspace_catalog.dart` 统一登记：新增功能在表里登记 id、标题、图标、分组与页面构建器，移动端标签、桌面侧栏与今日快捷入口自动派生；`main.dart` 只保留启动与登录状态机，`workspace_shell.dart` 负责两种布局。登记是编译期静态表，不支持运行时插件加载。
