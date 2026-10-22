@@ -218,6 +218,10 @@ Future<ReadOnlyResponse> loadCgyy({
   forceRefresh: forceRefresh,
 );
 
+/// User-confirmed CGYY commands; payload contains no upstream credentials.
+Future<ReadOnlyResponse> executeCgyy({required String command}) =>
+    RustLib.instance.api.crateApiLiveExecuteCgyy(command: command);
+
 Future<ReadOnlyResponse> loadDemoCgyy({required String kind}) =>
     RustLib.instance.api.crateApiLiveLoadDemoCgyy(kind: kind);
 

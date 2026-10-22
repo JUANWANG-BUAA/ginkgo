@@ -25,3 +25,12 @@ pub trait CgyySource: Send + Sync {
 }
 
 pub type CgyyOutcome = DataOutcome<CgyyData>;
+
+pub trait CgyyMutationSource: Send + Sync {
+    fn execute_cgyy(
+        &self,
+        command: crate::features::cgyy_booking::CgyyCommand,
+    ) -> impl std::future::Future<
+        Output = Result<crate::features::cgyy_booking::CgyyActionResult, AppError>,
+    > + Send;
+}

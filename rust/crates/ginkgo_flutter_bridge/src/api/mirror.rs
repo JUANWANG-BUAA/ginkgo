@@ -282,6 +282,8 @@ pub struct CheckInCourse {
     pub classroom_name: Option<String>,
     pub merged_record_count: i32,
     pub conflicting: bool,
+    /// Explicit false also covers merged sessions containing multiple upstream IDs.
+    pub sign_in_allowed: Option<bool>,
 }
 
 pub struct CheckInResponse {
@@ -312,6 +314,7 @@ fn checkin_course(course: ginkgo_core::features::checkin::CheckInCourse) -> Chec
         classroom_name: course.classroom_name,
         merged_record_count: course.merged_record_count as i32,
         conflicting: course.conflicting,
+        sign_in_allowed: Some(course.sign_in_allowed),
     }
 }
 

@@ -1,74 +1,44 @@
 import 'package:flutter/cupertino.dart';
 
+import 'design/tokens/colors.dart';
+import 'design/tokens/layout.dart';
+import 'design/tokens/motion.dart';
+import 'design/tokens/radii.dart';
+import 'design/tokens/spacing.dart';
+import 'design/tokens/typography.dart';
+
+export 'design/tokens.dart';
+
 /// Product values measured against the repository's iOS 27 reference capture.
-/// These dimensions are Ginkgo calibration values, not universal HIG constants.
+/// These dimensions are Ginkgo calibration values, bridged to GinkgoTokens.
 abstract final class AppleDesign {
-  static const groupRadius = 26.0;
-  static const rowHeight = 52.0;
-  static const pageInset = 16.0;
-  static bool desktop(BuildContext context) =>
-      MediaQuery.sizeOf(context).width >= 760;
+  static const groupRadius = GinkgoRadii.group;
+  static const rowHeight = GinkgoLayout.rowHeight;
+  static const pageInset = GinkgoSpacing.pageInset;
+
+  static bool desktop(BuildContext context) => GinkgoLayout.isDesktop(context);
+
   static double panelRadius(BuildContext context) =>
-      desktop(context) ? 12 : groupRadius;
-  static const accent = CupertinoDynamicColor.withBrightness(
-    color: Color(0xff189840),
-    darkColor: Color(0xff47bd6b),
-  );
-  static const resourceBlue = CupertinoDynamicColor.withBrightness(
-    color: Color(0xff0066cc),
-    darkColor: Color(0xff69adff),
-  );
-  static const resourcePurple = CupertinoDynamicColor.withBrightness(
-    color: Color(0xff7446b8),
-    darkColor: Color(0xffcfadff),
-  );
-  static const resourceTeal = CupertinoDynamicColor.withBrightness(
-    color: Color(0xff08777c),
-    darkColor: Color(0xff66d9df),
-  );
+      GinkgoLayout.panelRadius(context);
+
+  static const accent = GinkgoColors.accent;
+  static const resourceBlue = GinkgoColors.resourceBlue;
+  static const resourcePurple = GinkgoColors.resourcePurple;
+  static const resourceTeal = GinkgoColors.resourceTeal;
+
   // State text must remain legible on grouped surfaces and tinted badges.
   // Colors complement a visible label/icon; they never determine business state.
-  static const statusSuccess = CupertinoDynamicColor.withBrightness(
-    color: Color(0xff125a2d),
-    darkColor: Color(0xff72d991),
-  );
-  static const statusPending = CupertinoDynamicColor.withBrightness(
-    color: Color(0xff713900),
-    darkColor: Color(0xffffbd70),
-  );
-  static const statusUncertain = CupertinoDynamicColor.withBrightness(
-    color: Color(0xff4a4f58),
-    darkColor: Color(0xffc4c8d0),
-  );
-  static const statusDanger = CupertinoDynamicColor.withBrightness(
-    color: Color(0xff982020),
-    darkColor: Color(0xffffaaa4),
-  );
-  static const statusInactive = CupertinoDynamicColor.withBrightness(
-    color: Color(0xff4a4f58),
-    darkColor: Color(0xffc4c8d0),
-  );
-  static const font = 'Ginkgo Sans';
-  static const fallback = ['Ginkgo Han'];
-  static const body = TextStyle(
-    inherit: false,
-    fontFamily: font,
-    fontFamilyFallback: fallback,
-    fontSize: 17,
-    letterSpacing: -0.25,
-    color: CupertinoColors.label,
-  );
-  static const title = TextStyle(
-    inherit: false,
-    fontFamily: font,
-    fontFamilyFallback: fallback,
-    fontSize: 34,
-    fontWeight: FontWeight.w700,
-    letterSpacing: -0.8,
-    color: CupertinoColors.label,
-  );
+  static const statusSuccess = GinkgoColors.statusSuccess;
+  static const statusPending = GinkgoColors.statusPending;
+  static const statusUncertain = GinkgoColors.statusUncertain;
+  static const statusDanger = GinkgoColors.statusDanger;
+  static const statusInactive = GinkgoColors.statusInactive;
+
+  static const font = GinkgoTypography.font;
+  static const fallback = GinkgoTypography.fallback;
+  static const body = GinkgoTypography.body;
+  static const title = GinkgoTypography.largeTitle;
+
   static Duration duration(BuildContext context, int milliseconds) =>
-      MediaQuery.disableAnimationsOf(context)
-      ? Duration.zero
-      : Duration(milliseconds: milliseconds);
+      GinkgoMotion.duration(context, milliseconds);
 }

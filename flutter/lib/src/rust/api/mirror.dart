@@ -58,6 +58,9 @@ class CheckInCourse {
   final int mergedRecordCount;
   final bool conflicting;
 
+  /// Explicit false also covers merged sessions containing multiple upstream IDs.
+  final bool? signInAllowed;
+
   const CheckInCourse({
     required this.id,
     this.courseId,
@@ -70,6 +73,7 @@ class CheckInCourse {
     this.classroomName,
     required this.mergedRecordCount,
     required this.conflicting,
+    this.signInAllowed,
   });
 
   @override
@@ -84,7 +88,8 @@ class CheckInCourse {
       teacherName.hashCode ^
       classroomName.hashCode ^
       mergedRecordCount.hashCode ^
-      conflicting.hashCode;
+      conflicting.hashCode ^
+      signInAllowed.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -101,7 +106,8 @@ class CheckInCourse {
           teacherName == other.teacherName &&
           classroomName == other.classroomName &&
           mergedRecordCount == other.mergedRecordCount &&
-          conflicting == other.conflicting;
+          conflicting == other.conflicting &&
+          signInAllowed == other.signInAllowed;
 }
 
 class CheckInResponse {

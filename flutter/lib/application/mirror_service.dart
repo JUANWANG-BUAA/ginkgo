@@ -132,4 +132,9 @@ abstract interface class CampusGateway {
   });
 }
 
+/// Separate capability: read-only adapters never gain writes implicitly.
+abstract interface class CgyyBookingGateway {
+  Future<ReadOnlyResponse> executeCgyy(Map<String, Object?> command);
+}
+
 enum BykcPart { catalog, chosen, statistics }

@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 import 'package:ginkgo_mirror/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/today_page.dart';
@@ -67,6 +68,21 @@ void size(WidgetTester tester, Size value) {
 }
 
 void main() {
+  testWidgets('successful section loading never creates an error hint', (
+    tester,
+  ) async {
+    DiagnosticLog.shared.entries.clear();
+    DiagnosticLog.shared.current = null;
+    final service = ProgressiveService();
+    await tester.pumpWidget(ginkgoApp(home: TodayPage(service: service)));
+    expect(DiagnosticLog.shared.entries, isEmpty);
+    service.courses.single.complete(todayFixture);
+    service.assignments.single.complete(assignments);
+    await tester.pumpAndSettle();
+    expect(DiagnosticLog.shared.entries, isEmpty);
+    expect(DiagnosticLog.shared.current, isNull);
+  });
+
   testWidgets(
     'homework publishes before courses; retry only reads the failed section',
     (tester) async {

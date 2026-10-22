@@ -100,6 +100,7 @@ pub(super) fn checkin_response(outcome: CheckInOutcome) -> CheckInResponse {
                 classroom_name: course.classroom_name,
                 merged_record_count: course.merged_record_count as i32,
                 conflicting: course.conflicting,
+                sign_in_allowed: Some(course.sign_in_allowed),
             })
             .collect(),
         fetched_at: Some(outcome.fetched_at),

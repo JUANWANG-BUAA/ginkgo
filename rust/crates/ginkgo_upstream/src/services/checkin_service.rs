@@ -268,6 +268,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CheckInMutationSource
         if !course.sign_in_allowed || course.status != CheckInStatus::NotSigned {
             return MutationOutcome::not_submitted("课程已签到或记录待确认，未重复提交");
         }
+        if !ginkgo_domain::features::checkin::sign_in_window(
+            &snapshot.date,
+            &course.begins_at,
+            &course.ends_at,
+            &now_shanghai(),
+        ) {
+            return MutationOutcome::not_submitted("课前 10 分钟开放签到，课程结束后不可提交");
+        }
         let iclass = self.identity.lock().iclass.clone();
         let Some(iclass) = iclass else {
             return MutationOutcome::not_submitted("签到会话失效，请刷新后重试");

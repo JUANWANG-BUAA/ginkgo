@@ -1,5 +1,6 @@
 pub mod bykc;
 pub mod cgyy;
+pub mod cgyy_booking;
 pub mod checkin;
 pub mod classroom;
 pub mod grades;

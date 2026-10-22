@@ -61,7 +61,14 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      await tester.pumpWidget(ginkgoApp(home: CheckInPage(service: service)));
+      await tester.pumpWidget(
+        ginkgoApp(
+          home: CheckInPage(
+            service: service,
+            clock: () => DateTime.parse('2026-10-20T08:00:00+08:00'),
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
       final button = find.byKey(const Key('checkin-submit-501'));
       await tester.tap(button);

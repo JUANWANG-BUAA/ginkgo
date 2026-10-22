@@ -97,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
         busy = false;
         needCaptcha = response.state == SessionState.captchaRequired;
         error = needCaptcha
-            ? '学校本次登录要求验证码。验证码图片展示尚未接入，请稍后重试。'
+            ? '学校本次登录要求验证码，请输入验证码后继续'
             : response.failure == null
             ? '登录未完成，请重试'
             : failureMessage(response.failure);
@@ -123,7 +123,9 @@ class _LoginPageState extends State<LoginPage> {
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 28),
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
+              constraints: const BoxConstraints(
+                maxWidth: GinkgoLayout.formMaxWidth,
+              ),
               child: AutofillGroup(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -134,13 +136,13 @@ class _LoginPageState extends State<LoginPage> {
                         width: 84,
                         height: 84,
                         decoration: BoxDecoration(
-                          color: AppleDesign.accent.withValues(alpha: .1),
+                          color: GinkgoColors.accent.withValues(alpha: .1),
                           borderRadius: BorderRadius.circular(24),
                         ),
                         child: const Icon(
                           CupertinoIcons.leaf_arrow_circlepath,
                           size: 46,
-                          color: AppleDesign.accent,
+                          color: GinkgoColors.accent,
                         ),
                       ),
                     ),
@@ -180,10 +182,10 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     ClipRSuperellipse(
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: GinkgoRadii.borderRadiusDialog,
                       child: ColoredBox(
                         key: const Key('login-fields'),
-                        color: CupertinoColors.secondarySystemGroupedBackground
+                        color: GinkgoColors.secondaryGroupedBackground
                             .resolveFrom(context),
                         child: Column(
                           children: [

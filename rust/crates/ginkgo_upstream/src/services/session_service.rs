@@ -59,6 +59,8 @@ pub(crate) struct Identity {
     pub iclass: Option<IClassSession>,
     pub library_token: Option<String>,
     pub cgyy_token: Option<String>,
+    pub cgyy_booking: Option<super::cgyy_booking_service::BookingContext>,
+    pub cgyy_review_required: bool,
 }
 
 pub struct SchoolClient<T: HttpTransport, V: CredentialVault> {
@@ -213,7 +215,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
 
     pub(crate) fn clear_caches(&self) {
         self.snapshots.clear();
-        self.identity.lock().cgyy_token = None;
+        {
+            let mut identity = self.identity.lock();
+            identity.cgyy_token = None;
+            identity.cgyy_booking = None;
+        }
         *self.checkin_progress.lock() = Default::default();
     }
 

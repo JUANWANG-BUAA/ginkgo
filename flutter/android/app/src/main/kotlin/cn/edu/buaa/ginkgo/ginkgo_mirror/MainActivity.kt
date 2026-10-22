@@ -13,6 +13,8 @@ class MainActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/update")
             .setMethodCallHandler(UpdateInstaller(this))
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/reminders")
+            .setMethodCallHandler(ReminderScheduler(applicationContext))
         settingsHandler = SystemSettingsHandler(this).also {
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/system")
                 .setMethodCallHandler(it)

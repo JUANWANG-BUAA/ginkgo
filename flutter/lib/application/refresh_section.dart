@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'diagnostic_log.dart';
 
 /// A presentation result, including a usable stale value when refresh failed.
 class SectionResult<T> {
@@ -37,6 +38,7 @@ class RefreshSection<T> extends ChangeNotifier {
       error = result.error;
     } catch (_) {
       if (_disposed) return;
+      DiagnosticLog.shared.record(null);
       error = fallbackError;
     } finally {
       if (!_disposed) {

@@ -102,7 +102,7 @@ void main() {
       await tester.tap(find.text('打开系统通知设置'));
       await tester.pumpAndSettle();
       expect(service.opens, 1);
-      expect(find.textContaining('尚未接入'), findsOneWidget);
+      expect(find.textContaining('非精确定时'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

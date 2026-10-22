@@ -112,6 +112,7 @@ fn replacing_or_clearing_identity_drops_every_business_credential() {
             }),
             library_token: Some("synthetic".into()),
             cgyy_token: Some("synthetic".into()),
+            ..Identity::default()
         };
         if clear_by_route {
             service.set_route(RoutePreference::Direct);

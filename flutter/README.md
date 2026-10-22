@@ -15,7 +15,7 @@ Android 对齐 iPhone SwiftUI，Windows 对齐 macOS SwiftUI。Apple 应用保�
 | Flutter Rust Bridge（Rust、Dart、生成器一致） | 2.12.0 |
 | cargo-expand（生成绑定需要） | 1.0.127 |
 | Android SDK / Build Tools | 36 / 36.0.0 |
-| Android NDK | 27.0.12077973 |
+| Android NDK | 28.2.13676358（Alpha.6） |
 | Gradle / AGP / Kotlin | 9.4.1 / 9.1.0 / 2.3.20 |
 
 `../rust/rust-toolchain.toml` 和本目录 `.fvmrc` 固定版本；Cargo 和 Dart 锁文件入库。升级时同时更新 CI、工具链文件、Cargokit 的版本选择、依赖锁及本文，并重新执行两端验收。
@@ -75,7 +75,7 @@ Rust Android 目标随选定设备确定；当前 ARM64 模拟器使用 `aarch64
 
 作业详情的官网入口由上游通过可空 `sourceUrl` 返回，页面只校验通用 HTTPS URI。本轮同时移除了未使用的 FFI 命令，Rust 动态库与 Dart 生成绑定需配套构建，不能混用旧版本。
 
-工作台与研究生页作为渐进加载样板：分区完成即显示、刷新保留旧结果、局部失败单独重试，配合轻量银杏呼吸与首次淡入。动画遵循减少动态效果及标签页 `TickerMode`；桌面通过 `Ctrl+R` / `⌘R` 刷新。工作台课程与作业使用既有独立业务命令，不增加轮询；状态容器见 `application/refresh_section.dart`，通用呈现组件见 `loading_widgets.dart`。
+工作台与研究生页作为渐进加载样板：分区完成即显示、刷新保留旧结果、局部失败单独重试，配合轻量银杏呼吸与首次淡入。动画遵循减少动态效果及标签页 `TickerMode`；桌面通过 `Ctrl+R` / `⌘R` 刷新。工作台课程与作业使用既有独立业务命令；Alpha.6 登录工作区另有前台两分钟提醒刷新，首屏作业结果直接供提醒复用，不重复发起启动查询；状态容器见 `application/refresh_section.dart`，通用呈现组件见 `loading_widgets.dart`。
 
 座位与空教室采用公共 `CollectionWindow` / `CollectionToolbar`，固定查询区、每页 50 条、直接跳页及局部状态；结果列表按需构建，同一查询刷新保持当前页。课表固定节次轴并提供周次/星期直达入口；长页滚动入口见 `long_page_scroll.dart`。后续大数据功能的接入规则及热更新限制见 [交互与更新边界](../docs/MIRROR-INTERACTION.md)。
 

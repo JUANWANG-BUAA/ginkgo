@@ -1,4 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
+
+import 'reminder_rules.dart';
+import 'reminders.dart';
 
 import 'apple_widgets.dart';
 import 'apple_design.dart';
@@ -12,14 +17,21 @@ const _weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '
 
 /// Confirmed per-course submission with a subsequent status read.
 class CheckInPage extends StatefulWidget {
-  const CheckInPage({super.key, required this.service, this.history = false});
+  const CheckInPage({
+    super.key,
+    required this.service,
+    this.history = false,
+    this.clock,
+  });
   final CheckInGateway service;
   final bool history;
+  final DateTime Function()? clock;
   @override
   State<CheckInPage> createState() => _CheckInPageState();
 }
 
 class _CheckInPageState extends State<CheckInPage> {
+  Timer? windowTick;
   CheckInResponse? data;
   String? error;
   String? notice;
@@ -37,8 +49,9 @@ class _CheckInPageState extends State<CheckInPage> {
   final Set<String> awaitingVerification = {};
   int requestSerial = 0;
   late DateTime selectedDate;
+  DateTime get instant => widget.clock?.call() ?? DateTime.now();
   DateTime get schoolToday {
-    final now = DateTime.now().toUtc().add(const Duration(hours: 8));
+    final now = instant.toUtc().add(const Duration(hours: 8));
     return DateTime(now.year, now.month, now.day);
   }
 
@@ -95,7 +108,16 @@ class _CheckInPageState extends State<CheckInPage> {
   void initState() {
     super.initState();
     selectedDate = schoolToday.subtract(const Duration(days: 1));
+    windowTick = Timer.periodic(const Duration(seconds: 15), (_) {
+      if (mounted) setState(() {});
+    });
     load();
+  }
+
+  @override
+  void dispose() {
+    windowTick?.cancel();
+    super.dispose();
   }
 
   Future<void> load({bool force = false}) async {
@@ -111,6 +133,11 @@ class _CheckInPageState extends State<CheckInPage> {
           ? await widget.service.checkinOnDate(requested, forceRefresh: force)
           : await widget.service.checkin(forceRefresh: force);
       if (!mounted || serial != requestSerial) return;
+      if (!widget.history) {
+        final reminders = ReminderScope.of(context);
+        reminders?.updateCheckin(result);
+        if (reminders != null) unawaited(reminders.reconcile());
+      }
       if (result.failure == null && !result.stale) {
         for (final course in result.courses) {
           if (course.status == CheckInStatus.signed) {
@@ -148,7 +175,12 @@ class _CheckInPageState extends State<CheckInPage> {
     if (submitting != null ||
         busy ||
         widget.history ||
-        awaitingVerification.contains(course.id)) {
+        awaitingVerification.contains(course.id) ||
+        !checkinWindowOpen(
+          course,
+          data?.date ?? dateString(schoolToday),
+          instant,
+        )) {
       return;
     }
     final confirmed = await showCupertinoDialog<bool>(
@@ -532,7 +564,9 @@ class _CheckInPageState extends State<CheckInPage> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              widget.service.isDemo ? '演示模式不会提交签到' : '签到后将自动刷新学校状态。',
+              widget.service.isDemo
+                  ? '演示模式不会提交签到'
+                  : '课前 10 分钟开放，课程结束后关闭。每节课提醒一次，须手动确认签到。',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -572,7 +606,13 @@ class _CheckInPageState extends State<CheckInPage> {
     final canSubmit =
         !widget.history &&
         course.status == CheckInStatus.notSigned &&
-        !course.conflicting;
+        !course.conflicting &&
+        (course.signInAllowed ?? course.mergedRecordCount == 1);
+    final windowOpen = checkinWindowOpen(
+      course,
+      data?.date ?? dateString(schoolToday),
+      instant,
+    );
     return Padding(
       key: Key('checkin-course-${course.id}'),
       padding: const EdgeInsets.all(16),
@@ -629,7 +669,7 @@ class _CheckInPageState extends State<CheckInPage> {
                     color: CupertinoColors.secondaryLabel.resolveFrom(context),
                   ),
                 ),
-              if (course.conflicting)
+              if (course.conflicting || course.signInAllowed == false)
                 const Text(
                   '记录不一致',
                   style: TextStyle(
@@ -647,6 +687,7 @@ class _CheckInPageState extends State<CheckInPage> {
                   onPressed:
                       submitting != null ||
                           busy ||
+                          !windowOpen ||
                           awaitingVerification.contains(course.id)
                       ? null
                       : () => submit(course),
@@ -655,7 +696,9 @@ class _CheckInPageState extends State<CheckInPage> {
                       : Text(
                           awaitingVerification.contains(course.id)
                               ? '待核实'
-                              : '签到',
+                              : windowOpen
+                              ? '签到'
+                              : '课前 10 分钟开放',
                         ),
                 ),
             ],

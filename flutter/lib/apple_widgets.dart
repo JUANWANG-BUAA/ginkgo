@@ -4,8 +4,9 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_design.dart';
 import 'app_preferences.dart';
+import 'reminder_badge.dart';
 
-import 'application/contracts.dart';
+export 'application/failure_message.dart';
 
 /// Phone pages keep the native collapsing title. Wide windows use the same
 /// section / title / description hierarchy as Swift's AcademicPageHeader.
@@ -33,23 +34,24 @@ class ApplePageHeader extends StatelessWidget {
       );
     }
     final title = largeTitle is Text ? (largeTitle as Text).data : null;
-    final (section, subtitle) = switch (title) {
-      '课表' => ('学业', '按学期与教学周查看课程和考试'),
-      '成绩' => ('学业', '查看课程成绩、学分与加权统计'),
-      '作业' => ('学业', '区分个人作业状态与助教课程'),
-      '博雅' => ('学业', '查看活动、课程与个人记录'),
-      '研究生教务' => ('学业', '学籍、培养方案与研究生学业查询'),
-      '图书馆' => ('空间资源', '选择场馆、区域与可预约时段'),
-      '研讨室' => ('空间资源', '选择场馆并查看可预约空间'),
-      '空教室' => ('空间资源', '按校区、日期与节次查询空闲教室'),
-      '课程签到' || '签到历史' => ('工作台', '查看课程签到状态与记录'),
-      '待办' => ('工作台', '安排个人任务与截止时间'),
-      '校园通知' => ('校园', '查看通知与校内资讯'),
-      '今天' || '工作台' => ('工作台', '从今日课程开始安排一天'),
-      '设置' => ('Ginkgo', '管理账号、显示偏好与系统设置'),
-      _ => ('Ginkgo', null),
+    final (section, subtitle, icon) = switch (title) {
+      '课表' => ('学业', '按学期与教学周查看课程和考试', CupertinoIcons.calendar),
+      '成绩' => ('学业', '查看课程成绩、学分与加权统计', CupertinoIcons.chart_bar_alt_fill),
+      '作业' || '学校作业' => ('学业', '区分个人作业状态与助教课程', CupertinoIcons.doc_text),
+      '博雅' => ('学业', '查看活动、课程与个人记录', CupertinoIcons.book_solid),
+      '研究生教务' => ('学业', '学籍、培养方案与研究生学业查询', CupertinoIcons.building_2_fill),
+      '图书馆' => ('空间资源', '选择场馆、区域与可预约时段', CupertinoIcons.book),
+      '研讨室' => ('空间资源', '选择场馆并查看可预约空间', CupertinoIcons.person_3),
+      '空教室' => ('空间资源', '按校区、日期与节次查询空闲教室', CupertinoIcons.building_2_fill),
+      '课程签到' || '签到历史' => ('工作台', '查看课程签到状态与记录', CupertinoIcons.checkmark_seal),
+      '待办' => ('工作台', '安排个人任务与截止时间', CupertinoIcons.list_bullet),
+      '校园通知' => ('校园', '查看通知与校内资讯', CupertinoIcons.news_solid),
+      '今天' || '工作台' => ('工作台', '从今日课程开始安排一天', CupertinoIcons.sun_max),
+      '设置' => ('Ginkgo', '管理账号、显示偏好与系统设置', CupertinoIcons.gear_alt),
+      _ => ('Ginkgo', null, null),
     };
     final canPop = Navigator.of(context).canPop();
+    final accent = CupertinoTheme.of(context).primaryColor;
     return PinnedHeaderSliver(
       child: ColoredBox(
         color: CupertinoColors.systemGroupedBackground.resolveFrom(context),
@@ -57,7 +59,7 @@ class ApplePageHeader extends StatelessWidget {
           bottom: false,
           child: Padding(
             key: const Key('desktop-page-heading'),
-            padding: const EdgeInsets.fromLTRB(24, 22, 24, 2),
+            padding: const EdgeInsets.fromLTRB(24, 22, 24, 6),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -73,6 +75,18 @@ class ApplePageHeader extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                 ],
+                if (icon != null) ...[
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(child: Icon(icon, size: 22, color: accent)),
+                  ),
+                  const SizedBox(width: 14),
+                ],
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,12 +101,12 @@ class ApplePageHeader extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 3),
                       Semantics(
                         header: true,
                         child: DefaultTextStyle.merge(
                           style: const TextStyle(
-                            fontSize: 26,
+                            fontSize: 24,
                             fontWeight: FontWeight.w600,
                             letterSpacing: -0.5,
                           ),
@@ -100,7 +114,7 @@ class ApplePageHeader extends StatelessWidget {
                         ),
                       ),
                       if (subtitle != null) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 3),
                         Text(
                           subtitle,
                           style: TextStyle(
@@ -123,23 +137,6 @@ class ApplePageHeader extends StatelessWidget {
     );
   }
 }
-
-String failureMessage(FailureCode? code) => switch (code) {
-  FailureCode.invalidRequest => '查询或筛选条件无效，请调整后重试',
-  FailureCode.changedResponse => '数据格式无法识别，请重试',
-  FailureCode.unsupportedContract => '数据版本暂不支持，请更新应用',
-  FailureCode.sessionExpired => '学校会话已失效，请重新登录',
-  FailureCode.serviceUnavailable => '学校服务暂时不可用，请稍后重试',
-  FailureCode.captchaRequired => '学校要求验证码，请重新登录并完成验证',
-  FailureCode.invalidCredentials => '账号或密码错误，请检查后重试',
-  FailureCode.preLoginTip => '学校登录提示未通过，请稍后重试',
-  FailureCode.accessPolicyDenied => '当前网络被学校访问策略拦截，请连接校园网或北航 VPN 后重试',
-  FailureCode.redirectLimit => '学校认证跳转次数过多，请稍后重试',
-  FailureCode.unsupportedPortal => '当前教务门户不提供该功能，请切换到本科生账号',
-  FailureCode.credentialStore => '系统安全存储暂时不可用，请稍后重试',
-  FailureCode.businessRejected => '学校业务系统暂未确认这次请求，请稍后刷新；这不代表账号已退出',
-  null => '本地服务暂时不可用，请重试',
-};
 
 class AppleEmptyState extends StatelessWidget {
   const AppleEmptyState({
@@ -653,10 +650,12 @@ class AppleNavigationItem extends StatefulWidget {
     required this.icon,
     required this.selected,
     required this.onPressed,
+    this.unreadCount = 0,
   });
   final String title;
   final IconData icon;
   final bool selected;
+  final int unreadCount;
   final VoidCallback onPressed;
   @override
   State<AppleNavigationItem> createState() => _AppleNavigationItemState();
@@ -680,9 +679,11 @@ class _AppleNavigationItemState extends State<AppleNavigationItem> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             color: widget.selected
-                ? accent.withValues(alpha: 0.12)
+                ? accent.withValues(alpha: 0.11)
                 : hovered || focused
-                ? CupertinoColors.tertiarySystemFill.resolveFrom(context)
+                ? CupertinoColors.tertiarySystemFill
+                      .resolveFrom(context)
+                      .withValues(alpha: 0.45)
                 : CupertinoColors.tertiarySystemFill
                       .resolveFrom(context)
                       .withValues(alpha: 0),
@@ -690,34 +691,62 @@ class _AppleNavigationItemState extends State<AppleNavigationItem> {
               color: focused ? accent : accent.withValues(alpha: 0),
             ),
           ),
-          child: CupertinoButton(
-            padding: const EdgeInsets.all(10),
-            onPressed: widget.onPressed,
-            onFocusChange: (value) => setState(() => focused = value),
-            child: Row(
-              children: [
-                Icon(
-                  widget.icon,
-                  size: 18,
-                  color: widget.selected
-                      ? accent
-                      : CupertinoColors.secondaryLabel.resolveFrom(context),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    widget.title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: widget.selected
-                          ? FontWeight.w600
-                          : FontWeight.w400,
-                      color: CupertinoColors.label.resolveFrom(context),
+          child: Stack(
+            alignment: Alignment.centerLeft,
+            children: [
+              if (widget.selected)
+                Positioned(
+                  left: 3,
+                  child: Container(
+                    width: 3,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: accent,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                 ),
-              ],
-            ),
+              CupertinoButton(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 11,
+                  vertical: 8,
+                ),
+                onPressed: widget.onPressed,
+                onFocusChange: (value) => setState(() => focused = value),
+                child: Row(
+                  children: [
+                    const SizedBox(width: 4),
+                    ReminderBadge(
+                      count: widget.unreadCount,
+                      child: Icon(
+                        widget.icon,
+                        size: 16,
+                        color: widget.selected
+                            ? accent
+                            : CupertinoColors.secondaryLabel.resolveFrom(
+                                context,
+                              ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        widget.title,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: widget.selected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                          color: widget.selected
+                              ? accent
+                              : CupertinoColors.label.resolveFrom(context),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

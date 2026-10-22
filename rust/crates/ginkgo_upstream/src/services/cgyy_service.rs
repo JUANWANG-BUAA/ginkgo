@@ -7,7 +7,7 @@ pub use ginkgo_domain::ports::CgyyOutcome;
 use ginkgo_domain::ports::*;
 use ginkgo_domain::ports::{CgyyData, CgyyQuery};
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
-    async fn cgyy_token(&self, renew: bool) -> Result<String, AppError> {
+    pub(super) async fn cgyy_token(&self, renew: bool) -> Result<String, AppError> {
         let account = self.current_account()?;
         if !renew {
             if let Some(token) = self.identity.lock().cgyy_token.clone() {

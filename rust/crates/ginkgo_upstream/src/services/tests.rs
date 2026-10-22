@@ -272,6 +272,7 @@ fn recovery_failure_service() -> (
 
 mod academic;
 mod campus;
+mod cgyy_booking;
 mod checkin;
 mod classroom;
 mod homework;

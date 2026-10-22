@@ -416,11 +416,20 @@ async fn checkin_history_is_cached_per_date_and_failure_preserves_only_that_day(
 #[tokio::test]
 async fn checkin_write_revalidates_today_sends_once_and_invalidates_snapshot() {
     use crate::features::mutation::MutationState;
+    let now = chrono::DateTime::parse_from_rfc3339(&crate::services::cache::now_shanghai())
+        .expect("clock");
+    let mut day: serde_json::Value = serde_json::from_str(&checkin_day_body()).expect("fixture");
+    for row in day["result"].as_array_mut().expect("rows") {
+        row["classBeginTime"] = serde_json::json!(now.format("%Y-%m-%d %H:%M:%S").to_string());
+        row["classEndTime"] = serde_json::json!((now + chrono::Duration::minutes(10))
+            .format("%Y-%m-%d %H:%M:%S")
+            .to_string());
+    }
     let mut responses = login_chain("sy2501001", "fixture");
     responses.extend([
         checkin_entry_response("fixture-login"),
         checkin_app_login_response(),
-        checkin_schedule_response(checkin_day_body()),
+        checkin_schedule_response(day.to_string()),
         HttpResponse::new(200, "timestamp", r#"{"timestamp":"1720000000+1"}"#),
         HttpResponse::new(503, "sign", ""),
     ]);
@@ -449,4 +458,33 @@ async fn checkin_write_revalidates_today_sends_once_and_invalidates_snapshot() {
         .unwrap()
         .local_date;
     assert!(service.snapshots.checkin.lock().any(&day).is_none());
+}
+
+#[tokio::test]
+async fn out_of_window_checkin_never_requests_a_signature_or_posts() {
+    let mut day: serde_json::Value = serde_json::from_str(&checkin_day_body()).expect("fixture");
+    for row in day["result"].as_array_mut().expect("rows") {
+        row["classBeginTime"] = serde_json::json!("2099-10-20 08:00:00");
+        row["classEndTime"] = serde_json::json!("2099-10-20 09:00:00");
+    }
+    let id = day["result"][0]["id"].as_str().expect("id").to_owned();
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend([
+        checkin_entry_response("fixture-login"),
+        checkin_app_login_response(),
+        checkin_schedule_response(day.to_string()),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "synthetic-password", None, false)
+        .await
+        .expect("login");
+    assert_eq!(
+        service.submit_checkin(&id).await.state,
+        crate::features::mutation::MutationState::NotSubmitted
+    );
+    assert!(transport
+        .requests()
+        .iter()
+        .all(|r| !r.url.contains("stu_scan_sign") && !r.url.contains("get_timestamp")));
 }

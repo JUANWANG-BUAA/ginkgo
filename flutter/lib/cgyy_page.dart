@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 
 import 'academic_widgets.dart';
+import 'cgyy_booking_page.dart';
 import 'apple_widgets.dart';
 import 'apple_design.dart';
 import 'mirror_service.dart';
@@ -255,6 +256,54 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
     }
   }
 
+  CgyyBookingGateway? get bookingGateway {
+    if (widget.demo || widget.loader != null) return null;
+    final source = widget.service ?? mirrorServiceFor(demo: false);
+    return source is CgyyBookingGateway ? source as CgyyBookingGateway : null;
+  }
+
+  Future<void> bookingAction(String action, {int? orderId}) async {
+    if (busy || bookingGateway == null) return;
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(action == 'cancel' ? '取消这条预约？' : '已核对预约结果？'),
+        content: const Text('请先核对学校预约记录。操作只提交一次，结果不明时不会重发。'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('返回'),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: action == 'cancel',
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('确认'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => busy = true);
+    String message = '结果待核实，请刷新记录核对，勿重复提交';
+    try {
+      final response = await bookingGateway!.executeCgyy({
+        'action': action,
+        'order_id': ?orderId,
+      });
+      if (response.payload != null && response.failure == null) {
+        message =
+            (jsonDecode(response.payload!) as Map<String, dynamic>)['message']
+                as String;
+      }
+    } catch (_) {
+      /* Never retry a mutation. */
+    }
+    if (!mounted) return;
+    setState(() => busy = false);
+    await load(force: true);
+    if (mounted) setState(() => error = message);
+  }
+
   Future<void> chooseDate() async {
     var draft = selected;
     final confirmed = await showCupertinoModalPopup<bool>(
@@ -362,6 +411,32 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
                 ),
               ],
             ),
+          if (widget.site != null && bookingGateway != null)
+            AppleSection(
+              footer: const Text('提交前重新核对空档；实验写入功能，需手动验证并确认。'),
+              children: [
+                AppleListTile(
+                  leading: const Icon(CupertinoIcons.calendar_badge_plus),
+                  title: const Text('预约研讨室'),
+                  trailing: const CupertinoListTileChevron(),
+                  onTap: busy
+                      ? null
+                      : () async {
+                          await Navigator.of(context).push(
+                            CupertinoPageRoute<void>(
+                              builder: (_) => CgyyBookingPage(
+                                gateway: bookingGateway!,
+                                siteId: widget.site!['id'] as int,
+                                siteName: widget.site!['name'] as String,
+                                date: date,
+                              ),
+                            ),
+                          );
+                          if (mounted) await load(force: true);
+                        },
+                ),
+              ],
+            ),
           if (busy)
             const Padding(
               padding: EdgeInsets.all(24),
@@ -463,6 +538,30 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
                       ),
                     ],
                   ),
+              ],
+            ),
+          if (widget.site == null && bookingGateway != null)
+            AppleSection(
+              header: const Text('预约管理'),
+              footer: const Text('取消前会核对订单状态及开始前 4 小时限制；不符合条件不会发送请求。'),
+              children: [
+                for (final order in orders ?? <Map<String, dynamic>>[])
+                  if (['订单状态 1', '订单状态 3'].contains(order['status']))
+                    AppleListTile(
+                      title: Text('取消 · ${order['place']}'),
+                      subtitle: Text('${order['date']} · ${order['time']}'),
+                      onTap: busy
+                          ? null
+                          : () => bookingAction(
+                              'cancel',
+                              orderId: order['id'] as int,
+                            ),
+                    ),
+                AppleListTile(
+                  title: const Text('我已核对上次操作结果'),
+                  subtitle: const Text('回查成功后，手动解除结果待核实保护'),
+                  onTap: busy ? null : () => bookingAction('acknowledge'),
+                ),
               ],
             ),
           const SizedBox(height: 32),

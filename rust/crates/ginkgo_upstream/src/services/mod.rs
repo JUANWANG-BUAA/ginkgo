@@ -89,6 +89,7 @@ pub use graduate_service::{GraduateOutcome, GraduatePart};
 
 mod notices_service;
 pub use notices_service::NoticesOutcome;
+mod cgyy_booking_service;
 mod cgyy_service;
 pub use cgyy_service::CgyyOutcome;
 

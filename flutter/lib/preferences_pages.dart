@@ -6,6 +6,7 @@ import 'apple_design.dart';
 import 'apple_widgets.dart';
 import 'maintenance_pages.dart';
 import 'system_settings_service.dart';
+import 'reminders.dart';
 
 class AppearancePage extends StatelessWidget {
   const AppearancePage({super.key});
@@ -134,7 +135,10 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
     setState(() => busy = true);
     try {
       final value = await widget.service.requestNotifications();
-      if (mounted) setState(() => permission = value);
+      if (mounted) {
+        setState(() => permission = value);
+        await ReminderScope.of(context)?.reschedule();
+      }
     } catch (_) {
       if (mounted) setState(() => notice = '未能请求通知权限，请到系统设置查看');
     } finally {
@@ -158,7 +162,7 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
       AppleSection(
         header: const Text('通知'),
         footer: const Text(
-          '权限由系统管理。Android 的课程定时提醒和后台签到轮询尚未接入，授权通知不会自动开启这些功能。',
+          '签到每节课提醒一次；未完成作业在截止前 48 小时和 24 小时提醒。系统通知隐藏课程和作业名称。Android 使用非精确定时，省电和休眠可能延迟；重启设备后请打开应用重排。其他平台暂仅提供应用内提示。',
         ),
         children: [
           AppleListTile(
@@ -187,6 +191,32 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
           ),
         ],
       ),
+      if (ReminderScope.of(context) case final ReminderController reminders)
+        AppleSection(
+          header: const Text('提醒规则'),
+          footer: Text(
+            reminders.hint ??
+                '基于最近成功读取的数据，前台每两分钟刷新；不会自动签到或提交作业。本地计划 ${reminders.scheduled} 条，不代表系统实际投递数量。',
+          ),
+          children: [
+            AppleListTile(
+              title: const Text('课前签到提醒'),
+              subtitle: const Text('课前 10 分钟 · 每节课一次'),
+              trailing: CupertinoSwitch(
+                value: reminders.checkinEnabled,
+                onChanged: (value) => reminders.setEnabled('checkin', value),
+              ),
+            ),
+            AppleListTile(
+              title: const Text('作业截止提醒'),
+              subtitle: const Text('提前两天和一天 · 仅个人课程未完成作业'),
+              trailing: CupertinoSwitch(
+                value: reminders.homeworkEnabled,
+                onChanged: (value) => reminders.setEnabled('homework', value),
+              ),
+            ),
+          ],
+        ),
       AppleSection(
         header: const Text('启动与后台运行'),
         footer: Text(

@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
+
+import 'reminders.dart';
 
 import 'apple_widgets.dart';
 import 'application/refresh_section.dart';
@@ -80,18 +84,23 @@ class _TodayPageState extends State<TodayPage> {
       value: result.failure == null || result.fetchedAt != null ? result : null,
       error: result.failure == null ? null : failureMessage(result.failure),
     );
-  }, fallbackError: failureMessage(null));
+  }, fallbackError: '本地服务暂时不可用，请重试');
 
   Future<void> _loadHomework({bool force = false}) =>
       homework.refresh(() async {
         final result = await widget.service.homework(forceRefresh: force);
+        if (mounted) {
+          final reminders = ReminderScope.of(context);
+          reminders?.updateHomework(result);
+          if (reminders != null) unawaited(reminders.reconcile());
+        }
         return SectionResult(
           value: result.failure == null || result.termCode.isNotEmpty
               ? result
               : null,
           error: result.failure == null ? null : failureMessage(result.failure),
         );
-      }, fallbackError: failureMessage(null));
+      }, fallbackError: '本地服务暂时不可用，请重试');
 
   Future<void> accountAction() async {
     final demo = widget.service.isDemo;

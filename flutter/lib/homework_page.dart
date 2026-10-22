@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
+
+import 'reminders.dart';
 
 import 'apple_widgets.dart';
 import 'apple_design.dart';
@@ -106,6 +110,12 @@ class _HomeworkPageState extends State<HomeworkPage> {
     try {
       final result = await widget.service.homework(forceRefresh: force);
       if (!mounted) return;
+      final reminders = ReminderScope.of(context);
+      reminders?.updateHomework(result);
+      if (reminders != null) {
+        reminders.markRead('homework');
+        unawaited(reminders.reconcile());
+      }
       setState(() {
         busy = false;
         if (result.failure != null) {

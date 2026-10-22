@@ -1,10 +1,15 @@
+import 'dart:convert';
+
 import '../application/contracts.dart';
 import '../application/mirror_service.dart';
 import '../src/rust/api/live.dart' as live;
 import '../src/rust/api/mirror.dart' as rust;
 
-final class NativeMirrorService implements MirrorService {
+final class NativeMirrorService implements MirrorService, CgyyBookingGateway {
   const NativeMirrorService();
+  @override
+  Future<ReadOnlyResponse> executeCgyy(Map<String, Object?> command) =>
+      live.executeCgyy(command: jsonEncode(command));
   @override
   Future<live.ReadOnlyResponse> checkinProgress() => live.checkinLoadProgress();
   @override

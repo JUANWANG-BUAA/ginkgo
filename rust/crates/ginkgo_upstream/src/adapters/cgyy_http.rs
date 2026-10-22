@@ -42,8 +42,11 @@ fn request(
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
         .as_millis() as i64;
-    let login = path == "/api/login";
-    if !login {
+    let post = path == "/api/login"
+        || path.starts_with("/api/reservation/order/")
+        || path.starts_with("/api/orders/new/cancel/")
+        || path == "/api/captcha/check";
+    if !post {
         params
             .entry("nocache".into())
             .or_insert_with(|| timestamp.to_string());
@@ -52,7 +55,7 @@ fn request(
     let query = url::form_urlencoded::Serializer::new(String::new())
         .extend_pairs(&params)
         .finish();
-    let mut request = if login {
+    let mut request = if post {
         HttpRequest::post_form(format!("{BASE}{path}"), query)
     } else {
         HttpRequest::get(format!("{BASE}{path}?{query}"))
@@ -209,6 +212,16 @@ pub async fn load<T: HttpTransport>(
     )
     .await
 }
+/// Signed business request; caller owns mutation confirmation and retry policy.
+pub async fn business<T: HttpTransport>(
+    session: &Session<T>,
+    path: &str,
+    params: BTreeMap<String, String>,
+    token: &str,
+) -> Result<Value, AppError> {
+    decode(session, request(path, params, Some(token), None)).await
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

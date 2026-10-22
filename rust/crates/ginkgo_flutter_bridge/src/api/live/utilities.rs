@@ -76,6 +76,15 @@ pub(super) async fn load_cgyy(
     read_only_response(result)
 }
 
+pub(super) async fn execute_cgyy(command: String) -> ReadOnlyResponse {
+    let _access = SESSION_ACCESS.write().await;
+    let result = match service() {
+        Ok(service) => service.execute_cgyy_json(&command).await,
+        Err(error) => Err(error),
+    };
+    read_only_value(result)
+}
+
 pub(super) fn load_demo_cgyy(kind: String) -> ReadOnlyResponse {
     read_only_value(ginkgo_runtime::demo::demo_campus::load_demo_cgyy(kind))
 }

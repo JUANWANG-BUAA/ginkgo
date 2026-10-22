@@ -275,6 +275,11 @@ pub async fn load_cgyy(
     utilities::load_cgyy(kind, site_id, date, force_refresh).await
 }
 
+/// User-confirmed CGYY commands; payload contains no upstream credentials.
+pub async fn execute_cgyy(command: String) -> ReadOnlyResponse {
+    utilities::execute_cgyy(command).await
+}
+
 pub fn load_demo_cgyy(kind: String) -> ReadOnlyResponse {
     utilities::load_demo_cgyy(kind)
 }

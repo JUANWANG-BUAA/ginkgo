@@ -10,37 +10,40 @@ import 'mirror_service.dart';
 import 'query_cache_scope.dart';
 import 'workspace_back_guard.dart';
 import 'workspace_catalog.dart';
+import 'reminders.dart';
+import 'reminder_badge.dart';
+import 'diagnostic_hints.dart';
 
 CupertinoThemeData ginkgoTheme([
   Brightness? brightness,
-  Color accent = AppleDesign.accent,
+  Color accent = GinkgoColors.accent,
 ]) => CupertinoThemeData(
   primaryColor: accent,
   textTheme: CupertinoTextThemeData(
-    textStyle: AppleDesign.body,
+    textStyle: GinkgoTypography.body,
     navTitleTextStyle: const TextStyle(
       inherit: false,
-      fontFamily: AppleDesign.font,
-      fontFamilyFallback: AppleDesign.fallback,
+      fontFamily: GinkgoTypography.font,
+      fontFamilyFallback: GinkgoTypography.fallback,
       fontSize: 17,
       fontWeight: FontWeight.w600,
-      color: CupertinoColors.label,
+      color: GinkgoColors.label,
     ),
-    navLargeTitleTextStyle: AppleDesign.title,
+    navLargeTitleTextStyle: GinkgoTypography.largeTitle,
     actionTextStyle: TextStyle(
       inherit: false,
-      fontFamily: AppleDesign.font,
-      fontFamilyFallback: AppleDesign.fallback,
+      fontFamily: GinkgoTypography.font,
+      fontFamilyFallback: GinkgoTypography.fallback,
       fontSize: 17,
       letterSpacing: -0.25,
       color: accent,
     ),
     dateTimePickerTextStyle: const TextStyle(
       inherit: false,
-      fontFamily: AppleDesign.font,
-      fontFamilyFallback: AppleDesign.fallback,
+      fontFamily: GinkgoTypography.font,
+      fontFamilyFallback: GinkgoTypography.fallback,
       fontSize: 21,
-      color: CupertinoColors.label,
+      color: GinkgoColors.label,
     ),
   ),
   brightness: brightness,
@@ -111,23 +114,30 @@ class GinkgoApp extends StatelessWidget {
     home: CourseVisibilityScope(
       key: ValueKey(service.isDemo ? 'demo' : accountId ?? 'account'),
       account: service.isDemo ? '__demo__' : accountId ?? '__account__',
-      child: QueryCacheScope(
-        child: LayoutBuilder(
-          builder: (context, constraints) => constraints.maxWidth >= 760
-              ? _DesktopWorkspace(
-                  service: service,
-                  accountName: accountName,
-                  accountId: accountId,
-                  route: route,
-                  onSignOut: onSignOut,
-                )
-              : _MobileWorkspace(
-                  service: service,
-                  accountName: accountName,
-                  accountId: accountId,
-                  route: route,
-                  onSignOut: onSignOut,
-                ),
+      child: ReminderScope(
+        service: service,
+        account: service.isDemo ? '__demo__' : accountId ?? '__account__',
+        child: DiagnosticHintOverlay(
+          child: QueryCacheScope(
+            child: LayoutBuilder(
+              builder: (context, constraints) =>
+                  constraints.maxWidth >= GinkgoLayout.desktopBreakpoint
+                  ? _DesktopWorkspace(
+                      service: service,
+                      accountName: accountName,
+                      accountId: accountId,
+                      route: route,
+                      onSignOut: onSignOut,
+                    )
+                  : _MobileWorkspace(
+                      service: service,
+                      accountName: accountName,
+                      accountId: accountId,
+                      route: route,
+                      onSignOut: onSignOut,
+                    ),
+            ),
+          ),
         ),
       ),
     ),
@@ -159,15 +169,20 @@ class _MobileWorkspaceState extends State<_MobileWorkspace> {
   void initState() {
     super.initState();
     tabs.addListener(back.disarm);
+    tabs.addListener(_readActive);
   }
 
   @override
   void dispose() {
     tabs.removeListener(back.disarm);
+    tabs.removeListener(_readActive);
     back.dispose();
     tabs.dispose();
     super.dispose();
   }
+
+  void _readActive() =>
+      ReminderScope.of(context)?.setActive(mobileDestinations[tabs.index].id);
 
   WorkspaceContext _contextFor(BuildContext navigatorContext) =>
       WorkspaceContext(
@@ -207,7 +222,12 @@ class _MobileWorkspaceState extends State<_MobileWorkspace> {
               items: [
                 for (final destination in destinations)
                   BottomNavigationBarItem(
-                    icon: Icon(destination.icon),
+                    icon: ReminderBadge(
+                      count:
+                          ReminderScope.of(context)?.unread(destination.id) ??
+                          0,
+                      child: Icon(destination.icon),
+                    ),
                     label: destination.mobileLabel ?? destination.title,
                   ),
               ],
@@ -267,6 +287,7 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
   final Set<String> visited = {'today'};
 
   void select(String id) {
+    ReminderScope.of(context)?.setActive(id);
     if (selected == id) {
       navigators[id]?.currentState?.popUntil((route) => route.isFirst);
       return;
@@ -294,22 +315,19 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
     children: [
       Container(
         key: const Key('desktop-sidebar'),
-        width: 232,
+        width: GinkgoLayout.desktopSidebarWidth,
         color: CupertinoColors.systemGroupedBackground.resolveFrom(context),
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(20, 20, 20, 6),
-                child: Text(
-                  'Ginkgo',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-                ),
-              ),
+              _sidebarBrandIdentity(context),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 8,
+                  ),
                   children: [
                     for (final section in WorkspaceSection.values) ...[
                       _section(section.title),
@@ -319,21 +337,7 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
                   ],
                 ),
               ),
-              for (final destination in footerDestinations)
-                _sidebar(destination),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                child: Text(
-                  widget.accountName ??
-                      (widget.service.isDemo ? '离线演示' : '学校账户'),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                  ),
-                ),
-              ),
+              _sidebarFooter(context),
             ],
           ),
         ),
@@ -343,52 +347,175 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
         color: CupertinoColors.separator.resolveFrom(context),
       ),
       Expanded(
-        child: IndexedStack(
-          index: workspaceDestinations.indexWhere(
-            (destination) => destination.id == selected,
-          ),
-          children: [
-            for (final destination in workspaceDestinations)
-              if (visited.contains(destination.id))
-                ExcludeFocus(
-                  excluding: selected != destination.id,
-                  child: TickerMode(
-                    enabled: selected == destination.id,
-                    child: CupertinoTabView(
-                      key: ValueKey('desktop-destination-${destination.id}'),
-                      navigatorKey: navigators.putIfAbsent(
-                        destination.id,
-                        () => GlobalKey<NavigatorState>(),
+        child: Container(
+          color: CupertinoColors.systemBackground.resolveFrom(context),
+          child: IndexedStack(
+            index: workspaceDestinations.indexWhere(
+              (destination) => destination.id == selected,
+            ),
+            children: [
+              for (final destination in workspaceDestinations)
+                if (visited.contains(destination.id))
+                  ExcludeFocus(
+                    excluding: selected != destination.id,
+                    child: TickerMode(
+                      enabled: selected == destination.id,
+                      child: CupertinoTabView(
+                        key: ValueKey('desktop-destination-${destination.id}'),
+                        navigatorKey: navigators.putIfAbsent(
+                          destination.id,
+                          () => GlobalKey<NavigatorState>(),
+                        ),
+                        builder: (_) => destination.build(_contextFor()),
                       ),
-                      builder: (_) => destination.build(_contextFor()),
                     ),
-                  ),
-                )
-              else
-                const SizedBox.shrink(),
-          ],
+                  )
+                else
+                  const SizedBox.shrink(),
+            ],
+          ),
         ),
       ),
     ],
   );
 
+  Widget _sidebarBrandIdentity(BuildContext context) {
+    final accent = CupertinoTheme.of(context).primaryColor;
+    final isDemo = widget.service.isDemo;
+    final accountText = widget.accountName ?? (isDemo ? '离线演示' : '校园工作台');
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 14),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: CupertinoColors.separator
+                .resolveFrom(context)
+                .withValues(alpha: 0.16),
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [accent, accent.withValues(alpha: 0.72)],
+              ),
+            ),
+            child: const Center(
+              child: Icon(
+                CupertinoIcons.leaf_arrow_circlepath,
+                size: 20,
+                color: CupertinoColors.white,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Ginkgo',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        accountText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: CupertinoColors.secondaryLabel.resolveFrom(
+                            context,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Container(
+                      width: 5,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isDemo
+                            ? GinkgoColors.connectionOffline
+                            : GinkgoColors.connectionOnline,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      isDemo ? '演示' : '已连接',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: CupertinoColors.secondaryLabel.resolveFrom(
+                          context,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sidebarFooter(BuildContext context) => Container(
+    decoration: BoxDecoration(
+      border: Border(
+        top: BorderSide(
+          color: CupertinoColors.separator
+              .resolveFrom(context)
+              .withValues(alpha: 0.16),
+          width: 0.5,
+        ),
+      ),
+    ),
+    padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final destination in footerDestinations) _sidebar(destination),
+      ],
+    ),
+  );
+
   Widget _section(String title) => Padding(
-    padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
+    padding: const EdgeInsets.fromLTRB(14, 14, 14, 4),
     child: Text(
       title,
       style: const TextStyle(
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: FontWeight.w600,
+        letterSpacing: 0.6,
         color: CupertinoColors.secondaryLabel,
       ),
     ),
   );
 
   Widget _sidebar(WorkspaceDestination destination) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
     child: AppleNavigationItem(
       key: ValueKey('desktop-sidebar-${destination.id}'),
       title: destination.title,
+      unreadCount: ReminderScope.of(context)?.unread(destination.id) ?? 0,
       icon: destination.icon,
       selected: selected == destination.id,
       onPressed: () => select(destination.id),
