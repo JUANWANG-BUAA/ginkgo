@@ -25,9 +25,7 @@ class ResourceMeter extends StatelessWidget {
     final capacity = total;
     final known = free != null && capacity != null;
     final countsLabel = free == null
-        ? (capacity == null
-              ? '官网未提供数量'
-              : '可用数量未提供 · 共 $capacity $unit')
+        ? (capacity == null ? '官网未提供数量' : '可用数量未提供 · 共 $capacity $unit')
         : capacity == null
         ? '$unit可用 · 总量未提供'
         : '$unit可用 · 共 $capacity $unit';

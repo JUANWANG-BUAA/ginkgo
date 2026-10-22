@@ -4,11 +4,11 @@ import 'apple_widgets.dart';
 import 'classroom_detail.dart';
 import 'mirror_service.dart';
 import 'rules_page.dart';
-import 'src/rust/api/mirror.dart';
+import 'application/contracts.dart';
 
 class ClassroomPage extends StatefulWidget {
   const ClassroomPage({super.key, required this.service});
-  final MirrorService service;
+  final AcademicGateway service;
   @override
   State<ClassroomPage> createState() => _ClassroomPageState();
 }

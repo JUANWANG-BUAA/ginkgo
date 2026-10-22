@@ -8,7 +8,7 @@ import 'notices_page.dart';
 import 'grades_page.dart';
 import 'mirror_service.dart';
 import 'settings_page.dart';
-import 'src/rust/api/live.dart' show RouteChoice;
+import 'application/contracts.dart' show RouteChoice;
 
 class ServiceDirectory extends StatelessWidget {
   const ServiceDirectory({
@@ -40,14 +40,14 @@ class ServiceDirectory extends StatelessWidget {
             '校园通知',
             CupertinoIcons.news_solid,
             CupertinoColors.systemBlue,
-            NoticesPage(demo: service.isDemo),
+            NoticesPage(demo: service.isDemo, service: service),
           ),
           _row(
             context,
             '待办',
             CupertinoIcons.list_bullet,
             CupertinoColors.systemOrange,
-            TasksPage(demo: service.isDemo),
+            TasksPage(demo: service.isDemo, service: service),
           ),
         ],
       ),
@@ -66,14 +66,14 @@ class ServiceDirectory extends StatelessWidget {
             '博雅',
             CupertinoIcons.book_solid,
             CupertinoColors.systemTeal,
-            BykcPage(demo: service.isDemo),
+            BykcPage(demo: service.isDemo, service: service),
           ),
           _row(
             context,
             '研究生教务',
             CupertinoIcons.building_2_fill,
             CupertinoColors.systemBrown,
-            GraduatePage(demo: service.isDemo),
+            GraduatePage(demo: service.isDemo, service: service),
           ),
         ],
       ),

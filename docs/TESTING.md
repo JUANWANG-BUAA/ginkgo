@@ -1634,3 +1634,48 @@ macOS 全量 210 项通过；iPhone SE（iOS 27.0）教务相关 43 项通过。
 `GraduateRequirementsTests.testRequirementDashboardRendersAtDesktopAndPhoneWidths` 使用合成数据，macOS 下通过 NSHostingView 渲染，产物写入系统临时目录；布局目视检查记录在 ACCEPTANCE.md，不能将该测试通过等同于真实账号交互或可访问性验收。
 
 最终补充检查：iOS generic-device build 通过；最后的文案调整后，macOS `GraduateRequirementsTests` 定向复跑通过；`git diff --check` 通过。
+
+
+## 2026-10-22 · Rust / Flutter 分层重构
+
+本轮结构及维护规则见 [MIRROR-ARCHITECTURE.md](MIRROR-ARCHITECTURE.md)。验证在宿主 macOS 完成，不调用真实学校业务接口。
+
+| 检查 | 结果 |
+| --- | --- |
+| `scripts/check-mirror.sh` | 通过：架构依赖检查、fmt、Clippy（所有目标/feature，拒绝警告）、Rust workspace 测试、Flutter analyze 和测试 |
+| Rust workspace | 192 项单元测试 + 1 项共享契约集成测试 + 1 项 doctest，共 194 项通过 |
+| Flutter | analyze 无问题，108 项单元/widget 测试通过 |
+| `scripts/generate-mirror-bridge.sh` | 重新生成绑定；最终重复生成的哈希一致 |
+| `cargo machete --with-metadata rust` | 未发现未使用依赖；无 metadata 的 `md-5` 提示是 crate 导入名为 `md5` 的误报，已核对实际使用 |
+| Android | `flutter build apk --debug --target-platform android-arm64 --no-pub` 通过，包含 Cargokit/Rust ARM64 链接 |
+| `python3 scripts/check-mirror-windows-cmake.py` | 普通路径、Flutter 插件符号链接、Debug/Release 冷 CMake 和合成 DLL 拷贝通过 |
+| `git diff --check` | 通过 |
+
+新增回归：缓存失败保留数据与原时间戳/TTL、无缓存时错误透传、成功空快照覆盖旧数据、名称排序的 Unicode/大数字/前导零、FFI 序列化失败及陈旧数据携带刷新错误、BYKC 排队查询回查缓存/强制刷新、北京时间边界学期投影、Flutter 使用投影且不从原始学期列表自行推断。
+
+基线分析曾发现 Flutter 23 个接口/导入错误，修复了服务测试替身与枚举导入，并补上签到加载组件的服务注入。页面导航、600 座位懒加载、周次自动定位、快速切换请求顺序、刷新保留旧状态等原有回归均继续通过。
+
+本轮没有执行真实登录/签到/预约、Windows 主机构建或设备交互验收；Android APK 编译和合成 CMake 测试不能替代这些验收。尚无发布包体、设备内存、帧率或端到端提速比例的测量结论。
+
+
+## 2026-10-22 · 学校协议、会话与业务端口隔离
+
+在上一轮分文件基础上，切断 core 对 upstream 的编译依赖。当前结构和学校协议维护位置以 [MIRROR-ARCHITECTURE.md](MIRROR-ARCHITECTURE.md) 为准；旧 `core/application/*_service.rs` 的学校实现与协议测试已迁入 `upstream/services/`。
+
+| 检查 | 本轮结果 |
+| --- | --- |
+| core 独立测试（无默认 feature） | 2 项单元测试、3 项仅使用合成业务端口的集成测试通过；正常依赖图无 upstream/HTTP/平台保险库 |
+| upstream 独立测试 | 187 项协议、会话、恢复与查询测试 + 1 项共享 fixture 契约测试通过，无 core 依赖 |
+| Rust workspace | 196 项单元/端口集成测试 + 1 项共享 fixture 测试 + 1 项 doctest，共 198 项通过 |
+| 边界检查 | 检查通过；5 项防回退回归通过（含 core 开发依赖、实现包重命名、组装白名单、协议源码穿透、原始 JSON 端口） |
+| `scripts/check-mirror.sh` | 通过：独立测试、workspace 测试、fmt、Clippy 拒绝警告、Flutter analyze 和 109 项单元/widget 测试 |
+| 绑定生成 | 移除未使用的会话状态及研究生组合查询 FFI 命令；作业详情新增可空 sourceUrl，Rust/Dart 绑定同步生成，重复生成一致；协议样例解析从 FFI 移入 upstream |
+| Android ARM64 Debug APK | 构建通过，验证新 runtime crate、上游实现和 JNI 保险库入口链接 |
+| 依赖清理 | 删除 runtime 未使用的 serde_json 直接依赖；`cargo machete --with-metadata rust` 复核 |
+| `git diff --check` | 通过 |
+
+核心合成端口回归验证：只实现通知能力即可运行对应应用命令；旧数据和刷新错误一起保留；不确定的写入结果不会被应用层重发；本地待办按注入身份隔离账号、退出后拒绝访问。
+
+学校响应解析、CAS/UC/网关、Cookie、业务 token 与恢复时序的旧断言保留在独立上游测试中。CGYY 的请求/结果和签到进度改为有类型的业务值，序列化后的既有页面数据形状保持兼容。学校通知的 HTTPS/域名限制由上游统一维护，并新增白名单回归；作业官网入口作为上游元数据返回。新增 Flutter 导航回归验证子页面继续使用注入的服务。没有改动学校成功码、TLS 信任规则或新增写重试，也没有向真实账号发送请求。
+
+本轮未执行 Windows 主机构建、真实学校登录/写入或设备交互验收。APK 编译通过只证明构建与链接，不代替这些验收。

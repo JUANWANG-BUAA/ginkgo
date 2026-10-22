@@ -64,6 +64,10 @@
 
 新增 macOS 页面组件 `AcademicPageHeader`、`AcademicSectionHeading`、`AcademicMetricStrip` 和 `academicPanel`；它们使用语义色、轻分组和一致的标题层级，不引入跨平台 UI 依赖。成绩页按“学期/新鲜度 → 汇总指标 → 统计口径 → 课程成绩”组织；作业状态计数与状态筛选联动，结果采用连续行；博雅摘要不再将统计网格嵌入整个内容大卡片；课表把学期、周次控件放在同一分组。`ProgressiveList` 新增默认值兼容的行距参数。代码实现不代表浅/深色、窄窗口和 VoiceOver 的真实设备验收已经完成。
 
+### 2026-10-22 · Rust / Flutter 模块边界
+
+镜像工程已拆为 domain、upstream、core、runtime、bridge 五个 crate。core 只依赖 domain 的业务端口；学校协议、会话、恢复和查询缓存集中到 upstream，由 runtime 组装。Flutter 页面通过功能 gateway 和类型契约访问本地能力，native/demo 实现在 infrastructure。功能边界、独立测试与自动依赖检查见 [MIRROR-ARCHITECTURE.md](MIRROR-ARCHITECTURE.md)。上游协议及 Swift 工程未随此结构调整改变。
+
 ## 1. 项目概述
 
 ### 1.1 定位

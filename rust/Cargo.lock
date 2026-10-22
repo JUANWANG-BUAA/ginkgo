@@ -642,12 +642,57 @@ checksum = "e629b9b98ef3dd8afe6ca2bd0f89306cec16d43d907889945bc5d6687f2f13c7"
 name = "ginkgo_core"
 version = "0.1.0"
 dependencies = [
+ "chrono",
+ "ginkgo_domain",
+ "rand 0.8.8",
+ "serde",
+ "serde_json",
+ "sha1",
+ "tokio",
+]
+
+[[package]]
+name = "ginkgo_domain"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "chrono-tz",
+ "serde",
+ "serde_json",
+ "unicode-normalization",
+]
+
+[[package]]
+name = "ginkgo_flutter_bridge"
+version = "0.1.0"
+dependencies = [
+ "flutter_rust_bridge",
+ "ginkgo_core",
+ "ginkgo_runtime",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "ginkgo_runtime"
+version = "0.1.0"
+dependencies = [
+ "ginkgo_core",
+ "ginkgo_upstream",
+]
+
+[[package]]
+name = "ginkgo_upstream"
+version = "0.1.0"
+dependencies = [
  "aes",
  "base64 0.22.1",
  "cfb-mode",
  "chrono",
  "chrono-tz",
  "cipher",
+ "ginkgo_domain",
  "httpdate",
  "jni",
  "keyring",
@@ -661,18 +706,7 @@ dependencies = [
  "serde_json",
  "sha1",
  "tokio",
- "unicode-normalization",
  "url",
-]
-
-[[package]]
-name = "ginkgo_flutter_bridge"
-version = "0.1.0"
-dependencies = [
- "flutter_rust_bridge",
- "ginkgo_core",
- "serde_json",
- "tokio",
 ]
 
 [[package]]

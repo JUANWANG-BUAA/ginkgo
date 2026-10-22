@@ -5,8 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
 import 'school_timestamp.dart';
-import 'src/rust/api/live.dart' show HomeworkDetailResponse;
-import 'src/rust/api/mirror.dart';
+import 'application/contracts.dart';
 
 class HomeworkDetailPage extends StatefulWidget {
   const HomeworkDetailPage({
@@ -15,7 +14,7 @@ class HomeworkDetailPage extends StatefulWidget {
     required this.service,
   });
   final HomeworkItem item;
-  final MirrorService service;
+  final AcademicGateway service;
   @override
   State<HomeworkDetailPage> createState() => _HomeworkDetailPageState();
 }
@@ -232,21 +231,27 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                 title: const Text('在 SPOC 官网继续处理'),
                 subtitle: const Text('查看附件、作答与提交'),
                 trailing: const Icon(CupertinoIcons.arrow_up_right_square),
-                onTap: () async {
-                  try {
-                    final opened = await launchUrl(
-                      Uri.parse('https://spoc.buaa.edu.cn/spocnew/'),
-                      mode: LaunchMode.externalApplication,
-                    );
-                    if (!opened && mounted) {
-                      setState(() => error = '无法打开浏览器，请稍后重试。');
-                    }
-                  } catch (_) {
-                    if (mounted) {
-                      setState(() => error = '无法打开浏览器，请稍后重试。');
-                    }
-                  }
-                },
+                onTap: data?.sourceUrl == null
+                    ? null
+                    : () async {
+                        try {
+                          final url = Uri.parse(data!.sourceUrl!);
+                          if (url.scheme != 'https' || url.host.isEmpty) {
+                            throw const FormatException('Invalid source URL');
+                          }
+                          final opened = await launchUrl(
+                            url,
+                            mode: LaunchMode.externalApplication,
+                          );
+                          if (!opened && mounted) {
+                            setState(() => error = '无法打开浏览器，请稍后重试。');
+                          }
+                        } catch (_) {
+                          if (mounted) {
+                            setState(() => error = '无法打开浏览器，请稍后重试。');
+                          }
+                        }
+                      },
               ),
             ],
           ),

@@ -4,10 +4,11 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
 import 'bykc_detail_page.dart';
+import 'bykc_widgets.dart';
+export 'bykc_widgets.dart' show BykcStatisticsCard;
+import 'mirror_service.dart';
 import 'school_timestamp.dart';
-import 'src/rust/api/live.dart' as live;
-
-enum BykcPart { catalog, chosen, statistics }
+import 'application/contracts.dart' as live;
 
 typedef BykcLoader = Future<live.ReadOnlyResponse> Function({
   required BykcPart part,
@@ -15,9 +16,10 @@ typedef BykcLoader = Future<live.ReadOnlyResponse> Function({
 });
 
 class BykcPage extends StatefulWidget {
-  const BykcPage({super.key, this.demo = false, this.loader});
+  const BykcPage({super.key, this.demo = false, this.loader, this.service});
   final bool demo;
   final BykcLoader? loader;
+  final CampusGateway? service;
   @override
   State<BykcPage> createState() => _BykcPageState();
 }
@@ -64,16 +66,8 @@ class _BykcPageState extends State<BykcPage> {
     if (widget.loader != null) {
       return widget.loader!(part: part, forceRefresh: force);
     }
-    return switch ((part, widget.demo)) {
-      (BykcPart.catalog, true) => live.loadDemoBykc(),
-      (BykcPart.chosen, true) => live.loadDemoBykcChosen(),
-      (BykcPart.statistics, true) => live.loadDemoBykcStatistics(),
-      (BykcPart.catalog, false) => live.loadBykc(forceRefresh: force),
-      (BykcPart.chosen, false) => live.loadBykcChosen(forceRefresh: force),
-      (BykcPart.statistics, false) => live.loadBykcStatistics(
-        forceRefresh: force,
-      ),
-    };
+    final service = widget.service ?? mirrorServiceFor(demo: widget.demo);
+    return service.bykcPart(part, forceRefresh: force);
   }
 
   Future<void> _fetch(BykcPart part, {required bool force}) async {
@@ -96,34 +90,10 @@ class _BykcPageState extends State<BykcPage> {
         if (data != null) {
           snapshot.data = data;
           if (part == BykcPart.catalog) {
-            // School timestamps have no timezone. Compare them as Beijing wall
-            // time even when the device is outside China.
-            final terms = _rows(data['terms']);
-            DateTime? termDate(dynamic value) {
-              if (value is! String) return null;
-              final normalized =
-                  (value.length > 19 ? value.substring(0, 19) : value)
-                      .replaceFirst(' ', 'T');
-              return DateTime.tryParse(
-                '$normalized${normalized.length == 10 ? 'T00:00:00' : ''}+08:00',
-              );
-            }
-
-            final now = DateTime.now();
-            terms.sort(
-              (a, b) => (termDate(b['end'])?.millisecondsSinceEpoch ?? 0)
-                  .compareTo(termDate(a['end'])?.millisecondsSinceEpoch ?? 0),
-            );
-            final active = terms.where((term) {
-              final start = termDate(term['start']),
-                  end = termDate(term['end']);
-              return start != null &&
-                  end != null &&
-                  !now.isBefore(start) &&
-                  !now.isAfter(end);
-            }).firstOrNull;
             termName =
-                (active ?? terms.firstOrNull)?['name'] as String? ?? '学期课程目录';
+                (data['currentTerm'] as Map<String, dynamic>?)?['name']
+                    as String? ??
+                '学期课程目录';
             categories = [
               '全部',
               ..._rows(data['courses']).map(categoryOf).toSet().toList()
@@ -294,13 +264,13 @@ class _BykcPageState extends State<BykcPage> {
                           spacing: 8,
                           runSpacing: 6,
                           children: [
-                            _BykcLabel(text: categoryOf(course)),
+                            BykcLabel(text: categoryOf(course)),
                             if (record == null && details['selected'] == true)
-                              const _BykcLabel(text: '已选', positive: true),
+                              const BykcLabel(text: '已选', positive: true),
                             if (record == null &&
                                 (details['enrolled'] != null ||
                                     details['capacity'] != null))
-                              _BykcLabel(
+                              BykcLabel(
                                 text:
                                     '人数 ${details['enrolled'] ?? '—'} / ${details['capacity'] ?? '未提供'}',
                               ),
@@ -308,7 +278,7 @@ class _BykcPageState extends State<BykcPage> {
                         ),
                         if (details['start'] != null) ...[
                           const SizedBox(height: 9),
-                          _BykcMetadata(
+                          BykcMetadata(
                             icon: CupertinoIcons.clock,
                             text: schoolTimestampLabel(
                               details['start'] as String,
@@ -321,7 +291,7 @@ class _BykcPageState extends State<BykcPage> {
                                 .isNotEmpty ==
                             true) ...[
                           const SizedBox(height: 5),
-                          _BykcMetadata(
+                          BykcMetadata(
                             icon: CupertinoIcons.location,
                             text: course['position'] as String,
                           ),
@@ -329,7 +299,7 @@ class _BykcPageState extends State<BykcPage> {
                         if ((course['teacher'] as String?)?.trim().isNotEmpty ==
                             true) ...[
                           const SizedBox(height: 5),
-                          _BykcMetadata(
+                          BykcMetadata(
                             icon: CupertinoIcons.person,
                             text: course['teacher'] as String,
                             auxiliary: true,
@@ -341,16 +311,16 @@ class _BykcPageState extends State<BykcPage> {
                             spacing: 8,
                             runSpacing: 6,
                             children: [
-                              _BykcLabel(
+                              BykcLabel(
                                 text: bykcAttendanceLabel(record),
                                 positive: record['checkin'] == 1,
                               ),
-                              _BykcLabel(
+                              BykcLabel(
                                 text: bykcResultLabel(record),
                                 positive: record['passed'] == 1,
                               ),
                               if (record['score'] != null)
-                                _BykcLabel(text: '成绩 ${record['score']}'),
+                                BykcLabel(text: '成绩 ${record['score']}'),
                             ],
                           ),
                         ],
@@ -610,156 +580,5 @@ class _BykcPageState extends State<BykcPage> {
         const SliverToBoxAdapter(child: SizedBox(height: 96)),
       ],
     ),
-  );
-}
-
-class BykcStatisticsCard extends StatelessWidget {
-  const BykcStatisticsCard({super.key, required this.entry});
-  final Map<String, dynamic> entry;
-
-  @override
-  Widget build(BuildContext context) {
-    final required = entry['required'] as int;
-    final completed = entry['completed'] as int;
-    final complete = required > 0 && completed >= required;
-    final status = required == 0
-        ? '本项暂无要求'
-        : complete
-        ? '已完成'
-        : '还差 ${required - completed} 项';
-    final color = complete
-        ? CupertinoColors.systemGreen.resolveFrom(context)
-        : CupertinoColors.activeBlue.resolveFrom(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Semantics(
-        label:
-            '${entry['category']}，${entry['subcategory']}，已完成 $completed 项，应完成 $required 项，$status',
-        child: ExcludeSemantics(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Wrap(
-                spacing: 12,
-                runSpacing: 6,
-                alignment: WrapAlignment.spaceBetween,
-                children: [
-                  Text(
-                    entry['subcategory'] as String,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    '$completed / $required',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: complete ? color : null,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 5),
-              Text(
-                status,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                ),
-              ),
-              if (required > 0) ...[
-                const SizedBox(height: 9),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
-                  child: SizedBox(
-                    height: 3,
-                    child: ColoredBox(
-                      color: CupertinoColors.tertiarySystemFill.resolveFrom(
-                        context,
-                      ),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: FractionallySizedBox(
-                          widthFactor: (completed / required).clamp(0.0, 1.0),
-                          child: ColoredBox(color: color),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _BykcLabel extends StatelessWidget {
-  const _BykcLabel({required this.text, this.positive = false});
-  final String text;
-  final bool positive;
-  @override
-  Widget build(BuildContext context) {
-    final color = positive
-        ? CupertinoColors.systemGreen.resolveFrom(context)
-        : CupertinoColors.secondaryLabel.resolveFrom(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 12,
-          color: color,
-          fontWeight: positive ? FontWeight.w600 : FontWeight.w400,
-        ),
-      ),
-    );
-  }
-}
-
-class _BykcMetadata extends StatelessWidget {
-  const _BykcMetadata({
-    required this.icon,
-    required this.text,
-    this.prominent = false,
-    this.auxiliary = false,
-  });
-  final IconData icon;
-  final String text;
-  final bool prominent, auxiliary;
-  @override
-  Widget build(BuildContext context) => Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Padding(
-        padding: const EdgeInsets.only(top: 2),
-        child: Icon(
-          icon,
-          size: 14,
-          color: CupertinoColors.secondaryLabel.resolveFrom(context),
-        ),
-      ),
-      const SizedBox(width: 7),
-      Expanded(
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: auxiliary ? 12 : 14,
-            fontWeight: prominent ? FontWeight.w500 : FontWeight.w400,
-            color: prominent
-                ? CupertinoColors.label.resolveFrom(context)
-                : CupertinoColors.secondaryLabel.resolveFrom(context),
-          ),
-        ),
-      ),
-    ],
   );
 }

@@ -1,0 +1,50 @@
+//! Feature implementation behind the stable live API.
+use super::*;
+
+pub(super) async fn checkin_load_progress() -> ReadOnlyResponse {
+    match service() {
+        Ok(service) => ReadOnlyResponse {
+            payload: serde_json::to_string(&service.checkin_load_progress()).ok(),
+            failure: None,
+            stale: false,
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            failure: Some(error.code.into()),
+            stale: false,
+        },
+    }
+}
+
+pub(super) async fn load_checkin_on_date(date: String, force_refresh: bool) -> CheckInResponse {
+    let _access = SESSION_ACCESS.read().await;
+    let _module = CHECKIN_ACCESS.read().await;
+    let result = match service() {
+        Ok(service) => bounded_read(service.load_checkin_on_date(Some(date), force_refresh)).await,
+        Err(error) => Err(error),
+    };
+    match result {
+        Ok(outcome) => checkin_response(outcome),
+        Err(error) => checkin_failure(error.code.clone().into(), error.detail),
+    }
+}
+
+pub(super) async fn submit_checkin(course_id: String) -> MutationResponse {
+    let Ok(_write) = CHECKIN_WRITE.try_lock() else {
+        return MutationResponse {
+            state: "notSubmitted".into(),
+            message: "签到正在处理，请勿重复提交".into(),
+        };
+    };
+    let _access = SESSION_ACCESS.read().await;
+    let _module = CHECKIN_ACCESS.write().await;
+    match service() {
+        Ok(service) => mutation_response(service.submit_checkin(&course_id).await),
+        Err(_) => MutationResponse {
+            state: "notSubmitted".into(),
+            message: "本地服务不可用，未提交签到".into(),
+        },
+    }
+}
+
+static CHECKIN_WRITE: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());

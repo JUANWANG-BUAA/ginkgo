@@ -5,8 +5,8 @@ import 'package:flutter/cupertino.dart';
 import 'apple_widgets.dart';
 import 'maintenance_pages.dart';
 import 'mirror_service.dart';
-import 'src/rust/api/live.dart' as live;
-import 'src/rust/api/mirror.dart' show FailureCode;
+import 'application/contracts.dart' as live;
+import 'application/contracts.dart' show FailureCode;
 
 typedef AcademicProbe = Future<live.ReadOnlyResponse> Function({
   required bool report,
@@ -39,7 +39,7 @@ List<NetworkProbe> schoolNetworkProbes(
   AcademicProbe? academic,
 }) {
   Future<NetworkProbeResult> graduate(bool report, bool force) async {
-    final result = await (academic ?? live.loadGraduatePart)(
+    final result = await (academic ?? service.graduatePart)(
       report: report,
       forceRefresh: force,
     );

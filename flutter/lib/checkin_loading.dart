@@ -4,12 +4,17 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
-import 'src/rust/api/live.dart' as live;
+import 'mirror_service.dart';
 
 /// Polls local progress only; never sends another authentication/read request.
 class CheckInLoading extends StatefulWidget {
-  const CheckInLoading({super.key, required this.isDemo});
+  const CheckInLoading({
+    super.key,
+    required this.isDemo,
+    required this.service,
+  });
   final bool isDemo;
+  final CheckInGateway service;
   @override
   State<CheckInLoading> createState() => _CheckInLoadingState();
 }
@@ -31,7 +36,7 @@ class _CheckInLoadingState extends State<CheckInLoading> {
     if (reading) return;
     reading = true;
     try {
-      final response = await live.checkinLoadProgress();
+      final response = await widget.service.checkinProgress();
       if (!mounted || response.payload == null) return;
       final json = jsonDecode(response.payload!) as Map<String, dynamic>;
       setState(() {

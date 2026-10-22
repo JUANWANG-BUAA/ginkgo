@@ -2,12 +2,12 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
-import 'src/rust/api/live.dart' show LibraryHistoryResponse;
+import 'application/contracts.dart' show LibraryHistoryResponse;
 
 /// member/seat is a read-only POST. Page failures never advance the cursor.
 class LibraryHistoryPage extends StatefulWidget {
   const LibraryHistoryPage({super.key, required this.service});
-  final MirrorService service;
+  final LibraryGateway service;
   @override
   State<LibraryHistoryPage> createState() => _LibraryHistoryPageState();
 }

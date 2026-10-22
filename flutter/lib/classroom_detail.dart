@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
 
-import 'src/rust/api/mirror.dart';
+import 'application/contracts.dart';
 
 class ClassroomDetail extends StatelessWidget {
   const ClassroomDetail({

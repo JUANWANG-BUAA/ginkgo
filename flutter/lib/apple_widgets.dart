@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'apple_design.dart';
 import 'app_preferences.dart';
 
-import 'src/rust/api/mirror.dart';
+import 'application/contracts.dart';
 
 /// Phone pages keep the native collapsing title. Wide windows use the same
 /// section / title / description hierarchy as Swift's AcademicPageHeader.

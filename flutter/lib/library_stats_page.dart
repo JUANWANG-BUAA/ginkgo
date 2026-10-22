@@ -9,7 +9,7 @@ import 'resource_meter.dart';
 /// Public counts are a snapshot, not a promise that a resource is bookable.
 class LibraryStatsPage extends StatefulWidget {
   const LibraryStatsPage({super.key, required this.service});
-  final MirrorService service;
+  final LibraryGateway service;
   @override
   State<LibraryStatsPage> createState() => _LibraryStatsPageState();
 }

@@ -237,7 +237,7 @@ final homeworkFixture = HomeworkResponse(
   ],
 );
 
-class ControlledService implements MirrorService {
+class ControlledService extends Fake implements MirrorService {
   String? requestedScheduleTerm;
   final requests = <Completer<ClassroomResponse>>[];
   final checkinRequests = <Completer<CheckInResponse>>[];

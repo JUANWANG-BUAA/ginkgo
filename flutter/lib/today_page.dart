@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
 import 'schedule_style.dart';
-import 'src/rust/api/mirror.dart';
+import 'application/contracts.dart';
 
 const _weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 

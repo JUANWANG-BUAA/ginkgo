@@ -18,8 +18,12 @@ jobs:
         with:
           toolchain: 1.99.0
           components: rustfmt, clippy
+      - run: python3 scripts/check-mirror-architecture.py
+      - run: python3 scripts/check-mirror-architecture-test.py
       - run: cargo fmt --manifest-path rust/Cargo.toml --all --check
       - run: cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets --all-features --locked -- -D warnings
+      - run: cargo test --manifest-path rust/Cargo.toml -p ginkgo_core --no-default-features --locked
+      - run: cargo test --manifest-path rust/Cargo.toml -p ginkgo_upstream --locked
       - run: cargo test --manifest-path rust/Cargo.toml --workspace --locked
 
   bindings:

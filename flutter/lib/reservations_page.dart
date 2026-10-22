@@ -23,10 +23,7 @@ class ReservationsPage extends StatelessWidget {
     ),
     child: CustomScrollView(
       slivers: [
-        const ApplePageHeader(
-          largeTitle: Text('预约'),
-          border: null,
-        ),
+        const ApplePageHeader(largeTitle: Text('预约'), border: null),
         SliverLayoutBuilder(
           builder: (context, constraints) => SliverPadding(
             padding: EdgeInsets.symmetric(
@@ -54,7 +51,7 @@ class ReservationsPage extends StatelessWidget {
                       '查看场地、可用时段与订单',
                       CupertinoIcons.person_3_fill,
                       AppleDesign.resourcePurple,
-                      CgyyPage(demo: service.isDemo),
+                      CgyyPage(demo: service.isDemo, service: service),
                     ),
                   ],
                 ),

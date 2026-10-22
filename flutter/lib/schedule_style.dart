@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import 'src/rust/api/mirror.dart';
+import 'application/contracts.dart';
 
 const weekdayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 

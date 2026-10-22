@@ -1,0 +1,25 @@
+//! Business ports are independent of HTTP, school schemas, credentials and platform adapters.
+mod academic;
+pub use academic::*;
+mod classroom;
+pub use classroom::*;
+mod checkin;
+pub use checkin::*;
+mod library;
+pub use library::*;
+mod session;
+pub use session::*;
+mod bykc;
+pub use bykc::*;
+mod graduate;
+pub use graduate::*;
+mod homework;
+pub use homework::*;
+mod notices;
+pub use notices::*;
+mod cgyy;
+pub use cgyy::*;
+mod library_stats;
+pub use library_stats::*;
+mod outcome;
+pub use outcome::*;

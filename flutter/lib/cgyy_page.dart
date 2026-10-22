@@ -5,8 +5,9 @@ import 'package:flutter/cupertino.dart';
 import 'academic_widgets.dart';
 import 'apple_widgets.dart';
 import 'apple_design.dart';
+import 'mirror_service.dart';
 import 'reservation_widgets.dart';
-import 'src/rust/api/live.dart' as live;
+import 'application/contracts.dart' as live;
 
 typedef CgyyLoader = Future<live.ReadOnlyResponse> Function({
   required String kind,
@@ -16,9 +17,10 @@ typedef CgyyLoader = Future<live.ReadOnlyResponse> Function({
 });
 
 class CgyyPage extends StatefulWidget {
-  const CgyyPage({super.key, this.demo = false, this.loader});
+  const CgyyPage({super.key, this.demo = false, this.loader, this.service});
   final bool demo;
   final CgyyLoader? loader;
+  final CampusGateway? service;
   @override
   State<CgyyPage> createState() => _CgyyPageState();
 }
@@ -47,9 +49,7 @@ class _CgyyPageState extends State<CgyyPage> {
               date: '',
               forceRefresh: force,
             )
-          : widget.demo
-          ? await live.loadDemoCgyy(kind: 'venues')
-          : await live.loadCgyy(
+          : await (widget.service ?? mirrorServiceFor(demo: widget.demo)).cgyy(
               kind: 'venues',
               siteId: 0,
               date: '',
@@ -76,8 +76,12 @@ class _CgyyPageState extends State<CgyyPage> {
 
   void open({Map<String, dynamic>? site}) => Navigator.of(context).push(
     CupertinoPageRoute<void>(
-      builder: (_) =>
-          _CgyyReadPage(demo: widget.demo, site: site, loader: widget.loader),
+      builder: (_) => _CgyyReadPage(
+        demo: widget.demo,
+        site: site,
+        loader: widget.loader,
+        service: widget.service,
+      ),
     ),
   );
   @override
@@ -170,10 +174,16 @@ class _CgyyPageState extends State<CgyyPage> {
 }
 
 class _CgyyReadPage extends StatefulWidget {
-  const _CgyyReadPage({required this.demo, this.site, this.loader});
+  const _CgyyReadPage({
+    required this.demo,
+    this.site,
+    this.loader,
+    this.service,
+  });
   final bool demo;
   final Map<String, dynamic>? site;
   final CgyyLoader? loader;
+  final CampusGateway? service;
   @override
   State<_CgyyReadPage> createState() => _CgyyReadPageState();
 }
@@ -216,9 +226,7 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
               date: queriedDate,
               forceRefresh: force,
             )
-          : widget.demo
-          ? await live.loadDemoCgyy(kind: kind)
-          : await live.loadCgyy(
+          : await (widget.service ?? mirrorServiceFor(demo: widget.demo)).cgyy(
               kind: kind,
               siteId: widget.site?['id'] as int? ?? 0,
               date: queriedDate,

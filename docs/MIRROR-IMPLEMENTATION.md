@@ -1,6 +1,6 @@
 # Rust + Flutter 镜像实施现状
 
-更新：2026-10-21。本页描述工作树；公开 APK 的内容以对应发布记录为准。模块差距只维护在 [功能对照](MIRROR-PARITY.md)，未完成事项只维护在 [待办](MIRROR-TODO.md)，过程与历次测试见 [历史证据索引](archive/mirror/README.md)。
+更新：2026-10-22。本页描述工作树；公开 APK 的内容以对应发布记录为准。模块差距只维护在 [功能对照](MIRROR-PARITY.md)，未完成事项只维护在 [待办](MIRROR-TODO.md)，过程与历次测试见 [历史证据索引](archive/mirror/README.md)。
 
 ## 产品与验收边界
 
@@ -22,9 +22,11 @@ Android 更新检查仍读取 GitHub Releases，但 Alpha.4 可在应用内下�
 
 | 层 | 定位 | 职责 |
 | --- | --- | --- |
-| 领域 | [features](../rust/crates/ginkgo_core/src/features/) | 数据模型、字段解析、筛选与领域规则；无 Flutter 依赖 |
-| 协议 | [adapters](../rust/crates/ginkgo_core/src/adapters/)、[auth](../rust/crates/ginkgo_core/src/auth/) | 上游请求、认证、Cookie、路由与响应分类 |
-| 应用 | [application](../rust/crates/ginkgo_core/src/application/) | 会话恢复、缓存、账号生命周期、用户级用例 |
+| 领域 | [domain](../rust/crates/ginkgo_domain/src/) | 数据模型与纯规则；无网络、平台保险库和 Flutter 依赖 |
+| 协议 | [adapters](../rust/crates/ginkgo_upstream/src/adapters/)、[codecs](../rust/crates/ginkgo_upstream/src/codecs/)、[auth](../rust/crates/ginkgo_upstream/src/auth/) | 上游请求、认证、Cookie、路由与响应分类 |
+| 上游会话 | [services](../rust/crates/ginkgo_upstream/src/services/) | 学校/业务会话恢复、token、查询缓存、协议时序 |
+| 应用 | [application](../rust/crates/ginkgo_core/src/application/) | 只依赖 domain 业务端口的应用命令、投影和本地待办 |
+| 组装 | [runtime](../rust/crates/ginkgo_runtime/src/) | 连接 core 与真实学校/平台实现 |
 | 桥接 | [bridge API](../rust/crates/ginkgo_flutter_bridge/src/api/) | 类型映射与粗粒度命令；生命周期 RwLock 排斥身份变更和进行中的读取 |
 | 页面 | [Flutter lib](../flutter/lib/) | 导航、布局、无障碍、呈现状态；不解析上游协议 |
 | 共享契约 | [fixtures](../fixtures/README.md) | 两种语言独立消费同一输入与期望领域投影；覆盖范围须明确 |
@@ -33,7 +35,7 @@ Android 更新检查仍读取 GitHub Releases，但 Alpha.4 可在应用内下�
 
 - 上游协议变化先记录 [API.md](API.md) 的证据及修订表，再修改适配器和版本化 fixture；结构漂移、业务拒绝与成功空结果保持区别。
 - 同步锁不跨 `await`。可丢弃的内存状态中毒后整体重置；路线枚举保留完整值。持久化锁仍返回错误，不使用内存重置策略掩盖存储问题。
-- 账号、profile、待续登录与业务 token 统一由 `SessionService.identity` 管理；增加身份字段时同时检查登录、退出、切路线及恢复路径。
+- 账号、profile、待续登录与业务 token 统一由 `ginkgo_upstream::services::SchoolClient.identity` 管理；增加身份字段时同时检查登录、退出、切路线及恢复路径。
 - 安全 GET 的有界回退与认证恢复维持现有规则；写请求不自动重放。签到和图书馆操作须由用户确认、单次提交、回查；结果不明时禁止重复提交。
 - Flutter 复杂异步页面先收拢快照、加载和回查状态。图书馆已有 `LibraryController`；选择器和导航等局部交互继续由页面管理。状态颜色通过 `AppleDesign.status*` 表达，颜色之外保留文字。
 - 修改桥接 API 才重新生成 FRB 绑定；禁止手改生成文件。代码搜索和规模审查排除 `flutter/lib/src/rust/` 与 Rust `frb_generated.rs`。
@@ -63,3 +65,5 @@ flutter test integration_test/windows_test.dart -d windows
 ```
 
 CI 入口为 [mirror.yml](../.github/workflows/mirror.yml)。本地通过不代表远端 CI 通过，平台结果只适用于记录中的环境与场景。稳定入口不手写测试/fixture 总数；某次运行的结果、环境和限制保存在带日期的验收记录中。
+
+2026-10-22 模块拆分和边界防回退规则见 [MIRROR-ARCHITECTURE.md](MIRROR-ARCHITECTURE.md)；物理目录已调整，公开调用路径保留兼容导出。

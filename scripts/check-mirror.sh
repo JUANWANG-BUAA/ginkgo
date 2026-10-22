@@ -7,8 +7,12 @@ if rustup toolchain list | grep -Eq '^stable(-| )' && rustc +stable --version | 
 else
   export RUSTUP_TOOLCHAIN=1.99.0
 fi
+python3 scripts/check-mirror-architecture.py
+python3 scripts/check-mirror-architecture-test.py
 cargo fmt --manifest-path rust/Cargo.toml --all --check
 cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets --all-features --locked -- -D warnings
+cargo test --manifest-path rust/Cargo.toml -p ginkgo_core --no-default-features --locked
+cargo test --manifest-path rust/Cargo.toml -p ginkgo_upstream --locked
 cargo test --manifest-path rust/Cargo.toml --workspace --locked
 cd flutter
 (cd rust_builder/cargokit/build_tool && dart pub get)

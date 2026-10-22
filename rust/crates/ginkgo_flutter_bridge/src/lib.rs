@@ -10,5 +10,6 @@ pub extern "system" fn JNI_OnLoad(
     vm: *mut core::ffi::c_void,
     _reserved: *mut core::ffi::c_void,
 ) -> i32 {
-    unsafe { ginkgo_core::auth::platform::jni_on_load(vm) }
+    // SAFETY: Android supplies this JavaVM pointer to the exported JNI_OnLoad entry point.
+    unsafe { ginkgo_runtime::jni_on_load(vm) }
 }

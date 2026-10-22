@@ -2,14 +2,14 @@ import 'package:flutter/foundation.dart';
 
 import 'apple_widgets.dart' show failureMessage;
 import 'mirror_service.dart';
-import 'src/rust/api/mirror.dart';
+import 'application/contracts.dart';
 
 /// One library page owns its read snapshots and post-write readback queue.
 /// Disposing the page suppresses notifications, never replays a write.
 class LibraryController extends ChangeNotifier {
   LibraryController(this.service);
 
-  final MirrorService service;
+  final LibraryGateway service;
   LibraryBookingsResponse? bookings;
   LibraryVenuesResponse? venues;
   String? bookingError, venueError, mutationNotice;

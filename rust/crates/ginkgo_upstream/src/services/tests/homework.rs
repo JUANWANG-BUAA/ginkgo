@@ -1,0 +1,175 @@
+use super::*;
+
+#[tokio::test]
+async fn homework_full_read_chain_caches_list_and_reads_detail() {
+    use crate::adapters::homework_http::SPOC_BASE;
+    let envelope = |content: Value| serde_json::json!({"code":200,"content":content}).to_string();
+    let mut responses = login_chain("sy2501001", "fixture");
+    let spoc_auth = || {
+        vec![
+            HttpResponse::new(200, "https://spoc.buaa.edu.cn/spocnew/", "spa"),
+            HttpResponse::new(
+                404,
+                "https://spoc.buaa.edu.cn/spocnew/cas?token=fixture",
+                "callback",
+            ),
+            HttpResponse::new(
+                200,
+                format!("{SPOC_BASE}/sys/casLogin"),
+                envelope(serde_json::json!({"rolecode":"01"})),
+            ),
+        ]
+    };
+    responses.extend(spoc_auth());
+    responses.extend([
+        HttpResponse::new(
+            200,
+            "term",
+            envelope(serde_json::json!({"mrxq":"2026-20271","dqxq":"合成学期"})),
+        ),
+        HttpResponse::new(
+            200,
+            "courses",
+            envelope(serde_json::json!([{"kcid":"c1","kcmc":"合成课程","skjs":"合成教师"}])),
+        ),
+        HttpResponse::new(
+            200,
+            "page",
+            envelope(fixture("homework", "spoc-page-v1.json")["input"]["body"].clone()),
+        ),
+        HttpResponse::new(
+            200,
+            "student-courses",
+            envelope(serde_json::json!({"list":[{"kcid":"c1"}],"hasNextPage":false})),
+        ),
+        HttpResponse::new(
+            200,
+            "assistant-courses",
+            envelope(serde_json::json!({"list":[],"hasNextPage":false})),
+        ),
+    ]);
+    responses.extend(spoc_auth());
+    responses.extend([
+        HttpResponse::new(
+            200,
+            "assignment",
+            envelope(serde_json::json!({"zynr":"<p>合成说明</p>"})),
+        ),
+        HttpResponse::new(200, "submission", envelope(serde_json::json!({"tjzt":"1"}))),
+        HttpResponse::new(503, "spa", "unavailable"),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("login");
+    let list = service.load_homework(false).await.expect("list");
+    assert_eq!(list.data.items.len(), 2);
+    assert_eq!(list.data.items[0].teacher_name.as_deref(), Some("合成教师"));
+    assert_eq!(list.data.items[0].course_role.as_deref(), Some("student"));
+    assert!(list.data.items[1].teacher_name.is_none());
+    let count = transport.request_count();
+    assert_eq!(
+        service
+            .load_homework(false)
+            .await
+            .expect("cache")
+            .data
+            .term_code,
+        "2026-20271"
+    );
+    assert_eq!(count, transport.request_count());
+    let detail = service
+        .load_homework_detail("spoc:a", false)
+        .await
+        .expect("detail");
+    assert_eq!(detail.data.content.as_deref(), Some("合成说明"));
+    assert_eq!(
+        detail.data.source_url.as_deref(),
+        Some(crate::endpoints::HOMEWORK_PORTAL)
+    );
+    assert!(transport
+        .requests()
+        .iter()
+        .any(|r| r.url.ends_with("/kczy/queryKczyInfoByid?id=a")));
+    assert!(!transport
+        .requests()
+        .iter()
+        .any(|r| r.url.contains("id=spoc")));
+    assert_eq!(
+        detail.data.status,
+        crate::features::homework::HomeworkStatus::Submitted
+    );
+    // Teacher context belongs to the cached snapshot, including failed refresh.
+    let stale = service.load_homework(true).await.expect("stale");
+    assert!(stale.failure.is_some());
+    assert_eq!(
+        stale.data.items[0].teacher_name.as_deref(),
+        Some("合成教师")
+    );
+    service.sign_out().await;
+    assert!(service.load_homework(false).await.is_err());
+}
+
+#[tokio::test]
+async fn homework_changed_body_preserves_cached_text_and_native_ids_share_cache() {
+    use crate::{adapters::homework_http::SPOC_BASE, features::homework};
+    let envelope = |content: Value| serde_json::json!({"code":200,"content":content}).to_string();
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend([
+        HttpResponse::new(200, "https://spoc.buaa.edu.cn/spocnew/", "spa"),
+        HttpResponse::new(
+            404,
+            "https://spoc.buaa.edu.cn/spocnew/cas?token=fixture",
+            "callback",
+        ),
+        HttpResponse::new(
+            200,
+            format!("{SPOC_BASE}/sys/casLogin"),
+            envelope(serde_json::json!({"rolecode":"01"})),
+        ),
+        HttpResponse::new(
+            200,
+            "detail",
+            envelope(serde_json::json!({"zynr":{"text":"invalid structure"}})),
+        ),
+        HttpResponse::new(200, "submission", envelope(Value::Null)),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+    let cached =
+        homework::parse_detail(&fixture("homework", "spoc-detail-normal-v1.json")["input"])
+            .expect("synthetic detail");
+    service
+        .snapshots
+        .homework_details
+        .lock()
+        .insert("synthetic+a/b".into(), cached);
+    let initial = transport.request_count();
+    assert_eq!(
+        service
+            .load_homework_detail("spoc:synthetic+a/b", false)
+            .await
+            .expect("cache")
+            .data
+            .content
+            .as_deref(),
+        Some("合成说明")
+    );
+    assert_eq!(transport.request_count(), initial);
+    let result = service
+        .load_homework_detail("synthetic+a/b", true)
+        .await
+        .expect("prior snapshot");
+    assert_eq!(
+        result.failure.expect("structure failure").code,
+        ErrorCode::ChangedResponse
+    );
+    assert_eq!(result.data.content.as_deref(), Some("合成说明"));
+    assert!(transport.requests().iter().any(|request| request
+        .url
+        .ends_with("queryKczyInfoByid?id=synthetic%2Ba%2Fb")));
+}

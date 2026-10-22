@@ -4,7 +4,7 @@ import 'apple_widgets.dart';
 import 'apple_design.dart';
 import 'mirror_service.dart';
 import 'school_timestamp.dart';
-import 'src/rust/api/mirror.dart';
+import 'application/contracts.dart';
 import 'course_visibility.dart';
 import 'checkin_loading.dart';
 
@@ -13,7 +13,7 @@ const _weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '
 /// Confirmed per-course submission with a subsequent status read.
 class CheckInPage extends StatefulWidget {
   const CheckInPage({super.key, required this.service, this.history = false});
-  final MirrorService service;
+  final CheckInGateway service;
   final bool history;
   @override
   State<CheckInPage> createState() => _CheckInPageState();
@@ -326,7 +326,10 @@ class _CheckInPageState extends State<CheckInPage> {
                 ],
               ),
             if (data == null && error == null)
-              CheckInLoading(isDemo: widget.service.isDemo),
+              CheckInLoading(
+                isDemo: widget.service.isDemo,
+                service: widget.service,
+              ),
             if (data != null) ...[
               if (widget.history && data!.date != dateString(selectedDate))
                 AppleSection(

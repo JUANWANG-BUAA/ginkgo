@@ -10,7 +10,7 @@
 
 ### 1. 共享 fixture 仍不足以约束双端解析
 
-**定位**：[Rust runner](../../rust/crates/ginkgo_core/tests/contracts.rs)、[契约路由](../../rust/crates/ginkgo_core/src/application/contracts.rs)、[Swift 新 runner](../../BUAA-AssistantTests/SharedParserContractTests.swift)。原有 Swift 测试已共享规则样例，但多数上游解析样例只在 Rust 执行；原评审提出的漂移风险成立，不能据“都在 fixtures/”推断双端已经一致。
+**定位**：[Rust runner](../../rust/crates/ginkgo_upstream/tests/contracts.rs)、[契约路由](../../rust/crates/ginkgo_upstream/src/services/contracts.rs)、[Swift 新 runner](../../BUAA-AssistantTests/SharedParserContractTests.swift)。原有 Swift 测试已共享规则样例，但多数上游解析样例只在 Rust 执行；原评审提出的漂移风险成立，不能据“都在 fixtures/”推断双端已经一致。
 
 **改进**：Swift 递归读取 Rust 同一目录的版本化 JSON，调用生产 CasPageParser、ScheduleParser、GradeParser 和 SPOC 加密实现，对同一 `expected` 断言。只转换属性命名、缺值 null、稳定错误码；没有复制响应、重写解析算法或修改期望来消除差异。首批覆盖 CAS、学期 / 周次 / 本科课程 / 考试、成绩 / 学期码、SPOC 加密。iOS 工程通过 XcodeGen 再生成以纳入测试，未手改工程。
 
@@ -18,19 +18,19 @@
 
 ### 2. Rust 锁中毒导致后续调用反复 panic
 
-**定位**：[内存锁封装](../../rust/crates/ginkgo_core/src/foundation/mutex.rs)、[SessionService](../../rust/crates/ginkgo_core/src/application/session_service.rs)、[HTTP Session](../../rust/crates/ginkgo_core/src/auth/session.rs)、[MemoryVault](../../rust/crates/ginkgo_core/src/auth/vault.rs) 及各 application 服务缓存。
+**定位**：[内存锁封装](../../rust/crates/ginkgo_upstream/src/foundation/mutex.rs)、[SessionService](../../rust/crates/ginkgo_upstream/src/services/session_service.rs)、[HTTP Session](../../rust/crates/ginkgo_upstream/src/auth/session.rs)、[MemoryVault](../../rust/crates/ginkgo_upstream/src/auth/vault.rs) 及各 application 服务缓存。
 
 **校正原判断**：`std::sync::Mutex` 中毒后 `.expect()` 会再次 panic，这个可靠性问题成立；但“任意 panic 跨 FFI 都会直接 abort”对本项目过度概括。锁定的 FRB 2.12.0 handler / executor 已有 `PanicBacktrace::catch_unwind`，生成入口并非简单裸 FFI。捕获 panic 也不会自动修复中毒状态，因此仍需处理。未采用原文未经本轮同口径复核的“306 处”数字。
 
 **改进**：不新增 parking_lot 依赖，也不盲目保留可能写到一半的复合状态。可丢弃的身份、Cookie、缓存和内存凭据中毒后，在持锁期间整体重置为安全空值，再清除 poison；下一次读取不会继续 panic。单一 Copy 路线枚举中毒后保留完整值，避免把显式直连 / WebVPN 悄悄重置成自动。同步 guard 不跨 await，原有 generation、异步 gate 和 bridge 生命周期锁保持职责。
 
-持久化的 [Keyring 锁](../../rust/crates/ginkgo_core/src/auth/platform/keyring_vault.rs) 与 [待办存储锁](../../rust/crates/ginkgo_core/src/adapters/tasks_store.rs) 本来就将中毒转换为 AppError，保留此行为。测试中的 expect、受控结果校验与 LazyLock 正则不做机械替换。恢复策略不保证修复所有 panic，也不适用于 durable 数据。
+持久化的 [Keyring 锁](../../rust/crates/ginkgo_upstream/src/auth/platform/keyring_vault.rs) 与 [待办存储锁](../../rust/crates/ginkgo_upstream/src/adapters/tasks_store.rs) 本来就将中毒转换为 AppError，保留此行为。测试中的 expect、受控结果校验与 LazyLock 正则不做机械替换。恢复策略不保证修复所有 panic，也不适用于 durable 数据。
 
 **验收**：身份 / 缓存中毒回归先在旧实现失败、改后通过；跨线程中断更新后清空重建、后续读写正常，路线保留及 poison 清除有单独回归。恢复理由依据 [Rust Mutex poisoning 文档](https://doc.rust-lang.org/std/sync/struct.Mutex.html#poisoning)：中毒只说明不变量可能受损，取回 guard 本身并不能证明状态正确。
 
 ### 3. 身份字段拆散，清理和发布难以保证完整
 
-**定位**：[session_service.rs](../../rust/crates/ginkgo_core/src/application/session_service.rs) 的 `Identity`、`AuthenticatedIdentity`、`status`、`set_authenticated`、`update_profile`、`clear_identity`；业务 token 引用同步调整到 checkin / library / cgyy 服务。
+**定位**：[session_service.rs](../../rust/crates/ginkgo_upstream/src/services/session_service.rs) 的 `Identity`、`AuthenticatedIdentity`、`status`、`set_authenticated`、`update_profile`、`clear_identity`；业务 token 引用同步调整到 checkin / library / cgyy 服务。
 
 **改进**：account 与 profile 作为一个可选登录态，待续登录页、iclass 会话、library / CGYY token 统一放进一个身份锁。登录成功整体替换，退出 / 切路线整体清理，状态读取一次获得账号与 profile；静默恢复只更新仍属同一账号的 profile。新增身份字段可通过 Default 进入统一清理路径，不再维护散落字段列表。
 

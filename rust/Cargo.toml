@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/ginkgo_core", "crates/ginkgo_flutter_bridge"]
+members = ["crates/ginkgo_domain", "crates/ginkgo_upstream", "crates/ginkgo_core", "crates/ginkgo_runtime", "crates/ginkgo_flutter_bridge"]
 resolver = "2"
 
 [workspace.package]

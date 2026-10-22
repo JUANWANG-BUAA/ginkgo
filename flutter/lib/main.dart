@@ -24,8 +24,9 @@ import 'mirror_service.dart';
 import 'rules_page.dart';
 import 'schedule_page.dart';
 import 'settings_page.dart';
-import 'src/rust/api/live.dart' show RouteChoice, SessionResponse, SessionState;
-import 'src/rust/frb_generated.dart';
+import 'application/contracts.dart'
+    show RouteChoice, SessionResponse, SessionState;
+import 'infrastructure/mirror_runtime.dart';
 import 'today_page.dart';
 import 'workspace_back_guard.dart';
 
@@ -33,7 +34,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppPreferences.shared.restore();
   try {
-    await RustLib.init();
+    await initializeMirrorRuntime();
     runApp(const GinkgoRoot());
   } catch (_) {
     runApp(
@@ -560,7 +561,7 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
     4 => HomeworkPage(service: widget.service),
     5 => ClassroomPage(service: widget.service),
     6 => LibraryPage(service: widget.service),
-    7 => TasksPage(demo: widget.service.isDemo),
+    7 => TasksPage(demo: widget.service.isDemo, service: widget.service),
     8 => SettingsPage(
       service: widget.service,
       onSignOut: _signOut,
@@ -568,10 +569,10 @@ class _DesktopWorkspaceState extends State<_DesktopWorkspace> {
       accountId: widget.accountId,
       route: widget.route,
     ),
-    10 => BykcPage(demo: widget.service.isDemo),
-    11 => GraduatePage(demo: widget.service.isDemo),
-    12 => NoticesPage(demo: widget.service.isDemo),
-    13 => CgyyPage(demo: widget.service.isDemo),
+    10 => BykcPage(demo: widget.service.isDemo, service: widget.service),
+    11 => GraduatePage(demo: widget.service.isDemo, service: widget.service),
+    12 => NoticesPage(demo: widget.service.isDemo, service: widget.service),
+    13 => CgyyPage(demo: widget.service.isDemo, service: widget.service),
     _ => RulesPage(service: widget.service),
   };
 

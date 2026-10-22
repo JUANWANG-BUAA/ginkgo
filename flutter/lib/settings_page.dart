@@ -9,7 +9,7 @@ import 'maintenance_pages.dart';
 import 'network_diagnostics_page.dart';
 import 'query_cache_scope.dart';
 import 'preferences_pages.dart';
-import 'src/rust/api/live.dart' show RouteChoice, SessionState;
+import 'application/contracts.dart' show RouteChoice, SessionState;
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({
@@ -155,10 +155,7 @@ class _SettingsPageState extends State<SettingsPage> {
     child: CustomScrollView(
       key: const Key("settings-scroll"),
       slivers: [
-        const ApplePageHeader(
-          largeTitle: Text('设置'),
-          border: null,
-        ),
+        const ApplePageHeader(largeTitle: Text('设置'), border: null),
         SliverList.list(
           children: [
             AppleSection(

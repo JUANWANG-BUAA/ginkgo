@@ -3,13 +3,14 @@ import 'package:flutter/cupertino.dart';
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
 import 'schedule_grid.dart';
+import 'schedule_week_strip.dart';
 import 'schedule_style.dart';
 import 'school_timestamp.dart';
-import 'src/rust/api/mirror.dart';
+import 'application/contracts.dart';
 
 class SchedulePage extends StatefulWidget {
   const SchedulePage({super.key, required this.service});
-  final MirrorService service;
+  final AcademicGateway service;
   @override
   State<SchedulePage> createState() => _SchedulePageState();
 }
@@ -24,16 +25,6 @@ class _SchedulePageState extends State<SchedulePage> {
   int viewMode = 0;
   int requestId = 0;
   String search = '';
-  final weekScroll = ScrollController();
-  (double, double, int, int)? weekStripLayout;
-  int weekStripGeneration = 0;
-
-  @override
-  void dispose() {
-    weekScroll.dispose();
-    super.dispose();
-  }
-
   List<ScheduleCourse> sorted = [];
   List<ScheduleCourse> filtered = [];
   Map<int, List<ScheduleCourse>> days = {};
@@ -105,7 +96,6 @@ class _SchedulePageState extends State<SchedulePage> {
         selectedWeek = result.weekNumber;
         terms = {for (final term in result.terms) term.id: term};
         weeks = {for (final item in result.weeks) item.number: item};
-        weekStripLayout = null;
         sorted = [...result.courses]
           ..sort((a, b) {
             final day = a.day.compareTo(b.day);
@@ -304,7 +294,11 @@ class _SchedulePageState extends State<SchedulePage> {
                     ),
                   ),
                 ),
-              _weekStrip(snapshot),
+              ScheduleWeekStrip(
+                weeks: snapshot.weeks,
+                selectedWeek: selectedWeek,
+                onSelected: selectWeek,
+              ),
             ],
           ],
         ),
@@ -482,111 +476,6 @@ class _SchedulePageState extends State<SchedulePage> {
         ],
       ),
   ];
-
-  Widget _weekStrip(ScheduleResponse snapshot) {
-    const gap = 8.0;
-    const padding = 16.0;
-    const labelStyle = TextStyle(fontSize: 15, fontWeight: FontWeight.w600);
-    final painter = TextPainter(
-      textDirection: Directionality.of(context),
-      textScaler: MediaQuery.textScalerOf(context),
-    );
-    var labelWidth = 0.0, labelHeight = 0.0;
-    for (final week in snapshot.weeks) {
-      painter.text = TextSpan(
-        text: '第 ${week.number} 周',
-        style: DefaultTextStyle.of(context).style.merge(labelStyle),
-      );
-      painter.layout();
-      if (painter.width > labelWidth) labelWidth = painter.width;
-      if (painter.height > labelHeight) labelHeight = painter.height;
-    }
-    painter.dispose();
-    final chipWidth = (labelWidth + 24).clamp(76.0, double.infinity);
-    final extent = chipWidth + gap;
-    return SizedBox(
-      height: labelHeight + 24,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final index = snapshot.weeks.indexWhere(
-            (week) => week.number == selectedWeek,
-          );
-          final layout = (
-            constraints.maxWidth,
-            extent,
-            index,
-            snapshot.weeks.length,
-          );
-          if (weekStripLayout != layout) {
-            weekStripLayout = layout;
-            final generation = ++weekStripGeneration;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!mounted ||
-                  generation != weekStripGeneration ||
-                  index < 0 ||
-                  !weekScroll.hasClients) {
-                return;
-              }
-              final position = weekScroll.position;
-              if (!position.hasContentDimensions) return;
-              final center = padding + index * extent + chipWidth / 2;
-              weekScroll.jumpTo(
-                (center - position.viewportDimension / 2).clamp(
-                  position.minScrollExtent,
-                  position.maxScrollExtent,
-                ),
-              );
-            });
-          }
-          return ListView.builder(
-            key: const Key('schedule-weeks'),
-            controller: weekScroll,
-            itemExtent: extent,
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.fromLTRB(padding, 4, padding, 8),
-            itemCount: snapshot.weeks.length,
-            itemBuilder: (context, index) {
-              final week = snapshot.weeks[index];
-              final active = week.number == selectedWeek;
-              final color = CupertinoTheme.of(context).primaryColor;
-              return Padding(
-                padding: const EdgeInsets.only(right: gap),
-                child: CupertinoButton(
-                  key: Key('schedule-week-${week.number}'),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  minimumSize: const Size(76, 0),
-                  color: active
-                      ? color.withValues(alpha: 0.14)
-                      : CupertinoColors.tertiarySystemFill.resolveFrom(context),
-                  onPressed: () => selectWeek(week.number),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '第 ${week.number} 周',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: active
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                          color: active
-                              ? color
-                              : CupertinoColors.label.resolveFrom(context),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
 
   String dayTitle(int day, int week) {
     final start = DateTime.tryParse(weeks[week]?.startDate ?? '');

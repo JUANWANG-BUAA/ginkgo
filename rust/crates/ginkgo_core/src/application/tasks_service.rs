@@ -1,7 +1,6 @@
 use crate::{
-    adapters::tasks_store,
     features::tasks::{self, Task},
-    AppError,
+    tasks_store, AppError,
 };
 use std::path::Path;
 /// Account is derived by the bridge from the authenticated Rust session.
@@ -59,9 +58,7 @@ pub fn edit(
     })
 }
 
-impl<T: crate::foundation::http::HttpTransport + Send + Sync, V: crate::auth::CredentialVault>
-    super::SessionService<T, V>
-{
+impl<U: super::SessionSource> super::Workspace<U> {
     pub fn edit_tasks(
         &self,
         root: &Path,
@@ -73,7 +70,7 @@ impl<T: crate::foundation::http::HttpTransport + Send + Sync, V: crate::auth::Cr
     ) -> Result<Vec<Task>, AppError> {
         edit(
             root,
-            &self.current_account()?,
+            &self.upstream.account()?,
             action,
             id,
             title,

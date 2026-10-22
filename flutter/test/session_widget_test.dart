@@ -62,7 +62,7 @@ final staleClassrooms = ClassroomResponse(
   failure: FailureCode.serviceUnavailable,
 );
 
-class FakeService implements MirrorService {
+class FakeService extends Fake implements MirrorService {
   FakeService({
     required this.restoreResponse,
     required this.loginResponse,

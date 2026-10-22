@@ -5,12 +5,12 @@ import 'apple_design.dart';
 import 'mirror_service.dart';
 import 'homework_detail_page.dart';
 import 'school_timestamp.dart';
-import 'src/rust/api/mirror.dart';
+import 'application/contracts.dart';
 import 'course_visibility.dart';
 
 class HomeworkPage extends StatefulWidget {
   const HomeworkPage({super.key, required this.service});
-  final MirrorService service;
+  final AcademicGateway service;
   @override
   State<HomeworkPage> createState() => _HomeworkPageState();
 }

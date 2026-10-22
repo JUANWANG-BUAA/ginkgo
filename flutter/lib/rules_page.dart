@@ -2,11 +2,11 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
-import 'src/rust/api/mirror.dart';
+import 'application/contracts.dart';
 
 class RulesPage extends StatefulWidget {
   const RulesPage({super.key, required this.service});
-  final MirrorService service;
+  final AcademicGateway service;
   @override
   State<RulesPage> createState() => _RulesPageState();
 }

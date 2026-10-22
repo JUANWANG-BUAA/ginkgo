@@ -3,11 +3,11 @@ import 'package:flutter/cupertino.dart';
 import 'apple_widgets.dart';
 import 'academic_widgets.dart';
 import 'mirror_service.dart';
-import 'src/rust/api/mirror.dart';
+import 'application/contracts.dart';
 
 class GradesPage extends StatefulWidget {
   const GradesPage({super.key, required this.service});
-  final MirrorService service;
+  final AcademicGateway service;
   @override
   State<GradesPage> createState() => _GradesPageState();
 }

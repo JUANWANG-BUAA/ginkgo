@@ -4,11 +4,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'apple_widgets.dart';
-import 'src/rust/api/live.dart' as live;
+import 'mirror_service.dart';
 
 class NoticesPage extends StatefulWidget {
-  const NoticesPage({super.key, this.demo = false});
+  const NoticesPage({super.key, this.demo = false, this.service});
   final bool demo;
+  final CampusGateway? service;
   @override
   State<NoticesPage> createState() => _NoticesPageState();
 }
@@ -30,9 +31,8 @@ class _NoticesPageState extends State<NoticesPage> {
       error = null;
     });
     try {
-      final result = widget.demo
-          ? await live.loadDemoNotices()
-          : await live.loadNotices(forceRefresh: force);
+      final service = widget.service ?? mirrorServiceFor(demo: widget.demo);
+      final result = await service.notices(forceRefresh: force);
       if (!mounted) return;
       setState(() {
         busy = false;
@@ -141,7 +141,7 @@ class _NoticeDetailState extends State<_NoticeDetail> {
     try {
       final url = Uri.parse(widget.notice['url'] as String);
       if (url.scheme != 'https' ||
-          url.host != 'news.buaa.edu.cn' ||
+          url.host.isEmpty ||
           !await launchUrl(url, mode: LaunchMode.externalApplication)) {
         if (mounted) setState(() => error = '无法打开官网，请稍后重试。');
       }

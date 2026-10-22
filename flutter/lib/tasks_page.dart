@@ -4,12 +4,18 @@ import 'package:flutter/cupertino.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'apple_widgets.dart';
-import 'src/rust/api/live.dart' as live;
+import 'mirror_service.dart';
 
 class TasksPage extends StatefulWidget {
-  const TasksPage({super.key, this.demo = false, this.storageRoot});
+  const TasksPage({
+    super.key,
+    this.demo = false,
+    this.storageRoot,
+    this.service,
+  });
   final bool demo;
   final String? storageRoot;
+  final CampusGateway? service;
   @override
   State<TasksPage> createState() => _TasksPageState();
 }
@@ -52,9 +58,9 @@ class _TasksPageState extends State<TasksPage> {
       error = null;
     });
     try {
-      final result = await live.editTasks(
+      final service = widget.service ?? mirrorServiceFor(demo: widget.demo);
+      final result = await service.editTasks(
         root: root!,
-        demo: widget.demo,
         action: action,
         id: task?['id'] as String?,
         title: title,

@@ -8,9 +8,7 @@ import 'mirror.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `bounded_read`, `checkin_failure`, `checkin_response`, `classroom_response`, `classroom_sort`, `failure_response`, `failure`, `grade_failure`, `grade_response`, `library_area`, `library_booking`, `library_seat`, `library_slot`, `library_venue`, `mutation_response`, `outcome_response`, `schedule_failure`, `schedule_response`, `service`, `signed_out`, `status_response`, `today_response`
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `UpdateTransport`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `send`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`
 
 Future<SessionResponse> login({
   required String account,
@@ -33,9 +31,6 @@ Future<SessionResponse> setRoute({required RouteChoice route}) =>
     RustLib.instance.api.crateApiLiveSetRoute(route: route);
 
 Future<bool> clearCache() => RustLib.instance.api.crateApiLiveClearCache();
-
-Future<SessionResponse> sessionStatus() =>
-    RustLib.instance.api.crateApiLiveSessionStatus();
 
 Future<ClassroomResponse> loadClassrooms({
   required LiveScope scope,
@@ -170,9 +165,6 @@ Future<ReadOnlyResponse> loadDemoBykcChosen() =>
 Future<ReadOnlyResponse> loadDemoBykcStatistics() =>
     RustLib.instance.api.crateApiLiveLoadDemoBykcStatistics();
 
-Future<ReadOnlyResponse> loadGraduate({required bool forceRefresh}) =>
-    RustLib.instance.api.crateApiLiveLoadGraduate(forceRefresh: forceRefresh);
-
 /// Independently cached sections, allowing Flutter to render the first response
 /// while the remaining academic request is still in flight.
 Future<ReadOnlyResponse> loadGraduatePart({
@@ -289,6 +281,7 @@ class GradeTermsResponse {
 }
 
 class HomeworkDetailResponse {
+  final String? sourceUrl;
   final String? content;
   final String? publishedAt;
   final String? dueAt;
@@ -299,6 +292,7 @@ class HomeworkDetailResponse {
   final FailureCode? failure;
 
   const HomeworkDetailResponse({
+    this.sourceUrl,
     this.content,
     this.publishedAt,
     this.dueAt,
@@ -311,6 +305,7 @@ class HomeworkDetailResponse {
 
   @override
   int get hashCode =>
+      sourceUrl.hashCode ^
       content.hashCode ^
       publishedAt.hashCode ^
       dueAt.hashCode ^
@@ -325,6 +320,7 @@ class HomeworkDetailResponse {
       identical(this, other) ||
       other is HomeworkDetailResponse &&
           runtimeType == other.runtimeType &&
+          sourceUrl == other.sourceUrl &&
           content == other.content &&
           publishedAt == other.publishedAt &&
           dueAt == other.dueAt &&

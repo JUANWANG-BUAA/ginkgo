@@ -1,0 +1,8 @@
+[package]
+name = "ginkgo_runtime"
+version = "0.1.0"
+edition.workspace = true
+
+[dependencies]
+ginkgo_core = { path = "../ginkgo_core" }
+ginkgo_upstream = { path = "../ginkgo_upstream", features = ["network"] }

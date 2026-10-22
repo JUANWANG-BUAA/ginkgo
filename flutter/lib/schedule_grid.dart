@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_design.dart';
 import 'schedule_style.dart';
-import 'src/rust/api/mirror.dart';
+import 'application/contracts.dart';
 
 /// Seven-day timetable grid. Course blocks span their section range and open
 /// a course detail page on tap.

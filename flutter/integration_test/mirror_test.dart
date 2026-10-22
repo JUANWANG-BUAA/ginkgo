@@ -22,6 +22,51 @@ import 'support.dart';
 const native = DemoMirrorService();
 
 class FailOnceNativeService implements MirrorService {
+  @override
+  Future<ReadOnlyResponse> checkinProgress() => native.checkinProgress();
+  @override
+  Future<ReadOnlyResponse> bykcPart(
+    BykcPart part, {
+    bool forceRefresh = false,
+  }) => native.bykcPart(part, forceRefresh: forceRefresh);
+  @override
+  Future<ReadOnlyResponse> graduatePart({
+    required bool report,
+    required bool forceRefresh,
+  }) => native.graduatePart(report: report, forceRefresh: forceRefresh);
+  @override
+  Future<ReadOnlyResponse> notices({bool forceRefresh = false}) =>
+      native.notices(forceRefresh: forceRefresh);
+  @override
+  Future<ReadOnlyResponse> cgyy({
+    required String kind,
+    required int siteId,
+    required String date,
+    required bool forceRefresh,
+  }) => native.cgyy(
+    kind: kind,
+    siteId: siteId,
+    date: date,
+    forceRefresh: forceRefresh,
+  );
+  @override
+  Future<ReadOnlyResponse> editTasks({
+    required String root,
+    required String action,
+    String? id,
+    String? title,
+    String? due,
+    bool? completed,
+  }) => native.editTasks(
+    root: root,
+    action: action,
+    id: id,
+    title: title,
+    due: due,
+    completed: completed,
+  );
+  @override
+  Future<bool> verifyBridgeContract() => native.verifyBridgeContract();
   bool first = true;
   @override
   Future<MutationResponse> submitCheckin(String courseId) =>

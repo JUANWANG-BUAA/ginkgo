@@ -1,0 +1,11 @@
+[package]
+name = "ginkgo_domain"
+version = "0.1.0"
+edition.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+chrono = { version = "0.4", default-features = false, features = ["std", "serde"] }
+chrono-tz = "0.10"
+unicode-normalization = "0.1"

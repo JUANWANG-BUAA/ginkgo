@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'apple_design.dart';
 import 'apple_widgets.dart';
 import 'mirror_service.dart';
-import 'src/rust/api/live.dart' show SessionResponse, SessionState;
+import 'application/contracts.dart' show SessionResponse, SessionState;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({
