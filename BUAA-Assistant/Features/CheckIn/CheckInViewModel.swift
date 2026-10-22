@@ -1,49 +1,6 @@
 import Foundation
 import UserNotifications
 
-struct CheckInCacheSnapshot: Codable {
-  var today: CheckInSnapshot?
-  var history: [String: CheckInSnapshot]
-}
-
-/// 当天状态与最多 180 个历史日期的签到快照。
-actor CheckInCache {
-  private let store: LocalStore
-  private let maximumHistoryDays = 180
-
-  init(directory: URL? = nil) {
-    store = LocalStore(module: "CheckIn", directory: directory)
-  }
-
-  func read(account: String) -> CheckInCacheSnapshot {
-    store.read(CheckInCacheSnapshot.self, account: account) ?? CheckInCacheSnapshot(today: nil, history: [:])
-  }
-
-  func saveToday(_ snapshot: CheckInSnapshot, account: String) throws {
-    var cached = read(account: account)
-    cached.today = snapshot
-    try save(cached, account: account)
-  }
-
-  func saveHistory(_ snapshot: CheckInSnapshot, account: String) throws {
-    var cached = read(account: account)
-    cached.history[snapshot.schoolDate] = snapshot
-    if cached.history.count > maximumHistoryDays {
-      let retained = cached.history.values.sorted { $0.fetchedAt > $1.fetchedAt }.prefix(maximumHistoryDays)
-      cached.history = Dictionary(uniqueKeysWithValues: retained.map { ($0.schoolDate, $0) })
-    }
-    try save(cached, account: account)
-  }
-
-  func clear(account: String) throws {
-    try store.remove(account: account)
-  }
-
-  private func save(_ snapshot: CheckInCacheSnapshot, account: String) throws {
-    try store.write(snapshot, account: account)
-  }
-}
-
 @MainActor
 final class CheckInViewModel: ObservableObject {
   @Published private(set) var snapshot: CheckInSnapshot?
@@ -66,10 +23,9 @@ final class CheckInViewModel: ObservableObject {
   @Published private(set) var actionMessage: String?
   @Published private(set) var actionSucceeded = false
 
-  private let service: CheckInServing
+  private let repository: CheckInRepository
   private let notifications: CheckInNotificationServing
   private let userDefaults: UserDefaults
-  private let cache: CheckInCache
   private var account: String?
   private var generation = 0
   private var historyGeneration = 0
@@ -79,15 +35,13 @@ final class CheckInViewModel: ObservableObject {
   var canSubmitSignIn: Bool { !snapshotIsCached }
 
   init(
-    service: CheckInServing = CheckInClient(),
+    repository: CheckInRepository = DefaultCheckInRepository(),
     notifications: CheckInNotificationServing? = nil,
-    userDefaults: UserDefaults = .standard,
-    cache: CheckInCache = CheckInCache()
+    userDefaults: UserDefaults = .standard
   ) {
-    self.service = service
+    self.repository = repository
     self.notifications = notifications ?? SystemCheckInNotificationClient()
     self.userDefaults = userDefaults
-    self.cache = cache
     notificationsEnabled = userDefaults.object(forKey: Self.notificationPreferenceKey) as? Bool ?? true
   }
 
@@ -96,7 +50,7 @@ final class CheckInViewModel: ObservableObject {
     reset()
     self.account = account
     let current = generation
-    let cached = await cache.read(account: account)
+    let cached = await repository.cachedSnapshot(account: account)
     guard current == generation, self.account == account else { return }
     if let today = cached.today, today.schoolDate == Self.schoolDateString(from: Date()) {
       snapshot = today
@@ -224,7 +178,7 @@ final class CheckInViewModel: ObservableObject {
       historyIsCached = false
     }
     if historySnapshot == nil {
-      let cached = await cache.read(account: account)
+      let cached = await repository.cachedSnapshot(account: account)
       guard current == historyGeneration, self.account == account else { return }
       if let history = cached.history[schoolDate] {
         historySnapshot = history
@@ -233,12 +187,10 @@ final class CheckInViewModel: ObservableObject {
     }
 
     do {
-      let result = try await service.loadOnDate(account: account, date: date)
+      let result = try await repository.load(on: date, account: account)
       guard current == historyGeneration else { return }
       historySnapshot = result
       historyIsCached = false
-      do { try await cache.saveHistory(result, account: account) }
-      catch { AppLog.cacheWriteFailed(feature: "checkin-history", error: error) }
     } catch {
       guard current == historyGeneration else { return }
       AppLog.operationFailed(feature: "checkin", stage: "history", error: error)
@@ -247,8 +199,7 @@ final class CheckInViewModel: ObservableObject {
   }
 
   func setWebVPNRouteEnabled(_ enabled: Bool) async {
-    guard let router = service as? CheckInWebVPNRouting else { return }
-    await router.setWebVPNRouteEnabled(enabled)
+    await repository.setWebVPNRouteEnabled(enabled)
   }
 
   private func refresh(checkPrimarySessionOnFailure: Bool) async {
@@ -263,7 +214,7 @@ final class CheckInViewModel: ObservableObject {
     defer { if current == generation { isLoading = false } }
 
     do {
-      let updated = try await service.loadToday(account: account)
+      let updated = try await repository.loadToday(account: account)
       guard current == generation else { return }
       if let snapshot {
         var oldStatuses: [String: CheckInStatus] = [:]
@@ -278,10 +229,6 @@ final class CheckInViewModel: ObservableObject {
       }
       snapshot = updated
       snapshotIsCached = false
-      if updated.schoolDate == Self.schoolDateString(from: Date()) {
-        do { try await cache.saveToday(updated, account: account) }
-        catch { AppLog.cacheWriteFailed(feature: "checkin-today", error: error) }
-      }
     } catch {
       guard current == generation else { return }
       AppLog.operationFailed(feature: "checkin", stage: "today", error: error)
@@ -294,7 +241,7 @@ final class CheckInViewModel: ObservableObject {
 
   func clearCache(account overrideAccount: String? = nil) async throws {
     guard let targetAccount = overrideAccount ?? account else { return }
-    try await cache.clear(account: targetAccount)
+    try await repository.clearCache(account: targetAccount)
     if targetAccount == account {
       snapshot = nil
       snapshotIsCached = false
@@ -325,7 +272,7 @@ final class CheckInViewModel: ObservableObject {
     defer { isSigningInCourseID = nil }
 
     do {
-      let result = try await service.performSignIn(account: account, courseID: courseID)
+      let result = try await repository.performSignIn(courseID: courseID, account: account)
       actionMessage = result.message
       guard result.succeeded || result.requiresStatusRefresh else { return }
 

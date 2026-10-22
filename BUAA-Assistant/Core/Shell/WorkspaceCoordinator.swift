@@ -64,14 +64,14 @@ final class WorkspaceCoordinator: ObservableObject {
   let schedule = ScheduleViewModel(repository: DefaultScheduleRepository())
   let exams = ExamViewModel(repository: DefaultExamRepository())
   let grades = GradeViewModel(repository: DefaultGradeRepository())
-  let graduateAcademic = GraduateAcademicViewModel()
+  let graduateAcademic = GraduateAcademicViewModel(repository: DefaultGraduateAcademicRepository())
   let homework = HomeworkViewModel(repository: DefaultHomeworkRepository())
   let bykc = BykcViewModel(repository: DefaultBykcRepository())
   let library = LibraryViewModel()
   let cgyy = CgyyViewModel()
-  let campusNotices = CampusNoticesViewModel()
+  let campusNotices = CampusNoticesViewModel(repository: DefaultCampusNoticesRepository())
   let classroom = ClassroomViewModel(repository: DefaultClassroomRepository())
-  let checkIn = CheckInViewModel()
+  let checkIn = CheckInViewModel(repository: DefaultCheckInRepository())
   let tasks = PersonalTaskStore()
 
   private(set) var isNetworkAvailable: Bool?

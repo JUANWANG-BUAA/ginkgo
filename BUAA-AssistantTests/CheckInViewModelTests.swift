@@ -6,13 +6,13 @@ import XCTest
 @MainActor
 final class CheckInViewModelTests: XCTestCase {
   func testStatusChangeSendsOneNotificationAndDoesNotRepeat() async {
-    let service = StubCheckInService(results: [
+    let repository = StubCheckInRepository(results: [
       .success(snapshot(status: .notSigned)),
       .success(snapshot(status: .signed)),
       .success(snapshot(status: .signed))
     ])
     let notifications = StubCheckInNotifications(status: .authorized)
-    let model = CheckInViewModel(service: service, notifications: notifications)
+    let model = CheckInViewModel(repository: repository, notifications: notifications)
 
     await model.start(account: "test-account")
     XCTAssertEqual(model.statusChangeRevision, 0)
@@ -31,7 +31,7 @@ final class CheckInViewModelTests: XCTestCase {
   func testInitialSignedSnapshotDoesNotTriggerChangeNotification() async {
     let notifications = StubCheckInNotifications(status: .authorized)
     let model = CheckInViewModel(
-      service: StubCheckInService(results: [.success(snapshot(status: .signed))]),
+      repository: StubCheckInRepository(results: [.success(snapshot(status: .signed))]),
       notifications: notifications
     )
 
@@ -48,7 +48,7 @@ final class CheckInViewModelTests: XCTestCase {
     defer { userDefaults.removePersistentDomain(forName: suiteName) }
     let notifications = StubCheckInNotifications(status: .authorized)
     let model = CheckInViewModel(
-      service: StubCheckInService(results: []),
+      repository: StubCheckInRepository(),
       notifications: notifications,
       userDefaults: userDefaults
     )
@@ -64,7 +64,7 @@ final class CheckInViewModelTests: XCTestCase {
     XCTAssertTrue(model.notificationHint(webVPNSessionStatus: .ready).contains("应用内已关闭"))
 
     let restored = CheckInViewModel(
-      service: StubCheckInService(results: []),
+      repository: StubCheckInRepository(),
       notifications: notifications,
       userDefaults: userDefaults
     )
@@ -77,19 +77,19 @@ final class CheckInViewModelTests: XCTestCase {
   }
 
   func testPageAppearanceRefreshesExistingAccountSession() async {
-    let service = StubCheckInService(results: [
+    let repository = StubCheckInRepository(results: [
       .success(snapshot(status: .notSigned)),
       .success(snapshot(status: .signed))
     ])
     let model = CheckInViewModel(
-      service: service,
+      repository: repository,
       notifications: StubCheckInNotifications(status: .notDetermined)
     )
 
     await model.start(account: "test-account")
     await model.refreshOnAppearance(account: "test-account")
 
-    XCTAssertEqual(service.loadCount, 2)
+    XCTAssertEqual(repository.loadCount, 2)
     XCTAssertEqual(model.snapshot?.items.first?.status, .signed)
   }
 
@@ -112,9 +112,6 @@ final class CheckInViewModelTests: XCTestCase {
   }
 
   func testCachedTodayStatusStaysVisibleButCannotSubmitUntilConfirmed() async throws {
-    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-    defer { try? FileManager.default.removeItem(at: directory) }
-    let cache = CheckInCache(directory: directory)
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "en_US_POSIX")
     formatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
@@ -126,11 +123,13 @@ final class CheckInViewModelTests: XCTestCase {
       fetchedAt: Date(timeIntervalSinceNow: -90),
       schoolDate: formatter.string(from: Date())
     )
-    try await cache.saveToday(cachedSnapshot, account: "account-1")
+    let repository = StubCheckInRepository(
+      results: [.failure(CheckInError.unavailable)],
+      cached: CheckInCacheSnapshot(today: cachedSnapshot, history: [:])
+    )
     let model = CheckInViewModel(
-      service: StubCheckInService(results: [.failure(CheckInError.unavailable)]),
-      notifications: StubCheckInNotifications(status: .notDetermined),
-      cache: cache
+      repository: repository,
+      notifications: StubCheckInNotifications(status: .notDetermined)
     )
 
     await model.start(account: "account-1")
@@ -142,7 +141,7 @@ final class CheckInViewModelTests: XCTestCase {
   }
 
   func testConcurrentRefreshRequestsShareOneInFlightLoad() async {
-    let service = StubCheckInService(
+    let repository = StubCheckInRepository(
       results: [
         .success(snapshot(status: .notSigned)),
         .success(snapshot(status: .signed)),
@@ -151,7 +150,7 @@ final class CheckInViewModelTests: XCTestCase {
       loadDelayNanoseconds: 50_000_000
     )
     let model = CheckInViewModel(
-      service: service,
+      repository: repository,
       notifications: StubCheckInNotifications(status: .notDetermined)
     )
 
@@ -162,7 +161,7 @@ final class CheckInViewModelTests: XCTestCase {
     await firstRefresh.value
     await overlappingRefresh.value
 
-    XCTAssertEqual(service.loadCount, 2, "Only the initial load and one refresh should reach iclass.")
+    XCTAssertEqual(repository.loadCount, 2, "Only the initial load and one refresh should reach iclass.")
     XCTAssertEqual(model.snapshot?.items.first?.status, .signed)
     XCTAssertFalse(model.isLoading)
   }
@@ -170,7 +169,7 @@ final class CheckInViewModelTests: XCTestCase {
   func testDeniedNotificationPermissionShowsActionableHintAndCanRefresh() async {
     let notifications = StubCheckInNotifications(status: .denied)
     let model = CheckInViewModel(
-      service: StubCheckInService(results: [.success(snapshot(status: .notSigned))]),
+      repository: StubCheckInRepository(results: [.success(snapshot(status: .notSigned))]),
       notifications: notifications
     )
 
@@ -189,7 +188,7 @@ final class CheckInViewModelTests: XCTestCase {
   func testFailedRefreshKeepsLastSuccessfulSnapshot() async {
     let expected = snapshot(status: .notSigned)
     let model = CheckInViewModel(
-      service: StubCheckInService(results: [
+      repository: StubCheckInRepository(results: [
         .success(expected),
         .failure(CheckInError.unavailable)
       ]),
@@ -205,10 +204,10 @@ final class CheckInViewModelTests: XCTestCase {
 
   func testHistoryQueryUsesSelectedDateAndKeepsAttendanceStatus() async {
     let expected = snapshot(status: .notSigned)
-    let service = StubCheckInService(results: [])
-    service.historySnapshot = expected
+    let repository = StubCheckInRepository()
+    repository.historySnapshot = expected
     let model = CheckInViewModel(
-      service: service,
+      repository: repository,
       notifications: StubCheckInNotifications(status: .notDetermined)
     )
 
@@ -216,8 +215,8 @@ final class CheckInViewModelTests: XCTestCase {
     let date = Date(timeIntervalSince1970: 1_760_000_000)
     await model.loadHistory(on: date)
 
-    XCTAssertEqual(service.historyDates, [date])
-    XCTAssertEqual(service.historyAccounts, ["test-account"])
+    XCTAssertEqual(repository.historyDates, [date])
+    XCTAssertEqual(repository.historyAccounts, ["test-account"])
     XCTAssertEqual(model.historySnapshot, expected)
     XCTAssertEqual(model.historyDate, date)
     XCTAssertFalse(model.historyIsLoading)
@@ -225,10 +224,10 @@ final class CheckInViewModelTests: XCTestCase {
   }
 
   func testHistoryQueryFailureDoesNotClaimAbsence() async {
-    let service = StubCheckInService(results: [])
-    service.historyError = .unavailable
+    let repository = StubCheckInRepository()
+    repository.historyError = .unavailable
     let model = CheckInViewModel(
-      service: service,
+      repository: repository,
       notifications: StubCheckInNotifications(status: .notDetermined)
     )
 
@@ -242,7 +241,7 @@ final class CheckInViewModelTests: XCTestCase {
 
   func testWebVPNGatewayFailureExposesSessionRecoveryState() async {
     let model = CheckInViewModel(
-      service: StubCheckInService(results: [.failure(CheckInError.webVPNUnavailable)]),
+      repository: StubCheckInRepository(results: [.failure(CheckInError.webVPNUnavailable)]),
       notifications: StubCheckInNotifications(status: .notDetermined)
     )
 
@@ -255,19 +254,19 @@ final class CheckInViewModelTests: XCTestCase {
   }
 
   func testManualSignInImmediatelyRefreshesAndConfirmsSignedStatus() async {
-    let service = StubCheckInService(results: [
+    let repository = StubCheckInRepository(results: [
       .success(snapshot(status: .notSigned)),
       .success(snapshot(status: .signed))
     ])
     let model = CheckInViewModel(
-      service: service,
+      repository: repository,
       notifications: StubCheckInNotifications(status: .notDetermined)
     )
 
     await model.start(account: "test-account")
     await model.performSignIn(courseID: "course-1")
 
-    XCTAssertEqual(service.signInCourseIDs, ["course-1"])
+    XCTAssertEqual(repository.signInCourseIDs, ["course-1"])
     XCTAssertEqual(model.snapshot?.items.first?.status, .signed)
     XCTAssertTrue(model.actionSucceeded)
     XCTAssertEqual(model.actionMessage, "签到成功，课程状态已回查确认")
@@ -275,20 +274,20 @@ final class CheckInViewModelTests: XCTestCase {
   }
 
   func testAmbiguousManualSignInFailureRechecksWithoutClaimingSuccess() async {
-    let service = StubCheckInService(results: [
+    let repository = StubCheckInRepository(results: [
       .success(snapshot(status: .notSigned)),
       .success(snapshot(status: .notSigned))
     ])
-    service.signInError = .unavailable
+    repository.signInError = .unavailable
     let model = CheckInViewModel(
-      service: service,
+      repository: repository,
       notifications: StubCheckInNotifications(status: .notDetermined)
     )
 
     await model.start(account: "test-account")
     await model.performSignIn(courseID: "course-1")
 
-    XCTAssertEqual(service.signInCourseIDs, ["course-1"], "An ambiguous write must never be automatically retried.")
+    XCTAssertEqual(repository.signInCourseIDs, ["course-1"], "An ambiguous write must never be automatically retried.")
     XCTAssertFalse(model.actionSucceeded)
     XCTAssertTrue(model.actionMessage?.contains("结果暂时无法确认") == true)
   }
@@ -332,20 +331,33 @@ private final class StubCheckInNotifications: CheckInNotificationServing {
   }
 }
 
-private final class StubCheckInService: CheckInServing {
+/// 用仓储替身注入 ViewModel，网络与缓存细节由 DefaultCheckInRepository 的独立测试覆盖。
+private final class StubCheckInRepository: CheckInRepository {
   private var results: [Result<CheckInSnapshot, CheckInError>]
   private let loadDelayNanoseconds: UInt64
+  private var cached: CheckInCacheSnapshot
   private(set) var signInCourseIDs: [String] = []
   private(set) var loadCount = 0
   private(set) var historyDates: [Date] = []
   private(set) var historyAccounts: [String] = []
+  private(set) var webVPNRouteStates: [Bool] = []
+  private(set) var clearedAccounts: [String] = []
   var historySnapshot: CheckInSnapshot?
   var historyError: CheckInError?
   var signInError: CheckInError?
 
-  init(results: [Result<CheckInSnapshot, CheckInError>], loadDelayNanoseconds: UInt64 = 0) {
+  init(
+    results: [Result<CheckInSnapshot, CheckInError>] = [],
+    loadDelayNanoseconds: UInt64 = 0,
+    cached: CheckInCacheSnapshot = CheckInCacheSnapshot(today: nil, history: [:])
+  ) {
     self.results = results
     self.loadDelayNanoseconds = loadDelayNanoseconds
+    self.cached = cached
+  }
+
+  func cachedSnapshot(account: String) async -> CheckInCacheSnapshot {
+    cached
   }
 
   func loadToday(account: String) async throws -> CheckInSnapshot {
@@ -357,7 +369,7 @@ private final class StubCheckInService: CheckInServing {
     return try results.removeFirst().get()
   }
 
-  func loadOnDate(account: String, date: Date) async throws -> CheckInSnapshot {
+  func load(on date: Date, account: String) async throws -> CheckInSnapshot {
     historyDates.append(date)
     historyAccounts.append(account)
     if let historyError { throw historyError }
@@ -365,9 +377,18 @@ private final class StubCheckInService: CheckInServing {
     return historySnapshot
   }
 
-  func performSignIn(account: String, courseID: String) async throws -> CheckInActionResult {
+  func performSignIn(courseID: String, account: String) async throws -> CheckInActionResult {
     signInCourseIDs.append(courseID)
     if let signInError { throw signInError }
     return CheckInActionResult(succeeded: true, message: "学校已接受签到，正在回查课程状态…")
+  }
+
+  func setWebVPNRouteEnabled(_ enabled: Bool) async {
+    webVPNRouteStates.append(enabled)
+  }
+
+  func clearCache(account: String) async throws {
+    clearedAccounts.append(account)
+    cached = CheckInCacheSnapshot(today: nil, history: [:])
   }
 }

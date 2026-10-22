@@ -7,14 +7,12 @@ final class GraduateAcademicViewModel: ObservableObject {
   @Published private(set) var errorMessage: String?
   @Published private(set) var isShowingCachedData = false
 
-  private let client: any GraduateAcademicLoading
-  private let cache: GraduateAcademicCache
+  private let repository: GraduateAcademicRepository
   private var generation = 0
   private var loadedAccount: String?
 
-  init(cache: GraduateAcademicCache = GraduateAcademicCache(), client: any GraduateAcademicLoading = GraduateAcademicClient()) {
-    self.client = client
-    self.cache = cache
+  init(repository: GraduateAcademicRepository = DefaultGraduateAcademicRepository()) {
+    self.repository = repository
   }
 
   func start(account: String) async {
@@ -25,7 +23,7 @@ final class GraduateAcademicViewModel: ObservableObject {
     snapshot = nil
     isShowingCachedData = false
     let current = generation
-    if let cached = await cache.read(account: account), current == generation {
+    if let cached = await repository.cached(account: account), current == generation {
       snapshot = cached
       isShowingCachedData = true
     }
@@ -42,13 +40,12 @@ final class GraduateAcademicViewModel: ObservableObject {
     defer { if current == generation { isLoading = false } }
     errorMessage = nil
     do {
-      let loaded = try await client.load(account: account)
+      let loaded = try await repository.load(account: account)
       guard current == generation, loadedAccount == account else { return }
       let merged = loaded.retainingSuccessfulData(from: snapshot)
       snapshot = merged
       isShowingCachedData = false
-      do { try await cache.save(merged, account: account) }
-      catch { AppLog.cacheWriteFailed(feature: "graduate-academic", error: error) }
+      await repository.save(merged, account: account)
     } catch {
       guard current == generation else { return }
       if RequestCancellation.isCancellation(error) == false {
@@ -74,7 +71,7 @@ final class GraduateAcademicViewModel: ObservableObject {
   func clearCache(account: String) async throws {
     generation += 1
     isLoading = false
-    try await cache.clear(account: account)
+    try await repository.clear(account: account)
     snapshot = nil
     loadedAccount = nil
     isShowingCachedData = false

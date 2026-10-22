@@ -96,6 +96,6 @@ rust/
 - 课表、考试、成绩、学校作业、空教室和 BYKC 已有 Repository 接口，默认组装集中在 `WorkspaceCoordinator`；这些边界仍是 Swift 进程内依赖，不是跨语言 API。`BykcRepository` 封装 `BykcServing` 与按账号隔离的快照缓存，`BykcCourseCatalog` 和 `BykcSemesterPolicy` 则是独立于请求和界面的纯规则。
 - BYKC 类别筛选使用 `all` / `named` / `unclassified` 稳定语义，并由 `fixtures/bykc/course-filter-v1.json` 固定；空教室筛选/排序逻辑已脱离 ViewModel，排序 wire code 位于结果层，本地化标题单独放在 presentation adapter。
 - 课表快照的“切换到已缓存周次”与“同学期保留已知周次”策略已从 `ScheduleViewModel` 提取为纯值操作；它们由共享 fixture 覆盖，不依赖网络、缓存或界面状态。
-- 签到、校园通知、研究生教务 ViewModel 仍有直接客户端/缓存依赖；按“领域规则先稳定、再抽用例边界”的顺序继续迁移，不为形式统一制造空壳 Repository。
+- 签到、校园通知、研究生教务已在 2026-10-22 抽出仓储边界（CheckInRepository / CampusNoticesRepository / GraduateAcademicRepository），ViewModel 只依赖协议；图书馆、CGYY 与认证仍直接组合客户端，继续按功能迁移，不为形式统一制造空壳 Repository。
 - 第一批纯规则抽取集中在空教室筛选/排序、BYKC 搜索/学期策略、北京时间语义与课表快照合并；认证状态机、网络路由、解析器契约和写操作语义尚未形成 Rust 实现。
 - Swift 代码继续服务 Apple 产品；不引入 Rust 运行时依赖，不改变现有协议、存储格式或写操作行为。

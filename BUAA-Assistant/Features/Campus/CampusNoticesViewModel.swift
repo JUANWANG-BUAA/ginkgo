@@ -1,31 +1,5 @@
 import Foundation
 
-struct CampusNoticesSnapshot: Codable {
-  let notices: [CampusNotice]
-  let fetchedAt: Date
-}
-
-/// 校园通知是公开内容，不按账号区分，只缓存最近一次结果。
-actor CampusNoticesCache {
-  private let store: LocalStore
-
-  init(directory: URL? = nil) {
-    store = LocalStore(module: "Campus", directory: directory)
-  }
-
-  func read() -> CampusNoticesSnapshot? {
-    store.read(CampusNoticesSnapshot.self, name: "notices")
-  }
-
-  func save(_ snapshot: CampusNoticesSnapshot) throws {
-    try store.write(snapshot, name: "notices")
-  }
-
-  func clear() throws {
-    try store.remove(name: "notices")
-  }
-}
-
 @MainActor
 final class CampusNoticesViewModel: ObservableObject {
   @Published private(set) var notices: [CampusNotice] = []
@@ -34,13 +8,11 @@ final class CampusNoticesViewModel: ObservableObject {
   @Published private(set) var errorMessage: String?
   @Published private(set) var fetchedAt: Date?
 
-  private let client: CampusNoticesClient
-  private let cache: CampusNoticesCache
+  private let repository: CampusNoticesRepository
   private var hasHydratedCache = false
 
-  init(client: CampusNoticesClient = CampusNoticesClient(), cache: CampusNoticesCache = CampusNoticesCache()) {
-    self.client = client
-    self.cache = cache
+  init(repository: CampusNoticesRepository = DefaultCampusNoticesRepository()) {
+    self.repository = repository
   }
 
   func refresh(force: Bool = false) async {
@@ -48,7 +20,7 @@ final class CampusNoticesViewModel: ObservableObject {
     isLoading = true
     defer { isLoading = false }
     if !hasHydratedCache {
-      if let cached = await cache.read(), notices.isEmpty {
+      if let cached = await repository.cached(), notices.isEmpty {
         notices = cached.notices
         fetchedAt = cached.fetchedAt
         isUsingCachedData = true
@@ -57,17 +29,11 @@ final class CampusNoticesViewModel: ObservableObject {
     }
     if !force, let fetchedAt, Date().timeIntervalSince(fetchedAt) < 15 * 60 { return }
     do {
-      let refreshed = try await client.load()
-      let refreshedAt = Date()
-      notices = refreshed
-      fetchedAt = refreshedAt
+      let refreshed = try await repository.load()
+      notices = refreshed.notices
+      fetchedAt = refreshed.fetchedAt
       isUsingCachedData = false
       errorMessage = nil
-      do {
-        try await cache.save(CampusNoticesSnapshot(notices: refreshed, fetchedAt: refreshedAt))
-      } catch {
-        AppLog.cacheWriteFailed(feature: "campus-notices", error: error)
-      }
     } catch {
       AppLog.operationFailed(feature: "campus-notices", stage: "refresh", error: error)
       errorMessage = (error as? LocalizedError)?.errorDescription ?? "校园通知暂时无法加载"
@@ -75,7 +41,7 @@ final class CampusNoticesViewModel: ObservableObject {
   }
 
   func clearCache() async throws {
-    try await cache.clear()
+    try await repository.clear()
     notices = []
     fetchedAt = nil
     isUsingCachedData = false
