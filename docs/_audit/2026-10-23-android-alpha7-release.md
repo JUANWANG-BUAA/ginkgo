@@ -6,7 +6,7 @@
 
 包含Today 2.0／作业转待办／启动更新提示，以及工作台减负、待办精简、账号级常用入口、7组强调色、栏目动效、CGYY预约／取消／强读核实／跨重启保护。学校写操作仍逐次人工触发，本轮未用真实学校账号或发送任何预约取消。
 
-本记录于发布过程中更新；只有远端公开和资产验证通过才记录完成。历史未发布审计是当时事实，不重写历史。
+**已公开 prerelease**：2026-10-23 00:34:01北京时间（GitHub published_at为2026-10-22T16:34:01Z）。历史未发布审计是当时事实，不重写历史；后续文档提交不移动冻结的源码tag。
 
 ## 检查与修复
 
@@ -35,7 +35,13 @@ Release初次因GeneratedPluginRegistrant引用integration_test而Gradle排除de
 
 签名资产 `Ginkgo-0.1.0-alpha.7-android-arm64.apk`，SHA-256 `7ae0a8f7d467cfd06866c7e431d40ecf32d7ee5106e0ae3dfc0db6537f632517`；另附checksums.txt。构建后复制到本机ignored产物目录冻结，后续不再用测试入口覆盖。
 
-源码提交／远端公开及上传读回证据在实际完成后追加；先Draft prerelease上传并核对GitHub资产digest，再公开，不改历史Release。目标地址：https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.7 。
+源码提交 `545814a448e705ce616a9f8f2df9cd7758c99ccd` 已push至 `feat/rust-flutter-mirror`，不可变annotated tag `android-v0.1.0-alpha.7` 指向该提交。Draft上传后核对GitHub资产uploaded状态、41267072字节与完整SHA-256匹配，再公开；公开API读回draft=false/prerelease=true、target为该提交。官方checksums.txt已下载并与本机manifest逐字节cmp通过，公开APK经已记录备用下载入口完整取回、SHA-256匹配冻结产物。
+
+Release：https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.7
+
+APK：https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.7/Ginkgo-0.1.0-alpha.7-android-arm64.apk
+
+Pages现网landing.js已下载与仓库脚本cmp一致；用实际公开releases响应执行受信脚本，断言Android下载/校验和/版本选择Alpha.7、Windows仍Alpha.6通过（不是浏览器截图验收）。现网动态下载已识别新版本；无JS或API失败时静态fallback仍为原Alpha.6，不误称已更新main静态页面。未merge main或改Apple/Windows下载，README提供直接新APK/Release入口。
 
 ## 已知限制
 

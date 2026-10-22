@@ -2,13 +2,9 @@
 
 更新：2026-10-23。这里只保留未完成事项；实现范围见 [现状](MIRROR-IMPLEMENTATION.md)，模块差距见 [对照表](MIRROR-PARITY.md)。完成需有代码和相应层级的验证证据，不反复追加已完成过程；历史计划保留于 [归档](archive/mirror/README.md)。
 
-## 下一版 Android 发包
-
-- [ ] 将已验证签名／不卸载覆盖升级的Alpha.7（build8）源码提交push，草稿上传并核对资产后公开，确认实际下载入口；不复用Alpha.6或提高minBuild。证据见 [Alpha.7记录](_audit/2026-10-23-android-alpha7-release.md)，公开后从本页移除此已完成过程。
-
 ## 当前产品迭代：Android 功能与体验
 
-方向与约束见 [Android 开发设定](ANDROID-DEVELOPMENT.md)。首批源码与自动化已完成，范围和分层证据见 [迭代记录](_audit/2026-10-22-android-product-iteration.md)；本轮再补工作台减负、待办精简、账号级常用入口、7 组强调色及栏目方向动效，见 [体验精修记录](_audit/2026-10-22-android-workspace-polish.md)。研讨室预约/取消的源码闭环、跨重启保护和强读展示后核对见 [CGYY 写流程记录](_audit/2026-10-22-android-cgyy-write-flow.md)，不能替代下方逐次人工真实写入验收。不代表公开包更新，原 P0 风险继续保留。这里只保留未覆盖的验收与扩展：
+方向与约束见 [Android 开发设定](ANDROID-DEVELOPMENT.md)。首批源码与自动化已完成，范围和分层证据见 [迭代记录](_audit/2026-10-22-android-product-iteration.md)；本轮再补工作台减负、待办精简、账号级常用入口、7 组强调色及栏目方向动效，见 [体验精修记录](_audit/2026-10-22-android-workspace-polish.md)。研讨室预约/取消的源码闭环、跨重启保护和强读展示后核对见 [CGYY 写流程记录](_audit/2026-10-22-android-cgyy-write-flow.md)，不能替代下方逐次人工真实写入验收。Android Alpha.7的已发布范围与升级证据见 [发布记录](_audit/2026-10-23-android-alpha7-release.md)；原P0真实账号风险继续保留。这里只保留未覆盖的验收与扩展：
 
 - [ ] 工作台—作业详情—待办补物理 Android 真机的系统返回/预测返回手势、TalkBack 全流程、大字号/深浅色及长列表性能验收；含新强调色选择、常用入口编辑与栏目动效实际帧率，已有合成 widget 与 ARM64 模拟器结果不能代替这些项目。
 - [ ] 用户授权下对真实学校只读作业数据核对来源定位与截止时间，不新增提交权限、不自动改学校状态；保留原任务 v1→v2 升级前备份与不可降级编辑说明。
