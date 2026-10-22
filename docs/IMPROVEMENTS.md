@@ -37,7 +37,7 @@ Ginkgo 已经越过“能查询”的阶段：CAS、课表、成绩、作业、�
 
 - 新文件默认进入 iOS 或根据扩展名/资源类型意外进入，平台专属依赖可能到编译期才暴露。
 - 无法给共享核心单独版本、单元测试和 API 约束。
-- 签到、校园通知和研究生教务 ViewModel 仍直接组合上游客户端与缓存；其余已拆 Repository 的模块也仍是 Swift 进程内边界，不是跨语言 API。
+- 签到、校园通知和研究生教务已抽出 CheckInRepository / CampusNoticesRepository / GraduateAcademicRepository（2026-10-22），ViewModel 只依赖仓储协议；图书馆、CGYY 与认证仍直接组合客户端。已拆 Repository 的模块也仍是 Swift 进程内边界，不是跨语言 API。
 
 **建议（Apple 工程内的独立改进，不是 Rust/Flutter 的前置条件）**：
 
@@ -228,3 +228,10 @@ Ginkgo 已经越过“能查询”的阶段：CAS、课表、成绩、作业、�
 - 发布目标推进至 `0.1.0-alpha.8` 草稿包，作为 Swift/SwiftUI 基线；GitHub Draft Release 生成后仍须人工核对资产，不自动公开。
 - 将镜像文档从原则性准备扩展为可执行里程碑：Rust workspace/fixture runner、classroom 纯逻辑垂直切片、只读真实用例、认证/WebVPN、扩大只读范围、写操作最后评审。
 - 平台范围冻结为 Android + Windows；Apple 保持 SwiftUI。“镜像”按用户任务与数据语义对齐，不要求像素级复制系统控件。Rust/Flutter 工程仍未创建。
+
+## 2026-10-22 · 功能登记表与剩余仓储边界
+
+- Flutter 壳层改为功能登记表（`flutter/lib/workspace_catalog.dart`）：移动端标签、桌面侧栏、今日快捷入口与返回栈由同一条目派生，`main.dart` 只保留启动与登录状态机；登记为编译期静态表，不引入运行时插件加载。
+- Apple 端抽出 `CheckInRepository` / `CampusNoticesRepository` / `GraduateAcademicRepository`，三个 ViewModel 只依赖仓储协议；缓存写入失败只记日志、失败保留旧值、签到单次提交与回查语义保持不变。
+- 验证：macOS 232 项 XCTest、Flutter 127 项单元/widget 测试、Android arm64 Debug APK 与 iOS generic build 通过；证据见 [TESTING](TESTING.md)。
+- 仍未完成：Library / CGYY / 认证仍直接组合客户端；移动端“个人与校园”快捷入口仍是精选清单；真实账号写操作与设备读屏未验收。

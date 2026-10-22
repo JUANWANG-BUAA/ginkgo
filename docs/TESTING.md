@@ -1714,3 +1714,36 @@ macOS 全量 210 项通过；iPhone SE（iOS 27.0）教务相关 43 项通过。
 新增回归覆盖：刷新按原页首 ID 跟随（插入 50 条后仍落在第 251–300 条）、锚点消失收敛到有效页、空查询保持合法边界、换筛选显式回第一页；工具栏在 320px 宽、双倍字号下直接跳页（551–600）；长页深处显示返回顶部且不改变滚动位置；座位翻页后首条不被固定查询区遮挡；空教室搜索按 250ms 合并、同查询刷新保留当前页；课表横滑松手后落在整日边界、固定节次轴不随横向偏移移动、星期直达可跳到末尾；研究生页更换 provider 后丢弃迟到快照。
 
 已知未完成：空教室刷新后 sliver 重排仍可能出现可见位置偏移（合成观察约 119px），未做精确像素锚定；设备滚动性能、读屏与真实账号未验收。
+
+## 2026-10-22 · 工作区功能登记表（Flutter）
+
+把移动端标签、桌面侧栏、今日快捷入口与返回栈收敛到 `flutter/lib/workspace_catalog.dart`；`main.dart` 只保留启动与登录状态机，`workspace_shell.dart` 负责移动/桌面两种布局。登记是编译期静态表，不引入运行时插件加载；Rust/FFI 未改动。
+
+| 检查 | 结果 |
+| --- | --- |
+| `flutter analyze --no-pub` | 无问题 |
+| `flutter test --no-pub test` | 127 项通过（新增 3 项登记表不变量） |
+| 本轮 8 个 Dart 文件 `dart format --set-exit-if-changed` | 无改动 |
+| 架构边界检查及其回归 | 通过 |
+| Android ARM64 Debug APK | `flutter build apk --debug --target-platform android-arm64 --no-pub` 通过 |
+| `git diff --check` | 通过 |
+
+新增回归：功能 id 唯一且可按 id 解析；移动端标签 0–4 连续且从工作台开始；每个侧栏分组非空、设置固定在页脚、每个登记项至少有一个可达入口。既有导航与窗口测试改为按功能 id 选择（`desktop-sidebar-grades` 等），标签数量、顺序与返回栈断言保持不变。壳层不再内置演示服务，具体实现只在 `main.dart` 组合根注入，架构边界检查同时覆盖这一点。
+
+已知未完成：`service_directory.dart` 的移动端“个人与校园”快捷入口仍是精选清单（与登记表重复，但只是入口分组）；未实现运行时插件加载、远程下发或动态符号查找；未跑设备读屏与真机交互。
+
+## 2026-10-22 · Apple 端剩余仓储边界
+
+CheckIn / Campus / Graduate 三个 ViewModel 从“直接持有客户端 + 缓存”改为依赖仓储协议；网络、缓存读写与缓存失败日志进入仓储，通知权限、UserDefaults、generation、15 分钟新鲜度、`retainingSuccessfulData` 合并、签到回查与状态变更提示留在 ViewModel。上游协议、成功码判定与写操作语义未变。
+
+| 检查 | 结果 |
+| --- | --- |
+| macOS `xcodebuild build`（CODE_SIGNING_ALLOWED=NO） | exit 0 |
+| macOS `xcodebuild test` | 232 项通过，0 失败、0 跳过（xcresult 摘要） |
+| `xcodegen generate --spec project.yml` | exit 0；工程仅新增 4 个文件引用，重复生成无差异 |
+| iOS `generic/platform=iOS` build | exit 0（未跑模拟器/真机） |
+| `git diff --check` | 通过 |
+
+新增回归：缓存命中、仅当天写 today 缓存、历史写缓存、写缓存失败不影响返回、失败保留旧缓存、按账号清除、签到单次转发与 WebVPN 转发/探测不到时 no-op。原 CheckInViewModel 14 项用例改为注入仓储 stub，断言不变。
+
+已知未完成：缓存写入改为网络成功后立即执行（在 ViewModel generation guard 前），账号重置瞬间可能多写一次该账号快照；按账号隔离且失败仅日志，不影响界面状态。真实账号签到写往返仍未验收；Library / CGYY / 认证仍直接组合客户端。
