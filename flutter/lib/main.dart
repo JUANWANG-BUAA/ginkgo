@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'apple_widgets.dart';
 import 'app_preferences.dart';
@@ -7,6 +8,7 @@ import 'infrastructure/mirror_runtime.dart';
 import 'login_page.dart';
 import 'mirror_service.dart';
 import 'startup_page.dart';
+import 'update_gate.dart';
 import 'workspace_shell.dart';
 
 // 测试与页面直接使用 ginkgoApp/GinkgoApp，保持既有入口不变。
@@ -17,7 +19,7 @@ Future<void> main() async {
   await AppPreferences.shared.restore();
   try {
     await initializeMirrorRuntime();
-    runApp(const GinkgoRoot());
+    runApp(GinkgoRoot(loadUpdateGate: UpdateGate.fetch));
   } catch (_) {
     runApp(
       CupertinoApp(
@@ -45,9 +47,13 @@ class GinkgoRoot extends StatefulWidget {
     super.key,
     this.liveService = const NativeMirrorService(),
     this.demoService = const DemoMirrorService(),
+    this.loadUpdateGate,
   });
   final MirrorService liveService;
   final MirrorService demoService;
+
+  /// 启动时读取最低版本清单；测试与离线场景传 null 即跳过门禁。
+  final Future<UpdateGate?> Function()? loadUpdateGate;
   @override
   State<GinkgoRoot> createState() => _GinkgoRootState();
 }
@@ -59,12 +65,42 @@ class _GinkgoRootState extends State<GinkgoRoot> {
   SessionResponse? session;
   String? message;
   bool captchaRequired = false;
+  UpdateGate? blockingGate;
+  String? installedVersion;
 
   @override
   void initState() {
     super.initState();
     // Let the startup page paint before touching JNI/Keystore/network work.
     WidgetsBinding.instance.addPostFrameCallback((_) => restore());
+    checkUpdateGate();
+  }
+
+  /// 最低版本门禁失败或不可达时放行；只有明确要求且低于最低 build 才阻塞。
+  Future<void> checkUpdateGate() async {
+    final loader = widget.loadUpdateGate;
+    if (loader == null) return;
+    UpdateGate? gate;
+    try {
+      gate = await loader();
+    } catch (_) {
+      gate = null;
+    }
+    if (!mounted) return;
+    String? label;
+    int? build;
+    try {
+      final info = await PackageInfo.fromPlatform();
+      label = '${info.version} (${info.buildNumber})';
+      build = int.tryParse(info.buildNumber);
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() {
+      installedVersion = label;
+      blockingGate = gate != null && build != null && gate.blocks(build)
+          ? gate
+          : null;
+    });
   }
 
   Future<void> restore() async {
@@ -119,31 +155,43 @@ class _GinkgoRootState extends State<GinkgoRoot> {
   });
 
   @override
-  Widget build(BuildContext context) => switch (stage) {
-    _Stage.restoring => ginkgoApp(home: const StartupPage()),
-    _Stage.demo => GinkgoApp(
-      service: widget.demoService,
-      onSignOut: () async => setState(() => stage = _Stage.signedOut),
-    ),
-    _Stage.signedOut => ginkgoApp(
-      home: LoginPage(
-        service: widget.liveService,
-        initialMessage: message,
-        initialCaptcha: captchaRequired,
-        onSignedIn: signedIn,
-        onDemo: () => setState(() {
-          stage = _Stage.demo;
-          captchaRequired = false;
-          message = null;
-        }),
+  Widget build(BuildContext context) {
+    final gate = blockingGate;
+    if (gate != null) {
+      return ginkgoApp(
+        home: UpdateRequiredPage(
+          gate: gate,
+          installedVersion: installedVersion,
+          onRetry: checkUpdateGate,
+        ),
+      );
+    }
+    return switch (stage) {
+      _Stage.restoring => ginkgoApp(home: const StartupPage()),
+      _Stage.demo => GinkgoApp(
+        service: widget.demoService,
+        onSignOut: () async => setState(() => stage = _Stage.signedOut),
       ),
-    ),
-    _Stage.signedIn => GinkgoApp(
-      service: widget.liveService,
-      accountName: session?.name ?? session?.account,
-      accountId: session?.account,
-      route: session?.route,
-      onSignOut: signOut,
-    ),
-  };
+      _Stage.signedOut => ginkgoApp(
+        home: LoginPage(
+          service: widget.liveService,
+          initialMessage: message,
+          initialCaptcha: captchaRequired,
+          onSignedIn: signedIn,
+          onDemo: () => setState(() {
+            stage = _Stage.demo;
+            captchaRequired = false;
+            message = null;
+          }),
+        ),
+      ),
+      _Stage.signedIn => GinkgoApp(
+        service: widget.liveService,
+        accountName: session?.name ?? session?.account,
+        accountId: session?.account,
+        route: session?.route,
+        onSignOut: signOut,
+      ),
+    };
+  }
 }

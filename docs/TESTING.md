@@ -1747,3 +1747,20 @@ CheckIn / Campus / Graduate 三个 ViewModel 从“直接持有客户端 + 缓�
 新增回归：缓存命中、仅当天写 today 缓存、历史写缓存、写缓存失败不影响返回、失败保留旧缓存、按账号清除、签到单次转发与 WebVPN 转发/探测不到时 no-op。原 CheckInViewModel 14 项用例改为注入仓储 stub，断言不变。
 
 已知未完成：缓存写入改为网络成功后立即执行（在 ViewModel generation guard 前），账号重置瞬间可能多写一次该账号快照；按账号隔离且失败仅日志，不影响界面状态。真实账号签到写往返仍未验收；Library / CGYY / 认证仍直接组合客户端。
+
+## 2026-10-22 · 最低版本门禁
+
+只改 Flutter 启动流程：`UpdateGate` 从 GitHub Pages 读取 [update-gate.json](../docs/update-gate.json)，已安装 build 低于 `minBuild` 时用更新页替代工作区；拉取超时、非 200、结构异常、非法链接或读不到版本号时一律放行。清单只做门禁，不承载协议参数、不下载代码。
+
+| 检查 | 结果 |
+| --- | --- |
+| `flutter analyze --no-pub` | 无问题 |
+| `flutter test --no-pub test` | 132 项通过（新增 5 项门禁回归） |
+| 架构边界检查 | 通过 |
+| Android ARM64 Debug / Release APK | 均构建通过；release 40,609,432 字节（较上一构建 +65,604 字节） |
+| 设备冒烟（API 37 模拟器） | 安装启动正常、冷启动 1.97 s；清单未部署/不可达时登录页正常出现（放行路径） |
+| `git diff --check` | 通过 |
+
+新增回归：清单解析接受 `minBuild` 与可选提示、拒绝非 JSON/负值/字符串 build、忽略非 HTTPS 发布页；`blocks` 在低于/等于/高于最低 build 的边界；更新页文案、当前版本与“重新检查”回调；`GinkgoRoot` 在低于最低 build 时用更新页替代工作区。
+
+未验证：真实 Pages 清单生效（需合并到 main 并部署）、Windows 门禁、阻塞页在真实设备上的“打开发布页”跳转；清单签名/灰度/差分仍未做。

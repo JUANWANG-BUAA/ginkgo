@@ -27,6 +27,7 @@
 - [ ] Swift 的 LibraryClient / CheckInClient / CgyyClient 按模块逐步抽取模型、密码学与纯解析器，先扩共享契约再移动代码，分别跑 macOS / iOS。原生 macOS / iOS 与 Flutter 保留各平台 UI，优先共享规则和证据。
 - [ ] 其他异步复杂页面在出现跨路由状态或重复加载职责时参考 `LibraryController`；不以禁止 `setState` 或引入全局框架作为完成标准。
 - [ ] 移动端“个人与校园”快捷入口（`service_directory.dart`）仍是精选清单，与 `workspace_catalog.dart` 的功能清单重复；如需完全单一来源，可改为从登记表派生（需把 `WorkspaceContext` 工厂传入目录）。
+- [ ] 更新体系：最低版本门禁已接入（`update_gate.dart` + `docs/update-gate.json`，拉取失败放行）；清单签名、差分补丁、灰度/回滚、Windows Authenticode 与应用内更新仍待做。提升 `minBuild` 前必须确认新版本已可下载，避免把旧版锁在无法更新的状态。
 - [ ] Android 应用内下载、断点续传、摘要 / 签名校验和系统安装确认已进入 Alpha.4；仍需发布后在真实设备验证旧版发现、未知来源授权、覆盖升级和网络中断恢复。Windows 已完成单文件安装器与便携 ZIP 公开分发，代码签名、应用内更新和物理设备安装闭环仍待推进。
 
 ## 文档维护
