@@ -17,6 +17,8 @@ void main() {
     tester,
   ) async {
     Future<void> tapTask(WidgetTester tester, Finder finder) async {
+      await tester.ensureVisible(finder);
+      await settle(tester, frames: 3);
       await tester.tap(finder);
       await settle(tester);
     }
@@ -31,12 +33,28 @@ void main() {
       await settle(tester);
       await tapTask(tester, find.bySemanticsLabel('新增待办'));
       await tester.enterText(find.byKey(const Key('task-title')), '合成设备待办');
-      await tapTask(tester, find.text('保存'));
+      await tapTask(tester, find.byKey(const Key('task-save')));
       expect(find.text('合成设备待办'), findsOneWidget);
-      await tapTask(tester, find.text('合成设备待办'));
+      await tapTask(
+        tester,
+        find.byWidgetPredicate(
+          (widget) =>
+              widget.key is ValueKey<String> &&
+              (widget.key! as ValueKey<String>).value.startsWith('task-edit-'),
+        ),
+      );
       await tester.enterText(find.byKey(const Key('task-title')), '修改设备待办');
-      await tapTask(tester, find.text('保存'));
-      await tapTask(tester, find.byIcon(CupertinoIcons.circle));
+      await tapTask(tester, find.byKey(const Key('task-save')));
+      await tapTask(
+        tester,
+        find.byWidgetPredicate(
+          (widget) =>
+              widget.key is ValueKey<String> &&
+              (widget.key! as ValueKey<String>).value.startsWith(
+                'task-toggle-',
+              ),
+        ),
+      );
       expect(find.text('已完成'), findsOneWidget);
       await tester.pumpWidget(ginkgoApp(home: const SizedBox()));
       await settle(tester);
@@ -46,8 +64,17 @@ void main() {
       await settle(tester);
       expect(find.text('修改设备待办'), findsOneWidget);
       expect(find.text('已完成'), findsOneWidget);
-      await tapTask(tester, find.byIcon(CupertinoIcons.trash));
-      await tapTask(tester, find.text('删除'));
+      await tapTask(
+        tester,
+        find.byWidgetPredicate(
+          (widget) =>
+              widget.key is ValueKey<String> &&
+              (widget.key! as ValueKey<String>).value.startsWith(
+                'task-delete-',
+              ),
+        ),
+      );
+      await tapTask(tester, find.widgetWithText(CupertinoDialogAction, '删除'));
       expect(find.text('暂无待办'), findsOneWidget);
       expect(tester.takeException(), isNull);
     } finally {

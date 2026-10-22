@@ -21,9 +21,7 @@ pub fn transact(
     std::fs::create_dir_all(root).map_err(|_| AppError::unavailable())?;
     let file = path(root, account);
     let mut tasks = match std::fs::read(&file) {
-        Ok(bytes) => {
-            tasks::parse(serde_json::from_slice(&bytes).map_err(|_| AppError::changed())?)?
-        }
+        Ok(bytes) => tasks::parse_bytes(&bytes)?,
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Vec::new(),
         Err(_) => return Err(AppError::unavailable()),
     };
@@ -31,7 +29,8 @@ pub fn transact(
     change(&mut tasks)?;
     if tasks != previous {
         let bytes = serde_json::to_vec(&Document {
-            version: 1,
+            // Valid v1 documents migrate only after a successful local change.
+            version: 2,
             tasks: tasks.clone(),
         })
         .map_err(|_| AppError::changed())?;
@@ -47,7 +46,7 @@ pub fn transact(
     tasks.sort_by(|a, b| {
         a.completed
             .cmp(&b.completed)
-            .then(a.due.cmp(&b.due))
+            .then_with(|| tasks::compare_due(&a.due, &b.due))
             .then(a.id.cmp(&b.id))
     });
     Ok(tasks)

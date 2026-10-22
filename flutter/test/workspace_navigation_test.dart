@@ -6,7 +6,8 @@ import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 import 'package:ginkgo_mirror/today_page.dart';
 
-import 'mirror_widget_test.dart' show ControlledService;
+import 'mirror_widget_test.dart'
+    show ControlledService, mockLocalTaskSupportDirectory;
 import 'session_widget_test.dart' show FakeService, signedOut;
 
 class WorkspaceService extends ControlledService {
@@ -52,6 +53,7 @@ void viewport(WidgetTester tester, Size size) {
 }
 
 void main() {
+  setUp(mockLocalTaskSupportDirectory);
   testWidgets(
     'Android back remains handled after login switches into the demo app',
     (tester) async {
@@ -212,13 +214,34 @@ void main() {
     await tester.pumpAndSettle();
     final course = find.byKey(const Key('today-course-0-合成课程名称'));
     expect(tester.getRect(course).top, lessThan(400));
-    expect(
-      tester.getRect(course).top,
-      lessThan(tester.getRect(find.text('课程签到')).top),
-    );
+    final courseTop = tester.getRect(course).top;
     expect(find.text('08:00'), findsOneWidget);
     expect(find.text('09:35'), findsOneWidget);
     expect(find.text('课表同步：10月21日 08:03'), findsOneWidget);
+    // Homework and personal tasks now precede the lazily built shortcuts.
+    final scroller = find
+        .descendant(
+          of: find.byKey(const Key('today-scroll')),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+    final position = tester.state<ScrollableState>(scroller).position;
+    await tester.scrollUntilVisible(
+      find.text('课程签到'),
+      180,
+      scrollable: scroller,
+    );
+    await tester.pumpAndSettle();
+    expect(
+      courseTop,
+      lessThan(tester.getRect(find.text('课程签到')).top + position.pixels),
+    );
+    await tester.scrollUntilVisible(
+      find.text('查看完整课表'),
+      -180,
+      scrollable: scroller,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.text('查看完整课表'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('schedule-search')), findsOneWidget);

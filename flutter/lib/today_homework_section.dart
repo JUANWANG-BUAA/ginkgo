@@ -2,10 +2,12 @@ import 'package:flutter/cupertino.dart';
 
 import 'application/contracts.dart';
 import 'application/refresh_section.dart';
-import 'apple_widgets.dart';
 import 'course_visibility.dart';
 import 'homework_projection.dart';
 import 'loading_widgets.dart';
+import 'today_action_row.dart';
+import 'today_time.dart';
+import 'today_presentation.dart';
 
 /// A separate read can finish before or after today's timetable.
 class TodayHomeworkSection extends StatelessWidget {
@@ -14,10 +16,16 @@ class TodayHomeworkSection extends StatelessWidget {
     required this.section,
     required this.onRetry,
     this.onOpen,
+    this.onOpenItem,
+    this.now,
   });
   final RefreshSection<HomeworkResponse> section;
   final VoidCallback onRetry;
   final VoidCallback? onOpen;
+  final ValueChanged<HomeworkItem>? onOpenItem;
+
+  /// Beijing wall time, injected for deterministic rendering.
+  final DateTime? now;
 
   @override
   Widget build(BuildContext context) {
@@ -26,16 +34,17 @@ class TodayHomeworkSection extends StatelessWidget {
       data?.items ?? [],
       CourseVisibilityScope.of(context),
     );
-    final pending = personal.where(
-      (item) => item.status == HomeworkStatus.pending,
-    );
+    final pending =
+        personal.where((item) => item.status == HomeworkStatus.pending).toList()
+          ..sort((a, b) => todayCompareDue(a.dueAt, b.dueAt));
     final unknown = personal.where(
       (item) => item.status == HomeworkStatus.unknown,
     );
-    return AppleSection(
+    final clock = now ?? todaySchoolNow(DateTime.now());
+    return TodayVisualSection(
       key: const Key('today-homework'),
       header: const Text('学校作业'),
-      footer: const Text('个人课程作业 · 不含助教课程'),
+      footer: const Text('个人课程作业 · 不含助教课程\n学校状态与个人待办独立；截止时间按北京时间显示'),
       children: [
         if (section.loading || section.error != null)
           SectionFeedback(
@@ -49,36 +58,30 @@ class TodayHomeworkSection extends StatelessWidget {
           SectionReveal(
             child: Column(
               children: [
-                AppleListTile(
-                  leading: Icon(
-                    CupertinoIcons.doc_text,
-                    color: CupertinoTheme.of(context).primaryColor,
-                  ),
-                  title: Text(
-                    pending.isNotEmpty
-                        ? '${pending.length} 项作业待处理'
-                        : section.error == null
-                        ? '当前没有待处理作业'
-                        : '作业状态尚未确认',
-                  ),
+                TodayActionRow(
+                  summary: true,
+                  title: pending.isNotEmpty
+                      ? '${pending.length} 项作业待处理'
+                      : section.error != null || unknown.isNotEmpty
+                      ? '作业状态尚未确认'
+                      : '当前没有待处理作业',
                   subtitle: unknown.isEmpty
                       ? null
-                      : Text('${unknown.length} 项状态待确认，请进入作业核对'),
-                  trailing: onOpen == null
-                      ? null
-                      : const CupertinoListTileChevron(),
+                      : '${unknown.length} 项状态待确认，请进入作业核对',
                   onTap: onOpen,
                 ),
-                for (final item in pending.take(3))
-                  AppleListTile(
-                    title: Text(
-                      item.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(item.courseName),
-                    onTap: onOpen,
+                for (final item in pending.take(3)) ...[
+                  const TodayVisualDivider(),
+                  TodayActionRow(
+                    key: Key('today-homework-item-${item.id}'),
+                    title: item.title,
+                    subtitle: item.courseName,
+                    status: todayDueLabel(item.dueAt, clock),
+                    onTap: onOpenItem == null
+                        ? onOpen
+                        : () => onOpenItem!(item),
                   ),
+                ],
               ],
             ),
           ),

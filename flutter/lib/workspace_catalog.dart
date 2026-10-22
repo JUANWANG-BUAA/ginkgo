@@ -103,6 +103,7 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     build: (context) => TodayPage(
       service: context.service,
       accountName: context.accountName,
+      accountId: context.accountId,
       onAccountAction: context.onSignOut,
       onOpenSettings: context.openSettings,
       onOpenFeature: context.openFeature,

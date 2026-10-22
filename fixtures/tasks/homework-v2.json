@@ -1,0 +1,64 @@
+{
+  "contract": "tasks.document",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "version": 2,
+    "tasks": [
+      {
+        "id": "synthetic-homework",
+        "title": "合成作业",
+        "due": "2026-10-22T23:30:00+08:00",
+        "completed": false,
+        "source": {
+          "kind": "homework",
+          "assignment_id": "spoc:123"
+        }
+      },
+      {
+        "id": "synthetic-no-deadline",
+        "title": "未设截止作业",
+        "due": "",
+        "completed": true,
+        "source": {
+          "kind": "homework",
+          "assignment_id": "spoc:456"
+        }
+      },
+      {
+        "id": "synthetic-legacy",
+        "title": "旧日期待办",
+        "due": "2026-10-21",
+        "completed": false
+      }
+    ]
+  },
+  "expected": [
+    {
+      "id": "synthetic-homework",
+      "title": "合成作业",
+      "due": "2026-10-22T23:30:00+08:00",
+      "completed": false,
+      "source": {
+        "kind": "homework",
+        "assignment_id": "spoc:123"
+      }
+    },
+    {
+      "id": "synthetic-no-deadline",
+      "title": "未设截止作业",
+      "due": "",
+      "completed": true,
+      "source": {
+        "kind": "homework",
+        "assignment_id": "spoc:456"
+      }
+    },
+    {
+      "id": "synthetic-legacy",
+      "title": "旧日期待办",
+      "due": "2026-10-21",
+      "completed": false
+    }
+  ]
+}

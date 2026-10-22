@@ -6,7 +6,7 @@
 
 | 消费端 | 入口 | 实际覆盖 |
 | --- | --- | --- |
-| Rust | [tests/contracts.rs](../rust/crates/ginkgo_core/tests/contracts.rs)、[execute_contract](../rust/crates/ginkgo_core/src/application/contracts.rs) | 递归执行本目录全部 JSON，对未知契约失败 |
+| Rust | [tests/contracts.rs](../rust/crates/ginkgo_upstream/tests/contracts.rs)、[execute_contract](../rust/crates/ginkgo_upstream/src/services/contracts.rs) | 递归执行本目录全部 JSON，对未知契约失败 |
 | Swift 规则 | ClassroomViewModelTests、BykcCourseCatalogTests、SharedHelpersTests、WorkspaceIntegrationTests | 教室筛选、博雅过滤、北京时间、课表已知周次保留的共享黄金样例 |
 | Swift 解析 | [SharedParserContractTests](../BUAA-AssistantTests/SharedParserContractTests.swift) | 递归读取同目录；CAS 登录页、教务学期 / 周次 / 本科课程 / 考试、成绩与学期码、SPOC 分页加密 |
 
@@ -25,5 +25,6 @@ Swift 解析 runner 支持 `auth.cas_login_page`、`schedule.terms`、`schedule.
 - 签到 / 图书馆写结果区分受理、拒绝、未提交与不明确，样例均为合成。测试通过不代表真实写操作验收。
 - Android 更新只接受独立 Android tag 与可信资产；不把 macOS 发布、草稿或不可信 URL 当作可安装更新。
 - `synthetic-must-not-cross-bridge` 是投影隐私哨兵，不是真实票据。待办无效文档不能覆盖已有文件；通知没有确认空标记的空 HTML 属于结构变化。
+- 待办文档支持旧 v1 与新 v2：v2 可含作业来源、未设截止（空字符串）及带偏移的精确截止；日期保持学校全天语义并按当日日末排序。本地完成与学校提交独立，关联按账号/稳定来源 ID 事务防重且不覆盖用户编辑。fixture 外层契约信封仍为 version=1，与 input 文档版本分别校验；未知文档版本使用 99，不再把已支持的 v2 当漂移。
 
 协议修正先记录 [API](../docs/API.md) 证据；领域语义变化必须明确升级版本并同步消费者，不以改 `expected` 掩盖差异。验证命令与本次覆盖结果见 [TESTING](../docs/TESTING.md)。

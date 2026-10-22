@@ -3,7 +3,7 @@
   "version": 1,
   "source": "synthetic",
   "input": {
-    "version": 2,
+    "version": 99,
     "tasks": []
   },
   "expected": {

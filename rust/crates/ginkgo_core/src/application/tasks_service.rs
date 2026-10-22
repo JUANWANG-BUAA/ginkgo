@@ -1,10 +1,13 @@
 use crate::{
-    features::tasks::{self, Task},
+    features::tasks::{self, Task, TaskSource},
     tasks_store, AppError,
 };
 use std::path::Path;
 /// Account is derived by the bridge from the authenticated Rust session.
 /// Demo has a separate namespace and never touches real-account documents.
+/// For `add_homework`, `id` is a stable assignment ID (for example `spoc:123`),
+/// not a local task ID. Repeated adds return the existing task in the task list.
+/// An empty `due` means no deadline; other deadlines are dates or RFC3339 instants.
 #[allow(clippy::too_many_arguments)] // Coarse CRUD command mirrors the bridge input.
 pub fn edit(
     root: &Path,
@@ -21,16 +24,27 @@ pub fn edit(
     tasks_store::transact(root, account, |tasks| {
         match action {
             "load" => {}
-            "add" | "update" => {
+            "add" | "add_homework" | "update" => {
                 let title = title.ok_or_else(AppError::invalid)?.trim();
                 let due = due.ok_or_else(AppError::invalid)?;
                 tasks::validate(title, due)?;
-                if action == "add" {
+                let source = if action == "add_homework" {
+                    Some(TaskSource::homework(id.ok_or_else(AppError::invalid)?)?)
+                } else {
+                    None
+                };
+                // Check under the same storage lock as load/save. Repeated adds
+                // must not refresh user edits or reset local completion.
+                if source.is_some() && tasks.iter().any(|task| task.source == source) {
+                    return Ok(());
+                }
+                if action != "update" {
                     tasks.push(Task {
                         id: format!("{:032x}", rand::random::<u128>()),
                         title: title.into(),
                         due: due.into(),
                         completed: false,
+                        source,
                     });
                 } else {
                     let task = tasks

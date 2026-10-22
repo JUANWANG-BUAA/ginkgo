@@ -8,6 +8,8 @@ import 'infrastructure/mirror_runtime.dart';
 import 'login_page.dart';
 import 'mirror_service.dart';
 import 'startup_page.dart';
+import 'startup_update.dart';
+import 'maintenance_service.dart';
 import 'update_gate.dart';
 import 'workspace_shell.dart';
 
@@ -19,7 +21,12 @@ Future<void> main() async {
   await AppPreferences.shared.restore();
   try {
     await initializeMirrorRuntime();
-    runApp(GinkgoRoot(loadUpdateGate: UpdateGate.fetch));
+    runApp(
+      GinkgoRoot(
+        loadUpdateGate: UpdateGate.fetch,
+        startupUpdates: const NativeMaintenanceService(),
+      ),
+    );
   } catch (_) {
     runApp(
       CupertinoApp(
@@ -48,9 +55,13 @@ class GinkgoRoot extends StatefulWidget {
     this.liveService = const NativeMirrorService(),
     this.demoService = const DemoMirrorService(),
     this.loadUpdateGate,
+    this.startupUpdates,
   });
   final MirrorService liveService;
   final MirrorService demoService;
+
+  /// Null preserves explicitly offline/test compositions. Production checks once.
+  final MaintenanceService? startupUpdates;
 
   /// 启动时读取最低版本清单；测试与离线场景传 null 即跳过门禁。
   final Future<UpdateGate?> Function()? loadUpdateGate;
@@ -67,13 +78,26 @@ class _GinkgoRootState extends State<GinkgoRoot> {
   bool captchaRequired = false;
   UpdateGate? blockingGate;
   String? installedVersion;
+  StartupUpdateController? startupUpdate;
 
   @override
   void initState() {
     super.initState();
     // Let the startup page paint before touching JNI/Keystore/network work.
-    WidgetsBinding.instance.addPostFrameCallback((_) => restore());
+    final updates = widget.startupUpdates;
+    if (updates != null) startupUpdate = StartupUpdateController(updates);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      restore();
+      startupUpdate?.checkOnce();
+    });
     checkUpdateGate();
+  }
+
+  @override
+  void dispose() {
+    startupUpdate?.dispose();
+    super.dispose();
   }
 
   /// 最低版本门禁失败或不可达时放行；只有明确要求且低于最低 build 才阻塞。
@@ -170,9 +194,11 @@ class _GinkgoRootState extends State<GinkgoRoot> {
       _Stage.restoring => ginkgoApp(home: const StartupPage()),
       _Stage.demo => GinkgoApp(
         service: widget.demoService,
+        startupUpdate: startupUpdate,
         onSignOut: () async => setState(() => stage = _Stage.signedOut),
       ),
       _Stage.signedOut => ginkgoApp(
+        startupUpdate: startupUpdate,
         home: LoginPage(
           service: widget.liveService,
           initialMessage: message,
@@ -187,6 +213,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
       ),
       _Stage.signedIn => GinkgoApp(
         service: widget.liveService,
+        startupUpdate: startupUpdate,
         accountName: session?.name ?? session?.account,
         accountId: session?.account,
         route: session?.route,

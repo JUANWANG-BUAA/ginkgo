@@ -13,6 +13,7 @@ import 'workspace_catalog.dart';
 import 'reminders.dart';
 import 'reminder_badge.dart';
 import 'diagnostic_hints.dart';
+import 'startup_update.dart';
 
 CupertinoThemeData ginkgoTheme([
   Brightness? brightness,
@@ -53,6 +54,7 @@ Widget ginkgoApp({
   required Widget home,
   Brightness? brightness,
   AppPreferences? preferences,
+  StartupUpdateController? startupUpdate,
 }) {
   final settings = preferences ?? AppPreferences.shared;
   return ListenableBuilder(
@@ -84,7 +86,9 @@ Widget ginkgoApp({
             child: child!,
           );
         },
-        home: home,
+        home: startupUpdate == null
+            ? home
+            : StartupUpdateHint(controller: startupUpdate, child: home),
       ),
     ),
   );
@@ -97,6 +101,7 @@ class GinkgoApp extends StatelessWidget {
     super.key,
     required this.service,
     this.brightness,
+    this.startupUpdate,
     this.accountName,
     this.accountId,
     this.route,
@@ -104,6 +109,7 @@ class GinkgoApp extends StatelessWidget {
   });
   final MirrorService service;
   final Brightness? brightness;
+  final StartupUpdateController? startupUpdate;
   final String? accountName;
   final String? accountId;
   final RouteChoice? route;
@@ -111,6 +117,7 @@ class GinkgoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ginkgoApp(
     brightness: brightness,
+    startupUpdate: startupUpdate,
     home: CourseVisibilityScope(
       key: ValueKey(service.isDemo ? 'demo' : accountId ?? 'account'),
       account: service.isDemo ? '__demo__' : accountId ?? '__account__',

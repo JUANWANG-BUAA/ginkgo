@@ -15,6 +15,8 @@ import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show GradeTermsResponse, RouteChoice, SessionResponse, SessionState;
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 
+import 'mirror_widget_test.dart' show mockLocalTaskSupportDirectory;
+
 const signedOut = SessionResponse(
   state: SessionState.signedOut,
   remembered: false,
@@ -63,6 +65,21 @@ final staleClassrooms = ClassroomResponse(
 );
 
 class FakeService extends Fake implements MirrorService {
+  @override
+  Future<ReadOnlyResponse> editTasks({
+    required String root,
+    required String action,
+    String? id,
+    String? title,
+    String? due,
+    bool? completed,
+  }) async {
+    if (action != 'load') {
+      throw UnimplementedError('Unexpected task write: $action');
+    }
+    return const ReadOnlyResponse(stale: false, payload: '[]');
+  }
+
   FakeService({
     required this.restoreResponse,
     required this.loginResponse,
@@ -226,6 +243,7 @@ Future<void> phone(WidgetTester tester, Widget app) async {
 }
 
 void main() {
+  setUp(mockLocalTaskSupportDirectory);
   testWidgets('signed-out restore shows login and signs in', (tester) async {
     final service = FakeService(
       restoreResponse: signedOut,

@@ -1,4 +1,7 @@
 import 'package:flutter/cupertino.dart';
+
+import 'apple_design.dart';
+
 import 'package:flutter/material.dart' show SelectableText;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -6,15 +9,22 @@ import 'apple_widgets.dart';
 import 'mirror_service.dart';
 import 'school_timestamp.dart';
 import 'application/contracts.dart';
+import 'homework_task_link.dart';
 
 class HomeworkDetailPage extends StatefulWidget {
   const HomeworkDetailPage({
     super.key,
     required this.item,
     required this.service,
+    this.taskService,
+    this.storageRoot,
+    this.openTaskOnLinked = true,
   });
   final HomeworkItem item;
   final AcademicGateway service;
+  final CampusGateway? taskService;
+  final String? storageRoot;
+  final bool openTaskOnLinked;
   @override
   State<HomeworkDetailPage> createState() => _HomeworkDetailPageState();
 }
@@ -23,6 +33,21 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
   HomeworkDetailResponse? data;
   String? error;
   bool busy = false;
+  int generation = 0;
+
+  @override
+  void didUpdateWidget(covariant HomeworkDetailPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service ||
+        oldWidget.item.id != widget.item.id) {
+      generation++;
+      data = null;
+      error = null;
+      busy = false;
+      load();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -31,6 +56,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
 
   Future<void> load({bool force = false}) async {
     if (busy) return;
+    final epoch = generation;
     setState(() {
       busy = true;
       error = null;
@@ -40,7 +66,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
         widget.item.id.replaceFirst('spoc:', ''),
         forceRefresh: force,
       );
-      if (!mounted) return;
+      if (!mounted || epoch != generation) return;
       setState(() {
         busy = false;
         if (result.failure != null && !result.stale) {
@@ -50,7 +76,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
         }
       });
     } catch (_) {
-      if (mounted) {
+      if (mounted && epoch == generation) {
         setState(() {
           busy = false;
           error = failureMessage(null);
@@ -77,25 +103,26 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
     ),
     child: SafeArea(
       child: ListView(
+        padding: const EdgeInsets.only(bottom: GinkgoSpacing.xl),
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+            padding: const EdgeInsets.fromLTRB(32, 24, 32, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   widget.item.courseName,
                   style: TextStyle(
-                    fontSize: 14,
-                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                    fontSize: 13,
+                    color: AppleDesign.statusInactive.resolveFrom(context),
                   ),
                 ),
                 const SizedBox(height: 9),
                 Text(
                   widget.item.title,
                   style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
                     height: 1.3,
                   ),
                 ),
@@ -113,17 +140,15 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                     Text(
                       '截止时间 · 北京时间',
                       style: TextStyle(
-                        fontSize: 12,
-                        color: CupertinoColors.secondaryLabel.resolveFrom(
-                          context,
-                        ),
+                        fontSize: 13,
+                        color: AppleDesign.statusInactive.resolveFrom(context),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       schoolTimestampLabel(data?.dueAt ?? widget.item.dueAt),
                       style: const TextStyle(
-                        fontSize: 23,
+                        fontSize: 17,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -147,9 +172,11 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                                   HomeworkStatus.submitted => '已提交',
                                   HomeworkStatus.unknown => '待确认',
                                 },
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                            style: GinkgoTypography.footnote.copyWith(
+                              color: AppleDesign.statusInactive.resolveFrom(
+                                context,
+                              ),
+                              height: 1.4,
                             ),
                           ),
                         ),
@@ -157,6 +184,22 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                     ),
                   ],
                 ),
+              ),
+            ],
+          ),
+          AppleSection(
+            children: [
+              HomeworkTaskLink(
+                item: widget.item,
+                academicService: widget.service,
+                taskService:
+                    widget.taskService ??
+                    (widget.service is CampusGateway
+                        ? widget.service as CampusGateway
+                        : null),
+                storageRoot: widget.storageRoot,
+                dueAt: data?.dueAt,
+                openTaskOnLinked: widget.openTaskOnLinked,
               ),
             ],
           ),
@@ -195,7 +238,12 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                     alignment: Alignment.centerLeft,
                     child: SelectableText(
                       detail.content ?? '上游未返回正文，请在 SPOC 原站点查看。',
-                      style: const TextStyle(fontSize: 16, height: 1.5),
+                      style: GinkgoTypography.body.copyWith(
+                        fontSize: 16,
+                        textBaseline: TextBaseline.alphabetic,
+                        height: 1.6,
+                        color: CupertinoColors.label.resolveFrom(context),
+                      ),
                       contextMenuBuilder: _cupertinoSelectionMenu,
                     ),
                   ),
@@ -234,6 +282,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                 onTap: data?.sourceUrl == null
                     ? null
                     : () async {
+                        final epoch = generation;
                         try {
                           final url = Uri.parse(data!.sourceUrl!);
                           if (url.scheme != 'https' || url.host.isEmpty) {
@@ -243,11 +292,11 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                             url,
                             mode: LaunchMode.externalApplication,
                           );
-                          if (!opened && mounted) {
+                          if (!opened && mounted && epoch == generation) {
                             setState(() => error = '无法打开浏览器，请稍后重试。');
                           }
                         } catch (_) {
-                          if (mounted) {
+                          if (mounted && epoch == generation) {
                             setState(() => error = '无法打开浏览器，请稍后重试。');
                           }
                         }
@@ -270,8 +319,8 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
           Text(
             label,
             style: TextStyle(
-              fontSize: 14,
-              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              fontSize: 13,
+              color: AppleDesign.statusInactive.resolveFrom(context),
             ),
           ),
           const SizedBox(height: 6),

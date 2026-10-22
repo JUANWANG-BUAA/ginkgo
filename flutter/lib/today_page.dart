@@ -2,6 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 
+import 'application/local_tasks.dart';
+import 'homework_detail_page.dart';
+import 'tasks_page.dart';
+import 'today_course_focus.dart';
+import 'today_tasks_section.dart';
+import 'today_time.dart';
+import 'today_presentation.dart';
+
 import 'reminders.dart';
 
 import 'apple_widgets.dart';
@@ -9,7 +17,7 @@ import 'application/refresh_section.dart';
 import 'loading_widgets.dart';
 import 'today_homework_section.dart';
 import 'mirror_service.dart';
-import 'schedule_style.dart';
+import 'apple_design.dart';
 import 'application/contracts.dart';
 
 const _weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
@@ -19,6 +27,9 @@ class TodayPage extends StatefulWidget {
     super.key,
     required this.service,
     this.accountName,
+    this.accountId,
+    this.storageRoot,
+    this.now,
     this.onAccountAction,
     this.directory,
     this.onOpenFeature,
@@ -29,25 +40,80 @@ class TodayPage extends StatefulWidget {
   final ValueChanged<String>? onOpenFeature;
   final VoidCallback? onOpenSettings;
   final String? accountName;
+  final String? accountId;
+
+  /// Same local task directory used by TasksPage; injectable in tests.
+  final String? storageRoot;
+
+  /// An instant, converted to Beijing wall time for presentation.
+  final DateTime Function()? now;
   final Future<void> Function()? onAccountAction;
   @override
   State<TodayPage> createState() => _TodayPageState();
 }
 
-class _TodayPageState extends State<TodayPage> {
+class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
+  Timer? _clock;
+  bool? _active;
+  bool _internalRouteInactive = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final active = TickerMode.valuesOf(context).enabled;
+    final returning = _active == false && active;
+    _active = active;
+    if (!active && _opening) _internalRouteInactive = true;
+    final internalReturn = returning && _internalRouteInactive;
+    if (returning) _internalRouteInactive = false;
+    if (returning && !internalReturn && !_opening) {
+      final generation = _generation;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && generation == _generation && _active == true) {
+          unawaited(_loadTasks());
+        }
+      });
+    }
+  }
+
+  int _generation = 0;
+  DateTime get _now => todaySchoolNow((widget.now ?? DateTime.now)());
+  late RefreshSection<TodayTasksSnapshot> tasks;
   late RefreshSection<TodayResponse> courses;
   late RefreshSection<HomeworkResponse> homework;
   TodayResponse? get data => courses.value;
   String? get error => courses.error;
-  bool get busy => courses.loading || homework.loading;
+  bool get busy => courses.loading || homework.loading || tasks.loading;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _startClock();
     _createSection();
   }
 
+  void _startClock() {
+    _clock?.cancel();
+    // Local labels only: no timer-driven requests or background polling.
+    _clock = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted && TickerMode.valuesOf(context).enabled) setState(() {});
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _startClock();
+      _changed();
+    } else {
+      _clock?.cancel();
+    }
+  }
+
   void _createSection() {
+    _generation++;
+    tasks = RefreshSection<TodayTasksSnapshot>()..addListener(_changed);
     courses = RefreshSection<TodayResponse>()..addListener(_changed);
     homework = RefreshSection<HomeworkResponse>()..addListener(_changed);
     load();
@@ -61,7 +127,10 @@ class _TodayPageState extends State<TodayPage> {
   void didUpdateWidget(TodayPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.service != widget.service ||
-        oldWidget.accountName != widget.accountName) {
+        oldWidget.accountName != widget.accountName ||
+        oldWidget.accountId != widget.accountId ||
+        oldWidget.storageRoot != widget.storageRoot) {
+      tasks.dispose();
       courses.dispose();
       homework.dispose();
       _createSection();
@@ -70,13 +139,20 @@ class _TodayPageState extends State<TodayPage> {
 
   @override
   void dispose() {
+    _generation++;
+    _clock?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    tasks.dispose();
     courses.dispose();
     homework.dispose();
     super.dispose();
   }
 
-  Future<void> load({bool force = false}) =>
-      Future.wait([_loadCourses(force: force), _loadHomework(force: force)]);
+  Future<void> load({bool force = false}) => Future.wait([
+    _loadCourses(force: force),
+    _loadHomework(force: force),
+    _loadTasks(),
+  ]);
 
   Future<void> _loadCourses({bool force = false}) => courses.refresh(() async {
     final result = await widget.service.today(forceRefresh: force);
@@ -86,21 +162,91 @@ class _TodayPageState extends State<TodayPage> {
     );
   }, fallbackError: '本地服务暂时不可用，请重试');
 
-  Future<void> _loadHomework({bool force = false}) =>
-      homework.refresh(() async {
-        final result = await widget.service.homework(forceRefresh: force);
-        if (mounted) {
-          final reminders = ReminderScope.of(context);
-          reminders?.updateHomework(result);
-          if (reminders != null) unawaited(reminders.reconcile());
-        }
-        return SectionResult(
-          value: result.failure == null || result.termCode.isNotEmpty
-              ? result
-              : null,
-          error: result.failure == null ? null : failureMessage(result.failure),
-        );
-      }, fallbackError: '本地服务暂时不可用，请重试');
+  Future<void> _loadHomework({bool force = false}) {
+    final service = widget.service;
+    final generation = _generation;
+    return homework.refresh(() async {
+      final result = await service.homework(forceRefresh: force);
+      if (mounted && generation == _generation) {
+        final reminders = ReminderScope.of(context);
+        reminders?.updateHomework(result);
+        if (reminders != null) unawaited(reminders.reconcile());
+      }
+      return SectionResult(
+        value: result.failure == null || result.termCode.isNotEmpty
+            ? result
+            : null,
+        error: result.failure == null ? null : failureMessage(result.failure),
+      );
+    }, fallbackError: '本地服务暂时不可用，请重试');
+  }
+
+  Future<String> _tasksRoot() => localTasksStorageRoot(widget.storageRoot);
+
+  Future<void> _loadTasks() {
+    final service = widget.service;
+    return tasks.refresh(() async {
+      final root = await _tasksRoot();
+      final items = await editLocalTasks(service, root: root, action: 'load');
+      return SectionResult(value: TodayTasksSnapshot(items, _now));
+    }, fallbackError: '无法读取个人待办，请重试。');
+  }
+
+  bool _opening = false;
+  Future<void> _openTasks(String? id) async {
+    if (_opening) return;
+    _opening = true;
+    final generation = _generation;
+    try {
+      final root = await _tasksRoot();
+      if (!mounted || generation != _generation) return;
+      await Navigator.of(context).push(
+        CupertinoPageRoute<void>(
+          builder: (_) => TasksPage(
+            storageRoot: root,
+            service: widget.service,
+            academicService: widget.service,
+            demo: widget.service.isDemo,
+            initialTaskId: id,
+          ),
+        ),
+      );
+      if (mounted && generation == _generation) await _loadTasks();
+    } catch (_) {
+      if (mounted && generation == _generation) {
+        tasks.error = '无法打开个人待办，请重试。';
+        _changed();
+      }
+    } finally {
+      _opening = false;
+    }
+  }
+
+  Future<void> _openHomework(HomeworkItem item) async {
+    if (_opening) return;
+    _opening = true;
+    final generation = _generation;
+    try {
+      await Navigator.of(context).push(
+        CupertinoPageRoute<void>(
+          builder: (_) => HomeworkDetailPage(
+            item: item,
+            service: widget.service,
+            taskService: widget.service,
+            storageRoot: widget.storageRoot,
+          ),
+        ),
+      );
+      if (mounted && generation == _generation) await _loadTasks();
+    } catch (_) {
+      if (mounted && generation == _generation) {
+        tasks.error = '无法打开个人待办，请重试。';
+        _changed();
+      }
+    } finally {
+      _opening = false;
+    }
+  }
 
   Future<void> accountAction() async {
     final demo = widget.service.isDemo;
@@ -187,7 +333,7 @@ class _TodayPageState extends State<TodayPage> {
               sliver: SliverList.list(
                 children: [
                   if (widget.onOpenSettings != null)
-                    AppleSection(
+                    TodayVisualSection(
                       children: [
                         AppleListTile(
                           key: const Key('workspace-settings'),
@@ -195,7 +341,9 @@ class _TodayPageState extends State<TodayPage> {
                           leading: Icon(
                             CupertinoIcons.person_crop_circle_fill,
                             size: 34,
-                            color: CupertinoTheme.of(context).primaryColor,
+                            color: CupertinoColors.secondaryLabel.resolveFrom(
+                              context,
+                            ),
                           ),
                           title: const Text(
                             '账户与设置',
@@ -205,6 +353,11 @@ class _TodayPageState extends State<TodayPage> {
                             widget.service.isDemo
                                 ? '离线演示 · 连接与数据管理'
                                 : '学校账户 · 连接与数据管理',
+                            style: TextStyle(
+                              color: AppleDesign.statusInactive.resolveFrom(
+                                context,
+                              ),
+                            ),
                           ),
                           trailing: const CupertinoListTileChevron(),
                           onTap: widget.onOpenSettings,
@@ -212,7 +365,7 @@ class _TodayPageState extends State<TodayPage> {
                       ],
                     ),
                   if (data == null)
-                    AppleSection(
+                    TodayVisualSection(
                       header: const Text('今日课程'),
                       children: [
                         SectionFeedback(
@@ -231,10 +384,18 @@ class _TodayPageState extends State<TodayPage> {
                     ),
                   TodayHomeworkSection(
                     section: homework,
+                    now: _now,
+                    onOpenItem: _openHomework,
                     onRetry: () => _loadHomework(force: true),
                     onOpen: widget.onOpenFeature == null
                         ? null
                         : () => widget.onOpenFeature!('homework'),
+                  ),
+                  TodayTasksSection(
+                    section: tasks,
+                    now: _now,
+                    onRetry: _loadTasks,
+                    onOpen: _openTasks,
                   ),
                   if (widget.onOpenFeature != null) _shortcuts(),
                   if (widget.directory != null) widget.directory!,
@@ -257,13 +418,7 @@ class _TodayPageState extends State<TodayPage> {
       CupertinoIcons.doc_text_fill,
       CupertinoIcons.square_grid_2x2_fill,
     ];
-    const colors = [
-      CupertinoColors.systemOrange,
-      CupertinoColors.systemBlue,
-      CupertinoColors.systemIndigo,
-      CupertinoColors.systemPurple,
-    ];
-    return AppleSection(
+    return TodayVisualSection(
       header: const Text('常用服务'),
       children: [
         LayoutBuilder(
@@ -282,7 +437,7 @@ class _TodayPageState extends State<TodayPage> {
                     child: CupertinoButton(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
-                        vertical: 16,
+                        vertical: 12,
                       ),
                       borderRadius: BorderRadius.zero,
                       onPressed: () => widget.onOpenFeature!(shortcutIds[i]),
@@ -291,14 +446,16 @@ class _TodayPageState extends State<TodayPage> {
                           Icon(
                             icons[i],
                             size: 24,
-                            color: colors[i].resolveFrom(context),
+                            color: CupertinoColors.secondaryLabel.resolveFrom(
+                              context,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               labels[i],
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 17,
                                 fontWeight: FontWeight.w500,
                                 color: CupertinoColors.label.resolveFrom(
                                   context,
@@ -324,15 +481,23 @@ class _TodayPageState extends State<TodayPage> {
         ? data.date
         : '${date.year}年${date.month}月${date.day}日 · ${_weekdays[date.weekday - 1]}';
     return [
-      AppleSection(
+      TodayVisualSection(
         key: const Key('today-courses'),
         header: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(dateLabel),
+            Text(
+              dateLabel,
+              style: TextStyle(
+                color: AppleDesign.statusInactive.resolveFrom(context),
+              ),
+            ),
             const SizedBox(height: 4),
             Text(
               data.courses.isEmpty ? '今日课程' : '今天 ${data.courses.length} 节课',
+              style: TextStyle(
+                color: AppleDesign.statusInactive.resolveFrom(context),
+              ),
             ),
           ],
         ),
@@ -366,10 +531,25 @@ class _TodayPageState extends State<TodayPage> {
               action: widget.onOpenFeature == null ? null : '查看完整课表',
               onAction: () => widget.onOpenFeature?.call('schedule'),
             ),
+          if (data.courses.isNotEmpty)
+            TodayCourseFocus(
+              data: data,
+              now: _now,
+              stale: error != null,
+              onOpen: widget.onOpenFeature == null
+                  ? null
+                  : () => widget.onOpenFeature!('schedule'),
+            ),
           for (final (index, course) in data.courses.indexed)
             _TodayCourseRow(
               key: Key('today-course-$index-${course.name}'),
               course: course,
+              status:
+                  TodayCourseWindow.parse(
+                    data.date,
+                    course.time,
+                  )?.status(_now) ??
+                  '时间待确认',
             ),
           if (data.courses.isNotEmpty && widget.onOpenFeature != null)
             AppleListTile(
@@ -379,7 +559,12 @@ class _TodayPageState extends State<TodayPage> {
                   color: CupertinoTheme.of(context).primaryColor,
                 ),
               ),
-              additionalInfo: Text('共 ${data.courses.length} 门课'),
+              additionalInfo: Text(
+                '共 ${data.courses.length} 门课',
+                style: TextStyle(
+                  color: AppleDesign.statusInactive.resolveFrom(context),
+                ),
+              ),
               trailing: const CupertinoListTileChevron(),
               onTap: () => widget.onOpenFeature!('schedule'),
             ),
@@ -401,48 +586,59 @@ class _TodayPageState extends State<TodayPage> {
 /// Keep course times on a visible axis, like the native Today views. At large
 /// type sizes the axis moves above the title so neither field is squeezed.
 class _TodayCourseRow extends StatelessWidget {
-  const _TodayCourseRow({super.key, required this.course});
+  const _TodayCourseRow({
+    super.key,
+    required this.course,
+    required this.status,
+  });
   final TodayCourse course;
+  final String status;
 
   @override
   Widget build(BuildContext context) {
     final times = RegExp(r'^(\d{1,2}:\d{2})\s*[-–—~～]\s*(\d{1,2}:\d{2})$')
         .firstMatch(course.time?.trim() ?? '');
-    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final secondary = AppleDesign.statusInactive.resolveFrom(context);
     final time = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           times?.group(1) ?? course.time ?? '时间未提供',
           style: TextStyle(
-            fontSize: times == null ? 14 : 20,
-            fontWeight: FontWeight.w600,
+            fontSize: times == null ? 13 : 17,
+            fontWeight: FontWeight.w500,
             fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
         if (times != null)
           Text(
             times.group(2)!,
-            style: TextStyle(fontSize: 14, color: secondary),
+            style: TextStyle(
+              fontSize: 13,
+              color: secondary,
+              fontFeatures: GinkgoTypography.tabularDigits,
+            ),
           ),
       ],
     );
     final details = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(status, style: TextStyle(fontSize: 13, color: secondary)),
+        const SizedBox(height: 4),
         Text(
           course.name,
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
         ),
         const SizedBox(height: 5),
         Text(
           course.place?.trim().isNotEmpty == true ? course.place! : '地点未提供',
-          style: TextStyle(fontSize: 14, color: secondary),
+          style: TextStyle(fontSize: 13, color: secondary),
         ),
       ],
     );
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: GinkgoSpacing.edgeInsetsCard,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final stacked =
@@ -457,7 +653,7 @@ class _TodayCourseRow extends StatelessWidget {
                 child: Container(
                   width: 4,
                   decoration: BoxDecoration(
-                    color: courseColor(context, null, course.name),
+                    color: CupertinoColors.separator.resolveFrom(context),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),

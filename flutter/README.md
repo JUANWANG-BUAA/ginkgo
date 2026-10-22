@@ -2,7 +2,13 @@
 
 Android 对齐 iPhone SwiftUI，Windows 对齐 macOS SwiftUI。Apple 应用保持独立。
 
+当前主开发平台为 **Android**，以新功能与体验/UI 优化为主、稳定性托底。首批方向为“今天 2.0 + 作业转待办 + 相关页面打磨”；首批源码已实现，自动化/模拟器范围及未覆盖项见 [迭代记录](../docs/_audit/2026-10-22-android-product-iteration.md)，不代表公开包已更新。产品与验收设定见 [Android 开发设定](../docs/ANDROID-DEVELOPMENT.md)，未完成项统一见 [镜像待办](../docs/MIRROR-TODO.md)。沿用简洁信息层级，Android 系统返回、权限和无障碍行为优先，不要求逐像素复制 iOS。
+
 当前手机入口为工作台 / 签到 / 课表 / 作业 / 预约，宽屏切换桌面侧栏；各目的地保留独立导航。认证、主要只读模块、Android Keystore、Windows Credential Manager、离线演示和本地待办已接入；签到及图书馆实验写路径包含确认、单次提交与回查，真实写入未验收。Android 与 Windows Alpha.4 均已发布，最近实网登录失败仍需复验。Windows 主推未签名 x64 单文件安装器，同时保留需完整解压的便携 ZIP；物理 x64、干净系统运行依赖和真实学校业务仍待验收。范围见 [实施现状](../docs/MIRROR-IMPLEMENTATION.md)、[Windows Alpha.4](../docs/archive/mirror/MIRROR-WINDOWS-ALPHA4.md)、[模块对照](../docs/MIRROR-PARITY.md) 和 [待办](../docs/MIRROR-TODO.md)。
+
+## Android 下一版发包准备
+
+本轮 Today 2.0、作业关联待办和视觉精修拟进入 Android Alpha.7；建议版本 `0.1.0-alpha.7+8`，但当前 pubspec 仍为 `0.1.0-alpha.6+7`，不复用已有 Alpha.6 标签。签名 Release/资产校验/一次覆盖启动的操作规程见 [发包准备](../docs/_audit/2026-10-22-android-release-preparation.md)，用户草稿见 [Android Alpha.7](../docs/releases/android-alpha7.md)。已有 `ginkgo-ios-visual-debug.apk` 是正常入口调试包，不是公开更新资产。任务 v2 升级前备份且不可默认降级；签名冲突时勿直接卸载。最低版本门禁不变，本轮没有发布 Windows/Apple 包。
 
 ## 工具链
 

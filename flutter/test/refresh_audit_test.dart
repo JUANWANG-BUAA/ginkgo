@@ -10,7 +10,11 @@ import 'package:ginkgo_mirror/today_page.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 
 import 'mirror_widget_test.dart'
-    show ControlledService, todayFixture, gradesFixture;
+    show
+        ControlledService,
+        todayFixture,
+        gradesFixture,
+        mockLocalTaskSupportDirectory;
 
 class RefreshService extends ControlledService {
   final todayCalls = <Completer<TodayResponse>>[];
@@ -31,6 +35,7 @@ class RefreshService extends ControlledService {
 }
 
 void main() {
+  setUp(mockLocalTaskSupportDirectory);
   testWidgets(
     'today failure keeps actual courses and repeated refresh is coalesced',
     (tester) async {

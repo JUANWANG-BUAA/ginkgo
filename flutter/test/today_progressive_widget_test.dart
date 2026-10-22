@@ -12,6 +12,15 @@ import 'package:ginkgo_mirror/today_page.dart';
 import 'mirror_widget_test.dart' show ControlledService, todayFixture;
 
 class ProgressiveService extends ControlledService {
+  @override
+  Future<ReadOnlyResponse> editTasks({
+    required String root,
+    required String action,
+    String? id,
+    String? title,
+    String? due,
+    bool? completed,
+  }) async => const ReadOnlyResponse(stale: false, payload: '[]');
   final courses = <Completer<TodayResponse>>[];
   final assignments = <Completer<HomeworkResponse>>[];
   final forceCourses = <bool>[];
@@ -74,7 +83,11 @@ void main() {
     DiagnosticLog.shared.entries.clear();
     DiagnosticLog.shared.current = null;
     final service = ProgressiveService();
-    await tester.pumpWidget(ginkgoApp(home: TodayPage(service: service)));
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: TodayPage(storageRoot: '/synthetic/tasks', service: service),
+      ),
+    );
     expect(DiagnosticLog.shared.entries, isEmpty);
     service.courses.single.complete(todayFixture);
     service.assignments.single.complete(assignments);
@@ -88,7 +101,11 @@ void main() {
     (tester) async {
       size(tester, const Size(430, 1500));
       final service = ProgressiveService();
-      await tester.pumpWidget(ginkgoApp(home: TodayPage(service: service)));
+      await tester.pumpWidget(
+        ginkgoApp(
+          home: TodayPage(storageRoot: '/synthetic/tasks', service: service),
+        ),
+      );
       expect(service.courses.length, 1);
       expect(service.assignments.length, 1);
       service.assignments.single.complete(assignments);
@@ -131,8 +148,16 @@ void main() {
     size(tester, const Size(430, 1500));
     final old = ProgressiveService();
     final current = ProgressiveService();
-    await tester.pumpWidget(ginkgoApp(home: TodayPage(service: old)));
-    await tester.pumpWidget(ginkgoApp(home: TodayPage(service: current)));
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: TodayPage(storageRoot: '/synthetic/tasks', service: old),
+      ),
+    );
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: TodayPage(storageRoot: '/synthetic/tasks', service: current),
+      ),
+    );
     old.courses.single.complete(todayFixture);
     old.assignments.single.complete(assignments);
     await tester.pump();
@@ -153,7 +178,11 @@ void main() {
   testWidgets('desktop refresh shortcut reloads both sections', (tester) async {
     size(tester, const Size(1100, 1000));
     final service = ProgressiveService();
-    await tester.pumpWidget(ginkgoApp(home: TodayPage(service: service)));
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: TodayPage(storageRoot: '/synthetic/tasks', service: service),
+      ),
+    );
     service.courses.single.complete(todayFixture);
     service.assignments.single.complete(assignments);
     await tester.pumpAndSettle();
@@ -209,7 +238,7 @@ void main() {
               disableAnimations: true,
               platformBrightness: Brightness.dark,
             ),
-            child: TodayPage(service: service),
+            child: TodayPage(storageRoot: '/synthetic/tasks', service: service),
           ),
         ),
       );

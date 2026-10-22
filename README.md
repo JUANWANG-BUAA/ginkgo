@@ -51,6 +51,8 @@ xcodebuild test \
 
 ## Android / Windows 镜像
 
+> **Android 下一版发包准备（2026-10-22）**：Today 2.0、作业转个人待办及 iOS 式视觉精修已进入当前工作树，拟作为 Alpha.7 发包；尚未构建新的签名 Release 或公开发布。见 [用户说明草稿](docs/releases/android-alpha7.md) 与 [打包准备](docs/_audit/2026-10-22-android-release-preparation.md)。既有 Alpha.6 标签不重用，源码版本仍为 Alpha.6+7；下面的公开下载/历史范围不代表本轮工作树。
+
 Android / Windows 使用 Rust + Flutter，Apple 继续 SwiftUI。Android **Alpha.5** 已发布，Windows 保持 Alpha.4；课表、成绩、SPOC、图书馆、签到、博雅、研究生教务等主要只读链路已接入，也有真实账号只读记录。Alpha.5 带入了工作台/研究生页渐进加载、座位与空教室分页浏览、课表固定节次轴与按天对齐、统一功能登记表导航，以及启动时的最低版本门禁；Alpha.4 增加手机端设置、返回手势保护、课程范围与助教作业分类、iClass 首次加载进度反馈，以及带暂停续传和安装包校验的应用内更新。签到和图书馆写路径已有确认、单次提交与回查，但真实写入尚未验收；最近实网登录失败仍需复验。Windows 公开包主推 Windows 10 / 11 x64 单文件安装器，并保留便携 ZIP；在 Parallels Windows 11 完成 Release 构建、合成保险库、宽窄布局与桌面集成验证。安装包未签名，物理 x64、干净系统运行依赖和真实学校业务仍待验收。源码、公开版本与验收边界见 [镜像现状](docs/MIRROR-IMPLEMENTATION.md)、[Android Alpha.5](docs/archive/mirror/MIRROR-ANDROID-ALPHA5.md)、[Windows Alpha.4](docs/archive/mirror/MIRROR-WINDOWS-ALPHA4.md)、[模块对照](docs/MIRROR-PARITY.md) 和 [待办](docs/MIRROR-TODO.md)；架构边界见 [Rust + Flutter 计划](docs/RUST-FLUTTER-PORT.md)。
 
 ## 界面预览

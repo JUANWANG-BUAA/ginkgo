@@ -1715,6 +1715,14 @@ macOS 全量 210 项通过；iPhone SE（iOS 27.0）教务相关 43 项通过。
 
 已知未完成：空教室刷新后 sliver 重排仍可能出现可见位置偏移（合成观察约 119px），未做精确像素锚定；设备滚动性能、读屏与真实账号未验收。
 
+## 2026-10-22 · Android iOS式视觉精修
+
+本轮仅调整Today、作业详情和待办/编辑器的视觉层次，保留功能/异步/数据规则，参考实际iOS SwiftUI insetGrouped与正文/辅助文字分级。完整镜像检查通过：Flutter analyze无问题、202项测试通过；深浅色与大字视觉矩阵、设备原产品回归及正常入口包结果分别见 [视觉记录](_audit/2026-10-22-android-visual-refinement.md)。截图不代表物理设备读屏或逐像素Apple一致性。
+
+## 2026-10-22 · Android 功能体验首批
+
+今天 2.0、作业转本机待办、v1/v2 数据兼容及提醒生命周期保护的实现与本轮分层结果见 [Android 迭代记录](_audit/2026-10-22-android-product-iteration.md)。本机完整镜像检查通过，Flutter 181 项零失败；Android ARM64 合成设备覆盖新产品三场景及原待办 CRUD。这里的模拟器、合成和源码结论不替代真实账号、物理设备、TalkBack 或公开发布验收。
+
 ## 2026-10-22 · 工作区功能登记表（Flutter）
 
 把移动端标签、桌面侧栏、今日快捷入口与返回栈收敛到 `flutter/lib/workspace_catalog.dart`；`main.dart` 只保留启动与登录状态机，`workspace_shell.dart` 负责移动/桌面两种布局。登记是编译期静态表，不引入运行时插件加载；Rust/FFI 未改动。

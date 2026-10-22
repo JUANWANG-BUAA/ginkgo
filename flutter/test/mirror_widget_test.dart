@@ -7,6 +7,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show HomeworkDetailResponse;
 import 'package:flutter_test/flutter_test.dart';
@@ -237,7 +238,37 @@ final homeworkFixture = HomeworkResponse(
   ],
 );
 
+/// Standalone widget shells still resolve the shared ApplicationSupport/tasks
+/// root. Replace that platform lookup; no native plugin or user directory is used.
+void mockLocalTaskSupportDirectory() {
+  const channel = MethodChannel('plugins.flutter.io/path_provider');
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  messenger.setMockMethodCallHandler(channel, (call) async {
+    if (call.method == 'getApplicationSupportDirectory') {
+      return '/synthetic/ginkgo-widget-support';
+    }
+    throw MissingPluginException('Unexpected path lookup: ${call.method}');
+  });
+  addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+}
+
 class ControlledService extends Fake implements MirrorService {
+  @override
+  Future<ReadOnlyResponse> editTasks({
+    required String root,
+    required String action,
+    String? id,
+    String? title,
+    String? due,
+    bool? completed,
+  }) async {
+    if (action != 'load') {
+      throw UnimplementedError('Unexpected task write: $action');
+    }
+    return const ReadOnlyResponse(stale: false, payload: '[]');
+  }
+
   String? requestedScheduleTerm;
   final requests = <Completer<ClassroomResponse>>[];
   final checkinRequests = <Completer<CheckInResponse>>[];
@@ -442,6 +473,7 @@ Future<void> openCheckin(WidgetTester tester, ControlledService service) async {
 }
 
 void main() {
+  setUp(mockLocalTaskSupportDirectory);
   testWidgets('latest query wins when native responses finish out of order', (
     tester,
   ) async {

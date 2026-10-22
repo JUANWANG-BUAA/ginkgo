@@ -257,7 +257,16 @@ class ReminderScope extends StatefulWidget {
     required this.service,
     required this.account,
     required this.child,
+    this.controllerFactory,
   });
+
+  /// Optional factory; the scope owns and disposes the returned controller.
+  final ReminderController Function(
+    MirrorService service,
+    String account,
+    CourseVisibility? visibility,
+  )?
+  controllerFactory;
   final MirrorService service;
   final String account;
   final Widget child;
@@ -271,10 +280,18 @@ class _ReminderScopeState extends State<ReminderScope>
     with WidgetsBindingObserver {
   ReminderController? controller;
   Timer? poll, tick;
+  AppLifecycleState? _lifecycle;
+  bool _ready = false, _activating = false, _closed = false;
+
+  bool get _foreground =>
+      mounted && !_closed && _lifecycle == AppLifecycleState.resumed;
+
   @override
   void initState() {
     super.initState();
     DiagnosticLog.shared.current = null;
+    _lifecycle =
+        WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed;
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -282,52 +299,79 @@ class _ReminderScopeState extends State<ReminderScope>
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (controller != null) return;
-    controller = ReminderController(
-      service: widget.service,
-      account: widget.account,
-      visibility: CourseVisibilityScope.of(context),
-    );
+    final visibility = CourseVisibilityScope.of(context);
+    controller =
+        widget.controllerFactory?.call(
+          widget.service,
+          widget.account,
+          visibility,
+        ) ??
+        ReminderController(
+          service: widget.service,
+          account: widget.account,
+          visibility: visibility,
+        );
+    final current = controller!;
     unawaited(() async {
-      await controller!.restore();
-      if (mounted) {
-        await controller!.refresh(includeHomework: false);
-        if (mounted) _start();
-      }
+      await current.restore();
+      if (!mounted || _closed) return;
+      _ready = true;
+      await _activate(initial: true);
     }());
   }
 
+  Future<void> _activate({bool initial = false}) async {
+    final current = controller;
+    if (!_foreground || !_ready || _activating || current == null) return;
+    _activating = true;
+    try {
+      final refresh = current.refresh(includeHomework: !initial);
+      if (!initial) unawaited(current.reschedule());
+      await refresh;
+      // A restore/read may finish after the app leaves the foreground.
+      if (_foreground) _start();
+    } finally {
+      _activating = false;
+    }
+  }
+
   void _start() {
+    if (!_foreground || !_ready || poll != null || tick != null) return;
+    poll = Timer.periodic(const Duration(minutes: 2), (_) {
+      if (_foreground) unawaited(controller!.refresh());
+    });
+    tick = Timer.periodic(const Duration(seconds: 15), (_) {
+      if (_foreground) unawaited(controller!.reconcile());
+    });
+  }
+
+  void _cancelTimers() {
     poll?.cancel();
     tick?.cancel();
-    poll = Timer.periodic(
-      const Duration(minutes: 2),
-      (_) => controller!.refresh(),
-    );
-    tick = Timer.periodic(
-      const Duration(seconds: 15),
-      (_) => controller!.reconcile(),
-    );
+    poll = tick = null;
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_closed || state == _lifecycle) return;
+    _lifecycle = state;
     if (state == AppLifecycleState.resumed) {
-      unawaited(controller!.refresh());
-      unawaited(controller!.reschedule());
-      _start();
+      unawaited(_activate());
     } else {
-      poll?.cancel();
-      tick?.cancel();
+      _cancelTimers();
     }
   }
 
   @override
   void dispose() {
-    poll?.cancel();
-    tick?.cancel();
+    _closed = true;
+    _cancelTimers();
     WidgetsBinding.instance.removeObserver(this);
-    unawaited(controller!.stop().catchError((Object _) {}));
-    controller!.dispose();
+    final current = controller;
+    if (current != null) {
+      unawaited(current.stop().catchError((Object _) {}));
+      current.dispose();
+    }
     super.dispose();
   }
 

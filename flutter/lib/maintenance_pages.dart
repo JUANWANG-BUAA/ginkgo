@@ -42,7 +42,17 @@ class MaintenanceScaffold extends StatelessWidget {
 }
 
 class SoftwareUpdatePage extends StatefulWidget {
-  const SoftwareUpdatePage({super.key, required this.service, this.downloader});
+  const SoftwareUpdatePage({
+    super.key,
+    required this.service,
+    this.downloader,
+    this.initialVersion,
+    this.initialResult,
+    this.initialCheckedAt,
+  });
+  final InstalledVersion? initialVersion;
+  final UpdateResult? initialResult;
+  final DateTime? initialCheckedAt;
   final MaintenanceService service;
   final AndroidUpdateController? downloader;
   @override
@@ -58,7 +68,12 @@ class _SoftwareUpdatePageState extends State<SoftwareUpdatePage> {
   @override
   void initState() {
     super.initState();
-    _version();
+    installed = widget.initialVersion;
+    result = widget.initialResult;
+    checkedAt = result == null
+        ? null
+        : widget.initialCheckedAt ?? DateTime.now();
+    if (installed == null) _version();
   }
 
   Future<void> _version() async {
