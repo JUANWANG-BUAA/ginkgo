@@ -1,6 +1,6 @@
 # Flutter 与 Apple 客户端功能对照
 
-更新：2026-10-21；对象为当前源码，公开包内容另见 [Alpha.4 发布记录](archive/mirror/MIRROR-ANDROID-ALPHA4.md)。Apple 维持 SwiftUI，Android / Windows 使用 Rust + Flutter；共享领域语义和交互目标，不要求控件像素相同。
+更新：2026-10-21；对象为当前源码，公开包内容另见 [Alpha.5 发布记录](archive/mirror/MIRROR-ANDROID-ALPHA5.md)。Apple 维持 SwiftUI，Android / Windows 使用 Rust + Flutter；共享领域语义和交互目标，不要求控件像素相同。
 
 下表的“已接入”表示代码链路存在。真实只读证据和最近登录失败均保留于 [验收归档](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md)，不推导真实写入或未覆盖的平台验收。
 

@@ -11,6 +11,7 @@
 | [MIRROR-ANDROID-ALPHA2.md](MIRROR-ANDROID-ALPHA2.md) | Android Alpha.2 发布记录 |
 | [MIRROR-ANDROID-ALPHA3.md](MIRROR-ANDROID-ALPHA3.md) | Android Alpha.3 发布与覆盖升级记录 |
 | [MIRROR-ANDROID-ALPHA4.md](MIRROR-ANDROID-ALPHA4.md) | Android Alpha.4 界面、返回手势、课程范围、应用内更新与覆盖升级记录 |
+| [MIRROR-ANDROID-ALPHA5.md](MIRROR-ANDROID-ALPHA5.md) | Android Alpha.5 渐进加载、分页浏览、功能登记表与最低版本门禁发布记录 |
 | [MIRROR-AUTH-RECOVERY-FAILURE-AUDIT.md](MIRROR-AUTH-RECOVERY-FAILURE-AUDIT.md) | 自动恢复登录失败合并审计（2026-10-21） |
 | [MIRROR-BYKC-LEARNING-AUDIT.md](MIRROR-BYKC-LEARNING-AUDIT.md) | 博雅学习记录与完成统计验收（2026-10-21） |
 | [MIRROR-EXPERIENCE-DESIGN.md](MIRROR-EXPERIENCE-DESIGN.md) | 镜像体验重设计：模块、导航与协议依据 |
