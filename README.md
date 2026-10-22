@@ -111,6 +111,7 @@ Android / Windows 使用 Rust + Flutter，Apple 继续 SwiftUI。Android 与 Win
 |------|------|
 | [docs/ROADMAP.md](docs/ROADMAP.md) | **开发说明书（详细版）**：从零到成品——Xcode 入门、每步任务分解/验收动作/常见坑/给 AI 的提示词要点 |
 | [docs/API.md](docs/API.md) | 上游协议（✅已验证/⚠️待验证分级，含修订对照表） |
+| [docs/DATA-SOURCES.md](docs/DATA-SOURCES.md) | 可拓展数据源与只读信息清单（公开源 / CAS 只读 / 余额查询边界） |
 | [docs/EDUCATION-DATA-MAP.md](docs/EDUCATION-DATA-MAP.md) | 博雅、教学楼研讨室（CGYY）、研究生教务、SPOC 的可读取数据与 API 地图 |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 架构与技术决策 |
 | [docs/IOS.md](docs/IOS.md) | iOS 子项目：平台边界、信息架构、构建、验证与真机验收清单 |
