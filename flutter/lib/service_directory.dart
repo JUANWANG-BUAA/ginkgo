@@ -156,7 +156,32 @@ class ServiceDirectory extends StatelessWidget {
         ),
       );
       if (confirmed != true) return;
-      await launchUrl(url, mode: LaunchMode.externalApplication);
+      // A missing browser (or a refused launch) must never leave the tap silent.
+      var opened = false;
+      try {
+        opened = await launchUrl(url, mode: LaunchMode.externalApplication);
+      } catch (_) {
+        opened = false;
+      }
+      if (opened) return;
+      if (!context.mounted) return;
+      await showCupertinoDialog<void>(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: const Text('未能打开浏览器'),
+          content: Text('请手动访问：\n$url'),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () {
+                if (ModalRoute.of(context)?.isCurrent ?? false) {
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('知道了'),
+            ),
+          ],
+        ),
+      );
     },
   );
 
