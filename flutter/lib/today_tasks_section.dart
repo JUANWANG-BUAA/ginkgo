@@ -31,8 +31,12 @@ class TodayTasksSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final data = section.value;
     final all = data?.items ?? <LocalTaskRecord>[];
-    final pending = all.where((task) => !task.completed).toList();
-    final completed = all.where((task) => task.completed).toList();
+    // Homework-derived to-dos are shown once, in the school-homework section.
+    // They stay in the to-do list itself so nothing is deleted or edited here.
+    final linked = all.where((task) => task.sourceAssignmentId != null).toList();
+    final own = all.where((task) => task.sourceAssignmentId == null).toList();
+    final pending = own.where((task) => !task.completed).toList();
+    final completed = own.where((task) => task.completed).toList();
     final dated = pending.where((task) => todayDue(task.due) != null).toList()
       ..sort((a, b) => todayCompareDue(a.due, b.due));
     final undated = pending
@@ -85,7 +89,15 @@ class TodayTasksSection extends StatelessWidget {
             for (final (index, task) in undated.take(2).indexed)
               _row(context, task, isPriority: dated.isEmpty && index == 0),
           ],
-          if (data.items.any((task) => task.completed))
+          if (linked.isNotEmpty)
+            TodayActionRow(
+              key: const Key('today-tasks-linked-note'),
+              summary: true,
+              title: '另有 ${linked.length} 项来自学校作业',
+              subtitle: '已在学校作业区显示，不在此重复；可在待办页查看',
+              onTap: () => onOpen(null),
+            ),
+          if (completed.isNotEmpty)
             TodayActionRow(
               summary: true,
               title: '已完成 ${completed.length} 项',
@@ -107,9 +119,7 @@ class TodayTasksSection extends StatelessWidget {
       title: task.title,
       status: status,
       statusColor: task.due.trim().isEmpty ? null : tint,
-      subtitle: task.sourceAssignmentId == null
-          ? '个人事项 · 未完成'
-          : '来源：学校作业 · 本地未完成',
+      subtitle: '个人事项 · 未完成',
       onTap: () => onOpen(task.id),
     );
   }

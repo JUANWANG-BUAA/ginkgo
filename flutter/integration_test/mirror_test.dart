@@ -184,7 +184,16 @@ class FailOnceNativeService implements MirrorService {
   Future<ReadOnlyResponse> libraryBooks({
     required String query,
     required int page,
-  }) => native.libraryBooks(query: query, page: page);
+    String sort = 'relevance',
+    bool descending = true,
+  }) => native.libraryBooks(
+    query: query,
+    page: page,
+    sort: sort,
+    descending: descending,
+  );
+  @override
+  Future<ReadOnlyResponse> shuttleTimetable() => native.shuttleTimetable();
   @override
   Future<ReadOnlyResponse> libraryHoldings(String bibId) =>
       native.libraryHoldings(bibId);

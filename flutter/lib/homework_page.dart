@@ -459,9 +459,15 @@ class _HomeworkPageState extends State<HomeworkPage> {
                               crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 Text(
+                                  // Submitted rows keep the date as history
+                                  // only: no countdown wording, no alarm color.
                                   item.dueAt == null
-                                      ? '截止时间未确认'
-                                      : '截止 ${schoolTimestampLabel(item.dueAt)}',
+                                      ? (item.status == HomeworkStatus.submitted
+                                            ? '已提交'
+                                            : '截止时间未确认')
+                                      : (item.status == HomeworkStatus.submitted
+                                            ? '已提交 · 截止 ${schoolTimestampLabel(item.dueAt)}'
+                                            : '截止 ${schoolTimestampLabel(item.dueAt)}'),
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,

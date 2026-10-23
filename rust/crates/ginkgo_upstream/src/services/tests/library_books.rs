@@ -38,7 +38,7 @@ async fn search_and_holdings_are_projected_from_public_codes() {
         MemoryVault::default(),
     );
     let page = service
-        .search_books("合成".into(), 1)
+        .search_books("合成".into(), 1, String::new(), true)
         .await
         .expect("search");
     assert_eq!(page.actual_total, 30);
@@ -71,12 +71,44 @@ async fn invalid_input_never_reaches_the_school() {
         ("合成".into(), 0),
         ("合成".into(), 101),
     ] {
-        assert!(service.search_books(query, page).await.is_err());
+        assert!(
+            service
+                .search_books(query, page, String::new(), true)
+                .await
+                .is_err()
+        );
     }
+    // An unknown sort value is refused before any request is made.
+    assert!(
+        service
+            .search_books("合成".into(), 1, "unknown".into(), true)
+            .await
+            .is_err()
+    );
     for bib in ["", "   ", "a\tb"] {
         assert!(service.book_holdings(bib.into()).await.is_err());
     }
     assert_eq!(transport.request_count(), 0);
+}
+
+#[tokio::test]
+async fn every_whitelisted_sort_reaches_the_request_and_direction_is_preserved() {
+    for (sort, descending, expected) in [
+        ("relevance", true, "desc"),
+        ("pub_year", false, "asc"),
+        ("title", true, "desc"),
+    ] {
+        let (service, transport) = build_service(vec![search_response()], MemoryVault::default());
+        service
+            .search_books("合成".into(), 1, sort.into(), descending)
+            .await
+            .expect("search");
+        let request = transport.requests().remove(0);
+        let body: Value =
+            serde_json::from_str(request.body.as_deref().expect("body")).expect("json");
+        assert_eq!(body["sortField"], sort);
+        assert_eq!(body["sortType"], expected);
+    }
 }
 
 #[tokio::test]
@@ -89,7 +121,7 @@ async fn non_zero_business_code_is_not_an_empty_catalogue() {
     let (service, _) = build_service(vec![denied], MemoryVault::default());
     assert_eq!(
         service
-            .search_books("合成".into(), 1)
+            .search_books("合成".into(), 1, String::new(), true)
             .await
             .expect_err("denied")
             .code,

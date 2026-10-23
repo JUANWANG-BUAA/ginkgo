@@ -90,10 +90,29 @@ pub(super) fn load_demo_cgyy(kind: String) -> ReadOnlyResponse {
 }
 
 /// Public OPAC search. Read-only, anonymous and bounded by the service.
-pub(super) async fn load_library_books(query: String, page: i64) -> ReadOnlyResponse {
+pub(super) async fn load_library_books(
+    query: String,
+    page: i64,
+    sort: String,
+    descending: bool,
+) -> ReadOnlyResponse {
     let _access = SESSION_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => service.search_library_books(query, page).await,
+        Ok(service) => {
+            service
+                .search_library_books(query, page, sort, descending)
+                .await
+        }
+        Err(error) => Err(error),
+    };
+    read_only_value(result)
+}
+
+/// Published shuttle timetable. Public page, no identity, no ticketing.
+pub(super) async fn load_shuttle_timetable() -> ReadOnlyResponse {
+    let _access = SESSION_ACCESS.read().await;
+    let result = match service() {
+        Ok(service) => service.load_shuttle_timetable().await,
         Err(error) => Err(error),
     };
     read_only_value(result)

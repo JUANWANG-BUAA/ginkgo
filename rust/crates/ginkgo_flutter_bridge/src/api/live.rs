@@ -285,8 +285,18 @@ pub fn load_demo_cgyy(kind: String) -> ReadOnlyResponse {
 }
 
 /// Public OPAC search (read-only, anonymous). Payload is the projected page.
-pub async fn load_library_books(query: String, page: i64) -> ReadOnlyResponse {
-    utilities::load_library_books(query, page).await
+pub async fn load_library_books(
+    query: String,
+    page: i64,
+    sort: String,
+    descending: bool,
+) -> ReadOnlyResponse {
+    utilities::load_library_books(query, page, sort, descending).await
+}
+
+/// Published shuttle timetable (official page). Read-only, no ticketing.
+pub async fn load_shuttle_timetable() -> ReadOnlyResponse {
+    utilities::load_shuttle_timetable().await
 }
 
 /// Public holdings for one bib id; the nested JSON string never crosses the bridge.

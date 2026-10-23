@@ -22,6 +22,8 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
   String? error;
   bool busy = false;
   int requested = 1;
+  String sort = 'relevance';
+  bool descending = true;
 
   @override
   void dispose() {
@@ -40,6 +42,8 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
       final result = await widget.service.libraryBooks(
         query: text,
         page: page,
+        sort: sort,
+        descending: descending,
       );
       if (!mounted) return;
       if (result.payload != null && result.failure == null) {
@@ -110,6 +114,49 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
                         ? const CupertinoActivityIndicator()
                         : const Text('检索'),
                   ),
+                ),
+              ],
+            ),
+            AppleSection(
+              header: const Text('排序'),
+              footer: const Text('只列出已在官方接口验证可用的字段；切换后从第 1 页重新检索。'),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                  child: CupertinoSlidingSegmentedControl<String>(
+                    key: const Key('library-books-sort'),
+                    groupValue: sort,
+                    children: const {
+                      'relevance': Padding(
+                        padding: EdgeInsets.symmetric(vertical: 6),
+                        child: Text('相关度'),
+                      ),
+                      'pub_year': Padding(
+                        padding: EdgeInsets.symmetric(vertical: 6),
+                        child: Text('出版年'),
+                      ),
+                      'title': Padding(
+                        padding: EdgeInsets.symmetric(vertical: 6),
+                        child: Text('题名'),
+                      ),
+                    },
+                    onValueChanged: (value) {
+                      if (busy || value == null || value == sort) return;
+                      setState(() => sort = value);
+                      if (page != null) search(page: 1);
+                    },
+                  ),
+                ),
+                AppleListTile(
+                  key: const Key('library-books-direction'),
+                  title: Text(descending ? '降序（新 / 大在前）' : '升序（旧 / 小在前）'),
+                  leading: const Icon(CupertinoIcons.arrow_up_arrow_down),
+                  onTap: busy
+                      ? null
+                      : () {
+                          setState(() => descending = !descending);
+                          if (page != null) search(page: 1);
+                        },
                 ),
               ],
             ),

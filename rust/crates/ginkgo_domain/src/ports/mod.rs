@@ -23,5 +23,7 @@ mod library_stats;
 pub use library_stats::*;
 mod library_books;
 pub use library_books::*;
+mod shuttle;
+pub use shuttle::*;
 mod outcome;
 pub use outcome::*;

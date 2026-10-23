@@ -7,8 +7,12 @@ impl<U: LibraryCatalogSource> Workspace<U> {
         &self,
         query: String,
         page: i64,
+        sort: String,
+        descending: bool,
     ) -> Result<BookPage, AppError> {
-        self.upstream.search_books(query, page).await
+        self.upstream
+            .search_books(query, page, sort, descending)
+            .await
     }
 
     pub async fn load_book_holdings(&self, bib_id: String) -> Result<Vec<BookHolding>, AppError> {

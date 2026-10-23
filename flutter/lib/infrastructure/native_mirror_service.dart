@@ -163,7 +163,17 @@ final class NativeMirrorService implements MirrorService, CgyyBookingGateway {
   Future<live.ReadOnlyResponse> libraryBooks({
     required String query,
     required int page,
-  }) => live.loadLibraryBooks(query: query, page: page);
+    String sort = 'relevance',
+    bool descending = true,
+  }) => live.loadLibraryBooks(
+    query: query,
+    page: page,
+    sort: sort,
+    descending: descending,
+  );
+  @override
+  Future<live.ReadOnlyResponse> shuttleTimetable() =>
+      live.loadShuttleTimetable();
   @override
   Future<live.ReadOnlyResponse> libraryHoldings(String bibId) =>
       live.loadLibraryHoldings(bibId: bibId);

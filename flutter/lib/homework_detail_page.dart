@@ -10,7 +10,6 @@ import 'mirror_service.dart';
 import 'school_timestamp.dart';
 import 'application/contracts.dart';
 import 'homework_projection.dart';
-import 'homework_task_link.dart';
 import 'today_time.dart';
 
 class HomeworkDetailPage extends StatefulWidget {
@@ -154,7 +153,10 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (homeworkRelativeDeadline(
+                    // A submitted assignment must not show a live countdown:
+                    // it is history, not something still due.
+                    if (widget.item.status != HomeworkStatus.submitted &&
+                        homeworkRelativeDeadline(
                           data?.dueAt ?? widget.item.dueAt,
                           todaySchoolNow(DateTime.now()),
                         ) !=
@@ -220,22 +222,6 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-          AppleSection(
-            children: [
-              HomeworkTaskLink(
-                item: widget.item,
-                academicService: widget.service,
-                taskService:
-                    widget.taskService ??
-                    (widget.service is CampusGateway
-                        ? widget.service as CampusGateway
-                        : null),
-                storageRoot: widget.storageRoot,
-                dueAt: data?.dueAt,
-                openTaskOnLinked: widget.openTaskOnLinked,
               ),
             ],
           ),

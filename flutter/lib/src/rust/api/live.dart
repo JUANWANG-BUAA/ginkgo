@@ -229,8 +229,18 @@ Future<ReadOnlyResponse> loadDemoCgyy({required String kind}) =>
 Future<ReadOnlyResponse> loadLibraryBooks({
   required String query,
   required PlatformInt64 page,
-}) =>
-    RustLib.instance.api.crateApiLiveLoadLibraryBooks(query: query, page: page);
+  required String sort,
+  required bool descending,
+}) => RustLib.instance.api.crateApiLiveLoadLibraryBooks(
+  query: query,
+  page: page,
+  sort: sort,
+  descending: descending,
+);
+
+/// Published shuttle timetable (official page). Read-only, no ticketing.
+Future<ReadOnlyResponse> loadShuttleTimetable() =>
+    RustLib.instance.api.crateApiLiveLoadShuttleTimetable();
 
 /// Public holdings for one bib id; the nested JSON string never crosses the bridge.
 Future<ReadOnlyResponse> loadLibraryHoldings({required String bibId}) =>

@@ -13,6 +13,7 @@ class FakeCatalog implements LibraryGateway {
   final List<Map<String, dynamic>>? holdings;
   final bool fail;
   final List<(String, int)> searches = [];
+  final List<(String, bool)> sorts = [];
   final List<String> holdingIds = [];
 
   @override
@@ -22,8 +23,11 @@ class FakeCatalog implements LibraryGateway {
   Future<live.ReadOnlyResponse> libraryBooks({
     required String query,
     required int page,
+    String sort = 'relevance',
+    bool descending = true,
   }) async {
     searches.add((query, page));
+    sorts.add((sort, descending));
     if (fail) {
       return const live.ReadOnlyResponse(payload: null, stale: false);
     }

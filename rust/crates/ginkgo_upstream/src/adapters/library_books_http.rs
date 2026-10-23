@@ -50,14 +50,20 @@ fn body(response: &HttpResponse) -> Result<serde_json::Value, AppError> {
     serde_json::from_str(&response.body).map_err(|_| AppError::changed())
 }
 
-pub fn search_body(query: &str, page: i64, page_size: i64) -> serde_json::Value {
+pub fn search_body(
+    query: &str,
+    page: i64,
+    page_size: i64,
+    sort: &str,
+    descending: bool,
+) -> serde_json::Value {
     // Official SearchParam shape: a single "all" term with operator "*".
     json!({
         "page": page,
         "pageSize": page_size,
         "indexName": "idx.opac",
-        "sortField": "relevance",
-        "sortType": "desc",
+        "sortField": sort,
+        "sortType": if descending { "desc" } else { "asc" },
         "collapseField": "groupId",
         "queryFieldList": [{
             "logic": 0,
@@ -75,6 +81,8 @@ pub async fn search<T: HttpTransport + Sync>(
     query: &str,
     page: i64,
     page_size: i64,
+    sort: &str,
+    descending: bool,
 ) -> Result<BookPage, AppError> {
     let isolated = Session::new(PublicTransport(shared.transport()));
     // Start from the user preference, not a transient fallback state.
@@ -87,7 +95,7 @@ pub async fn search<T: HttpTransport + Sync>(
     .header("Content-Type", "application/json")
     .header("Referer", "https://space.lib.buaa.edu.cn/")
     .header("User-Agent", "Ginkgo/1.0");
-    request.body = Some(search_body(query, page, page_size).to_string());
+    request.body = Some(search_body(query, page, page_size, sort, descending).to_string());
     let response = isolated.send_following_redirects(request).await?;
     check(&response, "/meta-local/opac/search")?;
     library_books::page(&body(&response)?, page, page_size)
@@ -121,12 +129,18 @@ mod tests {
 
     #[test]
     fn search_body_matches_the_documented_shape() {
-        let body = search_body("合成词", 2, 20);
+        let body = search_body("合成词", 2, 20, "relevance", true);
         assert_eq!(body["page"], 2);
         assert_eq!(body["pageSize"], 20);
         assert_eq!(body["indexName"], "idx.opac");
         assert_eq!(body["queryFieldList"][0]["field"], "all");
         assert_eq!(body["queryFieldList"][0]["values"][0], "合成词");
         assert_eq!(body["filterFieldList"], json!([]));
+        assert_eq!(body["sortField"], "relevance");
+        assert_eq!(body["sortType"], "desc");
+        // Both directions of every whitelisted field travel verbatim.
+        let by_year = search_body("合成词", 1, 20, "pub_year", false);
+        assert_eq!(by_year["sortField"], "pub_year");
+        assert_eq!(by_year["sortType"], "asc");
     }
 }

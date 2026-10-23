@@ -1,8 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/apple_widgets.dart';
 import 'package:ginkgo_mirror/homework_detail_page.dart';
-import 'package:ginkgo_mirror/homework_task_link.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/task_editor.dart';
 import 'package:ginkgo_mirror/tasks_page.dart';
@@ -204,22 +202,10 @@ void main() {
             tester.widget<Text>(find.text('截止时间 · 北京时间')).style!.fontSize,
             13,
           );
-          final action = find.byType(HomeworkTaskLink);
-          final section = find.ancestor(
-            of: action,
-            matching: find.byType(AppleSection),
-          );
-          expect(section, findsOneWidget);
-          expect(
-            tester.widget<AppleSection>(section).children.single,
-            isA<HomeworkTaskLink>(),
-          );
-          await reveal(tester, find.byKey(const Key('homework-add-task')));
-          expectTouchTarget(tester, 'homework-add-task');
-          expect(
-            find.text('仅在本机记录，标记完成不等于学校提交。标题和截止时间可在确认前编辑。'),
-            findsOneWidget,
-          );
+          // Assignments are no longer pushed into personal to-dos: the detail
+          // page must not offer an "add to my tasks" action at all.
+          expect(find.byKey(const Key('homework-add-task')), findsNothing);
+          expect(find.textContaining('仅在本机记录'), findsNothing);
           await reveal(tester, find.text('合成正文'));
           expect(fake.calls, isEmpty);
           expect(tester.takeException(), isNull);

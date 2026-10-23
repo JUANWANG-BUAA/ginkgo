@@ -105,13 +105,19 @@ abstract interface class LibraryGateway implements MirrorEnvironment {
   });
 
   /// Public OPAC search. Anonymous and read-only; never personal records.
+  /// `sort` is one of `relevance` / `pub_year` / `title`.
   Future<ReadOnlyResponse> libraryBooks({
     required String query,
     required int page,
+    String sort,
+    bool descending,
   });
 
   /// Public holdings for one bib id; the school's nested JSON stays in Rust.
   Future<ReadOnlyResponse> libraryHoldings(String bibId);
+
+  /// Published shuttle timetable (official page). No live seats, no ticketing.
+  Future<ReadOnlyResponse> shuttleTimetable();
 }
 
 abstract interface class CampusGateway {

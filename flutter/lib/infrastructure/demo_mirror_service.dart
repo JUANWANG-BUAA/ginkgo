@@ -144,6 +144,8 @@ final class DemoMirrorService implements MirrorService {
   Future<live.ReadOnlyResponse> libraryBooks({
     required String query,
     required int page,
+    String sort = 'relevance',
+    bool descending = true,
   }) async => const live.ReadOnlyResponse(
     payload: '{"page":1,"pageSize":20,"total":0,"actualTotal":0,'
         '"items":[],"hasMore":false}',
@@ -152,6 +154,12 @@ final class DemoMirrorService implements MirrorService {
   @override
   Future<live.ReadOnlyResponse> libraryHoldings(String bibId) async =>
       const live.ReadOnlyResponse(payload: '[]', stale: false);
+  @override
+  Future<live.ReadOnlyResponse> shuttleTimetable() async =>
+      const live.ReadOnlyResponse(
+        payload: '{"tables":[],"source":""}',
+        stale: false,
+      );
   @override
   Future<LibraryVenuesResponse> libraryVenues({
     bool forceRefresh = false,
