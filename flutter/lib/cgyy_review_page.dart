@@ -82,7 +82,7 @@ class _CgyyReviewPageState extends State<CgyyReviewPage> {
         builder: (context) => CupertinoAlertDialog(
           title: const Text('已确认上次操作结果？'),
           content: const Text(
-            '这里只解除本机写入保护，不会预约或取消。记录仅覆盖最近 20 条；若未找到目标，请先到学校预约页面核实，不能把列表为空当作未提交。解除后也不会自动重发。',
+            '这里只解除本机写入保护，不会预约或取消。记录仅覆盖有界分页读到的最近最多 20 条；若未找到目标，请先到学校预约页面核实，不能把列表为空当作未提交。解除后也不会自动重发。',
           ),
           actions: [
             CupertinoDialogAction(
@@ -157,7 +157,7 @@ class _CgyyReviewPageState extends State<CgyyReviewPage> {
             const AppleSection(
               header: Text('本次强制回查'),
               footer: Text(
-                '只显示学校返回的最近 20 条，非完整历史。记录出现不等于审批通过。未找到目标或状态不明时，请保留保护并到学校页面核实。',
+                '只显示分页读到的最近最多 20 条，非完整历史。记录出现不等于审批通过。未找到目标或状态不明时，请保留保护并到学校页面核实。',
               ),
               children: [
                 Padding(

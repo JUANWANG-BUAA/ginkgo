@@ -127,7 +127,7 @@ class _CgyyPageState extends State<CgyyPage> {
                     icon: CupertinoIcons.calendar_badge_plus,
                     tint: CupertinoColors.systemIndigo,
                     title: '我的预约记录',
-                    detail: '最近 20 条',
+                    detail: '最近最多 20 条',
                     chevron: true,
                   ),
                 ),
@@ -658,7 +658,7 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
               ),
             if (orders != null && orders!.isNotEmpty)
               AppleSection(
-                header: const Text('最近 20 条'),
+                header: const Text('最近最多 20 条'),
                 children: [
                   for (final order in orders!)
                     _CgyyTileContent(
