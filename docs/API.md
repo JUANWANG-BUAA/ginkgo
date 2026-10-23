@@ -12,7 +12,7 @@
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
 | 68 | §6 目录与本人借阅 | 旧域404被泛化为没有参考／不能进入里程碑 | 新站space.lib的公开search/hot1/new/books/holdings匿名code0；holdings是内嵌JSON字符串；本人loans仅成功空态，非空／资格仍待验 | [2026-10-23审计](_audit/2026-10-23-ibuaa-protocol-research.md) §5，原站JS hash与响应类型投影 |
-| 73 | §6 公开查书目与馆藏（已接入只读） | 只有空间预约；图书目录／馆藏无客户端 | 匿名只读检索与馆藏复本接入：POST `/opac/search`（page1/size20、`all` 词项、`idx.opac`）、GET `/opac/bibs/{bibId}/holdings`；`data.holdings` 的 JSON 字符串在 Rust 内二次解码并有大小／深度／条数上限；`code===0` 才算成功，非零码报业务拒绝而不是空列表；本人借阅／续借／预约仍不接入 | 本文件 §6.1；`codecs/library_books.rs`、`adapters/library_books_http.rs`、`services/library_books_service.rs` 与合成回归；**真实服务端字段完整性、状态码语义仍未验收** |
+| 73 | §6 公开查书目与馆藏（Rust 读取层完成，入口暂缓） | 只有空间预约；图书目录／馆藏无客户端 | 匿名只读检索与馆藏复本接入：POST `/opac/search`（page1/size20、`all` 词项、`idx.opac`）、GET `/opac/bibs/{bibId}/holdings`；`data.holdings` 的 JSON 字符串在 Rust 内二次解码并有大小／深度／条数上限；`code===0` 才算成功，非零码报业务拒绝而不是空列表；本人借阅／续借／预约仍不接入 | 本文件 §6.1；`codecs/library_books.rs`、`adapters/library_books_http.rs`、`services/library_books_service.rs` 与合成回归；实机直连因该主机**证书链不完整**（缺 GlobalSign R3 中间证书）报 serviceUnavailable，按红线不放宽 TLS，用户入口暂缓；**真实字段完整性、状态码语义仍未验收** |
 | 72 | §6B CGYY 协议对齐（合成回归） | mine 固定 page1/size20；草稿 `weekStartDate` 直接用预约当天；草稿响应丢弃；验证码坐标只接受 ≤310 的整数；回查仅比对 id | 官方静态证据落地为**有界分页**（首请求 page0/size5，最多 4 页，短页／重复 id／totalElements 即停）、`weekStartDate` 取 day 响应的 `reservationDateList[0]`（缺失则省略该字段）、保留草稿 `tradeNo`、坐标按 `310*x/width` 归一且保留小数、回查需 id＋预约日期（＋有值 tradeNo）同时匹配；验证后额外 day 若轮换 token 则在任何 POST 前终止 | 官方前端静态证据 [§6B.1](#6b1-2026-10-23-官方前端静态修订未执行写)；`cgyy_http::read_orders`/`week_start`/`protocol_point` 与写流程合成回归；**真实学校写操作仍未验收** |
 | 69 | §6B CGYY官方前端 | mine page1、weekStartDate/JSON/captcha字段未有官方链对照 | 官方移动首page0、day首项日期、info响应传递、分支显式null、repCode与330→310坐标均静态定位；未改实现／未写 | 同审计§7，CM/CR/CO/CV源身份与偏移；服务端生命周期仍未知 |
 | 70 | §6C 校车 | 仅公开时刻表，余票协议无线索 | 官方站ShiftsSearch构造及保留座位／摆渡分支已定位，用户查询页12班与差异余票；完整单次网络形状／身份资格未验 | 同审计§6；REA页面AX，未购票／退款 |
@@ -697,7 +697,9 @@ Rust/Flutter镜像采用借用共享transport的独立Session，复制用户原�
 
 同源基址 `/meta-local`；官方 LS/e650、74b9 与 LC/aacb 严格以**数值 `code===0`** 解 `data`；HTTP200 本身不够。前端使用运行态语言／CSRF头，报告不保存值。以下是官方脚本与本轮匿名 curl 的交集，不表示已接入本项目。
 
-> **2026-10-23 Android 只读接入（仅 search 与 holdings）**：`POST /opac/search` 与 `GET /opac/bibs/{bibId}/holdings` 已进入 Rust 适配层，使用**隔离 Cookie 会话**（不带登录态），`code !== 0` 归为业务拒绝而不是空列表；`data.holdings` 的 JSON 字符串在 Rust 内二次解码，限制 512 KiB／深度 8／500 条。页面只做检索与复本展示，不提供续借、预约、委托或任何写操作，也不读取本人借阅。字段缺失保留空值，`callno` 兼收数组与字符串，馆藏状态只保留学校原文。**真实服务的完整字段、状态码映射与分页边界仍未验收。**
+> **2026-10-23 实机发现：`space.lib.buaa.edu.cn` 证书链不完整**。该主机的 TLS 握手只下发叶子证书 `CN=*.lib.buaa.edu.cn`，缺少中间证书 `GlobalSign GCC R3 DV TLS CA 2020`（`openssl s_client` 返回 `Verify return code: 21 (unable to verify the first certificate)`）。macOS / 浏览器靠系统验证器的 AIA 补链才能成功，而本项目 Android 侧使用 rustls，不做 AIA 抓取，因此直连报 `serviceUnavailable`。**不放宽 TLS、不给全局信任库塞中间 CA、不改用 WebVPN 代理匿名读取**：需要学校修链，或由维护者评审一条作用域受限、可回滚的中间证书方案。Rust 侧的检索／馆藏读取与合成回归已完成并保留，但**用户入口本轮不上线**，避免暴露必然失败的按钮。
+
+> **2026-10-23 Android 只读接入（仅 search 与 holdings，入口暂缓）**：`POST /opac/search` 与 `GET /opac/bibs/{bibId}/holdings` 已进入 Rust 适配层，使用**隔离 Cookie 会话**（不带登录态），`code !== 0` 归为业务拒绝而不是空列表；`data.holdings` 的 JSON 字符串在 Rust 内二次解码，限制 512 KiB／深度 8／500 条。页面只做检索与复本展示，不提供续借、预约、委托或任何写操作，也不读取本人借阅。字段缺失保留空值，`callno` 兼收数组与字符串，馆藏状态只保留学校原文。**真实服务的完整字段、状态码映射与分页边界仍未验收。**
 
 | 方法／路径（接基址） | 参数／形状 | 证据状态 |
 | --- | --- | --- |

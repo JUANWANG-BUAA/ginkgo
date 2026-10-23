@@ -21,13 +21,27 @@ impl<T: HttpTransport + Sync> HttpTransport for PublicTransport<'_, T> {
 }
 
 fn check(response: &HttpResponse, path: &str) -> Result<(), AppError> {
+    // The detail stays coarse (status + which check failed) so the diagnostic
+    // panel can distinguish "blocked/redirected" from "changed response"
+    // without logging the URL, query or any personal context.
     let parsed = url::Url::parse(&response.final_url).map_err(|_| AppError::changed())?;
-    if response.status != 200
-        || parsed.scheme() != "https"
-        || parsed.host_str() != Some(HOST)
-        || !parsed.path().starts_with(path)
-    {
-        return Err(AppError::unavailable());
+    if response.status != 200 {
+        return Err(AppError::with_detail(
+            crate::ErrorCode::ServiceUnavailable,
+            format!("lib_catalog_http_{}", response.status),
+        ));
+    }
+    if parsed.scheme() != "https" || parsed.host_str() != Some(HOST) {
+        return Err(AppError::with_detail(
+            crate::ErrorCode::ServiceUnavailable,
+            "lib_catalog_foreign_host",
+        ));
+    }
+    if !parsed.path().starts_with(path) {
+        return Err(AppError::with_detail(
+            crate::ErrorCode::ServiceUnavailable,
+            "lib_catalog_path_changed",
+        ));
     }
     Ok(())
 }

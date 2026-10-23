@@ -22,7 +22,7 @@ fn search_response() -> HttpResponse {
 
 fn holdings_response() -> HttpResponse {
     let inner = serde_json::json!([
-        {"callNo": "TP1/1", "barCode": "C1", "library": "学院路", "locationName": "三层", "circStatus": "可借"}
+        {"callNo": "TP1/1", "barCode": "C1", "library": "学院路", "locationName": "三层", "circStatus": 0, "itemStatus": "41", "status": "可借"}
     ]);
     HttpResponse::new(
         200,

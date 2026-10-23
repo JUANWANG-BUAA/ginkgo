@@ -103,15 +103,6 @@ abstract interface class LibraryGateway implements MirrorEnvironment {
     int page, {
     bool forceRefresh = false,
   });
-
-  /// Public OPAC search. Anonymous and read-only; never personal records.
-  Future<ReadOnlyResponse> libraryBooks({
-    required String query,
-    required int page,
-  });
-
-  /// Public holdings for one bib id; the school's nested JSON stays in Rust.
-  Future<ReadOnlyResponse> libraryHoldings(String bibId);
 }
 
 abstract interface class CampusGateway {
