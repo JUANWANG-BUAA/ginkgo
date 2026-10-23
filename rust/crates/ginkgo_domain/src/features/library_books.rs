@@ -5,6 +5,7 @@ use serde::Serialize;
 /// numbers are flattened to text here; unknown values stay empty instead of
 /// being guessed, and identifiers are never converted into each other.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BookHit {
     pub bib_id: String,
     pub title: String,
@@ -25,6 +26,7 @@ pub struct BookHit {
 /// One bounded page of hits. `total` keeps the school's own value while
 /// `truncated` says whether this page exhausted it.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BookPage {
     pub page: i64,
     pub page_size: i64,
@@ -38,6 +40,7 @@ pub struct BookPage {
 /// One physical copy. Status stays the school's own text; it is never turned
 /// into a local "available" boolean.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BookHolding {
     pub call_no: String,
     pub bar_code: String,
