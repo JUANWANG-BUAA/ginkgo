@@ -11,6 +11,10 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 68 | §6 目录与本人借阅 | 旧域404被泛化为没有参考／不能进入里程碑 | 新站space.lib的公开search/hot1/new/books/holdings匿名code0；holdings是内嵌JSON字符串；本人loans仅成功空态，非空／资格仍待验 | [2026-10-23审计](_audit/2026-10-23-ibuaa-protocol-research.md) §5，原站JS hash与响应类型投影 |
+| 69 | §6B CGYY官方前端 | mine page1、weekStartDate/JSON/captcha字段未有官方链对照 | 官方移动首page0、day首项日期、info响应传递、分支显式null、repCode与330→310坐标均静态定位；未改实现／未写 | 同审计§7，CM/CR/CO/CV源身份与偏移；服务端生命周期仍未知 |
+| 70 | §6C 校车 | 仅公开时刻表，余票协议无线索 | 官方站ShiftsSearch构造及保留座位／摆渡分支已定位，用户查询页12班与差异余票；完整单次网络形状／身份资格未验 | 同审计§6；REA页面AX，未购票／退款 |
+| 71 | §6D 阳光打卡 | 未区分新增入口读写 | 记录查询静态已见，get包装可转POST；追加体育/艺术字段、先上传后clockin、公开开关与详情回查静态证据；下一阶段明确手动提交，点赞／打卡／上传本轮未调用，不归入全局只读刷新 | 同审计§8；YM1172/YH7abe/YS73d6/YA4c28/YD2860；不是成功接口样本 |
 | 67 | 镜像 CGYY 只读会话恢复 | 核对/选项页遇过期业务token后一直复用，不能页内重试恢复 | 强读GET的401在账号/身份代次校验下最多renew一次；仅影响读取，预约草稿、验证码验证、提交和取消POST仍不重放。无新增端点/参数/成功码 | §6B、修订53既有GET恢复规则；`cgyy_booking_service.rs`与合成token过期测试；[Alpha.7记录](_audit/2026-10-23-android-alpha7-release.md) |
 | 66 | 镜像 CGYY 写入闭环 | 仅进程内待核实布尔值；核对动作后台拉取即解锁，审批信息不完整 | 沿用 §6B 端点和成功码；写异常（含 HTTP 200 业务码 500）不视作确定未提交。账号级最小落盘标记先于请求、重启保留；强读最近 20 条展示后，凭账号/身份代次绑定、120 秒内一次性核对 ID 解除。保留读解析 v1 分类/五字段契约，live 额外投影订单/审批状态和保守取消资格；受理/查回不称审批成功 | `CgyyModels.swift:131–195` 既有映射；`cgyy_booking_service.rs`、core `application/cgyy.rs`、`cgyy_pending_store.rs` 合成 HTTP/临时文件测试；[本轮记录](_audit/2026-10-22-android-cgyy-write-flow.md)。无新增上游端点或真实写入验收 |
 | 65 | 镜像 CGYY 与提醒 | CGYY 仅查询；镜像无定时提醒 | 沿用 §6B 的直连、签名、草稿 / 验证 / 提交 / 取消；镜像采用手动拼图，不自动识别；POST 单次、回查和不确定保护。课前十分钟门禁及截止前 48 / 24 小时提醒是本地产品规则，不是新增上游协议 | `CgyyClient.swift:141–274` / UBAA 既有取证；`cgyy_booking_service.rs` / 合成 HTTP 回归；[Alpha.6 记录](archive/mirror/MIRROR-ALPHA6.md)，真实写入未执行 |
@@ -100,7 +104,7 @@
 | 标记 | 含义 | 使用规则 |
 |------|------|----------|
 | ✅ 已验证 | UBAA 仓库有在用实现，且经真实账号端到端验收 | 可直接按此实现 |
-| ⚠️ 待验证 | 无任何在用实现参考，属推测 | **必须先抓包验证**，验证前不得写实现代码 |
+| ⚠️ 待验证／部分证据 | 可已有官方静态实现或限定只读样本，但缺完整行为／权限／写入验收；不一律等于推测 | 逐断言写明静态、历史、受控读取及未知；**缺失行为须先取证**，不能把样本覆盖外推成已验收 |
 | —— 中转 | UBAA 中转服务器路由 | 本项目（仅直连）不可用，本文档不展开 |
 
 ### 0.2 脱敏声明
@@ -683,16 +687,34 @@ Rust/Flutter镜像采用借用共享transport的独立Session，复制用户原�
 
 ---
 
-## 6. 图书馆借阅查询 ⚠️（待验证，探索性目标）
+## 6. 图书目录、馆藏与本人借阅（2026-10-23 部分只读验证）⚠️
 
-**现状**：UBAA 没有借阅查询功能（全仓库无 borrow/loan/续借 相关实现），旧版文档的 `lib.buaa.edu.cn/opac/api.php?url=loan` 已于 **2026-10-13 实测证伪**（`/opac/`、`/opac/api.php`、`/opac/user/loans` 均返回 404；lib 官网首页为 JS 渲染的 SPA 壳，静态 HTML 无目录系统入口）。本功能无任何参考实现，列为探索项，验证完成前不进入正式里程碑。
+新证据：[i 北航协议研究审计](_audit/2026-10-23-ibuaa-protocol-research.md) §4–5。历史 2026-10-13 对 `lib.buaa.edu.cn/opac/*` 的 404 仅对当时域名／路径成立，不否定现站 `https://space.lib.buaa.edu.cn`。BBAA 的 `LibBook` 是空间选座，不是这里的借阅实现。
 
-验证清单（按 COLLABORATION.md 的逆向流程执行）：
+### 6.1 共同契约与公开读取
 
-- [ ] 浏览器登录图书馆 OPAC（lib.buaa.edu.cn），确认借阅页真实 URL 与是否独立于 booking.lib 的会话；
-- [ ] 抓取 HAR，定位借阅列表 XHR（若为前端渲染）或服务端渲染 HTML 结构；
-- [ ] 确认续借操作的端点、方法与 CSRF 要求（写操作，验证时只用本人账号只读部分）；
-- [ ] 产出 `_audit` 取证文档（格式参照 `BBAA/docs/_audit/2026-09-17-ihome-api.md` 的证据分级写法）后再更新本节。
+同源基址 `/meta-local`；官方 LS/e650、74b9 与 LC/aacb 严格以**数值 `code===0`** 解 `data`；HTTP200 本身不够。前端使用运行态语言／CSRF头，报告不保存值。以下是官方脚本与本轮匿名 curl 的交集，不表示已接入本项目。
+
+| 方法／路径（接基址） | 参数／形状 | 证据状态 |
+| --- | --- | --- |
+| POST `/opac/search?coverFirst=false&disable_facet=false` | JSON `page,pageSize,indexName,sortField,sortType,collapseField,queryFieldList,filterFieldList`；普通综合词项 `{logic:0,field:"all",values:[词],operator:"*"}` | 匿名 page1/size2 成功非空，code0；响应 data含 total/actualTotal/offset/limit/dataList/facetList/extraInfo |
+| GET `/opac/search/search_confs`、`/opac/search/_suggest` | suggest参数 fieldName/query/size7；配置决定完整字段／排序 | 静态已见，未逐项实测 |
+| GET `/opac/bibs/{编码bibId}/holdings?isMobile=0&relateStat=1` | 实测 `data.holdings` 是 JSON 字符串，二次解码复本数组 | 一条公开书目成功非空；状态映射、所有编码分支待验 |
+| GET `/opac/commend/hot1?count=2` | data数组，含 bibId/rank/hotValue/title 等 | 匿名code0；统计公式、月份／校区范围未知 |
+| GET `/opac/new/books?page=1&pageSize=2` | data.dataList 等；有 onSelfDate、书目／馆藏相关字段 | 匿名code0非空；不是热门榜 |
+| GET `/opac/search/extend/{id}?coversOnly=true`；POST `/opac/search/extend3?coversOnly=true` | 批量 body `{isbns:[],bibIds:[]}`，按bibId取imageUrl | 仅静态；图片域名／非空／占位及白名单待验，不猜封面地址 |
+
+默认 SearchParam 为 page1/pageSize20、idx.opac、relevance/desc、collapseField=groupId；列表 UI total 封顶10000而 maxTotal保留原值。实际样本 callno 在检索为数组、hot为字符串，ISBN/bibId/索书号/册条码不可互换。馆藏数组有 callNo/barCode/library/locationName/circStatus/itemStatus/status/itemsAvailable 等；不能凭字段名或数值猜可借状态。
+
+分类榜静态 GET `/opac/commend/{sort}/byclass` 或 `/bysubject`，query dcpCode/page/pageSize；sort枚举 top/top_loans/top_favorites/top_scores，但实际render未呈现排序控件、未见月份／公式。dcpCode有预编码再URLSearchParams路径，不能擅自简化。端点存在≠完整榜单语义已验证。
+
+### 6.2 本人借阅与隐私
+
+官方 LL/02d9 固定 GET `/opac/users/loans?page=1&pageSize=100`，取 data.items；非空才同 query读 `/loan_max_renew_times`，按册条码合并 maxRenewTimes-renewTimes。本轮已登录本人页：loans HTTP200/code0、items=[]；分页键 currentPage/pageSize/total/items/totalPage。GET `/opac/users/loan_info` 同样成功，data为字符串，不是对象。**只验证成功空态，非空个人字段、分页完备性、会话过期未验收。**
+
+非空字段 loanId/bibId/item.barCode/bibAttrs.title/author/callno/loanDate/dueDate/renewTimes/location/loanType/requestStatus/loanStatus 来自静态组件，不是本人的成功非空样本。剩余次数、按钮可见都不是服务端完整续借资格。
+
+只识别未调用：POST `/opac/users/renew`、`/batch_renew`，预约／委托／取消／书架写。通知详情GET也可能写已读，不默认纳入只读刷新。本人记录主动打开、默认内存、离页／登出／切账号清除；读取记录并不授权持久化、到期通知或阅读画像。待办仍只记 MIRROR-TODO，不在本节另建清单。
 
 ---
 
@@ -718,10 +740,10 @@ Rust/Flutter镜像采用借用共享transport的独立Session，复制用户原�
    - GET `/api/front/website/venues?page=-1&size=-1&reservationRoleId=3`：校区/场地/空间组。**2026-10-19 无 Cookie 直连实测为公开接口**，不发送 `cgAuthorization` 也返回 `code=200`；页面因此可以先展示场馆，不能因为后面的登录失败把整页判成“未登录”。
    - GET `/api/codes`：活动类型；未带 token 实测 `code=401 没有权限访问此接口`。
    - GET `/api/reservation/day/info?searchDate=yyyy-MM-dd&venueSiteId=N`：`spaceTimeInfo`、`reservationDateSpaceInfo`、可预约日期、`token`；未带 token 同样 401。
-   - GET `/api/orders/mine?page=1&size=20`：我的预约。
+   - GET `/api/orders/mine`：我的预约。当前客户端固定 page1/size20 是实现事实；2026-10-23 官方移动端静态首请求明确 page0/size5，见 §6B.1，不把 page1 当学校起始页契约。
    - GET `/api/orders/lock/code`：门锁密码/二维码、有效期、预约详情。
 4. **预约写路径**：
-   - POST `/api/reservation/order/info`：`venueSiteId`、`reservationDate`、`weekStartDate`、`reservationOrderJson`（`[{spaceId,timeId,venueSpaceGroupId}]`）、`token`；创建预约草稿。
+   - POST `/api/reservation/order/info`：`venueSiteId`、`reservationDate`、`weekStartDate`、`reservationOrderJson`（`[{spaceId,timeId,venueSpaceGroupId}]`）、`token`；项目称预约草稿，官方会将响应 tradeNo／详情／计时／isCaptchaCheck 等交给下一步；是否占槽及生命周期未实测。
    - GET `/api/captcha/get?captchaType=blockPuzzle&clientUid=slider-<ts>&ts=<ts>`：返回 `secretKey`、`token`、背景图、拼图 Base64。
    - POST `/api/captcha/check`：`pointJson`（AES-ECB PKCS5 加密的 `{"x":N,"y":5}`）、`token`。
    - POST `/api/reservation/order/submit`：草稿字段 + `captchaVerification`（AES-ECB 加密的 `<captchaToken>---{"x":N,"y":5}`）+ `token`。
@@ -733,6 +755,40 @@ Rust/Flutter镜像采用借用共享transport的独立Session，复制用户原�
 2026-10-22 本轮闭环补充（仅客户端行为，不改变上游协议）：预约/取消前写入本机账号摘要隔离的最小 pending 标记，内容只有版本与布尔值；无 token、表单或手机号，损坏/不可写拒绝继续写。正常入口 native gateway 绑定发起账号作为前置条件，身份仍由 Rust 会话派生。HTTP 错误、未知业务码、解析失败与认证失败都保留核实保护；`BusinessRejected` 只读 v1 分类不得用于证明写入未生效。显式强读的最近 20 条必须展示后再确认，一次性核对凭据绑定账号/身份代次且 120 秒内有效；不能用空列表证明没落单。订单审批码沿用既有 Swift/UBAA 映射，未知状态不推断通过；取消资格必须明确满足状态及开始前 4 小时限制，最终仍强读复核。共享解析 v1 五字段与历史错误契约不变，新增审批与资格只在 live 投影中提供。未增加分页/门锁码或自动验证能力。
 
 > 图书馆空间预约系统（`booking.lib.buaa.edu.cn/v4/seminar/*`）是另一套系统，本页不再作为“研讨室”入口；其只读/预约代码保留在 `Features/Library/`，但与教学楼 CGYY 不可混用。
+
+---
+
+### 6B.1 2026-10-23 官方前端静态修订（未执行写）
+
+来源与精确 hash/module/UTF-16偏移见[审计 §7](_audit/2026-10-23-ibuaa-protocol-research.md)。这些断言更新协议证据，**没有同步修改 Rust／Swift／Flutter 实现，不能宣称故障根因或真实写入已验收**。
+
+- 官方 `/mobileOrders` 模块 d119 发 `{page:currentPage-1,size:pageSize}`，初始 currentPage1/size5，非管理员走 `/api/orders/mine`；解 content/totalElements。首请求 page0 有直接静态依据；服务端排序／新单落页／异步可见仍未知，修订须有界翻页而非只换一个数字。
+- day响应 `reservationDateList[0]||""`→weekStartDate；不是无条件预约当天，也不能凭名改成周一。day token→orderToken，info成功回调保留响应并覆盖其token为day值。
+- info请求的spaceId/timeId来自split、为字符串；group不适用时显式null。最终submit值来自info响应，reservationType==-1分支group同样显式null。因此Rust null不能笼统判错，Swift nil省略也不能天然认定正确；两阶段类型与签名字节须分别验证。
+- info响应被消费的字段含 tradeNo/orderDetailList/venueInfoBean/计时/isCaptchaCheck；现两端丢弃响应存在建模缺口，但静态读取不证明服务端必返／必填。验证码成功的这条官方链直接submit，没有额外day；再次day是否轮换token／info是否占槽仍未知，不盲删复核。
+- 官方预约滑块 GET `/api/captcha/get` 带 captchaType/clientUid/ts，POST `/api/captcha/check` 带 pointJson/token，均按 `repCode=="0000"` 解 repData。现 success 解析需双字段兼容／冲突证据，不因静态不同就断言真实失败。
+- 显示宽330px，协议 `x=310*parseInt(moveBlockLeft)/parseInt(setSize.imgWidth)`、y5，可小数；非天然图片像素。不能只把Rust整数上限从310放宽到1000。挑战secret存在才加密，未读任何实际挑战。
+- isCaptchaCheck有条件分支，官方本地clientUid为持久UUID风格；均需成功样本才能调整。官方提交文案与审批分开；本项目强读、单写、未知核实、账号隔离不可降低。
+
+## 6C. 智慧校车（脚本静态＋本人查询页面观察，未购票）⚠️
+
+站点 `https://zhihuixiaoche.buaa.edu.cn/wechat/indexPage`。同页脚本：POST `/wechat/ShiftsSearch`，form字段 up_origin_name/up_terminal_name/shifts_date/act=search，动态CSRF头；按 data.success和list读取。用户查询后页面显示12班及差异余票，**尚未捕获该单次事务的完整网络字段形状，method/body来自脚本，不把UI成功等同完整协议验收**。
+
+非摆渡余票先 open_seat_num-student_num-teacher_num，再按type/is_parttime/currentTime/ticket_all_minute/seat_retain_num分支扣保留，负数夹0；摆渡显示“摆渡车”，不显示计算值0。此为当前身份展示算法，匿名可见性、资格、票价、时间单位／时区、所有放票分支未验。时刻表通知发布日和适用日分开，不用计划人数代余票。POST退款、购票、订单、团体票等未调用。详见[审计 §6](_audit/2026-10-23-ibuaa-protocol-research.md)。
+
+## 6D. 阳光打卡（官方静态；下一阶段手动提交需求，真实写未验收）⚠️
+
+用户明确要求手动提交功能；本轮仅研究，不实现／不上传／不提交。完整原站hash与UTF-16偏移见[审计 §8](_audit/2026-10-23-ibuaa-protocol-research.md)；设计见[方案 §12.7](NEXT-STAGE-PLAN-2026-10-23.md)。不把阳光活动打卡与iClass课程签到混同。
+
+- YM/1172：逻辑路径 `getList/getCount/get/clockin` 在 `/Front/Clockin/Clockin/` 下；上传 `/Front/Upload/File/post`。base由部署origin/path再拼api，**最终URL未实网确认**。get包装除登录外转POST并合并身份字段，code==1解包；不是HTTP POST即写。UTP重复合并的线缆编码仍待验证。
+- 体育／艺术表单K共同字段 `start_time,end_time,place_type,place,isopen,form_time_fmt,images,classify_id,item_id,item_name`，艺术另 `thought,issync`。分类／子项目动态加载；moment X生成Unix秒字符串，时区、跨天、合法时长和补录政策仍未确认。
+- 地点手填，place_type1校内/2校外；已读表单无坐标／定位SDK调用，不能凭整站阴性检索断言没有宿主安全校验，亦无依据现在申请定位权限。
+- 至少1最多3张本人出镜图，JPG/JPEG/PNG、每张5MiB；多次FormData字段file上传→file_name数组JSON字符串→K.images，再一次clockin。上传本身为写；部分成功与提交未知要分别保护，不自动重传或删残留。
+- 官网isopen默认1公开广场。方案建议新草稿向学校请求 `isopen=0`，上传前确认页醒目告知；这是客户端提议，服务端是否接受／私密是否真实生效必须实测。证据不足时不得把界面标成“已私密／不会公开”，并应阻断真实提交。首期不承诺艺术issync博雅同步（未见可达切换及完整协议）。
+- clockin响应静态读取record_id、period_id/term_id、体育week_count/week_num或艺术month_count/month_num。周月超额／非周期提示来自**提交之后**，不是前置拒绝；已记录、有效计数和审核／考勤不可混同。
+- YD/2860按record_id查询详情是回查候选，未实测；无ID超时用人工记录核验，不靠模糊列表或空列表自动判断结果。不照搬官网缺业务catch/finally／单飞门禁的行为。
+- 下一阶段必须做到上传前本人确认、账号绑定、批次单飞、一次clockin、未知不重发、重认证不重放、失败清理敏感本地临时数据、按ID只读核验。照片处理／EXIF、上传残留权限、服务器幂等、所有字段规则尚未知；真实写须另明确授权。
+
 
 ---
 
@@ -871,7 +927,9 @@ UBAA 源码另提供操场 CGYY、阳光打卡 YGDK、iHome、课程评教、图
 | 校园通知 | `https://news.buaa.edu.cn/tzgg.htm` | 公开页面 | HTML |
 | iclass | `https://iclass.buaa.edu.cn:8346/`、`:8347/app/*` | CAS→loginName→sessionId | JSON |
 | UC userinfo | `https://uc.buaa.edu.cn/api/uc/userinfo` | SSO Cookie | JSON |
-| 图书馆借阅 | 待验证（§6） | ? | ? |
+| 图书目录／本人借阅（部分验证） | `https://space.lib.buaa.edu.cn/meta-local/opac/*`（§6） | 公开目录匿名成功；本人loans登录页成功空，认证完整链待验 | JSON；holdings内嵌JSON字符串 |
+| 智慧校车（脚本＋页面） | `https://zhihuixiaoche.buaa.edu.cn/wechat/indexPage`（§6C） | 本人已登录页面观察，资格／匿名待验 | 查询事务形状待补 |
+| 阳光打卡（静态） | `https://ygdk.buaa.edu.cn`（§6D）；完整api拼接待验 | 静态身份合并，真实写未验 | 静态JSON／multipart |
 
 ## 附录 B：Cookie / Token 清单
 
@@ -890,7 +948,10 @@ UBAA 源码另提供操场 CGYY、阳光打卡 YGDK、iHome、课程评教、图
 | GSMIS 学期 | `code == "0"` | String |
 | GSMIS 课表 | `code == "1"` | String |
 | buaascore | `e == 0` | Int |
-| 图书馆 | `code ∈ {0, 1}` | Int |
+| 图书馆座位（booking.lib，§5） | `code ∈ {0, 1}` | Int；不得套用于OPAC |
+| 图书OPAC（space.lib，§6） | `code === 0` | 数值；部分读取已实测 |
+| 智慧校车（§6C） | `success`＋list按业务判断 | 静态消费；本轮列表UI非完整事务样本 |
+| 阳光打卡（§6D） | `code == 1`解包，提交后record_id／周期／计数各分支 | 官方静态；真实响应类型／写成功待验，不等于有效考勤 |
 | SPOC | `code == 200`，`content` 非空 | Int |
 
 ### 镜像实现记录（2026-10-20，§7.1）

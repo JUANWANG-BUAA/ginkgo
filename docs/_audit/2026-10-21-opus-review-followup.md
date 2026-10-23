@@ -24,7 +24,7 @@
 
 **改进**：不新增 parking_lot 依赖，也不盲目保留可能写到一半的复合状态。可丢弃的身份、Cookie、缓存和内存凭据中毒后，在持锁期间整体重置为安全空值，再清除 poison；下一次读取不会继续 panic。单一 Copy 路线枚举中毒后保留完整值，避免把显式直连 / WebVPN 悄悄重置成自动。同步 guard 不跨 await，原有 generation、异步 gate 和 bridge 生命周期锁保持职责。
 
-持久化的 [Keyring 锁](../../rust/crates/ginkgo_upstream/src/auth/platform/keyring_vault.rs) 与 [待办存储锁](../../rust/crates/ginkgo_upstream/src/adapters/tasks_store.rs) 本来就将中毒转换为 AppError，保留此行为。测试中的 expect、受控结果校验与 LazyLock 正则不做机械替换。恢复策略不保证修复所有 panic，也不适用于 durable 数据。
+持久化的 [Keyring 锁](../../rust/crates/ginkgo_upstream/src/auth/platform/keyring_vault.rs) 与 [待办存储锁](../../rust/crates/ginkgo_core/src/tasks_store.rs) 本来就将中毒转换为 AppError，保留此行为。测试中的 expect、受控结果校验与 LazyLock 正则不做机械替换。恢复策略不保证修复所有 panic，也不适用于 durable 数据。
 
 **验收**：身份 / 缓存中毒回归先在旧实现失败、改后通过；跨线程中断更新后清空重建、后续读写正常，路线保留及 poison 清除有单独回归。恢复理由依据 [Rust Mutex poisoning 文档](https://doc.rust-lang.org/std/sync/struct.Mutex.html#poisoning)：中毒只说明不变量可能受损，取回 guard 本身并不能证明状态正确。
 
