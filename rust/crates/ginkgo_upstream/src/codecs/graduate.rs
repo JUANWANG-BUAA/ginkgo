@@ -82,13 +82,30 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
         v => v.clone(),
     };
     let categories = raw.as_array().ok_or_else(AppError::changed)?;
+    let mut top_pending = credit(&root["dkhxf"])
+        .or_else(|| credit(&root["DKHXF"]))
+        .or_else(|| credit(&root["fa"]["dkhxf"]))
+        .or_else(|| credit(&root["fa"]["DKHXF"]));
+    if top_pending.is_none() {
+        let mut sum = 0.0;
+        let mut found = false;
+        for cat in categories {
+            if let Some(c) = credit(&cat["dkhxf"]).or_else(|| credit(&cat["DKHXF"])) {
+                sum += c;
+                found = true;
+            }
+        }
+        if found {
+            top_pending = Some(sum);
+        }
+    }
     let mut sections = vec![ReadSection {
         title: "培养方案执行报告".into(),
-        progress: Some(progress(
-            &root["fa"]["ZDXF"],
-            &root["yhpyfaxf"],
-            &root["dkhxf"],
-        )),
+        progress: Some(CreditProgress {
+            required: credit(&root["fa"]["ZDXF"]).or_else(|| credit(&root["fa"]["zdxf"])),
+            earned: credit(&root["yhpyfaxf"]).or_else(|| credit(&root["YHPYFAXF"])),
+            pending: top_pending,
+        }),
         rows: vec![
             ReadRow {
                 is_course: false,
@@ -120,7 +137,9 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
                 credit: None,
                 semester: None,
                 title: "待考核学分".into(),
-                detail: number(&root["dkhxf"]),
+                detail: top_pending
+                    .map(|n| n.to_string())
+                    .unwrap_or_else(|| number(&root["dkhxf"])),
             },
         ],
     }];

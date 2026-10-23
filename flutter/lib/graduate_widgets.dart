@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'academic_widgets.dart';
+import 'apple_design.dart';
 import 'apple_widgets.dart';
 import 'graduate_models.dart';
 
@@ -17,6 +18,9 @@ class GraduateCreditProgress extends StatelessWidget {
     final ratio = required != null && required > 0 && earned != null
         ? (earned / required).clamp(0.0, 1.0)
         : null;
+    final pendingRatio = required != null && required > 0 && pending != null
+        ? (pending / required).clamp(0.0, 1.0)
+        : 0.0;
     final remaining = required == null || earned == null
         ? null
         : (required - earned).clamp(0, double.infinity);
@@ -37,7 +41,11 @@ class GraduateCreditProgress extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 18),
-          if (ratio != null) AcademicProgressBar(value: ratio),
+          if (ratio != null)
+            AcademicProgressBar(
+              value: ratio,
+              pendingValue: pendingRatio,
+            ),
           const SizedBox(height: 10),
           Wrap(
             spacing: 12,
@@ -54,7 +62,7 @@ class GraduateCreditProgress extends StatelessWidget {
               if (pending != null && pending > 0)
                 AcademicBadge(
                   '待考核 ${_format(pending)}',
-                  tint: CupertinoColors.systemOrange,
+                  tint: AppleDesign.statusPending,
                   icon: CupertinoIcons.clock,
                 ),
             ],
@@ -66,8 +74,13 @@ class GraduateCreditProgress extends StatelessWidget {
 }
 
 class AcademicProgressBar extends StatelessWidget {
-  const AcademicProgressBar({super.key, required this.value});
+  const AcademicProgressBar({
+    super.key,
+    required this.value,
+    this.pendingValue = 0.0,
+  });
   final double value;
+  final double pendingValue;
   @override
   Widget build(BuildContext context) => Semantics(
     label: '已认定学分占要求的比例',
@@ -85,7 +98,16 @@ class AcademicProgressBar extends StatelessWidget {
               ),
             ),
             FractionallySizedBox(
-              widthFactor: value,
+              widthFactor: (value + pendingValue).clamp(0.0, 1.0),
+              child: ColoredBox(
+                color: AppleDesign.statusPending
+                    .resolveFrom(context)
+                    .withValues(alpha: 0.65),
+                child: const SizedBox(height: 5),
+              ),
+            ),
+            FractionallySizedBox(
+              widthFactor: value.clamp(0.0, 1.0),
               child: ColoredBox(
                 color: CupertinoColors.systemGreen.resolveFrom(context),
                 child: const SizedBox(height: 5),
@@ -108,18 +130,23 @@ class GraduateCourseBadges extends StatelessWidget {
     children: [
       AcademicBadge(
         row.credit == null ? '学分未提供' : '${academicNumber(row.credit)} 学分',
+        tint: AppleDesign.resourceBlue,
       ),
       AcademicBadge(
-        row.completionLabel,
+        row.completed == true
+            ? '已完成'
+            : row.completed == false
+            ? '在修中'
+            : '待确认',
         tint: row.completed == true
             ? CupertinoColors.systemGreen
             : row.completed == false
-            ? CupertinoColors.secondaryLabel
-            : CupertinoColors.systemOrange,
+            ? AppleDesign.statusPending
+            : AppleDesign.statusUncertain,
         icon: row.completed == true
             ? CupertinoIcons.checkmark_circle_fill
             : row.completed == false
-            ? CupertinoIcons.circle
+            ? CupertinoIcons.clock_fill
             : CupertinoIcons.question_circle,
       ),
     ],
@@ -227,6 +254,9 @@ class GraduateCategoryRow extends StatelessWidget {
                 if (required != null && required > 0 && earned != null) ...[
                   AcademicProgressBar(
                     value: (earned / required).clamp(0.0, 1.0),
+                    pendingValue: progress?['pending'] != null
+                        ? ((progress!['pending'] as num) / required).clamp(0.0, 1.0)
+                        : 0.0,
                   ),
                   const SizedBox(height: 8),
                 ],
@@ -242,9 +272,10 @@ class GraduateCategoryRow extends StatelessWidget {
                       '待考核 ${academicNumber(progress['pending'] as num?)}',
                       style: TextStyle(
                         fontSize: 13,
-                        color: CupertinoColors.secondaryLabel.resolveFrom(
-                          context,
-                        ),
+                        fontWeight: FontWeight.w500,
+                        color: ((progress['pending'] as num?) ?? 0) > 0
+                            ? AppleDesign.statusPending.resolveFrom(context)
+                            : AppleDesign.statusInactive.resolveFrom(context),
                       ),
                     ),
                   ],

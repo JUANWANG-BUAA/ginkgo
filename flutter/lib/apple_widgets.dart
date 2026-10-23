@@ -146,21 +146,24 @@ class AppleEmptyState extends StatelessWidget {
     this.action,
     this.onAction,
     this.error = false,
+    this.icon,
   });
   final String title, description;
   final String? action;
   final VoidCallback? onAction;
   final bool error;
+  final IconData? icon;
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 16),
     child: Column(
       children: [
         Icon(
-          error
-              ? CupertinoIcons.exclamationmark_triangle
-              : CupertinoIcons.building_2_fill,
-          size: 48,
+          icon ??
+              (error
+                  ? CupertinoIcons.exclamationmark_triangle
+                  : CupertinoIcons.tray),
+          size: 44,
           color: CupertinoColors.secondaryLabel.resolveFrom(context),
         ),
         const SizedBox(height: 14),

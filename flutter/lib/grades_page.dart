@@ -187,7 +187,11 @@ class _GradesPageState extends State<GradesPage> {
     if (data.courses.isEmpty)
       AppleSection(
         children: const [
-          AppleEmptyState(title: '本学期暂无成绩', description: '成绩尚未发布，或当前学期没有课程。'),
+          AppleEmptyState(
+            icon: CupertinoIcons.chart_bar,
+            title: '本学期暂无成绩',
+            description: '成绩尚未发布，或当前学期没有课程。',
+          ),
         ],
       )
     else

@@ -440,39 +440,46 @@ class _CheckInPageState extends State<CheckInPage> {
             ),
           ],
         ),
-      AppleSection(
-        header: Text(dateLabel),
-        children: [
-          AppleListTile(
-            title: Text(
-              data.courses.isEmpty
-                  ? (widget.history ? '当天没有课程' : '今天没有课程')
-                  : '${widget.history ? '当天' : '今天'} ${data.courses.length} 节课',
-            ),
-            subtitle: Text(
-              data.courses.isEmpty
-                  ? (original.courses.isNotEmpty
+      if (data.courses.isEmpty)
+        AppleSection(
+          header: Text(dateLabel),
+          children: [
+            AppleEmptyState(
+              icon: CupertinoIcons.checkmark_shield,
+              title: widget.history ? '当天没有课程' : '今天没有课程',
+              description: widget.history
+                  ? '该日期没有可查询课程，不代表出勤或缺勤。'
+                  : (original.courses.isNotEmpty
                         ? '课程已按你的本机范围收起，可在“我的课程范围”恢复。'
-                        : '学校返回当天无课程，不代表出勤或缺勤。')
-                  : [
-                      '已签到 $signed',
-                      '未签到 $notSigned',
-                      if (unknown > 0) '待确认 $unknown',
-                    ].join(' · '),
-              style: TextStyle(
-                fontSize: 14,
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                        : '学校返回当天无课程，可以到课表确认其他教学周。'),
+            ),
+          ],
+        )
+      else ...[
+        AppleSection(
+          header: Text(dateLabel),
+          children: [
+            AppleListTile(
+              title: Text('${widget.history ? '当天' : '今天'} ${data.courses.length} 节课'),
+              subtitle: Text(
+                [
+                  '已签到 $signed',
+                  '未签到 $notSigned',
+                  if (unknown > 0) '待确认 $unknown',
+                ].join(' · '),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                ),
+              ),
+              additionalInfo: Text(
+                _fetchedLabel(data.fetchedAt),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                ),
               ),
             ),
-            additionalInfo: Text(
-              _fetchedLabel(data.fetchedAt),
-              style: TextStyle(
-                fontSize: 13,
-                color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-              ),
-            ),
-          ),
-          if (data.courses.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Column(
@@ -540,25 +547,14 @@ class _CheckInPageState extends State<CheckInPage> {
                 ],
               ),
             ),
-        ],
-      ),
-      if (data.courses.isEmpty)
-        AppleSection(
-          children: [
-            AppleEmptyState(
-              title: widget.history ? '当天没有课程' : '今天没有课程',
-              description: widget.history
-                  ? '该日期没有可查询课程，不代表出勤或缺勤。'
-                  : '可以到课表确认其他教学周，或稍后下拉刷新。',
-            ),
           ],
-        )
-      else
+        ),
         AppleSection(
           header: Text(widget.history ? '该日期课程' : '当天课程'),
           footer: const Text('来源：iclass。记录不一致时需先核实。'),
           children: [for (final course in data.courses) _courseRow(course)],
         ),
+      ],
       AppleSection(
         children: [
           Padding(

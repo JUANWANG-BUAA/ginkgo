@@ -56,3 +56,100 @@ class TodayVisualSection extends StatelessWidget {
     ),
   );
 }
+
+/// A structured section header with theme icon, bold title, count capsule badge,
+/// and trailing action affordance.
+class TodaySectionHeader extends StatelessWidget {
+  const TodaySectionHeader({
+    super.key,
+    required this.title,
+    this.icon,
+    this.badge,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final String title;
+  final IconData? icon;
+  final String? badge;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = CupertinoTheme.of(context).primaryColor;
+    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
+
+    final action = (actionLabel != null && onAction != null)
+        ? CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(36, 28),
+            onPressed: onAction,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  actionLabel!,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: accent,
+                  ),
+                ),
+                const SizedBox(width: 2),
+                Icon(
+                  CupertinoIcons.chevron_forward,
+                  size: 13,
+                  color: accent,
+                ),
+              ],
+            ),
+          )
+        : null;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 8,
+        runSpacing: 4,
+        children: [
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 6,
+            children: [
+              if (icon != null) Icon(icon, size: 16, color: accent),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: CupertinoColors.label.resolveFrom(context),
+                  letterSpacing: -0.2,
+                ),
+              ),
+              if (badge != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: isDark ? 0.22 : 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    badge!,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: accent,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          if (action != null) action,
+        ],
+      ),
+    );
+  }
+}

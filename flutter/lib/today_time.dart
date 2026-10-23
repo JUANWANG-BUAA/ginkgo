@@ -51,5 +51,5 @@ String todayDueLabel(String? value, DateTime now, {bool localTask = false}) {
   final clock = dateOnly
       ? '（日期）'
       : ' ${due.hour.toString().padLeft(2, '0')}:${due.minute.toString().padLeft(2, '0')}';
-  return '${due.isBefore(now) ? '已截止' : '截止'} $when$clock';
+  return '${(!due.isAfter(now)) ? '已截止' : '截止'} $when$clock';
 }

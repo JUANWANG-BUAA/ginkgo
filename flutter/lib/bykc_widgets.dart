@@ -86,18 +86,25 @@ class BykcStatisticsCard extends StatelessWidget {
 }
 
 class BykcLabel extends StatelessWidget {
-  const BykcLabel({super.key, required this.text, this.positive = false});
+  const BykcLabel({
+    super.key,
+    required this.text,
+    this.positive = false,
+    this.tint,
+  });
   final String text;
   final bool positive;
+  final Color? tint;
   @override
   Widget build(BuildContext context) {
-    final color = positive
-        ? CupertinoColors.systemGreen.resolveFrom(context)
-        : CupertinoColors.secondaryLabel.resolveFrom(context);
+    final color = tint ??
+        (positive
+            ? CupertinoColors.systemGreen.resolveFrom(context)
+            : CupertinoColors.secondaryLabel.resolveFrom(context));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: color.withValues(alpha: 0.09),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
@@ -105,7 +112,7 @@ class BykcLabel extends StatelessWidget {
         style: TextStyle(
           fontSize: 12,
           color: color,
-          fontWeight: positive ? FontWeight.w600 : FontWeight.w400,
+          fontWeight: (positive || tint != null) ? FontWeight.w600 : FontWeight.w500,
         ),
       ),
     );

@@ -13,9 +13,18 @@ import 'application/contracts.dart';
 import 'course_visibility.dart';
 import 'homework_projection.dart';
 
+import 'today_time.dart';
+
 class HomeworkPage extends StatefulWidget {
-  const HomeworkPage({super.key, required this.service});
+  const HomeworkPage({
+    super.key,
+    required this.service,
+    this.initialFilter = 0,
+    this.now,
+  });
   final AcademicGateway service;
+  final int initialFilter;
+  final DateTime? now;
   @override
   State<HomeworkPage> createState() => _HomeworkPageState();
 }
@@ -25,13 +34,16 @@ class _HomeworkPageState extends State<HomeworkPage> {
   String? error;
   String? notice;
   bool busy = false;
-  int filter = 0;
+  late int filter;
   int pending = 0, submitted = 0, overdue = 0, unknown = 0;
   String search = '';
   final searchController = TextEditingController();
   List<HomeworkItem> visible = [];
   bool includeTeaching = false;
   CourseVisibility? range;
+
+  DateTime get _clock => widget.now ?? todaySchoolNow(DateTime.now());
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -42,8 +54,13 @@ class _HomeworkPageState extends State<HomeworkPage> {
   void prepare() {
     final all = data?.items ?? <HomeworkItem>[];
     final personal = personalHomeworkItems(all, range);
+    final clock = _clock;
     pending = personal
-        .where((item) => item.status == HomeworkStatus.pending)
+        .where(
+          (item) =>
+              item.status == HomeworkStatus.pending &&
+              !isHomeworkOverdue(item.dueAt, clock),
+        )
         .length;
     submitted = personal
         .where((item) => item.status == HomeworkStatus.submitted)
@@ -51,7 +68,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
     overdue = personal
         .where(
           (item) =>
-              item.status == HomeworkStatus.pending && _isOverdue(item.dueAt),
+              item.status == HomeworkStatus.pending &&
+              isHomeworkOverdue(item.dueAt, clock),
         )
         .length;
     unknown = personal
@@ -69,11 +87,13 @@ class _HomeworkPageState extends State<HomeworkPage> {
             .where(
               (item) =>
                   filter == 0 ||
-                  (filter == 1 && item.status == HomeworkStatus.pending) ||
+                  (filter == 1 &&
+                      item.status == HomeworkStatus.pending &&
+                      !isHomeworkOverdue(item.dueAt, clock)) ||
                   (filter == 2 && item.status == HomeworkStatus.submitted) ||
                   (filter == 3 &&
                       item.status == HomeworkStatus.pending &&
-                      _isOverdue(item.dueAt)) ||
+                      isHomeworkOverdue(item.dueAt, clock)) ||
                   (filter == 4 && item.status == HomeworkStatus.unknown),
             )
             .where(
@@ -91,6 +111,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
   @override
   void initState() {
     super.initState();
+    filter = widget.initialFilter;
     load();
   }
 
@@ -363,6 +384,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
           spacing: 8,
           runSpacing: 8,
           children: [
+            _quickFilter(1, '待完成 $pending', AppleDesign.statusPending),
             _quickFilter(3, '已截止 $overdue', AppleDesign.statusDanger),
             _quickFilter(4, '待确认 $unknown', AppleDesign.statusUncertain),
           ],
@@ -392,7 +414,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
         itemBuilder: (context, index) {
           final item = visible[index];
           final late =
-              item.status == HomeworkStatus.pending && _isOverdue(item.dueAt);
+              item.status == HomeworkStatus.pending && isHomeworkOverdue(item.dueAt, _clock);
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: ClipRSuperellipse(
@@ -452,6 +474,21 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                           ),
                                   ),
                                 ),
+                                if (homeworkRelativeDeadline(item.dueAt, _clock) != null)
+                                  Text(
+                                    homeworkRelativeDeadline(item.dueAt, _clock)!,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: late
+                                          ? AppleDesign.statusDanger.resolveFrom(
+                                              context,
+                                            )
+                                          : AppleDesign.statusPending.resolveFrom(
+                                              context,
+                                            ),
+                                    ),
+                                  ),
                                 _statusBadge(context, item),
                               ],
                             ),
@@ -535,7 +572,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
         AppleDesign.statusSuccess.resolveFrom(context),
       ),
       HomeworkStatus.pending =>
-        _isOverdue(item.dueAt)
+        isHomeworkOverdue(item.dueAt, _clock)
             ? ('已截止', AppleDesign.statusDanger.resolveFrom(context))
             : ('待完成', AppleDesign.statusPending.resolveFrom(context)),
       HomeworkStatus.unknown => (
@@ -558,24 +595,5 @@ class _HomeworkPageState extends State<HomeworkPage> {
         ),
       ),
     );
-  }
-
-  bool _isOverdue(String? due) {
-    if (due == null) return false;
-    final date = DateTime.tryParse(due);
-    if (date == null) return false;
-    // Offset-free school timestamps are Beijing civil time, not device time.
-    final explicitZone = RegExp(r'(Z|[+-]\d{2}:?\d{2})$').hasMatch(due);
-    final instant = explicitZone
-        ? date.toUtc()
-        : DateTime.utc(
-            date.year,
-            date.month,
-            date.day,
-            date.hour,
-            date.minute,
-            date.second,
-          ).subtract(const Duration(hours: 8));
-    return instant.isBefore(DateTime.now().toUtc());
   }
 }

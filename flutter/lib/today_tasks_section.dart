@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'application/local_tasks.dart';
 import 'application/refresh_section.dart';
+import 'homework_projection.dart';
 import 'loading_widgets.dart';
 import 'today_action_row.dart';
 import 'today_time.dart';
@@ -29,21 +30,45 @@ class TodayTasksSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final data = section.value;
-    final pending =
-        data?.items.where((task) => !task.completed).toList() ??
-        <LocalTaskRecord>[];
+    final all = data?.items ?? <LocalTaskRecord>[];
+    final pending = all.where((task) => !task.completed).toList();
+    final completed = all.where((task) => task.completed).toList();
     final dated = pending.where((task) => todayDue(task.due) != null).toList()
       ..sort((a, b) => todayCompareDue(a.due, b.due));
     final undated = pending
         .where((task) => todayDue(task.due) == null)
         .toList();
+
+    // Top priority task is the most urgent dated task, or the first undated task if none dated.
+    final topTask = dated.isNotEmpty
+        ? dated.first
+        : (undated.isNotEmpty ? undated.first : null);
+    final otherDated = dated.isNotEmpty ? dated.skip(1).toList() : <LocalTaskRecord>[];
+    final otherUndated = dated.isEmpty && undated.isNotEmpty
+        ? undated.skip(1).toList()
+        : undated;
+
+    // We preview up to 2 secondary items (giving max 3 tasks in total on the home screen).
+    final secondaryTasks = [
+      ...otherDated,
+      ...otherUndated,
+    ].take(2).toList();
+
+    final remainingCount = pending.length - (topTask != null ? 1 : 0) - secondaryTasks.length;
+
     return TodayVisualSection(
       key: const Key('today-tasks'),
-      header: const Text('个人待办'),
+      header: TodaySectionHeader(
+        icon: CupertinoIcons.checkmark_square_fill,
+        title: '个人待办',
+        badge: pending.isNotEmpty ? '${pending.length} 项未完成' : null,
+        actionLabel: '全部',
+        onAction: () => onOpen(null),
+      ),
       footer: Text(
         data == null
             ? '仅保存于本机 · 不代表学校作业提交状态'
-            : '本机读取：${data.loadedAt.month}月${data.loadedAt.day}日 ${data.loadedAt.hour.toString().padLeft(2, '0')}:${data.loadedAt.minute.toString().padLeft(2, '0')}\n本地完成不代表学校作业已提交',
+            : '本机读取：${data.loadedAt.month}月${data.loadedAt.day}日 ${data.loadedAt.hour.toString().padLeft(2, '0')}:${data.loadedAt.minute.toString().padLeft(2, '0')}\n本地完成不代表学校作业已提交${completed.isNotEmpty ? ' · 已完成 ${completed.length} 项（已收起）' : ''}',
       ),
       children: [
         if (section.loading || section.error != null)
@@ -59,25 +84,28 @@ class TodayTasksSection extends StatelessWidget {
             key: const Key('today-open-tasks'),
             summary: true,
             title: pending.isEmpty
-                ? section.error != null
-                      ? '待办状态尚未确认'
-                      : '当前没有未完成待办'
+                ? (section.error != null
+                    ? '待办状态尚未确认'
+                    : '当前没有未完成待办')
                 : '${pending.length} 项个人待办',
             subtitle: section.error != null
                 ? '显示上次读取结果，请重试确认。'
                 : '打开待办，继续安排自己的事项',
             onTap: () => onOpen(null),
           ),
-          for (final task in dated.take(3)) _row(task),
+          if (dated.isNotEmpty) ...[
+            _row(context, dated.first, isPriority: true),
+            for (final task in dated.skip(1).take(2)) _row(context, task),
+          ],
           if (undated.isNotEmpty) ...[
             const TodayActionRow(title: '未设截止 / 时间待确认', caption: true),
-            for (final task in undated.take(2)) _row(task),
+            for (final (index, task) in undated.take(2).indexed)
+              _row(context, task, isPriority: dated.isEmpty && index == 0),
           ],
           if (data.items.any((task) => task.completed))
             TodayActionRow(
               summary: true,
-              title:
-                  '已完成 ${data.items.where((task) => task.completed).length} 项',
+              title: '已完成 ${completed.length} 项',
               subtitle: '已收起，可在个人待办中查看',
             ),
         ],
@@ -87,13 +115,24 @@ class TodayTasksSection extends StatelessWidget {
     );
   }
 
-  Widget _row(LocalTaskRecord task) => TodayActionRow(
-    key: Key('today-task-${task.id}'),
-    title: task.title,
-    status: todayDueLabel(task.due, now, localTask: true),
-    subtitle: task.sourceAssignmentId == null
-        ? '个人事项 · 未完成'
-        : '来源：学校作业 · 本地未完成',
-    onTap: () => onOpen(task.id),
-  );
+  Widget _row(BuildContext context, LocalTaskRecord task, {bool isPriority = false}) {
+    final status = _taskStatus(task);
+    final tint = homeworkDeadlineTint(task.due, now).resolveFrom(context);
+    return TodayActionRow(
+      key: Key('today-task-${task.id}'),
+      emphasized: isPriority,
+      title: task.title,
+      status: status,
+      statusColor: (task.due != null && task.due!.trim().isNotEmpty) ? tint : null,
+      subtitle: task.sourceAssignmentId == null
+          ? '个人事项 · 未完成'
+          : '来源：学校作业 · 本地未完成',
+      onTap: () => onOpen(task.id),
+    );
+  }
+
+  String _taskStatus(LocalTaskRecord task) {
+    if (task.due == null || task.due!.trim().isEmpty) return '无截止时间';
+    return homeworkCompactDeadline(task.due, now);
+  }
 }

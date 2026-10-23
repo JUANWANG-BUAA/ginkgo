@@ -9,7 +9,9 @@ import 'apple_widgets.dart';
 import 'mirror_service.dart';
 import 'school_timestamp.dart';
 import 'application/contracts.dart';
+import 'homework_projection.dart';
 import 'homework_task_link.dart';
+import 'today_time.dart';
 
 class HomeworkDetailPage extends StatefulWidget {
   const HomeworkDetailPage({
@@ -152,6 +154,40 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
+                    if (homeworkRelativeDeadline(
+                          data?.dueAt ?? widget.item.dueAt,
+                          todaySchoolNow(DateTime.now()),
+                        ) !=
+                        null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        homeworkRelativeDeadline(
+                          data?.dueAt ?? widget.item.dueAt,
+                          todaySchoolNow(DateTime.now()),
+                        )!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: isHomeworkOverdue(
+                                data?.dueAt ?? widget.item.dueAt,
+                                todaySchoolNow(DateTime.now()),
+                              )
+                              ? AppleDesign.statusDanger.resolveFrom(context)
+                              : AppleDesign.statusPending.resolveFrom(context),
+                        ),
+                      ),
+                    ],
+                    if ((data?.dueAt ?? widget.item.dueAt)?.contains('00:00') == true) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        '提示：00:00 截止即前一天夜里 23:59:59 前必须提交完成，避免误以为当天整天仍可提交。',
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.4,
+                          color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 10),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,

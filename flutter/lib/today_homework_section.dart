@@ -34,16 +34,35 @@ class TodayHomeworkSection extends StatelessWidget {
       data?.items ?? [],
       CourseVisibilityScope.of(context),
     );
-    final pending =
-        personal.where((item) => item.status == HomeworkStatus.pending).toList()
-          ..sort((a, b) => todayCompareDue(a.dueAt, b.dueAt));
+    final clock = now ?? todaySchoolNow(DateTime.now());
+    final pending = personal
+        .where(
+          (item) =>
+              item.status == HomeworkStatus.pending &&
+              !isHomeworkOverdue(item.dueAt, clock),
+        )
+        .toList()
+      ..sort((a, b) => todayCompareDue(a.dueAt, b.dueAt));
+    final overdue = personal
+        .where(
+          (item) =>
+              item.status == HomeworkStatus.pending &&
+              isHomeworkOverdue(item.dueAt, clock),
+        )
+        .toList()
+      ..sort((a, b) => todayCompareDue(a.dueAt, b.dueAt));
     final unknown = personal.where(
       (item) => item.status == HomeworkStatus.unknown,
     );
-    final clock = now ?? todaySchoolNow(DateTime.now());
     return TodayVisualSection(
       key: const Key('today-homework'),
-      header: const Text('学校作业'),
+      header: TodaySectionHeader(
+        icon: CupertinoIcons.book_fill,
+        title: '学校作业',
+        badge: pending.isNotEmpty ? '${pending.length} 项待处理' : null,
+        actionLabel: '全部',
+        onAction: onOpen,
+      ),
       footer: const Text('个人课程作业 · 不含助教课程\n学校状态与个人待办独立；截止时间按北京时间显示'),
       children: [
         if (section.loading || section.error != null)
@@ -64,10 +83,16 @@ class TodayHomeworkSection extends StatelessWidget {
                       ? '${pending.length} 项作业待处理'
                       : section.error != null || unknown.isNotEmpty
                       ? '作业状态尚未确认'
+                      : overdue.isNotEmpty
+                      ? '没有待处理作业（已截止 ${overdue.length} 项）'
                       : '当前没有待处理作业',
-                  subtitle: unknown.isEmpty
-                      ? null
-                      : '${unknown.length} 项状态待确认，请进入作业核对',
+                  subtitle: unknown.isNotEmpty
+                      ? (overdue.isNotEmpty
+                          ? '${unknown.length} 项状态待确认 · 已截止 ${overdue.length} 项'
+                          : '${unknown.length} 项状态待确认，请进入作业核对')
+                      : overdue.isNotEmpty
+                      ? '已截止 ${overdue.length} 项 · 查看'
+                      : null,
                   onTap: onOpen,
                 ),
                 for (final item in pending.take(3)) ...[
@@ -76,7 +101,8 @@ class TodayHomeworkSection extends StatelessWidget {
                     key: Key('today-homework-item-${item.id}'),
                     title: item.title,
                     subtitle: item.courseName,
-                    status: todayDueLabel(item.dueAt, clock),
+                    status: _statusLabel(item, clock),
+                    statusColor: homeworkDeadlineTint(item.dueAt, clock).resolveFrom(context),
                     onTap: onOpenItem == null
                         ? onOpen
                         : () => onOpenItem!(item),
@@ -87,5 +113,9 @@ class TodayHomeworkSection extends StatelessWidget {
           ),
       ],
     );
+  }
+
+  String _statusLabel(HomeworkItem item, DateTime clock) {
+    return homeworkCompactDeadline(item.dueAt, clock);
   }
 }

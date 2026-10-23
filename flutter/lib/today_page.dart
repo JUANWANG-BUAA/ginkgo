@@ -402,16 +402,18 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
         header: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            TodaySectionHeader(
+              icon: CupertinoIcons.calendar_today,
+              title: '今日课程',
+              badge: data.courses.isNotEmpty ? '今天 ${data.courses.length} 节课' : null,
+              actionLabel: widget.onOpenFeature == null ? null : '完整课表',
+              onAction: () => widget.onOpenFeature?.call('schedule'),
+            ),
+            const SizedBox(height: 2),
             Text(
               dateLabel,
               style: TextStyle(
-                color: AppleDesign.statusInactive.resolveFrom(context),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              data.courses.isEmpty ? '今日课程' : '今天 ${data.courses.length} 节课',
-              style: TextStyle(
+                fontSize: 12,
                 color: AppleDesign.statusInactive.resolveFrom(context),
               ),
             ),
@@ -439,13 +441,11 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
               onRetry: () => _loadCourses(force: true),
             ),
           if (data.courses.isEmpty)
-            AppleEmptyState(
-              title: error != null ? '今日课程尚未确认' : '今天没有课程',
-              description: error != null
-                  ? '课表更新失败，请刷新后再确认今天的安排。'
-                  : '当前课表中没有当天课程，可查看完整课表安排学习。',
-              action: widget.onOpenFeature == null ? null : '查看完整课表',
-              onAction: () => widget.onOpenFeature?.call('schedule'),
+            _TodayCourseEmpty(
+              error: error,
+              onOpenSchedule: widget.onOpenFeature == null
+                  ? null
+                  : () => widget.onOpenFeature?.call('schedule'),
             ),
           if (data.courses.isNotEmpty)
             TodayCourseFocus(
@@ -625,6 +625,167 @@ class _TodayCourseRow extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _TodayCourseEmpty extends StatelessWidget {
+  const _TodayCourseEmpty({
+    required this.error,
+    required this.onOpenSchedule,
+  });
+
+  final String? error;
+  final VoidCallback? onOpenSchedule;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = CupertinoTheme.of(context).primaryColor;
+    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
+    final isLargeText = MediaQuery.textScalerOf(context).scale(1) > 1.3;
+
+    if (isLargeText) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: isDark ? 0.16 : 0.09),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      error != null
+                          ? CupertinoIcons.exclamationmark_triangle_fill
+                          : CupertinoIcons.calendar,
+                      size: 18,
+                      color: error != null
+                          ? AppleDesign.statusDanger.resolveFrom(context)
+                          : accent,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    error != null ? '今日课程尚未确认' : '今天没有课程',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              error != null
+                  ? '课表更新失败，请刷新后再确认今天的安排。'
+                  : '当前课表中没有当天课程，可查看完整课表安排学习。',
+              style: TextStyle(
+                fontSize: 13,
+                color: AppleDesign.statusInactive.resolveFrom(context),
+              ),
+            ),
+            if (onOpenSchedule != null) ...[
+              const SizedBox(height: 10),
+              CupertinoButton(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                color: accent.withValues(alpha: isDark ? 0.18 : 0.10),
+                borderRadius: BorderRadius.circular(8),
+                minSize: 32,
+                onPressed: onOpenSchedule,
+                child: Text(
+                  '查看完整课表',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: accent,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: isDark ? 0.16 : 0.09),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Icon(
+                error != null
+                    ? CupertinoIcons.exclamationmark_triangle_fill
+                    : CupertinoIcons.calendar,
+                size: 22,
+                color: error != null
+                    ? AppleDesign.statusDanger.resolveFrom(context)
+                    : accent,
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  error != null ? '今日课程尚未确认' : '今天没有课程',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  error != null
+                      ? '课表更新失败，请刷新后再确认今天的安排。'
+                      : '当前课表中没有当天课程，可查看完整课表安排学习。',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppleDesign.statusInactive.resolveFrom(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (onOpenSchedule != null) ...[
+            const SizedBox(width: 8),
+            CupertinoButton(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              color: accent.withValues(alpha: isDark ? 0.18 : 0.10),
+              borderRadius: BorderRadius.circular(8),
+              minSize: 32,
+              onPressed: onOpenSchedule,
+              child: Text(
+                '查看完整课表',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: accent,
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

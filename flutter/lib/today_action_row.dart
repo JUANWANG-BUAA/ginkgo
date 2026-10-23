@@ -9,6 +9,7 @@ class TodayActionRow extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.status,
+    this.statusColor,
     this.onTap,
     this.emphasized = false,
     this.summary = false,
@@ -16,6 +17,7 @@ class TodayActionRow extends StatelessWidget {
   });
   final String title;
   final String? subtitle, status;
+  final Color? statusColor;
   final VoidCallback? onTap;
   final bool emphasized;
 
@@ -26,11 +28,12 @@ class TodayActionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = CupertinoTheme.of(context).primaryColor;
+    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
     final content = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 48),
       child: Padding(
         padding: emphasized
-            ? GinkgoSpacing.edgeInsetsCard
+            ? const EdgeInsets.symmetric(horizontal: 16, vertical: 14)
             : GinkgoSpacing.edgeInsetsListTile,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -44,8 +47,13 @@ class TodayActionRow extends StatelessWidget {
                       status!,
                       style: TextStyle(
                         fontSize: 13,
-                        color: AppleDesign.statusInactive.resolveFrom(context),
-                        fontWeight: FontWeight.w500,
+                        color: statusColor ??
+                            (emphasized
+                                ? accent
+                                : AppleDesign.statusInactive.resolveFrom(context)),
+                        fontWeight: (emphasized || statusColor != null)
+                            ? FontWeight.w600
+                            : FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -90,8 +98,20 @@ class TodayActionRow extends StatelessWidget {
         ),
       ),
     );
+    final cardTint = statusColor ?? accent;
     final surface = emphasized
-        ? ColoredBox(color: accent.withValues(alpha: 0.06), child: content)
+        ? Container(
+            decoration: BoxDecoration(
+              color: cardTint.withValues(alpha: isDark ? 0.14 : 0.08),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: cardTint.withValues(alpha: isDark ? 0.26 : 0.18),
+                width: 1.0,
+              ),
+            ),
+            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            child: content,
+          )
         : content;
     return MergeSemantics(
       child: Semantics(

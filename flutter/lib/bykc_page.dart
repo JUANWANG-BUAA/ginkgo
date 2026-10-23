@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 
+import 'apple_design.dart';
 import 'apple_widgets.dart';
 import 'long_page_scroll.dart';
 import 'bykc_detail_page.dart';
@@ -265,7 +266,15 @@ class _BykcPageState extends State<BykcPage> {
                           spacing: 8,
                           runSpacing: 6,
                           children: [
-                            BykcLabel(text: categoryOf(course)),
+                            BykcLabel(
+                              text: categoryOf(course),
+                              tint: switch (categoryOf(course)) {
+                                '美育' => AppleDesign.resourcePurple.resolveFrom(context),
+                                '劳动教育' => AppleDesign.resourceTeal.resolveFrom(context),
+                                '安全健康' => AppleDesign.resourceBlue.resolveFrom(context),
+                                _ => CupertinoTheme.of(context).primaryColor,
+                              },
+                            ),
                             if (record == null && details['selected'] == true)
                               const BykcLabel(text: '已选', positive: true),
                             if (record == null &&
@@ -274,6 +283,13 @@ class _BykcPageState extends State<BykcPage> {
                               BykcLabel(
                                 text:
                                     '人数 ${details['enrolled'] ?? '—'} / ${details['capacity'] ?? '未提供'}',
+                                tint: (details['enrolled'] is num &&
+                                        details['capacity'] is num &&
+                                        (details['enrolled'] as num) >= (details['capacity'] as num))
+                                    ? AppleDesign.statusDanger.resolveFrom(context)
+                                    : (details['enrolled'] is num && (details['enrolled'] as num) > 0)
+                                    ? AppleDesign.statusPending.resolveFrom(context)
+                                    : null,
                               ),
                           ],
                         ),

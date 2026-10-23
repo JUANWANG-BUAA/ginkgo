@@ -129,35 +129,70 @@ class _WorkspaceShortcutsState extends State<WorkspaceShortcuts>
     required IconData icon,
     required VoidCallback? action,
     bool? selected,
-  }) => Semantics(
-    selected: selected,
-    child: CupertinoButton(
-      key: ValueKey(
-        selected == null ? 'shortcut-open-$id' : 'shortcut-choice-$id',
-      ),
-      minimumSize: const Size(48, 48),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      onPressed: action,
-      child: Row(
-        children: [
-          ExcludeSemantics(child: Icon(icon, size: 22)),
-          const SizedBox(width: 12),
-          Expanded(child: Text(title, textAlign: TextAlign.start)),
-          const SizedBox(width: 12),
-          ExcludeSemantics(
-            child: Icon(
-              selected == null
-                  ? CupertinoIcons.chevron_right
-                  : selected
-                  ? CupertinoIcons.checkmark_circle_fill
-                  : CupertinoIcons.circle,
-              size: 20,
+  }) {
+    final accent = CupertinoTheme.of(context).primaryColor;
+    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
+    return Semantics(
+      selected: selected,
+      child: CupertinoButton(
+        key: ValueKey(
+          selected == null ? 'shortcut-open-$id' : 'shortcut-choice-$id',
+        ),
+        minimumSize: const Size(48, 48),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        onPressed: action,
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: selected == true
+                    ? accent.withValues(alpha: isDark ? 0.28 : 0.18)
+                    : accent.withValues(alpha: isDark ? 0.16 : 0.09),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: ExcludeSemantics(
+                  child: Icon(
+                    icon,
+                    size: 20,
+                    color: accent,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: CupertinoColors.label.resolveFrom(context),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ExcludeSemantics(
+              child: Icon(
+                selected == null
+                    ? CupertinoIcons.chevron_right
+                    : selected
+                    ? CupertinoIcons.checkmark_circle_fill
+                    : CupertinoIcons.circle,
+                size: 20,
+                color: selected == true
+                    ? accent
+                    : CupertinoColors.tertiaryLabel.resolveFrom(context),
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 
   Widget _message(String text) =>
       Padding(padding: const EdgeInsets.all(16), child: Text(text));
@@ -172,7 +207,13 @@ class _WorkspaceShortcutsState extends State<WorkspaceShortcuts>
     final editable = _preferences.ready && !_preferences.saving;
     return TodayVisualSection(
       key: const Key('workspace-shortcuts'),
-      header: const Text('常用服务'),
+      header: TodaySectionHeader(
+        icon: CupertinoIcons.square_grid_2x2_fill,
+        title: '常用服务',
+        badge: draft != null ? '编辑中' : null,
+        actionLabel: draft == null && editable ? '编辑' : null,
+        onAction: editable ? () => setState(() => _draft = List.of(selected)) : null,
+      ),
       footer: Text(
         _preferences.memoryOnly
             ? '当前仅临时记忆，不写入本机偏好。'
