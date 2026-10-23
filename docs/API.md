@@ -789,6 +789,8 @@ Rust/Flutter镜像采用借用共享transport的独立Session，复制用户原�
 
 ## 6C. 智慧校车（脚本静态＋本人查询页面观察，未购票）⚠️
 
+> **2026-10-23 Android 处置**：只接入**官方公开时刻表外链**（`https://www.buaa.edu.cn/info/1065/1762.htm`，`服务`页“校车时刻表”，二次确认后交给系统浏览器），并在对话框里写明“不代理购票、不显示实时余票（查询协议未取证）”。动态 `/wechat/ShiftsSearch` 不接入：缺完整单次事务形状、身份资格与退改语义证据，不摆空壳卡片、不把班次卡做成购票入口。
+
 站点 `https://zhihuixiaoche.buaa.edu.cn/wechat/indexPage`。同页脚本：POST `/wechat/ShiftsSearch`，form字段 up_origin_name/up_terminal_name/shifts_date/act=search，动态CSRF头；按 data.success和list读取。用户查询后页面显示12班及差异余票，**尚未捕获该单次事务的完整网络字段形状，method/body来自脚本，不把UI成功等同完整协议验收**。
 
 非摆渡余票先 open_seat_num-student_num-teacher_num，再按type/is_parttime/currentTime/ticket_all_minute/seat_retain_num分支扣保留，负数夹0；摆渡显示“摆渡车”，不显示计算值0。此为当前身份展示算法，匿名可见性、资格、票价、时间单位／时区、所有放票分支未验。时刻表通知发布日和适用日分开，不用计划人数代余票。POST退款、购票、订单、团体票等未调用。详见[审计 §6](_audit/2026-10-23-ibuaa-protocol-research.md)。
