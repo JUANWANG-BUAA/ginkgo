@@ -21,7 +21,7 @@ class _WorkspaceTabMotionState extends State<WorkspaceTabMotion>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _animation = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 210),
+    duration: const Duration(milliseconds: 230),
     value: 1,
   );
   late int _index;
@@ -132,8 +132,8 @@ class WorkspaceTabTransition extends StatelessWidget {
             ? Curves.easeOutCubic.transform(motion._animation.value)
             : 1.0;
         return Transform.translate(
-          offset: Offset(16 * motion._direction * (1 - progress), 0),
-          child: Opacity(opacity: 0.86 + 0.14 * progress, child: child),
+          offset: Offset(18 * motion._direction * (1 - progress), 0),
+          child: Opacity(opacity: 0.94 + 0.06 * progress, child: child),
         );
       },
     );

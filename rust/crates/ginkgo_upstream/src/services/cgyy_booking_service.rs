@@ -34,8 +34,14 @@ pub(crate) struct BookingContext {
     id: String,
     owner: BookingOwner,
     booking: BookingRequest,
+    /// Signed `reservationOrderJson` produced from the prepare-day response.
     selections: String,
+    /// Day `token` (order token) that the draft and captcha were built with.
     reservation_token: String,
+    /// Draft `weekStartDate` taken from the day response; empty means omit.
+    week_start: String,
+    /// Draft trade number, kept only to compare the submit response.
+    trade_no: String,
     captcha_token: String,
     secret: String,
     created: Instant,
@@ -165,13 +171,18 @@ fn purposes(value: &Value) -> Vec<Purpose> {
         .collect()
 }
 fn base_form(context: &BookingContext) -> BTreeMap<String, String> {
-    BTreeMap::from([
+    let mut form = BTreeMap::from([
         ("venueSiteId".into(), context.booking.site_id.to_string()),
         ("reservationDate".into(), context.booking.date.clone()),
-        ("weekStartDate".into(), context.booking.date.clone()),
         ("reservationOrderJson".into(), context.selections.clone()),
         ("token".into(), context.reservation_token.clone()),
-    ])
+    ]);
+    // Official drafts take `weekStartDate` from the day response. A missing
+    // anchor is omitted instead of being signed with the requested date.
+    if !context.week_start.is_empty() {
+        form.insert("weekStartDate".into(), context.week_start.clone());
+    }
+    form
 }
 fn encrypt(text: &str, secret: &str) -> Result<String, AppError> {
     use aes::{Aes128, Aes192, Aes256};
@@ -196,6 +207,35 @@ fn encrypt(text: &str, secret: &str) -> Result<String, AppError> {
         _ => return Err(AppError::changed()),
     }
     Ok(base64::engine::general_purpose::STANDARD.encode(bytes))
+}
+/// Upstream captcha coordinate: `310 * offset / width` (§6B.1). Raw device or
+/// image pixels never travel as the protocol value; the pair is normalised and
+/// clamped to the documented range.
+fn protocol_point(offset: f64, width: Option<f64>) -> Result<String, AppError> {
+    if !offset.is_finite() || !(0.0..=10_000.0).contains(&offset) || offset <= 0.0 {
+        return Err(AppError::invalid());
+    }
+    let value = match width {
+        None => offset,
+        Some(width) if width.is_finite() && width > 0.0 && width <= 10_000.0 => {
+            310.0 * offset / width
+        }
+        Some(_) => return Err(AppError::invalid()),
+    };
+    if !(0.0..=310.0).contains(&value) {
+        return Err(AppError::invalid());
+    }
+    // Two decimals keep the signed form stable without claiming server precision.
+    Ok(format!("{}", (value * 100.0).round() / 100.0))
+}
+/// A trade number only narrows the match when both sides report one; an absent
+/// value stays unverified instead of being treated as a mismatch.
+fn trade_matches(draft: &str, response: &str, row: &Value) -> bool {
+    let row = row["tradeNo"].as_str().unwrap_or_default();
+    [draft, response]
+        .into_iter()
+        .filter(|value| !value.is_empty())
+        .all(|value| row.is_empty() || row == value)
 }
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
@@ -324,7 +364,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         });
         let mut result = CgyyActionResult::message(
             "reviewRequired",
-            "请核对以下最近20条预约；列表未覆盖全部历史，请必要时到学校页面核实",
+            "请核对以下最近的有界分页预约（最多 20 条）；列表未覆盖全部历史，请必要时到学校页面核实",
         );
         result.review = Some(BookingReview { id, orders });
         Ok(result)
@@ -401,6 +441,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         let reservation_token = text(&data(&day)?["token"])
             .ok_or_else(AppError::changed)?
             .to_owned();
+        let week_start = crate::features::cgyy::week_start(&day).unwrap_or_default();
         self.check_booking_owner(owner)?;
         let mut context = BookingContext {
             owner: owner.clone(),
@@ -408,6 +449,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             booking,
             selections: selected,
             reservation_token,
+            week_start,
+            trade_no: String::new(),
             captcha_token: String::new(),
             secret: String::new(),
             created: Instant::now(),
@@ -421,9 +464,16 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             &token,
         )
         .await;
-        if let Err(error) = draft {
-            return Ok(self.booking_failure(owner, error));
-        }
+        let draft = match draft {
+            Ok(draft) => draft,
+            Err(error) => return Ok(self.booking_failure(owner, error)),
+        };
+        // The draft response is consumed rather than discarded: its trade
+        // number is kept for the submit comparison. Its own `token` must not
+        // replace the day order token, which is what the captcha chain binds.
+        context.trade_no = text(&data(&draft)?["tradeNo"])
+            .unwrap_or_default()
+            .to_owned();
         self.check_booking_owner(owner)?;
         let timestamp = chrono::DateTime::parse_from_rfc3339(&super::cache::now_shanghai())
             .map_err(|_| AppError::unavailable())?
@@ -488,7 +538,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         &self,
         owner: &BookingOwner,
         id: &str,
-        x: i32,
+        x: f64,
+        width: Option<f64>,
     ) -> Result<CgyyActionResult, AppError> {
         // Consume before awaiting. Repeated callbacks cannot replay this challenge.
         let context = self
@@ -498,12 +549,12 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             .take()
             .ok_or_else(AppError::invalid)?;
         self.check_booking_owner(&context.owner)?;
-        if context.id != id
-            || context.created.elapsed() > Duration::from_secs(120)
-            || !(0..=310).contains(&x)
-        {
+        if context.id != id || context.created.elapsed() > Duration::from_secs(120) {
             return Err(AppError::invalid());
         }
+        // The upstream coordinate is `310 * offset / width`, never raw device
+        // pixels. `width` absent means the caller already normalised.
+        let x = protocol_point(x, width)?;
         let token = self.cgyy_token(false).await?;
         let point = format!("{{\"x\":{x},\"y\":5}}");
         self.set_booking_pending(owner, true)?;
@@ -553,6 +604,17 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 "所选空档已变化，请重新选择；未提交预约",
             ));
         }
+        // The re-check is kept, but a rotated day order token means the draft,
+        // captcha and this read no longer share one chain. Submitting with the
+        // old token would be a doomed write and swapping it silently would be
+        // unverified, so stop before any POST.
+        if text(&data(&latest)?["token"]).is_some_and(|t| t != context.reservation_token) {
+            self.set_booking_pending(owner, false)?;
+            return Ok(CgyyActionResult::message(
+                "notSubmitted",
+                "学校已刷新本次预约令牌，请返回后重新准备；未提交预约",
+            ));
+        }
         let mut form = base_form(&context);
         let b = &context.booking;
         form.extend(BTreeMap::from([
@@ -588,18 +650,33 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             };
         self.snapshots.cgyy.lock().clear();
         self.check_booking_owner(owner)?;
-        let order_id = number(&data(&response)?["orderInfo"]["id"]);
+        let body = data(&response)?;
+        let order_id = number(&body["orderInfo"]["id"]);
+        let response_trade = text(&body["tradeNo"])
+            .or_else(|| text(&body["orderInfo"]["tradeNo"]))
+            .unwrap_or_default();
         let readback = cgyy_http::load(&self.session, "orders", 0, "", Some(&token)).await;
+        // Identity is checked on the visible row, not inferred from a response id
+        // alone: the row must carry the requested reservation date and, when the
+        // draft or the response names a trade number, the same one.
         if let (Some(id), Ok(readback)) = (order_id, readback) {
             self.check_booking_owner(owner)?;
-            if crate::features::cgyy::orders(&readback)?
-                .iter()
-                .any(|o| o.id == id)
-            {
+            let root = data(&readback)?;
+            let matched = root["content"]
+                .as_array()
+                .or_else(|| root["list"].as_array())
+                .is_some_and(|rows| {
+                    rows.iter().any(|row| {
+                        number(&row["id"]) == Some(id)
+                            && text(&row["reservationDate"]) == Some(context.booking.date.as_str())
+                            && trade_matches(&context.trade_no, response_trade, row)
+                    })
+                });
+            if matched {
                 self.set_booking_pending(owner, false)?;
                 return Ok(CgyyActionResult::message(
                     "accepted",
-                    "已查回预约记录，请在我的预约查看审批状态",
+                    "已查回本次预约记录，请在我的预约查看审批状态",
                 ));
             }
         }
@@ -712,9 +789,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CgyyMutationSource for 
                 self.booking_options(&owner, site_id, &date).await
             }
             CgyyCommand::Prepare { booking } => self.prepare_booking(&owner, booking).await,
-            CgyyCommand::Submit { challenge_id, x } => {
-                self.submit_booking(&owner, &challenge_id, x).await
-            }
+            CgyyCommand::Submit {
+                challenge_id,
+                x,
+                width,
+            } => self.submit_booking(&owner, &challenge_id, x, width).await,
             CgyyCommand::Cancel { order_id } => self.cancel_booking(&owner, order_id).await,
             _ => unreachable!(),
         };
@@ -745,5 +824,72 @@ mod tests {
         value["data"]["reservationDateSpaceInfo"]["2026-10-20"][0]["1"]["takeUp"] = json!(true);
         assert!(choices(&value, "2026-10-20").expect("fixture").is_empty());
         assert!(choices(&value, "2026-10-21").is_err());
+    }
+    fn context(week_start: &str) -> BookingContext {
+        BookingContext {
+            id: "fixture".into(),
+            owner: BookingOwner {
+                account: "synthetic".into(),
+                generation: 1,
+            },
+            booking: BookingRequest {
+                site_id: 1,
+                date: "2026-10-25".into(),
+                space_id: 1,
+                time_ids: vec![1],
+                phone: "13800000000".into(),
+                theme: "合成活动".into(),
+                purpose_type: 1,
+                joiner_num: 2,
+                activity_content: "合成测试".into(),
+                joiners: "合成人员".into(),
+                philosophy: false,
+                off_school: false,
+            },
+            selections: "[{\"spaceId\":1,\"timeId\":1,\"venueSpaceGroupId\":null}]".into(),
+            reservation_token: "A".into(),
+            week_start: week_start.into(),
+            trade_no: String::new(),
+            captcha_token: String::new(),
+            secret: String::new(),
+            created: Instant::now(),
+        }
+    }
+    #[test]
+    fn draft_form_omits_a_missing_week_start_instead_of_guessing() {
+        let present = base_form(&context("2026-10-19"));
+        assert_eq!(
+            present.get("weekStartDate").map(String::as_str),
+            Some("2026-10-19")
+        );
+        // The requested date is not a substitute for the day-advertised anchor.
+        let missing = base_form(&context(""));
+        assert!(!missing.contains_key("weekStartDate"));
+        assert_eq!(
+            missing.get("reservationDate").map(String::as_str),
+            Some("2026-10-25")
+        );
+        assert_eq!(missing.get("token").map(String::as_str), Some("A"));
+    }
+    #[test]
+    fn captcha_coordinates_are_normalised_to_the_protocol_range() {
+        // Official: x = 310 * offset / width, fractional results allowed.
+        assert_eq!(protocol_point(165.0, Some(330.0)).expect("half"), "155");
+        assert_eq!(protocol_point(100.0, Some(320.0)).expect("scaled"), "96.88");
+        // Already normalised values pass through unchanged.
+        assert_eq!(protocol_point(155.0, None).expect("protocol"), "155");
+        // Out-of-range, zero and non-finite inputs never reach the wire.
+        for (offset, width) in [
+            (0.0, None),
+            (-1.0, None),
+            (1.0, Some(0.0)),
+            (1.0, Some(-330.0)),
+            (f64::NAN, None),
+            (f64::INFINITY, None),
+            (1000.0, Some(1.0)),
+            (310.1, None),
+        ] {
+            assert!(protocol_point(offset, width).is_err(), "{offset}/{width:?}");
+        }
     }
 }

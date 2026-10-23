@@ -795,7 +795,10 @@ class _CgyyCaptchaPageState extends State<_CgyyCaptchaPage> {
         final response = await widget.gateway.executeCgyy({
           'action': 'submit',
           'challenge_id': widget.challenge['id'],
-          'x': x.round(),
+          // Device/image pixels are normalized to the 310-wide protocol
+          // coordinate by Rust; the width travels with the offset.
+          'x': x,
+          'width': width,
         });
         if (response.payload != null && response.failure == null) {
           final result = jsonDecode(response.payload!) as Map<String, dynamic>;

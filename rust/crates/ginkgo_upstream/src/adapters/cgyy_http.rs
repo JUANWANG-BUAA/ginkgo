@@ -172,6 +172,14 @@ pub async fn login<T: HttpTransport>(
         .map(str::to_owned)
         .ok_or_else(AppError::changed)
 }
+const PAGE: &str = "page";
+const SIZE: &str = "size";
+/// Official mobile page size for `/api/orders/mine` (§6B.1).
+pub const ORDERS_PAGE_SIZE: i64 = 5;
+/// Hard bound on the pages one read may walk. This is deliberately small: a
+/// short visible history is reported as such instead of scanning everything.
+pub const ORDERS_MAX_PAGES: i64 = 4;
+
 pub async fn load<T: HttpTransport>(
     session: &Session<T>,
     kind: &str,
@@ -195,10 +203,10 @@ pub async fn load<T: HttpTransport>(
                 ("venueSiteId", site.to_string()),
             ],
         ),
-        "orders" => (
-            "/api/orders/mine",
-            vec![("page", "1".into()), ("size", "20".into())],
-        ),
+        "orders" => {
+            let token = token.ok_or_else(AppError::invalid)?;
+            return read_orders(session, token).await;
+        }
         _ => return Err(AppError::invalid()),
     };
     decode(
@@ -211,6 +219,80 @@ pub async fn load<T: HttpTransport>(
         ),
     )
     .await
+}
+
+/// One explicit `page`/`size` orders read. Callers own the bounded paging loop.
+pub async fn load_orders<T: HttpTransport>(
+    session: &Session<T>,
+    page: i64,
+    size: i64,
+    token: &str,
+) -> Result<Value, AppError> {
+    if page < 0 || !(1..=50).contains(&size) {
+        return Err(AppError::invalid());
+    }
+    decode(
+        session,
+        request(
+            "/api/orders/mine",
+            BTreeMap::from([
+                (PAGE.to_owned(), page.to_string()),
+                (SIZE.to_owned(), size.to_string()),
+            ]),
+            Some(token),
+            None,
+        ),
+    )
+    .await
+}
+
+/// Bounded orders read. Starts at the official page 0 / size 5 and merges at
+/// most [`ORDERS_MAX_PAGES`] pages, stopping on a short page, a reported
+/// `totalElements` or a repeated id (which means the server re-sorted between
+/// pages). The merged rows keep the raw upstream fields so cancellation and
+/// read-back checks keep their existing gates.
+pub async fn read_orders<T: HttpTransport>(
+    session: &Session<T>,
+    token: &str,
+) -> Result<Value, AppError> {
+    let mut rows: Vec<Value> = Vec::new();
+    let mut seen = std::collections::HashSet::new();
+    let mut total: Option<i64> = None;
+    for page in 0..ORDERS_MAX_PAGES {
+        let value = load_orders(session, page, ORDERS_PAGE_SIZE, token).await?;
+        let data = cgyy::envelope(&value)?;
+        let page_rows = match data["content"]
+            .as_array()
+            .or_else(|| data["list"].as_array())
+        {
+            Some(rows) => rows,
+            None => return Err(AppError::changed()),
+        };
+        total = cgyy::number(&data["totalElements"]).filter(|count| *count >= 0);
+        let mut merged = 0;
+        let mut repeated = false;
+        for row in page_rows {
+            let id = cgyy::number(&row["id"]);
+            if let Some(id) = id {
+                if !seen.insert(id) {
+                    repeated = true;
+                    break;
+                }
+            }
+            rows.push(row.clone());
+            merged += 1;
+        }
+        let short = (merged as i64) < ORDERS_PAGE_SIZE;
+        if repeated || short || total.is_some_and(|count| rows.len() as i64 >= count) {
+            break;
+        }
+    }
+    let mut data = serde_json::Map::new();
+    data.insert("content".into(), Value::Array(rows));
+    if let Some(total) = total {
+        data.insert("totalElements".into(), Value::from(total));
+    }
+    Ok(serde_json::json!({"code": 200, "data": Value::Object(data)}))
 }
 /// Signed business request; caller owns mutation confirmation and retry policy.
 pub async fn business<T: HttpTransport>(

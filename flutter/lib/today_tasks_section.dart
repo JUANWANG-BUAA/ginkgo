@@ -39,23 +39,6 @@ class TodayTasksSection extends StatelessWidget {
         .where((task) => todayDue(task.due) == null)
         .toList();
 
-    // Top priority task is the most urgent dated task, or the first undated task if none dated.
-    final topTask = dated.isNotEmpty
-        ? dated.first
-        : (undated.isNotEmpty ? undated.first : null);
-    final otherDated = dated.isNotEmpty ? dated.skip(1).toList() : <LocalTaskRecord>[];
-    final otherUndated = dated.isEmpty && undated.isNotEmpty
-        ? undated.skip(1).toList()
-        : undated;
-
-    // We preview up to 2 secondary items (giving max 3 tasks in total on the home screen).
-    final secondaryTasks = [
-      ...otherDated,
-      ...otherUndated,
-    ].take(2).toList();
-
-    final remainingCount = pending.length - (topTask != null ? 1 : 0) - secondaryTasks.length;
-
     return TodayVisualSection(
       key: const Key('today-tasks'),
       header: TodaySectionHeader(
@@ -123,7 +106,7 @@ class TodayTasksSection extends StatelessWidget {
       emphasized: isPriority,
       title: task.title,
       status: status,
-      statusColor: (task.due != null && task.due!.trim().isNotEmpty) ? tint : null,
+      statusColor: task.due.trim().isEmpty ? null : tint,
       subtitle: task.sourceAssignmentId == null
           ? '个人事项 · 未完成'
           : '来源：学校作业 · 本地未完成',
@@ -132,7 +115,7 @@ class TodayTasksSection extends StatelessWidget {
   }
 
   String _taskStatus(LocalTaskRecord task) {
-    if (task.due == null || task.due!.trim().isEmpty) return '无截止时间';
+    if (task.due.trim().isEmpty) return '无截止时间';
     return homeworkCompactDeadline(task.due, now);
   }
 }

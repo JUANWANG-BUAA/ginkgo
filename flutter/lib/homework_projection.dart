@@ -174,7 +174,7 @@ String homeworkCompactDeadline(String? dueAt, [DateTime? beijingNow]) {
       final days = diff.inDays;
       final hours = diff.inHours % 24;
       final remaining = days > 0
-          ? (hours > 0 ? '剩 ${days}天${hours}时' : '剩 $days 天')
+          ? (hours > 0 ? '剩 $days天$hours时' : '剩 $days 天')
           : '剩 $hours 小时';
       return '${dateOnly.month}/${dateOnly.day} 当天截止 · $remaining';
     }
@@ -198,7 +198,7 @@ String homeworkCompactDeadline(String? dueAt, [DateTime? beijingNow]) {
   final days = diff.inDays;
   final hours = diff.inHours % 24;
   final remaining = days > 0
-      ? (hours > 0 ? '剩 ${days}天${hours}时' : '剩 $days 天')
+      ? (hours > 0 ? '剩 $days天$hours时' : '剩 $days 天')
       : (hours > 0
           ? '仅剩 $hours 小时'
           : '仅剩 ${diff.inMinutes.clamp(1, 60)} 分钟');

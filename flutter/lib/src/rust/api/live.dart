@@ -225,6 +225,17 @@ Future<ReadOnlyResponse> executeCgyy({required String command}) =>
 Future<ReadOnlyResponse> loadDemoCgyy({required String kind}) =>
     RustLib.instance.api.crateApiLiveLoadDemoCgyy(kind: kind);
 
+/// Public OPAC search (read-only, anonymous). Payload is the projected page.
+Future<ReadOnlyResponse> loadLibraryBooks({
+  required String query,
+  required PlatformInt64 page,
+}) =>
+    RustLib.instance.api.crateApiLiveLoadLibraryBooks(query: query, page: page);
+
+/// Public holdings for one bib id; the nested JSON string never crosses the bridge.
+Future<ReadOnlyResponse> loadLibraryHoldings({required String bibId}) =>
+    RustLib.instance.api.crateApiLiveLoadLibraryHoldings(bibId: bibId);
+
 /// Public counts only. No school identity or library token is serialized.
 Future<ReadOnlyResponse> loadLibraryStats({required bool forceRefresh}) =>
     RustLib.instance.api.crateApiLiveLoadLibraryStats(

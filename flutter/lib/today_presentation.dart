@@ -147,7 +147,7 @@ class TodaySectionHeader extends StatelessWidget {
                 ),
             ],
           ),
-          if (action != null) action,
+          ?action,
         ],
       ),
     );

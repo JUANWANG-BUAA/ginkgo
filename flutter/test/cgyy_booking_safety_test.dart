@@ -418,6 +418,8 @@ void main() {
       );
       expect(command['challenge_id'], 'synthetic-challenge');
       expect(command['x'], greaterThan(0));
+      // Raw pixels never travel alone: the width is sent for normalization.
+      expect(command['width'], greaterThan(0));
       expect(
         control(tester, '确认信息并验证').onPressed,
         state == 'rejected' ? isNotNull : isNull,

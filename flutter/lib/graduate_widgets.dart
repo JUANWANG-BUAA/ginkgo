@@ -254,8 +254,11 @@ class GraduateCategoryRow extends StatelessWidget {
                 if (required != null && required > 0 && earned != null) ...[
                   AcademicProgressBar(
                     value: (earned / required).clamp(0.0, 1.0),
-                    pendingValue: progress?['pending'] != null
-                        ? ((progress!['pending'] as num) / required).clamp(0.0, 1.0)
+                    pendingValue: progress['pending'] != null
+                        ? ((progress['pending'] as num) / required).clamp(
+                            0.0,
+                            1.0,
+                          )
                         : 0.0,
                   ),
                   const SizedBox(height: 8),

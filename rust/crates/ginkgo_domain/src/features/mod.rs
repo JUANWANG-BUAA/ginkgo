@@ -7,6 +7,7 @@ pub mod grades;
 pub mod graduate;
 pub mod homework;
 pub mod library;
+pub mod library_books;
 pub mod library_stats;
 pub mod mutation;
 pub mod notices;

@@ -277,4 +277,5 @@ mod checkin;
 mod classroom;
 mod homework;
 mod library;
+mod library_books;
 mod session;

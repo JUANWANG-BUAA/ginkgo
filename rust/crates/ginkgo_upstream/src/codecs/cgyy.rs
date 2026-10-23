@@ -140,6 +140,27 @@ pub fn day(value: &Value, site_id: i64, date: &str) -> Result<Day, AppError> {
         spaces,
     })
 }
+/// Draft `weekStartDate`: the first date the day response advertises
+/// (`reservationDateList[0]`, falling back to `ableReservationDateList[0]`).
+/// It is never derived from the requested date; a missing or malformed value
+/// stays absent so the field is omitted instead of signed with a guess.
+pub fn week_start(value: &Value) -> Option<String> {
+    let data = envelope(value).ok()?;
+    ["reservationDateList", "ableReservationDateList"]
+        .iter()
+        .find_map(|key| {
+            let items = data.get(*key)?.as_array()?;
+            items.iter().find_map(|item| {
+                let raw = item
+                    .as_str()
+                    .or_else(|| item.get("reservationDate").and_then(Value::as_str))?
+                    .trim();
+                chrono::NaiveDate::parse_from_str(raw, "%Y-%m-%d")
+                    .ok()
+                    .map(|parsed| parsed.to_string())
+            })
+        })
+}
 /// Conservative local cancellation gate; the mutation service rechecks fresh data.
 pub(crate) fn can_cancel(row: &Value) -> bool {
     let start = chrono::NaiveDateTime::parse_from_str(
@@ -154,12 +175,20 @@ pub(crate) fn can_cancel(row: &Value) -> bool {
         && start.is_some_and(|start| now < start - chrono::Duration::hours(4))
 }
 pub fn orders(value: &Value) -> Result<Vec<Order>, AppError> {
+    order_page(value).map(|(orders, _)| orders)
+}
+/// One official orders page: the `content` rows plus `totalElements` when the
+/// server reports a usable count. Paging metadata stays a hint, never a promise
+/// that the caller has seen every historical order.
+pub fn order_page(value: &Value) -> Result<(Vec<Order>, Option<i64>), AppError> {
     let data = envelope(value)?;
     let rows = data["content"]
         .as_array()
         .or_else(|| data["list"].as_array())
         .ok_or_else(AppError::changed)?;
-    rows.iter()
+    let total = number(&data["totalElements"]).filter(|count| *count >= 0);
+    let orders = rows
+        .iter()
         .map(|row| {
             Ok(Order {
                 order_status: number(&row["orderStatus"]),
@@ -184,5 +213,61 @@ pub fn orders(value: &Value) -> Result<Vec<Order>, AppError> {
                 },
             })
         })
-        .collect()
+        .collect::<Result<Vec<_>, AppError>>()?;
+    Ok((orders, total))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    fn day_body(extra: Value) -> Value {
+        let mut data =
+            json!({"spaceTimeInfo":[],"reservationDateSpaceInfo":{"2026-10-25":[]},"token":"A"});
+        for (key, value) in extra.as_object().expect("object") {
+            data[key.as_str()] = value.clone();
+        }
+        json!({"code":200,"data":data})
+    }
+
+    #[test]
+    fn week_start_uses_the_advertised_first_date_not_the_query_date() {
+        // Official drafts take reservationDateList[0]; the requested date is
+        // only a fallback when the day response advertises nothing.
+        assert_eq!(
+            week_start(&day_body(
+                json!({"reservationDateList":["2026-10-19","2026-10-26"]})
+            )),
+            Some("2026-10-19".into())
+        );
+        assert_eq!(
+            week_start(&day_body(json!({"ableReservationDateList":["2026-10-12"]}))),
+            Some("2026-10-12".into())
+        );
+        assert_eq!(week_start(&day_body(json!({}))), None);
+        // Malformed or empty anchors are never signed.
+        assert_eq!(
+            week_start(&day_body(json!({"reservationDateList":["", "下周"]}))),
+            None
+        );
+        assert_eq!(
+            week_start(&day_body(json!({"reservationDateList":["2026-13-01"]}))),
+            None
+        );
+    }
+
+    #[test]
+    fn order_page_reports_the_visible_count_without_claiming_history() {
+        let page = json!({"code":200,"data":{
+            "content":[{"id":3,"orderStatus":1,"reservationDate":"2026-10-25"}],
+            "totalElements":41
+        }});
+        let (orders, total) = order_page(&page).expect("page");
+        assert_eq!(orders.len(), 1);
+        assert_eq!(orders[0].id, 3);
+        assert_eq!(total, Some(41));
+        let (_, missing) = order_page(&json!({"code":200,"data":{"content":[]}})).expect("page");
+        assert_eq!(missing, None);
+    }
 }

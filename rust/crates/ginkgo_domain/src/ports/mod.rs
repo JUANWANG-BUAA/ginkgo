@@ -21,5 +21,7 @@ mod cgyy;
 pub use cgyy::*;
 mod library_stats;
 pub use library_stats::*;
+mod library_books;
+pub use library_books::*;
 mod outcome;
 pub use outcome::*;

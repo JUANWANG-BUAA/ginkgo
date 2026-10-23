@@ -181,6 +181,14 @@ class FailOnceNativeService implements MirrorService {
   Future<ReadOnlyResponse> libraryStats({bool forceRefresh = false}) =>
       native.libraryStats(forceRefresh: forceRefresh);
   @override
+  Future<ReadOnlyResponse> libraryBooks({
+    required String query,
+    required int page,
+  }) => native.libraryBooks(query: query, page: page);
+  @override
+  Future<ReadOnlyResponse> libraryHoldings(String bibId) =>
+      native.libraryHoldings(bibId);
+  @override
   Future<LibraryHistoryResponse> libraryHistory(
     int page, {
     bool forceRefresh = false,

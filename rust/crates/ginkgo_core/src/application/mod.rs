@@ -29,6 +29,7 @@ mod classroom;
 mod graduate;
 mod homework;
 mod library;
+mod library_books;
 mod library_stats;
 mod notices;
 mod session;

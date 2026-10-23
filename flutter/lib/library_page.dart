@@ -5,6 +5,7 @@ import 'apple_design.dart';
 import 'mirror_service.dart';
 import 'mutation_dialog.dart';
 import 'library_history_page.dart';
+import 'library_books_page.dart';
 import 'library_controller.dart';
 import 'library_stats_page.dart';
 import 'resource_meter.dart';
@@ -129,6 +130,15 @@ class _LibraryPageState extends State<LibraryPage> {
                   leading: const Icon(CupertinoIcons.person_2),
                   trailing: const CupertinoListTileChevron(),
                   onTap: () => _push(LibraryStatsPage(service: widget.service)),
+                ),
+                AppleListTile(
+                  key: const Key('library-books'),
+                  title: const Text('查书目与馆藏'),
+                  subtitle: const Text('公开目录检索 · 复本状态'),
+                  leading: const Icon(CupertinoIcons.book),
+                  trailing: const CupertinoListTileChevron(),
+                  onTap: () =>
+                      _push(LibraryBooksPage(service: widget.service)),
                 ),
               ],
             ),

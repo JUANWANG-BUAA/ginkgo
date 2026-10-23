@@ -284,6 +284,16 @@ pub fn load_demo_cgyy(kind: String) -> ReadOnlyResponse {
     utilities::load_demo_cgyy(kind)
 }
 
+/// Public OPAC search (read-only, anonymous). Payload is the projected page.
+pub async fn load_library_books(query: String, page: i64) -> ReadOnlyResponse {
+    utilities::load_library_books(query, page).await
+}
+
+/// Public holdings for one bib id; the nested JSON string never crosses the bridge.
+pub async fn load_library_holdings(bib_id: String) -> ReadOnlyResponse {
+    utilities::load_library_holdings(bib_id).await
+}
+
 /// Public counts only. No school identity or library token is serialized.
 pub async fn load_library_stats(force_refresh: bool) -> ReadOnlyResponse {
     library::load_library_stats(force_refresh).await

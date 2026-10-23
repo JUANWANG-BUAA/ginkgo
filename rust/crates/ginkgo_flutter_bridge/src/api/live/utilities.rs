@@ -89,6 +89,26 @@ pub(super) fn load_demo_cgyy(kind: String) -> ReadOnlyResponse {
     read_only_value(ginkgo_runtime::demo::demo_campus::load_demo_cgyy(kind))
 }
 
+/// Public OPAC search. Read-only, anonymous and bounded by the service.
+pub(super) async fn load_library_books(query: String, page: i64) -> ReadOnlyResponse {
+    let _access = SESSION_ACCESS.read().await;
+    let result = match service() {
+        Ok(service) => service.search_library_books(query, page).await,
+        Err(error) => Err(error),
+    };
+    read_only_value(result)
+}
+
+/// Public holdings for one bib id. The nested JSON string is decoded in Rust.
+pub(super) async fn load_library_holdings(bib_id: String) -> ReadOnlyResponse {
+    let _access = SESSION_ACCESS.read().await;
+    let result = match service() {
+        Ok(service) => service.load_book_holdings(bib_id).await,
+        Err(error) => Err(error),
+    };
+    read_only_value(result)
+}
+
 pub(super) async fn check_android_update(current: String) -> ReadOnlyResponse {
     read_only_value(ginkgo_runtime::check_update(&current).await)
 }

@@ -19,13 +19,31 @@ pub struct BookingRequest {
 #[derive(Deserialize)]
 #[serde(tag = "action", rename_all = "camelCase")]
 pub enum CgyyCommand {
-    Options { site_id: i64, date: String },
-    Prepare { booking: BookingRequest },
-    Submit { challenge_id: String, x: i32 },
-    Cancel { order_id: i64 },
+    Options {
+        site_id: i64,
+        date: String,
+    },
+    Prepare {
+        booking: BookingRequest,
+    },
+    /// `x` is the jigsaw offset in the caller's own display space and `width`
+    /// the matching background width. The upstream protocol coordinate is
+    /// `310 * x / width`, so the pair is normalised instead of trusted as pixels.
+    /// Omitting `width` means `x` is already a protocol coordinate.
+    Submit {
+        challenge_id: String,
+        x: f64,
+        #[serde(default)]
+        width: Option<f64>,
+    },
+    Cancel {
+        order_id: i64,
+    },
     Status,
     Review,
-    Acknowledge { review_id: String },
+    Acknowledge {
+        review_id: String,
+    },
 }
 #[derive(Serialize)]
 pub struct BookingChoice {

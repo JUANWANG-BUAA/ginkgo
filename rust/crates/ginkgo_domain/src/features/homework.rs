@@ -28,7 +28,10 @@ pub fn parse_school_deadline(text: &str) -> Option<DateTime<chrono_tz::Tz>> {
     }
 
     // Try RFC3339 first if there is a timezone indicator
-    if trimmed.ends_with('Z') || trimmed.contains('+') || (trimmed.len() > 19 && trimmed[19..].contains('-')) {
+    if trimmed.ends_with('Z')
+        || trimmed.contains('+')
+        || (trimmed.len() > 19 && trimmed[19..].contains('-'))
+    {
         if let Ok(parsed) = DateTime::parse_from_rfc3339(trimmed) {
             return Some(parsed.with_timezone(&chrono_tz::Asia::Shanghai));
         }
@@ -46,7 +49,10 @@ pub fn parse_school_deadline(text: &str) -> Option<DateTime<chrono_tz::Tz>> {
 
     for fmt in formats {
         if let Ok(naive) = NaiveDateTime::parse_from_str(trimmed, fmt) {
-            if let Some(instant) = chrono_tz::Asia::Shanghai.from_local_datetime(&naive).single() {
+            if let Some(instant) = chrono_tz::Asia::Shanghai
+                .from_local_datetime(&naive)
+                .single()
+            {
                 return Some(instant);
             }
         }
@@ -85,8 +91,9 @@ pub fn classify_deadline(
         if let Ok(date) = NaiveDate::parse_from_str(text, "%Y-%m-%d") {
             if let Some(next_day) = date.succ_opt() {
                 if let Some(next_midnight) = next_day.and_hms_opt(0, 0, 0) {
-                    if let Some(threshold) =
-                        chrono_tz::Asia::Shanghai.from_local_datetime(&next_midnight).single()
+                    if let Some(threshold) = chrono_tz::Asia::Shanghai
+                        .from_local_datetime(&next_midnight)
+                        .single()
                     {
                         return if beijing_now < threshold {
                             HomeworkDeadlineStatus::Active
@@ -112,10 +119,7 @@ pub fn classify_deadline(
     HomeworkDeadlineStatus::Invalid
 }
 
-pub fn is_homework_overdue(
-    due_at: Option<&str>,
-    beijing_now: DateTime<chrono_tz::Tz>,
-) -> bool {
+pub fn is_homework_overdue(due_at: Option<&str>, beijing_now: DateTime<chrono_tz::Tz>) -> bool {
     classify_deadline(due_at, beijing_now) == HomeworkDeadlineStatus::Overdue
 }
 
@@ -175,7 +179,12 @@ mod tests {
 
     fn beijing(y: i32, m: u32, d: u32, h: u32, min: u32, s: u32) -> DateTime<chrono_tz::Tz> {
         chrono_tz::Asia::Shanghai
-            .from_local_datetime(&NaiveDate::from_ymd_opt(y, m, d).unwrap().and_hms_opt(h, min, s).unwrap())
+            .from_local_datetime(
+                &NaiveDate::from_ymd_opt(y, m, d)
+                    .unwrap()
+                    .and_hms_opt(h, min, s)
+                    .unwrap(),
+            )
             .single()
             .unwrap()
     }
@@ -183,9 +192,18 @@ mod tests {
     #[test]
     fn test_undated_and_empty() {
         let now = beijing(2026, 10, 23, 12, 0, 0);
-        assert_eq!(classify_deadline(None, now), HomeworkDeadlineStatus::Undated);
-        assert_eq!(classify_deadline(Some(""), now), HomeworkDeadlineStatus::Undated);
-        assert_eq!(classify_deadline(Some("   "), now), HomeworkDeadlineStatus::Undated);
+        assert_eq!(
+            classify_deadline(None, now),
+            HomeworkDeadlineStatus::Undated
+        );
+        assert_eq!(
+            classify_deadline(Some(""), now),
+            HomeworkDeadlineStatus::Undated
+        );
+        assert_eq!(
+            classify_deadline(Some("   "), now),
+            HomeworkDeadlineStatus::Undated
+        );
     }
 
     #[test]
@@ -193,11 +211,17 @@ mod tests {
         let deadline = Some("2026-10-23");
         // 2026-10-23 23:59:59 is still within the deadline day -> Active
         let before_midnight = beijing(2026, 10, 23, 23, 59, 59);
-        assert_eq!(classify_deadline(deadline, before_midnight), HomeworkDeadlineStatus::Active);
+        assert_eq!(
+            classify_deadline(deadline, before_midnight),
+            HomeworkDeadlineStatus::Active
+        );
 
         // 2026-10-24 00:00:00 hits the next day -> Overdue
         let at_midnight = beijing(2026, 10, 24, 0, 0, 0);
-        assert_eq!(classify_deadline(deadline, at_midnight), HomeworkDeadlineStatus::Overdue);
+        assert_eq!(
+            classify_deadline(deadline, at_midnight),
+            HomeworkDeadlineStatus::Overdue
+        );
     }
 
     #[test]
@@ -205,15 +229,24 @@ mod tests {
         let deadline = Some("2026-10-23 18:00:00");
         // 17:59:59 is before -> Active
         let before = beijing(2026, 10, 23, 17, 59, 59);
-        assert_eq!(classify_deadline(deadline, before), HomeworkDeadlineStatus::Active);
+        assert_eq!(
+            classify_deadline(deadline, before),
+            HomeworkDeadlineStatus::Active
+        );
 
         // 18:00:00 is at deadline -> now >= deadline -> Overdue
         let at = beijing(2026, 10, 23, 18, 0, 0);
-        assert_eq!(classify_deadline(deadline, at), HomeworkDeadlineStatus::Overdue);
+        assert_eq!(
+            classify_deadline(deadline, at),
+            HomeworkDeadlineStatus::Overdue
+        );
 
         // 18:00:01 is past deadline -> Overdue
         let after = beijing(2026, 10, 23, 18, 0, 1);
-        assert_eq!(classify_deadline(deadline, after), HomeworkDeadlineStatus::Overdue);
+        assert_eq!(
+            classify_deadline(deadline, after),
+            HomeworkDeadlineStatus::Overdue
+        );
     }
 
     #[test]
@@ -223,23 +256,50 @@ mod tests {
         let bjt_deadline = Some("2026-10-23T18:00:00+08:00");
 
         let before = beijing(2026, 10, 23, 17, 59, 59);
-        assert_eq!(classify_deadline(utc_deadline, before), HomeworkDeadlineStatus::Active);
-        assert_eq!(classify_deadline(bjt_deadline, before), HomeworkDeadlineStatus::Active);
+        assert_eq!(
+            classify_deadline(utc_deadline, before),
+            HomeworkDeadlineStatus::Active
+        );
+        assert_eq!(
+            classify_deadline(bjt_deadline, before),
+            HomeworkDeadlineStatus::Active
+        );
 
         let at = beijing(2026, 10, 23, 18, 0, 0);
-        assert_eq!(classify_deadline(utc_deadline, at), HomeworkDeadlineStatus::Overdue);
-        assert_eq!(classify_deadline(bjt_deadline, at), HomeworkDeadlineStatus::Overdue);
+        assert_eq!(
+            classify_deadline(utc_deadline, at),
+            HomeworkDeadlineStatus::Overdue
+        );
+        assert_eq!(
+            classify_deadline(bjt_deadline, at),
+            HomeworkDeadlineStatus::Overdue
+        );
     }
 
     #[test]
     fn test_invalid_dates_rejected_and_never_treated_as_overdue() {
         let now = beijing(2026, 10, 23, 12, 0, 0);
         // Impossible calendar dates
-        assert_eq!(classify_deadline(Some("2026-02-30"), now), HomeworkDeadlineStatus::Invalid);
-        assert_eq!(classify_deadline(Some("2026-13-01"), now), HomeworkDeadlineStatus::Invalid);
-        assert_eq!(classify_deadline(Some("2026-10-32"), now), HomeworkDeadlineStatus::Invalid);
-        assert_eq!(classify_deadline(Some("garbage-string"), now), HomeworkDeadlineStatus::Invalid);
-        assert_eq!(classify_deadline(Some("2026-10-23 25:00:00"), now), HomeworkDeadlineStatus::Invalid);
+        assert_eq!(
+            classify_deadline(Some("2026-02-30"), now),
+            HomeworkDeadlineStatus::Invalid
+        );
+        assert_eq!(
+            classify_deadline(Some("2026-13-01"), now),
+            HomeworkDeadlineStatus::Invalid
+        );
+        assert_eq!(
+            classify_deadline(Some("2026-10-32"), now),
+            HomeworkDeadlineStatus::Invalid
+        );
+        assert_eq!(
+            classify_deadline(Some("garbage-string"), now),
+            HomeworkDeadlineStatus::Invalid
+        );
+        assert_eq!(
+            classify_deadline(Some("2026-10-23 25:00:00"), now),
+            HomeworkDeadlineStatus::Invalid
+        );
 
         assert!(!is_homework_overdue(Some("2026-02-30"), now));
         assert!(!is_homework_overdue(Some("garbage-string"), now));

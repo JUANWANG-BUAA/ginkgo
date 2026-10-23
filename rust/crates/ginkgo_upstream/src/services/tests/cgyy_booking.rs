@@ -442,7 +442,8 @@ async fn captcha_context_is_consumed_and_secrets_never_cross_bridge() {
     let result = service
         .execute_cgyy(CgyyCommand::Submit {
             challenge_id: id.clone(),
-            x: 100,
+            x: 100.0,
+            width: None,
         })
         .await
         .expect("outcome");
@@ -452,7 +453,8 @@ async fn captcha_context_is_consumed_and_secrets_never_cross_bridge() {
         service
             .execute_cgyy(CgyyCommand::Submit {
                 challenge_id: id,
-                x: 100
+                x: 100.0,
+                width: None
             })
             .await
             .expect("blocked")
@@ -506,7 +508,8 @@ async fn rejected_captcha_never_submits_an_order() {
         service
             .execute_cgyy(CgyyCommand::Submit {
                 challenge_id: id.clone(),
-                x: 0
+                x: 100.0,
+                width: None
             })
             .await
             .expect("outcome")
@@ -516,7 +519,8 @@ async fn rejected_captcha_never_submits_an_order() {
     assert!(service
         .execute_cgyy(CgyyCommand::Submit {
             challenge_id: id,
-            x: 0
+            x: 0.0,
+            width: None
         })
         .await
         .is_err());
@@ -527,38 +531,56 @@ async fn rejected_captcha_never_submits_an_order() {
 }
 #[tokio::test]
 async fn acknowledged_submission_requires_matching_order_readback() {
-    let (service, _) = service(vec![
-        day(true),
-        response(json!({})),
-        challenge(),
-        response(json!({"success":true})),
-        day(true),
-        response(json!({"orderInfo":{"id":9}})),
-        response(json!({"content":[{"id":9,"orderStatus":1}]})),
-    ]);
-    let id = service
-        .execute_cgyy(CgyyCommand::Prepare { booking: booking() })
-        .await
-        .expect("prepared")
-        .challenge
-        .expect("challenge")
-        .id;
-    assert_eq!(
-        service
-            .execute_cgyy(CgyyCommand::Submit {
-                challenge_id: id,
-                x: 100
-            })
+    // Only a visible row with the same id *and* the requested reservation date
+    // confirms the write; a bare id or a different date stays uncertain.
+    for (row, expected) in [
+        (
+            json!({"id":9,"orderStatus":1,"reservationDate":"2026-10-25"}),
+            "accepted",
+        ),
+        (json!({"id":9,"orderStatus":1}), "uncertain"),
+        (
+            json!({"id":9,"orderStatus":1,"reservationDate":"2026-10-26"}),
+            "uncertain",
+        ),
+    ] {
+        let (service, _) = service(vec![
+            day(true),
+            response(json!({})),
+            challenge(),
+            response(json!({"success":true})),
+            day(true),
+            response(json!({"orderInfo":{"id":9}})),
+            response(json!({"content":[row]})),
+        ]);
+        let id = service
+            .execute_cgyy(CgyyCommand::Prepare { booking: booking() })
             .await
-            .expect("outcome")
-            .state,
-        "accepted"
-    );
-    assert!(!service
-        .cgyy_safety
-        .lock()
-        .get("synthetic")
-        .is_some_and(|s| s.pending));
+            .expect("prepared")
+            .challenge
+            .expect("challenge")
+            .id;
+        assert_eq!(
+            service
+                .execute_cgyy(CgyyCommand::Submit {
+                    challenge_id: id,
+                    x: 100.0,
+                    width: None
+                })
+                .await
+                .expect("outcome")
+                .state,
+            expected
+        );
+        assert_eq!(
+            !service
+                .cgyy_safety
+                .lock()
+                .get("synthetic")
+                .is_some_and(|s| s.pending),
+            expected == "accepted"
+        );
+    }
 }
 
 #[tokio::test]
@@ -580,7 +602,8 @@ async fn changed_slots_after_manual_captcha_do_not_submit() {
     let outcome = service
         .execute_cgyy(CgyyCommand::Submit {
             challenge_id: id,
-            x: 100,
+            x: 100.0,
+            width: None,
         })
         .await
         .expect("outcome");
@@ -727,7 +750,8 @@ async fn all_unknown_submit_results_invalidate_queries_keep_lock_and_send_once()
         let result = service
             .execute_cgyy(CgyyCommand::Submit {
                 challenge_id: id.clone(),
-                x: 100,
+                x: 100.0,
+                width: None,
             })
             .await
             .expect("unknown");
@@ -738,7 +762,8 @@ async fn all_unknown_submit_results_invalidate_queries_keep_lock_and_send_once()
             service
                 .execute_cgyy(CgyyCommand::Submit {
                     challenge_id: id,
-                    x: 100
+                    x: 100.0,
+                    width: None
                 })
                 .await
                 .expect("blocked")
@@ -1121,7 +1146,8 @@ async fn identity_change_during_submit_preserves_original_pending_and_does_not_r
     let (result, ()) = tokio::join!(
         service.execute_cgyy(CgyyCommand::Submit {
             challenge_id: id,
-            x: 100
+            x: 100.0,
+            width: None
         }),
         async {
             transport.entered.notified().await;
@@ -1373,7 +1399,8 @@ async fn unknown_submit_readback_never_unlocks_or_claims_approval() {
         let result = service
             .execute_cgyy(CgyyCommand::Submit {
                 challenge_id: id,
-                x: 100,
+                x: 100.0,
+                width: None,
             })
             .await
             .expect("unknown");
@@ -1411,7 +1438,8 @@ async fn unknown_captcha_response_preserves_protection_without_order_submit() {
             service
                 .execute_cgyy(CgyyCommand::Submit {
                     challenge_id: id,
-                    x: 100
+                    x: 100.0,
+                    width: None
                 })
                 .await
                 .expect("unknown")
@@ -1453,4 +1481,211 @@ async fn later_unknown_write_invalidates_older_successful_review_credential() {
         .await
         .is_err());
     assert!(is_pending(&service));
+}
+fn day_announcing(week: Value, group: Value) -> HttpResponse {
+    let mut row = json!({"id":1,"spaceName":"合成空间","1":{"reservationStatus":1}});
+    if let Some(group) = group.as_i64() {
+        row["venueSpaceGroupId"] = json!(group);
+    }
+    response(json!({
+        "spaceTimeInfo":[{"id":1,"beginTime":"08:00","endTime":"09:00"}],
+        "reservationDateSpaceInfo":{"2026-10-25":[row]},
+        "reservationDateList":week,
+        "token":"synthetic-reservation-token"
+    }))
+}
+fn form_field(request: &HttpRequest, key: &str) -> Option<String> {
+    url::form_urlencoded::parse(request.body.as_deref().unwrap_or_default().as_bytes())
+        .find(|(name, _)| name == key)
+        .map(|(_, value)| value.into_owned())
+}
+#[tokio::test]
+async fn draft_takes_week_start_from_the_day_response_and_signs_the_same_json() {
+    // The day response advertises a week starting 2026-10-19 while the booking
+    // itself is for 2026-10-25: the form must carry the advertised anchor.
+    let (announced, announced_transport) = service(vec![
+        day_announcing(json!(["2026-10-19"]), json!(2)),
+        response(json!({"tradeNo":"synthetic-trade"})),
+        challenge(),
+    ]);
+    announced
+        .execute_cgyy(CgyyCommand::Prepare { booking: booking() })
+        .await
+        .expect("prepared");
+    let draft = announced_transport
+        .requests()
+        .into_iter()
+        .find(|r| r.url.ends_with("/api/reservation/order/info"))
+        .expect("draft");
+    assert_eq!(
+        form_field(&draft, "weekStartDate").as_deref(),
+        Some("2026-10-19")
+    );
+    assert_eq!(
+        form_field(&draft, "reservationDate").as_deref(),
+        Some("2026-10-25")
+    );
+    assert_eq!(
+        form_field(&draft, "token").as_deref(),
+        Some("synthetic-reservation-token")
+    );
+    // Explicit-null group survives as literal JSON, not as an omitted key.
+    assert_eq!(
+        form_field(&draft, "reservationOrderJson").as_deref(),
+        Some("[{\"spaceId\":1,\"timeId\":1,\"venueSpaceGroupId\":2}]")
+    );
+    let (bare, bare_transport) = service(vec![
+        day_announcing(json!({}), json!(Value::Null)),
+        response(json!({})),
+        challenge(),
+    ]);
+    bare.execute_cgyy(CgyyCommand::Prepare { booking: booking() })
+        .await
+        .expect("prepared");
+    let draft = bare_transport
+        .requests()
+        .into_iter()
+        .find(|r| r.url.ends_with("/api/reservation/order/info"))
+        .expect("draft");
+    // No advertised week start -> the field is omitted, never the query date.
+    assert_eq!(form_field(&draft, "weekStartDate"), None);
+    assert_eq!(
+        form_field(&draft, "reservationOrderJson").as_deref(),
+        Some("[{\"spaceId\":1,\"timeId\":1,\"venueSpaceGroupId\":null}]")
+    );
+}
+#[tokio::test]
+async fn rotated_day_token_after_captcha_stops_before_any_submit() {
+    let (service, transport) = service(vec![
+        day(true),
+        response(json!({})),
+        challenge(),
+        response(json!({"success":true})),
+        // Re-check rotates the day order token instead of confirming the chain.
+        response(json!({
+            "spaceTimeInfo":[{"id":1,"beginTime":"08:00","endTime":"09:00"}],
+            "reservationDateSpaceInfo":{"2026-10-25":[{"id":1,"spaceName":"合成空间","venueSpaceGroupId":2,"1":{"reservationStatus":1}}]},
+            "token":"rotated-day-token"
+        })),
+    ]);
+    let id = service
+        .execute_cgyy(CgyyCommand::Prepare { booking: booking() })
+        .await
+        .expect("prepared")
+        .challenge
+        .expect("challenge")
+        .id;
+    let outcome = service
+        .execute_cgyy(CgyyCommand::Submit {
+            challenge_id: id,
+            x: 100.0,
+            width: Some(320.0),
+        })
+        .await
+        .expect("outcome");
+    assert_eq!(outcome.state, "notSubmitted");
+    assert!(transport
+        .requests()
+        .iter()
+        .all(|r| !r.url.ends_with("/order/submit")));
+    // No write happened, so the local protection is released.
+    assert!(!is_pending(&service));
+}
+#[tokio::test]
+async fn orders_are_read_as_bounded_official_pages() {
+    let row = |id: i64| json!({"id":id,"orderStatus":1,"reservationDate":"2026-10-25"});
+    let page = |ids: Vec<i64>, total: i64| {
+        response(json!({
+            "content": ids.into_iter().map(row).collect::<Vec<_>>(),
+            "totalElements": total
+        }))
+    };
+    let (service, transport) = service(vec![
+        page(vec![1, 2, 3, 4, 5], 11),
+        page(vec![6, 7, 8, 9, 10], 11),
+        page(vec![11], 11),
+    ]);
+    mark_pending(&service);
+    let review = service
+        .execute_cgyy(CgyyCommand::Review)
+        .await
+        .expect("review")
+        .review
+        .expect("review");
+    assert_eq!(review.orders.len(), 11);
+    let requests = transport.requests();
+    let pages: Vec<String> = requests
+        .iter()
+        .filter(|r| r.url.contains("/api/orders/mine"))
+        .map(|r| {
+            url::form_urlencoded::parse(r.url.split_once('?').expect("query").1.as_bytes())
+                .filter(|(name, _)| name == "page" || name == "size")
+                .map(|(name, value)| format!("{name}={value}"))
+                .collect::<Vec<_>>()
+                .join("&")
+        })
+        .collect();
+    // Official first request is page 0 / size 5; paging stops at totalElements.
+    assert_eq!(pages, ["page=0&size=5", "page=1&size=5", "page=2&size=5"]);
+}
+#[tokio::test]
+async fn repeated_order_id_between_pages_stops_the_walk_without_duplicates() {
+    let row = |id: i64| json!({"id":id,"orderStatus":1,"reservationDate":"2026-10-25"});
+    let first: Vec<Value> = [1, 2, 3, 4, 5].into_iter().map(row).collect();
+    let second: Vec<Value> = [5, 6].into_iter().map(row).collect();
+    let (service, transport) = service(vec![
+        response(json!({"content": first})),
+        // The server re-sorted: the first row of page 1 repeats page 0's last id.
+        response(json!({"content": second})),
+    ]);
+    mark_pending(&service);
+    let review = service
+        .execute_cgyy(CgyyCommand::Review)
+        .await
+        .expect("review")
+        .review
+        .expect("review");
+    let ids: Vec<i64> = review.orders.iter().map(|o| o.id).collect();
+    assert_eq!(ids, [1, 2, 3, 4, 5]);
+    assert_eq!(transport.request_count(), 2);
+}
+#[tokio::test]
+async fn readback_trade_number_narrows_but_never_invents_an_acknowledgement() {
+    // The draft names trade T1. Only a visible row with the same id, the same
+    // reservation date and the same trade number may be called accepted.
+    for (trade, expected) in [("T1", "accepted"), ("T2", "uncertain"), ("", "accepted")] {
+        let mut row = json!({"id":9,"orderStatus":1,"reservationDate":"2026-10-25"});
+        if !trade.is_empty() {
+            row["tradeNo"] = json!(trade);
+        }
+        let (service, _) = service(vec![
+            day(true),
+            response(json!({"tradeNo":"T1"})),
+            challenge(),
+            response(json!({"success":true})),
+            day(true),
+            response(json!({"orderInfo":{"id":9}})),
+            response(json!({"content":[row]})),
+        ]);
+        let id = service
+            .execute_cgyy(CgyyCommand::Prepare { booking: booking() })
+            .await
+            .expect("prepared")
+            .challenge
+            .expect("challenge")
+            .id;
+        assert_eq!(
+            service
+                .execute_cgyy(CgyyCommand::Submit {
+                    challenge_id: id,
+                    x: 100.0,
+                    width: None
+                })
+                .await
+                .expect("outcome")
+                .state,
+            expected,
+            "trade {trade}"
+        );
+    }
 }

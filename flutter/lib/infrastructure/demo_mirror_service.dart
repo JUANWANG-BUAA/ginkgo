@@ -141,6 +141,18 @@ final class DemoMirrorService implements MirrorService {
   Future<live.ReadOnlyResponse> libraryStats({bool forceRefresh = false}) =>
       live.loadDemoLibraryStats();
   @override
+  Future<live.ReadOnlyResponse> libraryBooks({
+    required String query,
+    required int page,
+  }) async => const live.ReadOnlyResponse(
+    payload: '{"page":1,"pageSize":20,"total":0,"actualTotal":0,'
+        '"items":[],"hasMore":false}',
+    stale: false,
+  );
+  @override
+  Future<live.ReadOnlyResponse> libraryHoldings(String bibId) async =>
+      const live.ReadOnlyResponse(payload: '[]', stale: false);
+  @override
   Future<LibraryVenuesResponse> libraryVenues({
     bool forceRefresh = false,
   }) async {

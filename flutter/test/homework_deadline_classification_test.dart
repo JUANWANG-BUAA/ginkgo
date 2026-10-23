@@ -6,7 +6,6 @@ import 'package:ginkgo_mirror/homework_page.dart';
 import 'package:ginkgo_mirror/homework_projection.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/today_homework_section.dart';
-import 'package:ginkgo_mirror/today_time.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
 

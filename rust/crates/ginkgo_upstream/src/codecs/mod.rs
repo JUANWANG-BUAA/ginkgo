@@ -14,6 +14,7 @@ pub mod tasks;
 pub mod cgyy;
 pub mod notices;
 
+pub mod library_books;
 pub mod library_stats;
 
 pub mod updates;

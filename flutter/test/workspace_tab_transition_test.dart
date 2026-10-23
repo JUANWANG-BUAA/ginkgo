@@ -84,7 +84,7 @@ void main() {
   setUp(mockLocalTaskSupportDirectory);
 
   testWidgets(
-    'first page is still; index direction, fade and 210ms completion',
+    'first page is still; index direction, fade and 230ms completion',
     (tester) async {
       phone(tester);
       final tabs = CupertinoTabController();
@@ -100,12 +100,12 @@ void main() {
         final previous = tabs.index;
         await tapTab(tester, 'tab$index');
         await tester.pump();
-        expect(displacement(tester, index), index > previous ? 16 : -16);
-        expect(opacity(tester, index), closeTo(0.86, 0.001));
+        expect(displacement(tester, index), index > previous ? 18 : -18);
+        expect(opacity(tester, index), closeTo(0.94, 0.001));
         await tester.pump(const Duration(milliseconds: 100));
-        expect(displacement(tester, index).abs(), inExclusiveRange(0, 16));
-        expect(opacity(tester, index), inExclusiveRange(0.86, 1));
-        await tester.pump(const Duration(milliseconds: 110));
+        expect(displacement(tester, index).abs(), inExclusiveRange(0, 18));
+        expect(opacity(tester, index), inExclusiveRange(0.94, 1));
+        await tester.pump(const Duration(milliseconds: 130));
         expect(displacement(tester, index), 0);
         expect(opacity(tester, index), 1);
       }
@@ -132,7 +132,7 @@ void main() {
       await tester.pumpWidget(motionHarness(tabs, preferences: preferences));
       tabs.index = 2;
       await tester.pump();
-      expect(displacement(tester, 2), 16);
+      expect(displacement(tester, 2), 18);
       await preferences.update(reduceMotion: true);
       await tester.pump();
       expect(displacement(tester, 2), 0);
@@ -167,11 +167,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 30));
       tabs.index = 1;
       await tester.pump();
-      expect(displacement(tester, 1), -16);
+      expect(displacement(tester, 1), -18);
       tabs.index = 3;
       tabs.index = 0;
       await tester.pump();
-      expect(displacement(tester, 0), -16);
+      expect(displacement(tester, 0), -18);
       await tester.pumpWidget(motionHarness(tabs, tickerEnabled: false));
       expect(displacement(tester, 0), 0);
       tabs.index = 2;
@@ -270,7 +270,7 @@ void main() {
         Navigator.of(tester.element(find.text('作业详情'))),
         same(detailNavigator),
       );
-      expect(displacement(tester, 3), -16);
+      expect(displacement(tester, 3), -18);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
       expect(find.text('作业详情'), findsNothing);

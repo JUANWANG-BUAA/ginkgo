@@ -700,7 +700,7 @@ class _TodayCourseEmpty extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 color: accent.withValues(alpha: isDark ? 0.18 : 0.10),
                 borderRadius: BorderRadius.circular(8),
-                minSize: 32,
+                minimumSize: const Size(48, 32),
                 onPressed: onOpenSchedule,
                 child: Text(
                   '查看完整课表',
@@ -773,7 +773,7 @@ class _TodayCourseEmpty extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               color: accent.withValues(alpha: isDark ? 0.18 : 0.10),
               borderRadius: BorderRadius.circular(8),
-              minSize: 32,
+              minimumSize: const Size(48, 32),
               onPressed: onOpenSchedule,
               child: Text(
                 '查看完整课表',

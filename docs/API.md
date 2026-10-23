@@ -12,6 +12,8 @@
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
 | 68 | §6 目录与本人借阅 | 旧域404被泛化为没有参考／不能进入里程碑 | 新站space.lib的公开search/hot1/new/books/holdings匿名code0；holdings是内嵌JSON字符串；本人loans仅成功空态，非空／资格仍待验 | [2026-10-23审计](_audit/2026-10-23-ibuaa-protocol-research.md) §5，原站JS hash与响应类型投影 |
+| 73 | §6 公开查书目与馆藏（已接入只读） | 只有空间预约；图书目录／馆藏无客户端 | 匿名只读检索与馆藏复本接入：POST `/opac/search`（page1/size20、`all` 词项、`idx.opac`）、GET `/opac/bibs/{bibId}/holdings`；`data.holdings` 的 JSON 字符串在 Rust 内二次解码并有大小／深度／条数上限；`code===0` 才算成功，非零码报业务拒绝而不是空列表；本人借阅／续借／预约仍不接入 | 本文件 §6.1；`codecs/library_books.rs`、`adapters/library_books_http.rs`、`services/library_books_service.rs` 与合成回归；**真实服务端字段完整性、状态码语义仍未验收** |
+| 72 | §6B CGYY 协议对齐（合成回归） | mine 固定 page1/size20；草稿 `weekStartDate` 直接用预约当天；草稿响应丢弃；验证码坐标只接受 ≤310 的整数；回查仅比对 id | 官方静态证据落地为**有界分页**（首请求 page0/size5，最多 4 页，短页／重复 id／totalElements 即停）、`weekStartDate` 取 day 响应的 `reservationDateList[0]`（缺失则省略该字段）、保留草稿 `tradeNo`、坐标按 `310*x/width` 归一且保留小数、回查需 id＋预约日期（＋有值 tradeNo）同时匹配；验证后额外 day 若轮换 token 则在任何 POST 前终止 | 官方前端静态证据 [§6B.1](#6b1-2026-10-23-官方前端静态修订未执行写)；`cgyy_http::read_orders`/`week_start`/`protocol_point` 与写流程合成回归；**真实学校写操作仍未验收** |
 | 69 | §6B CGYY官方前端 | mine page1、weekStartDate/JSON/captcha字段未有官方链对照 | 官方移动首page0、day首项日期、info响应传递、分支显式null、repCode与330→310坐标均静态定位；未改实现／未写 | 同审计§7，CM/CR/CO/CV源身份与偏移；服务端生命周期仍未知 |
 | 70 | §6C 校车 | 仅公开时刻表，余票协议无线索 | 官方站ShiftsSearch构造及保留座位／摆渡分支已定位，用户查询页12班与差异余票；完整单次网络形状／身份资格未验 | 同审计§6；REA页面AX，未购票／退款 |
 | 71 | §6D 阳光打卡 | 未区分新增入口读写 | 记录查询静态已见，get包装可转POST；追加体育/艺术字段、先上传后clockin、公开开关与详情回查静态证据；下一阶段明确手动提交，点赞／打卡／上传本轮未调用，不归入全局只读刷新 | 同审计§8；YM1172/YH7abe/YS73d6/YA4c28/YD2860；不是成功接口样本 |
@@ -695,6 +697,8 @@ Rust/Flutter镜像采用借用共享transport的独立Session，复制用户原�
 
 同源基址 `/meta-local`；官方 LS/e650、74b9 与 LC/aacb 严格以**数值 `code===0`** 解 `data`；HTTP200 本身不够。前端使用运行态语言／CSRF头，报告不保存值。以下是官方脚本与本轮匿名 curl 的交集，不表示已接入本项目。
 
+> **2026-10-23 Android 只读接入（仅 search 与 holdings）**：`POST /opac/search` 与 `GET /opac/bibs/{bibId}/holdings` 已进入 Rust 适配层，使用**隔离 Cookie 会话**（不带登录态），`code !== 0` 归为业务拒绝而不是空列表；`data.holdings` 的 JSON 字符串在 Rust 内二次解码，限制 512 KiB／深度 8／500 条。页面只做检索与复本展示，不提供续借、预约、委托或任何写操作，也不读取本人借阅。字段缺失保留空值，`callno` 兼收数组与字符串，馆藏状态只保留学校原文。**真实服务的完整字段、状态码映射与分页边界仍未验收。**
+
 | 方法／路径（接基址） | 参数／形状 | 证据状态 |
 | --- | --- | --- |
 | POST `/opac/search?coverFirst=false&disable_facet=false` | JSON `page,pageSize,indexName,sortField,sortType,collapseField,queryFieldList,filterFieldList`；普通综合词项 `{logic:0,field:"all",values:[词],operator:"*"}` | 匿名 page1/size2 成功非空，code0；响应 data含 total/actualTotal/offset/limit/dataList/facetList/extraInfo |
@@ -760,7 +764,16 @@ Rust/Flutter镜像采用借用共享transport的独立Session，复制用户原�
 
 ### 6B.1 2026-10-23 官方前端静态修订（未执行写）
 
-来源与精确 hash/module/UTF-16偏移见[审计 §7](_audit/2026-10-23-ibuaa-protocol-research.md)。这些断言更新协议证据，**没有同步修改 Rust／Swift／Flutter 实现，不能宣称故障根因或真实写入已验收**。
+来源与精确 hash/module/UTF-16偏移见[审计 §7](_audit/2026-10-23-ibuaa-protocol-research.md)。这些断言更新协议证据，**不能宣称故障根因或真实写入已验收**。
+
+> **2026-10-23 Android 实现同步（仅合成回归）**：下列静态差异已在 Rust 侧按“有界、可回滚、不降低保护”的方式落地，Flutter 只改传参形态。真实学校写操作仍未执行。
+> - `read_orders`：首请求 `page=0&size=5`（官方移动首请求），最多 4 页，遇短页／重复 id／`totalElements` 即停；返回可见行数而非宣称历史完整。
+> - `week_start`：取 day 响应 `reservationDateList[0]`（回退 `ableReservationDateList[0]`，且必须是合法日期）；缺失时**省略** `weekStartDate`，绝不回填预约当天。
+> - 草稿响应不再丢弃：保留 `tradeNo` 参与回查比对；草稿自身的 token 不覆盖 day 的 orderToken。
+> - 验证码坐标：Flutter 传 `x`（滑块偏移）与 `width`（背景图宽），Rust 计算 `310*x/width`、保留两位小数并夹在 `[0,310]`；不再按原图像素直传。
+> - 验证成功后额外 day 若返回**不同的** token，则在任何 POST 前返回 `notSubmitted`（既不盲删复核也不静默换 token）。
+> - 提交回查：必须 id＋预约日期（且双方都有 `tradeNo` 时也要一致）才记 `accepted`，否则保持待核实。
+> - 未落地（证据不足）：`spaceId/timeId` 是否应为字符串、`repCode`/`success` 双字段冲突处理、`reservationType==-1` 分支、持久 UUID 风格 `clientUid`；`venueSpaceGroupId` 继续显式 `null` 并已有字节级断言。
 
 - 官方 `/mobileOrders` 模块 d119 发 `{page:currentPage-1,size:pageSize}`，初始 currentPage1/size5，非管理员走 `/api/orders/mine`；解 content/totalElements。首请求 page0 有直接静态依据；服务端排序／新单落页／异步可见仍未知，修订须有界翻页而非只换一个数字。
 - day响应 `reservationDateList[0]||""`→weekStartDate；不是无条件预约当天，也不能凭名改成周一。day token→orderToken，info成功回调保留响应并覆盖其token为day值。
