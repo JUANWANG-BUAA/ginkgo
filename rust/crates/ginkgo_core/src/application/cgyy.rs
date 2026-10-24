@@ -99,7 +99,9 @@ impl<U: CgyyMutationSource + SessionSource> Workspace<U> {
                 // one-shot, in-memory context rejects stale/replayed/restarted challenges.
                 self.execute_cgyy_marked(command, &store).await
             }
-            _ => unreachable!(),
+            // Statically unreachable today; a future CgyyCommand variant must fail
+            // closed instead of aborting the FFI process.
+            _ => Err(AppError::changed()),
         }
     }
 

@@ -29,6 +29,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> HomeworkSource for Scho
                 });
             }
         }
+        let ticket = self.snapshots.homework.lock().begin(&key);
         let mut result = homework_http::load(&self.session).await;
         if result
             .as_ref()
@@ -49,7 +50,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> HomeworkSource for Scho
         }
         match result {
             Ok(data) => {
-                let fetched_at = self.snapshots.homework.lock().insert(key, data.clone());
+                let fetched_at = self
+                    .snapshots
+                    .homework
+                    .lock()
+                    .insert_if_current(key, ticket, data.clone());
                 Ok(HomeworkOutcome {
                     data,
                     fetched_at,
@@ -88,6 +93,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> HomeworkSource for Scho
                 });
             }
         }
+        let ticket = self.snapshots.homework_details.lock().begin(&key);
         let mut result = homework_http::load_detail(&self.session, id).await;
         if result
             .as_ref()
@@ -104,7 +110,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> HomeworkSource for Scho
                 self.snapshots
                     .homework_details
                     .lock()
-                    .insert(key, data.clone());
+                    .insert_if_current(key, ticket, data.clone());
                 Ok(HomeworkDetailOutcome {
                     data,
                     failure: None,

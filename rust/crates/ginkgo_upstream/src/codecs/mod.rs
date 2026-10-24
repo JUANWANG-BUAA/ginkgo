@@ -15,8 +15,8 @@ pub mod cgyy;
 pub mod notices;
 
 pub mod library_books;
-pub mod shuttle;
 pub mod library_stats;
+pub mod shuttle;
 
 pub mod updates;
 

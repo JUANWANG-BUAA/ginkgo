@@ -16,9 +16,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> NoticeSource for School
                 });
             }
         }
+        let ticket = self.snapshots.notices.lock().begin(&key);
         match notices_http::load(&self.session).await {
             Ok(data) => {
-                self.snapshots.notices.lock().insert(key, data.clone());
+                self.snapshots
+                    .notices
+                    .lock()
+                    .insert_if_current(key, ticket, data.clone());
                 Ok(NoticesOutcome {
                     data,
                     failure: None,

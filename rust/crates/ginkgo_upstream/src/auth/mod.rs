@@ -18,7 +18,7 @@ pub mod vault;
 
 use crate::{
     foundation::http::{HttpRequest, HttpTransport},
-    AppError,
+    AppError, ErrorCode,
 };
 pub use login::fetch_login_page;
 use serde::{Deserialize, Serialize};
@@ -106,6 +106,9 @@ pub async fn complete_login<T: HttpTransport>(
             action_url,
             html,
         } => {
+            // Re-checked even for pages restored from a pending captcha: the
+            // POST target is the last line of defense before credentials leave.
+            login::validate_login_action(&action_url)?;
             if let Some(challenge) = captcha {
                 if credentials
                     .captcha_text
@@ -132,6 +135,17 @@ pub async fn complete_login<T: HttpTransport>(
     }
     activate_uc(session).await?;
     let user = validate_session(session).await?;
+    // The published identity must belong to the submitted account. A
+    // pre-existing cookie session for another login (for example an
+    // ExistingSession hop after a failed restore) must never be bound to the
+    // entered username, so the foreign cookies are dropped here.
+    if user.school_id != credentials.username.trim() {
+        session.clear_cookies();
+        return Err(AppError::with_detail(
+            ErrorCode::SessionExpired,
+            "identity_mismatch",
+        ));
+    }
     Ok(LoginResult::SignedIn(user))
 }
 

@@ -273,6 +273,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> GradeSource for SchoolC
             }
         }
 
+        let ticket = self.snapshots.grades.lock().begin(&cache_key);
         let fetched = match self.fetch_grades(term_code).await {
             Err(error) if error.code == ErrorCode::SessionExpired => {
                 match self.silent_login().await {
@@ -285,8 +286,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> GradeSource for SchoolC
 
         match fetched {
             Ok((term_id, courses)) => {
-                let timestamp = self.snapshots.grades.lock().insert(
+                let timestamp = self.snapshots.grades.lock().insert_if_current(
                     cache_key,
+                    ticket,
                     GradeData {
                         term_id: term_id.clone(),
                         courses: courses.clone(),
@@ -351,6 +353,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> TodaySource for SchoolC
             }
         }
 
+        let ticket = self.snapshots.today.lock().begin(&date);
         let portal = schedule_http::detect_portal(&self.session).await?;
         if portal != Portal::Undergraduate {
             return self.load_today_from_schedule(&date, force_refresh).await;
@@ -372,7 +375,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> TodaySource for SchoolC
                     .snapshots
                     .today
                     .lock()
-                    .insert(date.clone(), courses.clone());
+                    .insert_if_current(date.clone(), ticket, courses.clone());
                 Ok(TodayOutcome {
                     date,
                     courses,
@@ -420,6 +423,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> ScheduleSource for Scho
             }
         }
 
+        let ticket = self.snapshots.schedules.lock().begin(&key);
+
         let fetched = match self
             .fetch_schedule(input.term_id.as_deref(), input.week)
             .await
@@ -438,7 +443,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> ScheduleSource for Scho
 
         match fetched {
             Ok(data) => {
-                let timestamp = self.snapshots.schedules.lock().insert(key, data.clone());
+                let timestamp = self
+                    .snapshots
+                    .schedules
+                    .lock()
+                    .insert_if_current(key, ticket, data.clone());
                 Ok(ScheduleOutcome {
                     data,
                     fetched_at: timestamp,

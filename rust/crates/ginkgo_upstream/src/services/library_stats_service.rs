@@ -20,11 +20,12 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibraryStatsSource for 
                 });
             }
         }
+        let ticket = self.snapshots.library_stats.lock().begin(&key);
         let result = library_stats_http::load(&self.session, self.preference().into()).await;
         let mut cache = self.snapshots.library_stats.lock();
         match result {
             Ok(campuses) => {
-                let fetched_at = cache.insert(key, campuses.clone());
+                let fetched_at = cache.insert_if_current(key, ticket, campuses.clone());
                 Ok(LibraryStatsOutcome {
                     campuses,
                     fetched_at,

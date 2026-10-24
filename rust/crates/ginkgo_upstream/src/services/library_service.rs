@@ -97,6 +97,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
                 });
             }
         }
+        let ticket = self.snapshots.library_history.lock().begin(&page);
         let result = async {
             let token = self.library_token().await?;
             let result = library_http::history(&self.session, &token, page, 40).await;
@@ -115,7 +116,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
         let mut cache = self.snapshots.library_history.lock();
         match result {
             Ok(data) => {
-                let fetched_at = cache.insert(page, data.clone());
+                let fetched_at = cache.insert_if_current(page, ticket, data.clone());
                 Ok(LibraryHistoryOutcome {
                     data,
                     fetched_at,
@@ -156,6 +157,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
             }
         }
 
+        let ticket = self
+            .snapshots
+            .library_venues
+            .lock()
+            .begin(&VENUES_KEY.to_owned());
         let result = async {
             let mut token = self.library_token().await?;
             let mut result = library_http::venues(&self.session, &token, &day).await;
@@ -174,7 +180,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
                     .snapshots
                     .library_venues
                     .lock()
-                    .insert(VENUES_KEY.to_owned(), venues.clone());
+                    .insert_if_current(VENUES_KEY.to_owned(), ticket, venues.clone());
                 Ok(LibraryVenuesOutcome {
                     venues,
                     fetched_at: timestamp,
@@ -281,6 +287,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
             }
         }
 
+        let ticket = self
+            .snapshots
+            .library_bookings
+            .lock()
+            .begin(&BOOKINGS_KEY.to_owned());
         let result = async {
             let mut token = self.library_token().await?;
             let mut result = library_http::bookings(&self.session, &token).await;
@@ -299,7 +310,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
                     .snapshots
                     .library_bookings
                     .lock()
-                    .insert(BOOKINGS_KEY.to_owned(), bookings.clone());
+                    .insert_if_current(BOOKINGS_KEY.to_owned(), ticket, bookings.clone());
                 Ok(LibraryBookingsOutcome {
                     bookings,
                     fetched_at: timestamp,

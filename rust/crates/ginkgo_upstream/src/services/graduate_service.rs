@@ -65,6 +65,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> GraduateSource for Scho
                 });
             }
         }
+        let ticket = self.snapshots.graduate.lock().begin(&key);
         let mut result = load_part(part, &self.session, &account).await;
         if result
             .as_ref()
@@ -75,7 +76,10 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> GraduateSource for Scho
                 Err(e) => Err(e),
             };
         }
-        self.snapshots.graduate.lock().resolve(key, result)
+        self.snapshots
+            .graduate
+            .lock()
+            .resolve_current(key, ticket, result)
     }
 }
 

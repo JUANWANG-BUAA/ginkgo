@@ -108,9 +108,17 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
 
     pub(crate) fn set_authenticated(&self, account: String, profile: UserProfile) {
         let mut identity = self.identity.lock();
+        // Central invariant: the published account is the profile's school ID.
+        // A mismatch means the cookie session belongs to another login; fail
+        // closed to a signed-out state instead of rebinding it.
+        let authenticated = (account == profile.school_id)
+            .then_some(AuthenticatedIdentity { account, profile });
+        if authenticated.is_none() {
+            self.session.clear_cookies();
+        }
         *identity = Identity {
             generation: identity.generation.wrapping_add(1),
-            authenticated: Some(AuthenticatedIdentity { account, profile }),
+            authenticated,
             ..Identity::default()
         };
     }
@@ -372,13 +380,17 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
             self.session.direct_cookie_present() || self.session.webvpn_cookie_present();
         if let Some(account) = account.filter(|_| has_cookies) {
             match auth::validate_session(&self.session).await {
-                Ok(profile) => {
+                Ok(profile) if profile.school_id == account => {
                     self.update_profile(&account, profile.clone())?;
                     return Ok(SessionOutcome::SignedIn {
                         profile,
                         remembered: true,
                     });
                 }
+                // The cookie jar no longer belongs to the published account.
+                // Drop it and fall through to the saved-credential flow rather
+                // than rebinding the profile of a different login.
+                Ok(_) => self.clear_identity(),
                 Err(error) if error.code == ErrorCode::SessionExpired => {}
                 Err(error) => return Err(error),
             }
@@ -432,6 +444,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
         let _ = auth::logout(&self.session).await;
         // A route change or failed restore can already have cleared identity.
         // Explicit logout must still remove saved accounts to prevent restoration.
+        // An enumeration failure defaults to knowing only the signed-in account
+        // below; Android vault no longer reports that failure as an empty list.
         let mut accounts = self.vault.accounts().unwrap_or_default();
         if let Some(account) = account {
             if !accounts.contains(&account) {
@@ -439,7 +453,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
             }
         }
         for account in accounts {
-            let _ = self.vault.delete(&account);
+            // Deletes are idempotent local keychain operations; one retry
+            // covers a transient Keystore/keychain failure.
+            if self.vault.delete(&account).is_err() {
+                let _ = self.vault.delete(&account);
+            }
         }
         self.clear_identity();
     }

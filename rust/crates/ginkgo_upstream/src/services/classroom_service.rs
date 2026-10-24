@@ -67,6 +67,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> ClassroomSource for Sch
             }
         }
 
+        let ticket = self.snapshots.classrooms.lock().begin(&key);
         let fetched = match query_classrooms(&self.session, input.campus, &input.date).await {
             Err(error) if error.code == crate::ErrorCode::SessionExpired => {
                 match self.silent_login().await {
@@ -79,7 +80,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> ClassroomSource for Sch
 
         match fetched {
             Ok(rooms) => {
-                let timestamp = self.snapshots.classrooms.lock().insert(key, rooms.clone());
+                let timestamp = self
+                    .snapshots
+                    .classrooms
+                    .lock()
+                    .insert_if_current(key, ticket, rooms.clone());
                 Ok(ClassroomOutcome {
                     result: filter(rooms, input)?,
                     fetched_at: timestamp,

@@ -135,6 +135,64 @@ fn replacing_or_clearing_identity_drops_every_business_credential() {
 }
 
 #[tokio::test]
+async fn an_existing_session_for_another_account_is_never_published_under_the_entered_username() {
+    // CAS still holds a valid session for sy2501000 while the user submits
+    // sy2501001: the profile of the cookie owner must not be bound to the
+    // entered account, and the foreign cookies must be dropped.
+    let transport = MockTransport::with_responses(vec![
+        HttpResponse::new(302, LOGIN_URL, "")
+            .with_header("Location", "https://uc.buaa.edu.cn/api/login?target=x")
+            .with_set_cookie("CASTGC=TGT-foreign; Path=/; Secure; HttpOnly"),
+        HttpResponse::new(
+            200,
+            "https://uc.buaa.edu.cn/api/login?target=x",
+            "<html>home</html>",
+        ),
+        HttpResponse::new(200, UC_ACTIVATION_URL, ""),
+        uc_ok("sy2501000", "someone else"),
+    ]);
+    let service = SchoolClient::new(
+        crate::auth::session::Session::new(transport),
+        MemoryVault::default(),
+    );
+    let error = service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect_err("cookie session belongs to another account");
+    assert_eq!(error.code, ErrorCode::SessionExpired);
+    assert_eq!(error.detail.as_deref(), Some("identity_mismatch"));
+    assert!(!service.status().signed_in());
+    assert!(!service.session.direct_cookie_present());
+    assert!(service.vault.names().is_empty());
+}
+
+#[tokio::test]
+async fn restore_never_rebinds_a_foreign_cookie_session_to_a_saved_account() {
+    // The vault holds sy2501001 but the device still carries sy2501000's
+    // valid CAS cookies; restore must fail instead of signing in.
+    let transport = MockTransport::with_responses(vec![
+        HttpResponse::new(302, LOGIN_URL, "")
+            .with_header("Location", "https://uc.buaa.edu.cn/api/login?target=x")
+            .with_set_cookie("CASTGC=TGT-foreign; Path=/; Secure; HttpOnly"),
+        HttpResponse::new(
+            200,
+            "https://uc.buaa.edu.cn/api/login?target=x",
+            "<html>home</html>",
+        ),
+        HttpResponse::new(200, UC_ACTIVATION_URL, ""),
+        uc_ok("sy2501000", "someone else"),
+    ]);
+    let service = SchoolClient::new(
+        crate::auth::session::Session::new(transport),
+        seeded("sy2501001"),
+    );
+    let error = service.restore().await.expect_err("foreign session");
+    assert_eq!(error.detail.as_deref(), Some("identity_mismatch"));
+    assert!(!service.status().signed_in());
+    assert!(service.session.direct_cookie_present().eq(&false));
+}
+
+#[tokio::test]
 async fn sign_in_returns_profile_and_stores_sanitized_credentials() {
     let (service, transport) =
         build_service(login_chain("sy2501001", "fixture"), MemoryVault::default());

@@ -199,6 +199,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CheckInSource for Schoo
         }
 
         *self.checkin_progress.lock() = CheckInProgress::default();
+        let ticket = self.snapshots.checkin.lock().begin(&date);
         let fetched = self.fetch_checkin(&compact).await;
         self.checkin_stage(if fetched.is_ok() {
             "complete"
@@ -214,7 +215,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CheckInSource for Schoo
                     .snapshots
                     .checkin
                     .lock()
-                    .insert(date.clone(), courses.clone());
+                    .insert_if_current(date.clone(), ticket, courses.clone());
                 Ok(CheckInOutcome {
                     date,
                     courses,

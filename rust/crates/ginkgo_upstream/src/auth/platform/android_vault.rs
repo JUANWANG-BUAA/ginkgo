@@ -168,7 +168,9 @@ impl CredentialVault for AndroidVault {
             Some(payload) => {
                 serde_json::from_str(&payload).map_err(|_| AppError::credential_store())
             }
-            None => Ok(Vec::new()),
+            // A null JNI result is a Keystore/prefs failure, not an empty
+            // vault: callers must not treat it as "nothing left to delete".
+            None => Err(AppError::credential_store()),
         }
     }
 }

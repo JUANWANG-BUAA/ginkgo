@@ -30,7 +30,7 @@ mod graduate;
 mod homework;
 mod library;
 mod library_books;
-mod shuttle;
 mod library_stats;
 mod notices;
 mod session;
+mod shuttle;

@@ -44,6 +44,7 @@ pub async fn fetch_login_page<T: HttpTransport>(
         let action_url = cas::extract_login_form_action(&response.body)
             .and_then(|action| webvpn::resolve_redirect(&action, &url))
             .unwrap_or_else(|| url.clone());
+        validate_login_action(&action_url)?;
         return Ok(LoginPage::Form {
             execution,
             captcha,
@@ -126,6 +127,25 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
         return Ok(());
     }
     Err(AppError::new(ErrorCode::RedirectLimit))
+}
+
+/// The password POST target must be the documented CAS endpoint over HTTPS on
+/// the default port without embedded credentials. A drifted or hostile form
+/// action fails here, before the credential body leaves the device.
+pub(crate) fn validate_login_action(action: &str) -> Result<(), AppError> {
+    let parsed = url::Url::parse(action).map_err(|_| AppError::changed())?;
+    let host_ok = parsed
+        .host_str()
+        .is_some_and(|host| host.eq_ignore_ascii_case("sso.buaa.edu.cn"));
+    if parsed.scheme() != "https"
+        || !host_ok
+        || parsed.port().is_some_and(|port| port != 443)
+        || !parsed.username().is_empty()
+        || parsed.password().is_some()
+    {
+        return Err(AppError::changed());
+    }
+    Ok(())
 }
 
 fn status_error(response: &HttpResponse) -> AppError {

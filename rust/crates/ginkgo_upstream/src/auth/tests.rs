@@ -77,6 +77,32 @@ async fn uc_activation_known_http_cas_redirect_uses_https_secure_cookie_and_one_
 }
 
 #[tokio::test]
+async fn login_form_actions_outside_the_documented_cas_target_never_receive_credentials() {
+    for action in [
+        "http://sso.buaa.edu.cn/login",
+        "https://sso.buaa.edu.cn.evil.example/login",
+        "https://auth.evil.example/login",
+        "https://sso.buaa.edu.cn:8443/login",
+        "https://user:secret@sso.buaa.edu.cn/login",
+        "ftp://sso.buaa.edu.cn/login",
+    ] {
+        let body = FORM_PAGE.replace(r#"action="/login""#, &format!(r#"action="{action}""#));
+        let transport = MockTransport::with_responses(vec![HttpResponse::new(200, LOGIN_URL, body)]);
+        let session = Session::new(transport.clone());
+        let error = login(&session, &credentials())
+            .await
+            .expect_err("drifted form action must fail before any credential POST");
+        assert_eq!(error.code, ErrorCode::ChangedResponse, "action {action}");
+        assert_eq!(
+            transport.request_count(),
+            1,
+            "action {action} must not receive a password request"
+        );
+        assert_eq!(transport.requests()[0].method, HttpMethod::Get);
+    }
+}
+
+#[tokio::test]
 async fn unknown_http_redirects_fail_before_following_in_auth_and_generic_get_chains() {
     for location in [
         "http://uc.buaa.edu.cn/api/login",

@@ -56,6 +56,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CgyySource for SchoolCl
                 });
             }
         }
+        let ticket = self.snapshots.cgyy.lock().begin(&key);
         let result = async {
             let token = if kind == "venues" {
                 None
@@ -85,6 +86,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CgyySource for SchoolCl
             }
         }
         .await;
-        self.snapshots.cgyy.lock().resolve(key, result)
+        self.snapshots
+            .cgyy
+            .lock()
+            .resolve_current(key, ticket, result)
     }
 }

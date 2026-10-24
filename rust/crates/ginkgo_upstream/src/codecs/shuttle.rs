@@ -78,9 +78,9 @@ fn looks_like_time(text: &str) -> bool {
     let bytes = text.as_bytes();
     bytes.len() >= 4
         && bytes.iter().filter(|b| **b == b':').count() == 1
-        && text
-            .split(':')
-            .all(|part| !part.is_empty() && part.len() <= 2 && part.bytes().all(|b| b.is_ascii_digit()))
+        && text.split(':').all(|part| {
+            !part.is_empty() && part.len() <= 2 && part.bytes().all(|b| b.is_ascii_digit())
+        })
 }
 
 pub fn parse(html: &str) -> Result<ShuttleTimetable, AppError> {
@@ -227,6 +227,41 @@ mod tests {
         assert_eq!(tram.left, "沙河校区→地铁沙河站");
         assert_eq!(tram.sections[0].right[0].time, "7:35");
         assert_eq!(tram.sections[0].right[0].capacity, "");
+    }
+
+    #[test]
+    fn non_clock_text_is_not_projected_as_a_departure() {
+        for time in ["", "待定", "7:xx", "7:30:00", "7：30"] {
+            let page = format!(
+                r#"<table>
+                <tr><td colspan="2">合成去程</td><td colspan="2">合成返程</td></tr>
+                <tr><td>1</td><td>{time}</td><td>1</td><td>{time}</td></tr>
+                </table>"#
+            );
+            assert_eq!(
+                parse(&page).unwrap_err().code,
+                crate::ErrorCode::ChangedResponse
+            );
+        }
+    }
+
+    #[test]
+    fn unreadable_rows_do_not_hide_a_separate_readable_direction_pair() {
+        let page = r#"<table>
+            <tr><td colspan="2">合成去程</td><td colspan="2">合成返程</td></tr>
+            <tr><td colspan="4">合成工作日</td></tr>
+            <tr><td>1</td><td>待定</td><td>1</td><td>待定</td></tr>
+            <tr><td>2</td><td>7:30</td><td>2</td><td>7:35</td></tr>
+            </table>"#;
+        let timetable = parse(page).unwrap();
+        let section = &timetable.tables[0].sections[0];
+        assert_eq!(section.label, "合成工作日");
+        assert_eq!(section.left.len(), 1);
+        assert_eq!(section.right.len(), 1);
+        assert_eq!(section.left[0].index, "2");
+        assert_eq!(section.left[0].time, "7:30");
+        assert_eq!(section.right[0].index, "2");
+        assert_eq!(section.right[0].time, "7:35");
     }
 
     #[test]

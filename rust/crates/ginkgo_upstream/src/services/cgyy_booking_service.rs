@@ -331,7 +331,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             }
             return result.map(|value| (value, token));
         }
-        unreachable!("the renewed GET always returns")
+        // The second pass always returns above; a loop exit would be protocol
+        // drift and must fail closed rather than abort the FFI process.
+        Err(AppError::changed())
     }
     async fn review_booking(&self, owner: &BookingOwner) -> Result<CgyyActionResult, AppError> {
         self.check_booking_owner(owner)?;
@@ -795,7 +797,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CgyyMutationSource for 
                 width,
             } => self.submit_booking(&owner, &challenge_id, x, width).await,
             CgyyCommand::Cancel { order_id } => self.cancel_booking(&owner, order_id).await,
-            _ => unreachable!(),
+            // Statically unreachable today; a future CgyyCommand variant must fail
+            // closed instead of aborting the FFI process.
+            _ => Err(AppError::changed()),
         };
         // Parse/readback errors after dispatch still preserve pending and invalidate.
         self.check_booking_owner(&owner)?;

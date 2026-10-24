@@ -47,6 +47,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 return Ok(outcome);
             }
         }
+        let ticket = snapshots.lock().begin(&key);
         let mut result = read().await;
         if result
             .as_ref()
@@ -57,7 +58,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 Err(error) => Err(error),
             };
         }
-        snapshots.lock().resolve(key, result)
+        snapshots.lock().resolve_current(key, ticket, result)
     }
 }
 

@@ -71,20 +71,16 @@ async fn invalid_input_never_reaches_the_school() {
         ("合成".into(), 0),
         ("合成".into(), 101),
     ] {
-        assert!(
-            service
-                .search_books(query, page, String::new(), true)
-                .await
-                .is_err()
-        );
+        assert!(service
+            .search_books(query, page, String::new(), true)
+            .await
+            .is_err());
     }
     // An unknown sort value is refused before any request is made.
-    assert!(
-        service
-            .search_books("合成".into(), 1, "unknown".into(), true)
-            .await
-            .is_err()
-    );
+    assert!(service
+        .search_books("合成".into(), 1, "unknown".into(), true)
+        .await
+        .is_err());
     for bib in ["", "   ", "a\tb"] {
         assert!(service.book_holdings(bib.into()).await.is_err());
     }
