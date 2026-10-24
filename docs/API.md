@@ -11,6 +11,7 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 74 | §6C 校车客户端范围（当前源码，不是新增实网验收） | Android 仅公开页面外链 | `e149f90` 已接入应用内公开 HTML 时刻表投影，并保留官方来源入口；班次/运行时间/计划可乘人数分方向展示，不是实时余票 | 既有 §6C 官方公开页面来源；`adapters/shuttle_http.rs`、`codecs/shuttle.rs`、`shuttle_page.dart`；本轮只做合成回归，未执行学校查询或购票，公开包仍以 Alpha.7 冻结内容为准 |
 | 68 | §6 目录与本人借阅 | 旧域404被泛化为没有参考／不能进入里程碑 | 新站space.lib的公开search/hot1/new/books/holdings匿名code0；holdings是内嵌JSON字符串；本人loans仅成功空态，非空／资格仍待验 | [2026-10-23审计](_audit/2026-10-23-ibuaa-protocol-research.md) §5，原站JS hash与响应类型投影 |
 | 73 | §6 公开查书目与馆藏（已接入只读，实机验证） | 只有空间预约；图书目录／馆藏无客户端 | 匿名只读检索与馆藏复本接入：POST `/opac/search`（page1/size20、`all` 词项、`idx.opac`）、GET `/opac/bibs/{bibId}/holdings`；`data.holdings` 的 JSON 字符串在 Rust 内二次解码并有大小／深度／条数上限；`code===0` 才算成功，非零码报业务拒绝而不是空列表；本人借阅／续借／预约仍不接入 | 本文件 §6.1；`codecs/library_books.rs`、`adapters/library_books_http.rs`、`services/library_books_service.rs` 与合成回归；该主机证书链不完整（缺 GlobalSign R3 中间证书），以**按主机作用域**方式补链（其他主机与全局信任库不受影响、可回滚），实机检索与馆藏均已通过；**真实字段完整性、状态码语义仍未验收** |
 | 72 | §6B CGYY 协议对齐（合成回归） | mine 固定 page1/size20；草稿 `weekStartDate` 直接用预约当天；草稿响应丢弃；验证码坐标只接受 ≤310 的整数；回查仅比对 id | 官方静态证据落地为**有界分页**（首请求 page0/size5，最多 4 页，短页／重复 id／totalElements 即停）、`weekStartDate` 取 day 响应的 `reservationDateList[0]`（缺失则省略该字段）、保留草稿 `tradeNo`、坐标按 `310*x/width` 归一且保留小数、回查需 id＋预约日期（＋有值 tradeNo）同时匹配；验证后额外 day 若轮换 token 则在任何 POST 前终止 | 官方前端静态证据 [§6B.1](#6b1-2026-10-23-官方前端静态修订未执行写)；`cgyy_http::read_orders`/`week_start`/`protocol_point` 与写流程合成回归；**真实学校写操作仍未验收** |
@@ -789,9 +790,11 @@ Rust/Flutter镜像采用借用共享transport的独立Session，复制用户原�
 
 ## 6C. 智慧校车（脚本静态＋本人查询页面观察，未购票）⚠️
 
-> **2026-10-23 Android 处置**：只接入**官方公开时刻表外链**（`https://www.buaa.edu.cn/info/1065/1762.htm`，`服务`页“校车时刻表”，二次确认后交给系统浏览器），并在对话框里写明“不代理购票、不显示实时余票（查询协议未取证）”。动态 `/wechat/ShiftsSearch` 不接入：缺完整单次事务形状、身份资格与退改语义证据，不摆空壳卡片、不把班次卡做成购票入口。
+> **2026-10-23 Android 当前源码**：`e149f90` 已从仅外链扩展为**应用内公开时刻表**，读取既有官方公开页面 `https://www.buaa.edu.cn/info/1065/1762.htm` 并投影其 HTML 表格的双向班次、运行/发车时间和计划可乘人数；不把可乘人数当实时余票。保留官方来源入口，来源地址由 Rust 投影提供，Flutter 只检查通用 HTTPS URI。解析与合成测试不能证明当前官方班次仍有效；临时调整以原页面为准。历史仅外链处置不再是当前入口描述，但未因此发布新包或完成真机验收。动态 `/wechat/ShiftsSearch` 仍不接入：缺完整单次事务形状、身份资格与退改语义证据，不代理购票。
 
 站点 `https://zhihuixiaoche.buaa.edu.cn/wechat/indexPage`。同页脚本：POST `/wechat/ShiftsSearch`，form字段 up_origin_name/up_terminal_name/shifts_date/act=search，动态CSRF头；按 data.success和list读取。用户查询后页面显示12班及差异余票，**尚未捕获该单次事务的完整网络字段形状，method/body来自脚本，不把UI成功等同完整协议验收**。
+
+> **2026-10-25 授权实测定证（负结果）**：账号所有者提供本人凭据，经既有 CAS 链路登录成功后携会话 Cookie 直连访问——`/wechat/indexPage` 仍返回 100 字节脚本 `alert('未获取到认证信息，请退出后重新进入')`，匿名 `curl` 结果相同；`POST /wechat/ShiftsSearch` 返回 **403**（text/plain，3 字节）。**该系统不接入北航 CAS**，其会话来自未知外部入口（疑似学校企业微信/APP 内嵌带 token 跳转）。动态余票因此**确认不可接入**：认证入口缺失使完整事务形状与资格验证无法进行，仅保留应用内静态时刻表与官方页外链。凭据仅经环境变量进入一次性探针进程，探针已删除，未入库、未打印、未持久化。
 
 非摆渡余票先 open_seat_num-student_num-teacher_num，再按type/is_parttime/currentTime/ticket_all_minute/seat_retain_num分支扣保留，负数夹0；摆渡显示“摆渡车”，不显示计算值0。此为当前身份展示算法，匿名可见性、资格、票价、时间单位／时区、所有放票分支未验。时刻表通知发布日和适用日分开，不用计划人数代余票。POST退款、购票、订单、团体票等未调用。详见[审计 §6](_audit/2026-10-23-ibuaa-protocol-research.md)。
 

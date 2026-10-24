@@ -3,6 +3,31 @@
 > 当前路线记录（2026-10-20，状态更新 2026-10-21）。Apple 产品继续使用现有 SwiftUI 应用；Rust + Flutter 镜像项目范围冻结为 Android + Windows，两端 Alpha.4 均已公开。`0.1.0-alpha.8` 作为 Apple 端当前基线草稿包；公开状态与验收边界统一见 [镜像实施现状](MIRROR-IMPLEMENTATION.md) 与 [Windows 首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)。
 > 本文取代旧版 Kotlin/Compose 推荐方案。历史候选方案不再作为当前实施建议；Rust/Flutter 的具体边界以 [RUST-FLUTTER-PORT.md](RUST-FLUTTER-PORT.md) 为准。实施已启动，当前进度见 [MIRROR-IMPLEMENTATION.md](MIRROR-IMPLEMENTATION.md)。
 
+---
+
+## 当前开发范围（2026-10-24 决策）
+
+> **唯一开发目标是 Android（Flutter + Rust）。macOS / iOS 暂时冻结。**
+
+| 平台 | 状态 | 说明 |
+| --- | --- | --- |
+| **Android** | **开发中（唯一）** | Flutter + Rust。全部功能开发、评审、发布排期都落在这里。 |
+| Windows | 维护（不做功能） | 与 Android 共用同一 Flutter 工程（`flutter/windows/`）。**必须保持可编译**——`mirror.yml` 的 windows job 会验证；但不为它开发新功能或扩展桌面能力。 |
+| macOS / iOS | **暂时冻结** | Swift/SwiftUI 应用保留在仓库中。**不做功能开发、不做跨端对齐、不为其排期**；只在影响 Android 构建、共享 fixture（`fixtures/`）或存在安全问题时被动修。 |
+
+**为什么保留而不删除冻结端代码**：Swift 树里的 `LocalStore` / `SchoolTime` / `HTMLText` / `AESCipher` / `FormURLEncoding` 等仍是 Rust 侧的重写参照；`fixtures/` 的双端契约 runner 需要 Swift 侧存在；删除会产生一个巨大的纯删除 diff，且让"契约是否双端一致"这一检查失去意义。
+
+**由此产生的确定性变化**：
+
+1. **跨端一致性不再是目标**。Android 端不再需要与 macOS 对齐强调色、状态色、"今天"信息架构或控件形态；Flutter 的设计基线以 `flutter/lib/design/tokens/` 为唯一事实源。
+2. **Rust/Dart 缺陷的权重全部上调**。此前"两个栈之一"的每个问题，现在直接命中 100% 的用户。
+3. **发布链路出现单点**。macOS 与 Windows 都有自动发布 workflow，Android 没有——收窄后它是唯一发布路径。见 [综合评审 §10.1](_audit/2026-10-24-comprehensive-review.md)。
+4. **文档与指令文件必须同步**，否则后续协作会继续为冻结端排期。见 [综合评审 §10.2](_audit/2026-10-24-comprehensive-review.md)。
+
+**综合评审与 Android-only 重排**：[`_audit/2026-10-24-comprehensive-review.md`](_audit/2026-10-24-comprehensive-review.md)（2026-10-24）。其 §7 的 P0–P3 排序与 §10 的范围收窄影响，是当前待办排序的依据。
+
+**以下内容是 2026-10-21 之前的历史路线记录，保留供追溯，不再作为当前实施建议。**
+
 ## 当前项目与迁移起点
 
 Ginkgo 当前是 macOS + iOS 原生 SwiftUI 客户端，直连或经学校 WebVPN 访问上游，不运行自建 HTTP 中转服务。API 协议证据以 [API.md](API.md) 为准，平台行为与验收记录分别见 [IOS.md](IOS.md)、[ACCEPTANCE.md](ACCEPTANCE.md)。

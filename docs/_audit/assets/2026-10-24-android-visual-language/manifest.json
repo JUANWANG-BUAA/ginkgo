@@ -1,0 +1,85 @@
+{
+  "captured": "2026-10-24",
+  "device": "Android QEMU emulator-5554, 1080x2400, 420dpi; temporary 540dpi/2x",
+  "scope": "public/empty screens only; personal workbench, schedule, homework and signed-in records excluded",
+  "redaction": "none; selected frames contain no account or personal course/homework/borrow records",
+  "images": [
+    {
+      "file": "catalog-empty-light.png",
+      "bytes": 125743,
+      "sha256": "5070235f8079036b60bb82559cfcc92587615639e4a5ffbe39e79d07a28c7412",
+      "width": 1080,
+      "height": 2400
+    },
+    {
+      "file": "catalog-results-light.png",
+      "bytes": 345507,
+      "sha256": "549f88500fea913f40aa456880b7d56e78a275fbc7226660df63a9f43b15f970",
+      "width": 1080,
+      "height": 2400
+    },
+    {
+      "file": "holdings-public-light.png",
+      "bytes": 247617,
+      "sha256": "b089c10c1ac34cc958c02af412b154f0bc62fed795fd1c976ac5fba172d20898",
+      "width": 1080,
+      "height": 2400
+    },
+    {
+      "file": "library-public-dark.png",
+      "bytes": 212914,
+      "sha256": "744519b8b3a214693306538b7a90885cf432dd86a0ff19059956b98b0bcffa92",
+      "width": 1080,
+      "height": 2400
+    },
+    {
+      "file": "library-public-light.png",
+      "bytes": 206821,
+      "sha256": "2a80c07735dd765dd824e00344c9a7dc9f338e4b742c1eb0ec2b28ec45852c98",
+      "width": 1080,
+      "height": 2400
+    },
+    {
+      "file": "library-stats-light.png",
+      "bytes": 150620,
+      "sha256": "953f17c569a602157711c1a463a4225f0ca2fe84cf0b8646e3398708f22c496f",
+      "width": 1080,
+      "height": 2400
+    },
+    {
+      "file": "reservations-public-light.png",
+      "bytes": 209606,
+      "sha256": "c621e345833e96b1045c2dc6b50d5431f01f4e32e21aa4f9911e6981d33a628f",
+      "width": 1080,
+      "height": 2400
+    },
+    {
+      "file": "shuttle-loading-light.png",
+      "bytes": 129347,
+      "sha256": "b509cf941740ce4513a54438b91e1fc9017b65a757e5478b1b612935497268ab",
+      "width": 1080,
+      "height": 2400
+    },
+    {
+      "file": "shuttle-plan-320-dark.png",
+      "bytes": 227409,
+      "sha256": "0dfde25ab616c453fe3d33edd5b3339e0f546515ef98af457ee543bbc30e00f3",
+      "width": 1080,
+      "height": 2400
+    },
+    {
+      "file": "shuttle-plan-light.png",
+      "bytes": 317863,
+      "sha256": "d22bc2986191873dc043a8d8542f4d33abceea74b8dc14e0624596ad8e90de8f",
+      "width": 1080,
+      "height": 2400
+    },
+    {
+      "file": "transition-edge-dark.png",
+      "bytes": 100317,
+      "sha256": "055fc01afa1d20f6302cd1ffad27afc26488608f45d9bd76e8f7aab3b2d3a3e4",
+      "width": 1080,
+      "height": 2400
+    }
+  ]
+}

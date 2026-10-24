@@ -4,9 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Ginkgo (BUAA Assistant) is a native Swift/SwiftUI client for BUAA campus services (CAS login, schedule, grades, library seats, classroom availability, check-in, homework, graduate academic, tasks). macOS is the primary target; an iOS subset lives in `BUAA-Assistant-iOS/`. All traffic goes directly to upstream BUAA systems (or through the school's official WebVPN gateway `d.buaa.edu.cn`) — there is no self-hosted relay server. Docs, UI strings, and commit messages are Chinese; keep that convention.
+Ginkgo (BUAA Assistant) is a native Swift/SwiftUI client for BUAA campus services (CAS login, schedule, grades, library seats, classroom availability, check-in, homework, graduate academic, tasks). **The current and only development target is Android with Flutter + Rust (`flutter/`, `rust/`).** The native macOS/iOS apps (`BUAA-Assistant/`, `BUAA-Assistant-iOS/`) are **frozen**: no feature work, no cross-platform parity work, no Apple-only scheduling — fix them only reactively when they break the Android build, a shared fixture, or a security issue. Windows shares the same Flutter project: no feature work, but shared changes must keep it compiling. Start current work with `docs/ANDROID-DEVELOPMENT.md`, `docs/MIRROR-IMPLEMENTATION.md` and the sole unfinished list `docs/MIRROR-TODO.md`; the Swift architecture and Xcode commands below apply to Apple work only, not the default mainline. The 2026-10-24 engineering / design / UI review, rescoped to Android-only, is at `docs/_audit/2026-10-24-comprehensive-review.md` and its P0/P1 ordering drives the current backlog. Current tree `e149f90` removed homework-to-personal-task creation UI; preserve old local records, do not restore that entry based on the historical first-iteration plan. All traffic goes directly to upstream BUAA systems (or through the school's official WebVPN gateway `d.buaa.edu.cn`) — there is no self-hosted relay server. Docs, UI strings, and commit messages are Chinese; keep that convention.
 
 ## Commands
+
+Android / shared Rust + Flutter (from repository root):
+
+```sh
+bash scripts/check-mirror.sh
+cd flutter && flutter build apk --debug --target-platform android-arm64 --target lib/main.dart
+```
+
+See `flutter/README.md` for tools and normal/demo entry points; do not use an integration-test APK as the normal app. Only regenerate FRB bindings when its API changes. The following commands are for the independent Apple targets.
 
 ```sh
 # macOS build / test (from repo root)

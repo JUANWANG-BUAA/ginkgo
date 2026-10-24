@@ -1,0 +1,50 @@
+[
+  {
+    "file": "catalog-before-keyboard.png",
+    "source": "artifacts/local/library-shuttle-visual/05-catalog-live-keyboard.png",
+    "sha256": "ee104cec894d1889ac49d15357d6aa272e84b52552d349c0d509e8e5ad2e34cf",
+    "bytes": 220261
+  },
+  {
+    "file": "catalog-after-keyboard.png",
+    "source": "artifacts/local/library-shuttle-visual/final/23-catalog-keyboard-fixed.png",
+    "sha256": "5077f6d5d4dae6aff17ca4850a22f91c5453f0ed47e947bcef89543743413bcc",
+    "bytes": 299942
+  },
+  {
+    "file": "shuttle-before-320-dark.png",
+    "source": "artifacts/local/library-shuttle-visual/16-shuttle-dark-320-runs-before.png",
+    "sha256": "8da9d59a4a6bff78f32fe90b01a7fa41bdd9ee52341a6bcfa2f7d38c8e9b2d39",
+    "bytes": 234662
+  },
+  {
+    "file": "shuttle-after-320-dark.png",
+    "source": "artifacts/local/library-shuttle-visual/final/31-shuttle-320-dark-stacked.png",
+    "sha256": "38ce2e422ba9c1ecfc52f340a3ad3ebfb69dee78e478f6c955a374005eca1993",
+    "bytes": 226174
+  },
+  {
+    "file": "library-home.png",
+    "source": "artifacts/local/library-shuttle-visual/final/21-library-light.png",
+    "sha256": "b465afee0354ad68506ae36b4c39bd1e7fd1eecbbfcfc7198ca062de3bff97c5",
+    "bytes": 211311
+  },
+  {
+    "file": "library-stats.png",
+    "source": "artifacts/local/library-shuttle-visual/final/22-library-stats-light.png",
+    "sha256": "f6e3c5dfc48fcff1a99eb39f39eded4e5a306da3a78f10b70fb015b1ecb3e1d3",
+    "bytes": 145558
+  },
+  {
+    "file": "holdings-live.png",
+    "source": "artifacts/local/library-shuttle-visual/final/25-holdings.png",
+    "sha256": "07029a8f494c59f191bcf7804c35f516419e44f6faba083d71ec2c67fc063571",
+    "bytes": 196040
+  },
+  {
+    "file": "shuttle-after-normal.png",
+    "source": "artifacts/local/library-shuttle-visual/final/36-shuttle-recovered.png",
+    "sha256": "86c0a75f4629e6c33642c324ea40a5e68bbda6a6b018d70e901eb2a426231a52",
+    "bytes": 291916
+  }
+]

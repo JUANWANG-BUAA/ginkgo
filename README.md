@@ -1,10 +1,16 @@
 # Ginkgo · 北航校园工作台
 
-北航校园服务聚合的原生客户端（Swift/SwiftUI）。macOS 版提供侧栏工作台与菜单栏常驻；iOS 子项目提供 iPhone/iPad 自适应工作台。个人项目，不经过自建中转服务器；可选直连或北航 WebVPN 网关。
+北航校园服务聚合工作台，当前以 **Android（Flutter + Rust）** 为主开发平台，Windows 复用该栈；macOS / iOS 保持独立 Swift/SwiftUI 原生应用。macOS 版提供侧栏与菜单栏常驻，iOS 提供 iPhone/iPad 自适应工作台。个人项目，不经过自建中转服务器；可选直连或北航 WebVPN 网关。
 
 > **为什么叫 Ginkgo**：银杏是北航最有辨识度的符号——学院路与沙河的银杏大道。它简短、好念、一眼能画成图标；也希望这个工作台像秋天那条路一样，成为你每天都会经过的地方。
 
 ## 快速开始
+
+### Android / Windows（当前开发主线）
+
+先读 [Android 开发设定](docs/ANDROID-DEVELOPMENT.md)、[实施现状](docs/MIRROR-IMPLEMENTATION.md) 与唯一 [TODO](docs/MIRROR-TODO.md)。工具链及运行步骤见 [Flutter README](flutter/README.md)。根目录执行 `bash scripts/check-mirror.sh` 验证 Rust/Flutter 基线；正常 Android 入口构建执行 `cd flutter && flutter build apk --debug --target-platform android-arm64 --target lib/main.dart`。自动化/模拟器通过不能代替物理设备或真实学校写入验收。
+
+### macOS / iOS（独立原生应用）
 
 1. 用 Xcode 16+（工程为文件系统同步格式；本机已用 Xcode 27.1 验证可编译、测试全绿）打开 `BUAA-Assistant.xcodeproj`；
 2. ⌘R 运行，⌘U 跑测试（最近运行结果与验证范围见 [docs/TESTING.md](docs/TESTING.md)）；
@@ -15,7 +21,7 @@
 
 > 首次运行或更新后，macOS 可能询问一次钥匙串访问权限：选择“**始终允许**”即可。发布包与本地构建都使用同一张稳定自签名证书（`Ginkgo Local Signing`），授权一次后后续构建/更新不再询问；即使弹窗未处理，应用也会在 5 秒后回到登录页并提示。详见 [docs/SIGNING.md](docs/SIGNING.md)。
 
-## 当前版本：0.1.0-alpha.7（2026-10-19）
+## Apple 当前版本：0.1.0-alpha.7（2026-10-19）
 
 本版完成一次工程瘦身：抽取共享存储、时间、解析、加密与刷新节流基础设施，macOS 与 iOS 共用工作区编排；删除未挂载的图书馆研讨间代码。功能面覆盖课表与考试、成绩、研究生教务（学分地图）、博雅、学校作业、图书馆座位、教学楼研讨室（CGYY）、空教室、iclass 签到、待办与校园通知。自动化验证见 [docs/TESTING.md](docs/TESTING.md)；内置更新会从 GitHub Releases 检查新版本，下载安装后**保留课表、成绩缓存与本机待办**。已知限制与风险见 [docs/RELEASE-NOTES.md](docs/RELEASE-NOTES.md)。
 
@@ -51,9 +57,11 @@ xcodebuild test \
 
 ## Android / Windows 镜像
 
-> **Android Alpha.7 已发布（2026-10-23）**：[下载 ARM64 APK](https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.7/Ginkgo-0.1.0-alpha.7-android-arm64.apk) · [Release](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.7)。源码 `0.1.0-alpha.7+8`，包含工作台/待办优化、常用入口、7组强调色与研讨室预约闭环。[功能与接口协议总览](docs/FEATURES-AND-PROTOCOLS.md) 为长期维护入口，学校协议证据见 [API](docs/API.md)，版本、签名与验收以 [Alpha.7发布记录](docs/_audit/2026-10-23-android-alpha7-release.md) 为准。真实学校写入仍待人工验收。
+> **Android Alpha.7 已发布（2026-10-23）**：[下载 ARM64 APK](https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.7/Ginkgo-0.1.0-alpha.7-android-arm64.apk) · [Release](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.7)。公开包冻结于 `545814a`，版本 `0.1.0-alpha.7+8`，包含工作台/待办优化、常用入口、7组强调色与研讨室预约闭环。[功能与接口协议总览](docs/FEATURES-AND-PROTOCOLS.md) 为长期维护入口，学校协议证据见 [API](docs/API.md)，版本、签名与验收以 [Alpha.7发布记录](docs/_audit/2026-10-23-android-alpha7-release.md) 为准。真实学校写入仍待人工验收。
 
 Android / Windows 使用 Rust + Flutter，Apple 继续 SwiftUI。Android **Alpha.7** 与 Windows **Alpha.6** 已发布；课表、成绩、SPOC、图书馆、签到、博雅、研究生教务等主要只读链路已接入，也有真实账号只读记录。Alpha.5 带入了工作台/研究生页渐进加载、座位与空教室分页浏览、课表固定节次轴与按天对齐、统一功能登记表导航，以及启动时的最低版本门禁；Alpha.4 增加手机端设置、返回手势保护、课程范围与助教作业分类、iClass 首次加载进度反馈，以及带暂停续传和安装包校验的应用内更新。签到和图书馆写路径已有确认、单次提交与回查，但真实写入尚未验收；最近实网登录失败仍需复验。Windows 公开包主推 Windows 10 / 11 x64 单文件安装器，并保留便携 ZIP；在 Parallels Windows 11 完成 Release 构建、合成保险库、宽窄布局与桌面集成验证。安装包未签名，物理 x64、干净系统运行依赖和真实学校业务仍待验收。源码、公开版本与验收边界见 [镜像现状](docs/MIRROR-IMPLEMENTATION.md)、[Android Alpha.5](docs/archive/mirror/MIRROR-ANDROID-ALPHA5.md)、[Windows Alpha.4](docs/archive/mirror/MIRROR-WINDOWS-ALPHA4.md)、[模块对照](docs/MIRROR-PARITY.md) 和 [待办](docs/MIRROR-TODO.md)；架构边界见 [Rust + Flutter 计划](docs/RUST-FLUTTER-PORT.md)。
+
+当前工作树另有公开查书/馆藏及排序、应用内校车时刻表、作业截止与展示修正；已移除作业详情“加入个人待办”，保留历史本机记录。这些后续变更尚不能视为已包含在上述公开 APK 中，详见 [实施现状](docs/MIRROR-IMPLEMENTATION.md)。
 
 ## 界面预览
 
@@ -89,7 +97,7 @@ Android / Windows 使用 Rust + Flutter，Apple 继续 SwiftUI。Android **Alpha
 |------|------|
 | ![成绩](docs/images/grades.png) | ![设置](docs/images/settings.png) |
 
-## 当前功能与验证范围（2026-10-19）
+## Apple 当前功能与验证范围（2026-10-19）
 
 | 模块 | 已实现 | 验证范围与限制 |
 |------|--------|----------------|
@@ -133,7 +141,7 @@ Android / Windows 使用 Rust + Flutter，Apple 继续 SwiftUI。Android **Alpha
 | [docs/LEARNING.md](docs/LEARNING.md) | 实施中用到的 Swift 概念速记 |
 | [docs/DEEP-ARCHITECTURE-REVIEW.md](docs/DEEP-ARCHITECTURE-REVIEW.md) | UBAA 参考实现透视（只读参考） |
 
-## 工程结构
+## Apple 工程结构
 
 ```
 BUAA-Assistant/
