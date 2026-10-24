@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_design.dart';
 import 'apple_widgets.dart';
+import 'ginkgo_visuals.dart';
 
 /// A quiet inset rule for rows nested inside a reveal animation.
 class TodayVisualDivider extends StatelessWidget {
@@ -78,7 +79,6 @@ class TodaySectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = CupertinoTheme.of(context).primaryColor;
-    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
 
     final action = (actionLabel != null && onAction != null)
         ? CupertinoButton(
@@ -129,22 +129,7 @@ class TodaySectionHeader extends StatelessWidget {
                   letterSpacing: -0.2,
                 ),
               ),
-              if (badge != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: isDark ? 0.22 : 0.12),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    badge!,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: accent,
-                    ),
-                  ),
-                ),
+              if (badge != null) GinkgoBadge(label: badge!, compact: true),
             ],
           ),
           ?action,

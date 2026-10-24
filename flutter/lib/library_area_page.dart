@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'loading_widgets.dart';
 import 'mirror_service.dart';
 import 'resource_meter.dart';
 import 'application/contracts.dart';
@@ -76,12 +77,15 @@ class LibraryAreaPageState extends State<LibraryAreaPage> {
       slivers: [
         ApplePageHeader(
           largeTitle: Text(widget.venue.name),
+          section: '空间资源',
+          subtitle: '查看开放区域与座位余量',
+          icon: CupertinoIcons.rectangle_grid_2x2,
           border: null,
           trailing: AppleGlassButton(
             label: '刷新列表',
             onPressed: busy ? null : load,
             child: busy
-                ? const CupertinoActivityIndicator()
+                ? const GinkgoActivity(size: 17)
                 : const Icon(CupertinoIcons.refresh, size: 24),
           ),
         ),
@@ -103,20 +107,7 @@ class LibraryAreaPageState extends State<LibraryAreaPage> {
                 ],
               ),
             if (areas == null && error == null)
-              AppleSection(
-                children: const [
-                  Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        CupertinoActivityIndicator(),
-                        SizedBox(width: 10),
-                        Text('正在读取区域…'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              const GinkgoLoadingView(label: '正在读取区域…'),
             if (areas != null)
               AppleSection(
                 header: const Text('区域'),

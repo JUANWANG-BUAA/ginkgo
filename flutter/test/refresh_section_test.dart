@@ -52,4 +52,66 @@ void main() {
     expect(notifications, 1);
     expect(section.value, isNull);
   });
+
+  test(
+    'a forced refresh arriving mid-read re-runs instead of being merged away',
+    () async {
+      final section = RefreshSection<int>();
+      addTearDown(section.dispose);
+      var reads = 0;
+      final slow = Completer<SectionResult<int>>();
+      Future<SectionResult<int>> cachedRead() async {
+        reads++;
+        return slow.future;
+      }
+
+      final first = section.refresh(cachedRead, fallbackError: '无法读取');
+      expect(reads, 1);
+      final forced = section.refresh(
+        () async {
+          reads++;
+          return const SectionResult(value: 7);
+        },
+        fallbackError: '无法读取',
+        force: true,
+      );
+      // The forced request is distinct and waits for the in-flight read.
+      expect(identical(forced, first), isFalse);
+      expect(reads, 1);
+      slow.complete(const SectionResult(value: 1));
+      await first;
+      await forced;
+      expect(reads, 2);
+      expect(section.value, 7);
+      expect(section.loading, isFalse);
+    },
+  );
+
+  test('a plain refresh joins the slot occupied by the forced re-run', () async {
+    final section = RefreshSection<int>();
+    addTearDown(section.dispose);
+    final slow = Completer<SectionResult<int>>();
+    var reads = 0;
+    final first = section.refresh(() async {
+      reads++;
+      return slow.future;
+    }, fallbackError: '无法读取');
+    final forced = section.refresh(() async {
+      reads++;
+      return const SectionResult(value: 9);
+    }, fallbackError: '无法读取', force: true);
+    slow.complete(const SectionResult(value: 1));
+    await first;
+    // The forced re-run now occupies the slot; a plain caller must join it
+    // instead of starting yet another read.
+    final plain = section.refresh(() async {
+      reads++;
+      return const SectionResult(value: 99);
+    }, fallbackError: '无法读取');
+    await plain;
+    expect(reads, 2, reason: 'plain caller must not start a second read');
+    expect(identical(plain, forced), isTrue);
+    await forced;
+    expect(section.value, 9);
+  });
 }

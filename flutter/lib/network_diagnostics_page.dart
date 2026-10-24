@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'loading_widgets.dart';
 import 'maintenance_pages.dart';
 import 'mirror_service.dart';
 import 'application/contracts.dart' as live;
@@ -98,6 +99,9 @@ class NetworkDiagnosticsPage extends StatelessWidget {
   Widget build(BuildContext context) => service.isDemo
       ? const MaintenanceScaffold(
           title: '学校接口耗时',
+          section: 'Ginkgo',
+          subtitle: '比较当前账号的缓存与刷新等待',
+          icon: CupertinoIcons.timer,
           children: [
             AppleSection(
               children: [
@@ -196,6 +200,9 @@ class _SchoolNetworkChecksState extends State<SchoolNetworkChecks> {
   @override
   Widget build(BuildContext context) => MaintenanceScaffold(
     title: '学校接口耗时',
+    section: 'Ginkgo',
+    subtitle: '比较当前账号的缓存与刷新等待',
+    icon: CupertinoIcons.timer,
     children: [
       AppleSection(
         footer: const Text(
@@ -206,7 +213,7 @@ class _SchoolNetworkChecksState extends State<SchoolNetworkChecks> {
             title: Text(rounds == 0 ? '开始读取' : '再次读取'),
             subtitle: const Text('允许使用有效缓存'),
             trailing: busy && !forced
-                ? const CupertinoActivityIndicator()
+                ? const GinkgoActivity(size: 16)
                 : const CupertinoListTileChevron(),
             onTap: busy ? null : () => run(false),
           ),
@@ -214,7 +221,7 @@ class _SchoolNetworkChecksState extends State<SchoolNetworkChecks> {
             title: const Text('强制刷新并测量'),
             subtitle: const Text('忽略有效缓存，逐项回查'),
             trailing: busy && forced
-                ? const CupertinoActivityIndicator()
+                ? const GinkgoActivity(size: 16)
                 : const CupertinoListTileChevron(),
             onTap: busy ? null : () => run(true),
           ),
@@ -236,7 +243,7 @@ class _SchoolNetworkChecksState extends State<SchoolNetworkChecks> {
               title: Text(widget.probes[i].title),
               subtitle: Text(detail(states[i])),
               leading: states[i].running
-                  ? const CupertinoActivityIndicator()
+                  ? const GinkgoActivity(size: 16)
                   : Icon(
                       states[i].elapsed == null
                           ? CupertinoIcons.circle

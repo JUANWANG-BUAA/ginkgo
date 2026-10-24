@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
 import 'long_page_scroll.dart';
+import 'loading_widgets.dart';
 import 'application/collection_window.dart';
 import 'collection_toolbar.dart';
 import 'classroom_results.dart';
@@ -258,12 +259,15 @@ class _ClassroomPageState extends State<ClassroomPage> {
         slivers: [
           ApplePageHeader(
             largeTitle: const Text('空教室'),
+            section: '空间资源',
+            subtitle: '按校区、日期与节次查询空闲教室',
+            icon: CupertinoIcons.building_2_fill,
             border: null,
             trailing: AppleGlassButton(
               label: '刷新空教室',
               onPressed: busy || initializing ? null : () => query(force: true),
               child: busy
-                  ? const CupertinoActivityIndicator()
+                  ? const GinkgoActivity(size: 17)
                   : const Icon(CupertinoIcons.refresh, size: 24),
             ),
           ),
@@ -443,17 +447,28 @@ class _ClassroomPageState extends State<ClassroomPage> {
                       ),
                     ],
                   ),
-                if (busy || initializing)
+                if (response == null && (busy || initializing))
+                  AppleSection(
+                    animateSize: false,
+                    children: [
+                      GinkgoLoadingView(
+                        label: '正在读取空教室…',
+                        detail: initializing ? '正在读取学校日期' : null,
+                      ),
+                    ],
+                  )
+                else if (busy)
                   AppleSection(
                     animateSize: false,
                     children: [
                       Padding(
+                        key: const Key('classroom-refreshing'),
                         padding: const EdgeInsets.all(16),
                         child: Row(
                           children: [
-                            const CupertinoActivityIndicator(),
+                            const GinkgoActivity(size: 17),
                             const SizedBox(width: 10),
-                            Text(initializing ? '正在读取学校日期…' : '正在查询空教室…'),
+                            Text('正在刷新空教室…'),
                           ],
                         ),
                       ),

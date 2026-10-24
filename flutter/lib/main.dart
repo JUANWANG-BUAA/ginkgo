@@ -77,6 +77,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
   String? message;
   bool captchaRequired = false;
   UpdateGate? blockingGate;
+  bool gateResolved = false;
   String? installedVersion;
   StartupUpdateController? startupUpdate;
 
@@ -124,10 +125,22 @@ class _GinkgoRootState extends State<GinkgoRoot> {
       blockingGate = gate != null && build != null && gate.blocks(build)
           ? gate
           : null;
+      gateResolved = true;
     });
   }
 
   Future<void> restore() async {
+    // An explicit sign-out persists until the next successful sign-in: the
+    // user chose to leave, so a later start shows the login page instead of
+    // auto-restoring a saved session.
+    if (AppPreferences.shared.explicitSignOut) {
+      setState(() {
+        stage = _Stage.signedOut;
+        message = null;
+        captchaRequired = false;
+      });
+      return;
+    }
     setState(() {
       stage = _Stage.restoring;
       message = null;
@@ -163,6 +176,9 @@ class _GinkgoRootState extends State<GinkgoRoot> {
 
   Future<void> signOut() async {
     await widget.liveService.signOut();
+    // Recorded before the state change: even if a vault deletion once failed,
+    // the next start must show the login page, never auto-restore.
+    await AppPreferences.shared.setExplicitSignOut(true);
     if (!mounted) return;
     setState(() {
       session = null;
@@ -171,12 +187,15 @@ class _GinkgoRootState extends State<GinkgoRoot> {
     });
   }
 
-  void signedIn(SessionResponse response) => setState(() {
-    session = response;
-    stage = _Stage.signedIn;
-    captchaRequired = false;
-    message = null;
-  });
+  void signedIn(SessionResponse response) {
+    AppPreferences.shared.setExplicitSignOut(false);
+    setState(() {
+      session = response;
+      stage = _Stage.signedIn;
+      captchaRequired = false;
+      message = null;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -189,6 +208,12 @@ class _GinkgoRootState extends State<GinkgoRoot> {
           onRetry: checkUpdateGate,
         ),
       );
+    }
+    // Until the manifest check settles (bounded by its own timeout), only the
+    // startup surface is available: a stale build must not reach the workspace
+    // — or school writes — before the gate has decided.
+    if (widget.loadUpdateGate != null && !gateResolved) {
+      return ginkgoApp(home: const StartupPage());
     }
     return switch (stage) {
       _Stage.restoring => ginkgoApp(home: const StartupPage()),

@@ -16,6 +16,10 @@ class CourseVisibility extends ChangeNotifier {
   final Future<Set<String>> Function()? load;
   final Set<String> _hidden = {};
   bool ready = false;
+
+  /// A failed read locks editing until an explicit retry succeeds, so a
+  /// partially loaded set can never be written back over the stored one.
+  bool loadFailed = false;
   String? error;
   Future<void> _pending = Future.value();
   Future<void>? _restoring;
@@ -45,6 +49,16 @@ class CourseVisibility extends ChangeNotifier {
 
   Future<void> restore() => _restoring ??= _restore();
 
+  /// Explicit retry after a failed read. Re-opens the restore path and applies
+  /// any changes queued while the previous restore was still running.
+  Future<void> retryRestore() {
+    if (!loadFailed || _disposed) return Future.value();
+    loadFailed = false;
+    error = null;
+    _restoring = null;
+    return restore();
+  }
+
   Future<void> _restore() async {
     try {
       if (load != null) {
@@ -62,7 +76,12 @@ class CourseVisibility extends ChangeNotifier {
         }
       }
     } catch (_) {
-      error = '未能读取课程范围，请重新设置';
+      // Stay not-ready: switches stay disabled and nothing is saved until a
+      // retry reads the stored range successfully.
+      loadFailed = true;
+      error = '未能读取课程范围；为保护原设置，已暂停编辑。请重试。';
+      notifyListeners();
+      return;
     }
     for (final change in _changesBeforeRestore.entries) {
       if (change.value) {
@@ -73,10 +92,13 @@ class CourseVisibility extends ChangeNotifier {
     }
     _changesBeforeRestore.clear();
     ready = true;
+    loadFailed = false;
+    error = null;
     notifyListeners();
   }
 
   Future<void> setHidden(String system, String id, bool hidden) {
+    if (loadFailed || _disposed) return Future.value();
     final key = _key(system, id);
     if (!ready) _changesBeforeRestore[key] = hidden;
     if (hidden) {
@@ -182,15 +204,25 @@ class CourseRangePage extends StatelessWidget {
                     trailing: CupertinoSwitch(
                       key: ValueKey('course-range-${course.key}'),
                       value: !preferences.hidden(system, course.key),
-                      onChanged: (value) =>
-                          preferences.setHidden(system, course.key, !value),
+                      onChanged: preferences.loadFailed
+                          ? null
+                          : (value) =>
+                                preferences.setHidden(system, course.key, !value),
                     ),
                   ),
               ],
             ),
             if (preferences.error != null)
               AppleSection(
-                children: [AppleListTile(title: Text(preferences.error!))],
+                children: [
+                  AppleEmptyState(
+                    title: preferences.error!,
+                    description: '重试成功后即可继续调整；已保存的原设置不会被覆盖。',
+                    action: '重试读取',
+                    onAction: preferences.retryRestore,
+                    error: true,
+                  ),
+                ],
               ),
             const SizedBox(height: 64),
           ],

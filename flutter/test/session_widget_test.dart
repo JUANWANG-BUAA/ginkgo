@@ -9,6 +9,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show HomeworkDetailResponse;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ginkgo_mirror/app_preferences.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
@@ -244,6 +245,63 @@ Future<void> phone(WidgetTester tester, Widget app) async {
 
 void main() {
   setUp(mockLocalTaskSupportDirectory);
+  tearDown(() async {
+    await AppPreferences.shared.setExplicitSignOut(false);
+  });
+
+  testWidgets('an explicit sign-out shows the login page on the next start', (
+    tester,
+  ) async {
+    await AppPreferences.shared.setExplicitSignOut(true);
+    await phone(
+      tester,
+      GinkgoRoot(
+        liveService: FakeService(
+          restoreResponse: signedIn,
+          loginResponse: signedIn,
+        ),
+        demoService: FakeService(
+          restoreResponse: signedOut,
+          loginResponse: signedIn,
+          demo: true,
+        ),
+      ),
+    );
+    // The fake service would restore a saved session, but the recorded
+    // sign-out must win: no automatic sign-in after the user chose to leave.
+    expect(find.text('统一身份认证'), findsOneWidget);
+    expect(find.byKey(const Key('today-scroll')), findsNothing);
+  });
+
+  testWidgets('signing in again clears the explicit sign-out marker', (
+    tester,
+  ) async {
+    await AppPreferences.shared.setExplicitSignOut(true);
+    await phone(
+      tester,
+      GinkgoRoot(
+        liveService: FakeService(
+          restoreResponse: signedOut,
+          loginResponse: signedIn,
+        ),
+        demoService: FakeService(
+          restoreResponse: signedOut,
+          loginResponse: signedIn,
+          demo: true,
+        ),
+      ),
+    );
+    await tester.enterText(find.byKey(const Key('login-account')), 'sy2501001');
+    await tester.enterText(
+      find.byKey(const Key('login-password')),
+      'fixture-password',
+    );
+    await tester.tap(find.byKey(const Key('login-submit')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('today-scroll')), findsOneWidget);
+    expect(AppPreferences.shared.explicitSignOut, isFalse);
+  });
+
   testWidgets('signed-out restore shows login and signs in', (tester) async {
     final service = FakeService(
       restoreResponse: signedOut,

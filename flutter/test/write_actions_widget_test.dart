@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/checkin_page.dart';
 import 'package:ginkgo_mirror/apple_design.dart';
 import 'package:ginkgo_mirror/library_page.dart';
+import 'package:ginkgo_mirror/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
@@ -86,6 +87,12 @@ void main() {
       await tester.tap(find.text('确认签到'));
       await tester.pump();
       expect(service.writes, 1);
+      final submitting = find.descendant(
+        of: button,
+        matching: find.byType(GinkgoActivity),
+      );
+      expect(submitting, findsOneWidget);
+      expect(tester.widget<GinkgoActivity>(submitting).size, 17);
       expect(tester.widget<CupertinoButton>(button).onPressed, isNull);
       service.pending.complete(
         const MutationResponse(state: 'uncertain', message: '测试：结果待核实'),

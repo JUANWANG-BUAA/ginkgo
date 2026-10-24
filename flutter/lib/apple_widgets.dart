@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_design.dart';
 import 'app_preferences.dart';
+import 'ginkgo_visuals.dart';
 import 'reminder_badge.dart';
 
 export 'application/failure_message.dart';
@@ -17,11 +18,20 @@ class ApplePageHeader extends StatelessWidget {
     this.trailing,
     this.previousPageTitle,
     this.border,
+    this.section,
+    this.subtitle,
+    this.icon,
   });
   final Widget largeTitle;
   final Widget? trailing;
   final String? previousPageTitle;
   final Border? border;
+
+  /// Explicit desktop identity. Callers own the section, subtitle and icon;
+  /// the header never infers them from the title.
+  final String? section;
+  final String? subtitle;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -33,23 +43,9 @@ class ApplePageHeader extends StatelessWidget {
         trailing: trailing,
       );
     }
-    final title = largeTitle is Text ? (largeTitle as Text).data : null;
-    final (section, subtitle, icon) = switch (title) {
-      '课表' => ('学业', '按学期与教学周查看课程和考试', CupertinoIcons.calendar),
-      '成绩' => ('学业', '查看课程成绩、学分与加权统计', CupertinoIcons.chart_bar_alt_fill),
-      '作业' || '学校作业' => ('学业', '区分个人作业状态与助教课程', CupertinoIcons.doc_text),
-      '博雅' => ('学业', '查看活动、课程与个人记录', CupertinoIcons.book_solid),
-      '研究生教务' => ('学业', '学籍、培养方案与研究生学业查询', CupertinoIcons.building_2_fill),
-      '图书馆' => ('空间资源', '选择场馆、区域与可预约时段', CupertinoIcons.book),
-      '研讨室' => ('空间资源', '选择场馆并查看可预约空间', CupertinoIcons.person_3),
-      '空教室' => ('空间资源', '按校区、日期与节次查询空闲教室', CupertinoIcons.building_2_fill),
-      '课程签到' || '签到历史' => ('工作台', '查看课程签到状态与记录', CupertinoIcons.checkmark_seal),
-      '待办' => ('工作台', '安排个人任务与截止时间', CupertinoIcons.list_bullet),
-      '校园通知' => ('校园', '查看通知与校内资讯', CupertinoIcons.news_solid),
-      '今天' || '工作台' => ('工作台', '从今日课程开始安排一天', CupertinoIcons.sun_max),
-      '设置' => ('Ginkgo', '管理账号、显示偏好与系统设置', CupertinoIcons.gear_alt),
-      _ => ('Ginkgo', null, null),
-    };
+    final resolvedSection = section ?? 'Ginkgo';
+    final resolvedSubtitle = subtitle;
+    final resolvedIcon = icon;
     final canPop = Navigator.of(context).canPop();
     final accent = CupertinoTheme.of(context).primaryColor;
     return PinnedHeaderSliver(
@@ -67,6 +63,7 @@ class ApplePageHeader extends StatelessWidget {
                   CupertinoButton(
                     key: const Key('desktop-page-back'),
                     padding: const EdgeInsets.all(8),
+                    minimumSize: const Size(48, 48),
                     onPressed: () => Navigator.of(context).maybePop(),
                     child: Semantics(
                       label: '返回上一页',
@@ -75,15 +72,12 @@ class ApplePageHeader extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                 ],
-                if (icon != null) ...[
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(child: Icon(icon, size: 22, color: accent)),
+                if (resolvedIcon != null) ...[
+                  GinkgoIconTile(
+                    icon: resolvedIcon,
+                    size: 44,
+                    iconSize: 22,
+                    color: accent,
                   ),
                   const SizedBox(width: 14),
                 ],
@@ -92,7 +86,7 @@ class ApplePageHeader extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        section,
+                        resolvedSection,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -113,10 +107,10 @@ class ApplePageHeader extends StatelessWidget {
                           child: largeTitle,
                         ),
                       ),
-                      if (subtitle != null) ...[
+                      if (resolvedSubtitle != null) ...[
                         const SizedBox(height: 3),
                         Text(
-                          subtitle,
+                          resolvedSubtitle,
                           style: TextStyle(
                             fontSize: 13,
                             color: CupertinoColors.secondaryLabel.resolveFrom(
@@ -263,37 +257,43 @@ Future<T?> choose<T>(
                       itemCount: values.length,
                       itemBuilder: (context, index) {
                         final value = values[index];
-                        return CupertinoButton(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          onPressed: () => Navigator.pop(context, value),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 18,
-                                child: value == selected
-                                    ? Icon(
-                                        CupertinoIcons.check_mark,
-                                        size: 16,
-                                        color: CupertinoTheme.of(context)
-                                            .primaryColor,
-                                      )
-                                    : null,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  label(value),
-                                  style: AppleDesign.body.copyWith(
-                                    color: CupertinoColors.label.resolveFrom(
-                                      context,
+                        final isSelected = value == selected;
+                        return Semantics(
+                          // TalkBack must announce the current choice instead
+                          // of an unlabelled check mark decoration.
+                          selected: isSelected,
+                          child: CupertinoButton(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            onPressed: () => Navigator.pop(context, value),
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 18,
+                                  child: isSelected
+                                      ? Icon(
+                                          CupertinoIcons.check_mark,
+                                          size: 16,
+                                          color: CupertinoTheme.of(context)
+                                              .primaryColor,
+                                        )
+                                      : null,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    label(value),
+                                    style: AppleDesign.body.copyWith(
+                                      color: CupertinoColors.label.resolveFrom(
+                                        context,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         );
                       },
@@ -482,7 +482,7 @@ class _AppleGlassButtonState extends State<AppleGlassButton> {
         button: true,
         child: CupertinoButton(
           padding: const EdgeInsets.all(8),
-          minimumSize: const Size(36, 36),
+          minimumSize: const Size(48, 48),
           onPressed: widget.onPressed,
           child: DecoratedBox(
             decoration: BoxDecoration(
@@ -546,8 +546,8 @@ class _AppleGlassButtonState extends State<AppleGlassButton> {
                   sigmaY: opaque ? 0 : 16,
                 ),
                 child: Container(
-                  width: 44,
-                  height: 44,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: surface.withValues(alpha: opaque ? 1 : 0.72),

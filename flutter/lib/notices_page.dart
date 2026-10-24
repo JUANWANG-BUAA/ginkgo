@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'apple_widgets.dart';
+import 'loading_widgets.dart';
 import 'mirror_service.dart';
 
 class NoticesPage extends StatefulWidget {
@@ -62,12 +63,15 @@ class _NoticesPageState extends State<NoticesPage> {
       slivers: [
         ApplePageHeader(
           largeTitle: const Text('校园通知'),
+          section: '校园',
+          subtitle: '查看通知与校内资讯',
+          icon: CupertinoIcons.news_solid,
           border: null,
           trailing: AppleGlassButton(
             label: '刷新校园通知',
             onPressed: busy ? null : () => load(force: true),
             child: busy
-                ? const CupertinoActivityIndicator()
+                ? const GinkgoActivity(size: 17)
                 : const Icon(CupertinoIcons.refresh),
           ),
         ),
@@ -97,11 +101,19 @@ class _NoticesPageState extends State<NoticesPage> {
                 ],
               ),
             if (notices == null && busy)
-              const Padding(
-                padding: EdgeInsets.all(24),
-                child: CupertinoActivityIndicator(),
+              const AppleSection(
+                children: [GinkgoLoadingView(label: '正在读取校园通知…')],
               ),
-            if (notices != null)
+            if (notices != null && notices!.isEmpty && !busy)
+              const AppleSection(
+                children: [
+                  AppleEmptyState(
+                    title: '暂无校园通知',
+                    description: '学校通知列表当前为空；可下拉刷新或稍后再看。',
+                  ),
+                ],
+              ),
+            if (notices != null && notices!.isNotEmpty)
               AppleSection(
                 children: [
                   for (final notice in notices!)

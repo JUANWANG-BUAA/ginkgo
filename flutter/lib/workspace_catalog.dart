@@ -184,7 +184,7 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
   WorkspaceDestination(
     id: 'graduate',
     title: '研究生教务',
-    icon: CupertinoIcons.building_2_fill,
+    icon: CupertinoIcons.briefcase_fill,
     section: WorkspaceSection.academics,
     build: (context) =>
         GraduatePage(demo: context.service.isDemo, service: context.service),

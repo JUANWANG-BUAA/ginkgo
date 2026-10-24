@@ -7,11 +7,12 @@ import 'reminders.dart';
 
 import 'apple_widgets.dart';
 import 'apple_design.dart';
+import 'checkin_loading.dart';
+import 'loading_widgets.dart';
 import 'mirror_service.dart';
 import 'school_timestamp.dart';
 import 'application/contracts.dart';
 import 'course_visibility.dart';
-import 'checkin_loading.dart';
 
 const _weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
@@ -264,6 +265,9 @@ class _CheckInPageState extends State<CheckInPage> {
       slivers: [
         ApplePageHeader(
           largeTitle: Text(widget.history ? '签到历史' : '课程签到'),
+          section: '工作台',
+          subtitle: '查看课程签到状态与记录',
+          icon: CupertinoIcons.checkmark_seal,
           border: null,
           trailing: AppleGlassButton(
             label: '刷新签到状态',
@@ -271,7 +275,7 @@ class _CheckInPageState extends State<CheckInPage> {
                 ? null
                 : () => load(force: true),
             child: busy
-                ? const CupertinoActivityIndicator()
+                ? const GinkgoActivity(size: 17)
                 : const Icon(CupertinoIcons.refresh, size: 24),
           ),
         ),
@@ -375,9 +379,15 @@ class _CheckInPageState extends State<CheckInPage> {
               ..._content(data!),
             ],
             if (busy && data != null)
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: CupertinoActivityIndicator(),
+              Padding(
+                key: const Key('checkin-refreshing'),
+                padding: const EdgeInsets.all(16),
+                child: Center(
+                  child: Semantics(
+                    label: '正在刷新签到状态',
+                    child: const GinkgoActivity(size: 17),
+                  ),
+                ),
               ),
             const SizedBox(height: 96),
           ],
@@ -460,7 +470,9 @@ class _CheckInPageState extends State<CheckInPage> {
           header: Text(dateLabel),
           children: [
             AppleListTile(
-              title: Text('${widget.history ? '当天' : '今天'} ${data.courses.length} 节课'),
+              title: Text(
+                '${widget.history ? '当天' : '今天'} ${data.courses.length} 节课',
+              ),
               subtitle: Text(
                 [
                   '已签到 $signed',
@@ -688,7 +700,7 @@ class _CheckInPageState extends State<CheckInPage> {
                       ? null
                       : () => submit(course),
                   child: submitting == course.id
-                      ? const CupertinoActivityIndicator()
+                      ? const GinkgoActivity(size: 17)
                       : Text(
                           awaitingVerification.contains(course.id)
                               ? '待核实'

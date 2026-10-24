@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'loading_widgets.dart';
 import 'mirror_service.dart';
 import 'resource_meter.dart';
 
@@ -81,12 +82,15 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
       slivers: [
         ApplePageHeader(
           largeTitle: const Text('在馆与空间'),
+          section: '空间资源',
+          subtitle: '学院路 · 沙河在馆人数与空间余量',
+          icon: CupertinoIcons.person_2_fill,
           border: null,
           trailing: AppleGlassButton(
             label: '刷新公共统计',
             onPressed: busy ? null : () => load(force: true),
             child: busy
-                ? const CupertinoActivityIndicator()
+                ? const GinkgoActivity(size: 17)
                 : const Icon(CupertinoIcons.refresh),
           ),
         ),
@@ -122,10 +126,7 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
                 ],
               ),
             if (campuses == null && busy)
-              const Padding(
-                padding: EdgeInsets.all(32),
-                child: Center(child: CupertinoActivityIndicator()),
-              ),
+              const GinkgoLoadingView(label: '正在读取在馆数据…'),
             if (campuses case final items?)
               for (final campus in items) _campus(campus),
             Padding(

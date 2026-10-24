@@ -55,6 +55,15 @@ CupertinoThemeData ginkgoTheme([
       letterSpacing: -0.25,
       color: accent,
     ),
+    // The nav bar back button reads navActionTextStyle, not actionTextStyle;
+    // leaving it unset falls back to system blue and breaks the accent.
+    navActionTextStyle: TextStyle(
+      inherit: false,
+      fontFamily: GinkgoTypography.font,
+      fontFamilyFallback: GinkgoTypography.fallback,
+      fontSize: 17,
+      color: accent,
+    ),
     dateTimePickerTextStyle: const TextStyle(
       inherit: false,
       fontFamily: GinkgoTypography.font,

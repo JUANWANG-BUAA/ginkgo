@@ -12,6 +12,8 @@ import 'package:ginkgo_mirror/workspace_tab_transition.dart';
 import 'mirror_widget_test.dart'
     show ControlledService, mockLocalTaskSupportDirectory;
 
+const double pageWidth = 430;
+
 Finder transition(int index, {bool skipOffstage = true}) =>
     find.byWidgetPredicate(
       (widget) => widget is WorkspaceTabTransition && widget.index == index,
@@ -27,13 +29,25 @@ double displacement(WidgetTester tester, int index) => tester
     .transform
     .storage[12];
 
-double opacity(WidgetTester tester, int index) => tester
-    .widget<Opacity>(
-      find
-          .descendant(of: transition(index), matching: find.byType(Opacity))
-          .first,
-    )
-    .opacity;
+/// The sheet itself never fades; only its edge decoration changes.
+void expectNoFade(WidgetTester tester, int index) => expect(
+  find.descendant(of: transition(index), matching: find.byType(Opacity)),
+  findsNothing,
+);
+
+Finder pageEdge(int index) => find.descendant(
+  of: transition(index),
+  matching: find.byKey(const ValueKey('workspace-tab-page-edge')),
+);
+
+Finder pageSpine(int index) => find.descendant(
+  of: transition(index),
+  matching: find.byKey(const ValueKey('workspace-tab-page-spine')),
+);
+
+LinearGradient gradientOf(WidgetTester tester, Finder finder) =>
+    (tester.widget<DecoratedBox>(finder).decoration as BoxDecoration).gradient!
+        as LinearGradient;
 
 Widget motionHarness(
   CupertinoTabController tabs, {
@@ -84,30 +98,36 @@ void main() {
   setUp(mockLocalTaskSupportDirectory);
 
   testWidgets(
-    'first page is still; index direction, fade and 230ms completion',
+    'first page is still; index direction, full-width slide and 230ms completion',
     (tester) async {
       phone(tester);
       final tabs = CupertinoTabController();
       addTearDown(tabs.dispose);
       await tester.pumpWidget(motionHarness(tabs));
       expect(displacement(tester, 0), 0);
-      expect(opacity(tester, 0), 1);
+      expectNoFade(tester, 0);
       expect(
         find.byType(CupertinoTabView, skipOffstage: false),
         findsOneWidget,
       );
       for (final index in [1, 2, 3, 4, 2, 0]) {
         final previous = tabs.index;
+        final direction = index > previous ? 1 : -1;
         await tapTab(tester, 'tab$index');
         await tester.pump();
-        expect(displacement(tester, index), index > previous ? 18 : -18);
-        expect(opacity(tester, index), closeTo(0.94, 0.001));
+        // The whole sheet starts one page width away, on the side it came from.
+        expect(displacement(tester, index), direction * pageWidth);
+        expect(pageEdge(index), findsOneWidget);
+        expect(pageSpine(index), findsOneWidget);
+        expectNoFade(tester, index);
         await tester.pump(const Duration(milliseconds: 100));
-        expect(displacement(tester, index).abs(), inExclusiveRange(0, 18));
-        expect(opacity(tester, index), inExclusiveRange(0.94, 1));
+        expect(
+          displacement(tester, index).abs(),
+          inExclusiveRange(0, pageWidth),
+        );
         await tester.pump(const Duration(milliseconds: 130));
         expect(displacement(tester, index), 0);
-        expect(opacity(tester, index), 1);
+        expect(gradientOf(tester, pageEdge(index)).colors.first.a, 0);
       }
       expect(
         find.byType(CupertinoTabView, skipOffstage: false),
@@ -121,6 +141,61 @@ void main() {
     },
   );
 
+  testWidgets('page edge shadow and spine follow direction and clear at rest', (
+    tester,
+  ) async {
+    phone(tester);
+    final tabs = CupertinoTabController();
+    addTearDown(tabs.dispose);
+    await tester.pumpWidget(motionHarness(tabs));
+    // Both layers exist from the first frame but shade nothing at rest.
+    expect(pageEdge(0), findsOneWidget);
+    expect(pageSpine(0), findsOneWidget);
+    expect(
+      gradientOf(tester, pageEdge(0)).colors.map((color) => color.a),
+      everyElement(0),
+    );
+    expect(
+      gradientOf(tester, pageSpine(0)).colors.map((color) => color.a),
+      everyElement(0),
+    );
+
+    tabs.index = 1;
+    await tester.pump();
+    // Arriving from the right: free edge shadow on the left, hinge on the
+    // right.
+    final shadow = gradientOf(tester, pageEdge(1));
+    final spine = gradientOf(tester, pageSpine(1));
+    expect(shadow.begin, Alignment.centerLeft);
+    expect(shadow.end, Alignment.centerRight);
+    expect(spine.begin, Alignment.centerRight);
+    expect(spine.end, Alignment.centerLeft);
+    expect(shadow.colors.first.a, greaterThan(0));
+    expect(shadow.colors.last.a, 0);
+    expect(spine.colors.first.a, greaterThan(0));
+    expect(spine.colors.last.a, 0);
+    final startAlpha = shadow.colors.first.a;
+
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(
+      gradientOf(tester, pageEdge(1)).colors.first.a,
+      inExclusiveRange(0, startAlpha),
+    );
+
+    await tester.pump(const Duration(milliseconds: 130));
+    expect(gradientOf(tester, pageEdge(1)).colors.first.a, 0);
+
+    tabs.index = 0;
+    await tester.pump();
+    final reversedShadow = gradientOf(tester, pageEdge(0));
+    final reversedSpine = gradientOf(tester, pageSpine(0));
+    expect(reversedShadow.begin, Alignment.centerRight);
+    expect(reversedShadow.end, Alignment.centerLeft);
+    expect(reversedSpine.begin, Alignment.centerLeft);
+    expect(reversedSpine.end, Alignment.centerRight);
+    expect(reversedShadow.colors.first.a, greaterThan(0));
+  });
+
   testWidgets(
     'system and app reduce motion are zero-frame and cancel active motion',
     (tester) async {
@@ -132,13 +207,14 @@ void main() {
       await tester.pumpWidget(motionHarness(tabs, preferences: preferences));
       tabs.index = 2;
       await tester.pump();
-      expect(displacement(tester, 2), 18);
+      expect(displacement(tester, 2), pageWidth);
       await preferences.update(reduceMotion: true);
       await tester.pump();
       expect(displacement(tester, 2), 0);
+      expect(gradientOf(tester, pageEdge(2)).colors.first.a, 0);
       tabs.index = 0;
       await tester.pump();
-      expect(opacity(tester, 0), 1);
+      expectNoFade(tester, 0);
       expect(tester.binding.transientCallbackCount, 0);
       await preferences.update(reduceMotion: false);
       tester.platformDispatcher.accessibilityFeaturesTestValue =
@@ -150,7 +226,7 @@ void main() {
       tabs.index = 4;
       await tester.pump();
       expect(displacement(tester, 4), 0);
-      expect(opacity(tester, 4), 1);
+      expectNoFade(tester, 4);
       expect(tester.binding.transientCallbackCount, 0);
     },
   );
@@ -167,11 +243,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 30));
       tabs.index = 1;
       await tester.pump();
-      expect(displacement(tester, 1), -18);
+      expect(displacement(tester, 1), -pageWidth);
       tabs.index = 3;
       tabs.index = 0;
       await tester.pump();
-      expect(displacement(tester, 0), -18);
+      expect(displacement(tester, 0), -pageWidth);
       await tester.pumpWidget(motionHarness(tabs, tickerEnabled: false));
       expect(displacement(tester, 0), 0);
       tabs.index = 2;
@@ -270,7 +346,7 @@ void main() {
         Navigator.of(tester.element(find.text('作业详情'))),
         same(detailNavigator),
       );
-      expect(displacement(tester, 3), -18);
+      expect(displacement(tester, 3), -pageWidth);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
       expect(find.text('作业详情'), findsNothing);

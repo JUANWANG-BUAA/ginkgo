@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'apple_design.dart';
 import 'apple_widgets.dart';
 import 'app_preferences.dart';
+import 'loading_widgets.dart';
 import 'mirror_service.dart';
 import 'maintenance_service.dart';
 import 'maintenance_pages.dart';
@@ -155,7 +156,13 @@ class _SettingsPageState extends State<SettingsPage> {
     child: CustomScrollView(
       key: const Key("settings-scroll"),
       slivers: [
-        const ApplePageHeader(largeTitle: Text('设置'), border: null),
+        const ApplePageHeader(
+          largeTitle: Text('设置'),
+          border: null,
+          section: 'Ginkgo',
+          subtitle: '管理账号、显示偏好与系统设置',
+          icon: CupertinoIcons.gear_alt,
+        ),
         SliverList.list(
           children: [
             AppleSection(
@@ -251,7 +258,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     color: CupertinoColors.systemOrange,
                   ),
                   trailing: busy
-                      ? const CupertinoActivityIndicator()
+                      ? const GinkgoActivity(size: 16)
                       : const CupertinoListTileChevron(),
                   title: const Text('清除查询快照'),
                   subtitle: const Text('清除已读取的学校数据，不影响个人待办'),

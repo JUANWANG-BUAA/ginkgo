@@ -16,12 +16,44 @@ class RefreshSection<T> extends ChangeNotifier {
   bool loading = false;
   bool _disposed = false;
   Future<void>? _task;
+  Future<void>? _forcedRun;
 
+  /// A plain refresh joins the in-flight read. A forced refresh is never
+  /// merged away: when one arrives while a (typically cached) read runs, it
+  /// re-runs once that read settles and occupies the slot while doing so.
   Future<void> refresh(
     Future<SectionResult<T>> Function() read, {
     required String fallbackError,
-  }) =>
-      _task ??= _refresh(read, fallbackError).whenComplete(() => _task = null);
+    bool force = false,
+  }) {
+    final inFlight = _task;
+    if (inFlight == null) {
+      _forcedRun = null;
+      return _task = _refresh(
+        read,
+        fallbackError,
+      ).whenComplete(() => _task = null);
+    }
+    if (!force) return inFlight;
+    return _forcedRun ??= _chainForced(read, fallbackError, inFlight);
+  }
+
+  Future<void> _chainForced(
+    Future<SectionResult<T>> Function() read,
+    String fallbackError,
+    Future<void> inFlight,
+  ) {
+    late final Future<void> run;
+    run = inFlight.then((_) async {
+      if (_disposed) return;
+      _task = run;
+      await _refresh(read, fallbackError);
+    }).whenComplete(() {
+      _forcedRun = null;
+      if (identical(_task, run)) _task = null;
+    });
+    return run;
+  }
 
   Future<void> _refresh(
     Future<SectionResult<T>> Function() read,

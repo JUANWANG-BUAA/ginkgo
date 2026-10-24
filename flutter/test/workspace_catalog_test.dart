@@ -32,6 +32,22 @@ void main() {
     }
   });
 
+  test('every destination has a unique, non-empty icon', () {
+    final icons = <String>{};
+    for (final destination in workspaceDestinations) {
+      final icon = destination.icon;
+      expect(icon.codePoint, isNot(0), reason: destination.id);
+      expect(icon.fontFamily, isNotNull, reason: destination.id);
+      final key =
+          '${icon.fontFamily}/${icon.fontPackage ?? ''}/${icon.codePoint}';
+      expect(
+        icons.add(key),
+        isTrue,
+        reason: '${destination.id} reuses ${icon.fontFamily}:${icon.codePoint}',
+      );
+    }
+  });
+
   test('desktop sidebar is grouped and settings stays in the footer', () {
     final grouped = <String>[];
     for (final section in WorkspaceSection.values) {

@@ -5,6 +5,39 @@ import 'package:ginkgo_mirror/course_visibility.dart';
 
 void main() {
   test(
+    'a failed read locks editing until an explicit retry succeeds',
+    () async {
+      var saved = <String>{};
+      var shouldFail = true;
+      final preferences = CourseVisibility(
+        'fixture',
+        load: () async {
+          if (shouldFail) throw const FormatException('synthetic drift');
+          return <String>{};
+        },
+        save: (value) async => saved = value,
+      );
+      await preferences.restore();
+      expect(preferences.loadFailed, isTrue);
+      expect(preferences.ready, isFalse);
+
+      // While the read is failed, changes are refused and nothing is written,
+      // so the stored range can never be overwritten by a partial set.
+      await preferences.setHidden('iclass', 'course', true);
+      expect(preferences.hidden('iclass', 'course'), isFalse);
+      expect(saved, isEmpty);
+
+      shouldFail = false;
+      await preferences.retryRestore();
+      expect(preferences.loadFailed, isFalse);
+      expect(preferences.ready, isTrue);
+      await preferences.setHidden('iclass', 'course', true);
+      expect(preferences.hidden('iclass', 'course'), isTrue);
+      expect(saved.single, matches(RegExp(r'^[a-f0-9]{64}$')));
+      preferences.dispose();
+    },
+  );
+  test(
     'a late disk restore keeps newer user choices and saves the merged range',
     () async {
       final stored = Completer<Set<String>>();

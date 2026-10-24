@@ -52,6 +52,7 @@ class DiagnosticHintOverlay extends StatelessWidget {
                           ),
                           CupertinoButton(
                             padding: const EdgeInsets.all(8),
+                            minimumSize: const Size(48, 48),
                             onPressed: () => _details(context, entry),
                             child: const Text(
                               '查看',
@@ -60,6 +61,7 @@ class DiagnosticHintOverlay extends StatelessWidget {
                           ),
                           CupertinoButton(
                             padding: const EdgeInsets.all(8),
+                            minimumSize: const Size(48, 48),
                             onPressed: DiagnosticLog.shared.dismiss,
                             child: Semantics(
                               label: '关闭错误提示',

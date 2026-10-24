@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'loading_widgets.dart';
 import 'mirror_service.dart';
 
 /// Polls local progress only; never sends another authentication/read request.
@@ -65,10 +66,10 @@ class _CheckInLoadingState extends State<CheckInLoading> {
   Widget build(BuildContext context) => AppleSection(
     footer: const Text('首次连接需要建立学校和 iClass 会话，后续读取会复用有效会话。'),
     children: [
-      AppleListTile(
-        leading: const CupertinoActivityIndicator(),
-        title: Text(label),
-        subtitle: seconds > 0 ? Text('已等待 $seconds 秒') : null,
+      GinkgoLoadingView(
+        label: label,
+        detail: seconds > 0 ? '已等待 $seconds 秒' : null,
+        compact: true,
       ),
     ],
   );

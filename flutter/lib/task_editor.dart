@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'apple_design.dart';
+import 'loading_widgets.dart';
 
 import 'application/local_tasks.dart';
 import 'apple_widgets.dart';
@@ -39,6 +40,32 @@ class _TaskEditorState extends State<TaskEditor> {
     title.dispose();
     due.dispose();
     super.dispose();
+  }
+
+  /// Unsaved edits must be confirmed before the draft is thrown away; an
+  /// untouched editor closes without a dialog.
+  bool get _dirty => title.text != widget.title || due.text != widget.due;
+
+  Future<void> _confirmDiscard() async {
+    final leave = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: const Text('放弃未保存的修改？'),
+        content: const Text('返回后本次编辑的内容不会保留。'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('继续编辑'),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('放弃修改'),
+          ),
+        ],
+      ),
+    );
+    if (leave == true && mounted) Navigator.of(context).pop();
   }
 
   Future<void> pickDeadline({required bool includeTime}) async {
@@ -146,7 +173,11 @@ class _TaskEditorState extends State<TaskEditor> {
 
   @override
   Widget build(BuildContext context) => PopScope(
-    canPop: !saving,
+    canPop: !saving && !_dirty,
+    onPopInvokedWithResult: (didPop, _) {
+      if (didPop || saving) return;
+      _confirmDiscard();
+    },
     child: CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
         context,
@@ -350,7 +381,7 @@ class _TaskEditorState extends State<TaskEditor> {
                 minimumSize: const Size(48, 48),
                 onPressed: saving || title.text.trim().isEmpty ? null : save,
                 child: saving
-                    ? const CupertinoActivityIndicator()
+                    ? const GinkgoActivity(size: 17)
                     : Text(
                         widget.isNew ? '确认添加' : '保存',
                         style: TextStyle(

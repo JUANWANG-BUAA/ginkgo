@@ -66,6 +66,9 @@ class BykcDetailPage extends StatelessWidget {
             largeTitle: Text('课程详情'),
             previousPageTitle: '博雅',
             border: null,
+            section: '学业',
+            subtitle: '查看活动课程与个人记录',
+            icon: CupertinoIcons.book_solid,
           ),
           SliverList.list(
             children: [

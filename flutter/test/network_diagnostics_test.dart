@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ginkgo_mirror/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/network_diagnostics_page.dart';
@@ -61,6 +62,12 @@ void main() {
       await tester.tap(find.text('开始读取'));
       await tester.pump();
       expect(requests, hasLength(1));
+      final activities = tester.widgetList<GinkgoActivity>(
+        find.byType(GinkgoActivity),
+      );
+      expect(activities, isNotEmpty);
+      expect(activities.every((item) => item.size == 16), isTrue);
+      expect(find.byType(CupertinoActivityIndicator), findsNothing);
       await tester.tap(find.text('强制刷新并测量'));
       expect(requests, hasLength(1));
       requests.first.complete(
@@ -109,5 +116,55 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('请先登录学校账号'), findsOneWidget);
     expect(find.text('开始读取'), findsNothing);
+    final heading = find.byKey(const Key('desktop-page-heading'));
+    expect(
+      find.descendant(of: heading, matching: find.text('Ginkgo')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: heading, matching: find.text('比较当前账号的缓存与刷新等待')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: heading, matching: find.byIcon(CupertinoIcons.timer)),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('probe page passes the same explicit header identity', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: SchoolNetworkChecks(
+          probes: [
+            NetworkProbe(
+              '图书馆',
+              (_) async => const NetworkProbeResult(count: 0),
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final heading = find.byKey(const Key('desktop-page-heading'));
+    expect(
+      find.descendant(of: heading, matching: find.text('Ginkgo')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: heading, matching: find.text('比较当前账号的缓存与刷新等待')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: heading, matching: find.byIcon(CupertinoIcons.timer)),
+      findsOneWidget,
+    );
+    expect(find.byType(CupertinoActivityIndicator), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 }

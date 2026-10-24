@@ -6,6 +6,7 @@ import 'reminders.dart';
 
 import 'apple_widgets.dart';
 import 'apple_design.dart';
+import 'loading_widgets.dart';
 import 'mirror_service.dart';
 import 'homework_detail_page.dart';
 import 'school_timestamp.dart';
@@ -173,12 +174,15 @@ class _HomeworkPageState extends State<HomeworkPage> {
       slivers: [
         ApplePageHeader(
           largeTitle: const Text('作业'),
+          section: '学业',
+          subtitle: '区分个人作业状态与助教课程',
+          icon: CupertinoIcons.doc_text,
           border: null,
           trailing: AppleGlassButton(
             label: '刷新作业',
             onPressed: busy ? null : () => load(force: true),
             child: busy
-                ? const CupertinoActivityIndicator()
+                ? const GinkgoActivity(size: 17)
                 : const Icon(CupertinoIcons.refresh, size: 24),
           ),
         ),
@@ -212,10 +216,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
           )
         else if (data == null)
           const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(32),
-              child: Center(child: CupertinoActivityIndicator()),
-            ),
+            child: GinkgoLoadingView(label: '正在读取作业…'),
           )
         else
           ..._content(data!),

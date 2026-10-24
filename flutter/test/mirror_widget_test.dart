@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show HomeworkDetailResponse;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ginkgo_mirror/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/schedule_grid.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
@@ -638,7 +639,9 @@ void main() {
     await tester.ensureVisible(rules);
     await tester.tap(rules);
     await tester.pumpAndSettle();
-    expect(find.text('共享规则示例'), findsOneWidget);
+    expect(find.text('共享规则示例'), findsWidgets);
+    expect(find.byType(GinkgoLoadingView), findsNothing);
+    expect(find.byType(GinkgoActivity), findsNothing);
     expect(tester.takeException(), isNull);
     await tester.pageBack();
     await tester.pumpAndSettle();

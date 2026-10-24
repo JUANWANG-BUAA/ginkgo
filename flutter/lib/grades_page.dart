@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
 import 'academic_widgets.dart';
+import 'loading_widgets.dart';
 import 'mirror_service.dart';
 import 'application/contracts.dart';
 
@@ -88,12 +89,15 @@ class _GradesPageState extends State<GradesPage> {
       slivers: [
         ApplePageHeader(
           largeTitle: const Text('成绩'),
+          section: '学业',
+          subtitle: '查看课程成绩、学分与加权统计',
+          icon: CupertinoIcons.chart_bar_alt_fill,
           border: null,
           trailing: AppleGlassButton(
             label: '刷新成绩',
             onPressed: busy ? null : () => load(force: true),
             child: busy
-                ? const CupertinoActivityIndicator()
+                ? const GinkgoActivity(size: 17)
                 : const Icon(CupertinoIcons.refresh, size: 24),
           ),
         ),
@@ -136,19 +140,8 @@ class _GradesPageState extends State<GradesPage> {
                     ],
                   )
                 else if (data == null && busy)
-                  AppleSection(
-                    children: const [
-                      Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            CupertinoActivityIndicator(),
-                            SizedBox(width: 10),
-                            Expanded(child: Text('正在读取成绩…')),
-                          ],
-                        ),
-                      ),
-                    ],
+                  const AppleSection(
+                    children: [GinkgoLoadingView(label: '正在读取成绩…')],
                   ),
                 if (data != null) ..._content(data!),
               ],

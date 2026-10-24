@@ -64,6 +64,7 @@ class LongPageScroll extends StatelessWidget {
                   horizontal: 14,
                   vertical: 10,
                 ),
+                minimumSize: const Size(48, 48),
                 onPressed: () {
                   FocusManager.instance.primaryFocus?.unfocus();
                   if (MediaQuery.disableAnimationsOf(context) ||

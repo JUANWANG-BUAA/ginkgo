@@ -165,7 +165,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
       value: result.failure == null || result.fetchedAt != null ? result : null,
       error: result.failure == null ? null : failureMessage(result.failure),
     );
-  }, fallbackError: '本地服务暂时不可用，请重试');
+  }, fallbackError: '本地服务暂时不可用，请重试', force: force);
 
   Future<void> _loadHomework({bool force = false}) {
     final service = widget.service;
@@ -183,7 +183,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
             : null,
         error: result.failure == null ? null : failureMessage(result.failure),
       );
-    }, fallbackError: '本地服务暂时不可用，请重试');
+    }, fallbackError: '本地服务暂时不可用，请重试', force: force);
   }
 
   Future<String> _tasksRoot() => localTasksStorageRoot(widget.storageRoot);
@@ -292,6 +292,9 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
           ApplePageHeader(
             largeTitle: Text(widget.directory == null ? '今天' : '工作台'),
             border: null,
+            section: '工作台',
+            subtitle: '从今日课程开始安排一天',
+            icon: CupertinoIcons.sun_max,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_design.dart';
 import 'apple_widgets.dart';
+import 'loading_widgets.dart';
 import 'long_page_scroll.dart';
 import 'bykc_detail_page.dart';
 import 'bykc_widgets.dart';
@@ -158,31 +159,32 @@ class _BykcPageState extends State<BykcPage> {
         ),
       );
 
-  Widget _status() => AppleSection(
-    children: [
-      AppleListTile(
-        leading: current.loading
-            ? const CupertinoActivityIndicator()
-            : const Icon(
-                CupertinoIcons.exclamationmark_triangle,
-                color: CupertinoColors.systemOrange,
-              ),
-        title: Text(
-          current.loading
-              ? (current.data == null ? '正在读取${_label(selection)}…' : '正在更新…')
-              : current.error!,
+  Widget _status() {
+    if (current.loading && current.data == null) {
+      return const GinkgoLoadingView(label: '正在读取博雅课程…');
+    }
+    return AppleSection(
+      children: [
+        AppleListTile(
+          leading: current.loading
+              ? const GinkgoActivity(size: 17)
+              : const Icon(
+                  CupertinoIcons.exclamationmark_triangle,
+                  color: CupertinoColors.systemOrange,
+                ),
+          title: Text(current.loading ? '正在更新…' : current.error!),
+          subtitle: current.data == null ? null : const Text('保留上次结果'),
+          trailing: current.loading
+              ? null
+              : CupertinoButton(
+                  key: ValueKey('bykc-retry-${selection.name}'),
+                  onPressed: () => load(selection, force: true),
+                  child: const Text('重试'),
+                ),
         ),
-        subtitle: current.data == null ? null : const Text('保留上次结果'),
-        trailing: current.loading
-            ? null
-            : CupertinoButton(
-                key: ValueKey('bykc-retry-${selection.name}'),
-                onPressed: () => load(selection, force: true),
-                child: const Text('重试'),
-              ),
-      ),
-    ],
-  );
+      ],
+    );
+  }
 
   Widget _heading(String title, {String? detail}) => Padding(
     padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
@@ -537,6 +539,9 @@ class _BykcPageState extends State<BykcPage> {
         slivers: [
           ApplePageHeader(
             largeTitle: const Text('博雅'),
+            section: '学业',
+            subtitle: '查看活动、课程与个人记录',
+            icon: CupertinoIcons.book_solid,
             previousPageTitle: '工作台',
             border: null,
             trailing: AppleGlassButton(
@@ -545,7 +550,7 @@ class _BykcPageState extends State<BykcPage> {
                   ? null
                   : () => load(selection, force: true),
               child: current.loading
-                  ? const CupertinoActivityIndicator()
+                  ? const GinkgoActivity(size: 17)
                   : const Icon(CupertinoIcons.refresh),
             ),
           ),

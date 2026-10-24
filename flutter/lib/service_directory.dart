@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 
+import 'apple_design.dart';
 import 'apple_widgets.dart';
 import 'bykc_page.dart';
 import 'graduate_page.dart';
+import 'ginkgo_visuals.dart';
 import 'tasks_page.dart';
 import 'notices_page.dart';
 import 'grades_page.dart';
@@ -40,21 +42,21 @@ class ServiceDirectory extends StatelessWidget {
             context,
             '校园通知',
             CupertinoIcons.news_solid,
-            CupertinoColors.systemBlue,
+            GinkgoColors.resourceBlue,
             NoticesPage(demo: service.isDemo, service: service),
           ),
           _row(
             context,
             '待办',
             CupertinoIcons.list_bullet,
-            CupertinoColors.systemOrange,
+            GinkgoColors.accent,
             TasksPage(demo: service.isDemo, service: service),
           ),
           _row(
             context,
             '校车时刻表',
             CupertinoIcons.bus,
-            CupertinoColors.systemIndigo,
+            GinkgoColors.resourceTeal,
             ShuttlePage(service: service),
           ),
         ],
@@ -66,21 +68,21 @@ class ServiceDirectory extends StatelessWidget {
             context,
             '成绩',
             CupertinoIcons.chart_bar_alt_fill,
-            CupertinoColors.systemPink,
+            GinkgoColors.resourcePurple,
             GradesPage(service: service),
           ),
           _row(
             context,
             '博雅',
             CupertinoIcons.book_solid,
-            CupertinoColors.systemTeal,
+            GinkgoColors.resourceTeal,
             BykcPage(demo: service.isDemo, service: service),
           ),
           _row(
             context,
             '研究生教务',
-            CupertinoIcons.building_2_fill,
-            CupertinoColors.systemBrown,
+            CupertinoIcons.briefcase_fill,
+            GinkgoColors.accent,
             GraduatePage(demo: service.isDemo, service: service),
           ),
         ],
@@ -91,7 +93,7 @@ class ServiceDirectory extends StatelessWidget {
             context,
             '设置',
             CupertinoIcons.gear_alt_fill,
-            CupertinoColors.systemGrey,
+            GinkgoColors.statusInactive,
             SettingsPage(
               service: service,
               onSignOut: onSignOut,
@@ -113,7 +115,8 @@ class ServiceDirectory extends StatelessWidget {
     Color tint,
     Widget page,
   ) => AppleListTile(
-    leading: Icon(icon, color: tint, size: 22),
+    leading: GinkgoIconTile(icon: icon, size: 34, iconSize: 18, color: tint),
+    leadingSize: 34,
     title: Text(title),
     trailing: const Icon(
       CupertinoIcons.chevron_right,

@@ -70,6 +70,7 @@ class CollectionToolbar extends StatelessWidget {
                       builder: (anchor) => CupertinoButton(
                         key: const Key('collection-page-picker'),
                         padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: const Size(44, 48),
                         onPressed: busy
                             ? null
                             : () async {
@@ -117,6 +118,7 @@ class CollectionToolbar extends StatelessWidget {
   Widget _arrow(bool next) => CupertinoButton(
     key: Key(next ? 'collection-next-page' : 'collection-previous-page'),
     padding: const EdgeInsets.all(10),
+    minimumSize: const Size(48, 48),
     onPressed:
         busy || (next ? window.page >= window.pageCount - 1 : window.page == 0)
         ? null

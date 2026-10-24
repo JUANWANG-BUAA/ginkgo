@@ -317,17 +317,43 @@ class AndroidUpdateController extends ChangeNotifier {
     installing = true;
     notifyListeners();
     try {
-      message = switch (await _installer(selected)) {
-        'opened' => '已打开 Android 安装确认，请在系统界面完成',
-        'permission' => '请允许 Ginkgo 安装应用，返回后再次点击安装',
-        'invalid' => '安装包校验失败，包名、版本或签名不符合要求，请重新下载',
-        _ => '未能打开安装界面，请重试或前往发布页下载',
-      };
+      final result = await _installer(selected);
+      if (result == 'invalid') {
+        // Native verification rejected the APK (package name, version or
+        // signature). Re-installing can never succeed and the stored file
+        // would keep resolving back to "ready", so drop it and return to a
+        // re-downloadable state. Other install results stay retryable here.
+        await _discardDownloaded();
+        phase = UpdateDownloadPhase.failed;
+        message = '安装包校验失败，包名、版本或签名不符合要求。本机文件已清理，请重新下载。';
+      } else {
+        message = switch (result) {
+          'opened' => '已打开 Android 安装确认，请在系统界面完成',
+          'permission' => '请允许 Ginkgo 安装应用，返回后再次点击安装',
+          _ => '未能打开安装界面，请重试或前往发布页下载',
+        };
+      }
     } catch (_) {
       message = '未能打开安装界面，请重试';
     } finally {
       installing = false;
       notifyListeners();
     }
+  }
+
+  Future<void> _discardDownloaded() async {
+    final selected = asset;
+    if (selected == null) return;
+    try {
+      final directory = await _directory();
+      for (final suffix in ['.apk', '.part']) {
+        final file = File('${directory.path}/${selected.sha256}$suffix');
+        if (await file.exists()) await file.delete();
+      }
+    } catch (_) {
+      // Cleanup is best-effort: the phase change below re-enables the download
+      // action even when deletion failed.
+    }
+    received = 0;
   }
 }

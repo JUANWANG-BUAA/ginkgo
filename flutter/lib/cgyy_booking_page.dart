@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'application/mirror_service.dart';
 import 'apple_widgets.dart';
+import 'loading_widgets.dart';
 
 /// Mirrors IOSCgyyView's grouped native form and explicit confirmation flow.
 /// Form content is memory-only and never enters diagnostics/preferences.
@@ -474,162 +475,161 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
         backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
           context,
         ),
-        navigationBar: CupertinoNavigationBar(
-          automaticallyImplyLeading: false,
-          leading: CupertinoButton(
-            key: const Key('booking-back'),
-            minimumSize: const Size(48, 48),
-            padding: EdgeInsets.zero,
-            onPressed: busy ? null : leave,
-            child: const Text('返回'),
-          ),
-          middle: const Text('预约研讨室'),
-        ),
         child: SafeArea(
-          child: ListView(
+          top: false,
+          child: CustomScrollView(
             key: const Key('cgyy-booking-form'),
-            children: [
-              AppleSection(
-                header: const Text('场地与日期'),
-                children: [
-                  AppleListTile(
-                    title: const Text('场地'),
-                    subtitle: Text(widget.siteName),
-                  ),
-                  AppleListTile(
-                    title: const Text('日期'),
-                    subtitle: Text(widget.date),
-                  ),
-                ],
+            slivers: [
+              ApplePageHeader(
+                largeTitle: const Text('预约研讨室'),
+                section: '空间资源',
+                subtitle: '选择场馆并查看可预约空间',
+                icon: CupertinoIcons.person_3,
+                border: null,
               ),
-              AppleSection(
-                header: const Text('选择空间与时段'),
-                footer: const Text('同一次预约只能选择一个空间，最多选择 12 个时段。'),
+              SliverList.list(
                 children: [
-                  if (loading)
-                    const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: CupertinoActivityIndicator(),
-                    ),
-                  if (options != null && choices.isEmpty)
-                    const AppleEmptyState(
-                      title: '当天暂无可预约空间',
-                      description: '请返回切换日期或场地。',
-                    ),
-                  for (final entry in spaces.entries)
-                    spaceGrid(entry.key, entry.value),
-                ],
-              ),
-              if (purposes.isNotEmpty)
-                AppleSection(
-                  header: const Text('预约信息'),
-                  footer: const Text('手机号与参与人仅用于本次学校预约，不保存在本机日志中。'),
-                  children: [
-                    field('手机号（11 位）', phone, number: true),
-                    field('活动主题', theme),
-                    Builder(
-                      builder: (anchor) => AppleListTile(
-                        title: const Text('活动类型'),
-                        additionalInfo: SizedBox(
-                          width: MediaQuery.sizeOf(context).width * 0.44,
-                          child: Text(
-                            purposes.firstWhere(
-                                  (p) => p['id'] == purpose,
-                                  orElse: () => purposes.first,
-                                )['name']
-                                as String,
-                            textAlign: TextAlign.end,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                  AppleSection(
+                    header: const Text('场地与日期'),
+                    children: [
+                      AppleListTile(
+                        title: const Text('场地'),
+                        subtitle: Text(widget.siteName),
+                      ),
+                      AppleListTile(
+                        title: const Text('日期'),
+                        subtitle: Text(widget.date),
+                      ),
+                    ],
+                  ),
+                  AppleSection(
+                    header: const Text('选择空间与时段'),
+                    footer: const Text('同一次预约只能选择一个空间，最多选择 12 个时段。'),
+                    children: [
+                      if (loading) const GinkgoLoadingView(label: '正在读取预约信息…'),
+                      if (options != null && choices.isEmpty)
+                        const AppleEmptyState(
+                          title: '当天暂无可预约空间',
+                          description: '请返回切换日期或场地。',
+                        ),
+                      for (final entry in spaces.entries)
+                        spaceGrid(entry.key, entry.value),
+                    ],
+                  ),
+                  if (purposes.isNotEmpty)
+                    AppleSection(
+                      header: const Text('预约信息'),
+                      footer: const Text('手机号与参与人仅用于本次学校预约，不保存在本机日志中。'),
+                      children: [
+                        field('手机号（11 位）', phone, number: true),
+                        field('活动主题', theme),
+                        Builder(
+                          builder: (anchor) => AppleListTile(
+                            title: const Text('活动类型'),
+                            additionalInfo: SizedBox(
+                              width: MediaQuery.sizeOf(context).width * 0.44,
+                              child: Text(
+                                purposes.firstWhere(
+                                      (p) => p['id'] == purpose,
+                                      orElse: () => purposes.first,
+                                    )['name']
+                                    as String,
+                                textAlign: TextAlign.end,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            trailing: const Icon(
+                              CupertinoIcons.chevron_up_chevron_down,
+                              size: 14,
+                            ),
+                            onTap: busy || review
+                                ? null
+                                : () async {
+                                    final selected = await choose<int>(
+                                      anchor,
+                                      '活动类型',
+                                      purposes
+                                          .map((p) => p['id'] as int)
+                                          .toList(),
+                                      (id) =>
+                                          purposes.firstWhere(
+                                                (p) => p['id'] == id,
+                                              )['name']
+                                              as String,
+                                      selected: purpose,
+                                    );
+                                    if (mounted && selected != null) {
+                                      setState(() {
+                                        purpose = selected;
+                                        dirty = true;
+                                      });
+                                    }
+                                  },
                           ),
                         ),
-                        trailing: const Icon(
-                          CupertinoIcons.chevron_up_chevron_down,
-                          size: 14,
-                        ),
-                        onTap: busy || review
-                            ? null
-                            : () async {
-                                final selected = await choose<int>(
-                                  anchor,
-                                  '活动类型',
-                                  purposes.map((p) => p['id'] as int).toList(),
-                                  (id) =>
-                                      purposes.firstWhere(
-                                            (p) => p['id'] == id,
-                                          )['name']
-                                          as String,
-                                  selected: purpose,
-                                );
-                                if (mounted && selected != null) {
-                                  setState(() {
-                                    purpose = selected;
+                        participantStepper(),
+                        field('活动内容', content, multiline: true),
+                        field('参与人说明', joiners),
+                        AppleListTile(
+                          title: const Text('哲学社会科学类'),
+                          trailing: CupertinoSwitch(
+                            value: philosophy,
+                            onChanged: busy || review
+                                ? null
+                                : (v) => setState(() {
+                                    philosophy = v;
                                     dirty = true;
-                                  });
-                                }
-                              },
-                      ),
+                                  }),
+                          ),
+                        ),
+                        AppleListTile(
+                          title: const Text('含校外参与人'),
+                          trailing: CupertinoSwitch(
+                            value: offSchool,
+                            onChanged: busy || review
+                                ? null
+                                : (v) => setState(() {
+                                    offSchool = v;
+                                    dirty = true;
+                                  }),
+                          ),
+                        ),
+                      ],
                     ),
-                    participantStepper(),
-                    field('活动内容', content, multiline: true),
-                    field('参与人说明', joiners),
-                    AppleListTile(
-                      title: const Text('哲学社会科学类'),
-                      trailing: CupertinoSwitch(
-                        value: philosophy,
-                        onChanged: busy || review
+                  if (notice != null)
+                    AppleSection(
+                      children: [
+                        AppleListTile(
+                          leading: const Icon(CupertinoIcons.info_circle),
+                          title: Text(notice!),
+                        ),
+                      ],
+                    ),
+                  AppleSection(
+                    footer: const Text('实验功能，真实预约往返仍需人工验收。提交后需核对学校审批状态。'),
+                    children: [
+                      CupertinoButton(
+                        onPressed: busy || loading || review || options == null
                             ? null
-                            : (v) => setState(() {
-                                philosophy = v;
-                                dirty = true;
-                              }),
+                            : prepare,
+                        child: const Text('确认信息并验证'),
                       ),
-                    ),
-                    AppleListTile(
-                      title: const Text('含校外参与人'),
-                      trailing: CupertinoSwitch(
-                        value: offSchool,
-                        onChanged: busy || review
-                            ? null
-                            : (v) => setState(() {
-                                offSchool = v;
-                                dirty = true;
-                              }),
-                      ),
-                    ),
-                  ],
-                ),
-              if (notice != null)
-                AppleSection(
-                  children: [
-                    AppleListTile(
-                      leading: const Icon(CupertinoIcons.info_circle),
-                      title: Text(notice!),
-                    ),
-                  ],
-                ),
-              AppleSection(
-                footer: const Text('实验功能，真实预约往返仍需人工验收。提交后需核对学校审批状态。'),
-                children: [
-                  CupertinoButton(
-                    onPressed: busy || loading || review || options == null
-                        ? null
-                        : prepare,
-                    child: const Text('确认信息并验证'),
+                      if (!review)
+                        CupertinoButton(
+                          onPressed: busy || loading ? null : load,
+                          child: const Text('刷新空闲时段'),
+                        ),
+                      if (review)
+                        CupertinoButton(
+                          onPressed: busy ? null : leave,
+                          child: const Text('返回并核对我的预约'),
+                        ),
+                    ],
                   ),
-                  if (!review)
-                    CupertinoButton(
-                      onPressed: busy || loading ? null : load,
-                      child: const Text('刷新空闲时段'),
-                    ),
-                  if (review)
-                    CupertinoButton(
-                      onPressed: busy ? null : leave,
-                      child: const Text('返回并核对我的预约'),
-                    ),
+                  const SizedBox(height: 32),
                 ],
               ),
-              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -851,7 +851,7 @@ class _CgyyCaptchaPageState extends State<_CgyyCaptchaPage> {
                 if (background == null && error == null)
                   const Padding(
                     padding: EdgeInsets.all(24),
-                    child: CupertinoActivityIndicator(),
+                    child: GinkgoActivity(size: 17),
                   ),
                 if (background != null)
                   Padding(

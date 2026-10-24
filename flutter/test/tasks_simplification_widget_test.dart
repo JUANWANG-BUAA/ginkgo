@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/task_editor.dart';
 import 'package:ginkgo_mirror/tasks_page.dart';
@@ -209,6 +210,39 @@ void main() {
     expect(find.text('打开待办'), findsOneWidget);
     expect(fake.calls, ['load']);
   }, variant: TargetPlatformVariant.only(TargetPlatform.android));
+
+  testWidgets(
+    'saving keeps fields editable-off and shows the brand leaf, not a spinner',
+    (tester) async {
+      phone(tester);
+      final pending = Completer<bool>();
+      await tester.pumpWidget(
+        ginkgoApp(
+          home: TaskEditor(title: '合成待办', onSave: (_) => pending.future),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('task-save')));
+      await tester.pump();
+      expect(
+        tester.widget<GinkgoActivity>(find.byType(GinkgoActivity)).size,
+        17,
+      );
+      expect(find.byType(CupertinoActivityIndicator), findsNothing);
+      expect(
+        tester
+            .widget<CupertinoTextField>(find.byKey(const Key('task-title')))
+            .enabled,
+        isFalse,
+      );
+      pending.complete(false);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('保存未确认'), findsOneWidget);
+      expect(find.text('合成待办'), findsOneWidget);
+      expect(find.byType(GinkgoActivity), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   for (final brightness in Brightness.values) {
     testWidgets(

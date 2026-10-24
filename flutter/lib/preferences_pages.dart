@@ -5,6 +5,7 @@ import 'app_preferences.dart';
 import 'accent_theme_preview.dart';
 import 'apple_design.dart';
 import 'apple_widgets.dart';
+import 'loading_widgets.dart';
 import 'maintenance_pages.dart';
 import 'system_settings_service.dart';
 import 'reminders.dart';
@@ -16,6 +17,9 @@ class AppearancePage extends StatelessWidget {
     final preferences = AppPreferencesScope.of(context);
     return MaintenanceScaffold(
       title: '显示与阅读',
+      section: '设置',
+      subtitle: '外观、强调色与文字大小',
+      icon: CupertinoIcons.paintbrush,
       children: [
         AppleSection(
           header: const Text('外观'),
@@ -157,6 +161,9 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
   @override
   Widget build(BuildContext context) => MaintenanceScaffold(
     title: '通知与后台',
+    section: '设置',
+    subtitle: '通知权限、系统启动与电池管理',
+    icon: CupertinoIcons.bell,
     children: [
       AppleSection(
         header: const Text('通知'),
@@ -180,7 +187,7 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
               title: const Text('请求通知权限'),
               onTap: busy ? null : request,
               trailing: busy
-                  ? const CupertinoActivityIndicator()
+                  ? const GinkgoActivity(size: 16)
                   : const CupertinoListTileChevron(),
             ),
           AppleListTile(
@@ -243,6 +250,9 @@ class PrivacyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => const MaintenanceScaffold(
     title: '账号与隐私',
+    section: '设置',
+    subtitle: '自动登录、本机数据与请求去向',
+    icon: CupertinoIcons.lock_shield,
     children: [
       AppleSection(
         header: Text('账号与自动登录'),
@@ -326,6 +336,9 @@ class _AboutPageState extends State<AboutPage> {
   @override
   Widget build(BuildContext context) => MaintenanceScaffold(
     title: '关于与致谢',
+    section: 'Ginkgo',
+    subtitle: '开源许可、项目主页与致谢',
+    icon: CupertinoIcons.info_circle,
     children: [
       const AppleSection(
         children: [

@@ -50,7 +50,9 @@ class _GinkgoActivityState extends State<GinkgoActivity>
       ),
       child: CustomPaint(
         size: Size.square(widget.size),
-        painter: _GinkgoPainter(CupertinoTheme.of(context).primaryColor),
+        // The ginkgo leaf is brand identity, not a theme accent: a blue or
+        // coral leaf reads as a generic leaf. Page accents stay in controls.
+        painter: _GinkgoPainter(AppleDesign.accent.resolveFrom(context)),
       ),
     ),
   );
@@ -93,6 +95,61 @@ class _GinkgoPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_GinkgoPainter oldDelegate) => color != oldDelegate.color;
+}
+
+/// Unified first-load feedback: a branded leaf plus one stable live-region
+/// announcement. It never implies a measured percentage or fake progress.
+class GinkgoLoadingView extends StatelessWidget {
+  const GinkgoLoadingView({
+    super.key,
+    required this.label,
+    this.detail,
+    this.compact = false,
+  });
+
+  final String label;
+  final String? detail;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    liveRegion: true,
+    label: detail == null ? label : '$label，$detail',
+    excludeSemantics: true,
+    child: Padding(
+      padding: EdgeInsets.symmetric(
+        vertical: compact ? 16 : 40,
+        horizontal: 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GinkgoActivity(size: compact ? 24 : 36),
+          SizedBox(height: compact ? 8 : 14),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: compact ? 14 : 15,
+              fontWeight: FontWeight.w500,
+              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+            ),
+          ),
+          if (detail != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              detail!,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: AppleDesign.statusInactive.resolveFrom(context),
+              ),
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
 }
 
 /// Stable, inline status: stale content stays in place during refresh/failure.

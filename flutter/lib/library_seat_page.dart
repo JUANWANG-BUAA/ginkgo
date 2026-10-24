@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'loading_widgets.dart';
 import 'long_page_scroll.dart';
 import 'application/collection_window.dart';
 import 'collection_toolbar.dart';
@@ -156,12 +157,15 @@ class LibrarySeatPageState extends State<LibrarySeatPage> {
         slivers: [
           ApplePageHeader(
             largeTitle: Text('${widget.slot.start}–${widget.slot.end}'),
+            section: '空间资源',
+            subtitle: '${widget.area.name} · 选择空闲座位',
+            icon: CupertinoIcons.square_grid_2x2,
             border: null,
             trailing: AppleGlassButton(
               label: '刷新列表',
               onPressed: busy ? null : load,
               child: busy
-                  ? const CupertinoActivityIndicator()
+                  ? const GinkgoActivity(size: 17)
                   : const Icon(CupertinoIcons.refresh, size: 24),
             ),
           ),
@@ -198,21 +202,7 @@ class LibrarySeatPageState extends State<LibrarySeatPage> {
                     ],
                   ),
                 if (seats == null && error == null)
-                  AppleSection(
-                    animateSize: false,
-                    children: const [
-                      Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            CupertinoActivityIndicator(),
-                            SizedBox(width: 10),
-                            Text('正在读取座位…'),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  const GinkgoLoadingView(label: '正在读取座位…'),
               ],
             ),
           ),
@@ -344,7 +334,7 @@ class LibrarySeatPageState extends State<LibrarySeatPage> {
                     buttonKey: Key('library-reserve-${seat.id}'),
                     label: '预约',
                     icon: CupertinoIcons.add_circled,
-                    primary: true,
+                    compact: true,
                     busy: submitting,
                     onPressed:
                         busy ||

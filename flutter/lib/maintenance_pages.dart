@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_design.dart';
 import 'apple_widgets.dart';
+import 'loading_widgets.dart';
 import 'maintenance_service.dart';
 import 'mirror_service.dart';
 import 'android_update_controller.dart';
@@ -19,11 +20,16 @@ class MaintenanceScaffold extends StatelessWidget {
     required this.children,
     this.onRefresh,
     this.busy = false,
+    this.section,
+    this.subtitle,
+    this.icon,
   });
   final String title;
   final List<Widget> children;
   final Future<void> Function()? onRefresh;
   final bool busy;
+  final String? section, subtitle;
+  final IconData? icon;
   @override
   Widget build(BuildContext context) => CupertinoPageScaffold(
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
@@ -32,7 +38,13 @@ class MaintenanceScaffold extends StatelessWidget {
     child: CustomScrollView(
       key: ValueKey('maintenance-$title'),
       slivers: [
-        ApplePageHeader(largeTitle: Text(title), border: null),
+        ApplePageHeader(
+          largeTitle: Text(title),
+          border: null,
+          section: section,
+          subtitle: subtitle,
+          icon: icon,
+        ),
         if (onRefresh != null)
           CupertinoSliverRefreshControl(onRefresh: onRefresh),
         SliverList.list(children: [...children, const SizedBox(height: 96)]),
@@ -125,6 +137,9 @@ class _SoftwareUpdatePageState extends State<SoftwareUpdatePage> {
   @override
   Widget build(BuildContext context) => MaintenanceScaffold(
     title: '软件更新',
+    section: 'Ginkgo',
+    subtitle: '检查 Android 发布并下载更新',
+    icon: CupertinoIcons.arrow_down_circle,
     busy: busy,
     onRefresh: widget.service.supportsUpdates ? check : null,
     children: [
@@ -150,7 +165,7 @@ class _SoftwareUpdatePageState extends State<SoftwareUpdatePage> {
                 color: AppleDesign.accent,
               ),
               trailing: busy
-                  ? const CupertinoActivityIndicator()
+                  ? const GinkgoActivity(size: 16)
                   : const CupertinoListTileChevron(),
               onTap: busy ? null : check,
             )
@@ -294,6 +309,9 @@ class _DiagnosticsPageState extends State<DiagnosticsPage> {
   @override
   Widget build(BuildContext context) => MaintenanceScaffold(
     title: '运行自检',
+    section: 'Ginkgo',
+    subtitle: '检查组件、存储与公开服务连通性',
+    icon: CupertinoIcons.checkmark_shield,
     children: [
       AppleSection(
         header: const Text('检查应用运行环境'),
@@ -309,7 +327,7 @@ class _DiagnosticsPageState extends State<DiagnosticsPage> {
               color: AppleDesign.accent,
             ),
             trailing: busy
-                ? const CupertinoActivityIndicator()
+                ? const GinkgoActivity(size: 16)
                 : const CupertinoListTileChevron(),
             onTap: busy ? null : () => run(),
           ),
@@ -344,7 +362,7 @@ class _DiagnosticsPageState extends State<DiagnosticsPage> {
                 }}',
               ),
               leading: states[i] == _CheckStatus.running
-                  ? const CupertinoActivityIndicator()
+                  ? const GinkgoActivity(size: 16)
                   : Icon(
                       switch (states[i]) {
                         _CheckStatus.passed =>

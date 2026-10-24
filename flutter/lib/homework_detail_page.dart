@@ -6,6 +6,7 @@ import 'package:flutter/material.dart' show SelectableText;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'apple_widgets.dart';
+import 'loading_widgets.dart';
 import 'mirror_service.dart';
 import 'school_timestamp.dart';
 import 'application/contracts.dart';
@@ -86,6 +87,15 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
     }
   }
 
+  /// The freshest submission status. The loaded detail wins over the list
+  /// snapshot that opened this page, so a stale "pending" list item can never
+  /// keep a countdown alive next to an "已提交" detail.
+  bool get _latestSubmitted {
+    final text = data?.status.trim() ?? '';
+    if (text.isNotEmpty) return text == '已提交';
+    return widget.item.status == HomeworkStatus.submitted;
+  }
+
   @override
   Widget build(BuildContext context) => CupertinoPageScaffold(
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
@@ -98,7 +108,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
         label: '刷新作业详情',
         onPressed: busy ? null : () => load(force: true),
         child: busy
-            ? const CupertinoActivityIndicator()
+            ? const GinkgoActivity(size: 17)
             : const Icon(CupertinoIcons.refresh),
       ),
     ),
@@ -154,8 +164,9 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                       ),
                     ),
                     // A submitted assignment must not show a live countdown:
-                    // it is history, not something still due.
-                    if (widget.item.status != HomeworkStatus.submitted &&
+                    // it is history, not something still due. The decision
+                    // uses the freshest status, not the stale list item.
+                    if (!_latestSubmitted &&
                         homeworkRelativeDeadline(
                           data?.dueAt ?? widget.item.dueAt,
                           todaySchoolNow(DateTime.now()),
@@ -179,7 +190,17 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                         ),
                       ),
                     ],
-                    if ((data?.dueAt ?? widget.item.dueAt)?.contains('00:00') == true) ...[
+                    // Only a parsed 00:00 deadline means "previous evening
+                    // 23:59"; string matching misread 10:00 or 12:00 too.
+                    if ((data?.dueAt ?? widget.item.dueAt) != null &&
+                        (() {
+                          final instant = parseSchoolTimestamp(
+                            data?.dueAt ?? widget.item.dueAt,
+                          );
+                          return instant != null &&
+                              instant.hour == 0 &&
+                              instant.minute == 0;
+                        })()) ...[
                       const SizedBox(height: 6),
                       Text(
                         '提示：00:00 截止即前一天夜里 23:59:59 前必须提交完成，避免误以为当天整天仍可提交。',
@@ -239,12 +260,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
             ),
           if (data == null && busy)
             const AppleSection(
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CupertinoActivityIndicator(),
-                ),
-              ],
+              children: [GinkgoLoadingView(label: '正在读取作业详情…')],
             ),
           if (data case final detail?) ...[
             if (detail.stale)

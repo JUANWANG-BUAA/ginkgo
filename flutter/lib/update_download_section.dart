@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'android_update_controller.dart';
 import 'apple_design.dart';
 import 'apple_widgets.dart';
+import 'loading_widgets.dart';
 
 class UpdateDownloadSection extends StatelessWidget {
   const UpdateDownloadSection({
@@ -53,7 +54,7 @@ class UpdateDownloadSection extends StatelessWidget {
               color: AppleDesign.accent,
             ),
             trailing: controller.busy
-                ? const CupertinoActivityIndicator()
+                ? const GinkgoActivity(size: 16)
                 : const CupertinoListTileChevron(),
             onTap: controller.busy
                 ? null

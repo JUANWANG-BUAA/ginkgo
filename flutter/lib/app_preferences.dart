@@ -53,8 +53,9 @@ enum AppAccent {
 typedef PreferencesWriter = Future<void> Function(Map<String, Object> value);
 typedef PreferencesReader = Future<Map<String, dynamic>?> Function();
 
-/// Device-wide display choices only. Credentials and school data never enter
-/// this file. Serial writes prevent a slower old choice overwriting a new one.
+/// Device-wide display choices and the session-flow marker only. Credentials
+/// and school data never enter this file. Serial writes prevent a slower old
+/// choice overwriting a newer one.
 class AppPreferences extends ChangeNotifier {
   AppPreferences({PreferencesWriter? writer, PreferencesReader? reader})
     : _writer = writer ?? _write,
@@ -68,6 +69,11 @@ class AppPreferences extends ChangeNotifier {
   bool compactLists = false;
   bool reduceMotion = false;
   double textSize = 1;
+
+  /// Set by an explicit sign-out and cleared by the next successful sign-in.
+  /// While set, a later start shows the login page instead of auto-restoring,
+  /// so a failed vault deletion can never resurrect a chosen signed-out state.
+  bool explicitSignOut = false;
   String? saveError;
 
   static Future<File> _file() async {
@@ -107,11 +113,31 @@ class AppPreferences extends ChangeNotifier {
       textSize = size is num && [1, 1.15, 1.3].contains(size)
           ? size.toDouble()
           : 1;
+      explicitSignOut = value['explicitSignOut'] == true;
       notifyListeners();
     } catch (_) {
       saveError = '未能读取外观偏好，已使用默认设置';
       notifyListeners();
     }
+  }
+
+  Map<String, Object> _snapshot() => <String, Object>{
+    'appearance': appearance.name,
+    'accent': accent.name,
+    'compactLists': compactLists,
+    'reduceMotion': reduceMotion,
+    'textSize': textSize,
+    'explicitSignOut': explicitSignOut,
+  };
+
+  Future<void> _scheduleSave(String failureMessage) {
+    saveError = null;
+    notifyListeners();
+    _pending = _pending.then((_) => _writer(_snapshot())).catchError((Object _) {
+      saveError = failureMessage;
+      notifyListeners();
+    });
+    return _pending;
   }
 
   Future<void> update({
@@ -126,20 +152,16 @@ class AppPreferences extends ChangeNotifier {
     this.compactLists = compactLists ?? this.compactLists;
     this.reduceMotion = reduceMotion ?? this.reduceMotion;
     this.textSize = textSize ?? this.textSize;
-    saveError = null;
-    final value = <String, Object>{
-      'appearance': this.appearance.name,
-      'accent': this.accent.name,
-      'compactLists': this.compactLists,
-      'reduceMotion': this.reduceMotion,
-      'textSize': this.textSize,
-    };
-    notifyListeners();
-    _pending = _pending.then((_) => _writer(value)).catchError((Object _) {
-      saveError = '外观已应用，本机保存失败，请稍后重试';
-      notifyListeners();
-    });
-    return _pending;
+    return _scheduleSave('外观已应用，本机保存失败，请稍后重试');
+  }
+
+  /// Records or clears the explicit sign-out marker with the same serialized
+  /// write path as the display choices.
+  Future<void> setExplicitSignOut(bool value) {
+    explicitSignOut = value;
+    return _scheduleSave(
+      value ? '已退出登录，本机标记保存失败，恢复功能可能仍会显示登录页' : '外观已应用，本机保存失败，请稍后重试',
+    );
   }
 }
 

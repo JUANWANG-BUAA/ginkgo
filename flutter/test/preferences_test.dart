@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/app_preferences.dart';
+import 'package:ginkgo_mirror/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/preferences_pages.dart';
 import 'package:ginkgo_mirror/system_settings_service.dart';
@@ -34,6 +37,15 @@ class TestSystemSettings implements SystemSettingsService {
   Future<bool> shareProject() async {
     shares++;
     return true;
+  }
+}
+
+class PendingSystemSettings extends TestSystemSettings {
+  final pending = Completer<String>();
+  @override
+  Future<String> requestNotifications() {
+    requests++;
+    return pending.future;
   }
 }
 
@@ -122,4 +134,80 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets(
+    'settings pages name their identity and busy requests use the brand leaf',
+    (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final service = PendingSystemSettings();
+      await tester.pumpWidget(
+        ginkgoApp(home: SystemPreferencesPage(service: service)),
+      );
+      await tester.pumpAndSettle();
+      final heading = find.byKey(const Key('desktop-page-heading'));
+      expect(
+        find.descendant(of: heading, matching: find.text('设置')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: heading, matching: find.text('通知权限、系统启动与电池管理')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: heading,
+          matching: find.byIcon(CupertinoIcons.bell),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('请求通知权限'));
+      await tester.pump();
+      expect(
+        tester.widget<GinkgoActivity>(find.byType(GinkgoActivity)).size,
+        16,
+      );
+      expect(find.byType(CupertinoActivityIndicator), findsNothing);
+      service.pending.complete('granted');
+      await tester.pumpAndSettle();
+      expect(find.text('已允许'), findsOneWidget);
+      expect(find.byType(GinkgoActivity), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('desktop tool pages pass an explicit header identity', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final cases = <(Widget, String, String, IconData)>[
+      (const AppearancePage(), '设置', '外观、强调色与文字大小', CupertinoIcons.paintbrush),
+      (const PrivacyPage(), '设置', '自动登录、本机数据与请求去向', CupertinoIcons.lock_shield),
+      (const AboutPage(), 'Ginkgo', '开源许可、项目主页与致谢', CupertinoIcons.info_circle),
+    ];
+    for (final (page, section, subtitle, icon) in cases) {
+      await tester.pumpWidget(ginkgoApp(home: page));
+      await tester.pumpAndSettle();
+      final heading = find.byKey(const Key('desktop-page-heading'));
+      expect(
+        find.descendant(of: heading, matching: find.text(section)),
+        findsOneWidget,
+        reason: subtitle,
+      );
+      expect(
+        find.descendant(of: heading, matching: find.text(subtitle)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: heading, matching: find.byIcon(icon)),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    }
+  });
 }

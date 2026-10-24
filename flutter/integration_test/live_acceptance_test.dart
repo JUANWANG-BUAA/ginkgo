@@ -16,6 +16,7 @@ import 'package:ginkgo_mirror/homework_page.dart';
 import 'package:ginkgo_mirror/library_history_page.dart';
 import 'package:ginkgo_mirror/library_page.dart';
 import 'package:ginkgo_mirror/library_stats_page.dart';
+import 'package:ginkgo_mirror/loading_widgets.dart';
 import 'package:ginkgo_mirror/login_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/maintenance_service.dart';
@@ -163,7 +164,10 @@ void main() {
           final loading = find
               .byWidgetPredicate(
                 (widget) =>
-                    widget is CupertinoActivityIndicator && widget.animating,
+                    (widget is CupertinoActivityIndicator &&
+                        widget.animating) ||
+                    widget is GinkgoLoadingView ||
+                    widget is GinkgoActivity,
               )
               .evaluate()
               .isNotEmpty;

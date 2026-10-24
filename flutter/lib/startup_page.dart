@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'apple_design.dart';
+import 'loading_widgets.dart';
 
 /// A single, quiet entrance while restoration runs; never delays navigation.
 class StartupPage extends StatelessWidget {
@@ -60,10 +61,8 @@ class StartupPage extends StatelessWidget {
                   excludeSemantics: true,
                   child: Column(
                     children: [
-                      if (!reducedMotion) ...[
-                        const CupertinoActivityIndicator(radius: 10),
-                        const SizedBox(height: 12),
-                      ],
+                      const GinkgoActivity(size: 20),
+                      const SizedBox(height: 12),
                       Text(
                         '正在恢复本地会话…',
                         textAlign: TextAlign.center,

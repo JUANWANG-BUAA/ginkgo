@@ -5,6 +5,7 @@ import 'apple_design.dart';
 import 'apple_widgets.dart';
 import 'application/local_tasks.dart';
 import 'homework_detail_page.dart';
+import 'loading_widgets.dart';
 import 'mirror_service.dart';
 import 'task_editor.dart';
 
@@ -32,6 +33,7 @@ class _TasksPageState extends State<TasksPage> {
   List<LocalTaskRecord> tasks = [];
   String? error;
   bool busy = false, readable = false, locating = false;
+  String busyLabel = '正在读取待办…';
   int generation = 0;
   final targetKey = GlobalKey();
   bool located = false;
@@ -96,6 +98,7 @@ class _TasksPageState extends State<TasksPage> {
     final gateway = service;
     final rootOverride = widget.storageRoot;
     setState(() {
+      busyLabel = action == 'load' ? '正在读取待办…' : '正在保存待办…';
       busy = true;
       error = null;
     });
@@ -438,6 +441,9 @@ class _TasksPageState extends State<TasksPage> {
     if (AppleDesign.desktop(context)) {
       return ApplePageHeader(
         largeTitle: const Text('待办'),
+        section: '工作台',
+        subtitle: '安排个人任务与截止时间',
+        icon: CupertinoIcons.list_bullet,
         border: null,
         trailing: headerActions(),
       );
@@ -500,10 +506,17 @@ class _TasksPageState extends State<TasksPage> {
                   ),
                 ),
               ),
-              if (busy)
-                const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CupertinoActivityIndicator(),
+              if (busy && tasks.isEmpty) GinkgoLoadingView(label: busyLabel),
+              if (busy && tasks.isNotEmpty)
+                Padding(
+                  key: const Key('tasks-refreshing'),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Center(
+                    child: Semantics(
+                      label: busyLabel,
+                      child: const GinkgoActivity(size: 17),
+                    ),
+                  ),
                 ),
               if (error != null)
                 AppleSection(
@@ -522,7 +535,7 @@ class _TasksPageState extends State<TasksPage> {
                   children: [
                     AppleEmptyState(
                       title: '暂无待办',
-                      description: '点击右上角添加，或从作业详情添加个人待办。',
+                      description: '点击右上角添加本机待办。',
                     ),
                   ],
                 ),

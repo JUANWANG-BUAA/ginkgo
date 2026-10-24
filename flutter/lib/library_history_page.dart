@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'loading_widgets.dart';
 import 'mirror_service.dart';
 import 'application/contracts.dart' show LibraryHistoryResponse;
 
@@ -64,12 +65,15 @@ class _LibraryHistoryPageState extends State<LibraryHistoryPage> {
       slivers: [
         ApplePageHeader(
           largeTitle: const Text('预约记录'),
+          section: '空间资源',
+          subtitle: '进行中及已结束记录 · 只读',
+          icon: CupertinoIcons.clock_fill,
           border: null,
           trailing: AppleGlassButton(
             label: '刷新预约记录',
             onPressed: busy ? null : () => load(requestedPage, force: true),
             child: busy
-                ? const CupertinoActivityIndicator()
+                ? const GinkgoActivity(size: 17)
                 : const Icon(CupertinoIcons.refresh),
           ),
         ),
@@ -93,10 +97,7 @@ class _LibraryHistoryPageState extends State<LibraryHistoryPage> {
                 ],
               ),
             if (data == null && busy)
-              const Padding(
-                padding: EdgeInsets.all(32),
-                child: CupertinoActivityIndicator(),
-              ),
+              const GinkgoLoadingView(label: '正在读取预约记录…'),
             if (data case final result?) ...[
               AppleSection(
                 footer: Text(

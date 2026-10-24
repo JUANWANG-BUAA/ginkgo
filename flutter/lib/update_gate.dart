@@ -26,6 +26,24 @@ class UpdateGate {
   static const defaultReleasesUrl =
       'https://github.com/JUANWANG-BUAA/ginkgo/releases';
 
+  /// The manifest is maintained by this project, so its release link may only
+  /// name the official release surfaces. Anything else falls back to the
+  /// built-in default instead of opening an arbitrary HTTPS host.
+  static const _officialReleaseHosts = {
+    'github.com',
+    'juanwang-buaa.github.io',
+  };
+
+  static bool _isOfficialReleasesUrl(Object? value) {
+    if (value is! String) return false;
+    final uri = Uri.tryParse(value);
+    return uri != null &&
+        uri.scheme == 'https' &&
+        uri.userInfo.isEmpty &&
+        !uri.hasPort &&
+        _officialReleaseHosts.contains(uri.host);
+  }
+
   /// 解析清单；结构不符合预期时视为“没有清单”，不阻塞启动。
   static UpdateGate? parse(String body) {
     if (body.length > 64 * 1024) return null;
@@ -45,9 +63,7 @@ class UpdateGate {
       message: message is String && message.trim().isNotEmpty
           ? message.trim()
           : null,
-      releasesUrl: releases is String && releases.startsWith('https://')
-          ? releases
-          : null,
+      releasesUrl: _isOfficialReleasesUrl(releases) ? releases : null,
     );
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'loading_widgets.dart';
 import 'long_page_scroll.dart';
 import 'mirror_service.dart';
 import 'schedule_grid.dart';
@@ -71,12 +72,13 @@ class _SchedulePageState extends State<SchedulePage> {
     final requestedWeek = termId != null
         ? week
         : (week ?? (selectedWeek == 0 ? null : selectedWeek));
+    // The header and course list must always describe one confirmed snapshot.
+    // selectedTerm/selectedWeek are only advanced by a successful response, so
+    // a slow or failed load never labels old courses with the new selection.
     setState(() {
       busy = true;
       error = null;
       notice = null;
-      selectedTerm = requestedTerm;
-      if (requestedWeek != null) selectedWeek = requestedWeek;
     });
     try {
       final result = await widget.service.schedule(
@@ -154,12 +156,15 @@ class _SchedulePageState extends State<SchedulePage> {
         slivers: [
           ApplePageHeader(
             largeTitle: const Text('课表'),
+            section: '学业',
+            subtitle: '按学期与教学周查看课程和考试',
+            icon: CupertinoIcons.calendar,
             border: null,
             trailing: AppleGlassButton(
               label: '刷新课表',
               onPressed: busy ? null : () => load(force: true),
               child: busy
-                  ? const CupertinoActivityIndicator()
+                  ? const GinkgoActivity(size: 17)
                   : const Icon(CupertinoIcons.refresh, size: 24),
             ),
           ),
@@ -207,18 +212,7 @@ class _SchedulePageState extends State<SchedulePage> {
                 )
               else if (data == null)
                 const AppleSection(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.all(20),
-                      child: Row(
-                        children: [
-                          CupertinoActivityIndicator(),
-                          SizedBox(width: 10),
-                          Text('正在读取课表…'),
-                        ],
-                      ),
-                    ),
-                  ],
+                  children: [GinkgoLoadingView(label: '正在读取课表…')],
                 ),
               const SizedBox(height: 96),
             ],

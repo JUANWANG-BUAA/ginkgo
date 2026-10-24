@@ -30,6 +30,47 @@ class ManyWeekService extends ControlledService {
   );
 }
 
+/// Week 8 never loads: the response carries a failure without snapshot
+/// metadata, the same shape an unsuccessful upstream read produces.
+class FailingWeekService extends ControlledService {
+  @override
+  Future<ScheduleResponse> schedule({
+    String? termId,
+    int? week,
+    bool forceRefresh = false,
+  }) async {
+    if (week == 8) {
+      return const ScheduleResponse(
+        terms: [],
+        weeks: [],
+        termId: '',
+        weekNumber: 0,
+        courses: [],
+        exams: [],
+        failure: FailureCode.serviceUnavailable,
+      );
+    }
+    return ScheduleResponse(
+      terms: const [
+        ScheduleTerm(id: 'synthetic', name: '合成学期', selected: true),
+      ],
+      weeks: List.generate(
+        30,
+        (index) => ScheduleWeek(
+          number: index + 1,
+          startDate: '2026-10-19',
+          endDate: '2026-10-25',
+          current: index == 6,
+        ),
+      ),
+      termId: 'synthetic',
+      weekNumber: week ?? 7,
+      courses: const [],
+      exams: const [],
+    );
+  }
+}
+
 void main() {
   testWidgets(
     'week seven centers initially and selection survives large type and resizing',
@@ -89,4 +130,31 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('a failed week load keeps the confirmed snapshot in the header', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      ginkgoApp(home: SchedulePage(service: FailingWeekService())),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('第 7 周'), findsWidgets);
+    await tester.tap(find.byKey(const Key('schedule-week-8')));
+    await tester.pumpAndSettle();
+    // The picker still names the confirmed week: a failed load must not label
+    // the still-visible week 7 courses as week 8.
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('schedule-week-picker')),
+        matching: find.text('第 7 周'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('正在显示'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

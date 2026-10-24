@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ginkgo_mirror/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/reservation_widgets.dart';
@@ -176,14 +177,17 @@ void main() {
             .onPressed,
         isNull,
       );
-      expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
+      expect(find.byType(CupertinoActivityIndicator), findsNothing);
       expect(
-        tester.widget<CupertinoActivityIndicator>(
-          find.byType(CupertinoActivityIndicator),
-        ).color,
-        CupertinoTheme.of(
-          tester.element(find.byKey(const Key('busy-action'))),
-        ).primaryContrastingColor,
+        tester.widget<GinkgoActivity>(find.byType(GinkgoActivity)).size,
+        17,
+      );
+      expect(
+        find.ancestor(
+          of: find.byType(GinkgoActivity),
+          matching: find.byType(ColorFiltered),
+        ),
+        findsOneWidget,
       );
       await tester.tap(find.byKey(const Key('busy-action')));
       expect(submissions, 0);

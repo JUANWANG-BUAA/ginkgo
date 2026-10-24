@@ -20,12 +20,12 @@ Future<void> _pumpUntil(WidgetTester tester, Finder finder) async {
 void main() {
   test('reads minBuild and the optional hint', () {
     final gate = UpdateGate.parse(
-      '{"schema":1,"minBuild":7,"message":" 学校接口已更新 ","releasesUrl":"https://example.com/r"}',
+      '{"schema":1,"minBuild":7,"message":" 学校接口已更新 ","releasesUrl":"https://github.com/JUANWANG-BUAA/ginkgo/releases"}',
     );
     expect(gate, isNotNull);
     expect(gate!.minBuild, 7);
     expect(gate.message, '学校接口已更新');
-    expect(gate.releasesUrl, 'https://example.com/r');
+    expect(gate.releasesUrl, 'https://github.com/JUANWANG-BUAA/ginkgo/releases');
     expect(gate.blocks(6), isTrue);
     expect(gate.blocks(7), isFalse);
     expect(gate.blocks(8), isFalse);
@@ -39,11 +39,26 @@ void main() {
     expect(UpdateGate.parse('{"schema":1}'), isNull);
   });
 
-  test('ignores non-https release links', () {
-    final gate = UpdateGate.parse(
-      '{"minBuild":5,"releasesUrl":"javascript:alert(1)"}',
+  test('only official release surfaces may override the release link', () {
+    for (final releasesUrl in [
+      'javascript:alert(1)',
+      'http://github.com/JUANWANG-BUAA/ginkgo/releases',
+      'https://github.com.evil.example/r',
+      'https://user@github.com/JUANWANG-BUAA/ginkgo/releases',
+      'https://github.com:8443/JUANWANG-BUAA/ginkgo/releases',
+    ]) {
+      final gate = UpdateGate.parse(
+        '{"minBuild":5,"releasesUrl":"$releasesUrl"}',
+      );
+      expect(gate!.releasesUri.toString(), UpdateGate.defaultReleasesUrl);
+    }
+    final official = UpdateGate.parse(
+      '{"minBuild":5,"releasesUrl":"https://juanwang-buaa.github.io/ginkgo/releases/"}',
     );
-    expect(gate!.releasesUri.toString(), UpdateGate.defaultReleasesUrl);
+    expect(
+      official!.releasesUri.toString(),
+      'https://juanwang-buaa.github.io/ginkgo/releases/',
+    );
   });
 
   testWidgets('blocked page explains the reason, version and retry', (

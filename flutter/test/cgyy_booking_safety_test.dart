@@ -132,6 +132,8 @@ Future<void> open(
   if (gateway.optionsWait == null) await tester.pumpAndSettle();
 }
 
+Finder bookingBack() => find.byType(CupertinoNavigationBarBackButton);
+
 Future<void> fill(WidgetTester tester) async {
   await reach(tester, find.text('时段 1'));
   await tester.tap(find.text('时段 1'));
@@ -268,7 +270,7 @@ void main() {
       final gateway = SafetyGateway()
         ..optionsWait = Completer<ReadOnlyResponse>();
       await open(tester, gateway);
-      await tester.tap(find.byKey(const Key('booking-back')));
+      await tester.tap(bookingBack());
       await tester.pumpAndSettle();
       expect(find.text('打开合成预约'), findsOneWidget);
       expect(find.byType(CupertinoAlertDialog), findsNothing);
@@ -293,7 +295,7 @@ void main() {
     expect(find.text('放弃未保存的预约？'), findsOneWidget);
     await tester.tap(find.text('继续填写'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('booking-back')));
+    await tester.tap(bookingBack());
     await tester.pumpAndSettle();
     await tester.tap(find.text('放弃并返回'));
     await tester.pumpAndSettle();
@@ -308,12 +310,10 @@ void main() {
     await open(tester, gateway);
     await fill(tester);
     await prepare(tester);
-    expect(
-      tester
-          .widget<CupertinoButton>(find.byKey(const Key('booking-back')))
-          .onPressed,
-      isNull,
-    );
+    await tester.tap(bookingBack());
+    await tester.pumpAndSettle();
+    expect(find.byType(CgyyBookingPage), findsOneWidget);
+    expect(gateway.calls('prepare'), 1);
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     expect(find.byType(CgyyBookingPage), findsOneWidget);

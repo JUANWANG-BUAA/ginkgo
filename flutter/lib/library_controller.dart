@@ -16,6 +16,7 @@ class LibraryController extends ChangeNotifier {
   bool loadingBookings = false, loadingVenues = false, submitting = false;
   final Set<String> uncertainActions = {};
   Future<void>? _bookingTask, _venueTask;
+  Future<void>? _bookingForcedRun, _venueForcedRun;
   bool _disposed = false;
   bool get busy => loadingBookings || loadingVenues;
 
@@ -26,8 +27,63 @@ class LibraryController extends ChangeNotifier {
   Future<void> load({bool force = false}) =>
       Future.wait([loadVenues(force: force), loadBookings(force: force)]);
 
-  Future<void> loadVenues({bool force = false}) =>
-      _venueTask ??= _fetchVenues(force).whenComplete(() => _venueTask = null);
+  /// Same rule as [RefreshSection]: overlapping plain reads join the slot; a
+  /// forced refresh re-runs after the in-flight read instead of being merged
+  /// into it and losing the force flag.
+  Future<void> _enqueue(
+    bool force,
+    Future<void>? Function() slot,
+    void Function(Future<void>?) setSlot,
+    Future<void>? Function() forcedRun,
+    void Function(Future<void>?) setForcedRun,
+    Future<void> Function(bool) fetch,
+  ) {
+    final inFlight = slot();
+    if (inFlight == null) {
+      setForcedRun(null);
+      late final Future<void> task;
+      task = fetch(force).whenComplete(() {
+        if (identical(slot(), task)) setSlot(null);
+      });
+      setSlot(task);
+      return task;
+    }
+    if (!force) return inFlight;
+    final pending = forcedRun();
+    if (pending != null) return pending;
+    final chained = _chainForced(inFlight, fetch, slot, setSlot, setForcedRun);
+    setForcedRun(chained);
+    return chained;
+  }
+
+  Future<void> _chainForced(
+    Future<void> inFlight,
+    Future<void> Function(bool) fetch,
+    Future<void>? Function() slot,
+    void Function(Future<void>?) setSlot,
+    void Function(Future<void>?) setForcedRun,
+  ) {
+    late final Future<void> run;
+    run = inFlight.then((_) async {
+      if (_disposed) return;
+      late final Future<void> task;
+      task = fetch(true).whenComplete(() {
+        if (identical(slot(), task)) setSlot(null);
+      });
+      setSlot(task);
+      await task;
+    }).whenComplete(() => setForcedRun(null));
+    return run;
+  }
+
+  Future<void> loadVenues({bool force = false}) => _enqueue(
+    force,
+    () => _venueTask,
+    (task) => _venueTask = task,
+    () => _venueForcedRun,
+    (run) => _venueForcedRun = run,
+    _fetchVenues,
+  );
 
   Future<void> _fetchVenues(bool force) async {
     loadingVenues = true;
@@ -47,9 +103,14 @@ class LibraryController extends ChangeNotifier {
     }
   }
 
-  Future<void> loadBookings({bool force = false}) =>
-      _bookingTask ??= _fetchBookings(force)
-          .whenComplete(() => _bookingTask = null);
+  Future<void> loadBookings({bool force = false}) => _enqueue(
+    force,
+    () => _bookingTask,
+    (task) => _bookingTask = task,
+    () => _bookingForcedRun,
+    (run) => _bookingForcedRun = run,
+    _fetchBookings,
+  );
 
   Future<void> _fetchBookings(bool force) async {
     loadingBookings = true;

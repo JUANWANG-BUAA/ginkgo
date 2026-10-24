@@ -8,7 +8,7 @@ import 'library_history_page.dart';
 import 'library_books_page.dart';
 import 'library_controller.dart';
 import 'library_stats_page.dart';
-import 'resource_meter.dart';
+import 'loading_widgets.dart';
 import 'reservation_widgets.dart';
 import 'application/contracts.dart';
 
@@ -50,7 +50,7 @@ class _LibraryPageState extends State<LibraryPage> {
   }) => AppleListTile(
     key: Key('library-$id-status'),
     leading: loading
-        ? const CupertinoActivityIndicator()
+        ? const GinkgoActivity(size: 17)
         : const Icon(
             CupertinoIcons.exclamationmark_triangle,
             color: AppleDesign.statusPending,
@@ -105,6 +105,9 @@ class _LibraryPageState extends State<LibraryPage> {
       slivers: [
         ApplePageHeader(
           largeTitle: const Text('图书馆'),
+          section: '空间资源',
+          subtitle: '选择场馆、区域与可预约时段',
+          icon: CupertinoIcons.book,
           border: null,
           trailing: AppleGlassButton(
             label: '刷新图书馆',
@@ -112,7 +115,7 @@ class _LibraryPageState extends State<LibraryPage> {
                 ? null
                 : () => controller.load(force: true),
             child: controller.busy
-                ? const CupertinoActivityIndicator()
+                ? const GinkgoActivity(size: 17)
                 : const Icon(CupertinoIcons.refresh, size: 24),
           ),
         ),
@@ -141,7 +144,12 @@ class _LibraryPageState extends State<LibraryPage> {
                 ),
               ],
             ),
-            ...[
+            if (_firstLoad)
+              const AppleSection(
+                animateSize: false,
+                children: [GinkgoLoadingView(label: '正在读取图书馆…', compact: true)],
+              )
+            else ...[
               if (controller.mutationNotice != null)
                 AppleSection(
                   children: [
@@ -162,13 +170,19 @@ class _LibraryPageState extends State<LibraryPage> {
                 ],
               ),
               _venueSection(),
-              const SizedBox(height: 96),
             ],
+            const SizedBox(height: 96),
           ],
         ),
       ],
     ),
   );
+
+  /// Both first reads share one quiet, branded wait instead of two spinners.
+  bool get _firstLoad =>
+      controller.bookings == null &&
+      controller.venues == null &&
+      (controller.loadingBookings || controller.loadingVenues);
 
   Widget _bookingSection() {
     final items = controller.bookings?.bookings ?? const <LibraryBooking>[];
@@ -242,10 +256,11 @@ class _LibraryPageState extends State<LibraryPage> {
                               'checkout' => CupertinoIcons.arrow_right_circle,
                               _ => CupertinoIcons.xmark_circle,
                             },
+                            compact: true,
                             tint: switch (action) {
                               'cancel' => AppleDesign.statusDanger,
                               'leave' => AppleDesign.statusPending,
-                              _ => CupertinoColors.systemBlue,
+                              _ => null,
                             },
                             onPressed:
                                 controller.submitting ||
@@ -309,12 +324,8 @@ class _LibraryPageState extends State<LibraryPage> {
           )
         else
           for (final venue in items)
-            ResourceMeter(
-              key: Key('library-venue-${venue.id}'),
-              label: venue.name,
-              available: venue.free,
-              total: venue.total,
-              unit: '座',
+            _VenueMeter(
+              venue: venue,
               onTap: () => _push(
                 LibraryAreaPage(
                   service: widget.service,
@@ -327,5 +338,122 @@ class _LibraryPageState extends State<LibraryPage> {
             ),
       ],
     );
+  }
+}
+
+/// Venue capacity has three readable states: a quiet thin bar while seats are
+/// plentiful, a pending tint when they run low, and no bar at all when the
+/// school did not report a capacity. Zero free seats is a measurement; a zero
+/// total is not, so the latter never renders as a "0" count.
+class _VenueMeter extends StatelessWidget {
+  const _VenueMeter({required this.venue, this.onTap});
+
+  static const _tightRatio = 0.2;
+
+  final LibraryVenue venue;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final known = venue.total > 0;
+    final ratio = known ? (venue.free / venue.total).clamp(0.0, 1.0) : null;
+    final tight = ratio != null && (venue.free <= 0 || ratio < _tightRatio);
+    final color = tight ? AppleDesign.statusPending : AppleDesign.resourceTeal;
+    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final content = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  venue.name,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (onTap != null)
+                const Padding(
+                  padding: EdgeInsets.only(left: 8, top: 3),
+                  child: CupertinoListTileChevron(),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.end,
+            children: [
+              Text(
+                known ? '${venue.free}' : '—',
+                style: TextStyle(
+                  fontSize: 28,
+                  height: 1.1,
+                  color: color.resolveFrom(context),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: Text(
+                  known ? '座可用 · 共 ${venue.total} 座' : '余量待确认',
+                  style: TextStyle(fontSize: 13, color: secondary),
+                ),
+              ),
+            ],
+          ),
+          if (ratio != null) ...[
+            const SizedBox(height: 10),
+            Semantics(
+              label: '${venue.name} 空闲比例',
+              value: tight ? '余量紧张' : '余量充足',
+              child: ExcludeSemantics(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: SizedBox(
+                    key: Key('library-venue-bar-${venue.id}'),
+                    height: 3,
+                    child: ColoredBox(
+                      color: CupertinoColors.tertiarySystemFill.resolveFrom(
+                        context,
+                      ),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: FractionallySizedBox(
+                          widthFactor: ratio,
+                          child: ColoredBox(
+                            key: Key('library-venue-fill-${venue.id}'),
+                            color: color
+                                .resolveFrom(context)
+                                .withValues(alpha: tight ? 0.55 : 0.4),
+                            child: const SizedBox.expand(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+    return onTap == null
+        ? KeyedSubtree(key: Key('library-venue-${venue.id}'), child: content)
+        : CupertinoButton(
+            key: Key('library-venue-${venue.id}'),
+            padding: EdgeInsets.zero,
+            onPressed: onTap,
+            child: DefaultTextStyle(
+              style: CupertinoTheme.of(context).textTheme.textStyle,
+              child: content,
+            ),
+          );
   }
 }

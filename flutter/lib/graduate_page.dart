@@ -419,6 +419,9 @@ class _GraduatePageState extends State<GraduatePage> {
               largeTitle: const Text('研究生教务'),
               previousPageTitle: '工作台',
               border: null,
+              section: '学业',
+              subtitle: '学籍、培养方案与研究生学业查询',
+              icon: CupertinoIcons.briefcase_fill,
               trailing: AppleGlassButton(
                 label: '刷新研究生教务',
                 onPressed: busy ? null : () => load(force: true),

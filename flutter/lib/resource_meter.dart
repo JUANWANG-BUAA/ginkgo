@@ -32,14 +32,11 @@ class ResourceMeter extends StatelessWidget {
     final ratio = known && capacity > 0
         ? (free / capacity).clamp(0.0, 1.0)
         : null;
-    final color =
-        (free == 0
-                ? const CupertinoDynamicColor.withBrightness(
-                    color: Color(0xffa24c00),
-                    darkColor: Color(0xffffb46b),
-                  )
-                : AppleDesign.resourceTeal)
-            .resolveFrom(context);
+    final color = (free == 0
+            ? AppleDesign.statusPending
+            : AppleDesign.resourceTeal)
+        .resolveFrom(context);
+    final fillColor = color.withValues(alpha: free == 0 ? 0.90 : 0.55);
     final content = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
@@ -97,9 +94,9 @@ class ResourceMeter extends StatelessWidget {
               value: '${(ratio * 100).round()}%',
               child: ExcludeSemantics(
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(2),
                   child: SizedBox(
-                    height: 6,
+                    height: 4,
                     child: ColoredBox(
                       color: CupertinoColors.tertiarySystemFill.resolveFrom(
                         context,
@@ -109,7 +106,7 @@ class ResourceMeter extends StatelessWidget {
                         child: FractionallySizedBox(
                           widthFactor: ratio,
                           child: ColoredBox(
-                            color: color,
+                            color: fillColor,
                             child: const SizedBox.expand(),
                           ),
                         ),

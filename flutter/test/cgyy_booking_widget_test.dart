@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/apple_widgets.dart';
 import 'package:ginkgo_mirror/cgyy_booking_page.dart';
 import 'package:ginkgo_mirror/workspace_shell.dart';
 
@@ -107,7 +108,7 @@ void main() {
           );
           await tester.pumpAndSettle();
           expect(gateway.commands.single['action'], 'options');
-          expect(find.byType(CupertinoNavigationBar), findsOneWidget);
+          expect(find.byType(ApplePageHeader), findsOneWidget);
           expect(find.byType(CupertinoTextFormFieldRow), findsWidgets);
           expect(find.byType(CupertinoSwitch), findsNWidgets(2));
           expect(tester.takeException(), isNull);

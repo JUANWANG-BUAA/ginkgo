@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'loading_widgets.dart';
 import 'mirror_service.dart';
 import 'application/contracts.dart';
 
@@ -71,12 +72,15 @@ class LibrarySlotPageState extends State<LibrarySlotPage> {
       slivers: [
         ApplePageHeader(
           largeTitle: Text(widget.area.name),
+          section: '空间资源',
+          subtitle: '选择时段后查看空闲座位',
+          icon: CupertinoIcons.clock,
           border: null,
           trailing: AppleGlassButton(
             label: '刷新列表',
             onPressed: busy ? null : load,
             child: busy
-                ? const CupertinoActivityIndicator()
+                ? const GinkgoActivity(size: 17)
                 : const Icon(CupertinoIcons.refresh, size: 24),
           ),
         ),
@@ -98,20 +102,7 @@ class LibrarySlotPageState extends State<LibrarySlotPage> {
                 ],
               ),
             if (slots == null && error == null)
-              AppleSection(
-                children: const [
-                  Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        CupertinoActivityIndicator(),
-                        SizedBox(width: 10),
-                        Text('正在读取时段…'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              const GinkgoLoadingView(label: '正在读取时段…'),
             if (slots != null)
               AppleSection(
                 header: const Text('时段'),

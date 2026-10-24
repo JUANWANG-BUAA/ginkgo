@@ -1,9 +1,26 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ginkgo_mirror/application/contracts.dart' show SessionResponse;
+import 'package:ginkgo_mirror/loading_widgets.dart';
 import 'package:ginkgo_mirror/login_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 
 import 'session_widget_test.dart' show FakeService, signedOut, signedIn;
+
+class PendingLoginService extends FakeService {
+  PendingLoginService()
+    : super(restoreResponse: signedOut, loginResponse: signedIn);
+  final pending = Completer<SessionResponse>();
+  @override
+  Future<SessionResponse> login({
+    required String account,
+    required String password,
+    String? captcha,
+    required bool remember,
+  }) => pending.future;
+}
 
 void main() {
   testWidgets(
@@ -49,6 +66,44 @@ void main() {
         );
         expect(tester.takeException(), isNull);
       }
+    },
+  );
+
+  testWidgets(
+    'busy login shows the brand leaf with contrasting paint, not a spinner',
+    (tester) async {
+      final service = PendingLoginService();
+      await tester.pumpWidget(
+        ginkgoApp(
+          home: LoginPage(service: service, onSignedIn: (_) {}, onDemo: () {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('login-account')),
+        'sy2501001',
+      );
+      await tester.enterText(
+        find.byKey(const Key('login-password')),
+        'synthetic-only',
+      );
+      await tester.tap(find.byKey(const Key('login-submit')));
+      await tester.pump();
+      expect(
+        tester.widget<GinkgoActivity>(find.byType(GinkgoActivity)).size,
+        17,
+      );
+      expect(find.byType(CupertinoActivityIndicator), findsNothing);
+      expect(
+        find.ancestor(
+          of: find.byType(GinkgoActivity),
+          matching: find.byType(ColorFiltered),
+        ),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+      service.pending.complete(signedIn);
+      await tester.pump();
     },
   );
 }

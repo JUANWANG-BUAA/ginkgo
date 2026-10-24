@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'apple_design.dart';
 import 'apple_widgets.dart';
+import 'loading_widgets.dart';
 import 'mirror_service.dart';
 import 'application/contracts.dart' show SessionResponse, SessionState;
 
@@ -264,8 +265,18 @@ class _LoginPageState extends State<LoginPage> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       onPressed: busy ? null : submit,
                       child: busy
-                          ? const CupertinoActivityIndicator(
-                              color: CupertinoColors.white,
+                          ? ColorFiltered(
+                              // The filled button keeps the brand leaf legible
+                              // on its accent fill.
+                              colorFilter: ColorFilter.mode(
+                                CupertinoDynamicColor.resolve(
+                                  CupertinoTheme.of(context)
+                                      .primaryContrastingColor,
+                                  context,
+                                ),
+                                BlendMode.srcIn,
+                              ),
+                              child: const GinkgoActivity(size: 17),
                             )
                           : const Text(
                               '登录',

@@ -8,6 +8,7 @@ import 'cgyy_order_presentation.dart';
 import 'cgyy_review_page.dart';
 import 'apple_widgets.dart';
 import 'apple_design.dart';
+import 'loading_widgets.dart';
 import 'mirror_service.dart';
 import 'reservation_widgets.dart';
 import 'application/contracts.dart' as live;
@@ -97,12 +98,15 @@ class _CgyyPageState extends State<CgyyPage> {
       slivers: [
         ApplePageHeader(
           largeTitle: const Text('研讨室'),
+          section: '空间资源',
+          subtitle: '选择场馆并查看可预约空间',
+          icon: CupertinoIcons.person_3,
           border: null,
           trailing: AppleGlassButton(
             label: '刷新场馆',
             onPressed: busy ? null : () => load(force: true),
             child: busy
-                ? const CupertinoActivityIndicator()
+                ? const GinkgoActivity(size: 17)
                 : const Icon(CupertinoIcons.refresh),
           ),
         ),
@@ -146,10 +150,7 @@ class _CgyyPageState extends State<CgyyPage> {
                 ],
               ),
             if (sites == null && busy)
-              const Padding(
-                padding: EdgeInsets.all(24),
-                child: CupertinoActivityIndicator(),
-              ),
+              const GinkgoLoadingView(label: '正在读取研讨室…'),
             if (sites?.isEmpty == true)
               const AppleSection(
                 children: [
@@ -553,7 +554,6 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
                           buttonKey: const Key('cgyy-choose-date'),
                           label: '更改日期',
                           icon: CupertinoIcons.calendar,
-                          tint: CupertinoColors.systemTeal,
                           onPressed: busy ? null : chooseDate,
                         ),
                       ],
@@ -576,11 +576,7 @@ class _CgyyReadPageState extends State<_CgyyReadPage> {
                   ),
                 ],
               ),
-            if (busy)
-              const Padding(
-                padding: EdgeInsets.all(24),
-                child: CupertinoActivityIndicator(),
-              ),
+            if (busy) const GinkgoLoadingView(label: '正在读取预约信息…'),
             if (error != null)
               AppleSection(
                 children: [

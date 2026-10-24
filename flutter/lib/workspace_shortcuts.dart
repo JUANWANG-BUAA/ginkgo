@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
+import 'ginkgo_visuals.dart';
 import 'today_presentation.dart';
 import 'workspace_shortcut_preferences.dart';
 
@@ -131,7 +132,6 @@ class _WorkspaceShortcutsState extends State<WorkspaceShortcuts>
     bool? selected,
   }) {
     final accent = CupertinoTheme.of(context).primaryColor;
-    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
     return Semantics(
       selected: selected,
       child: CupertinoButton(
@@ -143,23 +143,12 @@ class _WorkspaceShortcutsState extends State<WorkspaceShortcuts>
         onPressed: action,
         child: Row(
           children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: selected == true
-                    ? accent.withValues(alpha: isDark ? 0.28 : 0.18)
-                    : accent.withValues(alpha: isDark ? 0.16 : 0.09),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: ExcludeSemantics(
-                  child: Icon(
-                    icon,
-                    size: 20,
-                    color: accent,
-                  ),
-                ),
+            ExcludeSemantics(
+              child: GinkgoIconTile(
+                icon: icon,
+                size: 36,
+                iconSize: 20,
+                selected: selected == true,
               ),
             ),
             const SizedBox(width: 12),
