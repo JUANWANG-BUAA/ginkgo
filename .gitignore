@@ -31,3 +31,9 @@ flutter/rust_builder/cargokit/build_tool/.dart_tool/
 flutter/rust_builder/cargokit/build_tool/pubspec.lock
 artifacts/local/
 .workbuddy/
+
+# 本地分析工具缓存，不入库
+.mimosa/
+.v2c/
+.video_agent/
+__pycache__/
