@@ -11,10 +11,10 @@ import 'startup_page.dart';
 import 'startup_update.dart';
 import 'maintenance_service.dart';
 import 'update_gate.dart';
-import 'workspace_shell.dart';
+import 'workspace/workspace_shell.dart';
 
 // 测试与页面直接使用 ginkgoApp/GinkgoApp，保持既有入口不变。
-export 'workspace_shell.dart' show GinkgoApp, ginkgoApp, ginkgoTheme;
+export 'workspace/workspace_shell.dart' show GinkgoApp, ginkgoApp, ginkgoTheme;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

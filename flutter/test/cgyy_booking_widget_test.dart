@@ -10,7 +10,7 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/apple_widgets.dart';
 import 'package:ginkgo_mirror/cgyy_booking_page.dart';
-import 'package:ginkgo_mirror/workspace_shell.dart';
+import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 
 class BookingGateway implements CgyyBookingGateway {
   final commands = <Map<String, Object?>>[];

@@ -6,7 +6,7 @@ import 'package:ginkgo_mirror/grades_page.dart';
 import 'package:ginkgo_mirror/library_page.dart';
 import 'package:ginkgo_mirror/tasks_page.dart';
 import 'package:ginkgo_mirror/today_page.dart';
-import 'package:ginkgo_mirror/workspace_shell.dart';
+import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 import 'package:ginkgo_mirror/workspace_tab_transition.dart';
 
 import 'mirror_widget_test.dart'

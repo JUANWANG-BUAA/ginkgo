@@ -348,4 +348,44 @@ void main() {
     expect((decoration.border! as Border).top.color.a, 1);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('rotating across the width breakpoint keeps the selection', (
+    tester,
+  ) async {
+    // Mobile layout: switch to the schedule tab before rotating.
+    viewport(tester, const Size(430, 932));
+    await tester.pumpWidget(GinkgoApp(service: WorkspaceService()));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(CupertinoTabBar),
+        matching: find.text('课表'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // The fixture course is only mounted while the schedule tab is visible.
+    expect(find.text('算法设计与分析'), findsWidgets);
+
+    // Widen past the 760dp breakpoint into the desktop sidebar shell.
+    viewport(tester, const Size(1100, 932));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('desktop-sidebar')), findsOneWidget);
+    final selectedSidebar = find.byWidgetPredicate(
+      (widget) => widget is AppleNavigationItem && widget.selected,
+    );
+    expect(selectedSidebar, findsOneWidget);
+    expect(
+      find.descendant(of: selectedSidebar, matching: find.text('课表')),
+      findsOneWidget,
+    );
+
+    // Rotate back: the mobile tab follows the desktop selection instead of
+    // resetting to the first tab.
+    viewport(tester, const Size(430, 932));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('desktop-sidebar')), findsNothing);
+    expect(find.byType(CupertinoTabBar), findsOneWidget);
+    expect(find.text('算法设计与分析'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
 }

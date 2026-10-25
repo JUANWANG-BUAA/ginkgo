@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:ginkgo_mirror/app_preferences.dart';
 import 'package:ginkgo_mirror/preferences_pages.dart';
-import 'package:ginkgo_mirror/workspace_shell.dart';
+import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 import 'package:ginkgo_mirror/today_page.dart';
 import 'package:ginkgo_mirror/tasks_page.dart';
 import 'package:ginkgo_mirror/workspace_catalog.dart';

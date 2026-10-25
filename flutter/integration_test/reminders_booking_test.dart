@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:ginkgo_mirror/cgyy_booking_page.dart';
 import 'package:ginkgo_mirror/checkin_page.dart';
-import 'package:ginkgo_mirror/workspace_shell.dart';
+import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
 
 import '../test/cgyy_booking_widget_test.dart' show BookingGateway;

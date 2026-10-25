@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/app_preferences.dart';
 import 'package:ginkgo_mirror/ginkgo_visuals.dart';
 import 'package:ginkgo_mirror/loading_widgets.dart';
-import 'package:ginkgo_mirror/workspace_shell.dart';
+import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 
 import 'workspace_tab_transition_test.dart'
     show displacement, motionHarness, pageWidth, phone, transition;
