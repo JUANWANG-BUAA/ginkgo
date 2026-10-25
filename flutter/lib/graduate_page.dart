@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
@@ -141,15 +139,8 @@ class _GraduatePageState extends State<GraduatePage> {
           ? await widget.loader!(report: isReport, forceRefresh: force)
           : await service.graduatePart(report: isReport, forceRefresh: force);
       // Decode once on data change, never sort or parse inside build.
-      final payload = result.payload == null
-          ? null
-          : jsonDecode(result.payload!) as Map<String, dynamic>;
-      final sections = (payload?['sections'] as List?)
-          ?.map(
-            (section) =>
-                GraduateSection.fromJson(section as Map<String, dynamic>),
-          )
-          .toList(growable: false);
+      final decoded = graduateReport(result.payload);
+      final sections = decoded?.sections;
       if (!mounted || generation != requestGeneration) return;
       setState(() {
         part.error = result.failure == null
@@ -157,7 +148,7 @@ class _GraduatePageState extends State<GraduatePage> {
             : failureMessage(result.failure);
         if (sections != null) {
           part.sections = sections;
-          part.notice = payload?['notice'] as String?;
+          part.notice = decoded?.notice;
           if (isReport) {
             courses = [
               for (final section in sections)

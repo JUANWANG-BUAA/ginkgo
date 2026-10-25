@@ -1,14 +1,15 @@
 import 'package:flutter/cupertino.dart';
 
+import 'bykc_models.dart';
+
 class BykcStatisticsCard extends StatelessWidget {
   const BykcStatisticsCard({super.key, required this.entry});
-  final Map<String, dynamic> entry;
-
+  final BykcStatisticsEntry entry;
   @override
   Widget build(BuildContext context) {
-    final required = entry['required'] as int;
-    final completed = entry['completed'] as int;
-    final complete = required > 0 && completed >= required;
+    final required = entry.requiredCount;
+    final completed = entry.completed;
+    final complete = entry.complete;
     final status = required == 0
         ? '本项暂无要求'
         : complete
@@ -21,7 +22,7 @@ class BykcStatisticsCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Semantics(
         label:
-            '${entry['category']}，${entry['subcategory']}，已完成 $completed 项，应完成 $required 项，$status',
+            '${entry.category}，${entry.subcategory}，已完成 $completed 项，应完成 $required 项，$status',
         child: ExcludeSemantics(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -32,7 +33,7 @@ class BykcStatisticsCard extends StatelessWidget {
                 alignment: WrapAlignment.spaceBetween,
                 children: [
                   Text(
-                    entry['subcategory'] as String,
+                    entry.subcategory,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -97,7 +98,8 @@ class BykcLabel extends StatelessWidget {
   final Color? tint;
   @override
   Widget build(BuildContext context) {
-    final color = tint ??
+    final color =
+        tint ??
         (positive
             ? CupertinoColors.systemGreen.resolveFrom(context)
             : CupertinoColors.secondaryLabel.resolveFrom(context));
@@ -112,7 +114,9 @@ class BykcLabel extends StatelessWidget {
         style: TextStyle(
           fontSize: 12,
           color: color,
-          fontWeight: (positive || tint != null) ? FontWeight.w600 : FontWeight.w500,
+          fontWeight: (positive || tint != null)
+              ? FontWeight.w600
+              : FontWeight.w500,
         ),
       ),
     );

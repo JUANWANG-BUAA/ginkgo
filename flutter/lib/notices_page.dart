@@ -1,11 +1,10 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'apple_widgets.dart';
 import 'loading_widgets.dart';
 import 'mirror_service.dart';
+import 'notices_models.dart';
 
 class NoticesPage extends StatefulWidget {
   const NoticesPage({super.key, this.demo = false, this.service});
@@ -16,9 +15,10 @@ class NoticesPage extends StatefulWidget {
 }
 
 class _NoticesPageState extends State<NoticesPage> {
-  List<Map<String, dynamic>>? notices;
+  List<Notice>? notices;
   String? error;
   bool busy = false;
+  bool _pendingRefresh = false;
   @override
   void initState() {
     super.initState();
@@ -26,7 +26,12 @@ class _NoticesPageState extends State<NoticesPage> {
   }
 
   Future<void> load({bool force = false}) async {
-    if (busy) return;
+    // A pull-to-refresh during an in-flight read is remembered and rerun
+    // once it settles, never silently dropped.
+    if (busy) {
+      if (force) _pendingRefresh = true;
+      return;
+    }
     setState(() {
       busy = true;
       error = null;
@@ -39,8 +44,7 @@ class _NoticesPageState extends State<NoticesPage> {
         busy = false;
         if (result.failure != null) error = failureMessage(result.failure);
         if (result.payload != null) {
-          notices = (jsonDecode(result.payload!) as List)
-              .cast<Map<String, dynamic>>();
+          notices = noticeList(result.payload!);
         }
       });
     } catch (_) {
@@ -50,6 +54,11 @@ class _NoticesPageState extends State<NoticesPage> {
           error = failureMessage(null);
         });
       }
+    }
+    if (!mounted) return;
+    if (_pendingRefresh) {
+      _pendingRefresh = false;
+      await load(force: true);
     }
   }
 
@@ -118,8 +127,8 @@ class _NoticesPageState extends State<NoticesPage> {
                 children: [
                   for (final notice in notices!)
                     AppleListTile(
-                      title: Text(notice['title'] as String),
-                      subtitle: Text(notice['published_at'] as String),
+                      title: Text(notice.title),
+                      subtitle: Text(notice.publishedAt),
                       trailing: const Icon(
                         CupertinoIcons.chevron_right,
                         size: 16,
@@ -142,7 +151,7 @@ class _NoticesPageState extends State<NoticesPage> {
 
 class _NoticeDetail extends StatefulWidget {
   const _NoticeDetail({required this.notice});
-  final Map<String, dynamic> notice;
+  final Notice notice;
   @override
   State<_NoticeDetail> createState() => _NoticeDetailState();
 }
@@ -151,7 +160,7 @@ class _NoticeDetailState extends State<_NoticeDetail> {
   String? error;
   Future<void> open() async {
     try {
-      final url = Uri.parse(widget.notice['url'] as String);
+      final url = Uri.parse(widget.notice.url);
       if (url.scheme != 'https' ||
           url.host.isEmpty ||
           !await launchUrl(url, mode: LaunchMode.externalApplication)) {
@@ -173,19 +182,19 @@ class _NoticeDetailState extends State<_NoticeDetail> {
         padding: const EdgeInsets.all(24),
         children: [
           Text(
-            widget.notice['title'] as String,
+            widget.notice.title,
             style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           Text(
-            widget.notice['published_at'] as String,
+            widget.notice.publishedAt,
             style: const TextStyle(color: CupertinoColors.secondaryLabel),
           ),
           const SizedBox(height: 24),
           Text(
-            (widget.notice['summary'] as String).isEmpty
+            widget.notice.summary.isEmpty
                 ? '列表未提供摘要，请查看官网原文。'
-                : widget.notice['summary'] as String,
+                : widget.notice.summary,
           ),
           const SizedBox(height: 24),
           CupertinoButton.filled(

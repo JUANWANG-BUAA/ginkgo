@@ -74,7 +74,8 @@ HomeworkDeadlineStatus classifyHomeworkDeadline(
 
 /// Helper to test if a deadline is strictly classified as overdue.
 bool isHomeworkOverdue(String? dueAt, [DateTime? beijingNow]) =>
-    classifyHomeworkDeadline(dueAt, beijingNow) == HomeworkDeadlineStatus.overdue;
+    classifyHomeworkDeadline(dueAt, beijingNow) ==
+    HomeworkDeadlineStatus.overdue;
 
 /// Returns an intuitive relative deadline countdown with 00:00 midnight warning.
 ///
@@ -94,8 +95,6 @@ String? homeworkRelativeDeadline(String? dueAt, [DateTime? beijingNow]) {
       status == HomeworkDeadlineStatus.undated) {
     return null;
   }
-
-  const weekdays = ['', '周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
   final dateOnly = todayDate(text);
   if (dateOnly != null) {
@@ -119,7 +118,7 @@ String? homeworkRelativeDeadline(String? dueAt, [DateTime? beijingNow]) {
 
   final isMidnight = instant.hour == 0 && instant.minute == 0;
   final midnightNote = isMidnight
-      ? '即${weekdays[instant.subtract(const Duration(days: 1)).weekday]}晚前'
+      ? '即${schoolWeekdays[instant.subtract(const Duration(days: 1)).weekday - 1]}晚前'
       : '';
 
   if (status == HomeworkDeadlineStatus.overdue) {
@@ -129,7 +128,9 @@ String? homeworkRelativeDeadline(String? dueAt, [DateTime? beijingNow]) {
     final overdueDesc = days > 0
         ? '已超期 $days 天'
         : (hours > 0 ? '已超期 $hours 小时' : '刚截止');
-    return midnightNote.isNotEmpty ? '$midnightNote · $overdueDesc' : overdueDesc;
+    return midnightNote.isNotEmpty
+        ? '$midnightNote · $overdueDesc'
+        : overdueDesc;
   } else {
     final diff = instant.difference(now);
     final days = diff.inDays;
@@ -138,8 +139,8 @@ String? homeworkRelativeDeadline(String? dueAt, [DateTime? beijingNow]) {
     final remaining = days > 0
         ? (hours > 0 ? '还剩 $days 天 $hours 小时' : '还剩 $days 天')
         : (hours > 0
-            ? '还剩 $hours 小时${minutes > 0 ? ' $minutes 分' : ''}'
-            : '还剩 ${diff.inMinutes.clamp(1, 60)} 分钟');
+              ? '还剩 $hours 小时${minutes > 0 ? ' $minutes 分' : ''}'
+              : '还剩 ${diff.inMinutes.clamp(1, 60)} 分钟');
     return midnightNote.isNotEmpty ? '$midnightNote · $remaining' : remaining;
   }
 }
@@ -159,8 +160,6 @@ String homeworkCompactDeadline(String? dueAt, [DateTime? beijingNow]) {
   if (status == HomeworkDeadlineStatus.invalid) {
     return '时间待确认 · $text';
   }
-
-  const weekdays = ['', '周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
   final dateOnly = todayDate(text);
   if (dateOnly != null) {
@@ -199,19 +198,17 @@ String homeworkCompactDeadline(String? dueAt, [DateTime? beijingNow]) {
   final hours = diff.inHours % 24;
   final remaining = days > 0
       ? (hours > 0 ? '剩 $days天$hours时' : '剩 $days 天')
-      : (hours > 0
-          ? '仅剩 $hours 小时'
-          : '仅剩 ${diff.inMinutes.clamp(1, 60)} 分钟');
+      : (hours > 0 ? '仅剩 $hours 小时' : '仅剩 ${diff.inMinutes.clamp(1, 60)} 分钟');
 
   // Check 00:00 midnight: "周X晚 23:59 截止"
   if (instant.hour == 0 && instant.minute == 0) {
     final prevDay = instant.subtract(const Duration(days: 1));
-    final prevWeekday = weekdays[prevDay.weekday];
+    final prevWeekday = schoolWeekdays[prevDay.weekday - 1];
     return '$prevWeekday晚 23:59 截止 · $remaining';
   }
 
   // Exact daytime: e.g. "周一 18:00 截止 · 剩 2天"
-  final weekday = weekdays[instant.weekday];
+  final weekday = schoolWeekdays[instant.weekday - 1];
   final clock =
       '${instant.hour.toString().padLeft(2, '0')}:${instant.minute.toString().padLeft(2, '0')}';
   return '$weekday $clock 截止 · $remaining';

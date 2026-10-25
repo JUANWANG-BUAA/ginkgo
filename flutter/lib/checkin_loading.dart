@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
 import 'loading_widgets.dart';
+import 'checkin_models.dart';
 import 'mirror_service.dart';
 
 /// Polls local progress only; never sends another authentication/read request.
@@ -39,15 +39,16 @@ class _CheckInLoadingState extends State<CheckInLoading> {
     try {
       final response = await widget.service.checkinProgress();
       if (!mounted || response.payload == null) return;
-      final json = jsonDecode(response.payload!) as Map<String, dynamic>;
+      final telemetry = checkinProgress(response.payload!);
+      if (telemetry == null) return;
       setState(() {
-        label = switch (json['phase']) {
+        label = switch (telemetry.phase) {
           'authenticating' => '正在连接学校认证…',
           'appLogin' => '正在建立 iClass 会话…',
           'courses' => '正在读取当天课程…',
           _ => '正在读取 iClass 课程…',
         };
-        seconds = ((json['elapsedMs'] as num? ?? 0) / 1000).floor();
+        seconds = telemetry.elapsedSeconds;
       });
     } catch (_) {
       // Optional local telemetry must not interrupt the actual request.

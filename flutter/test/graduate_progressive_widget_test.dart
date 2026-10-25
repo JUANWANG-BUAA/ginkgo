@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ginkgo_mirror/graduate_models.dart';
 import 'package:ginkgo_mirror/graduate_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart';
@@ -404,22 +405,30 @@ void main() {
             data: const MediaQueryData(textScaler: TextScaler.linear(1.8)),
             child: CupertinoTheme(
               data: const CupertinoThemeData(brightness: Brightness.dark),
-              child: const CupertinoPageScaffold(
+              child: CupertinoPageScaffold(
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
                       GraduateCreditProgress(
-                        progress: {
+                        progress: GraduateProgress.fromJson({
                           'required': null,
                           'earned': 2,
                           'pending': null,
-                        },
+                        }),
                       ),
                       GraduateCreditProgress(
-                        progress: {'required': 0, 'earned': 0, 'pending': 0},
+                        progress: GraduateProgress.fromJson({
+                          'required': 0,
+                          'earned': 0,
+                          'pending': 0,
+                        }),
                       ),
                       GraduateCreditProgress(
-                        progress: {'required': 4, 'earned': 6, 'pending': 5},
+                        progress: GraduateProgress.fromJson({
+                          'required': 4,
+                          'earned': 6,
+                          'pending': 5,
+                        }),
                       ),
                     ],
                   ),

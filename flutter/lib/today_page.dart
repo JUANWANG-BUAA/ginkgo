@@ -6,7 +6,9 @@ import 'application/local_tasks.dart';
 import 'homework_detail_page.dart';
 import 'tasks_page.dart';
 import 'today_course_focus.dart';
+import 'today_course_list.dart';
 import 'today_tasks_section.dart';
+import 'school_timestamp.dart';
 import 'today_time.dart';
 import 'today_presentation.dart';
 import 'workspace_shortcuts.dart';
@@ -20,8 +22,6 @@ import 'today_homework_section.dart';
 import 'mirror_service.dart';
 import 'apple_design.dart';
 import 'application/contracts.dart';
-
-const _weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
 class TodayPage extends StatefulWidget {
   const TodayPage({
@@ -159,31 +159,41 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     _loadTasks(),
   ]);
 
-  Future<void> _loadCourses({bool force = false}) => courses.refresh(() async {
-    final result = await widget.service.today(forceRefresh: force);
-    return SectionResult(
-      value: result.failure == null || result.fetchedAt != null ? result : null,
-      error: result.failure == null ? null : failureMessage(result.failure),
-    );
-  }, fallbackError: '本地服务暂时不可用，请重试', force: force);
-
-  Future<void> _loadHomework({bool force = false}) {
-    final service = widget.service;
-    final generation = _generation;
-    return homework.refresh(() async {
-      final result = await service.homework(forceRefresh: force);
-      if (mounted && generation == _generation) {
-        final reminders = ReminderScope.of(context);
-        reminders?.updateHomework(result);
-        if (reminders != null) unawaited(reminders.reconcile());
-      }
+  Future<void> _loadCourses({bool force = false}) => courses.refresh(
+    () async {
+      final result = await widget.service.today(forceRefresh: force);
       return SectionResult(
-        value: result.failure == null || result.termCode.isNotEmpty
+        value: result.failure == null || result.fetchedAt != null
             ? result
             : null,
         error: result.failure == null ? null : failureMessage(result.failure),
       );
-    }, fallbackError: '本地服务暂时不可用，请重试', force: force);
+    },
+    fallbackError: '本地服务暂时不可用，请重试',
+    force: force,
+  );
+
+  Future<void> _loadHomework({bool force = false}) {
+    final service = widget.service;
+    final generation = _generation;
+    return homework.refresh(
+      () async {
+        final result = await service.homework(forceRefresh: force);
+        if (mounted && generation == _generation) {
+          final reminders = ReminderScope.of(context);
+          reminders?.updateHomework(result);
+          if (reminders != null) unawaited(reminders.reconcile());
+        }
+        return SectionResult(
+          value: result.failure == null || result.termCode.isNotEmpty
+              ? result
+              : null,
+          error: result.failure == null ? null : failureMessage(result.failure),
+        );
+      },
+      fallbackError: '本地服务暂时不可用，请重试',
+      force: force,
+    );
   }
 
   Future<String> _tasksRoot() => localTasksStorageRoot(widget.storageRoot);
@@ -396,9 +406,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
 
   List<Widget> _content(TodayResponse data) {
     final date = DateTime.tryParse(data.date);
-    final dateLabel = date == null
-        ? data.date
-        : '${date.year}年${date.month}月${date.day}日 · ${_weekdays[date.weekday - 1]}';
+    final dateLabel = date == null ? data.date : schoolDateWeekdayLabel(date);
     return [
       TodayVisualSection(
         key: const Key('today-courses'),
@@ -408,7 +416,9 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
             TodaySectionHeader(
               icon: CupertinoIcons.calendar_today,
               title: '今日课程',
-              badge: data.courses.isNotEmpty ? '今天 ${data.courses.length} 节课' : null,
+              badge: data.courses.isNotEmpty
+                  ? '今天 ${data.courses.length} 节课'
+                  : null,
               actionLabel: widget.onOpenFeature == null ? null : '完整课表',
               onAction: () => widget.onOpenFeature?.call('schedule'),
             ),
@@ -444,7 +454,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
               onRetry: () => _loadCourses(force: true),
             ),
           if (data.courses.isEmpty)
-            _TodayCourseEmpty(
+            TodayCourseEmpty(
               error: error,
               onOpenSchedule: widget.onOpenFeature == null
                   ? null
@@ -488,7 +498,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
             ),
           if (_coursesExpanded)
             for (final (index, course) in data.courses.indexed)
-              _TodayCourseRow(
+              TodayCourseRow(
                 key: Key('today-course-$index-${course.name}'),
                 course: course,
                 status:
@@ -527,269 +537,5 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     final hour = beijing.hour.toString().padLeft(2, '0');
     final minute = beijing.minute.toString().padLeft(2, '0');
     return '${beijing.month}月${beijing.day}日 $hour:$minute';
-  }
-}
-
-/// Keep course times on a visible axis, like the native Today views. At large
-/// type sizes the axis moves above the title so neither field is squeezed.
-class _TodayCourseRow extends StatelessWidget {
-  const _TodayCourseRow({
-    super.key,
-    required this.course,
-    required this.status,
-  });
-  final TodayCourse course;
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    final times = RegExp(r'^(\d{1,2}:\d{2})\s*[-–—~～]\s*(\d{1,2}:\d{2})$')
-        .firstMatch(course.time?.trim() ?? '');
-    final secondary = AppleDesign.statusInactive.resolveFrom(context);
-    final time = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          times?.group(1) ?? course.time ?? '时间未提供',
-          style: TextStyle(
-            fontSize: times == null ? 13 : 17,
-            fontWeight: FontWeight.w500,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
-        ),
-        if (times != null)
-          Text(
-            times.group(2)!,
-            style: TextStyle(
-              fontSize: 13,
-              color: secondary,
-              fontFeatures: GinkgoTypography.tabularDigits,
-            ),
-          ),
-      ],
-    );
-    final details = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(status, style: TextStyle(fontSize: 13, color: secondary)),
-        const SizedBox(height: 4),
-        Text(
-          course.name,
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          course.place?.trim().isNotEmpty == true ? course.place! : '地点未提供',
-          style: TextStyle(fontSize: 13, color: secondary),
-        ),
-      ],
-    );
-    return Padding(
-      padding: GinkgoSpacing.edgeInsetsCard,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final stacked =
-              constraints.maxWidth < 280 ||
-              MediaQuery.textScalerOf(context).scale(1) > 1.4;
-          return Stack(
-            children: [
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                child: Container(
-                  width: 4,
-                  decoration: BoxDecoration(
-                    color: CupertinoColors.separator.resolveFrom(context),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (stacked)
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [time, const SizedBox(height: 8), details],
-                        ),
-                      )
-                    else ...[
-                      SizedBox(width: 84, child: time),
-                      const SizedBox(width: 12),
-                      Expanded(child: details),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _TodayCourseEmpty extends StatelessWidget {
-  const _TodayCourseEmpty({
-    required this.error,
-    required this.onOpenSchedule,
-  });
-
-  final String? error;
-  final VoidCallback? onOpenSchedule;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = CupertinoTheme.of(context).primaryColor;
-    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
-    final isLargeText = MediaQuery.textScalerOf(context).scale(1) > 1.3;
-
-    if (isLargeText) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: isDark ? 0.16 : 0.09),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      error != null
-                          ? CupertinoIcons.exclamationmark_triangle_fill
-                          : CupertinoIcons.calendar,
-                      size: 18,
-                      color: error != null
-                          ? AppleDesign.statusDanger.resolveFrom(context)
-                          : accent,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    error != null ? '今日课程尚未确认' : '今天没有课程',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              error != null
-                  ? '课表更新失败，请刷新后再确认今天的安排。'
-                  : '当前课表中没有当天课程，可查看完整课表安排学习。',
-              style: TextStyle(
-                fontSize: 13,
-                color: AppleDesign.statusInactive.resolveFrom(context),
-              ),
-            ),
-            if (onOpenSchedule != null) ...[
-              const SizedBox(height: 10),
-              CupertinoButton(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                color: accent.withValues(alpha: isDark ? 0.18 : 0.10),
-                borderRadius: BorderRadius.circular(8),
-                minimumSize: const Size(48, 32),
-                onPressed: onOpenSchedule,
-                child: Text(
-                  '查看完整课表',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: accent,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: isDark ? 0.16 : 0.09),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Icon(
-                error != null
-                    ? CupertinoIcons.exclamationmark_triangle_fill
-                    : CupertinoIcons.calendar,
-                size: 22,
-                color: error != null
-                    ? AppleDesign.statusDanger.resolveFrom(context)
-                    : accent,
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  error != null ? '今日课程尚未确认' : '今天没有课程',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  error != null
-                      ? '课表更新失败，请刷新后再确认今天的安排。'
-                      : '当前课表中没有当天课程，可查看完整课表安排学习。',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppleDesign.statusInactive.resolveFrom(context),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (onOpenSchedule != null) ...[
-            const SizedBox(width: 8),
-            CupertinoButton(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              color: accent.withValues(alpha: isDark ? 0.18 : 0.10),
-              borderRadius: BorderRadius.circular(8),
-              minimumSize: const Size(48, 32),
-              onPressed: onOpenSchedule,
-              child: Text(
-                '查看完整课表',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: accent,
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
   }
 }

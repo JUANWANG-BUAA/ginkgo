@@ -1,11 +1,10 @@
-import 'dart:convert';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
-
 import 'package:flutter/cupertino.dart';
 
+import 'cgyy_captcha_page.dart';
 import 'application/mirror_service.dart';
 import 'apple_widgets.dart';
+import 'cgyy_models.dart';
+import 'cgyy_widgets.dart';
 import 'loading_widgets.dart';
 
 /// Mirrors IOSCgyyView's grouped native form and explicit confirmation flow.
@@ -26,11 +25,11 @@ class CgyyBookingPage extends StatefulWidget {
 }
 
 class _CgyyBookingPageState extends State<CgyyBookingPage> {
-  Map<String, dynamic>? options;
+  CgyyBookingOptions? options;
   String? notice;
   bool busy = false, loading = false, review = false;
   bool dirty = false, leaving = false, allowExit = false;
-  Map<String, dynamic>? outcome;
+  CgyyActionResult? outcome;
   int? space, purpose;
   final times = <int>{};
   final consumedChallenges = <String>{};
@@ -57,12 +56,12 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
     super.dispose();
   }
 
-  Future<Map<String, dynamic>> execute(Map<String, Object?> command) async {
+  Future<CgyyActionResult> execute(Map<String, Object?> command) async {
     final result = await widget.gateway.executeCgyy(command);
     if (result.failure != null || result.payload == null) {
       throw _BookingFailure(failureMessage(result.failure));
     }
-    return jsonDecode(result.payload!) as Map<String, dynamic>;
+    return cgyyActionResult(result.payload!);
   }
 
   void markDirty() {
@@ -125,9 +124,9 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
       });
       if (!mounted) return;
       setState(() {
-        options = result['options'] as Map<String, dynamic>?;
-        space = choices.isEmpty ? null : choices.first['space_id'] as int;
-        purpose = purposes.isEmpty ? null : purposes.first['id'] as int;
+        options = result.options;
+        space = choices.isEmpty ? null : choices.first.spaceId;
+        purpose = purposes.isEmpty ? null : purposes.first.id;
         times.clear();
       });
     } catch (_) {
@@ -137,18 +136,16 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
     }
   }
 
-  List<Map<String, dynamic>> get choices =>
-      (options?['choices'] as List? ?? []).cast<Map<String, dynamic>>();
-  List<Map<String, dynamic>> get purposes =>
-      (options?['purposes'] as List? ?? []).cast<Map<String, dynamic>>();
+  List<CgyyBookingChoice> get choices => options?.choices ?? const [];
+  List<CgyyPurpose> get purposes => options?.purposes ?? const [];
 
-  String summary(List<Map<String, dynamic>> selected) => [
+  String summary(List<CgyyBookingChoice> selected) => [
     '场馆：${widget.siteName}',
     '日期：${widget.date}',
-    '空间：${selected.first['space_name']}',
-    '时段：${selected.map((c) => c['time']).join('、')}',
+    '空间：${selected.first.spaceName}',
+    '时段：${selected.map((c) => c.time).join('、')}',
     '人数：${count.text} 人',
-    '用途：${purposes.firstWhere((p) => p['id'] == purpose)['name']}',
+    '用途：${purposes.firstWhere((p) => p.id == purpose).name}',
     '手机：${phone.text}',
     '主题：${theme.text.trim()}',
     '内容：${content.text.trim()}',
@@ -157,39 +154,27 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
     '含校外参与人：${offSchool ? '是' : '否'}',
   ].join('\n');
 
-  void applyOutcome(Map<String, dynamic> result) {
-    final known = {
-      'accepted',
-      'uncertain',
-      'rejected',
-      'not_submitted',
-      'notSubmitted',
-    };
-    outcome = known.contains(result['state'])
+  void applyOutcome(CgyyActionResult result) {
+    outcome = result.isKnown
         ? result
-        : {'state': 'uncertain', 'message': '返回状态无法判明，请先到我的预约回查，勿重复提交'};
-    notice = outcome!['message'] as String? ?? '请核对我的预约';
-    review =
-        outcome!['state'] == 'uncertain' || outcome!['state'] == 'accepted';
+        : CgyyActionResult.fromState('uncertain', '返回状态无法判明，请先到我的预约回查，勿重复提交');
+    notice = outcome!.message;
+    review = outcome!.requiresReview;
   }
 
   Future<void> prepare() async {
     if (busy || loading || review || leaving) return;
     final selected =
         choices
-            .where(
-              (c) => c['space_id'] == space && times.contains(c['time_id']),
-            )
+            .where((c) => c.spaceId == space && times.contains(c.timeId))
             .toList()
-          ..sort(
-            (a, b) => (a['time_id'] as int).compareTo(b['time_id'] as int),
-          );
+          ..sort((a, b) => a.timeId.compareTo(b.timeId));
     if (space == null ||
         times.isEmpty ||
         times.length > 12 ||
         selected.length != times.length ||
         purpose == null ||
-        !purposes.any((p) => p['id'] == purpose) ||
+        !purposes.any((p) => p.id == purpose) ||
         !RegExp(r'^\d{11}$').hasMatch(phone.text) ||
         widget.siteId <= 0 ||
         space! <= 0 ||
@@ -259,12 +244,12 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
         },
       });
       if (!mounted) return;
-      if (result['state'] == 'challenge') {
-        final message = await Navigator.of(context).push<Map<String, dynamic>>(
+      if (result.isChallenge) {
+        final message = await Navigator.of(context).push<CgyyActionResult>(
           CupertinoPageRoute(
-            builder: (_) => _CgyyCaptchaPage(
+            builder: (_) => CgyyCaptchaPage(
               gateway: widget.gateway,
-              challenge: result['challenge'] as Map<String, dynamic>,
+              challenge: result.challenge!,
               summary: bookingSummary,
               consumedChallenges: consumedChallenges,
             ),
@@ -286,10 +271,9 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
       if (mounted) {
         setState(() {
           if (requested) {
-            applyOutcome({
-              'state': 'uncertain',
-              'message': '结果待核实，请返回我的预约回查，勿重复提交',
-            });
+            applyOutcome(
+              CgyyActionResult.fromState('uncertain', '结果待核实，请返回我的预约回查，勿重复提交'),
+            );
           } else {
             notice = '尚未提交预约，可修改后继续';
           }
@@ -323,7 +307,7 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
   );
 
   Widget spaceGrid(int id, String name) {
-    final slots = choices.where((c) => c['space_id'] == id).toList();
+    final slots = choices.where((c) => c.spaceId == id).toList();
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -356,17 +340,17 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
             children: [
               for (final slot in slots)
                 Semantics(
-                  selected: space == id && times.contains(slot['time_id']),
+                  selected: space == id && times.contains(slot.timeId),
                   button: true,
                   label:
-                      '$name ${slot['time']} ${space == id && times.contains(slot['time_id']) ? '已选' : '空闲'}',
+                      '$name ${slot.time} ${space == id && times.contains(slot.timeId) ? '已选' : '空闲'}',
                   child: CupertinoButton(
                     minimumSize: const Size(96, 48),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
                       vertical: 5,
                     ),
-                    color: space == id && times.contains(slot['time_id'])
+                    color: space == id && times.contains(slot.timeId)
                         ? CupertinoTheme.of(context).primaryColor
                               .withValues(alpha: 0.16)
                         : CupertinoColors.tertiarySystemFill.resolveFrom(
@@ -380,11 +364,10 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
                               space = id;
                               times.clear();
                             }
-                            final timeId = slot['time_id'] as int;
-                            if (times.contains(timeId)) {
-                              times.remove(timeId);
+                            if (times.contains(slot.timeId)) {
+                              times.remove(slot.timeId);
                             } else if (times.length < 12) {
-                              times.add(timeId);
+                              times.add(slot.timeId);
                             } else {
                               notice = '一次最多选择 12 个时段';
                               return;
@@ -395,20 +378,19 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          slot['time'] as String,
+                          slot.time,
                           style: TextStyle(
                             fontSize: 12,
                             color: CupertinoColors.label.resolveFrom(context),
                           ),
                         ),
                         Text(
-                          space == id && times.contains(slot['time_id'])
+                          space == id && times.contains(slot.timeId)
                               ? '已选'
                               : '空闲',
                           style: TextStyle(
                             fontSize: 11,
-                            color:
-                                space == id && times.contains(slot['time_id'])
+                            color: space == id && times.contains(slot.timeId)
                                 ? CupertinoTheme.of(context).primaryColor
                                 : CupertinoColors.secondaryLabel.resolveFrom(
                                     context,
@@ -464,9 +446,9 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
   @override
   Widget build(BuildContext context) {
     final spaces = <int, String>{
-      for (final c in choices) c['space_id'] as int: c['space_name'] as String,
+      for (final c in choices) c.spaceId: c.spaceName,
     };
-    return PopScope<Map<String, dynamic>>(
+    return PopScope<CgyyActionResult>(
       canPop: allowExit,
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) leave();
@@ -529,11 +511,12 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
                             additionalInfo: SizedBox(
                               width: MediaQuery.sizeOf(context).width * 0.44,
                               child: Text(
-                                purposes.firstWhere(
-                                      (p) => p['id'] == purpose,
+                                purposes
+                                    .firstWhere(
+                                      (p) => p.id == purpose,
                                       orElse: () => purposes.first,
-                                    )['name']
-                                    as String,
+                                    )
+                                    .name,
                                 textAlign: TextAlign.end,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -549,14 +532,10 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
                                     final selected = await choose<int>(
                                       anchor,
                                       '活动类型',
-                                      purposes
-                                          .map((p) => p['id'] as int)
-                                          .toList(),
-                                      (id) =>
-                                          purposes.firstWhere(
-                                                (p) => p['id'] == id,
-                                              )['name']
-                                              as String,
+                                      purposes.map((p) => p.id).toList(),
+                                      (id) => purposes
+                                          .firstWhere((p) => p.id == id)
+                                          .name,
                                       selected: purpose,
                                     );
                                     if (mounted && selected != null) {
@@ -638,291 +617,7 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
   }
 }
 
-class SemanticsLabelIcon extends StatelessWidget {
-  const SemanticsLabelIcon({
-    super.key,
-    required this.label,
-    required this.icon,
-  });
-  final String label;
-  final IconData icon;
-  @override
-  Widget build(BuildContext context) =>
-      Semantics(label: label, child: Icon(icon, size: 18));
-}
-
 class _BookingFailure implements Exception {
   const _BookingFailure(this.message);
   final String message;
-}
-
-class _CgyyCaptchaPage extends StatefulWidget {
-  const _CgyyCaptchaPage({
-    required this.gateway,
-    required this.challenge,
-    required this.summary,
-    required this.consumedChallenges,
-  });
-  final CgyyBookingGateway gateway;
-  final Map<String, dynamic> challenge;
-  final String summary;
-  final Set<String> consumedChallenges;
-  @override
-  State<_CgyyCaptchaPage> createState() => _CgyyCaptchaPageState();
-}
-
-class _CgyyCaptchaPageState extends State<_CgyyCaptchaPage> {
-  Uint8List? background, piece;
-  double width = 310, height = 155, pieceWidth = 60, pieceHeight = 155, x = 0;
-  String? error;
-  bool busy = false, attempted = false, dragged = false, allowExit = false;
-  @override
-  void initState() {
-    super.initState();
-    if (widget.consumedChallenges.contains(widget.challenge['id'])) {
-      error = '此验证已使用，请返回后重新准备预约';
-    } else {
-      decode();
-    }
-  }
-
-  Future<void> decode() async {
-    try {
-      Uint8List bytes(String value) {
-        if (value.length > 3000000) throw const FormatException();
-        return base64Decode(
-          value.contains(',') ? value.split(',').last : value,
-        );
-      }
-
-      final a = bytes(widget.challenge['background'] as String),
-          b = bytes(widget.challenge['jigsaw'] as String);
-      final ac = await ui.instantiateImageCodec(a),
-          bc = await ui.instantiateImageCodec(b);
-      try {
-        final af = await ac.getNextFrame(), bf = await bc.getNextFrame();
-        final w = af.image.width.toDouble(),
-            h = af.image.height.toDouble(),
-            pw = bf.image.width.toDouble(),
-            ph = bf.image.height.toDouble();
-        af.image.dispose();
-        bf.image.dispose();
-        if (w <= pw ||
-            w > 1000 ||
-            h > 1000 ||
-            ph > h ||
-            pw <= 0 ||
-            ph <= 0 ||
-            (widget.challenge['id'] as String? ?? '').isEmpty) {
-          throw const FormatException();
-        }
-        if (mounted) {
-          setState(() {
-            background = a;
-            piece = b;
-            width = w;
-            height = h;
-            pieceWidth = pw;
-            pieceHeight = ph;
-          });
-        }
-      } finally {
-        ac.dispose();
-        bc.dispose();
-      }
-    } catch (_) {
-      if (mounted) setState(() => error = '验证图片无法显示，请返回后重新准备预约');
-    }
-  }
-
-  Future<void> exit([Map<String, dynamic>? result]) async {
-    if (!mounted || allowExit) return;
-    setState(() => allowExit = true);
-    await WidgetsBinding.instance.endOfFrame;
-    if (mounted) Navigator.pop(context, result);
-  }
-
-  Future<void> submit() async {
-    if (busy ||
-        attempted ||
-        !dragged ||
-        x.round() <= 0 ||
-        background == null ||
-        piece == null ||
-        error != null ||
-        widget.consumedChallenges.contains(widget.challenge['id'])) {
-      return;
-    }
-    setState(() => busy = true);
-    try {
-      final confirmed = await showCupertinoDialog<bool>(
-        context: context,
-        builder: (context) => CupertinoAlertDialog(
-          title: const Text('提交预约？'),
-          content: Text(
-            '${widget.summary}\n\n将验证你手动拖动的拼图并提交一次预约。受理不等于审批成功，提交后需回查。',
-          ),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () {
-                if (ModalRoute.of(context)?.isCurrent ?? false) {
-                  Navigator.pop(context, false);
-                }
-              },
-              child: const Text('取消'),
-            ),
-            CupertinoDialogAction(
-              isDefaultAction: true,
-              onPressed: () {
-                if (ModalRoute.of(context)?.isCurrent ?? false) {
-                  Navigator.pop(context, true);
-                }
-              },
-              child: const Text('提交一次'),
-            ),
-          ],
-        ),
-      );
-      if (!mounted || confirmed != true) return;
-      // A challenge is consumed even on rejection or transport failure.
-      attempted = true;
-      widget.consumedChallenges.add(widget.challenge['id'] as String);
-      Map<String, dynamic> outcome = {
-        'state': 'uncertain',
-        'message': '结果待核实，请在我的预约回查，勿重复提交',
-      };
-      try {
-        final response = await widget.gateway.executeCgyy({
-          'action': 'submit',
-          'challenge_id': widget.challenge['id'],
-          // Device/image pixels are normalized to the 310-wide protocol
-          // coordinate by Rust; the width travels with the offset.
-          'x': x,
-          'width': width,
-        });
-        if (response.payload != null && response.failure == null) {
-          final result = jsonDecode(response.payload!) as Map<String, dynamic>;
-          if ({
-            'accepted',
-            'uncertain',
-            'rejected',
-            'not_submitted',
-            'notSubmitted',
-          }.contains(result['state'])) {
-            outcome = result;
-          }
-        }
-      } catch (_) {
-        // Could fail before captcha/check, or after submit. Never claim success.
-      }
-      if (mounted) await exit(outcome);
-    } finally {
-      if (mounted && !attempted) setState(() => busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) => PopScope<Map<String, dynamic>>(
-    canPop: allowExit,
-    onPopInvokedWithResult: (didPop, result) {
-      if (!didPop && !busy) exit();
-    },
-    child: CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        automaticallyImplyLeading: false,
-        leading: CupertinoButton(
-          key: const Key('captcha-back'),
-          minimumSize: const Size(48, 48),
-          padding: EdgeInsets.zero,
-          onPressed: busy ? null : () => exit(),
-          child: const Text('返回'),
-        ),
-        middle: const Text('学校拼图验证'),
-      ),
-      child: SafeArea(
-        child: ListView(
-          children: [
-            AppleSection(
-              header: const Text('拖动拼图对齐缺口'),
-              footer: const Text(
-                '验证由你手动完成，有效期约两分钟。返回不会自动提交；未发送最终预约时，返回后仍需核对并解除本机保护。',
-              ),
-              children: [
-                if (background == null && error == null)
-                  const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: GinkgoActivity(size: 17),
-                  ),
-                if (background != null)
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: SizedBox(
-                      height: 180,
-                      child: FittedBox(
-                        fit: BoxFit.contain,
-                        child: SizedBox(
-                          width: width,
-                          height: height,
-                          child: Stack(
-                            children: [
-                              Image.memory(
-                                background!,
-                                width: width,
-                                height: height,
-                              ),
-                              Positioned(
-                                left: x,
-                                top: 0,
-                                child: Image.memory(
-                                  piece!,
-                                  width: pieceWidth,
-                                  height: pieceHeight,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                if (background != null)
-                  Semantics(
-                    label: '拼图横向位置',
-                    child: SizedBox(
-                      height: 48,
-                      child: CupertinoSlider(
-                        value: x,
-                        min: 0,
-                        max: width - pieceWidth,
-                        onChanged: busy || attempted || error != null
-                            ? null
-                            : (value) => setState(() {
-                                x = value;
-                              }),
-                        onChangeEnd: (value) =>
-                            setState(() => dragged = value.round() > 0),
-                      ),
-                    ),
-                  ),
-                if (error != null) AppleListTile(title: Text(error!)),
-                CupertinoButton(
-                  minimumSize: const Size(48, 48),
-                  onPressed:
-                      busy ||
-                          attempted ||
-                          !dragged ||
-                          x.round() <= 0 ||
-                          background == null ||
-                          error != null
-                      ? null
-                      : submit,
-                  child: busy ? const Text('处理中…') : const Text('验证并提交一次'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }

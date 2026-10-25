@@ -58,6 +58,47 @@ class BoundaryTests(unittest.TestCase):
             ports.write_text('pub type Payload = serde_json::Value;\n')
             self.assertEqual(len(BOUNDARY.source_violations(root)), 1)
 
+    def test_pages_cannot_decode_school_payload_json(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            lib = root / 'flutter/lib'
+            page = lib / 'cgyy_page.dart'
+            page.parent.mkdir(parents=True)
+            page.write_text('final rows = jsonDecode(payload) as List;\n')
+            widgets = lib / 'widgets/apple_surfaces.dart'
+            widgets.parent.mkdir(parents=True)
+            widgets.write_text('var value = jsonDecode(source);\n')
+            self.assertEqual(len(BOUNDARY.payload_decode_violations(root)), 2)
+            page.write_text('final rows = cgyySites(payload);\n')
+            widgets.write_text('const value = 1;\n')
+            self.assertEqual(BOUNDARY.payload_decode_violations(root), [])
+
+    def test_presentation_widget_apis_reject_payload_maps(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            lib = root / 'flutter/lib'
+            page = lib / 'today_page.dart'
+            page.parent.mkdir(parents=True)
+            widgets = lib / 'widgets/apple_surfaces.dart'
+            widgets.parent.mkdir(parents=True)
+            shared = lib / 'cgyy_widgets.dart'
+            page.write_text('class Row { final Map<String, dynamic> course; }\n')
+            widgets.write_text('final rows = <Map<String, dynamic>>[];\n')
+            self.assertEqual(len(BOUNDARY.payload_decode_violations(root)), 2)
+            shared.write_text('class Tile { final CgyySite site; }\n')
+            self.assertEqual(len(BOUNDARY.payload_decode_violations(root)), 2)
+
+    def test_model_projections_and_local_codecs_decode_json(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            lib = root / 'flutter/lib'
+            models = lib / 'bykc_models.dart'
+            codec = lib / 'app_preferences.dart'
+            models.parent.mkdir(parents=True)
+            models.write_text('final value = jsonDecode(payload);\n')
+            codec.write_text('final value = jsonDecode(text);\n')
+            self.assertEqual(BOUNDARY.payload_decode_violations(root), [])
+
 
 if __name__ == '__main__':
     unittest.main()

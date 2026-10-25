@@ -1,9 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
 import 'loading_widgets.dart';
+import 'library_stats_models.dart';
 import 'mirror_service.dart';
 import 'resource_meter.dart';
 
@@ -16,11 +15,12 @@ class LibraryStatsPage extends StatefulWidget {
 }
 
 class _LibraryStatsPageState extends State<LibraryStatsPage> {
-  List<Map<String, dynamic>>? campuses;
+  List<LibraryCampusStats>? campuses;
   String? updatedAt;
   String? error;
   bool busy = false;
   bool fromCache = false;
+  bool _pendingRefresh = false;
 
   @override
   void initState() {
@@ -29,8 +29,12 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
   }
 
   Future<void> load({bool force = false}) async {
-    // Pull-to-refresh and the toolbar share one in-flight request.
-    if (busy) return;
+    // Pull-to-refresh and the toolbar share one in-flight request; a refresh
+    // that arrives mid-flight is remembered and rerun, never dropped.
+    if (busy) {
+      if (force) _pendingRefresh = true;
+      return;
+    }
     setState(() {
       busy = true;
       error = null;
@@ -40,11 +44,11 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
       if (!mounted) return;
       if (result.payload != null && (result.failure == null || result.stale)) {
         // Decode only when data changes, never during layout.
-        final payload = jsonDecode(result.payload!) as Map<String, dynamic>;
-        final items = (payload['campuses'] as List)
-            .cast<Map<String, dynamic>>();
-        final timestamp = payload['fetchedAt'] as String?;
-        final instant = timestamp == null ? null : DateTime.tryParse(timestamp);
+        final snapshot = libraryStats(result.payload!);
+        final items = snapshot.campuses;
+        final instant = snapshot.fetchedAt == null
+            ? null
+            : DateTime.tryParse(snapshot.fetchedAt!);
         final local = instant?.toUtc().add(const Duration(hours: 8));
         final formatted = local == null
             ? null
@@ -54,7 +58,7 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
         setState(() {
           campuses = items;
           updatedAt = formatted;
-          fromCache = payload['fromCache'] == true;
+          fromCache = snapshot.fromCache;
         });
       }
       setState(() {
@@ -69,6 +73,11 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
       setState(() => error = failureMessage(null));
     } finally {
       if (mounted) setState(() => busy = false);
+    }
+    if (!mounted) return;
+    if (_pendingRefresh) {
+      _pendingRefresh = false;
+      await load(force: true);
     }
   }
 
@@ -147,16 +156,16 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
     ),
   );
 
-  Widget _campus(Map<String, dynamic> campus) => AppleSection(
-    header: Semantics(header: true, child: Text(campus['name'] as String)),
+  Widget _campus(LibraryCampusStats campus) => AppleSection(
+    header: Semantics(header: true, child: Text(campus.name)),
     children: [
       Padding(
-        key: Key('library-stats-${campus['id']}'),
+        key: Key('library-stats-${campus.id}'),
         padding: const EdgeInsets.all(20),
         child: Align(
           alignment: Alignment.centerLeft,
           child: Semantics(
-            label: '${campus['name']}，在馆人数 ${campus['people']} 人',
+            label: '${campus.name}，在馆人数 ${campus.people} 人',
             excludeSemantics: true,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,7 +176,7 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
                   TextSpan(
                     children: [
                       TextSpan(
-                        text: '${campus['people']}',
+                        text: '${campus.people}',
                         style: const TextStyle(
                           fontSize: 40,
                           fontWeight: FontWeight.w600,
@@ -186,21 +195,21 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
           ),
         ),
       ),
-      for (final room in campus['readingRooms'] as List)
+      for (final room in campus.readingRooms)
         AppleListTile(
-          title: Text(room['name'] as String),
-          subtitle: Text('${room['people']} 人'),
+          title: Text(room.name),
+          subtitle: Text('${room.people} 人'),
         ),
-      _metric('预约座位', '座', campus['seats']),
-      _metric('研讨间', '间', campus['studyRooms']),
-      _metric('寄存柜', '个', campus['lockers']),
+      _metric('预约座位', '座', campus.seats),
+      _metric('研讨间', '间', campus.studyRooms),
+      _metric('寄存柜', '个', campus.lockers),
     ],
   );
 
-  Widget _metric(String name, String unit, dynamic pair) => ResourceMeter(
+  Widget _metric(String name, String unit, CountPair? pair) => ResourceMeter(
     label: name,
     unit: unit,
-    available: pair?['available'] as int?,
-    total: pair?['total'] as int?,
+    available: pair?.available,
+    total: pair?.total,
   );
 }

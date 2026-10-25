@@ -1,10 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
 import 'loading_widgets.dart';
 import 'maintenance_pages.dart';
+import 'graduate_models.dart';
 import 'mirror_service.dart';
 import 'application/contracts.dart' as live;
 import 'application/contracts.dart' show FailureCode;
@@ -44,16 +43,8 @@ List<NetworkProbe> schoolNetworkProbes(
       report: report,
       forceRefresh: force,
     );
-    final data = result.payload == null
-        ? null
-        : jsonDecode(result.payload!) as Map<String, dynamic>;
-    final sections = data?['sections'] as List? ?? [];
-    final count = sections.fold<int>(
-      0,
-      (sum, section) => sum + ((section as Map)['rows'] as List).length,
-    );
     return NetworkProbeResult(
-      count: count,
+      count: graduatePayloadRowCount(result.payload),
       stale: result.stale,
       failure: result.failure,
     );

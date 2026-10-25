@@ -1,8 +1,9 @@
 import 'package:flutter/cupertino.dart';
 
 import 'application/contracts.dart';
+import 'school_timestamp.dart';
 
-const weekdayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+const weekdayNames = schoolWeekdays;
 
 Color courseColor(BuildContext context, String? value, [String name = '']) {
   if (value != null) {

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/bykc_detail_page.dart';
+import 'package:ginkgo_mirror/bykc_models.dart';
 import 'package:ginkgo_mirror/main.dart';
 
 void main() {
@@ -13,13 +14,13 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
         ginkgoApp(
-          home: const MediaQuery(
-            data: MediaQueryData(
+          home: MediaQuery(
+            data: const MediaQueryData(
               textScaler: TextScaler.linear(1.8),
               disableAnimations: true,
             ),
             child: BykcDetailPage(
-              course: {
+              course: BykcCourse.fromJson({
                 'name': '合成课程长标题用于验证自动换行',
                 'teacher': '合成教师',
                 'position': '合成教室',
@@ -29,13 +30,13 @@ void main() {
                   'end': '2026-10-21 16:00:00',
                   'enrolled': 0,
                 },
-              },
-              chosenRecord: {
+              }),
+              chosenRecord: BykcChosenRecord.fromJson({
                 'checkin': 1,
                 'passed': 1,
                 'score': 92,
                 'selectedAt': '2026-10-20 09:00:00',
-              },
+              }),
             ),
           ),
         ),
@@ -71,16 +72,16 @@ void main() {
     await tester.pumpWidget(
       ginkgoApp(
         brightness: Brightness.dark,
-        home: const MediaQuery(
-          data: MediaQueryData(
+        home: MediaQuery(
+          data: const MediaQueryData(
             textScaler: TextScaler.linear(1.8),
             disableAnimations: true,
           ),
           child: BykcDetailPage(
-            course: {
+            course: BykcCourse.fromJson({
               'name': '合成课程长标题用于验证自动换行与可读性',
               'details': {'enrolled': 0},
-            },
+            }),
           ),
         ),
       ),

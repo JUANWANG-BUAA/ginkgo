@@ -7,7 +7,7 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/cgyy_page.dart';
 import 'package:ginkgo_mirror/cgyy_review_page.dart';
-import 'package:ginkgo_mirror/cgyy_order_presentation.dart';
+import 'package:ginkgo_mirror/cgyy_models.dart';
 import 'package:ginkgo_mirror/main.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
@@ -113,16 +113,16 @@ void main() {
   test(
     'approval states distinguish pending, approved, rejected and absent',
     () {
-      expect(cgyyOrderStatus(currentOrder), '待辅导员审批');
-      expect(cgyyOrderStatus({...currentOrder, 'check_status': 1}), '审批通过');
-      expect(cgyyOrderStatus({...currentOrder, 'check_status': -2}), '辅导员审批驳回');
-      expect(cgyyOrderStatus({...currentOrder, 'order_status': 2}), '已取消');
+      expect(CgyyOrder.fromJson(currentOrder).statusLabel, '待辅导员审批');
+      expect(CgyyOrder.fromJson({...currentOrder, 'check_status': 1}).statusLabel, '审批通过');
+      expect(CgyyOrder.fromJson({...currentOrder, 'check_status': -2}).statusLabel, '辅导员审批驳回');
+      expect(CgyyOrder.fromJson({...currentOrder, 'order_status': 2}).statusLabel, '已取消');
       expect(
-        cgyyOrderStatus({...currentOrder, 'check_status': null}),
+        CgyyOrder.fromJson({...currentOrder, 'check_status': null}).statusLabel,
         contains('未提供'),
       );
       expect(
-        cgyyOrderStatus({...currentOrder, 'check_status': 123}),
+        CgyyOrder.fromJson({...currentOrder, 'check_status': 123}).statusLabel,
         contains('待确认'),
       );
     },

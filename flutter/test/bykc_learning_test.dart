@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/bykc_detail_page.dart';
+import 'package:ginkgo_mirror/bykc_models.dart';
 import 'package:ginkgo_mirror/bykc_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart' show BykcPart;
@@ -263,7 +264,11 @@ void main() {
               child: ListView(
                 children: [
                   for (final entry in entries)
-                    BykcStatisticsCard(entry: entry as Map<String, dynamic>),
+                    BykcStatisticsCard(
+                      entry: BykcStatisticsEntry.fromJson(
+                        entry as Map<String, dynamic>,
+                      ),
+                    ),
                 ],
               ),
             ),

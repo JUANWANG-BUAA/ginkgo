@@ -7,6 +7,7 @@ import 'mirror_service.dart';
 import 'schedule_grid.dart';
 import 'schedule_week_strip.dart';
 import 'schedule_style.dart';
+import 'schedule_widgets.dart';
 import 'school_timestamp.dart';
 import 'application/contracts.dart';
 
@@ -531,69 +532,8 @@ class _SchedulePageState extends State<SchedulePage> {
     return '${weekdayNames[day - 1]}${date == null ? '' : ' · ${shortDate(date.toIso8601String())}'}${today ? ' · 今天' : ''}';
   }
 
-  Widget _courseRow(ScheduleCourse course) {
-    final large = MediaQuery.textScalerOf(context).scale(16) > 22;
-    final time = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          course.startTime ?? '时间待定',
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-        ),
-        if (course.endTime != null)
-          Text(
-            course.endTime!,
-            style: secondary(context).copyWith(fontSize: 13),
-          ),
-        const SizedBox(height: 5),
-        Text(
-          '第${course.startSection}–${course.endSection}节',
-          style: secondary(context).copyWith(fontSize: 12),
-        ),
-      ],
-    );
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(course.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-        if (course.place?.isNotEmpty == true)
-          Padding(
-            padding: const EdgeInsets.only(top: 5),
-            child: Text(course.place!, style: secondary(context)),
-          ),
-        if (course.teacher?.isNotEmpty == true)
-          Padding(
-            padding: const EdgeInsets.only(top: 3),
-            child: Text(course.teacher!, style: secondary(context)),
-          ),
-      ],
-    );
-    return _row(
-      key: Key('schedule-course-${course.id}'),
-      onTap: () => showCourse(course),
-      child: large
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [time, const SizedBox(height: 12), content],
-            )
-          : Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(width: 78, child: time),
-                Container(
-                  width: 4,
-                  height: 52,
-                  margin: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: courseColor(context, course.color, course.name),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                Expanded(child: content),
-              ],
-            ),
-    );
-  }
+  Widget _courseRow(ScheduleCourse course) =>
+      ScheduleCourseRow(course: course, onTap: () => showCourse(course));
 
   Widget _row({required Widget child, required VoidCallback onTap, Key? key}) =>
       CupertinoButton(
@@ -683,26 +623,11 @@ class _SchedulePageState extends State<SchedulePage> {
     );
   }
 
-  Widget _detail(String label, String value) => Padding(
-    padding: const EdgeInsets.all(16),
-    child: Align(
-      alignment: Alignment.centerLeft,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: secondary(context)),
-          const SizedBox(height: 5),
-          Text(value),
-        ],
-      ),
-    ),
-  );
+  Widget _detail(String label, String value) =>
+      ScheduleDetailLine(label: label, value: value);
 }
 
-TextStyle secondary(BuildContext context) => TextStyle(
-  fontSize: 14,
-  color: CupertinoColors.secondaryLabel.resolveFrom(context),
-);
+TextStyle secondary(BuildContext context) => scheduleSecondary(context);
 
 String _examDetail(ScheduleExam exam) {
   final parts = [

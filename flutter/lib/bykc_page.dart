@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 
 import 'apple_design.dart';
@@ -7,6 +5,7 @@ import 'apple_widgets.dart';
 import 'loading_widgets.dart';
 import 'long_page_scroll.dart';
 import 'bykc_detail_page.dart';
+import 'bykc_models.dart';
 import 'bykc_widgets.dart';
 export 'bykc_widgets.dart' show BykcStatisticsCard;
 import 'mirror_service.dart';
@@ -28,10 +27,14 @@ class BykcPage extends StatefulWidget {
 }
 
 class _BykcSnapshot {
-  Map<String, dynamic>? data;
+  BykcCatalog? catalog;
+  BykcChosenCourses? chosen;
+  BykcStatistics? statistics;
   String? error;
   bool loading = false, attempted = false;
   Future<void>? task;
+
+  bool get hasData => catalog != null || chosen != null || statistics != null;
 }
 
 class _BykcPageState extends State<BykcPage> {
@@ -39,7 +42,7 @@ class _BykcPageState extends State<BykcPage> {
   final scrollController = ScrollController();
   final searchController = TextEditingController();
   BykcPart selection = BykcPart.catalog;
-  List<Map<String, dynamic>> visible = [];
+  List<BykcCourse> visible = [];
   List<String> categories = ['全部'];
   String category = '全部', query = '', termName = '学期课程目录';
   _BykcSnapshot get current => parts[selection]!;
@@ -82,28 +85,31 @@ class _BykcPageState extends State<BykcPage> {
     });
     try {
       final result = await _request(part, force);
-      final data = result.payload == null
-          ? null
-          : jsonDecode(result.payload!) as Map<String, dynamic>;
+      String? payload = result.payload;
       if (!mounted) return;
       setState(() {
         snapshot.error = result.failure == null
             ? null
             : failureMessage(result.failure);
-        if (data != null) {
-          snapshot.data = data;
-          if (part == BykcPart.catalog) {
-            termName =
-                (data['currentTerm'] as Map<String, dynamic>?)?['name']
-                    as String? ??
-                '学期课程目录';
-            categories = [
-              '全部',
-              ..._rows(data['courses']).map(categoryOf).toSet().toList()
-                ..sort(),
-            ];
-            if (!categories.contains(category)) category = '全部';
-            filter();
+        if (payload != null) {
+          switch (part) {
+            case BykcPart.catalog:
+              snapshot.catalog = bykcCatalog(payload);
+              termName = snapshot.catalog!.currentTerm?.name ?? '学期课程目录';
+              categories = [
+                '全部',
+                ...snapshot.catalog!.courses
+                    .map((course) => course.categoryLabel)
+                    .toSet()
+                    .toList()
+                  ..sort(),
+              ];
+              if (!categories.contains(category)) category = '全部';
+              filter();
+            case BykcPart.chosen:
+              snapshot.chosen = bykcChosenCourses(payload);
+            case BykcPart.statistics:
+              snapshot.statistics = bykcStatistics(payload);
           }
         }
       });
@@ -114,30 +120,20 @@ class _BykcPageState extends State<BykcPage> {
     }
   }
 
-  List<Map<String, dynamic>> _rows(dynamic value) =>
-      (value as List? ?? []).cast<Map<String, dynamic>>();
-
   void filter() {
     final text = query.trim().toLowerCase();
-    visible = _rows(parts[BykcPart.catalog]!.data?['courses'])
-        .where(
-          (course) =>
-              (category == '全部' || category == categoryOf(course)) &&
-              [
-                course['name'],
-                course['teacher'],
-                course['position'],
-              ].any((v) => (v as String? ?? '').toLowerCase().contains(text)),
-        )
-        .toList();
+    visible =
+        parts[BykcPart.catalog]!.catalog?.courses
+            .where(
+              (course) =>
+                  (category == '全部' || category == course.categoryLabel) &&
+                  [course.name, course.teacher, course.position]
+                      .whereType<String>()
+                      .any((v) => v.toLowerCase().contains(text)),
+            )
+            .toList() ??
+        const [];
   }
-
-  String categoryOf(Map<String, dynamic> course) =>
-      (course['subcategory'] as String?)?.trim().isNotEmpty == true
-      ? course['subcategory'] as String
-      : (course['category'] as String?)?.trim().isNotEmpty == true
-      ? course['category'] as String
-      : '未分类';
 
   String _label(BykcPart part) => switch (part) {
     BykcPart.catalog => '课程库',
@@ -152,7 +148,7 @@ class _BykcPageState extends State<BykcPage> {
     if (!parts[part]!.attempted) load(part);
   }
 
-  void _open(Map<String, dynamic> course, {Map<String, dynamic>? record}) =>
+  void _open(BykcCourse course, {BykcChosenRecord? record}) =>
       Navigator.of(context).push(
         CupertinoPageRoute<void>(
           builder: (_) => BykcDetailPage(course: course, chosenRecord: record),
@@ -160,7 +156,7 @@ class _BykcPageState extends State<BykcPage> {
       );
 
   Widget _status() {
-    if (current.loading && current.data == null) {
+    if (current.loading && !current.hasData) {
       return const GinkgoLoadingView(label: '正在读取博雅课程…');
     }
     return AppleSection(
@@ -173,7 +169,7 @@ class _BykcPageState extends State<BykcPage> {
                   color: CupertinoColors.systemOrange,
                 ),
           title: Text(current.loading ? '正在更新…' : current.error!),
-          subtitle: current.data == null ? null : const Text('保留上次结果'),
+          subtitle: !current.hasData ? null : const Text('保留上次结果'),
           trailing: current.loading
               ? null
               : CupertinoButton(
@@ -212,17 +208,15 @@ class _BykcPageState extends State<BykcPage> {
   /// Only visible rows are built, including large catalogs. Filters and parsed
   /// snapshots stay in state while moving among the three independent views.
   Widget _courseList(
-    List<Map<String, dynamic>> rows, {
+    List<Object> rows, {
     bool chosen = false,
   }) => SliverList.builder(
     itemCount: rows.length,
     addAutomaticKeepAlives: false,
     itemBuilder: (context, index) {
-      final record = chosen ? rows[index] : null;
-      final course = chosen
-          ? record!['course'] as Map<String, dynamic>
-          : rows[index];
-      final details = course['details'] as Map<String, dynamic>? ?? {};
+      final record = chosen ? rows[index] as BykcChosenRecord : null;
+      final course = chosen ? record!.course : rows[index] as BykcCourse;
+      final details = course.details ?? BykcCourseDetails.empty();
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: ClipRSuperellipse(
@@ -239,21 +233,21 @@ class _BykcPageState extends State<BykcPage> {
                 AppleListTile(
                   key: ValueKey(
                     chosen
-                        ? 'bykc-chosen-${record!['id']}'
-                        : 'bykc-course-${course['id']}',
+                        ? 'bykc-chosen-${record!.id}'
+                        : 'bykc-course-${course.id}',
                   ),
                   leading: chosen
                       ? Icon(
-                          record!['passed'] == 1
+                          record!.passed == 1
                               ? CupertinoIcons.checkmark_seal_fill
                               : CupertinoIcons.book,
-                          color: record['passed'] == 1
+                          color: record.passed == 1
                               ? CupertinoColors.systemGreen
                               : CupertinoColors.activeBlue,
                         )
                       : null,
                   title: Text(
-                    course['name'] as String,
+                    course.name,
                     style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
@@ -269,58 +263,64 @@ class _BykcPageState extends State<BykcPage> {
                           runSpacing: 6,
                           children: [
                             BykcLabel(
-                              text: categoryOf(course),
-                              tint: switch (categoryOf(course)) {
-                                '美育' => AppleDesign.resourcePurple.resolveFrom(context),
-                                '劳动教育' => AppleDesign.resourceTeal.resolveFrom(context),
-                                '安全健康' => AppleDesign.resourceBlue.resolveFrom(context),
+                              text: course.categoryLabel,
+                              tint: switch (course.categoryLabel) {
+                                '美育' => AppleDesign.resourcePurple.resolveFrom(
+                                  context,
+                                ),
+                                '劳动教育' => AppleDesign.resourceTeal.resolveFrom(
+                                  context,
+                                ),
+                                '安全健康' => AppleDesign.resourceBlue.resolveFrom(
+                                  context,
+                                ),
                                 _ => CupertinoTheme.of(context).primaryColor,
                               },
                             ),
-                            if (record == null && details['selected'] == true)
+                            if (record == null && details.selected == true)
                               const BykcLabel(text: '已选', positive: true),
                             if (record == null &&
-                                (details['enrolled'] != null ||
-                                    details['capacity'] != null))
+                                (details.enrolled != null ||
+                                    details.capacity != null))
                               BykcLabel(
                                 text:
-                                    '人数 ${details['enrolled'] ?? '—'} / ${details['capacity'] ?? '未提供'}',
-                                tint: (details['enrolled'] is num &&
-                                        details['capacity'] is num &&
-                                        (details['enrolled'] as num) >= (details['capacity'] as num))
-                                    ? AppleDesign.statusDanger.resolveFrom(context)
-                                    : (details['enrolled'] is num && (details['enrolled'] as num) > 0)
-                                    ? AppleDesign.statusPending.resolveFrom(context)
+                                    '人数 ${details.enrolled ?? '—'} / ${details.capacity ?? '未提供'}',
+                                tint:
+                                    (details.enrolled != null &&
+                                        details.capacity != null &&
+                                        details.enrolled! >= details.capacity!)
+                                    ? AppleDesign.statusDanger.resolveFrom(
+                                        context,
+                                      )
+                                    : (details.enrolled != null &&
+                                          details.enrolled! > 0)
+                                    ? AppleDesign.statusPending.resolveFrom(
+                                        context,
+                                      )
                                     : null,
                               ),
                           ],
                         ),
-                        if (details['start'] != null) ...[
+                        if (details.start != null) ...[
                           const SizedBox(height: 9),
                           BykcMetadata(
                             icon: CupertinoIcons.clock,
-                            text: schoolTimestampLabel(
-                              details['start'] as String,
-                            ),
+                            text: schoolTimestampLabel(details.start),
                             prominent: true,
                           ),
                         ],
-                        if ((course['position'] as String?)
-                                ?.trim()
-                                .isNotEmpty ==
-                            true) ...[
+                        if ((course.position ?? '').trim().isNotEmpty) ...[
                           const SizedBox(height: 5),
                           BykcMetadata(
                             icon: CupertinoIcons.location,
-                            text: course['position'] as String,
+                            text: course.position!,
                           ),
                         ],
-                        if ((course['teacher'] as String?)?.trim().isNotEmpty ==
-                            true) ...[
+                        if ((course.teacher ?? '').trim().isNotEmpty) ...[
                           const SizedBox(height: 5),
                           BykcMetadata(
                             icon: CupertinoIcons.person,
-                            text: course['teacher'] as String,
+                            text: course.teacher!,
                             auxiliary: true,
                           ),
                         ],
@@ -331,15 +331,15 @@ class _BykcPageState extends State<BykcPage> {
                             runSpacing: 6,
                             children: [
                               BykcLabel(
-                                text: bykcAttendanceLabel(record),
-                                positive: record['checkin'] == 1,
+                                text: record.attendanceLabel,
+                                positive: record.checkin == 1,
                               ),
                               BykcLabel(
-                                text: bykcResultLabel(record),
-                                positive: record['passed'] == 1,
+                                text: record.resultLabel,
+                                positive: record.passed == 1,
                               ),
-                              if (record['score'] != null)
-                                BykcLabel(text: '成绩 ${record['score']}'),
+                              if (record.score != null)
+                                BykcLabel(text: '成绩 ${record.score}'),
                             ],
                           ),
                         ],
@@ -410,19 +410,18 @@ class _BykcPageState extends State<BykcPage> {
   ];
 
   List<Widget> _chosen() {
-    final data = current.data!;
-    final term = data['term'] as Map<String, dynamic>?;
-    final rows = _rows(data['courses']);
+    final data = current.chosen!;
+    final rows = data.courses ?? const <BykcChosenRecord>[];
     return [
       SliverToBoxAdapter(
         child: _heading(
-          term?['name'] as String? ?? '当前学期',
-          detail: data['courses'] == null
+          data.term?.name ?? '当前学期',
+          detail: data.courses == null
               ? '上游未提供有效学期范围，暂不能查询已选记录。'
               : '已选 ${rows.length} 门 · 考勤和成绩以学校记录为准',
         ),
       ),
-      if (data['courses'] != null && rows.isEmpty)
+      if (data.courses != null && rows.isEmpty)
         const SliverToBoxAdapter(
           child: AppleEmptyState(
             title: '本学期暂无已选课程',
@@ -434,11 +433,11 @@ class _BykcPageState extends State<BykcPage> {
   }
 
   List<Widget> _statistics() {
-    final data = current.data!;
-    final entries = _rows(data['entries']);
-    final groups = <String, List<Map<String, dynamic>>>{};
+    final data = current.statistics!;
+    final entries = data.entries;
+    final groups = <String, List<BykcStatisticsEntry>>{};
     for (final entry in entries) {
-      (groups[entry['category'] as String] ??= []).add(entry);
+      (groups[entry.category] ??= []).add(entry);
     }
     final rows = [
       for (final group in groups.entries)
@@ -463,9 +462,9 @@ class _BykcPageState extends State<BykcPage> {
               ),
               title: const Text('有效课程'),
               additionalInfo: Text(
-                data['validCourseCount'] == null
+                data.validCourseCount == null
                     ? '上游未提供'
-                    : '${data['validCourseCount']} 门',
+                    : '${data.validCourseCount} 门',
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w600,
@@ -595,7 +594,7 @@ class _BykcPageState extends State<BykcPage> {
             ),
           if (current.loading || current.error != null)
             SliverToBoxAdapter(child: _status()),
-          if (current.data != null)
+          if (current.hasData)
             ...switch (selection) {
               BykcPart.catalog => _catalog(),
               BykcPart.chosen => _chosen(),

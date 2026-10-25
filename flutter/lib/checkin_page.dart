@@ -8,13 +8,13 @@ import 'reminders.dart';
 import 'apple_widgets.dart';
 import 'apple_design.dart';
 import 'checkin_loading.dart';
+import 'checkin_widgets.dart';
 import 'loading_widgets.dart';
 import 'mirror_service.dart';
 import 'school_timestamp.dart';
+import 'today_time.dart';
 import 'application/contracts.dart';
 import 'course_visibility.dart';
-
-const _weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
 /// Confirmed per-course submission with a subsequent status read.
 class CheckInPage extends StatefulWidget {
@@ -52,12 +52,11 @@ class _CheckInPageState extends State<CheckInPage> {
   late DateTime selectedDate;
   DateTime get instant => widget.clock?.call() ?? DateTime.now();
   DateTime get schoolToday {
-    final now = instant.toUtc().add(const Duration(hours: 8));
+    final now = todaySchoolNow(instant);
     return DateTime(now.year, now.month, now.day);
   }
 
-  String dateString(DateTime day) =>
-      '${day.year.toString().padLeft(4, '0')}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+  String dateString(DateTime day) => schoolDateString(day);
   Future<void> changeDate(DateTime day) async {
     if (day.isAfter(schoolToday)) return;
     setState(() => selectedDate = day);
@@ -231,30 +230,6 @@ class _CheckInPageState extends State<CheckInPage> {
     });
   }
 
-  Widget _countLegend(String title, int count, CupertinoDynamicColor color) =>
-      Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(
-              color: color.resolveFrom(context),
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            '$title $count',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: CupertinoColors.secondaryLabel.resolveFrom(context),
-            ),
-          ),
-        ],
-      );
-
   @override
   Widget build(BuildContext context) => CupertinoPageScaffold(
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
@@ -413,9 +388,7 @@ class _CheckInPageState extends State<CheckInPage> {
       failureDetail: original.failureDetail,
     );
     final date = DateTime.tryParse(data.date);
-    final dateLabel = date == null
-        ? data.date
-        : '${date.year}年${date.month}月${date.day}日 · ${_weekdays[date.weekday - 1]}';
+    final dateLabel = date == null ? data.date : schoolDateWeekdayLabel(date);
     final signed = data.courses
         .where((course) => course.status == CheckInStatus.signed)
         .length;
@@ -466,105 +439,35 @@ class _CheckInPageState extends State<CheckInPage> {
           ],
         )
       else ...[
-        AppleSection(
-          header: Text(dateLabel),
-          children: [
-            AppleListTile(
-              title: Text(
-                '${widget.history ? '当天' : '今天'} ${data.courses.length} 节课',
-              ),
-              subtitle: Text(
-                [
-                  '已签到 $signed',
-                  '未签到 $notSigned',
-                  if (unknown > 0) '待确认 $unknown',
-                ].join(' · '),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                ),
-              ),
-              additionalInfo: Text(
-                _fetchedLabel(data.fetchedAt),
-                style: TextStyle(
-                  fontSize: 13,
-                  color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Semantics(
-                    label: '当天签到状态分布',
-                    value: '已签到 $signed，未签到 $notSigned，待确认 $unknown',
-                    child: ExcludeSemantics(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(5),
-                        child: SizedBox(
-                          key: const Key('checkin-status-meter'),
-                          height: 8,
-                          child: Row(
-                            children: [
-                              if (signed > 0)
-                                Expanded(
-                                  flex: signed,
-                                  child: ColoredBox(
-                                    color: AppleDesign.statusSuccess
-                                        .resolveFrom(context),
-                                    child: const SizedBox.expand(),
-                                  ),
-                                ),
-                              if (notSigned > 0)
-                                Expanded(
-                                  flex: notSigned,
-                                  child: ColoredBox(
-                                    color: AppleDesign.statusPending
-                                        .resolveFrom(context),
-                                    child: const SizedBox.expand(),
-                                  ),
-                                ),
-                              if (unknown > 0)
-                                Expanded(
-                                  flex: unknown,
-                                  child: ColoredBox(
-                                    color: AppleDesign.statusUncertain
-                                        .resolveFrom(context),
-                                    child: const SizedBox.expand(),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 16,
-                    runSpacing: 8,
-                    children: [
-                      _countLegend('已签', signed, AppleDesign.statusSuccess),
-                      _countLegend('待签', notSigned, AppleDesign.statusPending),
-                      if (unknown > 0)
-                        _countLegend(
-                          '待核实',
-                          unknown,
-                          AppleDesign.statusUncertain,
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
+        CheckinStatusSummary(
+          dateLabel: dateLabel,
+          scopeLabel:
+              '${widget.history ? '当天' : '今天'} ${data.courses.length} 节课',
+          signed: signed,
+          notSigned: notSigned,
+          unknown: unknown,
+          fetchedAt: data.fetchedAt,
         ),
         AppleSection(
           header: Text(widget.history ? '该日期课程' : '当天课程'),
           footer: const Text('来源：iclass。记录不一致时需先核实。'),
-          children: [for (final course in data.courses) _courseRow(course)],
+          children: [
+            for (final course in data.courses)
+              CheckinCourseRow(
+                course: course,
+                windowOpen: checkinWindowOpen(course, data.date, instant),
+                canSubmit:
+                    !widget.history &&
+                    course.status == CheckInStatus.notSigned &&
+                    !course.conflicting &&
+                    (course.signInAllowed ?? course.mergedRecordCount == 1),
+                submitting: submitting,
+                awaitingVerification: awaitingVerification.contains(course.id),
+                onSubmit: busy || awaitingVerification.contains(course.id)
+                    ? null
+                    : () => submit(course),
+              ),
+          ],
         ),
       ],
       AppleSection(
@@ -586,136 +489,4 @@ class _CheckInPageState extends State<CheckInPage> {
       ),
     ];
   }
-
-  Widget _courseRow(CheckInCourse course) {
-    final (icon, semanticColor, label) = switch (course.status) {
-      CheckInStatus.signed => (
-        CupertinoIcons.checkmark_circle_fill,
-        AppleDesign.statusSuccess,
-        '已签到',
-      ),
-      CheckInStatus.notSigned => (
-        CupertinoIcons.circle,
-        AppleDesign.statusInactive,
-        '未签到',
-      ),
-      CheckInStatus.unknown => (
-        CupertinoIcons.question_circle_fill,
-        AppleDesign.statusUncertain,
-        '待确认',
-      ),
-    };
-    final color = semanticColor.resolveFrom(context);
-    final details = [
-      schoolTimeRange(course.beginsAt, course.endsAt),
-      if (course.classroomName != null) course.classroomName!,
-      if (course.teacherName != null) course.teacherName!,
-    ];
-    final canSubmit =
-        !widget.history &&
-        course.status == CheckInStatus.notSigned &&
-        !course.conflicting &&
-        (course.signInAllowed ?? course.mergedRecordCount == 1);
-    final windowOpen = checkinWindowOpen(
-      course,
-      data?.date ?? dateString(schoolToday),
-      instant,
-    );
-    return Padding(
-      key: Key('checkin-course-${course.id}'),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 3),
-                child: Icon(icon, size: 25, color: color),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  course.courseName,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            details.join(' · '),
-            style: TextStyle(
-              fontSize: 14,
-              height: 1.4,
-              color: CupertinoColors.secondaryLabel.resolveFrom(context),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 12,
-            runSpacing: 6,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                ),
-              ),
-              if (course.mergedRecordCount > 1)
-                Text(
-                  '合并 ${course.mergedRecordCount} 条',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                  ),
-                ),
-              if (course.conflicting || course.signInAllowed == false)
-                const Text(
-                  '记录不一致',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppleDesign.statusPending,
-                  ),
-                ),
-              if (canSubmit)
-                CupertinoButton.tinted(
-                  key: Key('checkin-submit-${course.id}'),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 8,
-                  ),
-                  onPressed:
-                      submitting != null ||
-                          busy ||
-                          !windowOpen ||
-                          awaitingVerification.contains(course.id)
-                      ? null
-                      : () => submit(course),
-                  child: submitting == course.id
-                      ? const GinkgoActivity(size: 17)
-                      : Text(
-                          awaitingVerification.contains(course.id)
-                              ? '待核实'
-                              : windowOpen
-                              ? '签到'
-                              : '课前 10 分钟开放',
-                        ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _fetchedLabel(String? fetchedAt) =>
-      '核对 ${schoolClockLabel(fetchedAt)}';
 }

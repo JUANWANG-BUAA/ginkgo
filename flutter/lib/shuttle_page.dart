@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show SelectableText;
@@ -9,6 +8,7 @@ import 'apple_design.dart';
 import 'apple_widgets.dart';
 import 'loading_widgets.dart';
 import 'mirror_service.dart';
+import 'shuttle_models.dart';
 import 'today_presentation.dart';
 import 'today_time.dart';
 
@@ -26,11 +26,12 @@ class ShuttlePage extends StatefulWidget {
 }
 
 class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
-  List<Map<String, dynamic>>? tables;
+  ShuttleTimetable? timetable;
   String source = '';
   String? error;
   bool busy = false;
   int _generation = 0;
+  bool _pendingReload = false;
   Timer? _clock;
 
   @override
@@ -74,16 +75,22 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
   void didUpdateWidget(covariant ShuttlePage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.service, widget.service)) {
-      tables = null;
+      timetable = null;
       source = '';
       error = null;
       busy = false;
+      _pendingReload = false;
       load();
     }
   }
 
   Future<void> load() async {
-    if (busy) return;
+    // A reload request during an in-flight read is remembered and rerun once
+    // it settles, never silently dropped.
+    if (busy) {
+      _pendingReload = true;
+      return;
+    }
     final generation = ++_generation;
     setState(() {
       busy = true;
@@ -93,10 +100,10 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
       final result = await widget.service.shuttleTimetable();
       if (!mounted || generation != _generation) return;
       if (result.payload != null && result.failure == null) {
-        final payload = jsonDecode(result.payload!) as Map<String, dynamic>;
+        final decoded = shuttleTimetable(result.payload!);
         setState(() {
-          tables = (payload['tables'] as List).cast<Map<String, dynamic>>();
-          source = payload['source'] as String? ?? '';
+          timetable = decoded;
+          source = decoded.source;
         });
       } else {
         setState(() => error = '时刻表读取未完成，请稍后重试');
@@ -109,6 +116,11 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
       if (mounted && generation == _generation) {
         setState(() => busy = false);
       }
+    }
+    if (!mounted || generation != _generation) return;
+    if (_pendingReload) {
+      _pendingReload = false;
+      await load();
     }
   }
 
@@ -168,8 +180,8 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final clock = widget.now ?? todaySchoolNow(DateTime.now());
     final nowMinute = clock.hour * 60 + clock.minute;
-    final plan = tables != null && tables!.isNotEmpty
-        ? _planSection(_todayRuns(tables!, clock), clock)
+    final plan = timetable != null && timetable!.tables.isNotEmpty
+        ? _planSection(timetable!.todayRuns(clock), clock)
         : null;
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
@@ -213,11 +225,11 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
                     ),
                   ],
                 ),
-                if (busy && tables == null)
+                if (busy && timetable == null)
                   const GinkgoLoadingView(label: '正在读取校车时刻表…'),
                 if (error != null)
                   AppleSection(children: [AppleListTile(title: Text(error!))]),
-                if (tables != null && tables!.isEmpty && !busy)
+                if (timetable != null && timetable!.tables.isEmpty && !busy)
                   const AppleSection(
                     children: [
                       AppleListTile(
@@ -226,7 +238,7 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
                       ),
                     ],
                   ),
-                for (final table in tables ?? const <Map<String, dynamic>>[])
+                for (final table in timetable?.tables ?? const <ShuttleTable>[])
                   ..._tableSections(table, nowMinute),
                 // The former ListView sat inside SafeArea; keep the bottom inset
                 // now that the page is a sliver list.
@@ -242,7 +254,7 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
   /// Next departure and at most two follow-ups, derived only from the published
   /// runs and Beijing wall time. No request is issued and no seat availability
   /// is inferred.
-  Widget _planSection(List<_PublishedRun> runs, DateTime clock) {
+  Widget _planSection(List<ShuttleDeparture> runs, DateTime clock) {
     final nowMinute = clock.hour * 60 + clock.minute;
     final upcoming = runs
         .where((run) => run.minutes >= nowMinute)
@@ -284,7 +296,7 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
     );
   }
 
-  Widget _planNext(_PublishedRun run) => MergeSemantics(
+  Widget _planNext(ShuttleDeparture run) => MergeSemantics(
     child: Padding(
       key: const Key('shuttle-plan-next'),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
@@ -329,7 +341,7 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
     ),
   );
 
-  Widget _planFollowing(_PublishedRun run, int index) => MergeSemantics(
+  Widget _planFollowing(ShuttleDeparture run, int index) => MergeSemantics(
     child: Padding(
       key: Key('shuttle-plan-following-$index'),
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
@@ -379,151 +391,22 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
     ),
   );
 
-  String _capacityLabel(_PublishedRun run) =>
+  String _capacityLabel(ShuttleDeparture run) =>
       run.capacity.isEmpty ? '计划容量未公布' : '计划 ${run.capacity} 座';
 
-  /// Flattens every published run that applies today. Duplicate rows across
-  /// tables (same direction and departure) are collapsed, then sorted by the
-  /// Beijing wall clock.
-  List<_PublishedRun> _todayRuns(
-    List<Map<String, dynamic>> tables,
-    DateTime clock,
-  ) {
-    final runs = <_PublishedRun>[];
-    final seen = <String>{};
-    for (final table in tables) {
-      final directions = [
-        (table['left'] as String? ?? '').trim(),
-        (table['right'] as String? ?? '').trim(),
-      ];
-      final sections = (table['sections'] as List? ?? const [])
-          .cast<Map<String, dynamic>>();
-      for (final section in sections) {
-        if (!_sectionAppliesToday(
-          section['label'] as String? ?? '',
-          clock.weekday,
-        )) {
-          continue;
-        }
-        for (var side = 0; side < directions.length; side++) {
-          final direction = directions[side];
-          if (direction.isEmpty) continue;
-          final sideRuns =
-              (section[side == 0 ? 'left' : 'right'] as List? ?? const [])
-                  .cast<Map<String, dynamic>>();
-          for (final run in sideRuns) {
-            final time = (run['time'] as String? ?? '').trim();
-            final minutes = _minuteOfDay(time);
-            if (minutes == null) continue;
-            if (!seen.add('$direction|$minutes')) continue;
-            runs.add(
-              _PublishedRun(
-                direction: direction,
-                time: time,
-                minutes: minutes,
-                capacity: (run['capacity'] as String? ?? '').trim(),
-              ),
-            );
-          }
-        }
-      }
-    }
-    runs.sort((a, b) {
-      final byTime = a.minutes.compareTo(b.minutes);
-      if (byTime != 0) return byTime;
-      final byDirection = a.direction.compareTo(b.direction);
-      return byDirection != 0 ? byDirection : a.time.compareTo(b.time);
-    });
-    return runs;
-  }
-
-  static int? _minuteOfDay(String value) {
-    final match = RegExp(r'^(\d{1,2}):(\d{2})$').firstMatch(value);
-    if (match == null) return null;
-    final hour = int.parse(match[1]!);
-    final minute = int.parse(match[2]!);
-    if (hour > 23 || minute > 59) return null;
-    return hour * 60 + minute;
-  }
-
-  /// Published validity labels name weekdays rather than dates. Only labels the
-  /// page can read unambiguously filter the plan; an unfamiliar label keeps its
-  /// runs visible instead of claiming they do not apply.
-  static bool _sectionAppliesToday(String label, int weekday) {
-    final text = label.replaceAll(' ', '');
-    if (text.isEmpty) return true;
-    if (text.contains('每天') || text.contains('每日') || text.contains('全年')) {
-      return true;
-    }
-    if (text.contains('双休日') || text.contains('周末')) {
-      return weekday >= DateTime.saturday;
-    }
-    if (text.contains('工作日')) return weekday <= DateTime.friday;
-    final range = RegExp(r'星期([一二三四五六日天])(?:至|到|-|—|–|~)星期([一二三四五六日天])')
-        .firstMatch(text);
-    if (range != null) {
-      final from = _weekdayIndex(range.group(1)!);
-      final to = _weekdayIndex(range.group(2)!);
-      if (from != null && to != null) {
-        return from <= to
-            ? weekday >= from && weekday <= to
-            : weekday >= from || weekday <= to;
-      }
-    }
-    final singles = RegExp(r'星期([一二三四五六日天])')
-        .allMatches(text)
-        .map((match) => _weekdayIndex(match.group(1)!))
-        .whereType<int>()
-        .toSet();
-    if (singles.isNotEmpty) return singles.contains(weekday);
-    return true;
-  }
-
-  static int? _weekdayIndex(String value) => switch (value) {
-    '一' => DateTime.monday,
-    '二' => DateTime.tuesday,
-    '三' => DateTime.wednesday,
-    '四' => DateTime.thursday,
-    '五' => DateTime.friday,
-    '六' => DateTime.saturday,
-    '日' || '天' => DateTime.sunday,
-    _ => null,
-  };
-
-  List<Widget> _tableSections(
-    Map<String, dynamic> table,
-    int nowMinute,
-  ) {
-    final left = table['left'] as String? ?? '';
-    final right = table['right'] as String? ?? '';
-    final sections = (table['sections'] as List? ?? const [])
-        .cast<Map<String, dynamic>>();
+  List<Widget> _tableSections(ShuttleTable table, int nowMinute) {
     return [
-      for (final section in sections)
+      for (final section in table.sections)
         AppleSection(
-          header: Text(
-            (section['label'] as String? ?? '').isEmpty
-                ? '公开时刻表'
-                : section['label'] as String,
-          ),
+          header: Text(section.label.isEmpty ? '公开时刻表' : section.label),
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final directions = [
-                    _direction(
-                      left,
-                      (section['left'] as List? ?? const [])
-                          .cast<Map<String, dynamic>>(),
-                      nowMinute,
-                    ),
-                    _direction(
-                      right,
-                      (section['right'] as List? ?? const [])
-                          .cast<Map<String, dynamic>>(),
-                      nowMinute,
-                    ),
+                    _direction(table.left, section.left, nowMinute),
+                    _direction(table.right, section.right, nowMinute),
                   ];
                   // Do not shrink accessible text to preserve a two-column table.
                   // Keep each direction and its runs together at large scales.
@@ -564,7 +447,7 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
   /// schedule reads at a glance. Pure presentation on already-fetched data.
   Widget _direction(
     String name,
-    List<Map<String, dynamic>> runs,
+    List<ShuttleRun> runs,
     int nowMinute,
   ) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -581,11 +464,9 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
           for (final run in runs)
             Builder(
               builder: (context) {
-                final minutes = _minuteOfDay(
-                  (run['time'] as String? ?? '').trim(),
-                );
-                final departed = minutes != null && minutes < nowMinute;
-                final capacity = (run['capacity'] as String? ?? '').trim();
+                final departed =
+                    run.minuteOfDay != null && run.minuteOfDay! < nowMinute;
+                final capacity = run.capacity;
                 return Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -596,15 +477,12 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
                         ? CupertinoColors.tertiarySystemFill.resolveFrom(
                             context,
                           )
-                        : CupertinoTheme.of(context).primaryColor.withValues(
-                            alpha: 0.12,
-                          ),
+                        : CupertinoTheme.of(context).primaryColor
+                              .withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    capacity.isEmpty
-                        ? '${run['time']}'
-                        : '${run['time']} · $capacity座',
+                    capacity.isEmpty ? run.time : '${run.time} · $capacity座',
                     style: TextStyle(
                       fontSize: 13,
                       color: departed
@@ -619,18 +497,4 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
       ),
     ],
   );
-}
-
-class _PublishedRun {
-  const _PublishedRun({
-    required this.direction,
-    required this.time,
-    required this.minutes,
-    required this.capacity,
-  });
-
-  final String direction;
-  final String time;
-  final int minutes;
-  final String capacity;
 }

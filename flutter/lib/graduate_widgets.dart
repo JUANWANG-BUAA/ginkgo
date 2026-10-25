@@ -8,13 +8,13 @@ import 'graduate_models.dart';
 /// Numeric fields are projected by Rust; pending credits never reduce the gap.
 class GraduateCreditProgress extends StatelessWidget {
   const GraduateCreditProgress({super.key, required this.progress});
-  final Map<String, dynamic> progress;
+  final GraduateProgress progress;
   String _format(num? value) => value == null ? '未确认' : academicNumber(value);
   @override
   Widget build(BuildContext context) {
-    final required = progress['required'] as num?;
-    final earned = progress['earned'] as num?;
-    final pending = progress['pending'] as num?;
+    final required = progress.requiredCredits;
+    final earned = progress.earned;
+    final pending = progress.pending;
     final ratio = required != null && required > 0 && earned != null
         ? (earned / required).clamp(0.0, 1.0)
         : null;
@@ -42,10 +42,7 @@ class GraduateCreditProgress extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           if (ratio != null)
-            AcademicProgressBar(
-              value: ratio,
-              pendingValue: pendingRatio,
-            ),
+            AcademicProgressBar(value: ratio, pendingValue: pendingRatio),
           const SizedBox(height: 10),
           Wrap(
             spacing: 12,
@@ -232,8 +229,8 @@ class GraduateCategoryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = section.progress;
-    final required = progress?['required'] as num?;
-    final earned = progress?['earned'] as num?;
+    final required = progress?.requiredCredits;
+    final earned = progress?.earned;
     final remaining = required == null || earned == null
         ? null
         : (required - earned).clamp(0, double.infinity);
@@ -254,11 +251,8 @@ class GraduateCategoryRow extends StatelessWidget {
                 if (required != null && required > 0 && earned != null) ...[
                   AcademicProgressBar(
                     value: (earned / required).clamp(0.0, 1.0),
-                    pendingValue: progress['pending'] != null
-                        ? ((progress['pending'] as num) / required).clamp(
-                            0.0,
-                            1.0,
-                          )
+                    pendingValue: progress.pending != null
+                        ? (progress.pending! / required).clamp(0.0, 1.0)
                         : 0.0,
                   ),
                   const SizedBox(height: 8),
@@ -272,11 +266,11 @@ class GraduateCategoryRow extends StatelessWidget {
                       style: const TextStyle(fontSize: 13),
                     ),
                     Text(
-                      '待考核 ${academicNumber(progress['pending'] as num?)}',
+                      '待考核 ${academicNumber(progress.pending)}',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: ((progress['pending'] as num?) ?? 0) > 0
+                        color: (progress.pending ?? 0) > 0
                             ? AppleDesign.statusPending.resolveFrom(context)
                             : AppleDesign.statusInactive.resolveFrom(context),
                       ),

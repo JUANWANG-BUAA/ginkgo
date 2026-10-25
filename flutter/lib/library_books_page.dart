@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 
-import 'apple_design.dart';
 import 'apple_widgets.dart';
+import 'library_books_models.dart';
 import 'loading_widgets.dart';
 import 'mirror_service.dart';
 
@@ -18,7 +16,7 @@ class LibraryBooksPage extends StatefulWidget {
 
 class _LibraryBooksPageState extends State<LibraryBooksPage> {
   final query = TextEditingController();
-  Map<String, dynamic>? page;
+  BookPage? page;
   String? error;
   bool busy = false;
   int requested = 1;
@@ -74,7 +72,7 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
       if (!mounted || generation != _generation) return;
       if (result.payload != null && result.failure == null) {
         setState(() {
-          this.page = jsonDecode(result.payload!) as Map<String, dynamic>;
+          this.page = bookPage(result.payload!);
           requested = page;
         });
       } else {
@@ -91,13 +89,13 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
     }
   }
 
-  Future<void> openHoldings(Map<String, dynamic> hit) async {
+  Future<void> openHoldings(BookHit hit) async {
     await Navigator.of(context).push(
       CupertinoPageRoute<void>(
         builder: (_) => LibraryHoldingsPage(
           service: widget.service,
-          bibId: hit['bibId'] as String,
-          title: hit['title'] as String? ?? '',
+          bibId: hit.bibId,
+          title: hit.title,
         ),
       ),
     );
@@ -105,9 +103,9 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
 
   @override
   Widget build(BuildContext context) {
-    final items = (page?['items'] as List?)?.cast<Map<String, dynamic>>();
-    final total = page?['actualTotal'] as int?;
-    final hasMore = page?['hasMore'] == true;
+    final items = page?.items;
+    final total = page?.actualTotal;
+    final hasMore = page?.hasMore ?? false;
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
         context,
@@ -289,9 +287,9 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
                     children: [
                       for (final (index, hit) in items.indexed)
                         AppleListTile(
-                          key: Key('library-book-$index-${hit['bibId']}'),
+                          key: Key('library-book-$index-${hit.bibId}'),
                           title: Text(
-                            _title(hit),
+                            hit.displayTitle,
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -303,11 +301,11 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (_factLine(hit).isNotEmpty)
+                              if (hit.factLine.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 2),
                                   child: Text(
-                                    _factLine(hit),
+                                    hit.factLine,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -318,11 +316,11 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
                                     ),
                                   ),
                                 ),
-                              if (_callNo(hit).isNotEmpty)
+                              if (hit.callno.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 2),
                                   child: Text(
-                                    '索书号 ${_callNo(hit)}',
+                                    '索书号 ${hit.callno}',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -466,21 +464,6 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
       ),
     );
   }
-
-  String _title(Map<String, dynamic> hit) {
-    final title = hit['title'] as String?;
-    return title?.trim().isNotEmpty == true ? title! : '未命名书目';
-  }
-
-  String _text(Object? value) => value is String ? value.trim() : '';
-
-  String _factLine(Map<String, dynamic> hit) => [
-    _text(hit['author']),
-    _text(hit['publisher']),
-    _text(hit['year']),
-  ].where((part) => part.isNotEmpty).join(' · ');
-
-  String _callNo(Map<String, dynamic> hit) => _text(hit['callno']);
 }
 
 class LibraryHoldingsPage extends StatefulWidget {
@@ -498,9 +481,10 @@ class LibraryHoldingsPage extends StatefulWidget {
 }
 
 class _LibraryHoldingsPageState extends State<LibraryHoldingsPage> {
-  List<Map<String, dynamic>>? rows;
+  List<BookHolding>? rows;
   String? error;
   bool busy = false;
+  bool _pendingReload = false;
 
   @override
   void initState() {
@@ -509,7 +493,12 @@ class _LibraryHoldingsPageState extends State<LibraryHoldingsPage> {
   }
 
   Future<void> load() async {
-    if (busy) return;
+    // A reload request during an in-flight read is remembered and rerun once
+    // it settles, never silently dropped.
+    if (busy) {
+      _pendingReload = true;
+      return;
+    }
     setState(() {
       busy = true;
       error = null;
@@ -519,8 +508,7 @@ class _LibraryHoldingsPageState extends State<LibraryHoldingsPage> {
       if (!mounted) return;
       if (result.payload != null && result.failure == null) {
         setState(() {
-          rows = (jsonDecode(result.payload!) as List)
-              .cast<Map<String, dynamic>>();
+          rows = bookHoldings(result.payload!);
         });
       } else {
         setState(() => error = '馆藏读取未完成，请稍后重试');
@@ -529,6 +517,11 @@ class _LibraryHoldingsPageState extends State<LibraryHoldingsPage> {
       if (mounted) setState(() => error = '馆藏读取未完成，请稍后重试');
     } finally {
       if (mounted) setState(() => busy = false);
+    }
+    if (!mounted) return;
+    if (_pendingReload) {
+      _pendingReload = false;
+      await load();
     }
   }
 
@@ -586,30 +579,23 @@ class _LibraryHoldingsPageState extends State<LibraryHoldingsPage> {
     final tiles = <Widget>[];
     var previousCallNo = '';
     for (final (index, row) in rows!.indexed) {
-      final callNo = _text(row['callNo']);
-      final repeated = callNo.isNotEmpty && callNo == previousCallNo;
-      previousCallNo = callNo;
-      final status = _text(row['status']);
-      final barCode = _text(row['barCode']);
-      final place = [
-        _text(row['library']),
-        _text(row['location']),
-      ].where((part) => part.isNotEmpty).join(' · ');
+      final repeated = row.callNo.isNotEmpty && row.callNo == previousCallNo;
+      previousCallNo = row.callNo;
       tiles.add(
         AppleListTile(
           key: Key('library-holding-$index'),
-          title: Text(place.isEmpty ? '馆藏位置待确认' : '馆藏地：$place'),
+          title: Text(row.place.isEmpty ? '馆藏位置待确认' : '馆藏地：${row.place}'),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('状态：${status.isEmpty ? '未标注' : status}'),
+              Text('状态：${row.status.isEmpty ? '未标注' : row.status}'),
               Text(
                 repeated
-                    ? '同索书号：$callNo'
-                    : '索书号：${callNo.isEmpty ? '未标注' : callNo}',
+                    ? '同索书号：${row.callNo}'
+                    : '索书号：${row.callNo.isEmpty ? '未标注' : row.callNo}',
               ),
               Text(
-                '册条码：${barCode.isEmpty ? '未标注' : barCode}',
+                '册条码：${row.barCode.isEmpty ? '未标注' : row.barCode}',
                 style: TextStyle(fontSize: 12, color: secondary),
               ),
             ],
@@ -619,9 +605,4 @@ class _LibraryHoldingsPageState extends State<LibraryHoldingsPage> {
     }
     return tiles;
   }
-
-  String _text(Object? value) => value is String ? value.trim() : '';
 }
-
-/// Style constants shared with the rest of the library surface.
-const libraryBooksAccent = AppleDesign.resourceBlue;

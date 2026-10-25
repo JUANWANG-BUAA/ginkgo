@@ -33,6 +33,18 @@ String _day(DateTime value) => '${_two(value.month)}月${_two(value.day)}日';
 bool _sameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;
 
+/// Weekday names indexed from Monday (`date.weekday - 1`).
+const schoolWeekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+
+/// yyyy-MM-dd, the canonical query-date format the school systems accept.
+String schoolDateString(DateTime day) =>
+    '${day.year.toString().padLeft(4, '0')}-'
+    '${_two(day.month)}-${_two(day.day)}';
+
+/// yyyy年M月d日 · 周X, the dated heading shared by list pages.
+String schoolDateWeekdayLabel(DateTime date) =>
+    '${date.year}年${date.month}月${date.day}日 · ${schoolWeekdays[date.weekday - 1]}';
+
 /// MM月dd日 HH:mm in Beijing, with unknown and invalid inputs kept distinct.
 String schoolTimestampLabel(String? value) {
   if (value == null || value.trim().isEmpty) return '未确认';

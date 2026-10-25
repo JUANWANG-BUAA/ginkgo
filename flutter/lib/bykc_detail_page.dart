@@ -1,36 +1,17 @@
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'bykc_models.dart';
 import 'school_timestamp.dart';
-
-String bykcAttendanceLabel(Map<String, dynamic> record) =>
-    switch (record['checkin']) {
-      1 => '已签到',
-      null => '签到待确认',
-      final value => '考勤 $value',
-    };
-String bykcResultLabel(Map<String, dynamic> record) =>
-    switch (record['passed']) {
-      1 => '已通过',
-      0 => '未通过',
-      null => '通过待确认',
-      final value => '通过状态 $value',
-    };
-String bykcRecordStatus(Map<String, dynamic> record) => [
-  bykcAttendanceLabel(record),
-  bykcResultLabel(record),
-  if (record['score'] != null) '成绩 ${record['score']}',
-].join(' · ');
 
 /// A projection of the fetched snapshot. Opening it sends no new request.
 class BykcDetailPage extends StatelessWidget {
   const BykcDetailPage({super.key, required this.course, this.chosenRecord});
-  final Map<String, dynamic> course;
-  final Map<String, dynamic>? chosenRecord;
+  final BykcCourse course;
+  final BykcChosenRecord? chosenRecord;
   @override
   Widget build(BuildContext context) {
-    final details = course['details'] as Map<String, dynamic>? ?? {};
-    String text(String key) => details[key]?.toString() ?? '上游未提供';
+    final details = course.details;
     Widget field(String label, String value) => AppleListTile(
       title: Text(
         label,
@@ -50,10 +31,9 @@ class BykcDetailPage extends StatelessWidget {
         ),
       ),
     );
-    final campuses = (details['campuses'] as List? ?? []).cast<String>();
     final categories = [
-      course['category'],
-      course['subcategory'],
+      course.category,
+      course.subcategory,
     ].whereType<String>().where((value) => value.trim().isNotEmpty).toSet();
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
@@ -88,7 +68,7 @@ class BykcDetailPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      course['name'] as String,
+                      course.name,
                       style: const TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.w700,
@@ -97,7 +77,7 @@ class BykcDetailPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      course['teacher'] as String? ?? '教师信息未提供',
+                      course.teacher ?? '教师信息未提供',
                       style: TextStyle(
                         fontSize: 14,
                         color: CupertinoColors.secondaryLabel.resolveFrom(
@@ -111,16 +91,11 @@ class BykcDetailPage extends StatelessWidget {
               AppleSection(
                 header: const Text('上课安排'),
                 children: [
-                  field(
-                    '开始时间',
-                    schoolTimestampLabel(details['start'] as String?),
-                  ),
-                  field(
-                    '结束时间',
-                    schoolTimestampLabel(details['end'] as String?),
-                  ),
-                  field('上课地点', course['position'] as String? ?? '上游未提供'),
-                  if (campuses.isNotEmpty) field('校区', campuses.join('、')),
+                  field('开始时间', schoolTimestampLabel(details?.start)),
+                  field('结束时间', schoolTimestampLabel(details?.end)),
+                  field('上课地点', course.position ?? '上游未提供'),
+                  if (details != null && details.campuses.isNotEmpty)
+                    field('校区', details.campuses.join('、')),
                 ],
               ),
               if (chosenRecord != null)
@@ -130,9 +105,7 @@ class BykcDetailPage extends StatelessWidget {
                     _LearningResult(record: chosenRecord!),
                     field(
                       '选课时间',
-                      schoolTimestampLabel(
-                        chosenRecord!['selectedAt'] as String?,
-                      ),
+                      schoolTimestampLabel(chosenRecord!.selectedAt),
                     ),
                   ],
                 ),
@@ -142,14 +115,14 @@ class BykcDetailPage extends StatelessWidget {
                 children: [
                   field('选课状态', switch (chosenRecord != null
                       ? true
-                      : details['selected']) {
+                      : details?.selected) {
                     true => '已选',
                     false => '未选',
                     _ => '上游未提供',
                   }),
-                  field('当前人数', text('enrolled')),
-                  field('容量', text('capacity')),
-                  field('签到安排', switch (details['hasSignConfig']) {
+                  field('当前人数', details?.enrolled?.toString() ?? '上游未提供'),
+                  field('容量', details?.capacity?.toString() ?? '上游未提供'),
+                  field('签到安排', switch (details?.hasSignConfig) {
                     true => '含签到安排，请在学校系统核对',
                     false => '未返回签到配置',
                     _ => '上游未提供',
@@ -159,18 +132,9 @@ class BykcDetailPage extends StatelessWidget {
               AppleSection(
                 header: const Text('选退课时间'),
                 children: [
-                  field(
-                    '选课开始',
-                    schoolTimestampLabel(details['selectStart'] as String?),
-                  ),
-                  field(
-                    '选课截止',
-                    schoolTimestampLabel(details['selectEnd'] as String?),
-                  ),
-                  field(
-                    '退选截止',
-                    schoolTimestampLabel(details['cancelEnd'] as String?),
-                  ),
+                  field('选课开始', schoolTimestampLabel(details?.selectStart)),
+                  field('选课截止', schoolTimestampLabel(details?.selectEnd)),
+                  field('退选截止', schoolTimestampLabel(details?.cancelEnd)),
                 ],
               ),
               AppleSection(
@@ -181,7 +145,7 @@ class BykcDetailPage extends StatelessWidget {
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        text('summary'),
+                        details?.summary ?? '上游未提供',
                         style: const TextStyle(fontSize: 16, height: 1.5),
                       ),
                     ),
@@ -199,7 +163,7 @@ class BykcDetailPage extends StatelessWidget {
 
 class _LearningResult extends StatelessWidget {
   const _LearningResult({required this.record});
-  final Map<String, dynamic> record;
+  final BykcChosenRecord record;
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.all(16),
@@ -210,17 +174,17 @@ class _LearningResult extends StatelessWidget {
         for (final result in [
           (
             label: '考勤',
-            value: bykcAttendanceLabel(record),
-            positive: record['checkin'] == 1,
+            value: record.attendanceLabel,
+            positive: record.checkin == 1,
           ),
           (
             label: '考核结果',
-            value: bykcResultLabel(record),
-            positive: record['passed'] == 1,
+            value: record.resultLabel,
+            positive: record.passed == 1,
           ),
           (
             label: '成绩',
-            value: record['score']?.toString() ?? '上游未提供',
+            value: record.score?.toString() ?? '上游未提供',
             positive: false,
           ),
         ])

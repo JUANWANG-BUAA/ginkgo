@@ -34,6 +34,9 @@ Android 更新检查仍读取 GitHub Releases，但 Alpha.4 起可在应用内�
 | 应用 | [application](../rust/crates/ginkgo_core/src/application/) | 只依赖 domain 业务端口的应用命令、投影和本地待办 |
 | 组装 | [runtime](../rust/crates/ginkgo_runtime/src/) | 连接 core 与真实学校/平台实现 |
 | 桥接 | [bridge API](../rust/crates/ginkgo_flutter_bridge/src/api/) | 类型映射与粗粒度命令；生命周期 RwLock 排斥身份变更和进行中的读取 |
+| 呈现投影 | `flutter/lib/*_models.dart` | Rust payload JSON 的唯一解码点：按 domain 结构映射为类型值（cgyy、shuttle、bykc、library_books、library_stats、notices、graduate、checkin 遥测）；页面与共享组件不调用 `jsonDecode`，该边界由 `check-mirror-architecture.py` 强制 |
+| 设计系统 | [design tokens](../flutter/lib/design/tokens/)、[widgets](../flutter/lib/widgets/) | token 层（颜色/布局/动效/圆角/间距/字体）+ 按职责拆分的组件模块（surfaces/controls/navigation）；`apple_widgets.dart` 仅作 barrel 转发 |
+| 功能组件 | `today_course_list`、`checkin_widgets`、`schedule_widgets`、`cgyy_widgets`、`cgyy_captcha_page`、`cgyy_day_page` | 大页面抽出的行级/区块组件与整页拆分（如 CGYY 日查询/订单页独立于 hub）；widget API 只收发类型值，不出现 `Map<String, dynamic>`（同由架构脚本强制） |
 | 页面 | [Flutter lib](../flutter/lib/) | 导航、布局、无障碍、呈现状态；不解析上游协议 |
 | 共享契约 | [fixtures](../fixtures/README.md) | 两种语言独立消费同一输入与期望领域投影；覆盖范围须明确 |
 

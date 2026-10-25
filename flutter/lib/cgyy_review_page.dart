@@ -1,12 +1,10 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
+import 'cgyy_models.dart';
 import 'loading_widgets.dart';
 import 'application/contracts.dart';
 import 'application/mirror_service.dart';
-import 'cgyy_order_presentation.dart';
 
 /// A fresh, visible review snapshot, not a background read-and-unlock action.
 class CgyyReviewPage extends StatefulWidget {
@@ -17,7 +15,7 @@ class CgyyReviewPage extends StatefulWidget {
 }
 
 class _CgyyReviewPageState extends State<CgyyReviewPage> {
-  List<Map<String, dynamic>>? orders;
+  List<CgyyOrder>? orders;
   String? reviewId;
   String? error;
   bool loading = false;
@@ -30,13 +28,13 @@ class _CgyyReviewPageState extends State<CgyyReviewPage> {
     refresh();
   }
 
-  Map<String, dynamic> decode(ReadOnlyResponse response) {
+  CgyyActionResult decode(ReadOnlyResponse response) {
     if (response.failure != null ||
         response.stale ||
         response.payload == null) {
       throw const FormatException('Review must be fresh');
     }
-    return jsonDecode(response.payload!) as Map<String, dynamic>;
+    return cgyyActionResult(response.payload!);
   }
 
   Future<void> refresh() async {
@@ -52,16 +50,14 @@ class _CgyyReviewPageState extends State<CgyyReviewPage> {
       final result = decode(
         await widget.gateway.executeCgyy({'action': 'review'}),
       );
-      final review = result['review'] as Map<String, dynamic>;
-      final id = review['id'] as String;
-      final rows = (review['orders'] as List).cast<Map<String, dynamic>>();
-      if (result['state'] != 'reviewRequired' || id.isEmpty) {
+      final snapshot = result.review;
+      if (!result.isReviewRequired || snapshot == null || snapshot.id.isEmpty) {
         throw const FormatException('Missing review identity');
       }
       if (mounted) {
         setState(() {
-          reviewId = id;
-          orders = rows;
+          reviewId = snapshot.id;
+          orders = snapshot.orders;
         });
       }
     } catch (_) {
@@ -113,7 +109,7 @@ class _CgyyReviewPageState extends State<CgyyReviewPage> {
           'review_id': id,
         }),
       );
-      if (result['state'] == 'ready') {
+      if (result.isReady) {
         if (mounted) Navigator.of(context).pop(true);
         return;
       }
@@ -188,7 +184,7 @@ class _CgyyReviewPageState extends State<CgyyReviewPage> {
                       for (final order in orders!)
                         Padding(
                           padding: const EdgeInsets.all(16),
-                          child: Text(cgyyOrderSummary(order)),
+                          child: Text(order.summary),
                         ),
                     ],
                   ),

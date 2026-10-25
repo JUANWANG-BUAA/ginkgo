@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'school_timestamp.dart';
+
 import 'package:flutter/cupertino.dart';
 
 import 'apple_widgets.dart';
@@ -239,8 +241,7 @@ class _ClassroomPageState extends State<ClassroomPage> {
       ),
     );
     if (!mounted) return;
-    final value =
-        '${selected.year.toString().padLeft(4, '0')}-${selected.month.toString().padLeft(2, '0')}-${selected.day.toString().padLeft(2, '0')}';
+    final value = schoolDateString(selected);
     if (date != value) {
       changeScope(newDate: value);
     }
