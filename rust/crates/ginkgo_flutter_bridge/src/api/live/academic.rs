@@ -10,13 +10,12 @@ pub(super) async fn load_schedule(
     let Ok(service) = service() else {
         return schedule_failure(FailureCode::CredentialStore, None);
     };
-    match service
-        .load_schedule(&ScheduleQueryInput {
-            term_id,
-            week,
-            force_refresh,
-        })
-        .await
+    match bounded_read(service.load_schedule(&ScheduleQueryInput {
+        term_id,
+        week,
+        force_refresh,
+    }))
+    .await
     {
         Ok(outcome) => schedule_response(outcome),
         Err(error) => schedule_failure(error.code.clone().into(), error.detail),
@@ -34,7 +33,7 @@ pub(super) async fn load_today(force_refresh: bool) -> TodayResponse {
             failure_detail: None,
         };
     };
-    match service.load_today(force_refresh).await {
+    match bounded_read(service.load_today(force_refresh)).await {
         Ok(outcome) => today_response(outcome),
         Err(error) => {
             let (failure, failure_detail) = failure(&error);
@@ -74,7 +73,7 @@ pub(super) async fn load_grade_terms() -> GradeTermsResponse {
             };
         }
     };
-    match service.load_grade_terms().await {
+    match bounded_read(service.load_grade_terms()).await {
         Ok(terms) => GradeTermsResponse {
             terms: terms
                 .into_iter()
@@ -103,10 +102,7 @@ pub(super) async fn load_grades(term_code: Option<String>, force_refresh: bool) 
     let Ok(service) = service() else {
         return grade_failure(FailureCode::CredentialStore, None);
     };
-    match service
-        .load_grades(term_code.as_deref(), force_refresh)
-        .await
-    {
+    match bounded_read(service.load_grades(term_code.as_deref(), force_refresh)).await {
         Ok(outcome) => grade_response(outcome),
         Err(error) => grade_failure(error.code.clone().into(), error.detail),
     }

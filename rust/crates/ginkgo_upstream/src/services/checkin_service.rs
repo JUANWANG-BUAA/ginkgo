@@ -211,11 +211,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CheckInSource for Schoo
         }
         match fetched {
             Ok(courses) => {
-                let timestamp = self
-                    .snapshots
-                    .checkin
-                    .lock()
-                    .insert_if_current(date.clone(), ticket, courses.clone());
+                let timestamp = self.snapshots.checkin.lock().insert_if_current(
+                    date.clone(),
+                    ticket,
+                    courses.clone(),
+                );
                 Ok(CheckInOutcome {
                     date,
                     courses,

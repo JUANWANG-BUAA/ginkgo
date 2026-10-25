@@ -150,13 +150,12 @@ mod tests {
         let stale = cache.begin(&"scope".to_owned());
         let latest = cache.begin(&"scope".to_owned());
         cache.insert_if_current("scope".into(), latest, 2);
-        assert_eq!(
-            cache.any(&"scope".into()).expect("latest result").value,
-            2
-        );
+        assert_eq!(cache.any(&"scope".into()).expect("latest result").value, 2);
         // The older request finishing late must neither replace the value nor
         // refresh its age.
-        let before = cache.any(&"scope".into()).map(|entry| entry.timestamp.clone());
+        let before = cache
+            .any(&"scope".into())
+            .map(|entry| entry.timestamp.clone());
         cache.insert_if_current("scope".into(), stale, 1);
         let entry = cache.any(&"scope".into()).expect("kept snapshot");
         assert_eq!(entry.value, 2);

@@ -76,6 +76,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> GraduateSource for Scho
                 Err(e) => Err(e),
             };
         }
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
+        }
         self.snapshots
             .graduate
             .lock()

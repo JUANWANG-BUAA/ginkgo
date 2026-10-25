@@ -51,7 +51,7 @@ pub(super) async fn load_library_areas(library_id: String) -> LibraryAreasRespon
             failure_detail: None,
         };
     };
-    match service.load_library_areas(&library_id).await {
+    match bounded_read(service.load_library_areas(&library_id)).await {
         Ok(areas) => LibraryAreasResponse {
             areas: areas.into_iter().map(library_area).collect(),
             failure: None,
@@ -75,7 +75,7 @@ pub(super) async fn load_library_slots(area_id: String) -> LibrarySlotsResponse 
             failure_detail: None,
         };
     };
-    match service.load_library_slots(&area_id).await {
+    match bounded_read(service.load_library_slots(&area_id)).await {
         Ok(slots) => LibrarySlotsResponse {
             slots: slots.into_iter().map(library_slot).collect(),
             failure: None,
@@ -105,10 +105,7 @@ pub(super) async fn load_library_seats(
             failure_detail: None,
         };
     };
-    match service
-        .load_library_seats(&area_id, &slot_id, &day, &start, &end)
-        .await
-    {
+    match bounded_read(service.load_library_seats(&area_id, &slot_id, &day, &start, &end)).await {
         Ok(seats) => LibrarySeatsResponse {
             seats: seats.into_iter().map(library_seat).collect(),
             failure: None,
@@ -242,7 +239,7 @@ pub(super) fn load_demo_library_history(page: i32) -> LibraryHistoryResponse {
 pub(super) async fn load_library_stats(force_refresh: bool) -> ReadOnlyResponse {
     let _access = SESSION_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => service.load_library_stats(force_refresh).await,
+        Ok(service) => bounded_read(service.load_library_stats(force_refresh)).await,
         Err(error) => Err(error),
     };
     match result {

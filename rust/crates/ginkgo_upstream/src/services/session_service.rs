@@ -111,8 +111,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         // Central invariant: the published account is the profile's school ID.
         // A mismatch means the cookie session belongs to another login; fail
         // closed to a signed-out state instead of rebinding it.
-        let authenticated = (account == profile.school_id)
-            .then_some(AuthenticatedIdentity { account, profile });
+        let authenticated =
+            (account == profile.school_id).then_some(AuthenticatedIdentity { account, profile });
         if authenticated.is_none() {
             self.session.clear_cookies();
         }

@@ -87,7 +87,8 @@ async fn login_form_actions_outside_the_documented_cas_target_never_receive_cred
         "ftp://sso.buaa.edu.cn/login",
     ] {
         let body = FORM_PAGE.replace(r#"action="/login""#, &format!(r#"action="{action}""#));
-        let transport = MockTransport::with_responses(vec![HttpResponse::new(200, LOGIN_URL, body)]);
+        let transport =
+            MockTransport::with_responses(vec![HttpResponse::new(200, LOGIN_URL, body)]);
         let session = Session::new(transport.clone());
         let error = login(&session, &credentials())
             .await

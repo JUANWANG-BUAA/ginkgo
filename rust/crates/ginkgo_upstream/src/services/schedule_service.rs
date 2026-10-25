@@ -252,7 +252,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> GradeSource for SchoolC
         term_code: Option<&str>,
         force_refresh: bool,
     ) -> Result<GradeOutcome, AppError> {
-        self.current_account()?;
+        let account = self.current_account()?;
         if term_code.is_some_and(|code| code.trim().is_empty()) {
             return Err(AppError::invalid());
         }
@@ -283,6 +283,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> GradeSource for SchoolC
             }
             other => other,
         };
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
+        }
 
         match fetched {
             Ok((term_id, courses)) => {
@@ -323,20 +326,24 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> GradeSource for SchoolC
     }
 
     async fn load_grade_terms(&self) -> Result<Vec<Term>, AppError> {
-        self.current_account()?;
-        match self.fetch_terms().await {
+        let account = self.current_account()?;
+        let fetched = match self.fetch_terms().await {
             Err(error) if error.code == ErrorCode::SessionExpired => {
                 self.silent_login().await?;
                 self.fetch_terms().await
             }
             other => other,
+        };
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
         }
+        fetched
     }
 }
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> TodaySource for SchoolClient<T, V> {
     async fn load_today(&self, force_refresh: bool) -> Result<TodayOutcome, AppError> {
-        self.current_account()?;
+        let account = self.current_account()?;
         let day = school_time::beijing_day(&now_shanghai())?;
         let date = day.local_date;
         if !force_refresh {
@@ -356,7 +363,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> TodaySource for SchoolC
         let ticket = self.snapshots.today.lock().begin(&date);
         let portal = schedule_http::detect_portal(&self.session).await?;
         if portal != Portal::Undergraduate {
-            return self.load_today_from_schedule(&date, force_refresh).await;
+            let outcome = self.load_today_from_schedule(&date, force_refresh).await;
+            if self.current_account()? != account {
+                return Err(AppError::session_expired());
+            }
+            return outcome;
         }
 
         let fetched = match schedule_http::load_today(&self.session, &date).await {
@@ -368,14 +379,17 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> TodaySource for SchoolC
             }
             other => other,
         };
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
+        }
 
         match fetched {
             Ok(courses) => {
-                let timestamp = self
-                    .snapshots
-                    .today
-                    .lock()
-                    .insert_if_current(date.clone(), ticket, courses.clone());
+                let timestamp = self.snapshots.today.lock().insert_if_current(
+                    date.clone(),
+                    ticket,
+                    courses.clone(),
+                );
                 Ok(TodayOutcome {
                     date,
                     courses,
@@ -405,7 +419,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> TodaySource for SchoolC
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> ScheduleSource for SchoolClient<T, V> {
     async fn load_schedule(&self, input: &ScheduleQueryInput) -> Result<ScheduleOutcome, AppError> {
-        self.current_account()?;
+        let account = self.current_account()?;
         if input.week.is_some_and(|week| !(1..=30).contains(&week)) {
             return Err(AppError::invalid());
         }
@@ -440,14 +454,17 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> ScheduleSource for Scho
             }
             other => other,
         };
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
+        }
 
         match fetched {
             Ok(data) => {
-                let timestamp = self
-                    .snapshots
-                    .schedules
-                    .lock()
-                    .insert_if_current(key, ticket, data.clone());
+                let timestamp =
+                    self.snapshots
+                        .schedules
+                        .lock()
+                        .insert_if_current(key, ticket, data.clone());
                 Ok(ScheduleOutcome {
                     data,
                     fetched_at: timestamp,

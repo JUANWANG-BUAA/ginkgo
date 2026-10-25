@@ -17,7 +17,7 @@ pub use ginkgo_domain::ports::HomeworkOutcome;
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> HomeworkSource for SchoolClient<T, V> {
     async fn load_homework(&self, force: bool) -> Result<HomeworkOutcome, AppError> {
-        self.current_account()?;
+        let account = self.current_account()?;
         let key = "current".to_owned();
         if !force {
             let cache = self.snapshots.homework.lock();
@@ -48,13 +48,16 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> HomeworkSource for Scho
                 Err(error) => Err(error),
             };
         }
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
+        }
         match result {
             Ok(data) => {
-                let fetched_at = self
-                    .snapshots
-                    .homework
-                    .lock()
-                    .insert_if_current(key, ticket, data.clone());
+                let fetched_at =
+                    self.snapshots
+                        .homework
+                        .lock()
+                        .insert_if_current(key, ticket, data.clone());
                 Ok(HomeworkOutcome {
                     data,
                     fetched_at,
@@ -80,7 +83,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> HomeworkSource for Scho
         id: &str,
         force: bool,
     ) -> Result<HomeworkDetailOutcome, AppError> {
-        self.current_account()?;
+        let account = self.current_account()?;
         // Public item IDs include the source namespace; upstream expects zyid only.
         let id = id.strip_prefix("spoc:").unwrap_or(id);
         let key = id.to_owned();
@@ -103,6 +106,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> HomeworkSource for Scho
                 Ok(()) => homework_http::load_detail(&self.session, id).await,
                 Err(error) => Err(error),
             };
+        }
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
         }
         match result {
             Ok(mut data) => {

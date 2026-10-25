@@ -50,7 +50,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> ClassroomSource for Sch
         &self,
         input: &ClassroomQueryInput,
     ) -> Result<ClassroomOutcome, AppError> {
-        self.current_account()?;
+        let account = self.current_account()?;
         validate(input)?;
         let key = (input.campus, input.date.clone());
 
@@ -77,14 +77,17 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> ClassroomSource for Sch
             }
             other => other,
         };
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
+        }
 
         match fetched {
             Ok(rooms) => {
-                let timestamp = self
-                    .snapshots
-                    .classrooms
-                    .lock()
-                    .insert_if_current(key, ticket, rooms.clone());
+                let timestamp =
+                    self.snapshots
+                        .classrooms
+                        .lock()
+                        .insert_if_current(key, ticket, rooms.clone());
                 Ok(ClassroomOutcome {
                     result: filter(rooms, input)?,
                     fetched_at: timestamp,

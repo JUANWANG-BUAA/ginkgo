@@ -12,6 +12,7 @@ pub(super) static SESSION_ACCESS: tokio::sync::RwLock<()> = tokio::sync::RwLock:
 // use SESSION_ACCESS exclusively.
 pub(super) static CHECKIN_ACCESS: tokio::sync::RwLock<()> = tokio::sync::RwLock::const_new(());
 pub(super) static LIBRARY_ACCESS: tokio::sync::RwLock<()> = tokio::sync::RwLock::const_new(());
+pub(super) static CGYY_ACCESS: tokio::sync::RwLock<()> = tokio::sync::RwLock::const_new(());
 
 pub(super) static SERVICE: OnceLock<Result<LiveService, AppError>> = OnceLock::new();
 
@@ -30,4 +31,23 @@ pub(super) fn service() -> Result<&'static LiveService, AppError> {
         .get_or_init(ginkgo_runtime::create_service)
         .as_ref()
         .map_err(Clone::clone)
+}
+
+#[cfg(test)]
+mod bounded_read_tests {
+    use super::*;
+
+    #[tokio::test(start_paused = true)]
+    async fn a_stuck_school_read_fails_as_unavailable_after_the_budget() {
+        let error = bounded_read(std::future::pending::<Result<i32, AppError>>())
+            .await
+            .expect_err("the 45s budget must cap a stuck read");
+        assert_eq!(error.code, ginkgo_core::ErrorCode::ServiceUnavailable);
+    }
+
+    #[tokio::test]
+    async fn a_fast_read_passes_through_untouched() {
+        let value = bounded_read(async { Ok(7i32) }).await.expect("fast read");
+        assert_eq!(value, 7);
+    }
 }

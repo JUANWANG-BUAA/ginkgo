@@ -142,7 +142,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
         &self,
         force_refresh: bool,
     ) -> Result<LibraryVenuesOutcome, AppError> {
-        self.current_account()?;
+        let account = self.current_account()?;
         let day = school_time::beijing_day(&now_shanghai())?.local_date;
         if !force_refresh {
             let cached = self.snapshots.library_venues.lock();
@@ -173,14 +173,17 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
             result
         }
         .await;
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
+        }
 
         match result {
             Ok(venues) => {
-                let timestamp = self
-                    .snapshots
-                    .library_venues
-                    .lock()
-                    .insert_if_current(VENUES_KEY.to_owned(), ticket, venues.clone());
+                let timestamp = self.snapshots.library_venues.lock().insert_if_current(
+                    VENUES_KEY.to_owned(),
+                    ticket,
+                    venues.clone(),
+                );
                 Ok(LibraryVenuesOutcome {
                     venues,
                     fetched_at: timestamp,
@@ -206,7 +209,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
     }
 
     async fn load_library_areas(&self, library_id: &str) -> Result<Vec<LibraryArea>, AppError> {
-        self.current_account()?;
+        let account = self.current_account()?;
         if library_id.trim().is_empty() {
             return Err(AppError::invalid());
         }
@@ -218,11 +221,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
             token = self.library_token().await?;
             result = library_http::areas(&self.session, &token, library_id, &day).await;
         }
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
+        }
         result
     }
 
     async fn load_library_slots(&self, area_id: &str) -> Result<Vec<LibrarySlot>, AppError> {
-        self.current_account()?;
+        let account = self.current_account()?;
         if area_id.trim().is_empty() {
             return Err(AppError::invalid());
         }
@@ -232,6 +238,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
             self.invalidate_library_token(&token);
             token = self.library_token().await?;
             result = library_http::slots(&self.session, &token, area_id).await;
+        }
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
         }
         result
     }
@@ -244,7 +253,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
         start: &str,
         end: &str,
     ) -> Result<Vec<LibrarySeat>, AppError> {
-        self.current_account()?;
+        let account = self.current_account()?;
         let slot = LibrarySlot {
             id: slot_id.trim().to_owned(),
             day: day.trim().to_owned(),
@@ -266,6 +275,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
             token = self.library_token().await?;
             result = library_http::seats(&self.session, &token, area_id, &slot).await;
         }
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
+        }
         result
     }
 
@@ -273,7 +285,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
         &self,
         force_refresh: bool,
     ) -> Result<LibraryBookingsOutcome, AppError> {
-        self.current_account()?;
+        let account = self.current_account()?;
         if !force_refresh {
             let cached = self.snapshots.library_bookings.lock();
             if let Some(entry) = cached.fresh(&BOOKINGS_KEY.to_owned()) {
@@ -303,14 +315,17 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
             result
         }
         .await;
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
+        }
 
         match result {
             Ok(bookings) => {
-                let timestamp = self
-                    .snapshots
-                    .library_bookings
-                    .lock()
-                    .insert_if_current(BOOKINGS_KEY.to_owned(), ticket, bookings.clone());
+                let timestamp = self.snapshots.library_bookings.lock().insert_if_current(
+                    BOOKINGS_KEY.to_owned(),
+                    ticket,
+                    bookings.clone(),
+                );
                 Ok(LibraryBookingsOutcome {
                     bookings,
                     fetched_at: timestamp,

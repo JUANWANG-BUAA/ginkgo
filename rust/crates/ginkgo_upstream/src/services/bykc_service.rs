@@ -26,7 +26,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         F: Fn() -> Fut,
         Fut: Future<Output = Result<D, AppError>>,
     {
-        self.current_account()?;
+        let account = self.current_account()?;
         let key = key.to_owned();
         let cached = || {
             snapshots.lock().fresh(&key).map(|entry| DataOutcome {
@@ -57,6 +57,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 Ok(()) => read().await,
                 Err(error) => Err(error),
             };
+        }
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
         }
         snapshots.lock().resolve_current(key, ticket, result)
     }
@@ -137,5 +140,49 @@ mod tests {
         );
         assert_eq!(reads.load(Ordering::SeqCst), 1);
         assert_eq!(service.session.transport().request_count(), 0);
+    }
+
+    #[tokio::test]
+    async fn an_account_change_during_the_network_read_rejects_its_result() {
+        let service = SchoolClient::new(
+            Session::new(MockTransport::default()),
+            MemoryVault::default(),
+        );
+        service.set_authenticated(
+            "sy2501001".into(),
+            UserProfile {
+                school_id: "sy2501001".into(),
+                name: "synthetic".into(),
+            },
+        );
+        let cache = Mutex::new(SnapshotCache::<String, Vec<i32>>::default());
+        let gate = tokio::sync::Mutex::new(());
+        let hold = gate.lock().await;
+        let read = || async {
+            let _held = gate.lock().await;
+            Ok(vec![9])
+        };
+        let mut pending = Box::pin(service.read_bykc_snapshot("scope", &cache, false, read));
+        assert!(
+            std::future::poll_fn(|cx| Poll::Ready(pending.as_mut().poll(cx)))
+                .await
+                .is_pending()
+        );
+        service.set_authenticated(
+            "sy2501002".into(),
+            UserProfile {
+                school_id: "sy2501002".into(),
+                name: "other".into(),
+            },
+        );
+        drop(hold);
+        let error = pending
+            .await
+            .expect_err("a late read must not cross accounts");
+        assert_eq!(error.code, ErrorCode::SessionExpired);
+        assert!(
+            cache.lock().fresh(&"scope".to_owned()).is_none(),
+            "a rejected read must not populate the snapshot"
+        );
     }
 }

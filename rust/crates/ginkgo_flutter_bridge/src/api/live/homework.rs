@@ -60,9 +60,7 @@ pub(super) async fn load_homework_detail(
     let _access = SESSION_ACCESS.read().await;
     let result = match service() {
         Ok(service) => {
-            service
-                .load_homework_detail(&assignment_id, force_refresh)
-                .await
+            bounded_read(service.load_homework_detail(&assignment_id, force_refresh)).await
         }
         Err(error) => Err(error),
     };

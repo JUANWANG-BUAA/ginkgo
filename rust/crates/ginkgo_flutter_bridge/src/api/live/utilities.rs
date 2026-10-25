@@ -45,7 +45,7 @@ pub(super) fn edit_tasks(
 pub(super) async fn load_notices(force_refresh: bool) -> ReadOnlyResponse {
     let _access = SESSION_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => service.load_notices(force_refresh).await,
+        Ok(service) => bounded_read(service.load_notices(force_refresh)).await,
         Err(error) => Err(error),
     };
     read_only_response(result)
@@ -69,21 +69,30 @@ pub(super) async fn load_cgyy(
         _ => return read_only_value::<()>(Err(AppError::invalid())),
     };
     let _access = SESSION_ACCESS.read().await;
+    let _module = CGYY_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => service.load_cgyy(query, force_refresh).await,
+        Ok(service) => bounded_read(service.load_cgyy(query, force_refresh)).await,
         Err(error) => Err(error),
     };
     read_only_response(result)
 }
 
 pub(super) async fn execute_cgyy(command: String) -> ReadOnlyResponse {
-    let _access = SESSION_ACCESS.write().await;
+    let Ok(_write) = CGYY_WRITE.try_lock() else {
+        // A second submit while one is in flight is a local backstop: report
+        // busy without touching the school write endpoint again.
+        return read_only_value::<()>(Err(AppError::unavailable()));
+    };
+    let _access = SESSION_ACCESS.read().await;
+    let _module = CGYY_ACCESS.write().await;
     let result = match service() {
         Ok(service) => service.execute_cgyy_json(&command).await,
         Err(error) => Err(error),
     };
     read_only_value(result)
 }
+
+static CGYY_WRITE: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 
 pub(super) fn load_demo_cgyy(kind: String) -> ReadOnlyResponse {
     read_only_value(ginkgo_runtime::demo::demo_campus::load_demo_cgyy(kind))
@@ -99,9 +108,7 @@ pub(super) async fn load_library_books(
     let _access = SESSION_ACCESS.read().await;
     let result = match service() {
         Ok(service) => {
-            service
-                .search_library_books(query, page, sort, descending)
-                .await
+            bounded_read(service.search_library_books(query, page, sort, descending)).await
         }
         Err(error) => Err(error),
     };
@@ -112,7 +119,7 @@ pub(super) async fn load_library_books(
 pub(super) async fn load_shuttle_timetable() -> ReadOnlyResponse {
     let _access = SESSION_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => service.load_shuttle_timetable().await,
+        Ok(service) => bounded_read(service.load_shuttle_timetable()).await,
         Err(error) => Err(error),
     };
     read_only_value(result)
@@ -122,7 +129,7 @@ pub(super) async fn load_shuttle_timetable() -> ReadOnlyResponse {
 pub(super) async fn load_library_holdings(bib_id: String) -> ReadOnlyResponse {
     let _access = SESSION_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => service.load_book_holdings(bib_id).await,
+        Ok(service) => bounded_read(service.load_book_holdings(bib_id)).await,
         Err(error) => Err(error),
     };
     read_only_value(result)
@@ -130,4 +137,30 @@ pub(super) async fn load_library_holdings(bib_id: String) -> ReadOnlyResponse {
 
 pub(super) async fn check_android_update(current: String) -> ReadOnlyResponse {
     read_only_value(ginkgo_runtime::check_update(&current).await)
+}
+
+#[cfg(test)]
+mod gate_tests {
+    use super::*;
+    use std::{
+        future::Future,
+        pin::pin,
+        task::{Context, Poll, Waker},
+    };
+
+    #[test]
+    fn a_second_cgyy_submit_is_rejected_locally_without_queueing() {
+        let _first = CGYY_WRITE.try_lock().expect("first submit holds the gate");
+        let mut second = pin!(execute_cgyy("{}".into()));
+        let mut context = Context::from_waker(Waker::noop());
+        let Poll::Ready(response) = second.as_mut().poll(&mut context) else {
+            panic!("the busy backstop must not queue a second write");
+        };
+        assert!(matches!(
+            response.failure,
+            Some(FailureCode::ServiceUnavailable)
+        ));
+        assert!(response.payload.is_none());
+        assert!(!response.stale);
+    }
 }
