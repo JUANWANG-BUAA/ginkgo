@@ -1,0 +1,135 @@
+# Automatable part of an Android alpha release: build the signed ARM64
+# production entrypoint, verify it, and upload workflow artifacts.
+# Publishing stays manual: the maintainer still runs the real-device upgrade
+# and release-notes checklist before creating the GitHub prerelease.
+# Secrets: GINKGO_ANDROID_KEYSTORE_BASE64 (keystore bytes),
+# GINKGO_ANDROID_KEYSTORE_PASSWORD, GINKGO_ANDROID_KEY_ALIAS,
+# GINKGO_ANDROID_KEY_PASSWORD. The Gradle release build requires the external
+# signing file and never falls back to the debug key.
+name: Android Alpha Release
+
+on:
+  push:
+    tags: ['android-v*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.99.0
+          targets: aarch64-linux-android
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # Do not depend on tools preinstalled by ubuntu-latest.
+      - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0 ndk;28.2.13676358'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.0
+          channel: stable
+          cache: true
+
+      - name: Materialize external signing configuration
+        env:
+          GINKGO_ANDROID_KEYSTORE_BASE64: ${{ secrets.GINKGO_ANDROID_KEYSTORE_BASE64 }}
+          GINKGO_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.GINKGO_ANDROID_KEYSTORE_PASSWORD }}
+          GINKGO_ANDROID_KEY_ALIAS: ${{ secrets.GINKGO_ANDROID_KEY_ALIAS }}
+          GINKGO_ANDROID_KEY_PASSWORD: ${{ secrets.GINKGO_ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in GINKGO_ANDROID_KEYSTORE_BASE64 GINKGO_ANDROID_KEYSTORE_PASSWORD GINKGO_ANDROID_KEY_ALIAS GINKGO_ANDROID_KEY_PASSWORD; do
+            if [ -z "$(printenv "$name")" ]; then
+              echo "::error::Secret $name is not configured; refusing to build a release without external signing."
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ]
+          keystore="$RUNNER_TEMP/ginkgo-alpha.keystore"
+          printf '%s' "$GINKGO_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          properties="$RUNNER_TEMP/ginkgo-signing.properties"
+          {
+            echo "storeFile=$keystore"
+            echo "storePassword=$GINKGO_ANDROID_KEYSTORE_PASSWORD"
+            echo "keyAlias=$GINKGO_ANDROID_KEY_ALIAS"
+            echo "keyPassword=$GINKGO_ANDROID_KEY_PASSWORD"
+          } > "$properties"
+          echo "GINKGO_ANDROID_SIGNING_PROPERTIES=$properties" >> "$GITHUB_ENV"
+
+      # --pub is deliberate: --no-pub skips production plugin regeneration and
+      # produced a GeneratedPluginRegistrant referencing integration_test in a
+      # previous release attempt (see docs/_audit/2026-10-23-android-alpha7-release.md).
+      - name: Build release APK from the production entrypoint
+        working-directory: flutter
+        run: flutter build apk --release --target-platform android-arm64 --target lib/main.dart --pub
+
+      - name: Verify the built APK
+        working-directory: flutter
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#android-v}"
+          apk="build/app/outputs/flutter-apk/app-release.apk"
+          [ -f "$apk" ]
+
+          pubspec_version="$(grep -m1 '^version:' pubspec.yaml | sed 's/version: //')"
+          if [ "${pubspec_version%%+*}" != "$version" ]; then
+            echo "::error::pubspec version ${pubspec_version%%+*} does not match tag $version"
+            exit 1
+          fi
+
+          # The production entrypoint must not drag the test driver in.
+          registrant="android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java"
+          if grep -q "integration_test" "$registrant"; then
+            echo "::error::GeneratedPluginRegistrant references integration_test; the APK is not a production build."
+            exit 1
+          fi
+
+          build_tools="$ANDROID_HOME/build-tools/36.0.0"
+          badging="$("$build_tools/aapt" dump badging "$apk")"
+
+          package_line="$(printf '%s\n' "$badging" | grep -m1 "^package:")"
+          echo "$package_line"
+          printf '%s\n' "$package_line" | grep -q "versionName='$version'" \
+            || { echo "::error::APK versionName does not match tag $version"; exit 1; }
+          if printf '%s\n' "$badging" | grep -q "^application-debuggable"; then
+            echo "::error::Release APK is debuggable."
+            exit 1
+          fi
+          native="$(printf '%s\n' "$badging" | grep -m1 "^native-code:" | sed 's/^native-code: //')"
+          echo "native-code: $native"
+          [ "$native" = "'arm64-v8a'" ] \
+            || { echo "::error::Expected only arm64-v8a, got: $native"; exit 1; }
+
+          "$build_tools/zipalign" -c -P 16 -v 4 "$apk" > /dev/null
+          "$build_tools/apksigner" verify --print-certs "$apk"
+
+          artifact="Ginkgo-$version-android-arm64.apk"
+          cp "$apk" "../$artifact"
+          sha256="$(sha256sum "../$artifact" | cut -d' ' -f1)"
+          echo "$sha256  $artifact" | tee ../checksums.txt
+
+          echo "artifact=$artifact" >> "$GITHUB_ENV"
+          echo "sha256=$sha256" >> "$GITHUB_ENV"
+
+      - name: Upload signed APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.artifact }}
+          path: |
+            ${{ env.artifact }}
+            checksums.txt
+          if-no-files-found: error
