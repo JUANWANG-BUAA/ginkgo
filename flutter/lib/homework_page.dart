@@ -35,6 +35,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
   String? error;
   String? notice;
   bool busy = false;
+  bool _pendingRefresh = false;
   late int filter;
   int pending = 0, submitted = 0, overdue = 0, unknown = 0;
   String search = '';
@@ -123,7 +124,12 @@ class _HomeworkPageState extends State<HomeworkPage> {
   }
 
   Future<void> load({bool force = false}) async {
-    if (busy) return;
+    // A pull-to-refresh during an in-flight read is remembered and rerun
+    // once it settles, never silently dropped.
+    if (busy) {
+      if (force) _pendingRefresh = true;
+      return;
+    }
     setState(() {
       busy = true;
       error = null;
@@ -161,6 +167,11 @@ class _HomeworkPageState extends State<HomeworkPage> {
           notice = '${failureMessage(null)}，正在显示上次结果。';
         }
       });
+    }
+    if (!mounted) return;
+    if (_pendingRefresh) {
+      _pendingRefresh = false;
+      await load(force: true);
     }
   }
 

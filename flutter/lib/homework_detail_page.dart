@@ -36,6 +36,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
   String? error;
   bool busy = false;
   int generation = 0;
+  bool _pendingRefresh = false;
 
   @override
   void didUpdateWidget(covariant HomeworkDetailPage oldWidget) {
@@ -46,6 +47,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
       data = null;
       error = null;
       busy = false;
+      _pendingRefresh = false;
       load();
     }
   }
@@ -57,7 +59,12 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
   }
 
   Future<void> load({bool force = false}) async {
-    if (busy) return;
+    // A pull-to-refresh during an in-flight read is remembered and rerun
+    // once it settles, never silently dropped.
+    if (busy) {
+      if (force) _pendingRefresh = true;
+      return;
+    }
     final epoch = generation;
     setState(() {
       busy = true;
@@ -84,6 +91,11 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
           error = failureMessage(null);
         });
       }
+    }
+    if (!mounted || epoch != generation) return;
+    if (_pendingRefresh) {
+      _pendingRefresh = false;
+      await load(force: true);
     }
   }
 
