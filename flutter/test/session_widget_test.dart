@@ -240,19 +240,33 @@ Future<void> phone(WidgetTester tester, Widget app) async {
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
   await tester.pumpWidget(app);
-  await tester.pumpAndSettle();
+  // Cap the settle window: an unbounded search for a stable frame hides a
+  // genuinely stuck page behind a ten-minute wait.
+  await tester.pumpAndSettle(
+    const Duration(milliseconds: 100),
+    EnginePhase.sendSemanticsUpdate,
+    const Duration(seconds: 30),
+  );
 }
 
 void main() {
   setUp(mockLocalTaskSupportDirectory);
   tearDown(() async {
-    await AppPreferences.shared.setExplicitSignOut(false);
+    // Clear the marker in memory only. A save started inside the fake-async
+    // test body leaves AppPreferences' serialized write chain attached to a
+    // zone that is already gone, and awaiting another save here would then
+    // never complete.
+    AppPreferences.shared.explicitSignOut = false;
   });
 
   testWidgets('an explicit sign-out shows the login page on the next start', (
     tester,
   ) async {
-    await AppPreferences.shared.setExplicitSignOut(true);
+    // Preferences persist through a real platform channel, which never
+    // completes inside the fake-async test body unless it runs for real.
+    await tester.runAsync(
+      () => AppPreferences.shared.setExplicitSignOut(true),
+    );
     await phone(
       tester,
       GinkgoRoot(
@@ -276,7 +290,9 @@ void main() {
   testWidgets('signing in again clears the explicit sign-out marker', (
     tester,
   ) async {
-    await AppPreferences.shared.setExplicitSignOut(true);
+    await tester.runAsync(
+      () => AppPreferences.shared.setExplicitSignOut(true),
+    );
     await phone(
       tester,
       GinkgoRoot(

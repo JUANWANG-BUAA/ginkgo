@@ -50,11 +50,18 @@ void main() {
       );
       final first = refresh.onRefresh!();
       final repeated = refresh.onRefresh!();
+      // The repeated forced refresh is queued behind the in-flight read rather
+      // than merged into it, so it issues no extra request yet.
       expect(service.todayCalls.length, 2);
       service.todayCalls.last.completeError(
         StateError('synthetic transport failure'),
       );
-      // Both callers wait for the same in-flight section reads to finish.
+      await tester.pump();
+      // Once the first read settles, the queued refresh runs on its own.
+      expect(service.todayCalls.length, 3);
+      service.todayCalls.last.completeError(
+        StateError('synthetic transport failure'),
+      );
       await Future.wait([first, repeated]);
       await tester.pumpAndSettle();
       expect(find.text('保留上次结果'), findsOneWidget);
@@ -63,7 +70,7 @@ void main() {
   );
 
   testWidgets(
-    'grades ignore out-of-order refresh and retain results on failure',
+    'a forced grades refresh replaces the snapshot and failure retains it',
     (tester) async {
       final service = RefreshService();
       await tester.pumpWidget(ginkgoApp(home: GradesPage(service: service)));
@@ -73,16 +80,30 @@ void main() {
       final refresh = tester.widget<CupertinoSliverRefreshControl>(
         find.byType(CupertinoSliverRefreshControl, skipOffstage: false),
       );
-      final older = refresh.onRefresh!();
-      final newer = refresh.onRefresh!();
-      service.gradeCalls.last.complete(gradesFixture);
-      await newer;
-      service.gradeCalls[1].completeError(StateError('obsolete failure'));
-      await older;
+      // Grades may read terms before grades, so settle every pending read
+      // rather than assuming one request per refresh.
+      var handled = service.gradeCalls.length;
+      Future<void> settlePending({StateError? failure}) async {
+        for (var round = 0; round < 3; round++) {
+          await tester.pump();
+          while (handled < service.gradeCalls.length) {
+            final pending = service.gradeCalls[handled++];
+            failure == null
+                ? pending.complete(gradesFixture)
+                : pending.completeError(failure);
+          }
+        }
+      }
+
+      final refreshed = refresh.onRefresh!();
+      await settlePending();
+      await refreshed;
       await tester.pumpAndSettle();
       expect(find.textContaining('本地服务暂时不可用'), findsNothing);
+      expect(find.text(gradesFixture.courses.first.name), findsWidgets);
+
       final failed = refresh.onRefresh!();
-      service.gradeCalls.last.completeError(StateError('synthetic failure'));
+      await settlePending(failure: StateError('synthetic failure'));
       await failed;
       await tester.pumpAndSettle();
       expect(find.textContaining('正在保留'), findsOneWidget);

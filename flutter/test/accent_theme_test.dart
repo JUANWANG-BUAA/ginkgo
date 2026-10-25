@@ -85,6 +85,9 @@ void main() {
           'reduceMotion',
           'compactLists',
           'textSize',
+          // Safety marker, not a display setting: it stops a saved session
+          // from auto-restoring after an explicit sign-out.
+          'explicitSignOut',
         });
         prefs.dispose();
         restored.dispose();

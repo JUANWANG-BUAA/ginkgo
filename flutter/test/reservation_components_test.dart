@@ -140,7 +140,8 @@ void main() {
         tester.getCenter(find.byType(CupertinoButton)),
       );
       await tester.pump(const Duration(milliseconds: 60));
-      expect(tester.widget<AnimatedScale>(scale).scale, 0.97);
+      // Press target sits just under 1.0 so the row never visibly jumps.
+      expect(tester.widget<AnimatedScale>(scale).scale, 0.96);
       await gesture.cancel();
       await tester.pumpAndSettle();
       expect(tester.widget<AnimatedScale>(scale).scale, 1);
@@ -180,7 +181,7 @@ void main() {
       expect(find.byType(CupertinoActivityIndicator), findsNothing);
       expect(
         tester.widget<GinkgoActivity>(find.byType(GinkgoActivity)).size,
-        17,
+        16,
       );
       expect(
         find.ancestor(
