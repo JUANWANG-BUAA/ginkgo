@@ -9,7 +9,7 @@
 当前主线为 **Android / Flutter + Rust**。以工作树为准，不将历史设计或已发布内容重复排成新开发任务。
 
 - 已发布基线：Android Alpha.7（build 8）；Windows Alpha.6（build 7）。证据见 [发布记录](_audit/2026-10-23-android-alpha7-release.md)。
-- Alpha.7 后源码：作业提交状态与截止判定分离、工作台/学分展示优化、CGYY 静态协议对齐、公开查书/馆藏与排序、应用内校车时刻表；`e149f90` 已移除作业详情“加入个人待办”，保留既有本机数据。2026-10-24 复核批次另含：CAS 表单 action 白名单、账号身份一致性校验（`account == profile.school_id`）、保险库枚举失败不再视为空、快照缓存请求代次防护、课程范围读取失败锁定编辑、显式退出标记阻止自动恢复、更新门禁时序与发布址白名单、课表已确认快照、作业详情倒计时取最新状态、APK 校验失败可重下载、`RefreshSection`/`LibraryController` 强制刷新补跑、FFI 可达 `unreachable!()` 清除、预约按钮组件与查书目页重做、导航栏强调色（`navActionTextStyle`）。以上不意味着已经发新包或通过所有真实业务验收。
+- Alpha.7 后源码：作业提交状态与截止判定分离、工作台/学分展示优化、CGYY 静态协议对齐、公开查书/馆藏与排序、应用内校车时刻表；`e149f90` 已移除作业详情“加入个人待办”，保留既有本机数据。2026-10-24 复核批次另含：CAS 表单 action 白名单、账号身份一致性校验（`account == profile.school_id`）、保险库枚举失败不再视为空、快照缓存请求代次防护、课程范围读取失败锁定编辑、显式退出标记阻止自动恢复、更新门禁时序与发布址白名单、课表已确认快照、作业详情倒计时取最新状态、APK 校验失败可重下载、`RefreshSection`/`LibraryController` 强制刷新补跑、FFI 可达 `unreachable!()` 清除、预约按钮组件与查书目页重做、导航栏强调色（`navActionTextStyle`）。2026-10-25 收口批次：全部读命令补 `bounded_read` 超时、上游读路径统一 await 后账号复检（含 bykc 飞行中切账号回归）、剩余刷新静默丢弃页面改为待刷新补跑、壳层共享状态修复跨 760dp 旋转丢导航（含旋转回归测试）、CGYY 写迁移到模块级 `CGYY_ACCESS`/`CGYY_WRITE`（对齐 checkin/library）、`android-v*` 自动构建校验 workflow、bridge 层补 `bounded_read`/CGYY 双击退避测试、`CgyyDayPage` 补 widget 测试。以上不意味着已经发新包或通过所有真实业务验收。
 - [下一阶段方案](NEXT-STAGE-PLAN-2026-10-23.md) 与 [IA方案](NEXT-STAGE-IA-2026-10-23.md) 保留研究依据，不能将其中已落地方案重新实施，也不能将未批准的导航/写能力视为现有功能。
 - 执行顺序：**P0 可复现回归与安全边界 → P1 设备/账号验收及小步体验 → P2 扩展**。本地自动化与正常入口构建通过只能关闭相应本地事项；需要本人账号、真实写入或物理设备的条目继续保留。
 - **2026-10-24 综合评审**（工程 / 设计 / UI / 视觉）已按 Android-only 重排，其可复现缺陷并入下方 P0 / P1，范围收窄带来的新风险并入 P0：[_audit/2026-10-24-comprehensive-review.md](_audit/2026-10-24-comprehensive-review.md)。
@@ -18,9 +18,9 @@
 
 ## P0：认证可靠性与真实行为
 
-- [ ] **消除 16 处 `if (busy) return;` 静默丢弃刷新**：`notices_page.dart`、`cgyy_page.dart`、`homework_page.dart`、`library_stats_page.dart`、`shuttle_page.dart`、`library_books_page.dart` 等。初次加载期间的下拉刷新被丢弃且无任何反馈，违反“重叠读取合流、刷新保留旧内容”。改为记录一次待刷新并在下一次机会执行。`RefreshSection` 与 `LibraryController` 的强制刷新合流问题已在 2026-10-24 修复，其余页面的 busy 守卫仍未迁移。
-- [ ] **给所有读命令加超时上界**：`bounded_read`（`ginkgo_flutter_bridge/src/api/live/runtime.rs:20-26`，45 秒）已覆盖场馆/预约/历史/作业/签到/博雅/研究生，但**未覆盖** `load_classrooms`（`classroom.rs:29`）、`load_library_areas`/`load_library_slots`（`library.rs:54,78`）、`load_today`（`academic.rs:37`）、`load_notices`/`load_cgyy`/`load_shuttle_timetable`/`load_book_holdings`（`utilities.rs:48,73,115,125`）。慢 SSO 链可让 `SESSION_ACCESS` 读锁被持住数分钟，阻塞 `login`/`sign_out`/`set_route`/`clear_cache`。
-- [ ] **上游读路径补 await 后账号复检**：12 条左右读路径中只有 `library_service.rs:84,112-114`（历史）与 `checkin_service.rs:148,181,208-210` 做了 await 后复检。缺失：`library_service.rs:144→173-177`（场馆）与 `:270→296-302`（预约）、`classroom_service.rs:53→82`、`homework_service.rs:20→52`、`bykc_service.rs:29→60`、`graduate_service.rs:45→78`、`notices_service.rs:19-21`、`schedule_service.rs:255→288`。当前被 bridge 的 RwLock 挡住、无实际跨账号泄漏，但上游层不自洽，且快照 key 是常量（`"venues"`/`"bookings"`/`"current"`/`"public"`）。二选一：统一加 `current_account() != account → Err(session_expired)`，或快照按账号分键。
+- [x] ~~**消除 16 处 `if (busy) return;` 静默丢弃刷新**~~ —— 已完成（2026-10-25）：清单内页面（notices/cgyy/homework/library_stats/shuttle/library_books 馆藏、homework_detail）全部改为“飞行中记录待刷新、落定后补跑”，notices 拉刷新回归锁定于 `campus_service_pages_test.dart`；today/bykc/graduate/classroom/checkin 已在先前批次迁移。其余 `busy` 守卫（login/settings/booking/提交类）为防抖语义，不属于刷新丢弃。
+- [x] ~~**给所有读命令加超时上界**~~ —— 已完成（2026-10-25）：`bounded_read`（45 秒）现覆盖全部 `load_*` 读命令，含 `load_classrooms`、`load_library_areas/slots/seats/stats`、`load_schedule/load_today/load_grade_terms/load_grades`、`load_notices/load_cgyy/load_library_books/load_shuttle_timetable/load_library_holdings`、`load_homework_detail`。超时与直通行为有 bridge 单测（`runtime.rs bounded_read_tests`）。
+- [x] ~~**上游读路径补 await 后账号复检**~~ —— 已完成（2026-10-25）：统一采用“入口取 `current_account()`，网络 await 后 `!= account → Err(session_expired)`”，覆盖 library（venues/bookings/areas/slots/seats，history/token 原有）、classroom、homework（列表+详情）、bykc（共享 `read_bykc_snapshot` 助手）、graduate（`load_graduate_part`）、schedule（grades/terms/today/schedule，today 的课表回退路径同样复检）。回归：`bykc_service::tests::an_account_change_during_the_network_read_rejects_its_result`（飞行中切账号拒绝结果且不落缓存）。notices 为公共读取无身份，维持原状。
 - [ ] 对 [最近认证失败](_audit/2026-10-21-auth-redirect-incident.md) 中的 UC→HTTP SSO 跳转，区分旧版行为、Alpha.4 已发布修复与后续实网复验结果。合成修复通过不能替代用户授权下的真实复验，不推断账号被封。
 - [ ] 在用户逐次人工操作下验收签到、图书馆预约 / 取消 / 暂离 / 离馆及 CGYY 预约 / 取消，记录提交前状态、结果分类、审批与取消回查；CGYY 还需覆盖重启/重登后的待核实保护和可取消时间门禁、真实非空订单。现有自动化通过不能勾除此项，代理不自动执行真实写入。
 - [ ] 补充受控超时、断网与认证失败的模块回归，重点保留旧快照、恢复次数上限和写操作不重放；不为了消除失败而放宽业务断言。
@@ -28,12 +28,12 @@
 
 ## P1：Android 产品与平台验收
 
-- [ ] **增加 Android 自动发布 workflow**：`.github/workflows/` 下 macOS 有 `release.yml`（tag `v*`）、Windows 有 `windows-release.yml`（tag `windows-v*`），**Android 没有任何自动发布 workflow**，当前完全手工。Alpha.7 发布记录（[_audit/2026-10-23-android-alpha7-release.md:24](_audit/2026-10-23-android-alpha7-release.md)）记载的正是手工流程的一次真实失败：Release 因 `GeneratedPluginRegistrant` 引用 `integration_test` 编译失败。收窄为 Android-only 后这条路径没有兜底。建议 tag `android-v*` 触发：签名仍留本地（`GINKGO_ANDROID_SIGNING_PROPERTIES` 外部注入、缺配置即失败，此设计不改），CI 负责可自动化部分——带 `--pub` 构建、断言产物不含 `integration_test`、计算并记录 SHA-256、`apksigner verify`、上传 workflow artifact（不自动发布，真实写入验收仍需人工确认）。
-- [ ] **区分空态与错误态**：`apple_widgets.dart:154-161` 的 `AppleEmptyState` 对 error 与 empty 两个分支使用同一灰色图标（`CupertinoColors.secondaryLabel`），错误三角与空托盘不可分；36 个使用点中仅 16 处设了 `error: true`，`bykc_page.dart:406,427,480` 完全没设，博雅加载失败显示为灰色空托盘。给两个分支独立图标色并把所有失败路径接上 `error: true`。
+- [x] ~~**增加 Android 自动发布 workflow**~~ —— 可自动化部分已完成（2026-10-25）：`.github/workflows/android-release.yml` 由 tag `android-v*` 触发，外部注入四个签名 secret 组装 `GINKGO_ANDROID_SIGNING_PROPERTIES` 指向的 properties 文件（缺配置即失败，Gradle 侧 fail-closed 不变），带 `--pub` 构建正常入口 Release APK，断言 pubspec 版本与 tag 一致、`GeneratedPluginRegistrant` 不含 `integration_test`（对应 Alpha.7 事故）、`versionName` 匹配、非 debuggable、仅 arm64-v8a、`zipalign`/`apksigner verify`，产出 `Ginkgo-<version>-android-arm64.apk` + checksums 的 workflow artifact。**发布仍人工**：真实设备覆盖升级、发布说明与 GitHub prerelease 公开由维护者执行。四个 secret（KEYSTORE_BASE64/KEYSTORE_PASSWORD/KEY_ALIAS/KEY_PASSWORD）需在仓库 Settings 配置后 workflow 才可用。
+- [x] ~~**区分空态与错误态**~~ —— 已完成：`AppleEmptyState`（`widgets/apple_surfaces.dart`）错误分支用 `exclamationmark_triangle`、空态用 `tray`，失败路径统一传 `error: true`；bykc 的失败走独立状态横幅与空态分离，属设计差异而非遗漏。
 - [ ] **补 Flutter 侧的“部分成功”表达**：Swift 端有“以下来源暂时未能更新：…；作业结果不完整”，Flutter 的 `homework()` 只返回单个 `HomeworkResponse`（`application/mirror_service.dart:54`），`homework_page.dart:143-148` 把任何来源失败折叠成整页错误或“显示上次结果”。多来源部分失败在 Android 端当前不可表达。
 - [ ] **修 `GinkgoBadge` 大字号溢出**：`ginkgo_visuals.dart:80-90` 把 11/12pt 文字放进仅 1–2px 垂直内边距的容器，2.0× 缩放下溢出。`GinkgoIconTile`（`ginkgo_visuals.dart:44`）字形固定为 `size/2`，图标不随文字缩放。
 - [ ] **补 Semantics 与 SafeArea 覆盖**：全应用仅 61 处 `Semantics(...)`，`GinkgoIconTile.semanticLabel`（`ginkgo_visuals.dart:16`）存在但很少传值；15 个页面文件完全无 `SafeArea`，靠硬编码占位（`library_page.dart:169` 的 `const SizedBox(height: 96)`）。共享 `choose` 菜单的选中项 Semantics 与 8 处 <48dp 触控目标已在 2026-10-24 修复，其余 Semantics/SafeArea 缺口仍开放。
-- [ ] **横竖屏跨越 760dp 时提升导航状态**：移动 tab 壳与桌面侧栏壳在断点两侧分别重建（`workspace_shell.dart`），旋转后当前目的地回到工作台、未提交表单丢失；需把选中目的地与各 tab 导航栈提升到壳层共享状态。
+- [x] ~~**横竖屏跨越 760dp 时提升导航状态**~~ —— 已完成（2026-10-25）：`workspace_shell.dart` 新增 `_WorkspaceShell`，选中目的地、已访问集合与各目的地的 `GlobalKey<NavigatorState>` 提升到断点之上，移动 tab 壳与桌面侧栏壳共用；跨断点旋转通过 GlobalKey 保活各目的地的导航栈（含未提交表单页面）。桌面专有目的地（无移动标签）转回移动端时回到首个标签并同步选中，属既定边界。回归：`workspace_navigation_test.dart` 的旋转用例（移动选课表→桌面侧栏同选中→转回移动仍在课表）。
 - [ ] ~~**待办编辑增加脏草稿放弃确认**~~ —— 已完成（2026-10-24）：`task_editor.dart` 有未保存修改时返回弹出“放弃未保存的修改？”确认，未编辑时静默退出。
 - [ ] **物理 Android 真机验收系统返回/预测返回、TalkBack 全流程、大字号/深浅色及长列表性能**；覆盖强调色、常用入口、栏目过渡与新校车页实际帧率。合成 widget 与 ARM64 模拟器不能替代。
 - [ ] 用户授权下核对真实作业来源定位与截止时间；验证已提交无倒计时、待处理排除已截止、个人待办不重复显示学校来源事项，保留 v1→v2 升级前备份与不可降级编辑说明。不得新增提交权限或自动改学校状态。
@@ -49,7 +49,7 @@
 ## P2：功能与结构
 
 - [ ] **补齐设计 token 采纳并加 CI 强制**：`flutter/lib/design/tokens/` 定义质量高（4pt/8pt 间距、HIG 类型标尺、圆角、动效），但 96 个应用 Dart 文件中 **62 个（65%）零引用**，实测硬编码 202 处 `fontSize`、204 处 `EdgeInsets`、199 处 `SizedBox`、49 处 `BorderRadius`；仅 `apple_design.dart` 引用了 token，且只暴露约 60 个中的 16 个（`AppleDesign.title` 还被别名到 `largeTitle`，与 `body` 之间缺整档）。根因是门面过窄而非页面懒惰。收窄为 Android-only 后这是唯一的设计系统，补齐门面 + 一个 CI token 采纳检查（Rust 分层已有门禁、Dart 没有）是守住它的唯一自动化手段。
-- [ ] **为 9 个端点补 bridge DTO，删掉 Dart 里的 `jsonDecode`**：18 个 Dart 文件 24 处 `jsonDecode` 直接读学校字段名（`space_id`/`time_ids`/`currentTerm`/`phase`/`bibId` 等），根因是 `ginkgo_flutter_bridge/src/api/live.rs:205-209` 的 `ReadOnlyResponse { payload: Option<String>, … }` 逃生舱被约 9 个端点使用。载荷是 Rust 净化过的领域 JSON（不是原始上游数据），属契约侵蚀而非凭据泄露；修复顺序是先补 DTO 再删 Dart 解析。
+- [ ] **为 9 个端点补 bridge DTO，删掉 Dart 里的 `jsonDecode`**：页面层 `jsonDecode` 已于 2026-10-25 收口为零，学校字段名解码集中在 8 个 `*_models.dart`（`space_id`/`time_ids`/`currentTerm`/`phase`/`bibId` 等），剩余 11 处 `jsonDecode` 均为本地偏好/维护文件，非学校 payload。根因仍是 `ginkgo_flutter_bridge/src/api/live.rs` 的 `ReadOnlyResponse { payload: Option<String>, … }` 逃生舱被约 9 个端点使用；载荷是 Rust 净化过的领域 JSON（不是原始上游数据），属契约侵蚀而非凭据泄露；修复顺序仍是先补 DTO 再删 Dart 解析。
 - [ ] **把稳定业务规则搬回 `ginkgo_domain`**：`reminder_rules.dart:18-33`（签到窗口）、`:46-110`（提醒排程）、`homework_projection.dart:44-70`（截止分类）、`checkin_page.dart:54-57` 与 `library_stats_page.dart:48`（UTC+8 学校“今天”）目前留在 Dart，违反“学校日期与稳定业务规则留在 Rust”；放回 domain 才能拿到 Rust 单测。
 - [ ] 补齐验证码图片传输、展示和刷新；当前挑战提示与手填框仍不足以完成所有风控分支。
 - [ ] “登录成功但密码保存失败”提供就地提示；解释 WebVPN 网关为何可能要求记住密码，减少首次使用的困惑。
@@ -59,7 +59,7 @@
 - [ ] 移动端“个人与校园”快捷入口（`service_directory.dart`）仍是精选清单，与 `workspace_catalog.dart` 的功能清单重复；如需完全单一来源，可改为从登记表派生（需把 `WorkspaceContext` 工厂传入目录）。
 - [ ] 更新体系：最低版本门禁已接入（`update_gate.dart` + `docs/update-gate.json`，拉取失败放行）；清单签名、差分补丁、灰度/回滚、Windows Authenticode 与应用内更新仍待做。提升 `minBuild` 前必须确认新版本已可下载，避免把旧版锁在无法更新的状态。
 - [ ] Android 应用内下载、断点续传、摘要 / 签名校验和系统安装确认已进入 Alpha.4；Alpha.6→7 的签名包模拟器覆盖升级已完成，仍需发布后在物理设备验证旧版发现、未知来源授权、覆盖升级和网络中断恢复。
-- [ ] 架构债清理（低优先，逐项处理）：`upstream/src/lib.rs:7` 的 `pub use codecs as features` 造出两个 `features` 命名空间（`crate::features::cgyy::number` 是编解码器、`day` 是领域规则）；`ginkgo_core/src/cgyy_pending_store.rs:15,51,77,111` 与 `tasks_store.rs:11` 在 tokio worker 上做阻塞 fsync 且持全局锁、串行化所有账号；`bridge/src/api/live/utilities.rs:80` 的 CGYY 写操作持全局写锁阻塞全应用读、`:13` 的 `edit_tasks` 用 `try_read()` 在登录中直接失败；`codecs/library_mutation.rs:43-66` 按中文字面量子串判定写结果；`upstream/src/services/library_service.rs:100-110` 的 token 重试块复制 5 遍；Rust workspace 零日志可观测性，线上排障只能靠复现。
+- [ ] 架构债清理（低优先，逐项处理）：`upstream/src/lib.rs:7` 的 `pub use codecs as features` 造出两个 `features` 命名空间（`crate::features::cgyy::number` 是编解码器、`day` 是领域规则）；`ginkgo_core/src/cgyy_pending_store.rs:15,51,77,111` 与 `tasks_store.rs:11` 在 tokio worker 上做阻塞 fsync 且持全局锁、串行化所有账号；`bridge/src/api/live/utilities.rs` 的 `edit_tasks` 用 `try_read()` 在登录中直接失败（CGYY 写已于 2026-10-25 迁移到模块级 `CGYY_ACCESS`/`CGYY_WRITE`，双击退避有测试）；`codecs/library_mutation.rs:43-66` 按中文字面量子串判定写结果；`upstream/src/services/library_service.rs:100-110` 的 token 重试块复制 5 遍；Rust workspace 零日志可观测性，线上排障只能靠复现（引入前须按 `docs/COLLABORATION.md` 定脱敏白名单并人工审查）。
 
 ## 冻结：macOS / iOS（2026-10-24 起不再排期）
 
