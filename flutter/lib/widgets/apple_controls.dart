@@ -2,8 +2,8 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/cupertino.dart';
 
-import '../apple_design.dart';
-import 'apple_surfaces.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/widgets/apple_surfaces.dart';
 
 /// Anchored glass menu used by picker tiles. Returns the selected value, or
 /// null when dismissed; positioning keeps every option above the phone tab

@@ -3,10 +3,10 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/android_update_controller.dart';
-import 'package:ginkgo_mirror/loading_widgets.dart';
+import 'package:ginkgo_mirror/platform/android_update_controller.dart';
+import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/update_download_section.dart';
+import 'package:ginkgo_mirror/platform/update_download_section.dart';
 
 /// The download never leaves its directory wait, so the busy phase is observed
 /// without network traffic or file writes.

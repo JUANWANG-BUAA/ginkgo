@@ -1,13 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/app_preferences.dart';
-import 'package:ginkgo_mirror/grades_page.dart';
-import 'package:ginkgo_mirror/library_page.dart';
-import 'package:ginkgo_mirror/tasks_page.dart';
-import 'package:ginkgo_mirror/today_page.dart';
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
+import 'package:ginkgo_mirror/features/grades/grades_page.dart';
+import 'package:ginkgo_mirror/features/library/library_page.dart';
+import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
+import 'package:ginkgo_mirror/features/today/today_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
-import 'package:ginkgo_mirror/workspace_tab_transition.dart';
+import 'package:ginkgo_mirror/workspace/workspace_tab_transition.dart';
 
 import 'mirror_widget_test.dart'
     show ControlledService, mockLocalTaskSupportDirectory;

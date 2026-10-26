@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/loading_widgets.dart';
+import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/maintenance_pages.dart';
-import 'package:ginkgo_mirror/maintenance_service.dart';
+import 'package:ginkgo_mirror/features/settings/maintenance_pages.dart';
+import 'package:ginkgo_mirror/platform/maintenance_service.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
 

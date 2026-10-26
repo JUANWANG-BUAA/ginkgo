@@ -4,8 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/cgyy_page.dart';
-import 'package:ginkgo_mirror/cgyy_review_page.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_review_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 
 import '../test/cgyy_management_test.dart' show ManagementService, currentOrder;

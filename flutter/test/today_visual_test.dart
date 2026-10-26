@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/apple_design.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/today_action_row.dart';
-import 'package:ginkgo_mirror/today_page.dart';
+import 'package:ginkgo_mirror/features/today/today_action_row.dart';
+import 'package:ginkgo_mirror/features/today/today_page.dart';
 
 import 'today_v2_widget_test.dart'
     show TodayFake, oneHomework, task, tasksPayload;

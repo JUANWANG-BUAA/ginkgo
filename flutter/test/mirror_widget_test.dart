@@ -11,9 +11,9 @@ import 'package:flutter/services.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show HomeworkDetailResponse;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/loading_widgets.dart';
+import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/schedule_grid.dart';
+import 'package:ginkgo_mirror/features/schedule/schedule_grid.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show GradeTermsResponse, RouteChoice, SessionResponse, SessionState;

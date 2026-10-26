@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/library_loans.dart';
-import 'package:ginkgo_mirror/library_loans_page.dart';
+import 'package:ginkgo_mirror/features/library/library_loans_page.dart';
 import 'package:ginkgo_mirror/infrastructure/native_library_loans.dart';
 
 const page = LibraryLoanPage(

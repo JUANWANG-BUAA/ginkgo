@@ -1,5 +1,5 @@
-import 'contracts.dart';
-import 'diagnostic_log.dart';
+import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 
 /// Maps typed Rust domain failure codes to human-readable Chinese error messages.
 String failureMessage(FailureCode? code) {

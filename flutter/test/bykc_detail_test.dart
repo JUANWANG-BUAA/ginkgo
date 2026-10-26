@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/bykc_detail_page.dart';
-import 'package:ginkgo_mirror/bykc_models.dart';
+import 'package:ginkgo_mirror/features/bykc/bykc_detail_page.dart';
+import 'package:ginkgo_mirror/features/bykc/bykc_models.dart';
 import 'package:ginkgo_mirror/main.dart';
 
 void main() {

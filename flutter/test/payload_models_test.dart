@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/library_books_models.dart';
-import 'package:ginkgo_mirror/library_stats_models.dart';
-import 'package:ginkgo_mirror/notices_models.dart';
-import 'package:ginkgo_mirror/shuttle_models.dart';
+import 'package:ginkgo_mirror/features/library/library_books_models.dart';
+import 'package:ginkgo_mirror/features/library/library_stats_models.dart';
+import 'package:ginkgo_mirror/features/notices/notices_models.dart';
+import 'package:ginkgo_mirror/features/shuttle/shuttle_models.dart';
 
 void main() {
   group('notices payload', () {

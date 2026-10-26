@@ -117,7 +117,7 @@ class BoundaryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             lib = root / 'flutter/lib'
-            page = lib / 'cgyy_page.dart'
+            page = lib / 'features/cgyy/cgyy_page.dart'
             page.parent.mkdir(parents=True)
             page.write_text('final rows = jsonDecode(payload) as List;\n')
             widgets = lib / 'widgets/apple_surfaces.dart'
@@ -132,24 +132,52 @@ class BoundaryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             lib = root / 'flutter/lib'
-            page = lib / 'today_page.dart'
+            page = lib / 'features/today/today_page.dart'
             page.parent.mkdir(parents=True)
             widgets = lib / 'widgets/apple_surfaces.dart'
             widgets.parent.mkdir(parents=True)
-            shared = lib / 'cgyy_widgets.dart'
+            shared = lib / 'features/cgyy/cgyy_widgets.dart'
+            shared.parent.mkdir(parents=True)
             page.write_text('class Row { final Map<String, dynamic> course; }\n')
             widgets.write_text('final rows = <Map<String, dynamic>>[];\n')
             self.assertEqual(len(BOUNDARY.payload_decode_violations(root)), 2)
             shared.write_text('class Tile { final CgyySite site; }\n')
             self.assertEqual(len(BOUNDARY.payload_decode_violations(root)), 2)
 
+    def test_shared_and_design_layers_are_presentation_scoped(self):
+        """新目录层级同样受呈现层约束，不能靠换目录绕开类型边界。"""
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            lib = root / 'flutter/lib'
+            shared = lib / 'shared/course_visibility.dart'
+            shared.parent.mkdir(parents=True)
+            design = lib / 'design/ginkgo_visuals.dart'
+            design.parent.mkdir(parents=True)
+            shared.write_text('final rows = <Map<String, dynamic>>[];\n')
+            design.write_text('final rows = <Map<String, dynamic>>[];\n')
+            self.assertEqual(len(BOUNDARY.payload_decode_violations(root)), 2)
+
+    def test_local_json_codecs_are_recognised_by_path(self):
+        """本机持久化编解码器按路径豁免；改名后不再豁免。"""
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            lib = root / 'flutter/lib'
+            codec = lib / 'shared/app_preferences.dart'
+            codec.parent.mkdir(parents=True)
+            codec.write_text('final value = jsonDecode(text);\n')
+            self.assertEqual(BOUNDARY.payload_decode_violations(root), [])
+            moved = lib / 'shared/renamed_preferences.dart'
+            moved.write_text('final value = jsonDecode(text);\n')
+            self.assertEqual(len(BOUNDARY.payload_decode_violations(root)), 1)
+
     def test_model_projections_and_local_codecs_decode_json(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             lib = root / 'flutter/lib'
-            models = lib / 'bykc_models.dart'
-            codec = lib / 'app_preferences.dart'
+            models = lib / 'features/bykc/bykc_models.dart'
+            codec = lib / 'shared/app_preferences.dart'
             models.parent.mkdir(parents=True)
+            codec.parent.mkdir(parents=True)
             models.write_text('final value = jsonDecode(payload);\n')
             codec.write_text('final value = jsonDecode(text);\n')
             self.assertEqual(BOUNDARY.payload_decode_violations(root), [])

@@ -9,11 +9,11 @@ import '../application/contracts.dart';
 import '../application/mirror_service.dart';
 import '../src/rust/api/live.dart' as live;
 import '../src/rust/api/mirror.dart' as rust;
-import 'native_learning.dart';
-import 'native_library_loans.dart';
-import 'learning_snapshot_store.dart';
-import 'native_reminder_planning.dart';
-import 'graduate_credit_map_payload.dart';
+import 'package:ginkgo_mirror/infrastructure/native_learning.dart';
+import 'package:ginkgo_mirror/infrastructure/native_library_loans.dart';
+import 'package:ginkgo_mirror/infrastructure/learning_snapshot_store.dart';
+import 'package:ginkgo_mirror/infrastructure/native_reminder_planning.dart';
+import 'package:ginkgo_mirror/infrastructure/graduate_credit_map_payload.dart';
 
 final class NativeMirrorService
     with

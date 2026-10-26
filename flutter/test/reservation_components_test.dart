@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/loading_widgets.dart';
+import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
-import 'package:ginkgo_mirror/reservation_widgets.dart';
-import 'package:ginkgo_mirror/reservations_page.dart';
-import 'package:ginkgo_mirror/resource_meter.dart';
+import 'package:ginkgo_mirror/features/reservations/reservation_widgets.dart';
+import 'package:ginkgo_mirror/features/reservations/reservations_page.dart';
+import 'package:ginkgo_mirror/widgets/resource_meter.dart';
 
 class RecordingReservationsPage extends ReservationsPage {
   const RecordingReservationsPage({super.key, required this.opened})

@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart' show SessionResponse;
-import 'package:ginkgo_mirror/loading_widgets.dart';
-import 'package:ginkgo_mirror/login_page.dart';
+import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
+import 'package:ginkgo_mirror/features/auth/login_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 
 import 'session_widget_test.dart' show FakeService, signedOut, signedIn;

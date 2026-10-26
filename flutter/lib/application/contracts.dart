@@ -1,5 +1,5 @@
 // Application value contract. Export DTOs only; native commands stay in adapters.
-export 'learning_models.dart'
+export 'package:ginkgo_mirror/application/learning_models.dart'
     show
         LearningCourse,
         CourseAnnouncement,
@@ -59,8 +59,8 @@ export '../src/rust/api/mirror.dart'
         SectionState,
         TodayCourse,
         TodayResponse;
-export 'learning_context.dart' show LearningColumn, LearningCapabilities;
-export 'graduate_credit_map.dart'
+export 'package:ginkgo_mirror/application/learning_context.dart' show LearningColumn, LearningCapabilities;
+export 'package:ginkgo_mirror/application/graduate_credit_map.dart'
     show
         GraduateCreditMapGateway,
         GraduateCreditMapRead,
@@ -71,4 +71,4 @@ export 'graduate_credit_map.dart'
         GraduateCreditRow,
         GraduateCreditNode,
         GraduateCreditMap;
-export 'auth_challenge.dart' show AuthChallengeGateway, LoginChallenge;
+export 'package:ginkgo_mirror/application/auth_challenge.dart' show AuthChallengeGateway, LoginChallenge;

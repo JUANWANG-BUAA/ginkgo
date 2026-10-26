@@ -1,9 +1,9 @@
 import '../application/contracts.dart';
 import '../application/homework_files.dart';
-import 'demo_homework_files.dart';
-import 'demo_learning.dart';
-import 'demo_library_loans.dart';
-import 'demo_graduate_credit_map.dart';
+import 'package:ginkgo_mirror/infrastructure/demo_homework_files.dart';
+import 'package:ginkgo_mirror/infrastructure/demo_learning.dart';
+import 'package:ginkgo_mirror/infrastructure/demo_library_loans.dart';
+import 'package:ginkgo_mirror/infrastructure/demo_graduate_credit_map.dart';
 
 import 'dart:typed_data';
 

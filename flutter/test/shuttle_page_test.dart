@@ -7,8 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
-import 'package:ginkgo_mirror/service_directory.dart';
-import 'package:ginkgo_mirror/shuttle_page.dart';
+import 'package:ginkgo_mirror/workspace/service_directory.dart';
+import 'package:ginkgo_mirror/features/shuttle/shuttle_page.dart';
 
 // Only this read capability is implemented. Unexpected calls fail rather than
 // reaching native bindings, demo initialization, or a school network.

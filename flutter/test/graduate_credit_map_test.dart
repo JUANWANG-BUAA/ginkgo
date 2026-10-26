@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/graduate_credit_map_page.dart';
+import 'package:ginkgo_mirror/features/graduate/graduate_credit_map_page.dart';
 import 'package:ginkgo_mirror/infrastructure/graduate_credit_map_payload.dart';
 
 Map<String, Object?> node({

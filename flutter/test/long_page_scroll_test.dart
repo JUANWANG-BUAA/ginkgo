@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/long_page_scroll.dart';
+import 'package:ginkgo_mirror/widgets/long_page_scroll.dart';
 
 void main() {
   testWidgets(

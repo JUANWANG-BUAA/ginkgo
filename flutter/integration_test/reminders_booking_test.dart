@@ -4,8 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:ginkgo_mirror/cgyy_booking_page.dart';
-import 'package:ginkgo_mirror/checkin_page.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_booking_page.dart';
+import 'package:ginkgo_mirror/features/checkin/checkin_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
 

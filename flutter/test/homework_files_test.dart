@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/homework_files_panel.dart';
+import 'package:ginkgo_mirror/features/homework/homework_files_panel.dart';
 import 'package:ginkgo_mirror/application/homework_files.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_homework_files.dart';

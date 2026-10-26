@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/query_cache_scope.dart';
-import 'package:ginkgo_mirror/settings_page.dart';
+import 'package:ginkgo_mirror/shared/query_cache_scope.dart';
+import 'package:ginkgo_mirror/features/settings/settings_page.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
 

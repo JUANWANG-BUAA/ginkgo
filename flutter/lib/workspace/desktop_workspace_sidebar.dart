@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 
-import '../apple_design.dart';
-import '../apple_widgets.dart';
-import '../reminders.dart';
-import '../workspace_catalog.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+import 'package:ginkgo_mirror/shared/reminders.dart';
+import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 
 /// 品牌区与侧栏条目：桌面壳的静态装饰部分，不持有任何状态。
 Widget workspaceBrandIdentity(

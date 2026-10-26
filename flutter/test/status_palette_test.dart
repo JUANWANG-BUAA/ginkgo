@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/apple_design.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
 
 double contrast(Color foreground, Color background) {
   final a = foreground.computeLuminance();

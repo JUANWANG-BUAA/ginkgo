@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import 'radii.dart';
+import 'package:ginkgo_mirror/design/tokens/radii.dart';
 
 /// Layout breakpoints and structural dimensions.
 abstract final class GinkgoLayout {

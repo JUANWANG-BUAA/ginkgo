@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/workspace_back_guard.dart';
+import 'package:ginkgo_mirror/workspace/workspace_back_guard.dart';
 
 /// The Android double-back exit is the only place where a stray extra press
 /// closes the app, so its time window is pinned here with fake time.

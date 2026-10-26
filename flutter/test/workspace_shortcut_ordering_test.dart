@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/workspace_shortcut_preferences.dart';
+import 'package:ginkgo_mirror/workspace/workspace_shortcut_preferences.dart';
 
 void main() {
   test('A B A reconstruction orders disk reads after old writes, then preserves newer save', () async {

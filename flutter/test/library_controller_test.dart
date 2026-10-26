@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/library_controller.dart';
+import 'package:ginkgo_mirror/features/library/library_controller.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 

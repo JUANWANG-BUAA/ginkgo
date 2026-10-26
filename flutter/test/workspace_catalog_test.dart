@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/workspace_catalog.dart';
+import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 
 void main() {
   test('feature ids are unique and resolvable', () {

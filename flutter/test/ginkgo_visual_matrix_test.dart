@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/app_preferences.dart';
-import 'package:ginkgo_mirror/ginkgo_visuals.dart';
-import 'package:ginkgo_mirror/loading_widgets.dart';
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
+import 'package:ginkgo_mirror/design/ginkgo_visuals.dart';
+import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 
 import 'workspace_tab_transition_test.dart'

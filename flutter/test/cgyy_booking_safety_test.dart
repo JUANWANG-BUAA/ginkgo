@@ -6,7 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
-import 'package:ginkgo_mirror/cgyy_booking_page.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_booking_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 
 class SafetyGateway implements CgyyBookingGateway {

@@ -1,4 +1,4 @@
-import 'contracts.dart';
+import 'package:ginkgo_mirror/application/contracts.dart';
 
 /// Page-facing capabilities. Tests and alternative adapters need no native runtime.
 abstract interface class MirrorService

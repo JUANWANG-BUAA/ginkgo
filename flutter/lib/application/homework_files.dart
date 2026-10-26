@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'contracts.dart';
+import 'package:ginkgo_mirror/application/contracts.dart';
 
 /// Business-only capability, independent from school endpoints and AcademicGateway.
 abstract interface class HomeworkFilesGateway {

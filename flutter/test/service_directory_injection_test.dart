@@ -4,11 +4,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/service_directory.dart';
+import 'package:ginkgo_mirror/workspace/service_directory.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_mirror_service.dart';
-import 'package:ginkgo_mirror/learning_page.dart';
-import 'package:ginkgo_mirror/graduate_credit_map_page.dart';
-import 'package:ginkgo_mirror/library_loans_page.dart';
+import 'package:ginkgo_mirror/features/learning/learning_page.dart';
+import 'package:ginkgo_mirror/features/graduate/graduate_credit_map_page.dart';
+import 'package:ginkgo_mirror/features/library/library_loans_page.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
 

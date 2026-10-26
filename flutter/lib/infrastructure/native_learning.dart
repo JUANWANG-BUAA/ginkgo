@@ -4,8 +4,8 @@ import '../application/contracts.dart';
 import '../application/learning.dart';
 import '../application/learning_context.dart';
 import '../src/rust/api/live.dart' as live;
-import 'learning_payload.dart';
-import 'learning_snapshot_store.dart';
+import 'package:ginkgo_mirror/infrastructure/learning_payload.dart';
+import 'package:ginkgo_mirror/infrastructure/learning_snapshot_store.dart';
 
 /// Native business adapter shared by the account-bound workspace service.
 mixin NativeLearning

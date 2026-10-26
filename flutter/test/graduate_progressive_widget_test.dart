@@ -4,8 +4,8 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/graduate_models.dart';
-import 'package:ginkgo_mirror/graduate_page.dart';
+import 'package:ginkgo_mirror/features/graduate/graduate_models.dart';
+import 'package:ginkgo_mirror/features/graduate/graduate_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';

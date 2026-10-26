@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'contracts.dart' show FailureCode;
+import 'package:ginkgo_mirror/application/contracts.dart' show FailureCode;
 
 /// Allowlisted diagnostics only: no exception text, URLs, account or payloads.
 class DiagnosticEntry {

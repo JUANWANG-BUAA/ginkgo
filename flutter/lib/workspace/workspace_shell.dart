@@ -1,21 +1,21 @@
 import 'package:flutter/cupertino.dart';
 
-import '../apple_design.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import '../application/contracts.dart' show RouteChoice;
-import '../course_visibility.dart';
-import '../diagnostic_hints.dart';
-import '../ginkgo_app.dart';
+import 'package:ginkgo_mirror/features/schedule/course_visibility.dart';
+import 'package:ginkgo_mirror/widgets/diagnostic_hints.dart';
+import 'package:ginkgo_mirror/app/ginkgo_app.dart';
 import '../mirror_service.dart';
-import '../query_cache_scope.dart';
-import '../reminders.dart';
-import '../startup_update.dart';
-import '../workspace_catalog.dart';
-import 'desktop_workspace_shell.dart';
-import 'mobile_workspace_shell.dart';
+import 'package:ginkgo_mirror/shared/query_cache_scope.dart';
+import 'package:ginkgo_mirror/shared/reminders.dart';
+import 'package:ginkgo_mirror/platform/startup_update.dart';
+import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
+import 'package:ginkgo_mirror/workspace/desktop_workspace_shell.dart';
+import 'package:ginkgo_mirror/workspace/mobile_workspace_shell.dart';
 
 // 保持历史导入面：调用方与测试仍从本文件取应用根与主题。
-export '../ginkgo_app.dart' show ginkgoApp;
-export '../ginkgo_theme.dart' show ginkgoTheme;
+export 'package:ginkgo_mirror/app/ginkgo_app.dart' show ginkgoApp;
+export 'package:ginkgo_mirror/design/ginkgo_theme.dart' show ginkgoTheme;
 
 /// 工作区外壳：只负责会话切换、移动/桌面布局与功能登记表的消费，
 /// 具体页面由 workspace_catalog.dart 登记，壳层不维护功能索引。

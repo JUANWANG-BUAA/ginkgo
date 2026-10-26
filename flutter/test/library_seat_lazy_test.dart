@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/apple_widgets.dart';
-import 'package:ginkgo_mirror/collection_toolbar.dart';
-import 'package:ginkgo_mirror/library_page.dart';
+import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+import 'package:ginkgo_mirror/widgets/collection_toolbar.dart';
+import 'package:ginkgo_mirror/features/library/library_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';

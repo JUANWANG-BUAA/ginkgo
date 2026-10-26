@@ -1,4 +1,4 @@
-import 'contracts.dart';
+import 'package:ginkgo_mirror/application/contracts.dart';
 
 /// Private on-demand reads. Implementations must not persist reader records.
 class LibraryLoan {

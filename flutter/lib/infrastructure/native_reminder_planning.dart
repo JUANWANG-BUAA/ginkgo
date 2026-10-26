@@ -1,5 +1,5 @@
 import '../application/reminder_planning.dart';
-import '../reminder_rules.dart';
+import 'package:ginkgo_mirror/shared/reminder_rules.dart';
 import '../src/rust/api/reminder_planning.dart' as native;
 
 /// Pure Rust command; does not initialize the network runtime.

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
-import 'apple_design.dart';
-import 'loading_widgets.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
 /// A single, quiet entrance while restoration runs; never delays navigation.
 class StartupPage extends StatelessWidget {

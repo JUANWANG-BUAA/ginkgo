@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:path_provider/path_provider.dart';
 
-import '../school_timestamp.dart';
-import 'mirror_service.dart';
+import 'package:ginkgo_mirror/shared/school_timestamp.dart';
+import 'package:ginkgo_mirror/mirror_service.dart';
 
 /// Device-local personal task. Completion never changes a school assignment.
 class LocalTaskRecord {

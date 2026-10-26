@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import 'colors.dart';
+import 'package:ginkgo_mirror/design/tokens/colors.dart';
 
 /// Semantic typography scale matching Apple Human Interface Guidelines.
 abstract final class GinkgoTypography {

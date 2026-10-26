@@ -4,15 +4,15 @@ import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/apple_widgets.dart';
+import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/checkin_page.dart';
-import 'package:ginkgo_mirror/classroom_page.dart';
-import 'package:ginkgo_mirror/loading_widgets.dart';
+import 'package:ginkgo_mirror/features/checkin/checkin_page.dart';
+import 'package:ginkgo_mirror/features/classroom/classroom_page.dart';
+import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/notices_page.dart';
-import 'package:ginkgo_mirror/shuttle_page.dart';
-import 'package:ginkgo_mirror/tasks_page.dart';
+import 'package:ginkgo_mirror/features/notices/notices_page.dart';
+import 'package:ginkgo_mirror/features/shuttle/shuttle_page.dart';
+import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
 
 import 'mirror_widget_test.dart' show ControlledService, checkInFixture;
 

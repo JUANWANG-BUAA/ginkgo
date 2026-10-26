@@ -2,12 +2,12 @@ import 'package:flutter/cupertino.dart';
 
 import '../application/contracts.dart' show RouteChoice;
 import '../mirror_service.dart';
-import '../reminder_badge.dart';
-import '../reminders.dart';
-import '../workspace_back_guard.dart';
-import '../workspace_catalog.dart';
-import 'workspace_shell.dart' show WorkspaceShellState;
-import '../workspace_tab_transition.dart';
+import 'package:ginkgo_mirror/widgets/reminder_badge.dart';
+import 'package:ginkgo_mirror/shared/reminders.dart';
+import 'package:ginkgo_mirror/workspace/workspace_back_guard.dart';
+import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
+import 'package:ginkgo_mirror/workspace/workspace_shell.dart' show WorkspaceShellState;
+import 'package:ginkgo_mirror/workspace/workspace_tab_transition.dart';
 
 /// 移动标签壳：底部导航 + 每个目的地一个常驻导航栈。选中状态与导航栈
 /// key 由 [WorkspaceShellState] 持有，跨断点旋转时随共享壳层保留。

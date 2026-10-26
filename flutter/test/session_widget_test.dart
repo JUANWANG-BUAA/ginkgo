@@ -12,7 +12,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show HomeworkDetailResponse;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/app_preferences.dart';
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart'

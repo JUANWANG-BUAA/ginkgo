@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
-import '../apple_design.dart';
-import '../reminder_badge.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/widgets/reminder_badge.dart';
 
 /// macOS reference uses 180–200ms easeInOut for content/state changes.
 /// Fade only the incoming snapshot, keeping hit targets and list position stable.

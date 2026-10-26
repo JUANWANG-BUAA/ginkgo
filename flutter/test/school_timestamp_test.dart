@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/school_timestamp.dart';
+import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 
 void main() {
   test('timestamps use Beijing time for Z and offset instants', () {

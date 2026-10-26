@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../mirror_service.dart';
-import '../android_update_controller.dart';
+import 'package:ginkgo_mirror/platform/android_update_controller.dart';
 import '../src/rust/api/live.dart' as live;
 import '../src/rust/api/mirror.dart' as bridge;
 

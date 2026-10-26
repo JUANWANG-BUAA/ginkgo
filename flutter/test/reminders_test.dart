@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_mirror_service.dart';
-import 'package:ginkgo_mirror/reminder_rules.dart';
-import 'package:ginkgo_mirror/reminders.dart';
+import 'package:ginkgo_mirror/shared/reminder_rules.dart';
+import 'package:ginkgo_mirror/shared/reminders.dart';
 import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 
 CheckInCourse course({

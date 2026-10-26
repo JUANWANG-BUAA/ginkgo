@@ -1,5 +1,5 @@
-import 'learning.dart';
-import 'learning_models.dart';
+import 'package:ginkgo_mirror/application/learning.dart';
+import 'package:ginkgo_mirror/application/learning_models.dart';
 
 /// Explicit, server-validated navigation contexts. No school URLs or tokens.
 abstract interface class CourseLearningContextGateway {

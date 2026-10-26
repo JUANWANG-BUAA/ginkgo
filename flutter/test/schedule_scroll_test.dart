@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/schedule_grid.dart';
+import 'package:ginkgo_mirror/features/schedule/schedule_grid.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 
 const course = ScheduleCourse(

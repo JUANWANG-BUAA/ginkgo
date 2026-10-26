@@ -5,11 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/maintenance_pages.dart';
-import 'package:ginkgo_mirror/maintenance_service.dart';
+import 'package:ginkgo_mirror/features/settings/maintenance_pages.dart';
+import 'package:ginkgo_mirror/platform/maintenance_service.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
-import 'package:ginkgo_mirror/startup_update.dart';
-import 'package:ginkgo_mirror/update_gate.dart';
+import 'package:ginkgo_mirror/platform/startup_update.dart';
+import 'package:ginkgo_mirror/platform/update_gate.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 const available = UpdateResult(

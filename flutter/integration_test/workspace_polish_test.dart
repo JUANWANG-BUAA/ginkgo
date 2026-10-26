@@ -1,13 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:ginkgo_mirror/app_preferences.dart';
-import 'package:ginkgo_mirror/preferences_pages.dart';
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
+import 'package:ginkgo_mirror/features/settings/preferences_pages.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
-import 'package:ginkgo_mirror/today_page.dart';
-import 'package:ginkgo_mirror/tasks_page.dart';
-import 'package:ginkgo_mirror/workspace_catalog.dart';
-import 'package:ginkgo_mirror/workspace_shortcuts.dart';
+import 'package:ginkgo_mirror/features/today/today_page.dart';
+import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
+import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
+import 'package:ginkgo_mirror/workspace/workspace_shortcuts.dart';
 
 import 'ios_visual_refinement_test.dart' show VisualService;
 import 'support.dart' show settle, show;

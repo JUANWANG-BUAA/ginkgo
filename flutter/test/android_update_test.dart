@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/android_update_controller.dart';
+import 'package:ginkgo_mirror/platform/android_update_controller.dart';
 
 /// Redirect the trusted initial URL to an isolated local server. The production
 /// allowlist and redirect checks still run before each request.

@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/homework_detail_page.dart';
+import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/task_editor.dart';
-import 'package:ginkgo_mirror/tasks_page.dart';
+import 'package:ginkgo_mirror/features/tasks/task_editor.dart';
+import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
 
 import 'task_link_widget_test.dart' show TaskFake, assignment, record, press;
 

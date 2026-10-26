@@ -1,7 +1,7 @@
 import '../application/homework_files.dart';
 import '../application/learning_file_actions.dart';
 import '../application/learning_models.dart';
-import 'homework_file_io.dart';
+import 'package:ginkgo_mirror/infrastructure/homework_file_io.dart';
 
 /// Learning and homework share only the local byte-save capability, not URLs
 /// or authorization context. Null represents picker cancellation/invalidation.

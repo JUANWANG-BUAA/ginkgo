@@ -5,8 +5,8 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/local_tasks.dart';
 import 'package:ginkgo_mirror/application/reminder_planning.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
-import 'package:ginkgo_mirror/reminder_rules.dart';
-import 'package:ginkgo_mirror/reminders.dart';
+import 'package:ginkgo_mirror/shared/reminder_rules.dart';
+import 'package:ginkgo_mirror/shared/reminders.dart';
 
 class RecordingPlatform implements ReminderPlatform {
   List<Map<String, Object>> plans = [];

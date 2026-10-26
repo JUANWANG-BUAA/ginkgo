@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
-import 'package:ginkgo_mirror/reminders.dart';
+import 'package:ginkgo_mirror/shared/reminders.dart';
 
 const _checkin = CheckInResponse(
   date: '2026-10-22',

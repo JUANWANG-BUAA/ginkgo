@@ -5,9 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/learning.dart';
 import 'package:ginkgo_mirror/application/diagnostic_log.dart';
-import 'package:ginkgo_mirror/ginkgo_app.dart';
-import 'package:ginkgo_mirror/learning_page.dart';
-import 'package:ginkgo_mirror/workspace_catalog.dart';
+import 'package:ginkgo_mirror/app/ginkgo_app.dart';
+import 'package:ginkgo_mirror/features/learning/learning_page.dart';
+import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 
 const course = LearningCourse(
   id: 'synthetic-course',

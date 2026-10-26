@@ -1,4 +1,4 @@
-import 'contracts.dart';
+import 'package:ginkgo_mirror/application/contracts.dart';
 
 /// Separate, read-only capabilities: implementing one never grants writes.
 abstract interface class LearningCourseGateway {

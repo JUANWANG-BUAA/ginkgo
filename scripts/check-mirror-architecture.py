@@ -56,14 +56,19 @@ def source_violations(root):
 
 
 # Local persistence codecs decode files this app wrote itself (preferences,
-# reminders, update gate), never school payloads.
+# reminders, update gate), never school payloads. Located by path so a rename
+# cannot silently promote a codec into an unchecked layer.
 LOCAL_JSON_CODECS = {
-    'app_preferences.dart',
-    'course_visibility.dart',
-    'reminders.dart',
-    'update_gate.dart',
-    'workspace_shortcut_preferences.dart',
+    'shared/app_preferences.dart',
+    'features/schedule/course_visibility.dart',
+    'shared/reminders.dart',
+    'platform/update_gate.dart',
+    'workspace/workspace_shortcut_preferences.dart',
 }
+
+# Presentation layers own screens and shared components. Their widget APIs
+# stay typed end to end: no raw school-payload maps cross this boundary.
+PRESENTATION_DIRS = {'widgets', 'design', 'shared', 'features', 'workspace'}
 
 
 def payload_decode_violations(root):
@@ -77,7 +82,7 @@ def payload_decode_violations(root):
             continue
         if relative.name.endswith('_models.dart'):
             continue
-        if relative.name in LOCAL_JSON_CODECS:
+        if relative.as_posix() in LOCAL_JSON_CODECS:
             continue
         code = file.read_text()
         if re.search(r'\bjsonDecode\s*\(', code):
@@ -87,7 +92,7 @@ def payload_decode_violations(root):
         # accept or expose raw school-payload maps.
         is_presentation = (
             relative.name.endswith(('_page.dart', '_widgets.dart'))
-            or top == 'widgets'
+            or top in PRESENTATION_DIRS
         )
         if is_presentation and 'Map<String, dynamic>' in code:
             errors.append(

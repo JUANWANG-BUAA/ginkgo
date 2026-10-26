@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/loading_widgets.dart';
+import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
-import 'package:ginkgo_mirror/network_diagnostics_page.dart';
+import 'package:ginkgo_mirror/features/settings/network_diagnostics_page.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart' show ReadOnlyResponse;
 

@@ -2,10 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
-import 'package:ginkgo_mirror/homework_page.dart';
-import 'package:ginkgo_mirror/homework_projection.dart';
+import 'package:ginkgo_mirror/features/homework/homework_page.dart';
+import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/today_homework_section.dart';
+import 'package:ginkgo_mirror/features/today/today_homework_section.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
 

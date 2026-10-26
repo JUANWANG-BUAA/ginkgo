@@ -1,22 +1,22 @@
 import 'package:flutter/cupertino.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import 'apple_widgets.dart';
-import 'app_preferences.dart';
-import 'application/contracts.dart' show SessionResponse, SessionState;
-import 'infrastructure/mirror_runtime.dart';
-import 'login_page.dart';
-import 'infrastructure/native_auth_challenge.dart';
-import 'application/auth_challenge.dart';
-import 'mirror_service.dart';
-import 'startup_page.dart';
-import 'startup_update.dart';
-import 'maintenance_service.dart';
-import 'update_gate.dart';
-import 'workspace/workspace_shell.dart';
+import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
+import 'package:ginkgo_mirror/application/contracts.dart' show SessionResponse, SessionState;
+import 'package:ginkgo_mirror/infrastructure/mirror_runtime.dart';
+import 'package:ginkgo_mirror/features/auth/login_page.dart';
+import 'package:ginkgo_mirror/infrastructure/native_auth_challenge.dart';
+import 'package:ginkgo_mirror/application/auth_challenge.dart';
+import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/startup_page.dart';
+import 'package:ginkgo_mirror/platform/startup_update.dart';
+import 'package:ginkgo_mirror/platform/maintenance_service.dart';
+import 'package:ginkgo_mirror/platform/update_gate.dart';
+import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 
 // 测试与页面直接使用 ginkgoApp/GinkgoApp，保持既有入口不变。
-export 'workspace/workspace_shell.dart' show GinkgoApp, ginkgoApp, ginkgoTheme;
+export 'package:ginkgo_mirror/workspace/workspace_shell.dart' show GinkgoApp, ginkgoApp, ginkgoTheme;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/apple_widgets.dart';
-import 'package:ginkgo_mirror/grades_page.dart';
-import 'package:ginkgo_mirror/homework_detail_page.dart';
-import 'package:ginkgo_mirror/homework_page.dart';
-import 'package:ginkgo_mirror/loading_widgets.dart';
+import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+import 'package:ginkgo_mirror/features/grades/grades_page.dart';
+import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
+import 'package:ginkgo_mirror/features/homework/homework_page.dart';
+import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/schedule_page.dart';
+import 'package:ginkgo_mirror/features/schedule/schedule_page.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show GradeTermsResponse, HomeworkDetailResponse;
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';

@@ -3,10 +3,10 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/accent_theme_preview.dart';
-import 'package:ginkgo_mirror/app_preferences.dart';
+import 'package:ginkgo_mirror/features/settings/accent_theme_preview.dart';
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/preferences_pages.dart';
+import 'package:ginkgo_mirror/features/settings/preferences_pages.dart';
 
 double contrast(Color a, Color b) {
   final x = a.computeLuminance(), y = b.computeLuminance();

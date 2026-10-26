@@ -1,6 +1,6 @@
-import '../reminder_rules.dart';
-import 'contracts.dart';
-import 'local_tasks.dart';
+import 'package:ginkgo_mirror/shared/reminder_rules.dart';
+import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/local_tasks.dart';
 
 /// Typed, local-only business capability. No school payload or platform API.
 abstract interface class ReminderPlanningGateway {

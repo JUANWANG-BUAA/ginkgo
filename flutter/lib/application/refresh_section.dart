@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'diagnostic_log.dart';
+import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 
 /// A presentation result, including a usable stale value when refresh failed.
 class SectionResult<T> {

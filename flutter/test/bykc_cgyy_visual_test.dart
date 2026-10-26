@@ -5,11 +5,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
-import 'package:ginkgo_mirror/bykc_page.dart';
-import 'package:ginkgo_mirror/cgyy_booking_page.dart';
-import 'package:ginkgo_mirror/cgyy_page.dart';
-import 'package:ginkgo_mirror/cgyy_review_page.dart';
-import 'package:ginkgo_mirror/loading_widgets.dart';
+import 'package:ginkgo_mirror/features/bykc/bykc_page.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_booking_page.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_review_page.dart';
+import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 
 ReadOnlyResponse payload(Object value) =>

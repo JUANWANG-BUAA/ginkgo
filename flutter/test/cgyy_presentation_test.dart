@@ -3,11 +3,11 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/academic_widgets.dart';
-import 'package:ginkgo_mirror/apple_design.dart';
-import 'package:ginkgo_mirror/cgyy_page.dart';
+import 'package:ginkgo_mirror/design/academic_widgets.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/reservation_widgets.dart';
+import 'package:ginkgo_mirror/features/reservations/reservation_widgets.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 

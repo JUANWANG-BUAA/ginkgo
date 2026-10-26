@@ -6,10 +6,10 @@ import 'package:integration_test/integration_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/today_page.dart';
-import 'package:ginkgo_mirror/tasks_page.dart';
-import 'package:ginkgo_mirror/homework_detail_page.dart';
-import 'package:ginkgo_mirror/task_editor.dart';
+import 'package:ginkgo_mirror/features/today/today_page.dart';
+import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
+import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
+import 'package:ginkgo_mirror/features/tasks/task_editor.dart';
 
 import 'support.dart' show settle, show;
 
