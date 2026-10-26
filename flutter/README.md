@@ -2,20 +2,20 @@
 
 Android 对齐 iPhone SwiftUI，Windows 对齐 macOS SwiftUI。Apple 应用保持独立。
 
-当前主开发平台为 **Android**，以新功能与体验/UI 优化为主、稳定性托底。首批方向为“今天 2.0 + 作业转待办 + 相关页面打磨”；首批源码已实现，自动化/模拟器范围及未覆盖项见 [迭代记录](../docs/_audit/2026-10-22-android-product-iteration.md)，不代表公开包已更新。产品与验收设定见 [Android 开发设定](../docs/ANDROID-DEVELOPMENT.md)，未完成项统一见 [镜像待办](../docs/MIRROR-TODO.md)。沿用简洁信息层级，Android 系统返回、权限和无障碍行为优先，不要求逐像素复制 iOS。
+当前主开发平台为 **Android**，以新功能与体验/UI 优化为主、稳定性托底。产品与验收设定见 [Android 开发设定](../docs/ANDROID-DEVELOPMENT.md)，未完成项统一见 [镜像待办](../docs/MIRROR-TODO.md)。沿用简洁信息层级，Android 系统返回、权限和无障碍行为优先，不要求逐像素复制 iOS。
 
-当前手机入口为工作台 / 签到 / 课表 / 作业 / 预约，宽屏切换桌面侧栏；各目的地保留独立导航。认证、主要只读模块、Android Keystore、Windows Credential Manager、离线演示和本地待办已接入；签到及图书馆实验写路径包含确认、单次提交与回查，真实写入未验收。Android Alpha.8 与 Windows Alpha.6 已发布，最近实网登录失败仍需复验。Windows 主推未签名 x64 单文件安装器，同时保留需完整解压的便携 ZIP；物理 x64、干净系统运行依赖和真实学校业务仍待验收。范围见 [实施现状](../docs/MIRROR-IMPLEMENTATION.md)、[Windows Alpha.4](../docs/archive/mirror/MIRROR-WINDOWS-ALPHA4.md)、[模块对照](../docs/MIRROR-PARITY.md) 和 [待办](../docs/MIRROR-TODO.md)。
+当前手机入口为工作台 / 签到 / 课表 / 作业 / 预约，宽屏切换桌面侧栏；各目的地保留独立导航。认证、主要只读模块、Android Keystore、Windows Credential Manager、离线演示和本地待办已接入；签到及图书馆实验写路径包含确认、单次提交与回查，真实写入未验收。Android Alpha.9 与 Windows Alpha.6 已发布，最近实网登录失败仍需复验。Windows 主推未签名 x64 单文件安装器，同时保留需完整解压的便携 ZIP；物理 x64、干净系统运行依赖和真实学校业务仍待验收。范围见 [实施现状](../docs/MIRROR-IMPLEMENTATION.md)、[Android Alpha.9](../docs/releases/android-alpha9.md)、[模块对照](../docs/MIRROR-PARITY.md) 和 [待办](../docs/MIRROR-TODO.md)。
 
-## Android Alpha.8
+## Android Alpha.9
 
-Android [Alpha.8已发布](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.8)，当前源码 `0.1.0-alpha.8+9`，涵盖工作台、作业转待办、账号级常用入口、7组强调色和研讨室预约/取消闭环，并补齐读命令超时上界、上游账号复检与刷新不丢失。[功能与接口协议](../docs/FEATURES-AND-PROTOCOLS.md) 为长期维护入口，签名产物、覆盖启动与限制见 [Alpha.8发布记录](../docs/_audit/2026-10-25-android-alpha8-release.md)，用户说明见 [Android Alpha.8](../docs/releases/android-alpha8.md)。测试/Debug APK不是公开更新资产。任务v2升级前备份，不建议降级或卸载。最低门禁仍为5，本轮不发布Windows/Apple包。
+Android [Alpha.9 已发布](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.9)，当前源码 `0.1.0-alpha.9+10`，增加左右翻页、SPOC 学习、资料保存、学分地图、本人借阅、提醒与验证码，并修复课表大字号、作业状态和学习成功误报。[功能与接口协议](../docs/FEATURES-AND-PROTOCOLS.md) 为长期维护入口，签名产物、覆盖启动与限制见 [Alpha.9 发布记录](../docs/_audit/2026-10-26-android-alpha9-release.md)，用户说明见 [Android Alpha.9](../docs/releases/android-alpha9.md)。测试/Debug APK 不是公开更新资产。升级前备份重要待办，不建议降级或卸载。最低门禁仍为 5，本轮不发布 Windows / Apple 包。
 
-## 当前工作树集成验证（未发布）
+## 当前工程验证入口
 
 学习目录/保存、多栏目、文件作业确认与回查、验证码、学分地图、课程/待办提醒、
-可选 Android 加密学习快照、本人借阅和功能密集页视觉闭环的逐项证据与限制见
+本人借阅和功能密集页视觉闭环的逐项证据与限制见
 [2026-10-26 集成记录](../docs/_audit/2026-10-26-module-integration.md)。
-不能把 Alpha.8 与当前工作树混称；真实借阅认证和校车余票尚未接通。
+可选加密学习快照仍缺人工安全审查，公开 Release 中关闭；真实借阅认证和校车余票尚未接通。
 
 独立 QA 模拟器可复跑：
 `bash scripts/check-android-module-visual.sh emulator-5580`（仓库根）。

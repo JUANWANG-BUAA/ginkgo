@@ -26,8 +26,8 @@
 
 当前主线为 **Android / Flutter + Rust**。以工作树为准，不将历史设计或已发布内容重复排成新开发任务。
 
-- 已发布基线：Android Alpha.8（build 9）；Windows Alpha.6（build 7）。证据见 [Alpha.8 发布记录](_audit/2026-10-25-android-alpha8-release.md) 与 [Alpha.7 发布记录](_audit/2026-10-23-android-alpha7-release.md)。
-- Alpha.8（build 9）已公开：全量门禁（383 项 Flutter 测试）、签名构建与产物校验通过，模拟器签名包覆盖升级（Alpha.7→Alpha.8，本机待办保留）通过，远端 `Rust Flutter mirror` 四个 job 全绿。**未验收**：物理设备（TalkBack、预测返回、大字号/深浅色、帧率）、真实学校写操作与真实非空订单。远端 `Android Alpha Release` workflow 因仓库未配置四个签名 secret 而在签名步骤失败（fail-closed 设计，非缺陷）。
+- 已发布基线：Android Alpha.9（build 10）；Windows Alpha.6（build 7）。证据见 [Alpha.9 发布记录](_audit/2026-10-26-android-alpha9-release.md)。
+- Alpha.9（build 10）已公开：全量门禁（513 项 Flutter 测试）、签名构建与产物校验通过，模拟器签名包覆盖升级（Alpha.8→Alpha.9，本机待办保留）通过。**未验收**：物理设备（TalkBack、预测返回、大字号/深浅色、帧率）、真实学校认证与写入、借阅非空分页、校车余票和非空协议样本。
 - Alpha.7 后源码：作业提交状态与截止判定分离、工作台/学分展示优化、CGYY 静态协议对齐、公开查书/馆藏与排序、应用内校车时刻表、跨断点旋转保持位置；`e149f90` 已移除作业详情“加入个人待办”，保留既有本机数据。2026-10-24 复核批次另含：CAS 表单 action 白名单、账号身份一致性校验（`account == profile.school_id`）、保险库枚举失败不再视为空、快照缓存请求代次防护、课程范围读取失败锁定编辑、显式退出标记阻止自动恢复、更新门禁时序与发布址白名单、课表已确认快照、作业详情倒计时取最新状态、APK 校验失败可重下载、`RefreshSection`/`LibraryController` 强制刷新补跑、FFI 可达 `unreachable!()` 清除、预约按钮组件与查书目页重做、导航栏强调色（`navActionTextStyle`）。2026-10-25 收口批次：全部读命令补 `bounded_read` 超时、上游读路径统一 await 后账号复检（含 bykc 飞行中切账号回归）、剩余刷新静默丢弃页面改为待刷新补跑、壳层共享状态修复跨 760dp 旋转丢导航（含旋转回归测试）、CGYY 写迁移到模块级 `CGYY_ACCESS`/`CGYY_WRITE`（对齐 checkin/library）、`android-v*` 自动构建校验 workflow、bridge 层补 `bounded_read`/CGYY 双击退避测试、`CgyyDayPage` 补 widget 测试、页面载荷解码收口到 `*_models.dart`。上述已随 Alpha.8 公开；合成与模拟器通过不等于完成真实业务验收。
 - [下一阶段方案](NEXT-STAGE-PLAN-2026-10-23.md) 与 [IA方案](NEXT-STAGE-IA-2026-10-23.md) 保留研究依据，不能将其中已落地方案重新实施，也不能将未批准的导航/写能力视为现有功能。
 - 执行顺序：**P0 可复现回归与安全边界 → P1 设备/账号验收及小步体验 → P2 扩展**。本地自动化与正常入口构建通过只能关闭相应本地事项；需要本人账号、真实写入或物理设备的条目继续保留。
@@ -73,7 +73,7 @@
 - [ ] “登录成功但密码保存失败”提供就地提示；解释 WebVPN 网关为何可能要求记住密码，减少首次使用的困惑。
 - [ ] 继续验收已接入的签到 / 作业本地提醒：Android 权限拒绝 / 恢复、重启、强停和厂商省电；课程/待办提醒已接 opt-in 规则/排程与设置；可选 Android 加密学习元数据快照已接线，仍需人工安全审查；其余课表/成绩等快照持久化、重启/强停/厂商后台验收未完成。Windows 仅保持编译，不新增通知排期。
 - [ ] 研究生严格执行报告学分图已接线，成绩 / 考试组合及图书馆本机趋势仍未齐；SPOC 文件能力已在工作树分层接入（[集成记录](_audit/2026-10-25-spoc-homework-integration.md)），普通构建已开放受私有待确认记录保护的个人文件入口，仍需本人逐次指定作业和最终文件的真实分片/合并/提交/回查与失败验收；小组及非文件作答、希冀来源、BYKC 选退课 / 签到、CGYY 门锁码尚未迁移，预约 / 取消已接入但真实往返未验收。
-- [ ] SPOC 学习只读扩展：工作树 gateway/native/demo/页面与课程、根资料抽查见 [接续记录](_audit/2026-10-26-spoc-learning-integration.md)，仍需授权范围内的非空公告详情/附件、资料目录/后页、非空测验字段验收，以及抽查第 2 项课程测验 `ServiceUnavailable` 的脱敏定位；目录/分页/文件保存/打开及多栏目显式上下文已接入并有合成回归，不能用首项/空数组掩盖歧义。Android 物理设备视觉/读屏和实际页面链未验收；无原成功时间字段，不伪造同步时间。该扩展未发布，不包含公告标读、课程访问记录或考试开始/作答/提交。
+- [ ] SPOC 学习只读扩展：Alpha.9 已公开 gateway/native/demo/页面与课程、根资料抽查，证据见 [接续记录](_audit/2026-10-26-spoc-learning-integration.md)；仍需授权范围内的非空公告详情/附件、资料目录/后页和非空测验字段验收，以及抽查第 2 项课程测验 `ServiceUnavailable` 的脱敏定位。Android 物理设备视觉/读屏和实际页面链未验收；无原成功时间字段，不伪造同步时间。不包含公告标读、课程访问记录或考试开始/作答/提交。
 - [ ] 其他异步复杂页面在出现跨路由状态或重复加载职责时参考 `LibraryController`；**不要求一次性统一重构**——先修掉共用的强制刷新缺陷，再在新页面默认使用 `RefreshSection`/`LibraryController`/`SectionFeedback`，旧页面在被修改时逐个迁移。
 - [ ] 移动端“个人与校园”快捷入口（`service_directory.dart`）仍是精选清单，与 `workspace_catalog.dart` 的功能清单重复；如需完全单一来源，可改为从登记表派生（需把 `WorkspaceContext` 工厂传入目录）。
 - [ ] 更新体系：最低版本门禁已接入（`update_gate.dart` + `docs/update-gate.json`，拉取失败放行）；清单签名、差分补丁、灰度/回滚、Windows Authenticode 与应用内更新仍待做。提升 `minBuild` 前必须确认新版本已可下载，避免把旧版锁在无法更新的状态。

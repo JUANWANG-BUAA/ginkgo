@@ -1,7 +1,7 @@
 # 宣传文案与关键词
 
 > 用途：GitHub 仓库信息、社区发帖、社交分享的统一口径。发布时直接复制，避免各文档说法不一致。
-> macOS 当前版本：Ginkgo 0.1.0-alpha.7（2026-10-19，已冻结不再排期）；Android **0.1.0-alpha.8（build 9，2026-10-25 已发布）**；Windows 0.1.0-alpha.6（build 7）。下方社区发帖模板面向 macOS，跨平台宣传以本节口径为准。
+> macOS 当前版本：Ginkgo 0.1.0-alpha.7（2026-10-19，已冻结不再排期）；Android **0.1.0-alpha.9（build 10，2026-10-26 已发布）**；Windows 0.1.0-alpha.6（build 7）。下方社区发帖模板面向 macOS，跨平台宣传以本节口径为准。
 
 ## 当前首页口径（2026-10-21）
 
@@ -10,11 +10,11 @@
 | 平台 | 首页状态与入口 |
 |------|----------------|
 | macOS | 已发布 Alpha，macOS 14+，DMG / ZIP 下载 |
-| Android | Alpha.4，Android 7.0+ / arm64 APK；课表、作业、博雅与校园服务；设置、返回手势、课程范围与应用内更新已收口；签到及图书馆真实写入仍待验收 |
+| Android | Alpha.9，Android 7.0+ / arm64 APK；课表、作业、SPOC 学习、本人借阅、学分地图与校园服务；支持左右翻页和应用内更新；真实认证及学校写入仍待验收 |
 | iOS / iPadOS | iOS 17+，原生工作台，从源码使用 Xcode 构建；暂无 App Store / TestFlight 入口 |
-| Windows | Alpha.4 首发，Windows 10 / 11 x64 单文件安装器，便携 ZIP 备用；宽屏侧栏、窄屏底部导航、Credential Manager 合成往返和桌面导航已通过；包未签名，物理 x64、干净系统运行依赖与真实业务仍待验收 |
+| Windows | Alpha.6，Windows 10 / 11 x64 单文件安装器，便携 ZIP 备用；宽屏侧栏、窄屏底部导航、Credential Manager 合成往返和桌面导航已通过；包未签名，物理 x64、干净系统运行依赖与真实业务仍待验收 |
 
-首页默认链接指向 `android-v0.1.0-alpha.4` 与 `windows-v0.1.0-alpha.4`，正式包和校验和公开。Android 应用内更新支持 GitHub 官方入口、暂停续传和安装包校验，但国内下载速度仍取决于 GitHub 连通性。Windows 主按钮下载单文件 `setup.exe`，安装器按当前用户安装并提供开始菜单与卸载入口；ZIP 仅作为便携备用，需完整解压。当前安装包未签名，SmartScreen 可能拦截。博雅选退课、CGYY 写入、作业提交与附件下载仍未迁移；发布证据见 [Android Alpha.4](archive/mirror/MIRROR-ANDROID-ALPHA4.md) 与 [Windows Alpha.4](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)。避免用“四端功能完全一致”“全平台已稳定”概括当前状态。主页使用脱敏 macOS 截图与离线演示 Windows 截图，并在平台入口说明范围；不使用虚构下载量或用户评价。首页设计参考与验证见 [LANDING-REDESIGN-2026-10-21.md](LANDING-REDESIGN-2026-10-21.md)。
+首页默认链接指向 `android-v0.1.0-alpha.9` 与 `windows-v0.1.0-alpha.6`，正式包和校验和公开。Android 应用内更新支持 GitHub 官方入口、暂停续传和安装包校验，但国内下载速度仍取决于 GitHub 连通性。Windows 主按钮下载单文件 `setup.exe`，安装器按当前用户安装并提供开始菜单与卸载入口；ZIP 仅作为便携备用，需完整解压。当前 Windows 安装包未签名，SmartScreen 可能拦截。博雅选退课与真实学校写入仍未验收；Android 证据见 [Alpha.9 发布记录](_audit/2026-10-26-android-alpha9-release.md)。避免用“四端功能完全一致”“全平台已稳定”概括当前状态。主页使用脱敏 macOS 截图与离线演示 Windows 截图，并在平台入口说明范围；不使用虚构下载量或用户评价。首页设计参考与验证见 [LANDING-REDESIGN-2026-10-21.md](LANDING-REDESIGN-2026-10-21.md)。
 
 ## 命名与品牌
 
@@ -72,7 +72,7 @@
 - 还有成绩与参考绩点、空教室、SPOC 作业、校园通知、本机待办
 
 SwiftUI 原生，无第三方依赖；只直连学校系统，账号数据只留本机。
-目前是 0.1.0-alpha.7（macOS，已冻结）；Android 最新公开为 0.1.0-alpha.8。打卡签到与图书馆预约已可用，应用内置自更新（从 GitHub Releases 检查并安装，不清本地缓存），欢迎北航同学试用和反馈。
+目前是 0.1.0-alpha.7（macOS，已冻结）；Android 最新公开为 0.1.0-alpha.9。校园工作台新增 SPOC 学习、本人借阅、学分地图和左右翻页，签到与图书馆预约继续保留逐次确认，应用内置自更新（从 GitHub Releases 检查并安装，不清本地缓存），欢迎北航同学试用和反馈。
 
 GitHub: https://github.com/JUANWANG-BUAA/ginkgo
 项目主页: https://juanwang-buaa.github.io/ginkgo/
