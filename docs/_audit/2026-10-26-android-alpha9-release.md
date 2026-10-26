@@ -76,4 +76,12 @@ flutter build apk --release --target-platform android-arm64 --target lib/main.da
 
 ## 公开
 
-源码先推送 `main` 与 `feat/rust-flutter-mirror`，再以最终文档提交创建 `android-v0.1.0-alpha.9` tag 与 GitHub prerelease。实际公开时间、资产状态和下载地址以 GitHub Release 为准。
+2026-10-26 14:05:26 UTC（北京时间 22:05:26），源码 `d8ab68c` 已推送 `main` 与 `feat/rust-flutter-mirror`，并创建 `android-v0.1.0-alpha.9` tag 与 [GitHub prerelease](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.9)。
+
+公开资产：
+
+- `Ginkgo-0.1.0-alpha.9-android-arm64.apk`，`43,190,653` 字节；GitHub API 记录的 SHA-256 摘要为 `1909e88d874311e07950268e1da9fe80fc03044b213411eccf3738be97bd2d40`，与本地签名包一致；
+- `checksums.txt`，远端内容与上述 APK 摘要一致；
+- GitHub Pages 首页已显示 `0.1.0-alpha.9`，下载、代理、校验和与 Release 链接均已切换。
+
+标签触发的 `Android Alpha Release` workflow 在“Materialize external signing configuration”步骤失败，原因仍是仓库未配置四个 Android 签名 secret。这是 workflow 的 fail-closed 行为；本轮发布使用维护者本机外部签名配置构建并完成上述证书、摘要、对齐与覆盖升级核验，没有把 Debug 或未签名 APK 作为发布资产。
