@@ -84,7 +84,10 @@ mod composition_tests {
         }
         #[cfg(not(any(target_os = "android", target_os = "windows", target_os = "macos")))]
         {
-            let error = create_service().expect_err("unsupported target must not use a vault");
+            let error = match create_service() {
+                Err(error) => error,
+                Ok(_) => panic!("unsupported target must not use a vault"),
+            };
             assert_eq!(error.code, ginkgo_core::ErrorCode::CredentialStore);
         }
     }
