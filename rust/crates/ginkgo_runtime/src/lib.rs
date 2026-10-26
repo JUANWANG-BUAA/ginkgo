@@ -70,13 +70,22 @@ pub use ginkgo_upstream::auth::platform::jni_on_load;
 mod composition_tests {
     use super::*;
 
-    /// The composition root must assemble without touching the network, and a
-    /// freshly assembled service is signed out: no account leaks into status.
+    /// The composition root must assemble without touching the network. A
+    /// freshly assembled service is signed out; targets without a supported
+    /// platform vault fail closed rather than using plaintext storage.
     #[test]
-    fn a_freshly_assembled_service_is_signed_out() {
-        let service = create_service().expect("composition root must assemble off the network");
-        let status = service.status();
-        assert!(status.account.is_none(), "a new service holds no account");
-        assert!(status.profile.is_none(), "a new service holds no profile");
+    fn composition_root_is_signed_out_or_fails_closed() {
+        #[cfg(any(target_os = "android", target_os = "windows", target_os = "macos"))]
+        {
+            let service = create_service().expect("composition root must assemble off the network");
+            let status = service.status();
+            assert!(status.account.is_none(), "a new service holds no account");
+            assert!(status.profile.is_none(), "a new service holds no profile");
+        }
+        #[cfg(not(any(target_os = "android", target_os = "windows", target_os = "macos")))]
+        {
+            let error = create_service().expect_err("unsupported target must not use a vault");
+            assert_eq!(error.code, ginkgo_core::ErrorCode::CredentialStore);
+        }
     }
 }
