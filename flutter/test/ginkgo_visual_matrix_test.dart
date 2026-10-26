@@ -217,8 +217,8 @@ void main() {
         find.byType(CupertinoTabView, skipOffstage: false),
         findsNWidgets(3),
       );
-      // Only the selected page is on screen.
-      expect(find.byType(CupertinoTabView), findsOneWidget);
+      // Incoming and outgoing pages paint continuously until the turn ends.
+      expect(find.byType(CupertinoTabView), findsNWidgets(2));
       expect(
         tester.state<NavigatorState>(
           find.descendant(of: transition(0), matching: find.byType(Navigator)),

@@ -15,6 +15,7 @@ pub mod cgyy;
 pub mod notices;
 
 pub mod library_books;
+pub mod library_loans;
 pub mod library_stats;
 pub mod shuttle;
 
@@ -23,3 +24,5 @@ pub mod updates;
 pub mod mutation;
 
 pub mod library_mutation;
+
+pub mod learning;

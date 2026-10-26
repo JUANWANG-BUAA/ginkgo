@@ -39,7 +39,13 @@ pub(super) async fn submit_checkin(course_id: String) -> MutationResponse {
     let _access = SESSION_ACCESS.read().await;
     let _module = CHECKIN_ACCESS.write().await;
     match service() {
-        Ok(service) => mutation_response(service.submit_checkin(&course_id).await),
+        Ok(service) => match bounded_submit(service.submit_checkin(&course_id)).await {
+            Some(outcome) => mutation_response(outcome),
+            None => MutationResponse {
+                state: "uncertain".into(),
+                message: "提交超时，结果待核实；请刷新确认，勿重复提交".into(),
+            },
+        },
         Err(_) => MutationResponse {
             state: "notSubmitted".into(),
             message: "本地服务不可用，未提交签到".into(),

@@ -1,4 +1,14 @@
 // Application value contract. Export DTOs only; native commands stay in adapters.
+export 'learning_models.dart'
+    show
+        LearningCourse,
+        CourseAnnouncement,
+        LearningAttachment,
+        CourseAnnouncementDetail,
+        CourseResource,
+        CourseResourcePage,
+        CourseAssessment,
+        LearningDownload;
 export '../src/rust/api/live.dart'
     show
         GradeTermsResponse,
@@ -49,3 +59,16 @@ export '../src/rust/api/mirror.dart'
         SectionState,
         TodayCourse,
         TodayResponse;
+export 'learning_context.dart' show LearningColumn, LearningCapabilities;
+export 'graduate_credit_map.dart'
+    show
+        GraduateCreditMapGateway,
+        GraduateCreditMapRead,
+        GraduateCreditReadIssue,
+        GraduateCreditIssueKind,
+        GraduateCreditState,
+        GraduateCreditMetrics,
+        GraduateCreditRow,
+        GraduateCreditNode,
+        GraduateCreditMap;
+export 'auth_challenge.dart' show AuthChallengeGateway, LoginChallenge;

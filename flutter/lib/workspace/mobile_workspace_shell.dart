@@ -107,7 +107,7 @@ class _MobileWorkspaceShellState extends State<MobileWorkspaceShell> {
         children: [
           WorkspaceTabMotion(
             controller: tabs,
-            child: CupertinoTabScaffold(
+            child: WorkspaceTabScaffold(
               controller: tabs,
               tabBar: CupertinoTabBar(
                 items: [

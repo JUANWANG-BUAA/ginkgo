@@ -1,11 +1,11 @@
 name: Windows Installer
 
+# One-off backfill flow for the already-published windows-v0.1.0-alpha.4
+# release. Manual dispatch only: an automatic push trigger once rebuilt the
+# installer and wrote it back onto that published release, which breaks the
+# provenance of a shipped artifact. Never re-enable a push trigger while the
+# pinned RELEASE_TAG below points at a published release.
 on:
-  push:
-    branches: [feat/rust-flutter-mirror]
-    paths:
-      - '.github/workflows/windows-installer.yml'
-      - 'packaging/windows/**'
   workflow_dispatch:
 
 permissions:

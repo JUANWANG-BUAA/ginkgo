@@ -38,4 +38,6 @@ pub struct ShuttleTimetable {
     pub tables: Vec<ShuttleTable>,
     /// Official page the data was read from, for traceability.
     pub source: String,
+    /// Official dynamic system entrance, separate from the published timetable.
+    pub live_source: String,
 }

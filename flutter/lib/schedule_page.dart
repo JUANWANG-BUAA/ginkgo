@@ -223,129 +223,153 @@ class _SchedulePageState extends State<SchedulePage> {
     ),
   );
 
+  Widget _scheduleControls(ScheduleResponse snapshot) {
+    final termPicker = Builder(
+      builder: (anchor) => _row(
+        key: const Key('schedule-term-picker'),
+        onTap: () async {
+          final id = await choose<String>(
+            anchor,
+            '学期',
+            terms.keys.toList(),
+            (id) => terms[id]?.name ?? id,
+            selected: selectedTerm,
+          );
+          if (mounted && id != null && id != selectedTerm) {
+            await load(termId: id);
+          }
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              terms[selectedTerm]?.name ?? snapshot.termId,
+              style: TextStyle(
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (snapshot.weeks.isEmpty) return termPicker;
+    final weekPicker = Builder(
+      builder: (anchor) => CupertinoButton(
+        key: const Key('schedule-week-picker'),
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        minimumSize: const Size(48, 64),
+        alignment: Alignment.centerLeft,
+        onPressed: () async {
+          final value = await choose<int>(
+            anchor,
+            '选择周次',
+            snapshot.weeks.map((week) => week.number).toList(),
+            (week) => '第 $week 周',
+            selected: selectedWeek,
+          );
+          if (mounted && value != null && value != selectedWeek) {
+            selectWeek(value);
+          }
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    '第 $selectedWeek 周',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: CupertinoColors.label.resolveFrom(context),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Icon(CupertinoIcons.chevron_down, size: 14),
+              ],
+            ),
+            if (weeks[selectedWeek] case final ScheduleWeek range)
+              Text(
+                '${shortDate(range.startDate)} – ${shortDate(range.endDate)}',
+                style: secondary(context),
+              ),
+          ],
+        ),
+      ),
+    );
+    final currentWeek = snapshot.weeks.any((item) => item.current)
+        ? CupertinoButton(
+            key: const Key('schedule-current-week'),
+            minimumSize: const Size(48, 48),
+            onPressed: () => selectWeek(
+              snapshot.weeks.firstWhere((item) => item.current).number,
+            ),
+            child: const Text('本周'),
+          )
+        : const SizedBox.shrink();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact =
+            constraints.maxWidth >= 360 &&
+            MediaQuery.textScalerOf(context).scale(1) <= 1.3;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (compact)
+              Row(
+                children: [
+                  Expanded(flex: 6, child: termPicker),
+                  Expanded(
+                    flex: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: weekPicker,
+                    ),
+                  ),
+                ],
+              )
+            else ...[
+              termPicker,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 8, 4),
+                child: Row(
+                  children: [
+                    Expanded(child: weekPicker),
+                    currentWeek,
+                  ],
+                ),
+              ),
+            ],
+            Row(
+              children: [
+                Expanded(
+                  child: ScheduleWeekStrip(
+                    weeks: snapshot.weeks,
+                    selectedWeek: selectedWeek,
+                    onSelected: selectWeek,
+                  ),
+                ),
+                if (compact) currentWeek,
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   List<Widget> _content(ScheduleResponse snapshot) => [
     AppleSection(
       footer: snapshot.fetchedAt == null && widget.service.isDemo
           ? const Text('离线合成样例')
           : Text('更新于 ${schoolTimestampLabel(snapshot.fetchedAt)}'),
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Builder(
-              builder: (anchor) => _row(
-                key: const Key('schedule-term-picker'),
-                onTap: () async {
-                  final id = await choose<String>(
-                    anchor,
-                    '学期',
-                    terms.keys.toList(),
-                    (id) => terms[id]?.name ?? id,
-                    selected: selectedTerm,
-                  );
-                  if (mounted && id != null && id != selectedTerm) {
-                    load(termId: id);
-                  }
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      terms[selectedTerm]?.name ?? snapshot.termId,
-                      style: TextStyle(
-                        color: CupertinoColors.secondaryLabel.resolveFrom(
-                          context,
-                        ),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            if (snapshot.weeks.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Builder(
-                        builder: (anchor) => CupertinoButton(
-                          key: const Key('schedule-week-picker'),
-                          padding: EdgeInsets.zero,
-                          alignment: Alignment.centerLeft,
-                          onPressed: () async {
-                            final value = await choose<int>(
-                              anchor,
-                              '选择周次',
-                              snapshot.weeks
-                                  .map((week) => week.number)
-                                  .toList(),
-                              (week) => '第 $week 周',
-                              selected: selectedWeek,
-                            );
-                            if (mounted &&
-                                value != null &&
-                                value != selectedWeek) {
-                              selectWeek(value);
-                            }
-                          },
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  '第 $selectedWeek 周',
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w700,
-                                    color: CupertinoColors.label.resolveFrom(
-                                      context,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              const Icon(CupertinoIcons.chevron_down, size: 14),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (snapshot.weeks.any((item) => item.current))
-                      CupertinoButton(
-                        key: const Key('schedule-current-week'),
-                        onPressed: () => selectWeek(
-                          snapshot.weeks
-                              .firstWhere((item) => item.current)
-                              .number,
-                        ),
-                        child: const Text('本周'),
-                      ),
-                  ],
-                ),
-              ),
-              if (weeks[selectedWeek] case final ScheduleWeek range)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      '${shortDate(range.startDate)} – ${shortDate(range.endDate)}',
-                      style: secondary(context),
-                    ),
-                  ),
-                ),
-              ScheduleWeekStrip(
-                weeks: snapshot.weeks,
-                selectedWeek: selectedWeek,
-                onSelected: selectWeek,
-              ),
-            ],
-          ],
-        ),
-      ],
+      children: [_scheduleControls(snapshot)],
     ),
     if (MediaQuery.textScalerOf(context).scale(1) > 1.4)
       AppleSection(
@@ -538,7 +562,8 @@ class _SchedulePageState extends State<SchedulePage> {
   Widget _row({required Widget child, required VoidCallback onTap, Key? key}) =>
       CupertinoButton(
         key: key,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        minimumSize: const Size(48, 48),
         onPressed: onTap,
         child: Row(
           children: [

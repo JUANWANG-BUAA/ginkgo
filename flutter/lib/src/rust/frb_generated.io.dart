@@ -4,7 +4,9 @@
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
 import 'api/live.dart';
+import 'api/live/auth_challenge.dart';
 import 'api/mirror.dart';
+import 'api/reminder_planning.dart';
 
 import 'dart:async';
 import 'dart:convert';
@@ -80,6 +82,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ClassroomSort dco_decode_classroom_sort(dynamic raw);
 
   @protected
+  CourseReminderSeed dco_decode_course_reminder_seed(dynamic raw);
+
+  @protected
   DemoScope dco_decode_demo_scope(dynamic raw);
 
   @protected
@@ -104,6 +109,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   HomeworkDetailResponse dco_decode_homework_detail_response(dynamic raw);
 
   @protected
+  HomeworkFileDownloadResponse dco_decode_homework_file_download_response(
+    dynamic raw,
+  );
+
+  @protected
   HomeworkItem dco_decode_homework_item(dynamic raw);
 
   @protected
@@ -117,6 +127,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PlatformInt64 dco_decode_i_64(dynamic raw);
+
+  @protected
+  LearningSnapshotResponse dco_decode_learning_snapshot_response(dynamic raw);
 
   @protected
   LibraryArea dco_decode_library_area(dynamic raw);
@@ -167,6 +180,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<ClassroomRow> dco_decode_list_classroom_row(dynamic raw);
 
   @protected
+  List<CourseReminderSeed> dco_decode_list_course_reminder_seed(dynamic raw);
+
+  @protected
   List<GradeCourse> dco_decode_list_grade_course(dynamic raw);
 
   @protected
@@ -188,7 +204,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<LibraryVenue> dco_decode_list_library_venue(dynamic raw);
 
   @protected
+  List<PlannedReminder> dco_decode_list_planned_reminder(dynamic raw);
+
+  @protected
   Int32List dco_decode_list_prim_i_32_strict(dynamic raw);
+
+  @protected
+  List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
@@ -209,10 +231,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<SectionState> dco_decode_list_section_state(dynamic raw);
 
   @protected
+  List<TaskReminderSeed> dco_decode_list_task_reminder_seed(dynamic raw);
+
+  @protected
   List<TodayCourse> dco_decode_list_today_course(dynamic raw);
 
   @protected
   LiveScope dco_decode_live_scope(dynamic raw);
+
+  @protected
+  LoginChallengeResponse dco_decode_login_challenge_response(dynamic raw);
 
   @protected
   MutationResponse dco_decode_mutation_response(dynamic raw);
@@ -239,10 +267,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String>? dco_decode_opt_list_String(dynamic raw);
 
   @protected
+  Uint8List? dco_decode_opt_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  PlannedReminder dco_decode_planned_reminder(dynamic raw);
+
+  @protected
   QueryDates dco_decode_query_dates(dynamic raw);
 
   @protected
   ReadOnlyResponse dco_decode_read_only_response(dynamic raw);
+
+  @protected
+  ReminderPlanResponse dco_decode_reminder_plan_response(dynamic raw);
 
   @protected
   RouteChoice dco_decode_route_choice(dynamic raw);
@@ -275,10 +312,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   SessionState dco_decode_session_state(dynamic raw);
 
   @protected
+  TaskReminderSeed dco_decode_task_reminder_seed(dynamic raw);
+
+  @protected
   TodayCourse dco_decode_today_course(dynamic raw);
 
   @protected
   TodayResponse dco_decode_today_response(dynamic raw);
+
+  @protected
+  int dco_decode_u_32(dynamic raw);
 
   @protected
   int dco_decode_u_8(dynamic raw);
@@ -346,6 +389,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ClassroomSort sse_decode_classroom_sort(SseDeserializer deserializer);
 
   @protected
+  CourseReminderSeed sse_decode_course_reminder_seed(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   DemoScope sse_decode_demo_scope(SseDeserializer deserializer);
 
   @protected
@@ -374,6 +422,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  HomeworkFileDownloadResponse sse_decode_homework_file_download_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   HomeworkItem sse_decode_homework_item(SseDeserializer deserializer);
 
   @protected
@@ -387,6 +440,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+
+  @protected
+  LearningSnapshotResponse sse_decode_learning_snapshot_response(
+    SseDeserializer deserializer,
+  );
 
   @protected
   LibraryArea sse_decode_library_area(SseDeserializer deserializer);
@@ -457,6 +515,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<CourseReminderSeed> sse_decode_list_course_reminder_seed(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<GradeCourse> sse_decode_list_grade_course(SseDeserializer deserializer);
 
   @protected
@@ -484,7 +547,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<PlannedReminder> sse_decode_list_planned_reminder(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   Int32List sse_decode_list_prim_i_32_strict(SseDeserializer deserializer);
+
+  @protected
+  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
@@ -515,10 +586,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<TaskReminderSeed> sse_decode_list_task_reminder_seed(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<TodayCourse> sse_decode_list_today_course(SseDeserializer deserializer);
 
   @protected
   LiveScope sse_decode_live_scope(SseDeserializer deserializer);
+
+  @protected
+  LoginChallengeResponse sse_decode_login_challenge_response(
+    SseDeserializer deserializer,
+  );
 
   @protected
   MutationResponse sse_decode_mutation_response(SseDeserializer deserializer);
@@ -549,10 +630,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String>? sse_decode_opt_list_String(SseDeserializer deserializer);
 
   @protected
+  Uint8List? sse_decode_opt_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  PlannedReminder sse_decode_planned_reminder(SseDeserializer deserializer);
+
+  @protected
   QueryDates sse_decode_query_dates(SseDeserializer deserializer);
 
   @protected
   ReadOnlyResponse sse_decode_read_only_response(SseDeserializer deserializer);
+
+  @protected
+  ReminderPlanResponse sse_decode_reminder_plan_response(
+    SseDeserializer deserializer,
+  );
 
   @protected
   RouteChoice sse_decode_route_choice(SseDeserializer deserializer);
@@ -585,10 +677,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   SessionState sse_decode_session_state(SseDeserializer deserializer);
 
   @protected
+  TaskReminderSeed sse_decode_task_reminder_seed(SseDeserializer deserializer);
+
+  @protected
   TodayCourse sse_decode_today_course(SseDeserializer deserializer);
 
   @protected
   TodayResponse sse_decode_today_response(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_u_32(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_8(SseDeserializer deserializer);
@@ -684,6 +782,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_classroom_sort(ClassroomSort self, SseSerializer serializer);
 
   @protected
+  void sse_encode_course_reminder_seed(
+    CourseReminderSeed self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_demo_scope(DemoScope self, SseSerializer serializer);
 
   @protected
@@ -714,6 +818,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_homework_file_download_response(
+    HomeworkFileDownloadResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_homework_item(HomeworkItem self, SseSerializer serializer);
 
   @protected
@@ -733,6 +843,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_learning_snapshot_response(
+    LearningSnapshotResponse self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_library_area(LibraryArea self, SseSerializer serializer);
@@ -816,6 +932,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_course_reminder_seed(
+    List<CourseReminderSeed> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_grade_course(
     List<GradeCourse> self,
     SseSerializer serializer,
@@ -858,10 +980,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_planned_reminder(
+    List<PlannedReminder> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_prim_i_32_strict(
     Int32List self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
@@ -900,6 +1031,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_task_reminder_seed(
+    List<TaskReminderSeed> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_today_course(
     List<TodayCourse> self,
     SseSerializer serializer,
@@ -907,6 +1044,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_live_scope(LiveScope self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_login_challenge_response(
+    LoginChallengeResponse self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_mutation_response(
@@ -942,11 +1085,29 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_list_String(List<String>? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_list_prim_u_8_strict(
+    Uint8List? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_planned_reminder(
+    PlannedReminder self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_query_dates(QueryDates self, SseSerializer serializer);
 
   @protected
   void sse_encode_read_only_response(
     ReadOnlyResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_reminder_plan_response(
+    ReminderPlanResponse self,
     SseSerializer serializer,
   );
 
@@ -990,10 +1151,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_session_state(SessionState self, SseSerializer serializer);
 
   @protected
+  void sse_encode_task_reminder_seed(
+    TaskReminderSeed self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_today_course(TodayCourse self, SseSerializer serializer);
 
   @protected
   void sse_encode_today_response(TodayResponse self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_u_32(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_8(int self, SseSerializer serializer);

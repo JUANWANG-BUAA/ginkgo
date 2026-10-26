@@ -47,6 +47,7 @@ List<Map<String, dynamic>> _weekdayRuns() => [
 
 ReadOnlyResponse _timetable({
   String source = _source,
+  String liveSource = '',
   String time = '07:20',
   bool empty = false,
   List<Map<String, dynamic>>? sections,
@@ -54,6 +55,7 @@ ReadOnlyResponse _timetable({
   stale: false,
   payload: jsonEncode({
     'source': source,
+    'liveSource': liveSource,
     'tables': empty
         ? []
         : [
@@ -603,6 +605,36 @@ void main() {
     service.requests.single.complete(_timetable());
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'live action delegates the DTO authentication entry to the external browser',
+    (tester) async {
+      const login = 'https://shuttle.example.test/official-authentication';
+      final calls = _mockLauncher(tester);
+      final service = _ShuttleService();
+      await _show(tester, service);
+      service.requests.single.complete(_timetable(liveSource: login));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('shuttle-live-official')));
+      await tester.pumpAndSettle();
+      expect(calls, hasLength(1));
+      expect(calls.single.arguments['url'], login);
+      expect(calls.single.arguments['useWebView'], isFalse);
+      expect(calls.single.arguments['useSafariVC'], isFalse);
+      expect(service.requests, hasLength(1));
+      expect(find.text('前往官方认证并查看余票'), findsOneWidget);
+      expect(find.textContaining('应用内尚未接通实时余票会话'), findsOneWidget);
+    },
+  );
+
+  test('demo also exposes the official authentication entry', () async {
+    final response = await const DemoMirrorService().shuttleTimetable();
+    final payload = jsonDecode(response.payload!) as Map<String, dynamic>;
+    expect(
+      payload['liveSource'],
+      'https://zhihuixiaoche.buaa.edu.cn/wechat/CASLogin',
+    );
   });
 
   testWidgets(

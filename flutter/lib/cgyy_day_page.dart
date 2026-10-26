@@ -105,7 +105,7 @@ class _CgyyDayPageState extends State<CgyyDayPage> {
 
   CgyyBookingGateway? get bookingGateway {
     if (widget.demo || widget.loader != null) return null;
-    final source = widget.service ?? mirrorServiceFor(demo: false);
+    final source = widget.service ?? mirrorServiceFor(demo: widget.demo);
     return source is CgyyBookingGateway ? source as CgyyBookingGateway : null;
   }
 

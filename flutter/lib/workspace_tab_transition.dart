@@ -1,8 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
-/// One clock above CupertinoTabScaffold's inactive TickerModes. The scaffold
-/// still owns lazy mounting, offstage pages and each tab's original Navigator.
-/// No outgoing page is copied or kept painting just for the transition.
+/// One clock above the tabs' inactive TickerModes. Only the original incoming
+/// and outgoing pages paint during a turn; their Navigators are never copied.
 class WorkspaceTabMotion extends StatefulWidget {
   const WorkspaceTabMotion({
     super.key,
@@ -25,6 +24,7 @@ class _WorkspaceTabMotionState extends State<WorkspaceTabMotion>
     value: 1,
   );
   late int _index;
+  int? _previousIndex;
   double _direction = 1;
   bool _enabled = false;
   bool _resumed = true;
@@ -64,6 +64,7 @@ class _WorkspaceTabMotionState extends State<WorkspaceTabMotion>
     final next = widget.controller.index;
     if (next == _index) return;
     _direction = next > _index ? 1 : -1;
+    _previousIndex = _index;
     _index = next;
     if (_enabled && _resumed) {
       // A rapid selection replaces the previous motion, never queues it.
@@ -106,7 +107,180 @@ class _TabMotionScope extends InheritedWidget {
       motion != oldWidget.motion;
 }
 
-/// Paint-only page-entry motion. The incoming sheet slides in one full page
+/// Cupertino tab layout with a continuous page turn. Visited tabs retain their
+/// original navigation stacks. Only the selected page can receive focus,
+/// pointers, Hero flights or accessibility actions, even while two pages paint.
+class WorkspaceTabScaffold extends StatefulWidget {
+  const WorkspaceTabScaffold({
+    super.key,
+    required this.controller,
+    required this.tabBar,
+    required this.tabBuilder,
+  });
+
+  final CupertinoTabController controller;
+  final CupertinoTabBar tabBar;
+  final IndexedWidgetBuilder tabBuilder;
+
+  @override
+  State<WorkspaceTabScaffold> createState() => _WorkspaceTabScaffoldState();
+}
+
+class _WorkspaceTabScaffoldState extends State<WorkspaceTabScaffold> {
+  final _visited = <int>{};
+  final _focus = <int, FocusScopeNode>{};
+  double _drag = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_select);
+  }
+
+  void _select() => setState(() {});
+
+  @override
+  void didUpdateWidget(WorkspaceTabScaffold oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_select);
+      widget.controller.addListener(_select);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_select);
+    for (final node in _focus.values) {
+      node.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final motion = context
+        .dependOnInheritedWidgetOfExactType<_TabMotionScope>()!
+        .motion;
+    final selected = widget.controller.index;
+    _visited.add(selected);
+    final node = _focus.putIfAbsent(selected, () => FocusScopeNode());
+    FocusScope.of(context).setFirstFocus(node);
+    // Build the page subtrees only on selection/layout changes, never per frame.
+    final pages = <int, Widget>{
+      for (final index in _visited)
+        index: Builder(builder: (context) => widget.tabBuilder(context, index)),
+    };
+    final media = MediaQuery.of(context);
+    var contentMedia = media.removeViewInsets(removeBottom: true);
+    var bottom = media.viewInsets.bottom;
+    if (widget.tabBar.preferredSize.height > bottom) {
+      final obstruction =
+          widget.tabBar.preferredSize.height + media.padding.bottom;
+      if (widget.tabBar.opaque(context)) {
+        bottom = obstruction;
+        contentMedia = contentMedia.removePadding(removeBottom: true);
+      } else {
+        contentMedia = contentMedia.copyWith(
+          padding: contentMedia.padding.copyWith(bottom: obstruction),
+        );
+      }
+    }
+    return ColoredBox(
+      color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: MediaQuery(
+              data: contentMedia,
+              child: Padding(
+                padding: EdgeInsets.only(bottom: bottom),
+                child: ClipRect(
+                  child: AnimatedBuilder(
+                    animation: motion._animation,
+                    builder: (context, _) => Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // Paint the incoming page last so its edge is above the
+                        // outgoing sheet, without remounting either subtree.
+                        for (final index in [
+                          ..._visited.where((index) => index != selected),
+                          selected,
+                        ])
+                          _page(index, selected, motion, pages[index]!),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: GestureDetector(
+              onHorizontalDragStart: (_) => _drag = 0,
+              onHorizontalDragUpdate: (details) => _drag += details.delta.dx,
+              onHorizontalDragEnd: (_) {
+                if (_drag.abs() < 48) return;
+                final rtl = Directionality.of(context) == TextDirection.rtl;
+                final step = (_drag < 0) != rtl ? 1 : -1;
+                widget.controller.index = (selected + step).clamp(
+                  0,
+                  widget.tabBar.items.length - 1,
+                );
+              },
+              child: MediaQuery.withNoTextScaling(
+                child: widget.tabBar.copyWith(
+                  currentIndex: selected,
+                  onTap: (index) {
+                    widget.controller.index = index;
+                    widget.tabBar.onTap?.call(index);
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _page(
+    int index,
+    int selected,
+    _WorkspaceTabMotionState motion,
+    Widget page,
+  ) {
+    final active = index == selected;
+    final outgoing =
+        motion._animation.value < 1 && index == motion._previousIndex;
+    return KeyedSubtree(
+      key: ValueKey(index),
+      child: HeroMode(
+        enabled: active,
+        child: Offstage(
+          offstage: !active && !outgoing,
+          child: TickerMode(
+            enabled: active,
+            child: ExcludeSemantics(
+              excluding: !active,
+              child: IgnorePointer(
+                ignoring: !active,
+                child: FocusScope(
+                  node: _focus.putIfAbsent(index, () => FocusScopeNode()),
+                  canRequestFocus: active,
+                  child: page,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Paint-only page-turn motion. The incoming sheet slides in one full page
 /// width from the side it was selected from, so it reads as a page laid over
 /// the workspace instead of a small nudge. A soft shadow on its free edge and
 /// a narrow spine gradient on its hinged edge give the sheet paper depth; both
@@ -131,16 +305,24 @@ class WorkspaceTabTransition extends StatelessWidget {
     final motion = context
         .dependOnInheritedWidgetOfExactType<_TabMotionScope>()!
         .motion;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
     final width = MediaQuery.sizeOf(context).width;
     return AnimatedBuilder(
       animation: motion._animation,
       child: RepaintBoundary(child: child),
       builder: (context, child) {
         final active = index == motion._index;
-        final linear = active ? motion._animation.value : 1.0;
+        final outgoing = index == motion._previousIndex;
+        final linear = active || outgoing ? motion._animation.value : 1.0;
         final progress = Curves.easeOutCubic.transform(linear);
+        final direction = motion._direction * (rtl ? -1 : 1);
+        final offset = active
+            ? 1 - progress
+            : outgoing
+            ? -progress
+            : 0.0;
         return Transform.translate(
-          offset: Offset(motion._direction * width * (1 - progress), 0),
+          offset: Offset(direction * width * offset, 0),
           child: Stack(
             fit: StackFit.expand,
             clipBehavior: Clip.none,
@@ -149,7 +331,7 @@ class WorkspaceTabTransition extends StatelessWidget {
               Positioned.fill(
                 child: IgnorePointer(
                   child: _PageEdge(
-                    direction: motion._direction,
+                    direction: direction,
                     shade: active ? 1 - linear : 0,
                   ),
                 ),

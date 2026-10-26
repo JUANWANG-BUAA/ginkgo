@@ -1,6 +1,6 @@
 # 多平台路线与 Rust + Flutter 镜像准备
 
-> 当前路线记录（2026-10-20，状态更新 2026-10-21）。Apple 产品继续使用现有 SwiftUI 应用；Rust + Flutter 镜像项目范围冻结为 Android + Windows，两端 Alpha.4 均已公开。`0.1.0-alpha.8` 作为 Apple 端当前基线草稿包；公开状态与验收边界统一见 [镜像实施现状](MIRROR-IMPLEMENTATION.md) 与 [Windows 首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)。
+> 当前路线记录（2026-10-20，状态更新 2026-10-25）。Apple 产品继续使用现有 SwiftUI 应用并已冻结；Rust + Flutter 镜像项目范围冻结为 Android + Windows，Android 当前公开 Alpha.8（2026-10-25），Windows 当前公开 Alpha.6。Apple 端另有同号草稿包 `0.1.0-alpha.8`（2026-10-20），与 Android 的 Alpha.8 **不是同一产物**；公开状态与验收边界统一见 [镜像实施现状](MIRROR-IMPLEMENTATION.md) 与 [Windows 首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)。
 > 本文取代旧版 Kotlin/Compose 推荐方案。历史候选方案不再作为当前实施建议；Rust/Flutter 的具体边界以 [RUST-FLUTTER-PORT.md](RUST-FLUTTER-PORT.md) 为准。实施已启动，当前进度见 [MIRROR-IMPLEMENTATION.md](MIRROR-IMPLEMENTATION.md)。
 
 ---
@@ -45,7 +45,7 @@ Ginkgo 当前是 macOS + iOS 原生 SwiftUI 客户端，直连或经学校 WebVP
 - **平台范围**：Android 与 Windows；macOS/iOS 继续由 SwiftUI 产品维护。跨端项目不替换 Apple 客户端，也不要求 Apple target 链接 Rust。
 - **“镜像”的含义**：优先对齐核心用户任务、数据语义、权限提示与错误恢复，不追求像素级复制 Apple 控件。Flutter 按各平台交互惯例呈现同一领域状态。
 - **运行边界**：Rust 在本地承载领域规则、协议、认证会话和缓存；Flutter 是 UI；没有自建远端后端。Dart 不持有学校 Cookie，也不逐请求控制 HTTP 或 WebVPN。
-- **启动时机**：Alpha 0.1.0-alpha.8 草稿包用于冻结 Apple 端基线。草稿包构建/签名/校验完成后，先落地 Rust workspace 与 fixture runner，再做纯逻辑垂直切片；不必把整个发布草稿公开，也不等待所有历史写操作验收。
+- **启动时机**：Apple 端 `0.1.0-alpha.8` 草稿包曾用于冻结 SwiftUI 基线（该路线已于 2026-10-24 冻结，当前仅被动维护）；镜像侧启动路径为 Rust workspace 与 fixture runner → 纯逻辑垂直切片，不必公开整个发布草稿，也不等待所有历史写操作验收。
 - **MVP 优先级**：共享规则验证 → Rust/bridge/Flutter 双平台垂直切片 → mock HTTP 只读用例 → 认证与 WebVPN → 扩大只读模块；写操作排最后并逐项评审。
 
 具体 crate、垂直切片验收标准、只读迁移顺序和完成定义见 [RUST-FLUTTER-PORT.md](RUST-FLUTTER-PORT.md)。

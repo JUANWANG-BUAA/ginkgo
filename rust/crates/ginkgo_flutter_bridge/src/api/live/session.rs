@@ -12,9 +12,7 @@ pub(super) async fn login(
         Ok(service) => service,
         Err(error) => return failure_response(error),
     };
-    match service
-        .sign_in(&account, &password, captcha.as_deref(), remember)
-        .await
+    match bounded_session(service.sign_in(&account, &password, captcha.as_deref(), remember)).await
     {
         Ok(outcome) => {
             let remembered = matches!(
@@ -44,7 +42,7 @@ pub(super) async fn restore_session() -> SessionResponse {
         Ok(service) => service,
         Err(error) => return failure_response(error),
     };
-    match service.restore().await {
+    match bounded_session(service.restore()).await {
         Ok(outcome) => {
             let remembered = matches!(
                 &outcome,

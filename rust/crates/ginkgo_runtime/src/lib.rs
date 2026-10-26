@@ -13,6 +13,10 @@ use std::sync::OnceLock;
 
 pub type AppService = Workspace<SchoolClient<ReqwestTransport, PlatformVault>>;
 
+pub fn library_loans_portal_url() -> String {
+    ginkgo_upstream::adapters::library_loans_http::portal_url()
+}
+
 /// Called lazily on the first command, never while Flutter initializes.
 pub fn create_service() -> Result<AppService, AppError> {
     let transport = ReqwestTransport::new().map_err(|_| AppError::unavailable())?;
@@ -61,3 +65,18 @@ pub mod demo;
 
 #[cfg(target_os = "android")]
 pub use ginkgo_upstream::auth::platform::jni_on_load;
+
+#[cfg(test)]
+mod composition_tests {
+    use super::*;
+
+    /// The composition root must assemble without touching the network, and a
+    /// freshly assembled service is signed out: no account leaks into status.
+    #[test]
+    fn a_freshly_assembled_service_is_signed_out() {
+        let service = create_service().expect("composition root must assemble off the network");
+        let status = service.status();
+        assert!(status.account.is_none(), "a new service holds no account");
+        assert!(status.profile.is_none(), "a new service holds no profile");
+    }
+}

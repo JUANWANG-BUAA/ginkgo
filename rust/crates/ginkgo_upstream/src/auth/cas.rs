@@ -51,9 +51,21 @@ pub fn detect_captcha(html: &str) -> Option<CaptchaChallenge> {
     let id = first_group(&CAPTCHA, html, 2)?;
     Some(CaptchaChallenge {
         captcha_type,
-        image_url: format!("https://sso.buaa.edu.cn/captcha?captchaId={id}"),
+        image_url: captcha_image_url(&id),
         id,
     })
+}
+
+pub fn captcha_image_url(id: &str) -> String {
+    let mut url = url::Url::parse("https://sso.buaa.edu.cn/captcha").expect("fixed URL");
+    url.query_pairs_mut().append_pair("captchaId", id);
+    url.into()
+}
+
+/// Only the documented local image/text form is understood. Other challenge
+/// interaction protocols must not be guessed from a free-form type string.
+pub fn text_captcha_supported(challenge: &CaptchaChallenge) -> bool {
+    challenge.captcha_type == "local"
 }
 
 pub fn extract_tip_text(html: &str) -> Option<String> {

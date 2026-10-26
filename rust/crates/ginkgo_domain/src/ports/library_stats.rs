@@ -1,5 +1,6 @@
 //! Stable library_stats business capability and values.
 use crate::{features::library_stats::CampusStats, AppError};
+#[derive(Debug, PartialEq, Eq)]
 pub struct LibraryStatsOutcome {
     pub campuses: Vec<CampusStats>,
     pub fetched_at: String,

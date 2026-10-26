@@ -37,3 +37,7 @@ artifacts/local/
 .v2c/
 .video_agent/
 __pycache__/
+
+# Local conversation exports may contain credentials; never publish them.
+dsh-tui-export-*.md
+pi-session-*.html

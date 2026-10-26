@@ -50,12 +50,27 @@ pub(crate) struct AuthenticatedIdentity {
     pub profile: UserProfile,
 }
 
+pub(crate) struct PendingLogin {
+    page: LoginPage,
+    account: String,
+    generation: u64,
+    created: Instant,
+}
+
+impl PendingLogin {
+    fn valid(&self, account: &str, generation: u64) -> bool {
+        self.account == account
+            && self.generation == generation
+            && self.created.elapsed() < Duration::from_secs(300)
+    }
+}
+
 /// All account-scoped authentication state has one lifetime and one reset.
 /// Keep secrets out of Debug/serialization; this state never crosses the bridge.
 #[derive(Default)]
 pub(crate) struct Identity {
     pub authenticated: Option<AuthenticatedIdentity>,
-    pub pending_login: Option<LoginPage>,
+    pub pending_login: Option<PendingLogin>,
     pub iclass: Option<IClassSession>,
     pub library_token: Option<String>,
     pub cgyy_token: Option<String>,
@@ -65,6 +80,9 @@ pub(crate) struct Identity {
 
 pub struct SchoolClient<T: HttpTransport, V: CredentialVault> {
     pub(crate) session: Session<T>,
+    pub(crate) learning_gate: tokio::sync::Mutex<()>,
+    pub(crate) homework_files: Mutex<super::homework_submission_service::HomeworkFiles>,
+    pub(crate) homework_file_gate: tokio::sync::Mutex<()>,
     pub(crate) vault: V,
     pub(crate) identity: Mutex<Identity>,
     pub(crate) route: StdMutex<RoutePreference>,
@@ -88,6 +106,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     pub fn new(session: Session<T>, vault: V) -> Self {
         Self {
             session,
+            learning_gate: tokio::sync::Mutex::new(()),
+            homework_files: Mutex::default(),
+            homework_file_gate: tokio::sync::Mutex::new(()),
             vault,
             identity: Mutex::default(),
             snapshots: ReadSnapshots::default(),
@@ -139,6 +160,22 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     /// replacing or deleting a real saved account.
     pub fn verify_vault_round_trip(&self, account: &str, secret: &str) -> bool {
         auth::vault::verify_vault_round_trip(&self.vault, account, secret)
+    }
+
+    /// How often one of this client's in-memory locks was recovered from a
+    /// poisoned state.
+    ///
+    /// A non-zero value means a panic interrupted a state update. The guarded
+    /// values were kept — in particular the session `Identity`, so the user is
+    /// not silently signed out — but the event stays visible to the caller
+    /// instead of disappearing into a silent reset.
+    pub fn lock_poison_events(&self) -> u64 {
+        self.identity.poison_count()
+            + self.checkin_progress.poison_count()
+            + self.automatic_login_failure.poison_count()
+            + self.cgyy_safety.poison_count()
+            + self.snapshots.poison_events()
+            + self.session.poison_events()
     }
 
     pub(crate) fn preference(&self) -> RoutePreference {
@@ -274,6 +311,115 @@ pub(crate) fn is_library_login_error(error: &AppError) -> bool {
     error.code == ErrorCode::SessionExpired && error.detail.as_deref() == Some("library_login")
 }
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for SchoolClient<T, V> {
+    async fn login_challenge(
+        &self,
+        expected_id: Option<&str>,
+        refresh: bool,
+    ) -> Result<LoginChallengeData, AppError> {
+        let (page, account, generation, created) = {
+            let mut identity = self.identity.lock();
+            let pending = identity
+                .pending_login
+                .as_ref()
+                .ok_or_else(AppError::session_expired)?;
+            if !pending.valid(&pending.account, identity.generation) {
+                identity.pending_login = None;
+                return Err(AppError::session_expired());
+            }
+            let LoginPage::Form {
+                captcha: Some(challenge),
+                ..
+            } = &pending.page
+            else {
+                return Err(AppError::invalid());
+            };
+            if expected_id.is_some_and(|id| id != challenge.id)
+                || (refresh && expected_id.is_none())
+            {
+                return Err(AppError::session_expired());
+            }
+            (
+                pending.page.clone(),
+                pending.account.clone(),
+                pending.generation,
+                pending.created,
+            )
+        };
+        // Refresh is a new login-page GET, not an invented refresh endpoint and
+        // never an ExistingSession hop or form submission.
+        let clear_original_pending = || {
+            let mut identity = self.identity.lock();
+            if identity.generation == generation
+                && identity.pending_login.as_ref().is_some_and(|pending| {
+                    pending.account == account
+                        && pending.generation == generation
+                        && pending.created == created
+                })
+            {
+                identity.pending_login = None;
+            }
+        };
+        let page = if refresh {
+            match auth::fetch_login_page(&self.session).await {
+                Ok(page) => page,
+                Err(error) => {
+                    clear_original_pending();
+                    return Err(error);
+                }
+            }
+        } else {
+            page
+        };
+        let LoginPage::Form {
+            captcha: Some(challenge),
+            ..
+        } = &page
+        else {
+            clear_original_pending();
+            return Err(AppError::session_expired());
+        };
+        let challenge = challenge.clone();
+        let text_supported = auth::cas::text_captcha_supported(&challenge);
+        {
+            let mut identity = self.identity.lock();
+            if identity.generation != generation
+                || identity
+                    .pending_login
+                    .as_ref()
+                    .is_none_or(|pending| !pending.valid(&account, generation))
+            {
+                return Err(AppError::session_expired());
+            }
+            identity.pending_login = Some(PendingLogin {
+                page,
+                account: account.clone(),
+                generation,
+                created: if refresh { Instant::now() } else { created },
+            });
+        }
+        let image = if text_supported {
+            auth::challenge::image(&self.session, &challenge.id).await?
+        } else {
+            vec![]
+        };
+        let identity = self.identity.lock();
+        if identity.generation != generation
+            || identity.pending_login.as_ref().is_none_or(|pending| {
+                !pending.valid(&account, generation)
+                    || !matches!(&pending.page,
+                LoginPage::Form { captcha: Some(current), .. } if current.id == challenge.id)
+            })
+        {
+            return Err(AppError::session_expired());
+        }
+        Ok(LoginChallengeData {
+            challenge_id: challenge.id,
+            challenge_type: challenge.captcha_type,
+            text_supported,
+            image,
+        })
+    }
+
     fn status(&self) -> SessionStatus {
         let identity = self.identity.lock();
         SessionStatus {
@@ -333,15 +479,33 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                 .filter(|value| !value.is_empty())
                 .map(str::to_owned),
         };
-        let pending = { self.identity.lock().pending_login.take() };
-        let page = match pending {
-            Some(page) => page,
-            None => auth::fetch_login_page(&self.session).await?,
+        let (pending, generation) = {
+            let mut identity = self.identity.lock();
+            (identity.pending_login.take(), identity.generation)
+        };
+        let page = match pending.filter(|page| page.valid(account, generation)) {
+            Some(pending) => pending.page,
+            None => {
+                // A stale answer must never be submitted against a newly fetched page.
+                if credentials.captcha_text.is_some() {
+                    return Err(AppError::session_expired());
+                }
+                auth::fetch_login_page(&self.session).await?
+            }
         };
         let retry_page = page.clone();
         match auth::complete_login(&self.session, &credentials, page).await {
             Ok(LoginResult::CaptchaRequired(challenge)) => {
-                self.identity.lock().pending_login = Some(retry_page);
+                let mut identity = self.identity.lock();
+                if identity.generation != generation {
+                    return Err(AppError::session_expired());
+                }
+                identity.pending_login = Some(PendingLogin {
+                    page: retry_page,
+                    account: account.to_owned(),
+                    generation,
+                    created: Instant::now(),
+                });
                 Ok(SessionOutcome::CaptchaRequired(challenge))
             }
             Ok(LoginResult::SignedIn(profile)) => {
@@ -417,7 +581,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                     });
                 }
                 Ok(LoginResult::CaptchaRequired(challenge)) => {
-                    self.identity.lock().pending_login = Some(page);
+                    let mut identity = self.identity.lock();
+                    let generation = identity.generation;
+                    identity.pending_login = Some(PendingLogin {
+                        page,
+                        account: credentials.username,
+                        generation,
+                        created: Instant::now(),
+                    });
                     return Ok(SessionOutcome::CaptchaRequired(challenge));
                 }
                 Err(error) if error.code == ErrorCode::InvalidCredentials => {

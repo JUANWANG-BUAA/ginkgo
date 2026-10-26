@@ -9,6 +9,7 @@
 //! Credentials enter through [`CredentialVault`]; Flutter never receives or
 //! forwards cookies.
 pub mod cas;
+pub(crate) mod challenge;
 pub mod login;
 pub mod platform;
 pub(crate) mod redirect;
@@ -110,6 +111,9 @@ pub async fn complete_login<T: HttpTransport>(
             // POST target is the last line of defense before credentials leave.
             login::validate_login_action(&action_url)?;
             if let Some(challenge) = captcha {
+                if !cas::text_captcha_supported(&challenge) {
+                    return Ok(LoginResult::CaptchaRequired(challenge));
+                }
                 if credentials
                     .captcha_text
                     .as_deref()

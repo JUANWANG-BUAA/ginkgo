@@ -45,26 +45,32 @@ class _ScheduleWeekStripState extends State<ScheduleWeekStrip> {
   Widget build(BuildContext context) {
     const gap = 8.0;
     const padding = 16.0;
-    const labelStyle = TextStyle(fontSize: 15, fontWeight: FontWeight.w600);
+    final labelStyle = CupertinoTheme.of(context).textTheme.actionTextStyle
+        .copyWith(fontSize: 15);
     final painter = TextPainter(
       textDirection: Directionality.of(context),
       textScaler: MediaQuery.textScalerOf(context),
     );
     var labelWidth = 0.0, labelHeight = 0.0;
     for (final week in widget.weeks) {
-      painter.text = TextSpan(
-        text: '第 ${week.number} 周',
-        style: DefaultTextStyle.of(context).style.merge(labelStyle),
-      );
-      painter.layout();
-      if (painter.width > labelWidth) labelWidth = painter.width;
-      if (painter.height > labelHeight) labelHeight = painter.height;
+      for (final weight in [FontWeight.w400, FontWeight.w600]) {
+        painter.text = TextSpan(
+          text: '第 ${week.number} 周',
+          style: labelStyle.copyWith(fontWeight: weight),
+        );
+        painter.layout();
+        if (painter.width > labelWidth) labelWidth = painter.width;
+        if (painter.height > labelHeight) labelHeight = painter.height;
+      }
     }
     painter.dispose();
-    final chipWidth = (labelWidth + 24).clamp(76.0, double.infinity);
+    final chipWidth = (labelWidth.ceilToDouble() + 26).clamp(
+      76.0,
+      double.infinity,
+    );
     final extent = chipWidth + gap;
     return SizedBox(
-      height: labelHeight + 24,
+      height: (labelHeight + 24).clamp(60.0, double.infinity),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final index = widget.weeks.indexWhere(
@@ -133,7 +139,7 @@ class _ScheduleWeekStripState extends State<ScheduleWeekStrip> {
                       horizontal: 12,
                       vertical: 6,
                     ),
-                    minimumSize: const Size(76, 0),
+                    minimumSize: const Size(76, 48),
                     color: active
                         ? color.withValues(alpha: 0.14)
                         : CupertinoColors.tertiarySystemFill.resolveFrom(
@@ -151,8 +157,9 @@ class _ScheduleWeekStripState extends State<ScheduleWeekStrip> {
                         children: [
                           Text(
                             '第 ${week.number} 周',
-                            style: TextStyle(
-                              fontSize: 15,
+                            maxLines: 1,
+                            softWrap: false,
+                            style: labelStyle.copyWith(
                               fontWeight: active
                                   ? FontWeight.w600
                                   : FontWeight.w400,

@@ -246,6 +246,33 @@ Future<ReadOnlyResponse> loadShuttleTimetable() =>
 Future<ReadOnlyResponse> loadLibraryHoldings({required String bibId}) =>
     RustLib.instance.api.crateApiLiveLoadLibraryHoldings(bibId: bibId);
 
+Future<LearningSnapshotResponse> exportLearningSnapshots({
+  required String expectedAccount,
+}) => RustLib.instance.api.crateApiLiveExportLearningSnapshots(
+  expectedAccount: expectedAccount,
+);
+
+Future<ReadOnlyResponse> importLearningSnapshots({
+  required String expectedAccount,
+  required List<int> bytes,
+}) => RustLib.instance.api.crateApiLiveImportLearningSnapshots(
+  expectedAccount: expectedAccount,
+  bytes: bytes,
+);
+
+/// Public website metadata only. Does not initialize an authenticated session.
+String libraryLoansPortalUrl() =>
+    RustLib.instance.api.crateApiLiveLibraryLoansPortalUrl();
+
+/// Explicit private read, scoped to the caller's account. No disk cache or writes.
+Future<ReadOnlyResponse> loadLibraryLoans({
+  required String expectedAccount,
+  required int page,
+}) => RustLib.instance.api.crateApiLiveLoadLibraryLoans(
+  expectedAccount: expectedAccount,
+  page: page,
+);
+
 /// Public counts only. No school identity or library token is serialized.
 Future<ReadOnlyResponse> loadLibraryStats({required bool forceRefresh}) =>
     RustLib.instance.api.crateApiLiveLoadLibraryStats(
@@ -278,6 +305,263 @@ Future<MutationResponse> performLibraryAction({
 }) => RustLib.instance.api.crateApiLivePerformLibraryAction(
   bookingId: bookingId,
   action: action,
+);
+
+/// Homework business JSON only; raw SPOC payloads never leave upstream.
+Future<ReadOnlyResponse> homeworkFileWorkspace({
+  required String expectedAccount,
+  required String assignmentId,
+}) => RustLib.instance.api.crateApiLiveHomeworkFileWorkspace(
+  expectedAccount: expectedAccount,
+  assignmentId: assignmentId,
+);
+
+Future<ReadOnlyResponse> uploadHomeworkFile({
+  required String expectedAccount,
+  required String assignmentId,
+  required String name,
+  required List<int> bytes,
+}) => RustLib.instance.api.crateApiLiveUploadHomeworkFile(
+  expectedAccount: expectedAccount,
+  assignmentId: assignmentId,
+  name: name,
+  bytes: bytes,
+);
+
+Future<MutationResponse> submitHomeworkFile({
+  required String expectedAccount,
+  required String handle,
+  required bool confirmed,
+}) => RustLib.instance.api.crateApiLiveSubmitHomeworkFile(
+  expectedAccount: expectedAccount,
+  handle: handle,
+  confirmed: confirmed,
+);
+
+Future<MutationResponse> reconcileHomeworkFile({
+  required String expectedAccount,
+  required String handle,
+}) => RustLib.instance.api.crateApiLiveReconcileHomeworkFile(
+  expectedAccount: expectedAccount,
+  handle: handle,
+);
+
+Future<HomeworkFileDownloadResponse> downloadHomeworkFile({
+  required String expectedAccount,
+  required String assignmentId,
+  required String attachmentId,
+}) => RustLib.instance.api.crateApiLiveDownloadHomeworkFile(
+  expectedAccount: expectedAccount,
+  assignmentId: assignmentId,
+  attachmentId: attachmentId,
+);
+
+/// Learning queries return business DTO JSON, never school response envelopes.
+Future<ReadOnlyResponse> learningCourses({
+  required String expectedAccount,
+  required bool force,
+}) => RustLib.instance.api.crateApiLiveLearningCourses(
+  expectedAccount: expectedAccount,
+  force: force,
+);
+
+Future<ReadOnlyResponse> courseAnnouncements({
+  required String expectedAccount,
+  required String course,
+  required bool force,
+}) => RustLib.instance.api.crateApiLiveCourseAnnouncements(
+  expectedAccount: expectedAccount,
+  course: course,
+  force: force,
+);
+
+Future<ReadOnlyResponse> courseAnnouncementDetail({
+  required String expectedAccount,
+  required String course,
+  required String id,
+}) => RustLib.instance.api.crateApiLiveCourseAnnouncementDetail(
+  expectedAccount: expectedAccount,
+  course: course,
+  id: id,
+);
+
+Future<ReadOnlyResponse> courseResources({
+  required String expectedAccount,
+  required String course,
+  String? folder,
+  required int page,
+  required bool force,
+}) => RustLib.instance.api.crateApiLiveCourseResources(
+  expectedAccount: expectedAccount,
+  course: course,
+  folder: folder,
+  page: page,
+  force: force,
+);
+
+Future<ReadOnlyResponse> courseAssessments({
+  required String expectedAccount,
+  required String course,
+  required bool force,
+}) => RustLib.instance.api.crateApiLiveCourseAssessments(
+  expectedAccount: expectedAccount,
+  course: course,
+  force: force,
+);
+
+Future<HomeworkFileDownloadResponse> courseResourceDownload({
+  required String expectedAccount,
+  required String course,
+  String? folder,
+  required int page,
+  required String id,
+}) => RustLib.instance.api.crateApiLiveCourseResourceDownload(
+  expectedAccount: expectedAccount,
+  course: course,
+  folder: folder,
+  page: page,
+  id: id,
+);
+
+Future<HomeworkFileDownloadResponse> courseAnnouncementAttachment({
+  required String expectedAccount,
+  required String course,
+  required String id,
+  required String file,
+}) => RustLib.instance.api.crateApiLiveCourseAnnouncementAttachment(
+  expectedAccount: expectedAccount,
+  course: course,
+  id: id,
+  file: file,
+);
+
+/// Explicit module context; all identifiers are revalidated by the source.
+Future<ReadOnlyResponse> courseLearningColumns({
+  required String expectedAccount,
+  required String course,
+  required bool force,
+}) => RustLib.instance.api.crateApiLiveCourseLearningColumns(
+  expectedAccount: expectedAccount,
+  course: course,
+  force: force,
+);
+
+Future<ReadOnlyResponse> courseLearningCapabilities({
+  required String expectedAccount,
+  required String course,
+}) => RustLib.instance.api.crateApiLiveCourseLearningCapabilities(
+  expectedAccount: expectedAccount,
+  course: course,
+);
+
+Future<ReadOnlyResponse> courseAnnouncementsIn({
+  required String expectedAccount,
+  required String course,
+  required String column,
+  required bool force,
+}) => RustLib.instance.api.crateApiLiveCourseAnnouncementsIn(
+  expectedAccount: expectedAccount,
+  course: course,
+  column: column,
+  force: force,
+);
+
+Future<ReadOnlyResponse> courseAssessmentsIn({
+  required String expectedAccount,
+  required String course,
+  required String column,
+  required bool force,
+}) => RustLib.instance.api.crateApiLiveCourseAssessmentsIn(
+  expectedAccount: expectedAccount,
+  course: course,
+  column: column,
+  force: force,
+);
+
+Future<ReadOnlyResponse> courseAnnouncementDetailIn({
+  required String expectedAccount,
+  required String course,
+  required String column,
+  required String id,
+}) => RustLib.instance.api.crateApiLiveCourseAnnouncementDetailIn(
+  expectedAccount: expectedAccount,
+  course: course,
+  column: column,
+  id: id,
+);
+
+Future<HomeworkFileDownloadResponse> courseAnnouncementAttachmentIn({
+  required String expectedAccount,
+  required String course,
+  required String column,
+  required String id,
+  required String file,
+}) => RustLib.instance.api.crateApiLiveCourseAnnouncementAttachmentIn(
+  expectedAccount: expectedAccount,
+  course: course,
+  column: column,
+  id: id,
+  file: file,
+);
+
+Future<ReadOnlyResponse> courseResourcesAt({
+  required String expectedAccount,
+  required String course,
+  required List<String> path,
+  required int page,
+  required bool force,
+}) => RustLib.instance.api.crateApiLiveCourseResourcesAt(
+  expectedAccount: expectedAccount,
+  course: course,
+  path: path,
+  page: page,
+  force: force,
+);
+
+Future<HomeworkFileDownloadResponse> courseResourceDownloadAt({
+  required String expectedAccount,
+  required String course,
+  required List<String> path,
+  required int page,
+  required String id,
+}) => RustLib.instance.api.crateApiLiveCourseResourceDownloadAt(
+  expectedAccount: expectedAccount,
+  course: course,
+  path: path,
+  page: page,
+  id: id,
+);
+
+Future<ReadOnlyResponse> loadGraduateCreditMap({
+  required String expectedAccount,
+  required bool forceRefresh,
+}) => RustLib.instance.api.crateApiLiveLoadGraduateCreditMap(
+  expectedAccount: expectedAccount,
+  forceRefresh: forceRefresh,
+);
+
+Future<ReadOnlyResponse> configureHomeworkRecovery({
+  required String expectedAccount,
+  required String storageRoot,
+}) => RustLib.instance.api.crateApiLiveConfigureHomeworkRecovery(
+  expectedAccount: expectedAccount,
+  storageRoot: storageRoot,
+);
+
+Future<ReadOnlyResponse> pendingHomeworkSubmissions({
+  required String expectedAccount,
+  String? assignmentId,
+}) => RustLib.instance.api.crateApiLivePendingHomeworkSubmissions(
+  expectedAccount: expectedAccount,
+  assignmentId: assignmentId,
+);
+
+Future<ReadOnlyResponse> homeworkCapabilities({
+  required String expectedAccount,
+  required String assignmentId,
+}) => RustLib.instance.api.crateApiLiveHomeworkCapabilities(
+  expectedAccount: expectedAccount,
+  assignmentId: assignmentId,
 );
 
 class GradeTermsResponse {
@@ -353,6 +637,45 @@ class HomeworkDetailResponse {
           status == other.status &&
           submittedAt == other.submittedAt &&
           stale == other.stale &&
+          failure == other.failure;
+}
+
+class HomeworkFileDownloadResponse {
+  final String? name;
+  final Uint8List? bytes;
+  final FailureCode? failure;
+
+  const HomeworkFileDownloadResponse({this.name, this.bytes, this.failure});
+
+  @override
+  int get hashCode => name.hashCode ^ bytes.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HomeworkFileDownloadResponse &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          bytes == other.bytes &&
+          failure == other.failure;
+}
+
+/// Transient archive bytes. Hosts must use explicitly opted-in encrypted storage.
+class LearningSnapshotResponse {
+  final Uint8List? bytes;
+  final FailureCode? failure;
+
+  const LearningSnapshotResponse({this.bytes, this.failure});
+
+  @override
+  int get hashCode => bytes.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LearningSnapshotResponse &&
+          runtimeType == other.runtimeType &&
+          bytes == other.bytes &&
           failure == other.failure;
 }
 

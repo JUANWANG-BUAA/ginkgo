@@ -6,6 +6,8 @@ import 'app_preferences.dart';
 import 'application/contracts.dart' show SessionResponse, SessionState;
 import 'infrastructure/mirror_runtime.dart';
 import 'login_page.dart';
+import 'infrastructure/native_auth_challenge.dart';
+import 'application/auth_challenge.dart';
 import 'mirror_service.dart';
 import 'startup_page.dart';
 import 'startup_update.dart';
@@ -56,9 +58,11 @@ class GinkgoRoot extends StatefulWidget {
     this.demoService = const DemoMirrorService(),
     this.loadUpdateGate,
     this.startupUpdates,
+    this.challengeGateway,
   });
   final MirrorService liveService;
   final MirrorService demoService;
+  final AuthChallengeGateway? challengeGateway;
 
   /// Null preserves explicitly offline/test compositions. Production checks once.
   final MaintenanceService? startupUpdates;
@@ -160,7 +164,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
         stage = _Stage.signedOut;
         captchaRequired = response.state == SessionState.captchaRequired;
         message = captchaRequired
-            ? '学校要求验证码，请重新登录。验证码图片展示尚未接入。'
+            ? '学校要求验证码，请重新登录并完成页面中的验证码挑战。'
             : response.failure == null
             ? null
             : failureMessage(response.failure);
@@ -228,6 +232,11 @@ class _GinkgoRootState extends State<GinkgoRoot> {
           service: widget.liveService,
           initialMessage: message,
           initialCaptcha: captchaRequired,
+          challengeGateway:
+              widget.challengeGateway ??
+              (widget.liveService is NativeMirrorService
+                  ? const NativeAuthChallengeGateway()
+                  : null),
           onSignedIn: signedIn,
           onDemo: () => setState(() {
             stage = _Stage.demo;

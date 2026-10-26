@@ -39,41 +39,38 @@ void main() {
       expect(isHomeworkOverdue('', beijingNow), isFalse);
     });
 
-    test(
-      'date-only deadlines: valid until end of that Beijing day, overdue at next-day 00:00',
-      () {
-        const due = '2026-10-23';
-        // At 23:59:59 on the same day -> active
-        final sameDayLate = DateTime.utc(2026, 10, 23, 23, 59, 59);
-        expect(
-          classifyHomeworkDeadline(due, sameDayLate),
-          HomeworkDeadlineStatus.active,
-        );
-        expect(isHomeworkOverdue(due, sameDayLate), isFalse);
+    test('date-only deadlines: valid until end of that Beijing day, overdue at next-day 00:00', () {
+      const due = '2026-10-23';
+      // At 23:59:59 on the same day -> active
+      final sameDayLate = DateTime.utc(2026, 10, 23, 23, 59, 59);
+      expect(
+        classifyHomeworkDeadline(due, sameDayLate),
+        HomeworkDeadlineStatus.active,
+      );
+      expect(isHomeworkOverdue(due, sameDayLate), isFalse);
 
-        // At 00:00:00 next day -> overdue
-        final nextDayMidnight = DateTime.utc(2026, 10, 24, 0, 0, 0);
-        expect(
-          classifyHomeworkDeadline(due, nextDayMidnight),
-          HomeworkDeadlineStatus.overdue,
-        );
-        expect(isHomeworkOverdue(due, nextDayMidnight), isTrue);
+      // At 00:00:00 next day -> overdue
+      final nextDayMidnight = DateTime.utc(2026, 10, 24, 0, 0, 0);
+      expect(
+        classifyHomeworkDeadline(due, nextDayMidnight),
+        HomeworkDeadlineStatus.overdue,
+      );
+      expect(isHomeworkOverdue(due, nextDayMidnight), isTrue);
 
-        // Yesterday's date-only -> overdue
-        expect(
-          classifyHomeworkDeadline('2026-10-22', beijingNow),
-          HomeworkDeadlineStatus.overdue,
-        );
-        expect(isHomeworkOverdue('2026-10-22', beijingNow), isTrue);
+      // Yesterday's date-only -> overdue
+      expect(
+        classifyHomeworkDeadline('2026-10-22', beijingNow),
+        HomeworkDeadlineStatus.overdue,
+      );
+      expect(isHomeworkOverdue('2026-10-22', beijingNow), isTrue);
 
-        // Tomorrow's date-only -> active
-        expect(
-          classifyHomeworkDeadline('2026-10-24', beijingNow),
-          HomeworkDeadlineStatus.active,
-        );
-        expect(isHomeworkOverdue('2026-10-24', beijingNow), isFalse);
-      },
-    );
+      // Tomorrow's date-only -> active
+      expect(
+        classifyHomeworkDeadline('2026-10-24', beijingNow),
+        HomeworkDeadlineStatus.active,
+      );
+      expect(isHomeworkOverdue('2026-10-24', beijingNow), isFalse);
+    });
 
     test('exact timestamps: overdue when now >= deadline', () {
       const due = '2026-10-23 18:00:00';
@@ -87,10 +84,7 @@ void main() {
 
       // Exact moment -> overdue (now >= deadline)
       final at = DateTime.utc(2026, 10, 23, 18, 0, 0);
-      expect(
-        classifyHomeworkDeadline(due, at),
-        HomeworkDeadlineStatus.overdue,
-      );
+      expect(classifyHomeworkDeadline(due, at), HomeworkDeadlineStatus.overdue);
       expect(isHomeworkOverdue(due, at), isTrue);
 
       // 1 second after -> overdue
@@ -102,58 +96,58 @@ void main() {
       expect(isHomeworkOverdue(due, after), isTrue);
     });
 
+    test('zoned timestamps: UTC vs +08:00 represent identical instants in Beijing time', () {
+      // 10:00 UTC == 18:00 Beijing time
+      const utcDue = '2026-10-23T10:00:00Z';
+      const bjtDue = '2026-10-23T18:00:00+08:00';
+
+      final before = DateTime.utc(2026, 10, 23, 17, 59, 59);
+      expect(
+        classifyHomeworkDeadline(utcDue, before),
+        HomeworkDeadlineStatus.active,
+      );
+      expect(
+        classifyHomeworkDeadline(bjtDue, before),
+        HomeworkDeadlineStatus.active,
+      );
+
+      final at = DateTime.utc(2026, 10, 23, 18, 0, 0);
+      expect(
+        classifyHomeworkDeadline(utcDue, at),
+        HomeworkDeadlineStatus.overdue,
+      );
+      expect(
+        classifyHomeworkDeadline(bjtDue, at),
+        HomeworkDeadlineStatus.overdue,
+      );
+    });
+
     test(
-      'zoned timestamps: UTC vs +08:00 represent identical instants in Beijing time',
+      'invalid and impossible calendar dates remain invalid, never overdue',
       () {
-        // 10:00 UTC == 18:00 Beijing time
-        const utcDue = '2026-10-23T10:00:00Z';
-        const bjtDue = '2026-10-23T18:00:00+08:00';
+        const invalids = [
+          '2026-02-30', // impossible February day
+          '2026-13-01', // month 13
+          '2026-10-32', // day 32
+          '2026-10-23 25:00:00', // hour 25
+          'not-a-date',
+          '2026/10/23',
+        ];
 
-        final before = DateTime.utc(2026, 10, 23, 17, 59, 59);
-        expect(
-          classifyHomeworkDeadline(utcDue, before),
-          HomeworkDeadlineStatus.active,
-        );
-        expect(
-          classifyHomeworkDeadline(bjtDue, before),
-          HomeworkDeadlineStatus.active,
-        );
-
-        final at = DateTime.utc(2026, 10, 23, 18, 0, 0);
-        expect(
-          classifyHomeworkDeadline(utcDue, at),
-          HomeworkDeadlineStatus.overdue,
-        );
-        expect(
-          classifyHomeworkDeadline(bjtDue, at),
-          HomeworkDeadlineStatus.overdue,
-        );
+        for (final raw in invalids) {
+          expect(
+            classifyHomeworkDeadline(raw, beijingNow),
+            HomeworkDeadlineStatus.invalid,
+            reason: 'Expected $raw to be classified as invalid',
+          );
+          expect(
+            isHomeworkOverdue(raw, beijingNow),
+            isFalse,
+            reason: 'Invalid deadline $raw must never be treated as overdue',
+          );
+        }
       },
     );
-
-    test('invalid and impossible calendar dates remain invalid, never overdue', () {
-      const invalids = [
-        '2026-02-30', // impossible February day
-        '2026-13-01', // month 13
-        '2026-10-32', // day 32
-        '2026-10-23 25:00:00', // hour 25
-        'not-a-date',
-        '2026/10/23',
-      ];
-
-      for (final raw in invalids) {
-        expect(
-          classifyHomeworkDeadline(raw, beijingNow),
-          HomeworkDeadlineStatus.invalid,
-          reason: 'Expected $raw to be classified as invalid',
-        );
-        expect(
-          isHomeworkOverdue(raw, beijingNow),
-          isFalse,
-          reason: 'Invalid deadline $raw must never be treated as overdue',
-        );
-      }
-    });
   });
 
   group('TodayHomeworkSection & HomeworkPage Orthogonal Filtering', () {
@@ -249,25 +243,37 @@ void main() {
         expect(find.text('4 项作业待处理'), findsOneWidget);
         // Overdue count is 2 (overdue-1, overdue-date)
         // Unknown count is 1
-        expect(
-          find.text('1 项状态待确认 · 已截止 2 项'),
-          findsOneWidget,
-        );
+        expect(find.text('1 项状态待确认 · 已截止 2 项'), findsOneWidget);
 
         // Active items must be displayed
         expect(find.text('活跃作业1'), findsOneWidget);
         expect(find.text('活跃作业2'), findsOneWidget);
         // Only take(3) are shown in items list:
         // active-soon (18:00), active-date (end of day), undated/invalid
-        expect(find.byKey(const Key('today-homework-item-active-soon')), findsOneWidget);
-        expect(find.byKey(const Key('today-homework-item-active-date')), findsOneWidget);
+        expect(
+          find.byKey(const Key('today-homework-item-active-soon')),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const Key('today-homework-item-active-date')),
+          findsOneWidget,
+        );
 
         // Overdue items must NOT be displayed in today items list
-        expect(find.byKey(const Key('today-homework-item-overdue-1')), findsNothing);
-        expect(find.byKey(const Key('today-homework-item-overdue-date')), findsNothing);
+        expect(
+          find.byKey(const Key('today-homework-item-overdue-1')),
+          findsNothing,
+        );
+        expect(
+          find.byKey(const Key('today-homework-item-overdue-date')),
+          findsNothing,
+        );
 
         // Submitted items must NOT be displayed
-        expect(find.byKey(const Key('today-homework-item-submitted-1')), findsNothing);
+        expect(
+          find.byKey(const Key('today-homework-item-submitted-1')),
+          findsNothing,
+        );
       },
     );
 
@@ -289,10 +295,7 @@ void main() {
 
         await tester.pumpWidget(
           ginkgoApp(
-            home: HomeworkPage(
-              service: gateway,
-              now: beijingNow,
-            ),
+            home: HomeworkPage(service: gateway, now: beijingNow),
           ),
         );
         await tester.pumpAndSettle();
@@ -302,17 +305,23 @@ void main() {
         // submitted = 1 (submitted-1)
         // overdue = 2 (overdue-1, overdue-date)
         // unknown = 1
-        final pendingSummary = find.byKey(const ValueKey('homework-summary-待完成'));
+        final pendingSummary = find.byKey(
+          const ValueKey('homework-summary-待完成'),
+        );
         expect(
           find.descendant(of: pendingSummary, matching: find.text('4')),
           findsOneWidget,
         );
-        final submittedSummary = find.byKey(const ValueKey('homework-summary-已提交'));
+        final submittedSummary = find.byKey(
+          const ValueKey('homework-summary-已提交'),
+        );
         expect(
           find.descendant(of: submittedSummary, matching: find.text('1')),
           findsOneWidget,
         );
-        final overdueSummary = find.byKey(const ValueKey('homework-summary-已截止'));
+        final overdueSummary = find.byKey(
+          const ValueKey('homework-summary-已截止'),
+        );
         expect(
           find.descendant(of: overdueSummary, matching: find.text('2')),
           findsOneWidget,
@@ -347,6 +356,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('1 项作业'), findsOneWidget);
         expect(find.text('已提交作业'), findsOneWidget);
+        expect(find.textContaining('已超期'), findsNothing);
 
         // Switch to filter 4 (待确认)
         await tester.tap(find.text('待确认 1'));

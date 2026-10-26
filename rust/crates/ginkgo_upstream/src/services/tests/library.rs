@@ -416,3 +416,51 @@ async fn library_cancel_revalidates_kind_and_never_cancels_an_ended_booking() {
         );
     }
 }
+
+/// The await-time account recheck: a library read parked mid-flight must
+/// reject its result after the identity flips, leaving the venues snapshot
+/// (keyed by the service's VENUES_KEY) for the new account untouched.
+#[tokio::test]
+async fn an_account_change_during_the_library_venues_read_rejects_its_result() {
+    use std::future::Future as _;
+    let (transport, gate) = GatedTransport::gated();
+    let service = SchoolClient::new(
+        crate::auth::session::Session::new(transport),
+        MemoryVault::default(),
+    );
+    service.set_authenticated(
+        "sy2501001".into(),
+        UserProfile {
+            school_id: "sy2501001".into(),
+            name: "synthetic".into(),
+        },
+    );
+    let cache = std::sync::Mutex::new(crate::services::snapshots::LibraryVenueCache::default());
+    let mut pending = Box::pin(service.load_library_venues(false));
+    assert!(
+        std::future::poll_fn(|cx| std::task::Poll::Ready(pending.as_mut().poll(cx)))
+            .await
+            .is_pending(),
+        "the gated transport must hold the read open"
+    );
+    service.set_authenticated(
+        "sy2501002".into(),
+        UserProfile {
+            school_id: "sy2501002".into(),
+            name: "other".into(),
+        },
+    );
+    gate.send_replace(true);
+    let error = pending
+        .await
+        .expect_err("a late read must not cross accounts");
+    assert_eq!(error.code, ErrorCode::SessionExpired);
+    assert!(
+        cache
+            .lock()
+            .expect("snapshot cache")
+            .fresh(&"venues".to_owned())
+            .is_none(),
+        "a rejected read must not populate the venues snapshot"
+    );
+}

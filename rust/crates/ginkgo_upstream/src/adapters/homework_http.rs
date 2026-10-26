@@ -251,7 +251,7 @@ fn apply_course_roles(
     }
 }
 
-async fn course_ids<T: HttpTransport>(
+pub(crate) async fn course_ids<T: HttpTransport>(
     session: &Session<T>,
     auth: &SpocAuth,
     path: &str,

@@ -150,7 +150,7 @@ pub struct HomeworkPage {
     pub items: Vec<HomeworkItem>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HomeworkData {
     pub term_code: String,
     pub term_name: String,

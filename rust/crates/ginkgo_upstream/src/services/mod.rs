@@ -94,6 +94,7 @@ mod cgyy_service;
 pub use cgyy_service::CgyyOutcome;
 
 mod library_books_service;
+mod library_loans_service;
 mod library_stats_service;
 mod shuttle_service;
 
@@ -107,3 +108,7 @@ mod outcome;
 pub use outcome::DataOutcome;
 
 pub mod demo_campus;
+
+mod homework_submission_service;
+
+mod learning_service;

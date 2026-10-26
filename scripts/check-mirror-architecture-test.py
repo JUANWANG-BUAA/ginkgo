@@ -58,6 +58,61 @@ class BoundaryTests(unittest.TestCase):
             ports.write_text('pub type Payload = serde_json::Value;\n')
             self.assertEqual(len(BOUNDARY.source_violations(root)), 1)
 
+    def test_domain_features_cannot_host_school_implementation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            features = root / 'rust/crates/ginkgo_domain/src/features/example.rs'
+            features.parent.mkdir(parents=True)
+            features.write_text('pub const ENDPOINT: &str = "https://iclass.buaa.edu.cn/app";\n')
+            self.assertEqual(len(BOUNDARY.source_violations(root)), 1)
+            features.write_text('pub struct Day { pub label: String }\n')
+            self.assertEqual(BOUNDARY.source_violations(root), [])
+
+    def test_dart_pages_cannot_reference_school_destinations(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            page = root / 'flutter/lib/classroom_page.dart'
+            page.parent.mkdir(parents=True)
+            page.write_text("final url = 'https://yjs.buaa.edu.cn/gsmis';\n")
+            self.assertEqual(len(BOUNDARY.dart_boundary_violations(root)), 1)
+            page.write_text('final url = schoolEndpoint;\n')
+            self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
+
+    def test_only_contracts_facade_imports_generated_bindings(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            lib = root / 'flutter/lib'
+            page = lib / 'today_page.dart'
+            page.parent.mkdir(parents=True)
+            page.write_text("import 'src/rust/api/mirror.dart';\n")
+            self.assertEqual(len(BOUNDARY.dart_boundary_violations(root)), 1)
+            page.write_text("import 'application/contracts.dart';\n")
+            self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
+
+    def test_native_construction_stays_in_composition(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            page = root / 'flutter/lib/today_page.dart'
+            page.parent.mkdir(parents=True)
+            page.write_text('final service = NativeMirrorService();\n')
+            self.assertEqual(len(BOUNDARY.dart_boundary_violations(root)), 1)
+            page.write_text('final service = widget.service;\n')
+            composition = root / 'flutter/lib/main.dart'
+            composition.write_text('final service = NativeMirrorService();\n')
+            self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
+
+    def test_contracts_facade_exports_types_only(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            facade = root / 'flutter/lib/application/contracts.dart'
+            facade.parent.mkdir(parents=True)
+            facade.write_text("export '../src/rust/api/mirror.dart' show ScheduleDto, loadSchedule;\n")
+            self.assertEqual(len(BOUNDARY.dart_boundary_violations(root)), 1)
+            facade.write_text("export '../src/rust/api/mirror.dart';\n")
+            self.assertEqual(len(BOUNDARY.dart_boundary_violations(root)), 1)
+            facade.write_text("export '../src/rust/api/mirror.dart' show ScheduleDto;\n")
+            self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
+
     def test_pages_cannot_decode_school_payload_json(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

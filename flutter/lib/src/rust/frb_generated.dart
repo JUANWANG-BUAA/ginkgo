@@ -4,7 +4,9 @@
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
 import 'api/live.dart';
+import 'api/live/auth_challenge.dart';
 import 'api/mirror.dart';
+import 'api/reminder_planning.dart';
 
 import 'dart:async';
 import 'dart:convert';
@@ -70,7 +72,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => 1018797330;
+  int get rustContentHash => -2019646885;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -90,6 +92,116 @@ abstract class RustLibApi extends BaseApi {
 
   Future<bool> crateApiLiveClearCache();
 
+  Future<ReadOnlyResponse> crateApiLiveConfigureHomeworkRecovery({
+    required String expectedAccount,
+    required String storageRoot,
+  });
+
+  Future<HomeworkFileDownloadResponse>
+  crateApiLiveCourseAnnouncementAttachment({
+    required String expectedAccount,
+    required String course,
+    required String id,
+    required String file,
+  });
+
+  Future<HomeworkFileDownloadResponse>
+  crateApiLiveCourseAnnouncementAttachmentIn({
+    required String expectedAccount,
+    required String course,
+    required String column,
+    required String id,
+    required String file,
+  });
+
+  Future<ReadOnlyResponse> crateApiLiveCourseAnnouncementDetail({
+    required String expectedAccount,
+    required String course,
+    required String id,
+  });
+
+  Future<ReadOnlyResponse> crateApiLiveCourseAnnouncementDetailIn({
+    required String expectedAccount,
+    required String course,
+    required String column,
+    required String id,
+  });
+
+  Future<ReadOnlyResponse> crateApiLiveCourseAnnouncements({
+    required String expectedAccount,
+    required String course,
+    required bool force,
+  });
+
+  Future<ReadOnlyResponse> crateApiLiveCourseAnnouncementsIn({
+    required String expectedAccount,
+    required String course,
+    required String column,
+    required bool force,
+  });
+
+  Future<ReadOnlyResponse> crateApiLiveCourseAssessments({
+    required String expectedAccount,
+    required String course,
+    required bool force,
+  });
+
+  Future<ReadOnlyResponse> crateApiLiveCourseAssessmentsIn({
+    required String expectedAccount,
+    required String course,
+    required String column,
+    required bool force,
+  });
+
+  Future<ReadOnlyResponse> crateApiLiveCourseLearningCapabilities({
+    required String expectedAccount,
+    required String course,
+  });
+
+  Future<ReadOnlyResponse> crateApiLiveCourseLearningColumns({
+    required String expectedAccount,
+    required String course,
+    required bool force,
+  });
+
+  Future<HomeworkFileDownloadResponse> crateApiLiveCourseResourceDownload({
+    required String expectedAccount,
+    required String course,
+    String? folder,
+    required int page,
+    required String id,
+  });
+
+  Future<HomeworkFileDownloadResponse> crateApiLiveCourseResourceDownloadAt({
+    required String expectedAccount,
+    required String course,
+    required List<String> path,
+    required int page,
+    required String id,
+  });
+
+  Future<ReadOnlyResponse> crateApiLiveCourseResources({
+    required String expectedAccount,
+    required String course,
+    String? folder,
+    required int page,
+    required bool force,
+  });
+
+  Future<ReadOnlyResponse> crateApiLiveCourseResourcesAt({
+    required String expectedAccount,
+    required String course,
+    required List<String> path,
+    required int page,
+    required bool force,
+  });
+
+  Future<HomeworkFileDownloadResponse> crateApiLiveDownloadHomeworkFile({
+    required String expectedAccount,
+    required String assignmentId,
+    required String attachmentId,
+  });
+
   Future<ReadOnlyResponse> crateApiLiveEditTasks({
     required String root,
     required bool demo,
@@ -102,7 +214,33 @@ abstract class RustLibApi extends BaseApi {
 
   Future<ReadOnlyResponse> crateApiLiveExecuteCgyy({required String command});
 
+  Future<LearningSnapshotResponse> crateApiLiveExportLearningSnapshots({
+    required String expectedAccount,
+  });
+
+  Future<ReadOnlyResponse> crateApiLiveHomeworkCapabilities({
+    required String expectedAccount,
+    required String assignmentId,
+  });
+
+  Future<ReadOnlyResponse> crateApiLiveHomeworkFileWorkspace({
+    required String expectedAccount,
+    required String assignmentId,
+  });
+
+  Future<ReadOnlyResponse> crateApiLiveImportLearningSnapshots({
+    required String expectedAccount,
+    required List<int> bytes,
+  });
+
   Future<void> crateApiMirrorInitApp();
+
+  Future<ReadOnlyResponse> crateApiLiveLearningCourses({
+    required String expectedAccount,
+    required bool force,
+  });
+
+  String crateApiLiveLibraryLoansPortalUrl();
 
   Future<ReadOnlyResponse> crateApiLiveLoadBykc({required bool forceRefresh});
 
@@ -178,6 +316,11 @@ abstract class RustLibApi extends BaseApi {
     required bool forceRefresh,
   });
 
+  Future<ReadOnlyResponse> crateApiLiveLoadGraduateCreditMap({
+    required String expectedAccount,
+    required bool forceRefresh,
+  });
+
   Future<ReadOnlyResponse> crateApiLiveLoadGraduatePart({
     required bool report,
     required bool forceRefresh,
@@ -216,6 +359,11 @@ abstract class RustLibApi extends BaseApi {
     required String bibId,
   });
 
+  Future<ReadOnlyResponse> crateApiLiveLoadLibraryLoans({
+    required String expectedAccount,
+    required int page,
+  });
+
   Future<LibrarySeatsResponse> crateApiLiveLoadLibrarySeats({
     required String areaId,
     required String slotId,
@@ -234,6 +382,11 @@ abstract class RustLibApi extends BaseApi {
 
   Future<LibraryVenuesResponse> crateApiLiveLoadLibraryVenues({
     required bool forceRefresh,
+  });
+
+  Future<LoginChallengeResponse> crateApiLiveAuthChallengeLoadLoginChallenge({
+    String? expectedId,
+    required bool refresh,
   });
 
   Future<ReadOnlyResponse> crateApiLiveLoadNotices({
@@ -261,14 +414,30 @@ abstract class RustLibApi extends BaseApi {
     required bool remember,
   });
 
+  Future<ReadOnlyResponse> crateApiLivePendingHomeworkSubmissions({
+    required String expectedAccount,
+    String? assignmentId,
+  });
+
   Future<MutationResponse> crateApiLivePerformLibraryAction({
     required String bookingId,
     required String action,
   });
 
+  ReminderPlanResponse crateApiReminderPlanningPlanCourseTaskReminders({
+    required List<CourseReminderSeed> courses,
+    required List<TaskReminderSeed> tasks,
+    required PlatformInt64 nowMillis,
+  });
+
   Future<ClassroomResponse> crateApiMirrorQueryDemoClassrooms({
     required DemoScope scope,
     required ClassroomQuery query,
+  });
+
+  Future<MutationResponse> crateApiLiveReconcileHomeworkFile({
+    required String expectedAccount,
+    required String handle,
   });
 
   Future<MutationResponse> crateApiLiveReserveLibrarySeat({
@@ -285,6 +454,19 @@ abstract class RustLibApi extends BaseApi {
 
   Future<MutationResponse> crateApiLiveSubmitCheckin({
     required String courseId,
+  });
+
+  Future<MutationResponse> crateApiLiveSubmitHomeworkFile({
+    required String expectedAccount,
+    required String handle,
+    required bool confirmed,
+  });
+
+  Future<ReadOnlyResponse> crateApiLiveUploadHomeworkFile({
+    required String expectedAccount,
+    required String assignmentId,
+    required String name,
+    required List<int> bytes,
   });
 
   Future<bool> crateApiLiveVerifyCredentialStorage({
@@ -389,6 +571,624 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "clear_cache", argNames: []);
 
   @override
+  Future<ReadOnlyResponse> crateApiLiveConfigureHomeworkRecovery({
+    required String expectedAccount,
+    required String storageRoot,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(storageRoot, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 4,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveConfigureHomeworkRecoveryConstMeta,
+        argValues: [expectedAccount, storageRoot],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveConfigureHomeworkRecoveryConstMeta =>
+      const TaskConstMeta(
+        debugName: "configure_homework_recovery",
+        argNames: ["expectedAccount", "storageRoot"],
+      );
+
+  @override
+  Future<HomeworkFileDownloadResponse>
+  crateApiLiveCourseAnnouncementAttachment({
+    required String expectedAccount,
+    required String course,
+    required String id,
+    required String file,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(course, serializer);
+          sse_encode_String(id, serializer);
+          sse_encode_String(file, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 5,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_homework_file_download_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveCourseAnnouncementAttachmentConstMeta,
+        argValues: [expectedAccount, course, id, file],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveCourseAnnouncementAttachmentConstMeta =>
+      const TaskConstMeta(
+        debugName: "course_announcement_attachment",
+        argNames: ["expectedAccount", "course", "id", "file"],
+      );
+
+  @override
+  Future<HomeworkFileDownloadResponse>
+  crateApiLiveCourseAnnouncementAttachmentIn({
+    required String expectedAccount,
+    required String course,
+    required String column,
+    required String id,
+    required String file,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(course, serializer);
+          sse_encode_String(column, serializer);
+          sse_encode_String(id, serializer);
+          sse_encode_String(file, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 6,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_homework_file_download_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveCourseAnnouncementAttachmentInConstMeta,
+        argValues: [expectedAccount, course, column, id, file],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveCourseAnnouncementAttachmentInConstMeta =>
+      const TaskConstMeta(
+        debugName: "course_announcement_attachment_in",
+        argNames: ["expectedAccount", "course", "column", "id", "file"],
+      );
+
+  @override
+  Future<ReadOnlyResponse> crateApiLiveCourseAnnouncementDetail({
+    required String expectedAccount,
+    required String course,
+    required String id,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(course, serializer);
+          sse_encode_String(id, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 7,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveCourseAnnouncementDetailConstMeta,
+        argValues: [expectedAccount, course, id],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveCourseAnnouncementDetailConstMeta =>
+      const TaskConstMeta(
+        debugName: "course_announcement_detail",
+        argNames: ["expectedAccount", "course", "id"],
+      );
+
+  @override
+  Future<ReadOnlyResponse> crateApiLiveCourseAnnouncementDetailIn({
+    required String expectedAccount,
+    required String course,
+    required String column,
+    required String id,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(course, serializer);
+          sse_encode_String(column, serializer);
+          sse_encode_String(id, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 8,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveCourseAnnouncementDetailInConstMeta,
+        argValues: [expectedAccount, course, column, id],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveCourseAnnouncementDetailInConstMeta =>
+      const TaskConstMeta(
+        debugName: "course_announcement_detail_in",
+        argNames: ["expectedAccount", "course", "column", "id"],
+      );
+
+  @override
+  Future<ReadOnlyResponse> crateApiLiveCourseAnnouncements({
+    required String expectedAccount,
+    required String course,
+    required bool force,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(course, serializer);
+          sse_encode_bool(force, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 9,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveCourseAnnouncementsConstMeta,
+        argValues: [expectedAccount, course, force],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveCourseAnnouncementsConstMeta =>
+      const TaskConstMeta(
+        debugName: "course_announcements",
+        argNames: ["expectedAccount", "course", "force"],
+      );
+
+  @override
+  Future<ReadOnlyResponse> crateApiLiveCourseAnnouncementsIn({
+    required String expectedAccount,
+    required String course,
+    required String column,
+    required bool force,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(course, serializer);
+          sse_encode_String(column, serializer);
+          sse_encode_bool(force, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 10,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveCourseAnnouncementsInConstMeta,
+        argValues: [expectedAccount, course, column, force],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveCourseAnnouncementsInConstMeta =>
+      const TaskConstMeta(
+        debugName: "course_announcements_in",
+        argNames: ["expectedAccount", "course", "column", "force"],
+      );
+
+  @override
+  Future<ReadOnlyResponse> crateApiLiveCourseAssessments({
+    required String expectedAccount,
+    required String course,
+    required bool force,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(course, serializer);
+          sse_encode_bool(force, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 11,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveCourseAssessmentsConstMeta,
+        argValues: [expectedAccount, course, force],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveCourseAssessmentsConstMeta =>
+      const TaskConstMeta(
+        debugName: "course_assessments",
+        argNames: ["expectedAccount", "course", "force"],
+      );
+
+  @override
+  Future<ReadOnlyResponse> crateApiLiveCourseAssessmentsIn({
+    required String expectedAccount,
+    required String course,
+    required String column,
+    required bool force,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(course, serializer);
+          sse_encode_String(column, serializer);
+          sse_encode_bool(force, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 12,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveCourseAssessmentsInConstMeta,
+        argValues: [expectedAccount, course, column, force],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveCourseAssessmentsInConstMeta =>
+      const TaskConstMeta(
+        debugName: "course_assessments_in",
+        argNames: ["expectedAccount", "course", "column", "force"],
+      );
+
+  @override
+  Future<ReadOnlyResponse> crateApiLiveCourseLearningCapabilities({
+    required String expectedAccount,
+    required String course,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(course, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 13,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveCourseLearningCapabilitiesConstMeta,
+        argValues: [expectedAccount, course],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveCourseLearningCapabilitiesConstMeta =>
+      const TaskConstMeta(
+        debugName: "course_learning_capabilities",
+        argNames: ["expectedAccount", "course"],
+      );
+
+  @override
+  Future<ReadOnlyResponse> crateApiLiveCourseLearningColumns({
+    required String expectedAccount,
+    required String course,
+    required bool force,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(course, serializer);
+          sse_encode_bool(force, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 14,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveCourseLearningColumnsConstMeta,
+        argValues: [expectedAccount, course, force],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveCourseLearningColumnsConstMeta =>
+      const TaskConstMeta(
+        debugName: "course_learning_columns",
+        argNames: ["expectedAccount", "course", "force"],
+      );
+
+  @override
+  Future<HomeworkFileDownloadResponse> crateApiLiveCourseResourceDownload({
+    required String expectedAccount,
+    required String course,
+    String? folder,
+    required int page,
+    required String id,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(course, serializer);
+          sse_encode_opt_String(folder, serializer);
+          sse_encode_u_32(page, serializer);
+          sse_encode_String(id, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 15,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_homework_file_download_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveCourseResourceDownloadConstMeta,
+        argValues: [expectedAccount, course, folder, page, id],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveCourseResourceDownloadConstMeta =>
+      const TaskConstMeta(
+        debugName: "course_resource_download",
+        argNames: ["expectedAccount", "course", "folder", "page", "id"],
+      );
+
+  @override
+  Future<HomeworkFileDownloadResponse> crateApiLiveCourseResourceDownloadAt({
+    required String expectedAccount,
+    required String course,
+    required List<String> path,
+    required int page,
+    required String id,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(course, serializer);
+          sse_encode_list_String(path, serializer);
+          sse_encode_u_32(page, serializer);
+          sse_encode_String(id, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 16,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_homework_file_download_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveCourseResourceDownloadAtConstMeta,
+        argValues: [expectedAccount, course, path, page, id],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveCourseResourceDownloadAtConstMeta =>
+      const TaskConstMeta(
+        debugName: "course_resource_download_at",
+        argNames: ["expectedAccount", "course", "path", "page", "id"],
+      );
+
+  @override
+  Future<ReadOnlyResponse> crateApiLiveCourseResources({
+    required String expectedAccount,
+    required String course,
+    String? folder,
+    required int page,
+    required bool force,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(course, serializer);
+          sse_encode_opt_String(folder, serializer);
+          sse_encode_u_32(page, serializer);
+          sse_encode_bool(force, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 17,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveCourseResourcesConstMeta,
+        argValues: [expectedAccount, course, folder, page, force],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveCourseResourcesConstMeta =>
+      const TaskConstMeta(
+        debugName: "course_resources",
+        argNames: ["expectedAccount", "course", "folder", "page", "force"],
+      );
+
+  @override
+  Future<ReadOnlyResponse> crateApiLiveCourseResourcesAt({
+    required String expectedAccount,
+    required String course,
+    required List<String> path,
+    required int page,
+    required bool force,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(course, serializer);
+          sse_encode_list_String(path, serializer);
+          sse_encode_u_32(page, serializer);
+          sse_encode_bool(force, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 18,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveCourseResourcesAtConstMeta,
+        argValues: [expectedAccount, course, path, page, force],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveCourseResourcesAtConstMeta =>
+      const TaskConstMeta(
+        debugName: "course_resources_at",
+        argNames: ["expectedAccount", "course", "path", "page", "force"],
+      );
+
+  @override
+  Future<HomeworkFileDownloadResponse> crateApiLiveDownloadHomeworkFile({
+    required String expectedAccount,
+    required String assignmentId,
+    required String attachmentId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(assignmentId, serializer);
+          sse_encode_String(attachmentId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 19,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_homework_file_download_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveDownloadHomeworkFileConstMeta,
+        argValues: [expectedAccount, assignmentId, attachmentId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveDownloadHomeworkFileConstMeta =>
+      const TaskConstMeta(
+        debugName: "download_homework_file",
+        argNames: ["expectedAccount", "assignmentId", "attachmentId"],
+      );
+
+  @override
   Future<ReadOnlyResponse> crateApiLiveEditTasks({
     required String root,
     required bool demo,
@@ -412,7 +1212,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 4,
+            funcId: 20,
             port: port_,
           );
         },
@@ -442,7 +1242,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 21,
             port: port_,
           );
         },
@@ -461,6 +1261,144 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "execute_cgyy", argNames: ["command"]);
 
   @override
+  Future<LearningSnapshotResponse> crateApiLiveExportLearningSnapshots({
+    required String expectedAccount,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 22,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_learning_snapshot_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveExportLearningSnapshotsConstMeta,
+        argValues: [expectedAccount],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveExportLearningSnapshotsConstMeta =>
+      const TaskConstMeta(
+        debugName: "export_learning_snapshots",
+        argNames: ["expectedAccount"],
+      );
+
+  @override
+  Future<ReadOnlyResponse> crateApiLiveHomeworkCapabilities({
+    required String expectedAccount,
+    required String assignmentId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(assignmentId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 23,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveHomeworkCapabilitiesConstMeta,
+        argValues: [expectedAccount, assignmentId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveHomeworkCapabilitiesConstMeta =>
+      const TaskConstMeta(
+        debugName: "homework_capabilities",
+        argNames: ["expectedAccount", "assignmentId"],
+      );
+
+  @override
+  Future<ReadOnlyResponse> crateApiLiveHomeworkFileWorkspace({
+    required String expectedAccount,
+    required String assignmentId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(assignmentId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 24,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveHomeworkFileWorkspaceConstMeta,
+        argValues: [expectedAccount, assignmentId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveHomeworkFileWorkspaceConstMeta =>
+      const TaskConstMeta(
+        debugName: "homework_file_workspace",
+        argNames: ["expectedAccount", "assignmentId"],
+      );
+
+  @override
+  Future<ReadOnlyResponse> crateApiLiveImportLearningSnapshots({
+    required String expectedAccount,
+    required List<int> bytes,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_list_prim_u_8_loose(bytes, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 25,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveImportLearningSnapshotsConstMeta,
+        argValues: [expectedAccount, bytes],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveImportLearningSnapshotsConstMeta =>
+      const TaskConstMeta(
+        debugName: "import_learning_snapshots",
+        argNames: ["expectedAccount", "bytes"],
+      );
+
+  @override
   Future<void> crateApiMirrorInitApp() {
     return handler.executeNormal(
       NormalTask(
@@ -469,7 +1407,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 6,
+            funcId: 26,
             port: port_,
           );
         },
@@ -488,6 +1426,63 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "init_app", argNames: []);
 
   @override
+  Future<ReadOnlyResponse> crateApiLiveLearningCourses({
+    required String expectedAccount,
+    required bool force,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_bool(force, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 27,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveLearningCoursesConstMeta,
+        argValues: [expectedAccount, force],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveLearningCoursesConstMeta =>
+      const TaskConstMeta(
+        debugName: "learning_courses",
+        argNames: ["expectedAccount", "force"],
+      );
+
+  @override
+  String crateApiLiveLibraryLoansPortalUrl() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 28)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveLibraryLoansPortalUrlConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveLibraryLoansPortalUrlConstMeta =>
+      const TaskConstMeta(debugName: "library_loans_portal_url", argNames: []);
+
+  @override
   Future<ReadOnlyResponse> crateApiLiveLoadBykc({required bool forceRefresh}) {
     return handler.executeNormal(
       NormalTask(
@@ -497,7 +1492,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 29,
             port: port_,
           );
         },
@@ -527,7 +1522,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 30,
             port: port_,
           );
         },
@@ -559,7 +1554,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 9,
+            funcId: 31,
             port: port_,
           );
         },
@@ -598,7 +1593,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 10,
+            funcId: 32,
             port: port_,
           );
         },
@@ -632,7 +1627,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 11,
+            funcId: 33,
             port: port_,
           );
         },
@@ -665,7 +1660,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 12,
+            funcId: 34,
             port: port_,
           );
         },
@@ -700,7 +1695,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 13,
+            funcId: 35,
             port: port_,
           );
         },
@@ -729,7 +1724,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 14,
+            funcId: 36,
             port: port_,
           );
         },
@@ -756,7 +1751,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 15,
+            funcId: 37,
             port: port_,
           );
         },
@@ -783,7 +1778,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 16,
+            funcId: 38,
             port: port_,
           );
         },
@@ -811,7 +1806,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 17,
+            funcId: 39,
             port: port_,
           );
         },
@@ -838,7 +1833,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 40,
             port: port_,
           );
         },
@@ -868,7 +1863,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 19,
+            funcId: 41,
             port: port_,
           );
         },
@@ -898,7 +1893,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 20,
+            funcId: 42,
             port: port_,
           );
         },
@@ -925,7 +1920,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 21,
+            funcId: 43,
             port: port_,
           );
         },
@@ -952,7 +1947,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 22,
+            funcId: 44,
             port: port_,
           );
         },
@@ -979,7 +1974,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 23,
+            funcId: 45,
             port: port_,
           );
         },
@@ -1006,7 +2001,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 24,
+            funcId: 46,
             port: port_,
           );
         },
@@ -1036,7 +2031,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 25,
+            funcId: 47,
             port: port_,
           );
         },
@@ -1066,7 +2061,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 26,
+            funcId: 48,
             port: port_,
           );
         },
@@ -1093,7 +2088,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 27,
+            funcId: 49,
             port: port_,
           );
         },
@@ -1120,7 +2115,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 28,
+            funcId: 50,
             port: port_,
           );
         },
@@ -1147,7 +2142,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 29,
+            funcId: 51,
             port: port_,
           );
         },
@@ -1174,7 +2169,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 30,
+            funcId: 52,
             port: port_,
           );
         },
@@ -1206,7 +2201,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 31,
+            funcId: 53,
             port: port_,
           );
         },
@@ -1227,6 +2222,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
+  Future<ReadOnlyResponse> crateApiLiveLoadGraduateCreditMap({
+    required String expectedAccount,
+    required bool forceRefresh,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_bool(forceRefresh, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 54,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveLoadGraduateCreditMapConstMeta,
+        argValues: [expectedAccount, forceRefresh],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveLoadGraduateCreditMapConstMeta =>
+      const TaskConstMeta(
+        debugName: "load_graduate_credit_map",
+        argNames: ["expectedAccount", "forceRefresh"],
+      );
+
+  @override
   Future<ReadOnlyResponse> crateApiLiveLoadGraduatePart({
     required bool report,
     required bool forceRefresh,
@@ -1240,7 +2270,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 32,
+            funcId: 55,
             port: port_,
           );
         },
@@ -1273,7 +2303,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 33,
+            funcId: 56,
             port: port_,
           );
         },
@@ -1307,7 +2337,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 34,
+            funcId: 57,
             port: port_,
           );
         },
@@ -1340,7 +2370,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 35,
+            funcId: 58,
             port: port_,
           );
         },
@@ -1373,7 +2403,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 36,
+            funcId: 59,
             port: port_,
           );
         },
@@ -1412,7 +2442,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 37,
+            funcId: 60,
             port: port_,
           );
         },
@@ -1447,7 +2477,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 38,
+            funcId: 61,
             port: port_,
           );
         },
@@ -1480,7 +2510,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 39,
+            funcId: 62,
             port: port_,
           );
         },
@@ -1499,6 +2529,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(
         debugName: "load_library_holdings",
         argNames: ["bibId"],
+      );
+
+  @override
+  Future<ReadOnlyResponse> crateApiLiveLoadLibraryLoans({
+    required String expectedAccount,
+    required int page,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_u_32(page, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 63,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveLoadLibraryLoansConstMeta,
+        argValues: [expectedAccount, page],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveLoadLibraryLoansConstMeta =>
+      const TaskConstMeta(
+        debugName: "load_library_loans",
+        argNames: ["expectedAccount", "page"],
       );
 
   @override
@@ -1521,7 +2586,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 40,
+            funcId: 64,
             port: port_,
           );
         },
@@ -1554,7 +2619,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 41,
+            funcId: 65,
             port: port_,
           );
         },
@@ -1587,7 +2652,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 42,
+            funcId: 66,
             port: port_,
           );
         },
@@ -1620,7 +2685,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 43,
+            funcId: 67,
             port: port_,
           );
         },
@@ -1642,6 +2707,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<LoginChallengeResponse> crateApiLiveAuthChallengeLoadLoginChallenge({
+    String? expectedId,
+    required bool refresh,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_opt_String(expectedId, serializer);
+          sse_encode_bool(refresh, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 68,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_login_challenge_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveAuthChallengeLoadLoginChallengeConstMeta,
+        argValues: [expectedId, refresh],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveAuthChallengeLoadLoginChallengeConstMeta =>
+      const TaskConstMeta(
+        debugName: "load_login_challenge",
+        argNames: ["expectedId", "refresh"],
+      );
+
+  @override
   Future<ReadOnlyResponse> crateApiLiveLoadNotices({
     required bool forceRefresh,
   }) {
@@ -1653,7 +2753,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 44,
+            funcId: 69,
             port: port_,
           );
         },
@@ -1683,7 +2783,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 45,
+            funcId: 70,
             port: port_,
           );
         },
@@ -1710,7 +2810,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 46,
+            funcId: 71,
             port: port_,
           );
         },
@@ -1744,7 +2844,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 47,
+            funcId: 72,
             port: port_,
           );
         },
@@ -1773,7 +2873,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 48,
+            funcId: 73,
             port: port_,
           );
         },
@@ -1801,7 +2901,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 49,
+            funcId: 74,
             port: port_,
           );
         },
@@ -1837,7 +2937,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 50,
+            funcId: 75,
             port: port_,
           );
         },
@@ -1858,6 +2958,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
+  Future<ReadOnlyResponse> crateApiLivePendingHomeworkSubmissions({
+    required String expectedAccount,
+    String? assignmentId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_opt_String(assignmentId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 76,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLivePendingHomeworkSubmissionsConstMeta,
+        argValues: [expectedAccount, assignmentId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLivePendingHomeworkSubmissionsConstMeta =>
+      const TaskConstMeta(
+        debugName: "pending_homework_submissions",
+        argNames: ["expectedAccount", "assignmentId"],
+      );
+
+  @override
   Future<MutationResponse> crateApiLivePerformLibraryAction({
     required String bookingId,
     required String action,
@@ -1871,7 +3006,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 51,
+            funcId: 77,
             port: port_,
           );
         },
@@ -1893,6 +3028,38 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  ReminderPlanResponse crateApiReminderPlanningPlanCourseTaskReminders({
+    required List<CourseReminderSeed> courses,
+    required List<TaskReminderSeed> tasks,
+    required PlatformInt64 nowMillis,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_course_reminder_seed(courses, serializer);
+          sse_encode_list_task_reminder_seed(tasks, serializer);
+          sse_encode_i_64(nowMillis, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 78)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_reminder_plan_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiReminderPlanningPlanCourseTaskRemindersConstMeta,
+        argValues: [courses, tasks, nowMillis],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiReminderPlanningPlanCourseTaskRemindersConstMeta =>
+      const TaskConstMeta(
+        debugName: "plan_course_task_reminders",
+        argNames: ["courses", "tasks", "nowMillis"],
+      );
+
+  @override
   Future<ClassroomResponse> crateApiMirrorQueryDemoClassrooms({
     required DemoScope scope,
     required ClassroomQuery query,
@@ -1906,7 +3073,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 52,
+            funcId: 79,
             port: port_,
           );
         },
@@ -1928,6 +3095,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<MutationResponse> crateApiLiveReconcileHomeworkFile({
+    required String expectedAccount,
+    required String handle,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(handle, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 80,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_mutation_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveReconcileHomeworkFileConstMeta,
+        argValues: [expectedAccount, handle],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveReconcileHomeworkFileConstMeta =>
+      const TaskConstMeta(
+        debugName: "reconcile_homework_file",
+        argNames: ["expectedAccount", "handle"],
+      );
+
+  @override
   Future<MutationResponse> crateApiLiveReserveLibrarySeat({
     required String areaId,
     required String seatId,
@@ -1943,7 +3145,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 53,
+            funcId: 81,
             port: port_,
           );
         },
@@ -1973,7 +3175,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 54,
+            funcId: 82,
             port: port_,
           );
         },
@@ -2001,7 +3203,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 55,
+            funcId: 83,
             port: port_,
           );
         },
@@ -2028,7 +3230,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 56,
+            funcId: 84,
             port: port_,
           );
         },
@@ -2058,7 +3260,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 57,
+            funcId: 85,
             port: port_,
           );
         },
@@ -2077,6 +3279,82 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "submit_checkin", argNames: ["courseId"]);
 
   @override
+  Future<MutationResponse> crateApiLiveSubmitHomeworkFile({
+    required String expectedAccount,
+    required String handle,
+    required bool confirmed,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(handle, serializer);
+          sse_encode_bool(confirmed, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 86,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_mutation_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveSubmitHomeworkFileConstMeta,
+        argValues: [expectedAccount, handle, confirmed],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveSubmitHomeworkFileConstMeta =>
+      const TaskConstMeta(
+        debugName: "submit_homework_file",
+        argNames: ["expectedAccount", "handle", "confirmed"],
+      );
+
+  @override
+  Future<ReadOnlyResponse> crateApiLiveUploadHomeworkFile({
+    required String expectedAccount,
+    required String assignmentId,
+    required String name,
+    required List<int> bytes,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(expectedAccount, serializer);
+          sse_encode_String(assignmentId, serializer);
+          sse_encode_String(name, serializer);
+          sse_encode_list_prim_u_8_loose(bytes, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 87,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_read_only_response,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveUploadHomeworkFileConstMeta,
+        argValues: [expectedAccount, assignmentId, name, bytes],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveUploadHomeworkFileConstMeta =>
+      const TaskConstMeta(
+        debugName: "upload_homework_file",
+        argNames: ["expectedAccount", "assignmentId", "name", "bytes"],
+      );
+
+  @override
   Future<bool> crateApiLiveVerifyCredentialStorage({
     required String account,
     required String secret,
@@ -2090,7 +3368,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 58,
+            funcId: 88,
             port: port_,
           );
         },
@@ -2291,6 +3569,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CourseReminderSeed dco_decode_course_reminder_seed(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return CourseReminderSeed(
+      id: dco_decode_String(arr[0]),
+      weekStart: dco_decode_String(arr[1]),
+      day: dco_decode_i_32(arr[2]),
+      startsAt: dco_decode_String(arr[3]),
+      endsAt: dco_decode_String(arr[4]),
+    );
+  }
+
+  @protected
   DemoScope dco_decode_demo_scope(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -2396,6 +3689,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  HomeworkFileDownloadResponse dco_decode_homework_file_download_response(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return HomeworkFileDownloadResponse(
+      name: dco_decode_opt_String(arr[0]),
+      bytes: dco_decode_opt_list_prim_u_8_strict(arr[1]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[2]),
+    );
+  }
+
+  @protected
   HomeworkItem dco_decode_homework_item(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -2447,6 +3755,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   PlatformInt64 dco_decode_i_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dcoDecodeI64(raw);
+  }
+
+  @protected
+  LearningSnapshotResponse dco_decode_learning_snapshot_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return LearningSnapshotResponse(
+      bytes: dco_decode_opt_list_prim_u_8_strict(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
   }
 
   @protected
@@ -2655,6 +3975,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<CourseReminderSeed> dco_decode_list_course_reminder_seed(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_course_reminder_seed).toList();
+  }
+
+  @protected
   List<GradeCourse> dco_decode_list_grade_course(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_grade_course).toList();
@@ -2697,9 +4023,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<PlannedReminder> dco_decode_list_planned_reminder(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_planned_reminder).toList();
+  }
+
+  @protected
   Int32List dco_decode_list_prim_i_32_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as Int32List;
+  }
+
+  @protected
+  List<int> dco_decode_list_prim_u_8_loose(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as List<int>;
   }
 
   @protected
@@ -2739,6 +4077,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<TaskReminderSeed> dco_decode_list_task_reminder_seed(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_task_reminder_seed).toList();
+  }
+
+  @protected
   List<TodayCourse> dco_decode_list_today_course(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_today_course).toList();
@@ -2754,6 +4098,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       campus: dco_decode_i_32(arr[0]),
       date: dco_decode_String(arr[1]),
       forceRefresh: dco_decode_bool(arr[2]),
+    );
+  }
+
+  @protected
+  LoginChallengeResponse dco_decode_login_challenge_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return LoginChallengeResponse(
+      challengeId: dco_decode_opt_String(arr[0]),
+      challengeType: dco_decode_opt_String(arr[1]),
+      textSupported: dco_decode_bool(arr[2]),
+      image: dco_decode_list_prim_u_8_strict(arr[3]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[4]),
     );
   }
 
@@ -2812,6 +4171,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  Uint8List? dco_decode_opt_list_prim_u_8_strict(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_prim_u_8_strict(raw);
+  }
+
+  @protected
+  PlannedReminder dco_decode_planned_reminder(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return PlannedReminder(
+      key: dco_decode_String(arr[0]),
+      group: dco_decode_String(arr[1]),
+      atMillis: dco_decode_i_64(arr[2]),
+      expiresMillis: dco_decode_i_64(arr[3]),
+    );
+  }
+
+  @protected
   QueryDates dco_decode_query_dates(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -2834,6 +4213,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       payload: dco_decode_opt_String(arr[0]),
       stale: dco_decode_bool(arr[1]),
       failure: dco_decode_opt_box_autoadd_failure_code(arr[2]),
+    );
+  }
+
+  @protected
+  ReminderPlanResponse dco_decode_reminder_plan_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return ReminderPlanResponse(
+      plans: dco_decode_list_planned_reminder(arr[0]),
+      skipped: dco_decode_u_32(arr[1]),
+      unsupported: dco_decode_bool(arr[2]),
     );
   }
 
@@ -2986,6 +4378,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  TaskReminderSeed dco_decode_task_reminder_seed(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return TaskReminderSeed(
+      id: dco_decode_String(arr[0]),
+      due: dco_decode_String(arr[1]),
+      completed: dco_decode_bool(arr[2]),
+    );
+  }
+
+  @protected
   TodayCourse dco_decode_today_course(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -3012,6 +4417,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       failure: dco_decode_opt_box_autoadd_failure_code(arr[3]),
       failureDetail: dco_decode_opt_String(arr[4]),
     );
+  }
+
+  @protected
+  int dco_decode_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
   }
 
   @protected
@@ -3241,6 +4652,25 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CourseReminderSeed sse_decode_course_reminder_seed(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_weekStart = sse_decode_String(deserializer);
+    var var_day = sse_decode_i_32(deserializer);
+    var var_startsAt = sse_decode_String(deserializer);
+    var var_endsAt = sse_decode_String(deserializer);
+    return CourseReminderSeed(
+      id: var_id,
+      weekStart: var_weekStart,
+      day: var_day,
+      startsAt: var_startsAt,
+      endsAt: var_endsAt,
+    );
+  }
+
+  @protected
   DemoScope sse_decode_demo_scope(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_campus = sse_decode_i_32(deserializer);
@@ -3366,6 +4796,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  HomeworkFileDownloadResponse sse_decode_homework_file_download_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_name = sse_decode_opt_String(deserializer);
+    var var_bytes = sse_decode_opt_list_prim_u_8_strict(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return HomeworkFileDownloadResponse(
+      name: var_name,
+      bytes: var_bytes,
+      failure: var_failure,
+    );
+  }
+
+  @protected
   HomeworkItem sse_decode_homework_item(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_courseRole = sse_decode_opt_String(deserializer);
@@ -3428,6 +4873,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getPlatformInt64();
+  }
+
+  @protected
+  LearningSnapshotResponse sse_decode_learning_snapshot_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_bytes = sse_decode_opt_list_prim_u_8_strict(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return LearningSnapshotResponse(bytes: var_bytes, failure: var_failure);
   }
 
   @protected
@@ -3705,6 +5160,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<CourseReminderSeed> sse_decode_list_course_reminder_seed(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CourseReminderSeed>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_course_reminder_seed(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<GradeCourse> sse_decode_list_grade_course(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -3795,10 +5264,31 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<PlannedReminder> sse_decode_list_planned_reminder(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <PlannedReminder>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_planned_reminder(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   Int32List sse_decode_list_prim_i_32_strict(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
     return deserializer.buffer.getInt32List(len_);
+  }
+
+  @protected
+  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var len_ = sse_decode_i_32(deserializer);
+    return deserializer.buffer.getUint8List(len_);
   }
 
   @protected
@@ -3879,6 +5369,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<TaskReminderSeed> sse_decode_list_task_reminder_seed(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <TaskReminderSeed>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_task_reminder_seed(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<TodayCourse> sse_decode_list_today_course(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -3900,6 +5404,25 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       campus: var_campus,
       date: var_date,
       forceRefresh: var_forceRefresh,
+    );
+  }
+
+  @protected
+  LoginChallengeResponse sse_decode_login_challenge_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_challengeId = sse_decode_opt_String(deserializer);
+    var var_challengeType = sse_decode_opt_String(deserializer);
+    var var_textSupported = sse_decode_bool(deserializer);
+    var var_image = sse_decode_list_prim_u_8_strict(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return LoginChallengeResponse(
+      challengeId: var_challengeId,
+      challengeType: var_challengeType,
+      textSupported: var_textSupported,
+      image: var_image,
+      failure: var_failure,
     );
   }
 
@@ -3993,6 +5516,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  Uint8List? sse_decode_opt_list_prim_u_8_strict(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_prim_u_8_strict(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  PlannedReminder sse_decode_planned_reminder(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_key = sse_decode_String(deserializer);
+    var var_group = sse_decode_String(deserializer);
+    var var_atMillis = sse_decode_i_64(deserializer);
+    var var_expiresMillis = sse_decode_i_64(deserializer);
+    return PlannedReminder(
+      key: var_key,
+      group: var_group,
+      atMillis: var_atMillis,
+      expiresMillis: var_expiresMillis,
+    );
+  }
+
+  @protected
   QueryDates sse_decode_query_dates(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_today = sse_decode_String(deserializer);
@@ -4015,6 +5564,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       payload: var_payload,
       stale: var_stale,
       failure: var_failure,
+    );
+  }
+
+  @protected
+  ReminderPlanResponse sse_decode_reminder_plan_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_plans = sse_decode_list_planned_reminder(deserializer);
+    var var_skipped = sse_decode_u_32(deserializer);
+    var var_unsupported = sse_decode_bool(deserializer);
+    return ReminderPlanResponse(
+      plans: var_plans,
+      skipped: var_skipped,
+      unsupported: var_unsupported,
     );
   }
 
@@ -4194,6 +5758,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  TaskReminderSeed sse_decode_task_reminder_seed(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_due = sse_decode_String(deserializer);
+    var var_completed = sse_decode_bool(deserializer);
+    return TaskReminderSeed(id: var_id, due: var_due, completed: var_completed);
+  }
+
+  @protected
   TodayCourse sse_decode_today_course(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_name = sse_decode_String(deserializer);
@@ -4223,6 +5796,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       failure: var_failure,
       failureDetail: var_failureDetail,
     );
+  }
+
+  @protected
+  int sse_decode_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint32();
   }
 
   @protected
@@ -4422,6 +6001,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_course_reminder_seed(
+    CourseReminderSeed self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.weekStart, serializer);
+    sse_encode_i_32(self.day, serializer);
+    sse_encode_String(self.startsAt, serializer);
+    sse_encode_String(self.endsAt, serializer);
+  }
+
+  @protected
   void sse_encode_demo_scope(DemoScope self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.campus, serializer);
@@ -4503,6 +6095,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_homework_file_download_response(
+    HomeworkFileDownloadResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_String(self.name, serializer);
+    sse_encode_opt_list_prim_u_8_strict(self.bytes, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
   void sse_encode_homework_item(HomeworkItem self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_opt_String(self.courseRole, serializer);
@@ -4550,6 +6153,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putPlatformInt64(self);
+  }
+
+  @protected
+  void sse_encode_learning_snapshot_response(
+    LearningSnapshotResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_list_prim_u_8_strict(self.bytes, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
   }
 
   @protected
@@ -4743,6 +6356,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_course_reminder_seed(
+    List<CourseReminderSeed> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_course_reminder_seed(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_grade_course(
     List<GradeCourse> self,
     SseSerializer serializer,
@@ -4827,6 +6452,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_planned_reminder(
+    List<PlannedReminder> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_planned_reminder(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_prim_i_32_strict(
     Int32List self,
     SseSerializer serializer,
@@ -4834,6 +6471,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     serializer.buffer.putInt32List(self);
+  }
+
+  @protected
+  void sse_encode_list_prim_u_8_loose(
+    List<int> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    serializer.buffer.putUint8List(
+      self is Uint8List ? self : Uint8List.fromList(self),
+    );
   }
 
   @protected
@@ -4907,6 +6556,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_task_reminder_seed(
+    List<TaskReminderSeed> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_task_reminder_seed(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_today_course(
     List<TodayCourse> self,
     SseSerializer serializer,
@@ -4924,6 +6585,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.campus, serializer);
     sse_encode_String(self.date, serializer);
     sse_encode_bool(self.forceRefresh, serializer);
+  }
+
+  @protected
+  void sse_encode_login_challenge_response(
+    LoginChallengeResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_String(self.challengeId, serializer);
+    sse_encode_opt_String(self.challengeType, serializer);
+    sse_encode_bool(self.textSupported, serializer);
+    sse_encode_list_prim_u_8_strict(self.image, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
   }
 
   @protected
@@ -5016,6 +6690,31 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_list_prim_u_8_strict(
+    Uint8List? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_prim_u_8_strict(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_planned_reminder(
+    PlannedReminder self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.key, serializer);
+    sse_encode_String(self.group, serializer);
+    sse_encode_i_64(self.atMillis, serializer);
+    sse_encode_i_64(self.expiresMillis, serializer);
+  }
+
+  @protected
   void sse_encode_query_dates(QueryDates self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.today, serializer);
@@ -5032,6 +6731,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_String(self.payload, serializer);
     sse_encode_bool(self.stale, serializer);
     sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_reminder_plan_response(
+    ReminderPlanResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_planned_reminder(self.plans, serializer);
+    sse_encode_u_32(self.skipped, serializer);
+    sse_encode_bool(self.unsupported, serializer);
   }
 
   @protected
@@ -5152,6 +6862,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_task_reminder_seed(
+    TaskReminderSeed self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.due, serializer);
+    sse_encode_bool(self.completed, serializer);
+  }
+
+  @protected
   void sse_encode_today_course(TodayCourse self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.name, serializer);
@@ -5168,6 +6889,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_String(self.fetchedAt, serializer);
     sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
     sse_encode_opt_String(self.failureDetail, serializer);
+  }
+
+  @protected
+  void sse_encode_u_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint32(self);
   }
 
   @protected

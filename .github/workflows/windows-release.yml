@@ -50,6 +50,17 @@ jobs:
         shell: pwsh
         run: choco install innosetup --yes --no-progress
 
+      - name: Verify the tag matches pubspec
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace '^windows-v', ''
+          $line = Get-Content -LiteralPath 'flutter\pubspec.yaml' |
+            Where-Object { $_ -match '^version:' } | Select-Object -First 1
+          $pubspecVersion = ($line -replace '^version:\s*', '') -replace '\+.*$', ''
+          if ($pubspecVersion -ne $version) {
+            throw "pubspec version $pubspecVersion does not match tag version $version"
+          }
+
       - name: Build and verify single-file installer
         shell: pwsh
         run: |
@@ -113,11 +124,25 @@ jobs:
           $lines | Set-Content -LiteralPath checksums.txt -Encoding ascii
           Get-Content -LiteralPath checksums.txt
 
+      - name: Prepare release notes
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace '^windows-v', ''
+          $curated = "docs/releases/windows-$version.md"
+          if (Test-Path -LiteralPath $curated -PathType Leaf) {
+            Copy-Item -LiteralPath $curated -DestinationPath 'release-notes.md'
+          } else {
+            @(
+              "Ginkgo Windows $version 预发布版本。"
+              "安装器未做代码签名；升级前请阅读该版本的发布说明与已知限制。"
+            ) | Set-Content -LiteralPath 'release-notes.md' -Encoding utf8
+          }
+
       - name: Create Windows prerelease
         uses: softprops/action-gh-release@v2
         with:
-          name: Ginkgo Windows 0.1.0-alpha.6
-          body_path: docs/releases/windows-alpha6.md
+          name: Ginkgo Windows ${{ github.ref_name }}
+          body_path: release-notes.md
           draft: false
           prerelease: true
           fail_on_unmatched_files: true

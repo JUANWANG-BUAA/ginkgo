@@ -226,9 +226,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
             ),
           )
         else if (data == null)
-          const SliverToBoxAdapter(
-            child: GinkgoLoadingView(label: '正在读取作业…'),
-          )
+          const SliverToBoxAdapter(child: GinkgoLoadingView(label: '正在读取作业…'))
         else
           ..._content(data!),
         const SliverToBoxAdapter(child: SizedBox(height: 96)),
@@ -426,7 +424,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
         itemBuilder: (context, index) {
           final item = visible[index];
           final late =
-              item.status == HomeworkStatus.pending && isHomeworkOverdue(item.dueAt, _clock);
+              item.status == HomeworkStatus.pending &&
+              isHomeworkOverdue(item.dueAt, _clock);
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: ClipRSuperellipse(
@@ -492,19 +491,25 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                           ),
                                   ),
                                 ),
-                                if (homeworkRelativeDeadline(item.dueAt, _clock) != null)
+                                if (item.status != HomeworkStatus.submitted &&
+                                    homeworkRelativeDeadline(
+                                          item.dueAt,
+                                          _clock,
+                                        ) !=
+                                        null)
                                   Text(
-                                    homeworkRelativeDeadline(item.dueAt, _clock)!,
+                                    homeworkRelativeDeadline(
+                                      item.dueAt,
+                                      _clock,
+                                    )!,
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
                                       color: late
-                                          ? AppleDesign.statusDanger.resolveFrom(
-                                              context,
-                                            )
-                                          : AppleDesign.statusPending.resolveFrom(
-                                              context,
-                                            ),
+                                          ? AppleDesign.statusDanger
+                                                .resolveFrom(context)
+                                          : AppleDesign.statusPending
+                                                .resolveFrom(context),
                                     ),
                                   ),
                                 _statusBadge(context, item),

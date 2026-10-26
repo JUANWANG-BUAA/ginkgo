@@ -17,6 +17,12 @@ class RefreshSection<T> extends ChangeNotifier {
   bool _disposed = false;
   Future<void>? _task;
   Future<void>? _forcedRun;
+  int _generation = 0;
+
+  /// Drops every in-flight read at its next await: call when the account or
+  /// service generation behind [read] changes, so a late response from the
+  /// previous context never lands. Follow with a forced refresh.
+  void invalidate() => _generation++;
 
   /// A plain refresh joins the in-flight read. A forced refresh is never
   /// merged away: when one arrives while a (typically cached) read runs, it
@@ -43,9 +49,10 @@ class RefreshSection<T> extends ChangeNotifier {
     String fallbackError,
     Future<void> inFlight,
   ) {
+    final epoch = _generation;
     late final Future<void> run;
     run = inFlight.then((_) async {
-      if (_disposed) return;
+      if (_disposed || epoch != _generation) return;
       _task = run;
       await _refresh(read, fallbackError);
     }).whenComplete(() {
@@ -60,12 +67,13 @@ class RefreshSection<T> extends ChangeNotifier {
     String fallbackError,
   ) async {
     if (_disposed) return;
+    final epoch = _generation;
     loading = true;
     error = null;
     notifyListeners();
     try {
       final result = await read();
-      if (_disposed) return;
+      if (_disposed || epoch != _generation) return;
       if (result.value != null) value = result.value;
       error = result.error;
     } catch (_) {

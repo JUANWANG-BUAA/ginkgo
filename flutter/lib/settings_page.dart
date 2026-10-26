@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 
 import 'apple_design.dart';
 import 'apple_widgets.dart';
@@ -9,6 +10,8 @@ import 'maintenance_service.dart';
 import 'maintenance_pages.dart';
 import 'network_diagnostics_page.dart';
 import 'query_cache_scope.dart';
+import 'application/query_snapshots.dart';
+import 'learning_snapshots_page.dart';
 import 'preferences_pages.dart';
 import 'application/contracts.dart' show RouteChoice, SessionState;
 
@@ -89,6 +92,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (!await _confirm('切换网络路线？', '切换路线会清空当前 Cookie 并退出学校会话，需要重新登录。')) {
       return;
     }
+    if (!mounted) return;
     setState(() => busy = true);
     try {
       final response = await widget.service.setRoute(route);
@@ -116,6 +120,7 @@ class _SettingsPageState extends State<SettingsPage> {
     )) {
       return;
     }
+    if (!mounted) return;
     setState(() => busy = true);
     try {
       final cleared = await widget.service.clearCache();
@@ -252,6 +257,18 @@ class _SettingsPageState extends State<SettingsPage> {
               header: const Text('数据与存储'),
               footer: const Text('查询结果 5 分钟内复用，刷新失败时保留旧结果。'),
               children: [
+                if (!kReleaseMode && widget.service is LearningSnapshotGateway)
+                  AppleListTile(
+                    leading: const Icon(CupertinoIcons.lock_shield),
+                    trailing: const CupertinoListTileChevron(),
+                    title: const Text('加密学习快照'),
+                    subtitle: const Text('默认关闭 · 仅限 Android 本机保存'),
+                    onTap: () => _open(
+                      LearningSnapshotsPage(
+                        gateway: widget.service as LearningSnapshotGateway,
+                      ),
+                    ),
+                  ),
                 AppleListTile(
                   leading: const Icon(
                     CupertinoIcons.trash,

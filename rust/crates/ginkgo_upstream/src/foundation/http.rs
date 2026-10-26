@@ -8,12 +8,17 @@ pub enum HttpMethod {
     Post,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct HttpRequest {
     pub method: HttpMethod,
     pub url: String,
     pub headers: BTreeMap<String, String>,
     pub body: Option<String>,
+    /// Raw bounded bytes, exclusive with body; routing must not re-encode them.
+    pub binary_body: Option<Vec<u8>>,
+    /// Return exact attachment bytes instead of lossy text. No redirect following.
+    pub binary_response: bool,
+    pub response_limit: Option<usize>,
 }
 
 impl HttpRequest {
@@ -23,6 +28,9 @@ impl HttpRequest {
             url: url.into(),
             headers: BTreeMap::new(),
             body: None,
+            binary_body: None,
+            binary_response: false,
+            response_limit: None,
         }
     }
 
@@ -64,6 +72,7 @@ pub struct HttpResponse {
     /// Raw `Set-Cookie` header values in arrival order.
     pub set_cookies: Vec<String>,
     pub body: String,
+    pub bytes: Option<Vec<u8>>,
 }
 
 impl HttpResponse {
@@ -74,6 +83,7 @@ impl HttpResponse {
             headers: BTreeMap::new(),
             set_cookies: Vec::new(),
             body: body.into(),
+            bytes: None,
         }
     }
 
@@ -104,4 +114,15 @@ pub trait HttpTransport {
         &self,
         request: HttpRequest,
     ) -> impl Future<Output = Result<HttpResponse, TransportError>> + Send;
+}
+
+// Multipart bodies may contain private homework; never derive Debug over them.
+impl std::fmt::Debug for HttpRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("HttpRequest")
+            .field("method", &self.method)
+            .field("body_bytes", &self.body.as_ref().map(String::len))
+            .field("binary_bytes", &self.binary_body.as_ref().map(Vec::len))
+            .finish_non_exhaustive()
+    }
 }

@@ -33,7 +33,24 @@ impl SessionStatus {
     }
 }
 
+/// Transient image bytes; never persisted or used as an identity proof.
+#[derive(Clone, PartialEq, Eq)]
+pub struct LoginChallengeData {
+    pub challenge_id: String,
+    pub challenge_type: String,
+    pub text_supported: bool,
+    pub image: Vec<u8>,
+}
+
 pub trait SessionSource: Send + Sync {
+    fn login_challenge(
+        &self,
+        _expected_id: Option<&str>,
+        _refresh: bool,
+    ) -> impl std::future::Future<Output = Result<LoginChallengeData, AppError>> + Send {
+        async { Err(AppError::invalid()) }
+    }
+
     fn status(&self) -> SessionStatus;
     fn set_route(&self, preference: RoutePreference);
     fn sign_in(

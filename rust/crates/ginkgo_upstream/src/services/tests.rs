@@ -142,6 +142,37 @@ fn checkin_day_body() -> String {
 /// before the first caller can populate the session or snapshot.
 struct YieldingTransport(MockTransport);
 
+/// Hold every scripted response until the test releases the gate, so the
+/// account identity can flip while a read is still in flight — the exact
+/// window the await-time account recheck guards.
+pub(super) struct GatedTransport {
+    inner: MockTransport,
+    open: tokio::sync::watch::Receiver<bool>,
+}
+
+impl GatedTransport {
+    pub(super) fn gated() -> (Self, tokio::sync::watch::Sender<bool>) {
+        let (sender, receiver) = tokio::sync::watch::channel(false);
+        (
+            Self {
+                inner: MockTransport::default(),
+                open: receiver,
+            },
+            sender,
+        )
+    }
+}
+
+impl crate::foundation::http::HttpTransport for GatedTransport {
+    async fn send(&self, request: HttpRequest) -> Result<HttpResponse, TransportError> {
+        if !*self.open.borrow() {
+            let mut open = self.open.clone();
+            let _ = open.changed().await;
+        }
+        self.inner.send(request).await
+    }
+}
+
 impl crate::foundation::http::HttpTransport for YieldingTransport {
     async fn send(&self, request: HttpRequest) -> Result<HttpResponse, TransportError> {
         let mut yielded = false;
@@ -278,4 +309,7 @@ mod classroom;
 mod homework;
 mod library;
 mod library_books;
+mod library_loans;
 mod session;
+
+mod homework_files;

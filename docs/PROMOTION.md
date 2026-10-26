@@ -1,7 +1,7 @@
 # 宣传文案与关键词
 
 > 用途：GitHub 仓库信息、社区发帖、社交分享的统一口径。发布时直接复制，避免各文档说法不一致。
-> macOS 当前版本：Ginkgo 0.1.0-alpha.7（2026-10-19）；Android 与 Windows 0.1.0-alpha.4（build 5）已发布。下方社区发帖模板面向 macOS，跨平台宣传以本节口径为准。
+> macOS 当前版本：Ginkgo 0.1.0-alpha.7（2026-10-19，已冻结不再排期）；Android **0.1.0-alpha.8（build 9，2026-10-25 已发布）**；Windows 0.1.0-alpha.6（build 7）。下方社区发帖模板面向 macOS，跨平台宣传以本节口径为准。
 
 ## 当前首页口径（2026-10-21）
 
@@ -72,7 +72,7 @@
 - 还有成绩与参考绩点、空教室、SPOC 作业、校园通知、本机待办
 
 SwiftUI 原生，无第三方依赖；只直连学校系统，账号数据只留本机。
-目前是 0.1.0-alpha.7，212 项测试全绿；打卡签到与图书馆预约已可用，应用内置自更新（从 GitHub Releases 检查并安装，不清本地缓存），欢迎北航同学试用和反馈。
+目前是 0.1.0-alpha.7（macOS，已冻结）；Android 最新公开为 0.1.0-alpha.8。打卡签到与图书馆预约已可用，应用内置自更新（从 GitHub Releases 检查并安装，不清本地缓存），欢迎北航同学试用和反馈。
 
 GitHub: https://github.com/JUANWANG-BUAA/ginkgo
 项目主页: https://juanwang-buaa.github.io/ginkgo/

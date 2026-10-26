@@ -15,7 +15,12 @@ flutter_rust_bridge = "=2.12.0"
 ginkgo_core = { path = "../ginkgo_core" }
 
 [dev-dependencies]
+# Week dates are chrono values on the domain side; mapping tests build them.
+chrono = { version = "0.4", default-features = false, features = ["std"] }
 tokio = { version = "1", features = ["macros", "rt", "sync", "time", "test-util"] }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
+
+[features]
+experimental-homework-upload = ["ginkgo_runtime/experimental-homework-upload"]

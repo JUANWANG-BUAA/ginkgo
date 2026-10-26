@@ -25,6 +25,23 @@ jobs:
       - run: cargo test --manifest-path rust/Cargo.toml -p ginkgo_core --no-default-features --locked
       - run: cargo test --manifest-path rust/Cargo.toml -p ginkgo_upstream --locked
       - run: cargo test --manifest-path rust/Cargo.toml --workspace --locked
+      - run: git diff --exit-code -- rust/Cargo.lock
+      - run: git diff --exit-code --check
+      - name: Validate the update gate manifest
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          data = json.loads(pathlib.Path('docs/update-gate.json').read_text())
+          assert data.get('schema') == 1, 'schema must be 1'
+          assert isinstance(data.get('minBuild'), int), 'minBuild must be an integer'
+          print('update-gate.json OK:', data)
+          PY
+          # The gate is served from the Pages branch (main:/docs). Warn while it
+          # is missing there: a 404 makes the client fail open and skip the gate.
+          git fetch --no-tags --depth=1 origin main
+          if ! git cat-file -e origin/main:docs/update-gate.json 2>/dev/null; then
+            echo "::warning::docs/update-gate.json is absent from origin/main; the served update gate 404s and every client fails open. Merge the manifest to main before the next release."
+          fi
 
   bindings:
     runs-on: ubuntu-latest
@@ -49,6 +66,7 @@ jobs:
         working-directory: flutter/rust_builder/cargokit/build_tool
       - run: scripts/generate-mirror-bridge.sh
       - run: git diff --exit-code -- flutter/lib/src/rust rust/crates/ginkgo_flutter_bridge/src/frb_generated.rs
+      - run: git diff --exit-code -- flutter/pubspec.lock flutter/rust_builder/cargokit/build_tool/pubspec.lock
       - run: python3 scripts/check-mirror-windows-cmake.py
       - run: flutter analyze
         working-directory: flutter
@@ -79,6 +97,9 @@ jobs:
           cache: true
       - run: flutter build apk --debug --target-platform android-arm64
         working-directory: flutter
+      # A build must never rewrite the dependency lock it was verified against.
+      - run: git diff --exit-code -- flutter/pubspec.lock
+      - run: git diff --exit-code --check
       - uses: actions/upload-artifact@v4
         with:
           name: ginkgo-android-debug

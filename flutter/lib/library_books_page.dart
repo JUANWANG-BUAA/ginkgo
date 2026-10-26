@@ -324,8 +324,8 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      fontSize: 12,
-                                      color: CupertinoColors.tertiaryLabel
+                                      fontSize: 13,
+                                      color: CupertinoColors.secondaryLabel
                                           .resolveFrom(context),
                                     ),
                                   ),

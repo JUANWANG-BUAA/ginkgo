@@ -1,7 +1,7 @@
 use super::*;
 
 #[test]
-fn poisoned_identity_is_discarded_instead_of_panicking_on_every_later_read() {
+fn a_poisoned_identity_is_kept_and_the_recovery_is_observable() {
     let (service, _) = build_service(vec![], MemoryVault::default());
     let panic = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         let mut identity = service.identity.lock();
@@ -15,16 +15,21 @@ fn poisoned_identity_is_discarded_instead_of_panicking_on_every_later_read() {
         panic!("synthetic interrupted identity update");
     }));
     assert!(panic.is_err());
-    assert!(!service.status().signed_in());
-    assert_eq!(service.status().account, None);
+    // The panic must not sign the user out: the value under the lock is kept
+    // and later reads keep working instead of panicking.
+    assert!(service.status().signed_in());
+    assert_eq!(service.status().account.as_deref(), Some("sy2501001"));
     assert_eq!(
-        service.current_account().unwrap_err().code,
-        ErrorCode::SessionExpired
+        service.current_account().expect("kept account"),
+        "sy2501001"
     );
+    // The recovery stays observable instead of being a silent reset.
+    assert_eq!(service.identity.poison_count(), 1);
+    assert!(service.lock_poison_events() >= 1);
 }
 
 #[test]
-fn poisoned_snapshot_is_dropped_and_can_be_populated_again() {
+fn a_poisoned_snapshot_is_kept_and_can_be_populated_again() {
     let (service, _) = build_service(vec![], MemoryVault::default());
     let panic = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         let mut cache = service.snapshots.checkin.lock();
@@ -32,7 +37,22 @@ fn poisoned_snapshot_is_dropped_and_can_be_populated_again() {
         panic!("synthetic interrupted cache update");
     }));
     assert!(panic.is_err());
+    // The interrupted snapshot survives the panic instead of being dropped.
+    assert!(service
+        .snapshots
+        .checkin
+        .lock()
+        .any(&"2026-10-21".into())
+        .is_some());
+    assert_eq!(service.snapshots.checkin.poison_count(), 1);
+    // An explicit cache clear still empties it.
     service.clear_snapshots();
+    assert!(service
+        .snapshots
+        .checkin
+        .lock()
+        .any(&"2026-10-21".into())
+        .is_none());
     service
         .snapshots
         .checkin
@@ -197,7 +217,7 @@ async fn sign_in_returns_profile_and_stores_sanitized_credentials() {
     let (service, transport) =
         build_service(login_chain("sy2501001", "fixture"), MemoryVault::default());
     let outcome = service
-        .sign_in("sy2501001", "pa+ss/word", Some("1234"), true)
+        .sign_in("sy2501001", "pa+ss/word", None, true)
         .await
         .expect("signed in");
     match outcome {
@@ -360,7 +380,7 @@ fn session_outcomes_are_constructible_for_the_bridge() {
 async fn captcha_answer_reuses_the_original_login_page() {
     let captcha_page = FORM_PAGE.replace(
         "</form>",
-        "<script>config.captcha = { type: 'slider', id: 'cap-1' };</script></form>",
+        "<script>config.captcha = { type: 'local', id: 'cap-1' };</script></form>",
     );
     let transport = MockTransport::with_responses(vec![
         HttpResponse::new(200, LOGIN_URL, captcha_page),
@@ -600,4 +620,83 @@ async fn failed_gateway_recovery_is_shared_with_school_recovery() {
         .iter()
         .filter(|request| request.method == HttpMethod::Post)
         .all(|request| request.url.starts_with("https://d.buaa.edu.cn/")));
+}
+
+fn local_challenge_page(id: &str, kind: &str) -> HttpResponse {
+    HttpResponse::new(
+        200,
+        LOGIN_URL,
+        FORM_PAGE.replace(
+            "</form>",
+            &format!("<script>config.captcha = {{ type: '{kind}', id: '{id}' }};</script></form>"),
+        ),
+    )
+}
+
+#[tokio::test]
+async fn login_challenge_unknown_type_cannot_submit_and_old_id_cannot_refresh() {
+    let (service, transport) = build_service(
+        vec![local_challenge_page("cap", "slider")],
+        MemoryVault::default(),
+    );
+    service
+        .sign_in("synthetic", "password", None, false)
+        .await
+        .unwrap();
+    let challenge = service.login_challenge(Some("cap"), false).await.unwrap();
+    assert!(!challenge.text_supported);
+    assert!(challenge.image.is_empty());
+    assert!(service.login_challenge(Some("wrong"), true).await.is_err());
+    assert!(matches!(
+        service
+            .sign_in("synthetic", "password", Some("1234"), false)
+            .await
+            .unwrap(),
+        SessionOutcome::CaptchaRequired(_)
+    ));
+    service.set_route(RoutePreference::WebVpn);
+    assert!(service.login_challenge(Some("cap"), false).await.is_err());
+    assert_eq!(transport.request_count(), 1);
+}
+
+#[tokio::test]
+async fn login_challenge_cross_account_answer_never_posts() {
+    let (service, transport) = build_service(
+        vec![local_challenge_page("cap", "local")],
+        MemoryVault::default(),
+    );
+    service
+        .sign_in("synthetic-a", "password", None, false)
+        .await
+        .unwrap();
+    assert!(service
+        .sign_in("synthetic-b", "password", Some("1234"), false)
+        .await
+        .is_err());
+    assert_eq!(transport.request_count(), 1);
+    assert!(!service.status().signed_in());
+}
+
+#[tokio::test]
+async fn login_challenge_refresh_replaces_pending_and_old_answer_image_is_rejected() {
+    let (service, transport) = build_service(
+        vec![
+            local_challenge_page("cap-1", "slider"),
+            local_challenge_page("cap-2", "slider"),
+        ],
+        MemoryVault::default(),
+    );
+    service
+        .sign_in("synthetic", "password", None, false)
+        .await
+        .unwrap();
+    assert!(service.login_challenge(None, true).await.is_err());
+    let next = service.login_challenge(Some("cap-1"), true).await.unwrap();
+    assert_eq!(next.challenge_id, "cap-2");
+    assert!(service.login_challenge(Some("cap-1"), false).await.is_err());
+    assert_eq!(transport.request_count(), 2);
+    assert!(transport
+        .requests()
+        .iter()
+        .all(|request| request.method == HttpMethod::Get));
 }

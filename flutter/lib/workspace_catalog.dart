@@ -5,9 +5,12 @@ import 'checkin_page.dart';
 import 'classroom_page.dart';
 import 'cgyy_page.dart';
 import 'graduate_page.dart';
+import 'graduate_credit_map_page.dart';
+import 'library_loans_page.dart';
 import 'grades_page.dart';
 import 'homework_page.dart';
 import 'library_page.dart';
+import 'learning_page.dart';
 import 'mirror_service.dart';
 import 'notices_page.dart';
 import 'reservations_page.dart';
@@ -18,6 +21,7 @@ import 'tasks_page.dart';
 import 'today_page.dart';
 import 'workspace_shortcuts.dart';
 import 'application/contracts.dart' show RouteChoice;
+import 'application/library_loans.dart';
 
 /// 侧栏分组。顺序即桌面侧栏的呈现顺序；新增功能只登记到既有分组即可。
 enum WorkspaceSection {
@@ -174,6 +178,14 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     build: (context) => HomeworkPage(service: context.service),
   ),
   WorkspaceDestination(
+    id: 'learning',
+    title: 'SPOC 学习',
+    icon: CupertinoIcons.book_circle,
+    section: WorkspaceSection.academics,
+    build: (context) =>
+        LearningPage(service: context.service, accountId: context.accountId),
+  ),
+  WorkspaceDestination(
     id: 'bykc',
     title: '博雅',
     icon: CupertinoIcons.book_solid,
@@ -188,6 +200,27 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     section: WorkspaceSection.academics,
     build: (context) =>
         GraduatePage(demo: context.service.isDemo, service: context.service),
+  ),
+  WorkspaceDestination(
+    id: 'graduate-credit-map',
+    title: '研究生学分图',
+    icon: CupertinoIcons.chart_bar,
+    section: WorkspaceSection.academics,
+    build: (context) => GraduateCreditMapPage(
+      service: context.service,
+      accountId: context.accountId,
+    ),
+  ),
+  WorkspaceDestination(
+    id: 'library-loans',
+    title: '本人借阅',
+    icon: CupertinoIcons.bookmark,
+    section: WorkspaceSection.spaces,
+    build: (context) => LibraryLoansPage(
+      gateway: context.service is LibraryLoansGateway
+          ? context.service as LibraryLoansGateway
+          : null,
+    ),
   ),
   WorkspaceDestination(
     id: 'library',

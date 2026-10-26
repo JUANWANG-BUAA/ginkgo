@@ -1,10 +1,50 @@
 import '../application/contracts.dart';
+import '../application/homework_files.dart';
+import 'demo_homework_files.dart';
+import 'demo_learning.dart';
+import 'demo_library_loans.dart';
+import 'demo_graduate_credit_map.dart';
+
+import 'dart:typed_data';
+
 import '../application/mirror_service.dart';
 import '../src/rust/api/live.dart' as live;
 import '../src/rust/api/mirror.dart' as rust;
 
-final class DemoMirrorService implements MirrorService {
+final class DemoMirrorService
+    with DemoLearning, DemoGraduateCreditMap, DemoLibraryLoans
+    implements MirrorService, HomeworkFilesGateway {
+  static final _files = Expando<DemoHomeworkFiles>();
+  DemoHomeworkFiles get _homeworkFiles => _files[this] ??= DemoHomeworkFiles();
   const DemoMirrorService();
+  @override
+  Future<HomeworkFileWorkspace> homeworkFiles(String id) =>
+      _homeworkFiles.homeworkFiles(id);
+  @override
+  Future<HomeworkFileReceipt> uploadHomeworkFile(
+    String id,
+    String name,
+    Uint8List bytes,
+  ) => _homeworkFiles.uploadHomeworkFile(id, name, bytes);
+  @override
+  Future<MutationResponse> submitHomeworkFile(String handle) =>
+      _homeworkFiles.submitHomeworkFile(handle);
+  @override
+  Future<MutationResponse> reconcileHomeworkFile(String handle) =>
+      _homeworkFiles.reconcileHomeworkFile(handle);
+  @override
+  Future<HomeworkFileDownload> downloadHomeworkFile(
+    String id,
+    String attachment,
+  ) => _homeworkFiles.downloadHomeworkFile(id, attachment);
+  @override
+  Future<List<HomeworkPendingSubmission>> pendingHomeworkSubmissions({
+    String? assignmentId,
+  }) => _homeworkFiles.pendingHomeworkSubmissions(assignmentId: assignmentId);
+  @override
+  Future<List<HomeworkCapabilityEvidence>> homeworkCapabilities(
+    String assignmentId,
+  ) => _homeworkFiles.homeworkCapabilities(assignmentId);
   @override
   Future<live.ReadOnlyResponse> checkinProgress() async =>
       const live.ReadOnlyResponse(stale: false);
@@ -147,7 +187,8 @@ final class DemoMirrorService implements MirrorService {
     String sort = 'relevance',
     bool descending = true,
   }) async => const live.ReadOnlyResponse(
-    payload: '{"page":1,"pageSize":20,"total":0,"actualTotal":0,'
+    payload:
+        '{"page":1,"pageSize":20,"total":0,"actualTotal":0,'
         '"items":[],"hasMore":false}',
     stale: false,
   );
@@ -157,7 +198,7 @@ final class DemoMirrorService implements MirrorService {
   @override
   Future<live.ReadOnlyResponse> shuttleTimetable() async =>
       const live.ReadOnlyResponse(
-        payload: '{"tables":[],"source":""}',
+        payload: '{"tables":[{"left":"合成去程：学院路→沙河","right":"合成返程：沙河→学院路","sections":[{"label":"星期一至星期五","left":[{"index":"1","time":"08:30","capacity":"45"},{"index":"2","time":"10:00","capacity":"45"},{"index":"3","time":"14:00","capacity":"45"}],"right":[{"index":"1","time":"09:00","capacity":"45"},{"index":"2","time":"11:30","capacity":"45"},{"index":"3","time":"17:00","capacity":"45"}]}]}],"source":"https://www.buaa.edu.cn/info/1065/1762.htm","liveSource":"https://zhihuixiaoche.buaa.edu.cn/wechat/CASLogin"}',
         stale: false,
       );
   @override

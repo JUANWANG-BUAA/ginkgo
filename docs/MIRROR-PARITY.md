@@ -1,8 +1,8 @@
 # Flutter 与 Apple 客户端功能对照
 
-更新：2026-10-23；对象为当前源码，功能/接口统一索引见 [功能和接口协议](FEATURES-AND-PROTOCOLS.md)，公开包内容另见 [Alpha.6记录](archive/mirror/MIRROR-ALPHA6.md) 与 [Alpha.7记录](_audit/2026-10-23-android-alpha7-release.md)。Apple 维持 SwiftUI，Android / Windows 使用 Rust + Flutter；新增手机 UI 以现有 iOS 原生页面为设计验收基准；桌面保留 macOS 层次。未完成逐像素对照的部分必须单列，不能仅凭 Cupertino 组件宣称完全对齐。
+更新：2026-10-25；对象为当前源码，功能/接口统一索引见 [功能和接口协议](FEATURES-AND-PROTOCOLS.md)，公开包内容另见 [Alpha.6记录](archive/mirror/MIRROR-ALPHA6.md)、[Alpha.7记录](_audit/2026-10-23-android-alpha7-release.md) 与 [Alpha.8记录](_audit/2026-10-25-android-alpha8-release.md)。Apple 维持 SwiftUI，Android / Windows 使用 Rust + Flutter；新增手机 UI 以现有 iOS 原生页面为设计验收基准；桌面保留 macOS 层次。未完成逐像素对照的部分必须单列，不能仅凭 Cupertino 组件宣称完全对齐。
 
-本轮Today 2.0、作业转待办、常用入口/配色/动效及CGYY闭环纳入Android Alpha.7源码；[用户说明](releases/android-alpha7.md) 与 [Alpha.7记录](_audit/2026-10-23-android-alpha7-release.md) 单列发布、签名与升级边界，不改变Apple/Windows公开包状态。Alpha.7 之后的当前工作树已移除作业详情转待办入口，新增公开查书/馆藏与应用内校车等；不能按沿用版本号认定这些后续改动已发布。
+本轮Today 2.0、作业转待办、常用入口/配色/动效及CGYY闭环纳入Android Alpha.7源码，读命令超时上界与上游账号复检随 Alpha.8 公开；[用户说明](releases/android-alpha7.md) 与 [Alpha.7记录](_audit/2026-10-23-android-alpha7-release.md) 单列发布、签名与升级边界，不改变Apple/Windows公开包状态。当前工作树已移除作业详情转待办入口，新增公开查书/馆藏与应用内校车等；不能按沿用版本号认定这些后续改动已发布。
 
 下表的“已接入”表示代码链路存在。真实只读证据和最近登录失败均保留于 [验收归档](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md)，不推导真实写入或未覆盖的平台验收。
 

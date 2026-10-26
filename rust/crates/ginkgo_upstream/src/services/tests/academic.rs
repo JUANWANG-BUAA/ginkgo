@@ -268,7 +268,7 @@ async fn explicit_grade_term_skips_schedule_discovery() {
 }
 
 #[tokio::test]
-async fn graduate_schedule_uses_gsmis_and_today_is_derived_from_the_snapshot() {
+async fn graduate_schedule_uses_gsmis_for_the_requested_fixture_week() {
     let mut responses = login_chain("grad2501001", "fixture");
     // BYXT current-user: SSO, back to the graduate portal marker.
     responses.push(
@@ -310,10 +310,12 @@ async fn graduate_schedule_uses_gsmis_and_today_is_derived_from_the_snapshot() {
         .await
         .expect("signed in");
 
+    // This integration fixture describes week 7. Select it explicitly rather
+    // than assuming the machine's current calendar date remains in that week.
     let schedule = service
         .load_schedule(&ScheduleQueryInput {
             term_id: None,
-            week: None,
+            week: Some(7),
             force_refresh: false,
         })
         .await
@@ -447,4 +449,53 @@ async fn schedule_expired_session_without_saved_password_keeps_snapshot() {
     assert_eq!(stale.fetched_at, first.fetched_at);
     assert_eq!(stale.data.courses, first.data.courses);
     assert_eq!(transport.request_count(), 11);
+}
+
+/// The await-time account recheck: a schedule read parked mid-flight must
+/// reject its result after the identity flips and must not populate the
+/// snapshot the new account would read.
+#[tokio::test]
+async fn an_account_change_during_the_schedule_read_rejects_its_result() {
+    use std::future::Future as _;
+    let (transport, gate) = GatedTransport::gated();
+    let service = SchoolClient::new(
+        crate::auth::session::Session::new(transport),
+        MemoryVault::default(),
+    );
+    service.set_authenticated(
+        "sy2501001".into(),
+        UserProfile {
+            school_id: "sy2501001".into(),
+            name: "synthetic".into(),
+        },
+    );
+    let cache = std::sync::Mutex::new(crate::services::snapshots::ScheduleCache::default());
+    let key = (None::<String>, None::<i32>);
+    let mut pending = Box::pin(service.load_schedule(&ScheduleQueryInput {
+        term_id: None,
+        week: None,
+        force_refresh: false,
+    }));
+    assert!(
+        std::future::poll_fn(|cx| std::task::Poll::Ready(pending.as_mut().poll(cx)))
+            .await
+            .is_pending(),
+        "the gated transport must hold the read open"
+    );
+    service.set_authenticated(
+        "sy2501002".into(),
+        UserProfile {
+            school_id: "sy2501002".into(),
+            name: "other".into(),
+        },
+    );
+    gate.send_replace(true);
+    let error = pending
+        .await
+        .expect_err("a late read must not cross accounts");
+    assert_eq!(error.code, ErrorCode::SessionExpired);
+    assert!(
+        cache.lock().expect("snapshot cache").fresh(&key).is_none(),
+        "a rejected read must not populate the schedule snapshot"
+    );
 }

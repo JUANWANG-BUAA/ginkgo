@@ -97,10 +97,10 @@ class ShuttleTable {
 }
 
 class ShuttleTimetable {
-  ShuttleTimetable._(this.tables, this.source);
+  ShuttleTimetable._(this.tables, this.source, this.liveSource);
 
   final List<ShuttleTable> tables;
-  final String source;
+  final String source, liveSource;
 
   /// Flattens every published run that applies today. Duplicate rows across
   /// tables (same direction and departure) are collapsed, then sorted by the
@@ -164,5 +164,6 @@ ShuttleTimetable shuttleTimetable(String payload) {
         .map(ShuttleTable.fromJson)
         .toList(growable: false),
     decoded['source'] as String? ?? '',
+    decoded['liveSource'] as String? ?? '',
   );
 }

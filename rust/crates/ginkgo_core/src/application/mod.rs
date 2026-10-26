@@ -27,10 +27,15 @@ mod cgyy;
 mod checkin;
 mod classroom;
 mod graduate;
+pub mod graduate_credit_map;
 mod homework;
 mod library;
 mod library_books;
+pub mod library_loans;
 mod library_stats;
 mod notices;
+pub mod query_snapshots;
 mod session;
 mod shuttle;
+
+mod learning;

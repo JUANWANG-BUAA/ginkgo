@@ -60,7 +60,7 @@ Widget motionHarness(
     enabled: tickerEnabled,
     child: WorkspaceTabMotion(
       controller: tabs,
-      child: CupertinoTabScaffold(
+      child: WorkspaceTabScaffold(
         controller: tabs,
         tabBar: CupertinoTabBar(
           items: [
@@ -96,6 +96,82 @@ Future<void> tapTab(WidgetTester tester, String label) => tester.tap(
 
 void main() {
   setUp(mockLocalTaskSupportDirectory);
+
+  testWidgets('two original pages meet without a blank gap during a turn', (
+    tester,
+  ) async {
+    phone(tester);
+    final tabs = CupertinoTabController();
+    addTearDown(tabs.dispose);
+    await tester.pumpWidget(motionHarness(tabs));
+    tabs.index = 1;
+    await tester.pump();
+    expect(find.byType(CupertinoTabView), findsNWidgets(2));
+    for (var frame = 0; frame < 5; frame++) {
+      await tester.pump(const Duration(milliseconds: 40));
+      final outgoing = displacement(tester, 0);
+      final incoming = displacement(tester, 1);
+      expect(outgoing, lessThan(0));
+      expect(incoming, greaterThan(0));
+      expect(incoming - outgoing, closeTo(pageWidth, 0.001));
+    }
+    await tester.pumpAndSettle();
+    expect(find.byType(CupertinoTabView), findsOneWidget);
+    expect(find.text('page0'), findsNothing);
+    expect(find.text('page1'), findsOneWidget);
+  });
+
+  testWidgets(
+    'outgoing page is painted but excluded from touch and semantics',
+    (tester) async {
+      phone(tester);
+      final semantics = tester.ensureSemantics();
+      try {
+        final tabs = CupertinoTabController();
+        addTearDown(tabs.dispose);
+        await tester.pumpWidget(motionHarness(tabs));
+        tabs.index = 1;
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 30));
+        expect(find.text('page0'), findsOneWidget);
+        expect(find.text('page0').hitTestable(), findsNothing);
+        expect(find.semantics.byLabel('page0'), findsNothing);
+        expect(find.semantics.byLabel('page1'), findsOneWidget);
+        expect(
+          TickerMode.valuesOf(tester.element(find.text('page0'))).enabled,
+          isFalse,
+        );
+        await tester.pumpAndSettle();
+      } finally {
+        semantics.dispose();
+      }
+    },
+  );
+
+  testWidgets('bottom bar swipes switch adjacent tabs and stop at the ends', (
+    tester,
+  ) async {
+    phone(tester);
+    final tabs = CupertinoTabController();
+    addTearDown(tabs.dispose);
+    await tester.pumpWidget(motionHarness(tabs));
+    final bar = find.byType(CupertinoTabBar);
+    await tester.drag(bar, const Offset(-110, 0));
+    await tester.pumpAndSettle();
+    expect(tabs.index, 1);
+    await tester.drag(bar, const Offset(110, 0));
+    await tester.pumpAndSettle();
+    expect(tabs.index, 0);
+    await tester.drag(bar, const Offset(110, 0));
+    await tester.pumpAndSettle();
+    expect(tabs.index, 0);
+    tabs.index = 4;
+    await tester.pumpAndSettle();
+    await tester.drag(bar, const Offset(-110, 0));
+    await tester.pumpAndSettle();
+    expect(tabs.index, 4);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'first page is still; index direction, full-width slide and 230ms completion',
@@ -409,8 +485,8 @@ void main() {
       expect(verticalState.position.pixels, 120);
       expect(
         tester
-            .widget<CupertinoTabScaffold>(find.byType(CupertinoTabScaffold))
-            .controller!
+            .widget<WorkspaceTabScaffold>(find.byType(WorkspaceTabScaffold))
+            .controller
             .index,
         2,
       );

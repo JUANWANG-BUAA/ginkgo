@@ -35,7 +35,7 @@ class ReminderScheduler(private val context: Context) : MethodChannel.MethodCall
                 val group = plan["group"] as? String ?: continue
                 val at = (plan["at"] as? Number)?.toLong() ?: continue
                 val expiry = (plan["expires"] as? Number)?.toLong() ?: continue
-                if (!key.matches(Regex("[a-f0-9]{64}")) || group !in listOf("checkin", "homework") || expiry <= System.currentTimeMillis()) continue
+                if (!key.matches(Regex("[a-f0-9]{64}")) || group !in listOf("checkin", "homework", "course", "task") || expiry <= System.currentTimeMillis()) continue
                 next.put(JSONObject().put("key", key).put("group", group).put("at", at).put("expires", expiry))
             }
             val prefs = context.getSharedPreferences("local-reminders", 0)
@@ -94,15 +94,25 @@ class ReminderReceiver : BroadcastReceiver() {
             val group = plan.getString("group")
             val channel = "campus-reminders-v1"
             if (Build.VERSION.SDK_INT >= 26) manager.createNotificationChannel(
-                NotificationChannel(channel, "课程与作业提醒", NotificationManager.IMPORTANCE_DEFAULT))
+                NotificationChannel(channel, "校园事项提醒", NotificationManager.IMPORTANCE_DEFAULT))
             val open = PendingIntent.getActivity(context, 0,
                 Intent(context, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
                 }, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, channel) else Notification.Builder(context)
             val notification = builder.setSmallIcon(R.drawable.ic_reminder)
-                .setContentTitle(if (group == "checkin") "签到已开放" else "作业临近截止")
-                .setContentText(if (group == "checkin") "课程签到窗口已开放，请进入 Ginkgo 核对并手动签到。" else "有未完成作业进入截止提醒期，请进入 Ginkgo 查看。")
+                .setContentTitle(when (group) {
+                    "checkin" -> "签到已开放"
+                    "course" -> "课程即将开始"
+                    "task" -> "待办临近截止"
+                    else -> "作业临近截止"
+                })
+                .setContentText(when (group) {
+                    "checkin" -> "课程签到窗口已开放，请进入 Ginkgo 核对并手动签到。"
+                    "course" -> "有课程即将开始，请进入 Ginkgo 查看时间与地点。"
+                    "task" -> "有未完成待办进入截止提醒期，请进入 Ginkgo 查看。"
+                    else -> "有未完成作业进入截止提醒期，请进入 Ginkgo 查看。"
+                })
                 .setVisibility(Notification.VISIBILITY_PRIVATE).setContentIntent(open).setAutoCancel(true).build()
             // Mark before posting: repeated broadcasts/rescheduling must not notify twice.
             delivered.put(key, plan.getLong("expires"))

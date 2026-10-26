@@ -66,6 +66,13 @@ impl<T: HttpTransport> Session<T> {
         self.webvpn_jar.lock().clear();
     }
 
+    /// How often one of the cookie-jar locks was recovered from a poisoned
+    /// state. A non-zero value means a panic interrupted a cookie update; the
+    /// cookies were kept and the event stays visible to the caller.
+    pub fn poison_events(&self) -> u64 {
+        self.direct_jar.poison_count() + self.webvpn_jar.poison_count()
+    }
+
     pub fn webvpn_cookie_present(&self) -> bool {
         !self.webvpn_jar.lock().is_empty()
     }

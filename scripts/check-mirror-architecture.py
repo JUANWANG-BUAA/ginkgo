@@ -39,7 +39,8 @@ def dependency_violations(packages):
 def source_violations(root):
     errors = []
     forbidden = re.compile(r'\b(?:HttpTransport|CredentialVault|LoginPage|IClassSession|ReqwestTransport|CookieJar)\b|https?://[^\s\"<>]*buaa|ginkgo_upstream::|(?:auth|adapters)::')
-    for directory in ['rust/crates/ginkgo_core/src', 'rust/crates/ginkgo_domain/src/ports']:
+    for directory in ['rust/crates/ginkgo_core/src', 'rust/crates/ginkgo_domain/src/ports',
+                      'rust/crates/ginkgo_domain/src/features']:
         for file in (root / directory).rglob('*.rs'):
             # Comments may explain a prohibited dependency; check executable source.
             code = re.sub(r'(?m)^\s*//.*$', '', file.read_text())
@@ -94,12 +95,9 @@ def payload_decode_violations(root):
     return errors
 
 
-def violations(root):
-    metadata = json.loads(subprocess.check_output(
-        ['cargo', 'metadata', '--manifest-path', str(root / 'rust/Cargo.toml'),
-         '--no-deps', '--offline', '--locked', '--format-version', '1'], text=True))
-    errors = dependency_violations(metadata['packages']) + source_violations(root)
-    errors += payload_decode_violations(root)
+def dart_boundary_violations(root):
+    """Dart-side composition rules, kept pure so the self-test can cover them."""
+    errors = []
     lib = root / 'flutter/lib'
     for file in lib.rglob('*.dart'):
         relative = file.relative_to(lib)
@@ -124,6 +122,16 @@ def violations(root):
                     exported = re.split(r'\bshow\b', directive, maxsplit=1)[1]
                     if any(not value.strip()[0].isupper() for value in exported.split(',') if value.strip()):
                         errors.append('contracts.dart must not export native commands')
+    return errors
+
+
+def violations(root):
+    metadata = json.loads(subprocess.check_output(
+        ['cargo', 'metadata', '--manifest-path', str(root / 'rust/Cargo.toml'),
+         '--no-deps', '--offline', '--locked', '--format-version', '1'], text=True))
+    errors = dependency_violations(metadata['packages']) + source_violations(root)
+    errors += payload_decode_violations(root)
+    errors += dart_boundary_violations(root)
     return errors
 
 

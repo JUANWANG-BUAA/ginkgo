@@ -145,3 +145,41 @@ async fn local_tasks_follow_the_injected_identity_and_remain_account_isolated() 
     );
     std::fs::remove_dir_all(root).expect("remove synthetic files");
 }
+
+/// Clearing query snapshots and signing out must never touch the task
+/// document: these are the user's own records, not cached school data.
+#[tokio::test]
+async fn clearing_snapshots_and_signing_out_preserve_local_task_documents() {
+    let root = std::env::temp_dir().join(format!("ginkgo-port-{:x}", rand::random::<u64>()));
+    let account = Arc::new(Mutex::new(Some("sy2501001".into())));
+    let app = Workspace::new(LocalIdentity {
+        account: account.clone(),
+    });
+    app.edit_tasks(
+        &root,
+        "add",
+        None,
+        Some("退登后仍在的待办"),
+        Some("2026-10-22"),
+        None,
+    )
+    .expect("add");
+
+    app.clear_snapshots();
+    assert_eq!(
+        app.edit_tasks(&root, "load", None, None, None, None)
+            .expect("tasks survive clear_snapshots")[0]
+            .title,
+        "退登后仍在的待办"
+    );
+
+    app.sign_out().await;
+    *account.lock().expect("sign back in") = Some("sy2501001".into());
+    assert_eq!(
+        app.edit_tasks(&root, "load", None, None, None, None)
+            .expect("tasks survive sign_out")[0]
+            .title,
+        "退登后仍在的待办"
+    );
+    std::fs::remove_dir_all(root).expect("remove synthetic files");
+}

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
-/// A rounded tinted base for a single glyph. Keeps the glyph size stable while
-/// the tile communicates selection through tint strength, never through motion.
+/// A rounded tinted base for a single glyph. The glyph follows text scaling
+/// within the fixed tile, with padding retained even at accessibility sizes.
 class GinkgoIconTile extends StatelessWidget {
   const GinkgoIconTile({
     super.key,
@@ -23,8 +23,15 @@ class GinkgoIconTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
-    final accent = color ?? CupertinoTheme.of(context).primaryColor;
+    final accent = CupertinoDynamicColor.resolve(
+      color ?? CupertinoTheme.of(context).primaryColor,
+      context,
+    );
     final alpha = dark ? (selected ? 0.28 : 0.16) : (selected ? 0.16 : 0.10);
+    final baseIconSize = (iconSize ?? size / 2).clamp(0.0, size * 0.75);
+    final scaledIconSize = MediaQuery.textScalerOf(context)
+        .scale(baseIconSize)
+        .clamp(baseIconSize, size * 0.75);
     final tile = Container(
       width: size,
       height: size,
@@ -33,7 +40,13 @@ class GinkgoIconTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
-        child: Icon(icon, size: iconSize ?? size / 2, color: accent),
+        child: Icon(
+          icon,
+          size: scaledIconSize,
+          color: accent,
+          // The size above already incorporates the system text scaler.
+          applyTextScaling: false,
+        ),
       ),
     );
     return semanticLabel == null
@@ -61,11 +74,16 @@ class GinkgoBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
-    final accent = color ?? CupertinoTheme.of(context).primaryColor;
+    final accent = CupertinoDynamicColor.resolve(
+      color ?? CupertinoTheme.of(context).primaryColor,
+      context,
+    );
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: compact ? 6 : 8,
-        vertical: compact ? 1 : 2,
+        vertical: MediaQuery.textScalerOf(context).scale(1) > 1.3
+            ? 4
+            : (compact ? 2 : 3),
       ),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: dark ? 0.22 : 0.12),
@@ -75,13 +93,19 @@ class GinkgoBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 12, color: accent),
+            Icon(
+              icon,
+              size: MediaQuery.textScalerOf(context).scale(12).clamp(12, 20),
+              color: accent,
+              applyTextScaling: false,
+            ),
             const SizedBox(width: 4),
           ],
           Flexible(
             child: Text(
               label,
-              overflow: TextOverflow.ellipsis,
+              // A status qualifier must not disappear at accessibility sizes.
+              softWrap: true,
               style: TextStyle(
                 fontSize: compact ? 11 : 12,
                 fontWeight: FontWeight.w600,

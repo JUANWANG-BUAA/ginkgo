@@ -97,6 +97,9 @@ async fn execute(client: Client, request: HttpRequest) -> Result<HttpResponse, T
         HttpMethod::Get => Method::GET,
         HttpMethod::Post => Method::POST,
     };
+    if request.body.is_some() && request.binary_body.is_some() {
+        return Err(TransportError::Unavailable);
+    }
     let mut builder = client.request(method, &request.url);
     for (name, value) in &request.headers {
         builder = builder.header(name, value);
@@ -104,7 +107,10 @@ async fn execute(client: Client, request: HttpRequest) -> Result<HttpResponse, T
     if let Some(body) = request.body {
         builder = builder.body(body);
     }
-    let response = builder
+    if let Some(body) = request.binary_body {
+        builder = builder.body(body);
+    }
+    let mut response = builder
         .send()
         .await
         .map_err(|_| TransportError::Unavailable)?;
@@ -123,15 +129,87 @@ async fn execute(client: Client, request: HttpRequest) -> Result<HttpResponse, T
             headers.insert(name, value.to_string());
         }
     }
-    let body = response
-        .bytes()
+    let limit = request.response_limit.unwrap_or(16 * 1024 * 1024);
+    if response.content_length().is_some_and(|n| n > limit as u64) {
+        return Err(TransportError::Unavailable);
+    }
+    let mut body = Vec::new();
+    while let Some(chunk) = response
+        .chunk()
         .await
-        .map_err(|_| TransportError::Unavailable)?;
+        .map_err(|_| TransportError::Unavailable)?
+    {
+        if body.len().saturating_add(chunk.len()) > limit {
+            return Err(TransportError::Unavailable);
+        }
+        body.extend_from_slice(&chunk);
+    }
     Ok(HttpResponse {
         status,
         final_url,
         headers,
         set_cookies,
-        body: String::from_utf8_lossy(&body).into_owned(),
+        body: if request.binary_response {
+            String::new()
+        } else {
+            String::from_utf8_lossy(&body).into_owned()
+        },
+        bytes: request.binary_response.then_some(body),
     })
+}
+
+#[cfg(test)]
+mod homework_file_transport_tests {
+    use super::*;
+    use std::{
+        io::{Read, Write},
+        net::TcpListener,
+    };
+    #[test]
+    fn homework_file_socket_upload_and_download_preserve_bytes() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = std::thread::spawn(move || {
+            let (mut socket, _) = listener.accept().unwrap();
+            socket
+                .set_read_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+            let mut input = Vec::new();
+            let mut buffer = [0u8; 4096];
+            loop {
+                let n = socket.read(&mut buffer).unwrap();
+                if n == 0 {
+                    break;
+                }
+                input.extend_from_slice(&buffer[..n]);
+                if let Some(end) = input.windows(4).position(|w| w == b"\r\n\r\n") {
+                    let header = String::from_utf8_lossy(&input[..end]);
+                    let length: usize = header
+                        .lines()
+                        .find_map(|line| {
+                            line.to_ascii_lowercase()
+                                .strip_prefix("content-length:")
+                                .map(|s| s.trim().parse().unwrap())
+                        })
+                        .unwrap();
+                    if input.len() >= end + 4 + length {
+                        break;
+                    }
+                }
+            }
+            socket.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: 4\r\nConnection: close\r\n\r\n\x00\xff\r\n").unwrap();
+            input
+        });
+        let transport = ReqwestTransport::new().unwrap();
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        let mut request = HttpRequest::new(HttpMethod::Post, format!("http://{address}/upload"));
+        request.binary_body = Some(vec![0, 255, 13, 10]);
+        request.binary_response = true;
+        request.response_limit = Some(4);
+        let response = runtime.block_on(transport.send(request)).unwrap();
+        assert_eq!(response.bytes, Some(vec![0, 255, 13, 10]));
+        assert!(response.body.is_empty());
+        let observed = server.join().unwrap();
+        assert!(observed.ends_with(&[0, 255, 13, 10]));
+    }
 }

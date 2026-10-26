@@ -3,12 +3,23 @@
 #define AppURL "https://juanwang-buaa.github.io/ginkgo/"
 #define AppExeName "ginkgo_mirror.exe"
 
+; Both defines are required so a missed flag fails compilation instead of
+; silently packaging a stale version. CI passes them on every release build.
 #ifndef AppVersion
-  #define AppVersion "0.1.0-alpha.4"
+  #error Pass /DAppVersion=<version>, e.g. ISCC /DAppVersion=0.1.0-alpha.6 Ginkgo.iss
 #endif
 
 #ifndef BundleDir
-  #define BundleDir "flutter\build\windows\x64\runner\Release"
+  #error Pass /DBundleDir=<path to flutter\build\windows\x64\runner\Release>
+#endif
+
+; File-property versions need a numeric dotted form; derive it from AppVersion
+; so the installer attributes never pin a stale literal.
+#define DashPos Pos("-", AppVersion)
+#if DashPos > 0
+  #define NumericVersion Copy(AppVersion, 1, DashPos - 1)
+#else
+  #define NumericVersion AppVersion
 #endif
 
 [Setup]
@@ -42,8 +53,8 @@ UninstallDisplayIcon={app}\{#AppExeName}
 VersionInfoCompany={#AppPublisher}
 VersionInfoDescription=Ginkgo Windows installer
 VersionInfoProductName={#AppName}
-VersionInfoProductVersion=0.1.0.4
-VersionInfoVersion=0.1.0.4
+VersionInfoProductVersion={#AppVersion}
+VersionInfoVersion={#NumericVersion}.0
 
 [Languages]
 Name: "chinesesimp"; MessagesFile: "ChineseSimplified.isl"

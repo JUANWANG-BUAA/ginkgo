@@ -173,3 +173,42 @@ async fn homework_changed_body_preserves_cached_text_and_native_ids_share_cache(
         .url
         .ends_with("queryKczyInfoByid?id=synthetic%2Ba%2Fb")));
 }
+
+/// The await-time account recheck: a homework read parked mid-flight must
+/// reject its result after the identity flips instead of landing under the
+/// new account.
+#[tokio::test]
+async fn an_account_change_during_the_homework_read_rejects_its_result() {
+    use std::future::Future as _;
+    let (transport, gate) = GatedTransport::gated();
+    let service = SchoolClient::new(
+        crate::auth::session::Session::new(transport),
+        MemoryVault::default(),
+    );
+    service.set_authenticated(
+        "sy2501001".into(),
+        UserProfile {
+            school_id: "sy2501001".into(),
+            name: "synthetic".into(),
+        },
+    );
+    let mut pending = Box::pin(service.load_homework(false));
+    assert!(
+        std::future::poll_fn(|cx| std::task::Poll::Ready(pending.as_mut().poll(cx)))
+            .await
+            .is_pending(),
+        "the gated transport must hold the read open"
+    );
+    service.set_authenticated(
+        "sy2501002".into(),
+        UserProfile {
+            school_id: "sy2501002".into(),
+            name: "other".into(),
+        },
+    );
+    gate.send_replace(true);
+    let error = pending
+        .await
+        .expect_err("a late read must not cross accounts");
+    assert_eq!(error.code, ErrorCode::SessionExpired);
+}

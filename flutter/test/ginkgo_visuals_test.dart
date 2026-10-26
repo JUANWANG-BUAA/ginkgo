@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/apple_widgets.dart';
 import 'package:ginkgo_mirror/ginkgo_visuals.dart';
@@ -119,6 +120,81 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('tile scales glyph once and retains padding at large type', (
+    tester,
+  ) async {
+    for (final scale in [0.8, 1.0, 1.3, 2.0, 3.2]) {
+      for (final explicit in [false, true]) {
+        final size = explicit ? 34.0 : 44.0;
+        final base = explicit ? 18.0 : 22.0;
+        await tester.pumpWidget(
+          CupertinoApp(
+            home: MediaQuery(
+              data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+              child: IconTheme(
+                data: const IconThemeData(applyTextScaling: true),
+                child: Center(
+                  child: GinkgoIconTile(
+                    icon: CupertinoIcons.calendar,
+                    size: size,
+                    iconSize: explicit ? base : null,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        final expected = (base * scale).clamp(base, size * 0.75);
+        final glyphSize = tester.getSize(find.byIcon(CupertinoIcons.calendar));
+        expect(glyphSize, Size.square(expected));
+        expect(tester.getSize(find.byType(GinkgoIconTile)), Size.square(size));
+        expect(tester.takeException(), isNull);
+      }
+    }
+  });
+
+  testWidgets('oversized explicit glyph stays inside its tile', (tester) async {
+    await tester.pumpWidget(
+      const CupertinoApp(
+        home: Center(
+          child: GinkgoIconTile(
+            icon: CupertinoIcons.calendar,
+            size: 34,
+            iconSize: 40,
+          ),
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    expect(
+      tester.getSize(find.byIcon(CupertinoIcons.calendar)),
+      const Size.square(25.5),
+    );
+  });
+
+  testWidgets('badge caps its glyph even when icon theme enables scaling', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const CupertinoApp(
+        home: MediaQuery(
+          data: MediaQueryData(textScaler: TextScaler.linear(3.2)),
+          child: IconTheme(
+            data: IconThemeData(applyTextScaling: true),
+            child: Center(
+              child: GinkgoBadge(label: '状态', icon: CupertinoIcons.checkmark),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(
+      tester.getSize(find.byIcon(CupertinoIcons.checkmark)),
+      const Size.square(20),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('badge stays legible in narrow layouts and dark mode', (
     tester,
   ) async {
@@ -145,6 +221,97 @@ void main() {
     );
     expect(find.text('今日已读取全部课程'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  for (final badge in [false, true]) {
+    testWidgets(
+      'dynamic tint follows brightness for ${badge ? 'badge' : 'tile'}',
+      (tester) async {
+        const tint = CupertinoDynamicColor.withBrightness(
+          color: Color(0xff006640),
+          darkColor: Color(0xff80ffb0),
+        );
+        for (final brightness in Brightness.values) {
+          await tester.pumpWidget(
+            CupertinoApp(
+              theme: CupertinoThemeData(brightness: brightness),
+              home: Center(
+                child: badge
+                    ? const GinkgoBadge(
+                        label: '合成状态',
+                        icon: CupertinoIcons.checkmark,
+                        color: tint,
+                      )
+                    : const GinkgoIconTile(
+                        icon: CupertinoIcons.checkmark,
+                        color: tint,
+                      ),
+              ),
+            ),
+          );
+          final target = find.byType(badge ? GinkgoBadge : GinkgoIconTile);
+          final resolved = CupertinoDynamicColor.resolve(
+            tint,
+            tester.element(target),
+          );
+          final container = tester.widget<Container>(
+            find.descendant(of: target, matching: find.byType(Container)).first,
+          );
+          final background = (container.decoration! as BoxDecoration).color!;
+          expect(background.r, resolved.r);
+          expect(background.g, resolved.g);
+          expect(background.b, resolved.b);
+          final icon = tester.widget<Icon>(
+            find.byIcon(CupertinoIcons.checkmark),
+          );
+          expect(icon.color, resolved);
+          if (badge) {
+            expect(
+              tester.widget<Text>(find.text('合成状态')).style!.color,
+              resolved,
+            );
+          }
+        }
+      },
+    );
+  }
+
+  testWidgets('badge grows to retain its complete status at 320 percent', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    try {
+      for (final compact in [false, true]) {
+        await tester.pumpWidget(
+          CupertinoApp(
+            home: MediaQuery(
+              data: const MediaQueryData(textScaler: TextScaler.linear(3.2)),
+              child: Center(
+                child: SizedBox(
+                  width: 160,
+                  child: GinkgoBadge(
+                    label: '尚未确认，请勿再次提交',
+                    icon: CupertinoIcons.exclamationmark_triangle,
+                    compact: compact,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        final text = find.text('尚未确认，请勿再次提交');
+        final paragraph = tester.renderObject<RenderParagraph>(text);
+        expect(paragraph.didExceedMaxLines, isFalse);
+        expect(
+          tester.getSize(find.byType(GinkgoBadge)).height,
+          greaterThan(60),
+        );
+        expect(tester.getSemantics(text).label, '尚未确认，请勿再次提交');
+        expect(tester.takeException(), isNull);
+      }
+    } finally {
+      semantics.dispose();
+    }
   });
 
   Widget headerHost(Widget header) => CupertinoApp(

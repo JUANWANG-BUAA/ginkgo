@@ -124,15 +124,22 @@ class AcademicMetric extends StatelessWidget {
 }
 
 class AcademicMetricGrid extends StatelessWidget {
-  const AcademicMetricGrid({super.key, required this.children});
+  const AcademicMetricGrid({
+    super.key,
+    required this.children,
+    this.maxColumns,
+  });
   final List<Widget> children;
+  final int? maxColumns;
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
       final scale = MediaQuery.textScalerOf(context).scale(1);
       final columns = (constraints.maxWidth / (108 * scale)).floor().clamp(
         1,
-        children.length,
+        maxColumns == null
+            ? children.length
+            : maxColumns!.clamp(1, children.length),
       );
       return Wrap(
         spacing: 16,

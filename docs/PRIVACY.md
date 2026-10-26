@@ -28,6 +28,8 @@
 | 学号、密码 | Android Keystore + 私有 SharedPreferences；Windows Credential Manager；macOS Keychain | 仅在用户勾选「记住密码」后写入；Android 使用 AES-GCM，密钥不出 Android Keystore，账号名以 SHA-256 摘要作为偏好键；验证码答案不持久化；关闭开关或登出即删除 |
 | 会话 Cookie（CASTGC 等） | Rust 进程内存 | 不落盘；进程重启后通过平台保险库静默重登；直连与 WebVPN Cookie 分离 |
 | 空教室、课表、今天、成绩、作业、博雅、研究生、签到、预约等查询快照 | Rust 进程内存 | 5 分钟 TTL、容量上限；登出、账号切换、路由变化即清空；不读取 Apple 缓存文件，不写磁盘 |
+| 可选 SPOC 学习快照（工作树，默认关闭） | Android noBackupFilesDir，独立 Keystore AES-GCM 密文 | 用户显式确认后仅保存课程/栏目/公告列表/资料目录/测验元数据；原成功时间五分钟内、同账号已认证且网络暂不可用时可采用旧值，不持久化文件字节/Cookie/token；关闭、退出或清查询缓存撤销并清除；不涉及个人待办。接线与设备回归见 [记录](_audit/2026-10-26-module-integration.md)，敏感存储仍需人工审查 |
+| 本人借阅（工作树） | Rust 单次响应与 Flutter 当前页内存 | 仅点击后读取，不进入查询快照、磁盘或提醒；离开栏目/后台/服务切换清除页面值，迟到响应废弃；认证失败清除旧记录。不取完整读者资料、册条码或续借资格。实网与设备验收仍待完成 |
 | 设备验收诊断 | 平台保险库 | `verifyCredentialStorage` 只写入并删除调用方提供的合成密钥，用于验证 JNI/Keystore 往返，不接触账号数据 |
 | 提醒偏好与阅读摘要 | 应用私有支持目录；按账号 SHA-256 摘要隔离 | 仅开关、摘要键及过期时间，不含课程 / 作业正文；摘要不是加密；清除查询缓存不删除阅读偏好 |
 | Android 本地提醒计划 / 投递去重 | 私有 SharedPreferences 与系统 AlarmManager / 通知中心 | 仅摘要键、类别、触发 / 到期时间；通知正文通用化。关闭提醒 / 登出撤销有效计划，过期去重键清理；未申请精确闹钟或常驻权限 |

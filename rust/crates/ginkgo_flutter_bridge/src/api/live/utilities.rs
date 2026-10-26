@@ -86,7 +86,13 @@ pub(super) async fn execute_cgyy(command: String) -> ReadOnlyResponse {
     let _access = SESSION_ACCESS.read().await;
     let _module = CGYY_ACCESS.write().await;
     let result = match service() {
-        Ok(service) => service.execute_cgyy_json(&command).await,
+        // A dropped command may still have been submitted school-side; the
+        // pending marker the command wrote survives the drop and the next
+        // status read reports the outcome as unverified.
+        Ok(service) => match bounded_submit(service.execute_cgyy_json(&command)).await {
+            Some(result) => result,
+            None => Err(AppError::unavailable()),
+        },
         Err(error) => Err(error),
     };
     read_only_value(result)
@@ -132,6 +138,54 @@ pub(super) async fn load_library_holdings(bib_id: String) -> ReadOnlyResponse {
         Ok(service) => bounded_read(service.load_book_holdings(bib_id)).await,
         Err(error) => Err(error),
     };
+    read_only_value(result)
+}
+
+pub(super) async fn export_learning_snapshots(expected: String) -> LearningSnapshotResponse {
+    let _access = SESSION_ACCESS.read().await;
+    let result = (|| {
+        let s = service()?;
+        if expected.is_empty() || s.status().account.as_deref() != Some(expected.as_str()) {
+            return Err(AppError::session_expired());
+        }
+        s.export_learning_snapshots()
+    })();
+    match result {
+        Ok(bytes) => LearningSnapshotResponse {
+            bytes: Some(bytes),
+            failure: None,
+        },
+        Err(e) => LearningSnapshotResponse {
+            bytes: None,
+            failure: Some(e.code.into()),
+        },
+    }
+}
+pub(super) async fn import_learning_snapshots(
+    expected: String,
+    bytes: Vec<u8>,
+) -> ReadOnlyResponse {
+    // Import must not race a network command or session/cache invalidation.
+    let _access = SESSION_ACCESS.write().await;
+    read_only_value((|| {
+        let s = service()?;
+        if expected.is_empty() || s.status().account.as_deref() != Some(expected.as_str()) {
+            return Err(AppError::session_expired());
+        }
+        s.import_learning_snapshots(&bytes)
+    })())
+}
+
+pub(super) async fn load_library_loans(expected: String, page: u32) -> ReadOnlyResponse {
+    let _access = SESSION_ACCESS.read().await;
+    let result = async {
+        let s = service()?;
+        if expected.is_empty() || s.status().account.as_deref() != Some(expected.as_str()) {
+            return Err(AppError::session_expired());
+        }
+        bounded_read(s.load_library_loans(page)).await
+    }
+    .await;
     read_only_value(result)
 }
 

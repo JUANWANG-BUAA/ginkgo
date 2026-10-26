@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/schedule_page.dart';
@@ -104,6 +105,27 @@ void main() {
       }
 
       centered(7);
+      final term = tester.getRect(
+        find.byKey(const Key('schedule-term-picker')),
+      );
+      final picker = tester.getRect(
+        find.byKey(const Key('schedule-week-picker')),
+      );
+      final current = tester.getRect(
+        find.byKey(const Key('schedule-current-week')),
+      );
+      final chip = tester.getRect(find.byKey(const Key('schedule-week-7')));
+      expect(tester.getRect(strip).bottom - term.top, lessThanOrEqualTo(140));
+      for (final target in [term, picker, current, chip]) {
+        expect(target.height, greaterThanOrEqualTo(48));
+      }
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('schedule-week-picker')),
+          matching: find.text('10/19 – 10/25'),
+        ),
+        findsOneWidget,
+      );
       expect(find.byKey(const Key('schedule-week-30')), findsNothing);
       await tester.tap(find.byKey(const Key('schedule-week-8')));
       await tester.pumpAndSettle();
@@ -112,6 +134,17 @@ void main() {
       tester.view.physicalSize = const Size(320, 1200);
       await tester.pumpAndSettle();
       centered(8);
+      for (final number in [7, 8]) {
+        final text = find.descendant(
+          of: find.byKey(Key('schedule-week-$number')),
+          matching: find.byType(Text),
+        );
+        final paragraph = tester.renderObject<RenderParagraph>(text);
+        expect(
+          paragraph.getMaxIntrinsicWidth(double.infinity),
+          lessThanOrEqualTo(paragraph.size.width + 0.01),
+        );
+      }
       final scrollable = find
           .descendant(of: strip, matching: find.byType(Scrollable))
           .first;

@@ -25,6 +25,7 @@ sha1 = "0.10"
 md-5 = "0.10"
 
 [features]
+experimental-homework-upload = []
 test-support = []
 default = []
 network = ["dep:reqwest", "tokio/rt-multi-thread", "tokio/time"]
@@ -37,3 +38,11 @@ jni = "0.21"
 
 [dev-dependencies]
 tokio = { version = "1.48", features = ["macros", "rt"] }
+
+[[example]]
+name = "homework_live_read"
+required-features = ["network"]
+
+[[example]]
+name = "learning_probe"
+required-features = ["network"]

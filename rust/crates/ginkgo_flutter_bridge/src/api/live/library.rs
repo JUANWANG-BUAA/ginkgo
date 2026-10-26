@@ -291,20 +291,25 @@ pub(super) async fn reserve_library_seat(
     let _access = SESSION_ACCESS.read().await;
     let _module = LIBRARY_ACCESS.write().await;
     match service() {
-        Ok(service) => mutation_response(
-            service
-                .reserve_library_seat(
-                    &area_id,
-                    &seat_id,
-                    ginkgo_core::features::library::LibrarySlot {
-                        id: slot.id,
-                        day: slot.day,
-                        start: slot.start,
-                        end: slot.end,
-                    },
-                )
-                .await,
-        ),
+        Ok(service) => {
+            let booking = service.reserve_library_seat(
+                &area_id,
+                &seat_id,
+                ginkgo_core::features::library::LibrarySlot {
+                    id: slot.id,
+                    day: slot.day,
+                    start: slot.start,
+                    end: slot.end,
+                },
+            );
+            match bounded_submit(booking).await {
+                Some(outcome) => mutation_response(outcome),
+                None => MutationResponse {
+                    state: "uncertain".into(),
+                    message: "提交超时，结果待核实；请刷新确认，勿重复提交".into(),
+                },
+            }
+        }
         Err(_) => MutationResponse {
             state: "notSubmitted".into(),
             message: "本地服务不可用，未提交预约".into(),
@@ -323,7 +328,13 @@ pub(super) async fn perform_library_action(booking_id: String, action: String) -
     let _module = LIBRARY_ACCESS.write().await;
     match service() {
         Ok(service) => {
-            mutation_response(service.perform_library_action(&booking_id, &action).await)
+            match bounded_submit(service.perform_library_action(&booking_id, &action)).await {
+                Some(outcome) => mutation_response(outcome),
+                None => MutationResponse {
+                    state: "uncertain".into(),
+                    message: "提交超时，结果待核实；请刷新确认，勿重复提交".into(),
+                },
+            }
         }
         Err(_) => MutationResponse {
             state: "notSubmitted".into(),

@@ -11,7 +11,12 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
-| 74 | §6C 校车客户端范围（当前源码，不是新增实网验收） | Android 仅公开页面外链 | `e149f90` 已接入应用内公开 HTML 时刻表投影，并保留官方来源入口；班次/运行时间/计划可乘人数分方向展示，不是实时余票 | 既有 §6C 官方公开页面来源；`adapters/shuttle_http.rs`、`codecs/shuttle.rs`、`shuttle_page.dart`；本轮只做合成回归，未执行学校查询或购票，公开包仍以 Alpha.7 冻结内容为准 |
+| 79 | §6.2 / §6C 用户日常入口 | 借阅官网落在通用桌面首页；校车外链直达 indexPage，CAS 引导路径未核对 | 借阅官网改为 `/mspace/reader/lendList`；HTTP 校车根址本次 302 到 CASLogin，HTTPS CASLogin 再跳学校 CAS，外链改走该入口；HTTP service 回程及应用内会话仍未验 | [借阅移动页复核](_audit/2026-10-26-library-loans-auth-followup.md#用户日常移动端入口复核)、[校车根址补充](_audit/2026-10-26-shuttle-auth-followup.md#用户准确入口补充根地址会进入-cas)；匿名 GET/静态代码、外链回归，不含真实认证 |
+| 78 | §6.2 / §6C / §7.1 提交接续 | 借阅循环阶段不明、校车入口无授权、文本/URL/小组证据不完整 | 匿名 rosetta 可跳 SSO；办事大厅校车服务仍给旧 HTTP 根址；SPOC newup/newup1 共用组件，字段已定位但身份/后端处理/回查仍缺验；客户端上传显式失败不得因文件 ID 转为成功 | [借阅复核](_audit/2026-10-26-library-loans-auth-followup.md)、[校车入口](_audit/2026-10-26-shuttle-auth-followup.md)、[提交核对与回归](_audit/2026-10-26-spoc-submission-protocol-followup.md)；无真实登录或写入 |
+| 77 | §6C 校车认证证据边界 | 一次 CAS 负结果被写成“确认不可接入” | 仅能确认当前认证入口未接通，不能排除存在独立授权入口；静态原文与智慧校车入口分开，不把静态容量当余票 | [本轮核对](_audit/2026-10-26-module-integration.md)：公开入口仍明确要求认证，未执行购票；Alpha.8 演示空态单独复现 |
+| 76 | §6.2 本人借阅读取（工作树） | 只有不支持说明入口，App 读者认证入口缺证据 | 匿名公开 search_confs 确认 rosetta CAS 入口；独立只读模块接入受限跳转、当前账号查询和有界分页；非空/多页/认证失效仍待实网验收 | [接续记录](_audit/2026-10-26-library-loans-integration.md) E1–E4，官方 JS/hash 与公开配置；未使用真实凭据，无学校写操作 |
+| 75 | §7.1.4 SPOC 学习只读协议（当前公开前端静态证据） | 新增候选缺公告/测验栏目上下文、资料下载照搬 GET，时间与得分字段未有依据 | 学生栏目树 GET 带 `sflx=2`；唯一公告/测验子节点 ID 分别用于 `sslmid`/`id`；资料权限 GET 与实际下载 POST 分开；公告不标读，测验不开始/提交，缺字段保留未知 | [公开前端研究](_audit/2026-10-26-spoc-learning-static-research.md)（bundle/chunk SHA-256、模块与调用链）；真实只读结果另行记录，不以静态/合成证明实网完整性 |
+| 74 | §6C 校车客户端范围（当前源码，不是新增实网验收） | Android 仅公开页面外链 | `e149f90` 已接入应用内公开 HTML 时刻表投影，并保留官方来源入口；班次/运行时间/计划可乘人数分方向展示，不是实时余票 | 既有 §6C 官方公开页面来源；`adapters/shuttle_http.rs`、`codecs/shuttle.rs`、`shuttle_page.dart`；本轮只做合成回归，未执行学校查询或购票；该项目已随 Android Alpha.8 公开，实网余票仍未接入 |
 | 68 | §6 目录与本人借阅 | 旧域404被泛化为没有参考／不能进入里程碑 | 新站space.lib的公开search/hot1/new/books/holdings匿名code0；holdings是内嵌JSON字符串；本人loans仅成功空态，非空／资格仍待验 | [2026-10-23审计](_audit/2026-10-23-ibuaa-protocol-research.md) §5，原站JS hash与响应类型投影 |
 | 73 | §6 公开查书目与馆藏（已接入只读，实机验证） | 只有空间预约；图书目录／馆藏无客户端 | 匿名只读检索与馆藏复本接入：POST `/opac/search`（page1/size20、`all` 词项、`idx.opac`）、GET `/opac/bibs/{bibId}/holdings`；`data.holdings` 的 JSON 字符串在 Rust 内二次解码并有大小／深度／条数上限；`code===0` 才算成功，非零码报业务拒绝而不是空列表；本人借阅／续借／预约仍不接入 | 本文件 §6.1；`codecs/library_books.rs`、`adapters/library_books_http.rs`、`services/library_books_service.rs` 与合成回归；该主机证书链不完整（缺 GlobalSign R3 中间证书），以**按主机作用域**方式补链（其他主机与全局信任库不受影响、可回滚），实机检索与馆藏均已通过；**真实字段完整性、状态码语义仍未验收** |
 | 72 | §6B CGYY 协议对齐（合成回归） | mine 固定 page1/size20；草稿 `weekStartDate` 直接用预约当天；草稿响应丢弃；验证码坐标只接受 ≤310 的整数；回查仅比对 id | 官方静态证据落地为**有界分页**（首请求 page0/size5，最多 4 页，短页／重复 id／totalElements 即停）、`weekStartDate` 取 day 响应的 `reservationDateList[0]`（缺失则省略该字段）、保留草稿 `tradeNo`、坐标按 `310*x/width` 归一且保留小数、回查需 id＋预约日期（＋有值 tradeNo）同时匹配；验证后额外 day 若轮换 token 则在任何 POST 前终止 | 官方前端静态证据 [§6B.1](#6b1-2026-10-23-官方前端静态修订未执行写)；`cgyy_http::read_orders`/`week_start`/`protocol_point` 与写流程合成回归；**真实学校写操作仍未验收** |
@@ -719,6 +724,25 @@ Rust/Flutter镜像采用借用共享transport的独立Session，复制用户原�
 
 ### 6.2 本人借阅与隐私
 
+**2026-10-26 工作树补充（非发布/非真实账号验收）**：公开配置
+`GET /meta-local/opac/search/search_confs` 的 `data.baseConfs` 本次返回
+`loginType=1`、`spaceUrl=https://space.lib.buaa.edu.cn:443/meta-local/opac/cas/rosetta`、
+`space.cas.pc.target.url=https://space.lib.buaa.edu.cn/space/casBoard`。
+官方静态登录逻辑跳到 spaceUrl；CasBoard 再读 Cookie 会话的用户信息。
+证据/哈希见 [接续记录](_audit/2026-10-26-library-loans-integration.md) E1–E4。
+App 新增借阅读取：用户点击后通过既有账号 session 对固定 rosetta 入口发 GET，
+仅跟随 HTTPS 的 space.lib/SSO 默认端口跳转，不提交密码；最终再读 loans，
+不请求完整读者资料。选座 token 和匿名目录 jar 不能代替读者认证。
+HTTP 401/登录页按认证未完成处理，不清除全 App 登录；
+OPAC 非零业务码仍为业务拒绝，不推测具体含义。
+每页 100、最多 100 页/512 KiB、分页一致性校验为客户端保护，**不是上游全量规格保证**。
+非空字段类型及多页尚无真实样本；本模块仍需人工安全审查和只读验收。
+
+[本日匿名复核](_audit/2026-10-26-library-loans-auth-followup.md)观察 rosetta 首跳为 SSO `/login`，`service` 解码后精确指向带 `:443` 的同一 rosetta；入口本身未自循环。普通 CAS 与 UNION token 分支不能混用。真实账号此前的循环阶段链没有保存，后续匿名 SSO 请求又遇本机 TLS 失败，故未修改认证协议，也未宣布读者会话已打通。
+
+用户补充日常移动页 `https://space.lib.buaa.edu.cn/mspace/reader/lendList` 后，本次匿名读取成功，定位 `mspace.e16ceef9.js` 的受登录保护路由及 `41a1` 借阅组件，仍按 `page/pageSize` 读取同一 `/opac/users/loans`（官网移动页默认 20 条）。公开配置本次未提供 `space.m.space.url` 或独立移动 CAS 目标，移动分支回退既有 `spaceUrl`；没有证据可用移动参数修复此前真实认证循环。App 的官网外链已改到该移动当前借阅页，不改变认证或请求额外个人信息。静态资源摘要与边界见同一复核记录。
+
+
 官方 LL/02d9 固定 GET `/opac/users/loans?page=1&pageSize=100`，取 data.items；非空才同 query读 `/loan_max_renew_times`，按册条码合并 maxRenewTimes-renewTimes。本轮已登录本人页：loans HTTP200/code0、items=[]；分页键 currentPage/pageSize/total/items/totalPage。GET `/opac/users/loan_info` 同样成功，data为字符串，不是对象。**只验证成功空态，非空个人字段、分页完备性、会话过期未验收。**
 
 非空字段 loanId/bibId/item.barCode/bibAttrs.title/author/callno/loanDate/dueDate/renewTimes/location/loanType/requestStatus/loanStatus 来自静态组件，不是本人的成功非空样本。剩余次数、按钮可见都不是服务端完整续借资格。
@@ -790,11 +814,15 @@ Rust/Flutter镜像采用借用共享transport的独立Session，复制用户原�
 
 ## 6C. 智慧校车（脚本静态＋本人查询页面观察，未购票）⚠️
 
-> **2026-10-23 Android 当前源码**：`e149f90` 已从仅外链扩展为**应用内公开时刻表**，读取既有官方公开页面 `https://www.buaa.edu.cn/info/1065/1762.htm` 并投影其 HTML 表格的双向班次、运行/发车时间和计划可乘人数；不把可乘人数当实时余票。保留官方来源入口，来源地址由 Rust 投影提供，Flutter 只检查通用 HTTPS URI。解析与合成测试不能证明当前官方班次仍有效；临时调整以原页面为准。历史仅外链处置不再是当前入口描述，但未因此发布新包或完成真机验收。动态 `/wechat/ShiftsSearch` 仍不接入：缺完整单次事务形状、身份资格与退改语义证据，不代理购票。
+> **2026-10-23 Android 当前源码**：`e149f90` 已从仅外链扩展为**应用内公开时刻表**，读取既有官方公开页面 `https://www.buaa.edu.cn/info/1065/1762.htm` 并投影其 HTML 表格的双向班次、运行/发车时间和计划可乘人数；不把可乘人数当实时余票。保留官方来源入口，来源地址由 Rust 投影提供，Flutter 只检查通用 HTTPS URI。解析与合成测试不能证明当前官方班次仍有效；临时调整以原页面为准。历史仅外链处置不再是当前入口描述，但未因此发布新包或完成真机验收。动态 `/wechat/ShiftsSearch` 仍不接入：缺完整只读事务及认证入口证据，不代理购票。2026-10-26 工作树新增独立 `liveSource` 元数据，分别指向智慧校车首页与公开时刻表原文，不将原文链接误作余票页。
 
 站点 `https://zhihuixiaoche.buaa.edu.cn/wechat/indexPage`。同页脚本：POST `/wechat/ShiftsSearch`，form字段 up_origin_name/up_terminal_name/shifts_date/act=search，动态CSRF头；按 data.success和list读取。用户查询后页面显示12班及差异余票，**尚未捕获该单次事务的完整网络字段形状，method/body来自脚本，不把UI成功等同完整协议验收**。
 
-> **2026-10-25 授权实测定证（负结果）**：账号所有者提供本人凭据，经既有 CAS 链路登录成功后携会话 Cookie 直连访问——`/wechat/indexPage` 仍返回 100 字节脚本 `alert('未获取到认证信息，请退出后重新进入')`，匿名 `curl` 结果相同；`POST /wechat/ShiftsSearch` 返回 **403**（text/plain，3 字节）。**该系统不接入北航 CAS**，其会话来自未知外部入口（疑似学校企业微信/APP 内嵌带 token 跳转）。动态余票因此**确认不可接入**：认证入口缺失使完整事务形状与资格验证无法进行，仅保留应用内静态时刻表与官方页外链。凭据仅经环境变量进入一次性探针进程，探针已删除，未入库、未打印、未持久化。
+> **2026-10-25 授权实测定证（负结果）**：账号所有者提供本人凭据，经既有 CAS 链路登录成功后携会话 Cookie 直连访问——`/wechat/indexPage` 仍返回 100 字节脚本 `alert('未获取到认证信息，请退出后重新进入')`，匿名 `curl` 结果相同；`POST /wechat/ShiftsSearch` 返回 **403**（text/plain，3 字节）。**这只能证明该次普通 CAS 会话未能建立校车认证，不能证明校车永不支持 CAS 或动态余票不可接入**。其会话可能来自独立外部入口，具体授权方式仍待证据。动态余票当前未接通：尚缺可验证认证入口、完整事务与资格契约。2026-10-26 公共入口仍返回认证提示；客户端将静态原文与智慧校车入口分开，不再将二者混称，未绕过认证或购票。凭据仅经环境变量进入一次性探针进程，探针已删除，未入库、未打印、未持久化。
+
+2026-10-26 [官方入口复核](_audit/2026-10-26-shuttle-auth-followup.md)：办事大厅公开 `GET /api/home/all-search?keyword=校车` 返回成功并列出服务 `id=1333`，其 URL 与后勤官网仍指向旧 HTTP 根地址，无附加授权参数；本次该根地址 404，HTTPS `/wechat/indexPage` 仍要求认证。未执行官网点击路径中的最近应用写入，不将公开卡片读取称为完成实际授权链；仍缺官方宿主授权跳转及完整成功只读事务。
+
+**随后按用户给出的准确根址复核**：`http://zhihuixiaoche.buaa.edu.cn/` 返回 302 到 `/wechat/CASLogin`（两种浏览器 UA 观察一致），`https://zhihuixiaoche.buaa.edu.cn/wechat/CASLogin` 返回 302 到学校 SSO `/login`，其中 `service` 为 HTTP 的同一 CASLogin 地址。此前直接 indexPage 跳过了已定位的业务 CAS 引导，不能再称校车只支持未知的“独立认证”；早先 404 不是稳定结论。真实/演示 `liveSource` 已改为 HTTPS CASLogin，由用户主动交给外部浏览器；App 不导入浏览器会话、不改写 service、不跟随携 ticket 的 HTTP 回跳。应用内余票仍缺合法认证回程及完整成功只读事务，未登录或购票。
 
 非摆渡余票先 open_seat_num-student_num-teacher_num，再按type/is_parttime/currentTime/ticket_all_minute/seat_retain_num分支扣保留，负数夹0；摆渡显示“摆渡车”，不显示计算值0。此为当前身份展示算法，匿名可见性、资格、票价、时间单位／时区、所有放票分支未验。时刻表通知发布日和适用日分开，不用计划人数代余票。POST退款、购票、订单、团体票等未调用。详见[审计 §6](_audit/2026-10-23-ibuaa-protocol-research.md)。
 
@@ -994,3 +1022,40 @@ UBAA 源码另提供操场 CGYY、阳光打卡 YGDK、iHome、课程评教、图
 Android 上经用户授权，通过实际登录表单及 Rust 会话读取今天、课表与另一周、成绩学期/成绩、三个校区空教室、当天/前一天签到、SPOC 列表/首条详情、博雅目录/已选/统计、研究生学籍/执行报告、图书馆场馆/预约/历史/区域/时段/座位、通知和 CGYY 场馆/当日/订单。均未返回失败码；空结果不构成非空路径验收，未执行任何上游写操作。详细设备、耗时与视觉边界见 [验收记录](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md)。
 
 SPOC 抽样详情的发布时间、截止时间和分值有值，正文与提交时间为空，与 §7.1 的可空字段边界一致，不推广为所有作业均无正文。对 `zynr` 的对象/数组类型漂移现返回结构错误，防止以假空结果覆盖已有完整详情；没有新增端点或修改请求参数。
+
+
+### 7.1.1 SPOC 上传与提交补充探查（2026-10-25）
+
+本次授权登录及学生作业详情页面验证了教师附件、文件提交方式、次数和精确时间的可见性；未上传文件、未执行正式提交。当前公开 `app.c5dc702c.js` 的学生路由经 `chunk-5669dd74.6bab02af.js` / `61b4.save()` 调用 `d891.hf`，可关联到 `POST /kczy/submitKcz2` 的 form 包装，修正 §7.1 旧版 bundle 中“只见定义、未见导出/页面调用”的证据边界（旧版历史观察保留）。学生附件使用 `inco-filesystem/fileManagerSystem/uploadFile` 分片及 `mergeFile` 合并，回调文件 ID 绑定 `scwjid`，不能混用编辑器上传接口。此为静态调用链证据，不是实网写入成功契约；完整分片参数、成功条件和写后回查仍未验收。详情与提交内容组件还关联教师附件、允许提交方式、次数、已提交文件及评阅附件。资源摘要、字段、工程缺口与风险边界见 [探查记录](_audit/2026-10-25-spoc-homework-submission-research.md)。本轮不新增产品写入口。
+
+
+### 7.1.2 Android 作业文件实验适配（2026-10-25）
+
+工作树新增独立 HomeworkSubmissionSource / HomeworkFilesGateway、教师及已提交文件信息、附件下载、实验分片上传与确认提交/回查。SPOC 协议只在 upstream adapter；core/UI 不包含学校 URL、token 或 form 字段。默认关闭真实上传，通过 `experimental-homework-upload` 显式编译启用；小组及非文件作答不支持。实验请求采用 chunkNumber/chunkSize/currentChunkSize/totalSize/identifier/filename/relativePath/totalChunks 与 multipart file，MD5 为 identifier；尾片允许包含余数。上述分片细节与响应处理仍是**待真实验证的适配候选**，不是新的学校实测契约。最终写单次发送，未知只回查；成功判定需文件 ID/提交方式匹配及次数增长。详情仍允许字段缺失，不将空正文解释为没有教师附件。实现、测试层级、重启/孤儿文件限制及开关见 [集成记录](_audit/2026-10-25-spoc-homework-integration.md)。未使用真实作业执行写入。
+
+
+### 7.1.3 文件模块真实只读修正（2026-10-26）
+
+通过当前 Rust 实现分别执行默认路线与显式 WebVPN：登录、16 项作业列表、两项学生作业详情/附件 workspace 成功；鉴权下载教师附件 43,413 字节与已提交附件 3,200,881 字节，均核对 PDF 文件头。普通只读 `queryKczyInfoByid` 应只传 `id`；错误附加编辑页 `falg=xstj` 在实测返回空 content，已从该读取路径移除并补回归。此结论限于已抽查读取，不据此修改或宣称学生编辑页的权限协议已完成验证。没有调用上传/合并/提交接口，真实写入仍未验收。见 [真实只读记录](_audit/2026-10-26-spoc-live-read-acceptance.md)。
+
+后续[公开静态复核](_audit/2026-10-26-spoc-submission-protocol-followup.md)确认 `newup/newup1` 共用 `61b4` 提交组件，文本/链接使用 `wbsrnr/wzurl`，小组传递 `xztjfs/teamid`（提交映射 `ssxzid`）并有组长 UI 门禁。字段存在不等于当前账号具备小组代表资格，也未验证后端富文本/URL 处理及实际回查，因此仍不开放这些新写方式。客户端上传候选适配另修复矛盾响应：去重或合并若含显式非数值 200 的业务码，必须在读取文件 ID 前拒绝，不能把失败转为上传成功；这是合成回归约束，不宣称学校实网出现过该响应。
+
+
+### 7.1.4 SPOC 课程学习只读扩展（2026-10-26，静态证据与实测分开）
+
+来源：[当前公开 SPA 调用链研究](_audit/2026-10-26-spoc-learning-static-research.md)。主 bundle 为 `app.c5dc702c.js`，研究记录各 chunk 的 SHA-256、webpack 模块及函数；该来源只证明前端请求构造，不自动证明服务器当前接受、响应非空或覆盖完整。基础鉴权沿用 §7.1 `Token: Inco-…`、`RoleCode` 和业务 `code==200/content`。
+
+| 只读能力 | 请求形状（相对于 `/spocnewht`） | 响应/上下文及证据边界 |
+| --- | --- | --- |
+| 学生课程 | GET `/kc/queryXskcListPage`，URL query `pageNum/pageSize`；官方 UI 默认 1/100 | PageInfo `list/hasNextPage`，课程 `kcid/kcmc/xnxq`。`jsmc` 作授课教师、学期代码的人类名称尚未证实，缺值不补造。 |
+| 学生课程栏目 | GET `/kczxdhl/queryKcdhlList`，URL query `kcid/sflx=2` | 树 `children[]`；学生 UI 父 `lmlxdm=0`→子 `01` 是公告、父 `3`→子 `32` 是测验。子节点 `id` 是下游栏目 ID，不是课程 ID；多候选不能擅自取首个。课程卡片的 `lmid_gg` 是另一条公告快捷来源，不混作测验栏目。 |
+| 公告列表 | POST JSON `/kcgg/queryKcggList`，`{sslmid:<公告栏目id>,kcid,sfxs:1}` | UI 读取标题 `bt`；发布态时间 `zhxgsj`，否则 `cjsj`。旧候选 `fssj` 没有本轮证据。 |
+| 公告详情 | POST JSON `/kcgg/queryDgKcgg`，`{id}` | 正文 `nr`，附件 `fjlist[].wjid/wjmc`；标题/ID 必有性仍需非空样本。客户端先验证公告属于指定课程列表，不执行官网旁路标读。 |
+| 公告附件 | GET `https://spoc.buaa.edu.cn/inco-filesystem/fileManagerSystem/downLoadFile?scjlid=<wjid>` | 只允许已验证公告详情中的附件，不与课程资源下载端点混用。 |
+| 课程资料根/目录 | POST `/kcwj/queryListPageXs`（根）或 `/grwj1/queryKcwjListgr`（子目录），参数在 **URL query**：`pageNum,pageSize,pid,mcTab,kcid,lmlxdm,wjlx`（UI 另透传 `pxfs`） | 根 `pid=0`，目录取已列行 `id`；PageInfo `list/hasNextPage`，行 `id/wjmc/sfwjj/sfkxz/wjhzm/czsj`。本客户端仅允许本课程根列表可证的一层目录；页大小、分页上限、重复ID拒绝、从属与下载大小限制为本地策略，不是学校保证。 |
+| 单资料下载 | GET `/grwj1/getWjids?ids=<row.id>` 先检查；`flag==1` 方可 **POST** `/grwj1/downLoadFile?id=<row.id>`，JSON `{}`，blob | UI `flag==0` 拒绝。下载前重新核对课程、目录、列表行及下载资格；文件内容不能仅按 JSON/HTML MIME 全拒或全放行，应防错误信封/登录页伪文件。 |
+| 测验只读列表 | POST **form** `/csgl/queryCsglXsList`，`kcid,flag=xs,id=<测验栏目id>` | `content.list`；UI 读 `id/csmc/kssj/jzsj/mf`，`mf` 是满分，**不是本人得分**。未确认个人得分字段就保留未知；空列表不证明栏目/课程无测验。 |
+
+**严格排除**：`/kcgg/updYdb`（标读）、`/kc/addKczxFwjl3`（访问记录）、`myTask` 旁路、测验入口/开始/作答/提交，以及上传、删除、同步、发布等。GET 不等于无副作用，不能整体复制网页点击流程。只读客户端不执行上述请求，也不自动在浏览器打开测验页。
+
+工作树以独立 domain 端口 → upstream 协议/缓存 → core → account-bound bridge → Flutter gateway/业务类型传递数据；失败旧快照仍携带 failure/stale，不能当本次新成功。公开包不包含本节工作树扩展；合成回归、真实只读探查与 Android UI/设备验收分别记录。

@@ -6,3 +6,6 @@ edition.workspace = true
 [dependencies]
 ginkgo_core = { path = "../ginkgo_core" }
 ginkgo_upstream = { path = "../ginkgo_upstream", features = ["network"] }
+
+[features]
+experimental-homework-upload = ["ginkgo_upstream/experimental-homework-upload"]

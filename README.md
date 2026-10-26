@@ -57,11 +57,11 @@ xcodebuild test \
 
 ## Android / Windows 镜像
 
-> **Android Alpha.7 已发布（2026-10-23）**：[下载 ARM64 APK](https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.7/Ginkgo-0.1.0-alpha.7-android-arm64.apk) · [Release](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.7)。公开包冻结于 `545814a`，版本 `0.1.0-alpha.7+8`，包含工作台/待办优化、常用入口、7组强调色与研讨室预约闭环。[功能与接口协议总览](docs/FEATURES-AND-PROTOCOLS.md) 为长期维护入口，学校协议证据见 [API](docs/API.md)，版本、签名与验收以 [Alpha.7发布记录](docs/_audit/2026-10-23-android-alpha7-release.md) 为准。真实学校写入仍待人工验收。
+> **Android Alpha.8 已发布（2026-10-25）**：[下载 ARM64 APK](https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.8/Ginkgo-0.1.0-alpha.8-android-arm64.apk) · [Release](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.8)。公开包冻结于 `ad7b2ad`，版本 `0.1.0-alpha.8+9`，包含图书馆公开查书与馆藏、校车时刻表官方入口、跨断点旋转保持位置，以及读超时与刷新可靠性修复。[功能与接口协议总览](docs/FEATURES-AND-PROTOCOLS.md) 为长期维护入口，学校协议证据见 [API](docs/API.md)，版本、签名与验收以 [Alpha.8发布记录](docs/_audit/2026-10-25-android-alpha8-release.md) 为准。真实学校写入仍待人工验收。
 
-Android / Windows 使用 Rust + Flutter，Apple 继续 SwiftUI。Android **Alpha.7** 与 Windows **Alpha.6** 已发布；课表、成绩、SPOC、图书馆、签到、博雅、研究生教务等主要只读链路已接入，也有真实账号只读记录。Alpha.5 带入了工作台/研究生页渐进加载、座位与空教室分页浏览、课表固定节次轴与按天对齐、统一功能登记表导航，以及启动时的最低版本门禁；Alpha.4 增加手机端设置、返回手势保护、课程范围与助教作业分类、iClass 首次加载进度反馈，以及带暂停续传和安装包校验的应用内更新。签到和图书馆写路径已有确认、单次提交与回查，但真实写入尚未验收；最近实网登录失败仍需复验。Windows 公开包主推 Windows 10 / 11 x64 单文件安装器，并保留便携 ZIP；在 Parallels Windows 11 完成 Release 构建、合成保险库、宽窄布局与桌面集成验证。安装包未签名，物理 x64、干净系统运行依赖和真实学校业务仍待验收。源码、公开版本与验收边界见 [镜像现状](docs/MIRROR-IMPLEMENTATION.md)、[Android Alpha.5](docs/archive/mirror/MIRROR-ANDROID-ALPHA5.md)、[Windows Alpha.4](docs/archive/mirror/MIRROR-WINDOWS-ALPHA4.md)、[模块对照](docs/MIRROR-PARITY.md) 和 [待办](docs/MIRROR-TODO.md)；架构边界见 [Rust + Flutter 计划](docs/RUST-FLUTTER-PORT.md)。
+Android / Windows 使用 Rust + Flutter，Apple 继续 SwiftUI。Android **Alpha.8** 与 Windows **Alpha.6** 已发布；课表、成绩、SPOC、图书馆、签到、博雅、研究生教务等主要只读链路已接入，也有真实账号只读记录。Alpha.5 带入了工作台/研究生页渐进加载、座位与空教室分页浏览、课表固定节次轴与按天对齐、统一功能登记表导航，以及启动时的最低版本门禁；Alpha.4 增加手机端设置、返回手势保护、课程范围与助教作业分类、iClass 首次加载进度反馈，以及带暂停续传和安装包校验的应用内更新。签到和图书馆写路径已有确认、单次提交与回查，但真实写入尚未验收；最近实网登录失败仍需复验。Windows 公开包主推 Windows 10 / 11 x64 单文件安装器，并保留便携 ZIP；在 Parallels Windows 11 完成 Release 构建、合成保险库、宽窄布局与桌面集成验证。安装包未签名，物理 x64、干净系统运行依赖和真实学校业务仍待验收。源码、公开版本与验收边界见 [镜像现状](docs/MIRROR-IMPLEMENTATION.md)、[Android Alpha.5](docs/archive/mirror/MIRROR-ANDROID-ALPHA5.md)、[Windows Alpha.4](docs/archive/mirror/MIRROR-WINDOWS-ALPHA4.md)、[模块对照](docs/MIRROR-PARITY.md) 和 [待办](docs/MIRROR-TODO.md)；架构边界见 [Rust + Flutter 计划](docs/RUST-FLUTTER-PORT.md)。
 
-当前工作树另有公开查书/馆藏及排序、应用内校车时刻表、作业截止与展示修正；已移除作业详情“加入个人待办”，保留历史本机记录。这些后续变更尚不能视为已包含在上述公开 APK 中，详见 [实施现状](docs/MIRROR-IMPLEMENTATION.md)。
+Alpha.8 已包含公开查书/馆藏与排序、应用内校车时刻表、作业截止与展示修正；Alpha.7 之后移除的作业详情“加入个人待办”保留历史本机记录。仍在工作树、尚未进入公开包的能力以 [实施现状](docs/MIRROR-IMPLEMENTATION.md) 为准。
 
 ## 界面预览
 

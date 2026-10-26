@@ -4,6 +4,9 @@ import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show LibraryHistoryResponse;
 
 import 'dart:typed_data';
+import 'dart:convert';
+
+import 'package:ginkgo_mirror/application/auth_challenge.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
@@ -17,6 +20,21 @@ import 'package:ginkgo_mirror/src/rust/api/live.dart'
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 
 import 'mirror_widget_test.dart' show mockLocalTaskSupportDirectory;
+
+class SyntheticAuthChallengeGateway implements AuthChallengeGateway {
+  @override
+  Future<LoginChallenge> loginChallenge({
+    String? expectedId,
+    bool refresh = false,
+  }) async => LoginChallenge(
+    id: 'cap-1',
+    kind: 'local',
+    textSupported: true,
+    image: base64Decode(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j8WQAAAAASUVORK5CYII=',
+    ),
+  );
+}
 
 const signedOut = SessionResponse(
   state: SessionState.signedOut,
@@ -264,9 +282,7 @@ void main() {
   ) async {
     // Preferences persist through a real platform channel, which never
     // completes inside the fake-async test body unless it runs for real.
-    await tester.runAsync(
-      () => AppPreferences.shared.setExplicitSignOut(true),
-    );
+    await tester.runAsync(() => AppPreferences.shared.setExplicitSignOut(true));
     await phone(
       tester,
       GinkgoRoot(
@@ -290,9 +306,7 @@ void main() {
   testWidgets('signing in again clears the explicit sign-out marker', (
     tester,
   ) async {
-    await tester.runAsync(
-      () => AppPreferences.shared.setExplicitSignOut(true),
-    );
+    await tester.runAsync(() => AppPreferences.shared.setExplicitSignOut(true));
     await phone(
       tester,
       GinkgoRoot(
@@ -406,6 +420,7 @@ void main() {
     await phone(
       tester,
       GinkgoRoot(
+        challengeGateway: SyntheticAuthChallengeGateway(),
         liveService: FakeService(
           restoreResponse: signedOut,
           loginResponse: captcha,
@@ -434,6 +449,7 @@ void main() {
     await phone(
       tester,
       GinkgoRoot(
+        challengeGateway: SyntheticAuthChallengeGateway(),
         liveService: FakeService(
           restoreResponse: captcha,
           loginResponse: signedIn,

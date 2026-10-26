@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1018797330;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -2019646885;
 
 // Section: executor
 
@@ -155,6 +155,750 @@ fn wire__crate__api__live__clear_cache_impl(
         },
     )
 }
+fn wire__crate__api__live__configure_homework_recovery_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "configure_homework_recovery",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_storage_root = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::configure_homework_recovery(
+                                api_expected_account,
+                                api_storage_root,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__course_announcement_attachment_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "course_announcement_attachment",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_course = <String>::sse_decode(&mut deserializer);
+            let api_id = <String>::sse_decode(&mut deserializer);
+            let api_file = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::course_announcement_attachment(
+                                api_expected_account,
+                                api_course,
+                                api_id,
+                                api_file,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__course_announcement_attachment_in_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "course_announcement_attachment_in",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_course = <String>::sse_decode(&mut deserializer);
+            let api_column = <String>::sse_decode(&mut deserializer);
+            let api_id = <String>::sse_decode(&mut deserializer);
+            let api_file = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::course_announcement_attachment_in(
+                                api_expected_account,
+                                api_course,
+                                api_column,
+                                api_id,
+                                api_file,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__course_announcement_detail_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "course_announcement_detail",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_course = <String>::sse_decode(&mut deserializer);
+            let api_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::course_announcement_detail(
+                                api_expected_account,
+                                api_course,
+                                api_id,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__course_announcement_detail_in_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "course_announcement_detail_in",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_course = <String>::sse_decode(&mut deserializer);
+            let api_column = <String>::sse_decode(&mut deserializer);
+            let api_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::course_announcement_detail_in(
+                                api_expected_account,
+                                api_course,
+                                api_column,
+                                api_id,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__course_announcements_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "course_announcements",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_course = <String>::sse_decode(&mut deserializer);
+            let api_force = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::course_announcements(
+                                api_expected_account,
+                                api_course,
+                                api_force,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__course_announcements_in_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "course_announcements_in",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_course = <String>::sse_decode(&mut deserializer);
+            let api_column = <String>::sse_decode(&mut deserializer);
+            let api_force = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::course_announcements_in(
+                                api_expected_account,
+                                api_course,
+                                api_column,
+                                api_force,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__course_assessments_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "course_assessments",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_course = <String>::sse_decode(&mut deserializer);
+            let api_force = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::course_assessments(
+                                api_expected_account,
+                                api_course,
+                                api_force,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__course_assessments_in_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "course_assessments_in",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_course = <String>::sse_decode(&mut deserializer);
+            let api_column = <String>::sse_decode(&mut deserializer);
+            let api_force = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::course_assessments_in(
+                                api_expected_account,
+                                api_course,
+                                api_column,
+                                api_force,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__course_learning_capabilities_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "course_learning_capabilities",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_course = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::course_learning_capabilities(
+                                api_expected_account,
+                                api_course,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__course_learning_columns_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "course_learning_columns",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_course = <String>::sse_decode(&mut deserializer);
+            let api_force = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::course_learning_columns(
+                                api_expected_account,
+                                api_course,
+                                api_force,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__course_resource_download_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "course_resource_download",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_course = <String>::sse_decode(&mut deserializer);
+            let api_folder = <Option<String>>::sse_decode(&mut deserializer);
+            let api_page = <u32>::sse_decode(&mut deserializer);
+            let api_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::course_resource_download(
+                                api_expected_account,
+                                api_course,
+                                api_folder,
+                                api_page,
+                                api_id,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__course_resource_download_at_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "course_resource_download_at",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_course = <String>::sse_decode(&mut deserializer);
+            let api_path = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_page = <u32>::sse_decode(&mut deserializer);
+            let api_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::course_resource_download_at(
+                                api_expected_account,
+                                api_course,
+                                api_path,
+                                api_page,
+                                api_id,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__course_resources_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "course_resources",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_course = <String>::sse_decode(&mut deserializer);
+            let api_folder = <Option<String>>::sse_decode(&mut deserializer);
+            let api_page = <u32>::sse_decode(&mut deserializer);
+            let api_force = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::course_resources(
+                                api_expected_account,
+                                api_course,
+                                api_folder,
+                                api_page,
+                                api_force,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__course_resources_at_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "course_resources_at",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_course = <String>::sse_decode(&mut deserializer);
+            let api_path = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_page = <u32>::sse_decode(&mut deserializer);
+            let api_force = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::course_resources_at(
+                                api_expected_account,
+                                api_course,
+                                api_path,
+                                api_page,
+                                api_force,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__download_homework_file_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "download_homework_file",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_assignment_id = <String>::sse_decode(&mut deserializer);
+            let api_attachment_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::download_homework_file(
+                                api_expected_account,
+                                api_assignment_id,
+                                api_attachment_id,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__live__edit_tasks_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -239,6 +983,173 @@ fn wire__crate__api__live__execute_cgyy_impl(
         },
     )
 }
+fn wire__crate__api__live__export_learning_snapshots_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "export_learning_snapshots",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::export_learning_snapshots(api_expected_account).await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__homework_capabilities_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "homework_capabilities",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_assignment_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::homework_capabilities(
+                                api_expected_account,
+                                api_assignment_id,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__homework_file_workspace_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "homework_file_workspace",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_assignment_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::homework_file_workspace(
+                                api_expected_account,
+                                api_assignment_id,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__import_learning_snapshots_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "import_learning_snapshots",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_bytes = <Vec<u8>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::import_learning_snapshots(
+                                api_expected_account,
+                                api_bytes,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__mirror__init_app_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -270,6 +1181,75 @@ fn wire__crate__api__mirror__init_app_impl(
                     Ok(output_ok)
                 })())
             }
+        },
+    )
+}
+fn wire__crate__api__live__learning_courses_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "learning_courses",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_force = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::learning_courses(api_expected_account, api_force)
+                                .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__library_loans_portal_url_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "library_loans_portal_url",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok(crate::api::live::library_loans_portal_url())?;
+                Ok(output_ok)
+            })())
         },
     )
 }
@@ -1147,6 +2127,49 @@ fn wire__crate__api__live__load_grades_impl(
         },
     )
 }
+fn wire__crate__api__live__load_graduate_credit_map_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_graduate_credit_map",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_force_refresh = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::load_graduate_credit_map(
+                                api_expected_account,
+                                api_force_refresh,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__live__load_graduate_part_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -1469,6 +2492,46 @@ fn wire__crate__api__live__load_library_holdings_impl(
         },
     )
 }
+fn wire__crate__api__live__load_library_loans_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_library_loans",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_page = <u32>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::load_library_loans(api_expected_account, api_page)
+                                .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__live__load_library_seats_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -1623,6 +2686,49 @@ fn wire__crate__api__live__load_library_venues_impl(
                     (move || async move {
                         let output_ok = Result::<_, ()>::Ok(
                             crate::api::live::load_library_venues(api_force_refresh).await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__auth_challenge__load_login_challenge_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_login_challenge",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_id = <Option<String>>::sse_decode(&mut deserializer);
+            let api_refresh = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::auth_challenge::load_login_challenge(
+                                api_expected_id,
+                                api_refresh,
+                            )
+                            .await,
                         )?;
                         Ok(output_ok)
                     })()
@@ -1902,6 +3008,49 @@ fn wire__crate__api__live__login_impl(
         },
     )
 }
+fn wire__crate__api__live__pending_homework_submissions_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "pending_homework_submissions",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_assignment_id = <Option<String>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::pending_homework_submissions(
+                                api_expected_account,
+                                api_assignment_id,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__live__perform_library_action_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -1942,6 +3091,48 @@ fn wire__crate__api__live__perform_library_action_impl(
         },
     )
 }
+fn wire__crate__api__reminder_planning__plan_course_task_reminders_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "plan_course_task_reminders",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_courses = <Vec<crate::api::reminder_planning::CourseReminderSeed>>::sse_decode(
+                &mut deserializer,
+            );
+            let api_tasks = <Vec<crate::api::reminder_planning::TaskReminderSeed>>::sse_decode(
+                &mut deserializer,
+            );
+            let api_now_millis = <i64>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok(
+                    crate::api::reminder_planning::plan_course_task_reminders(
+                        api_courses,
+                        api_tasks,
+                        api_now_millis,
+                    ),
+                )?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__mirror__query_demo_classrooms_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -1974,6 +3165,49 @@ fn wire__crate__api__mirror__query_demo_classrooms_impl(
                     )?;
                     Ok(output_ok)
                 })())
+            }
+        },
+    )
+}
+fn wire__crate__api__live__reconcile_homework_file_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "reconcile_homework_file",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_handle = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::reconcile_homework_file(
+                                api_expected_account,
+                                api_handle,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
             }
         },
     )
@@ -2160,6 +3394,98 @@ fn wire__crate__api__live__submit_checkin_impl(
                     (move || async move {
                         let output_ok = Result::<_, ()>::Ok(
                             crate::api::live::submit_checkin(api_course_id).await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__submit_homework_file_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "submit_homework_file",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_handle = <String>::sse_decode(&mut deserializer);
+            let api_confirmed = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::submit_homework_file(
+                                api_expected_account,
+                                api_handle,
+                                api_confirmed,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__upload_homework_file_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "upload_homework_file",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_assignment_id = <String>::sse_decode(&mut deserializer);
+            let api_name = <String>::sse_decode(&mut deserializer);
+            let api_bytes = <Vec<u8>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::upload_homework_file(
+                                api_expected_account,
+                                api_assignment_id,
+                                api_name,
+                                api_bytes,
+                            )
+                            .await,
                         )?;
                         Ok(output_ok)
                     })()
@@ -2381,6 +3707,24 @@ impl SseDecode for crate::api::mirror::ClassroomSort {
     }
 }
 
+impl SseDecode for crate::api::reminder_planning::CourseReminderSeed {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_weekStart = <String>::sse_decode(deserializer);
+        let mut var_day = <i32>::sse_decode(deserializer);
+        let mut var_startsAt = <String>::sse_decode(deserializer);
+        let mut var_endsAt = <String>::sse_decode(deserializer);
+        return crate::api::reminder_planning::CourseReminderSeed {
+            id: var_id,
+            week_start: var_weekStart,
+            day: var_day,
+            starts_at: var_startsAt,
+            ends_at: var_endsAt,
+        };
+    }
+}
+
 impl SseDecode for crate::api::mirror::DemoScope {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2525,6 +3869,20 @@ impl SseDecode for crate::api::live::HomeworkDetailResponse {
     }
 }
 
+impl SseDecode for crate::api::live::HomeworkFileDownloadResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_name = <Option<String>>::sse_decode(deserializer);
+        let mut var_bytes = <Option<Vec<u8>>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::HomeworkFileDownloadResponse {
+            name: var_name,
+            bytes: var_bytes,
+            failure: var_failure,
+        };
+    }
+}
+
 impl SseDecode for crate::api::mirror::HomeworkItem {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2597,6 +3955,18 @@ impl SseDecode for i64 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         deserializer.cursor.read_i64::<NativeEndian>().unwrap()
+    }
+}
+
+impl SseDecode for crate::api::live::LearningSnapshotResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_bytes = <Option<Vec<u8>>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::LearningSnapshotResponse {
+            bytes: var_bytes,
+            failure: var_failure,
+        };
     }
 }
 
@@ -2870,6 +4240,20 @@ impl SseDecode for Vec<crate::api::mirror::ClassroomRow> {
     }
 }
 
+impl SseDecode for Vec<crate::api::reminder_planning::CourseReminderSeed> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(
+                <crate::api::reminder_planning::CourseReminderSeed>::sse_decode(deserializer),
+            );
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::mirror::GradeCourse> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2951,6 +4335,18 @@ impl SseDecode for Vec<crate::api::mirror::LibraryVenue> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<crate::api::mirror::LibraryVenue>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::reminder_planning::PlannedReminder> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::reminder_planning::PlannedReminder>::sse_decode(deserializer));
         }
         return ans_;
     }
@@ -3042,6 +4438,18 @@ impl SseDecode for Vec<crate::api::mirror::SectionState> {
     }
 }
 
+impl SseDecode for Vec<crate::api::reminder_planning::TaskReminderSeed> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::reminder_planning::TaskReminderSeed>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::mirror::TodayCourse> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3064,6 +4472,24 @@ impl SseDecode for crate::api::live::LiveScope {
             campus: var_campus,
             date: var_date,
             force_refresh: var_forceRefresh,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::auth_challenge::LoginChallengeResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_challengeId = <Option<String>>::sse_decode(deserializer);
+        let mut var_challengeType = <Option<String>>::sse_decode(deserializer);
+        let mut var_textSupported = <bool>::sse_decode(deserializer);
+        let mut var_image = <Vec<u8>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::auth_challenge::LoginChallengeResponse {
+            challenge_id: var_challengeId,
+            challenge_type: var_challengeType,
+            text_supported: var_textSupported,
+            image: var_image,
+            failure: var_failure,
         };
     }
 }
@@ -3157,6 +4583,33 @@ impl SseDecode for Option<Vec<String>> {
     }
 }
 
+impl SseDecode for Option<Vec<u8>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<u8>>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for crate::api::reminder_planning::PlannedReminder {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_key = <String>::sse_decode(deserializer);
+        let mut var_group = <String>::sse_decode(deserializer);
+        let mut var_atMillis = <i64>::sse_decode(deserializer);
+        let mut var_expiresMillis = <i64>::sse_decode(deserializer);
+        return crate::api::reminder_planning::PlannedReminder {
+            key: var_key,
+            group: var_group,
+            at_millis: var_atMillis,
+            expires_millis: var_expiresMillis,
+        };
+    }
+}
+
 impl SseDecode for crate::api::mirror::QueryDates {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3181,6 +4634,21 @@ impl SseDecode for crate::api::live::ReadOnlyResponse {
             payload: var_payload,
             stale: var_stale,
             failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::reminder_planning::ReminderPlanResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_plans =
+            <Vec<crate::api::reminder_planning::PlannedReminder>>::sse_decode(deserializer);
+        let mut var_skipped = <u32>::sse_decode(deserializer);
+        let mut var_unsupported = <bool>::sse_decode(deserializer);
+        return crate::api::reminder_planning::ReminderPlanResponse {
+            plans: var_plans,
+            skipped: var_skipped,
+            unsupported: var_unsupported,
         };
     }
 }
@@ -3387,6 +4855,20 @@ impl SseDecode for crate::api::live::SessionState {
     }
 }
 
+impl SseDecode for crate::api::reminder_planning::TaskReminderSeed {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_due = <String>::sse_decode(deserializer);
+        let mut var_completed = <bool>::sse_decode(deserializer);
+        return crate::api::reminder_planning::TaskReminderSeed {
+            id: var_id,
+            due: var_due,
+            completed: var_completed,
+        };
+    }
+}
+
 impl SseDecode for crate::api::mirror::TodayCourse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3421,6 +4903,13 @@ impl SseDecode for crate::api::mirror::TodayResponse {
     }
 }
 
+impl SseDecode for u32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_u32::<NativeEndian>().unwrap()
+    }
+}
+
 impl SseDecode for u8 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3445,86 +4934,183 @@ fn pde_ffi_dispatcher_primary_impl(
         1 => wire__crate__api__live__check_android_update_impl(port, ptr, rust_vec_len, data_len),
         2 => wire__crate__api__live__checkin_load_progress_impl(port, ptr, rust_vec_len, data_len),
         3 => wire__crate__api__live__clear_cache_impl(port, ptr, rust_vec_len, data_len),
-        4 => wire__crate__api__live__edit_tasks_impl(port, ptr, rust_vec_len, data_len),
-        5 => wire__crate__api__live__execute_cgyy_impl(port, ptr, rust_vec_len, data_len),
-        6 => wire__crate__api__mirror__init_app_impl(port, ptr, rust_vec_len, data_len),
-        7 => wire__crate__api__live__load_bykc_impl(port, ptr, rust_vec_len, data_len),
-        8 => wire__crate__api__live__load_bykc_chosen_impl(port, ptr, rust_vec_len, data_len),
-        9 => wire__crate__api__live__load_bykc_statistics_impl(port, ptr, rust_vec_len, data_len),
-        10 => wire__crate__api__live__load_cgyy_impl(port, ptr, rust_vec_len, data_len),
-        11 => wire__crate__api__live__load_checkin_on_date_impl(port, ptr, rust_vec_len, data_len),
-        12 => wire__crate__api__live__load_checkin_today_impl(port, ptr, rust_vec_len, data_len),
-        13 => wire__crate__api__live__load_classrooms_impl(port, ptr, rust_vec_len, data_len),
-        14 => wire__crate__api__live__load_demo_bykc_impl(port, ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__live__load_demo_bykc_chosen_impl(port, ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__live__load_demo_bykc_statistics_impl(
+        4 => wire__crate__api__live__configure_homework_recovery_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        17 => wire__crate__api__live__load_demo_cgyy_impl(port, ptr, rust_vec_len, data_len),
-        18 => wire__crate__api__mirror__load_demo_checkin_impl(port, ptr, rust_vec_len, data_len),
+        5 => wire__crate__api__live__course_announcement_attachment_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        6 => wire__crate__api__live__course_announcement_attachment_in_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        7 => wire__crate__api__live__course_announcement_detail_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        8 => wire__crate__api__live__course_announcement_detail_in_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        9 => wire__crate__api__live__course_announcements_impl(port, ptr, rust_vec_len, data_len),
+        10 => {
+            wire__crate__api__live__course_announcements_in_impl(port, ptr, rust_vec_len, data_len)
+        }
+        11 => wire__crate__api__live__course_assessments_impl(port, ptr, rust_vec_len, data_len),
+        12 => wire__crate__api__live__course_assessments_in_impl(port, ptr, rust_vec_len, data_len),
+        13 => wire__crate__api__live__course_learning_capabilities_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        14 => {
+            wire__crate__api__live__course_learning_columns_impl(port, ptr, rust_vec_len, data_len)
+        }
+        15 => {
+            wire__crate__api__live__course_resource_download_impl(port, ptr, rust_vec_len, data_len)
+        }
+        16 => wire__crate__api__live__course_resource_download_at_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        17 => wire__crate__api__live__course_resources_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__live__course_resources_at_impl(port, ptr, rust_vec_len, data_len),
         19 => {
+            wire__crate__api__live__download_homework_file_impl(port, ptr, rust_vec_len, data_len)
+        }
+        20 => wire__crate__api__live__edit_tasks_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__live__execute_cgyy_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__live__export_learning_snapshots_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        23 => wire__crate__api__live__homework_capabilities_impl(port, ptr, rust_vec_len, data_len),
+        24 => {
+            wire__crate__api__live__homework_file_workspace_impl(port, ptr, rust_vec_len, data_len)
+        }
+        25 => wire__crate__api__live__import_learning_snapshots_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        26 => wire__crate__api__mirror__init_app_impl(port, ptr, rust_vec_len, data_len),
+        27 => wire__crate__api__live__learning_courses_impl(port, ptr, rust_vec_len, data_len),
+        29 => wire__crate__api__live__load_bykc_impl(port, ptr, rust_vec_len, data_len),
+        30 => wire__crate__api__live__load_bykc_chosen_impl(port, ptr, rust_vec_len, data_len),
+        31 => wire__crate__api__live__load_bykc_statistics_impl(port, ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__live__load_cgyy_impl(port, ptr, rust_vec_len, data_len),
+        33 => wire__crate__api__live__load_checkin_on_date_impl(port, ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__live__load_checkin_today_impl(port, ptr, rust_vec_len, data_len),
+        35 => wire__crate__api__live__load_classrooms_impl(port, ptr, rust_vec_len, data_len),
+        36 => wire__crate__api__live__load_demo_bykc_impl(port, ptr, rust_vec_len, data_len),
+        37 => wire__crate__api__live__load_demo_bykc_chosen_impl(port, ptr, rust_vec_len, data_len),
+        38 => wire__crate__api__live__load_demo_bykc_statistics_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        39 => wire__crate__api__live__load_demo_cgyy_impl(port, ptr, rust_vec_len, data_len),
+        40 => wire__crate__api__mirror__load_demo_checkin_impl(port, ptr, rust_vec_len, data_len),
+        41 => {
             wire__crate__api__mirror__load_demo_classrooms_impl(port, ptr, rust_vec_len, data_len)
         }
-        20 => wire__crate__api__mirror__load_demo_grades_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__live__load_demo_graduate_impl(port, ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__live__load_demo_graduate_status_impl(
+        42 => wire__crate__api__mirror__load_demo_grades_impl(port, ptr, rust_vec_len, data_len),
+        43 => wire__crate__api__live__load_demo_graduate_impl(port, ptr, rust_vec_len, data_len),
+        44 => wire__crate__api__live__load_demo_graduate_status_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        23 => wire__crate__api__mirror__load_demo_homework_impl(port, ptr, rust_vec_len, data_len),
-        24 => wire__crate__api__mirror__load_demo_library_impl(port, ptr, rust_vec_len, data_len),
-        25 => wire__crate__api__live__load_demo_library_history_impl(
+        45 => wire__crate__api__mirror__load_demo_homework_impl(port, ptr, rust_vec_len, data_len),
+        46 => wire__crate__api__mirror__load_demo_library_impl(port, ptr, rust_vec_len, data_len),
+        47 => wire__crate__api__live__load_demo_library_history_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        26 => {
+        48 => {
             wire__crate__api__live__load_demo_library_stats_impl(port, ptr, rust_vec_len, data_len)
         }
-        27 => wire__crate__api__live__load_demo_notices_impl(port, ptr, rust_vec_len, data_len),
-        28 => wire__crate__api__mirror__load_demo_schedule_impl(port, ptr, rust_vec_len, data_len),
-        29 => wire__crate__api__mirror__load_demo_today_impl(port, ptr, rust_vec_len, data_len),
-        30 => wire__crate__api__live__load_grade_terms_impl(port, ptr, rust_vec_len, data_len),
-        31 => wire__crate__api__live__load_grades_impl(port, ptr, rust_vec_len, data_len),
-        32 => wire__crate__api__live__load_graduate_part_impl(port, ptr, rust_vec_len, data_len),
-        33 => wire__crate__api__live__load_homework_impl(port, ptr, rust_vec_len, data_len),
-        34 => wire__crate__api__live__load_homework_detail_impl(port, ptr, rust_vec_len, data_len),
-        35 => wire__crate__api__live__load_library_areas_impl(port, ptr, rust_vec_len, data_len),
-        36 => wire__crate__api__live__load_library_bookings_impl(port, ptr, rust_vec_len, data_len),
-        37 => wire__crate__api__live__load_library_books_impl(port, ptr, rust_vec_len, data_len),
-        38 => wire__crate__api__live__load_library_history_impl(port, ptr, rust_vec_len, data_len),
-        39 => wire__crate__api__live__load_library_holdings_impl(port, ptr, rust_vec_len, data_len),
-        40 => wire__crate__api__live__load_library_seats_impl(port, ptr, rust_vec_len, data_len),
-        41 => wire__crate__api__live__load_library_slots_impl(port, ptr, rust_vec_len, data_len),
-        42 => wire__crate__api__live__load_library_stats_impl(port, ptr, rust_vec_len, data_len),
-        43 => wire__crate__api__live__load_library_venues_impl(port, ptr, rust_vec_len, data_len),
-        44 => wire__crate__api__live__load_notices_impl(port, ptr, rust_vec_len, data_len),
-        45 => wire__crate__api__mirror__load_query_dates_impl(port, ptr, rust_vec_len, data_len),
-        46 => wire__crate__api__mirror__load_rule_examples_impl(port, ptr, rust_vec_len, data_len),
-        47 => wire__crate__api__live__load_schedule_impl(port, ptr, rust_vec_len, data_len),
-        48 => {
+        49 => wire__crate__api__live__load_demo_notices_impl(port, ptr, rust_vec_len, data_len),
+        50 => wire__crate__api__mirror__load_demo_schedule_impl(port, ptr, rust_vec_len, data_len),
+        51 => wire__crate__api__mirror__load_demo_today_impl(port, ptr, rust_vec_len, data_len),
+        52 => wire__crate__api__live__load_grade_terms_impl(port, ptr, rust_vec_len, data_len),
+        53 => wire__crate__api__live__load_grades_impl(port, ptr, rust_vec_len, data_len),
+        54 => {
+            wire__crate__api__live__load_graduate_credit_map_impl(port, ptr, rust_vec_len, data_len)
+        }
+        55 => wire__crate__api__live__load_graduate_part_impl(port, ptr, rust_vec_len, data_len),
+        56 => wire__crate__api__live__load_homework_impl(port, ptr, rust_vec_len, data_len),
+        57 => wire__crate__api__live__load_homework_detail_impl(port, ptr, rust_vec_len, data_len),
+        58 => wire__crate__api__live__load_library_areas_impl(port, ptr, rust_vec_len, data_len),
+        59 => wire__crate__api__live__load_library_bookings_impl(port, ptr, rust_vec_len, data_len),
+        60 => wire__crate__api__live__load_library_books_impl(port, ptr, rust_vec_len, data_len),
+        61 => wire__crate__api__live__load_library_history_impl(port, ptr, rust_vec_len, data_len),
+        62 => wire__crate__api__live__load_library_holdings_impl(port, ptr, rust_vec_len, data_len),
+        63 => wire__crate__api__live__load_library_loans_impl(port, ptr, rust_vec_len, data_len),
+        64 => wire__crate__api__live__load_library_seats_impl(port, ptr, rust_vec_len, data_len),
+        65 => wire__crate__api__live__load_library_slots_impl(port, ptr, rust_vec_len, data_len),
+        66 => wire__crate__api__live__load_library_stats_impl(port, ptr, rust_vec_len, data_len),
+        67 => wire__crate__api__live__load_library_venues_impl(port, ptr, rust_vec_len, data_len),
+        68 => wire__crate__api__live__auth_challenge__load_login_challenge_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        69 => wire__crate__api__live__load_notices_impl(port, ptr, rust_vec_len, data_len),
+        70 => wire__crate__api__mirror__load_query_dates_impl(port, ptr, rust_vec_len, data_len),
+        71 => wire__crate__api__mirror__load_rule_examples_impl(port, ptr, rust_vec_len, data_len),
+        72 => wire__crate__api__live__load_schedule_impl(port, ptr, rust_vec_len, data_len),
+        73 => {
             wire__crate__api__live__load_shuttle_timetable_impl(port, ptr, rust_vec_len, data_len)
         }
-        49 => wire__crate__api__live__load_today_impl(port, ptr, rust_vec_len, data_len),
-        50 => wire__crate__api__live__login_impl(port, ptr, rust_vec_len, data_len),
-        51 => {
+        74 => wire__crate__api__live__load_today_impl(port, ptr, rust_vec_len, data_len),
+        75 => wire__crate__api__live__login_impl(port, ptr, rust_vec_len, data_len),
+        76 => wire__crate__api__live__pending_homework_submissions_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        77 => {
             wire__crate__api__live__perform_library_action_impl(port, ptr, rust_vec_len, data_len)
         }
-        52 => {
+        79 => {
             wire__crate__api__mirror__query_demo_classrooms_impl(port, ptr, rust_vec_len, data_len)
         }
-        53 => wire__crate__api__live__reserve_library_seat_impl(port, ptr, rust_vec_len, data_len),
-        54 => wire__crate__api__live__restore_session_impl(port, ptr, rust_vec_len, data_len),
-        55 => wire__crate__api__live__set_route_impl(port, ptr, rust_vec_len, data_len),
-        56 => wire__crate__api__live__sign_out_impl(port, ptr, rust_vec_len, data_len),
-        57 => wire__crate__api__live__submit_checkin_impl(port, ptr, rust_vec_len, data_len),
-        58 => wire__crate__api__live__verify_credential_storage_impl(
+        80 => {
+            wire__crate__api__live__reconcile_homework_file_impl(port, ptr, rust_vec_len, data_len)
+        }
+        81 => wire__crate__api__live__reserve_library_seat_impl(port, ptr, rust_vec_len, data_len),
+        82 => wire__crate__api__live__restore_session_impl(port, ptr, rust_vec_len, data_len),
+        83 => wire__crate__api__live__set_route_impl(port, ptr, rust_vec_len, data_len),
+        84 => wire__crate__api__live__sign_out_impl(port, ptr, rust_vec_len, data_len),
+        85 => wire__crate__api__live__submit_checkin_impl(port, ptr, rust_vec_len, data_len),
+        86 => wire__crate__api__live__submit_homework_file_impl(port, ptr, rust_vec_len, data_len),
+        87 => wire__crate__api__live__upload_homework_file_impl(port, ptr, rust_vec_len, data_len),
+        88 => wire__crate__api__live__verify_credential_storage_impl(
             port,
             ptr,
             rust_vec_len,
@@ -3542,6 +5128,12 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
+        28 => wire__crate__api__live__library_loans_portal_url_impl(ptr, rust_vec_len, data_len),
+        78 => wire__crate__api__reminder_planning__plan_course_task_reminders_impl(
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
         _ => unreachable!(),
     }
 }
@@ -3750,6 +5342,30 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::ClassroomSort>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::reminder_planning::CourseReminderSeed {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.week_start.into_into_dart().into_dart(),
+            self.day.into_into_dart().into_dart(),
+            self.starts_at.into_into_dart().into_dart(),
+            self.ends_at.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::reminder_planning::CourseReminderSeed
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::reminder_planning::CourseReminderSeed>
+    for crate::api::reminder_planning::CourseReminderSeed
+{
+    fn into_into_dart(self) -> crate::api::reminder_planning::CourseReminderSeed {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::mirror::DemoScope {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -3926,6 +5542,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkDetailResponse>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::HomeworkFileDownloadResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.name.into_into_dart().into_dart(),
+            self.bytes.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::HomeworkFileDownloadResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkFileDownloadResponse>
+    for crate::api::live::HomeworkFileDownloadResponse
+{
+    fn into_into_dart(self) -> crate::api::live::HomeworkFileDownloadResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::mirror::HomeworkItem {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -3998,6 +5636,27 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::HomeworkStatus>
     for crate::api::mirror::HomeworkStatus
 {
     fn into_into_dart(self) -> crate::api::mirror::HomeworkStatus {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LearningSnapshotResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.bytes.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LearningSnapshotResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LearningSnapshotResponse>
+    for crate::api::live::LearningSnapshotResponse
+{
+    fn into_into_dart(self) -> crate::api::live::LearningSnapshotResponse {
         self
     }
 }
@@ -4310,6 +5969,30 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LiveScope>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::auth_challenge::LoginChallengeResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.challenge_id.into_into_dart().into_dart(),
+            self.challenge_type.into_into_dart().into_dart(),
+            self.text_supported.into_into_dart().into_dart(),
+            self.image.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::auth_challenge::LoginChallengeResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::auth_challenge::LoginChallengeResponse>
+    for crate::api::live::auth_challenge::LoginChallengeResponse
+{
+    fn into_into_dart(self) -> crate::api::live::auth_challenge::LoginChallengeResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::live::MutationResponse {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -4327,6 +6010,29 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::MutationResponse>
     for crate::api::live::MutationResponse
 {
     fn into_into_dart(self) -> crate::api::live::MutationResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::reminder_planning::PlannedReminder {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.key.into_into_dart().into_dart(),
+            self.group.into_into_dart().into_dart(),
+            self.at_millis.into_into_dart().into_dart(),
+            self.expires_millis.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::reminder_planning::PlannedReminder
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::reminder_planning::PlannedReminder>
+    for crate::api::reminder_planning::PlannedReminder
+{
+    fn into_into_dart(self) -> crate::api::reminder_planning::PlannedReminder {
         self
     }
 }
@@ -4371,6 +6077,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::ReadOnlyResponse>
     for crate::api::live::ReadOnlyResponse
 {
     fn into_into_dart(self) -> crate::api::live::ReadOnlyResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::reminder_planning::ReminderPlanResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.plans.into_into_dart().into_dart(),
+            self.skipped.into_into_dart().into_dart(),
+            self.unsupported.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::reminder_planning::ReminderPlanResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::reminder_planning::ReminderPlanResponse>
+    for crate::api::reminder_planning::ReminderPlanResponse
+{
+    fn into_into_dart(self) -> crate::api::reminder_planning::ReminderPlanResponse {
         self
     }
 }
@@ -4624,6 +6352,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::SessionState>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::reminder_planning::TaskReminderSeed {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.due.into_into_dart().into_dart(),
+            self.completed.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::reminder_planning::TaskReminderSeed
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::reminder_planning::TaskReminderSeed>
+    for crate::api::reminder_planning::TaskReminderSeed
+{
+    fn into_into_dart(self) -> crate::api::reminder_planning::TaskReminderSeed {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::mirror::TodayCourse {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -4796,6 +6546,17 @@ impl SseEncode for crate::api::mirror::ClassroomSort {
     }
 }
 
+impl SseEncode for crate::api::reminder_planning::CourseReminderSeed {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.week_start, serializer);
+        <i32>::sse_encode(self.day, serializer);
+        <String>::sse_encode(self.starts_at, serializer);
+        <String>::sse_encode(self.ends_at, serializer);
+    }
+}
+
 impl SseEncode for crate::api::mirror::DemoScope {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -4899,6 +6660,15 @@ impl SseEncode for crate::api::live::HomeworkDetailResponse {
     }
 }
 
+impl SseEncode for crate::api::live::HomeworkFileDownloadResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<String>>::sse_encode(self.name, serializer);
+        <Option<Vec<u8>>>::sse_encode(self.bytes, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
 impl SseEncode for crate::api::mirror::HomeworkItem {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -4955,6 +6725,14 @@ impl SseEncode for i64 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         serializer.cursor.write_i64::<NativeEndian>(self).unwrap();
+    }
+}
+
+impl SseEncode for crate::api::live::LearningSnapshotResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<Vec<u8>>>::sse_encode(self.bytes, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
     }
 }
 
@@ -5131,6 +6909,16 @@ impl SseEncode for Vec<crate::api::mirror::ClassroomRow> {
     }
 }
 
+impl SseEncode for Vec<crate::api::reminder_planning::CourseReminderSeed> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::reminder_planning::CourseReminderSeed>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::mirror::GradeCourse> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -5197,6 +6985,16 @@ impl SseEncode for Vec<crate::api::mirror::LibraryVenue> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::mirror::LibraryVenue>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::reminder_planning::PlannedReminder> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::reminder_planning::PlannedReminder>::sse_encode(item, serializer);
         }
     }
 }
@@ -5271,6 +7069,16 @@ impl SseEncode for Vec<crate::api::mirror::SectionState> {
     }
 }
 
+impl SseEncode for Vec<crate::api::reminder_planning::TaskReminderSeed> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::reminder_planning::TaskReminderSeed>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::mirror::TodayCourse> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -5287,6 +7095,17 @@ impl SseEncode for crate::api::live::LiveScope {
         <i32>::sse_encode(self.campus, serializer);
         <String>::sse_encode(self.date, serializer);
         <bool>::sse_encode(self.force_refresh, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::auth_challenge::LoginChallengeResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<String>>::sse_encode(self.challenge_id, serializer);
+        <Option<String>>::sse_encode(self.challenge_type, serializer);
+        <bool>::sse_encode(self.text_supported, serializer);
+        <Vec<u8>>::sse_encode(self.image, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
     }
 }
 
@@ -5368,6 +7187,26 @@ impl SseEncode for Option<Vec<String>> {
     }
 }
 
+impl SseEncode for Option<Vec<u8>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<u8>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for crate::api::reminder_planning::PlannedReminder {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.key, serializer);
+        <String>::sse_encode(self.group, serializer);
+        <i64>::sse_encode(self.at_millis, serializer);
+        <i64>::sse_encode(self.expires_millis, serializer);
+    }
+}
+
 impl SseEncode for crate::api::mirror::QueryDates {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -5383,6 +7222,15 @@ impl SseEncode for crate::api::live::ReadOnlyResponse {
         <Option<String>>::sse_encode(self.payload, serializer);
         <bool>::sse_encode(self.stale, serializer);
         <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::reminder_planning::ReminderPlanResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<crate::api::reminder_planning::PlannedReminder>>::sse_encode(self.plans, serializer);
+        <u32>::sse_encode(self.skipped, serializer);
+        <bool>::sse_encode(self.unsupported, serializer);
     }
 }
 
@@ -5524,6 +7372,15 @@ impl SseEncode for crate::api::live::SessionState {
     }
 }
 
+impl SseEncode for crate::api::reminder_planning::TaskReminderSeed {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.due, serializer);
+        <bool>::sse_encode(self.completed, serializer);
+    }
+}
+
 impl SseEncode for crate::api::mirror::TodayCourse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -5542,6 +7399,13 @@ impl SseEncode for crate::api::mirror::TodayResponse {
         <Option<String>>::sse_encode(self.fetched_at, serializer);
         <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
         <Option<String>>::sse_encode(self.failure_detail, serializer);
+    }
+}
+
+impl SseEncode for u32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_u32::<NativeEndian>(self).unwrap();
     }
 }
 

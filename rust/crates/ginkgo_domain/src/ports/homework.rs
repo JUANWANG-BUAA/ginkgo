@@ -1,6 +1,7 @@
 //! Stable homework business capability and values.
 use super::DataOutcome;
 use crate::{features::homework::HomeworkData, AppError};
+#[derive(Debug, PartialEq, Eq)]
 pub struct HomeworkOutcome {
     pub data: HomeworkData,
     pub fetched_at: String,

@@ -313,7 +313,7 @@ void main() {
       ),
     );
     expectBrandedLoading(tester, '正在读取校车时刻表…');
-    expectHeaderIdentity(tester, '校园生活', '查看公开计划时刻与官方入口', CupertinoIcons.bus);
+    expectHeaderIdentity(tester, '校园生活', '计划班次与实时余票，分开核对', CupertinoIcons.bus);
 
     service.shuttleRequests.single.complete(_timetable());
     await tester.pumpAndSettle();

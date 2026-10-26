@@ -11,6 +11,7 @@ import 'grades_page.dart';
 import 'mirror_service.dart';
 import 'settings_page.dart';
 import 'shuttle_page.dart';
+import 'workspace_catalog.dart';
 import 'application/contracts.dart' show RouteChoice;
 
 class ServiceDirectory extends StatelessWidget {
@@ -71,6 +72,7 @@ class ServiceDirectory extends StatelessWidget {
             GinkgoColors.resourcePurple,
             GradesPage(service: service),
           ),
+          _destination(context, 'learning', GinkgoColors.resourceBlue),
           _row(
             context,
             '博雅',
@@ -85,6 +87,13 @@ class ServiceDirectory extends StatelessWidget {
             GinkgoColors.accent,
             GraduatePage(demo: service.isDemo, service: service),
           ),
+          _destination(context, 'graduate-credit-map', GinkgoColors.accent),
+        ],
+      ),
+      AppleSection(
+        header: const Text('图书与借阅'),
+        children: [
+          _destination(context, 'library-loans', GinkgoColors.resourceTeal),
         ],
       ),
       AppleSection(
@@ -107,6 +116,36 @@ class ServiceDirectory extends StatelessWidget {
       const SizedBox(height: 32),
     ],
   );
+
+  WorkspaceContext _featureContext(BuildContext context) => WorkspaceContext(
+    service: service,
+    mobile: true,
+    accountName: accountName,
+    accountId: accountId,
+    route: route,
+    onSignOut: onSignOut,
+    openFeature: (id) => _pushDestination(context, id),
+    openSettings: () => _pushDestination(context, 'settings'),
+  );
+
+  void _pushDestination(BuildContext context, String id) {
+    final destination = destinationById(id);
+    if (destination != null) {
+      _push(context, destination.build(_featureContext(context)));
+    }
+  }
+
+  // Reuse catalog metadata and factories, including the injected account context.
+  Widget _destination(BuildContext context, String id, Color tint) {
+    final destination = destinationById(id)!;
+    return _row(
+      context,
+      destination.title,
+      destination.icon,
+      tint,
+      destination.build(_featureContext(context)),
+    );
+  }
 
   Widget _row(
     BuildContext context,

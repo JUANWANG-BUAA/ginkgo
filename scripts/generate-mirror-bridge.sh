@@ -5,11 +5,7 @@ if ! flutter_rust_bridge_codegen --version | grep -Eq '^flutter_rust_bridge_code
   echo 'Install flutter_rust_bridge_codegen 2.12.0 before generating bindings.' >&2
   exit 1
 fi
-if rustup toolchain list | grep -Eq '^stable(-| )' && rustc +stable --version | head -1 | grep -Eq '^rustc 1\.99\.0 '; then
-  export RUSTUP_TOOLCHAIN=stable
-else
-  export RUSTUP_TOOLCHAIN=1.99.0
-fi
+source scripts/rust-toolchain-env.sh
 if ! rustfmt --version >/dev/null 2>&1; then
   echo "Install rustfmt for $RUSTUP_TOOLCHAIN before generating bindings." >&2
   exit 1

@@ -2,6 +2,14 @@
 use super::*;
 
 impl<U: SessionSource> Workspace<U> {
+    pub async fn login_challenge(
+        &self,
+        expected_id: Option<&str>,
+        refresh: bool,
+    ) -> Result<ginkgo_domain::ports::LoginChallengeData, AppError> {
+        self.upstream.login_challenge(expected_id, refresh).await
+    }
+
     pub fn status(&self) -> SessionStatus {
         self.upstream.status()
     }

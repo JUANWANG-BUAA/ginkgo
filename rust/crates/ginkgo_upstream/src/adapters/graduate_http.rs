@@ -25,6 +25,9 @@ async fn post<T: HttpTransport>(
     {
         return Err(AppError::session_expired());
     }
+    if matches!(response.status, 404 | 410) {
+        return Err(AppError::changed());
+    }
     if response.status != 200 {
         return Err(AppError::unavailable());
     }
@@ -50,6 +53,9 @@ async fn get<T: HttpTransport>(session: &Session<T>, path: &str) -> Result<Value
         || cas::is_login_redirect(&response.final_url, &response.body)
     {
         return Err(AppError::session_expired());
+    }
+    if matches!(response.status, 404 | 410) {
+        return Err(AppError::changed());
     }
     if response.status != 200 {
         return Err(AppError::unavailable());
@@ -84,10 +90,30 @@ async fn activate<T: HttpTransport>(session: &Session<T>, app: &str) -> Result<(
     {
         return Err(AppError::session_expired());
     }
+    if matches!(response.status, 404 | 410) {
+        return Err(AppError::changed());
+    }
     if response.status != 200 {
         return Err(AppError::unavailable());
     }
     Ok(())
+}
+
+/// Strict report path for credit-map health. Never substitutes the plan pool.
+pub async fn load_execution_report<T: HttpTransport>(
+    session: &Session<T>,
+) -> Result<AcademicData, AppError> {
+    activate(session, "wdpyfazxbgappbuaa").await?;
+    let value = post(
+        session,
+        "wdpyfazxbgappbuaa/zxbg/loadXspyfazxbgInfo.do",
+        "isShowSszxbg=0",
+    )
+    .await?;
+    Ok(AcademicData {
+        sections: graduate::parse_execution(&value)?,
+        notice: None,
+    })
 }
 
 pub async fn load_report<T: HttpTransport>(
@@ -145,4 +171,90 @@ pub async fn load_report<T: HttpTransport>(
         }
     }
     Ok(AcademicData { sections, notice })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        foundation::http::{HttpResponse, TransportError},
+        test_support::MockTransport,
+    };
+    fn response(status: u16, body: &str) -> HttpResponse {
+        HttpResponse::new(
+            status,
+            format!("{BASE}/wdpyfazxbgappbuaa/zxbg/loadXspyfazxbgInfo.do"),
+            body,
+        )
+    }
+    #[tokio::test]
+    async fn graduate_strict_execution_does_not_fallback_or_misclassify_health() {
+        for (status, body, expected) in [
+            (404, "missing", ErrorCode::ChangedResponse),
+            (410, "gone", ErrorCode::ChangedResponse),
+            (200, r#"{"code":1,"zxbg":{}}"#, ErrorCode::ChangedResponse),
+            (401, "login", ErrorCode::SessionExpired),
+            (
+                503,
+                "temporarily unavailable",
+                ErrorCode::ServiceUnavailable,
+            ),
+            (200, r#"{"code":0}"#, ErrorCode::BusinessRejected),
+        ] {
+            let transport = MockTransport::with_responses(vec![
+                response(200, "activated"),
+                response(status, body),
+            ]);
+            let session = Session::new(transport.clone());
+            assert_eq!(
+                load_execution_report(&session).await.unwrap_err().code,
+                expected
+            );
+            assert_eq!(
+                transport.request_count(),
+                2,
+                "strict read must not probe the plan pool"
+            );
+            assert!(transport.requests()[1]
+                .url
+                .ends_with("zxbg/loadXspyfazxbgInfo.do"));
+            assert_eq!(
+                transport.requests()[1].body.as_deref(),
+                Some("isShowSszxbg=0")
+            );
+        }
+        let transport = MockTransport::with_results(vec![
+            Ok(response(200, "activated")),
+            Err(TransportError::Unavailable),
+        ]);
+        assert_eq!(
+            load_execution_report(&Session::new(transport))
+                .await
+                .unwrap_err()
+                .code,
+            ErrorCode::ServiceUnavailable
+        );
+    }
+    #[tokio::test]
+    async fn graduate_404_410_are_changed_on_get_post_and_activation() {
+        for status in [404, 410] {
+            let session = Session::new(MockTransport::with_responses(vec![response(
+                status, "missing",
+            )]));
+            assert_eq!(
+                get(&session, "synthetic").await.unwrap_err().code,
+                ErrorCode::ChangedResponse
+            );
+            let session = Session::new(MockTransport::with_responses(vec![response(
+                status, "missing",
+            )]));
+            assert_eq!(
+                activate(&session, "wdpyfazxbgappbuaa")
+                    .await
+                    .unwrap_err()
+                    .code,
+                ErrorCode::ChangedResponse
+            );
+        }
+    }
 }

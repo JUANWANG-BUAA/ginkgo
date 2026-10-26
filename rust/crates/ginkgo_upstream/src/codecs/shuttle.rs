@@ -183,6 +183,9 @@ pub fn parse(html: &str) -> Result<ShuttleTimetable, AppError> {
     Ok(ShuttleTimetable {
         tables,
         source: SOURCE_URL.into(),
+        // The official root redirects here before opening indexPage. Delegate
+        // authentication to the browser; this metadata does not follow CAS.
+        live_source: "https://zhihuixiaoche.buaa.edu.cn/wechat/CASLogin".into(),
     })
 }
 
@@ -207,6 +210,15 @@ mod tests {
         <tr><td>1</td><td>7:30</td><td>1</td><td>7:35</td></tr>
       </tbody></table>
     </body></html>"#;
+
+    #[test]
+    fn official_live_link_enters_cas_before_the_business_page() {
+        let timetable = parse(PAGE).expect("timetable");
+        assert_eq!(
+            timetable.live_source,
+            "https://zhihuixiaoche.buaa.edu.cn/wechat/CASLogin"
+        );
+    }
 
     #[test]
     fn projects_both_directions_with_dated_sections() {

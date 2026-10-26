@@ -7,7 +7,7 @@ use crate::{
     },
     AppError,
 };
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ScheduleData {
     pub terms: Vec<Term>,
     pub weeks: Vec<Week>,
@@ -23,6 +23,7 @@ pub struct ScheduleQueryInput {
     pub force_refresh: bool,
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct ScheduleOutcome {
     pub data: ScheduleData,
     pub fetched_at: String,
@@ -31,6 +32,7 @@ pub struct ScheduleOutcome {
     pub failure: Option<AppError>,
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct TodayOutcome {
     pub date: String,
     pub courses: Vec<TodayCourse>,

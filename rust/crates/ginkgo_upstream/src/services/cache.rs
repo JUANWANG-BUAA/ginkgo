@@ -15,6 +15,8 @@ pub(crate) struct Timed<T> {
     pub fetched_at: Instant,
     pub timestamp: String,
     pub value: T,
+    /// Restored disk values never count as a fresh network/cache success.
+    pub restored: bool,
 }
 
 pub(crate) struct SnapshotCache<K, V> {
@@ -43,7 +45,7 @@ impl<K: Ord + Clone, V> SnapshotCache<K, V> {
     pub fn fresh(&self, key: &K) -> Option<&Timed<V>> {
         self.entries
             .get(key)
-            .filter(|entry| entry.fetched_at.elapsed() < CACHE_TTL)
+            .filter(|entry| !entry.restored && entry.fetched_at.elapsed() < CACHE_TTL)
     }
 
     pub fn any(&self, key: &K) -> Option<&Timed<V>> {
@@ -96,8 +98,26 @@ impl<K: Ord + Clone, V> SnapshotCache<K, V> {
                 fetched_at: Instant::now(),
                 timestamp,
                 value,
+                restored: false,
             },
         );
+    }
+
+    pub(super) fn entries(&self) -> impl Iterator<Item = (&K, &Timed<V>)> {
+        self.entries.iter()
+    }
+
+    /// Rebind only after archive validation and current authenticated-owner checks.
+    /// Disk values are fallback-only, never a fresh hit, and preserve source time.
+    pub(super) fn restore(&mut self, key: K, value: V, timestamp: String, age: Duration) {
+        if age >= CACHE_TTL || self.entries.contains_key(&key) {
+            return;
+        }
+        self.insert_with_timestamp(key.clone(), value, timestamp);
+        if let Some(entry) = self.entries.get_mut(&key) {
+            entry.fetched_at = Instant::now() - age;
+            entry.restored = true;
+        }
     }
 
     pub fn clear(&mut self) {
@@ -125,6 +145,13 @@ impl<K: Ord + Clone, V: Clone> SnapshotCache<K, V> {
                 })
             }
             Err(error) => match self.any(&key) {
+                Some(entry)
+                    if entry.restored
+                        && (error.code != crate::ErrorCode::ServiceUnavailable
+                            || entry.fetched_at.elapsed() >= CACHE_TTL) =>
+                {
+                    Err(error)
+                }
                 Some(entry) => Ok(super::DataOutcome {
                     data: entry.value.clone(),
                     failure: Some(error),

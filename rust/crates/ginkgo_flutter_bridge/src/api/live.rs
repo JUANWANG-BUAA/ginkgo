@@ -304,6 +304,32 @@ pub async fn load_library_holdings(bib_id: String) -> ReadOnlyResponse {
     utilities::load_library_holdings(bib_id).await
 }
 
+/// Transient archive bytes. Hosts must use explicitly opted-in encrypted storage.
+pub struct LearningSnapshotResponse {
+    pub bytes: Option<Vec<u8>>,
+    pub failure: Option<FailureCode>,
+}
+pub async fn export_learning_snapshots(expected_account: String) -> LearningSnapshotResponse {
+    utilities::export_learning_snapshots(expected_account).await
+}
+pub async fn import_learning_snapshots(
+    expected_account: String,
+    bytes: Vec<u8>,
+) -> ReadOnlyResponse {
+    utilities::import_learning_snapshots(expected_account, bytes).await
+}
+
+/// Public website metadata only. Does not initialize an authenticated session.
+#[flutter_rust_bridge::frb(sync)]
+pub fn library_loans_portal_url() -> String {
+    ginkgo_runtime::library_loans_portal_url()
+}
+
+/// Explicit private read, scoped to the caller's account. No disk cache or writes.
+pub async fn load_library_loans(expected_account: String, page: u32) -> ReadOnlyResponse {
+    utilities::load_library_loans(expected_account, page).await
+}
+
 /// Public counts only. No school identity or library token is serialized.
 pub async fn load_library_stats(force_refresh: bool) -> ReadOnlyResponse {
     library::load_library_stats(force_refresh).await
@@ -374,3 +400,186 @@ mod mapping;
 mod runtime;
 mod session;
 mod utilities;
+
+/// Homework business JSON only; raw SPOC payloads never leave upstream.
+pub async fn homework_file_workspace(
+    expected_account: String,
+    assignment_id: String,
+) -> ReadOnlyResponse {
+    homework::file_workspace(expected_account, assignment_id).await
+}
+pub async fn upload_homework_file(
+    expected_account: String,
+    assignment_id: String,
+    name: String,
+    bytes: Vec<u8>,
+) -> ReadOnlyResponse {
+    homework::upload_file(expected_account, assignment_id, name, bytes).await
+}
+pub async fn submit_homework_file(
+    expected_account: String,
+    handle: String,
+    confirmed: bool,
+) -> MutationResponse {
+    homework::submit_file(expected_account, handle, confirmed, false).await
+}
+pub async fn reconcile_homework_file(expected_account: String, handle: String) -> MutationResponse {
+    homework::submit_file(expected_account, handle, false, true).await
+}
+pub struct HomeworkFileDownloadResponse {
+    pub name: Option<String>,
+    pub bytes: Option<Vec<u8>>,
+    pub failure: Option<FailureCode>,
+}
+pub async fn download_homework_file(
+    expected_account: String,
+    assignment_id: String,
+    attachment_id: String,
+) -> HomeworkFileDownloadResponse {
+    homework::download_file(expected_account, assignment_id, attachment_id).await
+}
+
+/// Learning queries return business DTO JSON, never school response envelopes.
+pub async fn learning_courses(expected_account: String, force: bool) -> ReadOnlyResponse {
+    learning::courses(expected_account, force).await
+}
+pub async fn course_announcements(
+    expected_account: String,
+    course: String,
+    force: bool,
+) -> ReadOnlyResponse {
+    learning::announcements(expected_account, course, force).await
+}
+pub async fn course_announcement_detail(
+    expected_account: String,
+    course: String,
+    id: String,
+) -> ReadOnlyResponse {
+    learning::announcement_detail(expected_account, course, id).await
+}
+pub async fn course_resources(
+    expected_account: String,
+    course: String,
+    folder: Option<String>,
+    page: u32,
+    force: bool,
+) -> ReadOnlyResponse {
+    learning::resources(expected_account, course, folder, page, force).await
+}
+pub async fn course_assessments(
+    expected_account: String,
+    course: String,
+    force: bool,
+) -> ReadOnlyResponse {
+    learning::assessments(expected_account, course, force).await
+}
+pub async fn course_resource_download(
+    expected_account: String,
+    course: String,
+    folder: Option<String>,
+    page: u32,
+    id: String,
+) -> HomeworkFileDownloadResponse {
+    learning::resource_download(expected_account, course, folder, page, id).await
+}
+pub async fn course_announcement_attachment(
+    expected_account: String,
+    course: String,
+    id: String,
+    file: String,
+) -> HomeworkFileDownloadResponse {
+    learning::announcement_attachment(expected_account, course, id, file).await
+}
+pub mod auth_challenge;
+mod learning;
+pub use auth_challenge::{load_login_challenge, LoginChallengeResponse};
+
+/// Explicit module context; all identifiers are revalidated by the source.
+pub async fn course_learning_columns(
+    expected_account: String,
+    course: String,
+    force: bool,
+) -> ReadOnlyResponse {
+    learning::columns(expected_account, course, force).await
+}
+pub async fn course_learning_capabilities(
+    expected_account: String,
+    course: String,
+) -> ReadOnlyResponse {
+    learning::capabilities(expected_account, course).await
+}
+pub async fn course_announcements_in(
+    expected_account: String,
+    course: String,
+    column: String,
+    force: bool,
+) -> ReadOnlyResponse {
+    learning::announcements_in(expected_account, course, column, force).await
+}
+pub async fn course_assessments_in(
+    expected_account: String,
+    course: String,
+    column: String,
+    force: bool,
+) -> ReadOnlyResponse {
+    learning::assessments_in(expected_account, course, column, force).await
+}
+pub async fn course_announcement_detail_in(
+    expected_account: String,
+    course: String,
+    column: String,
+    id: String,
+) -> ReadOnlyResponse {
+    learning::detail_in(expected_account, course, column, id).await
+}
+pub async fn course_announcement_attachment_in(
+    expected_account: String,
+    course: String,
+    column: String,
+    id: String,
+    file: String,
+) -> HomeworkFileDownloadResponse {
+    learning::attachment_in(expected_account, course, column, id, file).await
+}
+pub async fn course_resources_at(
+    expected_account: String,
+    course: String,
+    path: Vec<String>,
+    page: u32,
+    force: bool,
+) -> ReadOnlyResponse {
+    learning::resources_at(expected_account, course, path, page, force).await
+}
+pub async fn course_resource_download_at(
+    expected_account: String,
+    course: String,
+    path: Vec<String>,
+    page: u32,
+    id: String,
+) -> HomeworkFileDownloadResponse {
+    learning::download_at(expected_account, course, path, page, id).await
+}
+pub async fn load_graduate_credit_map(
+    expected_account: String,
+    force_refresh: bool,
+) -> ReadOnlyResponse {
+    graduate::credit_map(expected_account, force_refresh).await
+}
+pub async fn configure_homework_recovery(
+    expected_account: String,
+    storage_root: String,
+) -> ReadOnlyResponse {
+    homework::configure_recovery(expected_account, storage_root).await
+}
+pub async fn pending_homework_submissions(
+    expected_account: String,
+    assignment_id: Option<String>,
+) -> ReadOnlyResponse {
+    homework::pending_submissions(expected_account, assignment_id).await
+}
+pub async fn homework_capabilities(
+    expected_account: String,
+    assignment_id: String,
+) -> ReadOnlyResponse {
+    homework::capabilities(expected_account, assignment_id).await
+}

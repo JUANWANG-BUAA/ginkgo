@@ -221,6 +221,28 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
                 onChanged: (value) => reminders.setEnabled('homework', value),
               ),
             ),
+            AppleListTile(
+              title: const Text('课程开始提醒'),
+              subtitle: const Text('提前 10 分钟 · 当前周已读取的课程'),
+              trailing: CupertinoSwitch(
+                value: reminders.courseEnabled,
+                onChanged: (value) async {
+                  await reminders.setEnabled('course', value);
+                  await reminders.refresh();
+                },
+              ),
+            ),
+            AppleListTile(
+              title: const Text('本机待办提醒'),
+              subtitle: const Text('提前一天 · 仅有精确截止时间的未完成待办'),
+              trailing: CupertinoSwitch(
+                value: reminders.taskEnabled,
+                onChanged: (value) async {
+                  await reminders.setEnabled('task', value);
+                  await reminders.refresh();
+                },
+              ),
+            ),
           ],
         ),
       AppleSection(

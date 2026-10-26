@@ -18,7 +18,13 @@ class LibraryController extends ChangeNotifier {
   Future<void>? _bookingTask, _venueTask;
   Future<void>? _bookingForcedRun, _venueForcedRun;
   bool _disposed = false;
+  int _generation = 0;
   bool get busy => loadingBookings || loadingVenues;
+
+  /// Drops every in-flight read at its next await: call when the account or
+  /// service behind [service] changes, so a late response from the previous
+  /// context never lands. Follow with load(force: true).
+  void invalidate() => _generation++;
 
   void _publish() {
     if (!_disposed) notifyListeners();
@@ -63,9 +69,10 @@ class LibraryController extends ChangeNotifier {
     void Function(Future<void>?) setSlot,
     void Function(Future<void>?) setForcedRun,
   ) {
+    final epoch = _generation;
     late final Future<void> run;
     run = inFlight.then((_) async {
-      if (_disposed) return;
+      if (_disposed || epoch != _generation) return;
       late final Future<void> task;
       task = fetch(true).whenComplete(() {
         if (identical(slot(), task)) setSlot(null);
@@ -86,16 +93,19 @@ class LibraryController extends ChangeNotifier {
   );
 
   Future<void> _fetchVenues(bool force) async {
+    final epoch = _generation;
     loadingVenues = true;
     venueError = null;
     _publish();
     try {
       final result = await service.libraryVenues(forceRefresh: force);
+      if (_generation != epoch) return;
       if (result.failure == null || result.stale) venues = result;
       venueError = result.failure == null
           ? null
           : failureMessage(result.failure);
     } catch (_) {
+      if (_generation != epoch) return;
       venueError = failureMessage(null);
     } finally {
       loadingVenues = false;
@@ -113,16 +123,19 @@ class LibraryController extends ChangeNotifier {
   );
 
   Future<void> _fetchBookings(bool force) async {
+    final epoch = _generation;
     loadingBookings = true;
     bookingError = null;
     _publish();
     try {
       final result = await service.libraryBookings(forceRefresh: force);
+      if (_generation != epoch) return;
       if (result.failure == null || result.stale) bookings = result;
       bookingError = result.failure == null
           ? null
           : failureMessage(result.failure);
     } catch (_) {
+      if (_generation != epoch) return;
       bookingError = failureMessage(null);
     } finally {
       loadingBookings = false;
@@ -144,9 +157,17 @@ class LibraryController extends ChangeNotifier {
     submitting = true;
     uncertainActions.add(key);
     _publish();
+    final epoch = _generation;
     var message = '操作结果待核实，请刷新预约记录，勿重复提交';
     try {
       final result = await service.performLibraryAction(booking.id, action);
+      // The write may have reached the school under the previous account:
+      // keep the action blocked and leave confirmation to a fresh readback.
+      if (_generation != epoch) {
+        submitting = false;
+        _publish();
+        return;
+      }
       message = result.message;
       if (result.state == 'notSubmitted' || result.state == 'rejected') {
         uncertainActions.remove(key);

@@ -82,23 +82,12 @@ pub fn parse_execution(envelope: &Value) -> Result<Vec<ReadSection>, AppError> {
         v => v.clone(),
     };
     let categories = raw.as_array().ok_or_else(AppError::changed)?;
-    let mut top_pending = credit(&root["dkhxf"])
+    // Categories and groups can overlap. Their credits are not additive, and
+    // absent official totals must remain unknown rather than becoming a sum.
+    let top_pending = credit(&root["dkhxf"])
         .or_else(|| credit(&root["DKHXF"]))
         .or_else(|| credit(&root["fa"]["dkhxf"]))
         .or_else(|| credit(&root["fa"]["DKHXF"]));
-    if top_pending.is_none() {
-        let mut sum = 0.0;
-        let mut found = false;
-        for cat in categories {
-            if let Some(c) = credit(&cat["dkhxf"]).or_else(|| credit(&cat["DKHXF"])) {
-                sum += c;
-                found = true;
-            }
-        }
-        if found {
-            top_pending = Some(sum);
-        }
-    }
     let mut sections = vec![ReadSection {
         title: "培养方案执行报告".into(),
         progress: Some(CreditProgress {
@@ -285,6 +274,32 @@ pub fn parse_plan(header: &Value, pool: &Value) -> Result<Vec<ReadSection>, AppE
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn official_pending_total_is_not_inferred_from_overlapping_categories() {
+        let mut value = json!({"code":1,"fa":{"ZDXF":32},"yhpyfaxf":8,
+        "zxbg":[
+            {"kclbmc":"类别一","yqxf":8,"yhxf":4,"dkhxf":3,"kclbhbzyq":"共享合并组","kcList":[],"dxzList":[]},
+            {"kclbmc":"类别二","yqxf":8,"yhxf":4,"dkhxf":3,"kcList":[],"dxzList":[]}
+        ]});
+        let sections = parse_execution(&value).unwrap();
+        assert_eq!(sections[0].progress.as_ref().unwrap().pending, None);
+        assert_eq!(sections[0].rows[3].detail, "未确认");
+        assert_eq!(sections[1].progress.as_ref().unwrap().pending, Some(3.0));
+        assert_eq!(sections[2].progress.as_ref().unwrap().pending, Some(3.0));
+        value["dkhxf"] = json!(0);
+        let sections = parse_execution(&value).unwrap();
+        assert_eq!(sections[0].progress.as_ref().unwrap().pending, Some(0.0));
+        value["dkhxf"] = json!(2);
+        assert_eq!(
+            parse_execution(&value).unwrap()[0]
+                .progress
+                .as_ref()
+                .unwrap()
+                .pending,
+            Some(2.0)
+        );
+    }
 
     #[test]
     fn unknown_course_results_stay_courses_and_metadata_stays_separate() {

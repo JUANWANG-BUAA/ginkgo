@@ -1,16 +1,34 @@
 # Rust + Flutter 镜像待办
 
-更新：2026-10-24。这里只保留未完成事项；实现范围见 [现状](MIRROR-IMPLEMENTATION.md)，模块差距见 [对照表](MIRROR-PARITY.md)。完成需有代码和相应层级的验证证据，不反复追加已完成过程；历史计划保留于 [归档](archive/mirror/README.md)。
+更新：2026-10-26。这里只保留未完成事项；实现范围见 [现状](MIRROR-IMPLEMENTATION.md)，模块差距见 [对照表](MIRROR-PARITY.md)。完成需有代码和相应层级的验证证据，不反复追加已完成过程；历史计划保留于 [归档](archive/mirror/README.md)。
 
 > **当前唯一开发目标是 Android（Flutter + Rust）。macOS / iOS 暂时冻结**，不做功能开发、不做跨端对齐、不为其排期；只在影响 Android 构建、共享 fixture 或存在安全问题时被动修。Windows 与 Android 共用同一 Flutter 工程，不做功能开发但必须保持可编译。范围决策见 [多平台路线](MULTI-PLATFORM-STRATEGY.md#当前开发范围2026-10-24-决策)。
+
+## 本轮 Goal：原会话全范围集成与交付（2026-10-26）
+
+**目标**：逐项落实原会话承诺的 SPOC 学习/作业、验证码、学分地图、课程/待办提醒、查询快照与本人借阅；模块仅暴露业务接口，App 能区分未支持、未验证、认证失败、暂不可用和协议变化。完成可独立执行的实现、回归及 Android 合成设备验证；不将真实学校写入、物理设备或人工安全审查冒充完成。
+
+本表是本轮唯一执行清单。状态随代码与证据更新；完成的实现证据转入实施现状/带日期审计，不另建 TODO。
+
+| ID | 执行事项 | 当前状态 / 完成条件 |
+| --- | --- | --- |
+| G04 | 个人文件作业的真实提交与回查验收 | 代码/default 入口/journal/合成门禁已落实；剩余本人逐次指定作业和最终文件的真实操作，详见 P2 |
+| G05 | 小组/文本/链接作答协议 | 字段及共用提交组件已定位；仍缺组身份/代表资格、后端文本/URL处理和真实回查契约，见 [协议复核](_audit/2026-10-26-spoc-submission-protocol-followup.md)，不开放未经验证的新写方式 |
+| G09 | 快照安全审查及其他模块覆盖 | Android 可选加密学习元数据快照已实际接线并通过 Keystore 设备往返；仍需人工安全审查，课表/成绩等不在本开关覆盖范围 |
+| G10 | 本人借阅真实认证与非空分页 | 合成/API/UI 已接；真实认证循环仍未定位；[匿名复核](_audit/2026-10-26-library-loans-auth-followup.md)确认入口可跳 SSO，未证明已建立读者会话；不重试被拒登录或复制 Cookie |
+| G14 | 校车实时余票及未知 Release 故障 | 已找到并修复官网外链：用户根地址→CASLogin→学校CAS，见 [入口补充](_audit/2026-10-26-shuttle-auth-followup.md#用户准确入口补充根地址会进入-cas)；应用内仍缺安全认证回程（官方 service 本次为 HTTP）及完整余票只读事务，未接通；未知 Release 故障仍需复现 |
+
+**Goal 状态：可独立执行的实现与合成设备验证已收口；以下真实协议/认证/人审事项受阻，尚未全范围完成。** 已核销的 G01/G02/G03/G06/G07/G08/G11/G12/G13 的源码、测试与深浅色/320dp 大字截图证据统一转入 [本轮集成记录](_audit/2026-10-26-module-integration.md)，不再保留为重复未完成任务。其真实样本/物理设备边界继续在下方 P1/P2 维护。
+
+真实学校写入、未经脱敏的非空协议样本、物理真机及敏感存储人工审查受仓库安全规则约束；无人值守不扩大授权。
 
 ## 当前推进顺序：先收口，再扩展
 
 当前主线为 **Android / Flutter + Rust**。以工作树为准，不将历史设计或已发布内容重复排成新开发任务。
 
-- 已发布基线：Android Alpha.7（build 8）；Windows Alpha.6（build 7）。证据见 [发布记录](_audit/2026-10-23-android-alpha7-release.md)。
-- Alpha.8（build 9）已完成全量门禁（383 项 Flutter 测试）、签名构建与产物校验，等待 tag 与 GitHub prerelease 公开；模拟器签名包覆盖升级（Alpha.7→Alpha.8，本机待办保留）已通过，物理设备与真实写入仍未验收，见 [_audit/2026-10-25-android-alpha8-release.md](_audit/2026-10-25-android-alpha8-release.md)。
-- Alpha.7 后源码：作业提交状态与截止判定分离、工作台/学分展示优化、CGYY 静态协议对齐、公开查书/馆藏与排序、应用内校车时刻表；`e149f90` 已移除作业详情“加入个人待办”，保留既有本机数据。2026-10-24 复核批次另含：CAS 表单 action 白名单、账号身份一致性校验（`account == profile.school_id`）、保险库枚举失败不再视为空、快照缓存请求代次防护、课程范围读取失败锁定编辑、显式退出标记阻止自动恢复、更新门禁时序与发布址白名单、课表已确认快照、作业详情倒计时取最新状态、APK 校验失败可重下载、`RefreshSection`/`LibraryController` 强制刷新补跑、FFI 可达 `unreachable!()` 清除、预约按钮组件与查书目页重做、导航栏强调色（`navActionTextStyle`）。2026-10-25 收口批次：全部读命令补 `bounded_read` 超时、上游读路径统一 await 后账号复检（含 bykc 飞行中切账号回归）、剩余刷新静默丢弃页面改为待刷新补跑、壳层共享状态修复跨 760dp 旋转丢导航（含旋转回归测试）、CGYY 写迁移到模块级 `CGYY_ACCESS`/`CGYY_WRITE`（对齐 checkin/library）、`android-v*` 自动构建校验 workflow、bridge 层补 `bounded_read`/CGYY 双击退避测试、`CgyyDayPage` 补 widget 测试。以上不意味着已经发新包或通过所有真实业务验收。
+- 已发布基线：Android Alpha.8（build 9）；Windows Alpha.6（build 7）。证据见 [Alpha.8 发布记录](_audit/2026-10-25-android-alpha8-release.md) 与 [Alpha.7 发布记录](_audit/2026-10-23-android-alpha7-release.md)。
+- Alpha.8（build 9）已公开：全量门禁（383 项 Flutter 测试）、签名构建与产物校验通过，模拟器签名包覆盖升级（Alpha.7→Alpha.8，本机待办保留）通过，远端 `Rust Flutter mirror` 四个 job 全绿。**未验收**：物理设备（TalkBack、预测返回、大字号/深浅色、帧率）、真实学校写操作与真实非空订单。远端 `Android Alpha Release` workflow 因仓库未配置四个签名 secret 而在签名步骤失败（fail-closed 设计，非缺陷）。
+- Alpha.7 后源码：作业提交状态与截止判定分离、工作台/学分展示优化、CGYY 静态协议对齐、公开查书/馆藏与排序、应用内校车时刻表、跨断点旋转保持位置；`e149f90` 已移除作业详情“加入个人待办”，保留既有本机数据。2026-10-24 复核批次另含：CAS 表单 action 白名单、账号身份一致性校验（`account == profile.school_id`）、保险库枚举失败不再视为空、快照缓存请求代次防护、课程范围读取失败锁定编辑、显式退出标记阻止自动恢复、更新门禁时序与发布址白名单、课表已确认快照、作业详情倒计时取最新状态、APK 校验失败可重下载、`RefreshSection`/`LibraryController` 强制刷新补跑、FFI 可达 `unreachable!()` 清除、预约按钮组件与查书目页重做、导航栏强调色（`navActionTextStyle`）。2026-10-25 收口批次：全部读命令补 `bounded_read` 超时、上游读路径统一 await 后账号复检（含 bykc 飞行中切账号回归）、剩余刷新静默丢弃页面改为待刷新补跑、壳层共享状态修复跨 760dp 旋转丢导航（含旋转回归测试）、CGYY 写迁移到模块级 `CGYY_ACCESS`/`CGYY_WRITE`（对齐 checkin/library）、`android-v*` 自动构建校验 workflow、bridge 层补 `bounded_read`/CGYY 双击退避测试、`CgyyDayPage` 补 widget 测试、页面载荷解码收口到 `*_models.dart`。上述已随 Alpha.8 公开；合成与模拟器通过不等于完成真实业务验收。
 - [下一阶段方案](NEXT-STAGE-PLAN-2026-10-23.md) 与 [IA方案](NEXT-STAGE-IA-2026-10-23.md) 保留研究依据，不能将其中已落地方案重新实施，也不能将未批准的导航/写能力视为现有功能。
 - 执行顺序：**P0 可复现回归与安全边界 → P1 设备/账号验收及小步体验 → P2 扩展**。本地自动化与正常入口构建通过只能关闭相应本地事项；需要本人账号、真实写入或物理设备的条目继续保留。
 - **2026-10-24 综合评审**（工程 / 设计 / UI / 视觉）已按 Android-only 重排，其可复现缺陷并入下方 P0 / P1，范围收窄带来的新风险并入 P0：[_audit/2026-10-24-comprehensive-review.md](_audit/2026-10-24-comprehensive-review.md)。
@@ -32,14 +50,13 @@
 - [x] ~~**增加 Android 自动发布 workflow**~~ —— 可自动化部分已完成（2026-10-25）：`.github/workflows/android-release.yml` 由 tag `android-v*` 触发，外部注入四个签名 secret 组装 `GINKGO_ANDROID_SIGNING_PROPERTIES` 指向的 properties 文件（缺配置即失败，Gradle 侧 fail-closed 不变），带 `--pub` 构建正常入口 Release APK，断言 pubspec 版本与 tag 一致、`GeneratedPluginRegistrant` 不含 `integration_test`（对应 Alpha.7 事故）、`versionName` 匹配、非 debuggable、仅 arm64-v8a、`zipalign`/`apksigner verify`，产出 `Ginkgo-<version>-android-arm64.apk` + checksums 的 workflow artifact。**发布仍人工**：真实设备覆盖升级、发布说明与 GitHub prerelease 公开由维护者执行。四个 secret（KEYSTORE_BASE64/KEYSTORE_PASSWORD/KEY_ALIAS/KEY_PASSWORD）需在仓库 Settings 配置后 workflow 才可用。
 - [x] ~~**区分空态与错误态**~~ —— 已完成：`AppleEmptyState`（`widgets/apple_surfaces.dart`）错误分支用 `exclamationmark_triangle`、空态用 `tray`，失败路径统一传 `error: true`；bykc 的失败走独立状态横幅与空态分离，属设计差异而非遗漏。
 - [ ] **补 Flutter 侧的“部分成功”表达**：Swift 端有“以下来源暂时未能更新：…；作业结果不完整”，Flutter 的 `homework()` 只返回单个 `HomeworkResponse`（`application/mirror_service.dart:54`），`homework_page.dart:143-148` 把任何来源失败折叠成整页错误或“显示上次结果”。多来源部分失败在 Android 端当前不可表达。
-- [ ] **修 `GinkgoBadge` 大字号溢出**：`ginkgo_visuals.dart:80-90` 把 11/12pt 文字放进仅 1–2px 垂直内边距的容器，2.0× 缩放下溢出。`GinkgoIconTile`（`ginkgo_visuals.dart:44`）字形固定为 `size/2`，图标不随文字缩放。
 - [ ] **补 Semantics 与 SafeArea 覆盖**：全应用仅 61 处 `Semantics(...)`，`GinkgoIconTile.semanticLabel`（`ginkgo_visuals.dart:16`）存在但很少传值；15 个页面文件完全无 `SafeArea`，靠硬编码占位（`library_page.dart:169` 的 `const SizedBox(height: 96)`）。共享 `choose` 菜单的选中项 Semantics 与 8 处 <48dp 触控目标已在 2026-10-24 修复，其余 Semantics/SafeArea 缺口仍开放。
 - [x] ~~**横竖屏跨越 760dp 时提升导航状态**~~ —— 已完成（2026-10-25）：`workspace_shell.dart` 新增 `_WorkspaceShell`，选中目的地、已访问集合与各目的地的 `GlobalKey<NavigatorState>` 提升到断点之上，移动 tab 壳与桌面侧栏壳共用；跨断点旋转通过 GlobalKey 保活各目的地的导航栈（含未提交表单页面）。桌面专有目的地（无移动标签）转回移动端时回到首个标签并同步选中，属既定边界。回归：`workspace_navigation_test.dart` 的旋转用例（移动选课表→桌面侧栏同选中→转回移动仍在课表）。
 - [ ] ~~**待办编辑增加脏草稿放弃确认**~~ —— 已完成（2026-10-24）：`task_editor.dart` 有未保存修改时返回弹出“放弃未保存的修改？”确认，未编辑时静默退出。
 - [ ] **物理 Android 真机验收系统返回/预测返回、TalkBack 全流程、大字号/深浅色及长列表性能**；覆盖强调色、常用入口、栏目过渡与新校车页实际帧率。合成 widget 与 ARM64 模拟器不能替代。
 - [ ] 用户授权下核对真实作业来源定位与截止时间；验证已提交无倒计时、待处理排除已截止、个人待办不重复显示学校来源事项，保留 v1→v2 升级前备份与不可降级编辑说明。不得新增提交权限或自动改学校状态。
-- [ ] 公开查书/馆藏与校车时刻表补真实设备只读验收：~~排序/分页/空态/限流与官方对照~~ 排序/分页/公开检索已随 2026-10-24/25 授权账号只读验收覆盖（真实目录检索、翻页、卡片渲染），余静态时刻表与官方页对照保留。~~区分计划可乘人数与实时余票~~ 已由 2026-10-25 授权实测定证：智慧校车系统不接 CAS（CAS 会话下 indexPage 仍报未认证、ShiftsSearch 403），动态余票确认不接入，维持静态时刻表+官方外链。图书馆本人非空借阅不在公开目录验收范围。
-- [ ] 评审剩余扩展的依赖与分包范围：我的借阅（非空模型/分页/隐私待验）、热门/封面、未来七天聚合、筛选记忆与课表导出；预约摘要不得增加首屏阻塞。校车动态余票在完整事务与资格证据前不接入。
+- [ ] 公开查书/馆藏与校车时刻表补真实设备只读验收：~~排序/分页/空态/限流与官方对照~~ 排序/分页/公开检索已随 2026-10-24/25 授权账号只读验收覆盖（真实目录检索、翻页、卡片渲染），余静态时刻表与官方页对照保留。~~区分计划可乘人数与实时余票~~ 2026-10-25 的 CAS 会话下 indexPage 仍报未认证、ShiftsSearch 403，仅能证明该次会话未建立校车身份，动态余票当前未接通，尚缺独立授权入口；保留静态时刻表及单独智慧校车入口，不能据此断言永远不可接入。图书馆本人非空借阅不在公开目录验收范围。
+- [ ] 评审剩余扩展的依赖与分包范围：我的借阅（工作树已接独立只读端口、CAS 入口及按需分页；真实 App 认证/非空字段/多页与隐私设备验收待完成，见 [接续记录](_audit/2026-10-26-library-loans-integration.md)）、热门/封面、未来七天聚合、筛选记忆与课表导出；预约摘要不得增加首屏阻塞。校车动态余票在完整事务与资格证据前不接入。
 - [ ] 阳光打卡 P1 安全写闭环：先补上传/提交/回查与 `isopen` 服务端语义证据及隐私、单写门禁评审，通过后分包实现本人手动填写/照片/确认流程，真实提交另行逐次授权。未验证前不得开放真实提交或承诺私密，不执行自动打卡。
 - [ ] 真实非空成绩 / GPA、本科教务账号、图书馆多页历史、博雅非空已选记录及 CGYY 非空订单逐项对照；既往研究生账号的成功空结果不覆盖这些分支。
 - [ ] 设备复核北京时间跨午夜、学期 / 周次切换、离屏页返回和缓存失效；保留 `mirror_test.dart` 校区 / 日期 / 缓存长流程未收敛的记录，先拆成有界场景定位。
@@ -52,10 +69,11 @@
 - [ ] **补齐设计 token 采纳并加 CI 强制**：`flutter/lib/design/tokens/` 定义质量高（4pt/8pt 间距、HIG 类型标尺、圆角、动效），但 96 个应用 Dart 文件中 **62 个（65%）零引用**，实测硬编码 202 处 `fontSize`、204 处 `EdgeInsets`、199 处 `SizedBox`、49 处 `BorderRadius`；仅 `apple_design.dart` 引用了 token，且只暴露约 60 个中的 16 个（`AppleDesign.title` 还被别名到 `largeTitle`，与 `body` 之间缺整档）。根因是门面过窄而非页面懒惰。收窄为 Android-only 后这是唯一的设计系统，补齐门面 + 一个 CI token 采纳检查（Rust 分层已有门禁、Dart 没有）是守住它的唯一自动化手段。
 - [ ] **为 9 个端点补 bridge DTO，删掉 Dart 里的 `jsonDecode`**：页面层 `jsonDecode` 已于 2026-10-25 收口为零，学校字段名解码集中在 8 个 `*_models.dart`（`space_id`/`time_ids`/`currentTerm`/`phase`/`bibId` 等），剩余 11 处 `jsonDecode` 均为本地偏好/维护文件，非学校 payload。根因仍是 `ginkgo_flutter_bridge/src/api/live.rs` 的 `ReadOnlyResponse { payload: Option<String>, … }` 逃生舱被约 9 个端点使用；载荷是 Rust 净化过的领域 JSON（不是原始上游数据），属契约侵蚀而非凭据泄露；修复顺序仍是先补 DTO 再删 Dart 解析。
 - [ ] **把稳定业务规则搬回 `ginkgo_domain`**：`reminder_rules.dart:18-33`（签到窗口）、`:46-110`（提醒排程）、`homework_projection.dart:44-70`（截止分类）、`checkin_page.dart:54-57` 与 `library_stats_page.dart:48`（UTC+8 学校“今天”）目前留在 Dart，违反“学校日期与稳定业务规则留在 Rust”；放回 domain 才能拿到 Rust 单测。
-- [ ] 补齐验证码图片传输、展示和刷新；当前挑战提示与手填框仍不足以完成所有风控分支。
+- [ ] 验证码图片/刷新/挑战代次已在工作树接通；仍需本人真实风控分支及物理设备辅助功能验收，未知类型不自动发送。
 - [ ] “登录成功但密码保存失败”提供就地提示；解释 WebVPN 网关为何可能要求记住密码，减少首次使用的困惑。
-- [ ] 继续验收已接入的签到 / 作业本地提醒：Android 权限拒绝 / 恢复、重启、强停和厂商省电；补 Windows 系统通知、完整课程 / 待办提醒、后台能力及查询快照持久化。
-- [ ] 完整研究生学分地图及成绩 / 考试组合、图书馆本机趋势仍未齐；SPOC 附件下载 / 作答 / 提交、希冀来源、BYKC 选退课 / 签到、CGYY 门锁码尚未迁移，预约 / 取消已接入但真实往返未验收。
+- [ ] 继续验收已接入的签到 / 作业本地提醒：Android 权限拒绝 / 恢复、重启、强停和厂商省电；课程/待办提醒已接 opt-in 规则/排程与设置；可选 Android 加密学习元数据快照已接线，仍需人工安全审查；其余课表/成绩等快照持久化、重启/强停/厂商后台验收未完成。Windows 仅保持编译，不新增通知排期。
+- [ ] 研究生严格执行报告学分图已接线，成绩 / 考试组合及图书馆本机趋势仍未齐；SPOC 文件能力已在工作树分层接入（[集成记录](_audit/2026-10-25-spoc-homework-integration.md)），普通构建已开放受私有待确认记录保护的个人文件入口，仍需本人逐次指定作业和最终文件的真实分片/合并/提交/回查与失败验收；小组及非文件作答、希冀来源、BYKC 选退课 / 签到、CGYY 门锁码尚未迁移，预约 / 取消已接入但真实往返未验收。
+- [ ] SPOC 学习只读扩展：工作树 gateway/native/demo/页面与课程、根资料抽查见 [接续记录](_audit/2026-10-26-spoc-learning-integration.md)，仍需授权范围内的非空公告详情/附件、资料目录/后页、非空测验字段验收，以及抽查第 2 项课程测验 `ServiceUnavailable` 的脱敏定位；目录/分页/文件保存/打开及多栏目显式上下文已接入并有合成回归，不能用首项/空数组掩盖歧义。Android 物理设备视觉/读屏和实际页面链未验收；无原成功时间字段，不伪造同步时间。该扩展未发布，不包含公告标读、课程访问记录或考试开始/作答/提交。
 - [ ] 其他异步复杂页面在出现跨路由状态或重复加载职责时参考 `LibraryController`；**不要求一次性统一重构**——先修掉共用的强制刷新缺陷，再在新页面默认使用 `RefreshSection`/`LibraryController`/`SectionFeedback`，旧页面在被修改时逐个迁移。
 - [ ] 移动端“个人与校园”快捷入口（`service_directory.dart`）仍是精选清单，与 `workspace_catalog.dart` 的功能清单重复；如需完全单一来源，可改为从登记表派生（需把 `WorkspaceContext` 工厂传入目录）。
 - [ ] 更新体系：最低版本门禁已接入（`update_gate.dart` + `docs/update-gate.json`，拉取失败放行）；清单签名、差分补丁、灰度/回滚、Windows Authenticode 与应用内更新仍待做。提升 `minBuild` 前必须确认新版本已可下载，避免把旧版锁在无法更新的状态。

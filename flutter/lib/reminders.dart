@@ -11,6 +11,8 @@ import 'application/contracts.dart';
 import 'application/failure_message.dart';
 import 'application/diagnostic_log.dart';
 import 'application/mirror_service.dart';
+import 'application/local_tasks.dart';
+import 'application/reminder_planning.dart';
 import 'course_visibility.dart';
 import 'homework_projection.dart';
 import 'reminder_rules.dart';
@@ -23,7 +25,10 @@ class NativeReminderPlatform implements ReminderPlatform {
   static const channel = MethodChannel('cn.edu.buaa.ginkgo/reminders');
   @override
   Future<void> replace(List<Map<String, Object>> plans) async {
-    if (Platform.isAndroid) await channel.invokeMethod<void>('replace', plans);
+    if (!Platform.isAndroid) {
+      throw UnsupportedError('当前平台不支持系统提醒，应用内提示仍可用');
+    }
+    await channel.invokeMethod<void>('replace', plans);
   }
 }
 
@@ -36,19 +41,32 @@ class ReminderController extends ChangeNotifier {
     ReminderPlatform? platform,
     this.persist = true,
     DateTime Function()? clock,
+    ReminderPlanningGateway? planner,
+    Future<String> Function()? tasksRoot,
   }) : platform = platform ?? NativeReminderPlatform(),
+       planner =
+           planner ??
+           (service is ReminderPlanningGateway
+               ? service as ReminderPlanningGateway
+               : null),
+       tasksRoot = tasksRoot ?? localTasksStorageRoot,
        clock = clock ?? DateTime.now;
   final MirrorService service;
   final String account;
   final CourseVisibility? visibility;
   final ReminderPlatform platform;
   final bool persist;
+  final ReminderPlanningGateway? planner;
+  final Future<String> Function() tasksRoot;
   final DateTime Function() clock;
   final Map<String, int> _read = {};
-  List<ReminderPlan> _checkin = [], _homework = [];
+  List<ReminderPlan> _checkin = [], _homework = [], _course = [], _task = [];
+  final Map<String, int> _planningTickets = {};
   String? activeGroup;
   String? hint;
   bool checkinEnabled = true, homeworkEnabled = true;
+  // Opt-in: do not silently add school reads or new notification groups.
+  bool courseEnabled = false, taskEnabled = false;
   bool _busy = false, _disposed = false;
   bool _restored = false;
   Future<void> _writes = Future.value();
@@ -72,6 +90,8 @@ class ReminderController extends ChangeNotifier {
           jsonDecode(await file.readAsString()) as Map<String, dynamic>;
       checkinEnabled = data['checkin'] != false;
       homeworkEnabled = data['homework'] != false;
+      courseEnabled = data['course'] == true;
+      taskEnabled = data['task'] == true;
       for (final entry
           in (data['read'] as Map<String, dynamic>? ?? {}).entries) {
         if (entry.value is int &&
@@ -91,6 +111,8 @@ class ReminderController extends ChangeNotifier {
     final data = jsonEncode({
       'checkin': checkinEnabled,
       'homework': homeworkEnabled,
+      'course': courseEnabled,
+      'task': taskEnabled,
       'read': _read,
     });
     _writes = _writes
@@ -113,11 +135,19 @@ class ReminderController extends ChangeNotifier {
   List<ReminderPlan> get plans => [
     if (checkinEnabled) ..._checkin,
     if (homeworkEnabled) ..._homework,
+    if (courseEnabled) ..._course,
+    if (taskEnabled) ..._task,
   ].where((p) => p.expires.isAfter(clock())).toList();
+  static String _reminderGroup(String destination) => switch (destination) {
+    'schedule' => 'course',
+    'tasks' => 'task',
+    _ => destination,
+  };
+
   int unread(String group) => plans
       .where(
         (p) =>
-            p.group == group &&
+            p.group == _reminderGroup(group) &&
             !p.at.isAfter(clock()) &&
             !_read.containsKey(digest(p.key)),
       )
@@ -126,7 +156,7 @@ class ReminderController extends ChangeNotifier {
   void markRead(String group) {
     var changed = false;
     for (final plan in plans.where(
-      (p) => p.group == group && !p.at.isAfter(clock()),
+      (p) => p.group == _reminderGroup(group) && !p.at.isAfter(clock()),
     )) {
       final key = digest(plan.key);
       if (!_read.containsKey(key)) {
@@ -148,11 +178,79 @@ class ReminderController extends ChangeNotifier {
   Future<void> setEnabled(String group, bool value) async {
     if (group == 'checkin') {
       checkinEnabled = value;
-    } else {
+    } else if (group == 'homework') {
       homeworkEnabled = value;
+    } else if (group == 'course') {
+      courseEnabled = value;
+      _planningTickets['course'] = (_planningTickets['course'] ?? 0) + 1;
+      if (!value) _course = [];
+    } else if (group == 'task') {
+      taskEnabled = value;
+      _planningTickets['task'] = (_planningTickets['task'] ?? 0) + 1;
+      if (!value) _task = [];
+    } else {
+      throw ArgumentError.value(group, 'group');
     }
     await _save();
     await reconcile();
+  }
+
+  /// Failed or stale school reads never replace a previously accepted plan.
+  Future<void> updateSchedule(ScheduleResponse data) async {
+    if (_disposed || !courseEnabled) return;
+    if (data.failure != null) {
+      hint = '课程提醒未更新，请进入课表核对';
+      return;
+    }
+    try {
+      final seeds = data.courses.isEmpty
+          ? <CourseReminderSeed>[]
+          : courseReminderSeeds(data);
+      await _plan('course', courses: seeds);
+    } catch (_) {
+      if (!_disposed) hint = '课程提醒未更新，课表时间或周次无法确认';
+    }
+  }
+
+  Future<void> updateTasks(List<LocalTaskRecord> tasks) async {
+    if (_disposed || !taskEnabled) return;
+    await _plan('task', tasks: taskReminderSeeds(tasks));
+  }
+
+  Future<void> _plan(
+    String group, {
+    List<CourseReminderSeed> courses = const [],
+    List<TaskReminderSeed> tasks = const [],
+  }) async {
+    final ticket = (_planningTickets[group] ?? 0) + 1;
+    _planningTickets[group] = ticket;
+    final currentPlanner = planner;
+    if (currentPlanner == null) {
+      hint = '当前服务不支持课程／待办提醒计划';
+      return;
+    }
+    try {
+      final result = await currentPlanner.planReminders(
+        courses: courses,
+        tasks: tasks,
+        nowMillis: clock().millisecondsSinceEpoch,
+      );
+      if (_disposed || _planningTickets[group] != ticket) return;
+      if (result.unsupported || result.plans.any((p) => p.group != group)) {
+        hint = '当前服务暂不支持该提醒计划';
+        return;
+      }
+      if (group == 'course') {
+        _course = result.plans;
+      } else {
+        _task = result.plans;
+      }
+      if (result.skipped > 0) hint = '部分提醒时间不明确或已过期，未排程，请进入对应页面核对';
+    } catch (_) {
+      if (!_disposed && _planningTickets[group] == ticket) {
+        hint = '提醒计划暂未更新，已保留仍有效的旧提醒';
+      }
+    }
   }
 
   void updateCheckin(CheckInResponse data) {
@@ -174,6 +272,36 @@ class ReminderController extends ChangeNotifier {
     hint = null;
     // Independent reads: one service failing must not remove the other's plans.
     await Future.wait([
+      if (courseEnabled)
+        () async {
+          final ticket = _planningTickets['course'] ?? 0;
+          try {
+            final data = await service.schedule(forceRefresh: true);
+            if (!_disposed && (_planningTickets['course'] ?? 0) == ticket) {
+              await updateSchedule(data);
+            }
+          } catch (_) {
+            if (!_disposed) hint = '课程提醒未更新，请进入课表重试';
+          }
+        }(),
+      if (taskEnabled)
+        () async {
+          final ticket = _planningTickets['task'] ?? 0;
+          try {
+            final root = await tasksRoot();
+            if (_disposed) return;
+            final data = await editLocalTasks(
+              service,
+              root: root,
+              action: 'load',
+            );
+            if (!_disposed && (_planningTickets['task'] ?? 0) == ticket) {
+              await updateTasks(data);
+            }
+          } catch (_) {
+            if (!_disposed) hint = '待办提醒未更新，请进入待办页重试';
+          }
+        }(),
       () async {
         try {
           final data = await service.checkin(forceRefresh: true);
@@ -272,6 +400,8 @@ class ReminderScope extends StatefulWidget {
   final Widget child;
   static ReminderController? of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<_ReminderData>()?.notifier;
+  static ReminderController? read(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<_ReminderData>()?.notifier;
   @override
   State<ReminderScope> createState() => _ReminderScopeState();
 }

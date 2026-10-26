@@ -5,6 +5,7 @@ import 'apple_widgets.dart';
 import 'loading_widgets.dart';
 import 'mirror_service.dart';
 import 'application/contracts.dart' show SessionResponse, SessionState;
+import 'application/auth_challenge.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({
@@ -14,6 +15,7 @@ class LoginPage extends StatefulWidget {
     required this.onDemo,
     this.initialMessage,
     this.initialCaptcha = false,
+    this.challengeGateway,
   });
 
   final MirrorService service;
@@ -21,6 +23,7 @@ class LoginPage extends StatefulWidget {
   final VoidCallback onDemo;
   final String? initialMessage;
   final bool initialCaptcha;
+  final AuthChallengeGateway? challengeGateway;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -35,11 +38,66 @@ class _LoginPageState extends State<LoginPage> {
   bool showPassword = false;
   late bool needCaptcha = widget.initialCaptcha;
   String? error;
+  LoginChallenge? challenge;
+  bool challengeBusy = false;
+  int challengeEpoch = 0;
+
+  Future<void> loadChallenge({String? expectedId, bool refresh = false}) async {
+    final gateway = widget.challengeGateway;
+    final epoch = ++challengeEpoch;
+    captcha.clear();
+    setState(() {
+      challengeBusy = true;
+      challenge = null;
+    });
+    try {
+      if (gateway == null) throw StateError('unsupported');
+      final result = await gateway.loginChallenge(
+        expectedId: expectedId,
+        refresh: refresh,
+      );
+      if (!mounted || epoch != challengeEpoch) return;
+      setState(() {
+        challenge = result;
+        challengeBusy = false;
+        error = result.textSupported
+            ? '请输入图片中的验证码后继续'
+            : '学校要求的验证方式暂不支持，请前往学校统一认证完成验证后重新登录';
+      });
+    } catch (_) {
+      if (!mounted || epoch != challengeEpoch) return;
+      setState(() {
+        challengeBusy = false;
+        error = '验证码读取失败或已失效，请重新登录获取验证';
+        needCaptcha = false;
+      });
+    }
+  }
+
+  void credentialsChanged() {
+    if (busy || challengeBusy) return;
+    if (needCaptcha || challenge != null || captcha.text.isNotEmpty) {
+      challengeEpoch++;
+      captcha.clear();
+      setState(() {
+        needCaptcha = false;
+        challenge = null;
+        error = null;
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     error = widget.initialMessage;
+    account.addListener(credentialsChanged);
+    password.addListener(credentialsChanged);
+    if (needCaptcha) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) loadChallenge();
+      });
+    }
   }
 
   @override
@@ -51,7 +109,16 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> submit() async {
-    if (busy) return;
+    if (busy || challengeBusy) return;
+    if (needCaptcha &&
+        (challenge?.textSupported != true || captcha.text.trim().isEmpty)) {
+      setState(
+        () => error = challenge?.textSupported == true
+            ? '请输入验证码'
+            : '当前验证方式尚未就绪或不支持，请刷新验证或重新登录',
+      );
+      return;
+    }
     final studentId = account.text.trim();
     if (studentId.isEmpty || password.text.isEmpty) {
       setState(() => error = '请输入学号和密码');
@@ -91,6 +158,9 @@ class _LoginPageState extends State<LoginPage> {
           );
           if (!mounted) return;
         }
+        captcha.clear();
+        challengeEpoch++;
+        challenge = null;
         widget.onSignedIn(response);
         return;
       }
@@ -102,7 +172,10 @@ class _LoginPageState extends State<LoginPage> {
             : response.failure == null
             ? '登录未完成，请重试'
             : failureMessage(response.failure);
+        captcha.clear();
+        challenge = null;
       });
+      if (needCaptcha) await loadChallenge(expectedId: response.captchaId);
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -217,7 +290,7 @@ class _LoginPageState extends State<LoginPage> {
                               autofillHints: const [AutofillHints.password],
                               onSubmitted: (_) => submit(),
                             ),
-                            if (needCaptcha)
+                            if (needCaptcha && challenge?.textSupported == true)
                               _field(
                                 key: const Key('login-captcha'),
                                 controller: captcha,
@@ -230,6 +303,37 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
+                    if (needCaptcha) ...[
+                      if (challengeBusy)
+                        const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text('正在读取验证码…'),
+                        ),
+                      if (challenge case final current?
+                          when current.textSupported)
+                        Semantics(
+                          label: '登录验证码图片，请输入图片中的字符',
+                          image: true,
+                          child: Image.memory(
+                            current.image,
+                            height: 90,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, _, _) =>
+                                const Text('图片无法显示，请刷新验证'),
+                          ),
+                        ),
+                      if (challenge != null)
+                        CupertinoButton(
+                          key: const Key('login-captcha-refresh'),
+                          onPressed: busy || challengeBusy
+                              ? null
+                              : () => loadChallenge(
+                                  expectedId: challenge!.id,
+                                  refresh: true,
+                                ),
+                          child: const Text('刷新验证'),
+                        ),
+                    ],
                     const SizedBox(height: 12),
                     Row(
                       children: [
@@ -263,7 +367,12 @@ class _LoginPageState extends State<LoginPage> {
                       key: const Key('login-submit'),
                       borderRadius: BorderRadius.circular(16),
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      onPressed: busy ? null : submit,
+                      onPressed:
+                          busy ||
+                              challengeBusy ||
+                              (needCaptcha && challenge?.textSupported != true)
+                          ? null
+                          : submit,
                       child: busy
                           ? ColorFiltered(
                               // The filled button keeps the brand leaf legible
@@ -285,7 +394,10 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      '记住的密码保存在本机，退出登录时删除',
+                      '记住的密码保存在本机系统安全存储，退出登录时删除。'
+                      '校外使用部分服务时，WebVPN 网关可能需要再次认证；'
+                      '保存密码可用于重建网关会话，不代表密码会交给项目服务器。'
+                      '不保存也可登录，但可能需要手动重新认证。验证码不会保存。',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
@@ -325,7 +437,7 @@ class _LoginPageState extends State<LoginPage> {
       key: key,
       controller: controller,
       placeholder: placeholder,
-      enabled: !busy,
+      enabled: !busy && !challengeBusy,
       obscureText: obscure && !showPassword,
       prefix: Padding(
         padding: const EdgeInsets.only(left: 16),

@@ -8,6 +8,7 @@ import 'homework_detail_page.dart';
 import 'loading_widgets.dart';
 import 'mirror_service.dart';
 import 'task_editor.dart';
+import 'reminders.dart';
 
 enum _TaskAction { edit, delete }
 
@@ -97,6 +98,8 @@ class _TasksPageState extends State<TasksPage> {
     final epoch = generation;
     final gateway = service;
     final rootOverride = widget.storageRoot;
+    // Keep the old account's controller, never resolve a new one after await.
+    final reminders = ReminderScope.read(context);
     setState(() {
       busyLabel = action == 'load' ? '正在读取待办…' : '正在保存待办…';
       busy = true;
@@ -121,6 +124,8 @@ class _TasksPageState extends State<TasksPage> {
         readable = true;
       });
       locate();
+      await reminders?.updateTasks(updated);
+      await reminders?.reconcile();
       return true;
     } catch (_) {
       if (mounted && epoch == generation) {
@@ -266,6 +271,7 @@ class _TasksPageState extends State<TasksPage> {
         await sourceUnavailable();
         return;
       }
+      if (!mounted) return;
       await Navigator.of(context).push(
         CupertinoPageRoute(
           builder: (_) => HomeworkDetailPage(

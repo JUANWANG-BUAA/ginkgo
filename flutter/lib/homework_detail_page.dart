@@ -12,6 +12,8 @@ import 'school_timestamp.dart';
 import 'application/contracts.dart';
 import 'homework_projection.dart';
 import 'today_time.dart';
+import 'application/homework_files.dart';
+import 'homework_files_panel.dart';
 
 class HomeworkDetailPage extends StatefulWidget {
   const HomeworkDetailPage({
@@ -180,10 +182,10 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                     // uses the freshest status, not the stale list item.
                     if (!_latestSubmitted &&
                         homeworkRelativeDeadline(
-                          data?.dueAt ?? widget.item.dueAt,
-                          todaySchoolNow(DateTime.now()),
-                        ) !=
-                        null) ...[
+                              data?.dueAt ?? widget.item.dueAt,
+                              todaySchoolNow(DateTime.now()),
+                            ) !=
+                            null) ...[
                       const SizedBox(height: 6),
                       Text(
                         homeworkRelativeDeadline(
@@ -193,7 +195,8 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: isHomeworkOverdue(
+                          color:
+                              isHomeworkOverdue(
                                 data?.dueAt ?? widget.item.dueAt,
                                 todaySchoolNow(DateTime.now()),
                               )
@@ -219,7 +222,9 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                         style: TextStyle(
                           fontSize: 12,
                           height: 1.4,
-                          color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                          color: CupertinoColors.secondaryLabel.resolveFrom(
+                            context,
+                          ),
                         ),
                       ),
                     ],
@@ -318,8 +323,16 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
           if (widget.item.status == HomeworkStatus.unknown &&
               widget.item.statusDetail != null)
             AppleSection(children: [_field('上游状态', widget.item.statusDetail!)]),
+          if (widget.service case final HomeworkFilesGateway files)
+            HomeworkFilesPanel(
+              assignmentId: widget.item.id,
+              title: widget.item.title,
+              course: widget.item.courseName,
+              gateway: files,
+              onSubmitted: () => load(force: true),
+            ),
           AppleSection(
-            footer: const Text('附件与提交请前往 SPOC。'),
+            footer: const Text('不支持的提交类型及结果未知时，请在 SPOC 官网核对。'),
             children: [
               AppleListTile(
                 leading: const Icon(

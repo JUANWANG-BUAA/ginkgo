@@ -32,6 +32,12 @@ class _LibraryPageState extends State<LibraryPage> {
     controller.load();
   }
 
+  @override
+  void didUpdateWidget(LibraryPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service) controller.invalidate();
+  }
+
   void _changed() => setState(() {});
 
   @override

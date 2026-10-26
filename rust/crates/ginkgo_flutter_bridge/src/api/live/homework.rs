@@ -93,3 +93,140 @@ pub(super) async fn load_homework_detail(
         },
     }
 }
+
+static FILE_WRITE: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+fn bound_service(expected: &str) -> Result<&'static LiveService, AppError> {
+    let service = service()?;
+    if expected.trim().is_empty() || service.status().account.as_deref() != Some(expected) {
+        return Err(AppError::session_expired());
+    }
+    Ok(service)
+}
+fn file_response<T: serde::Serialize>(result: Result<T, AppError>) -> ReadOnlyResponse {
+    match result {
+        Ok(value) => ReadOnlyResponse {
+            payload: serde_json::to_string(&value).ok(),
+            stale: false,
+            failure: None,
+        },
+        Err(error) => ReadOnlyResponse {
+            payload: None,
+            stale: false,
+            failure: Some(error.code.into()),
+        },
+    }
+}
+pub(super) async fn file_workspace(expected: String, id: String) -> ReadOnlyResponse {
+    let _session = SESSION_ACCESS.read().await;
+    file_response(match bound_service(&expected) {
+        Ok(s) => bounded_read(s.homework_workspace(&id)).await,
+        Err(e) => Err(e),
+    })
+}
+pub(super) async fn upload_file(
+    expected: String,
+    id: String,
+    name: String,
+    bytes: Vec<u8>,
+) -> ReadOnlyResponse {
+    let Ok(_write) = FILE_WRITE.try_lock() else {
+        return file_response::<u8>(Err(AppError::invalid()));
+    };
+    let _session = SESSION_ACCESS.read().await;
+    let result = async {
+        let s = bound_service(&expected)?;
+        tokio::time::timeout(
+            std::time::Duration::from_secs(180),
+            s.upload_homework_file(&id, &name, bytes),
+        )
+        .await
+        .map_err(|_| AppError::unavailable())?
+    }
+    .await;
+    file_response(result)
+}
+pub(super) async fn submit_file(
+    expected: String,
+    handle: String,
+    confirmed: bool,
+    reconcile: bool,
+) -> MutationResponse {
+    let Ok(_write) = FILE_WRITE.try_lock() else {
+        return MutationResponse {
+            state: "notSubmitted".into(),
+            message: "作业操作处理中，请勿重复提交".into(),
+        };
+    };
+    let _session = SESSION_ACCESS.read().await;
+    let Ok(s) = bound_service(&expected) else {
+        return MutationResponse {
+            state: "notSubmitted".into(),
+            message: "账号已变化，未提交".into(),
+        };
+    };
+    let outcome = if reconcile {
+        bounded_submit(s.reconcile_homework_file(&handle)).await
+    } else {
+        bounded_submit(s.submit_homework_file(&handle, confirmed)).await
+    };
+    mutation_response(
+        outcome.unwrap_or_else(ginkgo_core::features::mutation::MutationOutcome::uncertain),
+    )
+}
+pub(super) async fn download_file(
+    expected: String,
+    id: String,
+    attachment: String,
+) -> HomeworkFileDownloadResponse {
+    let _session = SESSION_ACCESS.read().await;
+    let result = async {
+        let s = bound_service(&expected)?;
+        bounded_read(s.download_homework_file(&id, &attachment)).await
+    }
+    .await;
+    match result {
+        Ok(file) => HomeworkFileDownloadResponse {
+            name: Some(file.name),
+            bytes: Some(file.bytes),
+            failure: None,
+        },
+        Err(e) => HomeworkFileDownloadResponse {
+            name: None,
+            bytes: None,
+            failure: Some(e.code.into()),
+        },
+    }
+}
+
+pub(super) async fn configure_recovery(expected: String, root: String) -> ReadOnlyResponse {
+    let _write = FILE_WRITE.lock().await;
+    let _session = SESSION_ACCESS.read().await;
+    file_response(bound_service(&expected).and_then(|s| s.configure_homework_recovery(&root)))
+}
+pub(super) async fn pending_submissions(
+    expected: String,
+    assignment: Option<String>,
+) -> ReadOnlyResponse {
+    let _session = SESSION_ACCESS.read().await;
+    file_response(
+        async {
+            let mut items =
+                bounded_read(bound_service(&expected)?.pending_homework_submissions()).await?;
+            if let Some(id) = assignment {
+                items.retain(|item| item.assignment_id == id);
+            }
+            Ok(items)
+        }
+        .await,
+    )
+}
+pub(super) async fn capabilities(expected: String, id: String) -> ReadOnlyResponse {
+    let _session = SESSION_ACCESS.read().await;
+    file_response(
+        async {
+            bounded_read(async { Ok(bound_service(&expected)?.homework_capabilities(&id).await) })
+                .await
+        }
+        .await,
+    )
+}

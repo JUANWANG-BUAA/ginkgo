@@ -1,16 +1,26 @@
 package cn.edu.buaa.ginkgo.ginkgo_mirror
 
 import android.os.Bundle
+import android.content.Intent
 import android.util.Log
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugin.common.StandardMethodCodec
 
 class MainActivity : FlutterActivity() {
+    private var homeworkFileSaver: HomeworkFileSaver? = null
     private var settingsHandler: SystemSettingsHandler? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        homeworkFileSaver = HomeworkFileSaver(this).also {
+            MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/homework-files").setMethodCallHandler(it)
+        }
+        val messenger = flutterEngine.dartExecutor.binaryMessenger
+        MethodChannel(messenger, "cn.edu.buaa.ginkgo/learning-snapshots",
+            StandardMethodCodec.INSTANCE, messenger.makeBackgroundTaskQueue())
+            .setMethodCallHandler(LearningSnapshotHandler(applicationContext))
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/update")
             .setMethodCallHandler(UpdateInstaller(this))
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/reminders")
@@ -19,6 +29,17 @@ class MainActivity : FlutterActivity() {
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/system")
                 .setMethodCallHandler(it)
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (homeworkFileSaver?.onResult(requestCode, resultCode, data) == true) return
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onDestroy() {
+        homeworkFileSaver?.dispose()
+        homeworkFileSaver = null
+        super.onDestroy()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {

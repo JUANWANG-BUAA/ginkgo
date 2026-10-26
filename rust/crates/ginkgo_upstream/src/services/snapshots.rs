@@ -24,6 +24,7 @@ pub(crate) type LibraryBookingCache = SnapshotCache<String, Vec<LibraryBooking>>
 
 #[derive(Default)]
 pub(crate) struct ReadSnapshots {
+    pub(crate) learning: super::learning_service::LearningSnapshots,
     pub(crate) classrooms: Mutex<ClassroomCache>,
     pub(crate) schedules: Mutex<ScheduleCache>,
     pub(crate) cgyy: Mutex<SnapshotCache<String, ginkgo_domain::ports::CgyyData>>,
@@ -46,6 +47,7 @@ pub(crate) struct ReadSnapshots {
 
 impl ReadSnapshots {
     pub fn clear(&self) {
+        self.learning.clear();
         self.classrooms.lock().clear();
         self.schedules.lock().clear();
         self.cgyy.lock().clear();
@@ -63,5 +65,29 @@ impl ReadSnapshots {
         self.library_stats.lock().clear();
         self.library_history.lock().clear();
         self.library_bookings.lock().clear();
+    }
+
+    /// How often one of the snapshot locks was recovered from a poisoned state.
+    ///
+    /// A non-zero value means a panic interrupted a snapshot update. The
+    /// snapshot was kept, but the event stays visible to the caller.
+    pub fn poison_events(&self) -> u64 {
+        self.classrooms.poison_count()
+            + self.schedules.poison_count()
+            + self.cgyy.poison_count()
+            + self.notices.poison_count()
+            + self.graduate.poison_count()
+            + self.bykc.poison_count()
+            + self.bykc_chosen.poison_count()
+            + self.bykc_statistics.poison_count()
+            + self.homework.poison_count()
+            + self.homework_details.poison_count()
+            + self.today.poison_count()
+            + self.grades.poison_count()
+            + self.checkin.poison_count()
+            + self.library_stats.poison_count()
+            + self.library_venues.poison_count()
+            + self.library_bookings.poison_count()
+            + self.library_history.poison_count()
     }
 }

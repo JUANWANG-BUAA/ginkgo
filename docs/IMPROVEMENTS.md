@@ -7,7 +7,7 @@
 Ginkgo 已经越过“能查询”的阶段：CAS、课表、成绩、作业、图书馆、空教室、签到、待办都有实际实现。Apple 自动化证据按日期维护于 [TESTING](TESTING.md)。新增博雅、研讨室空档和研究生教务页面后，数据面已从基础教务扩展到课程素养、空间预约与培养过程。当前最大的改进空间不在继续堆功能，而在以下三条主线：
 
 1. **把跨语言行为固定为可执行契约**：Swift / Rust 已共用规则样例和部分解析契约，下一步扩签到 / 图书馆 / 博雅等高风险模块；范围见 [fixtures](../fixtures/README.md)。
-2. **维护 Rust + Flutter 的分层与验收边界**：Android 与 Windows Alpha.4 均已发布，主要只读链路和部分实验写路径已接入；真实写入、Windows 实机覆盖和最近认证异常仍待验收。当前事实只维护在 [镜像入口](MIRROR-IMPLEMENTATION.md)，Windows 发布边界见 [首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)，本次架构修复见 [Opus 5.5 评审落实](_audit/2026-10-21-opus-review-followup.md)。
+2. **维护 Rust + Flutter 的分层与验收边界**：Android Alpha.8 与 Windows Alpha.6 均已发布，主要只读链路和部分实验写路径已接入；真实写入、Windows 实机覆盖和最近认证异常仍待验收。当前事实只维护在 [镜像入口](MIRROR-IMPLEMENTATION.md)，Windows 发布边界见 [首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)，本次架构修复见 [Opus 5.5 评审落实](_audit/2026-10-21-opus-review-followup.md)。
 3. **并行完成 Apple 产品质量闭环**：iOS 真机、可访问性、隐私生命周期和 CI 仍是 Apple 端自己的验收事项，不应被新平台准备取代。
 
 ## 1. P0：应先解决的工程与质量风险
@@ -225,7 +225,7 @@ Ginkgo 已经越过“能查询”的阶段：CAS、课表、成绩、作业、�
 ## 2026-10-20 · Alpha 基线与镜像开发启动
 
 - 完成 macOS 全量 XCTest 与 iOS 27.0 / iPhone 17 Pro 模拟器 XCTest；当前有 219 个 XCTest 方法。真实设备、真实账号写操作与签名公证仍独立验收。
-- 发布目标推进至 `0.1.0-alpha.8` 草稿包，作为 Swift/SwiftUI 基线；GitHub Draft Release 生成后仍须人工核对资产，不自动公开。
+- 发布目标推进至 `0.1.0-alpha.8` 草稿包，作为 Swift/SwiftUI 基线；GitHub Draft Release 生成后仍须人工核对资产，不自动公开。（注：此处 `0.1.0-alpha.8` 是 Apple 端草稿包；Android 同名 Alpha.8 已于 2026-10-25 公开发布，两者为不同产物。）
 - 将镜像文档从原则性准备扩展为可执行里程碑：Rust workspace/fixture runner、classroom 纯逻辑垂直切片、只读真实用例、认证/WebVPN、扩大只读范围、写操作最后评审。
 - 平台范围冻结为 Android + Windows；Apple 保持 SwiftUI。“镜像”按用户任务与数据语义对齐，不要求像素级复制系统控件。Rust/Flutter 工程仍未创建。
 

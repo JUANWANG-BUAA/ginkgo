@@ -12,6 +12,14 @@ pub trait GraduateSource: Send + Sync {
         &self,
         force: bool,
     ) -> impl std::future::Future<Output = Result<GraduateOutcome, AppError>> + Send;
+    /// Execution-report-only read. Existing fakes may delegate to Report; real
+    /// adapters override this to preserve errors rather than returning a pool.
+    fn load_graduate_execution(
+        &self,
+        force: bool,
+    ) -> impl std::future::Future<Output = Result<GraduateOutcome, AppError>> + Send {
+        self.load_graduate_part(GraduatePart::Report, force)
+    }
     fn load_graduate_part(
         &self,
         part: GraduatePart,
