@@ -4,6 +4,8 @@ cd "$(dirname "$0")/.."
 source scripts/rust-toolchain-env.sh
 python3 scripts/check-mirror-architecture.py
 python3 scripts/check-mirror-architecture-test.py
+python3 scripts/check-design-tokens.py
+python3 scripts/generate-interface-index.py --check
 cargo fmt --manifest-path rust/Cargo.toml --all --check
 cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets --all-features --locked -- -D warnings
 cargo test --manifest-path rust/Cargo.toml -p ginkgo_core --no-default-features --locked

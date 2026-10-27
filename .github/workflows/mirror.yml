@@ -3,9 +3,9 @@ name: Rust Flutter mirror
 on:
   push:
     branches: [main]
-    paths: ['rust/**', 'flutter/**', 'fixtures/**', 'scripts/*mirror*', '.github/workflows/mirror.yml']
+    paths: ['rust/**', 'flutter/**', 'fixtures/**', 'scripts/**', 'docs/interfaces/**', '.github/workflows/mirror.yml']
   pull_request:
-    paths: ['rust/**', 'flutter/**', 'fixtures/**', 'scripts/*mirror*', '.github/workflows/mirror.yml']
+    paths: ['rust/**', 'flutter/**', 'fixtures/**', 'scripts/**', 'docs/interfaces/**', '.github/workflows/mirror.yml']
   workflow_dispatch:
 
 jobs:
@@ -20,6 +20,8 @@ jobs:
           components: rustfmt, clippy
       - run: python3 scripts/check-mirror-architecture.py
       - run: python3 scripts/check-mirror-architecture-test.py
+      - run: python3 scripts/check-design-tokens.py
+      - run: python3 scripts/generate-interface-index.py --check
       - run: cargo fmt --manifest-path rust/Cargo.toml --all --check
       - run: cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets --all-features --locked -- -D warnings
       - run: cargo test --manifest-path rust/Cargo.toml -p ginkgo_core --no-default-features --locked

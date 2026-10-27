@@ -1,4 +1,4 @@
-# Automatable part of an Android alpha release: build the signed ARM64
+# Automatable part of an Android release: build the signed ARM64
 # production entrypoint, verify it, and upload workflow artifacts.
 # Publishing stays manual: the maintainer still runs the real-device upgrade
 # and release-notes checklist before creating the GitHub prerelease.
@@ -6,7 +6,7 @@
 # GINKGO_ANDROID_KEYSTORE_PASSWORD, GINKGO_ANDROID_KEY_ALIAS,
 # GINKGO_ANDROID_KEY_PASSWORD. The Gradle release build requires the external
 # signing file and never falls back to the debug key.
-name: Android Alpha Release
+name: Android Release
 
 on:
   push:
@@ -59,7 +59,7 @@ jobs:
             fi
           done
           [ "$missing" -eq 0 ]
-          keystore="$RUNNER_TEMP/ginkgo-alpha.keystore"
+          keystore="$RUNNER_TEMP/ginkgo-release.keystore"
           printf '%s' "$GINKGO_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore"
           properties="$RUNNER_TEMP/ginkgo-signing.properties"
           {
