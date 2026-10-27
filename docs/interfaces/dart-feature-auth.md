@@ -6,9 +6,9 @@
 
 `flutter/lib/features/auth/` 的页面、域内组件与模型。
 
-## LoginPage (class)
+## features/auth/login_page.dart
 
-- `class LoginPage extends StatefulWidget {`  
-  <sub>features/auth/login_page.dart:10</sub>
-    - `const LoginPage({ super.key, required this.service, required this.onSignedIn, required this.onDemo, this.initialMessage, this.initialCaptcha = false,…`  <sub>:11</sub>
+- `class LoginPage extends StatefulWidget`  
+  <sub>class · features/auth/login_page.dart:10</sub>
+    - `const LoginPage( {…}`  <sub>:11</sub>
     - `State<LoginPage> createState() => _LoginPageState();`  <sub>:29</sub>

@@ -6,17 +6,17 @@
 
 CupertinoApp 组合与主题桥接。
 
-## GinkgoRoot (class)
+## main.dart
 
-- `class GinkgoRoot extends StatefulWidget {` — Chooses between the real-account session and the explicit offline demo.  
-  <sub>main.dart:54</sub>
-    - `const GinkgoRoot({ super.key, this.liveService = const NativeMirrorService(), this.demoService = const DemoMirrorService(), this.loadUpdateGate, this…`  <sub>:55</sub>
+- `class GinkgoRoot extends StatefulWidget` — Chooses between the real-account session and the explicit offline demo.  
+  <sub>class · main.dart:54</sub>
+    - `const GinkgoRoot( {…}`  <sub>:55</sub>
     - `final Future<UpdateGate?> Function()? loadUpdateGate;` — 启动时读取最低版本清单；测试与离线场景传 null 即跳过门禁。  <sub>:71</sub>
     - `State<GinkgoRoot> createState() => _GinkgoRootState();`  <sub>:73</sub>
 
-## StartupPage (class)
+## startup_page.dart
 
-- `class StartupPage extends StatelessWidget {` — A single, quiet entrance while restoration runs; never delays navigation.  
-  <sub>startup_page.dart:7</sub>
-    - `const StartupPage({super.key});`  <sub>:8</sub>
-    - `Widget build(BuildContext context) { final reducedMotion = MediaQuery.disableAnimationsOf(context); final brand = Column( mainAxisSize: MainAxisSize.…`  <sub>:11</sub>
+- `class StartupPage extends StatelessWidget` — A single, quiet entrance while restoration runs; never delays navigation.  
+  <sub>class · startup_page.dart:7</sub>
+    - `const StartupPage( {…}`  <sub>:8</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:11</sub>

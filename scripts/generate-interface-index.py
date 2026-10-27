@@ -23,6 +23,8 @@ FLUTTER_LIB = REPO / 'flutter' / 'lib'
 RUST_CRATES = REPO / 'rust' / 'crates'
 
 SIGNATURE_LIMIT = 150
+# 截断时保留尾部：返回类型是接口最重要的信息，不能被切掉。
+TAIL_KEEP = 60
 
 RUST_CRATE_ORDER = [
     'ginkgo_domain',
@@ -55,10 +57,61 @@ class Section:
 
 
 def collapse(text: str) -> str:
-    """把跨行签名压成单行，并限制长度。"""
+    """把跨行签名压成单行；超长时按参数边界智能缩写，保留返回类型。"""
     flat = re.sub(r'\s+', ' ', text).strip()
-    if len(flat) > SIGNATURE_LIMIT:
-        return flat[: SIGNATURE_LIMIT - 1] + '…'
+    flat = normalize_future(flat)
+    if len(flat) <= SIGNATURE_LIMIT:
+        return flat
+    return abbreviate(flat)
+
+
+FUTURE_PATTERN = re.compile(
+    r'impl (?:std::future::Future|Future)\s*<\s*Output\s*=\s*(.+?)\s*>\s*\+\s*Send')
+
+
+def normalize_future(text: str) -> str:
+    """把 `impl Future<Output = T> + Send` 缩写为 `Future<T>`。
+
+    这是本仓库端口方法的统一形态；保留原始 T 让返回类型一眼可见。
+    """
+    return FUTURE_PATTERN.sub(lambda m: f'Future<{m.group(1)}>', text)
+
+
+def abbreviate(flat: str) -> str:
+    """超长签名按结构缩写：保留函数名、首个参数与完整返回类型。"""
+    # 定位参数括号与返回箭头，保证箭头之后的返回类型不被切断。
+    arrow = flat.find(') -> ')
+    if arrow < 0:
+        head = flat[: SIGNATURE_LIMIT - TAIL_KEEP - 3].rstrip()
+        return f'{head} … {flat[-TAIL_KEEP:].lstrip()}'
+    open_paren = flat.find('(')
+    prefix = flat[:open_paren]
+    params = flat[open_paren + 1 : arrow]
+    returns = flat[arrow + 1 :]
+    first_param = params.split(',')[0].strip() if params.strip() else ''
+    elided = '…' if ',' in params else ''
+    combined = f'{prefix}({first_param}{elided}) {returns}'
+    if len(combined) <= SIGNATURE_LIMIT:
+        return combined
+    keep = SIGNATURE_LIMIT - len(prefix) - 8
+    return f'{prefix}(…{elided}) {returns[-keep:]}'
+
+
+def signature_only(text: str) -> str:
+    """截取声明签名，丢弃函数体。
+
+    函数体是实现细节，混进索引只会淹没返回类型；按首个语句块大括号切分。
+    """
+    flat = re.sub(r'\s+', ' ', text).strip()
+    # 找到签名部分：第一个 `{` 之前的内容（排除结构体字面量外的块）。
+    depth = 0
+    for index, char in enumerate(flat):
+        if char == '{':
+            if depth == 0:
+                return flat[:index].rstrip() + ' {…}'
+            depth += 1
+        elif char == '}':
+            depth -= 1
     return flat
 
 
@@ -160,8 +213,8 @@ def scan_rust(path: Path, crate: str) -> Section:
 
         if kind in {'trait', 'struct', 'enum'}:
             end = block_end(lines, index)
-            # 头部只保留声明行，方法逐个列出，避免签名被截断掩盖接口。
-            header = collapse(lines[index])
+            # 头部只保留声明行，成员逐个列出，避免签名被截断掩盖接口。
+            header = collapse(lines[index].rstrip(' {').rstrip())
             entry = Entry(name=name, kind=kind, signature=header, doc=doc,
                           location=f'{relative}:{index + 1}')
             if kind == 'trait':
@@ -174,7 +227,9 @@ def scan_rust(path: Path, crate: str) -> Section:
 
         if kind in {'fn', 'type'}:
             end = balanced_end(lines, index, ';{')
-            signature = collapse('\n'.join(lines[index : end + 1]))
+            # 函数只取签名，实现体不进入索引。
+            body = '\n'.join(lines[index : end + 1])
+            signature = collapse(signature_only(body) if kind == 'fn' else body)
             section.entries.append(
                 Entry(name=name, kind=kind, signature=signature, doc=doc,
                       location=f'{relative}:{index + 1}'))
@@ -226,9 +281,11 @@ def rust_trait_members(lines: list[str], start: int, end: int) -> list[Entry]:
         name = match.group('name') or match.group('assoc') or match.group('konst')
         stop = ';{' if match.group('name') else ';'
         item_end = balanced_end(lines, index, stop)
+        body = '\n'.join(lines[index:item_end + 1])
+        is_method = match.group('name') is not None
         members.append(
-            Entry(name=name, kind='method' if match.group('name') else 'assoc',
-                  signature=collapse('\n'.join(lines[index:item_end + 1])),
+            Entry(name=name, kind='method' if is_method else 'assoc',
+                  signature=collapse(signature_only(body) if is_method else body),
                   doc=doc_head(lines, index),
                   location=f':{index + 1}'))
         index = item_end + 1
@@ -247,10 +304,14 @@ DART_MEMBER = re.compile(
 
 
 def scan_dart(path: Path) -> list[Section]:
-    """解析单个 Dart 文件的公开类型与成员。"""
+    """解析单个 Dart 文件的公开类型与成员。
+
+    一个文件渲染为一个分组（而不是每个类一个分组）：按类拆分会让目录比条目
+    更冗长，反而不利于浏览。
+    """
     lines = path.read_text(encoding='utf-8').splitlines()
     relative = path.relative_to(FLUTTER_LIB).as_posix()
-    sections: list[Section] = []
+    entries: list[Entry] = []
     index = 0
     while index < len(lines):
         match = DART_TOP.match(lines[index])
@@ -260,19 +321,20 @@ def scan_dart(path: Path) -> list[Section]:
         kind = match.group('kind')
         name = match.group('name')
         if name.startswith('_'):
-            index = balanced_end(lines, index, '{;') + 1
+            index = block_end(lines, index) + 1
             continue
         doc = doc_head(lines, index)
         end = block_end(lines, index) if kind in {'class', 'mixin', 'enum', 'extension'} else balanced_end(lines, index, ';')
         entry = Entry(name=name, kind=kind,
-                      signature=collapse(lines[index]),
+                      signature=collapse(lines[index].rstrip(' {').rstrip()),
                       doc=doc, location=f'{relative}:{index + 1}')
         if kind in {'class', 'mixin', 'enum', 'extension'}:
             entry.members = dart_members(lines, index, end)
-        sections.append(Section(title=f'{name} ({kind})', location=f'{relative}:{index + 1}',
-                                entries=[entry]))
+        entries.append(entry)
         index = end + 1
-    return sections
+    if not entries:
+        return []
+    return [Section(title=relative, location=relative, entries=entries)]
 
 
 def dart_members(lines: list[str], start: int, end: int) -> list[Entry]:
@@ -291,21 +353,39 @@ def dart_members(lines: list[str], start: int, end: int) -> list[Entry]:
             continue
         stop = ';' if sig.endswith(';') else '{;'
         member_end = balanced_end(lines, index, stop)
+        body = '\n'.join(lines[index:member_end + 1])
+        # 抽象成员保留完整声明；有实现体的成员只保留签名。
+        rendered = collapse(body) if sig.endswith(';') else collapse(signature_only(body))
         members.append(
             Entry(name=identifier.group(1), kind='member',
-                  signature=collapse('\n'.join(lines[index:member_end + 1])),
+                  signature=rendered,
                   doc=doc_head(lines, index),
                   location=f':{index + 1}'))
         index = member_end + 1
     return members
 
 
+def slugify(text: str) -> str:
+    """生成 GitHub 风格锚点。"""
+    lowered = text.strip().lower()
+    lowered = re.sub(r'[`*_]', '', lowered)
+    lowered = re.sub(r'[^\w\u4e00-\u9fff\s-]', '', lowered)
+    return re.sub(r'\s+', '-', lowered)
+
+
 def render_sections(sections: list[Section], heading_level: int = 2) -> list[str]:
-    """渲染分组为 Markdown。"""
+    """渲染分组为 Markdown；超过 8 个分组时先给目录。"""
     output: list[str] = []
-    for section in sections:
-        if not section.entries:
-            continue
+    visible = [section for section in sections if section.entries]
+    if len(visible) > 8:
+        output.append('## 目录')
+        output.append('')
+        for section in visible:
+            count = len(section.entries)
+            output.append(f'- [{section.title}](#{slugify(section.title)}) ({count})')
+        output.append('')
+
+    for section in visible:
         output.append(f'{"#" * heading_level} {section.title}')
         output.append('')
         for entry in section.entries:
@@ -313,7 +393,7 @@ def render_sections(sections: list[Section], heading_level: int = 2) -> list[str
             doc = cell(entry.doc)
             suffix = f' — {doc}' if doc else ''
             output.append(f'- `{signature}`{suffix}  ')
-            output.append(f'  <sub>{entry.location}</sub>')
+            output.append(f'  <sub>{entry.kind} · {entry.location}</sub>')
             for member in entry.members:
                 member_doc = f' — {cell(member.doc)}' if member.doc else ''
                 output.append(
@@ -466,6 +546,8 @@ def main() -> None:
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     totals: list[tuple[str, str, int]] = []
+    # 反向索引：源码文件 -> 该文件暴露的接口，用于从代码位置回查能力。
+    reverse: dict[str, list[str]] = {}
 
     rust_groups = group_rust()
     for key, filename, title, note in RUST_LAYERS:
@@ -474,6 +556,7 @@ def main() -> None:
             continue
         count = write(f'rust-{filename}.md', title, sections, note)
         totals.append((f'rust-{filename}.md', title, count))
+        collect_reverse(reverse, sections, f'rust-{filename}.md')
 
     dart_layers, dart_features = group_dart()
     for key, title, note in DART_LAYERS:
@@ -482,13 +565,16 @@ def main() -> None:
             continue
         count = write(f'dart-{key}.md', title, sections, note)
         totals.append((f'dart-{key}.md', title, count))
+        collect_reverse(reverse, sections, f'dart-{key}.md')
 
     for domain in sorted(dart_features):
         sections = dart_features[domain]
         count = write(f'dart-feature-{domain}.md', f'Flutter 功能域：{domain}', sections,
                       f'`flutter/lib/features/{domain}/` 的页面、域内组件与模型。')
         totals.append((f'dart-feature-{domain}.md', f'Flutter 功能域：{domain}', count))
+        collect_reverse(reverse, sections, f'dart-feature-{domain}.md')
 
+    write_reverse(reverse)
     write_readme(totals)
 
     if check:
@@ -503,6 +589,35 @@ def main() -> None:
         return
 
     print(f'generated {len(totals)} index files, {sum(t[2] for t in totals)} entries')
+
+
+def collect_reverse(reverse: dict[str, list[str]], sections: list[Section],
+                    index_file: str) -> None:
+    """累积「源码文件 -> 接口名（所属索引页）」的反向映射。"""
+    for section in sections:
+        source = section.location.split(':')[0]
+        bucket = reverse.setdefault(source, [])
+        for entry in section.entries:
+            bucket.append(f'{entry.name} → {index_file}')
+
+
+def write_reverse(reverse: dict[str, list[str]]) -> None:
+    """生成源码文件到接口的反向索引。"""
+    lines = [
+        '# 反向索引：源码文件 → 接口',
+        '',
+        HEADER,
+        '从代码位置回查它暴露了哪些接口，以及这些接口记录在哪个索引页。',
+        '按路径排序；同一文件内的接口保持源码顺序。',
+        '',
+        '| 源码文件 | 接口（→ 索引页） |',
+        '| --- | --- |',
+    ]
+    for source in sorted(reverse):
+        names = reverse[source]
+        joined = '<br>'.join(cell(name) for name in names)
+        lines.append(f'| `{source}` | {joined} |')
+    (OUT_DIR / 'REVERSE-INDEX.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
 
 
 def snapshot() -> dict[str, str]:
@@ -528,7 +643,11 @@ def write_readme(totals: list[tuple[str, str, int]]) -> None:
     for filename, title, count in totals:
         lines.append(f'| [{title}]({filename}) | `{filename}` | {count} |')
     lines.append('')
-    lines.append('分层说明、能力总表与跨层不变量见 [INTERFACE-INDEX.md](../INTERFACE-INDEX.md)。')
+    lines.append('## 快速导航')
+    lines.append('')
+    lines.append('- 从代码位置回查接口：[反向索引](REVERSE-INDEX.md)')
+    lines.append('- 分层说明、能力总表、模块 IO 与跨层不变量：[INTERFACE-INDEX.md](../INTERFACE-INDEX.md)')
+    lines.append('- 学校协议事实：[API.md](../API.md)')
     (OUT_DIR / 'README.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
 
 

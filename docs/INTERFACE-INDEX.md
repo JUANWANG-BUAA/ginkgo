@@ -40,6 +40,7 @@ Flutter 页面
 | 设计系统 | token 与共享组件 | — | [dart-design](interfaces/dart-design.md)、[dart-widgets](interfaces/dart-widgets.md) |
 | 壳层与导航 | 功能登记表、布局壳 | [§2](#2-能力总表) | [dart-workspace](interfaces/dart-workspace.md)、[dart-app](interfaces/dart-app.md) |
 | UI 页面 | 各功能域页面与域内组件 | [§2](#2-能力总表) | [dart-feature-*](interfaces/README.md)（按域拆分） |
+| 反向查找 | 从源码文件回查接口 | — | [REVERSE-INDEX](interfaces/REVERSE-INDEX.md) |
 
 查找某个功能时，先在 [§2 能力总表](#2-能力总表) 找到它的行，再顺着该行的链接进入各层细节；需要具体签名时进 `interfaces/` 对应文件。
 
@@ -412,7 +413,66 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | `reminders` | 课程、作业、待办、签到快照 | `ExtendedReminderPlans` | 规划失败不影响主流程 | 已读摘要与开关（按账号） |
 | `updates` | 当前版本 | `UpdateResult{latest, available, apkAvailable, download}` | 拉取失败放行 | 下载临时文件与校验结果 |
 
-## 9. 跨层不变量
+## 9. 四条完整链路（按此走通即理解架构）
+
+新人不必逐层读源码，按下面四条链路各走一遍即可掌握全部关键模式。每条给出真实文件与函数名，可直接跳转。
+
+### 9.1 只读查询：课表
+
+```text
+features/schedule/schedule_page.dart          页面持有 RefreshSection<ScheduleResponse>
+  → AcademicGateway.schedule()                application/mirror_service.dart
+  → NativeMirrorService                        infrastructure/native_mirror_service.dart
+  → load_schedule                              bridge/api/live/academic.rs
+  → Workspace 命令编排                         core/src/application/
+  → ScheduleSource::load_schedule               domain/src/ports/academic.rs
+  → schedule_service                           upstream/src/services/schedule_service.rs
+  → ScheduleOutcome{data, fetched_at, stale}   ← 向上逐层收窄到 Dart DTO
+```
+
+要点：返回值一路是**同构信封**（`stale` + `failure`），页面只需判断「有无旧值」与「是否失败」，不必理解协议。
+
+### 9.2 会话与认证
+
+```text
+features/auth/login_page.dart                 提交账号密码或验证码
+  → SessionGateway.login()                    application/mirror_service.dart
+  → login                                      bridge/api/live/session.rs
+  → SessionSource::sign_in                     ports/session.rs
+  → session_service/session_source.rs          登录、恢复、退出实现
+  → auth::complete_login                       upstream/src/auth/
+  → SessionOutcome{SignedIn|CaptchaRequired|SignedOut}
+```
+
+要点：三态互斥；`CaptchaRequired` 不是失败，是要走 `AuthChallengeGateway` 的挑战流程。
+
+### 9.3 写入：CGYY 预约（最复杂的路径）
+
+```text
+features/cgyy/cgyy_booking_page.dart          用户填写并确认
+  → CgyyBookingGateway.executeCgyy()           application/mirror_service.dart
+  → execute_cgyy                               bridge/api/live/utilities.rs
+  → core/src/application/cgyy.rs               校验 action、写 pending marker
+  → CgyyMutationSource::execute_cgyy           ports/cgyy.rs
+  → cgyy_booking_service.rs                    prepare / submit / cancel 时序
+  → cgyy_booking_service/protocol.rs           表单、加密、验证码坐标
+  → adapters/cgyy_http.rs                      实际 HTTP
+```
+
+要点：`prepare` 可能已创建学校草稿，所以**不是只读**；`uncertain` 只允许 `reconcile`，marker 不自动过期。
+
+### 9.4 本机数据：个人待办
+
+```text
+features/tasks/tasks_page.dart
+  → CampusGateway.editTasks()                  application/mirror_service.dart
+  → edit_tasks                                 bridge/api/live.rs
+  → core/src/tasks_store.rs                    按账号命名、v1→v2 原子升级
+```
+
+要点：没有上游协议；清查询缓存不影响它。
+
+## 10. 跨层不变量
 
 这些约束任何一层改动都必须保持，越界即视为缺陷：
 
@@ -426,7 +486,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 其中 1–3 由 [`check-mirror-architecture.py`](../scripts/check-mirror-architecture.py) 强制，并有对应自测。
 
-## 10. 维护方法
+## 11. 维护方法
 
 - 新增能力：先在此表登记能力与 id，再按 domain 端口 → upstream 适配 → core 编排 → FRB 命令 → Dart gateway 的顺序落地；缺一层就不要在总表标注为可用。
 - 改上游协议：先在 [API.md](API.md) 补证据与修订，再改适配器与 fixture，最后回来更新 [§3](#3-上游协议层) 的对照行。

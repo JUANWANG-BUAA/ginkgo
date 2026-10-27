@@ -6,38 +6,41 @@
 
 token 层与视觉常量。
 
-## AcademicBadge (class)
+## 目录
 
-- `class AcademicBadge extends StatelessWidget {` — Quiet semantic labels that wrap with text size; color never carries status  
-  <sub>design/academic_widgets.dart:11</sub>
-    - `const AcademicBadge(this.label, {super.key, this.tint, this.icon});`  <sub>:12</sub>
-    - `Widget build(BuildContext context) { final color = (tint ?? CupertinoColors.secondaryLabel).resolveFrom(context); return DecoratedBox( decoration: Bo…`  <sub>:18</sub>
+- [design/academic_widgets.dart](#designacademicwidgetsdart) (4)
+- [design/apple_design.dart](#designappledesigndart) (1)
+- [design/ginkgo_visuals.dart](#designginkgovisualsdart) (2)
+- [design/tokens/colors.dart](#designtokenscolorsdart) (1)
+- [design/tokens/layout.dart](#designtokenslayoutdart) (1)
+- [design/tokens/motion.dart](#designtokensmotiondart) (1)
+- [design/tokens/radii.dart](#designtokensradiidart) (1)
+- [design/tokens/spacing.dart](#designtokensspacingdart) (1)
+- [design/tokens/typography.dart](#designtokenstypographydart) (1)
 
-## AcademicFactRow (class)
+## design/academic_widgets.dart
 
-- `class AcademicFactRow extends StatelessWidget {` — Readable label/value alignment, stacking before large text gets squeezed.  
-  <sub>design/academic_widgets.dart:52</sub>
-    - `const AcademicFactRow({super.key, required this.label, required this.value});`  <sub>:53</sub>
-    - `Widget build(BuildContext context) => Padding( padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13), child: LayoutBuilder( builder: (con…`  <sub>:58</sub>
+- `class AcademicBadge extends StatelessWidget` — Quiet semantic labels that wrap with text size; color never carries status  
+  <sub>class · design/academic_widgets.dart:11</sub>
+    - `const AcademicBadge(this.label, {…}`  <sub>:12</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:18</sub>
+- `class AcademicFactRow extends StatelessWidget` — Readable label/value alignment, stacking before large text gets squeezed.  
+  <sub>class · design/academic_widgets.dart:52</sub>
+    - `const AcademicFactRow( {…}`  <sub>:53</sub>
+    - `Widget build(BuildContext context) => Padding( padding: const EdgeInsets.symmetric(hori … ), child: LayoutBuilder( builder: (context, constraints) {…}`  <sub>:58</sub>
+- `class AcademicMetric extends StatelessWidget`  
+  <sub>class · design/academic_widgets.dart:93</sub>
+    - `const AcademicMetric( {…}`  <sub>:94</sub>
+    - `Widget build(BuildContext context) => Column( crossAxisAlignment: CrossAxisAlignment.st … tFeatures: const [FontFeature.tabularFigures()], ), ), ], );`  <sub>:103</sub>
+- `class AcademicMetricGrid extends StatelessWidget`  
+  <sub>class · design/academic_widgets.dart:126</sub>
+    - `const AcademicMetricGrid( {…}`  <sub>:127</sub>
+    - `Widget build(BuildContext context) => LayoutBuilder( builder: (context, constraints) {…}`  <sub>:135</sub>
 
-## AcademicMetric (class)
+## design/apple_design.dart
 
-- `class AcademicMetric extends StatelessWidget {`  
-  <sub>design/academic_widgets.dart:93</sub>
-    - `const AcademicMetric({ super.key, required this.label, required this.value, this.prominent = false, });`  <sub>:94</sub>
-    - `Widget build(BuildContext context) => Column( crossAxisAlignment: CrossAxisAlignment.start, children: [ Text( label, style: TextStyle( fontSize: 13, …`  <sub>:103</sub>
-
-## AcademicMetricGrid (class)
-
-- `class AcademicMetricGrid extends StatelessWidget {`  
-  <sub>design/academic_widgets.dart:126</sub>
-    - `const AcademicMetricGrid({ super.key, required this.children, this.maxColumns, });`  <sub>:127</sub>
-    - `Widget build(BuildContext context) => LayoutBuilder( builder: (context, constraints) { final scale = MediaQuery.textScalerOf(context).scale(1); final…`  <sub>:135</sub>
-
-## AppleDesign (class)
-
-- `abstract final class AppleDesign {` — Product values measured against the repository's iOS 27 reference capture.  
-  <sub>design/apple_design.dart:14</sub>
+- `abstract final class AppleDesign` — Product values measured against the repository's iOS 27 reference capture.  
+  <sub>class · design/apple_design.dart:14</sub>
     - `static const groupRadius = GinkgoRadii.group;`  <sub>:15</sub>
     - `static const rowHeight = GinkgoLayout.rowHeight;`  <sub>:16</sub>
     - `static const pageInset = GinkgoSpacing.pageInset;`  <sub>:17</sub>
@@ -58,24 +61,21 @@ token 层与视觉常量。
     - `static const title = GinkgoTypography.largeTitle;`  <sub>:40</sub>
     - `static Duration duration(BuildContext context, int milliseconds) => GinkgoMotion.duration(context, milliseconds);`  <sub>:42</sub>
 
-## GinkgoIconTile (class)
+## design/ginkgo_visuals.dart
 
-- `class GinkgoIconTile extends StatelessWidget {` — A rounded tinted base for a single glyph. The glyph follows text scaling  
-  <sub>design/ginkgo_visuals.dart:5</sub>
-    - `const GinkgoIconTile({ super.key, required this.icon, this.size = 44, this.iconSize, this.selected = false, this.color, this.semanticLabel, });`  <sub>:6</sub>
-    - `Widget build(BuildContext context) { final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark; final accent = CupertinoDynamicColor.resol…`  <sub>:24</sub>
+- `class GinkgoIconTile extends StatelessWidget` — A rounded tinted base for a single glyph. The glyph follows text scaling  
+  <sub>class · design/ginkgo_visuals.dart:5</sub>
+    - `const GinkgoIconTile( {…}`  <sub>:6</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:24</sub>
+- `class GinkgoBadge extends StatelessWidget` — A compact tinted label. The text always carries the meaning; color is only  
+  <sub>class · design/ginkgo_visuals.dart:60</sub>
+    - `const GinkgoBadge( {…}`  <sub>:61</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:75</sub>
 
-## GinkgoBadge (class)
+## design/tokens/colors.dart
 
-- `class GinkgoBadge extends StatelessWidget {` — A compact tinted label. The text always carries the meaning; color is only  
-  <sub>design/ginkgo_visuals.dart:60</sub>
-    - `const GinkgoBadge({ super.key, required this.label, this.icon, this.color, this.compact = false, });`  <sub>:61</sub>
-    - `Widget build(BuildContext context) { final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark; final accent = CupertinoDynamicColor.resol…`  <sub>:75</sub>
-
-## GinkgoColors (class)
-
-- `abstract final class GinkgoColors {` — Semantic colors for Ginkgo across light and dark brightness modes.  
-  <sub>design/tokens/colors.dart:5</sub>
+- `abstract final class GinkgoColors` — Semantic colors for Ginkgo across light and dark brightness modes.  
+  <sub>class · design/tokens/colors.dart:5</sub>
     - `static const accent = CupertinoDynamicColor.withBrightness( color: Color(0xff189840), darkColor: Color(0xff47bd6b), );`  <sub>:7</sub>
     - `static const accentSubtle = CupertinoDynamicColor.withBrightness( color: Color(0x1a189840), darkColor: Color(0x2447bd6b), );`  <sub>:12</sub>
     - `static const windowBackground = CupertinoColors.systemBackground;`  <sub>:18</sub>
@@ -99,10 +99,10 @@ token 层与视觉常量。
     - `static const connectionOnline = Color(0xff34c759);`  <sub>:83</sub>
     - `static const connectionOffline = CupertinoColors.systemOrange;`  <sub>:84</sub>
 
-## GinkgoLayout (class)
+## design/tokens/layout.dart
 
-- `abstract final class GinkgoLayout {` — Layout breakpoints and structural dimensions.  
-  <sub>design/tokens/layout.dart:6</sub>
+- `abstract final class GinkgoLayout` — Layout breakpoints and structural dimensions.  
+  <sub>class · design/tokens/layout.dart:6</sub>
     - `static const double desktopBreakpoint = 760.0;`  <sub>:8</sub>
     - `static const double wideBreakpoint = 1200.0;`  <sub>:9</sub>
     - `static const double desktopSidebarWidth = 248.0;`  <sub>:12</sub>
@@ -115,10 +115,10 @@ token 层与视觉常量。
     - `static bool isDesktop(BuildContext context) => MediaQuery.sizeOf(context).width >= desktopBreakpoint;`  <sub>:23</sub>
     - `static double panelRadius(BuildContext context) => isDesktop(context) ? GinkgoRadii.panel : GinkgoRadii.group;`  <sub>:26</sub>
 
-## GinkgoMotion (class)
+## design/tokens/motion.dart
 
-- `abstract final class GinkgoMotion {` — Motion tokens respecting system accessibility reduce-motion settings.  
-  <sub>design/tokens/motion.dart:4</sub>
+- `abstract final class GinkgoMotion` — Motion tokens respecting system accessibility reduce-motion settings.  
+  <sub>class · design/tokens/motion.dart:4</sub>
     - `static const fast = Duration(milliseconds: 140);`  <sub>:5</sub>
     - `static const normal = Duration(milliseconds: 180);`  <sub>:6</sub>
     - `static const deliberate = Duration(milliseconds: 260);`  <sub>:7</sub>
@@ -127,10 +127,10 @@ token 层与视觉常量。
     - `static const curveSnappy = Curves.easeOutCubic;`  <sub>:11</sub>
     - `static Duration duration(BuildContext context, int milliseconds) => MediaQuery.disableAnimationsOf(context)`  <sub>:13</sub>
 
-## GinkgoRadii (class)
+## design/tokens/radii.dart
 
-- `abstract final class GinkgoRadii {` — Corner radius tokens using continuous Apple superellipse curves.  
-  <sub>design/tokens/radii.dart:4</sub>
+- `abstract final class GinkgoRadii` — Corner radius tokens using continuous Apple superellipse curves.  
+  <sub>class · design/tokens/radii.dart:4</sub>
     - `static const double pill = 2.0;`  <sub>:5</sub>
     - `static const double badge = 7.0;`  <sub>:6</sub>
     - `static const double button = 8.0;`  <sub>:7</sub>
@@ -146,10 +146,10 @@ token 层与视觉常量。
     - `static final borderRadiusDialog = BorderRadius.circular(dialog);`  <sub>:20</sub>
     - `static final borderRadiusGroup = BorderRadius.circular(group);`  <sub>:21</sub>
 
-## GinkgoSpacing (class)
+## design/tokens/spacing.dart
 
-- `abstract final class GinkgoSpacing {` — 4pt / 8pt spatial layout scale matching Apple Human Interface Guidelines.  
-  <sub>design/tokens/spacing.dart:4</sub>
+- `abstract final class GinkgoSpacing` — 4pt / 8pt spatial layout scale matching Apple Human Interface Guidelines.  
+  <sub>class · design/tokens/spacing.dart:4</sub>
     - `static const double xxs = 2.0;`  <sub>:5</sub>
     - `static const double xs = 4.0;`  <sub>:6</sub>
     - `static const double sm = 8.0;`  <sub>:7</sub>
@@ -169,19 +169,19 @@ token 层与视觉常量。
     - `static const edgeInsetsSidebarItem = EdgeInsets.symmetric( horizontal: 4, vertical: 2, );`  <sub>:35</sub>
     - `static const edgeInsetsSidebarItemInner = EdgeInsets.symmetric( horizontal: 11, vertical: 8, );`  <sub>:39</sub>
 
-## GinkgoTypography (class)
+## design/tokens/typography.dart
 
-- `abstract final class GinkgoTypography {` — Semantic typography scale matching Apple Human Interface Guidelines.  
-  <sub>design/tokens/typography.dart:6</sub>
+- `abstract final class GinkgoTypography` — Semantic typography scale matching Apple Human Interface Guidelines.  
+  <sub>class · design/tokens/typography.dart:6</sub>
     - `static const font = 'Ginkgo Sans';`  <sub>:7</sub>
     - `static const fallback = ['Ginkgo Han'];`  <sub>:8</sub>
-    - `static const largeTitle = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 34, fontWeight: FontWeight.w700, lette…`  <sub>:10</sub>
-    - `static const title = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 26, fontWeight: FontWeight.w600, letterSpac…`  <sub>:20</sub>
-    - `static const title2 = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 22, fontWeight: FontWeight.w600, letterSpa…`  <sub>:30</sub>
-    - `static const headline = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 17, fontWeight: FontWeight.w600, letterS…`  <sub>:40</sub>
-    - `static const body = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 17, letterSpacing: -0.25, color: GinkgoColor…`  <sub>:50</sub>
-    - `static const subheadline = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 14, letterSpacing: -0.15, color: Gink…`  <sub>:59</sub>
-    - `static const footnote = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 13, letterSpacing: -0.08, color: GinkgoC…`  <sub>:68</sub>
-    - `static const caption = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 12, letterSpacing: 0.0, color: GinkgoColo…`  <sub>:77</sub>
-    - `static const caption2 = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 11, letterSpacing: 0.06, color: GinkgoCo…`  <sub>:86</sub>
+    - `static const largeTitle = TextStyle( inherit: false, fontFamily: font, fontFamilyFallba … ght.w700, letterSpacing: -0.8, color: GinkgoColors.label, );`  <sub>:10</sub>
+    - `static const title = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: f … ght.w600, letterSpacing: -0.5, color: GinkgoColors.label, );`  <sub>:20</sub>
+    - `static const title2 = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: … ght.w600, letterSpacing: -0.3, color: GinkgoColors.label, );`  <sub>:30</sub>
+    - `static const headline = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback … ght.w600, letterSpacing: -0.4, color: GinkgoColors.label, );`  <sub>:40</sub>
+    - `static const body = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fa … ize: 17, letterSpacing: -0.25, color: GinkgoColors.label, );`  <sub>:50</sub>
+    - `static const subheadline = TextStyle( inherit: false, fontFamily: font, fontFamilyFallb … ize: 14, letterSpacing: -0.15, color: GinkgoColors.label, );`  <sub>:59</sub>
+    - `static const footnote = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback … letterSpacing: -0.08, color: GinkgoColors.secondaryLabel, );`  <sub>:68</sub>
+    - `static const caption = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: … , letterSpacing: 0.0, color: GinkgoColors.secondaryLabel, );`  <sub>:77</sub>
+    - `static const caption2 = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback … , letterSpacing: 0.06, color: GinkgoColors.tertiaryLabel, );`  <sub>:86</sub>
     - `static const tabularDigits = [FontFeature.tabularFigures()];`  <sub>:95</sub>

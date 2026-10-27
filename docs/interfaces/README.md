@@ -45,4 +45,8 @@
 | [Flutter 功能域：tasks](dart-feature-tasks.md) | `dart-feature-tasks.md` | 7 |
 | [Flutter 功能域：today](dart-feature-today.md) | `dart-feature-today.md` | 17 |
 
-分层说明、能力总表与跨层不变量见 [INTERFACE-INDEX.md](../INTERFACE-INDEX.md)。
+## 快速导航
+
+- 从代码位置回查接口：[反向索引](REVERSE-INDEX.md)
+- 分层说明、能力总表、模块 IO 与跨层不变量：[INTERFACE-INDEX.md](../INTERFACE-INDEX.md)
+- 学校协议事实：[API.md](../API.md)
