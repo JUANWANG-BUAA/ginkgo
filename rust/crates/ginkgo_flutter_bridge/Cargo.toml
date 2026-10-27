@@ -10,7 +10,7 @@ crate-type = ["cdylib", "staticlib", "rlib"]
 ginkgo_runtime = { path = "../ginkgo_runtime" }
 serde.workspace = true
 serde_json.workspace = true
-tokio = { version = "1", features = ["sync"] }
+tokio = { version = "1", features = ["sync", "rt"] }
 flutter_rust_bridge = "=2.12.0"
 ginkgo_core = { path = "../ginkgo_core" }
 

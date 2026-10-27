@@ -246,7 +246,7 @@ pub fn load_demo_graduate() -> ReadOnlyResponse {
 }
 
 /// Local CRUD only. Account identity comes from Rust, never a Dart-supplied identifier.
-pub fn edit_tasks(
+pub async fn edit_tasks(
     root: String,
     demo: bool,
     action: String,
@@ -255,7 +255,7 @@ pub fn edit_tasks(
     due: Option<String>,
     completed: Option<bool>,
 ) -> ReadOnlyResponse {
-    utilities::edit_tasks(root, demo, action, id, title, due, completed)
+    utilities::edit_tasks(root, demo, action, id, title, due, completed).await
 }
 
 pub async fn load_notices(force_refresh: bool) -> ReadOnlyResponse {

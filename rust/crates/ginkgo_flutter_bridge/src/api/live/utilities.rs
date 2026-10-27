@@ -1,7 +1,7 @@
 //! Feature implementation behind the stable live API.
 use super::*;
 
-pub(super) fn edit_tasks(
+pub(super) async fn edit_tasks(
     root: String,
     demo: bool,
     action: String,
@@ -10,35 +10,37 @@ pub(super) fn edit_tasks(
     due: Option<String>,
     completed: Option<bool>,
 ) -> ReadOnlyResponse {
-    let Ok(_access) = SESSION_ACCESS.try_read() else {
-        return ReadOnlyResponse {
-            payload: None,
-            stale: false,
-            failure: Some(FailureCode::ServiceUnavailable),
-        };
+    // Local CRUD waits for the session gate instead of failing while a login
+    // holds the write lock: the command is queued, never silently dropped.
+    let _access = SESSION_ACCESS.read().await;
+    // The account namespace comes from the authenticated Rust session, never
+    // from a Dart-supplied identifier.
+    let account = if demo {
+        "ginkgo-isolated-demo".to_owned()
+    } else {
+        match service() {
+            Ok(service) => match service.status().account.clone() {
+                Some(account) => account,
+                None => return read_only_value::<()>(Err(AppError::session_expired())),
+            },
+            Err(error) => return read_only_value::<()>(Err(error)),
+        }
     };
-    let result = if demo {
+    // Local storage does blocking fsync work; keep it off the async worker so a
+    // large待办 file cannot stall other commands.
+    let result = tokio::task::spawn_blocking(move || {
         ginkgo_core::application::tasks_service::edit(
             std::path::Path::new(&root),
-            "ginkgo-isolated-demo",
+            &account,
             &action,
             id.as_deref(),
             title.as_deref(),
             due.as_deref(),
             completed,
         )
-    } else {
-        service().and_then(|s| {
-            s.edit_tasks(
-                std::path::Path::new(&root),
-                &action,
-                id.as_deref(),
-                title.as_deref(),
-                due.as_deref(),
-                completed,
-            )
-        })
-    };
+    })
+    .await
+    .unwrap_or_else(|_| Err(AppError::unavailable()));
     read_only_value(result)
 }
 
@@ -66,6 +68,8 @@ pub(super) async fn load_cgyy(
         "venues" => CgyyQuery::Venues,
         "day" => CgyyQuery::Day { site_id, date },
         "orders" => CgyyQuery::Orders,
+        "order" => CgyyQuery::Order { order_id: site_id },
+        "lockCode" => CgyyQuery::LockCode,
         _ => return read_only_value::<()>(Err(AppError::invalid())),
     };
     let _access = SESSION_ACCESS.read().await;
