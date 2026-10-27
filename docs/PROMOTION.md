@@ -5,7 +5,7 @@
 
 ## 当前口径（2026-10-27，Android 主推）
 
-**核心介绍**：手机上的北航校园工作台。打开就知道今天要关注什么——课表、作业、签到、图书馆座位、研讨室与校园服务，收进一个 Android 应用；免费开源，账号数据保存在本机。
+**核心介绍**：手机上的北航校园工作台。打开就知道今天要关注什么——课表、作业、签到、图书馆座位、研讨室与校园服务，收进一个 Android 应用；免费开源，学校请求不经过项目自建中转服务器。
 
 | 平台 | 状态与入口 |
 |------|----------------|
@@ -28,7 +28,7 @@
 
 - **仓库名**：`ginkgo`（完整地址 `github.com/JUANWANG-BUAA/ginkgo`，"BUAA"在账号名里）
 - **Description（≤ 120 字符）**：
-  `北航校园工作台 · Android 主推（课表/作业/签到/图书馆/研讨室）· Flutter + Rust · 直连校内系统，数据留本机`
+  `北航校园工作台 · Android 主推（课表/作业/签到/图书馆/研讨室）· Flutter + Rust · 直连校内系统，无项目自建中转`
 - **Website**：`https://juanwang-buaa.github.io/ginkgo/`
 - **Topics**：
   `buaa` `beihang` `android` `flutter` `rust` `campus` `schedule` `checkin` `library-booking` `graduate` `student-tools` `open-source` `windows` `macos` `ios`
@@ -39,62 +39,66 @@
 
 ## 一句话介绍
 
-- **极简版**：课表、签到、图书馆座位，装进手机就能用的北航校园助手。
-- **完整版**：Ginkgo 是北航校园服务聚合的 Android 应用：课表、作业、签到、图书馆座位与教学楼研讨室预约、成绩、研究生教务与博雅一站式查看；直连校内系统，账号数据只留本机。
+- **极简版**：把北航的一天，装进手机。
+- **完整版**：Ginkgo 把北航课表、作业、签到、图书馆座位与研讨室收进一个 Android 工作台；免费开源，直连学校系统，不经过项目自建中转服务器。
 
 ## 长介绍（README / 仓库首屏）
 
 > 打开就知道今天要关注什么。
 >
-> Ginkgo 把北航常用的几个系统收进一个 Android 应用：**课表**（周视图与当日清单、学期与周次、考试安排，断网看缓存）、**作业**（SPOC 列表与详情、截止倒计时、个人文件提交需确认）、**签到**（iclass 状态逐课核对，手动提交并回查）、**预约**（图书馆座位与在馆人数、教学楼研讨室 CGYY 与门锁密码），另外还有成绩与参考绩点、研究生教务学分地图、博雅课程、空教室、SPOC 学习、本人借阅、校园通知和本机待办。
+> Ginkgo 把北航常用的几个系统收进一个 Android 应用：**课表**（周视图与当日清单、学期与周次、考试安排）、**作业**（SPOC 列表与详情、截止倒计时、个人文件提交需确认）、**签到**（iclass 状态逐课核对，手动提交并回查）、**预约**（图书馆座位与在馆人数、教学楼研讨室 CGYY 与门锁密码），另外还有成绩与参考绩点、研究生教务学分地图、博雅课程、空教室、SPOC 学习、本人借阅、校园通知和本机待办。
 >
-> Flutter + Rust 同一套工程，手机底部标签导航、平板与宽屏自动展开为侧栏；只直连学校系统（可走北航 WebVPN），不经过任何第三方服务器，密码可选存入 Android Keystore，查询缓存按账号隔离且可一键清除。
+> Flutter + Rust 同一套工程，手机底部标签导航、平板与宽屏自动展开为侧栏。查询在设备进程内直连学校系统或经北航官方 WebVPN，不经过项目自建中转服务器；密码可选存入 Android Keystore，个人待办按账号保存在本机。普通查询快照目前主要在进程内保留，不宣传重启后的完整离线能力。
 
 ## 社交分享文案
+
+以下标题与模板仅在 Beta.1 对应 prerelease 公开后使用。
 
 **论坛标题（V2EX / 少数派 / 北航社区）**：
 
 ```
-[开源] Ginkgo：北航校园工作台 Android 版，课表/作业/签到/图书馆预约一个应用搞定
+[开源] Ginkgo：把北航的一天装进手机，Android Beta 公开试用
 ```
 
-**正文模板**：
+**Beta.1 正文模板（仅在对应 prerelease 公开后使用）**：
 
 ```
 分享一个自己写的北航校园助手：Ginkgo（Android，Flutter + Rust 写的）。
 
 它把北航常用的系统聚合成一个手机应用：
-- 课表：周视图 / 当日清单、学期与周次切换、考试安排，断网看缓存
+- 工作台：当天课程、签到状态、近期作业和个人待办
+- 课表：周视图 / 当日清单、学期与周次切换、考试安排
 - 作业：SPOC 列表与详情、截止倒计时，个人文件提交前会先让你确认
-- 签到：iclass 当天与历史状态，逐课手动签到并回查结果
-- 预约：图书馆楼馆/分区/座位与在馆人数，教学楼研讨室（CGYY）时段、我的预约和门锁密码
-- 还有成绩与参考绩点、空教室、博雅、研究生学分地图、SPOC 学习、校园通知、本机待办
+- 预约：图书馆座位、教学楼研讨室（CGYY）与空教室
+- 还有成绩、博雅、研究生学分地图、SPOC 学习、校园通知和本机待办
 
-只直连学校系统（必要时走北航 WebVPN），不经过任何第三方服务器；密码只有你勾选才存进系统保险库，查询缓存按账号隔离。
+查询直连学校系统，必要时走北航官方 WebVPN，不经过项目自建中转服务器；密码只有你勾选才存进 Android Keystore。
 
-目前公开版是 0.1.0-alpha.9（Android 7.0+ / arm64，直接装 APK）。签到、预约和作业提交都会先请你确认，结果不明时只会让你回查，不会自动重发；部分真实写入还在逐项验收，请以学校记录为准。
+首个 Beta 版 0.1.0-beta.1（Android 7.0+ / ARM64）已公开。签到、预约和作业提交都会先请你确认，结果不明时只回查、不自动重发；部分真实写入和设备场景仍在验收，请以学校记录为准。反馈请不要附密码、Cookie、真实学号或未打码截图。
 
 GitHub: https://github.com/JUANWANG-BUAA/ginkgo
 项目主页（含截图与演示录屏）: https://juanwang-buaa.github.io/ginkgo/
 ```
 
-**朋友圈 / 小红书短文案**：
+**朋友圈 / 小红书短文案（Beta 发布后使用）**：
 
 ```
 写了个北航专用的 Android 校园工作台：课表、作业、签到、图书馆座位一个应用看完。
-Flutter + Rust 写的，数据不上传，开源在 GitHub，北航同学自取 🌿
+Flutter + Rust 写的，直连学校系统，不经过项目自建中转服务器；开源在 GitHub，北航同学自取。
+首个 Beta 公开试用中，重要信息请以学校官方记录为准。
 （非官方项目，与学校无隶属关系；使用请遵守学校相关服务条款）
 ```
 
 ## 视觉素材
 
-- **Android 截图**（真机尺寸 1080 × 2400，离线演示合成数据，无个人信息）：
+- **Android 原始截图**（1080 × 2400，离线演示合成数据，无个人信息）：
   `docs/images/android-today.png`（工作台）、`android-schedule.png`（课表）、`android-homework.png`（作业）、`android-checkin.png`（签到）、`android-reservations.png`（预约）、`android-cgyy.png`（研讨室）、`android-library.png`（图书馆）
-- **演示录屏**：`docs/media/ginkgo-android-demo.mp4`（约 20 秒，真实 Android 构建的离线演示模式，含工作台/课表/作业/签到/预约切换）与 `docs/media/ginkgo-cold-start.mp4`（冷启动：银杏叶展开 → 字标 → 进度线）
-- **应用图标**：Android 启动图标为银杏叶（自适应图标 + 旧版位图），应用名统一为 “Ginkgo”；对外截图与录屏均不出现中文后缀
-- **生成方式**：`flutter/integration_test/promo_capture_test.dart` + `scripts/capture-android-module-visual.py`（仅隔离模拟器、仅离线数据）
-- **社交预览图（GitHub Social Preview）**：建议用 `docs/images/android-today.png` 裁切；首页 OG 图已指向该图
-- **项目主页**：`docs/index.html`（GitHub Pages：main 分支 /docs 目录）；已适配手机端，含演示录屏、截图灯箱与免责声明区块
+- **页面优化图**：对应的 `android-*-640.webp` 用于页面展示，原始 PNG 保留作放大预览与下载。
+- **演示录屏**：`docs/media/ginkgo-android-demo.mp4`（约 20 秒，真实 Android 构建的离线演示模式）与 `docs/media/ginkgo-cold-start.mp4`（冷启动品牌动画）。
+- **应用图标**：Android 启动图标为银杏叶（自适应图标 + 旧版位图），应用名统一为 “Ginkgo”。
+- **生成方式**：`flutter/integration_test/promo_capture_test.dart` + `scripts/capture-android-module-visual.py`（仅隔离模拟器、仅离线数据）。
+- **社交预览图**：`docs/images/ginkgo-android-social.png`（1200 × 630）；首页 OG 与 Twitter 大图均指向该素材，GitHub Social Preview 也可复用。
+- **项目主页**：`docs/index.html`（GitHub Pages：main 分支 /docs 目录）；主打 Android 下载与三步安装，含 Beta 边界、脱敏反馈、演示录屏和截图灯箱。
 - 冻结平台的旧截图仍留在 `docs/images/`，仅作历史对照，不用于对外宣传
 
 ## 发布节奏建议

@@ -1,7 +1,7 @@
 # Ginkgo · 北航校园工作台
 
 > **手机上的北航校园工作台**：今天的课、待交的作业、能签到的课、能坐的图书馆座位。
-> Flutter + Rust，进程内直连学校系统或北航 WebVPN，不经过自建中转服务器；账号数据留在本机。
+> Flutter + Rust，学校请求在进程内直连学校系统或北航 WebVPN，不经过项目自建中转服务器；个人待办按账号保存在本机。
 
 [![下载 Android 版](https://img.shields.io/badge/下载-Android%20版-2f7d4a?style=flat-square)](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.9)
 [![项目主页](https://img.shields.io/badge/项目主页-juanwang--buaa.github.io%2Fginkgo-2f7d4a?style=flat-square)](https://juanwang-buaa.github.io/ginkgo/)
@@ -11,6 +11,7 @@
 
 - 最新公开版本：**Android 0.1.0-alpha.9**（`0.1.0-alpha.9+10`）· [下载 ARM64 APK](https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-alpha.9/Ginkgo-0.1.0-alpha.9-android-arm64.apk) · [发布记录](docs/_audit/2026-10-26-android-alpha9-release.md)
 - 工作树版本：`0.1.0-beta.1+11`（**尚未发布**；发布说明见 [Beta.1 准备记录](docs/_audit/2026-10-27-android-beta1-preparation.md)）
+- Beta 试用反馈：[提交 Android 问题](https://github.com/JUANWANG-BUAA/ginkgo/issues/new?template=android-beta.md)（请勿附密码、Cookie、真实学号或未打码截图）
 - 长期维护入口：[功能与接口协议总览](docs/FEATURES-AND-PROTOCOLS.md) · [接口索引](docs/INTERFACE-INDEX.md) · [学校协议事实](docs/API.md)
 
 > **为什么叫 Ginkgo**：银杏是北航最有辨识度的符号——学院路与沙河的银杏大道。它简短、好念、一眼能画成图标；也希望这个工作台像秋天那条路一样，成为你每天都会经过的地方。
@@ -118,7 +119,7 @@ flutter build apk --debug --target-platform android-arm64 --target lib/main.dart
 
 ## 隐私
 
-- 应用不经过第三方服务器：账号密码只在你主动勾选后写入系统保险库（Android Keystore / Windows Credential Manager / Apple 钥匙串），Cookie、会话与查询缓存均留在本机。
+- 学校请求不经过项目自建中转服务器：账号密码只在你主动勾选后写入系统保险库（Android Keystore / Windows Credential Manager / Apple 钥匙串），Cookie、会话与查询快照在本机处理；版本检查访问 GitHub，第三方下载代理需自行选择并核对摘要。
 - 仓库不提交真实学号、姓名、Cookie、票据、HAR 原件或个人数据；界面截图与录屏全部来自离线演示模式。
 - 数据存放位置、清理方式与反馈时的脱敏要求见 [docs/PRIVACY.md](docs/PRIVACY.md)。
 

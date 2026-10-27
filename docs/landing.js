@@ -121,7 +121,9 @@ async function updateReleaseLinks() {
     const android = releases.find(
       (item) =>
         /^android-v\d/.test(item.tag_name) &&
-        releaseAsset(item, "-android-arm64.apk"),
+        releaseAsset(item, "-android-arm64.apk") &&
+        releaseAsset(item, "checksums.txt") &&
+        trustedReleaseURL(item.html_url, "tag/android-v"),
     );
     const windows = releases.find(
       (item) =>
@@ -151,6 +153,12 @@ async function updateReleaseLinks() {
         "[data-android-version]",
         android.tag_name.slice("android-v".length),
       );
+      const channel = android.tag_name.includes("-beta.")
+        ? "Beta"
+        : android.tag_name.includes("-alpha.")
+          ? "Alpha"
+          : "Release";
+      updateText("[data-android-channel]", channel);
       if (trustedReleaseURL(android.html_url, "tag/android-v"))
         updateLinks("[data-android-release]", android.html_url);
       const sums = releaseAsset(android, "checksums.txt");

@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 使用说明与项目文档
+    url: https://github.com/JUANWANG-BUAA/ginkgo/blob/main/README.md
+    about: 安装、功能边界、隐私与开发文档入口

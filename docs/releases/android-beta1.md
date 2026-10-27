@@ -4,8 +4,8 @@
 - 研究生教务合并成一个页面：概览、课程和学分地图在一起，不再重复入口。
 - 课程资料按需加载：公告、资料和测验各自翻页，只在你打开时读取，失败不影响其它分区。
 - 研讨室更完整：新增“我的预约”“订单详情”和“门锁密码”入口，门锁密码只在手动刷新时读取。
-- 更稳的本机待办：登录过程中保存待办不再被静默丢弃；图书馆数据刷新失败时自动只重试一次。
+- 更稳的本机待办：登录过程中保存待办不再被静默丢弃；图书馆登录态失效时自动重建并重试一次。
 
-提醒：课表、作业与个人待办保存在本机或账号隔离缓存中，个人待办完成不代表学校作业已提交。签到、预约、取消与作业提交都会先请你确认；结果不明时只会让你回查，不会自动重发。真实学校写入、物理设备与读屏验收仍在进行，请以官方页面与学校记录为准。
+提醒：课表、作业查询快照与个人待办按账号隔离；普通查询快照主要在进程内保留，个人待办保存在本机。个人待办完成不代表学校作业已提交。签到、预约、取消与作业提交都会先请你确认；结果不明时只会让你回查，不会自动重发。真实学校写入、物理设备与读屏验收仍在进行，请以官方页面与学校记录为准。
 
-[功能与接口协议总览](https://github.com/JUANWANG-BUAA/ginkgo/blob/main/docs/FEATURES-AND-PROTOCOLS.md) · [详细说明与已知限制](https://github.com/JUANWANG-BUAA/ginkgo/blob/main/docs/_audit/2026-10-27-android-beta1-preparation.md)
+[功能与接口协议总览](https://github.com/JUANWANG-BUAA/ginkgo/blob/main/docs/FEATURES-AND-PROTOCOLS.md) · [详细说明与已知限制](https://github.com/JUANWANG-BUAA/ginkgo/blob/main/docs/_audit/2026-10-27-android-beta1-preparation.md) · [脱敏反馈](https://github.com/JUANWANG-BUAA/ginkgo/issues/new?template=android-beta.md)

@@ -63,7 +63,7 @@
 - [ ] 空教室刷新后的精确像素锚定：已保留页码与页首条目，但 sliver 重排仍可能产生可见位置偏移（合成观察约 119px）；与设备滚动性能、读屏验收一并补。
 - [x] ~~**补 Android 真机截图并替换 README 界面预览**~~ —— 已完成（2026-10-27）：新增 7 张真机尺寸 Android 截图（`docs/images/android-*.png`，1080×2400，工作台 / 课表 / 作业 / 签到 / 预约 / 研讨室 / 图书馆）与 1 段约 20 秒离线演示录屏（`docs/media/ginkgo-android-demo.mp4`），由 `flutter/integration_test/promo_capture_test.dart` 在隔离模拟器上驱动真实界面生成，只用离线演示合成数据。仓库首页与 GitHub Pages 主页的界面预览已全部换成 Android 素材；macOS 旧截图保留在 `docs/images/` 仅作历史对照，不再用于对外宣传。
 - [ ] **专项排查 Flutter 侧“已更新”横幅配色**：macOS 侧存在同语义不同色（`ScheduleView.swift:24` 与 `GradeView.swift:25` 用 `.success` 绿，`LibraryView.swift:32` 用 `.information` 蓝）。Flutter 侧是否同样不一致尚未逐页核对，收窄后 Flutter 是唯一 UI 端，需统一。
-- [ ] **宣传口径随发布同步**（2026-10-27 起）：仓库首页、GitHub Pages 主页与 [PROMOTION](PROMOTION.md) 已改为 Android 主推，界面素材换成真机尺寸截图与离线演示录屏。每次 Android 发布后需同步：README 顶部下载链接、主页版本号（脚本自动指向最新 `android-v*` 资产）、[RELEASE-NOTES](RELEASE-NOTES.md) 与 [releases/](releases/) 的用户收益，并复核截图／录屏是否仍与当前界面一致（可用 `flutter/integration_test/promo_capture_test.dart` 重新生成）。不把未验收能力写进对外文案。
+- [x] ~~**宣传口径随发布同步**~~（2026-10-27）：仓库首页、GitHub Pages 主页与 [PROMOTION](PROMOTION.md) 已完成 Android 主推测重制；新增三步安装、Beta 边界、脱敏反馈、轻量 WebP 与 1200×630 分享卡，并验证 API 失败回退和窄屏交互。每次 Android 发布后的常规维护仍需同步 README 下载链接、主页版本（脚本自动指向最新 `android-v*` 资产）、[RELEASE-NOTES](RELEASE-NOTES.md) 与 [releases/](releases/)，并复核素材与当前界面一致；不把未验收能力写进对外文案。
 
 ## P2：功能与结构
 

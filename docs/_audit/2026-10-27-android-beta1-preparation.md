@@ -57,7 +57,7 @@
 
 ## 验证
 
-`bash scripts/check-mirror.sh` 通过：架构规则与自测、设计 token 预算、接口索引新鲜度、Rust 格式与严格 Clippy、core / upstream / workspace 测试、Flutter 分析、**529 项 Flutter 测试**以及 FRB 重生成零差异。测试数量只属于本次运行。
+最终 `bash scripts/check-mirror.sh` 通过：架构规则与自测、设计 token 预算、接口索引新鲜度、Rust 格式与严格 Clippy、core / upstream / workspace 测试、Flutter 分析、**532 项 Flutter 测试**以及 FRB 重生成零差异。测试数量只属于本次运行。日志为维护者本机 `/tmp/ginkgo-beta1-final-gate.log`。
 
 Android 模拟器（`Medium_Phone_API_37.0`，API 37，1080×2400）上的合成验证：
 
@@ -69,18 +69,59 @@ Android 模拟器（`Medium_Phone_API_37.0`，API 37，1080×2400）上的合成
 | 启动图标 | 桌面显示为银杏叶图标，应用名为 “Ginkgo”；启动图标与应用内标记同源（`design/ginkgo_mark.dart` 矢量绘制） |
 | 启动路径 | 独立安装的**测试驱动包**会停在原生闪屏（AGENTS.md 已记录的既有现象）；正常入口包不受影响 |
 
+### 宣传页与反馈收口
+
+主页重排为产品价值、界面与离线演示、三步安装、Beta 边界、隐私反馈和次要平台。发布前静态下载仍为 Alpha.9；只有 APK、校验和与可信发布说明同时存在时，才整组切换版本、Alpha/Beta 标识和全部 Android 链接。完整 Beta.1 API 样例切换成功；缺少校验和或发布地址不可信时完整保留 Alpha.9，避免跨版本混链。GitHub API 失败及禁用 JavaScript 时也保留可用的静态官方下载。
+
+- 320 / 390 / 768 / 1440px 无横向溢出，移动菜单和截图灯箱的 Escape 关闭与焦点恢复通过；
+- 12 个本地页面资源全部返回成功，无重复 ID、无缺失图片 alt、无视频自动播放，页面控制台零错误；
+- `prefers-reduced-motion` 下平滑滚动和按钮过渡关闭；Serif 对比度检查 6 / 6 通过；
+- 7 张 640px WebP 总体积 234,684 字节，较对应原始 PNG 的 1,370,248 字节减少 82.9%；原始 PNG 保留作放大预览；
+- 新增 1200×630 `docs/images/ginkgo-android-social.png`，以及 `.github/ISSUE_TEMPLATE/android-beta.md` 脱敏反馈模板；
+- 对外模板删除“数据不上传”“断网看缓存”等绝对化表达，明确学校请求、项目无自建中转、普通查询快照和第三方代理的边界。
+
+桌面与手机检查截图分别为 `artifacts/local/ginkgo-beta1-desktop.png` 和 `ginkgo-beta1-mobile.png`，只包含离线演示合成数据。
+
+### Beta.1 签名产物与覆盖升级
+
+使用维护者默认外部签名配置执行正常入口构建：
+
+```sh
+cd flutter
+flutter build apk --release --target-platform android-arm64 --target lib/main.dart --pub
+```
+
+核验结果：包名 `cn.edu.buaa.ginkgo.ginkgo_mirror`，`versionName 0.1.0-beta.1`、`versionCode 11`、`minSdk 24`、`targetSdk 36`、仅 `arm64-v8a`；正常 `MainActivity` 入口，无 debuggable 标记，`classes.dex` 不含 `integration_test`；`zipalign -c -P 16 -v 4` 与 `apksigner verify` 通过。
+
+- 证书 SHA-256：`451748b957b44d5a28ebcc967cc2aeec7e7bea6a13d9edcb021c9fd8dc7fb245`，与官方 Alpha.9 一致；
+- APK：`artifacts/local/Ginkgo-0.1.0-beta.1-android-arm64.apk`，43,358,525 字节；
+- APK SHA-256：`7f7f13169aa6146df96ac2bad24673c50f0993e4d3d8a6d6d559fa1b5be32776`；
+- 校验文件：`artifacts/local/checksums.txt`。这是本地发布候选，不是已公开 Release。
+
+在 `Ginkgo_Alpha7_Release_QA` ARM64 模拟器上，从官方 Alpha.9 签名包开始。基线 APK 为 43,190,653 字节，SHA-256 `1909e88d874311e07950268e1da9fe80fc03044b213411eccf3738be97bd2d40`，与官方 `checksums.txt` 一致。通过正常应用界面进入离线演示并创建合成待办 `BETA1-SENTINEL`，再执行 `adb install -r`：
+
+| 项目 | Alpha.9 | Beta.1 |
+| --- | --- | --- |
+| versionCode | 10 | **11** |
+| versionName | 0.1.0-alpha.9 | **0.1.0-beta.1** |
+| firstInstallTime | 2026-10-27 18:56:24 | **2026-10-27 18:56:24（保留）** |
+| lastUpdateTime | 2026-10-27 18:56:24 | 2026-10-27 18:58:26 |
+
+覆盖安装后强制停止并冷启动，重新进入离线演示，工作台仍显示 `BETA1-SENTINEL`。UI 树断言及 `artifacts/local/ginkgo-beta1-upgrade-sentinel.png` 均确认保留。该结果证明签名兼容、覆盖升级和本机待办保留，不是物理设备或真实学校业务验收。
+
 ## 仍未覆盖
 
 - 物理 Android 设备、完整 TalkBack、预测返回、厂商省电与后台提醒恢复；
 - 真实学校账号的登录复验、学习非空公告／后页／测验、本人借阅认证、校车实时余票；
 - 真实签到、图书馆预约、CGYY 预约、作业上传或学校提交；
-- Beta.1 的签名 Release 构建、真实设备覆盖升级与 GitHub prerelease 公开；
+- 物理设备覆盖升级、TalkBack / 大字号抽检与 GitHub prerelease 公开；
 - Windows 主机构建与集成测试；本版公开范围只有 Android。
 
 ## 发布前检查清单
 
-1. `bash scripts/check-mirror.sh` 全绿，且 `python3 scripts/generate-interface-index.py --check` 无差异；
-2. 标签 `android-v0.1.0-beta.1` 与 `flutter/pubspec.yaml` 的 `0.1.0-beta.1+11` 一致；
-3. `docs/releases/android-beta1.md` 的 3–5 条用户收益与实际包一致，不写未验收能力；
-4. 真实设备覆盖升级（保留个人待办）与 TalkBack / 大字号抽检；
-5. 发布后更新仓库首页与主页的下载链接（页面脚本会自动指向最新的 `android-v*` 资产）。
+1. [x] `bash scripts/check-mirror.sh` 全绿，且 `python3 scripts/generate-interface-index.py --check` 无差异；
+2. [x] 工作树版本为 `0.1.0-beta.1+11`，签名正常入口 APK 与预期标签 `android-v0.1.0-beta.1` 一致；标签尚未创建；
+3. [x] `docs/releases/android-beta1.md` 的 5 条用户收益与实际包一致，不写未验收能力；
+4. [x] 官方 Alpha.9 → Beta.1 模拟器覆盖升级及合成个人待办保留通过；
+5. [ ] 物理设备覆盖升级与 TalkBack / 大字号 / 系统返回抽检；
+6. [ ] 维护者创建标签与 GitHub prerelease 后，核对远端 APK、摘要、下载链接及主页自动切换。
