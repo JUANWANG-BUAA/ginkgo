@@ -17,7 +17,7 @@ Widget ginkgoApp({
     builder: (context, _) => AppPreferencesScope(
       preferences: settings,
       child: CupertinoApp(
-        title: 'Ginkgo 银杏',
+        title: 'Ginkgo',
         debugShowCheckedModeBanner: false,
         locale: const Locale('zh', 'CN'),
         supportedLocales: const [Locale('zh', 'CN')],

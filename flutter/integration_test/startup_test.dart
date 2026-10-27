@@ -28,7 +28,7 @@ void main() {
       await tester.pumpWidget(GinkgoRoot(liveService: service));
       await settle(tester, frames: 4);
       expect(find.byType(StartupPage), findsOneWidget);
-      expect(find.text('Ginkgo 银杏'), findsOneWidget);
+      expect(find.text('Ginkgo'), findsOneWidget);
       service.response.complete(
         const SessionResponse(state: SessionState.signedOut, remembered: false),
       );

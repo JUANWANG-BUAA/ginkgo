@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark cold start: the paper tone turns into night ink, the leaf turns pale. -->
+    <color name="splash_background">#11160F</color>
+    <color name="launch_mark_stroke">#8FD6A4</color>
+    <color name="launch_mark_fill">#8FD6A4</color>
+    <color name="launch_mark_vein">#11160F</color>
+</resources>

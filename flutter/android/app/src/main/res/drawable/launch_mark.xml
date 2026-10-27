@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 银杏叶品牌标记（矢量）。颜色走资源引用，深色模式自动换成浅色叶。 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:pathData="M25 35c-1-4-2-8-2-13m0 5c-5-1-12-4-14-9 1-6 8-10 13-6l2 7 2-7c5-3 12 1 13 7-3 5-10 8-15 8"
+        android:strokeColor="@color/launch_mark_stroke"
+        android:strokeWidth="1.9"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@color/launch_mark_fill" />
+    <path
+        android:pathData="m12 17 11 9m-5-12 6 12m12-9-12 9m6-12-6 12"
+        android:strokeColor="@color/launch_mark_vein"
+        android:strokeWidth="0.9"
+        android:strokeLineCap="round" />
+</vector>

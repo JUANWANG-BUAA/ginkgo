@@ -46,7 +46,7 @@ void main() {
         ),
       ),
     );
-    expect(find.text('Ginkgo 银杏'), findsOneWidget);
+    expect(find.text('Ginkgo'), findsOneWidget);
     expect(find.byKey(const Key('startup-entrance')), findsNothing);
     expect(find.byType(CupertinoActivityIndicator), findsNothing);
     expect(tester.takeException(), isNull);

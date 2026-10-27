@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Launcher icon background: the same warm paper tone as the app mark. -->
+    <color name="ic_launcher_background">#E5E4D8</color>
+    <!-- Cold start backdrop. The Flutter startup page continues from this tone. -->
+    <color name="splash_background">#E5E4D8</color>
+    <color name="launch_mark_stroke">#3D603D</color>
+    <color name="launch_mark_fill">#3D603D</color>
+    <color name="launch_mark_vein">#E5E4D8</color>
+</resources>

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/design/ginkgo_mark.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
@@ -213,16 +214,19 @@ class _LoginPageState extends State<LoginPage> {
                           color: GinkgoColors.accent.withValues(alpha: .1),
                           borderRadius: BorderRadius.circular(24),
                         ),
-                        child: const Icon(
-                          CupertinoIcons.leaf_arrow_circlepath,
-                          size: 46,
-                          color: GinkgoColors.accent,
+                        child: const Center(
+                          child: GinkgoMark(
+                            key: Key('login-mark'),
+                            size: 52,
+                            color: GinkgoColors.accent,
+                            veinColor: GinkgoColors.accentSubtle,
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 22),
                     const Text(
-                      'Ginkgo 银杏',
+                      'Ginkgo',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 32,
