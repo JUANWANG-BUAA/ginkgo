@@ -1,6 +1,6 @@
 # Rust + Flutter 镜像实施现状
 
-更新：2026-10-26。功能与本地接口统一索引见 [功能和接口协议](FEATURES-AND-PROTOCOLS.md)。本页描述工作树；公开 APK 的内容以对应发布记录为准。模块差距只维护在 [功能对照](MIRROR-PARITY.md)，未完成事项只维护在 [待办](MIRROR-TODO.md)，过程与历次测试见 [历史证据索引](archive/mirror/README.md)。
+更新：2026-10-27。功能与本地接口统一索引见 [功能和接口协议](FEATURES-AND-PROTOCOLS.md)，全代码接口总览与逐层清单见 [接口索引](INTERFACE-INDEX.md)。本页描述工作树；公开 APK 的内容以对应发布记录为准。模块差距只维护在 [功能对照](MIRROR-PARITY.md)，未完成事项只维护在 [待办](MIRROR-TODO.md)，过程与历次测试见 [历史证据索引](archive/mirror/README.md)。
 
 ## 产品与验收边界
 
