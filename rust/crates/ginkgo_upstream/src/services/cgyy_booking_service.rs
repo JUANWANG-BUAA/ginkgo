@@ -6,13 +6,19 @@ use crate::{
     ErrorCode,
 };
 use ginkgo_domain::{features::cgyy_booking::*, ports::CgyyMutationSource};
-use serde_json::{json, Value};
+use serde_json::Value;
 use std::{
     collections::BTreeMap,
     time::{Duration, Instant},
 };
 
 const REVIEW_TTL: Duration = Duration::from_secs(120);
+
+mod protocol;
+use protocol::{
+    base_form, choices, data, encrypt, number, protocol_point, purposes, selections, text,
+    trade_matches, validate,
+};
 
 #[derive(Default)]
 pub(crate) struct BookingSafety {
@@ -45,197 +51,6 @@ pub(crate) struct BookingContext {
     captcha_token: String,
     secret: String,
     created: Instant,
-}
-fn number(v: &Value) -> Option<i64> {
-    crate::features::cgyy::number(v)
-}
-fn text(v: &Value) -> Option<&str> {
-    v.as_str().filter(|s| !s.is_empty())
-}
-fn data(value: &Value) -> Result<&Value, AppError> {
-    crate::features::cgyy::envelope(value)
-}
-
-fn validate(booking: &BookingRequest) -> Result<(), AppError> {
-    if booking.site_id <= 0
-        || booking.space_id <= 0
-        || booking.time_ids.is_empty()
-        || booking.time_ids.len() > 12
-        || booking.time_ids.iter().any(|id| *id <= 0)
-        || booking
-            .time_ids
-            .iter()
-            .collect::<std::collections::HashSet<_>>()
-            .len()
-            != booking.time_ids.len()
-        || booking.phone.len() != 11
-        || !booking.phone.bytes().all(|c| c.is_ascii_digit())
-        || booking.joiner_num < 1
-        || booking.joiner_num > 100
-        || booking.purpose_type <= 0
-        || [
-            booking.theme.as_str(),
-            &booking.activity_content,
-            &booking.joiners,
-        ]
-        .iter()
-        .any(|s| s.trim().is_empty() || s.len() > 8000)
-        || chrono::NaiveDate::parse_from_str(&booking.date, "%Y-%m-%d").is_err()
-    {
-        return Err(AppError::invalid());
-    }
-    Ok(())
-}
-fn choices(value: &Value, date: &str) -> Result<Vec<BookingChoice>, AppError> {
-    // Reuse strict read parser's availability semantics; never infer missing cells.
-    let parsed = crate::features::cgyy::day(value, 1, date)?;
-    let root = data(value)?;
-    let rows = root["reservationDateSpaceInfo"][date]
-        .as_array()
-        .ok_or_else(AppError::changed)?;
-    let times = root["spaceTimeInfo"]
-        .as_array()
-        .ok_or_else(AppError::changed)?;
-    let mut output = Vec::new();
-    for (index, space) in parsed.spaces.iter().enumerate() {
-        let id = number(&rows[index]["id"])
-            .or_else(|| number(&rows[index]["spaceId"]))
-            .filter(|id| *id > 0)
-            .ok_or_else(AppError::changed)?;
-        for (index, slot) in space.slots.iter().enumerate() {
-            if slot.status == "空闲" {
-                output.push(BookingChoice {
-                    space_id: id,
-                    space_name: space.name.clone(),
-                    time_id: number(&times[index]["id"]).ok_or_else(AppError::changed)?,
-                    time: slot.time.clone(),
-                });
-            }
-        }
-    }
-    Ok(output)
-}
-fn selections(value: &Value, booking: &BookingRequest) -> Result<String, AppError> {
-    let available = choices(value, &booking.date)?;
-    if !booking.time_ids.iter().all(|id| {
-        available
-            .iter()
-            .any(|c| c.space_id == booking.space_id && c.time_id == *id)
-    }) {
-        return Err(AppError::new(ErrorCode::BusinessRejected));
-    }
-    let root = data(value)?;
-    let row = root["reservationDateSpaceInfo"][&booking.date]
-        .as_array()
-        .ok_or_else(AppError::changed)?
-        .iter()
-        .find(|r| number(&r["id"]).or_else(|| number(&r["spaceId"])) == Some(booking.space_id))
-        .ok_or_else(AppError::changed)?;
-    let group = number(&row["venueSpaceGroupId"]);
-    let items: Vec<Value> = booking
-        .time_ids
-        .iter()
-        .map(|id| json!({"spaceId": booking.space_id, "timeId": id, "venueSpaceGroupId": group}))
-        .collect();
-    serde_json::to_string(&items).map_err(|_| AppError::invalid())
-}
-fn purposes(value: &Value) -> Vec<Purpose> {
-    fn visit(value: &Value, result: &mut BTreeMap<i64, String>) {
-        match value {
-            Value::Array(items) => {
-                for item in items {
-                    visit(item, result);
-                }
-            }
-            Value::Object(items) => {
-                if let Some(name) = text(&value["name"]).filter(|n| n.contains('类')) {
-                    if let Some(id) = number(&value["key"])
-                        .or_else(|| number(&value["value"]))
-                        .or_else(|| number(&value["id"]))
-                    {
-                        result.entry(id).or_insert_with(|| name.into());
-                    }
-                }
-                for item in items.values() {
-                    visit(item, result);
-                }
-            }
-            _ => {}
-        }
-    }
-    let mut result = BTreeMap::new();
-    visit(value, &mut result);
-    result
-        .into_iter()
-        .map(|(id, name)| Purpose { id, name })
-        .collect()
-}
-fn base_form(context: &BookingContext) -> BTreeMap<String, String> {
-    let mut form = BTreeMap::from([
-        ("venueSiteId".into(), context.booking.site_id.to_string()),
-        ("reservationDate".into(), context.booking.date.clone()),
-        ("reservationOrderJson".into(), context.selections.clone()),
-        ("token".into(), context.reservation_token.clone()),
-    ]);
-    // Official drafts take `weekStartDate` from the day response. A missing
-    // anchor is omitted instead of being signed with the requested date.
-    if !context.week_start.is_empty() {
-        form.insert("weekStartDate".into(), context.week_start.clone());
-    }
-    form
-}
-fn encrypt(text: &str, secret: &str) -> Result<String, AppError> {
-    use aes::{Aes128, Aes192, Aes256};
-    use base64::Engine;
-    use cipher::{BlockEncrypt, KeyInit};
-    let mut bytes = text.as_bytes().to_vec();
-    let padding = 16 - bytes.len() % 16;
-    bytes.resize(bytes.len() + padding, padding as u8);
-    macro_rules! encrypt_blocks {
-        ($cipher:ty) => {{
-            let cipher =
-                <$cipher>::new_from_slice(secret.as_bytes()).map_err(|_| AppError::changed())?;
-            for chunk in bytes.chunks_exact_mut(16) {
-                cipher.encrypt_block(cipher::generic_array::GenericArray::from_mut_slice(chunk));
-            }
-        }};
-    }
-    match secret.len() {
-        16 => encrypt_blocks!(Aes128),
-        24 => encrypt_blocks!(Aes192),
-        32 => encrypt_blocks!(Aes256),
-        _ => return Err(AppError::changed()),
-    }
-    Ok(base64::engine::general_purpose::STANDARD.encode(bytes))
-}
-/// Upstream captcha coordinate: `310 * offset / width` (§6B.1). Raw device or
-/// image pixels never travel as the protocol value; the pair is normalised and
-/// clamped to the documented range.
-fn protocol_point(offset: f64, width: Option<f64>) -> Result<String, AppError> {
-    if !offset.is_finite() || !(0.0..=10_000.0).contains(&offset) || offset <= 0.0 {
-        return Err(AppError::invalid());
-    }
-    let value = match width {
-        None => offset,
-        Some(width) if width.is_finite() && width > 0.0 && width <= 10_000.0 => {
-            310.0 * offset / width
-        }
-        Some(_) => return Err(AppError::invalid()),
-    };
-    if !(0.0..=310.0).contains(&value) {
-        return Err(AppError::invalid());
-    }
-    // Two decimals keep the signed form stable without claiming server precision.
-    Ok(format!("{}", (value * 100.0).round() / 100.0))
-}
-/// A trade number only narrows the match when both sides report one; an absent
-/// value stays unverified instead of being treated as a mismatch.
-fn trade_matches(draft: &str, response: &str, row: &Value) -> bool {
-    let row = row["tradeNo"].as_str().unwrap_or_default();
-    [draft, response]
-        .into_iter()
-        .filter(|value| !value.is_empty())
-        .all(|value| row.is_empty() || row == value)
 }
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
@@ -813,6 +628,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CgyyMutationSource for 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
     #[test]
     fn ecb_matches_apple_vector() {
         // AES-128-ECB + PKCS7, independently generated with OpenSSL.
