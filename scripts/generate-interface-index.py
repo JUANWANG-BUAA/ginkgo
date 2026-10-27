@@ -575,6 +575,7 @@ def main() -> None:
         collect_reverse(reverse, sections, f'dart-feature-{domain}.md')
 
     write_reverse(reverse)
+    write_dependency_graph()
     write_readme(totals)
 
     if check:
@@ -599,6 +600,131 @@ def collect_reverse(reverse: dict[str, list[str]], sections: list[Section],
         bucket = reverse.setdefault(source, [])
         for entry in section.entries:
             bucket.append(f'{entry.name} → {index_file}')
+
+
+def dart_group(relative: str) -> str:
+    """把 lib 相对路径归入依赖图的分组。"""
+    parts = relative.split('/')
+    if parts[0] == 'features' and len(parts) > 2:
+        return 'features/' + parts[1]
+    return parts[0] if len(parts) > 1 else 'root'
+
+
+def dart_dependency_graph() -> dict[str, set[str]]:
+    """按目录分组统计 Dart 跨组依赖。"""
+    graph: dict[str, set[str]] = {}
+    for path in sorted(FLUTTER_LIB.rglob('*.dart')):
+        relative = path.relative_to(FLUTTER_LIB).as_posix()
+        if relative.startswith('src/'):
+            continue
+        source = dart_group(relative)
+        code = path.read_text(encoding='utf-8')
+        for match in re.finditer(r"(?:import|export)\s+'([^']+)'", code):
+            target = match.group(1)
+            if not target.startswith('package:ginkgo_mirror/'):
+                continue
+            target_group = dart_group(target[len('package:ginkgo_mirror/'):])
+            if target_group == source:
+                continue
+            graph.setdefault(source, set()).add(target_group)
+    return graph
+
+
+def strongly_connected(graph: dict[str, set[str]]) -> list[list[str]]:
+    """Tarjan 求强连通分量，只返回真正的环（成员数 > 1）。"""
+    index: dict[str, int] = {}
+    low: dict[str, int] = {}
+    stack: list[str] = []
+    on_stack: set[str] = set()
+    components: list[list[str]] = []
+    counter = [0]
+
+    nodes = set(graph) | {target for targets in graph.values() for target in targets}
+
+    def visit(node: str) -> None:
+        index[node] = low[node] = counter[0]
+        counter[0] += 1
+        stack.append(node)
+        on_stack.add(node)
+        for neighbour in graph.get(node, ()):
+            if neighbour not in index:
+                visit(neighbour)
+                low[node] = min(low[node], low[neighbour])
+            elif neighbour in on_stack:
+                low[node] = min(low[node], index[neighbour])
+        if low[node] == index[node]:
+            component: list[str] = []
+            while True:
+                popped = stack.pop()
+                on_stack.discard(popped)
+                component.append(popped)
+                if popped == node:
+                    break
+            if len(component) > 1:
+                components.append(sorted(component))
+
+    for node in sorted(nodes):
+        if node not in index:
+            visit(node)
+    return components
+
+
+def write_dependency_graph() -> None:
+    """生成 Dart 目录依赖图与循环检测结果。"""
+    graph = dart_dependency_graph()
+    components = strongly_connected(graph)
+    edges = sum(len(targets) for targets in graph.values())
+    node_count = len(set(graph) | {t for v in graph.values() for t in v})
+
+    lines = [
+        '# Flutter 目录依赖图（生成）',
+        '',
+        HEADER,
+        f'按目录分组统计：{node_count} 个分组节点（其中 {len(graph)} 个有出向依赖）、'
+        f'{edges} 条跨组依赖。'
+        '箭头方向为「依赖方 → 被依赖方」。',
+        '',
+        '## 依赖图',
+        '',
+        '```mermaid',
+        'flowchart LR',
+    ]
+    # 节点按分组名排序，保证输出稳定。
+    for group in sorted(set(graph) | {t for v in graph.values() for t in v}):
+        lines.append(f'  {mermaid_id(group)}["{group}"]')
+    for group in sorted(graph):
+        for target in sorted(graph[group]):
+            lines.append(f'  {mermaid_id(group)} --> {mermaid_id(target)}')
+    lines += ['```', '']
+
+    lines.append('## 循环依赖')
+    lines.append('')
+    if components:
+        lines.append(
+            '以下分组互相依赖，构成强连通分量。Dart 侧没有像 Rust 那样的依赖方向门禁，'
+            '因此这些环不会被自动拦截；改动前先确认是否真的需要双向引用。')
+        lines.append('')
+        for component in sorted(components, key=len, reverse=True):
+            lines.append(f'- **{len(component)} 个分组**：' + '、'.join(f'`{c}`' for c in component))
+            lines.append('')
+            lines.append('```mermaid')
+            lines.append('flowchart LR')
+            inside = set(component)
+            for source in component:
+                for target in sorted(graph.get(source, set()) & inside):
+                    lines.append(f'  {mermaid_id(source)} --> {mermaid_id(target)}')
+            lines.append('```')
+            lines.append('')
+    else:
+        lines.append('未发现循环依赖。')
+        lines.append('')
+
+    (OUT_DIR / 'DEPENDENCY-GRAPH.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+
+
+def mermaid_id(group: str) -> str:
+    """把分组名转成 Mermaid 安全的节点 id。"""
+    return 'n_' + re.sub(r'[^A-Za-z0-9]', '_', group)
 
 
 def write_reverse(reverse: dict[str, list[str]]) -> None:

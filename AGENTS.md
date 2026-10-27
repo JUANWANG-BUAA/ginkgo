@@ -16,9 +16,10 @@ Ginkgo（BUAA Assistant，北航校园工作台）是北航校园服务聚合客
 
 开始改动前，按范围阅读：
 
+- **先读全局结构**：`docs/ARCHITECTURE-TOPOLOGY.md`（五层拓扑、读写时序、写入状态机、依赖图与循环检测、数据 IO 契约图）和 `docs/INTERFACE-INDEX.md`（能力总表、四条完整链路、模块 IO 契约、跨层不变量）。具体签名查 `docs/interfaces/`，从代码位置回查用其中的 `REVERSE-INDEX.md`。
 - Android / Windows：`flutter/README.md`、`docs/ANDROID-DEVELOPMENT.md`、`docs/MIRROR-ARCHITECTURE.md`、`docs/MIRROR-IMPLEMENTATION.md`。
 - Apple（**已冻结**，仅在被动修时参考）：`docs/ARCHITECTURE.md`、`docs/IOS.md`、`docs/TESTING.md`。其中历史设计和目标结构不能直接当作当前实现。
-- 学校接口：`docs/API.md` 是唯一协议事实源；功能与客户端契约索引见 `docs/FEATURES-AND-PROTOCOLS.md`；全代码接口索引见 `docs/INTERFACE-INDEX.md`（总览）与 `docs/interfaces/`（由 `scripts/generate-interface-index.py` 生成的逐层全量清单）。
+- 学校接口：`docs/API.md` 是唯一协议事实源；功能与客户端契约索引见 `docs/FEATURES-AND-PROTOCOLS.md`。
 
 ## 2. 技术栈与运行时架构
 

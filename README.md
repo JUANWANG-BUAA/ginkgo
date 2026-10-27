@@ -117,10 +117,22 @@ Alpha.9 已包含页面左右翻页、SPOC 学习与资料保存、本人借阅�
 
 ## 文档地图
 
+**先读这两份**：想理解代码怎么组织、接口怎么定义、数据怎么流动，从这里开始。
+
 | 文档 | 用途 |
 |------|------|
-| [docs/ROADMAP.md](docs/ROADMAP.md) | **开发说明书（详细版）**：从零到成品——Xcode 入门、每步任务分解/验收动作/常见坑/给 AI 的提示词要点 |
+| [docs/ARCHITECTURE-TOPOLOGY.md](docs/ARCHITECTURE-TOPOLOGY.md) | **架构拓扑与数据流（图）**：五层拓扑、读写时序、写入状态机、依赖图与循环检测、数据 IO 契约图、会话与缓存位置 |
+| [docs/INTERFACE-INDEX.md](docs/INTERFACE-INDEX.md) | **接口索引（总览）**：能力总表串起应用接口 → FFI 命令 → Rust 端口 → 协议章节；四条完整链路；模块 IO 契约；跨层不变量。逐层全量清单在 [docs/interfaces/](docs/interfaces/README.md)（含[反向索引](docs/interfaces/REVERSE-INDEX.md)与[依赖图](docs/interfaces/DEPENDENCY-GRAPH.md)） |
+
+**按任务查阅**：
+
+| 文档 | 用途 |
+|------|------|
 | [docs/API.md](docs/API.md) | 上游协议（✅已验证/⚠️待验证分级，含修订对照表） |
+| [docs/FEATURES-AND-PROTOCOLS.md](docs/FEATURES-AND-PROTOCOLS.md) | 功能入口、读写边界与本机数据 |
+| [docs/MIRROR-ARCHITECTURE.md](docs/MIRROR-ARCHITECTURE.md) | Rust / Flutter 边界与隔离规则 |
+| [docs/MIRROR-IMPLEMENTATION.md](docs/MIRROR-IMPLEMENTATION.md) | Rust + Flutter 实现现状与分层表 |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | **开发说明书（详细版）**：从零到成品——Xcode 入门、每步任务分解/验收动作/常见坑/给 AI 的提示词要点 |
 | [docs/DATA-SOURCES.md](docs/DATA-SOURCES.md) | 可拓展数据源与只读信息清单（公开源 / CAS 只读 / 余额查询边界） |
 | [docs/EDUCATION-DATA-MAP.md](docs/EDUCATION-DATA-MAP.md) | 博雅、教学楼研讨室（CGYY）、研究生教务、SPOC 的可读取数据与 API 地图 |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 架构与技术决策 |
@@ -128,7 +140,6 @@ Alpha.9 已包含页面左右翻页、SPOC 学习与资料保存、本人借阅�
 | [docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md) | 项目改进点分析与 P0/P1/P2 执行路线 |
 | [docs/UI-DESIGN.md](docs/UI-DESIGN.md) | macOS 原生 UI 设计准则：信息架构、页面状态、通知、无障碍与验收 |
 | [docs/TESTING.md](docs/TESTING.md) | 测试策略 |
-| [docs/MIRROR-IMPLEMENTATION.md](docs/MIRROR-IMPLEMENTATION.md) | Rust + Flutter 现状、待办与功能对照入口 |
 | [Opus 5.5 评审落实](docs/_audit/2026-10-21-opus-review-followup.md) | 原评审来源、本次核实、修复定位与验证边界 |
 | [docs/COLLABORATION.md](docs/COLLABORATION.md) | 人 + AI 协作规则（分工/红线/审查清单/提示词模板） |
 | [docs/BACKLOG.md](docs/BACKLOG.md) | 候选功能储备（A-D 级分级；接入前须先取证转正） |

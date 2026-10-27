@@ -8,6 +8,8 @@
 
 本文是**手工维护的总览**：讲清分层、能力归属与跨层不变量。
 
+配套阅读：[架构拓扑与数据流](ARCHITECTURE-TOPOLOGY.md) 用图说明五层拓扑、读写时序、写入状态机与数据 IO 形状；本文用表说明每个接口的签名、位置与契约。
+
 **全量接口清单**（每个公开类型、函数、方法、字段，含签名与源码行号）由生成器产出在 [interfaces/](interfaces/README.md)，不要手工编辑：
 
 ```sh
@@ -41,6 +43,7 @@ Flutter 页面
 | 壳层与导航 | 功能登记表、布局壳 | [§2](#2-能力总表) | [dart-workspace](interfaces/dart-workspace.md)、[dart-app](interfaces/dart-app.md) |
 | UI 页面 | 各功能域页面与域内组件 | [§2](#2-能力总表) | [dart-feature-*](interfaces/README.md)（按域拆分） |
 | 反向查找 | 从源码文件回查接口 | — | [REVERSE-INDEX](interfaces/REVERSE-INDEX.md) |
+| 依赖拓扑 | 目录依赖图与循环检测 | [拓扑 §4](ARCHITECTURE-TOPOLOGY.md#4-模块依赖图生成) | [DEPENDENCY-GRAPH](interfaces/DEPENDENCY-GRAPH.md) |
 
 查找某个功能时，先在 [§2 能力总表](#2-能力总表) 找到它的行，再顺着该行的链接进入各层细节；需要具体签名时进 `interfaces/` 对应文件。
 
