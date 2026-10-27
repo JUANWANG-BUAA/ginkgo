@@ -40,10 +40,12 @@ Android 更新检查仍读取 GitHub Releases，但 Alpha.4 起可在应用内�
 | 应用 | [application](../rust/crates/ginkgo_core/src/application/) | 只依赖 domain 业务端口的应用命令、投影和本地待办 |
 | 组装 | [runtime](../rust/crates/ginkgo_runtime/src/) | 连接 core 与真实学校/平台实现 |
 | 桥接 | [bridge API](../rust/crates/ginkgo_flutter_bridge/src/api/) | 类型映射与粗粒度命令；生命周期 RwLock 排斥身份变更和进行中的读取 |
-| 呈现投影 | `flutter/lib/*_models.dart` | Rust payload JSON 的唯一解码点：按 domain 结构映射为类型值（cgyy、shuttle、bykc、library_books、library_stats、notices、graduate、checkin 遥测）；页面与共享组件不调用 `jsonDecode`，该边界由 `check-mirror-architecture.py` 强制 |
+| 呈现投影 | `lib/features/*/*_models.dart` | Rust payload JSON 的唯一解码点：按 domain 结构映射为类型值（cgyy、shuttle、bykc、library_books、library_stats、notices、graduate、checkin 遥测）；页面与共享组件不调用 `jsonDecode`，该边界由 `check-mirror-architecture.py` 强制 |
 | 设计系统 | [design tokens](../flutter/lib/design/tokens/)、[widgets](../flutter/lib/widgets/) | token 层（颜色/布局/动效/圆角/间距/字体）+ 按职责拆分的组件模块（surfaces/controls/navigation）；`apple_widgets.dart` 仅作 barrel 转发 |
-| 功能组件 | `today_course_list`、`today_course_section`、`graduate_widgets`、`graduate_sections`、`shuttle_widgets`、`checkin_widgets`、`schedule_widgets`、`cgyy_widgets`、`cgyy_captcha_page`、`cgyy_day_page` | 大页面抽出的行级/区块组件与整页拆分（如 CGYY 日查询/订单页独立于 hub）；widget API 只收发类型值，不出现 `Map<String, dynamic>`（同由架构脚本强制） |
-| 页面 | [Flutter lib](../flutter/lib/) | 导航、布局、无障碍、呈现状态；不解析上游协议 |
+| 功能域 | [features/](../flutter/lib/features/) | 一个域一个目录：页面、域内组件（`<domain>_widgets.dart`）、模型与控制器同居；新增功能落在此处 |
+| 功能组件 | `today_course_section`、`homework_widgets`、`homework_files_widgets`、`graduate_sections`、`library_cards`、`shuttle_widgets`、`checkin_widgets`、`schedule_widgets`、`cgyy_widgets`、`cgyy_day_view`、`bykc_course_tile` | 大页面抽出的行级/区块组件与整页拆分（如 CGYY 日查询/订单页独立于 hub）；widget API 只收发类型值，不出现 `Map<String, dynamic>`（同由架构脚本强制） |
+| 跨域共享 | [shared/](../flutter/lib/shared/)、[platform/](../flutter/lib/platform/)、[workspace/](../flutter/lib/workspace/) | 多域共用的时间/偏好/提醒状态、平台与系统集成、壳层与功能登记表 |
+| 组合入口 | `lib/main.dart`、`lib/mirror_service.dart`、`lib/startup_page.dart` | `lib/` 根只放入口；其余文件必须归入上表目录，由架构脚本强制 |
 | 共享契约 | [fixtures](../fixtures/README.md) | 两种语言独立消费同一输入与期望领域投影；覆盖范围须明确 |
 
 维护时遵守以下规则：
@@ -54,6 +56,7 @@ Android 更新检查仍读取 GitHub Releases，但 Alpha.4 起可在应用内�
 - 安全 GET 的有界回退与认证恢复维持现有规则；写请求不自动重放。签到和图书馆操作须由用户确认、单次提交、回查；结果不明时禁止重复提交。
 - Flutter 复杂异步页面先收拢快照、加载和回查状态。图书馆已有 `LibraryController`；选择器和导航等局部交互继续由页面管理。状态颜色通过 `AppleDesign.status*` 表达，颜色之外保留文字。
 - 修改桥接 API 才重新生成 FRB 绑定；禁止手改生成文件。代码搜索和规模审查排除 `flutter/lib/src/rust/` 与 Rust `frb_generated.rs`。
+- Dart 文件按域分目录：新功能新建或加入 `lib/features/<域>/`，跨域能力才进 `shared/`、`platform/`、`workspace/`。`lib/` 根只保留组合入口，单个 Dart 文件上限 600 行——两条都由 `check-mirror-architecture.py` 的 `layout_violations` 强制，超出需拆分而不是放宽阈值。
 - 真实网络、设备交互、人工视觉与自动化合成测试分别记录。演示入口不得访问真实账号；仓库不保存凭据、票据或个人内容。
 
 ## 当前源码与发布基线

@@ -130,6 +130,39 @@ def dart_boundary_violations(root):
     return errors
 
 
+# Layering keeps new work grouped by domain instead of re-flattening `lib/`.
+# Only composition entry points may sit at the root; everything else belongs in
+# a domain directory. Growth inside one file is bounded the same way.
+ROOT_ENTRY_POINTS = {'main.dart', 'mirror_service.dart', 'startup_page.dart'}
+PRESENTATION_LINE_LIMIT = 600
+
+
+def layout_violations(root):
+    """lib/ stays grouped by responsibility; single files stay reviewable."""
+    errors = []
+    lib = root / 'flutter/lib'
+    if not lib.exists():
+        return errors
+
+    for file in sorted(lib.glob('*.dart')):
+        if file.name not in ROOT_ENTRY_POINTS:
+            errors.append(
+                f'{file.relative_to(lib)}: lib root holds entry points only; '
+                f'group feature files under a domain directory')
+
+    for file in lib.rglob('*.dart'):
+        relative = file.relative_to(lib)
+        if relative.parts[0] == 'src':
+            # Generated bindings are not hand-edited and not size-reviewed.
+            continue
+        lines = len(file.read_text().splitlines())
+        if lines > PRESENTATION_LINE_LIMIT:
+            errors.append(
+                f'{relative}: {lines} lines exceeds {PRESENTATION_LINE_LIMIT}; '
+                f'split by responsibility instead of growing one file')
+    return errors
+
+
 def violations(root):
     metadata = json.loads(subprocess.check_output(
         ['cargo', 'metadata', '--manifest-path', str(root / 'rust/Cargo.toml'),
@@ -137,6 +170,7 @@ def violations(root):
     errors = dependency_violations(metadata['packages']) + source_violations(root)
     errors += payload_decode_violations(root)
     errors += dart_boundary_violations(root)
+    errors += layout_violations(root)
     return errors
 
 

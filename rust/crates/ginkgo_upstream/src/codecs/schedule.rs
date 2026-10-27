@@ -175,7 +175,9 @@ pub fn parse_exams(value: Value) -> Result<Vec<Exam>, AppError> {
 
 mod graduate;
 
-pub use graduate::{parse_graduate_courses, parse_graduate_terms, parse_graduate_weeks, parse_graduate_weeks_at};
+pub use graduate::{
+    parse_graduate_courses, parse_graduate_terms, parse_graduate_weeks, parse_graduate_weeks_at,
+};
 
 type SlotMap = HashMap<(String, i64), (Option<i64>, Option<i64>)>;
 

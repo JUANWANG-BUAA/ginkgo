@@ -7,11 +7,6 @@ import '../application/homework_files.dart';
 
 typedef HomeworkFilePicker = Future<XFile?> Function();
 typedef HomeworkFileSaver = Future<void> Function(HomeworkFileDownload file);
-typedef SchoolFileSaver = Future<FileSaveResult> Function(
-  HomeworkFileDownload file, {
-  required bool Function() isCurrent,
-  bool openAfterSave,
-});
 
 enum FileSaveStatus { saved, cancelled, stale }
 
@@ -37,11 +32,6 @@ class FileSaveResult {
 }
 
 Future<XFile?> pickHomeworkFile() => openFile();
-
-/// Compatibility only. New callers must supply their page/account guard.
-Future<void> saveHomeworkFile(HomeworkFileDownload file) async {
-  await saveAndOpenSchoolFile(file, isCurrent: () => true);
-}
 
 Future<FileSaveResult> saveAndOpenSchoolFile(
   HomeworkFileDownload file, {

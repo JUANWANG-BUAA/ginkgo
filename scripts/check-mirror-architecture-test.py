@@ -182,6 +182,35 @@ class BoundaryTests(unittest.TestCase):
             codec.write_text('final value = jsonDecode(text);\n')
             self.assertEqual(BOUNDARY.payload_decode_violations(root), [])
 
+    def test_lib_root_keeps_entry_points_only(self):
+        """新增功能必须落进领域目录，不能重新把文件平铺回 lib 根。"""
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            lib = root / 'flutter/lib'
+            lib.mkdir(parents=True)
+            (lib / 'main.dart').write_text('void main() {}\n')
+            (lib / 'mirror_service.dart').write_text('export "x.dart";\n')
+            self.assertEqual(BOUNDARY.layout_violations(root), [])
+            stray = lib / 'cgyy_page.dart'
+            stray.write_text('class P {}\n')
+            errors = BOUNDARY.layout_violations(root)
+            self.assertEqual(len(errors), 1)
+            self.assertIn('entry points only', errors[0])
+
+    def test_oversized_dart_file_is_rejected(self):
+        """单文件超过上限应拆分，而不是继续堆叠职责。"""
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            lib = root / 'flutter/lib'
+            page = lib / 'features/today/today_page.dart'
+            page.parent.mkdir(parents=True)
+            page.write_text('\n'.join(['// line'] * 601))
+            errors = BOUNDARY.layout_violations(root)
+            self.assertEqual(len(errors), 1)
+            self.assertIn('split by responsibility', errors[0])
+            page.write_text('\n'.join(['// line'] * 600))
+            self.assertEqual(BOUNDARY.layout_violations(root), [])
+
 
 if __name__ == '__main__':
     unittest.main()
