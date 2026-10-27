@@ -175,3 +175,27 @@ CI 入口为 [mirror.yml](../.github/workflows/mirror.yml)。本地通过不代�
 协议依据与证据等级见 [API §7.1.4](API.md#714-spoc-课程学习只读扩展2026-10-26静态证据与实测分开)，公开前端、真实只读及自动化结果分记于 [本轮记录](_audit/2026-10-26-spoc-learning-integration.md)。该学习能力随 Alpha.9 公开；本地构建与合成回归不替代真实非空公告/测验、下载和物理 Android 验收。
 
 2026-10-26 用户补充准确官网入口后，校车外链由跳过认证的 indexPage 修为已验证的 HTTPS CASLogin，借阅官网由通用首页修为移动当前借阅页。仅外部浏览器入口修复，不宣称应用内余票或读者认证已打通；学校 CAS 的 HTTP service 回程未被 App 接管。证据见 [校车补充](_audit/2026-10-26-shuttle-auth-followup.md) 和 [移动借阅页复核](_audit/2026-10-26-library-loans-auth-followup.md)。
+
+## 工作树：Android Beta.1 工程收口与宣传重制（2026-10-27）
+
+按 [接口索引](INTERFACE-INDEX.md) 的设计模式做了一轮跨层收口，并把仓库首页、GitHub Pages 主页与对外文案全部改成 Android 主推。
+
+跨层改动：`edit_tasks` 不再因登录并发被丢弃（等待会话读锁，阻塞式 fsync 移到 `spawn_blocking`）；图书馆五处重复的令牌重建逻辑收敛为一个 `library_retry` 助手（行为不变，补回归测试）；upstream 删除 `pub use codecs as features` 别名，`features` 只指领域规则。
+
+文档与门禁：`docs/INTERFACE-INDEX.md` 新增接口设计模式、返回形态与载荷契约、命令命名约定、自动化门禁四节，命令总数修正为 87；新增 `scripts/check-design-tokens.py`（硬编码视觉常量只许减不许增）与接口索引 `--check`，两者都接入本地基线与 CI。全量接口清单刷新为 36 个文件、1337 条记录。
+
+宣传：新增 7 张真机尺寸 Android 截图与 1 段 20 秒离线演示录屏（`flutter/integration_test/promo_capture_test.dart` 在隔离模拟器上生成，仅合成数据），README 与主页换成 Android 素材与主推下载入口，`docs/PROMOTION.md` 全量重写。版本号提升为 `0.1.0-beta.1+11`（**尚未发布**），准备记录见 [Beta.1 准备记录](_audit/2026-10-27-android-beta1-preparation.md)。
+
+验证：全量 `check-mirror.sh` 通过（含 529 项 Flutter 测试、FRB 再生成零差异）；Android 模拟器上的离线演示截图与录屏驱动通过。真实账号、物理设备与学校写入仍未验收。
+
+## 工作树：CGYY UBAA 对照可用性修复（2026-10-27）
+
+首页分为预约研讨室、我的预约和门锁密码。用途读取为空或允许降级的失败时使用 UBAA 十项内置用途并显示来源说明，认证失败不降级。新增 `order` / `lockCode` 两种只读查询：订单详情复用保守订单投影；门锁码按 UBAA `qrCode` / `dueDate` / `orderView` 白名单展示，无快照、无后台轮询，读取失败与无预约分开。保留手动拼图、单次写入、空档复核和待核实保护，未复制 UBAA 的写重试。分层 fixture 与 Flutter 页面回归覆盖用途、订单、门锁三态和大字号；真实预约、取消及门锁码读取仍未验收，工作树变化尚未发布。
+
+验证：59 项 CGYY Rust 专项与 52 项 CGYY Flutter 专项通过；完整 `check-mirror.sh` 通过（含 522 项 Flutter 测试及 FRB 再生成一致性）。ARM64 正常 main Debug APK 构建成功；`integration_test/cgyy_test.dart` 在 Android 17 ARM64 模拟器通过场馆、订单详情和门锁码真桥接演示链路。该设备结果为合成数据，不是物理设备或真实学校验收。
+
+## 工作树：课表、研究生教务与 SPOC 使用体验（2026-10-27）
+
+手机课表默认当日清单，提供七天星期切换；优先今天，其次首个有课日，宽屏仍默认周网格，搜索始终覆盖全周。研究生教务在同一页保留原概览、课程和学籍操作并嵌入严格学分地图，侧栏和移动目录不再重复出现“研究生学分图”，旧 ID 仅作兼容别名。SPOC 课程列表只保留一个刷新入口，空列表不显示搜索；课程详情改为资料/公告/测验分页，首次切页才读取对应分区，保留独立失败、旧快照、栏目、目录和下载上下文。
+
+专项回归覆盖窄屏/宽屏课表、研究生单入口和学分语义、SPOC 懒加载、缓存、账号切换、下载及大字号触控目标。真实本科教务/学分地图仍未接入，未把研究生模型改名冒充；真实账号与物理设备验收边界不变。
