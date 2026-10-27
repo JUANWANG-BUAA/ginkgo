@@ -1,7 +1,7 @@
 //! GSMIS graduate schedule requests (API.md §3).
 use crate::{
     auth::{cas, session::Session},
-    features::schedule::{self, CourseMeeting, Term, Week},
+    codecs::schedule::{self, CourseMeeting, Term, Week},
     foundation::http::{HttpRequest, HttpResponse, HttpTransport},
     AppError, ErrorCode,
 };

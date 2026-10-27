@@ -1,8 +1,6 @@
 //! Synthetic booking.lib snapshot compiled from the shared fixtures.
 use crate::{
-    features::library::{
-        self, LibraryArea, LibraryBooking, LibrarySeat, LibrarySlot, LibraryVenue,
-    },
+    codecs::library::{self, LibraryArea, LibraryBooking, LibrarySeat, LibrarySlot, LibraryVenue},
     AppError,
 };
 use serde_json::Value;

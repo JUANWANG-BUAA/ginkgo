@@ -1,6 +1,6 @@
 use super::session_service::SchoolClient;
 use crate::{
-    adapters::graduate_http, auth::CredentialVault, features::graduate::AcademicData,
+    adapters::graduate_http, auth::CredentialVault, codecs::graduate::AcademicData,
     foundation::http::HttpTransport, AppError, ErrorCode,
 };
 pub use ginkgo_domain::ports::GraduateOutcome;

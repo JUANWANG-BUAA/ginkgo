@@ -1,6 +1,6 @@
 //! Synthetic schedule bundle compiled from shared fixtures.
 use crate::{
-    features::schedule::{self, CourseMeeting, Exam, Term, Week},
+    codecs::schedule::{self, CourseMeeting, Exam, Term, Week},
     AppError,
 };
 use serde_json::Value;

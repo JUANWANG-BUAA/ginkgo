@@ -3,7 +3,7 @@ use super::{cache::SnapshotCache, session_service::SchoolClient};
 use crate::{
     adapters::homework_http,
     auth::CredentialVault,
-    features::homework::{HomeworkData, HomeworkDetail},
+    codecs::homework::{HomeworkData, HomeworkDetail},
     foundation::http::HttpTransport,
     AppError, ErrorCode,
 };

@@ -1,9 +1,7 @@
 //! booking.lib v4 HTTP. Read recovery and single-attempt mutations are separate (API.md §5).
 use crate::{
     auth::{cas, session::Session},
-    features::library::{
-        self, LibraryArea, LibraryBooking, LibrarySeat, LibrarySlot, LibraryVenue,
-    },
+    codecs::library::{self, LibraryArea, LibraryBooking, LibrarySeat, LibrarySlot, LibraryVenue},
     foundation::{
         http::{HttpMethod, HttpRequest, HttpResponse, HttpTransport},
         webvpn,
@@ -310,8 +308,8 @@ pub async fn mutate<T: HttpTransport>(
     token: &str,
     path: &str,
     body: &Value,
-) -> crate::features::mutation::MutationOutcome {
-    use crate::features::{library_mutation, mutation::MutationOutcome};
+) -> crate::codecs::mutation::MutationOutcome {
+    use crate::codecs::{library_mutation, mutation::MutationOutcome};
     let response = session
         .send(json_request(
             &format!("{BASE}/v4/{path}"),

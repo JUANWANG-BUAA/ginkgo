@@ -1,6 +1,6 @@
 //! Synthetic SPOC homework page compiled from the shared fixture.
 use crate::{
-    features::homework::{self, HomeworkPage},
+    codecs::homework::{self, HomeworkPage},
     AppError,
 };
 use serde_json::Value;

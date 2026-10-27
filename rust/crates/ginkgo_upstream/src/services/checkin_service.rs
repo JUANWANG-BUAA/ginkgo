@@ -8,7 +8,7 @@ use super::{cache::now_shanghai, session_service::SchoolClient};
 use crate::{
     adapters::checkin_http,
     auth::CredentialVault,
-    features::checkin::CheckInCourse,
+    codecs::checkin::CheckInCourse,
     foundation::{http::HttpTransport, school_time},
     AppError, ErrorCode,
 };
@@ -93,7 +93,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         result
     }
 
-    async fn establish_iclass(&self) -> Result<crate::features::checkin::IClassSession, AppError> {
+    async fn establish_iclass(&self) -> Result<crate::codecs::checkin::IClassSession, AppError> {
         let first = match self.try_establish_iclass().await {
             Ok(session) => return Ok(session),
             Err(error) => error,
@@ -110,7 +110,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
 
     async fn try_establish_iclass(
         &self,
-    ) -> Result<crate::features::checkin::IClassSession, AppError> {
+    ) -> Result<crate::codecs::checkin::IClassSession, AppError> {
         self.checkin_stage("authenticating");
         let login_name = checkin_http::resolve_login_name(&self.session).await?;
         self.checkin_stage("appLogin");
@@ -251,8 +251,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CheckInMutationSource
 {
     /// Caller holds the bridge's exclusive session access for this single user action.
     /// Re-read today first: never submit an old date, ambiguous merged ID, or cached status.
-    async fn submit_checkin(&self, course_id: &str) -> crate::features::mutation::MutationOutcome {
-        use crate::features::{checkin::CheckInStatus, mutation::MutationOutcome};
+    async fn submit_checkin(&self, course_id: &str) -> crate::codecs::mutation::MutationOutcome {
+        use crate::codecs::{checkin::CheckInStatus, mutation::MutationOutcome};
         let snapshot = match self.load_checkin(true).await {
             Ok(snapshot) if snapshot.failure.is_none() => snapshot,
             _ => {

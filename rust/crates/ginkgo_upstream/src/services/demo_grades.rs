@@ -1,6 +1,6 @@
 //! Synthetic grade snapshot compiled from the shared fixture.
 use crate::{
-    features::grades::{self, GradeCourse, GradeSummary},
+    codecs::grades::{self, GradeCourse, GradeSummary},
     AppError,
 };
 use serde_json::Value;

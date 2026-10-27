@@ -10,7 +10,7 @@ use crate::{
         schedule_http::{self, Portal},
     },
     auth::CredentialVault,
-    features::{
+    codecs::{
         grades::{self, GradeCourse},
         schedule::Term,
         today::TodayCourse,

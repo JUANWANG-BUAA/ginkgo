@@ -18,7 +18,7 @@ mod library_service;
 mod schedule_service;
 pub mod session_service;
 use crate::{
-    features::{classroom, schedule},
+    codecs::{classroom, schedule},
     foundation::school_time,
     AppError,
 };

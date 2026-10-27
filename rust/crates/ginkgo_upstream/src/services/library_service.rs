@@ -11,7 +11,7 @@ use super::{
 use crate::{
     adapters::library_http,
     auth::CredentialVault,
-    features::library::{LibraryArea, LibrarySeat, LibrarySlot},
+    codecs::library::{LibraryArea, LibrarySeat, LibrarySlot},
     foundation::{http::HttpTransport, school_time},
     AppError,
 };
@@ -73,6 +73,28 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         self.ensure_webvpn_session().await?;
         library_http::login(&self.session).await
     }
+
+    /// Run one library read with a single token recovery.
+    ///
+    /// booking.lib answers an expired business token with a login error instead of
+    /// an HTTP status. Every read used to repeat the same rebuild-once dance; this
+    /// helper keeps the rule in one place: a read is retried at most once, the
+    /// rejected token is invalidated, and a peer that already recovered keeps its
+    /// newer token.
+    async fn library_retry<R, F, Fut>(&self, call: F) -> Result<R, AppError>
+    where
+        F: Fn(String) -> Fut,
+        Fut: std::future::Future<Output = Result<R, AppError>>,
+    {
+        let token = self.library_token().await?;
+        let result = call(token.clone()).await;
+        if !needs_relogin(&result) {
+            return result;
+        }
+        self.invalidate_library_token(&token);
+        let token = self.library_token().await?;
+        call(token).await
+    }
 }
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for SchoolClient<T, V> {
@@ -98,18 +120,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
             }
         }
         let ticket = self.snapshots.library_history.lock().begin(&page);
-        let result = async {
-            let token = self.library_token().await?;
-            let result = library_http::history(&self.session, &token, page, 40).await;
-            if needs_relogin(&result) {
-                self.invalidate_library_token(&token);
-                let token = self.library_token().await?;
+        let result = self
+            .library_retry(|token| async move {
                 library_http::history(&self.session, &token, page, 40).await
-            } else {
-                result
-            }
-        }
-        .await;
+            })
+            .await;
         if self.current_account()? != account {
             return Err(AppError::session_expired());
         }
@@ -162,17 +177,12 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
             .library_venues
             .lock()
             .begin(&VENUES_KEY.to_owned());
-        let result = async {
-            let mut token = self.library_token().await?;
-            let mut result = library_http::venues(&self.session, &token, &day).await;
-            if needs_relogin(&result) {
-                self.invalidate_library_token(&token);
-                token = self.library_token().await?;
-                result = library_http::venues(&self.session, &token, &day).await;
-            }
-            result
-        }
-        .await;
+        let result = self
+            .library_retry(|token| {
+                let day = day.clone();
+                async move { library_http::venues(&self.session, &token, &day).await }
+            })
+            .await;
         if self.current_account()? != account {
             return Err(AppError::session_expired());
         }
@@ -214,13 +224,12 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
             return Err(AppError::invalid());
         }
         let day = school_time::beijing_day(&now_shanghai())?.local_date;
-        let mut token = self.library_token().await?;
-        let mut result = library_http::areas(&self.session, &token, library_id, &day).await;
-        if needs_relogin(&result) {
-            self.invalidate_library_token(&token);
-            token = self.library_token().await?;
-            result = library_http::areas(&self.session, &token, library_id, &day).await;
-        }
+        let result = self
+            .library_retry(|token| {
+                let day = day.clone();
+                async move { library_http::areas(&self.session, &token, library_id, &day).await }
+            })
+            .await;
         if self.current_account()? != account {
             return Err(AppError::session_expired());
         }
@@ -232,13 +241,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
         if area_id.trim().is_empty() {
             return Err(AppError::invalid());
         }
-        let mut token = self.library_token().await?;
-        let mut result = library_http::slots(&self.session, &token, area_id).await;
-        if needs_relogin(&result) {
-            self.invalidate_library_token(&token);
-            token = self.library_token().await?;
-            result = library_http::slots(&self.session, &token, area_id).await;
-        }
+        let result = self
+            .library_retry(|token| async move {
+                library_http::slots(&self.session, &token, area_id).await
+            })
+            .await;
         if self.current_account()? != account {
             return Err(AppError::session_expired());
         }
@@ -268,13 +275,12 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
         {
             return Err(AppError::invalid());
         }
-        let mut token = self.library_token().await?;
-        let mut result = library_http::seats(&self.session, &token, area_id, &slot).await;
-        if needs_relogin(&result) {
-            self.invalidate_library_token(&token);
-            token = self.library_token().await?;
-            result = library_http::seats(&self.session, &token, area_id, &slot).await;
-        }
+        let result = self
+            .library_retry(|token| {
+                let slot = slot.clone();
+                async move { library_http::seats(&self.session, &token, area_id, &slot).await }
+            })
+            .await;
         if self.current_account()? != account {
             return Err(AppError::session_expired());
         }
@@ -304,17 +310,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
             .library_bookings
             .lock()
             .begin(&BOOKINGS_KEY.to_owned());
-        let result = async {
-            let mut token = self.library_token().await?;
-            let mut result = library_http::bookings(&self.session, &token).await;
-            if needs_relogin(&result) {
-                self.invalidate_library_token(&token);
-                token = self.library_token().await?;
-                result = library_http::bookings(&self.session, &token).await;
-            }
-            result
-        }
-        .await;
+        let result = self
+            .library_retry(
+                |token| async move { library_http::bookings(&self.session, &token).await },
+            )
+            .await;
         if self.current_account()? != account {
             return Err(AppError::session_expired());
         }

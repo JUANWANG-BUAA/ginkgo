@@ -10,7 +10,7 @@ async fn bykc_failure_retains_cached_catalog_and_logout_isolates_account() {
         .await
         .expect("login");
     let fixture = fixture("bykc", "catalog-normal-v1.json");
-    let catalog = crate::features::bykc::parse_catalog(
+    let catalog = crate::codecs::bykc::parse_catalog(
         &fixture["input"]["config"],
         fixture["input"]["pages"].as_array().expect("pages"),
     )
@@ -48,7 +48,7 @@ async fn bykc_failure_retains_cached_catalog_and_logout_isolates_account() {
 
 #[tokio::test]
 async fn bykc_queued_cache_misses_reuse_snapshots_filled_while_waiting() {
-    use crate::features::bykc;
+    use crate::codecs::bykc;
     let (service, transport) =
         build_service(login_chain("sy2501001", "fixture"), MemoryVault::default());
     service
@@ -120,7 +120,7 @@ async fn bykc_queued_cache_misses_reuse_snapshots_filled_while_waiting() {
 
 #[tokio::test]
 async fn bykc_learning_caches_are_independent_preserve_failures_and_clear_for_identity() {
-    use crate::features::bykc;
+    use crate::codecs::bykc;
     let mut responses = login_chain("sy2501001", "fixture");
     responses.extend([
         HttpResponse::new(

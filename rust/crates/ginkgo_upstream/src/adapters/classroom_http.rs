@@ -4,7 +4,7 @@
 //! parser failures can be tested before the real cookie session is migrated.
 use crate::{
     auth::{self, session::Session, CredentialSource, LoginResult},
-    features::classroom::{self, Room},
+    codecs::classroom::{self, Room},
     foundation::http::{HttpRequest, HttpResponse, HttpTransport},
     AppError, ErrorCode,
 };

@@ -2,7 +2,7 @@ use super::{cache::now_shanghai, session_service::SchoolClient};
 use crate::{
     adapters::library_http,
     auth::CredentialVault,
-    features::{library::LibrarySlot, library_mutation, mutation::MutationOutcome},
+    codecs::{library::LibrarySlot, library_mutation, mutation::MutationOutcome},
     foundation::http::HttpTransport,
 };
 use ginkgo_domain::ports::*;

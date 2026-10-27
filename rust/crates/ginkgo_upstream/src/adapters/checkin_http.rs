@@ -1,11 +1,11 @@
 //! iclass read-only HTTP flow (API.md §7.2).
 //!
 //! Request sequencing, auth-page classification and parse hand-off only; the
-//! domain rules live in features::checkin. The app session stays in memory and
+//! domain rules live in codecs::checkin. The app session stays in memory and
 //! never crosses the bridge.
 use crate::{
     auth::{cas, redirect, session::Session},
-    features::checkin::{self, CheckInCourse, IClassSession},
+    codecs::checkin::{self, CheckInCourse, IClassSession},
     foundation::{
         http::{HttpRequest, HttpResponse, HttpTransport},
         webvpn,
@@ -147,8 +147,8 @@ pub async fn sign_in<T: HttpTransport>(
     session: &Session<T>,
     iclass: &IClassSession,
     course_id: &str,
-) -> crate::features::mutation::MutationOutcome {
-    use crate::features::mutation::MutationOutcome as Outcome;
+) -> crate::codecs::mutation::MutationOutcome {
+    use crate::codecs::mutation::MutationOutcome as Outcome;
     const TIMESTAMP: &str = "https://iclass.buaa.edu.cn:8347/app/common/get_timestamp.action";
     let timestamp = async {
         let response = session

@@ -1,7 +1,7 @@
 //! SPOC assignment pagination request (API.md §7.1).
 use crate::{
     auth::session::Session,
-    features::homework::{self, HomeworkPage},
+    codecs::homework::{self, HomeworkPage},
     foundation::http::{HttpRequest, HttpResponse, HttpTransport},
     AppError, ErrorCode,
 };

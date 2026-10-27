@@ -1,6 +1,43 @@
 use super::*;
 
 #[tokio::test]
+async fn an_expired_library_token_is_rebuilt_once_and_the_read_recovers() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend([
+        library_login_redirect(),
+        library_token_response(),
+        // The first read meets an expired business token.
+        HttpResponse::new(
+            200,
+            "https://booking.lib.buaa.edu.cn/v4/space/pcTopFor",
+            serde_json::json!({"code": 0, "message": "登录失效，请重新登录"}).to_string(),
+        ),
+        // The rejected token is rebuilt once, then the retry succeeds.
+        library_login_redirect(),
+        library_token_response(),
+        library_body("space/pcTopFor"),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+
+    let venues = service
+        .load_library_venues(false)
+        .await
+        .expect("venues recover");
+    assert_eq!(venues.venues.len(), 2);
+    assert!(!venues.from_cache);
+    let logins = transport
+        .requests()
+        .iter()
+        .filter(|request| request.url.contains("/v4/login/user"))
+        .count();
+    assert_eq!(logins, 2, "a rejected token is rebuilt exactly once");
+}
+
+#[tokio::test]
 async fn library_venues_and_bookings_use_the_five_minute_snapshot() {
     let mut responses = login_chain("sy2501001", "fixture");
     responses.push(library_login_redirect());
@@ -327,7 +364,7 @@ async fn library_write_failure_is_not_replayed_or_route_switched() {
     use crate::{
         adapters::library_http,
         auth::session::{RouteMode, Session},
-        features::mutation::MutationState,
+        codecs::mutation::MutationState,
     };
     let transport = MockTransport::with_results(vec![Err(TransportError::Unavailable)]);
     let session = Session::new(transport.clone());
@@ -345,7 +382,7 @@ async fn library_write_failure_is_not_replayed_or_route_switched() {
 
 #[tokio::test]
 async fn library_reserve_rechecks_slot_and_seat_then_submits_once() {
-    use crate::features::{library::LibrarySlot, mutation::MutationState};
+    use crate::codecs::{library::LibrarySlot, mutation::MutationState};
     let mut responses = login_chain("sy2501001", "fixture");
     responses.extend([
         library_login_redirect(), library_token_response(),
@@ -388,7 +425,7 @@ async fn library_reserve_rechecks_slot_and_seat_then_submits_once() {
 
 #[tokio::test]
 async fn library_cancel_revalidates_kind_and_never_cancels_an_ended_booking() {
-    use crate::features::mutation::MutationState;
+    use crate::codecs::mutation::MutationState;
     for (day, expected, posts) in [
         ("2099-10-20", MutationState::Accepted, 1),
         ("2000-01-01", MutationState::NotSubmitted, 0),

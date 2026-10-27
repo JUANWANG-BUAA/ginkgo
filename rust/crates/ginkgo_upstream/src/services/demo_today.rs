@@ -1,6 +1,6 @@
 //! Synthetic today's schedule compiled from the shared fixture.
 use crate::{
-    features::today::{self, TodayCourse},
+    codecs::today::{self, TodayCourse},
     AppError,
 };
 use serde_json::Value;

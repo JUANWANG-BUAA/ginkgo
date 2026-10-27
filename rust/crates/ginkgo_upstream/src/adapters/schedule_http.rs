@@ -2,8 +2,8 @@
 use crate::{
     auth::cas,
     auth::session::Session,
-    features::schedule::{self, CourseMeeting, Exam, Term, Week},
-    features::today::{self, TodayCourse},
+    codecs::schedule::{self, CourseMeeting, Exam, Term, Week},
+    codecs::today::{self, TodayCourse},
     foundation::http::{HttpRequest, HttpResponse, HttpTransport},
     AppError, ErrorCode,
 };

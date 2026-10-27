@@ -1,7 +1,7 @@
 use crate::{
     adapters::updates_http,
     auth::session::Session,
-    features::updates::{self, UpdateSummary},
+    codecs::updates::{self, UpdateSummary},
     foundation::http::HttpTransport,
     AppError,
 };

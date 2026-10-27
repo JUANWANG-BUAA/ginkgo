@@ -3,7 +3,7 @@
 use crate::{
     auth::session::{RouteMode, Session},
     codecs::library_books,
-    features::library_books::{BookHolding, BookPage},
+    codecs::library_books::{BookHolding, BookPage},
     foundation::http::{HttpMethod, HttpRequest, HttpResponse, HttpTransport, TransportError},
     AppError,
 };

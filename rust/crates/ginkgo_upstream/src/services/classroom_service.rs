@@ -3,7 +3,7 @@ use super::session_service::SchoolClient;
 use crate::{
     adapters::classroom_http::query_classrooms,
     auth::CredentialVault,
-    features::classroom::{self, FilterRequest, FilterResult, Room},
+    codecs::classroom::{self, FilterRequest, FilterResult, Room},
     foundation::http::HttpTransport,
     AppError,
 };

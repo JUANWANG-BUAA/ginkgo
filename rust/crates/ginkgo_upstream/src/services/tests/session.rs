@@ -126,7 +126,7 @@ fn replacing_or_clearing_identity_drops_every_business_credential() {
                 },
             }),
             pending_login: None,
-            iclass: Some(crate::features::checkin::IClassSession {
+            iclass: Some(crate::codecs::checkin::IClassSession {
                 user_id: "synthetic".into(),
                 session_id: "synthetic".into(),
             }),

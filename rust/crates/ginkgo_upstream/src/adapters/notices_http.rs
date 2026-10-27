@@ -1,6 +1,6 @@
 use crate::{
     auth::session::Session,
-    features::notices::{self, Notice},
+    codecs::notices::{self, Notice},
     foundation::http::{HttpRequest, HttpTransport},
     AppError,
 };

@@ -1,7 +1,7 @@
 //! BYKC read-only catalog, API.md §7.3 / EDUCATION-DATA-MAP §2.
 use crate::{
     auth::session::Session,
-    features::bykc::{self, Catalog, ChosenCourses, LearningStatistics},
+    codecs::bykc::{self, Catalog, ChosenCourses, LearningStatistics},
     foundation::http::{HttpRequest, HttpTransport},
     AppError, ErrorCode,
 };

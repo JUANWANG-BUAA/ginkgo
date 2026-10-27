@@ -4,7 +4,7 @@ use super::{
     schedule_service::{GradeData, ScheduleData},
 };
 use crate::{
-    features::{
+    codecs::{
         checkin::CheckInCourse,
         classroom::Room,
         library::{LibraryBooking, LibraryHistoryPage, LibraryVenue},
@@ -28,12 +28,12 @@ pub(crate) struct ReadSnapshots {
     pub(crate) classrooms: Mutex<ClassroomCache>,
     pub(crate) schedules: Mutex<ScheduleCache>,
     pub(crate) cgyy: Mutex<SnapshotCache<String, ginkgo_domain::ports::CgyyData>>,
-    pub(crate) notices: Mutex<SnapshotCache<String, Vec<crate::features::notices::Notice>>>,
-    pub(crate) graduate: Mutex<SnapshotCache<String, crate::features::graduate::AcademicData>>,
-    pub(crate) bykc: Mutex<SnapshotCache<String, crate::features::bykc::Catalog>>,
-    pub(crate) bykc_chosen: Mutex<SnapshotCache<String, crate::features::bykc::ChosenCourses>>,
+    pub(crate) notices: Mutex<SnapshotCache<String, Vec<crate::codecs::notices::Notice>>>,
+    pub(crate) graduate: Mutex<SnapshotCache<String, crate::codecs::graduate::AcademicData>>,
+    pub(crate) bykc: Mutex<SnapshotCache<String, crate::codecs::bykc::Catalog>>,
+    pub(crate) bykc_chosen: Mutex<SnapshotCache<String, crate::codecs::bykc::ChosenCourses>>,
     pub(crate) bykc_statistics:
-        Mutex<SnapshotCache<String, crate::features::bykc::LearningStatistics>>,
+        Mutex<SnapshotCache<String, crate::codecs::bykc::LearningStatistics>>,
     pub(crate) homework: Mutex<super::homework_service::HomeworkCache>,
     pub(crate) homework_details: Mutex<super::homework_service::HomeworkDetailCache>,
     pub(crate) today: Mutex<TodayCache>,

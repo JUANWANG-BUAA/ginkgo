@@ -397,7 +397,7 @@ pub fn parse_sign_in(value: &Value) -> super::mutation::MutationOutcome {
 #[cfg(test)]
 mod mutation_tests {
     use super::*;
-    use crate::features::mutation::MutationState;
+    use crate::codecs::mutation::MutationState;
     #[test]
     fn sign_in_requires_business_and_student_confirmation() {
         assert_eq!(

@@ -98,7 +98,7 @@ async fn homework_full_read_chain_caches_list_and_reads_detail() {
         .any(|r| r.url.contains("id=spoc")));
     assert_eq!(
         detail.data.status,
-        crate::features::homework::HomeworkStatus::Submitted
+        crate::codecs::homework::HomeworkStatus::Submitted
     );
     // Teacher context belongs to the cached snapshot, including failed refresh.
     let stale = service.load_homework(true).await.expect("stale");
@@ -113,7 +113,7 @@ async fn homework_full_read_chain_caches_list_and_reads_detail() {
 
 #[tokio::test]
 async fn homework_changed_body_preserves_cached_text_and_native_ids_share_cache() {
-    use crate::{adapters::homework_http::SPOC_BASE, features::homework};
+    use crate::{adapters::homework_http::SPOC_BASE, codecs::homework};
     let envelope = |content: Value| serde_json::json!({"code":200,"content":content}).to_string();
     let mut responses = login_chain("sy2501001", "fixture");
     responses.extend([

@@ -3,8 +3,6 @@
 pub mod adapters;
 pub mod auth;
 pub mod codecs;
-// Compatibility path for existing feature callers.
-pub use codecs as features;
 pub mod foundation;
 pub use ginkgo_domain::{AppError, ErrorCode};
 #[cfg(any(test, feature = "test-support"))]

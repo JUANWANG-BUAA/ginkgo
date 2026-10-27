@@ -1,7 +1,7 @@
 //! In-memory synthetic repository for UI acceptance, separate from real account storage.
 use super::ClassroomFixture;
 use crate::{
-    features::classroom::{self, FilterRequest, FilterResult},
+    codecs::classroom::{self, FilterRequest, FilterResult},
     foundation::school_time,
     AppError,
 };

@@ -1,6 +1,6 @@
 use super::{cache::SnapshotCache, SchoolClient};
 use crate::{
-    adapters::library_stats_http, auth::CredentialVault, features::library_stats::CampusStats,
+    adapters::library_stats_http, auth::CredentialVault, codecs::library_stats::CampusStats,
     foundation::http::HttpTransport, AppError,
 };
 use ginkgo_domain::ports::*;

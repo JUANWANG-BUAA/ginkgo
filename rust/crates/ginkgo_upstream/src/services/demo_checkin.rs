@@ -1,6 +1,6 @@
 //! Synthetic iclass day compiled from the shared fixture.
 use crate::{
-    features::checkin::{self, CheckInCourse},
+    codecs::checkin::{self, CheckInCourse},
     AppError,
 };
 use serde_json::Value;

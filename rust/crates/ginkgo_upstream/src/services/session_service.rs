@@ -10,7 +10,7 @@ use crate::{
         session::{RouteMode, Session},
         CredentialVault, LoginPage, LoginResult, UserProfile,
     },
-    features::checkin::IClassSession,
+    codecs::checkin::IClassSession,
     foundation::http::HttpTransport,
     foundation::mutex::{lock_value, Mutex},
     AppError, ErrorCode,

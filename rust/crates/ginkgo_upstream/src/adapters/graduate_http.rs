@@ -1,7 +1,7 @@
 //! API.md §7.4 / GraduateAcademicClient.swift, whitelist projection only.
 use crate::{
     auth::{cas, session::Session},
-    features::graduate::{self, AcademicData},
+    codecs::graduate::{self, AcademicData},
     foundation::http::{HttpRequest, HttpTransport},
     AppError, ErrorCode,
 };

@@ -1,7 +1,7 @@
 //! Cookie-isolated public library HTML read (LibraryPublicStats.swift).
 use crate::{
     auth::session::{RouteMode, Session},
-    features::library_stats::{self, CampusStats},
+    codecs::library_stats::{self, CampusStats},
     foundation::http::{HttpRequest, HttpResponse, HttpTransport, TransportError},
     AppError,
 };

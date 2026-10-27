@@ -1,7 +1,7 @@
 //! buaascore activation and grade query (API.md §4).
 use crate::{
     auth::{cas, session::Session},
-    features::grades::{self, GradeCourse},
+    codecs::grades::{self, GradeCourse},
     foundation::http::{HttpRequest, HttpTransport},
     AppError, ErrorCode,
 };

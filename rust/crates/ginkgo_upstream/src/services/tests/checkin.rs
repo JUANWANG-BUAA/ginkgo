@@ -415,7 +415,7 @@ async fn checkin_history_is_cached_per_date_and_failure_preserves_only_that_day(
 
 #[tokio::test]
 async fn checkin_write_revalidates_today_sends_once_and_invalidates_snapshot() {
-    use crate::features::mutation::MutationState;
+    use crate::codecs::mutation::MutationState;
     let now = chrono::DateTime::parse_from_rfc3339(&crate::services::cache::now_shanghai())
         .expect("clock");
     let mut day: serde_json::Value = serde_json::from_str(&checkin_day_body()).expect("fixture");
@@ -481,7 +481,7 @@ async fn out_of_window_checkin_never_requests_a_signature_or_posts() {
         .expect("login");
     assert_eq!(
         service.submit_checkin(&id).await.state,
-        crate::features::mutation::MutationState::NotSubmitted
+        crate::codecs::mutation::MutationState::NotSubmitted
     );
     assert!(transport
         .requests()

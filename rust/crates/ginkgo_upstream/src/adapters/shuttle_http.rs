@@ -2,7 +2,7 @@
 use crate::{
     auth::session::{RouteMode, Session},
     codecs::shuttle,
-    features::shuttle::ShuttleTimetable,
+    codecs::shuttle::ShuttleTimetable,
     foundation::http::{HttpRequest, HttpResponse, HttpTransport, TransportError},
     AppError,
 };
