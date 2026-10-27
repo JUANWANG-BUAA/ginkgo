@@ -30,10 +30,15 @@
 
 ## features/graduate/graduate_credit_map_page.dart
 
+- `class GraduateCreditMapView extends StatelessWidget`  
+  <sub>class · features/graduate/graduate_credit_map_page.dart:47</sub>
+    - `const GraduateCreditMapView( {…}`  <sub>:48</sub>
+    - `List<Widget> children(BuildContext context) {…}`  <sub>:57</sub>
+    - `Widget build(BuildContext context) => Column(children: children(context));`  <sub>:94</sub>
 - `class GraduateCreditMapPage extends StatefulWidget` — Parent supplies an account-scoped gateway and identity. This page never  
-  <sub>class · features/graduate/graduate_credit_map_page.dart:13</sub>
-    - `const GraduateCreditMapPage( {…}`  <sub>:14</sub>
-    - `State<GraduateCreditMapPage> createState() => _GraduateCreditMapPageState();`  <sub>:22</sub>
+  <sub>class · features/graduate/graduate_credit_map_page.dart:99</sub>
+    - `const GraduateCreditMapPage( {…}`  <sub>:100</sub>
+    - `State<GraduateCreditMapPage> createState() => _GraduateCreditMapPageState();`  <sub>:108</sub>
 
 ## features/graduate/graduate_credit_map_widgets.dart
 
@@ -72,11 +77,11 @@
 ## features/graduate/graduate_page.dart
 
 - `typedef GraduateLoader = Future<live.ReadOnlyResponse> Function(`  
-  <sub>typedef · features/graduate/graduate_page.dart:16</sub>
+  <sub>typedef · features/graduate/graduate_page.dart:19</sub>
 - `class GraduatePage extends StatefulWidget`  
-  <sub>class · features/graduate/graduate_page.dart:21</sub>
-    - `const GraduatePage( {…}`  <sub>:22</sub>
-    - `State<GraduatePage> createState() => _GraduatePageState();`  <sub>:27</sub>
+  <sub>class · features/graduate/graduate_page.dart:24</sub>
+    - `const GraduatePage( {…}`  <sub>:25</sub>
+    - `State<GraduatePage> createState() => _GraduatePageState();`  <sub>:37</sub>
 
 ## features/graduate/graduate_sections.dart
 
@@ -100,7 +105,7 @@
 - `class GraduateProfileView extends StatelessWidget` — The student record lens: the notices, the fields the school returned and  
   <sub>class · features/graduate/graduate_sections.dart:189</sub>
     - `const GraduateProfileView( {…}`  <sub>:190</sub>
-    - `Widget build(BuildContext context) => Column( crossAxisAlignment: CrossAxisAlignment.st … tle: '暂无学籍信息', description: '学校未返回可展示的学籍字段。', ), ], ), ], );`  <sub>:206</sub>
+    - `Widget build(BuildContext context) => Column( crossAxisAlignment: CrossAxisAlignment.st … title: '暂无学籍信息', description: '学校未返回可展示的学籍字段。'), ], ), ], );`  <sub>:206</sub>
 
 ## features/graduate/graduate_widgets.dart
 
@@ -120,10 +125,10 @@
     - `const GraduateCreditProgress( {…}`  <sub>:126</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:129</sub>
 - `class GraduateDisclosure extends StatefulWidget` — A collapsible block. The page owns the expanded state so a reload can  
-  <sub>class · features/graduate/graduate_widgets.dart:193</sub>
-    - `const GraduateDisclosure( {…}`  <sub>:194</sub>
-    - `State<GraduateDisclosure> createState() => _GraduateDisclosureState();`  <sub>:210</sub>
+  <sub>class · features/graduate/graduate_widgets.dart:190</sub>
+    - `const GraduateDisclosure( {…}`  <sub>:191</sub>
+    - `State<GraduateDisclosure> createState() => _GraduateDisclosureState();`  <sub>:207</sub>
 - `class GraduateCategoryRow extends StatelessWidget` — One category of the execution report: its credit position and the way into  
-  <sub>class · features/graduate/graduate_widgets.dart:259</sub>
-    - `const GraduateCategoryRow( {…}`  <sub>:260</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:272</sub>
+  <sub>class · features/graduate/graduate_widgets.dart:256</sub>
+    - `const GraduateCategoryRow( {…}`  <sub>:257</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:269</sub>

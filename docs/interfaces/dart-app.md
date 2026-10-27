@@ -16,7 +16,7 @@ CupertinoApp 组合与主题桥接。
 
 ## startup_page.dart
 
-- `class StartupPage extends StatelessWidget` — A single, quiet entrance while restoration runs; never delays navigation.  
-  <sub>class · startup_page.dart:7</sub>
-    - `const StartupPage( {…}`  <sub>:8</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:11</sub>
+- `class StartupPage extends StatefulWidget` — 冷启动画面：一枚银杏叶在纸感底色上展开，随后出现字标与细进度线。  
+  <sub>class · startup_page.dart:11</sub>
+    - `const StartupPage( {…}`  <sub>:12</sub>
+    - `State<StartupPage> createState() => _StartupPageState();`  <sub>:15</sub>

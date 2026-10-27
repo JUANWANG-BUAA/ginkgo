@@ -14,26 +14,28 @@
     - `final bool Function() isCurrent;`  <sub>:27</sub>
     - `State<LearningAnnouncementPage> createState() => LearningAnnouncementPageState();`  <sub>:30</sub>
 - `class LearningAnnouncementPageState extends State<LearningAnnouncementPage>`  
-  <sub>class · features/learning/learning_announcement_page.dart:33</sub>
-    - `final detail = RefreshSection<CourseAnnouncementDetail>();`  <sub>:34</sub>
-    - `void initState() {…}`  <sub>:36</sub>
-    - `void dispose() {…}`  <sub>:78</sub>
-    - `Widget build(BuildContext context) => CupertinoPageScaffold( backgroundColor: Cupertino … .saveFile, isCurrent: widget.isCurrent, contextToken: '$ {…}`  <sub>:84</sub>
+  <sub>class · features/learning/learning_announcement_page.dart:34</sub>
+    - `final detail = RefreshSection<CourseAnnouncementDetail>();`  <sub>:35</sub>
+    - `void initState() {…}`  <sub>:37</sub>
+    - `void dispose() {…}`  <sub>:79</sub>
+    - `Widget build(BuildContext context) => CupertinoPageScaffold( backgroundColor: Cupertino … .saveFile, isCurrent: widget.isCurrent, contextToken: '$ {…}`  <sub>:85</sub>
 
 ## features/learning/learning_course_page.dart
 
+- `enum LearningCourseTab { resources, announcements, assessments }`  
+  <sub>enum · features/learning/learning_course_page.dart:16</sub>
 - `class LearningCoursePage extends StatefulWidget`  
-  <sub>class · features/learning/learning_course_page.dart:16</sub>
-    - `const LearningCoursePage( {…}`  <sub>:17</sub>
-    - `final bool Function()? isOwnerCurrent;`  <sub>:29</sub>
-    - `State<LearningCoursePage> createState() => _LearningCoursePageState();`  <sub>:31</sub>
+  <sub>class · features/learning/learning_course_page.dart:18</sub>
+    - `const LearningCoursePage( {…}`  <sub>:19</sub>
+    - `final bool Function()? isOwnerCurrent;`  <sub>:31</sub>
+    - `State<LearningCoursePage> createState() => _LearningCoursePageState();`  <sub>:33</sub>
 
 ## features/learning/learning_page.dart
 
 - `class LearningPage extends StatefulWidget`  
-  <sub>class · features/learning/learning_page.dart:13</sub>
-    - `const LearningPage( {…}`  <sub>:14</sub>
-    - `State<LearningPage> createState() => _LearningPageState();`  <sub>:24</sub>
+  <sub>class · features/learning/learning_page.dart:14</sub>
+    - `const LearningPage( {…}`  <sub>:15</sub>
+    - `State<LearningPage> createState() => _LearningPageState();`  <sub>:25</sub>
 
 ## features/learning/learning_resource_section.dart
 
@@ -76,5 +78,5 @@
     - `Widget build(BuildContext context) => Column( crossAxisAlignment: CrossAxisAlignment.st … onst LearningText('旧缓存 · 可能不是最新结果', warning: true), ], ], );`  <sub>:125</sub>
 - `class LearningText extends StatelessWidget`  
   <sub>class · features/learning/learning_widgets.dart:156</sub>
-    - `const LearningText(this.text, {…}`  <sub>:157</sub>
-    - `Widget build(BuildContext context) => Padding( padding: const EdgeInsets.symmetric(hori … Design.statusUncertain.resolveFrom(context) : null, ), ), );`  <sub>:161</sub>
+    - `const LearningText( this.text, {…}`  <sub>:157</sub>
+    - `Widget build(BuildContext context) => Padding( padding: const EdgeInsets.symmetric(hori … Design.statusUncertain.resolveFrom(context) : null, ), ), );`  <sub>:166</sub>

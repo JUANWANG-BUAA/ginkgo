@@ -11,6 +11,7 @@
 - [features/schedule/course_visibility.dart](#featuresschedulecoursevisibilitydart) (3)
 - [features/schedule/schedule_controls.dart](#featuresscheduleschedulecontrolsdart) (1)
 - [features/schedule/schedule_course_detail.dart](#featuresscheduleschedulecoursedetaildart) (1)
+- [features/schedule/schedule_day_strip.dart](#featuresschedulescheduledaystripdart) (1)
 - [features/schedule/schedule_grid.dart](#featuresscheduleschedulegriddart) (1)
 - [features/schedule/schedule_grid_course_block.dart](#featuresscheduleschedulegridcourseblockdart) (1)
 - [features/schedule/schedule_grid_layout.dart](#featuresscheduleschedulegridlayoutdart) (1)
@@ -57,7 +58,14 @@
 - `class ScheduleCourseDetailPage extends StatelessWidget` — The pushed course detail page.  
   <sub>class · features/schedule/schedule_course_detail.dart:12</sub>
     - `const ScheduleCourseDetailPage( {…}`  <sub>:13</sub>
-    - `Widget build(BuildContext context) => CupertinoPageScaffold( backgroundColor: Cupertino … .day - 1]), ScheduleDetailLine( label: '节次', value: '第 $ {…}`  <sub>:28</sub>
+    - `Widget build(BuildContext context) => CupertinoPageScaffold( backgroundColor: Cupertino … ay - 1], ), ScheduleDetailLine( label: '节次', value: '第 $ {…}`  <sub>:28</sub>
+
+## features/schedule/schedule_day_strip.dart
+
+- `class ScheduleDayStrip extends StatelessWidget`  
+  <sub>class · features/schedule/schedule_day_strip.dart:5</sub>
+    - `const ScheduleDayStrip( {…}`  <sub>:6</sub>
+    - `Widget build(BuildContext context) => SizedBox( key: const Key('schedule-day-strip'), h … .horizontal, itemCount: 7, itemBuilder: (context, index) {…}`  <sub>:18</sub>
 
 ## features/schedule/schedule_grid.dart
 
@@ -89,17 +97,17 @@
 ## features/schedule/schedule_views.dart
 
 - `class ScheduleCourseBrowser extends StatelessWidget` — The courses of the confirmed week: a search field plus either the weekly  
-  <sub>class · features/schedule/schedule_views.dart:12</sub>
-    - `const ScheduleCourseBrowser( {…}`  <sub>:13</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:34</sub>
+  <sub>class · features/schedule/schedule_views.dart:13</sub>
+    - `const ScheduleCourseBrowser( {…}`  <sub>:14</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:39</sub>
 - `class ScheduleSemesterWeeks extends StatelessWidget` — The teaching weeks of the term.  
-  <sub>class · features/schedule/schedule_views.dart:108</sub>
-    - `const ScheduleSemesterWeeks( {…}`  <sub>:109</sub>
-    - `Widget build(BuildContext context) => ScheduleSection( title: '学期周次', children: [ if (w … ) ScheduleChevronRow( key: Key('schedule-semester-week-$ {…}`  <sub>:118</sub>
+  <sub>class · features/schedule/schedule_views.dart:129</sub>
+    - `const ScheduleSemesterWeeks( {…}`  <sub>:130</sub>
+    - `Widget build(BuildContext context) => ScheduleSection( title: '学期周次', children: [ if (w … ) ScheduleChevronRow( key: Key('schedule-semester-week-$ {…}`  <sub>:139</sub>
 - `class ScheduleExamList extends StatelessWidget` — The exam schedule of the term.  
-  <sub>class · features/schedule/schedule_views.dart:150</sub>
-    - `const ScheduleExamList( {…}`  <sub>:151</sub>
-    - `Widget build(BuildContext context) => ScheduleSection( title: '考试安排', children: [ if (e … ndary(context)), if (exam.examSeatNo != null) Text('座位 $ {…}`  <sub>:155</sub>
+  <sub>class · features/schedule/schedule_views.dart:171</sub>
+    - `const ScheduleExamList( {…}`  <sub>:172</sub>
+    - `Widget build(BuildContext context) => ScheduleSection( title: '考试安排', children: [ if (e … dary(context)), if (exam.examSeatNo != null) Text( '座位 $ {…}`  <sub>:176</sub>
 
 ## features/schedule/schedule_week_strip.dart
 
@@ -125,14 +133,14 @@
     - `const ScheduleChevronRow( {…}`  <sub>:166</sub>
     - `Widget build(BuildContext context) => CupertinoButton( padding: const EdgeInsets.symmet … ertinoColors.tertiaryLabel.resolveFrom(context), ), ], ), );`  <sub>:175</sub>
 - `class ScheduleSection extends StatelessWidget` — A group of rows under an optional section title.  
-  <sub>class · features/schedule/schedule_widgets.dart:201</sub>
-    - `const ScheduleSection( {…}`  <sub>:202</sub>
-    - `Widget build(BuildContext context) => AppleSection( header: title == null ? null : Text(title!), footer: footer, children: children, );`  <sub>:213</sub>
+  <sub>class · features/schedule/schedule_widgets.dart:200</sub>
+    - `const ScheduleSection( {…}`  <sub>:201</sub>
+    - `Widget build(BuildContext context) => AppleSection( header: title == null ? null : Text(title!), footer: footer, children: children, );`  <sub>:212</sub>
 - `class ScheduleEmptySection extends StatelessWidget` — A section that reports an empty or failed result.  
-  <sub>class · features/schedule/schedule_widgets.dart:221</sub>
-    - `const ScheduleEmptySection( {…}`  <sub>:222</sub>
-    - `Widget build(BuildContext context) => AppleSection( children: [ AppleEmptyState( title: … , action: action, onAction: onAction, error: error, ), ], );`  <sub>:237</sub>
+  <sub>class · features/schedule/schedule_widgets.dart:220</sub>
+    - `const ScheduleEmptySection( {…}`  <sub>:221</sub>
+    - `Widget build(BuildContext context) => AppleSection( children: [ AppleEmptyState( title: … , action: action, onAction: onAction, error: error, ), ], );`  <sub>:236</sub>
 - `class ScheduleLoadingSection extends StatelessWidget` — A section that reports the first load of a snapshot.  
-  <sub>class · features/schedule/schedule_widgets.dart:251</sub>
-    - `const ScheduleLoadingSection( {…}`  <sub>:252</sub>
-    - `Widget build(BuildContext context) => AppleSection(children: [GinkgoLoadingView(label: label)]);`  <sub>:256</sub>
+  <sub>class · features/schedule/schedule_widgets.dart:250</sub>
+    - `const ScheduleLoadingSection( {…}`  <sub>:251</sub>
+    - `Widget build(BuildContext context) => AppleSection(children: [GinkgoLoadingView(label: label)]);`  <sub>:255</sub>

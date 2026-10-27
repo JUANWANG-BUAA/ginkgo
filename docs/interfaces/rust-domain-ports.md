@@ -100,15 +100,15 @@
 - `pub enum CgyyQuery`  
   <sub>enum · rust/crates/ginkgo_domain/src/ports/cgyy.rs:5</sub>
 - `pub enum CgyyData`  
-  <sub>enum · rust/crates/ginkgo_domain/src/ports/cgyy.rs:13</sub>
+  <sub>enum · rust/crates/ginkgo_domain/src/ports/cgyy.rs:15</sub>
 - `pub trait CgyySource: Send + Sync`  
-  <sub>trait · rust/crates/ginkgo_domain/src/ports/cgyy.rs:19</sub>
-    - `fn load_cgyy( &self, query: CgyyQuery, force: bool, ) -> Future<Result<CgyyOutcome, AppError>>;`  <sub>:20</sub>
+  <sub>trait · rust/crates/ginkgo_domain/src/ports/cgyy.rs:23</sub>
+    - `fn load_cgyy( &self, query: CgyyQuery, force: bool, ) -> Future<Result<CgyyOutcome, AppError>>;`  <sub>:24</sub>
 - `pub type CgyyOutcome = DataOutcome<CgyyData>;`  
-  <sub>type · rust/crates/ginkgo_domain/src/ports/cgyy.rs:27</sub>
+  <sub>type · rust/crates/ginkgo_domain/src/ports/cgyy.rs:31</sub>
 - `pub trait CgyyMutationSource: Send + Sync`  
-  <sub>trait · rust/crates/ginkgo_domain/src/ports/cgyy.rs:29</sub>
-    - `fn execute_cgyy( &self, command: crate::features::cgyy_booking::CgyyCommand, ) -> impl std::future::Future<`  <sub>:30</sub>
+  <sub>trait · rust/crates/ginkgo_domain/src/ports/cgyy.rs:33</sub>
+    - `fn execute_cgyy( &self, command: crate::features::cgyy_booking::CgyyCommand, ) -> impl std::future::Future<`  <sub>:34</sub>
 
 ## checkin
 

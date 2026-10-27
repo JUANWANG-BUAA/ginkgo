@@ -47,6 +47,39 @@ Flutter 页面
 
 查找某个功能时，先在 [§2 能力总表](#2-能力总表) 找到它的行，再顺着该行的链接进入各层细节；需要具体签名时进 `interfaces/` 对应文件。
 
+### 1.1 接口设计模式
+
+本仓库的接口不是逐个拍脑袋设计的，而是沿用同一组模式。新增任何接口（端口、FFI 命令、gateway、页面）都应落到下表某一模式；找不到合适模式时，先扩展模式再写代码。
+
+| 模式 | 解决什么 | 具体形态 | 反例（禁止） |
+| --- | --- | --- | --- |
+| **信封模式** | 区分「本次成功 / 旧快照 / 失败」 | 读结果统一为 `DataOutcome<T>`：`data` + `failure` + `fetched_at` / `from_cache` / `stale` | 用空值同时表达「没有数据」和「请求失败」 |
+| **端口模式** | 让编排不依赖学校实现 | `ginkgo_domain::ports` 定义 trait，`ginkgo_core` 只依赖 trait | core 直接引用 `HttpTransport`、Cookie、token |
+| **纯规则模式** | 让稳定业务规则可单测 | 领域层纯函数：截止分类、签到窗口、提醒排程 | 把规则留在 Dart/页面里，或在解析时读设备时区 |
+| **粗粒度命令模式** | 不把协议细节泄露到 UI | 一个 FFI 命令 = 一个用户可见动作（读一页、提交一次、核对一次） | 把分页参数、Cookie、表单字段透传到 Dart |
+| **写状态机模式** | 写操作不确定时不误报 | 写结果只有四态：`accepted` / `rejected` / `notSubmitted` / `uncertain` | 把未知当失败（用户会重发）或当成功 |
+| **三件套模式** | 写操作可回查 | 用户明确触发 → 单次提交 → 回查；`uncertain` 只允许回查 | 超时后自动重发、自动补发 |
+| **账号绑定模式** | 防止跨账号串数据 | 账号由 Rust 会话派生；网络 await 后复检；代次不匹配丢弃 | 由 Dart 传账号 ID，或把旧响应写回新账号 |
+| **投影模式** | 页面不接触原始响应 | Rust 输出领域 JSON → Dart `*_models.dart` 解码为类型 | 页面 `jsonDecode`、`Map<String, dynamic>` 传进组件 |
+| **演示同形模式** | 演示模式不碰真实数据 | demo 与真实适配器共享返回类型 | 演示页用另一套假结构，或演示读真实账号 |
+| **门禁登记模式** | 新入口可达且可查 | 新页面在 `workspace_catalog.dart` 登记；改公开接口后重生成索引 | 页面存在但无入口；接口改了不刷新索引 |
+
+各模式的落点：
+
+- 信封 / 端口 / 纯规则 / 写状态机 → [§4](#4-rust-业务端口层)、[§5](#5-应用编排层)。
+- 粗粒度命令 → [§6](#6-ffi-命令层)。
+- 投影 / 演示同形 → [§7](#7-flutter-应用接口层)、[§7A](#7a-flutter-ui-层接口约定)。
+- 门禁登记 → [§11](#11-维护方法)。
+
+### 1.2 接口的四个问题
+
+每个接口都应能回答这四个问题；回答不了就说明设计还没收口。
+
+1. **输入**：参数是领域值还是协议值？协议值（URL、表单、Cookie）不得越过 upstream。
+2. **输出**：成功、空结果、旧快照、失败分别长什么样？四者必须可区分。
+3. **副作用**：是否改学校系统、是否写本机数据、是否清会话？
+4. **失败与重试**：失败后能不能重试？重试是否安全？（写操作默认不安全）
+
 ## 2. 能力总表
 
 `读/写` 列区分学校副作用：**读** 表示不改学校记录（可能用 POST 只是协议需要）；**写** 表示会修改学校系统，必须用户确认、单次提交、结果回查。
@@ -200,7 +233,7 @@ pub struct DataOutcome<T> {
 | `SessionStatus` | `account`、`profile`、`route` | `account` 与 `profile` 同时有值才算已登录 |
 | `SessionOutcome` | `SignedIn{profile, remembered}` / `CaptchaRequired(challenge)` / `SignedOut` | 三态互斥 |
 | `LoginChallengeData` | `challenge_id`、`challenge_type`、`text_supported`、`image: Vec<u8>` | 图像仅内存，不落盘、不作身份凭证 |
-| `CgyyQuery` | `Venues` / `Day{site_id, date}` / `Orders` | 只读查询三态 |
+| `CgyyQuery` | `Venues` / `Day{site_id, date}` / `Orders` / `Order{order_id}` / `LockCode` | 只读查询；订单详情与门锁码不走快照 |
 | `RoutePreference` | `Automatic` / `Direct` / `WebVpn` | 路线切换会重建会话 |
 
 ## 5. 应用编排层
@@ -217,7 +250,9 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ## 6. FFI 命令层
 
-`ginkgo_flutter_bridge` 导出 88 个函数，是 Dart 唯一可见的 Rust 面。Dart 侧只允许 [contracts.dart](../flutter/lib/application/contracts.dart) 以类型形式引用生成绑定，命令本身只能由 `NativeMirrorService` 调用。
+`ginkgo_flutter_bridge` 导出 **87 个命令**，是 Dart 唯一可见的 Rust 面。Dart 侧只允许 [contracts.dart](../flutter/lib/application/contracts.dart) 以类型形式引用生成绑定，命令本身只能由 `NativeMirrorService` 调用。
+
+命令计数口径：`flutter/lib/src/rust/api/**` 生成的 Dart 命令函数（`live` 75 + `live/auth_challenge` 1 + `mirror` 10 + `reminder_planning` 1）。改命令后该数字会变，改完请同步本行与 [§6.10](#610-返回形态与载荷契约)。
 
 ### 6.1 会话
 
@@ -256,7 +291,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ### 6.7 校园
 
-`load_cgyy`（`kind` 为 `venues` / `day` / `orders`）、`execute_cgyy`（写）、`load_bykc`、`load_bykc_chosen`、`load_bykc_statistics`、`load_graduate_part`、`load_graduate_credit_map`、`load_notices`、`edit_tasks`、`plan_course_task_reminders`。
+`load_cgyy`（`kind` 为 `venues` / `day` / `orders` / `order` / `lockCode`；`order` 时 `site_id` 传订单 ID）、`execute_cgyy`（写）、`load_bykc`、`load_bykc_chosen`、`load_bykc_statistics`、`load_graduate_part`、`load_graduate_credit_map`、`load_notices`、`edit_tasks`（本机写）、`plan_course_task_reminders`（纯规则）。
 
 ### 6.8 演示数据
 
@@ -271,6 +306,27 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | 结构化 DTO | 各字段 | 课表、成绩、签到等直接映射为 Dart 类型 |
 
 成功 = `payload` 有值且 `failure` 为空；解析/会话/存储错误可以表现为 `payload=null` 加 `failure`。不能只看 JSON 里的 `state` 判定错误。
+
+### 6.10 返回形态与载荷契约
+
+87 个命令按返回形态分为两类：
+
+| 形态 | 数量 | 含义 | 解码位置 |
+| --- | --- | --- | --- |
+| 类型化 DTO | 46 | 命令直接返回结构体（`SessionResponse`、`ScheduleResponse`、`CheckInResponse`、`MutationResponse` …） | 无需解码 |
+| `ReadOnlyResponse` 载荷 | 41 | 命令返回领域 JSON 字符串 + `stale` + `failure` | 只能在 `infrastructure/` 或各域 `*_models.dart` 解码 |
+
+使用载荷信封的 41 个命令：
+
+`checkinLoadProgress`、`loadBykc`、`loadDemoBykc`、`loadBykcChosen`、`loadBykcStatistics`、`loadDemoBykcChosen`、`loadDemoBykcStatistics`、`loadGraduatePart`、`loadDemoGraduateStatus`、`loadDemoGraduate`、`editTasks`、`loadNotices`、`loadDemoNotices`、`loadCgyy`、`executeCgyy`、`loadDemoCgyy`、`loadLibraryBooks`、`loadShuttleTimetable`、`loadLibraryHoldings`、`importLearningSnapshots`、`loadLibraryLoans`、`loadLibraryStats`、`loadDemoLibraryStats`、`checkAndroidUpdate`、`homeworkFileWorkspace`、`uploadHomeworkFile`、`learningCourses`、`courseAnnouncements`、`courseAnnouncementDetail`、`courseResources`、`courseAssessments`、`courseLearningColumns`、`courseLearningCapabilities`、`courseAnnouncementsIn`、`courseAssessmentsIn`、`courseAnnouncementDetailIn`、`courseResourcesAt`、`loadGraduateCreditMap`、`configureHomeworkRecovery`、`pendingHomeworkSubmissions`、`homeworkCapabilities`。
+
+载荷契约的三条硬约束（由 `scripts/check-mirror-architecture.py` 强制）：
+
+1. `payload` 是 **Rust 净化后的领域投影**，不是学校原始响应；学校字段名只存在于 upstream。
+2. 解码只允许在 `infrastructure/` 或 `*_models.dart`；页面与共享组件不得出现 `jsonDecode`。
+3. 载荷解码失败按“解析失败”处理（`FormatException` → 失败态），不得降级为空结果。
+
+新增命令时优先返回类型化 DTO；确需载荷信封时，同步在 [FEATURES-AND-PROTOCOLS](FEATURES-AND-PROTOCOLS.md) 的本机/投影约定中登记，并保持解码位置在模型层。
 
 ## 7. Flutter 应用接口层
 
@@ -383,6 +439,24 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 `workspace/workspace_catalog.dart` 的 `WorkspaceDestination` 是**壳层与功能页之间唯一的登记点**：移动标签、桌面侧栏、今日快捷入口与返回逻辑都由 `workspaceDestinations` 派生。新增页面必须在这里登记，否则不可达；这是编译期静态表，不是运行时插件系统。
 
+### 7A.5 命令与能力的命名约定
+
+命名是接口契约的一部分：看到名字就能判断读/写、本机/学校、是否幂等。
+
+| 前缀 | 含义 | 例子 | 约束 |
+| --- | --- | --- | --- |
+| `load_*` / `*_load_*` | 读学校或本机状态 | `load_schedule`、`load_today`、`checkin_load_progress` | 只读；允许返回旧快照与失败元数据 |
+| `search_*` / `*_list_*` | 读列表或检索 | `search_books`、`pending_homework_submissions` | 只读；分页属本机或上游，不混用 |
+| `submit_*` / `execute_*` / `reserve_*` / `perform_*` | 改学校系统 | `submit_checkin`、`execute_cgyy`、`reserve_library_seat` | 必须用户确认、单次提交、结果回查；结果不明不重发 |
+| `reconcile_*` | 回查未知结果 | `reconcile_homework_file` | 只读学校状态，不再次写入 |
+| `edit_*` | 改本机数据 | `edit_tasks` | 不触达学校；账号命名空间来自 Rust 会话 |
+| `export_*` / `import_*` | 本机快照出入 | `export_learning_snapshots` | 导入失败不部分生效 |
+| `plan_*` | 纯规则计算 | `plan_course_task_reminders` | 不访问网络、不读设备状态 |
+| `verify_*` / `check_*` | 本机诊断 | `verify_credential_storage`、`check_android_update` | 不读写真实凭据 |
+| `load_demo_*` | 演示合成数据 | `load_demo_cgyy` | 与真实实现共享返回类型 |
+
+能力 id（[§2](#2-能力总表) 第一列）与 FFI 命令不是一一对应：一个能力可以拆成多个命令（如 `cgyy` 含只读查询与写入两类命令），但**读能力不得隐含写能力**——写能力必须单列 gateway（如 `CgyyBookingGateway`）。
+
 ## 8. 模块 IO 契约
 
 按功能域列出「输入 → 输出 → 失败态 → 本机副作用」。这是排查「某模块到底碰了什么」时最快的入口；全量签名见 `interfaces/` 对应文件。
@@ -405,7 +479,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | `library-loans` | `page` | `LibraryLoansRead{pages, records[]}` | 读失败与确认空分别呈现 | **不持久化**；离开页面即清 |
 | `library-stats` | `forceRefresh` | `ReadOnlyResponse`（校区人数） | 读失败保留旧值 | 进程快照 |
 | `classroom` | 校区、日期、节次、楼栋、搜索 | `ClassroomResponse{rows[], buildings[]}` | 读失败保留旧值 | 进程快照；本机每页 50 条 |
-| `cgyy`（读） | `kind`（`venues`/`day`/`orders`）、`siteId`、`date` | `ReadOnlyResponse`（领域投影） | 读失败保留旧值 | 进程快照 |
+| `cgyy`（读） | `kind`（`venues`/`day`/`orders`/`order`/`lockCode`）、`siteId`、`date` | `ReadOnlyResponse`（领域投影） | 读失败保留旧值；门锁码失败不误报无预约 | 既有查询进程快照；订单详情和门锁码无快照 |
 | `cgyy`（写） | `action` + 参数（见 [FEATURES-AND-PROTOCOLS §4](FEATURES-AND-PROTOCOLS.md#4-cgyy-本地-json-契约)） | `CgyyActionResult{state, message, options?, challenge?, review?}` | `uncertain` → 只回查 | pending marker（版本+布尔值，无过期） |
 | `bykc` | `part`（catalog/chosen/statistics） | `ReadOnlyResponse` | 三部分独立失败 | 进程快照 |
 | `graduate` | `part`、`forceRefresh` | `ReadOnlyResponse`（学籍/报告/学分地图） | 读失败保留旧值 | 进程快照 |
@@ -492,8 +566,22 @@ features/tasks/tasks_page.dart
 ## 11. 维护方法
 
 - 新增能力：先在此表登记能力与 id，再按 domain 端口 → upstream 适配 → core 编排 → FRB 命令 → Dart gateway 的顺序落地；缺一层就不要在总表标注为可用。
+- 新增接口前先在 [§1.1](#11-接口设计模式) 选模式：信封、端口、纯规则、粗粒度命令、写状态机、三件套、账号绑定、投影、演示同形、门禁登记。
 - 改上游协议：先在 [API.md](API.md) 补证据与修订，再改适配器与 fixture，最后回来更新 [§3](#3-上游协议层) 的对照行。
-- 改 FFI 命令：必须重新生成 FRB 绑定（`bash scripts/generate-mirror-bridge.sh`），并同步 [§6](#6-ffi-命令层) 与 [§2](#2-能力总表)。
-- 改任何公开接口后：运行 `python3 scripts/generate-interface-index.py` 刷新 [interfaces/](interfaces/README.md)；`--check` 模式可校验索引是否过期，CI 可用它做防回退。
+- 改 FFI 命令：必须重新生成 FRB 绑定（`bash scripts/generate-mirror-bridge.sh`），并同步 [§6](#6-ffi-命令层)、[§6.10](#610-返回形态与载荷契约) 与 [§2](#2-能力总表)。
+- 改任何公开接口后：运行 `python3 scripts/generate-interface-index.py` 刷新 [interfaces/](interfaces/README.md)；`--check` 模式可校验索引是否过期，CI 用它做防回退。
 - 每个接口的读写属性以业务副作用为准：认证与查询可能用 POST，仍算读；只有会改变学校记录的才算写。
 - 本文档描述源码现状，不代表已发布或已通过真实账号验收。真实设备、账号只读与真实写入的证据分别记录在发布与审计文档中。
+
+## 12. 自动化门禁
+
+| 门禁 | 命令 | 拦住什么 |
+| --- | --- | --- |
+| 分层与边界 | `python3 scripts/check-mirror-architecture.py` | 跨层依赖、页面解析响应、页面传裸 Map、目录归类、文件体积上限 |
+| 门禁自测 | `python3 scripts/check-mirror-architecture-test.py` | 门禁本身被改坏（规则失效仍通过） |
+| 接口索引 | `python3 scripts/generate-interface-index.py --check` | 改了公开接口但没刷新文档 |
+| 设计 token 采纳 | `python3 scripts/check-design-tokens.py` | 硬编码字号/间距/圆角重新回潮 |
+| Rust 质量 | `cargo fmt --check` / `cargo clippy -D warnings` | 格式与告警 |
+| 全量基线 | `bash scripts/check-mirror.sh` | 以上全部 + Flutter 分析与测试 + FRB 再生成一致性 |
+
+门禁只拦可机器判定的问题。真实账号、物理设备、TalkBack 与大字号观感仍需人工验收，证据按日期归档在 [审计记录](_audit/) 与 [发布记录](releases/)。

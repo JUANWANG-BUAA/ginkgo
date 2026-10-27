@@ -21,18 +21,18 @@
 ## workspace/desktop_workspace_shell.dart
 
 - `class DesktopWorkspaceShell extends StatelessWidget` — 桌面侧栏壳：侧栏 + IndexedStack 惰性挂载各目的地。选中状态、已访问  
-  <sub>class · workspace/desktop_workspace_shell.dart:12</sub>
-    - `const DesktopWorkspaceShell( {…}`  <sub>:13</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:27</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:42</sub>
+  <sub>class · workspace/desktop_workspace_shell.dart:15</sub>
+    - `const DesktopWorkspaceShell( {…}`  <sub>:16</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:30</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:45</sub>
 
 ## workspace/mobile_workspace_shell.dart
 
 - `class MobileWorkspaceShell extends StatefulWidget` — 移动标签壳：底部导航 + 每个目的地一个常驻导航栈。选中状态与导航栈  
-  <sub>class · workspace/mobile_workspace_shell.dart:14</sub>
-    - `const MobileWorkspaceShell( {…}`  <sub>:15</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:29</sub>
-    - `State<MobileWorkspaceShell> createState() => _MobileWorkspaceShellState();`  <sub>:31</sub>
+  <sub>class · workspace/mobile_workspace_shell.dart:16</sub>
+    - `const MobileWorkspaceShell( {…}`  <sub>:17</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:31</sub>
+    - `State<MobileWorkspaceShell> createState() => _MobileWorkspaceShellState();`  <sub>:33</sub>
 
 ## workspace/service_directory.dart
 
@@ -59,39 +59,39 @@
 ## workspace/workspace_catalog.dart
 
 - `enum WorkspaceSection` — 侧栏分组。顺序即桌面侧栏的呈现顺序；新增功能只登记到既有分组即可。  
-  <sub>enum · workspace/workspace_catalog.dart:27</sub>
-    - `const WorkspaceSection(this.title);`  <sub>:33</sub>
+  <sub>enum · workspace/workspace_catalog.dart:28</sub>
+    - `const WorkspaceSection(this.title);`  <sub>:34</sub>
 - `class WorkspaceContext` — 功能页面构建上下文：页面只拿到服务与工作区导航能力，不接触壳层状态。  
-  <sub>class · workspace/workspace_catalog.dart:38</sub>
-    - `const WorkspaceContext( {…}`  <sub>:39</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:55</sub>
+  <sub>class · workspace/workspace_catalog.dart:39</sub>
+    - `const WorkspaceContext( {…}`  <sub>:40</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:56</sub>
 - `class WorkspaceDestination` — 一次功能登记：标题、图标、所在分组、移动端标签位置与页面构建器。  
-  <sub>class · workspace/workspace_catalog.dart:65</sub>
-    - `const WorkspaceDestination( {…}`  <sub>:66</sub>
-    - `final Widget Function(WorkspaceContext context) build;`  <sub>:81</sub>
+  <sub>class · workspace/workspace_catalog.dart:66</sub>
+    - `const WorkspaceDestination( {…}`  <sub>:67</sub>
+    - `final Widget Function(WorkspaceContext context) build;`  <sub>:82</sub>
 
 ## workspace/workspace_shell.dart
 
 - `class GinkgoApp extends StatelessWidget` — 工作区外壳：只负责会话切换、移动/桌面布局与功能登记表的消费，  
-  <sub>class · workspace/workspace_shell.dart:22</sub>
-    - `const GinkgoApp( {…}`  <sub>:23</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:39</sub>
-    - `Widget build(BuildContext context) => ginkgoApp( brightness: brightness, startupUpdate: … eScope(child: WorkspaceShell(service: service)), ), ), ), );`  <sub>:41</sub>
+  <sub>class · workspace/workspace_shell.dart:26</sub>
+    - `const GinkgoApp( {…}`  <sub>:27</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:43</sub>
+    - `Widget build(BuildContext context) => ginkgoApp( brightness: brightness, startupUpdate: … eScope(child: WorkspaceShell(service: service)), ), ), ), );`  <sub>:45</sub>
 - `class WorkspaceShell extends StatefulWidget` — 断点两侧共享的壳层状态。旋转跨越 760dp 时移动标签壳与桌面侧栏壳会  
-  <sub>class · workspace/workspace_shell.dart:62</sub>
-    - `const WorkspaceShell( {…}`  <sub>:63</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:75</sub>
-    - `State<WorkspaceShell> createState() => WorkspaceShellState();`  <sub>:77</sub>
+  <sub>class · workspace/workspace_shell.dart:66</sub>
+    - `const WorkspaceShell( {…}`  <sub>:67</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:79</sub>
+    - `State<WorkspaceShell> createState() => WorkspaceShellState();`  <sub>:81</sub>
 - `class WorkspaceShellState extends State<WorkspaceShell>`  
-  <sub>class · workspace/workspace_shell.dart:80</sub>
-    - `String selectedId = mobileDestinations.first.id;`  <sub>:81</sub>
-    - `final navigators = <String, GlobalKey<NavigatorState>> {…}`  <sub>:82</sub>
-    - `final Set<String> visited = {…}`  <sub>:83</sub>
-    - `int get mobileIndex {…}` — 桌面选中的目的地可能是移动端没有的页面（如成绩）；此时移动壳回到  <sub>:91</sub>
-    - `GlobalKey<NavigatorState> navigatorFor(String id) => navigators.putIfAbsent(id, () => GlobalKey<NavigatorState>());`  <sub>:98</sub>
-    - `void onMobileTab(int index) {…}` — 移动标签切换只同步字段不触发重建：可见页面已由 tab 控制器驱动。  <sub>:102</sub>
-    - `void select(String id) {…}`  <sub>:108</sub>
-    - `Widget build(BuildContext context) => LayoutBuilder( builder: (context, constraints) => … tId, route: widget.route, onSignOut: widget.onSignOut, ), );`  <sub>:121</sub>
+  <sub>class · workspace/workspace_shell.dart:84</sub>
+    - `String selectedId = mobileDestinations.first.id;`  <sub>:85</sub>
+    - `final navigators = <String, GlobalKey<NavigatorState>> {…}`  <sub>:86</sub>
+    - `final Set<String> visited = {…}`  <sub>:87</sub>
+    - `int get mobileIndex {…}` — 桌面选中的目的地可能是移动端没有的页面（如成绩）；此时移动壳回到  <sub>:95</sub>
+    - `GlobalKey<NavigatorState> navigatorFor(String id) => navigators.putIfAbsent(id, () => GlobalKey<NavigatorState>());`  <sub>:102</sub>
+    - `void onMobileTab(int index) {…}` — 移动标签切换只同步字段不触发重建：可见页面已由 tab 控制器驱动。  <sub>:106</sub>
+    - `void select(String id) {…}`  <sub>:112</sub>
+    - `Widget build(BuildContext context) => LayoutBuilder( builder: (context, constraints) => … tId, route: widget.route, onSignOut: widget.onSignOut, ), );`  <sub>:125</sub>
 
 ## workspace/workspace_shortcut_preferences.dart
 

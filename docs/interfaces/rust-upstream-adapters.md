@@ -55,11 +55,11 @@
 - `pub async fn load<T: HttpTransport>( session: &Session<T>, kind: &str, site: i64, date: &str, token: Option<&str>, ) -> Result<Value, AppError> {…}`  
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/cgyy_http.rs:183</sub>
 - `pub async fn load_orders<T: HttpTransport>( session: &Session<T>, page: i64, size: i64, token: &str, ) -> Result<Value, AppError> {…}` — One explicit `page`/`size` orders read. Callers own the bounded paging loop.  
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/cgyy_http.rs:225</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/cgyy_http.rs:242</sub>
 - `pub async fn read_orders<T: HttpTransport>( session: &Session<T>, token: &str, ) -> Result<Value, AppError> {…}` — Bounded orders read. Starts at the official page 0 / size 5 and merges at  
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/cgyy_http.rs:254</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/cgyy_http.rs:271</sub>
 - `pub async fn business<T: HttpTransport>(session: &Session<T>…)  -> Result<Value, AppError> {…}` — Signed business request; caller owns mutation confirmation and retry policy.  
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/cgyy_http.rs:298</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/cgyy_http.rs:315</sub>
 
 ## checkin_http
 
@@ -75,7 +75,7 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:68</sub>
 - `pub async fn course_schedule<T: HttpTransport>(session: &Session<T>…)  -> Result<Vec<CheckInCourse>, AppError> {…}`  
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:80</sub>
-- `pub async fn sign_in<T: HttpTransport>(session: &Session<T>…)  -> crate::features::mutation::MutationOutcome {…}` — CheckInClient.performSignIn / API.md §7.2. Timestamp is a safe read;  
+- `pub async fn sign_in<T: HttpTransport>(session: &Session<T>…)  -> crate::codecs::mutation::MutationOutcome {…}` — CheckInClient.performSignIn / API.md §7.2. Timestamp is a safe read;  
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:146</sub>
 
 ## classroom_http
@@ -224,31 +224,31 @@
 ## library_http
 
 - `pub const BASE: &str = "https://booking.lib.buaa.edu.cn";`  
-  <sub>const · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:15</sub>
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:13</sub>
 - `pub const LOGIN_START: &str = "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas";`  
-  <sub>const · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:16</sub>
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:14</sub>
 - `pub const LOGIN_USER: &str = "https://booking.lib.buaa.edu.cn/v4/login/user";`  
-  <sub>const · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:17</sub>
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:15</sub>
 - `pub async fn login<T: HttpTransport>(session: &Session<T>) -> Result<String, AppError> {…}` — Walk the library CAS chain manually (API.md §5.1: at most eight hops, the  
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:32</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:30</sub>
 - `pub async fn venues<T: HttpTransport>( session: &Session<T>, token: &str, day: &str, ) -> Result<Vec<LibraryVenue>, AppError> {…}`  
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:86</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:84</sub>
 - `pub async fn areas<T: HttpTransport>( session: &Session<T>, token: &str, library_id: &str, day: &str, ) -> Result<Vec<LibraryArea>, AppError> {…}`  
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:98</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:96</sub>
 - `pub async fn slots<T: HttpTransport>( session: &Session<T>, token: &str, area_id: &str, ) -> Result<Vec<LibrarySlot>, AppError> {…}`  
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:123</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:121</sub>
 - `pub async fn seats<T: HttpTransport>(session: &Session<T>…)  -> Result<Vec<LibrarySeat>, AppError> {…}`  
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:135</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:133</sub>
 - `pub async fn bookings<T: HttpTransport>( session: &Session<T>, token: &str, ) -> Result<Vec<LibraryBooking>, AppError> {…}`  
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:162</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:160</sub>
 - `pub async fn history<T: HttpTransport>(session: &Session<T>…)  -> Result<library::LibraryHistoryPage, AppError> {…}` — Read-only history, same bearer token and envelope as current bookings.  
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:171</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:169</sub>
 - `pub fn parse_envelope(response: &HttpResponse) -> Result<Value, AppError> {…}` — The envelope is shared by every business endpoint: HTTP auth, a login  
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:219</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:217</sub>
 - `pub fn cas_token(raw: &str) -> Option<String> {…}` — API.md §5.1: the cas parameter may follow ?, & or # and must be  
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:276</sub>
-- `pub async fn mutate<T: HttpTransport>(session: &Session<T>…)  -> crate::features::mutation::MutationOutcome {…}` — Single attempt: never route-fallback, replay on auth failure, or follow a redirect.  
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:308</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:274</sub>
+- `pub async fn mutate<T: HttpTransport>( session: &Session<T>, token: &str, path: &str, body: &Value, ) -> crate::codecs::mutation::MutationOutcome {…}` — Single attempt: never route-fallback, replay on auth failure, or follow a redirect.  
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:306</sub>
 
 ## library_loans_http
 

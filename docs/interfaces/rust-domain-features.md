@@ -9,7 +9,7 @@
 ## 目录
 
 - [bykc](#bykc) (16)
-- [cgyy](#cgyy) (5)
+- [cgyy](#cgyy) (6)
 - [cgyy_booking](#cgyybooking) (9)
 - [checkin](#checkin) (4)
 - [classroom](#classroom) (11)
@@ -145,6 +145,19 @@
     - `date: String`  <sub>:39</sub>
     - `time: String`  <sub>:40</sub>
     - `status: String`  <sub>:41</sub>
+- `pub struct CgyyLockCode`  
+  <sub>struct · rust/crates/ginkgo_domain/src/features/cgyy.rs:46</sub>
+    - `qr_code: Option<String>`  <sub>:48</sub>
+    - `due_date: Option<String>`  <sub>:50</sub>
+    - `trade_no: Option<String>`  <sub>:52</sub>
+    - `venue_name: Option<String>`  <sub>:54</sub>
+    - `site_name: Option<String>`  <sub>:56</sub>
+    - `space_name: Option<String>`  <sub>:58</sub>
+    - `order_name: Option<String>`  <sub>:60</sub>
+    - `reservation_date: Option<String>`  <sub>:62</sub>
+    - `reservation_date_detail: Option<String>`  <sub>:64</sub>
+    - `reservation_start_date: Option<String>`  <sub>:66</sub>
+    - `reservation_end_date: Option<String>`  <sub>:68</sub>
 
 ## cgyy_booking
 
@@ -178,24 +191,25 @@
   <sub>struct · rust/crates/ginkgo_domain/src/features/cgyy_booking.rs:61</sub>
     - `choices: Vec<BookingChoice>`  <sub>:62</sub>
     - `purposes: Vec<Purpose>`  <sub>:63</sub>
+    - `uses_fallback_purposes: bool`  <sub>:64</sub>
 - `pub struct BookingChallenge`  
-  <sub>struct · rust/crates/ginkgo_domain/src/features/cgyy_booking.rs:66</sub>
-    - `id: String`  <sub>:67</sub>
-    - `background: String`  <sub>:68</sub>
-    - `jigsaw: String`  <sub>:69</sub>
+  <sub>struct · rust/crates/ginkgo_domain/src/features/cgyy_booking.rs:67</sub>
+    - `id: String`  <sub>:68</sub>
+    - `background: String`  <sub>:69</sub>
+    - `jigsaw: String`  <sub>:70</sub>
 - `pub struct BookingReview`  
-  <sub>struct · rust/crates/ginkgo_domain/src/features/cgyy_booking.rs:72</sub>
-    - `id: String`  <sub>:73</sub>
-    - `orders: Vec<super::cgyy::Order>`  <sub>:74</sub>
+  <sub>struct · rust/crates/ginkgo_domain/src/features/cgyy_booking.rs:73</sub>
+    - `id: String`  <sub>:74</sub>
+    - `orders: Vec<super::cgyy::Order>`  <sub>:75</sub>
 - `pub struct CgyyActionResult`  
-  <sub>struct · rust/crates/ginkgo_domain/src/features/cgyy_booking.rs:77</sub>
-    - `state: String`  <sub>:78</sub>
-    - `message: String`  <sub>:79</sub>
-    - `options: Option<BookingOptions>`  <sub>:81</sub>
-    - `challenge: Option<BookingChallenge>`  <sub>:83</sub>
-    - `review: Option<BookingReview>`  <sub>:85</sub>
+  <sub>struct · rust/crates/ginkgo_domain/src/features/cgyy_booking.rs:78</sub>
+    - `state: String`  <sub>:79</sub>
+    - `message: String`  <sub>:80</sub>
+    - `options: Option<BookingOptions>`  <sub>:82</sub>
+    - `challenge: Option<BookingChallenge>`  <sub>:84</sub>
+    - `review: Option<BookingReview>`  <sub>:86</sub>
 - `pub fn message(state: &str, message: &str) -> Self {…}`  
-  <sub>fn · rust/crates/ginkgo_domain/src/features/cgyy_booking.rs:88</sub>
+  <sub>fn · rust/crates/ginkgo_domain/src/features/cgyy_booking.rs:89</sub>
 
 ## checkin
 

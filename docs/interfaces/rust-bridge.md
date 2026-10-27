@@ -233,32 +233,32 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 
 ## utilities
 
-- `pub(super) fn edit_tasks( root: String…)  -> ReadOnlyResponse {…}`  
+- `pub(super) async fn edit_tasks( root: String…)  -> ReadOnlyResponse {…}`  
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:4</sub>
 - `pub(super) async fn load_notices(force_refresh: bool) -> ReadOnlyResponse {…}`  
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:45</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:47</sub>
 - `pub(super) fn load_demo_notices() -> ReadOnlyResponse {…}`  
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:54</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:56</sub>
 - `pub(super) async fn load_cgyy( kind: String, site_id: i64, date: String, force_refresh: bool, ) -> ReadOnlyResponse {…}`  
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:58</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:60</sub>
 - `pub(super) async fn execute_cgyy(command: String) -> ReadOnlyResponse {…}`  
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:80</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:84</sub>
 - `pub(super) fn load_demo_cgyy(kind: String) -> ReadOnlyResponse {…}`  
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:103</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:107</sub>
 - `pub(super) async fn load_library_books( query: String, page: i64, sort: String, descending: bool, ) -> ReadOnlyResponse {…}` — Public OPAC search. Read-only, anonymous and bounded by the service.  
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:108</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:112</sub>
 - `pub(super) async fn load_shuttle_timetable() -> ReadOnlyResponse {…}` — Published shuttle timetable. Public page, no identity, no ticketing.  
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:125</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:129</sub>
 - `pub(super) async fn load_library_holdings(bib_id: String) -> ReadOnlyResponse {…}` — Public holdings for one bib id. The nested JSON string is decoded in Rust.  
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:135</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:139</sub>
 - `pub(super) async fn export_learning_snapshots(expected: String) -> LearningSnapshotResponse {…}`  
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:144</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:148</sub>
 - `pub(super) async fn import_learning_snapshots( expected: String, bytes: Vec<u8>, ) -> ReadOnlyResponse {…}`  
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:164</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:168</sub>
 - `pub(super) async fn load_library_loans(expected: String, page: u32) -> ReadOnlyResponse {…}`  
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:179</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:183</sub>
 - `pub(super) async fn check_android_update(current: String) -> ReadOnlyResponse {…}`  
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:192</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:196</sub>
 
 ## live
 
@@ -379,7 +379,7 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:240</sub>
 - `pub fn load_demo_graduate() -> ReadOnlyResponse {…}`  
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:244</sub>
-- `pub fn edit_tasks(root: String…)  -> ReadOnlyResponse {…}` — Local CRUD only. Account identity comes from Rust, never a Dart-supplied identifier.  
+- `pub async fn edit_tasks(root: String…)  -> ReadOnlyResponse {…}` — Local CRUD only. Account identity comes from Rust, never a Dart-supplied identifier.  
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:249</sub>
 - `pub async fn load_notices(force_refresh: bool) -> ReadOnlyResponse {…}`  
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:261</sub>

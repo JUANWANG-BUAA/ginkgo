@@ -10,6 +10,7 @@ token 层与视觉常量。
 
 - [design/academic_widgets.dart](#designacademicwidgetsdart) (4)
 - [design/apple_design.dart](#designappledesigndart) (1)
+- [design/ginkgo_mark.dart](#designginkgomarkdart) (1)
 - [design/ginkgo_visuals.dart](#designginkgovisualsdart) (2)
 - [design/tokens/colors.dart](#designtokenscolorsdart) (1)
 - [design/tokens/layout.dart](#designtokenslayoutdart) (1)
@@ -60,6 +61,13 @@ token 层与视觉常量。
     - `static const body = GinkgoTypography.body;`  <sub>:39</sub>
     - `static const title = GinkgoTypography.largeTitle;`  <sub>:40</sub>
     - `static Duration duration(BuildContext context, int milliseconds) => GinkgoMotion.duration(context, milliseconds);`  <sub>:42</sub>
+
+## design/ginkgo_mark.dart
+
+- `class GinkgoMark extends StatelessWidget` — Ginkgo 品牌标记：银杏叶的矢量绘制，与 Android 启动图标、主页 logo 同源。  
+  <sub>class · design/ginkgo_mark.dart:9</sub>
+    - `const GinkgoMark( {…}`  <sub>:10</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:31</sub>
 
 ## design/ginkgo_visuals.dart
 

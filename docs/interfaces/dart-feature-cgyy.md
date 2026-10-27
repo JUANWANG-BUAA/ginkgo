@@ -17,7 +17,9 @@
 - [features/cgyy/cgyy_day_page.dart](#featurescgyycgyydaypagedart) (1)
 - [features/cgyy/cgyy_day_view.dart](#featurescgyycgyydayviewdart) (5)
 - [features/cgyy/cgyy_gateway.dart](#featurescgyycgyygatewaydart) (1)
-- [features/cgyy/cgyy_models.dart](#featurescgyycgyymodelsdart) (12)
+- [features/cgyy/cgyy_lock_code_page.dart](#featurescgyycgyylockcodepagedart) (1)
+- [features/cgyy/cgyy_models.dart](#featurescgyycgyymodelsdart) (13)
+- [features/cgyy/cgyy_order_detail_page.dart](#featurescgyycgyyorderdetailpagedart) (1)
 - [features/cgyy/cgyy_page.dart](#featurescgyycgyypagedart) (1)
 - [features/cgyy/cgyy_review_page.dart](#featurescgyycgyyreviewpagedart) (1)
 - [features/cgyy/cgyy_widgets.dart](#featurescgyycgyywidgetsdart) (7)
@@ -48,17 +50,17 @@
     - `const CgyySlotSection( {…}`  <sub>:33</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:51</sub>
 - `class CgyyDetailsSection extends StatelessWidget` — The details the school asks for. The values stay in memory for this form  
-  <sub>class · features/cgyy/cgyy_booking_form.dart:82</sub>
-    - `const CgyyDetailsSection( {…}`  <sub>:83</sub>
-    - `Widget build(BuildContext context) => AppleSection( header: const Text('预约信息'), footer: … ed ? (value) => onToggleOffSchool(value) : null, ), ), ], );`  <sub>:112</sub>
+  <sub>class · features/cgyy/cgyy_booking_form.dart:79</sub>
+    - `const CgyyDetailsSection( {…}`  <sub>:80</sub>
+    - `Widget build(BuildContext context) => AppleSection( header: const Text('预约信息'), footer: … ed ? (value) => onToggleOffSchool(value) : null, ), ), ], );`  <sub>:109</sub>
 - `class CgyyNoticeSection extends StatelessWidget` — A short guidance line shown after the form acted on the user.  
-  <sub>class · features/cgyy/cgyy_booking_form.dart:170</sub>
-    - `const CgyyNoticeSection( {…}`  <sub>:171</sub>
-    - `Widget build(BuildContext context) => AppleSection( children: [ AppleListTile( leading: … (CupertinoIcons.info_circle), title: Text(message), ), ], );`  <sub>:175</sub>
+  <sub>class · features/cgyy/cgyy_booking_form.dart:161</sub>
+    - `const CgyyNoticeSection( {…}`  <sub>:162</sub>
+    - `Widget build(BuildContext context) => AppleSection( children: [ AppleListTile( leading: … (CupertinoIcons.info_circle), title: Text(message), ), ], );`  <sub>:166</sub>
 - `class CgyyBookingActionsSection extends StatelessWidget` — The actions of the booking form. Only one write path is offered and the  
-  <sub>class · features/cgyy/cgyy_booking_form.dart:187</sub>
-    - `const CgyyBookingActionsSection( {…}`  <sub>:188</sub>
-    - `Widget build(BuildContext context) => AppleSection( footer: const Text('实验功能，真实预约往返仍需人工 … y ? null : onLeave, child: const Text('返回并核对我的预约'), ), ], );`  <sub>:202</sub>
+  <sub>class · features/cgyy/cgyy_booking_form.dart:178</sub>
+    - `const CgyyBookingActionsSection( {…}`  <sub>:179</sub>
+    - `Widget build(BuildContext context) => AppleSection( footer: const Text('实验功能，真实预约往返仍需人工 … y ? null : onLeave, child: const Text('返回并核对我的预约'), ), ], );`  <sub>:193</sub>
 
 ## features/cgyy/cgyy_booking_page.dart
 
@@ -97,9 +99,9 @@
 ## features/cgyy/cgyy_day_page.dart
 
 - `class CgyyDayPage extends StatefulWidget`  
-  <sub>class · features/cgyy/cgyy_day_page.dart:18</sub>
-    - `const CgyyDayPage( {…}`  <sub>:19</sub>
-    - `State<CgyyDayPage> createState() => _CgyyDayPageState();`  <sub>:31</sub>
+  <sub>class · features/cgyy/cgyy_day_page.dart:19</sub>
+    - `const CgyyDayPage( {…}`  <sub>:20</sub>
+    - `State<CgyyDayPage> createState() => _CgyyDayPageState();`  <sub>:32</sub>
 
 ## features/cgyy/cgyy_day_view.dart
 
@@ -108,26 +110,33 @@
     - `const CgyyWriteGuardSection( {…}`  <sub>:14</sub>
     - `Widget build(BuildContext context) => AppleSection( header: const Text('写入保护'), footer: … ? onReview : null, child: const Text('读取最新记录并核对'), ), ], );`  <sub>:24</sub>
 - `class CgyySiteQuerySection extends StatelessWidget` — The queried venue and the day the slots belong to.  
-  <sub>class · features/cgyy/cgyy_day_view.dart:47</sub>
-    - `const CgyySiteQuerySection( {…}`  <sub>:48</sub>
-    - `Widget build(BuildContext context) => AppleSection( children: [ cgyySiteContent(site), … onPressed: enabled ? onChooseDate : null, ), ], ), ), ], );`  <sub>:61</sub>
+  <sub>class · features/cgyy/cgyy_day_view.dart:45</sub>
+    - `const CgyySiteQuerySection( {…}`  <sub>:46</sub>
+    - `Widget build(BuildContext context) => AppleSection( children: [ cgyySiteContent(site), … onPressed: enabled ? onChooseDate : null, ), ], ), ), ], );`  <sub>:59</sub>
 - `class CgyyBookingEntrySection extends StatelessWidget` — The entry that opens the booking form. It stays disabled while the write  
-  <sub>class · features/cgyy/cgyy_day_view.dart:106</sub>
-    - `const CgyyBookingEntrySection( {…}`  <sub>:107</sub>
-    - `Widget build(BuildContext context) => AppleSection( footer: const Text('提交前重新核对空档；实验写入功 … cgyy-open-booking'), onTap: enabled ? onTap : null, ), ], );`  <sub>:116</sub>
+  <sub>class · features/cgyy/cgyy_day_view.dart:104</sub>
+    - `const CgyyBookingEntrySection( {…}`  <sub>:105</sub>
+    - `Widget build(BuildContext context) => AppleSection( footer: const Text('提交前重新核对空档；实验写入功 … cgyy-open-booking'), onTap: enabled ? onTap : null, ), ], );`  <sub>:114</sub>
 - `class CgyyOrderListSection extends StatelessWidget` — The most recent bookings the school returned.  
-  <sub>class · features/cgyy/cgyy_day_view.dart:180</sub>
-    - `const CgyyOrderListSection( {…}`  <sub>:181</sub>
-    - `Widget build(BuildContext context) => AppleSection( header: const Text('最近最多 20 条'), ch … : order.place.isEmpty ? '预约记录' : order.place, detail: '$ {…}`  <sub>:185</sub>
+  <sub>class · features/cgyy/cgyy_day_view.dart:172</sub>
+    - `const CgyyOrderListSection( {…}`  <sub>:173</sub>
+    - `Widget build(BuildContext context) => AppleSection( header: const Text('最近最多 20 条'), ch … : order.place.isEmpty ? '预约记录' : order.place, detail: '$ {…}`  <sub>:182</sub>
 - `class CgyyOrderManageSection extends StatelessWidget` — The bookings that may still be cancelled. The school decides which ones  
-  <sub>class · features/cgyy/cgyy_day_view.dart:208</sub>
-    - `const CgyyOrderManageSection( {…}`  <sub>:209</sub>
-    - `Widget build(BuildContext context) => AppleSection( header: const Text('预约管理'), footer: … r.canCancel) AppleListTile( key: ValueKey('cgyy-cancel-$ {…}`  <sub>:220</sub>
+  <sub>class · features/cgyy/cgyy_day_view.dart:209</sub>
+    - `const CgyyOrderManageSection( {…}`  <sub>:210</sub>
+    - `Widget build(BuildContext context) => AppleSection( header: const Text('预约管理'), footer: … r.canCancel) AppleListTile( key: ValueKey('cgyy-cancel-$ {…}`  <sub>:221</sub>
 
 ## features/cgyy/cgyy_gateway.dart
 
 - `typedef CgyyLoader = Future<live.ReadOnlyResponse> Function(` — Loader signature shared by the CGYY hub and the day/orders page.  
   <sub>typedef · features/cgyy/cgyy_gateway.dart:7</sub>
+
+## features/cgyy/cgyy_lock_code_page.dart
+
+- `class CgyyLockCodePage extends StatefulWidget`  
+  <sub>class · features/cgyy/cgyy_lock_code_page.dart:11</sub>
+    - `const CgyyLockCodePage( {…}`  <sub>:12</sub>
+    - `State<CgyyLockCodePage> createState() => _CgyyLockCodePageState();`  <sub>:24</sub>
 
 ## features/cgyy/cgyy_models.dart
 
@@ -150,26 +159,38 @@
 - `class CgyyBookingOptions`  
   <sub>class · features/cgyy/cgyy_models.dart:132</sub>
 - `class CgyyChallenge` — Jigsaw challenge images stay raw data URLs; decoding happens in the widget  
-  <sub>class · features/cgyy/cgyy_models.dart:149</sub>
+  <sub>class · features/cgyy/cgyy_models.dart:151</sub>
 - `class CgyyReviewSnapshot`  
-  <sub>class · features/cgyy/cgyy_models.dart:158</sub>
+  <sub>class · features/cgyy/cgyy_models.dart:160</sub>
 - `class CgyyActionResult` — One write-flow result envelope. An unrecognized state stays `unknown`  
-  <sub>class · features/cgyy/cgyy_models.dart:172</sub>
-    - `static const knownStates = {…}`  <sub>:200</sub>
-    - `bool get isKnown => knownStates.contains(state);`  <sub>:218</sub>
-    - `bool get requiresReview => state == 'uncertain' \|\| state == 'accepted';`  <sub>:219</sub>
-    - `bool get isChallenge => state == 'challenge';`  <sub>:220</sub>
-    - `bool get isReady => state == 'ready';`  <sub>:221</sub>
-    - `bool get isReviewRequired => state == 'reviewRequired';`  <sub>:222</sub>
+  <sub>class · features/cgyy/cgyy_models.dart:174</sub>
+    - `static const knownStates = {…}`  <sub>:202</sub>
+    - `bool get isKnown => knownStates.contains(state);`  <sub>:220</sub>
+    - `bool get requiresReview => state == 'uncertain' \|\| state == 'accepted';`  <sub>:221</sub>
+    - `bool get isChallenge => state == 'challenge';`  <sub>:222</sub>
+    - `bool get isReady => state == 'ready';`  <sub>:223</sub>
+    - `bool get isReviewRequired => state == 'reviewRequired';`  <sub>:224</sub>
 - `class CgyyWriteStatus` — The guard status of the last local write; anything but ready/uncertain  
-  <sub>class · features/cgyy/cgyy_models.dart:227</sub>
+  <sub>class · features/cgyy/cgyy_models.dart:229</sub>
+- `class CgyyLockCode`  
+  <sub>class · features/cgyy/cgyy_models.dart:265</sub>
+    - `bool get hasPassword => qrCode != null && qrCode!.isNotEmpty && qrCode != 'null';`  <sub>:286</sub>
+    - `bool get hasUpcomingReservation => [ tradeNo, reservationDate, reservationStartDate, ]. … e) => value != null && value.isNotEmpty && value != 'null');`  <sub>:288</sub>
+    - `String get location => [ venueName, siteName, spaceName, ].whereType<String>().where((value) => value.isNotEmpty).join(' · ');`  <sub>:294</sub>
+
+## features/cgyy/cgyy_order_detail_page.dart
+
+- `class CgyyOrderDetailPage extends StatefulWidget`  
+  <sub>class · features/cgyy/cgyy_order_detail_page.dart:11</sub>
+    - `const CgyyOrderDetailPage( {…}`  <sub>:12</sub>
+    - `State<CgyyOrderDetailPage> createState() => _CgyyOrderDetailPageState();`  <sub>:26</sub>
 
 ## features/cgyy/cgyy_page.dart
 
 - `class CgyyPage extends StatefulWidget`  
-  <sub>class · features/cgyy/cgyy_page.dart:14</sub>
-    - `const CgyyPage( {…}`  <sub>:15</sub>
-    - `State<CgyyPage> createState() => _CgyyPageState();`  <sub>:20</sub>
+  <sub>class · features/cgyy/cgyy_page.dart:15</sub>
+    - `const CgyyPage( {…}`  <sub>:16</sub>
+    - `State<CgyyPage> createState() => _CgyyPageState();`  <sub>:21</sub>
 
 ## features/cgyy/cgyy_review_page.dart
 

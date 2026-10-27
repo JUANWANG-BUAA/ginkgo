@@ -9,6 +9,6 @@
 ## features/auth/login_page.dart
 
 - `class LoginPage extends StatefulWidget`  
-  <sub>class · features/auth/login_page.dart:10</sub>
-    - `const LoginPage( {…}`  <sub>:11</sub>
-    - `State<LoginPage> createState() => _LoginPageState();`  <sub>:29</sub>
+  <sub>class · features/auth/login_page.dart:11</sub>
+    - `const LoginPage( {…}`  <sub>:12</sub>
+    - `State<LoginPage> createState() => _LoginPageState();`  <sub>:30</sub>

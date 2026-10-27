@@ -9,7 +9,7 @@
 ## 目录
 
 - [bykc](#bykc) (3)
-- [cgyy](#cgyy) (8)
+- [cgyy](#cgyy) (10)
 - [checkin](#checkin) (5)
 - [classroom](#classroom) (1)
 - [grades](#grades) (1)
@@ -56,8 +56,12 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/codecs/cgyy.rs:165</sub>
 - `pub fn orders(value: &Value) -> Result<Vec<Order>, AppError> {…}`  
   <sub>fn · rust/crates/ginkgo_upstream/src/codecs/cgyy.rs:177</sub>
+- `pub fn order(value: &Value) -> Result<Order, AppError> {…}`  
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/cgyy.rs:206</sub>
+- `pub fn lock_code(value: &Value) -> Result<CgyyLockCode, AppError> {…}`  
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/cgyy.rs:218</sub>
 - `pub fn order_page(value: &Value) -> Result<(Vec<Order>, Option<i64>), AppError> {…}` — One official orders page: the `content` rows plus `totalElements` when the  
-  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/cgyy.rs:183</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/cgyy.rs:239</sub>
 
 ## checkin
 

@@ -9,8 +9,8 @@
 ## 目录
 
 - [cache](#cache) (7)
-- [protocol](#protocol) (11)
-- [cgyy_booking_service](#cgyybookingservice) (6)
+- [protocol](#protocol) (12)
+- [cgyy_booking_service](#cgyybookingservice) (7)
 - [cgyy_service](#cgyyservice) (1)
 - [checkin_service](#checkinservice) (1)
 - [contracts](#contracts) (1)
@@ -71,14 +71,16 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/services/cgyy_booking_service/protocol.rs:84</sub>
 - `pub(super) fn purposes(value: &Value) -> Vec<Purpose> {…}`  
   <sub>fn · rust/crates/ginkgo_upstream/src/services/cgyy_booking_service/protocol.rs:109</sub>
-- `pub(super) fn base_form(context: &BookingContext) -> BTreeMap<String, String> {…}`  
+- `pub(super) fn fallback_purposes() -> Vec<Purpose> {…}`  
   <sub>fn · rust/crates/ginkgo_upstream/src/services/cgyy_booking_service/protocol.rs:141</sub>
+- `pub(super) fn base_form(context: &BookingContext) -> BTreeMap<String, String> {…}`  
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cgyy_booking_service/protocol.rs:163</sub>
 - `pub(super) fn encrypt(text: &str, secret: &str) -> Result<String, AppError> {…}`  
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/cgyy_booking_service/protocol.rs:156</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cgyy_booking_service/protocol.rs:178</sub>
 - `pub(super) fn protocol_point(offset: f64, width: Option<f64>) -> Result<String, AppError> {…}` — Upstream captcha coordinate: `310 * offset / width` (§6B.1). Raw device or  
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/cgyy_booking_service/protocol.rs:184</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cgyy_booking_service/protocol.rs:206</sub>
 - `pub(super) fn trade_matches(draft: &str, response: &str, row: &Value) -> bool {…}` — A trade number only narrows the match when both sides report one; an absent  
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/cgyy_booking_service/protocol.rs:204</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cgyy_booking_service/protocol.rs:226</sub>
 
 ## cgyy_booking_service
 
@@ -100,6 +102,8 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/services/cgyy_booking_service.rs:57</sub>
 - `pub(super) fn check_booking_owner(&self, owner: &BookingOwner) -> Result<(), AppError> {…}`  
   <sub>fn · rust/crates/ginkgo_upstream/src/services/cgyy_booking_service.rs:69</sub>
+- `pub(super) async fn load_booking_read( &self, owner: &BookingOwner, kind: &str, site: i64, date: &str, ) -> Result<(Value, String), AppError> {…}`  
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cgyy_booking_service.rs:109</sub>
 
 ## cgyy_service
 
@@ -118,23 +122,23 @@
 
 ## demo_campus
 
-- `pub fn load_demo_bykc() -> Result<crate::features::bykc::Catalog, AppError> {…}`  
+- `pub fn load_demo_bykc() -> Result<crate::codecs::bykc::Catalog, AppError> {…}`  
   <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:4</sub>
-- `pub fn load_demo_bykc_chosen() -> Result<crate::features::bykc::ChosenCourses, AppError> {…}`  
+- `pub fn load_demo_bykc_chosen() -> Result<crate::codecs::bykc::ChosenCourses, AppError> {…}`  
   <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:17</sub>
-- `pub fn load_demo_bykc_statistics() -> Result<crate::features::bykc::LearningStatistics, AppError> {…}`  
+- `pub fn load_demo_bykc_statistics() -> Result<crate::codecs::bykc::LearningStatistics, AppError> {…}`  
   <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:34</sub>
-- `pub fn load_demo_graduate() -> Result<crate::features::graduate::AcademicData, AppError> {…}`  
+- `pub fn load_demo_graduate() -> Result<crate::codecs::graduate::AcademicData, AppError> {…}`  
   <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:42</sub>
-- `pub fn load_demo_notices() -> Result<Vec<crate::features::notices::Notice>, AppError> {…}`  
+- `pub fn load_demo_notices() -> Result<Vec<crate::codecs::notices::Notice>, AppError> {…}`  
   <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:53</sub>
 - `pub fn load_demo_cgyy(kind: String) -> Result<serde_json::Value, AppError> {…}`  
   <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:65</sub>
-- `pub fn graduate_status() -> Result<crate::features::graduate::AcademicData, AppError> {…}`  
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:76</sub>
-- `pub fn library_history( page: i32, ) -> Result<crate::features::library::LibraryHistoryPage, AppError> {…}`  
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:85</sub>
-- `pub fn library_stats() -> Result<Vec<crate::features::library_stats::CampusStats>, AppError> {…}`  
+- `pub fn graduate_status() -> Result<crate::codecs::graduate::AcademicData, AppError> {…}`  
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:78</sub>
+- `pub fn library_history(page: i32) -> Result<crate::codecs::library::LibraryHistoryPage, AppError> {…}`  
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:87</sub>
+- `pub fn library_stats() -> Result<Vec<crate::codecs::library_stats::CampusStats>, AppError> {…}`  
   <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:102</sub>
 
 ## demo_checkin
@@ -169,14 +173,14 @@
 ## demo_library
 
 - `pub struct DemoLibrary`  
-  <sub>struct · rust/crates/ginkgo_upstream/src/services/demo_library.rs:10</sub>
-    - `venues: Vec<LibraryVenue>`  <sub>:11</sub>
-    - `areas: Vec<LibraryArea>`  <sub>:12</sub>
-    - `slots: Vec<LibrarySlot>`  <sub>:13</sub>
-    - `seats: Vec<LibrarySeat>`  <sub>:14</sub>
-    - `bookings: Vec<LibraryBooking>`  <sub>:15</sub>
+  <sub>struct · rust/crates/ginkgo_upstream/src/services/demo_library.rs:8</sub>
+    - `venues: Vec<LibraryVenue>`  <sub>:9</sub>
+    - `areas: Vec<LibraryArea>`  <sub>:10</sub>
+    - `slots: Vec<LibrarySlot>`  <sub>:11</sub>
+    - `seats: Vec<LibrarySeat>`  <sub>:12</sub>
+    - `bookings: Vec<LibraryBooking>`  <sub>:13</sub>
 - `pub fn load() -> Result<DemoLibrary, AppError> {…}`  
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_library.rs:44</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_library.rs:42</sub>
 
 ## demo_repository
 
@@ -342,10 +346,10 @@
     - `classrooms: Mutex<ClassroomCache>`  <sub>:28</sub>
     - `schedules: Mutex<ScheduleCache>`  <sub>:29</sub>
     - `cgyy: Mutex<SnapshotCache<String, ginkgo_domain::ports::CgyyData>>`  <sub>:30</sub>
-    - `notices: Mutex<SnapshotCache<String, Vec<crate::features::notices::Notice>>>`  <sub>:31</sub>
-    - `graduate: Mutex<SnapshotCache<String, crate::features::graduate::AcademicData>>`  <sub>:32</sub>
-    - `bykc: Mutex<SnapshotCache<String, crate::features::bykc::Catalog>>`  <sub>:33</sub>
-    - `bykc_chosen: Mutex<SnapshotCache<String, crate::features::bykc::ChosenCourses>>`  <sub>:34</sub>
+    - `notices: Mutex<SnapshotCache<String, Vec<crate::codecs::notices::Notice>>>`  <sub>:31</sub>
+    - `graduate: Mutex<SnapshotCache<String, crate::codecs::graduate::AcademicData>>`  <sub>:32</sub>
+    - `bykc: Mutex<SnapshotCache<String, crate::codecs::bykc::Catalog>>`  <sub>:33</sub>
+    - `bykc_chosen: Mutex<SnapshotCache<String, crate::codecs::bykc::ChosenCourses>>`  <sub>:34</sub>
     - `homework: Mutex<super::homework_service::HomeworkCache>`  <sub>:37</sub>
     - `homework_details: Mutex<super::homework_service::HomeworkDetailCache>`  <sub>:38</sub>
     - `today: Mutex<TodayCache>`  <sub>:39</sub>

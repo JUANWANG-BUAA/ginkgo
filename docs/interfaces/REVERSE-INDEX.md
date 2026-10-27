@@ -26,6 +26,7 @@
 | `application/reminder_planning.dart` | ReminderPlanningGateway → dart-application.md<br>CourseReminderSeed → dart-application.md<br>TaskReminderSeed → dart-application.md<br>ExtendedReminderPlans → dart-application.md |
 | `design/academic_widgets.dart` | AcademicBadge → dart-design.md<br>AcademicFactRow → dart-design.md<br>AcademicMetric → dart-design.md<br>AcademicMetricGrid → dart-design.md |
 | `design/apple_design.dart` | AppleDesign → dart-design.md |
+| `design/ginkgo_mark.dart` | GinkgoMark → dart-design.md |
 | `design/ginkgo_visuals.dart` | GinkgoIconTile → dart-design.md<br>GinkgoBadge → dart-design.md |
 | `design/tokens/colors.dart` | GinkgoColors → dart-design.md |
 | `design/tokens/layout.dart` | GinkgoLayout → dart-design.md |
@@ -49,7 +50,9 @@
 | `features/cgyy/cgyy_day_page.dart` | CgyyDayPage → dart-feature-cgyy.md |
 | `features/cgyy/cgyy_day_view.dart` | CgyyWriteGuardSection → dart-feature-cgyy.md<br>CgyySiteQuerySection → dart-feature-cgyy.md<br>CgyyBookingEntrySection → dart-feature-cgyy.md<br>CgyyOrderListSection → dart-feature-cgyy.md<br>CgyyOrderManageSection → dart-feature-cgyy.md |
 | `features/cgyy/cgyy_gateway.dart` | CgyyLoader → dart-feature-cgyy.md |
-| `features/cgyy/cgyy_models.dart` | CgyySite → dart-feature-cgyy.md<br>CgyySlot → dart-feature-cgyy.md<br>CgyySpace → dart-feature-cgyy.md<br>CgyyDay → dart-feature-cgyy.md<br>CgyyOrder → dart-feature-cgyy.md<br>CgyyBookingChoice → dart-feature-cgyy.md<br>CgyyPurpose → dart-feature-cgyy.md<br>CgyyBookingOptions → dart-feature-cgyy.md<br>CgyyChallenge → dart-feature-cgyy.md<br>CgyyReviewSnapshot → dart-feature-cgyy.md<br>CgyyActionResult → dart-feature-cgyy.md<br>CgyyWriteStatus → dart-feature-cgyy.md |
+| `features/cgyy/cgyy_lock_code_page.dart` | CgyyLockCodePage → dart-feature-cgyy.md |
+| `features/cgyy/cgyy_models.dart` | CgyySite → dart-feature-cgyy.md<br>CgyySlot → dart-feature-cgyy.md<br>CgyySpace → dart-feature-cgyy.md<br>CgyyDay → dart-feature-cgyy.md<br>CgyyOrder → dart-feature-cgyy.md<br>CgyyBookingChoice → dart-feature-cgyy.md<br>CgyyPurpose → dart-feature-cgyy.md<br>CgyyBookingOptions → dart-feature-cgyy.md<br>CgyyChallenge → dart-feature-cgyy.md<br>CgyyReviewSnapshot → dart-feature-cgyy.md<br>CgyyActionResult → dart-feature-cgyy.md<br>CgyyWriteStatus → dart-feature-cgyy.md<br>CgyyLockCode → dart-feature-cgyy.md |
+| `features/cgyy/cgyy_order_detail_page.dart` | CgyyOrderDetailPage → dart-feature-cgyy.md |
 | `features/cgyy/cgyy_page.dart` | CgyyPage → dart-feature-cgyy.md |
 | `features/cgyy/cgyy_review_page.dart` | CgyyReviewPage → dart-feature-cgyy.md |
 | `features/cgyy/cgyy_widgets.dart` | CgyyPageHeader → dart-feature-cgyy.md<br>CgyyStatusSection → dart-feature-cgyy.md<br>CgyyConfirmDialog → dart-feature-cgyy.md<br>CgyyInteractiveRow → dart-feature-cgyy.md<br>CgyyTileContent → dart-feature-cgyy.md<br>CgyySlotRow → dart-feature-cgyy.md<br>SemanticsLabelIcon → dart-feature-cgyy.md |
@@ -67,7 +70,7 @@
 | `features/grades/grades_page.dart` | GradesPage → dart-feature-grades.md |
 | `features/graduate/graduate_course_controls.dart` | GraduateCourseControls → dart-feature-graduate.md |
 | `features/graduate/graduate_course_widgets.dart` | GraduateCourseBadges → dart-feature-graduate.md<br>GraduateCourseCard → dart-feature-graduate.md<br>GraduateCourseDetails → dart-feature-graduate.md |
-| `features/graduate/graduate_credit_map_page.dart` | GraduateCreditMapPage → dart-feature-graduate.md |
+| `features/graduate/graduate_credit_map_page.dart` | GraduateCreditMapView → dart-feature-graduate.md<br>GraduateCreditMapPage → dart-feature-graduate.md |
 | `features/graduate/graduate_credit_map_widgets.dart` | GraduateCreditMapNotice → dart-feature-graduate.md<br>GraduateCreditMapNodeCard → dart-feature-graduate.md |
 | `features/graduate/graduate_models.dart` | GraduateRow → dart-feature-graduate.md<br>GraduateProgress → dart-feature-graduate.md<br>GraduateSection → dart-feature-graduate.md<br>GraduateCourseEntry → dart-feature-graduate.md<br>GraduateCourseFilter → dart-feature-graduate.md<br>GraduateView → dart-feature-graduate.md<br>GraduateReport → dart-feature-graduate.md |
 | `features/graduate/graduate_page.dart` | GraduateLoader → dart-feature-graduate.md<br>GraduatePage → dart-feature-graduate.md |
@@ -80,7 +83,7 @@
 | `features/homework/homework_projection.dart` | HomeworkDeadlineStatus → dart-feature-homework.md |
 | `features/homework/homework_widgets.dart` | HomeworkSummaryMetrics → dart-feature-homework.md<br>HomeworkQuickFilter → dart-feature-homework.md<br>HomeworkStatusBadge → dart-feature-homework.md<br>HomeworkDeadlineText → dart-feature-homework.md<br>HomeworkItemTile → dart-feature-homework.md |
 | `features/learning/learning_announcement_page.dart` | LearningAnnouncementPage → dart-feature-learning.md<br>LearningAnnouncementPageState → dart-feature-learning.md |
-| `features/learning/learning_course_page.dart` | LearningCoursePage → dart-feature-learning.md |
+| `features/learning/learning_course_page.dart` | LearningCourseTab → dart-feature-learning.md<br>LearningCoursePage → dart-feature-learning.md |
 | `features/learning/learning_page.dart` | LearningPage → dart-feature-learning.md |
 | `features/learning/learning_resource_section.dart` | LearningResourceSection → dart-feature-learning.md |
 | `features/learning/learning_snapshots_page.dart` | LearningSnapshotsPage → dart-feature-learning.md |
@@ -107,6 +110,7 @@
 | `features/schedule/course_visibility.dart` | CourseVisibility → dart-feature-schedule.md<br>CourseVisibilityScope → dart-feature-schedule.md<br>CourseRangePage → dart-feature-schedule.md |
 | `features/schedule/schedule_controls.dart` | ScheduleControls → dart-feature-schedule.md |
 | `features/schedule/schedule_course_detail.dart` | ScheduleCourseDetailPage → dart-feature-schedule.md |
+| `features/schedule/schedule_day_strip.dart` | ScheduleDayStrip → dart-feature-schedule.md |
 | `features/schedule/schedule_grid.dart` | ScheduleGrid → dart-feature-schedule.md |
 | `features/schedule/schedule_grid_course_block.dart` | ScheduleGridCourseBlock → dart-feature-schedule.md |
 | `features/schedule/schedule_grid_layout.dart` | ScheduleGridLayout → dart-feature-schedule.md |
@@ -178,7 +182,7 @@
 | `rust/crates/ginkgo_core/src/cgyy_pending_store.rs` | Pending → rust-core-application.md<br>PendingStore → rust-core-application.md<br>new → rust-core-application.md<br>inspect → rust-core-application.md<br>create → rust-core-application.md<br>clear → rust-core-application.md |
 | `rust/crates/ginkgo_core/src/tasks_store.rs` | transact → rust-core-application.md |
 | `rust/crates/ginkgo_domain/src/features/bykc.rs` | Course → rust-domain-features.md<br>CourseDetails → rust-domain-features.md<br>Category → rust-domain-features.md<br>Filter → rust-domain-features.md<br>Request → rust-domain-features.md<br>Count → rust-domain-features.md<br>ResultSet → rust-domain-features.md<br>filter → rust-domain-features.md<br>Catalog → rust-domain-features.md<br>Semester → rust-domain-features.md<br>ChosenCourse → rust-domain-features.md<br>ChosenCourses → rust-domain-features.md<br>StatisticsEntry → rust-domain-features.md<br>LearningStatistics → rust-domain-features.md<br>current_semester → rust-domain-features.md<br>semester_range → rust-domain-features.md |
-| `rust/crates/ginkgo_domain/src/features/cgyy.rs` | Site → rust-domain-features.md<br>Slot → rust-domain-features.md<br>Space → rust-domain-features.md<br>Day → rust-domain-features.md<br>Order → rust-domain-features.md |
+| `rust/crates/ginkgo_domain/src/features/cgyy.rs` | Site → rust-domain-features.md<br>Slot → rust-domain-features.md<br>Space → rust-domain-features.md<br>Day → rust-domain-features.md<br>Order → rust-domain-features.md<br>CgyyLockCode → rust-domain-features.md |
 | `rust/crates/ginkgo_domain/src/features/cgyy_booking.rs` | BookingRequest → rust-domain-features.md<br>CgyyCommand → rust-domain-features.md<br>BookingChoice → rust-domain-features.md<br>Purpose → rust-domain-features.md<br>BookingOptions → rust-domain-features.md<br>BookingChallenge → rust-domain-features.md<br>BookingReview → rust-domain-features.md<br>CgyyActionResult → rust-domain-features.md<br>message → rust-domain-features.md |
 | `rust/crates/ginkgo_domain/src/features/checkin.rs` | CheckInStatus → rust-domain-features.md<br>name → rust-domain-features.md<br>CheckInCourse → rust-domain-features.md<br>sign_in_window → rust-domain-features.md |
 | `rust/crates/ginkgo_domain/src/features/classroom.rs` | Room → rust-domain-features.md<br>sections → rust-domain-features.md<br>Sort → rust-domain-features.md<br>FilterRequest → rust-domain-features.md<br>Summary → rust-domain-features.md<br>RoomResult → rust-domain-features.md<br>section_states → rust-domain-features.md<br>FilterResult → rust-domain-features.md<br>room_ids_by_building → rust-domain-features.md<br>normalize → rust-domain-features.md<br>filter → rust-domain-features.md |
@@ -274,7 +278,7 @@
 | `rust/crates/ginkgo_upstream/src/auth/uc.rs` | activate_uc → rust-upstream-auth.md<br>validate_session → rust-upstream-auth.md<br>parse_uc_status → rust-upstream-auth.md |
 | `rust/crates/ginkgo_upstream/src/auth/vault.rs` | MemoryVault → rust-upstream-auth.md<br>with → rust-upstream-auth.md<br>names → rust-upstream-auth.md<br>verify_vault_round_trip → rust-upstream-auth.md<br>sanitized → rust-upstream-auth.md |
 | `rust/crates/ginkgo_upstream/src/codecs/bykc.rs` | parse_chosen → rust-upstream-codecs.md<br>parse_statistics → rust-upstream-codecs.md<br>parse_catalog → rust-upstream-codecs.md |
-| `rust/crates/ginkgo_upstream/src/codecs/cgyy.rs` | number → rust-upstream-codecs.md<br>envelope → rust-upstream-codecs.md<br>sites → rust-upstream-codecs.md<br>day → rust-upstream-codecs.md<br>week_start → rust-upstream-codecs.md<br>can_cancel → rust-upstream-codecs.md<br>orders → rust-upstream-codecs.md<br>order_page → rust-upstream-codecs.md |
+| `rust/crates/ginkgo_upstream/src/codecs/cgyy.rs` | number → rust-upstream-codecs.md<br>envelope → rust-upstream-codecs.md<br>sites → rust-upstream-codecs.md<br>day → rust-upstream-codecs.md<br>week_start → rust-upstream-codecs.md<br>can_cancel → rust-upstream-codecs.md<br>orders → rust-upstream-codecs.md<br>order → rust-upstream-codecs.md<br>lock_code → rust-upstream-codecs.md<br>order_page → rust-upstream-codecs.md |
 | `rust/crates/ginkgo_upstream/src/codecs/checkin.rs` | parse_app_login → rust-upstream-codecs.md<br>parse_course_schedule → rust-upstream-codecs.md<br>login_name_from_url → rust-upstream-codecs.md<br>summary → rust-upstream-codecs.md<br>DayInput → rust-upstream-codecs.md |
 | `rust/crates/ginkgo_upstream/src/codecs/classroom.rs` | parse_upstream_response → rust-upstream-codecs.md |
 | `rust/crates/ginkgo_upstream/src/codecs/grades.rs` | parse_courses → rust-upstream-codecs.md |
@@ -301,8 +305,8 @@
 | `rust/crates/ginkgo_upstream/src/foundation/mutex.rs` | poison_events → rust-upstream-foundation.md<br>Guard → rust-upstream-foundation.md<br>was_poisoned → rust-upstream-foundation.md<br>Mutex → rust-upstream-foundation.md<br>fn → rust-upstream-foundation.md<br>lock → rust-upstream-foundation.md<br>poison_count → rust-upstream-foundation.md<br>was_poisoned → rust-upstream-foundation.md<br>lock_value → rust-upstream-foundation.md |
 | `rust/crates/ginkgo_upstream/src/foundation/webvpn.rs` | GATEWAY_HOST → rust-upstream-foundation.md<br>should_route → rust-upstream-foundation.md<br>wrap → rust-upstream-foundation.md<br>unwrap → rust-upstream-foundation.md<br>resolve_redirect → rust-upstream-foundation.md<br>WebVpnError → rust-upstream-foundation.md |
 | `rust/crates/ginkgo_upstream/src/services/cache.rs` | CACHE_TTL → rust-upstream-services.md<br>Timed → rust-upstream-services.md<br>SnapshotCache → rust-upstream-services.md<br>fresh → rust-upstream-services.md<br>any → rust-upstream-services.md<br>begin → rust-upstream-services.md<br>insert_if_current → rust-upstream-services.md |
-| `rust/crates/ginkgo_upstream/src/services/cgyy_booking_service.rs` | BookingSafety → rust-upstream-services.md<br>ReviewCredential → rust-upstream-services.md<br>BookingOwner → rust-upstream-services.md<br>BookingContext → rust-upstream-services.md<br>booking_owner → rust-upstream-services.md<br>check_booking_owner → rust-upstream-services.md |
-| `rust/crates/ginkgo_upstream/src/services/cgyy_booking_service/protocol.rs` | number → rust-upstream-services.md<br>text → rust-upstream-services.md<br>data → rust-upstream-services.md<br>validate → rust-upstream-services.md<br>choices → rust-upstream-services.md<br>selections → rust-upstream-services.md<br>purposes → rust-upstream-services.md<br>base_form → rust-upstream-services.md<br>encrypt → rust-upstream-services.md<br>protocol_point → rust-upstream-services.md<br>trade_matches → rust-upstream-services.md |
+| `rust/crates/ginkgo_upstream/src/services/cgyy_booking_service.rs` | BookingSafety → rust-upstream-services.md<br>ReviewCredential → rust-upstream-services.md<br>BookingOwner → rust-upstream-services.md<br>BookingContext → rust-upstream-services.md<br>booking_owner → rust-upstream-services.md<br>check_booking_owner → rust-upstream-services.md<br>load_booking_read → rust-upstream-services.md |
+| `rust/crates/ginkgo_upstream/src/services/cgyy_booking_service/protocol.rs` | number → rust-upstream-services.md<br>text → rust-upstream-services.md<br>data → rust-upstream-services.md<br>validate → rust-upstream-services.md<br>choices → rust-upstream-services.md<br>selections → rust-upstream-services.md<br>purposes → rust-upstream-services.md<br>fallback_purposes → rust-upstream-services.md<br>base_form → rust-upstream-services.md<br>encrypt → rust-upstream-services.md<br>protocol_point → rust-upstream-services.md<br>trade_matches → rust-upstream-services.md |
 | `rust/crates/ginkgo_upstream/src/services/cgyy_service.rs` | cgyy_token → rust-upstream-services.md |
 | `rust/crates/ginkgo_upstream/src/services/checkin_service.rs` | CheckInProgress → rust-upstream-services.md |
 | `rust/crates/ginkgo_upstream/src/services/contracts.rs` | execute_contract → rust-upstream-services.md |
