@@ -7,6 +7,8 @@ import 'package:ginkgo_mirror/infrastructure/homework_file_io.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
+import 'homework_files_widgets.dart';
+
 class HomeworkFilesPanel extends StatefulWidget {
   const HomeworkFilesPanel({
     super.key,
@@ -393,15 +395,11 @@ class _HomeworkFilesPanelState extends State<HomeworkFilesPanel> {
           ),
         ),
         if (pending.isNotEmpty) ...[
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('发现本机待确认提交。记录仅用于回查，不保存文件内容；确认结果前禁止重新上传或提交。'),
+          HomeworkPendingSubmissionNotice(
+            count: pending.length,
+            busy: busy,
+            onReconcile: (index) => reconcile(pending[index].handle),
           ),
-          for (var i = 0; i < pending.length; i++)
-            CupertinoButton(
-              onPressed: busy ? null : () => reconcile(pending[i].handle),
-              child: Text('回查待确认提交 ${i + 1}'),
-            ),
         ],
         if (uncertain && receipt != null)
           CupertinoButton(
@@ -409,32 +407,7 @@ class _HomeworkFilesPanelState extends State<HomeworkFilesPanel> {
             child: const Text('仅回查提交结果'),
           ),
         if (d != null) ...[
-          CupertinoListTile(
-            title: const Text('提交方式'),
-            subtitle: Text(
-              d.methods.isEmpty
-                  ? '未知'
-                  : d.methods
-                        .map(
-                          (m) =>
-                              const {
-                                'file': '文件',
-                                'text': '文本',
-                                'url': '链接',
-                                'audio': '录音',
-                                'annotation': '注释',
-                              }[m] ??
-                              m,
-                        )
-                        .join('、'),
-            ),
-          ),
-          CupertinoListTile(
-            title: const Text('提交次数'),
-            subtitle: Text(
-              '已提交 ${d.count ?? "未知"} 次 / 上限 ${d.limit == 9999 ? "不限" : d.limit ?? "未知"}',
-            ),
-          ),
+          HomeworkSubmitSummary(data: d),
           if (d.methods.any((m) => m != 'file'))
             const Padding(
               padding: EdgeInsets.all(16),
@@ -442,104 +415,35 @@ class _HomeworkFilesPanelState extends State<HomeworkFilesPanel> {
                 '目前仅支持个人文件作答；文本、链接、录音、注释及小组作答请前往官网。若作业允许个人文件方式，可继续下方文件流程。',
               ),
             ),
-          if (d.returned) const CupertinoListTile(title: Text('作业已退回，请查看教师要求')),
-          if (d.text?.isNotEmpty == true)
-            Padding(padding: const EdgeInsets.all(16), child: Text(d.text!)),
-          if (d.feedback?.isNotEmpty == true)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text('评语：${d.feedback}'),
-            ),
-          for (final a in d.attachments)
-            CupertinoListTile(
-              title: Text(a.name, maxLines: 2),
-              subtitle: Text(
-                const {
-                      'teacher': '教师附件',
-                      'rubric': '评分标准',
-                      'submitted': '已提交文件',
-                      'annotation': '注释文件',
-                      'feedback': '评阅附件',
-                    }[a.kind] ??
-                    a.kind,
-              ),
-              trailing: CupertinoButton(
-                onPressed: busy ? null : () => download(a),
-                child: const Text('保存'),
-              ),
-            ),
-          if (d.blockedReason != null)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(d.blockedReason!),
-            ),
-          if (!d.canSubmit && d.blockedReason == null)
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('当前作业个人文件提交条件尚未确认或不支持，请在官网核对。'),
-            ),
+          HomeworkFeedbackNote(data: d),
+          HomeworkAttachmentList(
+            attachments: d.attachments,
+            busy: busy,
+            onDownload: download,
+          ),
+          HomeworkBlockedNote(
+            blockedReason: d.blockedReason,
+            canSubmit: d.canSubmit,
+          ),
           if (capabilities.isEmpty)
             const Padding(
               padding: EdgeInsets.all(16),
               child: Text('提交能力状态尚未确认，请刷新后再试；附件仍可独立查看。'),
             ),
-          for (final c in capabilities.where(
-            (c) =>
-                c.state != 'available' &&
-                (d.methods.contains(
-                      const {
-                        'textSubmit': 'text',
-                        'urlSubmit': 'url',
-                        'groupSubmit': 'group',
-                      }[c.capability],
-                    ) ||
-                    const {
-                      'fileUpload',
-                      'fileSubmit',
-                      'fileReconcile',
-                    }.contains(c.capability)),
-          ))
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                '${const {'textSubmit': '文本作答', 'urlSubmit': '链接作答', 'groupSubmit': '小组作答', 'fileUpload': '文件上传', 'fileSubmit': '文件提交', 'fileReconcile': '结果回查'}[c.capability] ?? '提交能力'}：${const {'unknown': '尚未确认', 'unsupported': '暂不支持', 'protocolChanged': '学校协议已变化，相关能力已停用', 'tempUnavailable': '暂时不可用', 'authRequired': '需要重新登录'}[c.state] ?? '状态未知'}\n${c.reason}',
-              ),
-            ),
+          HomeworkCapabilityNotes(
+            capabilities: capabilities,
+            methods: d.methods,
+          ),
           if (d.canSubmit) ...[
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                '个人文件作答 · 客户端上限 ${(d.limitBytes / (1024 * 1024)).toStringAsFixed(0)} MiB\n上传后还需确认提交；离开页面可能留下未绑定文件。',
-                style: TextStyle(
-                  fontSize: 14,
-                  height: 1.45,
-                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                ),
-              ),
+            HomeworkSubmitActions(
+              limitBytes: d.limitBytes,
+              receipt: receipt,
+              uncertain: uncertain,
+              busy: busy,
+              blocked: blockedByPending || fileCapabilityBlocked || accepted,
+              onUpload: upload,
+              onSubmit: submit,
             ),
-            CupertinoButton(
-              onPressed:
-                  busy || blockedByPending || fileCapabilityBlocked || accepted
-                  ? null
-                  : upload,
-              child: const Text('选择并上传文件'),
-            ),
-            if (receipt != null)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text('待提交文件：${receipt!.name}（${receipt!.size} 字节）'),
-              ),
-            if (receipt != null && !uncertain)
-              CupertinoButton(
-                onPressed:
-                    busy ||
-                        blockedByPending ||
-                        fileCapabilityBlocked ||
-                        accepted
-                    ? null
-                    : submit,
-                child: const Text('提交作业'),
-              ),
           ],
         ],
       ],

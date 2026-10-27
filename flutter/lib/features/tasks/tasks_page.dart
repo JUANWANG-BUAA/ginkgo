@@ -8,6 +8,7 @@ import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/features/tasks/task_editor.dart';
+import 'package:ginkgo_mirror/features/tasks/tasks_widgets.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
 
 enum _TaskAction { edit, delete }
@@ -304,191 +305,30 @@ class _TasksPageState extends State<TasksPage> {
     ),
   );
 
-  Widget row(LocalTaskRecord task) {
-    final highlighted = task.id == widget.initialTaskId;
-    return Container(
-      key: highlighted ? targetKey : ValueKey('task-container-${task.id}'),
-      decoration: BoxDecoration(
-        color: highlighted
-            ? CupertinoTheme.of(context).primaryColor.withValues(alpha: 0.07)
-            : null,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: GinkgoSpacing.edgeInsetsCard,
-      child: Column(
-        key: Key('task-row-${task.id}'),
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (highlighted)
-            Text(
-              '已定位待办',
-              key: Key('task-highlight-${task.id}'),
-              style: GinkgoTypography.footnote.copyWith(
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                fontWeight: FontWeight.w600,
-                height: 1.4,
-              ),
-            ),
-          Text(
-            task.title,
-            style: GinkgoTypography.headline.copyWith(
-              color:
-                  (task.completed
-                          ? CupertinoColors.secondaryLabel
-                          : CupertinoColors.label)
-                      .resolveFrom(context),
-              height: 1.35,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${task.completed ? '已在本机完成' : '待完成'} · ${localTaskDueLabel(task.due)}',
-            style: GinkgoTypography.footnote.copyWith(
-              color: AppleDesign.statusInactive.resolveFrom(context),
-              height: 1.4,
-            ),
-          ),
-          if (task.sourceAssignmentId != null)
-            CupertinoButton(
-              key: Key('task-source-${task.id}'),
-              minimumSize: const Size(48, 48),
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              alignment: Alignment.centerLeft,
-              onPressed: locating ? null : () => source(task),
-              child: Text(
-                '来源：学校作业 · 查看来源',
-                style: GinkgoTypography.footnote.copyWith(
-                  color:
-                      (locating
-                              ? CupertinoColors.secondaryLabel
-                              : AppleDesign.statusInactive)
-                          .resolveFrom(context),
-                  decoration: TextDecoration.underline,
-                  decorationColor: CupertinoColors.tertiaryLabel.resolveFrom(
-                    context,
-                  ),
-                ),
-              ),
-            ),
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            children: [
-              Semantics(
-                label: '${task.title}，${task.completed ? '标记未完成' : '标记本机完成'}',
-                button: true,
-                child: CupertinoButton(
-                  key: Key('task-toggle-${task.id}'),
-                  color: CupertinoTheme.of(context).primaryColor
-                      .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                  minimumSize: const Size(48, 48),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  onPressed: busy || !readable
-                      ? null
-                      : () => edit('toggle', task: task),
-                  child: Text(
-                    task.completed ? '撤销完成' : '本机完成',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: CupertinoColors.label.resolveFrom(context),
-                    ),
-                  ),
-                ),
-              ),
-              Semantics(
-                label: '${task.title}，更多操作',
-                button: true,
-                child: CupertinoButton(
-                  key: Key('task-more-${task.id}'),
-                  minimumSize: const Size(48, 48),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  onPressed: busy || !readable ? null : () => taskMenu(task),
-                  child: const Text('更多', style: TextStyle(fontSize: 15)),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget headerActions() => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Semantics(
-        label: '待办更多操作',
-        button: true,
-        child: CupertinoButton(
-          key: const Key('tasks-more'),
-          minimumSize: const Size(48, 48),
-          padding: EdgeInsets.zero,
-          onPressed: busy ? null : pageMenu,
-          child: const Icon(CupertinoIcons.ellipsis),
-        ),
-      ),
-      Semantics(
-        label: '新增待办',
-        button: true,
-        child: CupertinoButton(
-          key: const Key('tasks-add'),
-          minimumSize: const Size(48, 48),
-          padding: EdgeInsets.zero,
-          onPressed: busy || !readable ? null : () => editor(),
-          child: const Icon(CupertinoIcons.add),
-        ),
-      ),
-    ],
+  Widget row(LocalTaskRecord task) => TaskRowCard(
+    task: task,
+    highlighted: task.id == widget.initialTaskId,
+    targetKey: targetKey,
+    busy: busy,
+    readable: readable,
+    locating: locating,
+    onToggle: () => edit('toggle', task: task),
+    onMore: () => taskMenu(task),
+    onSource: () => source(task),
   );
 
-  Widget pageHeader() {
-    if (AppleDesign.desktop(context)) {
-      return ApplePageHeader(
-        largeTitle: const Text('待办'),
-        section: '工作台',
-        subtitle: '安排个人任务与截止时间',
-        icon: CupertinoIcons.list_bullet,
-        border: null,
-        trailing: headerActions(),
-      );
-    }
-    // Cupertino's navigation toolbar constrains trailing controls to 44dp.
-    // A page-local header keeps all phone actions at least 48dp without
-    // changing the shared navigation components.
-    return PinnedHeaderSliver(
-      child: ColoredBox(
-        color: CupertinoColors.systemGroupedBackground.resolveFrom(context),
-        child: SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Row(
-              children: [
-                if (Navigator.of(context).canPop())
-                  SizedBox(
-                    height: 48,
-                    child: CupertinoNavigationBarBackButton(
-                      key: const Key('tasks-back'),
-                      previousPageTitle: '',
-                      onPressed: () => Navigator.of(context).maybePop(),
-                    ),
-                  ),
-                Expanded(
-                  child: Semantics(
-                    header: true,
-                    child: Text('待办', style: GinkgoTypography.title2),
-                  ),
-                ),
-                headerActions(),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget headerActions() => TasksHeaderActions(
+    busy: busy,
+    readable: readable,
+    onMore: pageMenu,
+    onAdd: editor,
+  );
+
+  Widget pageHeader() => TasksPageHeader(
+    actions: headerActions(),
+    canPop: Navigator.of(context).canPop(),
+    onBack: () => Navigator.of(context).maybePop(),
+  );
 
   @override
   Widget build(BuildContext context) => CupertinoPageScaffold(

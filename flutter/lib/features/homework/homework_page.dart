@@ -9,10 +9,10 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
-import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/features/schedule/course_visibility.dart';
 import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
+import 'package:ginkgo_mirror/features/homework/homework_widgets.dart';
 
 import 'package:ginkgo_mirror/shared/today_time.dart';
 
@@ -234,14 +234,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
     ),
   );
 
-  String _filterLabel(int value) => switch (value) {
-    1 => '待完成',
-    2 => '已提交',
-    3 => '已截止',
-    4 => '待确认',
-    _ => '全部',
-  };
-
   List<Widget> _content(HomeworkResponse data) => [
     if (range != null && data.items.isNotEmpty)
       SliverToBoxAdapter(
@@ -289,49 +281,10 @@ class _HomeworkPageState extends State<HomeworkPage> {
       child: AppleSection(
         header: Text(data.termName.isEmpty ? '本学期作业' : data.termName),
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: LayoutBuilder(
-              builder: (context, constraints) => Wrap(
-                spacing: 20,
-                runSpacing: 16,
-                children: [
-                  for (final metric in [
-                    (label: '待完成', count: pending),
-                    (label: '已提交', count: submitted),
-                    (label: '已截止', count: overdue),
-                  ])
-                    SizedBox(
-                      key: ValueKey('homework-summary-${metric.label}'),
-                      width: MediaQuery.textScalerOf(context).scale(14) > 20
-                          ? constraints.maxWidth
-                          : (constraints.maxWidth - 40) / 3,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${metric.count}',
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            metric.label,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: CupertinoColors.secondaryLabel.resolveFrom(
-                                context,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
+          HomeworkSummaryMetrics(
+            pending: pending,
+            submitted: submitted,
+            overdue: overdue,
           ),
         ],
       ),
@@ -344,7 +297,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                 title: '作业状态',
                 value: filter,
                 values: const [0, 1, 2, 3, 4],
-                label: _filterLabel,
+                label: homeworkFilterLabel,
                 onSelected: (value) => setState(() {
                   filter = value;
                   prepare();
@@ -394,9 +347,27 @@ class _HomeworkPageState extends State<HomeworkPage> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _quickFilter(1, '待完成 $pending', AppleDesign.statusPending),
-            _quickFilter(3, '已截止 $overdue', AppleDesign.statusDanger),
-            _quickFilter(4, '待确认 $unknown', AppleDesign.statusUncertain),
+            HomeworkQuickFilter(
+              value: 1,
+              label: '待完成 $pending',
+              tint: AppleDesign.statusPending,
+              selected: filter == 1,
+              onPressed: () => _toggleFilter(1),
+            ),
+            HomeworkQuickFilter(
+              value: 3,
+              label: '已截止 $overdue',
+              tint: AppleDesign.statusDanger,
+              selected: filter == 3,
+              onPressed: () => _toggleFilter(3),
+            ),
+            HomeworkQuickFilter(
+              value: 4,
+              label: '待确认 $unknown',
+              tint: AppleDesign.statusUncertain,
+              selected: filter == 4,
+              onPressed: () => _toggleFilter(4),
+            ),
           ],
         ),
       ),
@@ -423,9 +394,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
         addAutomaticKeepAlives: false,
         itemBuilder: (context, index) {
           final item = visible[index];
-          final late =
-              item.status == HomeworkStatus.pending &&
-              isHomeworkOverdue(item.dueAt, _clock);
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: ClipRSuperellipse(
@@ -438,105 +406,15 @@ class _HomeworkPageState extends State<HomeworkPage> {
                     .resolveFrom(context),
                 child: Column(
                   children: [
-                    AppleListTile(
-                      key: Key('homework-${item.id}'),
+                    HomeworkItemTile(
+                      item: item,
+                      clock: _clock,
                       onTap: () => Navigator.of(context).push(
                         CupertinoPageRoute<void>(
                           builder: (_) => HomeworkDetailPage(
                             item: item,
                             service: widget.service,
                           ),
-                        ),
-                      ),
-                      trailing: const CupertinoListTileChevron(),
-                      title: Text(
-                        item.title,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          height: 1.35,
-                        ),
-                      ),
-                      subtitle: Padding(
-                        padding: const EdgeInsets.only(top: 9),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (item.courseRole == 'assistant')
-                              const Text('助教课程 · 不代表个人待交作业'),
-                            Wrap(
-                              spacing: 10,
-                              runSpacing: 7,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: [
-                                Text(
-                                  // Submitted rows keep the date as history
-                                  // only: no countdown wording, no alarm color.
-                                  item.dueAt == null
-                                      ? (item.status == HomeworkStatus.submitted
-                                            ? '已提交'
-                                            : '截止时间未确认')
-                                      : (item.status == HomeworkStatus.submitted
-                                            ? '已提交 · 截止 ${schoolTimestampLabel(item.dueAt)}'
-                                            : '截止 ${schoolTimestampLabel(item.dueAt)}'),
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: late
-                                        ? AppleDesign.statusDanger.resolveFrom(
-                                            context,
-                                          )
-                                        : CupertinoColors.label.resolveFrom(
-                                            context,
-                                          ),
-                                  ),
-                                ),
-                                if (item.status != HomeworkStatus.submitted &&
-                                    homeworkRelativeDeadline(
-                                          item.dueAt,
-                                          _clock,
-                                        ) !=
-                                        null)
-                                  Text(
-                                    homeworkRelativeDeadline(
-                                      item.dueAt,
-                                      _clock,
-                                    )!,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                      color: late
-                                          ? AppleDesign.statusDanger
-                                                .resolveFrom(context)
-                                          : AppleDesign.statusPending
-                                                .resolveFrom(context),
-                                    ),
-                                  ),
-                                _statusBadge(context, item),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              item.courseName,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: CupertinoColors.secondaryLabel
-                                    .resolveFrom(context),
-                              ),
-                            ),
-                            if (item.teacherName?.trim().isNotEmpty ==
-                                true) ...[
-                              const SizedBox(height: 3),
-                              Text(
-                                '教师 · ${item.teacherName}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: CupertinoColors.secondaryLabel
-                                      .resolveFrom(context),
-                                ),
-                              ),
-                            ],
-                          ],
                         ),
                       ),
                     ),
@@ -571,52 +449,9 @@ class _HomeworkPageState extends State<HomeworkPage> {
     ),
   ];
 
-  Widget _quickFilter(int value, String label, CupertinoDynamicColor tint) =>
-      CupertinoButton(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        color: tint
-            .resolveFrom(context)
-            .withValues(alpha: filter == value ? 0.2 : 0.08),
-        minimumSize: const Size(44, 44),
-        onPressed: () => setState(() {
-          filter = filter == value ? 0 : value;
-          prepare();
-        }),
-        child: Text(
-          label,
-          style: TextStyle(fontSize: 14, color: tint.resolveFrom(context)),
-        ),
-      );
-
-  Widget _statusBadge(BuildContext context, HomeworkItem item) {
-    final (label, color) = switch (item.status) {
-      HomeworkStatus.submitted => (
-        '已提交',
-        AppleDesign.statusSuccess.resolveFrom(context),
-      ),
-      HomeworkStatus.pending =>
-        isHomeworkOverdue(item.dueAt, _clock)
-            ? ('已截止', AppleDesign.statusDanger.resolveFrom(context))
-            : ('待完成', AppleDesign.statusPending.resolveFrom(context)),
-      HomeworkStatus.unknown => (
-        '待确认',
-        AppleDesign.statusUncertain.resolveFrom(context),
-      ),
-    };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    );
-  }
+  /// 快捷筛选再次点击同一项即回到「全部」。
+  void _toggleFilter(int value) => setState(() {
+    filter = filter == value ? 0 : value;
+    prepare();
+  });
 }
