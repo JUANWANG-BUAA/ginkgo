@@ -1,13 +1,15 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/features/cgyy/cgyy_day_page.dart';
-import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
-import 'package:ginkgo_mirror/features/cgyy/cgyy_widgets.dart';
+import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
 
-export 'package:ginkgo_mirror/features/cgyy/cgyy_day_page.dart' show CgyyDayPage, CgyyLoader;
+import 'cgyy_day_page.dart';
+import 'cgyy_gateway.dart';
+import 'cgyy_models.dart';
+import 'cgyy_widgets.dart';
+
+export 'cgyy_day_page.dart' show CgyyDayPage, CgyyLoader;
 
 class CgyyPage extends StatefulWidget {
   const CgyyPage({super.key, this.demo = false, this.loader, this.service});
@@ -41,19 +43,15 @@ class _CgyyPageState extends State<CgyyPage> {
       error = null;
     });
     try {
-      final result = widget.loader != null
-          ? await widget.loader!(
-              kind: 'venues',
-              siteId: 0,
-              date: '',
-              forceRefresh: force,
-            )
-          : await (widget.service ?? mirrorServiceFor(demo: widget.demo)).cgyy(
-              kind: 'venues',
-              siteId: 0,
-              date: '',
-              forceRefresh: force,
-            );
+      final result = await cgyyRead(
+        demo: widget.demo,
+        loader: widget.loader,
+        service: widget.service,
+        kind: 'venues',
+        siteId: 0,
+        date: '',
+        forceRefresh: force,
+      );
       if (!mounted) return;
       setState(() {
         busy = false;
@@ -135,24 +133,18 @@ class _CgyyPageState extends State<CgyyPage> {
               ],
             ),
             if (error != null)
-              AppleSection(
-                children: [
-                  AppleEmptyState(
-                    title: error!,
-                    description: sites == null ? '请稍后重试。' : '正在显示上次场馆。',
-                    action: '重试',
-                    onAction: () => load(force: true),
-                    error: true,
-                  ),
-                ],
+              CgyyStatusSection(
+                title: error!,
+                description: sites == null ? '请稍后重试。' : '正在显示上次场馆。',
+                onRetry: () => load(force: true),
+                isError: true,
               ),
             if (sites == null && busy)
               const GinkgoLoadingView(label: '正在读取研讨室…'),
             if (sites?.isEmpty == true)
-              const AppleSection(
-                children: [
-                  AppleEmptyState(title: '暂无公开场馆', description: '学校暂未提供公开场馆。'),
-                ],
+              const CgyyStatusSection(
+                title: '暂无公开场馆',
+                description: '学校暂未提供公开场馆。',
               ),
             if (sites != null && sites!.isNotEmpty)
               AppleSection(

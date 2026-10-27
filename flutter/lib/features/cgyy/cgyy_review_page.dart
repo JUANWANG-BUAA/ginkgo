@@ -1,10 +1,12 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
+
+import 'cgyy_models.dart';
+import 'cgyy_widgets.dart';
 
 /// A fresh, visible review snapshot, not a background read-and-unlock action.
 class CgyyReviewPage extends StatefulWidget {
@@ -74,35 +76,16 @@ class _CgyyReviewPageState extends State<CgyyReviewPage> {
     final id = reviewId!;
     setState(() => acknowledging = true);
     try {
-      final confirmed = await showCupertinoDialog<bool>(
-        context: context,
-        builder: (context) => CupertinoAlertDialog(
-          title: const Text('已确认上次操作结果？'),
-          content: const Text(
+      final confirmed = await showCgyyConfirmDialog(
+        context,
+        title: '已确认上次操作结果？',
+        content:
             '这里只解除本机写入保护，不会预约或取消。记录仅覆盖有界分页读到的最近最多 20 条；若未找到目标，请先到学校预约页面核实，不能把列表为空当作未提交。解除后也不会自动重发。',
-          ),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () {
-                if (ModalRoute.of(context)?.isCurrent ?? false) {
-                  Navigator.pop(context, false);
-                }
-              },
-              child: const Text('继续核对'),
-            ),
-            CupertinoDialogAction(
-              key: const Key('cgyy-review-confirm'),
-              onPressed: () {
-                if (ModalRoute.of(context)?.isCurrent ?? false) {
-                  Navigator.pop(context, true);
-                }
-              },
-              child: const Text('确认解除'),
-            ),
-          ],
-        ),
+        cancelLabel: '继续核对',
+        confirmLabel: '确认解除',
+        confirmKey: const Key('cgyy-review-confirm'),
       );
-      if (!mounted || confirmed != true) return;
+      if (!mounted || !confirmed) return;
       final result = decode(
         await widget.gateway.executeCgyy({
           'action': 'acknowledge',
@@ -139,13 +122,7 @@ class _CgyyReviewPageState extends State<CgyyReviewPage> {
         child: CustomScrollView(
           key: const Key('cgyy-review-scroll'),
           slivers: [
-            ApplePageHeader(
-              largeTitle: const Text('核对上次操作'),
-              section: '空间资源',
-              subtitle: '选择场馆并查看可预约空间',
-              icon: CupertinoIcons.person_3,
-              border: null,
-            ),
+            const CgyyPageHeader(title: '核对上次操作'),
             SliverList.list(
               children: [
                 const AppleSection(

@@ -7,7 +7,7 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/learning.dart';
 import 'package:ginkgo_mirror/application/learning_context.dart';
 import 'package:ginkgo_mirror/application/learning_file_actions.dart';
-import 'package:ginkgo_mirror/features/learning/learning_page.dart';
+import 'package:ginkgo_mirror/features/learning/learning_course_page.dart';
 import 'package:ginkgo_mirror/infrastructure/learning_payload.dart';
 
 const course = LearningCourse(id: 'course', name: '合成课程', sourceUrl: '');

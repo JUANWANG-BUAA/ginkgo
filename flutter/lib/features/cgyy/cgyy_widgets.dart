@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/academic_widgets.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
-import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
+import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+
+import 'cgyy_models.dart';
 
 /// Venue card content shared by the hub page and the day query page.
 Widget cgyySiteContent(CgyySite site, {bool chevron = false}) {
@@ -27,6 +29,119 @@ Widget cgyySiteContent(CgyySite site, {bool chevron = false}) {
     ],
     chevron: chevron,
   );
+}
+
+/// The CGYY page header shared by the booking and the review page. Section,
+/// subtitle and icon stay identical so the whole domain reads as one surface.
+class CgyyPageHeader extends StatelessWidget {
+  const CgyyPageHeader({super.key, required this.title});
+  final String title;
+  @override
+  Widget build(BuildContext context) => ApplePageHeader(
+    largeTitle: Text(title),
+    section: '空间资源',
+    subtitle: '选择场馆并查看可预约空间',
+    icon: CupertinoIcons.person_3,
+    border: null,
+  );
+}
+
+/// Error and empty states share one block so the hub and the day page cannot
+/// drift apart. The retry action only appears when a retry is possible.
+class CgyyStatusSection extends StatelessWidget {
+  const CgyyStatusSection({
+    super.key,
+    required this.title,
+    required this.description,
+    this.onRetry,
+    this.isError = false,
+  });
+  final String title, description;
+  final VoidCallback? onRetry;
+  final bool isError;
+  @override
+  Widget build(BuildContext context) => AppleSection(
+    children: [
+      AppleEmptyState(
+        title: title,
+        description: description,
+        action: onRetry == null ? null : '重试',
+        onAction: onRetry,
+        error: isError,
+      ),
+    ],
+  );
+}
+
+/// Two-action confirmation dialog shared by every CGYY write. The route guard
+/// keeps a stale dialog from popping a screen the user already left.
+class CgyyConfirmDialog extends StatelessWidget {
+  const CgyyConfirmDialog({
+    super.key,
+    required this.title,
+    required this.content,
+    required this.cancelLabel,
+    required this.confirmLabel,
+    this.confirmKey,
+    this.destructive = false,
+    this.isDefault = false,
+  });
+  final String title, content, cancelLabel, confirmLabel;
+  final Key? confirmKey;
+  final bool destructive, isDefault;
+  @override
+  Widget build(BuildContext context) => CupertinoAlertDialog(
+    title: Text(title),
+    content: Text(content),
+    actions: [
+      CupertinoDialogAction(
+        onPressed: () {
+          if (ModalRoute.of(context)?.isCurrent ?? false) {
+            Navigator.pop(context, false);
+          }
+        },
+        child: Text(cancelLabel),
+      ),
+      CupertinoDialogAction(
+        key: confirmKey,
+        isDestructiveAction: destructive,
+        isDefaultAction: isDefault,
+        onPressed: () {
+          if (ModalRoute.of(context)?.isCurrent ?? false) {
+            Navigator.pop(context, true);
+          }
+        },
+        child: Text(confirmLabel),
+      ),
+    ],
+  );
+}
+
+/// Shows a CGYY confirmation and resolves to true only after an explicit
+/// confirm tap. Dismissing the dialog is never a confirmation.
+Future<bool> showCgyyConfirmDialog(
+  BuildContext context, {
+  required String title,
+  required String content,
+  required String cancelLabel,
+  required String confirmLabel,
+  Key? confirmKey,
+  bool destructive = false,
+  bool isDefault = false,
+}) async {
+  final confirmed = await showCupertinoDialog<bool>(
+    context: context,
+    builder: (context) => CgyyConfirmDialog(
+      title: title,
+      content: content,
+      cancelLabel: cancelLabel,
+      confirmLabel: confirmLabel,
+      confirmKey: confirmKey,
+      destructive: destructive,
+      isDefault: isDefault,
+    ),
+  );
+  return confirmed == true;
 }
 
 /// Inset rows inherit Cupertino press feedback and add a quiet pointer state.

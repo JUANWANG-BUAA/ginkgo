@@ -5,9 +5,11 @@ import 'dart:ui' as ui;
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
+
+import 'cgyy_models.dart';
+import 'cgyy_widgets.dart';
 
 /// School jigsaw verification. The drag is performed manually by the user;
 /// leaving never submits, and an unknown result keeps local protection on.
@@ -111,35 +113,16 @@ class _CgyyCaptchaPageState extends State<CgyyCaptchaPage> {
     }
     setState(() => busy = true);
     try {
-      final confirmed = await showCupertinoDialog<bool>(
-        context: context,
-        builder: (context) => CupertinoAlertDialog(
-          title: const Text('提交预约？'),
-          content: Text(
+      final confirmed = await showCgyyConfirmDialog(
+        context,
+        title: '提交预约？',
+        content:
             '${widget.summary}\n\n将验证你手动拖动的拼图并提交一次预约。受理不等于审批成功，提交后需回查。',
-          ),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () {
-                if (ModalRoute.of(context)?.isCurrent ?? false) {
-                  Navigator.pop(context, false);
-                }
-              },
-              child: const Text('取消'),
-            ),
-            CupertinoDialogAction(
-              isDefaultAction: true,
-              onPressed: () {
-                if (ModalRoute.of(context)?.isCurrent ?? false) {
-                  Navigator.pop(context, true);
-                }
-              },
-              child: const Text('提交一次'),
-            ),
-          ],
-        ),
+        cancelLabel: '取消',
+        confirmLabel: '提交一次',
+        isDefault: true,
       );
-      if (!mounted || confirmed != true) return;
+      if (!mounted || !confirmed) return;
       // A challenge is consumed even on rejection or transport failure.
       attempted = true;
       widget.consumedChallenges.add(widget.challenge.id);

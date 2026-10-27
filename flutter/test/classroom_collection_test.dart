@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/features/classroom/classroom_page.dart';
-import 'package:ginkgo_mirror/features/classroom/classroom_results.dart';
+import 'package:ginkgo_mirror/features/classroom/classroom_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
