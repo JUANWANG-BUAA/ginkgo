@@ -1,8 +1,8 @@
-# Android Beta.1 发布准备记录（2026-10-27）
+# Android Beta.1 发布与验收记录（2026-10-27）
 
 ## 版本与范围
 
-工作树版本 `0.1.0-beta.1+11`；**尚未发布**，没有对应的 tag 或 Release。公开基线仍是 Android Alpha.9（`0.1.0-alpha.9+10`，`android-v0.1.0-alpha.9`）。发布时建议标签 `android-v0.1.0-beta.1`，由 `.github/workflows/android-release.yml` 构建签名 ARM64 包并校验产物；真实设备覆盖升级与 GitHub prerelease 由维护者执行。
+版本 `0.1.0-beta.1+11`，标签 `android-v0.1.0-beta.1`，实现冻结提交 `1788da6`；GitHub Beta prerelease 已公开。上一公开基线为 Android Alpha.9（`0.1.0-alpha.9+10`，`android-v0.1.0-alpha.9`）。公开 APK 使用维护者本机外部签名配置构建并完成产物、覆盖升级与远端回下载校验；真实物理设备验收仍由维护者执行。
 
 本轮同时推进两件事：
 
@@ -109,19 +109,31 @@ flutter build apk --release --target-platform android-arm64 --target lib/main.da
 
 覆盖安装后强制停止并冷启动，重新进入离线演示，工作台仍显示 `BETA1-SENTINEL`。UI 树断言及 `artifacts/local/ginkgo-beta1-upgrade-sentinel.png` 均确认保留。该结果证明签名兼容、覆盖升级和本机待办保留，不是物理设备或真实学校业务验收。
 
+## 公开发布
+
+2026-10-27 19:21:57（北京时间），提交 `1788da6` 已推送 `main`，并创建 `android-v0.1.0-beta.1` 标签与 [GitHub Beta prerelease](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.1)。
+
+公开资产与复核：
+
+- `Ginkgo-0.1.0-beta.1-android-arm64.apk`，43,358,525 字节；GitHub API 记录 SHA-256 为 `7f7f13169aa6146df96ac2bad24673c50f0993e4d3d8a6d6d559fa1b5be32776`，与本地候选一致；
+- `checksums.txt`，公开内容与本地候选摘要一致；
+- 公开 APK 已完整回下载，43,358,525 字节，重新计算 SHA-256 与公开校验文件一致；
+- 项目主页已实际显示 `0.1.0-beta.1` 和 Beta 标识，APK、校验和与发布说明均指向本版；
+- 标签触发的 `Android Release` workflow 在“Materialize external signing configuration”步骤失败，四个 Android 签名 secret 未配置。该 fail-closed 行为与 Alpha.9 相同；本轮没有降低签名要求，公开资产使用上述已验证的本机外部签名包。
+
 ## 仍未覆盖
 
 - 物理 Android 设备、完整 TalkBack、预测返回、厂商省电与后台提醒恢复；
 - 真实学校账号的登录复验、学习非空公告／后页／测验、本人借阅认证、校车实时余票；
 - 真实签到、图书馆预约、CGYY 预约、作业上传或学校提交；
-- 物理设备覆盖升级、TalkBack / 大字号抽检与 GitHub prerelease 公开；
+- 物理设备覆盖升级与 TalkBack / 大字号 / 系统返回抽检；
 - Windows 主机构建与集成测试；本版公开范围只有 Android。
 
-## 发布前检查清单
+## 发布检查清单
 
 1. [x] `bash scripts/check-mirror.sh` 全绿，且 `python3 scripts/generate-interface-index.py --check` 无差异；
-2. [x] 工作树版本为 `0.1.0-beta.1+11`，签名正常入口 APK 与预期标签 `android-v0.1.0-beta.1` 一致；标签尚未创建；
+2. [x] 标签 `android-v0.1.0-beta.1` 与 `flutter/pubspec.yaml` 的 `0.1.0-beta.1+11` 一致；
 3. [x] `docs/releases/android-beta1.md` 的 5 条用户收益与实际包一致，不写未验收能力；
 4. [x] 官方 Alpha.9 → Beta.1 模拟器覆盖升级及合成个人待办保留通过；
 5. [ ] 物理设备覆盖升级与 TalkBack / 大字号 / 系统返回抽检；
-6. [ ] 维护者创建标签与 GitHub prerelease 后，核对远端 APK、摘要、下载链接及主页自动切换。
+6. [x] GitHub prerelease 已公开，远端 APK、摘要、完整回下载与主页自动切换均已核对。

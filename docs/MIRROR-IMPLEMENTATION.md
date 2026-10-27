@@ -7,7 +7,7 @@
 | 平台 | 当前状态 | 证据与限制 |
 | --- | --- | --- |
 | macOS / iOS | 独立 SwiftUI 应用，共享 Swift 客户端、模型与工作区编排 | Apple 测试见 [TESTING](TESTING.md)；模拟器通过不代表真机、签名分发或真实写入通过 |
-| Android | Rust + Flutter；公开包 Alpha.9（build 10，2026-10-26） | [Alpha.9记录](_audit/2026-10-26-android-alpha9-release.md)；学习、借阅、提醒等只读与 CGYY 主动写闭环已接入，真实认证和学校写入未验收 |
+| Android | Rust + Flutter；公开包 Beta.1（build 11，2026-10-27） | [Beta.1 发布与验收记录](_audit/2026-10-27-android-beta1-preparation.md)；学习、借阅、提醒等只读与 CGYY 主动写闭环已接入，真实认证和学校写入未验收 |
 | Windows | Rust + Flutter；公开包 Alpha.6（build 7），Windows 10 / 11 x64 单文件安装器 + 便携 ZIP | [首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)、[主机验证](archive/mirror/WINDOWS-2026-10-21.md)；系统保险库、宽屏侧栏、窄屏底部导航、键盘与返回栈基础通过；安装器未签名，物理 x64 / 干净系统运行依赖 / 真实学校业务仍未验收 |
 
 既往真实账号只读检查已覆盖已接入模块，但最近一次集成登录失败；两次结果分别保留于 [验收记录](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md) 与 [认证异常诊断](_audit/2026-10-21-auth-redirect-incident.md)。不能把早先通过推广为当前所有网络均可用，也不能将工作树改动当作已经发布。
@@ -61,7 +61,7 @@ Android 更新检查仍读取 GitHub Releases，但 Alpha.4 起可在应用内�
 
 ## 当前源码与发布基线
 
-Android Alpha.9（`0.1.0-alpha.9+10`）已公开；[发布记录](_audit/2026-10-26-android-alpha9-release.md) 包含全量门禁、签名、摘要、下载与 Alpha.8→Alpha.9 覆盖升级证据。上一公开基线为 Alpha.8（`0.1.0-alpha.8+9`，`ad7b2ad`），记录见 [Alpha.8 发布记录](_audit/2026-10-25-android-alpha8-release.md)。`docs/update-gate.json` 的 `minBuild` 仍为 5，未随本次发布提高。
+Android Beta.1（`0.1.0-beta.1+11`）已公开；[发布与验收记录](_audit/2026-10-27-android-beta1-preparation.md) 包含全量门禁、签名、摘要、公开资产回下载与 Alpha.9→Beta.1 覆盖升级证据。上一公开基线为 Alpha.9（`0.1.0-alpha.9+10`），记录见 [Alpha.9 发布记录](_audit/2026-10-26-android-alpha9-release.md)。`docs/update-gate.json` 的 `minBuild` 仍为 5，未随本次发布提高。
 
 Alpha.9 在 Alpha.8 基础上带入连续左右翻页、SPOC 学习与资料保存、文件作业入口、验证码、学分地图、提醒、本人借阅、手机目录和视觉/无障碍修复。可选加密学习快照因尚缺人工安全审查，在公开 Release 中关闭。学校真实认证、借阅非空分页、校车余票和写操作仍未验收。
 
@@ -176,7 +176,7 @@ CI 入口为 [mirror.yml](../.github/workflows/mirror.yml)。本地通过不代�
 
 2026-10-26 用户补充准确官网入口后，校车外链由跳过认证的 indexPage 修为已验证的 HTTPS CASLogin，借阅官网由通用首页修为移动当前借阅页。仅外部浏览器入口修复，不宣称应用内余票或读者认证已打通；学校 CAS 的 HTTP service 回程未被 App 接管。证据见 [校车补充](_audit/2026-10-26-shuttle-auth-followup.md) 和 [移动借阅页复核](_audit/2026-10-26-library-loans-auth-followup.md)。
 
-## 工作树：Android Beta.1 工程收口与宣传重制（2026-10-27）
+## Android Beta.1 工程收口与宣传重制（2026-10-27）
 
 按 [接口索引](INTERFACE-INDEX.md) 的设计模式做了一轮跨层收口，并把仓库首页、GitHub Pages 主页与对外文案全部改成 Android 主推。
 
@@ -184,13 +184,13 @@ CI 入口为 [mirror.yml](../.github/workflows/mirror.yml)。本地通过不代�
 
 文档与门禁：`docs/INTERFACE-INDEX.md` 新增接口设计模式、返回形态与载荷契约、命令命名约定、自动化门禁四节，命令总数修正为 87；新增 `scripts/check-design-tokens.py`（硬编码视觉常量只许减不许增）与接口索引 `--check`，两者都接入本地基线与 CI。全量接口清单刷新为 36 个文件、1337 条记录。
 
-宣传：新增 7 张真机尺寸 Android 截图与 1 段 20 秒离线演示录屏（`flutter/integration_test/promo_capture_test.dart` 在隔离模拟器上生成，仅合成数据），README 与主页换成 Android 素材与主推下载入口，`docs/PROMOTION.md` 全量重写。版本号提升为 `0.1.0-beta.1+11`（**尚未发布**），准备记录见 [Beta.1 准备记录](_audit/2026-10-27-android-beta1-preparation.md)。
+宣传：新增 7 张真机尺寸 Android 截图与 1 段 20 秒离线演示录屏（`flutter/integration_test/promo_capture_test.dart` 在隔离模拟器上生成，仅合成数据），README 与主页换成 Android 素材与主推下载入口，`docs/PROMOTION.md` 全量重写。版本号提升为 `0.1.0-beta.1+11`，随后已随 Beta.1 公开，证据见 [Beta.1 发布与验收记录](_audit/2026-10-27-android-beta1-preparation.md)。
 
 验证：全量 `check-mirror.sh` 通过（含 529 项 Flutter 测试、FRB 再生成零差异）；Android 模拟器上的离线演示截图与录屏驱动通过。真实账号、物理设备与学校写入仍未验收。
 
-## 工作树：CGYY UBAA 对照可用性修复（2026-10-27）
+## CGYY UBAA 对照可用性修复（2026-10-27）
 
-首页分为预约研讨室、我的预约和门锁密码。用途读取为空或允许降级的失败时使用 UBAA 十项内置用途并显示来源说明，认证失败不降级。新增 `order` / `lockCode` 两种只读查询：订单详情复用保守订单投影；门锁码按 UBAA `qrCode` / `dueDate` / `orderView` 白名单展示，无快照、无后台轮询，读取失败与无预约分开。保留手动拼图、单次写入、空档复核和待核实保护，未复制 UBAA 的写重试。分层 fixture 与 Flutter 页面回归覆盖用途、订单、门锁三态和大字号；真实预约、取消及门锁码读取仍未验收，工作树变化尚未发布。
+首页分为预约研讨室、我的预约和门锁密码。用途读取为空或允许降级的失败时使用 UBAA 十项内置用途并显示来源说明，认证失败不降级。新增 `order` / `lockCode` 两种只读查询：订单详情复用保守订单投影；门锁码按 UBAA `qrCode` / `dueDate` / `orderView` 白名单展示，无快照、无后台轮询，读取失败与无预约分开。保留手动拼图、单次写入、空档复核和待核实保护，未复制 UBAA 的写重试。分层 fixture 与 Flutter 页面回归覆盖用途、订单、门锁三态和大字号；真实预约、取消及门锁码读取仍未验收，相关源码已随 Beta.1 公开。
 
 验证：59 项 CGYY Rust 专项与 52 项 CGYY Flutter 专项通过；完整 `check-mirror.sh` 通过（含 522 项 Flutter 测试及 FRB 再生成一致性）。ARM64 正常 main Debug APK 构建成功；`integration_test/cgyy_test.dart` 在 Android 17 ARM64 模拟器通过场馆、订单详情和门锁码真桥接演示链路。该设备结果为合成数据，不是物理设备或真实学校验收。
 
@@ -200,8 +200,8 @@ CI 入口为 [mirror.yml](../.github/workflows/mirror.yml)。本地通过不代�
 
 专项回归覆盖窄屏/宽屏课表、研究生单入口和学分语义、SPOC 懒加载、缓存、账号切换、下载及大字号触控目标。真实本科教务/学分地图仍未接入，未把研究生模型改名冒充；真实账号与物理设备验收边界不变。
 
-## 工作树：Android Beta.1 候选与宣传转化收口（2026-10-27）
+## Android Beta.1 候选与宣传转化收口（2026-10-27，已发布）
 
-项目主页进一步收口为 Android 下载与试用路径：首屏只保留一个主行动，新增三步安装、兼容性、Beta 已知边界、隐私和脱敏反馈，冻结平台退到页尾。发布前静态下载保持 Alpha.9，Release API 只在对应 Android 资产存在时同步版本、渠道与链接；API 失败和无 JavaScript 回退已验证。7 张页面截图新增 640px WebP，较原 PNG 减少 82.9%，另增 1200×630 社交分享卡。
+项目主页进一步收口为 Android 下载与试用路径：首屏只保留一个主行动，新增三步安装、兼容性、Beta 已知边界、隐私和脱敏反馈，冻结平台退到页尾。发布前静态下载保持 Alpha.9，Release API 只在对应 Android 资产完整时同步版本、渠道与链接；API 失败和无 JavaScript 回退已验证。7 张页面截图新增 640px WebP，较原 PNG 减少 82.9%，另增 1200×630 社交分享卡。
 
-最终完整门禁通过（当次 532 项 Flutter 测试）。正常入口签名 ARM64 Release 已核验版本、包名、证书、摘要、对齐与非调试边界；官方 Alpha.9 → Beta.1 模拟器覆盖升级保留首次安装时间和合成个人待办。产物摘要与完整证据见 [Beta.1 准备记录](_audit/2026-10-27-android-beta1-preparation.md)。工作树仍尚未公开，物理设备、真实账号与学校写入不因候选验证完成而标记验收。
+最终完整门禁通过（当次 532 项 Flutter 测试）。正常入口签名 ARM64 Release 已核验版本、包名、证书、摘要、对齐与非调试边界；官方 Alpha.9 → Beta.1 模拟器覆盖升级保留首次安装时间和合成个人待办。GitHub prerelease、公开资产回下载与主页切换均已验证，完整证据见 [Beta.1 发布与验收记录](_audit/2026-10-27-android-beta1-preparation.md)。物理设备、真实账号与学校写入不因公开发布而标记验收。
