@@ -5,6 +5,9 @@ import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/application/contracts.dart' show LibraryHistoryResponse;
 
+import 'library_controls.dart';
+import 'library_widgets.dart';
+
 /// member/seat is a read-only POST. Page failures never advance the cursor.
 class LibraryHistoryPage extends StatefulWidget {
   const LibraryHistoryPage({super.key, required this.service});
@@ -63,19 +66,13 @@ class _LibraryHistoryPageState extends State<LibraryHistoryPage> {
     child: CustomScrollView(
       key: const Key('library-history-scroll'),
       slivers: [
-        ApplePageHeader(
-          largeTitle: const Text('预约记录'),
-          section: '空间资源',
+        LibraryPageHeader(
+          title: '预约记录',
           subtitle: '进行中及已结束记录 · 只读',
           icon: CupertinoIcons.clock_fill,
-          border: null,
-          trailing: AppleGlassButton(
-            label: '刷新预约记录',
-            onPressed: busy ? null : () => load(requestedPage, force: true),
-            child: busy
-                ? const GinkgoActivity(size: 17)
-                : const Icon(CupertinoIcons.refresh),
-          ),
+          refreshLabel: '刷新预约记录',
+          busy: busy,
+          onRefresh: () => load(requestedPage, force: true),
         ),
         CupertinoSliverRefreshControl(
           onRefresh: () => load(requestedPage, force: true),
@@ -83,18 +80,14 @@ class _LibraryHistoryPageState extends State<LibraryHistoryPage> {
         SliverList.list(
           children: [
             if (error != null)
-              AppleSection(
-                children: [
-                  AppleEmptyState(
-                    title: error!,
-                    description: data == null
-                        ? '请重试。'
-                        : '保留上次读取的第 ${data!.page} 页；请求页码未覆盖旧结果。',
-                    error: true,
-                    action: '重试',
-                    onAction: () => load(requestedPage, force: true),
-                  ),
-                ],
+              LibraryEmptyState(
+                title: error!,
+                description: data == null
+                    ? '请重试。'
+                    : '保留上次读取的第 ${data!.page} 页；请求页码未覆盖旧结果。',
+                error: true,
+                action: '重试',
+                onAction: () => load(requestedPage, force: true),
               ),
             if (data == null && busy)
               const GinkgoLoadingView(label: '正在读取预约记录…'),
@@ -165,24 +158,13 @@ class _LibraryHistoryPageState extends State<LibraryHistoryPage> {
               ),
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CupertinoButton(
-                      key: const Key('library-history-previous'),
-                      onPressed: busy || result.page <= 1
-                          ? null
-                          : () => load(result.page - 1),
-                      child: const Text('上一页'),
-                    ),
-                    CupertinoButton(
-                      key: const Key('library-history-next'),
-                      onPressed: busy || !result.hasNext
-                          ? null
-                          : () => load(result.page + 1),
-                      child: const Text('下一页'),
-                    ),
-                  ],
+                child: LibraryPageButtons(
+                  canGoPrevious: !busy && result.page > 1,
+                  canGoNext: !busy && result.hasNext,
+                  previousKey: const Key('library-history-previous'),
+                  nextKey: const Key('library-history-next'),
+                  onPrevious: () => load(result.page - 1),
+                  onNext: () => load(result.page + 1),
                 ),
               ),
             ],

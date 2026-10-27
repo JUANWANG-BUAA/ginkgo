@@ -4,9 +4,9 @@ import 'package:ginkgo_mirror/application/local_tasks.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/features/today/today_action_row.dart';
+import 'today_action_row.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
-import 'package:ginkgo_mirror/features/today/today_presentation.dart';
+import 'today_presentation.dart';
 
 class TodayTasksSnapshot {
   const TodayTasksSnapshot(this.items, this.loadedAt);

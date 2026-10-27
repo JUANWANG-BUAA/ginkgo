@@ -2,9 +2,11 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/features/library/library_stats_models.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/resource_meter.dart';
+
+import 'library_stats_models.dart';
+import 'library_widgets.dart';
 
 /// Public counts are a snapshot, not a promise that a resource is bookable.
 class LibraryStatsPage extends StatefulWidget {
@@ -89,19 +91,13 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
     child: CustomScrollView(
       key: const Key('library-stats-scroll'),
       slivers: [
-        ApplePageHeader(
-          largeTitle: const Text('在馆与空间'),
-          section: '空间资源',
+        LibraryPageHeader(
+          title: '在馆与空间',
           subtitle: '学院路 · 沙河在馆人数与空间余量',
           icon: CupertinoIcons.person_2_fill,
-          border: null,
-          trailing: AppleGlassButton(
-            label: '刷新公共统计',
-            onPressed: busy ? null : () => load(force: true),
-            child: busy
-                ? const GinkgoActivity(size: 17)
-                : const Icon(CupertinoIcons.refresh),
-          ),
+          refreshLabel: '刷新公共统计',
+          busy: busy,
+          onRefresh: () => load(force: true),
         ),
         CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
         SliverList.list(
@@ -121,18 +117,14 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
               ),
             ),
             if (error != null)
-              AppleSection(
-                children: [
-                  AppleEmptyState(
-                    title: error!,
-                    description: campuses == null
-                        ? '公开信息无需预约登录，请稍后重试。'
-                        : '刷新未成功，保留上次人数与实际更新时间。',
-                    error: true,
-                    action: '重试',
-                    onAction: busy ? null : () => load(force: true),
-                  ),
-                ],
+              LibraryEmptyState(
+                title: error!,
+                description: campuses == null
+                    ? '公开信息无需预约登录，请稍后重试。'
+                    : '刷新未成功，保留上次人数与实际更新时间。',
+                error: true,
+                action: '重试',
+                onAction: busy ? null : () => load(force: true),
               ),
             if (campuses == null && busy)
               const GinkgoLoadingView(label: '正在读取在馆数据…'),

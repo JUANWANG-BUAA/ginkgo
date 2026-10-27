@@ -15,12 +15,6 @@ class GraduateRow {
   final bool? completed;
   final num? credit;
   final String? semester;
-
-  String get completionLabel => switch (completed) {
-    true => '已完成',
-    false => '未完成',
-    null => '待确认',
-  };
 }
 
 /// Credit requirement projection (camelCase). Absent values stay null;
@@ -32,6 +26,32 @@ class GraduateProgress {
       pending = json['pending'] as num?;
 
   final num? requiredCredits, earned, pending;
+
+  /// Recognized share of the requirement. Null while either side is unknown:
+  /// a missing number never reads as a zero-percent result.
+  double? get earnedRatio {
+    final required = requiredCredits;
+    final value = earned;
+    if (required == null || required <= 0 || value == null) return null;
+    return (value / required).clamp(0.0, 1.0).toDouble();
+  }
+
+  /// Pending share of the requirement. Pending credits are never counted as
+  /// earned, so they only widen the gap.
+  double get pendingRatio {
+    final required = requiredCredits;
+    final value = pending;
+    if (required == null || required <= 0 || value == null) return 0;
+    return (value / required).clamp(0.0, 1.0).toDouble();
+  }
+
+  /// Credits still missing; null while either side is unknown.
+  num? get remaining {
+    final required = requiredCredits;
+    final value = earned;
+    if (required == null || value == null) return null;
+    return (required - value).clamp(0, double.infinity);
+  }
 }
 
 class GraduateSection {
@@ -72,6 +92,9 @@ enum GraduateCourseFilter {
   };
 }
 
+/// The three lenses on the graduate page.
+enum GraduateView { credits, courses, profile }
+
 /// Full report envelope: sections plus the school's own notice line.
 class GraduateReport {
   GraduateReport.fromJson(Map<String, dynamic> json)
@@ -85,9 +108,6 @@ class GraduateReport {
 
   final List<GraduateSection> sections;
   final String? notice;
-
-  /// Total rows across sections; diagnostics use it as a liveness count.
-  int get rowCount => sections.fold(0, (sum, s) => sum + s.rows.length);
 }
 
 GraduateReport? graduateReport(String? payload) => payload == null

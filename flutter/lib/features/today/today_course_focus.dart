@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/features/today/today_action_row.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
+
+import 'today_action_row.dart';
+import 'today_presentation.dart';
 
 /// Presentation-only interpretation of the existing Today clock range.
 /// Invalid/absent clocks are unknown, never silently midnight.
@@ -93,7 +95,7 @@ class TodayCourseFocus extends StatelessWidget {
           '${stale ? '上次课表 · ' : ''}${running ? '正在上课 · 约 $minutes 分钟后结束' : '下一节课 · $minutes 分钟后开始'}',
       title: course.name,
       subtitle:
-          '${course.time ?? '时间待确认'}\n${course.place?.trim().isNotEmpty == true ? course.place : '地点未提供'}',
+          '${course.time ?? '时间待确认'}\n${todayCoursePlaceLabel(course.place)}',
       onTap: onOpen,
     );
   }

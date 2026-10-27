@@ -10,6 +10,7 @@ import 'package:ginkgo_mirror/infrastructure/learning_file_actions.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
 import 'learning_announcement_page.dart';
+import 'learning_resource_section.dart';
 import 'learning_widgets.dart';
 
 class LearningCoursePage extends StatefulWidget {
@@ -416,129 +417,22 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
                 ],
               ],
             ),
-            AppleSection(
-              header: const Text('课程资料'),
-              footer: const Text('只列当前目录的当前页；筛选不跨页。下载由你主动发起，不会批量保存。'),
-              children: [
-                if (path.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        '根目录',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: CupertinoColors.secondaryLabel,
-                        ),
-                      ),
-                    ),
-                  ),
-                Wrap(
-                  children: [
-                    if (path.isNotEmpty)
-                      CupertinoButton(
-                        key: const Key('learning-root'),
-                        onPressed: () => _navigate([], 1),
-                        child: const Text('根目录'),
-                      ),
-                    for (var i = 0; i < path.length; i++)
-                      CupertinoButton(
-                        onPressed: () =>
-                            _navigate(path.take(i + 1).toList(), 1),
-                        child: Text('/ ${path[i].name}'),
-                      ),
-                  ],
-                ),
-                if (path.isNotEmpty)
-                  CupertinoButton(
-                    key: const Key('learning-parent'),
-                    onPressed: () =>
-                        _navigate(path.take(path.length - 1).toList(), 1),
-                    child: const Text('返回上一级'),
-                  ),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: CupertinoSearchTextField(
-                    key: ValueKey(
-                      'learning-resource-search-${path.map((f) => f.id).join('/')}/$page',
-                    ),
-                    placeholder: '筛选当前页资料名称',
-                    onChanged: (v) => setState(() => resourceQuery = v.trim()),
-                  ),
-                ),
-                LearningReadStatus(
-                  title: '资料',
-                  section: resources,
-                  supported:
-                      hasContext || widget.service is CourseResourceGateway,
-                  onRefresh: () => _resources(force: true),
-                ),
-                if (resources.value != null && items.isEmpty)
-                  LearningText(resourceQuery.isEmpty ? '暂无资料' : '当前页没有匹配资料'),
-                for (final item in items)
-                  if (item.folder)
-                    AppleListTile(
-                      key: ValueKey('learning-resource-${item.id}'),
-                      title: Text(item.name),
-                      subtitle: Text(
-                        !hasContext && path.isNotEmpty
-                            ? '当前服务不支持更深层级，请前往官网'
-                            : '目录',
-                      ),
-                      leading: const Icon(CupertinoIcons.folder),
-                      trailing: const CupertinoListTileChevron(),
-                      onTap: !hasContext && path.isNotEmpty
-                          ? null
-                          : () => _navigate([...path, item], 1),
-                    )
-                  else
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        AppleListTile(
-                          key: ValueKey('learning-resource-${item.id}'),
-                          title: Text(item.name),
-                          subtitle: Text(
-                            item.downloadable
-                                ? (item.updatedAt ?? '更新时间未知')
-                                : '学校未允许下载',
-                          ),
-                        ),
-                        if (item.downloadable)
-                          LearningFileButton(
-                            key: ValueKey('learning-save-${item.id}'),
-                            download: () => _download(item),
-                            saveFile: widget.saveFile,
-                            isCurrent: () => current(epoch),
-                            contextToken:
-                                '${widget.accountId}/${widget.course.id}/${path.map((f) => f.id).join('/')}/$page/$epoch',
-                          ),
-                      ],
-                    ),
-                if (resources.value != null)
-                  Wrap(
-                    alignment: WrapAlignment.center,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      CupertinoButton(
-                        key: const Key('learning-previous-page'),
-                        onPressed: page > 1
-                            ? () => _navigate(List.of(path), page - 1)
-                            : null,
-                        child: const Text('上一页'),
-                      ),
-                      Text('第 $page 页'),
-                      CupertinoButton(
-                        key: const Key('learning-next-page'),
-                        onPressed: resources.value!.data.hasNext
-                            ? () => _navigate(List.of(path), page + 1)
-                            : null,
-                        child: const Text('下一页'),
-                      ),
-                    ],
-                  ),
-              ],
+            LearningResourceSection(
+              path: path,
+              page: page,
+              items: items,
+              resourceQuery: resourceQuery,
+              resources: resources,
+              supported: hasContext || widget.service is CourseResourceGateway,
+              hasContext: hasContext,
+              saveFile: widget.saveFile,
+              contextToken:
+                  '${widget.accountId}/${widget.course.id}/${path.map((f) => f.id).join('/')}/$page/$epoch',
+              onQueryChanged: (value) => setState(() => resourceQuery = value),
+              onNavigate: _navigate,
+              onRefresh: () => _resources(force: true),
+              onDownload: _download,
+              isCurrent: () => current(epoch),
             ),
             AppleSection(
               header: const Text('测验（只读）'),

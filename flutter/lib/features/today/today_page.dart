@@ -2,26 +2,21 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 
+import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/local_tasks.dart';
-import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
-import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
-import 'package:ginkgo_mirror/features/today/today_course_focus.dart';
-import 'package:ginkgo_mirror/features/today/today_course_list.dart';
-import 'package:ginkgo_mirror/features/today/today_tasks_section.dart';
-import 'package:ginkgo_mirror/shared/school_timestamp.dart';
+import 'package:ginkgo_mirror/application/refresh_section.dart';
+import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/shared/reminders.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
-import 'package:ginkgo_mirror/features/today/today_presentation.dart';
+import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shortcuts.dart';
 
-import 'package:ginkgo_mirror/shared/reminders.dart';
-
-import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/application/refresh_section.dart';
-import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/features/today/today_homework_section.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
-import 'package:ginkgo_mirror/design/apple_design.dart';
-import 'package:ginkgo_mirror/application/contracts.dart';
+import 'today_course_section.dart';
+import 'today_homework_section.dart';
+import 'today_page_actions.dart';
+import 'today_page_header.dart';
+import 'today_tasks_section.dart';
 
 class TodayPage extends StatefulWidget {
   const TodayPage({
@@ -57,6 +52,10 @@ class TodayPage extends StatefulWidget {
 
 class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   Timer? _clock;
+
+  /// Opens the pages the dashboard links to; only one route at a time.
+  final navigator = TodayNavigator();
+
   bool? _active;
   bool _internalRouteInactive = false;
   bool _coursesExpanded = false;
@@ -67,10 +66,10 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     final active = TickerMode.valuesOf(context).enabled;
     final returning = _active == false && active;
     _active = active;
-    if (!active && _opening) _internalRouteInactive = true;
+    if (!active && navigator.opening) _internalRouteInactive = true;
     final internalReturn = returning && _internalRouteInactive;
     if (returning) _internalRouteInactive = false;
-    if (returning && !internalReturn && !_opening) {
+    if (returning && !internalReturn && !navigator.opening) {
       final generation = _generation;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && generation == _generation && _active == true) {
@@ -207,84 +206,45 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     }, fallbackError: '无法读取个人待办，请重试。');
   }
 
-  bool _opening = false;
-  Future<void> _openTasks(String? id) async {
-    if (_opening) return;
-    _opening = true;
+  Future<void> _openTasks(String? id) {
     final generation = _generation;
-    try {
-      final root = await _tasksRoot();
-      if (!mounted || generation != _generation) return;
-      await Navigator.of(context).push(
-        CupertinoPageRoute<void>(
-          builder: (_) => TasksPage(
-            storageRoot: root,
-            service: widget.service,
-            academicService: widget.service,
-            demo: widget.service.isDemo,
-            initialTaskId: id,
-          ),
-        ),
-      );
-      if (mounted && generation == _generation) await _loadTasks();
-    } catch (_) {
-      if (mounted && generation == _generation) {
-        tasks.error = '无法打开个人待办，请重试。';
+    return navigator.openTasks(
+      context,
+      service: widget.service,
+      storageRoot: widget.storageRoot,
+      taskId: id,
+      isCurrent: () => mounted && generation == _generation,
+      reload: _loadTasks,
+      onFailure: (message) {
+        tasks.error = message;
         _changed();
-      }
-    } finally {
-      _opening = false;
-    }
+      },
+    );
   }
 
-  Future<void> _openHomework(HomeworkItem item) async {
-    if (_opening) return;
-    _opening = true;
+  Future<void> _openHomework(HomeworkItem item) {
     final generation = _generation;
-    try {
-      await Navigator.of(context).push(
-        CupertinoPageRoute<void>(
-          builder: (_) => HomeworkDetailPage(
-            item: item,
-            service: widget.service,
-            taskService: widget.service,
-            storageRoot: widget.storageRoot,
-          ),
-        ),
-      );
-      if (mounted && generation == _generation) await _loadTasks();
-    } catch (_) {
-      if (mounted && generation == _generation) {
-        tasks.error = '无法打开个人待办，请重试。';
+    return navigator.openHomework(
+      context,
+      service: widget.service,
+      storageRoot: widget.storageRoot,
+      item: item,
+      isCurrent: () => mounted && generation == _generation,
+      reload: _loadTasks,
+      onFailure: (message) {
+        tasks.error = message;
         _changed();
-      }
-    } finally {
-      _opening = false;
-    }
+      },
+    );
   }
 
   Future<void> accountAction() async {
-    final demo = widget.service.isDemo;
-    final action = await showCupertinoDialog<String>(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: Text(widget.accountName ?? (demo ? '离线演示' : '账号')),
-        content: Text(demo ? '当前为离线合成样例，不连接学校账号。' : '当前已登录真实学校账号。'),
-        actions: [
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          CupertinoDialogAction(
-            isDestructiveAction: true,
-            onPressed: () => Navigator.pop(context, 'exit'),
-            child: Text(demo ? '返回登录' : '退出登录'),
-          ),
-        ],
-      ),
+    final leave = await showTodayAccountDialog(
+      context,
+      accountName: widget.accountName,
+      demo: widget.service.isDemo,
     );
-    if (action == 'exit' && mounted) {
+    if (leave && mounted) {
       await widget.onAccountAction!();
     }
   }
@@ -299,46 +259,15 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
       child: CustomScrollView(
         key: const Key('today-scroll'),
         slivers: [
-          ApplePageHeader(
-            largeTitle: Text(widget.directory == null ? '今天' : '工作台'),
-            border: null,
-            section: '工作台',
-            subtitle: '从今日课程开始安排一天',
-            icon: CupertinoIcons.sun_max,
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (widget.onOpenSettings != null ||
-                    widget.onAccountAction != null) ...[
-                  AppleGlassButton(
-                    key: const Key('workspace-settings'),
-                    label: widget.onOpenSettings != null
-                        ? '设置'
-                        : widget.service.isDemo
-                        ? '演示模式'
-                        : '账号',
-                    onPressed:
-                        widget.onOpenSettings ?? (busy ? null : accountAction),
-                    child: Icon(
-                      widget.onOpenSettings != null
-                          ? CupertinoIcons.gear_alt
-                          : widget.service.isDemo
-                          ? CupertinoIcons.eye
-                          : CupertinoIcons.person_crop_circle,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                AppleGlassButton(
-                  label: '刷新今天',
-                  onPressed: busy ? null : () => load(force: true),
-                  child: busy
-                      ? const GinkgoActivity()
-                      : const Icon(CupertinoIcons.refresh, size: 24),
-                ),
-              ],
-            ),
+          TodayPageHeader(
+            title: widget.directory == null ? '今天' : '工作台',
+            busy: busy,
+            demo: widget.service.isDemo,
+            onRefresh: () => load(force: true),
+            onOpenSettings: widget.onOpenSettings,
+            onAccountAction: widget.onAccountAction == null
+                ? null
+                : accountAction,
           ),
           CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
           SliverLayoutBuilder(
@@ -352,22 +281,28 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
               sliver: SliverList.list(
                 children: [
                   if (data == null)
-                    TodayVisualSection(
-                      header: const Text('今日课程'),
-                      children: [
-                        SectionFeedback(
-                          loading: courses.loading,
-                          label: '正在读取今天课程…',
-                          hasData: false,
-                          error: error,
-                          onRetry: () => _loadCourses(force: true),
-                        ),
-                      ],
-                    ),
-                  if (data != null)
+                    TodayCoursePlaceholder(
+                      loading: courses.loading,
+                      error: error,
+                      onRetry: () => _loadCourses(force: true),
+                    )
+                  else
                     SectionReveal(
                       key: const Key('today-course-content'),
-                      child: Column(children: _content(data!)),
+                      child: TodayCourseSection(
+                        data: data!,
+                        now: _now,
+                        loading: courses.loading,
+                        error: error,
+                        expanded: _coursesExpanded,
+                        onToggleExpanded: () =>
+                            setState(() => _coursesExpanded = !_coursesExpanded),
+                        onRetry: () => _loadCourses(force: true),
+                        onOpenSchedule: widget.onOpenFeature == null
+                            ? null
+                            : () => widget.onOpenFeature!('schedule'),
+                        demo: widget.service.isDemo,
+                      ),
                     ),
                   TodayHomeworkSection(
                     section: homework,
@@ -403,139 +338,4 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     storageRoot: widget.storageRoot,
     onOpen: widget.onOpenFeature!,
   );
-
-  List<Widget> _content(TodayResponse data) {
-    final date = DateTime.tryParse(data.date);
-    final dateLabel = date == null ? data.date : schoolDateWeekdayLabel(date);
-    return [
-      TodayVisualSection(
-        key: const Key('today-courses'),
-        header: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TodaySectionHeader(
-              icon: CupertinoIcons.calendar_today,
-              title: '今日课程',
-              badge: data.courses.isNotEmpty
-                  ? '今天 ${data.courses.length} 节课'
-                  : null,
-              actionLabel: widget.onOpenFeature == null ? null : '完整课表',
-              onAction: () => widget.onOpenFeature?.call('schedule'),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              dateLabel,
-              style: TextStyle(
-                fontSize: 12,
-                color: AppleDesign.statusInactive.resolveFrom(context),
-              ),
-            ),
-          ],
-        ),
-        footer: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (data.fetchedAt != null)
-              Text('课表同步：${_updatedAt(data.fetchedAt!)}'),
-            Text(
-              widget.service.isDemo
-                  ? '离线演示 · 课程与日期为合成样例'
-                  : '课程来自教务课表，签到状态请进入课程签到核对。',
-            ),
-          ],
-        ),
-        children: [
-          if (courses.loading || error != null)
-            SectionFeedback(
-              loading: courses.loading,
-              label: '正在更新今天课程…',
-              hasData: true,
-              error: error,
-              onRetry: () => _loadCourses(force: true),
-            ),
-          if (data.courses.isEmpty)
-            TodayCourseEmpty(
-              error: error,
-              onOpenSchedule: widget.onOpenFeature == null
-                  ? null
-                  : () => widget.onOpenFeature?.call('schedule'),
-            ),
-          if (data.courses.isNotEmpty)
-            TodayCourseFocus(
-              data: data,
-              now: _now,
-              stale: error != null,
-              onOpen: widget.onOpenFeature == null
-                  ? null
-                  : () => widget.onOpenFeature!('schedule'),
-            ),
-          if (data.courses.isNotEmpty)
-            Semantics(
-              expanded: _coursesExpanded,
-              child: CupertinoButton(
-                key: const Key('today-toggle-courses'),
-                minimumSize: const Size(48, 48),
-                onPressed: () =>
-                    setState(() => _coursesExpanded = !_coursesExpanded),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _coursesExpanded
-                            ? '收起今日课程'
-                            : '展开今日课程（${data.courses.length}）',
-                      ),
-                    ),
-                    Icon(
-                      _coursesExpanded
-                          ? CupertinoIcons.chevron_up
-                          : CupertinoIcons.chevron_down,
-                      size: 16,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          if (_coursesExpanded)
-            for (final (index, course) in data.courses.indexed)
-              TodayCourseRow(
-                key: Key('today-course-$index-${course.name}'),
-                course: course,
-                status:
-                    TodayCourseWindow.parse(
-                      data.date,
-                      course.time,
-                    )?.status(_now) ??
-                    '时间待确认',
-              ),
-          if (data.courses.isNotEmpty && widget.onOpenFeature != null)
-            AppleListTile(
-              title: Text(
-                '查看完整课表',
-                style: TextStyle(
-                  color: CupertinoTheme.of(context).primaryColor,
-                ),
-              ),
-              additionalInfo: Text(
-                '共 ${data.courses.length} 门课',
-                style: TextStyle(
-                  color: AppleDesign.statusInactive.resolveFrom(context),
-                ),
-              ),
-              trailing: const CupertinoListTileChevron(),
-              onTap: () => widget.onOpenFeature!('schedule'),
-            ),
-        ],
-      ),
-    ];
-  }
-
-  String _updatedAt(String value) {
-    final date = DateTime.tryParse(value);
-    if (date == null) return value;
-    final beijing = date.toUtc().add(const Duration(hours: 8));
-    final hour = beijing.hour.toString().padLeft(2, '0');
-    final minute = beijing.minute.toString().padLeft(2, '0');
-    return '${beijing.month}月${beijing.day}日 $hour:$minute';
-  }
 }

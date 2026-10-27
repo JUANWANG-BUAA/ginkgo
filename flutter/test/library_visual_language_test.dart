@@ -8,6 +8,7 @@ import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/features/library/library_area_page.dart';
 import 'package:ginkgo_mirror/features/library/library_books_page.dart';
 import 'package:ginkgo_mirror/features/library/library_history_page.dart';
+import 'package:ginkgo_mirror/features/library/library_holdings_page.dart';
 import 'package:ginkgo_mirror/features/library/library_page.dart';
 import 'package:ginkgo_mirror/features/library/library_seat_page.dart';
 import 'package:ginkgo_mirror/features/library/library_slot_page.dart';

@@ -1,14 +1,15 @@
 import 'package:flutter/cupertino.dart';
 
+import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/resource_meter.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 
-/// Library hierarchy and explicit, single-attempt booking actions.
-import 'package:ginkgo_mirror/features/library/library_slot_page.dart';
+import 'library_slot_page.dart';
+import 'library_widgets.dart';
 
+/// Library hierarchy and explicit, single-attempt booking actions.
 class LibraryAreaPage extends StatefulWidget {
   const LibraryAreaPage({
     super.key,
@@ -22,10 +23,10 @@ class LibraryAreaPage extends StatefulWidget {
   final LibraryGateway service;
   final LibraryVenue venue;
   @override
-  State<LibraryAreaPage> createState() => LibraryAreaPageState();
+  State<LibraryAreaPage> createState() => _LibraryAreaPageState();
 }
 
-class LibraryAreaPageState extends State<LibraryAreaPage> {
+class _LibraryAreaPageState extends State<LibraryAreaPage> {
   List<LibraryArea>? areas;
   String? error;
   bool busy = false;
@@ -49,7 +50,6 @@ class LibraryAreaPageState extends State<LibraryAreaPage> {
       final result = await widget.service.libraryAreas(widget.venue.id);
       if (!mounted) return;
       setState(() {
-        busy = false;
         if (result.failure != null) {
           error = failureMessage(result.failure);
           return;
@@ -58,10 +58,7 @@ class LibraryAreaPageState extends State<LibraryAreaPage> {
       });
     } catch (_) {
       if (!mounted) return;
-      setState(() {
-        busy = false;
-        error = failureMessage(null);
-      });
+      setState(() => error = failureMessage(null));
     } finally {
       if (mounted) setState(() => busy = false);
     }
@@ -75,36 +72,26 @@ class LibraryAreaPageState extends State<LibraryAreaPage> {
     child: CustomScrollView(
       key: const Key('library-areas-scroll'),
       slivers: [
-        ApplePageHeader(
-          largeTitle: Text(widget.venue.name),
-          section: '空间资源',
+        LibraryPageHeader(
+          title: widget.venue.name,
           subtitle: '查看开放区域与座位余量',
           icon: CupertinoIcons.rectangle_grid_2x2,
-          border: null,
-          trailing: AppleGlassButton(
-            label: '刷新列表',
-            onPressed: busy ? null : load,
-            child: busy
-                ? const GinkgoActivity(size: 17)
-                : const Icon(CupertinoIcons.refresh, size: 24),
-          ),
+          refreshLabel: '刷新列表',
+          busy: busy,
+          onRefresh: load,
         ),
         CupertinoSliverRefreshControl(onRefresh: load),
         SliverList.list(
           children: [
             if (error != null)
-              AppleSection(
-                children: [
-                  AppleEmptyState(
-                    title: error!,
-                    description: areas == null
-                        ? '区域列表读取失败，请稍后重试。'
-                        : '保留上次区域列表，请刷新后确认状态。',
-                    error: true,
-                    action: '重试',
-                    onAction: load,
-                  ),
-                ],
+              LibraryEmptyState(
+                title: error!,
+                description: areas == null
+                    ? '区域列表读取失败，请稍后重试。'
+                    : '保留上次区域列表，请刷新后确认状态。',
+                error: true,
+                action: '重试',
+                onAction: load,
               ),
             if (areas == null && error == null)
               const GinkgoLoadingView(label: '正在读取区域…'),

@@ -6,6 +6,8 @@ import 'package:ginkgo_mirror/application/library_loans.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
+import 'library_controls.dart';
+
 /// Private records exist only while this page is active. No background reads.
 class LibraryLoansPage extends StatefulWidget {
   const LibraryLoansPage({super.key, this.gateway});
@@ -189,21 +191,12 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
                       ),
                     ),
                   if (data.page > 1 || data.hasMore)
-                    Wrap(
-                      children: [
-                        CupertinoButton(
-                          onPressed: !_busy && data.page > 1
-                              ? () => _read(data.page - 1)
-                              : null,
-                          child: const Text('上一页'),
-                        ),
-                        CupertinoButton(
-                          onPressed: !_busy && data.hasMore && data.page < 100
-                              ? () => _read(data.page + 1)
-                              : null,
-                          child: const Text('下一页'),
-                        ),
-                      ],
+                    LibraryPageButtons(
+                      canGoPrevious: !_busy && data.page > 1,
+                      canGoNext: !_busy && data.hasMore && data.page < 100,
+                      spread: false,
+                      onPrevious: () => _read(data.page - 1),
+                      onNext: () => _read(data.page + 1),
                     ),
                   if (data.hasMore && data.page >= 100)
                     const Padding(

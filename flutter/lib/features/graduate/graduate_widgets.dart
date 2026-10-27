@@ -3,27 +3,135 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/design/academic_widgets.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/features/graduate/graduate_models.dart';
+
+import 'graduate_models.dart';
+
+/// Credit values the school did not provide stay "未确认"; they never read as
+/// a confirmed zero.
+String graduateCreditLabel(num? value) =>
+    value == null ? '未确认' : academicNumber(value);
+
+/// One labeled statistic in a quiet row. A value may keep its own weight and
+/// color so a pending amount never reads like a confirmed one.
+class GraduateStat {
+  const GraduateStat(this.label, this.value, {this.weight, this.color});
+
+  final String label, value;
+  final FontWeight? weight;
+  final Color? color;
+}
+
+/// A wrapping row of labeled statistics.
+class GraduateStatRow extends StatelessWidget {
+  const GraduateStatRow(
+    this.stats, {
+    super.key,
+    this.spacing = 12,
+    this.runSpacing = 5,
+  });
+
+  final List<GraduateStat> stats;
+  final double spacing, runSpacing;
+
+  @override
+  Widget build(BuildContext context) => Wrap(
+    spacing: spacing,
+    runSpacing: runSpacing,
+    children: [
+      for (final stat in stats)
+        Text(
+          '${stat.label} ${stat.value}',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: stat.weight,
+            color: stat.color,
+          ),
+        ),
+    ],
+  );
+}
+
+/// Credit ratio bar: the recognized portion over an optional pending portion,
+/// on a quiet track. Shared by the execution report and the credit map.
+class GraduateCreditBar extends StatelessWidget {
+  const GraduateCreditBar({
+    super.key,
+    required this.value,
+    this.pendingValue = 0,
+    this.valueColor,
+    this.pendingColor,
+    this.height = 5,
+    this.borderRadius = 3,
+    this.semanticLabel,
+  });
+
+  /// Recognized share of the requirement, 0 to 1.
+  final double value;
+
+  /// Pending share of the requirement, drawn behind the recognized portion.
+  final double pendingValue;
+  final Color? valueColor, pendingColor;
+  final double height, borderRadius;
+  final String? semanticLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final bar = ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: SizedBox(
+        width: double.infinity,
+        height: height,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ColoredBox(
+                color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
+              ),
+            ),
+            FractionallySizedBox(
+              widthFactor: (value + pendingValue).clamp(0.0, 1.0),
+              child: ColoredBox(
+                color:
+                    pendingColor ??
+                    AppleDesign.statusPending
+                        .resolveFrom(context)
+                        .withValues(alpha: 0.65),
+                child: SizedBox(height: height),
+              ),
+            ),
+            FractionallySizedBox(
+              widthFactor: value.clamp(0.0, 1.0),
+              child: ColoredBox(
+                color:
+                    valueColor ??
+                    CupertinoColors.systemGreen.resolveFrom(context),
+                child: SizedBox(height: height),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (semanticLabel == null) return bar;
+    return Semantics(
+      label: semanticLabel,
+      value: '${(value * 100).round()}%',
+      child: bar,
+    );
+  }
+}
 
 /// Numeric fields are projected by Rust; pending credits never reduce the gap.
 class GraduateCreditProgress extends StatelessWidget {
   const GraduateCreditProgress({super.key, required this.progress});
   final GraduateProgress progress;
-  String _format(num? value) => value == null ? '未确认' : academicNumber(value);
   @override
   Widget build(BuildContext context) {
     final required = progress.requiredCredits;
     final earned = progress.earned;
     final pending = progress.pending;
-    final ratio = required != null && required > 0 && earned != null
-        ? (earned / required).clamp(0.0, 1.0)
-        : null;
-    final pendingRatio = required != null && required > 0 && pending != null
-        ? (pending / required).clamp(0.0, 1.0)
-        : 0.0;
-    final remaining = required == null || earned == null
-        ? null
-        : (required - earned).clamp(0, double.infinity);
+    final ratio = progress.earnedRatio;
+    final remaining = progress.remaining;
     return Padding(
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -33,22 +141,32 @@ class GraduateCreditProgress extends StatelessWidget {
             children: [
               AcademicMetric(
                 label: '方案已认定',
-                value: _format(earned),
+                value: graduateCreditLabel(earned),
                 prominent: true,
               ),
-              AcademicMetric(label: '要求学分', value: _format(required)),
-              AcademicMetric(label: '待考核', value: _format(pending)),
+              AcademicMetric(
+                label: '要求学分',
+                value: graduateCreditLabel(required),
+              ),
+              AcademicMetric(
+                label: '待考核',
+                value: graduateCreditLabel(pending),
+              ),
             ],
           ),
           const SizedBox(height: 18),
           if (ratio != null)
-            AcademicProgressBar(value: ratio, pendingValue: pendingRatio),
+            GraduateCreditBar(
+              value: ratio,
+              pendingValue: progress.pendingRatio,
+              semanticLabel: '已认定学分占要求的比例',
+            ),
           const SizedBox(height: 10),
           Wrap(
             spacing: 12,
             runSpacing: 8,
             children: [
-              AcademicBadge('尚需 ${_format(remaining)}'),
+              AcademicBadge('尚需 ${graduateCreditLabel(remaining)}'),
               if (required == 0)
                 const AcademicBadge('本项无最低学分要求')
               else if (required == null || earned == null)
@@ -58,7 +176,7 @@ class GraduateCreditProgress extends StatelessWidget {
                 ),
               if (pending != null && pending > 0)
                 AcademicBadge(
-                  '待考核 ${_format(pending)}',
+                  '待考核 ${graduateCreditLabel(pending)}',
                   tint: AppleDesign.statusPending,
                   icon: CupertinoIcons.clock,
                 ),
@@ -70,86 +188,8 @@ class GraduateCreditProgress extends StatelessWidget {
   }
 }
 
-class AcademicProgressBar extends StatelessWidget {
-  const AcademicProgressBar({
-    super.key,
-    required this.value,
-    this.pendingValue = 0.0,
-  });
-  final double value;
-  final double pendingValue;
-  @override
-  Widget build(BuildContext context) => Semantics(
-    label: '已认定学分占要求的比例',
-    value: '${(value * 100).round()}%',
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(3),
-      child: SizedBox(
-        width: double.infinity,
-        height: 5,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: ColoredBox(
-                color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
-              ),
-            ),
-            FractionallySizedBox(
-              widthFactor: (value + pendingValue).clamp(0.0, 1.0),
-              child: ColoredBox(
-                color: AppleDesign.statusPending
-                    .resolveFrom(context)
-                    .withValues(alpha: 0.65),
-                child: const SizedBox(height: 5),
-              ),
-            ),
-            FractionallySizedBox(
-              widthFactor: value.clamp(0.0, 1.0),
-              child: ColoredBox(
-                color: CupertinoColors.systemGreen.resolveFrom(context),
-                child: const SizedBox(height: 5),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-class GraduateCourseBadges extends StatelessWidget {
-  const GraduateCourseBadges({super.key, required this.row});
-  final GraduateRow row;
-  @override
-  Widget build(BuildContext context) => Wrap(
-    spacing: 8,
-    runSpacing: 8,
-    children: [
-      AcademicBadge(
-        row.credit == null ? '学分未提供' : '${academicNumber(row.credit)} 学分',
-        tint: AppleDesign.resourceBlue,
-      ),
-      AcademicBadge(
-        row.completed == true
-            ? '已完成'
-            : row.completed == false
-            ? '在修中'
-            : '待确认',
-        tint: row.completed == true
-            ? CupertinoColors.systemGreen
-            : row.completed == false
-            ? AppleDesign.statusPending
-            : AppleDesign.statusUncertain,
-        icon: row.completed == true
-            ? CupertinoIcons.checkmark_circle_fill
-            : row.completed == false
-            ? CupertinoIcons.clock_fill
-            : CupertinoIcons.question_circle,
-      ),
-    ],
-  );
-}
-
+/// A collapsible block. The page owns the expanded state so a reload can
+/// restore it.
 class GraduateDisclosure extends StatefulWidget {
   const GraduateDisclosure({
     super.key,
@@ -167,10 +207,10 @@ class GraduateDisclosure extends StatefulWidget {
   final ValueChanged<bool>? onExpanded;
   final List<Widget> children;
   @override
-  State<GraduateDisclosure> createState() => GraduateDisclosureState();
+  State<GraduateDisclosure> createState() => _GraduateDisclosureState();
 }
 
-class GraduateDisclosureState extends State<GraduateDisclosure> {
+class _GraduateDisclosureState extends State<GraduateDisclosure> {
   late bool expanded = widget.initiallyExpanded;
   @override
   Widget build(BuildContext context) => Column(
@@ -214,6 +254,8 @@ class GraduateDisclosureState extends State<GraduateDisclosure> {
   );
 }
 
+/// One category of the execution report: its credit position and the way into
+/// the courses it contains.
 class GraduateCategoryRow extends StatelessWidget {
   const GraduateCategoryRow({
     super.key,
@@ -231,9 +273,7 @@ class GraduateCategoryRow extends StatelessWidget {
     final progress = section.progress;
     final required = progress?.requiredCredits;
     final earned = progress?.earned;
-    final remaining = required == null || earned == null
-        ? null
-        : (required - earned).clamp(0, double.infinity);
+    final remaining = progress?.remaining;
     final count = section.rows.where((row) => row.isCourse).length;
     return GraduateDisclosure(
       key: ValueKey(section.title),
@@ -248,35 +288,24 @@ class GraduateCategoryRow extends StatelessWidget {
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (required != null && required > 0 && earned != null) ...[
-                  AcademicProgressBar(
-                    value: (earned / required).clamp(0.0, 1.0),
-                    pendingValue: progress.pending != null
-                        ? (progress.pending! / required).clamp(0.0, 1.0)
-                        : 0.0,
+                if (progress.earnedRatio case final ratio?) ...[
+                  GraduateCreditBar(
+                    value: ratio,
+                    pendingValue: progress.pendingRatio,
                   ),
                   const SizedBox(height: 8),
                 ],
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 5,
-                  children: [
-                    Text(
-                      '尚需 ${remaining == null ? '未确认' : academicNumber(remaining)}',
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                    Text(
-                      '待考核 ${academicNumber(progress.pending)}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: (progress.pending ?? 0) > 0
-                            ? AppleDesign.statusPending.resolveFrom(context)
-                            : AppleDesign.statusInactive.resolveFrom(context),
-                      ),
-                    ),
-                  ],
-                ),
+                GraduateStatRow([
+                  GraduateStat('尚需', graduateCreditLabel(remaining)),
+                  GraduateStat(
+                    '待考核',
+                    academicNumber(progress.pending),
+                    weight: FontWeight.w500,
+                    color: (progress.pending ?? 0) > 0
+                        ? AppleDesign.statusPending.resolveFrom(context)
+                        : AppleDesign.statusInactive.resolveFrom(context),
+                  ),
+                ]),
               ],
             ),
       children: [
@@ -295,55 +324,4 @@ class GraduateCategoryRow extends StatelessWidget {
       ],
     );
   }
-}
-
-class GraduateCourseDetails extends StatelessWidget {
-  const GraduateCourseDetails({super.key, required this.entry});
-  final GraduateCourseEntry entry;
-  @override
-  Widget build(BuildContext context) => CupertinoPageScaffold(
-    backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
-      context,
-    ),
-    navigationBar: const CupertinoNavigationBar(middle: Text('培养方案课程')),
-    child: SafeArea(
-      child: ListView(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  entry.row.title,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                GraduateCourseBadges(row: entry.row),
-              ],
-            ),
-          ),
-          AppleSection(
-            header: const Text('课程信息'),
-            children: [
-              AcademicFactRow(label: '培养类别', value: entry.section),
-              AcademicFactRow(
-                label: '学期',
-                value: entry.row.semester ?? '学校未提供',
-              ),
-            ],
-          ),
-          AppleSection(
-            header: const Text('学校执行报告'),
-            footer: const Text('完成状态以学校执行报告为准，课程池中的课程不代表全部必修。'),
-            children: [AcademicFactRow(label: '原始记录', value: entry.row.detail)],
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    ),
-  );
 }

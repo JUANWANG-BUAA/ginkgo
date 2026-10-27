@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/design/academic_widgets.dart';
 import 'package:ginkgo_mirror/application/graduate_credit_map.dart';
+import 'package:ginkgo_mirror/design/academic_widgets.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
-String _credit(double? value) => value == null ? '未确认' : academicNumber(value);
+import 'graduate_widgets.dart';
 
 class GraduateCreditMapNotice extends StatelessWidget {
   const GraduateCreditMapNotice(this.text, {super.key, this.warning = false});
@@ -25,6 +25,8 @@ class GraduateCreditMapNotice extends StatelessWidget {
   );
 }
 
+/// One node of the credit map: its progress and the rows the school listed
+/// under it.
 class GraduateCreditMapNodeCard extends StatelessWidget {
   const GraduateCreditMapNodeCard({
     super.key,
@@ -50,36 +52,37 @@ class GraduateCreditMapNodeCard extends StatelessWidget {
                   children: [
                     AcademicMetric(
                       label: '要求学分',
-                      value: _credit(progress.requiredCredits),
+                      value: graduateCreditLabel(progress.requiredCredits),
                     ),
                     AcademicMetric(
                       label: '方案已认定',
-                      value: _credit(progress.earned),
+                      value: graduateCreditLabel(progress.earned),
                       prominent: true,
                     ),
                     AcademicMetric(
                       label: '待考核',
-                      value: _credit(progress.pending),
+                      value: graduateCreditLabel(progress.pending),
                     ),
                     AcademicMetric(
                       label: '尚需',
-                      value: _credit(progress.remaining),
+                      value: graduateCreditLabel(progress.remaining),
                     ),
                   ],
                 ),
               if (!summary)
-                Wrap(
+                GraduateStatRow(
+                  [
+                    GraduateStat('要求', graduateCreditLabel(progress.requiredCredits)),
+                    GraduateStat(
+                      '已获',
+                      graduateCreditLabel(progress.earned),
+                      weight: FontWeight.w600,
+                    ),
+                    GraduateStat('待考核', graduateCreditLabel(progress.pending)),
+                    GraduateStat('尚需', graduateCreditLabel(progress.remaining)),
+                  ],
                   spacing: 16,
                   runSpacing: 8,
-                  children: [
-                    Text('要求 ${_credit(progress.requiredCredits)}'),
-                    Text(
-                      '已获 ${_credit(progress.earned)}',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    Text('待考核 ${_credit(progress.pending)}'),
-                    Text('尚需 ${_credit(progress.remaining)}'),
-                  ],
                 ),
               const SizedBox(height: 12),
               Text(
@@ -91,31 +94,12 @@ class GraduateCreditMapNodeCard extends StatelessWidget {
               ),
               if (progress.ratio case final ratio?) ...[
                 const SizedBox(height: 12),
-                Semantics(
-                  label: '${node.title}，已认定学分占要求比例',
-                  value: '${(ratio * 100).round()}%',
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: SizedBox(
-                      height: 6,
-                      width: double.infinity,
-                      child: ColoredBox(
-                        color: CupertinoColors.tertiarySystemFill.resolveFrom(
-                          context,
-                        ),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: FractionallySizedBox(
-                            widthFactor: ratio,
-                            child: ColoredBox(
-                              color: CupertinoTheme.of(context).primaryColor,
-                              child: const SizedBox.expand(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                GraduateCreditBar(
+                  value: ratio,
+                  valueColor: CupertinoTheme.of(context).primaryColor,
+                  height: 6,
+                  borderRadius: 4,
+                  semanticLabel: '${node.title}，已认定学分占要求比例',
                 ),
               ],
             ],

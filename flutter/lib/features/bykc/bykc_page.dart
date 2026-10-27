@@ -1,15 +1,15 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/widgets/long_page_scroll.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_detail_page.dart';
+import 'package:ginkgo_mirror/features/bykc/bykc_course_tile.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_models.dart';
+import 'package:ginkgo_mirror/features/bykc/bykc_statistics_view.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_widgets.dart';
 export 'package:ginkgo_mirror/features/bykc/bykc_widgets.dart' show BykcStatisticsCard;
 import 'package:ginkgo_mirror/mirror_service.dart';
-import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/application/contracts.dart' as live;
 
 typedef BykcLoader = Future<live.ReadOnlyResponse> Function({
@@ -182,28 +182,8 @@ class _BykcPageState extends State<BykcPage> {
     );
   }
 
-  Widget _heading(String title, {String? detail}) => Padding(
-    padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-        ),
-        if (detail != null) ...[
-          const SizedBox(height: 5),
-          Text(
-            detail,
-            style: TextStyle(
-              fontSize: 14,
-              color: CupertinoColors.secondaryLabel.resolveFrom(context),
-            ),
-          ),
-        ],
-      ],
-    ),
-  );
+  Widget _heading(String title, {String? detail}) =>
+      BykcSectionHeading(title: title, detail: detail);
 
   /// Only visible rows are built, including large catalogs. Filters and parsed
   /// snapshots stay in state while moving among the three independent views.
@@ -216,7 +196,6 @@ class _BykcPageState extends State<BykcPage> {
     itemBuilder: (context, index) {
       final record = chosen ? rows[index] as BykcChosenRecord : null;
       final course = chosen ? record!.course : rows[index] as BykcCourse;
-      final details = course.details ?? BykcCourseDetails.empty();
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: ClipRSuperellipse(
@@ -230,123 +209,9 @@ class _BykcPageState extends State<BykcPage> {
             ),
             child: Column(
               children: [
-                AppleListTile(
-                  key: ValueKey(
-                    chosen
-                        ? 'bykc-chosen-${record!.id}'
-                        : 'bykc-course-${course.id}',
-                  ),
-                  leading: chosen
-                      ? Icon(
-                          record!.passed == 1
-                              ? CupertinoIcons.checkmark_seal_fill
-                              : CupertinoIcons.book,
-                          color: record.passed == 1
-                              ? CupertinoColors.systemGreen
-                              : CupertinoColors.activeBlue,
-                        )
-                      : null,
-                  title: Text(
-                    course.name,
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 6,
-                          children: [
-                            BykcLabel(
-                              text: course.categoryLabel,
-                              tint: switch (course.categoryLabel) {
-                                '美育' => AppleDesign.resourcePurple.resolveFrom(
-                                  context,
-                                ),
-                                '劳动教育' => AppleDesign.resourceTeal.resolveFrom(
-                                  context,
-                                ),
-                                '安全健康' => AppleDesign.resourceBlue.resolveFrom(
-                                  context,
-                                ),
-                                _ => CupertinoTheme.of(context).primaryColor,
-                              },
-                            ),
-                            if (record == null && details.selected == true)
-                              const BykcLabel(text: '已选', positive: true),
-                            if (record == null &&
-                                (details.enrolled != null ||
-                                    details.capacity != null))
-                              BykcLabel(
-                                text:
-                                    '人数 ${details.enrolled ?? '—'} / ${details.capacity ?? '未提供'}',
-                                tint:
-                                    (details.enrolled != null &&
-                                        details.capacity != null &&
-                                        details.enrolled! >= details.capacity!)
-                                    ? AppleDesign.statusDanger.resolveFrom(
-                                        context,
-                                      )
-                                    : (details.enrolled != null &&
-                                          details.enrolled! > 0)
-                                    ? AppleDesign.statusPending.resolveFrom(
-                                        context,
-                                      )
-                                    : null,
-                              ),
-                          ],
-                        ),
-                        if (details.start != null) ...[
-                          const SizedBox(height: 9),
-                          BykcMetadata(
-                            icon: CupertinoIcons.clock,
-                            text: schoolTimestampLabel(details.start),
-                            prominent: true,
-                          ),
-                        ],
-                        if ((course.position ?? '').trim().isNotEmpty) ...[
-                          const SizedBox(height: 5),
-                          BykcMetadata(
-                            icon: CupertinoIcons.location,
-                            text: course.position!,
-                          ),
-                        ],
-                        if ((course.teacher ?? '').trim().isNotEmpty) ...[
-                          const SizedBox(height: 5),
-                          BykcMetadata(
-                            icon: CupertinoIcons.person,
-                            text: course.teacher!,
-                            auxiliary: true,
-                          ),
-                        ],
-                        if (record != null) ...[
-                          const SizedBox(height: 9),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 6,
-                            children: [
-                              BykcLabel(
-                                text: record.attendanceLabel,
-                                positive: record.checkin == 1,
-                              ),
-                              BykcLabel(
-                                text: record.resultLabel,
-                                positive: record.passed == 1,
-                              ),
-                              if (record.score != null)
-                                BykcLabel(text: '成绩 ${record.score}'),
-                            ],
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  trailing: const CupertinoListTileChevron(),
+                BykcCourseTile(
+                  course: course,
+                  record: record,
                   onTap: () => _open(course, record: record),
                 ),
                 if (index != rows.length - 1)
@@ -432,98 +297,7 @@ class _BykcPageState extends State<BykcPage> {
     ];
   }
 
-  List<Widget> _statistics() {
-    final data = current.statistics!;
-    final entries = data.entries;
-    final groups = <String, List<BykcStatisticsEntry>>{};
-    for (final entry in entries) {
-      (groups[entry.category] ??= []).add(entry);
-    }
-    final rows = [
-      for (final group in groups.entries)
-        for (var index = 0; index < group.value.length; index++)
-          (
-            category: group.key,
-            entry: group.value[index],
-            first: index == 0,
-            last: index == group.value.length - 1,
-          ),
-    ];
-    return [
-      SliverToBoxAdapter(
-        child: AppleSection(
-          header: const Text('学习进度'),
-          footer: const Text('学校提供的累计统计，可能与本学期已选数量不同。'),
-          children: [
-            AppleListTile(
-              leading: const Icon(
-                CupertinoIcons.checkmark_seal,
-                color: CupertinoColors.systemGreen,
-              ),
-              title: const Text('有效课程'),
-              additionalInfo: Text(
-                data.validCourseCount == null
-                    ? '上游未提供'
-                    : '${data.validCourseCount} 门',
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      if (entries.isEmpty)
-        const SliverToBoxAdapter(
-          child: AppleEmptyState(
-            title: '暂未返回完成统计',
-            description: '学校尚未提供分类要求与完成数量。',
-          ),
-        ),
-      SliverList.builder(
-        itemCount: rows.length,
-        addAutomaticKeepAlives: false,
-        itemBuilder: (context, index) {
-          final row = rows[index];
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (row.first) _heading(row.category, detail: '已完成 / 应完成'),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: ClipRSuperellipse(
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(row.first ? 20 : 0),
-                    bottom: Radius.circular(row.last ? 20 : 0),
-                  ),
-                  child: ColoredBox(
-                    color: CupertinoColors.secondarySystemGroupedBackground
-                        .resolveFrom(context),
-                    child: Column(
-                      children: [
-                        BykcStatisticsCard(entry: row.entry),
-                        if (!row.last)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Container(
-                              height: 0.5,
-                              color: CupertinoColors.separator
-                                  .resolveFrom(context)
-                                  .withValues(alpha: 0.2),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    ];
-  }
+  Widget _statistics() => BykcStatisticsView(data: current.statistics!);
 
   @override
   Widget build(BuildContext context) => CupertinoPageScaffold(
@@ -598,7 +372,7 @@ class _BykcPageState extends State<BykcPage> {
             ...switch (selection) {
               BykcPart.catalog => _catalog(),
               BykcPart.chosen => _chosen(),
-              BykcPart.statistics => _statistics(),
+              BykcPart.statistics => [_statistics()],
             },
           const SliverToBoxAdapter(child: SizedBox(height: 96)),
         ],

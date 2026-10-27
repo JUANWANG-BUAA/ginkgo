@@ -4,6 +4,14 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/design/ginkgo_visuals.dart';
 
+/// Course fields the school left out stay readable: a missing place never
+/// renders as an empty line, and the focus card and the course list always
+/// agree on the wording.
+String todayCoursePlaceLabel(String? place) {
+  final text = place?.trim() ?? '';
+  return text.isEmpty ? '地点未提供' : text;
+}
+
 /// A quiet inset rule for rows nested inside a reveal animation.
 class TodayVisualDivider extends StatelessWidget {
   const TodayVisualDivider({super.key});

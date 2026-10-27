@@ -5,9 +5,9 @@ import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/features/schedule/course_visibility.dart';
 import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/features/today/today_action_row.dart';
+import 'today_action_row.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
-import 'package:ginkgo_mirror/features/today/today_presentation.dart';
+import 'today_presentation.dart';
 
 /// A separate read can finish before or after today's timetable.
 class TodayHomeworkSection extends StatelessWidget {

@@ -1,20 +1,22 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
-import 'package:ginkgo_mirror/widgets/mutation_dialog.dart';
-import 'package:ginkgo_mirror/features/library/library_history_page.dart';
-import 'package:ginkgo_mirror/features/library/library_books_page.dart';
-import 'package:ginkgo_mirror/features/library/library_controller.dart';
-import 'package:ginkgo_mirror/features/library/library_stats_page.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
+import 'package:ginkgo_mirror/widgets/mutation_dialog.dart';
 import 'package:ginkgo_mirror/features/reservations/reservation_widgets.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 
-/// Library hierarchy and explicit, single-attempt booking actions.
-import 'package:ginkgo_mirror/features/library/library_area_page.dart';
+import 'library_area_page.dart';
+import 'library_books_page.dart';
+import 'library_cards.dart';
+import 'library_controller.dart';
+import 'library_history_page.dart';
+import 'library_stats_page.dart';
+import 'library_widgets.dart';
 
+/// Library hierarchy and explicit, single-attempt booking actions.
 class LibraryPage extends StatefulWidget {
   const LibraryPage({super.key, required this.service});
   final MirrorService service;
@@ -47,35 +49,9 @@ class _LibraryPageState extends State<LibraryPage> {
     super.dispose();
   }
 
-  Widget _sectionStatus({
-    required String id,
-    required bool loading,
-    required bool hasSnapshot,
-    required String? failure,
-    required VoidCallback retry,
-  }) => AppleListTile(
-    key: Key('library-$id-status'),
-    leading: loading
-        ? const GinkgoActivity(size: 17)
-        : const Icon(
-            CupertinoIcons.exclamationmark_triangle,
-            color: AppleDesign.statusPending,
-            size: 20,
-          ),
-    title: Text(loading ? (hasSnapshot ? '正在更新…' : '正在加载…') : failure!),
-    subtitle: hasSnapshot ? const Text('保留上次结果') : null,
-    trailing: loading
-        ? null
-        : CupertinoButton(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            onPressed: retry,
-            child: const Text('重试'),
-          ),
-  );
-
   Future<void> perform(LibraryBooking booking, String action) async {
     if (controller.submitting) return;
-    final label = _actionLabel(action);
+    final label = libraryActionLabel(action);
     final key = '${booking.id}/$action';
     if (controller.uncertainActions.contains(key)) return;
     final confirmed = await confirmMutation(
@@ -89,14 +65,6 @@ class _LibraryPageState extends State<LibraryPage> {
     if (confirmed && mounted) await controller.perform(booking, action);
   }
 
-  String _actionLabel(String action) => switch (action) {
-    'signin' => '签到入座 / 返回',
-    'leave' => '暂离',
-    'checkout' => '离馆',
-    'cancel' => '取消预约',
-    _ => action,
-  };
-
   void _push(Widget page) {
     Navigator.of(context).push(CupertinoPageRoute<void>(builder: (_) => page));
   }
@@ -109,21 +77,13 @@ class _LibraryPageState extends State<LibraryPage> {
     child: CustomScrollView(
       key: const Key('library-scroll'),
       slivers: [
-        ApplePageHeader(
-          largeTitle: const Text('图书馆'),
-          section: '空间资源',
+        LibraryPageHeader(
+          title: '图书馆',
           subtitle: '选择场馆、区域与可预约时段',
           icon: CupertinoIcons.book,
-          border: null,
-          trailing: AppleGlassButton(
-            label: '刷新图书馆',
-            onPressed: controller.busy
-                ? null
-                : () => controller.load(force: true),
-            child: controller.busy
-                ? const GinkgoActivity(size: 17)
-                : const Icon(CupertinoIcons.refresh, size: 24),
-          ),
+          refreshLabel: '刷新图书馆',
+          busy: controller.busy,
+          onRefresh: () => controller.load(force: true),
         ),
         CupertinoSliverRefreshControl(
           onRefresh: () => controller.load(force: true),
@@ -196,7 +156,7 @@ class _LibraryPageState extends State<LibraryPage> {
       header: const Text('当前预约'),
       children: [
         if (controller.loadingBookings || controller.bookingError != null)
-          _sectionStatus(
+          LibrarySectionStatus(
             id: 'bookings',
             loading: controller.loadingBookings,
             hasSnapshot: controller.bookings != null,
@@ -255,19 +215,10 @@ class _LibraryPageState extends State<LibraryPage> {
                             buttonKey: Key(
                               'library-action-${booking.id}-$action',
                             ),
-                            label: _actionLabel(action),
-                            icon: switch (action) {
-                              'signin' => CupertinoIcons.checkmark_seal,
-                              'leave' => CupertinoIcons.pause_circle,
-                              'checkout' => CupertinoIcons.arrow_right_circle,
-                              _ => CupertinoIcons.xmark_circle,
-                            },
+                            label: libraryActionLabel(action),
+                            icon: libraryActionIcon(action),
                             compact: true,
-                            tint: switch (action) {
-                              'cancel' => AppleDesign.statusDanger,
-                              'leave' => AppleDesign.statusPending,
-                              _ => null,
-                            },
+                            tint: libraryActionTint(action),
                             onPressed:
                                 controller.submitting ||
                                     controller.uncertainActions.contains(
@@ -316,7 +267,7 @@ class _LibraryPageState extends State<LibraryPage> {
       footer: const Text('空闲数以学校实时查询为准。'),
       children: [
         if (controller.loadingVenues || controller.venueError != null)
-          _sectionStatus(
+          LibrarySectionStatus(
             id: 'venues',
             loading: controller.loadingVenues,
             hasSnapshot: controller.venues != null,
@@ -330,7 +281,7 @@ class _LibraryPageState extends State<LibraryPage> {
           )
         else
           for (final venue in items)
-            _VenueMeter(
+            LibraryVenueMeter(
               venue: venue,
               onTap: () => _push(
                 LibraryAreaPage(
@@ -344,122 +295,5 @@ class _LibraryPageState extends State<LibraryPage> {
             ),
       ],
     );
-  }
-}
-
-/// Venue capacity has three readable states: a quiet thin bar while seats are
-/// plentiful, a pending tint when they run low, and no bar at all when the
-/// school did not report a capacity. Zero free seats is a measurement; a zero
-/// total is not, so the latter never renders as a "0" count.
-class _VenueMeter extends StatelessWidget {
-  const _VenueMeter({required this.venue, this.onTap});
-
-  static const _tightRatio = 0.2;
-
-  final LibraryVenue venue;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final known = venue.total > 0;
-    final ratio = known ? (venue.free / venue.total).clamp(0.0, 1.0) : null;
-    final tight = ratio != null && (venue.free <= 0 || ratio < _tightRatio);
-    final color = tight ? AppleDesign.statusPending : AppleDesign.resourceTeal;
-    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
-    final content = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  venue.name,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              if (onTap != null)
-                const Padding(
-                  padding: EdgeInsets.only(left: 8, top: 3),
-                  child: CupertinoListTileChevron(),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 6,
-            crossAxisAlignment: WrapCrossAlignment.end,
-            children: [
-              Text(
-                known ? '${venue.free}' : '—',
-                style: TextStyle(
-                  fontSize: 28,
-                  height: 1.1,
-                  color: color.resolveFrom(context),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 2),
-                child: Text(
-                  known ? '座可用 · 共 ${venue.total} 座' : '余量待确认',
-                  style: TextStyle(fontSize: 13, color: secondary),
-                ),
-              ),
-            ],
-          ),
-          if (ratio != null) ...[
-            const SizedBox(height: 10),
-            Semantics(
-              label: '${venue.name} 空闲比例',
-              value: tight ? '余量紧张' : '余量充足',
-              child: ExcludeSemantics(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: SizedBox(
-                    key: Key('library-venue-bar-${venue.id}'),
-                    height: 3,
-                    child: ColoredBox(
-                      color: CupertinoColors.tertiarySystemFill.resolveFrom(
-                        context,
-                      ),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: FractionallySizedBox(
-                          widthFactor: ratio,
-                          child: ColoredBox(
-                            key: Key('library-venue-fill-${venue.id}'),
-                            color: color
-                                .resolveFrom(context)
-                                .withValues(alpha: tight ? 0.55 : 0.4),
-                            child: const SizedBox.expand(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-    return onTap == null
-        ? KeyedSubtree(key: Key('library-venue-${venue.id}'), child: content)
-        : CupertinoButton(
-            key: Key('library-venue-${venue.id}'),
-            padding: EdgeInsets.zero,
-            onPressed: onTap,
-            child: DefaultTextStyle(
-              style: CupertinoTheme.of(context).textTheme.textStyle,
-              child: content,
-            ),
-          );
   }
 }

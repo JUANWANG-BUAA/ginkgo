@@ -8,8 +8,11 @@ import 'package:ginkgo_mirror/widgets/collection_toolbar.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/mutation_dialog.dart';
-import 'package:ginkgo_mirror/features/reservations/reservation_widgets.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+
+import 'library_cards.dart';
+import 'library_controls.dart';
+import 'library_widgets.dart';
 
 /// Library hierarchy and explicit, single-attempt booking actions.
 class LibrarySeatPage extends StatefulWidget {
@@ -27,10 +30,10 @@ class LibrarySeatPage extends StatefulWidget {
   final LibraryArea area;
   final LibrarySlot slot;
   @override
-  State<LibrarySeatPage> createState() => LibrarySeatPageState();
+  State<LibrarySeatPage> createState() => _LibrarySeatPageState();
 }
 
-class LibrarySeatPageState extends State<LibrarySeatPage> {
+class _LibrarySeatPageState extends State<LibrarySeatPage> {
   final scrollController = ScrollController();
 
   @override
@@ -49,6 +52,11 @@ class LibrarySeatPageState extends State<LibrarySeatPage> {
   bool availableOnly = false;
   List<LibrarySeat> visible = [];
   Map<String, int> visibleIndices = {};
+
+  bool submitting = false;
+  bool awaitingVerification = false;
+  String? mutationNotice;
+
   void prepare({bool reset = false}) {
     final query = search.trim().toLowerCase();
     visible = (seats ?? <LibrarySeat>[])
@@ -65,9 +73,6 @@ class LibrarySeatPageState extends State<LibrarySeatPage> {
     };
   }
 
-  bool submitting = false;
-  bool awaitingVerification = false;
-  String? mutationNotice;
   Future<void> reserve(LibrarySeat seat) async {
     if (submitting || awaitingVerification) return;
     final confirmed = await confirmMutation(
@@ -155,19 +160,13 @@ class LibrarySeatPageState extends State<LibrarySeatPage> {
         controller: scrollController,
         key: const Key('library-seats-scroll'),
         slivers: [
-          ApplePageHeader(
-            largeTitle: Text('${widget.slot.start}–${widget.slot.end}'),
-            section: '空间资源',
+          LibraryPageHeader(
+            title: '${widget.slot.start}–${widget.slot.end}',
             subtitle: '${widget.area.name} · 选择空闲座位',
             icon: CupertinoIcons.square_grid_2x2,
-            border: null,
-            trailing: AppleGlassButton(
-              label: '刷新列表',
-              onPressed: busy ? null : load,
-              child: busy
-                  ? const GinkgoActivity(size: 17)
-                  : const Icon(CupertinoIcons.refresh, size: 24),
-            ),
+            refreshLabel: '刷新列表',
+            busy: busy,
+            onRefresh: load,
           ),
           CupertinoSliverRefreshControl(onRefresh: load),
           SliverToBoxAdapter(
@@ -187,19 +186,13 @@ class LibrarySeatPageState extends State<LibrarySeatPage> {
                     ],
                   ),
                 if (error != null && seats == null)
-                  AppleSection(
+                  LibraryEmptyState(
+                    title: error!,
+                    description: '座位列表读取失败，请稍后重试。',
+                    error: true,
+                    action: '重试',
+                    onAction: load,
                     animateSize: false,
-                    children: [
-                      AppleEmptyState(
-                        title: error!,
-                        description: seats == null
-                            ? '座位列表读取失败，请稍后重试。'
-                            : '保留上次座位列表，请刷新后确认状态。',
-                        error: true,
-                        action: '重试',
-                        onAction: load,
-                      ),
-                    ],
                   ),
                 if (seats == null && error == null)
                   const GinkgoLoadingView(label: '正在读取座位…'),
@@ -222,9 +215,9 @@ class LibrarySeatPageState extends State<LibrarySeatPage> {
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                      child: CupertinoSearchTextField(
-                        key: const Key('library-seat-search'),
+                      child: LibraryFilterField(
                         placeholder: '搜索座位编号',
+                        filterKey: const Key('library-seat-search'),
                         onChanged: (value) => setState(() {
                           search = value;
                           prepare(reset: true);
@@ -288,8 +281,10 @@ class LibrarySeatPageState extends State<LibrarySeatPage> {
                   if (key is! ValueKey<String>) return null;
                   return visibleIndices[key.value];
                 },
-                itemBuilder: (context, index) =>
-                    _seatRow(visible[window.start + index], index),
+                itemBuilder: (context, index) => _seatRow(
+                  visible[window.start + index],
+                  index,
+                ),
               ),
             ),
           if (seats != null)
@@ -311,80 +306,16 @@ class LibrarySeatPageState extends State<LibrarySeatPage> {
     ),
   );
 
-  Widget _seatRow(LibrarySeat seat, int index) => ClipRRect(
-    key: ValueKey('library-seat-group-${seat.id}'),
-    borderRadius: BorderRadius.vertical(
-      top: index == 0
-          ? const Radius.circular(AppleDesign.groupRadius)
-          : Radius.zero,
-      bottom: index == window.end - window.start - 1
-          ? const Radius.circular(AppleDesign.groupRadius)
-          : Radius.zero,
-    ),
-    child: ColoredBox(
-      color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(
-        context,
-      ),
-      child: Column(
-        children: [
-          AppleListTile(
-            key: Key('library-seat-${seat.id}'),
-            trailing: seat.available
-                ? ReservationActionButton(
-                    buttonKey: Key('library-reserve-${seat.id}'),
-                    label: '预约',
-                    icon: CupertinoIcons.add_circled,
-                    compact: true,
-                    busy: submitting,
-                    onPressed:
-                        busy ||
-                            error != null ||
-                            submitting ||
-                            awaitingVerification
-                        ? null
-                        : () => reserve(seat),
-                  )
-                : null,
-            leading: Icon(
-              seat.available
-                  ? CupertinoIcons.checkmark_circle_fill
-                  : CupertinoIcons.circle,
-              color:
-                  (seat.available
-                          ? AppleDesign.statusSuccess
-                          : CupertinoColors.tertiaryLabel)
-                      .resolveFrom(context),
-              size: 22,
-            ),
-            title: Text(
-              seat.name,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text(
-              seat.statusName.isEmpty
-                  ? (seat.available ? '空闲' : '不可用')
-                  : seat.statusName,
-              style: TextStyle(
-                color:
-                    (seat.available
-                            ? AppleDesign.statusSuccess
-                            : CupertinoColors.secondaryLabel)
-                        .resolveFrom(context),
-              ),
-            ),
-          ),
-          if (index != visible.length - 1)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                height: 0.5,
-                color: CupertinoColors.separator
-                    .resolveFrom(context)
-                    .withValues(alpha: 0.16),
-              ),
-            ),
-        ],
-      ),
-    ),
+  Widget _seatRow(LibrarySeat seat, int index) => librarySeatRow(
+    context,
+    groupKey: ValueKey('library-seat-group-${seat.id}'),
+    seat: seat,
+    roundedTop: index == 0,
+    roundedBottom: index == window.end - window.start - 1,
+    hasSeparator: index != visible.length - 1,
+    reserveEnabled:
+        !busy && error == null && !submitting && !awaitingVerification,
+    submitting: submitting,
+    onReserve: () => reserve(seat),
   );
 }

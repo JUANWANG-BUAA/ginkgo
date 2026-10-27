@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 
+import 'today_presentation.dart';
+
 /// Keep course times on a visible axis, like the native Today views. At large
 /// type sizes the axis moves above the title so neither field is squeezed.
 class TodayCourseRow extends StatelessWidget {
@@ -48,7 +50,7 @@ class TodayCourseRow extends StatelessWidget {
         ),
         const SizedBox(height: 5),
         Text(
-          course.place?.trim().isNotEmpty == true ? course.place! : '地点未提供',
+          todayCoursePlaceLabel(course.place),
           style: TextStyle(fontSize: 13, color: secondary),
         ),
       ],
@@ -117,8 +119,22 @@ class TodayCourseEmpty extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = CupertinoTheme.of(context).primaryColor;
-    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
     final isLargeText = MediaQuery.textScalerOf(context).scale(1) > 1.3;
+    final failed = error != null;
+    final title = failed ? '今日课程尚未确认' : '今天没有课程';
+    final description = failed
+        ? '课表更新失败，请刷新后再确认今天的安排。'
+        : '当前课表中没有当天课程，可查看完整课表安排学习。';
+    final badge = TodayCourseEmptyBadge(
+      icon: failed
+          ? CupertinoIcons.exclamationmark_triangle_fill
+          : CupertinoIcons.calendar,
+      accent: accent,
+      failed: failed,
+      size: isLargeText ? 36 : 44,
+      iconSize: isLargeText ? 18 : 22,
+      radius: isLargeText ? 10 : 12,
+    );
 
     if (isLargeText) {
       return Padding(
@@ -128,29 +144,11 @@ class TodayCourseEmpty extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: isDark ? 0.16 : 0.09),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      error != null
-                          ? CupertinoIcons.exclamationmark_triangle_fill
-                          : CupertinoIcons.calendar,
-                      size: 18,
-                      color: error != null
-                          ? AppleDesign.statusDanger.resolveFrom(context)
-                          : accent,
-                    ),
-                  ),
-                ),
+                badge,
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    error != null ? '今日课程尚未确认' : '今天没有课程',
+                    title,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -161,9 +159,7 @@ class TodayCourseEmpty extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              error != null
-                  ? '课表更新失败，请刷新后再确认今天的安排。'
-                  : '当前课表中没有当天课程，可查看完整课表安排学习。',
+              description,
               style: TextStyle(
                 fontSize: 13,
                 color: AppleDesign.statusInactive.resolveFrom(context),
@@ -183,25 +179,7 @@ class TodayCourseEmpty extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: isDark ? 0.16 : 0.09),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Icon(
-                error != null
-                    ? CupertinoIcons.exclamationmark_triangle_fill
-                    : CupertinoIcons.calendar,
-                size: 22,
-                color: error != null
-                    ? AppleDesign.statusDanger.resolveFrom(context)
-                    : accent,
-              ),
-            ),
-          ),
+          badge,
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -209,7 +187,7 @@ class TodayCourseEmpty extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  error != null ? '今日课程尚未确认' : '今天没有课程',
+                  title,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -217,9 +195,7 @@ class TodayCourseEmpty extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  error != null
-                      ? '课表更新失败，请刷新后再确认今天的安排。'
-                      : '当前课表中没有当天课程，可查看完整课表安排学习。',
+                  description,
                   style: TextStyle(
                     fontSize: 13,
                     color: AppleDesign.statusInactive.resolveFrom(context),
@@ -257,4 +233,42 @@ class TodayCourseEmpty extends StatelessWidget {
           ),
         ),
       );
+}
+
+/// The icon tile that marks an empty or unconfirmed course list.
+class TodayCourseEmptyBadge extends StatelessWidget {
+  const TodayCourseEmptyBadge({
+    super.key,
+    required this.icon,
+    required this.accent,
+    required this.failed,
+    required this.size,
+    required this.iconSize,
+    required this.radius,
+  });
+
+  final IconData icon;
+  final Color accent;
+  final bool failed;
+  final double size, iconSize, radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: isDark ? 0.16 : 0.09),
+        borderRadius: BorderRadius.circular(radius),
+      ),
+      child: Center(
+        child: Icon(
+          icon,
+          size: iconSize,
+          color: failed ? AppleDesign.statusDanger.resolveFrom(context) : accent,
+        ),
+      ),
+    );
+  }
 }

@@ -131,12 +131,6 @@ class BykcChosenRecord {
     null => '通过待确认',
     final value => '通过状态 $value',
   };
-
-  String get statusLine => [
-    attendanceLabel,
-    resultLabel,
-    if (score != null) '成绩 $score',
-  ].join(' · ');
 }
 
 class BykcChosenCourses {

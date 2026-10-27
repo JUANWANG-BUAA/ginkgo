@@ -6,7 +6,7 @@ import 'package:ginkgo_mirror/application/graduate_credit_map.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/features/graduate/graduate_credit_map_widgets.dart';
+import 'graduate_credit_map_widgets.dart';
 
 /// Parent supplies an account-scoped gateway and identity. This page never
 /// reads credentials, raw school fields, or global native commands.
