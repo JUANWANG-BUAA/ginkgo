@@ -148,10 +148,7 @@ class GraduateCreditProgress extends StatelessWidget {
                 label: '要求学分',
                 value: graduateCreditLabel(required),
               ),
-              AcademicMetric(
-                label: '待考核',
-                value: graduateCreditLabel(pending),
-              ),
+              AcademicMetric(label: '待考核', value: graduateCreditLabel(pending)),
             ],
           ),
           const SizedBox(height: 18),

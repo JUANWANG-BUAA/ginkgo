@@ -1,0 +1,14 @@
+{
+  "contract": "cgyy.lockCode",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "code": 200,
+    "data": {
+      "qrCode": null,
+      "dueDate": null,
+      "orderView": null
+    }
+  },
+  "expected": {}
+}

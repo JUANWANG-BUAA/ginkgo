@@ -39,6 +39,37 @@ Future<live.ReadOnlyResponse> cgyyRead({
   );
 }
 
+Future<live.ReadOnlyResponse> cgyyOrderDetail({
+  required bool demo,
+  required int orderId,
+  CgyyLoader? loader,
+  CampusGateway? service,
+  bool forceRefresh = false,
+}) => cgyyRead(
+  demo: demo,
+  loader: loader,
+  service: service,
+  kind: 'order',
+  siteId: orderId,
+  date: '',
+  forceRefresh: forceRefresh,
+);
+
+Future<live.ReadOnlyResponse> cgyyLockCode({
+  required bool demo,
+  CgyyLoader? loader,
+  CampusGateway? service,
+  bool forceRefresh = false,
+}) => cgyyRead(
+  demo: demo,
+  loader: loader,
+  service: service,
+  kind: 'lockCode',
+  siteId: 0,
+  date: '',
+  forceRefresh: forceRefresh,
+);
+
 /// Reads the local write-protection state of the last CGYY write. A failed or
 /// unknown read keeps the protection on; it never clears it silently.
 Future<CgyyWriteStatus> cgyyReadWriteStatus(CgyyBookingGateway gateway) async {

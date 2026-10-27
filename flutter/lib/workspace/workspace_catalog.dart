@@ -5,7 +5,8 @@ import 'package:ginkgo_mirror/features/checkin/checkin_page.dart';
 import 'package:ginkgo_mirror/features/classroom/classroom_page.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
 import 'package:ginkgo_mirror/features/graduate/graduate_page.dart';
-import 'package:ginkgo_mirror/features/graduate/graduate_credit_map_page.dart';
+import 'package:ginkgo_mirror/features/graduate/graduate_models.dart'
+    show GraduateView;
 import 'package:ginkgo_mirror/features/library/library_loans_page.dart';
 import 'package:ginkgo_mirror/features/grades/grades_page.dart';
 import 'package:ginkgo_mirror/features/homework/homework_page.dart';
@@ -206,9 +207,11 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     title: '研究生学分图',
     icon: CupertinoIcons.chart_bar,
     section: WorkspaceSection.academics,
-    build: (context) => GraduateCreditMapPage(
+    sidebar: false,
+    build: (context) => GraduatePage(
+      demo: context.service.isDemo,
       service: context.service,
-      accountId: context.accountId,
+      initialView: GraduateView.credits,
     ),
   ),
   WorkspaceDestination(

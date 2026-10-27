@@ -80,9 +80,7 @@ class GraduateCourseControls extends StatelessWidget {
           children: [
             AppleEmptyState(
               title: hasCourses ? '没有匹配的课程' : '暂无课程记录',
-              description: hasCourses
-                  ? '调整类别、完成状态或搜索关键词。'
-                  : '学校报告未提供可展示的课程。',
+              description: hasCourses ? '调整类别、完成状态或搜索关键词。' : '学校报告未提供可展示的课程。',
               action: hasCourses ? '清除筛选' : null,
               onAction: onClearFilters,
             ),

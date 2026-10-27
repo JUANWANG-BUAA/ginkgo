@@ -16,8 +16,8 @@ const REVIEW_TTL: Duration = Duration::from_secs(120);
 
 mod protocol;
 use protocol::{
-    base_form, choices, data, encrypt, number, protocol_point, purposes, selections, text,
-    trade_matches, validate,
+    base_form, choices, data, encrypt, fallback_purposes, number, protocol_point, purposes,
+    selections, text, trade_matches, validate,
 };
 
 #[derive(Default)]
@@ -104,16 +104,16 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         }
         Ok(())
     }
-    // Only review/options use this uncached read path. Mutation prechecks and POSTs
+    // Only explicit reads use this uncached path. Mutation prechecks and POSTs
     // deliberately retain their single-attempt policy.
-    async fn load_booking_read(
+    pub(super) async fn load_booking_read(
         &self,
         owner: &BookingOwner,
         kind: &str,
         site: i64,
         date: &str,
     ) -> Result<(Value, String), AppError> {
-        if !matches!(kind, "orders" | "day") {
+        if !matches!(kind, "orders" | "day" | "order" | "lockCode") {
             return Err(AppError::invalid());
         }
         for renew in [false, true] {
@@ -159,7 +159,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             .review = None;
         // Bypass snapshots: failed refresh/fallback must never mint an acknowledgement.
         let (value, _) = self.load_booking_read(owner, "orders", 0, "").await?;
-        let orders = crate::features::cgyy::orders(&value)?;
+        let orders = crate::codecs::cgyy::orders(&value)?;
         let identity = self.identity.lock();
         if identity.generation != owner.generation
             || !identity
@@ -226,15 +226,35 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         let (day, token) = self.load_booking_read(owner, "day", site_id, date).await?;
         let codes = cgyy_http::business(&self.session, "/api/codes", BTreeMap::new(), &token).await;
         self.check_booking_owner(owner)?;
-        let codes = codes?;
+        let (purposes, uses_fallback_purposes) = match codes {
+            Ok(codes) => match data(&codes) {
+                Ok(data) => {
+                    let purposes = purposes(data);
+                    if purposes.is_empty() {
+                        (fallback_purposes(), true)
+                    } else {
+                        (purposes, false)
+                    }
+                }
+                Err(_) => (fallback_purposes(), true),
+            },
+            Err(error)
+                if matches!(
+                    error.code,
+                    ErrorCode::SessionExpired
+                        | ErrorCode::CaptchaRequired
+                        | ErrorCode::InvalidCredentials
+                ) =>
+            {
+                return Err(error);
+            }
+            Err(_) => (fallback_purposes(), true),
+        };
         let mut result = CgyyActionResult::message("options", "请填写用途并选择空闲时段");
-        let purposes = purposes(data(&codes)?);
-        if purposes.is_empty() {
-            return Err(AppError::changed());
-        }
         result.options = Some(BookingOptions {
             choices: choices(&day, date)?,
             purposes,
+            uses_fallback_purposes,
         });
         Ok(result)
     }
@@ -258,7 +278,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         let reservation_token = text(&data(&day)?["token"])
             .ok_or_else(AppError::changed)?
             .to_owned();
-        let week_start = crate::features::cgyy::week_start(&day).unwrap_or_default();
+        let week_start = crate::codecs::cgyy::week_start(&day).unwrap_or_default();
         self.check_booking_owner(owner)?;
         let mut context = BookingContext {
             owner: owner.clone(),

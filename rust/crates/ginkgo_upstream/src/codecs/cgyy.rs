@@ -177,6 +177,62 @@ pub(crate) fn can_cancel(row: &Value) -> bool {
 pub fn orders(value: &Value) -> Result<Vec<Order>, AppError> {
     order_page(value).map(|(orders, _)| orders)
 }
+
+fn order_value(row: &Value) -> Result<Order, AppError> {
+    Ok(Order {
+        order_status: number(&row["orderStatus"]),
+        check_status: number(&row["checkStatus"]),
+        can_cancel: can_cancel(row),
+        id: number(&row["id"]).ok_or_else(AppError::changed)?,
+        place: ["venueName", "siteName", "venueSpaceName"]
+            .iter()
+            .map(|k| text(&row[k]))
+            .filter(|s| !s.is_empty())
+            .collect::<Vec<_>>()
+            .join(" · "),
+        date: text(&row["reservationDate"]),
+        time: format!(
+            "{}–{}",
+            text(&row["reservationStartDate"]),
+            text(&row["reservationEndDate"])
+        ),
+        status: match number(&row["orderStatus"]) {
+            Some(n) => format!("订单状态 {n}"),
+            None => "状态待确认".into(),
+        },
+    })
+}
+
+pub fn order(value: &Value) -> Result<Order, AppError> {
+    order_value(envelope(value)?)
+}
+
+fn optional_text(value: &Value) -> Option<String> {
+    value
+        .as_str()
+        .map(str::trim)
+        .filter(|text| !text.is_empty() && *text != "null")
+        .map(str::to_owned)
+}
+
+pub fn lock_code(value: &Value) -> Result<CgyyLockCode, AppError> {
+    let data = envelope(value)?;
+    let order = &data["orderView"];
+    Ok(CgyyLockCode {
+        qr_code: optional_text(&data["qrCode"]),
+        due_date: optional_text(&data["dueDate"]),
+        trade_no: optional_text(&order["tradeNo"]),
+        venue_name: optional_text(&order["venueName"]),
+        site_name: optional_text(&order["siteName"]),
+        space_name: optional_text(&order["venueSpaceName"]),
+        order_name: optional_text(&order["orderName"]),
+        reservation_date: optional_text(&order["reservationDate"]),
+        reservation_date_detail: optional_text(&order["reservationDateDetail"]),
+        reservation_start_date: optional_text(&order["reservationStartDate"]),
+        reservation_end_date: optional_text(&order["reservationEndDate"]),
+    })
+}
+
 /// One official orders page: the `content` rows plus `totalElements` when the
 /// server reports a usable count. Paging metadata stays a hint, never a promise
 /// that the caller has seen every historical order.
@@ -189,30 +245,7 @@ pub fn order_page(value: &Value) -> Result<(Vec<Order>, Option<i64>), AppError> 
     let total = number(&data["totalElements"]).filter(|count| *count >= 0);
     let orders = rows
         .iter()
-        .map(|row| {
-            Ok(Order {
-                order_status: number(&row["orderStatus"]),
-                check_status: number(&row["checkStatus"]),
-                can_cancel: can_cancel(row),
-                id: number(&row["id"]).ok_or_else(AppError::changed)?,
-                place: ["venueName", "siteName", "venueSpaceName"]
-                    .iter()
-                    .map(|k| text(&row[k]))
-                    .filter(|s| !s.is_empty())
-                    .collect::<Vec<_>>()
-                    .join(" · "),
-                date: text(&row["reservationDate"]),
-                time: format!(
-                    "{}–{}",
-                    text(&row["reservationStartDate"]),
-                    text(&row["reservationEndDate"])
-                ),
-                status: match number(&row["orderStatus"]) {
-                    Some(n) => format!("订单状态 {n}"),
-                    None => "状态待确认".into(),
-                },
-            })
-        })
+        .map(order_value)
         .collect::<Result<Vec<_>, AppError>>()?;
     Ok((orders, total))
 }

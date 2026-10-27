@@ -1,11 +1,14 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
+
 import '../application/contracts.dart' show RouteChoice;
 import '../mirror_service.dart';
+
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 import 'package:ginkgo_mirror/workspace/desktop_workspace_sidebar.dart';
-import 'package:ginkgo_mirror/workspace/workspace_shell.dart' show WorkspaceShellState;
+import 'package:ginkgo_mirror/workspace/workspace_shell.dart'
+    show WorkspaceShellState;
 
 /// 桌面侧栏壳：侧栏 + IndexedStack 惰性挂载各目的地。选中状态、已访问
 /// 集合与导航栈 key 由 [WorkspaceShellState] 持有，与移动壳共享。
@@ -104,7 +107,9 @@ class DesktopWorkspaceShell extends StatelessWidget {
                       child: TickerMode(
                         enabled: selected == destination.id,
                         child: CupertinoTabView(
-                          key: ValueKey('desktop-destination-${destination.id}'),
+                          key: ValueKey(
+                            'desktop-destination-${destination.id}',
+                          ),
                           navigatorKey: shell.navigatorFor(destination.id),
                           builder: (_) => destination.build(_contextFor()),
                         ),

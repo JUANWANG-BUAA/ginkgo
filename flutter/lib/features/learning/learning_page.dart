@@ -6,6 +6,7 @@ import 'package:ginkgo_mirror/application/learning_file_actions.dart';
 import 'package:ginkgo_mirror/infrastructure/learning_file_actions.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
 import 'learning_course_page.dart';
 import 'learning_widgets.dart';
@@ -104,24 +105,29 @@ class _LearningPageState extends State<LearningPage> {
               child: const Icon(CupertinoIcons.refresh),
             ),
           ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: CupertinoSearchTextField(
-                key: ValueKey('learning-search-$epoch'),
-                placeholder: '搜索已加载课程、教师或学期',
-                onChanged: (v) => setState(() => query = v.trim()),
+          if (courses.value?.data.isNotEmpty == true)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: CupertinoSearchTextField(
+                  key: ValueKey('learning-search-$epoch'),
+                  placeholder: '搜索已加载课程、教师或学期',
+                  onChanged: (v) => setState(() => query = v.trim()),
+                ),
               ),
             ),
-          ),
-          SliverToBoxAdapter(
-            child: LearningReadStatus(
-              title: '课程',
-              section: courses,
-              supported: widget.service is LearningCourseGateway,
-              onRefresh: () => _load(force: true),
+          if (widget.service is! LearningCourseGateway)
+            const SliverToBoxAdapter(child: LearningText('当前服务暂不支持课程'))
+          else
+            SliverToBoxAdapter(
+              child: SectionFeedback(
+                loading: courses.loading,
+                label: '正在读取课程…',
+                hasData: courses.value != null,
+                error: courses.error,
+                onRetry: () => _load(force: true),
+              ),
             ),
-          ),
           if (courses.value != null && rows.isEmpty)
             SliverToBoxAdapter(
               child: LearningText(query.isEmpty ? '暂无课程' : '没有匹配的已加载课程'),

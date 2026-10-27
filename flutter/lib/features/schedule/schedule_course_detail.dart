@@ -45,12 +45,18 @@ class ScheduleCourseDetailPage extends StatelessWidget {
           ),
           ScheduleSection(
             children: [
-              ScheduleDetailLine(label: '星期', value: weekdayNames[course.day - 1]),
+              ScheduleDetailLine(
+                label: '星期',
+                value: weekdayNames[course.day - 1],
+              ),
               ScheduleDetailLine(
                 label: '节次',
                 value: '第 ${course.startSection}–${course.endSection} 节',
               ),
-              ScheduleDetailLine(label: '开始时间', value: course.startTime ?? '待定'),
+              ScheduleDetailLine(
+                label: '开始时间',
+                value: course.startTime ?? '待定',
+              ),
               ScheduleDetailLine(label: '结束时间', value: course.endTime ?? '待定'),
               ScheduleDetailLine(label: '地点', value: course.place ?? '待定'),
               ScheduleDetailLine(label: '教师', value: course.teacher ?? '待定'),

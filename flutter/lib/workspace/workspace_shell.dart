@@ -1,11 +1,15 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
+
 import '../application/contracts.dart' show RouteChoice;
+
 import 'package:ginkgo_mirror/features/schedule/course_visibility.dart';
 import 'package:ginkgo_mirror/widgets/diagnostic_hints.dart';
 import 'package:ginkgo_mirror/app/ginkgo_app.dart';
+
 import '../mirror_service.dart';
+
 import 'package:ginkgo_mirror/shared/query_cache_scope.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
 import 'package:ginkgo_mirror/platform/startup_update.dart';

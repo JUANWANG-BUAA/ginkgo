@@ -184,8 +184,12 @@ void main() {
       final f = ContextFake();
       await show(t, f);
       expect(f.requestedColumns, isEmpty);
+      await tap(t, find.text('公告'));
       expect(find.text('请选择公告栏目（不自动使用第一项）'), findsOneWidget);
+      expect(find.text('只读测验'), findsNothing);
+      await tap(t, find.text('测验'));
       expect(find.text('只读测验'), findsOneWidget);
+      await tap(t, find.text('公告'));
       await tap(t, find.byKey(const ValueKey('learning-column-b')));
       expect(f.requestedColumns, ['b']);
       expect(find.text('公告正文b'), findsOneWidget);

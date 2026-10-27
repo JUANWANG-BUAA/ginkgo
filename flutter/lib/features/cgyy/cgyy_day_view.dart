@@ -28,9 +28,7 @@ class CgyyWriteGuardSection extends StatelessWidget {
       Padding(
         padding: const EdgeInsets.all(16),
         child: Text(
-          guardKnown
-              ? '上次操作结果待核实，请先核对最新预约记录。'
-              : '尚未确认写入状态，暂不可提交。请刷新或读取最新记录核对。',
+          guardKnown ? '上次操作结果待核实，请先核对最新预约记录。' : '尚未确认写入状态，暂不可提交。请刷新或读取最新记录核对。',
         ),
       ),
       CupertinoButton(
@@ -157,19 +155,13 @@ List<Widget> cgyyDaySlots(BuildContext context, CgyyDay day) => [
     ),
   ),
   if (day.spaces.isEmpty)
-    const CgyyStatusSection(
-      title: '当天暂无空间时段',
-      description: '可切换其他日期。',
-    ),
+    const CgyyStatusSection(title: '当天暂无空间时段', description: '可切换其他日期。'),
   for (final space in day.spaces)
     AppleSection(
       header: Text(space.name),
       children: [
         if (space.slots.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('暂无时段'),
-          ),
+          const Padding(padding: EdgeInsets.all(16), child: Text('暂无时段')),
         for (final slot in space.slots)
           CgyySlotRow(time: slot.time, status: slot.status),
       ],
@@ -178,26 +170,35 @@ List<Widget> cgyyDaySlots(BuildContext context, CgyyDay day) => [
 
 /// The most recent bookings the school returned.
 class CgyyOrderListSection extends StatelessWidget {
-  const CgyyOrderListSection({super.key, required this.orders});
+  const CgyyOrderListSection({
+    super.key,
+    required this.orders,
+    required this.onOpen,
+  });
   final List<CgyyOrder> orders;
+  final ValueChanged<CgyyOrder> onOpen;
 
   @override
   Widget build(BuildContext context) => AppleSection(
     header: const Text('最近最多 20 条'),
     children: [
       for (final order in orders)
-        CgyyTileContent(
-          icon: CupertinoIcons.doc_text,
-          tint: CupertinoColors.systemIndigo,
-          title: order.place.isEmpty ? '预约记录' : order.place,
-          detail: '${cgyyDisplayDate(order.date)}\n${order.time}',
-          badges: [
-            AcademicBadge(
-              order.statusLabel,
-              tint: CupertinoColors.systemIndigo,
-              icon: CupertinoIcons.info_circle,
-            ),
-          ],
+        CgyyInteractiveRow(
+          onTap: () => onOpen(order),
+          child: CgyyTileContent(
+            icon: CupertinoIcons.doc_text,
+            tint: CupertinoColors.systemIndigo,
+            title: order.place.isEmpty ? '预约记录' : order.place,
+            detail: '${cgyyDisplayDate(order.date)}\n${order.time}',
+            badges: [
+              AcademicBadge(
+                order.statusLabel,
+                tint: CupertinoColors.systemIndigo,
+                icon: CupertinoIcons.info_circle,
+              ),
+            ],
+            chevron: true,
+          ),
         ),
     ],
   );

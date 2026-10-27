@@ -2,11 +2,13 @@ import 'package:flutter/cupertino.dart';
 
 import '../application/contracts.dart' show RouteChoice;
 import '../mirror_service.dart';
+
 import 'package:ginkgo_mirror/widgets/reminder_badge.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
 import 'package:ginkgo_mirror/workspace/workspace_back_guard.dart';
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
-import 'package:ginkgo_mirror/workspace/workspace_shell.dart' show WorkspaceShellState;
+import 'package:ginkgo_mirror/workspace/workspace_shell.dart'
+    show WorkspaceShellState;
 import 'package:ginkgo_mirror/workspace/workspace_tab_transition.dart';
 
 /// 移动标签壳：底部导航 + 每个目的地一个常驻导航栈。选中状态与导航栈

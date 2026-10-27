@@ -6,6 +6,8 @@ pub enum CgyyQuery {
     Venues,
     Day { site_id: i64, date: String },
     Orders,
+    Order { order_id: i64 },
+    LockCode,
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -14,6 +16,8 @@ pub enum CgyyData {
     Venues(Vec<crate::features::cgyy::Site>),
     Day(crate::features::cgyy::Day),
     Orders(Vec<crate::features::cgyy::Order>),
+    Order(crate::features::cgyy::Order),
+    LockCode(crate::features::cgyy::CgyyLockCode),
 }
 
 pub trait CgyySource: Send + Sync {

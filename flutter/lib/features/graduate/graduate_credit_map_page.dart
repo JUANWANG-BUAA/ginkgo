@@ -6,7 +6,93 @@ import 'package:ginkgo_mirror/application/graduate_credit_map.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
+
 import 'graduate_credit_map_widgets.dart';
+
+Future<void> refreshGraduateCreditMap(
+  RefreshSection<GraduateCreditMapRead> target,
+  Object service, {
+  bool force = false,
+}) {
+  if (service is! GraduateCreditMapGateway) return Future.value();
+  return target.refresh(
+    () async {
+      GraduateCreditMapRead result;
+      try {
+        result = await service.graduateCreditMap(forceRefresh: force);
+      } on TimeoutException {
+        result = const GraduateCreditMapRead(
+          issue: GraduateCreditReadIssue(GraduateCreditIssueKind.timeout),
+        );
+      } catch (_) {
+        result = const GraduateCreditMapRead(
+          issue: GraduateCreditReadIssue(GraduateCreditIssueKind.unknown),
+        );
+      }
+      final authentication =
+          result.issue?.kind == GraduateCreditIssueKind.authentication;
+      if (authentication) target.value = null;
+      return SectionResult(
+        value: authentication || result.data == null ? null : result,
+        error:
+            result.issue?.message ??
+            (result.data == null ? '暂未取得可确认的执行报告' : null),
+      );
+    },
+    fallbackError: '暂未取得可确认的执行报告',
+    force: force,
+  );
+}
+
+class GraduateCreditMapView extends StatelessWidget {
+  const GraduateCreditMapView({
+    super.key,
+    required this.report,
+    required this.supported,
+  });
+
+  final RefreshSection<GraduateCreditMapRead> report;
+  final bool supported;
+
+  List<Widget> children(BuildContext context) {
+    final read = report.value;
+    final data = read?.data;
+    return [
+      if (!supported)
+        const GraduateCreditMapNotice('当前服务未接入学分地图；未发起学校读取，不能据此判断接口失效'),
+      if (report.loading)
+        const Padding(
+          padding: EdgeInsets.all(20),
+          child: GinkgoActivity(size: 24),
+        ),
+      if (report.error case final error?)
+        GraduateCreditMapNotice(
+          '${data == null ? '' : '保留上次成功内容。'}$error',
+          warning: true,
+        ),
+      if (read?.stale == true && report.error == null)
+        const GraduateCreditMapNotice('当前显示上次成功内容，尚未取得最新报告', warning: true),
+      if (data != null) ...[
+        if (data.notice case final notice?) GraduateCreditMapNotice(notice),
+        if (data.isEmpty) const GraduateCreditMapNotice('学校返回的执行报告暂无条目'),
+        if (data.summary case final summary?)
+          GraduateCreditMapNodeCard(node: summary, summary: true),
+        if (!data.isEmpty && data.summary == null)
+          const GraduateCreditMapNotice(
+            '未提供可确认的执行报告总进度。以下可能是方案课程池，不推算总学分或毕业缺口。',
+            warning: true,
+          ),
+        for (final node in data.nodes) GraduateCreditMapNodeCard(node: node),
+        const GraduateCreditMapNotice(
+          '类别、课组和课程可能重叠，不累加为总学分；待考核不计入已获，缺失值显示“未确认”。',
+        ),
+      ],
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) => Column(children: children(context));
+}
 
 /// Parent supplies an account-scoped gateway and identity. This page never
 /// reads credentials, raw school fields, or global native commands.
@@ -39,38 +125,8 @@ class _GraduateCreditMapPageState extends State<GraduateCreditMapPage> {
     if (mounted) setState(() {});
   }
 
-  Future<void> _load({bool force = false}) {
-    final service = widget.service;
-    if (service is! GraduateCreditMapGateway) return Future.value();
-    final target = report;
-    return target.refresh(
-      () async {
-        GraduateCreditMapRead result;
-        try {
-          result = await service.graduateCreditMap(forceRefresh: force);
-        } on TimeoutException {
-          result = const GraduateCreditMapRead(
-            issue: GraduateCreditReadIssue(GraduateCreditIssueKind.timeout),
-          );
-        } catch (_) {
-          result = const GraduateCreditMapRead(
-            issue: GraduateCreditReadIssue(GraduateCreditIssueKind.unknown),
-          );
-        }
-        final authentication =
-            result.issue?.kind == GraduateCreditIssueKind.authentication;
-        if (authentication) target.value = null;
-        return SectionResult(
-          value: authentication || result.data == null ? null : result,
-          error:
-              result.issue?.message ??
-              (result.data == null ? '暂未取得可确认的执行报告' : null),
-        );
-      },
-      fallbackError: '暂未取得可确认的执行报告',
-      force: force,
-    );
-  }
+  Future<void> _load({bool force = false}) =>
+      refreshGraduateCreditMap(report, widget.service, force: force);
 
   @override
   void didUpdateWidget(covariant GraduateCreditMapPage oldWidget) {
@@ -91,8 +147,6 @@ class _GraduateCreditMapPageState extends State<GraduateCreditMapPage> {
   @override
   Widget build(BuildContext context) {
     final supported = widget.service is GraduateCreditMapGateway;
-    final read = report.value;
-    final data = read?.data;
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
         context,
@@ -113,60 +167,12 @@ class _GraduateCreditMapPageState extends State<GraduateCreditMapPage> {
               child: const Icon(CupertinoIcons.refresh),
             ),
           ),
-          if (!supported)
-            const SliverToBoxAdapter(
-              child: GraduateCreditMapNotice('当前服务未接入学分地图；未发起学校读取，不能据此判断接口失效'),
-            ),
-          if (report.loading)
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.all(20),
-                child: GinkgoActivity(size: 24),
-              ),
-            ),
-          if (report.error case final error?)
-            SliverToBoxAdapter(
-              child: GraduateCreditMapNotice(
-                '${data == null ? '' : '保留上次成功内容。'}$error',
-                warning: true,
-              ),
-            ),
-          if (read?.stale == true && report.error == null)
-            const SliverToBoxAdapter(
-              child: GraduateCreditMapNotice(
-                '当前显示上次成功内容，尚未取得最新报告',
-                warning: true,
-              ),
-            ),
-          if (data != null) ...[
-            if (data.notice case final notice?)
-              SliverToBoxAdapter(child: GraduateCreditMapNotice(notice)),
-            if (data.isEmpty)
-              const SliverToBoxAdapter(
-                child: GraduateCreditMapNotice('学校返回的执行报告暂无条目'),
-              ),
-            if (data.summary case final summary?)
-              SliverToBoxAdapter(
-                child: GraduateCreditMapNodeCard(node: summary, summary: true),
-              ),
-            if (!data.isEmpty && data.summary == null)
-              const SliverToBoxAdapter(
-                child: GraduateCreditMapNotice(
-                  '未提供可确认的执行报告总进度。以下可能是方案课程池，不推算总学分或毕业缺口。',
-                  warning: true,
-                ),
-              ),
-            SliverList.builder(
-              itemCount: data.nodes.length,
-              itemBuilder: (context, index) =>
-                  GraduateCreditMapNodeCard(node: data.nodes[index]),
-            ),
-            const SliverToBoxAdapter(
-              child: GraduateCreditMapNotice(
-                '类别、课组和课程可能重叠，不累加为总学分；待考核不计入已获，缺失值显示“未确认”。',
-              ),
-            ),
-          ],
+          SliverList.list(
+            children: GraduateCreditMapView(
+              report: report,
+              supported: supported,
+            ).children(context),
+          ),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),

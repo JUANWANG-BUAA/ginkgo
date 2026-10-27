@@ -460,6 +460,8 @@ void main() {
       await tester.pumpAndSettle();
       await tapTab(tester, '课表');
       await tester.pumpAndSettle();
+      await tester.tap(find.text('周课表'));
+      await tester.pumpAndSettle();
       final horizontal = find.byKey(const Key('schedule-grid-horizontal'));
       final horizontalState = tester.state<ScrollableState>(
         find

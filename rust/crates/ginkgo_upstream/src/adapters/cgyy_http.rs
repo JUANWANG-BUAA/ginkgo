@@ -1,7 +1,7 @@
 //! CGYY fixed direct routing, signed read-only endpoints (API §6B).
 use crate::{
     auth::{cas, session::Session, Credentials},
-    features::cgyy,
+    codecs::cgyy,
     foundation::http::{HttpRequest, HttpResponse, HttpTransport},
     AppError, ErrorCode,
 };
@@ -187,6 +187,23 @@ pub async fn load<T: HttpTransport>(
     date: &str,
     token: Option<&str>,
 ) -> Result<Value, AppError> {
+    if kind == "order" {
+        if site <= 0 {
+            return Err(AppError::invalid());
+        }
+        return decode(
+            session,
+            request(&format!("/api/orders/{site}"), BTreeMap::new(), token, None),
+        )
+        .await;
+    }
+    if kind == "lockCode" {
+        return decode(
+            session,
+            request("/api/orders/lock/code", BTreeMap::new(), token, None),
+        )
+        .await;
+    }
     let (path, params) = match kind {
         "venues" => (
             "/api/front/website/venues",

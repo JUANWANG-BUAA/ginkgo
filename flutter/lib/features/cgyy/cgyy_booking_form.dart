@@ -58,10 +58,7 @@ class CgyySlotSection extends StatelessWidget {
       children: [
         if (loading) const GinkgoLoadingView(label: '正在读取预约信息…'),
         if (loaded && choices.isEmpty)
-          const AppleEmptyState(
-            title: '当天暂无可预约空间',
-            description: '请返回切换日期或场地。',
-          ),
+          const AppleEmptyState(title: '当天暂无可预约空间', description: '请返回切换日期或场地。'),
         for (final entry in spaces.entries)
           CgyySlotGrid(
             spaceId: entry.key,
@@ -119,11 +116,7 @@ class CgyyDetailsSection extends StatelessWidget {
         number: true,
         enabled: enabled,
       ),
-      CgyyBookingTextField(
-        label: '活动主题',
-        controller: theme,
-        enabled: enabled,
-      ),
+      CgyyBookingTextField(label: '活动主题', controller: theme, enabled: enabled),
       CgyyPurposePicker(
         purposes: purposes,
         purposeId: purposeId,
@@ -150,9 +143,7 @@ class CgyyDetailsSection extends StatelessWidget {
         title: const Text('哲学社会科学类'),
         trailing: CupertinoSwitch(
           value: philosophy,
-          onChanged: enabled
-              ? (value) => onTogglePhilosophy(value)
-              : null,
+          onChanged: enabled ? (value) => onTogglePhilosophy(value) : null,
         ),
       ),
       AppleListTile(

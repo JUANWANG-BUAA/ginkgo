@@ -6,6 +6,7 @@ import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
 import 'cgyy_day_page.dart';
 import 'cgyy_gateway.dart';
+import 'cgyy_lock_code_page.dart';
 import 'cgyy_models.dart';
 import 'cgyy_widgets.dart';
 
@@ -111,7 +112,7 @@ class _CgyyPageState extends State<CgyyPage> {
             const Padding(
               padding: EdgeInsets.fromLTRB(24, 12, 24, 0),
               child: Text(
-                '教学楼空间与时段',
+                '预约研讨室',
                 style: TextStyle(
                   fontSize: 13,
                   color: CupertinoColors.secondaryLabel,
@@ -127,6 +128,24 @@ class _CgyyPageState extends State<CgyyPage> {
                     tint: CupertinoColors.systemIndigo,
                     title: '我的预约记录',
                     detail: '最近最多 20 条',
+                    chevron: true,
+                  ),
+                ),
+                CgyyInteractiveRow(
+                  onTap: () => Navigator.of(context).push(
+                    CupertinoPageRoute<void>(
+                      builder: (_) => CgyyLockCodePage(
+                        demo: widget.demo,
+                        loader: widget.loader,
+                        service: widget.service,
+                      ),
+                    ),
+                  ),
+                  child: CgyyTileContent(
+                    icon: CupertinoIcons.lock_open,
+                    tint: CupertinoColors.systemTeal,
+                    title: '门锁密码',
+                    detail: '查看当前可开门密码与有效期',
                     chevron: true,
                   ),
                 ),

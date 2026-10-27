@@ -116,8 +116,7 @@ class _CgyyCaptchaPageState extends State<CgyyCaptchaPage> {
       final confirmed = await showCgyyConfirmDialog(
         context,
         title: '提交预约？',
-        content:
-            '${widget.summary}\n\n将验证你手动拖动的拼图并提交一次预约。受理不等于审批成功，提交后需回查。',
+        content: '${widget.summary}\n\n将验证你手动拖动的拼图并提交一次预约。受理不等于审批成功，提交后需回查。',
         cancelLabel: '取消',
         confirmLabel: '提交一次',
         isDefault: true,

@@ -219,10 +219,7 @@ class GraduateProfileView extends StatelessWidget {
       if (sections?.isEmpty == true)
         const AppleSection(
           children: [
-            AppleEmptyState(
-              title: '暂无学籍信息',
-              description: '学校未返回可展示的学籍字段。',
-            ),
+            AppleEmptyState(title: '暂无学籍信息', description: '学校未返回可展示的学籍字段。'),
           ],
         ),
     ],

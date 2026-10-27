@@ -138,26 +138,26 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
   /// school request.
   CgyyBookingDraft buildDraft(List<CgyyBookingChoice> selected) =>
       CgyyBookingDraft(
-    siteId: widget.siteId,
-    siteName: widget.siteName,
-    date: widget.date,
-    spaceId: space ?? 0,
-    spaceName: selected.isEmpty ? '' : selected.first.spaceName,
-    timeIds: times.toList()..sort(),
-    times: selected.map((c) => c.time).toList(),
-    participantCount: count.text,
-    purposeId: purpose ?? 0,
-    purposeName: purposes
-        .where((p) => p.id == purpose)
-        .map((p) => p.name)
-        .join(),
-    phone: phone.text,
-    theme: theme.text.trim(),
-    content: content.text.trim(),
-    joiners: joiners.text.trim(),
-    philosophy: philosophy,
-    offSchool: offSchool,
-  );
+        siteId: widget.siteId,
+        siteName: widget.siteName,
+        date: widget.date,
+        spaceId: space ?? 0,
+        spaceName: selected.isEmpty ? '' : selected.first.spaceName,
+        timeIds: times.toList()..sort(),
+        times: selected.map((c) => c.time).toList(),
+        participantCount: count.text,
+        purposeId: purpose ?? 0,
+        purposeName: purposes
+            .where((p) => p.id == purpose)
+            .map((p) => p.name)
+            .join(),
+        phone: phone.text,
+        theme: theme.text.trim(),
+        content: content.text.trim(),
+        joiners: joiners.text.trim(),
+        philosophy: philosophy,
+        offSchool: offSchool,
+      );
 
   Future<void> prepare() async {
     if (busy || loading || review || leaving) return;
@@ -184,8 +184,7 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
       final confirmed = await showCgyyConfirmDialog(
         context,
         title: '确认预约信息',
-        content:
-            '$bookingSummary\n\n将创建学校预约草稿，完成手动拼图后提交一次。结果不明时仅回查，不自动重发。',
+        content: '$bookingSummary\n\n将创建学校预约草稿，完成手动拼图后提交一次。结果不明时仅回查，不自动重发。',
         cancelLabel: '取消',
         confirmLabel: '继续验证',
         isDefault: true,
@@ -285,10 +284,7 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
             const CgyyPageHeader(title: '预约研讨室'),
             SliverList.list(
               children: [
-                CgyyVenueSection(
-                  siteName: widget.siteName,
-                  date: widget.date,
-                ),
+                CgyyVenueSection(siteName: widget.siteName, date: widget.date),
                 CgyySlotSection(
                   loading: loading,
                   loaded: options != null,
@@ -321,6 +317,8 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
                     }),
                     enabled: !busy && !review,
                   ),
+                if (options?.usesFallbackPurposes == true)
+                  const CgyyNoticeSection(message: '学校用途暂未取得，已使用内置用途列表'),
                 if (notice != null) CgyyNoticeSection(message: notice!),
                 CgyyBookingActionsSection(
                   busy: busy,

@@ -1,12 +1,12 @@
 //! Synthetic campus use cases. Fixtures and response decoding never live in FFI.
 use crate::AppError;
 
-pub fn load_demo_bykc() -> Result<crate::features::bykc::Catalog, AppError> {
+pub fn load_demo_bykc() -> Result<crate::codecs::bykc::Catalog, AppError> {
     let fixture: serde_json::Value = serde_json::from_str(include_str!(
         "../../../../../fixtures/bykc/catalog-normal-v1.json"
     ))
     .map_err(|_| AppError::changed())?;
-    crate::features::bykc::parse_catalog(
+    crate::codecs::bykc::parse_catalog(
         &fixture["input"]["config"],
         fixture["input"]["pages"]
             .as_array()
@@ -14,14 +14,14 @@ pub fn load_demo_bykc() -> Result<crate::features::bykc::Catalog, AppError> {
     )
 }
 
-pub fn load_demo_bykc_chosen() -> Result<crate::features::bykc::ChosenCourses, AppError> {
+pub fn load_demo_bykc_chosen() -> Result<crate::codecs::bykc::ChosenCourses, AppError> {
     let fixture: serde_json::Value = serde_json::from_str(include_str!(
         "../../../../../fixtures/bykc/chosen-normal-v1.json"
     ))
     .map_err(|_| AppError::changed())?;
-    let courses = crate::features::bykc::parse_chosen(&fixture["input"])?;
-    Ok(crate::features::bykc::ChosenCourses {
-        term: Some(crate::features::bykc::Semester {
+    let courses = crate::codecs::bykc::parse_chosen(&fixture["input"])?;
+    Ok(crate::codecs::bykc::ChosenCourses {
+        term: Some(crate::codecs::bykc::Semester {
             id: "1".into(),
             name: "合成学期".into(),
             start: Some("2026-09-01 00:00:00".into()),
@@ -31,31 +31,31 @@ pub fn load_demo_bykc_chosen() -> Result<crate::features::bykc::ChosenCourses, A
     })
 }
 
-pub fn load_demo_bykc_statistics() -> Result<crate::features::bykc::LearningStatistics, AppError> {
+pub fn load_demo_bykc_statistics() -> Result<crate::codecs::bykc::LearningStatistics, AppError> {
     let fixture: serde_json::Value = serde_json::from_str(include_str!(
         "../../../../../fixtures/bykc/statistics-normal-v1.json"
     ))
     .map_err(|_| AppError::changed())?;
-    crate::features::bykc::parse_statistics(&fixture["input"])
+    crate::codecs::bykc::parse_statistics(&fixture["input"])
 }
 
-pub fn load_demo_graduate() -> Result<crate::features::graduate::AcademicData, AppError> {
+pub fn load_demo_graduate() -> Result<crate::codecs::graduate::AcademicData, AppError> {
     let fixture: serde_json::Value = serde_json::from_str(include_str!(
         "../../../../../fixtures/graduate/execution-normal-v1.json"
     ))
     .map_err(|_| AppError::changed())?;
-    Ok(crate::features::graduate::AcademicData {
-        sections: crate::features::graduate::parse_execution(&fixture["input"])?,
+    Ok(crate::codecs::graduate::AcademicData {
+        sections: crate::codecs::graduate::parse_execution(&fixture["input"])?,
         notice: None,
     })
 }
 
-pub fn load_demo_notices() -> Result<Vec<crate::features::notices::Notice>, AppError> {
+pub fn load_demo_notices() -> Result<Vec<crate::codecs::notices::Notice>, AppError> {
     let fixture: serde_json::Value = serde_json::from_str(include_str!(
         "../../../../../fixtures/notices/normal-v1.json"
     ))
     .map_err(|_| AppError::changed())?;
-    crate::features::notices::parse(
+    crate::codecs::notices::parse(
         fixture["input"]["html"]
             .as_str()
             .ok_or_else(AppError::changed)?,
@@ -67,29 +67,29 @@ pub fn load_demo_cgyy(kind: String) -> Result<serde_json::Value, AppError> {
         "venues" => include_str!("../../../../../fixtures/cgyy/venues-normal-v1.json"),
         "day" => include_str!("../../../../../fixtures/cgyy/day-normal-v1.json"),
         "orders" => include_str!("../../../../../fixtures/cgyy/orders-normal-v1.json"),
+        "order" => include_str!("../../../../../fixtures/cgyy/order-detail-normal-v1.json"),
+        "lockCode" => include_str!("../../../../../fixtures/cgyy/lock-code-normal-v1.json"),
         _ => return Err(AppError::invalid()),
     })
     .map_err(|_| AppError::changed())?;
     crate::services::execute_contract(&format!("cgyy.{kind}"), 1, fixture["input"].clone())
 }
 
-pub fn graduate_status() -> Result<crate::features::graduate::AcademicData, AppError> {
+pub fn graduate_status() -> Result<crate::codecs::graduate::AcademicData, AppError> {
     let status = serde_json::json!({"datas":{"xsjcxxcx":{"rows":[{
         "YXDM_DISPLAY":"合成学院", "ZYDM_DISPLAY":"合成专业", "NJDM_DISPLAY":"2026级", "XJZTDM_DISPLAY":"在读"
     }]}}});
-    Ok(crate::features::graduate::AcademicData {
-        sections: vec![crate::features::graduate::parse_status(&status)?],
+    Ok(crate::codecs::graduate::AcademicData {
+        sections: vec![crate::codecs::graduate::parse_status(&status)?],
         notice: None,
     })
 }
-pub fn library_history(
-    page: i32,
-) -> Result<crate::features::library::LibraryHistoryPage, AppError> {
+pub fn library_history(page: i32) -> Result<crate::codecs::library::LibraryHistoryPage, AppError> {
     let fixture: serde_json::Value = serde_json::from_str(include_str!(
         "../../../../../fixtures/library/history-normal-v1.json"
     ))
     .map_err(|_| AppError::changed())?;
-    let mut data = crate::features::library::parse_history(&fixture["input"]["data"], 1, 40)?;
+    let mut data = crate::codecs::library::parse_history(&fixture["input"]["data"], 1, 40)?;
     if page != 1 {
         data.bookings.clear();
     }
@@ -99,12 +99,12 @@ pub fn library_history(
     data.has_next = false;
     Ok(data)
 }
-pub fn library_stats() -> Result<Vec<crate::features::library_stats::CampusStats>, AppError> {
+pub fn library_stats() -> Result<Vec<crate::codecs::library_stats::CampusStats>, AppError> {
     let fixture: serde_json::Value = serde_json::from_str(include_str!(
         "../../../../../fixtures/library/stats-normal-v1.json"
     ))
     .map_err(|_| AppError::changed())?;
-    crate::features::library_stats::parse(
+    crate::codecs::library_stats::parse(
         fixture["input"]["html"]
             .as_str()
             .ok_or_else(AppError::changed)?,

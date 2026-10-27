@@ -208,8 +208,11 @@ class CourseRangePage extends StatelessWidget {
                       value: !preferences.hidden(system, course.key),
                       onChanged: preferences.loadFailed
                           ? null
-                          : (value) =>
-                                preferences.setHidden(system, course.key, !value),
+                          : (value) => preferences.setHidden(
+                              system,
+                              course.key,
+                              !value,
+                            ),
                     ),
                   ),
               ],

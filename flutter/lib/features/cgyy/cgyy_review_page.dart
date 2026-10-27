@@ -79,8 +79,7 @@ class _CgyyReviewPageState extends State<CgyyReviewPage> {
       final confirmed = await showCgyyConfirmDialog(
         context,
         title: '已确认上次操作结果？',
-        content:
-            '这里只解除本机写入保护，不会预约或取消。记录仅覆盖有界分页读到的最近最多 20 条；若未找到目标，请先到学校预约页面核实，不能把列表为空当作未提交。解除后也不会自动重发。',
+        content: '这里只解除本机写入保护，不会预约或取消。记录仅覆盖有界分页读到的最近最多 20 条；若未找到目标，请先到学校预约页面核实，不能把列表为空当作未提交。解除后也不会自动重发。',
         cancelLabel: '继续核对',
         confirmLabel: '确认解除',
         confirmKey: const Key('cgyy-review-confirm'),

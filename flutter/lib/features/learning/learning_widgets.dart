@@ -154,7 +154,12 @@ class LearningReadStatus<T> extends StatelessWidget {
 }
 
 class LearningText extends StatelessWidget {
-  const LearningText(this.text, {super.key, this.heading = false, this.warning = false});
+  const LearningText(
+    this.text, {
+    super.key,
+    this.heading = false,
+    this.warning = false,
+  });
   final String text;
   final bool heading, warning;
   @override

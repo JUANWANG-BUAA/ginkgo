@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart' as live;
+import 'package:ginkgo_mirror/application/graduate_credit_map.dart';
+import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/long_page_scroll.dart';
@@ -8,6 +10,7 @@ import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
 import 'graduate_course_controls.dart';
 import 'graduate_course_widgets.dart';
+import 'graduate_credit_map_page.dart';
 import 'graduate_models.dart';
 import 'graduate_sections.dart';
 
@@ -19,10 +22,17 @@ typedef GraduateLoader = Future<live.ReadOnlyResponse> Function({
 });
 
 class GraduatePage extends StatefulWidget {
-  const GraduatePage({super.key, this.demo = false, this.loader, this.service});
+  const GraduatePage({
+    super.key,
+    this.demo = false,
+    this.loader,
+    this.service,
+    this.initialView = GraduateView.credits,
+  });
   final bool demo;
   final GraduateLoader? loader;
   final CampusGateway? service;
+  final GraduateView initialView;
   @override
   State<GraduatePage> createState() => _GraduatePageState();
 }
@@ -47,22 +57,34 @@ class _GraduatePageState extends State<GraduatePage> {
   String category = '全部类别';
   List<String> categories = ['全部类别'];
   List<GraduateCourseEntry> courses = [], visibleCourses = [];
-  bool get busy => status.loading || report.loading;
+  late RefreshSection<GraduateCreditMapRead> creditMap;
+  bool get busy => status.loading || report.loading || creditMap.loading;
   @override
   void initState() {
     super.initState();
+    view = widget.initialView;
+    creditMap = RefreshSection()..addListener(_creditChanged);
     load();
+  }
+
+  void _creditChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void didUpdateWidget(GraduatePage oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialView != widget.initialView) {
+      view = widget.initialView;
+    }
     if (oldWidget.service != widget.service ||
         oldWidget.loader != widget.loader ||
         oldWidget.demo != widget.demo) {
       generation++;
       status = _AcademicPart();
       report = _AcademicPart();
+      creditMap.dispose();
+      creditMap = RefreshSection()..addListener(_creditChanged);
       courses = [];
       visibleCourses = [];
       categories = ['全部类别'];
@@ -78,6 +100,7 @@ class _GraduatePageState extends State<GraduatePage> {
   @override
   void dispose() {
     generation++;
+    creditMap.dispose();
     search.dispose();
     scrollController.dispose();
     super.dispose();
@@ -119,6 +142,11 @@ class _GraduatePageState extends State<GraduatePage> {
   Future<void> load({bool force = false}) => Future.wait([
     _loadPart(status, force: force),
     _loadPart(report, force: force),
+    refreshGraduateCreditMap(
+      creditMap,
+      widget.service ?? Object(),
+      force: force,
+    ),
   ]);
 
   Future<void> _loadPart(_AcademicPart part, {bool force = false}) =>
@@ -233,10 +261,7 @@ class _GraduatePageState extends State<GraduatePage> {
                 ),
                 sliver: SliverList.list(
                   children: [
-                    GraduateViewSwitcher(
-                      view: view,
-                      onChanged: selectView,
-                    ),
+                    GraduateViewSwitcher(view: view, onChanged: selectView),
                     if (view != GraduateView.profile)
                       GraduatePartNotices(
                         title: '培养方案执行报告',
@@ -297,9 +322,24 @@ class _GraduatePageState extends State<GraduatePage> {
                                 reportDataExpanded = value,
                           ),
                         ),
+                      if (widget.service is GraduateCreditMapGateway) ...[
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(24, 20, 24, 4),
+                          child: Text(
+                            '详细学分地图',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        ...GraduateCreditMapView(
+                          report: creditMap,
+                          supported: true,
+                        ).children(context),
+                      ],
                     ],
-                    if (view == GraduateView.courses &&
-                        report.sections != null)
+                    if (view == GraduateView.courses && report.sections != null)
                       GraduateCourseControls(
                         search: search,
                         category: category,

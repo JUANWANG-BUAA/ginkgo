@@ -5,6 +5,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/design/academic_widgets.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_gateway.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/features/reservations/reservation_widgets.dart';
@@ -16,6 +18,47 @@ Object fixture(String name) => (jsonDecode(
 ) as Map)['expected'];
 
 void main() {
+  test('CGYY order and lock code projections preserve three states', () {
+    final order = cgyyOrder(
+      jsonEncode({
+        'id': 42,
+        'place': '合成楼',
+        'date': '2026-10-27',
+        'time': '08:00–09:00',
+        'status': '订单状态 1',
+      }),
+    );
+    expect(order.id, 42);
+    final active = cgyyLockCodeData(
+      jsonEncode({'qrCode': '246810', 'tradeNo': 'synthetic-trade'}),
+    );
+    final upcoming = cgyyLockCodeData(
+      jsonEncode({'qrCode': 'null', 'reservationDate': '2026-10-28'}),
+    );
+    final empty = cgyyLockCodeData('{}');
+    expect(active.hasPassword, isTrue);
+    expect(upcoming.hasPassword, isFalse);
+    expect(upcoming.hasUpcomingReservation, isTrue);
+    expect(empty.hasUpcomingReservation, isFalse);
+  });
+
+  test('CGYY detail helpers use the existing bounded gateway shapes', () async {
+    final calls = <String>[];
+    Future<ReadOnlyResponse> loader({
+      required String kind,
+      required int siteId,
+      required String date,
+      required bool forceRefresh,
+    }) async {
+      calls.add('$kind/$siteId/$date');
+      return const ReadOnlyResponse(payload: '{}', stale: false);
+    }
+
+    await cgyyOrderDetail(demo: false, loader: loader, orderId: 42);
+    await cgyyLockCode(demo: false, loader: loader);
+    expect(calls, ['order/42/', 'lockCode/0/']);
+  });
+
   testWidgets(
     'narrow dark CGYY shows capacity, semantic slots, date action and raw order status',
     (tester) async {

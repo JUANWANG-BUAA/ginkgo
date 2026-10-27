@@ -9,7 +9,7 @@ use serde_json::{json, Value};
 use std::collections::BTreeMap;
 
 pub(super) fn number(v: &Value) -> Option<i64> {
-    crate::features::cgyy::number(v)
+    crate::codecs::cgyy::number(v)
 }
 
 pub(super) fn text(v: &Value) -> Option<&str> {
@@ -17,7 +17,7 @@ pub(super) fn text(v: &Value) -> Option<&str> {
 }
 
 pub(super) fn data(value: &Value) -> Result<&Value, AppError> {
-    crate::features::cgyy::envelope(value)
+    crate::codecs::cgyy::envelope(value)
 }
 
 pub(super) fn validate(booking: &BookingRequest) -> Result<(), AppError> {
@@ -53,7 +53,7 @@ pub(super) fn validate(booking: &BookingRequest) -> Result<(), AppError> {
 
 pub(super) fn choices(value: &Value, date: &str) -> Result<Vec<BookingChoice>, AppError> {
     // Reuse strict read parser's availability semantics; never infer missing cells.
-    let parsed = crate::features::cgyy::day(value, 1, date)?;
+    let parsed = crate::codecs::cgyy::day(value, 1, date)?;
     let root = data(value)?;
     let rows = root["reservationDateSpaceInfo"][date]
         .as_array()
@@ -136,6 +136,28 @@ pub(super) fn purposes(value: &Value) -> Vec<Purpose> {
         .into_iter()
         .map(|(id, name)| Purpose { id, name })
         .collect()
+}
+
+pub(super) fn fallback_purposes() -> Vec<Purpose> {
+    [
+        "导学活动类",
+        "学业支持类（串讲、答疑、学习小组讨论等）",
+        "学术研讨类（竞赛、答辩、展示等小组讨论）",
+        "党建活动类",
+        "工作会议类（单位工作例会、学生组织工作会议等）",
+        "团队建设类（班级、社团、学生会等学生组织团建）",
+        "培训面试类（梦拓、学生组织培训及面试等）",
+        "博雅课程类",
+        "讲座、沙龙研讨类",
+        "其他特色活动类",
+    ]
+    .into_iter()
+    .enumerate()
+    .map(|(index, name)| Purpose {
+        id: index as i64 + 1,
+        name: name.into(),
+    })
+    .collect()
 }
 
 pub(super) fn base_form(context: &BookingContext) -> BTreeMap<String, String> {

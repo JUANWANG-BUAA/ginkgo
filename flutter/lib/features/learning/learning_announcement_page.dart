@@ -27,7 +27,8 @@ class LearningAnnouncementPage extends StatefulWidget {
   final bool Function() isCurrent;
   final LearningFileSaver? saveFile;
   @override
-  State<LearningAnnouncementPage> createState() => LearningAnnouncementPageState();
+  State<LearningAnnouncementPage> createState() =>
+      LearningAnnouncementPageState();
 }
 
 class LearningAnnouncementPageState extends State<LearningAnnouncementPage> {

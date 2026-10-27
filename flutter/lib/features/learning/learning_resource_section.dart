@@ -125,9 +125,7 @@ class LearningResourceSection extends StatelessWidget {
                 key: ValueKey('learning-resource-${item.id}'),
                 title: Text(item.name),
                 subtitle: Text(
-                  item.downloadable
-                      ? (item.updatedAt ?? '更新时间未知')
-                      : '学校未允许下载',
+                  item.downloadable ? (item.updatedAt ?? '更新时间未知') : '学校未允许下载',
                 ),
               ),
               if (item.downloadable)

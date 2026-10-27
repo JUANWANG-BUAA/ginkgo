@@ -61,6 +61,7 @@ pub struct Purpose {
 pub struct BookingOptions {
     pub choices: Vec<BookingChoice>,
     pub purposes: Vec<Purpose>,
+    pub uses_fallback_purposes: bool,
 }
 #[derive(Serialize)]
 pub struct BookingChallenge {

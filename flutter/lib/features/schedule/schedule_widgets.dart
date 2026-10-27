@@ -22,7 +22,7 @@ enum ScheduleViewMode {
   semester,
 
   /// The exam schedule of the term.
-  exam;
+  exam,
 }
 
 /// Short label of a view mode.
@@ -180,9 +180,8 @@ class ScheduleChevronRow extends StatelessWidget {
       children: [
         Expanded(
           child: DefaultTextStyle(
-            style: DefaultTextStyle.of(context).style.copyWith(
-              color: CupertinoColors.label.resolveFrom(context),
-            ),
+            style: DefaultTextStyle.of(context).style
+                .copyWith(color: CupertinoColors.label.resolveFrom(context)),
             child: child,
           ),
         ),

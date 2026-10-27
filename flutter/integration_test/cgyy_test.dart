@@ -27,6 +27,18 @@ void main() {
     await settle(tester);
     expect(find.text('合成场馆 · 合成研讨室 · 合成空间'), findsOneWidget);
     expect(find.text('取消预约'), findsNothing);
+    await tester.tap(find.text('合成场馆 · 合成研讨室 · 合成空间'));
+    await settle(tester);
+    expect(find.text('预约详情'), findsOneWidget);
+    expect(find.textContaining('订单 42'), findsOneWidget);
+    await tester.tap(find.byType(CupertinoNavigationBarBackButton));
+    await settle(tester);
+    await tester.tap(find.byType(CupertinoNavigationBarBackButton));
+    await settle(tester);
+    await tester.tap(find.text('门锁密码'));
+    await settle(tester);
+    expect(find.text('246810'), findsOneWidget);
+    expect(find.text('当前时段可开门'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

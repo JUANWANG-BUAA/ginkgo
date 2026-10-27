@@ -138,10 +138,12 @@ class CgyyBookingOptions {
       purposes = (json['purposes'] as List? ?? const [])
           .cast<Map<String, dynamic>>()
           .map(CgyyPurpose.fromJson)
-          .toList(growable: false);
+          .toList(growable: false),
+      usesFallbackPurposes = json['uses_fallback_purposes'] == true;
 
   final List<CgyyBookingChoice> choices;
   final List<CgyyPurpose> purposes;
+  final bool usesFallbackPurposes;
 }
 
 /// Jigsaw challenge images stay raw data URLs; decoding happens in the widget
@@ -256,3 +258,45 @@ List<CgyyOrder> cgyyOrders(String payload) => (jsonDecode(payload) as List)
     .cast<Map<String, dynamic>>()
     .map(CgyyOrder.fromJson)
     .toList(growable: false);
+
+CgyyOrder cgyyOrder(String payload) =>
+    CgyyOrder.fromJson(jsonDecode(payload) as Map<String, dynamic>);
+
+class CgyyLockCode {
+  CgyyLockCode.fromJson(Map<String, dynamic> json)
+    : qrCode = json['qrCode'] as String?,
+      dueDate = json['dueDate'] as String?,
+      tradeNo = json['tradeNo'] as String?,
+      venueName = json['venueName'] as String?,
+      siteName = json['siteName'] as String?,
+      spaceName = json['spaceName'] as String?,
+      orderName = json['orderName'] as String?,
+      reservationDate = json['reservationDate'] as String?,
+      reservationDateDetail = json['reservationDateDetail'] as String?,
+      reservationStartDate = json['reservationStartDate'] as String?,
+      reservationEndDate = json['reservationEndDate'] as String?;
+
+  final String? qrCode, dueDate, tradeNo;
+  final String? venueName, siteName, spaceName, orderName;
+  final String? reservationDate,
+      reservationDateDetail,
+      reservationStartDate,
+      reservationEndDate;
+
+  bool get hasPassword =>
+      qrCode != null && qrCode!.isNotEmpty && qrCode != 'null';
+  bool get hasUpcomingReservation => [
+    tradeNo,
+    reservationDate,
+    reservationStartDate,
+  ].any((value) => value != null && value.isNotEmpty && value != 'null');
+
+  String get location => [
+    venueName,
+    siteName,
+    spaceName,
+  ].whereType<String>().where((value) => value.isNotEmpty).join(' · ');
+}
+
+CgyyLockCode cgyyLockCodeData(String payload) =>
+    CgyyLockCode.fromJson(jsonDecode(payload) as Map<String, dynamic>);

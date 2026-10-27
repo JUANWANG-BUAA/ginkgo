@@ -87,7 +87,6 @@ class ServiceDirectory extends StatelessWidget {
             GinkgoColors.accent,
             GraduatePage(demo: service.isDemo, service: service),
           ),
-          _destination(context, 'graduate-credit-map', GinkgoColors.accent),
         ],
       ),
       AppleSection(

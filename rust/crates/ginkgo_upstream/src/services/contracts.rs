@@ -2,7 +2,7 @@
 //! stays in `features` and authentication parsers stay in `auth`.
 use crate::{
     auth::cas,
-    features::{bykc, checkin, classroom, grades, homework, library, schedule, today},
+    codecs::{bykc, checkin, classroom, grades, homework, library, schedule, today},
     foundation::school_time,
     AppError, ErrorCode,
 };
@@ -24,7 +24,7 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
             homework::apply_course_context(&mut page.items, &input["courses"])?;
             serde_json::to_value(page).map_err(|_| AppError::changed())?
         }
-        "updates.android" => serde_json::to_value(crate::features::updates::parse(
+        "updates.android" => serde_json::to_value(crate::codecs::updates::parse(
             &input["releases"].to_string(),
             input["current"].as_str().ok_or_else(AppError::invalid)?,
         )?)
@@ -74,18 +74,18 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
                 .map(|s| s.week_number);
             json!({"courseIDsByWeek": ids, "selectableCachedWeek": selectable})
         }
-        "tasks.document" => serde_json::to_value(crate::features::tasks::parse(input)?)
+        "tasks.document" => serde_json::to_value(crate::codecs::tasks::parse(input)?)
             .map_err(|_| AppError::changed())?,
-        "notices.list" => serde_json::to_value(crate::features::notices::parse(
+        "notices.list" => serde_json::to_value(crate::codecs::notices::parse(
             input["html"].as_str().ok_or_else(AppError::changed)?,
         )?)
         .map_err(|_| AppError::changed())?,
-        "cgyy.venues" => serde_json::to_value(crate::features::cgyy::sites(&input)?)
+        "cgyy.venues" => serde_json::to_value(crate::codecs::cgyy::sites(&input)?)
             .map_err(|_| AppError::changed())?,
         // The shared v1 contract predates live approval/cancellation metadata.
         // Keep its exact named projection, while live APIs retain the richer Order.
         "cgyy.orders" => Value::Array(
-            crate::features::cgyy::orders(&input)?
+            crate::codecs::cgyy::orders(&input)?
                 .into_iter()
                 .map(|order| {
                     json!({"id": order.id, "place": order.place, "date": order.date,
@@ -93,14 +93,18 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
                 })
                 .collect(),
         ),
-        "cgyy.day" => serde_json::to_value(crate::features::cgyy::day(
+        "cgyy.day" => serde_json::to_value(crate::codecs::cgyy::day(
             &input["response"],
             input["site_id"].as_i64().ok_or_else(AppError::invalid)?,
             input["date"].as_str().ok_or_else(AppError::invalid)?,
         )?)
         .map_err(|_| AppError::changed())?,
+        "cgyy.order" => serde_json::to_value(crate::codecs::cgyy::order(&input)?)
+            .map_err(|_| AppError::changed())?,
+        "cgyy.lockCode" => serde_json::to_value(crate::codecs::cgyy::lock_code(&input)?)
+            .map_err(|_| AppError::changed())?,
         "graduate.execution" => {
-            json!({"sections":crate::features::graduate::parse_execution(&input)?})
+            json!({"sections":crate::codecs::graduate::parse_execution(&input)?})
         }
         "bykc.envelope" => crate::adapters::bykc_http::decode_envelope(&input)?,
         "bykc.catalog" => serde_json::to_value(bykc::parse_catalog(
@@ -303,7 +307,7 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
             serde_json::to_value(checkin::parse_sign_in(&input)).map_err(|_| AppError::changed())?
         }
         "library.mutation" => {
-            serde_json::to_value(crate::features::library_mutation::parse_result(&input))
+            serde_json::to_value(crate::codecs::library_mutation::parse_result(&input))
                 .map_err(|_| AppError::changed())?
         }
         "checkin.app_login" => {

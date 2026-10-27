@@ -7,7 +7,6 @@ import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/workspace/service_directory.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_mirror_service.dart';
 import 'package:ginkgo_mirror/features/learning/learning_page.dart';
-import 'package:ginkgo_mirror/features/graduate/graduate_credit_map_page.dart';
 import 'package:ginkgo_mirror/features/library/library_loans_page.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
@@ -53,11 +52,25 @@ void main() {
     expect(service.reads, 1);
     expect(find.text('来自注入服务的通知'), findsOneWidget);
   });
-  for (final entry in [
-    ('SPOC 学习', LearningPage),
-    ('研究生学分图', GraduateCreditMapPage),
-    ('本人借阅', LibraryLoansPage),
-  ]) {
+  testWidgets('mobile directory has one graduate destination', (tester) async {
+    tester.view.physicalSize = const Size(430, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: CupertinoPageScaffold(
+          child: ServiceDirectory(
+            service: const DemoMirrorService(),
+            onSignOut: () async {},
+          ),
+        ),
+      ),
+    );
+    expect(find.text('研究生教务'), findsOneWidget);
+    expect(find.text('研究生学分图'), findsNothing);
+  });
+  for (final entry in [('SPOC 学习', LearningPage), ('本人借阅', LibraryLoansPage)]) {
     testWidgets('mobile directory opens ${entry.$1} with large type', (
       tester,
     ) async {
@@ -93,14 +106,6 @@ void main() {
       if (entry.$2 == LearningPage) {
         expect(
           tester.widget<LearningPage>(find.byType(LearningPage)).accountId,
-          'synthetic-account',
-        );
-      }
-      if (entry.$2 == GraduateCreditMapPage) {
-        expect(
-          tester
-              .widget<GraduateCreditMapPage>(find.byType(GraduateCreditMapPage))
-              .accountId,
           'synthetic-account',
         );
       }

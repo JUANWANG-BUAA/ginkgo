@@ -1,0 +1,26 @@
+{
+  "contract": "cgyy.lockCode",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "code": 200,
+    "data": {
+      "qrCode": "null",
+      "dueDate": null,
+      "orderView": {
+        "tradeNo": "synthetic-upcoming",
+        "venueName": "合成楼",
+        "venueSpaceName": "A102",
+        "reservationDate": "2026-10-28",
+        "reservationStartDate": "2026-10-28 08:00:00"
+      }
+    }
+  },
+  "expected": {
+    "tradeNo": "synthetic-upcoming",
+    "venueName": "合成楼",
+    "spaceName": "A102",
+    "reservationDate": "2026-10-28",
+    "reservationStartDate": "2026-10-28 08:00:00"
+  }
+}

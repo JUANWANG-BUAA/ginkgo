@@ -14,6 +14,7 @@ import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 
 class BookingGateway implements CgyyBookingGateway {
   final commands = <Map<String, Object?>>[];
+  bool fallback = false;
   @override
   Future<ReadOnlyResponse> executeCgyy(Map<String, Object?> command) async {
     commands.add(command);
@@ -42,6 +43,7 @@ class BookingGateway implements CgyyBookingGateway {
                   'purposes': [
                     {'id': 1, 'name': '学习研讨类'},
                   ],
+                  'uses_fallback_purposes': fallback,
                 },
               }
             : {'state': 'uncertain', 'message': '结果待核实，请先到我的预约回查，勿重复提交'},
@@ -191,4 +193,24 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('fallback purposes are explained without blocking booking', (
+    tester,
+  ) async {
+    final gateway = BookingGateway()..fallback = true;
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: CgyyBookingPage(
+          gateway: gateway,
+          siteId: 1,
+          siteName: '合成场馆',
+          date: '2026-10-25',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await scrollTo(tester, find.text('学校用途暂未取得，已使用内置用途列表'));
+    expect(find.text('学校用途暂未取得，已使用内置用途列表'), findsOneWidget);
+    expect(find.text('学习研讨类'), findsOneWidget);
+  });
 }

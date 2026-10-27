@@ -72,7 +72,10 @@ class GraduateCreditMapNodeCard extends StatelessWidget {
               if (!summary)
                 GraduateStatRow(
                   [
-                    GraduateStat('要求', graduateCreditLabel(progress.requiredCredits)),
+                    GraduateStat(
+                      '要求',
+                      graduateCreditLabel(progress.requiredCredits),
+                    ),
                     GraduateStat(
                       '已获',
                       graduateCreditLabel(progress.earned),

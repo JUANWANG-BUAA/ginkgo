@@ -105,7 +105,10 @@ class CgyyPurposePicker extends StatelessWidget {
         width: MediaQuery.sizeOf(context).width * 0.44,
         child: Text(
           purposes
-              .firstWhere((p) => p.id == purposeId, orElse: () => purposes.first)
+              .firstWhere(
+                (p) => p.id == purposeId,
+                orElse: () => purposes.first,
+              )
               .name,
           textAlign: TextAlign.end,
           maxLines: 1,

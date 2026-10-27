@@ -1,6 +1,7 @@
 use super::*;
 use crate::auth::CredentialVault;
 use ginkgo_domain::features::cgyy_booking::{BookingRequest, CgyyCommand};
+use ginkgo_domain::ports::{CgyyData, CgyyQuery};
 use serde_json::json;
 
 fn expired_token() -> HttpResponse {
@@ -175,6 +176,38 @@ async fn options_expired_day_token_renews_once_and_uses_new_token_for_codes() {
     }
 }
 #[tokio::test]
+async fn options_use_ubaa_fallback_when_purpose_source_is_empty_or_rejected() {
+    for codes in [
+        response(json!({"purpose": []})),
+        HttpResponse::new(
+            200,
+            "https://cgyy.buaa.edu.cn/venue-zhjs-server/api/codes",
+            json!({"code": 500, "data": null}).to_string(),
+        ),
+    ] {
+        let (service, _) = service(vec![day(true), codes]);
+        let result = service
+            .execute_cgyy(options_command())
+            .await
+            .expect("fallback options");
+        let options = result.options.expect("options");
+        assert_eq!(options.choices.len(), 1);
+        assert_eq!(options.purposes.len(), 10);
+        assert!(options.uses_fallback_purposes);
+    }
+}
+
+#[tokio::test]
+async fn options_never_hide_authentication_failure_behind_fallback() {
+    let (service, _) = service(vec![day(true), expired_token()]);
+    let error = match service.execute_cgyy(options_command()).await {
+        Err(error) => error,
+        Ok(_) => panic!("authentication must not fall back"),
+    };
+    assert_eq!(error.code, ErrorCode::SessionExpired);
+}
+
+#[tokio::test]
 async fn options_failed_renewal_or_second_get_never_returns_cached_options() {
     let mut failures = vec![vec![HttpResponse::new(503, "renewal", "")]];
     for last in [
@@ -323,6 +356,78 @@ async fn mutation_precheck_401_never_enters_read_renewal_path() {
             .iter()
             .all(|r| r.method == HttpMethod::Get));
     }
+}
+
+#[tokio::test]
+async fn order_detail_uses_ubaa_endpoint_and_projection() {
+    let (service, transport) = service(vec![response(
+        fixture("cgyy", "order-detail-normal-v1.json")["input"]["data"].clone(),
+    )]);
+    let outcome = service
+        .load_cgyy(CgyyQuery::Order { order_id: 42 }, false)
+        .await
+        .expect("order detail");
+    let CgyyData::Order(order) = outcome.data else {
+        panic!("order projection")
+    };
+    assert_eq!(order.id, 42);
+    assert_eq!(order.check_status, Some(1));
+    let requests = transport.requests();
+    assert_eq!(requests.len(), 1);
+    assert!(requests[0].url.contains("/api/orders/42?"));
+    assert!(requests[0].url.contains("nocache="));
+    assert!(requests[0].header_value("sign").is_some());
+}
+
+#[tokio::test]
+async fn lock_code_projects_ubaa_states_and_bypasses_snapshots() {
+    for (name, password, trade) in [
+        (
+            "lock-code-normal-v1.json",
+            Some("246810"),
+            Some("synthetic-trade"),
+        ),
+        (
+            "lock-code-upcoming-v1.json",
+            None,
+            Some("synthetic-upcoming"),
+        ),
+        ("lock-code-empty-v1.json", None, None),
+    ] {
+        let body = fixture("cgyy", name)["input"]["data"].clone();
+        let (service, transport) = service(vec![response(body.clone()), response(body)]);
+        for _ in 0..2 {
+            let outcome = service
+                .load_cgyy(CgyyQuery::LockCode, false)
+                .await
+                .expect("lock code");
+            let CgyyData::LockCode(code) = outcome.data else {
+                panic!("lock code projection")
+            };
+            assert_eq!(code.qr_code.as_deref(), password);
+            assert_eq!(code.trade_no.as_deref(), trade);
+        }
+        let requests = transport.requests();
+        assert_eq!(requests.len(), 2);
+        assert!(requests
+            .iter()
+            .all(|request| request.url.contains("/api/orders/lock/code")));
+    }
+}
+
+#[tokio::test]
+async fn lock_code_expired_token_renews_only_once() {
+    let mut responses = vec![expired_token()];
+    responses.extend(token_renewal());
+    responses.push(response(
+        fixture("cgyy", "lock-code-normal-v1.json")["input"]["data"].clone(),
+    ));
+    let (service, transport) = service(responses);
+    service
+        .load_cgyy(CgyyQuery::LockCode, false)
+        .await
+        .expect("renewed lock code");
+    assert_read_renewal_requests(&transport, 2);
 }
 
 fn response(data: Value) -> HttpResponse {
@@ -1332,7 +1437,7 @@ fn order_projection_is_conservative_and_omits_personal_approval_text() {
         row["checkStatus"] = check.clone();
         row["reservationStartDate"] = json!(date);
         let orders =
-            crate::features::cgyy::orders(&json!({"code":200,"data":{"content":[row.clone()]}}))
+            crate::codecs::cgyy::orders(&json!({"code":200,"data":{"content":[row.clone()]}}))
                 .expect("projection");
         assert_eq!(orders[0].can_cancel, allowed);
         assert_eq!(orders[0].order_status, status.as_i64());

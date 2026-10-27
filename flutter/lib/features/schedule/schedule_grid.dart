@@ -242,9 +242,10 @@ class _ScheduleGridState extends State<ScheduleGrid> {
           : scheduleGridAxisWidth + columnWidth * 7 - viewportWidth;
       final first = (offset / columnWidth).floor().clamp(0, 6);
       final last =
-          ((offset + viewportWidth - scheduleGridAxisWidth) / columnWidth).ceil()
-                  .clamp(1, 7) -
-              1;
+          ((offset + viewportWidth - scheduleGridAxisWidth) / columnWidth)
+              .ceil()
+              .clamp(1, 7) -
+          1;
       void move(double delta) {
         if (!horizontalScroll.hasClients) return;
         final target = (horizontalScroll.offset + delta).clamp(0.0, maxExtent);

@@ -1,6 +1,6 @@
 use super::SchoolClient;
 use crate::{
-    adapters::cgyy_http, auth::CredentialVault, features::cgyy, foundation::http::HttpTransport,
+    adapters::cgyy_http, auth::CredentialVault, codecs::cgyy, foundation::http::HttpTransport,
     AppError, ErrorCode,
 };
 pub use ginkgo_domain::ports::CgyyOutcome;
@@ -38,14 +38,33 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CgyySource for SchoolCl
             CgyyQuery::Venues => ("venues", 0, ""),
             CgyyQuery::Day { site_id, date } => ("day", *site_id, date.as_str()),
             CgyyQuery::Orders => ("orders", 0, ""),
+            CgyyQuery::Order { order_id } => ("order", *order_id, ""),
+            CgyyQuery::LockCode => ("lockCode", 0, ""),
         };
         if kind == "day"
             && (site <= 0 || chrono::NaiveDate::parse_from_str(date, "%Y-%m-%d").is_err())
         {
             return Err(AppError::invalid());
         }
+        if kind == "order" && site <= 0 {
+            return Err(AppError::invalid());
+        }
         if kind != "venues" {
             self.current_account()?;
+        }
+        if matches!(query, CgyyQuery::Order { .. } | CgyyQuery::LockCode) {
+            let owner = self.booking_owner()?;
+            let (value, _) = self.load_booking_read(&owner, kind, site, date).await?;
+            self.check_booking_owner(&owner)?;
+            let data = if kind == "order" {
+                CgyyData::Order(cgyy::order(&value)?)
+            } else {
+                CgyyData::LockCode(cgyy::lock_code(&value)?)
+            };
+            return Ok(CgyyOutcome {
+                data,
+                failure: None,
+            });
         }
         let key = format!("{kind}:{site}:{date}");
         if !force {

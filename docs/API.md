@@ -774,7 +774,8 @@ OPAC 非零业务码仍为业务拒绝，不推测具体含义。
    - GET `/api/codes`：活动类型；未带 token 实测 `code=401 没有权限访问此接口`。
    - GET `/api/reservation/day/info?searchDate=yyyy-MM-dd&venueSiteId=N`：`spaceTimeInfo`、`reservationDateSpaceInfo`、可预约日期、`token`；未带 token 同样 401。
    - GET `/api/orders/mine`：我的预约。当前客户端固定 page1/size20 是实现事实；2026-10-23 官方移动端静态首请求明确 page0/size5，见 §6B.1，不把 page1 当学校起始页契约。
-   - GET `/api/orders/lock/code`：门锁密码/二维码、有效期、预约详情。
+   - GET `/api/orders/{orderId}`：单条订单详情，字段与列表订单共用保守投影。
+   - GET `/api/orders/lock/code`：门锁密码/二维码、有效期、预约详情；`qrCode`/`dueDate` 与 `orderView` 摘要按 UBAA 当前实现投影。
 4. **预约写路径**：
    - POST `/api/reservation/order/info`：`venueSiteId`、`reservationDate`、`weekStartDate`、`reservationOrderJson`（`[{spaceId,timeId,venueSpaceGroupId}]`）、`token`；项目称预约草稿，官方会将响应 tradeNo／详情／计时／isCaptchaCheck 等交给下一步；是否占槽及生命周期未实测。
    - GET `/api/captcha/get?captchaType=blockPuzzle&clientUid=slider-<ts>&ts=<ts>`：返回 `secretKey`、`token`、背景图、拼图 Base64。
@@ -786,6 +787,8 @@ OPAC 非零业务码仍为业务拒绝，不推测具体含义。
 2026-10-22 镜像实现：Rust 沿用本节端点与字段，验证码采用用户手动拖动，AES-ECB 与签名仍由 Rust 完成；学校 token、密钥、预约 token 不跨 FFI。草稿前、手动验证后均复核空档，未知单元格不可提交。提交 / 取消只发送一次；受理不等于成功，须查回匹配订单 / 取消状态。无明确结果时保持写入保护，用户先只读回查并确认已核对。该实现仅有合成与界面证据，不能标记为真实写入验收。
 
 2026-10-22 本轮闭环补充（仅客户端行为，不改变上游协议）：预约/取消前写入本机账号摘要隔离的最小 pending 标记，内容只有版本与布尔值；无 token、表单或手机号，损坏/不可写拒绝继续写。正常入口 native gateway 绑定发起账号作为前置条件，身份仍由 Rust 会话派生。HTTP 错误、未知业务码、解析失败与认证失败都保留核实保护；`BusinessRejected` 只读 v1 分类不得用于证明写入未生效。显式强读的最近 20 条必须展示后再确认，一次性核对凭据绑定账号/身份代次且 120 秒内有效；不能用空列表证明没落单。订单审批码沿用既有 Swift/UBAA 映射，未知状态不推断通过；取消资格必须明确满足状态及开始前 4 小时限制，最终仍强读复核。共享解析 v1 五字段与历史错误契约不变，新增审批与资格只在 live 投影中提供。未增加分页/门锁码或自动验证能力。
+
+2026-10-27 工作树补充：按 UBAA 当前 `LocalCgyyApi` 接入订单详情和门锁码只读查询；学校用途为空或允许降级的读取失败时使用其十项内置用途并明示来源，认证错误不降级。门锁码只保留内存投影、无快照和定时轮询，空密码与读取失败分开。新增合成 `cgyy.order` / `cgyy.lockCode` 契约和页面回归；未复制 UBAA 的预约重试，真实预约、取消及门锁码读取仍未验收。
 
 > 图书馆空间预约系统（`booking.lib.buaa.edu.cn/v4/seminar/*`）是另一套系统，本页不再作为“研讨室”入口；其只读/预约代码保留在 `Features/Library/`，但与教学楼 CGYY 不可混用。
 

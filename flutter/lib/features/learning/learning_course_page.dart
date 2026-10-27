@@ -13,6 +13,8 @@ import 'learning_announcement_page.dart';
 import 'learning_resource_section.dart';
 import 'learning_widgets.dart';
 
+enum LearningCourseTab { resources, announcements, assessments }
+
 class LearningCoursePage extends StatefulWidget {
   const LearningCoursePage({
     super.key,
@@ -40,6 +42,7 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
   List<CourseResource> path = [];
   int page = 1, epoch = 0;
   String resourceQuery = '';
+  LearningCourseTab tab = LearningCourseTab.resources;
   @override
   void initState() {
     super.initState();
@@ -58,12 +61,7 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
     assessments = RefreshSection()..addListener(_changed);
     columns = RefreshSection()..addListener(_changed);
     _resources();
-    if (widget.service is CourseLearningContextGateway) {
-      _columns();
-    } else {
-      _announcements();
-      _assessments();
-    }
+    if (widget.service is CourseLearningContextGateway) _columns();
   }
 
   void _detach() {
@@ -87,6 +85,7 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
       announcementColumn = null;
       assessmentColumn = null;
       linkError = null;
+      tab = LearningCourseTab.resources;
       _attach();
     }
   }
@@ -129,10 +128,12 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
       announcementColumn = a;
       assessmentColumn = t;
     });
-    await Future.wait([
-      if (a != null) _announcements(force: force),
-      if (t != null) _assessments(force: force),
-    ]);
+    if (tab == LearningCourseTab.announcements && a != null) {
+      await _announcements(force: force);
+    }
+    if (tab == LearningCourseTab.assessments && t != null) {
+      await _assessments(force: force);
+    }
   }
 
   Future<void> _announcements({bool force = false}) {
@@ -197,6 +198,21 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
       ),
       force,
     );
+  }
+
+  void _selectTab(LearningCourseTab value) {
+    if (tab == value) return;
+    setState(() => tab = value);
+    if (value == LearningCourseTab.announcements &&
+        announcements.value == null &&
+        !announcements.loading) {
+      _announcements();
+    }
+    if (value == LearningCourseTab.assessments &&
+        assessments.value == null &&
+        !assessments.loading) {
+      _assessments();
+    }
   }
 
   void _navigate(List<CourseResource> nextPath, int nextPage) {
@@ -362,6 +378,23 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
                 ),
               ),
             if (linkError != null) LearningText(linkError!, warning: true),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+              child: SizedBox(
+                width: double.infinity,
+                child: CupertinoSlidingSegmentedControl<LearningCourseTab>(
+                  groupValue: tab,
+                  onValueChanged: (value) {
+                    if (value != null) _selectTab(value);
+                  },
+                  children: const {
+                    LearningCourseTab.resources: Text('资料'),
+                    LearningCourseTab.announcements: Text('公告'),
+                    LearningCourseTab.assessments: Text('测验'),
+                  },
+                ),
+              ),
+            ),
             if (hasContext && (columns.loading || columns.error != null))
               AppleSection(
                 header: const Text('课程栏目'),
@@ -374,96 +407,101 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
                   ),
                 ],
               ),
-            AppleSection(
-              header: const Text('公告'),
-              children: [
-                if (hasContext &&
-                    columns.value?.data
-                            .where((c) => c.kind == 'announcement')
-                            .length !=
-                        1)
-                  _columnPicker('公告', 'announcement', announcementColumn),
-                LearningReadStatus(
-                  title: '公告',
-                  section: announcements,
-                  supported: hasContext
-                      ? announcementColumn != null
-                      : widget.service is CourseAnnouncementGateway,
-                  onRefresh: () => _announcements(force: true),
-                ),
-                if (announcements.value case final read?) ...[
-                  if (read.data.isEmpty) const LearningText('暂无公告'),
-                  for (final a in read.data)
-                    AppleListTile(
-                      key: ValueKey('learning-announcement-${a.id}'),
-                      title: Text(a.title),
-                      subtitle: Text(a.publishedAt ?? '发布时间未知'),
-                      onTap: () {
-                        final e = epoch;
-                        Navigator.of(context).push(
-                          CupertinoPageRoute<void>(
-                            builder: (_) => LearningAnnouncementPage(
-                              service: widget.service,
-                              course: widget.course.id,
-                              column: announcementColumn,
-                              announcement: a,
-                              saveFile: widget.saveFile,
-                              isCurrent: () => current(e),
+            if (tab == LearningCourseTab.announcements)
+              AppleSection(
+                header: const Text('公告'),
+                children: [
+                  if (hasContext &&
+                      columns.value?.data
+                              .where((c) => c.kind == 'announcement')
+                              .length !=
+                          1)
+                    _columnPicker('公告', 'announcement', announcementColumn),
+                  LearningReadStatus(
+                    title: '公告',
+                    section: announcements,
+                    supported: hasContext
+                        ? announcementColumn != null
+                        : widget.service is CourseAnnouncementGateway,
+                    onRefresh: () => _announcements(force: true),
+                  ),
+                  if (announcements.value case final read?) ...[
+                    if (read.data.isEmpty) const LearningText('暂无公告'),
+                    for (final a in read.data)
+                      AppleListTile(
+                        key: ValueKey('learning-announcement-${a.id}'),
+                        title: Text(a.title),
+                        subtitle: Text(a.publishedAt ?? '发布时间未知'),
+                        onTap: () {
+                          final e = epoch;
+                          Navigator.of(context).push(
+                            CupertinoPageRoute<void>(
+                              builder: (_) => LearningAnnouncementPage(
+                                service: widget.service,
+                                course: widget.course.id,
+                                column: announcementColumn,
+                                announcement: a,
+                                saveFile: widget.saveFile,
+                                isCurrent: () => current(e),
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                ],
-              ],
-            ),
-            LearningResourceSection(
-              path: path,
-              page: page,
-              items: items,
-              resourceQuery: resourceQuery,
-              resources: resources,
-              supported: hasContext || widget.service is CourseResourceGateway,
-              hasContext: hasContext,
-              saveFile: widget.saveFile,
-              contextToken:
-                  '${widget.accountId}/${widget.course.id}/${path.map((f) => f.id).join('/')}/$page/$epoch',
-              onQueryChanged: (value) => setState(() => resourceQuery = value),
-              onNavigate: _navigate,
-              onRefresh: () => _resources(force: true),
-              onDownload: _download,
-              isCurrent: () => current(epoch),
-            ),
-            AppleSection(
-              header: const Text('测验（只读）'),
-              footer: const Text('仅展示信息，不开始、作答或提交测验；未知时间或个人得分不会推测。'),
-              children: [
-                if (hasContext &&
-                    columns.value?.data
-                            .where((c) => c.kind == 'assessment')
-                            .length !=
-                        1)
-                  _columnPicker('测验', 'assessment', assessmentColumn),
-                LearningReadStatus(
-                  title: '测验',
-                  section: assessments,
-                  supported: hasContext
-                      ? assessmentColumn != null
-                      : widget.service is CourseAssessmentGateway,
-                  onRefresh: () => _assessments(force: true),
-                ),
-                if (assessments.value case final read?) ...[
-                  if (read.data.isEmpty) const LearningText('暂无测验'),
-                  for (final item in read.data)
-                    AppleListTile(
-                      title: Text(item.title),
-                      subtitle: Text(
-                        '开始：${item.startsAt ?? '未知'}\n截止：${item.dueAt ?? '未知'}\n成绩：${item.score ?? '未知'}',
+                          );
+                        },
                       ),
-                    ),
+                  ],
                 ],
-              ],
-            ),
+              )
+            else if (tab == LearningCourseTab.resources)
+              LearningResourceSection(
+                path: path,
+                page: page,
+                items: items,
+                resourceQuery: resourceQuery,
+                resources: resources,
+                supported:
+                    hasContext || widget.service is CourseResourceGateway,
+                hasContext: hasContext,
+                saveFile: widget.saveFile,
+                contextToken:
+                    '${widget.accountId}/${widget.course.id}/${path.map((f) => f.id).join('/')}/$page/$epoch',
+                onQueryChanged: (value) =>
+                    setState(() => resourceQuery = value),
+                onNavigate: _navigate,
+                onRefresh: () => _resources(force: true),
+                onDownload: _download,
+                isCurrent: () => current(epoch),
+              )
+            else
+              AppleSection(
+                header: const Text('测验（只读）'),
+                footer: const Text('仅展示信息，不开始、作答或提交测验；未知时间或个人得分不会推测。'),
+                children: [
+                  if (hasContext &&
+                      columns.value?.data
+                              .where((c) => c.kind == 'assessment')
+                              .length !=
+                          1)
+                    _columnPicker('测验', 'assessment', assessmentColumn),
+                  LearningReadStatus(
+                    title: '测验',
+                    section: assessments,
+                    supported: hasContext
+                        ? assessmentColumn != null
+                        : widget.service is CourseAssessmentGateway,
+                    onRefresh: () => _assessments(force: true),
+                  ),
+                  if (assessments.value case final read?) ...[
+                    if (read.data.isEmpty) const LearningText('暂无测验'),
+                    for (final item in read.data)
+                      AppleListTile(
+                        title: Text(item.title),
+                        subtitle: Text(
+                          '开始：${item.startsAt ?? '未知'}\n截止：${item.dueAt ?? '未知'}\n成绩：${item.score ?? '未知'}',
+                        ),
+                      ),
+                  ],
+                ],
+              ),
           ],
         ),
       ),

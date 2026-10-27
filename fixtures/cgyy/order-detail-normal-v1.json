@@ -1,0 +1,30 @@
+{
+  "contract": "cgyy.order",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "code": 200,
+    "data": {
+      "id": 42,
+      "tradeNo": "synthetic-trade",
+      "venueName": "合成楼",
+      "siteName": "合成校区",
+      "venueSpaceName": "A101",
+      "reservationDate": "2026-10-25",
+      "reservationStartDate": "2026-10-25 08:00:00",
+      "reservationEndDate": "2026-10-25 09:00:00",
+      "orderStatus": 1,
+      "checkStatus": 1
+    }
+  },
+  "expected": {
+    "id": 42,
+    "place": "合成楼 · 合成校区 · A101",
+    "date": "2026-10-25",
+    "time": "2026-10-25 08:00:00–2026-10-25 09:00:00",
+    "status": "订单状态 1",
+    "order_status": 1,
+    "check_status": 1,
+    "can_cancel": false
+  }
+}

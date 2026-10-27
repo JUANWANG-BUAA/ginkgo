@@ -36,6 +36,8 @@ class _SchedulePageState extends State<SchedulePage> {
   int selectedWeek = 0;
   String? selectedTerm;
   ScheduleViewMode viewMode = ScheduleViewMode.weekGrid;
+  int selectedDay = 1;
+  bool viewModeInitialized = false;
   int requestId = 0;
   String search = '';
   List<ScheduleCourse> sorted = [];
@@ -48,6 +50,16 @@ class _SchedulePageState extends State<SchedulePage> {
   void initState() {
     super.initState();
     load();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (viewModeInitialized) return;
+    viewModeInitialized = true;
+    if (MediaQuery.sizeOf(context).width < 600) {
+      viewMode = ScheduleViewMode.dayList;
+    }
   }
 
   void filter() {
@@ -105,6 +117,10 @@ class _SchedulePageState extends State<SchedulePage> {
           failed('第 $requestedWeek 周尚未缓存');
           return;
         }
+        final replaceSnapshot =
+            data == null ||
+            data!.termId != result.termId ||
+            data!.weekNumber != result.weekNumber;
         data = result;
         selectedTerm = result.termId;
         selectedWeek = result.weekNumber;
@@ -118,6 +134,11 @@ class _SchedulePageState extends State<SchedulePage> {
             return section == 0 ? a.name.compareTo(b.name) : section;
           });
         filter();
+        if (replaceSnapshot) {
+          selectedDay =
+              scheduleTodayColumn(weeks[result.weekNumber]?.startDate) ??
+              (days.keys.isEmpty ? 1 : days.keys.first);
+        }
         if (result.exams.isEmpty && viewMode == ScheduleViewMode.exam) {
           viewMode = ScheduleViewMode.weekGrid;
         }
@@ -214,7 +235,8 @@ class _SchedulePageState extends State<SchedulePage> {
                   action: '重试',
                   onAction: () => load(force: true),
                 )
-              else if (data == null) const ScheduleLoadingSection(),
+              else if (data == null)
+                const ScheduleLoadingSection(),
               const SizedBox(height: 96),
             ],
           ),
@@ -250,6 +272,8 @@ class _SchedulePageState extends State<SchedulePage> {
         weeks: weeks,
         mode: viewMode,
         search: search,
+        selectedDay: selectedDay,
+        onSelectedDay: (day) => setState(() => selectedDay = day),
         onSearchChanged: (value) => setState(() {
           search = value;
           filter();
@@ -291,8 +315,7 @@ class _SchedulePageState extends State<SchedulePage> {
           onValueChanged: (value) =>
               setState(() => viewMode = value ?? ScheduleViewMode.weekGrid),
           children: {
-            for (final mode in modes)
-              mode: Text(scheduleViewModeLabel(mode)),
+            for (final mode in modes) mode: Text(scheduleViewModeLabel(mode)),
           },
         ),
       ),
@@ -309,10 +332,7 @@ class _SchedulePageState extends State<SchedulePage> {
           termName: terms[snapshot.termId]?.name ?? snapshot.termId,
           weekNumber: snapshot.weekNumber,
           week: week,
-          dayTitle: scheduleDayTitle(
-            course.day,
-            week?.startDate,
-          ),
+          dayTitle: scheduleDayTitle(course.day, week?.startDate),
         ),
       ),
     );

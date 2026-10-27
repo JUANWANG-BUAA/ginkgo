@@ -135,11 +135,17 @@ Future<void> showCourse(
 );
 
 void completeEmpty(LearningFake fake) {
-  fake.announcements.requests.last.complete(const LearningRead([]));
-  fake.resources.requests.last.complete(
-    LearningRead(CourseResourcePage([], 1, false)),
-  );
-  fake.assessments.requests.last.complete(const LearningRead([]));
+  if (fake.announcements.requests.isNotEmpty) {
+    fake.announcements.requests.last.complete(const LearningRead([]));
+  }
+  if (fake.resources.requests.isNotEmpty) {
+    fake.resources.requests.last.complete(
+      LearningRead(CourseResourcePage([], 1, false)),
+    );
+  }
+  if (fake.assessments.requests.isNotEmpty) {
+    fake.assessments.requests.last.complete(const LearningRead([]));
+  }
 }
 
 void main() {
@@ -159,7 +165,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('合成学习课程'), findsOneWidget);
     expect(DiagnosticLog.shared.entries, isEmpty);
-    await tester.tap(find.byKey(const ValueKey('learning-refresh-课程')));
+    await tester.tap(find.bySemanticsLabel('刷新课程'));
     await tester.pump();
     service.courses.requests.last.complete(const LearningRead([course]));
     await tester.pumpAndSettle();
@@ -189,12 +195,9 @@ void main() {
         find.byKey(const ValueKey('learning-course-synthetic-course')),
       );
       await tester.pump();
-      expect(fake.announcements.requests, hasLength(1));
+      expect(fake.announcements.requests, isEmpty);
       expect(fake.resources.requests, hasLength(1));
-      expect(fake.assessments.requests, hasLength(1));
-      fake.announcements.requests.single.complete(
-        const LearningRead([CourseAnnouncement('notice', '合成公告', null)]),
-      );
+      expect(fake.assessments.requests, isEmpty);
       fake.resources.requests.single.complete(
         LearningRead(
           CourseResourcePage(
@@ -217,6 +220,15 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('公告'));
+      await tester.pump();
+      fake.announcements.requests.single.complete(
+        const LearningRead([CourseAnnouncement('notice', '合成公告', null)]),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('测验'));
+      await tester.pump();
       fake.assessments.requests.single.complete(
         const LearningRead([
           CourseAssessment(id: 'quiz', title: '合成测验', sourceUrl: ''),
@@ -226,10 +238,14 @@ void main() {
       expect(find.text('前往课程官网'), findsOneWidget);
       expect(find.textContaining('成绩：未知'), findsOneWidget);
       expect(find.textContaining('成绩：0'), findsNothing);
+      await tester.tap(find.text('资料'));
+      await tester.pumpAndSettle();
       expect(find.byKey(const Key('learning-next-page')), findsOneWidget);
       // Directory navigation is now available, but never started automatically.
       expect(fake.folders, [null]);
       expect(fake.pages, [1]);
+      await tester.tap(find.text('公告'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('合成公告'));
       await tester.pumpAndSettle();
       expect(fake.details, ['synthetic-course/notice']);
@@ -253,6 +269,8 @@ void main() {
       screen(tester);
       final fake = LearningFake();
       await showCourse(tester, fake);
+      await tester.tap(find.text('公告'));
+      await tester.pump();
       fake.announcements.requests.single.complete(
         const LearningRead(
           [CourseAnnouncement('notice', '缓存公告', null)],
@@ -268,13 +286,12 @@ void main() {
       fake.resources.requests.single.complete(
         LearningRead(CourseResourcePage([], 1, false)),
       );
-      fake.assessments.requests.single.complete(const LearningRead([]));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('learning-refresh-公告')));
       await tester.pump();
       expect(fake.announcements.forced, [false, true]);
       expect(fake.resources.forced, [false]);
-      expect(fake.assessments.forced, [false]);
+      expect(fake.assessments.requests, isEmpty);
       expect(find.text('缓存公告'), findsOneWidget);
       fake.announcements.requests.last.completeError(
         StateError('synthetic failure'),
@@ -299,16 +316,19 @@ void main() {
       screen(tester);
       final fake = LearningFake();
       await showCourse(tester, fake);
-      fake.announcements.requests.single.complete(const LearningRead([]));
       fake.resources.requests.single.completeError(
         StateError('synthetic resource failure'),
       );
+      await tester.tap(find.text('测验'));
+      await tester.pump();
       fake.assessments.requests.single.completeError(
         StateError('synthetic assessment failure'),
       );
       await tester.pumpAndSettle();
       expect(find.text('根目录暂无资料'), findsNothing);
       expect(find.text('暂无测验'), findsNothing);
+      await tester.tap(find.text('资料'));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('learning-refresh-资料')));
       await tester.pump();
       fake.resources.requests.last.complete(
@@ -317,12 +337,18 @@ void main() {
       await tester.pumpAndSettle();
       expect(fake.resources.forced, [false, true]);
       expect(fake.assessments.forced, [false]);
+      await tester.tap(find.text('测验'));
+      await tester.pump();
       await tester.tap(find.byKey(const ValueKey('learning-refresh-测验')));
       await tester.pump();
       fake.assessments.requests.last.complete(const LearningRead([]));
       await tester.pumpAndSettle();
-      expect(fake.announcements.forced, [false]);
-      expect(fake.assessments.forced, [false, true]);
+      await tester.tap(find.byKey(const ValueKey('learning-refresh-测验')));
+      await tester.pump();
+      fake.assessments.requests.last.complete(const LearningRead([]));
+      await tester.pumpAndSettle();
+      expect(fake.announcements.requests, isEmpty);
+      expect(fake.assessments.forced, [false, false, true]);
       expect(find.text('暂无测验'), findsOneWidget);
     },
   );
@@ -333,6 +359,10 @@ void main() {
     screen(tester);
     final old = LearningFake(), current = LearningFake();
     await showCourse(tester, old, accountId: 'old');
+    await tester.tap(find.text('公告'));
+    await tester.pump();
+    await tester.tap(find.text('测验'));
+    await tester.pump();
     await showCourse(tester, current, accountId: 'new');
     completeEmpty(current);
     await tester.pumpAndSettle();
@@ -348,10 +378,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('旧账号公告'), findsNothing);
     expect(find.text('旧测验'), findsNothing);
-    expect(find.text('暂无公告'), findsOneWidget);
+    expect(find.text('暂无资料'), findsOneWidget);
     // The same service instance can also be rebound to a different account.
     await showCourse(tester, current, accountId: 'another');
-    expect(current.announcements.requests, hasLength(2));
+    expect(current.resources.requests, hasLength(2));
     completeEmpty(current);
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
@@ -394,69 +424,80 @@ void main() {
       await tester.tap(find.text(course.name));
       await tester.pumpAndSettle();
       for (final section in ['公告', '资料', '测验']) {
+        await tester.tap(find.text(section));
+        await tester.pumpAndSettle();
         expect(find.text('当前服务暂不支持$section'), findsOneWidget);
       }
       expect(tester.takeException(), isNull);
     },
   );
 
-  testWidgets(
-    'large-text data rows wrap and refresh targets remain at least 48dp',
-    (tester) async {
-      screen(tester, const Size(320, 900));
-      final fake = LearningFake();
-      await tester.pumpWidget(
-        ginkgoApp(
-          home: MediaQuery(
-            data: const MediaQueryData(
-              size: Size(320, 900),
-              textScaler: TextScaler.linear(2),
-            ),
-            child: LearningCoursePage(course: course, service: fake),
-          ),
-        ),
-      );
-      fake.announcements.requests.single.complete(
-        const LearningRead([
-          CourseAnnouncement('long', '很长的合成公告标题用于验证大字号不发生横向溢出', null),
-        ]),
-      );
-      fake.resources.requests.single.complete(
-        LearningRead(
-          CourseResourcePage(
-            [
-              const CourseResource(
-                id: 'long',
-                name: '很长的合成资料名称用于验证多行布局.pdf',
-                folder: false,
-                downloadable: true,
+  for (final section in ['公告', '资料', '测验']) {
+    testWidgets(
+      'large-text $section rows wrap and refresh targets remain at least 48dp',
+      (tester) async {
+        screen(tester, const Size(320, 900));
+        final fake = LearningFake();
+        await tester.pumpWidget(
+          ginkgoApp(
+            home: MediaQuery(
+              data: const MediaQueryData(
+                size: Size(320, 900),
+                textScaler: TextScaler.linear(2),
               ),
-            ],
-            1,
-            false,
+              child: LearningCoursePage(course: course, service: fake),
+            ),
           ),
-        ),
-      );
-      fake.assessments.requests.single.complete(
-        const LearningRead([
-          CourseAssessment(
-            id: 'long',
-            title: '很长的合成测验标题用于验证多行布局',
-            sourceUrl: '',
-          ),
-        ]),
-      );
-      await tester.pumpAndSettle();
-      for (final section in ['公告', '资料', '测验']) {
+        );
+        if (section == '公告') {
+          await tester.tap(find.text('公告'));
+          await tester.pump();
+          fake.announcements.requests.single.complete(
+            const LearningRead([
+              CourseAnnouncement('long', '很长的合成公告标题用于验证大字号不发生横向溢出', null),
+            ]),
+          );
+        }
+        if (section == '资料') {
+          fake.resources.requests.single.complete(
+            LearningRead(
+              CourseResourcePage(
+                [
+                  const CourseResource(
+                    id: 'long',
+                    name: '很长的合成资料名称用于验证多行布局.pdf',
+                    folder: false,
+                    downloadable: true,
+                  ),
+                ],
+                1,
+                false,
+              ),
+            ),
+          );
+        }
+        if (section == '测验') {
+          await tester.tap(find.text('测验'));
+          await tester.pump();
+          fake.assessments.requests.single.complete(
+            const LearningRead([
+              CourseAssessment(
+                id: 'long',
+                title: '很长的合成测验标题用于验证多行布局',
+                sourceUrl: '',
+              ),
+            ]),
+          );
+        }
+        await tester.pumpAndSettle();
         final target = find.byKey(ValueKey('learning-refresh-$section'));
         await tester.ensureVisible(target);
-        await tester.pumpAndSettle();
         expect(tester.getSize(target).height, greaterThanOrEqualTo(48));
         expect(tester.takeException(), isNull);
-      }
-      expect(fake.downloads, 0);
-    },
-  );
+        expect(fake.downloads, 0);
+      },
+    );
+  }
 
   testWidgets(
     'narrow large text and invalid source URLs expose no unsupported actions',
@@ -493,6 +534,45 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
       }
+    },
+  );
+
+  testWidgets('course list has one refresh and hides search while empty', (
+    tester,
+  ) async {
+    final service = LearningFake();
+    await tester.pumpWidget(ginkgoApp(home: LearningPage(service: service)));
+    expect(find.byKey(const ValueKey('learning-refresh-课程')), findsNothing);
+    expect(find.bySemanticsLabel('刷新课程'), findsOneWidget);
+    service.courses.requests.single.complete(const LearningRead([]));
+    await tester.pumpAndSettle();
+    expect(find.byType(CupertinoSearchTextField), findsNothing);
+  });
+
+  testWidgets(
+    'course details load announcements and assessments on first tab',
+    (tester) async {
+      screen(tester);
+      final fake = LearningFake();
+      await showCourse(tester, fake);
+      expect(fake.resources.requests, hasLength(1));
+      expect(fake.announcements.requests, isEmpty);
+      expect(fake.assessments.requests, isEmpty);
+      fake.resources.requests.single.complete(
+        LearningRead(CourseResourcePage([], 1, false)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('公告'));
+      await tester.pump();
+      expect(fake.announcements.requests, hasLength(1));
+      expect(fake.assessments.requests, isEmpty);
+      fake.announcements.requests.single.complete(const LearningRead([]));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('测验'));
+      await tester.pump();
+      expect(fake.assessments.requests, hasLength(1));
+      fake.assessments.requests.single.complete(const LearningRead([]));
+      await tester.pumpAndSettle();
     },
   );
 }

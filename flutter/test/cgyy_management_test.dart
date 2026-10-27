@@ -31,6 +31,16 @@ class ManagementService extends ControlledService
   bool statusFails = false;
   bool emptyReview = false;
   bool ackFails = false;
+  bool lockFails = false;
+  int lockReads = 0;
+  Object lockCode = <String, dynamic>{
+    'qrCode': '246810',
+    'dueDate': '2026-10-27 10:00:00',
+    'tradeNo': 'synthetic-trade',
+    'venueName': '合成楼',
+    'spaceName': 'A101',
+    'reservationDate': '2026-10-27',
+  };
   Completer<void>? cancelWait;
   Completer<void>? reviewWait;
   final reads = <bool>[];
@@ -46,6 +56,10 @@ class ManagementService extends ControlledService
     required bool forceRefresh,
   }) async {
     reads.add(forceRefresh);
+    if (kind == 'lockCode') {
+      lockReads++;
+      if (lockFails) throw StateError('synthetic lock read failure');
+    }
     return payload(switch (kind) {
       'venues' => [
         {'id': 1, 'name': '合成研讨室', 'venue': '合成楼', 'campus': '沙河', 'seats': 8},
@@ -55,6 +69,8 @@ class ManagementService extends ControlledService
         'dates': [date],
         'spaces': [],
       },
+      'order' => currentOrder,
+      'lockCode' => lockCode,
       _ => [currentOrder],
     });
   }
@@ -110,13 +126,36 @@ Future<void> openRecords(WidgetTester tester, ManagementService service) async {
 }
 
 void main() {
+  test('booking options preserve the fallback source marker', () {
+    final fallback = CgyyBookingOptions.fromJson(const {
+      'choices': [],
+      'purposes': [],
+      'uses_fallback_purposes': true,
+    });
+    final school = CgyyBookingOptions.fromJson(const {
+      'choices': [],
+      'purposes': [],
+    });
+    expect(fallback.usesFallbackPurposes, isTrue);
+    expect(school.usesFallbackPurposes, isFalse);
+  });
+
   test(
     'approval states distinguish pending, approved, rejected and absent',
     () {
       expect(CgyyOrder.fromJson(currentOrder).statusLabel, '待辅导员审批');
-      expect(CgyyOrder.fromJson({...currentOrder, 'check_status': 1}).statusLabel, '审批通过');
-      expect(CgyyOrder.fromJson({...currentOrder, 'check_status': -2}).statusLabel, '辅导员审批驳回');
-      expect(CgyyOrder.fromJson({...currentOrder, 'order_status': 2}).statusLabel, '已取消');
+      expect(
+        CgyyOrder.fromJson({...currentOrder, 'check_status': 1}).statusLabel,
+        '审批通过',
+      );
+      expect(
+        CgyyOrder.fromJson({...currentOrder, 'check_status': -2}).statusLabel,
+        '辅导员审批驳回',
+      );
+      expect(
+        CgyyOrder.fromJson({...currentOrder, 'order_status': 2}).statusLabel,
+        '已取消',
+      );
       expect(
         CgyyOrder.fromJson({...currentOrder, 'check_status': null}).statusLabel,
         contains('未提供'),

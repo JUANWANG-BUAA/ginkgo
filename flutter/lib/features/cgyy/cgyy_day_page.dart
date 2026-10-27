@@ -10,6 +10,7 @@ import 'cgyy_booking_page.dart';
 import 'cgyy_day_view.dart';
 import 'cgyy_gateway.dart';
 import 'cgyy_models.dart';
+import 'cgyy_order_detail_page.dart';
 import 'cgyy_review_page.dart';
 import 'cgyy_widgets.dart';
 
@@ -281,7 +282,19 @@ class _CgyyDayPageState extends State<CgyyDayPage> {
                 description: '学校返回的最近记录为空。',
               ),
             if (orders != null && orders!.isNotEmpty)
-              CgyyOrderListSection(orders: orders!),
+              CgyyOrderListSection(
+                orders: orders!,
+                onOpen: (order) => Navigator.of(context).push(
+                  CupertinoPageRoute<void>(
+                    builder: (_) => CgyyOrderDetailPage(
+                      demo: widget.demo,
+                      loader: widget.loader,
+                      service: widget.service,
+                      orderId: order.id,
+                    ),
+                  ),
+                ),
+              ),
             if (widget.site == null && bookingGateway != null)
               CgyyOrderManageSection(
                 orders: orders ?? <CgyyOrder>[],

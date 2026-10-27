@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
+import 'schedule_day_strip.dart';
 import 'schedule_grid.dart';
 import 'schedule_style.dart';
 import 'schedule_widgets.dart';
@@ -18,6 +19,8 @@ class ScheduleCourseBrowser extends StatelessWidget {
     required this.weeks,
     required this.mode,
     required this.search,
+    required this.selectedDay,
+    required this.onSelectedDay,
     required this.onSearchChanged,
     required this.onCourseTap,
   });
@@ -27,6 +30,8 @@ class ScheduleCourseBrowser extends StatelessWidget {
   final Map<int, ScheduleWeek> weeks;
   final ScheduleViewMode mode;
   final String search;
+  final int selectedDay;
+  final ValueChanged<int> onSelectedDay;
   final ValueChanged<String> onSearchChanged;
   final ValueChanged<ScheduleCourse> onCourseTap;
 
@@ -35,27 +40,42 @@ class ScheduleCourseBrowser extends StatelessWidget {
     final weekStart = weeks[snapshot.weekNumber]?.startDate;
     final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.4;
     final grid = !largeText && mode == ScheduleViewMode.weekGrid;
+    final searching = search.trim().isNotEmpty;
+    final visibleDays = !searching && mode == ScheduleViewMode.dayList
+        ? <int, List<ScheduleCourse>>{
+            selectedDay: days[selectedDay] ?? const [],
+          }
+        : days;
+    final visibleCourses = visibleDays.values
+        .expand((courses) => courses)
+        .toList(growable: false);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (mode == ScheduleViewMode.dayList)
+          ScheduleDayStrip(
+            weekStart: weekStart,
+            selectedDay: selectedDay,
+            onSelected: onSelectedDay,
+          ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           child: CupertinoSearchTextField(
             key: const Key('schedule-search'),
-            placeholder: '搜索课程、教师或地点',
+            placeholder: '搜索本周课程、教师或地点',
             onChanged: onSearchChanged,
           ),
         ),
-        if (courses.isEmpty)
+        if (visibleCourses.isEmpty)
           ScheduleEmptySection(
-            title: search.trim().isNotEmpty
+            title: searching
                 ? '没有匹配的课程'
                 : snapshot.weeks.isEmpty
                 ? '该学期暂无课表'
+                : mode == ScheduleViewMode.dayList
+                ? '当日没有课程'
                 : '本周没有课程',
-            description: search.trim().isNotEmpty
-                ? '请尝试其他关键词。'
-                : '可以切换其他学期或周次查看。',
+            description: searching ? '请尝试其他关键词。' : '可以切换其他日期、学期或周次查看。',
           )
         else
           AppleContentTransition(
@@ -63,6 +83,7 @@ class ScheduleCourseBrowser extends StatelessWidget {
               snapshot.termId,
               snapshot.weekNumber,
               mode,
+              selectedDay,
               largeText,
             ),
             child: Column(
@@ -71,7 +92,7 @@ class ScheduleCourseBrowser extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                   child: Text(
-                    '${courses.length} 项课程${largeText && mode == ScheduleViewMode.weekGrid ? ' · 大字号使用每日清单' : ''}',
+                    '${visibleCourses.length} 项课程${largeText && mode == ScheduleViewMode.weekGrid ? ' · 大字号使用每日清单' : ''}',
                     style: scheduleSecondary(context),
                   ),
                 ),
@@ -85,7 +106,7 @@ class ScheduleCourseBrowser extends StatelessWidget {
                     ),
                   )
                 else
-                  for (final day in days.entries)
+                  for (final day in visibleDays.entries)
                     ScheduleSection(
                       title: scheduleDayTitle(day.key, weekStart),
                       children: [
@@ -156,10 +177,7 @@ class ScheduleExamList extends StatelessWidget {
     title: '考试安排',
     children: [
       if (exams.isEmpty)
-        const AppleEmptyState(
-          title: '本学期暂无考试安排',
-          description: '请留意学校后续通知。',
-        ),
+        const AppleEmptyState(title: '本学期暂无考试安排', description: '请留意学校后续通知。'),
       for (final exam in exams)
         Padding(
           padding: const EdgeInsets.all(16),
@@ -175,7 +193,10 @@ class ScheduleExamList extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(_examDetail(exam), style: scheduleSecondary(context)),
                 if (exam.examSeatNo != null)
-                  Text('座位 ${exam.examSeatNo}', style: scheduleSecondary(context)),
+                  Text(
+                    '座位 ${exam.examSeatNo}',
+                    style: scheduleSecondary(context),
+                  ),
               ],
             ),
           ),

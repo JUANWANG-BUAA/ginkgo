@@ -201,7 +201,9 @@ class _WorkspaceShortcutsState extends State<WorkspaceShortcuts>
         title: '常用服务',
         badge: draft != null ? '编辑中' : null,
         actionLabel: draft == null && editable ? '编辑' : null,
-        onAction: editable ? () => setState(() => _draft = List.of(selected)) : null,
+        onAction: editable
+            ? () => setState(() => _draft = List.of(selected))
+            : null,
       ),
       footer: Text(
         _preferences.memoryOnly
