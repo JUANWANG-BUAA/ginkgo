@@ -771,6 +771,7 @@ def write_readme(totals: list[tuple[str, str, int]]) -> None:
     lines.append('')
     lines.append('## 快速导航')
     lines.append('')
+    lines.append('- 新增接口先选模式：[接口设计模式](../INTERFACE-INDEX.md#11-接口设计模式)')
     lines.append('- 从代码位置回查接口：[反向索引](REVERSE-INDEX.md)')
     lines.append('- 分层说明、能力总表、模块 IO 与跨层不变量：[INTERFACE-INDEX.md](../INTERFACE-INDEX.md)')
     lines.append('- 学校协议事实：[API.md](../API.md)')
