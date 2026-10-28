@@ -38,6 +38,27 @@ pub(crate) struct HomeworkFiles {
     root: Option<std::path::PathBuf>,
     uploads: BTreeMap<String, Upload>,
 }
+
+impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
+    /// Root of the restart journal, read under the lock but never guessed.
+    fn journal_root(&self) -> Result<std::path::PathBuf, AppError> {
+        let files = self.homework_files.lock();
+        journal::root_of(&files)
+    }
+
+    /// Rehydrate the restart journal without holding a lock across the disk
+    /// work. Reading a directory and fsyncing it blocks the OS thread, so it
+    /// runs on a blocking thread; only the merge touches shared state.
+    async fn restore_journal(&self, owner: &(String, u64)) -> Result<(), AppError> {
+        let root = self.journal_root()?;
+        let owner_copy = owner.clone();
+        let read = tokio::task::spawn_blocking(move || journal::read_records(&root, &owner_copy))
+            .await
+            .unwrap_or_else(|_| Err(AppError::unavailable()))?;
+        journal::apply_restore(&mut self.homework_files.lock(), owner, read)
+    }
+}
+
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     fn homework_owner(&self) -> Result<(String, u64), AppError> {
         let i = self.identity.lock();
@@ -72,19 +93,32 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         Ok(context)
     }
     fn accept_homework(&self, owner: &(String, u64), handle: &str) -> bool {
-        let identity = self.identity.lock();
-        if identity.generation != owner.1
-            || identity
-                .authenticated
-                .as_ref()
-                .is_none_or(|identity| identity.account != owner.0)
         {
+            let identity = self.identity.lock();
+            if identity.generation != owner.1
+                || identity
+                    .authenticated
+                    .as_ref()
+                    .is_none_or(|identity| identity.account != owner.0)
+            {
+                return false;
+            }
+        }
+        // Snapshot the deletion target under the lock; delete outside it.
+        let target = {
+            let files = self.homework_files.lock();
+            if !files.uploads.get(handle).is_some_and(|u| u.owner == *owner) {
+                return false;
+            }
+            journal::clear_target(&files, handle)
+        };
+        let Ok((path, file, assignment)) = target else {
+            return false;
+        };
+        if journal::clear_record(&path, handle, &file, &assignment).is_err() {
             return false;
         }
         let mut files = self.homework_files.lock();
-        if journal::clear(&files, handle).is_err() {
-            return false;
-        }
         if let Some(upload) = files.uploads.get_mut(handle) {
             upload.state = State::Accepted;
             true
@@ -101,15 +135,18 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> HomeworkSubmissionSourc
     for SchoolClient<T, V>
 {
     fn configure_homework_recovery(&self, root: &str) -> Result<(), AppError> {
-        journal::configure(&mut self.homework_files.lock(), root)
+        // Validate the private directory before taking the lock: this is a
+        // syscall pair, not shared state.
+        let path = journal::prepare_root(root)?;
+        journal::adopt_root(&mut self.homework_files.lock(), &path)
     }
     async fn pending_homework_submissions(
         &self,
     ) -> Result<Vec<HomeworkPendingSubmission>, AppError> {
         let _gate = self.homework_file_gate.lock().await;
         let owner = self.homework_owner()?;
-        let mut files = self.homework_files.lock();
-        journal::restore(&mut files, &owner)?;
+        self.restore_journal(&owner).await?;
+        let files = self.homework_files.lock();
         let result = files
             .uploads
             .iter()
@@ -150,7 +187,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> HomeworkSubmissionSourc
         validate_homework_file(name, bytes.len())?;
         let owner = self.homework_owner()?;
         // Prove restart protection before the first upload side effect.
-        journal::restore(&mut self.homework_files.lock(), &owner)?;
+        self.restore_journal(&owner).await?;
         let id = id.strip_prefix("spoc:").unwrap_or(id);
         if self
             .homework_files
@@ -227,7 +264,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> HomeworkSubmissionSourc
         let Ok(owner) = self.homework_owner() else {
             return MutationOutcome::not_submitted("登录已失效");
         };
-        if journal::restore(&mut self.homework_files.lock(), &owner).is_err() {
+        if self.restore_journal(&owner).await.is_err() {
             return MutationOutcome::not_submitted(
                 "待核实保护记录不可用，请先检查本机数据，尚未提交",
             );
@@ -285,15 +322,39 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> HomeworkSubmissionSourc
             {
                 return MutationOutcome::not_submitted("身份已变化，尚未提交");
             }
-            let mut files = self.homework_files.lock();
-            if journal::create(&files, handle, baseline).is_err() {
-                return MutationOutcome::not_submitted(
-                    "无法持久保存待核实保护记录，尚未提交；请检查本机存储",
-                );
+        }
+        // Snapshot the record under the lock, then fsync outside it: writing and
+        // syncing a file blocks the OS thread, which must not hold the journal.
+        let (record_root, record) = {
+            let files = self.homework_files.lock();
+            match (
+                journal::root_of(&files),
+                journal::record(&files, handle, baseline),
+            ) {
+                (Ok(root), Ok(record)) => (root, record),
+                _ => return MutationOutcome::not_submitted("上传凭据已失效，尚未提交"),
             }
+        };
+        let account = owner.0.clone();
+        let written = tokio::task::spawn_blocking(move || {
+            journal::write_record(&record_root, &account, &record)
+        })
+        .await
+        .unwrap_or_else(|_| Err(AppError::unavailable()));
+        if written.is_err() {
+            return MutationOutcome::not_submitted(
+                "无法持久保存待核实保护记录，尚未提交；请检查本机存储",
+            );
+        }
+        {
+            let mut files = self.homework_files.lock();
             let Some(upload) = files.uploads.get_mut(handle) else {
                 return MutationOutcome::not_submitted("上传凭据已失效，尚未提交");
             };
+            // Recheck the owner under the lock: the fsync above released it.
+            if upload.owner != owner {
+                return MutationOutcome::not_submitted("身份已变化，尚未提交");
+            }
             upload.state = State::Sent;
             upload.baseline = baseline;
         }
@@ -324,7 +385,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> HomeworkSubmissionSourc
         let Ok(owner) = self.homework_owner() else {
             return MutationOutcome::uncertain();
         };
-        if journal::restore(&mut self.homework_files.lock(), &owner).is_err() {
+        if self.restore_journal(&owner).await.is_err() {
             return MutationOutcome::new(
                 MutationState::Uncertain,
                 "无法读取待核实保护记录；请勿重新提交",

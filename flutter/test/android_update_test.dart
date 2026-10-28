@@ -250,38 +250,47 @@ void main() {
     download.dispose();
   });
 
-  test('a natively rejected APK is discarded and becomes re-downloadable', () async {
-    server.listen((request) async {
-      request.response.contentLength = bytes.length;
-      request.response.add(bytes);
-      await request.response.close();
-    });
-    var installs = 0;
-    final download = controller(
-      installer: (_) async {
-        installs++;
-        return 'invalid';
-      },
-    );
-    await download.download(asset);
-    expect(download.phase, UpdateDownloadPhase.ready);
-    await download.install();
-    expect(installs, 1);
-    expect(download.phase, UpdateDownloadPhase.failed);
-    expect(download.message, contains('重新下载'));
-    expect(download.received, 0);
-    final directory = Directory('${root.path}/updates');
-    expect(await File('${directory.path}/${asset.sha256}.apk').exists(), isFalse);
-    expect(await File('${directory.path}/${asset.sha256}.part').exists(), isFalse);
+  test(
+    'a natively rejected APK is discarded and becomes re-downloadable',
+    () async {
+      server.listen((request) async {
+        request.response.contentLength = bytes.length;
+        request.response.add(bytes);
+        await request.response.close();
+      });
+      var installs = 0;
+      final download = controller(
+        installer: (_) async {
+          installs++;
+          return 'invalid';
+        },
+      );
+      await download.download(asset);
+      expect(download.phase, UpdateDownloadPhase.ready);
+      await download.install();
+      expect(installs, 1);
+      expect(download.phase, UpdateDownloadPhase.failed);
+      expect(download.message, contains('重新下载'));
+      expect(download.received, 0);
+      final directory = Directory('${root.path}/updates');
+      expect(
+        await File('${directory.path}/${asset.sha256}.apk').exists(),
+        isFalse,
+      );
+      expect(
+        await File('${directory.path}/${asset.sha256}.part').exists(),
+        isFalse,
+      );
 
-    // The download action is reachable again and produces a fresh ready file.
-    await download.download(asset);
-    expect(download.phase, UpdateDownloadPhase.ready);
-    expect(installs, 1);
-    expect(
-      await File('${directory.path}/${asset.sha256}.apk').exists(),
-      isTrue,
-    );
-    download.dispose();
-  });
+      // The download action is reachable again and produces a fresh ready file.
+      await download.download(asset);
+      expect(download.phase, UpdateDownloadPhase.ready);
+      expect(installs, 1);
+      expect(
+        await File('${directory.path}/${asset.sha256}.apk').exists(),
+        isTrue,
+      );
+      download.dispose();
+    },
+  );
 }

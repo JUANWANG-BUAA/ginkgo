@@ -32,10 +32,9 @@ class ResourceMeter extends StatelessWidget {
     final ratio = known && capacity > 0
         ? (free / capacity).clamp(0.0, 1.0)
         : null;
-    final color = (free == 0
-            ? AppleDesign.statusPending
-            : AppleDesign.resourceTeal)
-        .resolveFrom(context);
+    final color =
+        (free == 0 ? AppleDesign.statusPending : AppleDesign.resourceTeal)
+            .resolveFrom(context);
     final fillColor = color.withValues(alpha: free == 0 ? 0.90 : 0.55);
     final content = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

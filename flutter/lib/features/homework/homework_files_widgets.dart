@@ -227,9 +227,7 @@ class HomeworkPendingSubmissionNotice extends StatelessWidget {
     children: [
       const Padding(
         padding: EdgeInsets.all(16),
-        child: Text(
-          '发现本机待确认提交。记录仅用于回查，不保存文件内容；确认结果前禁止重新上传或提交。',
-        ),
+        child: Text('发现本机待确认提交。记录仅用于回查，不保存文件内容；确认结果前禁止重新上传或提交。'),
       ),
       for (var index = 0; index < count; index++)
         CupertinoButton(
@@ -242,18 +240,14 @@ class HomeworkPendingSubmissionNotice extends StatelessWidget {
 
 /// 作业的教师评语与退回说明。
 class HomeworkFeedbackNote extends StatelessWidget {
-  const HomeworkFeedbackNote({
-    super.key,
-    required this.data,
-  });
+  const HomeworkFeedbackNote({super.key, required this.data});
 
   final HomeworkFileWorkspace data;
 
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      if (data.returned)
-        const CupertinoListTile(title: Text('作业已退回，请查看教师要求')),
+      if (data.returned) const CupertinoListTile(title: Text('作业已退回，请查看教师要求')),
       if (data.text?.isNotEmpty == true)
         Padding(padding: const EdgeInsets.all(16), child: Text(data.text!)),
       if (data.feedback?.isNotEmpty == true)
@@ -280,10 +274,7 @@ class HomeworkBlockedNote extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     children: [
       if (blockedReason != null)
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(blockedReason!),
-        ),
+        Padding(padding: const EdgeInsets.all(16), child: Text(blockedReason!)),
       if (!canSubmit && blockedReason == null)
         const Padding(
           padding: EdgeInsets.all(16),

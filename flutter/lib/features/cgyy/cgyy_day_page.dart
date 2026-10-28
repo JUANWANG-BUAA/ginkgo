@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
@@ -23,11 +23,15 @@ class CgyyDayPage extends StatefulWidget {
     this.site,
     this.loader,
     this.service,
+    this.bookingGateway,
   });
   final bool demo;
   final CgyySite? site;
   final CgyyLoader? loader;
-  final CampusGateway? service;
+  final CgyyGateway? service;
+
+  /// The CGYY write capability, injected by the composition root.
+  final CgyyBookingGateway? bookingGateway;
   @override
   State<CgyyDayPage> createState() => _CgyyDayPageState();
 }
@@ -53,6 +57,24 @@ class _CgyyDayPageState extends State<CgyyDayPage> {
     load();
   }
 
+  @override
+  void didUpdateWidget(CgyyDayPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service ||
+        oldWidget.loader != widget.loader ||
+        oldWidget.demo != widget.demo ||
+        oldWidget.site?.id != widget.site?.id) {
+      request++;
+      day = null;
+      orders = null;
+      error = null;
+      busy = false;
+      guardKnown = false;
+      reviewRequired = true;
+      load();
+    }
+  }
+
   Future<void> load({bool force = false}) async {
     final serial = ++request;
     final queriedDate = date;
@@ -63,7 +85,6 @@ class _CgyyDayPageState extends State<CgyyDayPage> {
     try {
       final kind = widget.site == null ? 'orders' : 'day';
       final result = await cgyyRead(
-        demo: widget.demo,
         loader: widget.loader,
         service: widget.service,
         kind: kind,
@@ -71,7 +92,7 @@ class _CgyyDayPageState extends State<CgyyDayPage> {
         date: queriedDate,
         forceRefresh: force,
       );
-      await readGuard();
+      await readGuard(serial);
       if (!mounted || serial != request) return;
       setState(() {
         busy = false;
@@ -94,17 +115,19 @@ class _CgyyDayPageState extends State<CgyyDayPage> {
     }
   }
 
+  /// The write capability is injected by the composition root. A page-local
+  /// fallback would construct a *second* adapter with its own account binding,
+  /// which is exactly how a write can land on the wrong account.
   CgyyBookingGateway? get bookingGateway {
     if (widget.demo || widget.loader != null) return null;
-    final source = widget.service ?? mirrorServiceFor(demo: widget.demo);
-    return source is CgyyBookingGateway ? source as CgyyBookingGateway : null;
+    return widget.bookingGateway;
   }
 
-  Future<void> readGuard() async {
+  Future<void> readGuard([int? serial]) async {
     final gateway = bookingGateway;
     if (gateway == null) return;
     final status = await cgyyReadWriteStatus(gateway);
-    if (!mounted) return;
+    if (!mounted || (serial != null && serial != request)) return;
     setState(() {
       guardKnown = status.known;
       reviewRequired = status.reviewRequired;
@@ -267,17 +290,17 @@ class _CgyyDayPageState extends State<CgyyDayPage> {
               ),
             if (busy) const GinkgoLoadingView(label: '正在读取预约信息…'),
             if (error != null)
-              CgyyStatusSection(
+              AppleStatusSection(
                 title: error!,
                 description: day != null || orders != null
                     ? '保留上次结果，请核对下方实际日期。'
                     : '需要可用的直连学校会话；可记住密码后重试。',
-                onRetry: () => load(force: true),
-                isError: true,
+                onAction: () => load(force: true),
+                error: true,
               ),
             if (day != null) ...cgyyDaySlots(context, day!),
             if (orders?.isEmpty == true)
-              const CgyyStatusSection(
+              const AppleStatusSection(
                 title: '暂无预约记录',
                 description: '学校返回的最近记录为空。',
               ),
@@ -287,7 +310,6 @@ class _CgyyDayPageState extends State<CgyyDayPage> {
                 onOpen: (order) => Navigator.of(context).push(
                   CupertinoPageRoute<void>(
                     builder: (_) => CgyyOrderDetailPage(
-                      demo: widget.demo,
                       loader: widget.loader,
                       service: widget.service,
                       orderId: order.id,

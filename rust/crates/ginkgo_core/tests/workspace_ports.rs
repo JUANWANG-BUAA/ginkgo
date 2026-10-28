@@ -1,8 +1,8 @@
 //! These consumers compile without any school implementation, HTTP or vault.
 use ginkgo_core::{
     application::{
-        CheckInMutationSource, DataOutcome, NoticeSource, NoticesOutcome, RoutePreference,
-        SessionOutcome, SessionSource, SessionStatus, Workspace,
+        CheckInMutationSource, NoticeSource, NoticesOutcome, RoutePreference, SessionOutcome,
+        SessionSource, SessionStatus, Workspace,
     },
     features::{
         mutation::{MutationOutcome, MutationState},
@@ -22,13 +22,16 @@ struct ReplacementNotices {
 impl NoticeSource for ReplacementNotices {
     async fn load_notices(&self, force: bool) -> Result<NoticesOutcome, AppError> {
         self.calls.fetch_add(1, Ordering::SeqCst);
-        Ok(DataOutcome {
+        Ok(NoticesOutcome {
             data: vec![Notice {
                 title: "合成通知".into(),
                 summary: String::new(),
                 published_at: "2026-10-22".into(),
                 url: "synthetic:notice".into(),
             }],
+            fetched_at: "2026-10-28T00:00:00+08:00".into(),
+            from_cache: false,
+            stale: force,
             failure: force.then(AppError::unavailable),
         })
     }
@@ -72,6 +75,7 @@ struct LocalIdentity {
     account: Arc<Mutex<Option<String>>>,
 }
 impl SessionSource for LocalIdentity {
+    async fn purge_credentials(&self) {}
     fn account(&self) -> Result<String, AppError> {
         self.account
             .lock()

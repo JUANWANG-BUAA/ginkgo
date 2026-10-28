@@ -1,38 +1,26 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
 
+import 'package:ginkgo_mirror/application/busy_gate.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/failure_message.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/local_tasks.dart';
 import 'package:ginkgo_mirror/application/reminder_planning.dart';
-import 'package:ginkgo_mirror/features/schedule/course_visibility.dart';
-import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
+import 'package:ginkgo_mirror/application/service_capabilities.dart';
+import 'package:ginkgo_mirror/application/reminder_store.dart';
+import 'package:ginkgo_mirror/application/reminder_platform.dart';
+import 'package:ginkgo_mirror/shared/course_visibility.dart';
+import 'package:ginkgo_mirror/shared/homework_visibility.dart';
 import 'package:ginkgo_mirror/shared/reminder_rules.dart';
 
 // Scope 与控制器分属不同文件；调用方仍从本文件取全部提醒能力。
 export 'reminder_scope.dart';
 
-abstract interface class ReminderPlatform {
-  Future<void> replace(List<Map<String, Object>> plans);
-}
-
-class NativeReminderPlatform implements ReminderPlatform {
-  static const channel = MethodChannel('cn.edu.buaa.ginkgo/reminders');
-  @override
-  Future<void> replace(List<Map<String, Object>> plans) async {
-    if (!Platform.isAndroid) {
-      throw UnsupportedError('当前平台不支持系统提醒，应用内提示仍可用');
-    }
-    await channel.invokeMethod<void>('replace', plans);
-  }
-}
+export 'package:ginkgo_mirror/application/reminder_platform.dart';
 
 /// Account-scoped read receipts contain only digests, not school content.
 class ReminderController extends ChangeNotifier {
@@ -40,18 +28,15 @@ class ReminderController extends ChangeNotifier {
     required this.service,
     required this.account,
     required this.visibility,
-    ReminderPlatform? platform,
+    required this.platform,
     this.persist = true,
     DateTime Function()? clock,
     ReminderPlanningGateway? planner,
     Future<String> Function()? tasksRoot,
-  }) : platform = platform ?? NativeReminderPlatform(),
-       planner =
-           planner ??
-           (service is ReminderPlanningGateway
-               ? service as ReminderPlanningGateway
-               : null),
-       tasksRoot = tasksRoot ?? localTasksStorageRoot,
+    this.store,
+  }) : planner =
+           planner ?? ServiceCapabilities.resolve(service).reminderPlanning,
+       tasksRoot = tasksRoot ?? _missingTasksRoot,
        clock = clock ?? DateTime.now;
   final MirrorService service;
   final String account;
@@ -60,6 +45,7 @@ class ReminderController extends ChangeNotifier {
   final bool persist;
   final ReminderPlanningGateway? planner;
   final Future<String> Function() tasksRoot;
+  final ReminderStore? store;
   final DateTime Function() clock;
   final Map<String, int> _read = {};
   List<ReminderPlan> _checkin = [], _homework = [], _course = [], _task = [];
@@ -69,47 +55,77 @@ class ReminderController extends ChangeNotifier {
   bool checkinEnabled = true, homeworkEnabled = true;
   // Opt-in: do not silently add school reads or new notification groups.
   bool courseEnabled = false, taskEnabled = false;
-  bool _busy = false, _disposed = false;
+  bool _disposed = false;
+
+  /// A read that never settles must not disable reminders for the whole
+  /// session: the gate reopens on its own and says so.
+  final _refreshGate = BusyGate(deadline: const Duration(minutes: 5));
+  bool get busy => _refreshGate.busy;
   bool _restored = false;
-  Future<void> _writes = Future.value();
+  bool _storageReady = false;
+  bool get settingsReady => !persist || _storageReady;
+  bool get canRetryRestore => persist && _restored && !_storageReady;
   int scheduled = 0;
   String? _lastPlatformState;
   String digest(String key) =>
       sha256.convert(utf8.encode('$account:$key')).toString();
-  Future<File> _file() async => File(
-    '${(await getApplicationSupportDirectory()).path}/reminders-${digest('account')}.json',
-  );
+  static Future<String> _missingTasksRoot() =>
+      Future.error(StateError('Task storage is unavailable'));
 
   Future<void> restore() async {
+    if (_disposed) return;
     if (!persist) {
       _restored = true;
+      _storageReady = true;
       return;
     }
+    _restored = false;
+    _storageReady = false;
+    notifyListeners();
     try {
-      final file = await _file();
-      if (!await file.exists()) return;
-      final data =
-          jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      final storage = store;
+      if (storage == null) throw StateError('Reminder storage is unavailable');
+      final encoded = await storage.read();
+      if (_disposed) return;
+      _storageReady = true;
+      hint = null;
+      if (encoded == null) return;
+      final data = jsonDecode(encoded) as Map<String, dynamic>;
+      final savedRead = data['read'] as Map<String, dynamic>? ?? {};
+      final recovered = <String, int>{};
+      for (final entry in savedRead.entries) {
+        if (entry.value is int &&
+            (entry.value as int) > clock().millisecondsSinceEpoch) {
+          recovered[entry.key] = entry.value as int;
+        }
+      }
       checkinEnabled = data['checkin'] != false;
       homeworkEnabled = data['homework'] != false;
       courseEnabled = data['course'] == true;
       taskEnabled = data['task'] == true;
-      for (final entry
-          in (data['read'] as Map<String, dynamic>? ?? {}).entries) {
-        if (entry.value is int &&
-            (entry.value as int) > clock().millisecondsSinceEpoch) {
-          _read[entry.key] = entry.value as int;
-        }
-      }
+      _read
+        ..clear()
+        ..addAll(recovered);
     } catch (_) {
-      hint = '提醒偏好读取失败，已使用默认设置';
+      _storageReady = false;
+      if (!_disposed) hint = '提醒偏好读取失败，请重试后再修改';
     } finally {
-      _restored = true;
+      if (!_disposed) {
+        _restored = true;
+        notifyListeners();
+      }
     }
+  }
+
+  void reportRestoreTimeout() {
+    if (_disposed) return;
+    hint = '提醒偏好读取未完成，请稍后再修改';
+    notifyListeners();
   }
 
   Future<void> _save() {
     if (!persist) return Future.value();
+    if (_disposed || !_storageReady) return Future.value();
     final data = jsonEncode({
       'checkin': checkinEnabled,
       'homework': homeworkEnabled,
@@ -117,21 +133,16 @@ class ReminderController extends ChangeNotifier {
       'task': taskEnabled,
       'read': _read,
     });
-    _writes = _writes
-        .then((_) async {
-          final file = await _file();
-          await file.parent.create(recursive: true);
-          final temp = File('${file.path}.tmp');
-          await temp.writeAsString(data, flush: true);
-          await temp.rename(file.path);
-        })
-        .catchError((Object _) {
-          if (!_disposed) {
-            hint = '提醒已更新，但本机保存失败';
-            notifyListeners();
-          }
-        });
-    return _writes;
+    final storage = store;
+    return Future<void>.sync(() {
+      if (storage == null) throw StateError('Reminder storage is unavailable');
+      return storage.write(data);
+    }).catchError((Object _) {
+      if (!_disposed) {
+        hint = '提醒已更新，但本机保存失败';
+        notifyListeners();
+      }
+    });
   }
 
   List<ReminderPlan> get plans => [
@@ -156,6 +167,7 @@ class ReminderController extends ChangeNotifier {
       .length;
 
   void markRead(String group) {
+    if (_disposed || (persist && !_storageReady)) return;
     var changed = false;
     for (final plan in plans.where(
       (p) => p.group == _reminderGroup(group) && !p.at.isAfter(clock()),
@@ -178,6 +190,12 @@ class ReminderController extends ChangeNotifier {
   }
 
   Future<void> setEnabled(String group, bool value) async {
+    if (_disposed) return;
+    if (persist && !_storageReady) {
+      hint = '提醒偏好尚未读取，请稍后重试';
+      notifyListeners();
+      return;
+    }
     if (group == 'checkin') {
       checkinEnabled = value;
     } else if (group == 'homework') {
@@ -269,9 +287,14 @@ class ReminderController extends ChangeNotifier {
   }
 
   Future<void> refresh({bool includeHomework = true}) async {
-    if (_busy || _disposed || service.isDemo) return;
-    _busy = true;
-    hint = null;
+    if (_disposed || service.isDemo) return;
+    if (!_refreshGate.enter()) return;
+    _refreshGate.onExpired = () {
+      if (_disposed) return;
+      hint = '上次提醒刷新未完成，已重新允许刷新';
+      notifyListeners();
+    };
+    if (settingsReady) hint = null;
     // Independent reads: one service failing must not remove the other's plans.
     await Future.wait([
       if (courseEnabled)
@@ -332,12 +355,37 @@ class ReminderController extends ChangeNotifier {
           }
         }(),
     ]);
-    _busy = false;
+    _refreshGate.leave();
     if (!_disposed) await reconcile();
   }
 
-  Future<void> reconcile() async {
-    if (_disposed || (persist && !_restored)) return;
+  /// Serializes platform scheduling. A 15 s tick can arrive while a previous
+  /// `replace` is still running; without this, overlapping calls would queue on
+  /// the Android main thread and each re-cancel/re-arm up to 60 alarms.
+  Future<void>? _reconciling;
+  Future<void>? _reconcileRerun;
+
+  Future<void> reconcile() {
+    if (_disposed || (persist && !_storageReady)) return Future.value();
+    final inFlight = _reconciling;
+    if (inFlight == null) {
+      return _reconciling = _reconcile().whenComplete(
+        () => _reconciling = null,
+      );
+    }
+    // A tick that arrived mid-run must not be dropped: the plans may have
+    // changed since the running pass started.
+    return _reconcileRerun ??= inFlight
+        .then((_) async {
+          _reconcileRerun = null;
+          if (_disposed) return;
+          await reconcile();
+        })
+        .whenComplete(() => _reconcileRerun = null);
+  }
+
+  Future<void> _reconcile() async {
+    if (_disposed || (persist && !_storageReady)) return;
     _read.removeWhere((_, expiry) => expiry <= clock().millisecondsSinceEpoch);
     if (activeGroup != null) markRead(activeGroup!);
     final sorted = plans..sort((a, b) => a.at.compareTo(b.at));
@@ -377,8 +425,7 @@ class ReminderController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _refreshGate.dispose();
     super.dispose();
   }
 }
-
-

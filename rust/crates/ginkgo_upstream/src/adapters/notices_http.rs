@@ -4,11 +4,13 @@ use crate::{
     foundation::http::{HttpRequest, HttpTransport},
     AppError,
 };
-pub async fn load<T: HttpTransport>(session: &Session<T>) -> Result<Vec<Notice>, AppError> {
+pub async fn load<T: HttpTransport + Sync>(session: &Session<T>) -> Result<Vec<Notice>, AppError> {
+    let preference = session.route();
     let response = session
-        .send_following_redirects(
+        .send_anonymous(
             HttpRequest::get(crate::endpoints::NOTICE_PAGE.as_str())
                 .header("Accept", "text/html,application/xhtml+xml"),
+            preference,
         )
         .await?;
     if response.status != 200

@@ -1,8 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/design/academic_widgets.dart';
+import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
-import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
 import 'cgyy_models.dart';
 
@@ -28,48 +27,6 @@ Widget cgyySiteContent(CgyySite site, {bool chevron = false}) {
         ),
     ],
     chevron: chevron,
-  );
-}
-
-/// The CGYY page header shared by the booking and the review page. Section,
-/// subtitle and icon stay identical so the whole domain reads as one surface.
-class CgyyPageHeader extends StatelessWidget {
-  const CgyyPageHeader({super.key, required this.title});
-  final String title;
-  @override
-  Widget build(BuildContext context) => ApplePageHeader(
-    largeTitle: Text(title),
-    section: '空间资源',
-    subtitle: '选择场馆并查看可预约空间',
-    icon: CupertinoIcons.person_3,
-    border: null,
-  );
-}
-
-/// Error and empty states share one block so the hub and the day page cannot
-/// drift apart. The retry action only appears when a retry is possible.
-class CgyyStatusSection extends StatelessWidget {
-  const CgyyStatusSection({
-    super.key,
-    required this.title,
-    required this.description,
-    this.onRetry,
-    this.isError = false,
-  });
-  final String title, description;
-  final VoidCallback? onRetry;
-  final bool isError;
-  @override
-  Widget build(BuildContext context) => AppleSection(
-    children: [
-      AppleEmptyState(
-        title: title,
-        description: description,
-        action: onRetry == null ? null : '重试',
-        onAction: onRetry,
-        error: isError,
-      ),
-    ],
   );
 }
 

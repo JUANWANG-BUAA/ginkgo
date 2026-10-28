@@ -18,7 +18,7 @@ cfb-mode = "0.8"
 cipher = "0.4"
 base64 = "0.22"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "gzip"], optional = true }
-tokio = { version = "1", features = ["sync", "macros", "time"] }
+tokio = { version = "1", features = ["sync", "macros", "time", "rt"] }
 rsa = "0.9"
 rand = "0.8"
 sha1 = "0.10"
@@ -28,7 +28,7 @@ md-5 = "0.10"
 experimental-homework-upload = []
 test-support = []
 default = []
-network = ["dep:reqwest", "tokio/rt-multi-thread", "tokio/time"]
+network = ["dep:reqwest", "tokio/rt", "tokio/rt-multi-thread", "tokio/time"]
 
 [target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
 keyring = { version = "3.6", default-features = false, features = ["apple-native", "windows-native"] }

@@ -4,12 +4,14 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/application/local_tasks.dart';
+import 'package:ginkgo_mirror/application/task_storage_scope.dart';
 import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/features/tasks/task_editor.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_widgets.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
+import 'package:ginkgo_mirror/infrastructure/service_factory.dart';
 
 enum _TaskAction { edit, delete }
 
@@ -24,7 +26,7 @@ class TasksPage extends StatefulWidget {
   });
   final bool demo;
   final String? storageRoot;
-  final CampusGateway? service;
+  final LocalTaskGateway? service;
   final AcademicGateway? academicService;
   final String? initialTaskId;
   @override
@@ -40,7 +42,7 @@ class _TasksPageState extends State<TasksPage> {
   final targetKey = GlobalKey();
   bool located = false;
   bool completedExpanded = false;
-  CampusGateway get service =>
+  LocalTaskGateway get service =>
       widget.service ?? mirrorServiceFor(demo: widget.demo);
 
   @override
@@ -107,7 +109,7 @@ class _TasksPageState extends State<TasksPage> {
       error = null;
     });
     try {
-      final root = await localTasksStorageRoot(rootOverride);
+      final root = rootOverride ?? await TaskStorageScope.read(context)();
       if (!mounted || epoch != generation) return false;
       final updated = await editLocalTasks(
         gateway,
@@ -250,9 +252,9 @@ class _TasksPageState extends State<TasksPage> {
   Future<void> source(LocalTaskRecord task) async {
     if (locating) return;
     final epoch = generation;
-    final academic =
-        widget.academicService ??
-        (service is AcademicGateway ? service as AcademicGateway : null);
+    // The local task port never carries school data; the academic read must
+    // arrive through its own typed port.
+    final academic = widget.academicService;
     if (academic == null) {
       await sourceUnavailable();
       return;
@@ -379,10 +381,7 @@ class _TasksPageState extends State<TasksPage> {
               if (!busy && readable && tasks.isEmpty)
                 const AppleSection(
                   children: [
-                    AppleEmptyState(
-                      title: '暂无待办',
-                      description: '点击右上角添加本机待办。',
-                    ),
+                    AppleEmptyState(title: '暂无待办', description: '点击右上角添加本机待办。'),
                   ],
                 ),
               if (readable &&

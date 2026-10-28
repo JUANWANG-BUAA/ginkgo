@@ -281,7 +281,11 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
         child: CustomScrollView(
           key: const Key('cgyy-booking-form'),
           slivers: [
-            const CgyyPageHeader(title: '预约研讨室'),
+            const AppleRefreshPageHeader(
+              title: '预约研讨室',
+              subtitle: '选择场馆并查看可预约空间',
+              icon: CupertinoIcons.person_3,
+            ),
             SliverList.list(
               children: [
                 CgyyVenueSection(siteName: widget.siteName, date: widget.date),

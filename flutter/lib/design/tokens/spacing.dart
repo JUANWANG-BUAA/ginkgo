@@ -2,15 +2,10 @@ import 'package:flutter/cupertino.dart';
 
 /// 4pt / 8pt spatial layout scale matching Apple Human Interface Guidelines.
 abstract final class GinkgoSpacing {
-  static const double xxs = 2.0;
-  static const double xs = 4.0;
-  static const double sm = 8.0;
   static const double md = 12.0;
   static const double base = 16.0;
-  static const double lg = 20.0;
   static const double xl = 24.0;
   static const double xxl = 32.0;
-  static const double xxxl = 48.0;
 
   // Insets
   static const pageInset = 16.0;
@@ -28,16 +23,27 @@ abstract final class GinkgoSpacing {
     horizontal: base,
     vertical: 10,
   );
-  static const edgeInsetsListTileCompact = EdgeInsets.symmetric(
-    horizontal: base,
-    vertical: 6,
+  static const edgeInsetsBadge = EdgeInsets.symmetric(
+    horizontal: 8,
+    vertical: 5,
   );
-  static const edgeInsetsSidebarItem = EdgeInsets.symmetric(
-    horizontal: 4,
-    vertical: 2,
+  static const edgeInsetsFact = EdgeInsets.symmetric(
+    horizontal: 16,
+    vertical: 13,
   );
-  static const edgeInsetsSidebarItemInner = EdgeInsets.symmetric(
-    horizontal: 11,
-    vertical: 8,
+
+  static const double xs = 4.0;
+  static const double compact = 5.0;
+  static const double small = 6.0;
+  static const double factLabelWidth = 124.0;
+  static const double metricColumnWidth = 108.0;
+  static const double metricGridSpacing = 18.0;
+
+  static EdgeInsets badgeInsets({
+    required bool compact,
+    required bool largeText,
+  }) => EdgeInsets.symmetric(
+    horizontal: compact ? 6 : 8,
+    vertical: largeText ? 4 : (compact ? 2 : 3),
   );
 }

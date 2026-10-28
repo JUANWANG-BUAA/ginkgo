@@ -13,9 +13,10 @@ pub async fn load_login_challenge(
     expected_id: Option<String>,
     refresh: bool,
 ) -> LoginChallengeResponse {
-    let _access = SESSION_ACCESS.write().await;
     let result = match service() {
-        Ok(service) => bounded_read(service.login_challenge(expected_id.as_deref(), refresh)).await,
+        Ok(service) => {
+            with_session_write(|| service.login_challenge(expected_id.as_deref(), refresh)).await
+        }
         Err(error) => Err(error),
     };
     match result {

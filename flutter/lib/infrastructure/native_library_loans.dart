@@ -4,6 +4,8 @@ import '../application/contracts.dart';
 import '../application/library_loans.dart';
 import '../src/rust/api/live.dart' as live;
 
+import 'package:ginkgo_mirror/infrastructure/native_command.dart';
+
 /// Decode the business projection, never the school OPAC envelope.
 LibraryLoansRead decodeLibraryLoans(ReadOnlyResponse response) {
   if (response.failure != null) {
@@ -48,7 +50,9 @@ mixin NativeLibraryLoans
       return const LibraryLoansRead(failure: FailureCode.sessionExpired);
     }
     return decodeLibraryLoans(
-      await live.loadLibraryLoans(expectedAccount: owner, page: page),
+      await boundedNativeRead(
+        () => live.loadLibraryLoans(expectedAccount: owner, page: page),
+      ),
     );
   }
 }

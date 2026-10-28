@@ -6,24 +6,21 @@ pub(super) async fn load_schedule(
     week: Option<i32>,
     force_refresh: bool,
 ) -> ScheduleResponse {
-    let _access = SESSION_ACCESS.read().await;
     let Ok(service) = service() else {
         return schedule_failure(FailureCode::CredentialStore, None);
     };
-    match bounded_read(service.load_schedule(&ScheduleQueryInput {
+    let input = ScheduleQueryInput {
         term_id,
         week,
         force_refresh,
-    }))
-    .await
-    {
+    };
+    match with_session_read(|| service.load_schedule(&input)).await {
         Ok(outcome) => schedule_response(outcome),
         Err(error) => schedule_failure(error.code.clone().into(), error.detail),
     }
 }
 
 pub(super) async fn load_today(force_refresh: bool) -> TodayResponse {
-    let _access = SESSION_ACCESS.read().await;
     let Ok(service) = service() else {
         return TodayResponse {
             date: String::new(),
@@ -33,7 +30,7 @@ pub(super) async fn load_today(force_refresh: bool) -> TodayResponse {
             failure_detail: None,
         };
     };
-    match bounded_read(service.load_today(force_refresh)).await {
+    match with_session_read(|| service.load_today(force_refresh)).await {
         Ok(outcome) => today_response(outcome),
         Err(error) => {
             let (failure, failure_detail) = failure(&error);
@@ -49,19 +46,20 @@ pub(super) async fn load_today(force_refresh: bool) -> TodayResponse {
 }
 
 pub(super) async fn load_checkin_today(force_refresh: bool) -> CheckInResponse {
-    let _access = SESSION_ACCESS.read().await;
-    let _module = CHECKIN_ACCESS.read().await;
     let Ok(service) = service() else {
         return checkin_failure(FailureCode::CredentialStore, None);
     };
-    match bounded_read(service.load_checkin(force_refresh)).await {
+    match with_module_read(ModuleAccess::CheckIn, || {
+        service.load_checkin(force_refresh)
+    })
+    .await
+    {
         Ok(outcome) => checkin_response(outcome),
         Err(error) => checkin_failure(error.code.clone().into(), error.detail),
     }
 }
 
 pub(super) async fn load_grade_terms() -> GradeTermsResponse {
-    let _access = SESSION_ACCESS.read().await;
     let service = match service() {
         Ok(service) => service,
         Err(error) => {
@@ -73,7 +71,7 @@ pub(super) async fn load_grade_terms() -> GradeTermsResponse {
             };
         }
     };
-    match bounded_read(service.load_grade_terms()).await {
+    match with_session_read(|| service.load_grade_terms()).await {
         Ok(terms) => GradeTermsResponse {
             terms: terms
                 .into_iter()
@@ -98,11 +96,10 @@ pub(super) async fn load_grade_terms() -> GradeTermsResponse {
 }
 
 pub(super) async fn load_grades(term_code: Option<String>, force_refresh: bool) -> GradeResponse {
-    let _access = SESSION_ACCESS.read().await;
     let Ok(service) = service() else {
         return grade_failure(FailureCode::CredentialStore, None);
     };
-    match bounded_read(service.load_grades(term_code.as_deref(), force_refresh)).await {
+    match with_session_read(|| service.load_grades(term_code.as_deref(), force_refresh)).await {
         Ok(outcome) => grade_response(outcome),
         Err(error) => grade_failure(error.code.clone().into(), error.detail),
     }

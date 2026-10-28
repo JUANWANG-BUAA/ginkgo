@@ -15,7 +15,7 @@ import 'package:ginkgo_mirror/features/grades/grades_page.dart';
 import 'package:ginkgo_mirror/features/homework/homework_page.dart';
 import 'package:ginkgo_mirror/features/library/library_page.dart';
 import 'package:ginkgo_mirror/features/learning/learning_page.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/features/notices/notices_page.dart';
 import 'package:ginkgo_mirror/features/reservations/reservations_page.dart';
 import 'package:ginkgo_mirror/features/schedule/schedule_page.dart';
@@ -26,7 +26,7 @@ import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
 import 'package:ginkgo_mirror/features/today/today_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shortcuts.dart';
 import 'package:ginkgo_mirror/application/contracts.dart' show RouteChoice;
-import 'package:ginkgo_mirror/application/library_loans.dart';
+import 'package:ginkgo_mirror/application/service_capabilities.dart';
 
 /// 侧栏分组。顺序即桌面侧栏的呈现顺序；新增功能只登记到既有分组即可。
 enum WorkspaceSection {
@@ -41,7 +41,7 @@ enum WorkspaceSection {
 
 /// 功能页面构建上下文：页面只拿到服务与工作区导航能力，不接触壳层状态。
 class WorkspaceContext {
-  const WorkspaceContext({
+  WorkspaceContext({
     required this.service,
     required this.mobile,
     required this.openFeature,
@@ -50,9 +50,12 @@ class WorkspaceContext {
     this.accountId,
     this.route,
     this.onSignOut,
-  });
+  }) : capabilities = ServiceCapabilities.resolve(service);
 
   final MirrorService service;
+
+  /// Optional capabilities resolved once here, so no page probes the service.
+  final ServiceCapabilities capabilities;
   final bool mobile;
   final String? accountName;
   final String? accountId;
@@ -203,8 +206,11 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     title: '研究生教务',
     icon: CupertinoIcons.briefcase_fill,
     section: WorkspaceSection.academics,
-    build: (context) =>
-        GraduatePage(demo: context.service.isDemo, service: context.service),
+    build: (context) => GraduatePage(
+      demo: context.service.isDemo,
+      service: context.service,
+      creditMapGateway: context.capabilities.graduateCreditMap,
+    ),
   ),
   WorkspaceDestination(
     id: 'graduate-credit-map',
@@ -215,6 +221,7 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     build: (context) => GraduatePage(
       demo: context.service.isDemo,
       service: context.service,
+      creditMapGateway: context.capabilities.graduateCreditMap,
       initialView: GraduateView.credits,
     ),
   ),
@@ -224,9 +231,8 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     icon: CupertinoIcons.bookmark,
     section: WorkspaceSection.spaces,
     build: (context) => LibraryLoansPage(
-      gateway: context.service is LibraryLoansGateway
-          ? context.service as LibraryLoansGateway
-          : null,
+      gateway: context.capabilities.libraryLoans,
+      officialGateway: context.capabilities.libraryLoansOfficial,
     ),
   ),
   WorkspaceDestination(
@@ -241,8 +247,11 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     title: '研讨室',
     icon: CupertinoIcons.person_3,
     section: WorkspaceSection.spaces,
-    build: (context) =>
-        CgyyPage(demo: context.service.isDemo, service: context.service),
+    build: (context) => CgyyPage(
+      demo: context.service.isDemo,
+      service: context.service,
+      bookingGateway: context.capabilities.cgyyBooking,
+    ),
   ),
   WorkspaceDestination(
     id: 'classroom',
@@ -257,9 +266,7 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     icon: CupertinoIcons.creditcard,
     section: WorkspaceSection.campus,
     build: (context) => CampusCardPage(
-      gateway: context.service is CampusCardGateway
-          ? context.service as CampusCardGateway
-          : null,
+      gateway: context.capabilities.campusCard,
     ),
   ),
   WorkspaceDestination(
@@ -275,14 +282,15 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     title: '就业活动',
     icon: CupertinoIcons.briefcase,
     section: WorkspaceSection.campus,
-    build: (context) => CareerEventsPage(service: context.service),
+    build: (context) => CareerEventsPage(service: context.capabilities.careerEvents),
   ),
   WorkspaceDestination(
     id: 'campus-activities',
     title: '学术文化',
     icon: CupertinoIcons.music_note,
     section: WorkspaceSection.campus,
-    build: (context) => CampusActivitiesPage(service: context.service),
+    build: (context) =>
+        CampusActivitiesPage(service: context.capabilities.campusActivities),
   ),
   WorkspaceDestination(
     id: 'shuttle',

@@ -47,6 +47,7 @@ class GinkgoMark extends StatelessWidget {
           ),
           context,
         );
+    final normalizedProgress = progress.clamp(0, 1).toDouble();
     return SizedBox(
       width: size,
       height: size,
@@ -54,7 +55,7 @@ class GinkgoMark extends StatelessWidget {
         painter: _GinkgoMarkPainter(
           leaf: leaf,
           vein: veins,
-          progress: progress.clamp(0, 1),
+          progress: normalizedProgress,
         ),
         isComplex: true,
       ),

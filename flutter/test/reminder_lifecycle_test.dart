@@ -126,6 +126,93 @@ Future<void> _unmount(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets(
+    'late old refresh cannot release the replacement activation gate',
+    (tester) async {
+      final oldService = _Service()
+        ..pendingCheckin = Completer<CheckInResponse>();
+      final newService = _Service()
+        ..pendingCheckin = Completer<CheckInResponse>();
+      final old = _Controller(oldService);
+      final next = _Controller(newService);
+      Widget scope(_Service service) => ReminderScope(
+        service: service,
+        account: 'synthetic',
+        controllerFactory: (service, _, _) =>
+            identical(service, oldService) ? old : next,
+        child: const SizedBox(),
+      );
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpWidget(scope(oldService));
+      old.restored.complete();
+      await tester.pump();
+      await tester.pumpWidget(scope(newService));
+      next.restored.complete();
+      await tester.pump();
+      oldService.pendingCheckin!.complete(_checkin);
+      await tester.pump();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(next.refreshes, [false]);
+      expect(newService.checkinReads, 1);
+      newService.pendingCheckin!.complete(_checkin);
+      await tester.pump();
+      await _unmount(tester);
+    },
+  );
+
+  testWidgets(
+    'service replacement disposes the old controller and ignores late restore',
+    (tester) async {
+      final oldService = _Service();
+      final newService = _Service();
+      final old = _Controller(oldService);
+      final next = _Controller(newService);
+      Widget scope(_Service service) => ReminderScope(
+        service: service,
+        account: 'synthetic',
+        controllerFactory: (service, _, _) =>
+            identical(service, oldService) ? old : next,
+        child: const SizedBox(),
+      );
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpWidget(scope(oldService));
+      await tester.pumpWidget(scope(newService));
+      expect(old.stops, 1);
+      expect(old.disposed, isTrue);
+      old.restored.complete();
+      await tester.pump();
+      expect(old.refreshes, isEmpty);
+      expect(next.refreshes, isEmpty);
+      next.restored.complete();
+      await tester.pump();
+      expect(next.refreshes, [false]);
+      expect(oldService.checkinReads, 0);
+      expect(newService.checkinReads, 1);
+      await _unmount(tester);
+    },
+  );
+
+  testWidgets('account replacement creates a controller for the new identity', (
+    tester,
+  ) async {
+    final service = _Service();
+    final controllers = <String, _Controller>{};
+    Widget scope(String account) => ReminderScope(
+      service: service,
+      account: account,
+      controllerFactory: (_, account, _) =>
+          controllers.putIfAbsent(account, () => _Controller(service)),
+      child: const SizedBox(),
+    );
+    await tester.pumpWidget(scope('first'));
+    final first = controllers['first']!;
+    await tester.pumpWidget(scope('second'));
+    expect(first.disposed, isTrue);
+    expect(controllers.containsKey('second'), isTrue);
+    await _unmount(tester);
+  });
   for (final state in [
     AppLifecycleState.paused,
     AppLifecycleState.hidden,
@@ -318,10 +405,33 @@ void main() {
     },
   );
 
+  testWidgets('unmount cancels the restore deadline', (tester) async {
+    final service = _Service();
+    final c = _Controller(service);
+    await _mount(tester, service, c);
+    await _unmount(tester);
+    await tester.pump();
+  });
+
+  testWidgets('stalled restore is observable and reminders still start', (
+    tester,
+  ) async {
+    final service = _Service();
+    final c = _Controller(service);
+    await _mount(tester, service, c);
+    await tester.pump(const Duration(minutes: 1));
+    expect(c.hint, '提醒偏好读取未完成，请稍后再修改');
+    expect(service.checkinReads, 1);
+    await tester.pump(const Duration(seconds: 15));
+    expect(c.reconciles, greaterThan(0));
+    await _unmount(tester);
+  });
+
   test('resume before controller creation is safe', () {
     final scope = ReminderScope(
       service: _Service(),
       account: 'synthetic',
+      controllerFactory: (service, _, _) => _Controller(service as _Service),
       child: const SizedBox(),
     );
     final observer = scope.createState() as WidgetsBindingObserver;

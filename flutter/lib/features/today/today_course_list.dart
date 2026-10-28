@@ -150,7 +150,7 @@ class TodayCourseEmpty extends StatelessWidget {
                   child: Text(
                     title,
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: AppleDesign.bodyCondensedSize,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -189,7 +189,7 @@ class TodayCourseEmpty extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: AppleDesign.bodyCondensedSize,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -266,7 +266,9 @@ class TodayCourseEmptyBadge extends StatelessWidget {
         child: Icon(
           icon,
           size: iconSize,
-          color: failed ? AppleDesign.statusDanger.resolveFrom(context) : accent,
+          color: failed
+              ? AppleDesign.statusDanger.resolveFrom(context)
+              : accent,
         ),
       ),
     );

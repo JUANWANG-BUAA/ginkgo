@@ -216,36 +216,6 @@ class ScheduleSection extends StatelessWidget {
   );
 }
 
-/// A section that reports an empty or failed result.
-class ScheduleEmptySection extends StatelessWidget {
-  const ScheduleEmptySection({
-    super.key,
-    required this.title,
-    required this.description,
-    this.action,
-    this.onAction,
-    this.error = false,
-  });
-  final String title;
-  final String description;
-  final String? action;
-  final VoidCallback? onAction;
-  final bool error;
-
-  @override
-  Widget build(BuildContext context) => AppleSection(
-    children: [
-      AppleEmptyState(
-        title: title,
-        description: description,
-        action: action,
-        onAction: onAction,
-        error: error,
-      ),
-    ],
-  );
-}
-
 /// A section that reports the first load of a snapshot.
 class ScheduleLoadingSection extends StatelessWidget {
   const ScheduleLoadingSection({super.key, this.label = '正在读取课表…'});

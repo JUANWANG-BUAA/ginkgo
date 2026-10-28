@@ -1,11 +1,7 @@
 //! Stable public career-fair capability.
 use crate::{features::career::CareerEvents, AppError};
 
-#[derive(Debug, Clone)]
-pub struct CareerEventsOutcome {
-    pub data: CareerEvents,
-    pub failure: Option<AppError>,
-}
+pub type CareerEventsOutcome = super::ReadSnapshot<CareerEvents>;
 
 pub trait CareerEventsSource: Send + Sync {
     fn load_career_events(

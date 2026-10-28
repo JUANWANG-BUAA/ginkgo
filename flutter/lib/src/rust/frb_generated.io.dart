@@ -34,6 +34,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool dco_decode_box_autoadd_bool(dynamic raw);
 
   @protected
+  CareerEventsDto dco_decode_box_autoadd_career_events_dto(dynamic raw);
+
+  @protected
   ClassroomQuery dco_decode_box_autoadd_classroom_query(dynamic raw);
 
   @protected
@@ -64,6 +67,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CampusCardBalanceResponse dco_decode_campus_card_balance_response(
     dynamic raw,
   );
+
+  @protected
+  CareerEventDto dco_decode_career_event_dto(dynamic raw);
+
+  @protected
+  CareerEventsDto dco_decode_career_events_dto(dynamic raw);
+
+  @protected
+  CareerEventsResponse dco_decode_career_events_response(dynamic raw);
 
   @protected
   CheckInCourse dco_decode_check_in_course(dynamic raw);
@@ -179,6 +191,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
+  List<CareerEventDto> dco_decode_list_career_event_dto(dynamic raw);
+
+  @protected
   List<CheckInCourse> dco_decode_list_check_in_course(dynamic raw);
 
   @protected
@@ -258,6 +273,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
+
+  @protected
+  CareerEventsDto? dco_decode_opt_box_autoadd_career_events_dto(dynamic raw);
 
   @protected
   double? dco_decode_opt_box_autoadd_f_64(dynamic raw);
@@ -350,6 +368,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool sse_decode_box_autoadd_bool(SseDeserializer deserializer);
 
   @protected
+  CareerEventsDto sse_decode_box_autoadd_career_events_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ClassroomQuery sse_decode_box_autoadd_classroom_query(
     SseDeserializer deserializer,
   );
@@ -380,6 +403,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CampusCardBalanceResponse sse_decode_campus_card_balance_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CareerEventDto sse_decode_career_event_dto(SseDeserializer deserializer);
+
+  @protected
+  CareerEventsDto sse_decode_career_events_dto(SseDeserializer deserializer);
+
+  @protected
+  CareerEventsResponse sse_decode_career_events_response(
     SseDeserializer deserializer,
   );
 
@@ -519,6 +553,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
+  List<CareerEventDto> sse_decode_list_career_event_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<CheckInCourse> sse_decode_list_check_in_course(
     SseDeserializer deserializer,
   );
@@ -630,6 +669,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
 
   @protected
+  CareerEventsDto? sse_decode_opt_box_autoadd_career_events_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer);
 
   @protected
@@ -726,6 +770,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_career_events_dto(
+    CareerEventsDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_classroom_query(
     ClassroomQuery self,
     SseSerializer serializer,
@@ -776,6 +826,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_campus_card_balance_response(
     CampusCardBalanceResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_career_event_dto(
+    CareerEventDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_career_events_dto(
+    CareerEventsDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_career_events_response(
+    CareerEventsResponse self,
     SseSerializer serializer,
   );
 
@@ -948,6 +1016,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_career_event_dto(
+    List<CareerEventDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_check_in_course(
     List<CheckInCourse> self,
     SseSerializer serializer,
@@ -1096,6 +1170,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_career_events_dto(
+    CareerEventsDto? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer);

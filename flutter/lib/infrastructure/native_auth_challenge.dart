@@ -1,6 +1,8 @@
 import '../application/auth_challenge.dart';
 import '../src/rust/api/live/auth_challenge.dart' as live;
 
+import 'package:ginkgo_mirror/infrastructure/native_command.dart';
+
 class NativeAuthChallengeGateway implements AuthChallengeGateway {
   const NativeAuthChallengeGateway();
 
@@ -9,9 +11,8 @@ class NativeAuthChallengeGateway implements AuthChallengeGateway {
     String? expectedId,
     bool refresh = false,
   }) async {
-    final response = await live.loadLoginChallenge(
-      expectedId: expectedId,
-      refresh: refresh,
+    final response = await boundedNativeRead(
+      () => live.loadLoginChallenge(expectedId: expectedId, refresh: refresh),
     );
     return decodeLoginChallenge(response);
   }

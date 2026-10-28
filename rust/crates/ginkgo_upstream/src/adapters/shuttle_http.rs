@@ -1,21 +1,12 @@
-//! Official shuttle timetable HTTP (API §6C). Public page, isolated cookies.
+//! Official shuttle timetable HTTP (API §6C). Public page, no cookies.
 use crate::{
     auth::session::{RouteMode, Session},
     codecs::shuttle,
     codecs::shuttle::ShuttleTimetable,
-    foundation::http::{HttpRequest, HttpResponse, HttpTransport, TransportError},
+    foundation::http::{HttpRequest, HttpResponse, HttpTransport},
     AppError,
 };
 pub use shuttle::SOURCE_URL;
-
-/// Borrow the transport, not the signed-in session's cookie jars: the published
-/// timetable needs no identity and must not carry one.
-struct PublicTransport<'a, T>(&'a T);
-impl<T: HttpTransport + Sync> HttpTransport for PublicTransport<'_, T> {
-    async fn send(&self, request: HttpRequest) -> Result<HttpResponse, TransportError> {
-        self.0.send(request).await
-    }
-}
 
 pub fn parse_response(response: &HttpResponse) -> Result<ShuttleTimetable, AppError> {
     let parsed = url::Url::parse(&response.final_url).map_err(|_| AppError::changed())?;
@@ -35,13 +26,12 @@ pub async fn load<T: HttpTransport + Sync>(
     shared: &Session<T>,
     preference: RouteMode,
 ) -> Result<ShuttleTimetable, AppError> {
-    let isolated = Session::new(PublicTransport(shared.transport()));
-    isolated.set_route(preference);
-    let response = isolated
-        .send_following_redirects(
+    let response = shared
+        .send_anonymous(
             HttpRequest::get(SOURCE_URL)
                 .header("Accept", "text/html,application/xhtml+xml")
                 .header("User-Agent", "Ginkgo/1.0"),
+            preference,
         )
         .await?;
     parse_response(&response)
@@ -50,7 +40,11 @@ pub async fn load<T: HttpTransport + Sync>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{foundation::http::HttpMethod, foundation::webvpn, ErrorCode};
+    use crate::{
+        foundation::http::{HttpMethod, TransportError},
+        foundation::webvpn,
+        ErrorCode,
+    };
     use std::{collections::VecDeque, sync::Mutex};
 
     // Synthetic only: a readable four-column timetable, not an upstream sample.
@@ -215,7 +209,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn public_same_host_redirect_uses_only_its_own_temporary_cookie() {
+    async fn public_same_host_redirect_does_not_send_or_retain_cookies() {
         let destination = "https://www.buaa.edu.cn/synthetic-timetable.htm";
         let shared = Session::new(ScriptedTransport::new(vec![
             Ok(HttpResponse::new(302, SOURCE_URL, "")
@@ -238,10 +232,7 @@ mod tests {
         assert_eq!(requests[1].method, HttpMethod::Get);
         assert_eq!(requests[1].url, destination);
         assert_eq!(requests[1].body, None);
-        assert_eq!(
-            requests[1].header_value("cookie"),
-            Some("public_redirect=synthetic")
-        );
+        assert_eq!(requests[1].header_value("cookie"), None);
         assert_eq!(requests[2].header_value("cookie"), None);
     }
 

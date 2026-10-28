@@ -6,13 +6,12 @@ import 'package:ginkgo_mirror/widgets/long_page_scroll.dart';
 import 'package:ginkgo_mirror/application/collection_window.dart';
 import 'package:ginkgo_mirror/widgets/collection_toolbar.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/mutation_dialog.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 
 import 'library_cards.dart';
 import 'library_controls.dart';
-import 'library_widgets.dart';
 
 /// Library hierarchy and explicit, single-attempt booking actions.
 class LibrarySeatPage extends StatefulWidget {
@@ -26,7 +25,7 @@ class LibrarySeatPage extends StatefulWidget {
   });
   final Future<void> Function() onReservationChanged;
   final VoidCallback onViewReservations;
-  final LibraryGateway service;
+  final LibrarySeatingGateway service;
   final LibraryArea area;
   final LibrarySlot slot;
   @override
@@ -48,6 +47,7 @@ class _LibrarySeatPageState extends State<LibrarySeatPage> {
   String? error;
   bool busy = false;
   Future<void>? _loadTask;
+  int requestSerial = 0;
   String search = '';
   bool availableOnly = false;
   List<LibrarySeat> visible = [];
@@ -119,10 +119,35 @@ class _LibrarySeatPageState extends State<LibrarySeatPage> {
     load();
   }
 
-  Future<void> load() =>
-      _loadTask ??= _fetch().whenComplete(() => _loadTask = null);
+  @override
+  void didUpdateWidget(LibrarySeatPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service ||
+        oldWidget.area.id != widget.area.id ||
+        oldWidget.slot.id != widget.slot.id) {
+      requestSerial++;
+      _loadTask = null;
+      seats = null;
+      visible = [];
+      visibleIndices = {};
+      error = null;
+      busy = false;
+      load();
+    }
+  }
+
+  Future<void> load() {
+    final running = _loadTask;
+    if (running != null) return running;
+    late final Future<void> task;
+    task = _fetch().whenComplete(() {
+      if (identical(_loadTask, task)) _loadTask = null;
+    });
+    return _loadTask = task;
+  }
 
   Future<void> _fetch() async {
+    final serial = ++requestSerial;
     setState(() {
       busy = true;
       error = null;
@@ -132,7 +157,7 @@ class _LibrarySeatPageState extends State<LibrarySeatPage> {
         areaId: widget.area.id,
         slot: widget.slot,
       );
-      if (!mounted) return;
+      if (!mounted || serial != requestSerial) return;
       setState(() {
         if (result.failure != null) {
           error = failureMessage(result.failure);
@@ -142,10 +167,12 @@ class _LibrarySeatPageState extends State<LibrarySeatPage> {
         prepare();
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || serial != requestSerial) return;
       setState(() => error = failureMessage(null));
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (mounted && serial == requestSerial) {
+        setState(() => busy = false);
+      }
     }
   }
 
@@ -160,7 +187,7 @@ class _LibrarySeatPageState extends State<LibrarySeatPage> {
         controller: scrollController,
         key: const Key('library-seats-scroll'),
         slivers: [
-          LibraryPageHeader(
+          AppleRefreshPageHeader(
             title: '${widget.slot.start}–${widget.slot.end}',
             subtitle: '${widget.area.name} · 选择空闲座位',
             icon: CupertinoIcons.square_grid_2x2,
@@ -186,7 +213,7 @@ class _LibrarySeatPageState extends State<LibrarySeatPage> {
                     ],
                   ),
                 if (error != null && seats == null)
-                  LibraryEmptyState(
+                  AppleStatusSection(
                     title: error!,
                     description: '座位列表读取失败，请稍后重试。',
                     error: true,
@@ -281,10 +308,8 @@ class _LibrarySeatPageState extends State<LibrarySeatPage> {
                   if (key is! ValueKey<String>) return null;
                   return visibleIndices[key.value];
                 },
-                itemBuilder: (context, index) => _seatRow(
-                  visible[window.start + index],
-                  index,
-                ),
+                itemBuilder: (context, index) =>
+                    _seatRow(visible[window.start + index], index),
               ),
             ),
           if (seats != null)

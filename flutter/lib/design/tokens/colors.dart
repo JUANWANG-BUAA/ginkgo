@@ -15,22 +15,12 @@ abstract final class GinkgoColors {
   );
 
   // Surfaces & Backgrounds
-  static const windowBackground = CupertinoColors.systemBackground;
-  static const groupedBackground = CupertinoColors.systemGroupedBackground;
   static const secondaryGroupedBackground =
       CupertinoColors.secondarySystemGroupedBackground;
   static const tertiarySystemFill = CupertinoColors.tertiarySystemFill;
 
   // Separators & Borders
   static const separator = CupertinoColors.separator;
-  static const borderLight = CupertinoDynamicColor.withBrightness(
-    color: Color(0x1f000000),
-    darkColor: Color(0x26ffffff),
-  );
-  static const panelBorder = CupertinoDynamicColor.withBrightness(
-    color: Color(0x403c3c43),
-    darkColor: Color(0x40545458),
-  );
 
   // Text & Content
   static const label = CupertinoColors.label;
@@ -59,10 +49,7 @@ abstract final class GinkgoColors {
     darkColor: Color(0xffc4c8d0),
   );
 
-  static const statusInactive = CupertinoDynamicColor.withBrightness(
-    color: Color(0xff4a4f58),
-    darkColor: Color(0xffc4c8d0),
-  );
+  static const statusInactive = statusUncertain;
 
   // Resource Category Tints
   static const resourceBlue = CupertinoDynamicColor.withBrightness(

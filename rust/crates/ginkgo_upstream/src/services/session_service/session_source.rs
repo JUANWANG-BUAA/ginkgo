@@ -304,6 +304,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
     /// Local sign-out never waits for an upstream round trip. Identity,
     /// cookies, snapshots and the saved password are always cleared.
     async fn sign_out(&self) {
+        self.forgotten_account.lock().take();
         let account = {
             let mut identity = self.identity.lock();
             let account = identity.authenticated.take().map(|user| user.account);
@@ -313,25 +314,40 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
             };
             account
         };
+        // Remember the account for the credential purge, which runs after the
+        // caller has released its gate. A route change or failed restore can
+        // already have cleared identity, so both may be empty.
+        *self.forgotten_account.lock() = account;
         self.session.clear_cookies();
-        // A route change or failed restore can already have cleared identity.
-        // Explicit logout must still remove saved accounts to prevent restoration.
-        // An enumeration failure defaults to knowing only the signed-in account
-        // below; Android vault no longer reports that failure as an empty list.
+        self.clear_identity();
+    }
+
+    /// Remove every saved password. This is a JNI round trip into Keystore
+    /// followed by a blocking `SharedPreferences.commit()`, so it runs on a
+    /// blocking thread and never under the caller's session gate.
+    async fn purge_credentials(&self) {
+        // An enumeration failure defaults to knowing only the signed-in
+        // account; Android vault no longer reports that failure as an empty
+        // list. Explicit logout must still remove saved accounts so nothing
+        // can be restored.
         let mut accounts = self.vault.accounts().unwrap_or_default();
-        if let Some(account) = account {
+        if let Some(account) = self.forgotten_account.lock().take() {
             if !accounts.contains(&account) {
                 accounts.push(account);
             }
         }
+        if accounts.is_empty() {
+            return;
+        }
+        // Deletes are idempotent local keychain operations; one retry covers a
+        // transient Keystore/keychain failure. The caller runs this *after*
+        // releasing its session gate, so a slow `commit()` delays only this
+        // command; every queued read proceeds.
         for account in accounts {
-            // Deletes are idempotent local keychain operations; one retry
-            // covers a transient Keystore/keychain failure.
             if self.vault.delete(&account).is_err() {
                 let _ = self.vault.delete(&account);
             }
         }
-        self.clear_identity();
     }
 
     /// Clear all read snapshots without touching credentials or the session.

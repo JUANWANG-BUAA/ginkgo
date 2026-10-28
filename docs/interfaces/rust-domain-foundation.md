@@ -41,7 +41,7 @@
   <sub>fn · rust/crates/ginkgo_domain/src/foundation/snapshot_persistence.rs:67</sub>
 - `pub fn begin(&mut self, scope: &SnapshotScope, query_digest: &str) -> Result<u64, AppError> {…}` — Query must be a digest of canonical module/query coordinates, not a URL,
   <sub>fn · rust/crates/ginkgo_domain/src/foundation/snapshot_persistence.rs:83</sub>
-- `pub fn commit_success(&mut self…)  -> Result<bool, AppError> {…}` — No failure overload: failed reads cannot refresh the timestamp or replace
+- `pub fn commit_success( &mut self, scope: &SnapshotScope, query_digest: &str, ticket: u64, fetched_at_ms: i64, now_ms: i64, payload: Value, ) -> Result<bool, AppError> {…}` — No failure overload: failed reads cannot refresh the timestamp or replace
   <sub>fn · rust/crates/ginkgo_domain/src/foundation/snapshot_persistence.rs:100</sub>
 - `pub fn fallback( &self, scope: &SnapshotScope, query_digest: &str, now_ms: i64, failure: AppError, ) -> Result<Option<SnapshotFallback>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_domain/src/foundation/snapshot_persistence.rs:141</sub>

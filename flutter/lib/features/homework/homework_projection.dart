@@ -1,25 +1,10 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
-import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/features/schedule/course_visibility.dart';
+export 'package:ginkgo_mirror/shared/homework_visibility.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 
-/// The dashboard and full list use the same personal-course visibility policy.
-List<HomeworkItem> personalHomeworkItems(
-  Iterable<HomeworkItem> items,
-  CourseVisibility? visibility,
-) => items
-    .where(
-      (item) =>
-          item.courseRole != 'assistant' &&
-          !(visibility?.hidden('spoc', item.courseId ?? item.id) ?? false),
-    )
-    .toList(growable: false);
-
-/// Orthogonal deadline status derived on the client; never mutates upstream
-/// submission status (pending, submitted, unknown).
 enum HomeworkDeadlineStatus {
   /// Clearly within deadline.
   active,

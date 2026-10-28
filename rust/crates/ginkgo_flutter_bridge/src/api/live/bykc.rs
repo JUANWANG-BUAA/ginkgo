@@ -2,9 +2,8 @@
 use super::*;
 
 pub(super) async fn load_bykc(force_refresh: bool) -> ReadOnlyResponse {
-    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => bounded_read(service.load_bykc(force_refresh)).await,
+        Ok(service) => with_session_read(|| service.load_bykc(force_refresh)).await,
         Err(error) => Err(error),
     };
     let result = result.and_then(|outcome| {
@@ -24,18 +23,16 @@ pub(super) fn load_demo_bykc() -> ReadOnlyResponse {
 }
 
 pub(super) async fn load_bykc_chosen(force_refresh: bool) -> ReadOnlyResponse {
-    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => bounded_read(service.load_bykc_chosen(force_refresh)).await,
+        Ok(service) => with_session_read(|| service.load_bykc_chosen(force_refresh)).await,
         Err(error) => Err(error),
     };
     read_only_response(result)
 }
 
 pub(super) async fn load_bykc_statistics(force_refresh: bool) -> ReadOnlyResponse {
-    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => bounded_read(service.load_bykc_statistics(force_refresh)).await,
+        Ok(service) => with_session_read(|| service.load_bykc_statistics(force_refresh)).await,
         Err(error) => Err(error),
     };
     read_only_response(result)

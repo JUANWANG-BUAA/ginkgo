@@ -6,6 +6,7 @@ import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/local_tasks.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
+import 'package:ginkgo_mirror/shared/today_time.dart';
 
 class TaskDraft {
   const TaskDraft(this.title, this.due);
@@ -73,7 +74,7 @@ class _TaskEditorState extends State<TaskEditor> {
     FocusScope.of(context).unfocus();
     final raw = due.text.trim();
     final parsed = parseSchoolTimestamp(raw) ?? DateTime.tryParse(raw);
-    final now = DateTime.now().toUtc().add(const Duration(hours: 8));
+    final now = todaySchoolNow(DateTime.now());
     final seed = parsed ?? now;
     // Picker DateTime is a wall-clock carrier, never device timezone conversion.
     var selected = DateTime(
@@ -256,7 +257,7 @@ class _TaskEditorState extends State<TaskEditor> {
                             child: Text(
                               '选择日期',
                               style: TextStyle(
-                                fontSize: 15,
+                                fontSize: AppleDesign.calloutSize,
                                 color: CupertinoColors.label.resolveFrom(
                                   context,
                                 ),
@@ -279,7 +280,7 @@ class _TaskEditorState extends State<TaskEditor> {
                             child: Text(
                               '选择精确时间',
                               style: TextStyle(
-                                fontSize: 15,
+                                fontSize: AppleDesign.calloutSize,
                                 color: CupertinoColors.label.resolveFrom(
                                   context,
                                 ),
@@ -323,7 +324,7 @@ class _TaskEditorState extends State<TaskEditor> {
                         child: Text(
                           '不设截止时间',
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: AppleDesign.calloutSize,
                             color:
                                 (saving
                                         ? CupertinoColors.secondaryLabel

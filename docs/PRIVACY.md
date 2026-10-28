@@ -27,6 +27,7 @@
 |------|----------|----------------|
 | 学号、密码 | Android Keystore + 私有 SharedPreferences；Windows Credential Manager；macOS Keychain | 仅在用户勾选「记住密码」后写入；Android 使用 AES-GCM，密钥不出 Android Keystore，账号名以 SHA-256 摘要作为偏好键；验证码答案不持久化；关闭开关或登出即删除 |
 | 会话 Cookie（CASTGC 等） | Rust 进程内存 | 不落盘；进程重启后通过平台保险库静默重登；直连与 WebVPN Cookie 分离 |
+| 匿名公开读取会话 | Rust 临时会话 | 就业、学术文化、通知、校车、公开书目/馆藏、图书馆人数和版本检查不发送学校 Cookie/认证头，不保存响应 `Set-Cookie`，不改变账号会话路线 |
 | 空教室、课表、今天、成绩、作业、博雅、研究生、签到、预约等查询快照 | Rust 进程内存 | 5 分钟 TTL、容量上限；登出、账号切换、路由变化即清空；不读取 Apple 缓存文件，不写磁盘 |
 | 可选 SPOC 学习快照（工作树，默认关闭） | Android noBackupFilesDir，独立 Keystore AES-GCM 密文 | 用户显式确认后仅保存课程/栏目/公告列表/资料目录/测验元数据；原成功时间五分钟内、同账号已认证且网络暂不可用时可采用旧值，不持久化文件字节/Cookie/token；关闭、退出或清查询缓存撤销并清除；不涉及个人待办。接线与设备回归见 [记录](_audit/2026-10-26-module-integration.md)，敏感存储仍需人工审查 |
 | 本人借阅（工作树） | Rust 单次响应与 Flutter 当前页内存 | 仅点击后读取，不进入查询快照、磁盘或提醒；离开栏目/后台/服务切换清除页面值，迟到响应废弃；认证失败清除旧记录。不取完整读者资料、册条码或续借资格。实网与设备验收仍待完成 |
@@ -40,7 +41,7 @@
 
 Android 清单关闭 `allowBackup`，避免保险库密文与账号元数据进入系统备份；重启后由 Keystore 解密，密钥本身不离开设备。镜像端已有用户授权的真实账号只读记录；本轮结果及边界见 [2026-10-21 验收](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md)。未经用户授权，不得用真实凭据运行自动化登录或查询；只读授权不包括自动提交上游写操作。
 
-学校账号与查询请求不经过本项目自建中转服务器。应用的公开版本检查访问 GitHub Releases，不携带学校 Cookie 或账号凭据；浏览器下载安装包可由用户选择第三方加速。座位生命周期与座位预约的写请求发送到 `booking.lib.buaa.edu.cn`；教学楼研讨室写请求发送到 `cgyy.buaa.edu.cn`。两者都必须由用户逐次确认。
+学校账号与查询请求不经过本项目自建中转服务器。Rust/Flutter 的已迁移公开查询与版本检查使用匿名临时会话，不携带学校 Cookie 或账号认证头，也不导入响应 Cookie；浏览器下载安装包可由用户选择第三方加速。座位生命周期与座位预约的写请求发送到 `booking.lib.buaa.edu.cn`；教学楼研讨室写请求发送到 `cgyy.buaa.edu.cn`。两者都必须由用户逐次确认。
 
 iOS 端在启动时把 Application Support 根目录标记为 `isExcludedFromBackup`，避免课表、成绩、作业、座位、签到历史等查询快照进入 iCloud/iTunes 备份；个人待办当前仍存于 UserDefaults，尚未纳入这一备份排除范围。Keychain 凭据仍使用 `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`。iOS 隐私清单声明应用不跟踪、不收集数据，并列出 UserDefaults 与文件时间戳 required-reason API。
 

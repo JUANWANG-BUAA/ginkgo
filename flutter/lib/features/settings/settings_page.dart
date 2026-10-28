@@ -5,15 +5,17 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
-import 'package:ginkgo_mirror/platform/maintenance_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
 import 'package:ginkgo_mirror/features/settings/maintenance_pages.dart';
 import 'package:ginkgo_mirror/features/settings/network_diagnostics_page.dart';
 import 'package:ginkgo_mirror/shared/query_cache_scope.dart';
 import 'package:ginkgo_mirror/application/query_snapshots.dart';
+import 'package:ginkgo_mirror/application/service_capabilities.dart';
 import 'package:ginkgo_mirror/features/learning/learning_snapshots_page.dart';
 import 'package:ginkgo_mirror/features/settings/preferences_pages.dart';
-import 'package:ginkgo_mirror/application/contracts.dart' show RouteChoice, SessionState;
+import 'package:ginkgo_mirror/application/contracts.dart'
+    show RouteChoice, SessionState;
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({
@@ -39,6 +41,11 @@ class _SettingsPageState extends State<SettingsPage> {
   bool busy = false;
   String? notice;
   String versionLabel = '读取中…';
+
+  /// Optional capabilities are resolved once, so the page never probes the
+  /// service to decide whether an entry exists.
+  late final LearningSnapshotGateway? snapshotGateway =
+      ServiceCapabilities.resolve(widget.service).learningSnapshots;
   @override
   void initState() {
     super.initState();
@@ -257,16 +264,14 @@ class _SettingsPageState extends State<SettingsPage> {
               header: const Text('数据与存储'),
               footer: const Text('查询结果 5 分钟内复用，刷新失败时保留旧结果。'),
               children: [
-                if (!kReleaseMode && widget.service is LearningSnapshotGateway)
+                if (!kReleaseMode && snapshotGateway != null)
                   AppleListTile(
                     leading: const Icon(CupertinoIcons.lock_shield),
                     trailing: const CupertinoListTileChevron(),
                     title: const Text('加密学习快照'),
                     subtitle: const Text('默认关闭 · 仅限 Android 本机保存'),
                     onTap: () => _open(
-                      LearningSnapshotsPage(
-                        gateway: widget.service as LearningSnapshotGateway,
-                      ),
+                      LearningSnapshotsPage(gateway: snapshotGateway!),
                     ),
                   ),
                 AppleListTile(

@@ -4,9 +4,13 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 
 import '../application/contracts.dart' show RouteChoice;
 
-import 'package:ginkgo_mirror/features/schedule/course_visibility.dart';
+import 'package:ginkgo_mirror/shared/course_visibility.dart';
 import 'package:ginkgo_mirror/widgets/diagnostic_hints.dart';
 import 'package:ginkgo_mirror/app/ginkgo_app.dart';
+import 'package:ginkgo_mirror/infrastructure/reminder_store.dart';
+import 'package:ginkgo_mirror/infrastructure/native_reminder_platform.dart';
+import 'package:ginkgo_mirror/infrastructure/serial_reminder_platform.dart';
+import 'package:ginkgo_mirror/infrastructure/task_storage.dart';
 
 import '../mirror_service.dart';
 
@@ -51,6 +55,7 @@ class GinkgoApp extends StatelessWidget {
       child: ReminderScope(
         service: service,
         account: service.isDemo ? '__demo__' : accountId ?? '__account__',
+        controllerFactory: _createReminderController,
         child: DiagnosticHintOverlay(
           child: QueryCacheScope(
             child: WorkspaceShell(
@@ -66,6 +71,23 @@ class GinkgoApp extends StatelessWidget {
     ),
   );
 }
+
+final _reminderPlatform = SerialReminderPlatform(
+  const NativeReminderPlatform(),
+);
+
+ReminderController _createReminderController(
+  MirrorService service,
+  String account,
+  CourseVisibility? visibility,
+) => ReminderController(
+  service: service,
+  account: account,
+  visibility: visibility,
+  store: FileReminderStore(account),
+  tasksRoot: localTasksStorageRoot,
+  platform: _reminderPlatform,
+);
 
 /// 断点两侧共享的壳层状态。旋转跨越 760dp 时移动标签壳与桌面侧栏壳会
 /// 整体重建；把选中目的地、已访问集合与各目的地的导航栈 key 提升到断点

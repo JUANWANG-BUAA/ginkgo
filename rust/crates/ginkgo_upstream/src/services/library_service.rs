@@ -107,50 +107,23 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
         if page < 1 {
             return Err(AppError::invalid());
         }
-        if !force_refresh {
-            let cache = self.snapshots.library_history.lock();
-            if let Some(entry) = cache.fresh(&page) {
-                return Ok(LibraryHistoryOutcome {
-                    data: entry.value.clone(),
-                    fetched_at: entry.timestamp.clone(),
-                    from_cache: true,
-                    stale: false,
-                    failure: None,
-                });
-            }
-        }
-        let ticket = self.snapshots.library_history.lock().begin(&page);
-        let result = self
-            .library_retry(|token| async move {
+        let snapshot = super::cache::read_with_snapshot_checked(
+            &self.snapshots.library_history,
+            page,
+            force_refresh,
+            self.library_retry(|token| async move {
                 library_http::history(&self.session, &token, page, 40).await
-            })
-            .await;
-        if self.current_account()? != account {
-            return Err(AppError::session_expired());
-        }
-        let mut cache = self.snapshots.library_history.lock();
-        match result {
-            Ok(data) => {
-                let fetched_at = cache.insert_if_current(page, ticket, data.clone());
-                Ok(LibraryHistoryOutcome {
-                    data,
-                    fetched_at,
-                    from_cache: false,
-                    stale: false,
-                    failure: None,
-                })
-            }
-            Err(error) => match cache.any(&page) {
-                Some(entry) => Ok(LibraryHistoryOutcome {
-                    data: entry.value.clone(),
-                    fetched_at: entry.timestamp.clone(),
-                    from_cache: true,
-                    stale: true,
-                    failure: Some(error),
-                }),
-                None => Err(error),
+            }),
+            || {
+                if self.current_account()? == account {
+                    Ok(())
+                } else {
+                    Err(AppError::session_expired())
+                }
             },
-        }
+        )
+        .await?;
+        Ok(snapshot)
     }
 
     async fn load_library_venues(
@@ -159,63 +132,30 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
     ) -> Result<LibraryVenuesOutcome, AppError> {
         let account = self.current_account()?;
         let day = school_time::beijing_day(&now_shanghai())?.local_date;
-        if !force_refresh {
-            let cached = self.snapshots.library_venues.lock();
-            if let Some(entry) = cached.fresh(&VENUES_KEY.to_owned()) {
-                return Ok(LibraryVenuesOutcome {
-                    venues: entry.value.clone(),
-                    fetched_at: entry.timestamp.clone(),
-                    from_cache: true,
-                    stale: false,
-                    failure: None,
-                });
-            }
-        }
-
-        let ticket = self
-            .snapshots
-            .library_venues
-            .lock()
-            .begin(&VENUES_KEY.to_owned());
-        let result = self
-            .library_retry(|token| {
+        let snapshot = super::cache::read_with_snapshot_checked(
+            &self.snapshots.library_venues,
+            VENUES_KEY.to_owned(),
+            force_refresh,
+            self.library_retry(|token| {
                 let day = day.clone();
                 async move { library_http::venues(&self.session, &token, &day).await }
-            })
-            .await;
-        if self.current_account()? != account {
-            return Err(AppError::session_expired());
-        }
-
-        match result {
-            Ok(venues) => {
-                let timestamp = self.snapshots.library_venues.lock().insert_if_current(
-                    VENUES_KEY.to_owned(),
-                    ticket,
-                    venues.clone(),
-                );
-                Ok(LibraryVenuesOutcome {
-                    venues,
-                    fetched_at: timestamp,
-                    from_cache: false,
-                    stale: false,
-                    failure: None,
-                })
-            }
-            Err(error) => {
-                let cached = self.snapshots.library_venues.lock();
-                match cached.any(&VENUES_KEY.to_owned()) {
-                    Some(entry) => Ok(LibraryVenuesOutcome {
-                        venues: entry.value.clone(),
-                        fetched_at: entry.timestamp.clone(),
-                        from_cache: true,
-                        stale: true,
-                        failure: Some(error),
-                    }),
-                    None => Err(error),
+            }),
+            || {
+                if self.current_account()? == account {
+                    Ok(())
+                } else {
+                    Err(AppError::session_expired())
                 }
-            }
-        }
+            },
+        )
+        .await?;
+        Ok(LibraryVenuesOutcome {
+            venues: snapshot.data,
+            fetched_at: snapshot.fetched_at,
+            from_cache: snapshot.from_cache,
+            stale: snapshot.stale,
+            failure: snapshot.failure,
+        })
     }
 
     async fn load_library_areas(&self, library_id: &str) -> Result<Vec<LibraryArea>, AppError> {
@@ -292,62 +232,29 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibrarySource for Schoo
         force_refresh: bool,
     ) -> Result<LibraryBookingsOutcome, AppError> {
         let account = self.current_account()?;
-        if !force_refresh {
-            let cached = self.snapshots.library_bookings.lock();
-            if let Some(entry) = cached.fresh(&BOOKINGS_KEY.to_owned()) {
-                return Ok(LibraryBookingsOutcome {
-                    bookings: entry.value.clone(),
-                    fetched_at: entry.timestamp.clone(),
-                    from_cache: true,
-                    stale: false,
-                    failure: None,
-                });
-            }
-        }
-
-        let ticket = self
-            .snapshots
-            .library_bookings
-            .lock()
-            .begin(&BOOKINGS_KEY.to_owned());
-        let result = self
-            .library_retry(
-                |token| async move { library_http::bookings(&self.session, &token).await },
-            )
-            .await;
-        if self.current_account()? != account {
-            return Err(AppError::session_expired());
-        }
-
-        match result {
-            Ok(bookings) => {
-                let timestamp = self.snapshots.library_bookings.lock().insert_if_current(
-                    BOOKINGS_KEY.to_owned(),
-                    ticket,
-                    bookings.clone(),
-                );
-                Ok(LibraryBookingsOutcome {
-                    bookings,
-                    fetched_at: timestamp,
-                    from_cache: false,
-                    stale: false,
-                    failure: None,
-                })
-            }
-            Err(error) => {
-                let cached = self.snapshots.library_bookings.lock();
-                match cached.any(&BOOKINGS_KEY.to_owned()) {
-                    Some(entry) => Ok(LibraryBookingsOutcome {
-                        bookings: entry.value.clone(),
-                        fetched_at: entry.timestamp.clone(),
-                        from_cache: true,
-                        stale: true,
-                        failure: Some(error),
-                    }),
-                    None => Err(error),
+        let snapshot = super::cache::read_with_snapshot_checked(
+            &self.snapshots.library_bookings,
+            BOOKINGS_KEY.to_owned(),
+            force_refresh,
+            self.library_retry(|token| async move {
+                library_http::bookings(&self.session, &token).await
+            }),
+            || {
+                if self.current_account()? == account {
+                    Ok(())
+                } else {
+                    Err(AppError::session_expired())
                 }
-            }
-        }
+            },
+        )
+        .await?;
+        Ok(LibraryBookingsOutcome {
+            bookings: snapshot.data,
+            fetched_at: snapshot.fetched_at,
+            from_cache: snapshot.from_cache,
+            stale: snapshot.stale,
+            failure: snapshot.failure,
+        })
     }
 }
 

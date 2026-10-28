@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
@@ -50,6 +50,27 @@ class _SchedulePageState extends State<SchedulePage> {
   void initState() {
     super.initState();
     load();
+  }
+
+  @override
+  void didUpdateWidget(SchedulePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service) {
+      requestId++;
+      data = null;
+      error = null;
+      notice = null;
+      busy = false;
+      selectedWeek = 0;
+      selectedTerm = null;
+      selectedDay = 1;
+      sorted = [];
+      filtered = [];
+      days = {};
+      weeks = {};
+      terms = {};
+      load();
+    }
   }
 
   @override
@@ -228,7 +249,7 @@ class _SchedulePageState extends State<SchedulePage> {
                   ],
                 ),
               if (data == null && error != null)
-                ScheduleEmptySection(
+                AppleStatusSection(
                   title: error!,
                   description: '请检查网络后重试。',
                   error: true,

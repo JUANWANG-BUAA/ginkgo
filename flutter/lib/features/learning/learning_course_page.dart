@@ -1,10 +1,11 @@
 import 'package:flutter/cupertino.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:ginkgo_mirror/shared/school_links.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/learning.dart';
 import 'package:ginkgo_mirror/application/learning_context.dart';
 import 'package:ginkgo_mirror/application/learning_file_actions.dart';
+import 'package:ginkgo_mirror/application/learning_ports.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/infrastructure/learning_file_actions.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
@@ -43,6 +44,7 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
   int page = 1, epoch = 0;
   String resourceQuery = '';
   LearningCourseTab tab = LearningCourseTab.resources;
+  late LearningPorts ports = LearningPorts.resolve(widget.service);
   @override
   void initState() {
     super.initState();
@@ -56,12 +58,13 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
   }
 
   void _attach() {
+    ports = LearningPorts.resolve(widget.service);
     announcements = RefreshSection()..addListener(_changed);
     resources = RefreshSection()..addListener(_changed);
     assessments = RefreshSection()..addListener(_changed);
     columns = RefreshSection()..addListener(_changed);
     _resources();
-    if (widget.service is CourseLearningContextGateway) _columns();
+    if (ports.context != null) _columns();
   }
 
   void _detach() {
@@ -137,48 +140,61 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
   }
 
   Future<void> _announcements({bool force = false}) {
-    final s = widget.service, col = announcementColumn;
-    if (s is CourseLearningContextGateway) {
+    final col = announcementColumn;
+    final context = ports.context;
+    if (context != null) {
       if (col == null) return Future.value();
       return learningRefresh(
         announcements,
         () =>
-            s.courseAnnouncementsIn(widget.course.id, col, forceRefresh: force),
+            context.courseAnnouncementsIn(
+              widget.course.id,
+              col,
+              forceRefresh: force,
+            ),
         force,
       );
     }
-    if (s is! CourseAnnouncementGateway) return Future.value();
+    final gateway = ports.announcements;
+    if (gateway == null) return Future.value();
     return learningRefresh(
       announcements,
-      () => s.courseAnnouncements(widget.course.id, forceRefresh: force),
+      () => gateway.courseAnnouncements(widget.course.id, forceRefresh: force),
       force,
     );
   }
 
   Future<void> _assessments({bool force = false}) {
-    final s = widget.service, col = assessmentColumn;
-    if (s is CourseLearningContextGateway) {
+    final col = assessmentColumn;
+    final context = ports.context;
+    if (context != null) {
       if (col == null) return Future.value();
       return learningRefresh(
         assessments,
-        () => s.courseAssessmentsIn(widget.course.id, col, forceRefresh: force),
+        () => context.courseAssessmentsIn(
+          widget.course.id,
+          col,
+          forceRefresh: force,
+        ),
         force,
       );
     }
-    if (s is! CourseAssessmentGateway) return Future.value();
+    final gateway = ports.assessments;
+    if (gateway == null) return Future.value();
     return learningRefresh(
       assessments,
-      () => s.courseAssessments(widget.course.id, forceRefresh: force),
+      () => gateway.courseAssessments(widget.course.id, forceRefresh: force),
       force,
     );
   }
 
   Future<void> _resources({bool force = false}) {
-    final s = widget.service, ids = path.map((f) => f.id).toList(), p = page;
-    if (s is CourseLearningContextGateway) {
+    final ids = path.map((f) => f.id).toList(), p = page;
+    final context = ports.context;
+    if (context != null) {
       return learningRefresh(
         resources,
-        () => s.courseResourcesAt(
+        () => context.courseResourcesAt(
           widget.course.id,
           path: ids,
           page: p,
@@ -187,10 +203,11 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
         force,
       );
     }
-    if (s is! CourseResourceGateway) return Future.value();
+    final gateway = ports.resources;
+    if (gateway == null) return Future.value();
     return learningRefresh(
       resources,
-      () => s.courseResources(
+      () => gateway.courseResources(
         widget.course.id,
         folder: ids.isEmpty ? null : ids.single,
         page: p,
@@ -261,12 +278,12 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
   }
 
   Future<void> _showHealth() async {
-    final service = widget.service;
-    if (service is! CourseLearningContextGateway) return;
+    final learningContext = ports.context;
+    if (learningContext == null) return;
     final e = epoch;
     String content;
     try {
-      final health = await service.learningCapabilities(widget.course.id);
+      final health = await learningContext.learningCapabilities(widget.course.id);
       const labels = {
         'unknown': '尚未验证',
         'available': '本会话读取成功',
@@ -305,28 +322,26 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
 
   Future<void> _openSource() async {
     final e = epoch;
-    try {
-      final uri = httpsUri(widget.course.sourceUrl);
-      if (uri == null ||
-          !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-        throw StateError('open');
-      }
-    } catch (_) {
-      if (current(e)) setState(() => linkError = '无法打开课程官网，请稍后重试。');
+    if (!await openSchoolLink(widget.course.sourceUrl) && current(e)) {
+      setState(() => linkError = schoolLinkError);
     }
   }
 
   Future<LearningDownload> _download(CourseResource item) {
-    final s = widget.service;
-    if (s is CourseLearningContextGateway) {
-      return s.courseResourceDownloadAt(
+    final context = ports.context;
+    if (context != null) {
+      return context.courseResourceDownloadAt(
         widget.course.id,
         item.id,
         path: path.map((f) => f.id).toList(),
         page: page,
       );
     }
-    return (s as CourseResourceGateway).courseResourceDownload(
+    final gateway = ports.resources;
+    if (gateway == null) {
+      throw StateError('当前服务不支持资料下载');
+    }
+    return gateway.courseResourceDownload(
       widget.course.id,
       item.id,
       folder: path.isEmpty ? null : path.single.id,
@@ -336,7 +351,7 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
 
   @override
   Widget build(BuildContext context) {
-    final hasContext = widget.service is CourseLearningContextGateway;
+    final hasContext = ports.context != null;
     final items =
         resources.value?.data.items
             .where(
@@ -422,7 +437,7 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
                     section: announcements,
                     supported: hasContext
                         ? announcementColumn != null
-                        : widget.service is CourseAnnouncementGateway,
+                        : ports.announcements != null,
                     onRefresh: () => _announcements(force: true),
                   ),
                   if (announcements.value case final read?) ...[
@@ -458,8 +473,7 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
                 items: items,
                 resourceQuery: resourceQuery,
                 resources: resources,
-                supported:
-                    hasContext || widget.service is CourseResourceGateway,
+                supported: hasContext || ports.resources != null,
                 hasContext: hasContext,
                 saveFile: widget.saveFile,
                 contextToken:
@@ -487,7 +501,7 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
                     section: assessments,
                     supported: hasContext
                         ? assessmentColumn != null
-                        : widget.service is CourseAssessmentGateway,
+                        : ports.assessments != null,
                     onRefresh: () => _assessments(force: true),
                   ),
                   if (assessments.value case final read?) ...[

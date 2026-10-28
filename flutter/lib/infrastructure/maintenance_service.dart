@@ -6,9 +6,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../mirror_service.dart';
+
 import 'package:ginkgo_mirror/platform/android_update_controller.dart';
+
 import '../src/rust/api/live.dart' as live;
 import '../src/rust/api/mirror.dart' as bridge;
+
+import 'package:ginkgo_mirror/infrastructure/native_command.dart';
 
 class InstalledVersion {
   const InstalledVersion(this.version, this.build);
@@ -70,7 +74,9 @@ class NativeMaintenanceService implements MaintenanceService {
 
   @override
   Future<UpdateResult> checkUpdate(String current) async {
-    final result = await live.checkAndroidUpdate(current: current);
+    final result = await boundedNativeRead(
+      () => live.checkAndroidUpdate(current: current),
+    );
     if (result.failure != null || result.payload == null) {
       throw const FormatException('Update unavailable');
     }
@@ -122,10 +128,12 @@ class NativeMaintenanceService implements MaintenanceService {
   }
 
   @override
-  Future<bool> checkVault() => live.verifyCredentialStorage(
-    account:
-        '__ginkgo_vault_test__settings_${DateTime.now().microsecondsSinceEpoch}',
-    secret: 'synthetic-diagnostic-not-a-password',
+  Future<bool> checkVault() => boundedNativeRead(
+    () => live.verifyCredentialStorage(
+      account:
+          '__ginkgo_vault_test__settings_${DateTime.now().microsecondsSinceEpoch}',
+      secret: 'synthetic-diagnostic-not-a-password',
+    ),
   );
 }
 

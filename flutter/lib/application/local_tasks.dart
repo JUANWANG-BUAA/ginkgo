@@ -1,9 +1,7 @@
 import 'dart:convert';
 
-import 'package:path_provider/path_provider.dart';
-
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 
 /// Device-local personal task. Completion never changes a school assignment.
 class LocalTaskRecord {
@@ -113,12 +111,9 @@ String localTaskDueLabel(String due) {
       '${two(wall.hour)}:${two(wall.minute)}（北京时间）';
 }
 
-Future<String> localTasksStorageRoot([String? override]) async =>
-    override ?? '${(await getApplicationSupportDirectory()).path}/tasks';
-
 /// The only JSON decoding path shared by Today, Tasks and homework linking.
 Future<List<LocalTaskRecord>> editLocalTasks(
-  CampusGateway service, {
+  LocalTaskGateway service, {
   required String root,
   required String action,
   String? id,

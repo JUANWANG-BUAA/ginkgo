@@ -7,7 +7,7 @@
 
 ## 目录
 
-- [cache](#cache) (7)
+- [cache](#cache) (14)
 - [campus_activities_service](#campusactivitiesservice) (1)
 - [career_service](#careerservice) (1)
 - [protocol](#protocol) (12)
@@ -25,13 +25,13 @@
 - [demo_today](#demotoday) (2)
 - [homework_service](#homeworkservice) (2)
 - [capabilities](#capabilities) (1)
-- [journal](#journal) (4)
+- [journal](#journal) (11)
 - [homework_submission_service](#homeworksubmissionservice) (1)
 - [learning_service](#learningservice) (2)
 - [library_service](#libraryservice) (1)
 - [library_stats_service](#librarystatsservice) (1)
 - [mod](#mod) (2)
-- [session_service](#sessionservice) (17)
+- [session_service](#sessionservice) (18)
 - [snapshots](#snapshots) (10)
 - [updates_service](#updatesservice) (1)
 
@@ -55,6 +55,20 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:57</sub>
 - `pub fn insert_if_current(&mut self, key: K, ticket: u64, value: V) -> String {…}` — Insert only when no newer request for the same key has started. The
   <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:67</sub>
+- `pub(super) fn entries(&self) -> impl Iterator<Item = (&K, &Timed<V>)> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:106</sub>
+- `pub(super) fn restore(&mut self, key: K, value: V, timestamp: String, age: Duration) {…}` — Rebind only after archive validation and current authenticated-owner checks.
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:112</sub>
+- `pub fn clear(&mut self) {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:123</sub>
+- `pub fn resolve_current( &mut self, key: K, ticket: u64, result: Result<V, crate::AppError>, ) -> Result<super::DataOutcome<V>, crate::AppError> {…}` — Replace on success, including an empty value, unless a newer request
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:133</sub>
+- `pub(crate) async fn read_with_snapshot<K, V, F>( cache: &crate::foundation::mutex::Mutex<SnapshotCache<K, V>>, key: K, force: bool, read: F, ) -> Result<ginkgo_domain::ports::ReadSnapshot<V>, crate::AppError>`
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:165</sub>
+- `pub(crate) async fn read_with_snapshot_checked<K, V, F, G>( cache: &crate::foundation::mutex::Mutex<SnapshotCache<K, V>>, key: K, force: bool, read: F, check: G, ) -> Result<ginkgo_domain::ports::ReadSnapshot<V>, crate::AppError>`
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:179</sub>
+- `pub(crate) fn now_shanghai() -> String {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:238</sub>
 
 ## campus_activities_service
 
@@ -234,14 +248,35 @@
 
 ## journal
 
-- `pub(super) fn configure(files: &mut HomeworkFiles, root: &str) -> Result<(), AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/homework_submission_service/journal.rs:69</sub>
-- `pub(super) fn restore(files: &mut HomeworkFiles, owner: &(String, u64)) -> Result<(), AppError> {…}` — Rehydrate only Sent records. Ready receipts deliberately expire with process/identity.
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/homework_submission_service/journal.rs:99</sub>
-- `pub(super) fn create(files: &HomeworkFiles, handle: &str, baseline: u32) -> Result<(), AppError> {…}` — Persist before sending. A partial write remains as a fail-closed guard.
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/homework_submission_service/journal.rs:165</sub>
-- `pub(super) fn clear(files: &HomeworkFiles, handle: &str) -> Result<(), AppError> {…}` — Delete only the exact positive-verified record, never acknowledge a negative/unknown read.
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/homework_submission_service/journal.rs:194</sub>
+- `pub(super) struct Record`
+  <sub>struct · rust/crates/ginkgo_upstream/src/services/homework_submission_service/journal.rs:16</sub>
+- `pub(super) struct Recovered` — One validated journal row, safe to move across threads.
+  <sub>struct · rust/crates/ginkgo_upstream/src/services/homework_submission_service/journal.rs:28</sub>
+    - `handle: String`  <sub>:29</sub>
+    - `assignment: String`  <sub>:30</sub>
+    - `course: String`  <sub>:31</sub>
+    - `file: String`  <sub>:32</sub>
+    - `name: String`  <sub>:33</sub>
+    - `size: u64`  <sub>:34</sub>
+    - `baseline: u32`  <sub>:35</sub>
+- `pub(super) fn prepare_root(root: &str) -> Result<PathBuf, AppError> {…}` — Disk phase of [`configure`]: validate the directory without holding a lock.
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/homework_submission_service/journal.rs:81</sub>
+- `pub(super) fn adopt_root(files: &mut HomeworkFiles, path: &Path) -> Result<(), AppError> {…}` — Memory phase of [`configure`]: adopt an already-validated root.
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/homework_submission_service/journal.rs:91</sub>
+- `pub(super) fn root_of(files: &HomeworkFiles) -> Result<PathBuf, AppError> {…}` — The configured journal root, copied so callers can do disk work unlocked.
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/homework_submission_service/journal.rs:101</sub>
+- `pub(super) fn read_records(root: &Path, owner: &(String, u64)) -> Result<Vec<Recovered>, AppError> {…}` — Rehydrate only Sent records. Ready receipts deliberately expire with process/identity.
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/homework_submission_service/journal.rs:123</sub>
+- `pub(super) fn apply_restore( files: &mut HomeworkFiles, owner: &(String, u64), recovered: Vec<Recovered>, ) -> Result<(), AppError> {…}` — Merge journal records into memory. **Memory only**: callers hold the lock
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/homework_submission_service/journal.rs:172</sub>
+- `pub(super) fn record( files: &HomeworkFiles, handle: &str, baseline: u32, ) -> Result<Record, AppError> {…}` — Snapshot one upload into a durable record. **Memory only**, cheap.
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/homework_submission_service/journal.rs:207</sub>
+- `pub(super) fn write_record(root: &Path, account: &str, record: &Record) -> Result<(), AppError> {…}` — Persist before sending. A partial write remains as a fail-closed guard.
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/homework_submission_service/journal.rs:228</sub>
+- `pub(super) fn clear_target( files: &HomeworkFiles, handle: &str, ) -> Result<(PathBuf, String, String), AppError> {…}` — The facts `clear` needs, snapshotted under the lock so the deletion itself
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/homework_submission_service/journal.rs:246</sub>
+- `pub(super) fn clear_record( path: &Path, handle: &str, file: &str, assignment: &str, ) -> Result<(), AppError> {…}` — Delete only the exact positive-verified record, never acknowledge a negative/unknown read.
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/homework_submission_service/journal.rs:260</sub>
 
 ## homework_submission_service
 
@@ -267,7 +302,7 @@
 
 ## mod
 
-- `pub fn demo_classrooms(search: String…)  -> Result<classroom::FilterResult, AppError> {…}`
+- `pub fn demo_classrooms( search: String, section: i32, minimum_free_sections: i32, minimum_consecutive_sections: i32, building: Option<String>, sort: classroom::Sort, ) -> Result<classroom::FilterResult, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/services/mod.rs:42</sub>
 - `pub fn demo_rules() -> Result<(school_time::SchoolDay, schedule::Snapshot), AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/services/mod.rs:63</sub>
@@ -304,36 +339,39 @@
     - `route: StdMutex<RoutePreference>`  <sub>:93</sub>
     - `snapshots: ReadSnapshots`  <sub>:94</sub>
     - `bykc_access: tokio::sync::Mutex<()>`  <sub>:95</sub>
-    - `checkin_request_gate: tokio::sync::Mutex<()>`  <sub>:96</sub>
-    - `checkin_progress: Mutex<super::checkin_service::CheckInProgress>`  <sub>:97</sub>
-    - `automatic_login_failure: Mutex<Option<(Instant, AppError)>>`  <sub>:99</sub>
-    - `graduate_request_gate: tokio::sync::Mutex<()>`  <sub>:102</sub>
-    - `library_login_gate: tokio::sync::Mutex<()>`  <sub>:103</sub>
-    - `cgyy_mutation_gate: tokio::sync::Mutex<()>`  <sub>:107</sub>
+    - `checkin_progress: Mutex<super::checkin_service::CheckInProgress>`  <sub>:98</sub>
+    - `school_recovery_gate: tokio::sync::Mutex<()>`  <sub>:99</sub>
+    - `automatic_login_failure: Mutex<Option<(Instant, AppError)>>`  <sub>:101</sub>
+    - `graduate_request_gate: tokio::sync::Mutex<()>`  <sub>:104</sub>
+    - `library_login_gate: tokio::sync::Mutex<()>`  <sub>:105</sub>
+    - `cgyy_mutation_gate: tokio::sync::Mutex<()>`  <sub>:109</sub>
+    - `forgotten_account: Mutex<Option<String>>` — Account revoked by the last sign-out, handed from the fast revocation  <sub>:112</sub>
 - `pub fn new(session: Session<T>, vault: V) -> Self {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:111</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:116</sub>
+- `pub(crate) fn checkin_day_gate(&self, date: &str) -> std::sync::Arc<tokio::sync::Mutex<()>> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:142</sub>
 - `pub(crate) fn set_authenticated(&self, account: String, profile: UserProfile) {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:135</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:150</sub>
 - `pub fn verify_vault_round_trip(&self, account: &str, secret: &str) -> bool {…}` — Diagnostic used by device acceptance: write, read back and remove one
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:166</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:181</sub>
 - `pub fn lock_poison_events(&self) -> u64 {…}` — How often one of this client's in-memory locks was recovered from a
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:177</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:192</sub>
 - `pub(crate) fn preference(&self) -> RoutePreference {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:186</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:201</sub>
 - `pub(crate) fn current_account(&self) -> Result<String, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:190</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:205</sub>
 - `pub(crate) fn account_owner(&self) -> Result<AccountOwner, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:199</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:214</sub>
 - `pub(crate) fn check_account_owner(&self, owner: &AccountOwner) -> Result<(), AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:212</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:227</sub>
 - `pub(crate) async fn silent_login(&self) -> Result<(), AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:225</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:240</sub>
 - `pub(crate) async fn ensure_webvpn_session(&self) -> Result<(), AppError> {…}` — Establish the WebVPN gateway's own CAS session after an automatic route
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:269</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:284</sub>
 - `pub(crate) fn clear_caches(&self) {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:315</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:330</sub>
 - `pub(crate) fn is_library_login_error(error: &AppError) -> bool {…}` — booking.lib answers 200 with its own login-expired message; that only means
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:341</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:356</sub>
 
 ## snapshots
 

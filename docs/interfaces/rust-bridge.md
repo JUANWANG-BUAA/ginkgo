@@ -14,13 +14,13 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 - [classroom](#classroom) (1)
 - [graduate](#graduate) (4)
 - [homework](#homework) (9)
-- [learning](#learning) (7)
+- [learning](#learning) (15)
 - [library](#library) (11)
 - [mapping](#mapping) (17)
-- [runtime](#runtime) (10)
+- [runtime](#runtime) (17)
 - [session](#session) (6)
 - [utilities](#utilities) (17)
-- [live](#live) (67)
+- [live](#live) (95)
 - [academic](#academic) (6)
 - [classroom](#classroom) (3)
 - [library](#library) (1)
@@ -32,13 +32,13 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 - `pub(super) async fn load_schedule( term_id: Option<String>, week: Option<i32>, force_refresh: bool, ) -> ScheduleResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:4</sub>
 - `pub(super) async fn load_today(force_refresh: bool) -> TodayResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:25</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:23</sub>
 - `pub(super) async fn load_checkin_today(force_refresh: bool) -> CheckInResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:51</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:48</sub>
 - `pub(super) async fn load_grade_terms() -> GradeTermsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:63</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:62</sub>
 - `pub(super) async fn load_grades(term_code: Option<String>, force_refresh: bool) -> GradeResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:100</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:98</sub>
 
 ## auth_challenge
 
@@ -57,15 +57,15 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 - `pub(super) async fn load_bykc(force_refresh: bool) -> ReadOnlyResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/bykc.rs:4</sub>
 - `pub(super) fn load_demo_bykc() -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/bykc.rs:19</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/bykc.rs:18</sub>
 - `pub(super) async fn load_bykc_chosen(force_refresh: bool) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/bykc.rs:26</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/bykc.rs:25</sub>
 - `pub(super) async fn load_bykc_statistics(force_refresh: bool) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/bykc.rs:35</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/bykc.rs:33</sub>
 - `pub(super) fn load_demo_bykc_chosen() -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/bykc.rs:44</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/bykc.rs:41</sub>
 - `pub(super) fn load_demo_bykc_statistics() -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/bykc.rs:48</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/bykc.rs:45</sub>
 
 ## checkin
 
@@ -74,7 +74,7 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 - `pub(super) async fn load_checkin_on_date(date: String, force_refresh: bool) -> CheckInResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/checkin.rs:19</sub>
 - `pub(super) async fn submit_checkin(course_id: String) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/checkin.rs:32</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/checkin.rs:35</sub>
 
 ## classroom
 
@@ -86,30 +86,30 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 - `pub(super) async fn load_graduate_part(report: bool, force_refresh: bool) -> ReadOnlyResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/graduate.rs:4</sub>
 - `pub(super) fn load_demo_graduate_status() -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/graduate.rs:24</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/graduate.rs:25</sub>
 - `pub(super) fn load_demo_graduate() -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/graduate.rs:28</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/graduate.rs:29</sub>
 - `pub(super) async fn credit_map(expected: String, force: bool) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/graduate.rs:32</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/graduate.rs:33</sub>
 
 ## homework
 
 - `pub(super) async fn load_homework(force_refresh: bool) -> crate::api::mirror::HomeworkResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:4</sub>
 - `pub(super) async fn load_homework_detail( assignment_id: String, force_refresh: bool, ) -> HomeworkDetailResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:60</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:59</sub>
 - `pub(super) async fn file_workspace(expected: String, id: String) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:123</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:121</sub>
 - `pub(super) async fn upload_file( expected: String, id: String, name: String, bytes: Vec<u8>, ) -> ReadOnlyResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:130</sub>
 - `pub(super) async fn submit_file( expected: String, handle: String, confirmed: bool, reconcile: bool, ) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:152</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:146</sub>
 - `pub(super) async fn download_file( expected: String, id: String, attachment: String, ) -> HomeworkFileDownloadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:180</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:177</sub>
 - `pub(super) async fn configure_recovery(expected: String, root: String) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:205</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:201</sub>
 - `pub(super) async fn pending_submissions( expected: String, assignment: Option<String>, ) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:210</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:211</sub>
 - `pub(super) async fn capabilities(expected: String, id: String) -> ReadOnlyResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:227</sub>
 
@@ -118,42 +118,58 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 - `pub(super) async fn courses(expected: String, force: bool) -> ReadOnlyResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:31</sub>
 - `pub(super) async fn announcements( expected: String, course: String, force: bool, ) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:35</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:34</sub>
 - `pub(super) async fn resources( expected: String, course: String, folder: Option<String>, page: u32, force: bool, ) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:45</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:46</sub>
 - `pub(super) async fn assessments(expected: String, course: String, force: bool) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:66</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:62</sub>
 - `pub(super) async fn announcement_detail( expected: String, course: String, id: String, ) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:72</sub>
-- `pub(super) async fn resource_download( expected: String…)  -> HomeworkFileDownloadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:104</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:68</sub>
+- `pub(super) async fn resource_download( expected: String, course: String, folder: Option<String>, page: u32, id: String, ) -> HomeworkFileDownloadResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:101</sub>
 - `pub(super) async fn announcement_attachment( expected: String, course: String, id: String, file: String, ) -> HomeworkFileDownloadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:125</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:117</sub>
+- `pub(super) async fn columns(expected: String, course: String, force: bool) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:137</sub>
+- `pub(super) async fn capabilities(expected: String, course: String) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:150</sub>
+- `pub(super) async fn announcements_in( expected: String, course: String, column: String, force: bool, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:167</sub>
+- `pub(super) async fn assessments_in( expected: String, course: String, column: String, force: bool, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:185</sub>
+- `pub(super) async fn detail_in( expected: String, course: String, column: String, id: String, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:203</sub>
+- `pub(super) async fn attachment_in( expected: String, course: String, column: String, id: String, file: String, ) -> HomeworkFileDownloadResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:222</sub>
+- `pub(super) async fn resources_at( expected: String, course: String, path: Vec<String>, page: u32, force: bool, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:238</sub>
+- `pub(super) async fn download_at( expected: String, course: String, path: Vec<String>, page: u32, id: String, ) -> HomeworkFileDownloadResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/learning.rs:257</sub>
 
 ## library
 
 - `pub(super) async fn load_library_venues(force_refresh: bool) -> LibraryVenuesResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:4</sub>
 - `pub(super) async fn load_library_areas(library_id: String) -> LibraryAreasResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:44</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:46</sub>
 - `pub(super) async fn load_library_slots(area_id: String) -> LibrarySlotsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:68</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:73</sub>
 - `pub(super) async fn load_library_seats( area_id: String, slot_id: String, day: String, start: String, end: String, ) -> LibrarySeatsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:92</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:100</sub>
 - `pub(super) async fn load_library_bookings(force_refresh: bool) -> LibraryBookingsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:122</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:133</sub>
 - `pub(super) async fn load_library_history(page: i32, force_refresh: bool) -> LibraryHistoryResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:162</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:176</sub>
 - `pub(super) fn load_demo_library_history(page: i32) -> LibraryHistoryResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:209</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:227</sub>
 - `pub(super) async fn load_library_stats(force_refresh: bool) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:239</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:257</sub>
 - `pub(super) fn load_demo_library_stats() -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:261</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:278</sub>
 - `pub(super) async fn reserve_library_seat( area_id: String, seat_id: String, slot: crate::api::mirror::LibrarySlot, ) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:280</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:297</sub>
 - `pub(super) async fn perform_library_action(booking_id: String, action: String) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:320</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:335</sub>
 
 ## mapping
 
@@ -206,14 +222,28 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
   <sub>static · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:15</sub>
 - `pub(super) static SERVICE: OnceLock<Result<LiveService, AppError>> = OnceLock::new();`
   <sub>static · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:17</sub>
+- `pub(super) enum ModuleAccess` — The business module a command belongs to.
+  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:30</sub>
 - `pub(super) async fn bounded_read<T>( future: impl std::future::Future<Output = Result<T, AppError>>, ) -> Result<T, AppError> {…}` — Total budget for a read including SSO redirects and fallback. Mutations
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:21</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:85</sub>
 - `pub(super) async fn bounded_session<T>( future: impl std::future::Future<Output = Result<T, AppError>>, ) -> Result<T, AppError> {…}` — Budget for session commands (sign-in/restore). The CAS chain alone can
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:34</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:98</sub>
 - `pub(super) async fn bounded_submit<T>(future: impl std::future::Future<Output = T>) -> Option<T> {…}` — Budget for a school write. A timed-out write is dropped, never retried:
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:46</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:110</sub>
+- `pub(super) async fn with_session_read<T, F, Fut>(body: F) -> Result<T, AppError> where` — Take the session read gate and run a read under the read budget.
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:121</sub>
+- `pub(super) async fn with_session_read_in<T, F, Fut>( budget: std::time::Duration, body: F, ) -> Result<T, AppError>` — Same as [`with_session_read`] with an explicit work budget. A file upload
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:132</sub>
+- `pub(super) async fn with_session_write<T, F, Fut>(body: F) -> Result<T, AppError> where` — Take the session write gate and run a session command under the session
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:149</sub>
+- `pub(super) async fn with_session_submit<T, F, Fut>(body: F) -> Option<T> where` — Take the session read gate and run a submitted write under the submit
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:161</sub>
+- `pub(super) async fn with_module_read<T, F, Fut>( module: ModuleAccess, body: F, ) -> Result<T, AppError>` — Take the session read gate and a module read gate, then run a read.
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:171</sub>
+- `pub(super) async fn with_module_submit<T, F, Fut>(module: ModuleAccess, body: F) -> Option<T> where` — Take the session read gate and a module write gate, then run a submitted
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:189</sub>
 - `pub(super) fn service() -> Result<&'static LiveService, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:52</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:202</sub>
 
 ## session
 
@@ -222,50 +252,50 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 - `pub(super) async fn restore_session() -> SessionResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:31</sub>
 - `pub(super) async fn sign_out() -> SessionResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:60</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:62</sub>
 - `pub(super) async fn set_route(route: RouteChoice) -> SessionResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:69</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:87</sub>
 - `pub(super) async fn clear_cache() -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:84</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:108</sub>
 - `pub(super) fn verify_credential_storage(account: String, secret: String) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:95</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:121</sub>
 
 ## utilities
 
-- `pub(super) async fn edit_tasks( root: String…)  -> ReadOnlyResponse {…}`
+- `pub(super) async fn edit_tasks( root: String, demo: bool, action: String, id: Option<String>, title: Option<String>, due: Option<String>, completed: Option<bool>, ) -> ReadOnlyResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:4</sub>
 - `pub(super) async fn load_notices(force_refresh: bool) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:47</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:51</sub>
 - `pub(super) fn load_demo_notices() -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:56</sub>
-- `pub(super) async fn load_career_events(month: String, force_refresh: bool) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:60</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:62</sub>
+- `pub(super) async fn load_career_events(month: String, force_refresh: bool) -> CareerEventsResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:66</sub>
 - `pub(super) async fn load_campus_activities(page: i32, force_refresh: bool) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:72</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:116</sub>
 - `pub(super) async fn load_campus_card_balance() -> CampusCardBalanceResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:84</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:129</sub>
 - `pub(super) fn load_demo_campus_card_balance() -> CampusCardBalanceResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:109</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:153</sub>
 - `pub(super) async fn load_cgyy( kind: String, site_id: i64, date: String, force_refresh: bool, ) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:118</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:162</sub>
 - `pub(super) async fn execute_cgyy(command: String) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:142</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:189</sub>
 - `pub(super) fn load_demo_cgyy(kind: String) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:172</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:219</sub>
 - `pub(super) async fn load_library_books( query: String, page: i64, sort: String, descending: bool, ) -> ReadOnlyResponse {…}` — Public OPAC search. Read-only, anonymous and bounded by the service.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:177</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:224</sub>
 - `pub(super) async fn load_shuttle_timetable() -> ReadOnlyResponse {…}` — Published shuttle timetable. Public page, no identity, no ticketing.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:194</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:240</sub>
 - `pub(super) async fn load_library_holdings(bib_id: String) -> ReadOnlyResponse {…}` — Public holdings for one bib id. The nested JSON string is decoded in Rust.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:204</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:249</sub>
 - `pub(super) async fn export_learning_snapshots(expected: String) -> LearningSnapshotResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:213</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:257</sub>
 - `pub(super) async fn import_learning_snapshots( expected: String, bytes: Vec<u8>, ) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:233</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:277</sub>
 - `pub(super) async fn load_library_loans(expected: String, page: u32) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:248</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:294</sub>
 - `pub(super) async fn check_android_update(current: String) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:261</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:306</sub>
 
 ## live
 
@@ -386,7 +416,7 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:240</sub>
 - `pub fn load_demo_graduate() -> ReadOnlyResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:244</sub>
-- `pub async fn edit_tasks(root: String…)  -> ReadOnlyResponse {…}` — Local CRUD only. Account identity comes from Rust, never a Dart-supplied identifier.
+- `pub async fn edit_tasks( root: String, demo: bool, action: String, id: Option<String>, title: Option<String>, due: Option<String>, completed: Option<bool>, ) -> ReadOnlyResponse {…}` — Local CRUD only. Account identity comes from Rust, never a Dart-supplied identifier.
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:249</sub>
 - `pub async fn load_notices(force_refresh: bool) -> ReadOnlyResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:261</sub>
@@ -402,52 +432,125 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:278</sub>
 - `pub fn load_demo_notices() -> ReadOnlyResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:282</sub>
-- `pub async fn load_career_events(month: String, force_refresh: bool) -> ReadOnlyResponse {…}` — Public career-calendar events for a school month (YYYY-MM). Read-only.
+- `pub async fn load_career_events(month: String, force_refresh: bool) -> CareerEventsResponse {…}` — Public career-calendar events for a school month (YYYY-MM). Read-only.
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:287</sub>
+- `pub struct CareerEventDto`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:291</sub>
+    - `id: String`  <sub>:292</sub>
+    - `title: String`  <sub>:293</sub>
+    - `campus: String`  <sub>:294</sub>
+    - `place: String`  <sub>:295</sub>
+    - `begins_at: String`  <sub>:296</sub>
+    - `ends_at: String`  <sub>:297</sub>
+    - `fair_type: String`  <sub>:298</sub>
+    - `status: String`  <sub>:299</sub>
+    - `url: String`  <sub>:300</sub>
+- `pub struct CareerEventsDto`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:303</sub>
+    - `month: String`  <sub>:304</sub>
+    - `events: Vec<CareerEventDto>`  <sub>:305</sub>
+    - `fetched_at: String`  <sub>:306</sub>
+- `pub struct CareerEventsResponse` — A failure may accompany data only when it is a previous successful snapshot.
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:310</sub>
+    - `data: Option<CareerEventsDto>`  <sub>:311</sub>
+    - `failure: Option<FailureCode>`  <sub>:312</sub>
 - `pub async fn load_campus_activities(page: i32, force_refresh: bool) -> ReadOnlyResponse {…}` — Public campus cultural activities (page 1-based). Read-only.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:292</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:316</sub>
 - `pub async fn load_cgyy( kind: String, site_id: i64, date: String, force_refresh: bool, ) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:296</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:320</sub>
 - `pub async fn execute_cgyy(command: String) -> ReadOnlyResponse {…}` — User-confirmed CGYY commands; payload contains no upstream credentials.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:306</sub>
-- `pub fn load_demo_cgyy(kind: String) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:310</sub>
-- `pub async fn load_library_books( query: String, page: i64, sort: String, descending: bool, ) -> ReadOnlyResponse {…}` — Public OPAC search (read-only, anonymous). Payload is the projected page.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:315</sub>
-- `pub async fn load_shuttle_timetable() -> ReadOnlyResponse {…}` — Published shuttle timetable (official page). Read-only, no ticketing.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:325</sub>
-- `pub async fn load_library_holdings(bib_id: String) -> ReadOnlyResponse {…}` — Public holdings for one bib id; the nested JSON string never crosses the bridge.
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:330</sub>
-- `pub struct LearningSnapshotResponse` — Transient archive bytes. Hosts must use explicitly opted-in encrypted storage.
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:335</sub>
-    - `bytes: Option<Vec<u8>>`  <sub>:336</sub>
-    - `failure: Option<FailureCode>`  <sub>:337</sub>
-- `pub async fn export_learning_snapshots(expected_account: String) -> LearningSnapshotResponse {…}`
+- `pub fn load_demo_cgyy(kind: String) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:334</sub>
+- `pub async fn load_library_books( query: String, page: i64, sort: String, descending: bool, ) -> ReadOnlyResponse {…}` — Public OPAC search (read-only, anonymous). Payload is the projected page.
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:339</sub>
+- `pub async fn load_shuttle_timetable() -> ReadOnlyResponse {…}` — Published shuttle timetable (official page). Read-only, no ticketing.
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:349</sub>
+- `pub async fn load_library_holdings(bib_id: String) -> ReadOnlyResponse {…}` — Public holdings for one bib id; the nested JSON string never crosses the bridge.
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:354</sub>
+- `pub struct LearningSnapshotResponse` — Transient archive bytes. Hosts must use explicitly opted-in encrypted storage.
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:359</sub>
+    - `bytes: Option<Vec<u8>>`  <sub>:360</sub>
+    - `failure: Option<FailureCode>`  <sub>:361</sub>
+- `pub async fn export_learning_snapshots(expected_account: String) -> LearningSnapshotResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:363</sub>
 - `pub async fn import_learning_snapshots( expected_account: String, bytes: Vec<u8>, ) -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:342</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:366</sub>
 - `pub fn library_loans_portal_url() -> String {…}` — Public website metadata only. Does not initialize an authenticated session.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:351</sub>
-- `pub fn student_service_url(id: String) -> Option<String> {…}` — Public destination metadata; does not initialize an authenticated session.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:357</sub>
-- `pub async fn load_library_loans(expected_account: String, page: u32) -> ReadOnlyResponse {…}` — Explicit private read, scoped to the caller's account. No disk cache or writes.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:362</sub>
-- `pub async fn load_library_stats(force_refresh: bool) -> ReadOnlyResponse {…}` — Public counts only. No school identity or library token is serialized.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:367</sub>
-- `pub fn load_demo_library_stats() -> ReadOnlyResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:370</sub>
-- `pub async fn check_android_update(current: String) -> ReadOnlyResponse {…}` — Deliberately independent from login, school routes and account caches.
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:375</sub>
+- `pub fn student_service_url(id: String) -> Option<String> {…}` — Public destination metadata; does not initialize an authenticated session.
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:381</sub>
+- `pub async fn load_library_loans(expected_account: String, page: u32) -> ReadOnlyResponse {…}` — Explicit private read, scoped to the caller's account. No disk cache or writes.
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:386</sub>
+- `pub async fn load_library_stats(force_refresh: bool) -> ReadOnlyResponse {…}` — Public counts only. No school identity or library token is serialized.
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:391</sub>
+- `pub fn load_demo_library_stats() -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:394</sub>
+- `pub async fn check_android_update(current: String) -> ReadOnlyResponse {…}` — Deliberately independent from login, school routes and account caches.
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:399</sub>
 - `pub struct MutationResponse` — User-confirmed write. Never retries the mutation and never exposes raw upstream text.
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:380</sub>
-    - `state: String`  <sub>:381</sub>
-    - `message: String`  <sub>:382</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:404</sub>
+    - `state: String`  <sub>:405</sub>
+    - `message: String`  <sub>:406</sub>
 - `pub async fn submit_checkin(course_id: String) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:385</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:409</sub>
 - `pub async fn reserve_library_seat( area_id: String, seat_id: String, slot: crate::api::mirror::LibrarySlot, ) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:389</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:413</sub>
 - `pub async fn perform_library_action(booking_id: String, action: String) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:396</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:420</sub>
+- `pub async fn homework_file_workspace( expected_account: String, assignment_id: String, ) -> ReadOnlyResponse {…}` — Homework business JSON only; raw SPOC payloads never leave upstream.
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:459</sub>
+- `pub async fn upload_homework_file( expected_account: String, assignment_id: String, name: String, bytes: Vec<u8>, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:465</sub>
+- `pub async fn submit_homework_file( expected_account: String, handle: String, confirmed: bool, ) -> MutationResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:473</sub>
+- `pub async fn reconcile_homework_file(expected_account: String, handle: String) -> MutationResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:480</sub>
+- `pub struct HomeworkFileDownloadResponse`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:483</sub>
+    - `name: Option<String>`  <sub>:484</sub>
+    - `bytes: Option<Vec<u8>>`  <sub>:485</sub>
+    - `failure: Option<FailureCode>`  <sub>:486</sub>
+- `pub async fn download_homework_file( expected_account: String, assignment_id: String, attachment_id: String, ) -> HomeworkFileDownloadResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:488</sub>
+- `pub async fn learning_courses(expected_account: String, force: bool) -> ReadOnlyResponse {…}` — Learning queries return business DTO JSON, never school response envelopes.
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:497</sub>
+- `pub async fn course_announcements( expected_account: String, course: String, force: bool, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:500</sub>
+- `pub async fn course_announcement_detail( expected_account: String, course: String, id: String, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:507</sub>
+- `pub async fn course_resources( expected_account: String, course: String, folder: Option<String>, page: u32, force: bool, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:514</sub>
+- `pub async fn course_assessments( expected_account: String, course: String, force: bool, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:523</sub>
+- `pub async fn course_resource_download( expected_account: String, course: String, folder: Option<String>, page: u32, id: String, ) -> HomeworkFileDownloadResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:530</sub>
+- `pub async fn course_announcement_attachment( expected_account: String, course: String, id: String, file: String, ) -> HomeworkFileDownloadResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:539</sub>
+- `pub async fn course_learning_columns( expected_account: String, course: String, force: bool, ) -> ReadOnlyResponse {…}` — Explicit module context; all identifiers are revalidated by the source.
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:552</sub>
+- `pub async fn course_learning_capabilities( expected_account: String, course: String, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:559</sub>
+- `pub async fn course_announcements_in( expected_account: String, course: String, column: String, force: bool, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:565</sub>
+- `pub async fn course_assessments_in( expected_account: String, course: String, column: String, force: bool, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:573</sub>
+- `pub async fn course_announcement_detail_in( expected_account: String, course: String, column: String, id: String, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:581</sub>
+- `pub async fn course_announcement_attachment_in( expected_account: String, course: String, column: String, id: String, file: String, ) -> HomeworkFileDownloadResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:589</sub>
+- `pub async fn course_resources_at( expected_account: String, course: String, path: Vec<String>, page: u32, force: bool, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:598</sub>
+- `pub async fn course_resource_download_at( expected_account: String, course: String, path: Vec<String>, page: u32, id: String, ) -> HomeworkFileDownloadResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:607</sub>
+- `pub async fn load_graduate_credit_map( expected_account: String, force_refresh: bool, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:616</sub>
+- `pub async fn configure_homework_recovery( expected_account: String, storage_root: String, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:622</sub>
+- `pub async fn pending_homework_submissions( expected_account: String, assignment_id: Option<String>, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:628</sub>
+- `pub async fn homework_capabilities( expected_account: String, assignment_id: String, ) -> ReadOnlyResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:634</sub>
 
 ## academic
 

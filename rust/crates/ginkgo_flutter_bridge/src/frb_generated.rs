@@ -3751,6 +3751,58 @@ impl SseDecode for crate::api::live::CampusCardBalanceResponse {
     }
 }
 
+impl SseDecode for crate::api::live::CareerEventDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_campus = <String>::sse_decode(deserializer);
+        let mut var_place = <String>::sse_decode(deserializer);
+        let mut var_beginsAt = <String>::sse_decode(deserializer);
+        let mut var_endsAt = <String>::sse_decode(deserializer);
+        let mut var_fairType = <String>::sse_decode(deserializer);
+        let mut var_status = <String>::sse_decode(deserializer);
+        let mut var_url = <String>::sse_decode(deserializer);
+        return crate::api::live::CareerEventDto {
+            id: var_id,
+            title: var_title,
+            campus: var_campus,
+            place: var_place,
+            begins_at: var_beginsAt,
+            ends_at: var_endsAt,
+            fair_type: var_fairType,
+            status: var_status,
+            url: var_url,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CareerEventsDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_month = <String>::sse_decode(deserializer);
+        let mut var_events = <Vec<crate::api::live::CareerEventDto>>::sse_decode(deserializer);
+        let mut var_fetchedAt = <String>::sse_decode(deserializer);
+        return crate::api::live::CareerEventsDto {
+            month: var_month,
+            events: var_events,
+            fetched_at: var_fetchedAt,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CareerEventsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data = <Option<crate::api::live::CareerEventsDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::CareerEventsResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
 impl SseDecode for crate::api::mirror::CheckInCourse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4406,6 +4458,18 @@ impl SseDecode for Vec<String> {
     }
 }
 
+impl SseDecode for Vec<crate::api::live::CareerEventDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::CareerEventDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::mirror::CheckInCourse> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4728,6 +4792,19 @@ impl SseDecode for Option<bool> {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<bool>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::CareerEventsDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::CareerEventsDto>::sse_decode(
+                deserializer,
+            ));
         } else {
             return None;
         }
@@ -5391,6 +5468,77 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CampusCardBalanceRespon
     for crate::api::live::CampusCardBalanceResponse
 {
     fn into_into_dart(self) -> crate::api::live::CampusCardBalanceResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CareerEventDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.campus.into_into_dart().into_dart(),
+            self.place.into_into_dart().into_dart(),
+            self.begins_at.into_into_dart().into_dart(),
+            self.ends_at.into_into_dart().into_dart(),
+            self.fair_type.into_into_dart().into_dart(),
+            self.status.into_into_dart().into_dart(),
+            self.url.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CareerEventDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CareerEventDto>
+    for crate::api::live::CareerEventDto
+{
+    fn into_into_dart(self) -> crate::api::live::CareerEventDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CareerEventsDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.month.into_into_dart().into_dart(),
+            self.events.into_into_dart().into_dart(),
+            self.fetched_at.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CareerEventsDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CareerEventsDto>
+    for crate::api::live::CareerEventsDto
+{
+    fn into_into_dart(self) -> crate::api::live::CareerEventsDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CareerEventsResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CareerEventsResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CareerEventsResponse>
+    for crate::api::live::CareerEventsResponse
+{
+    fn into_into_dart(self) -> crate::api::live::CareerEventsResponse {
         self
     }
 }
@@ -6701,6 +6849,38 @@ impl SseEncode for crate::api::live::CampusCardBalanceResponse {
     }
 }
 
+impl SseEncode for crate::api::live::CareerEventDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.title, serializer);
+        <String>::sse_encode(self.campus, serializer);
+        <String>::sse_encode(self.place, serializer);
+        <String>::sse_encode(self.begins_at, serializer);
+        <String>::sse_encode(self.ends_at, serializer);
+        <String>::sse_encode(self.fair_type, serializer);
+        <String>::sse_encode(self.status, serializer);
+        <String>::sse_encode(self.url, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CareerEventsDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.month, serializer);
+        <Vec<crate::api::live::CareerEventDto>>::sse_encode(self.events, serializer);
+        <String>::sse_encode(self.fetched_at, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CareerEventsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::CareerEventsDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
 impl SseEncode for crate::api::mirror::CheckInCourse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7147,6 +7327,16 @@ impl SseEncode for Vec<String> {
     }
 }
 
+impl SseEncode for Vec<crate::api::live::CareerEventDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::CareerEventDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::mirror::CheckInCourse> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7401,6 +7591,16 @@ impl SseEncode for Option<bool> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <bool>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::CareerEventsDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::CareerEventsDto>::sse_encode(value, serializer);
         }
     }
 }

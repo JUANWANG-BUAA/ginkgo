@@ -4,8 +4,10 @@ import '../application/contracts.dart';
 import '../application/learning.dart';
 import '../application/learning_context.dart';
 import '../src/rust/api/live.dart' as live;
+
 import 'package:ginkgo_mirror/infrastructure/learning_payload.dart';
 import 'package:ginkgo_mirror/infrastructure/learning_snapshot_store.dart';
+import 'package:ginkgo_mirror/infrastructure/native_command.dart';
 
 /// Native business adapter shared by the account-bound workspace service.
 mixin NativeLearning
@@ -29,7 +31,10 @@ mixin NativeLearning
   }) async => decodeLearningRead(
     await learningSnapshots.read(
       _owner,
-      () => live.learningCourses(expectedAccount: _owner, force: forceRefresh),
+      () => boundedNativeRead(
+        () =>
+            live.learningCourses(expectedAccount: _owner, force: forceRefresh),
+      ),
     ),
     decodeCourses,
   );
@@ -41,10 +46,12 @@ mixin NativeLearning
   }) async => decodeLearningRead(
     await learningSnapshots.read(
       _owner,
-      () => live.courseAnnouncements(
-        expectedAccount: _owner,
-        course: course,
-        force: forceRefresh,
+      () => boundedNativeRead(
+        () => live.courseAnnouncements(
+          expectedAccount: _owner,
+          course: course,
+          force: forceRefresh,
+        ),
       ),
     ),
     decodeAnnouncements,
@@ -55,10 +62,12 @@ mixin NativeLearning
     String course,
     String id,
   ) async => decodeLearningRead(
-    await live.courseAnnouncementDetail(
-      expectedAccount: _owner,
-      course: course,
-      id: id,
+    await boundedNativeRead(
+      () => live.courseAnnouncementDetail(
+        expectedAccount: _owner,
+        course: course,
+        id: id,
+      ),
     ),
     decodeAnnouncement,
   ).data;
@@ -72,12 +81,14 @@ mixin NativeLearning
   }) async => decodeLearningRead(
     await learningSnapshots.read(
       _owner,
-      () => live.courseResources(
-        expectedAccount: _owner,
-        course: course,
-        folder: folder,
-        page: page,
-        force: forceRefresh,
+      () => boundedNativeRead(
+        () => live.courseResources(
+          expectedAccount: _owner,
+          course: course,
+          folder: folder,
+          page: page,
+          force: forceRefresh,
+        ),
       ),
     ),
     decodeResources,
@@ -90,10 +101,12 @@ mixin NativeLearning
   }) async => decodeLearningRead(
     await learningSnapshots.read(
       _owner,
-      () => live.courseAssessments(
-        expectedAccount: _owner,
-        course: course,
-        force: forceRefresh,
+      () => boundedNativeRead(
+        () => live.courseAssessments(
+          expectedAccount: _owner,
+          course: course,
+          force: forceRefresh,
+        ),
       ),
     ),
     decodeAssessments,
@@ -113,12 +126,14 @@ mixin NativeLearning
     String? folder,
     int page = 1,
   }) async => _download(
-    await live.courseResourceDownload(
-      expectedAccount: _owner,
-      course: course,
-      folder: folder,
-      page: page,
-      id: id,
+    await boundedNativeWrite(
+      () => live.courseResourceDownload(
+        expectedAccount: _owner,
+        course: course,
+        folder: folder,
+        page: page,
+        id: id,
+      ),
     ),
   );
 
@@ -128,11 +143,13 @@ mixin NativeLearning
     String id,
     String file,
   ) async => _download(
-    await live.courseAnnouncementAttachment(
-      expectedAccount: _owner,
-      course: course,
-      id: id,
-      file: file,
+    await boundedNativeWrite(
+      () => live.courseAnnouncementAttachment(
+        expectedAccount: _owner,
+        course: course,
+        id: id,
+        file: file,
+      ),
     ),
   );
 
@@ -143,10 +160,12 @@ mixin NativeLearning
   }) async => decodeLearningRead(
     await learningSnapshots.read(
       _owner,
-      () => live.courseLearningColumns(
-        expectedAccount: _owner,
-        course: course,
-        force: forceRefresh,
+      () => boundedNativeRead(
+        () => live.courseLearningColumns(
+          expectedAccount: _owner,
+          course: course,
+          force: forceRefresh,
+        ),
       ),
     ),
     decodeLearningColumns,
@@ -154,9 +173,11 @@ mixin NativeLearning
   @override
   Future<LearningCapabilities> learningCapabilities(String course) async =>
       decodeLearningRead(
-        await live.courseLearningCapabilities(
-          expectedAccount: _owner,
-          course: course,
+        await boundedNativeRead(
+          () => live.courseLearningCapabilities(
+            expectedAccount: _owner,
+            course: course,
+          ),
         ),
         decodeLearningCapabilities,
       ).data;
@@ -168,11 +189,13 @@ mixin NativeLearning
   }) async => decodeLearningRead(
     await learningSnapshots.read(
       _owner,
-      () => live.courseAnnouncementsIn(
-        expectedAccount: _owner,
-        course: course,
-        column: column,
-        force: forceRefresh,
+      () => boundedNativeRead(
+        () => live.courseAnnouncementsIn(
+          expectedAccount: _owner,
+          course: course,
+          column: column,
+          force: forceRefresh,
+        ),
       ),
     ),
     decodeAnnouncements,
@@ -183,11 +206,13 @@ mixin NativeLearning
     String column,
     String id,
   ) async => decodeLearningRead(
-    await live.courseAnnouncementDetailIn(
-      expectedAccount: _owner,
-      course: course,
-      column: column,
-      id: id,
+    await boundedNativeRead(
+      () => live.courseAnnouncementDetailIn(
+        expectedAccount: _owner,
+        course: course,
+        column: column,
+        id: id,
+      ),
     ),
     decodeAnnouncement,
   ).data;
@@ -198,12 +223,14 @@ mixin NativeLearning
     String id,
     String file,
   ) async => _download(
-    await live.courseAnnouncementAttachmentIn(
-      expectedAccount: _owner,
-      course: course,
-      column: column,
-      id: id,
-      file: file,
+    await boundedNativeWrite(
+      () => live.courseAnnouncementAttachmentIn(
+        expectedAccount: _owner,
+        course: course,
+        column: column,
+        id: id,
+        file: file,
+      ),
     ),
   );
   @override
@@ -214,11 +241,13 @@ mixin NativeLearning
   }) async => decodeLearningRead(
     await learningSnapshots.read(
       _owner,
-      () => live.courseAssessmentsIn(
-        expectedAccount: _owner,
-        course: course,
-        column: column,
-        force: forceRefresh,
+      () => boundedNativeRead(
+        () => live.courseAssessmentsIn(
+          expectedAccount: _owner,
+          course: course,
+          column: column,
+          force: forceRefresh,
+        ),
       ),
     ),
     decodeAssessments,
@@ -232,12 +261,14 @@ mixin NativeLearning
   }) async => decodeLearningRead(
     await learningSnapshots.read(
       _owner,
-      () => live.courseResourcesAt(
-        expectedAccount: _owner,
-        course: course,
-        path: path,
-        page: page,
-        force: forceRefresh,
+      () => boundedNativeRead(
+        () => live.courseResourcesAt(
+          expectedAccount: _owner,
+          course: course,
+          path: path,
+          page: page,
+          force: forceRefresh,
+        ),
       ),
     ),
     decodeResources,
@@ -249,12 +280,14 @@ mixin NativeLearning
     List<String> path = const [],
     int page = 1,
   }) async => _download(
-    await live.courseResourceDownloadAt(
-      expectedAccount: _owner,
-      course: course,
-      id: id,
-      path: path,
-      page: page,
+    await boundedNativeWrite(
+      () => live.courseResourceDownloadAt(
+        expectedAccount: _owner,
+        course: course,
+        id: id,
+        path: path,
+        page: page,
+      ),
     ),
   );
 }

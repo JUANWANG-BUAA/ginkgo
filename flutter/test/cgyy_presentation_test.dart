@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/design/academic_widgets.dart';
+import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_gateway.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
@@ -54,8 +54,8 @@ void main() {
       return const ReadOnlyResponse(payload: '{}', stale: false);
     }
 
-    await cgyyOrderDetail(demo: false, loader: loader, orderId: 42);
-    await cgyyLockCode(demo: false, loader: loader);
+    await cgyyOrderDetail(loader: loader, orderId: 42);
+    await cgyyLockCode(loader: loader);
     expect(calls, ['order/42/', 'lockCode/0/']);
   });
 

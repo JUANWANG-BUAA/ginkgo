@@ -2,16 +2,16 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
-import 'package:ginkgo_mirror/application/contracts.dart' show LibraryHistoryResponse;
+import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/contracts.dart'
+    show LibraryHistoryResponse;
 
 import 'library_controls.dart';
-import 'library_widgets.dart';
 
 /// member/seat is a read-only POST. Page failures never advance the cursor.
 class LibraryHistoryPage extends StatefulWidget {
   const LibraryHistoryPage({super.key, required this.service});
-  final LibraryGateway service;
+  final LibrarySeatingGateway service;
   @override
   State<LibraryHistoryPage> createState() => _LibraryHistoryPageState();
 }
@@ -26,6 +26,19 @@ class _LibraryHistoryPageState extends State<LibraryHistoryPage> {
   void initState() {
     super.initState();
     load(1);
+  }
+
+  @override
+  void didUpdateWidget(LibraryHistoryPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service) {
+      serial++;
+      data = null;
+      error = null;
+      busy = false;
+      requestedPage = 1;
+      load(1);
+    }
   }
 
   Future<void> load(int page, {bool force = false}) async {
@@ -66,7 +79,7 @@ class _LibraryHistoryPageState extends State<LibraryHistoryPage> {
     child: CustomScrollView(
       key: const Key('library-history-scroll'),
       slivers: [
-        LibraryPageHeader(
+        AppleRefreshPageHeader(
           title: '预约记录',
           subtitle: '进行中及已结束记录 · 只读',
           icon: CupertinoIcons.clock_fill,
@@ -80,7 +93,7 @@ class _LibraryHistoryPageState extends State<LibraryHistoryPage> {
         SliverList.list(
           children: [
             if (error != null)
-              LibraryEmptyState(
+              AppleStatusSection(
                 title: error!,
                 description: data == null
                     ? '请重试。'

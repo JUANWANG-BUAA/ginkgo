@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
@@ -13,65 +14,81 @@ import 'cgyy_widgets.dart';
 export 'cgyy_day_page.dart' show CgyyDayPage, CgyyLoader;
 
 class CgyyPage extends StatefulWidget {
-  const CgyyPage({super.key, this.demo = false, this.loader, this.service});
+  const CgyyPage({
+    super.key,
+    this.demo = false,
+    this.loader,
+    this.service,
+    this.bookingGateway,
+  });
   final bool demo;
   final CgyyLoader? loader;
-  final CampusGateway? service;
+  final CgyyGateway? service;
+
+  /// The CGYY write capability, injected by the composition root.
+  final CgyyBookingGateway? bookingGateway;
   @override
   State<CgyyPage> createState() => _CgyyPageState();
 }
 
 class _CgyyPageState extends State<CgyyPage> {
-  List<CgyySite>? sites;
-  String? error;
-  bool busy = false;
-  bool _pendingRefresh = false;
+  late final RefreshSection<List<CgyySite>> section;
+  List<CgyySite>? get sites => section.value;
+  String? get error => section.error;
+  bool get busy => section.loading;
+
   @override
   void initState() {
     super.initState();
+    section = RefreshSection<List<CgyySite>>()
+      ..addListener(() {
+        if (mounted) setState(() {});
+      });
     load();
   }
 
-  Future<void> load({bool force = false}) async {
-    // A pull-to-refresh during an in-flight read is remembered and rerun
-    // once it settles, never silently dropped.
-    if (busy) {
-      if (force) _pendingRefresh = true;
-      return;
+  @override
+  void didUpdateWidget(CgyyPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service ||
+        oldWidget.loader != widget.loader ||
+        oldWidget.demo != widget.demo) {
+      section
+        ..invalidate()
+        ..value = null
+        ..error = null
+        ..loading = false;
+      load();
     }
-    setState(() {
-      busy = true;
-      error = null;
-    });
-    try {
-      final result = await cgyyRead(
-        demo: widget.demo,
-        loader: widget.loader,
-        service: widget.service,
-        kind: 'venues',
-        siteId: 0,
-        date: '',
-        forceRefresh: force,
-      );
-      if (!mounted) return;
-      setState(() {
-        busy = false;
-        if (result.failure != null) error = failureMessage(result.failure);
-        if (result.payload != null) sites = cgyySites(result.payload!);
-      });
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          busy = false;
-          error = failureMessage(null);
-        });
-      }
-    }
-    if (!mounted) return;
-    if (_pendingRefresh) {
-      _pendingRefresh = false;
-      await load(force: true);
-    }
+  }
+
+  @override
+  void dispose() {
+    section.dispose();
+    super.dispose();
+  }
+
+  Future<void> load({bool force = false}) {
+    final loader = widget.loader;
+    final service = widget.service;
+    return section.refresh(
+      () async {
+        final result = await cgyyRead(
+          loader: loader,
+          service: service,
+          kind: 'venues',
+          siteId: 0,
+          date: '',
+          forceRefresh: force,
+        );
+        return SectionResult(
+          value: result.payload == null ? null : cgyySites(result.payload!),
+          error: result.failure == null ? null : failureMessage(result.failure),
+        );
+      },
+      fallbackError: failureMessage(null),
+      force: force,
+    );
   }
 
   void open({CgyySite? site}) => Navigator.of(context).push(
@@ -81,6 +98,7 @@ class _CgyyPageState extends State<CgyyPage> {
         site: site,
         loader: widget.loader,
         service: widget.service,
+        bookingGateway: widget.bookingGateway,
       ),
     ),
   );
@@ -135,7 +153,6 @@ class _CgyyPageState extends State<CgyyPage> {
                   onTap: () => Navigator.of(context).push(
                     CupertinoPageRoute<void>(
                       builder: (_) => CgyyLockCodePage(
-                        demo: widget.demo,
                         loader: widget.loader,
                         service: widget.service,
                       ),
@@ -152,16 +169,16 @@ class _CgyyPageState extends State<CgyyPage> {
               ],
             ),
             if (error != null)
-              CgyyStatusSection(
+              AppleStatusSection(
                 title: error!,
                 description: sites == null ? '请稍后重试。' : '正在显示上次场馆。',
-                onRetry: () => load(force: true),
-                isError: true,
+                onAction: () => load(force: true),
+                error: true,
               ),
             if (sites == null && busy)
               const GinkgoLoadingView(label: '正在读取研讨室…'),
             if (sites?.isEmpty == true)
-              const CgyyStatusSection(
+              const AppleStatusSection(
                 title: '暂无公开场馆',
                 description: '学校暂未提供公开场馆。',
               ),

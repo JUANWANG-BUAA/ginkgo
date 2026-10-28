@@ -24,7 +24,7 @@
 - [library_loans](#libraryloans) (1)
 - [library_stats](#librarystats) (2)
 - [notices](#notices) (2)
-- [outcome](#outcome) (1)
+- [outcome](#outcome) (2)
 - [query_snapshots](#querysnapshots) (1)
 - [session](#session) (6)
 - [shuttle](#shuttle) (1)
@@ -44,44 +44,39 @@
     - `term_id: Option<String>`  <sub>:21</sub>
     - `week: Option<i32>`  <sub>:22</sub>
     - `force_refresh: bool`  <sub>:23</sub>
-- `pub struct ScheduleOutcome`
-  <sub>struct · rust/crates/ginkgo_domain/src/ports/academic.rs:27</sub>
-    - `data: ScheduleData`  <sub>:28</sub>
-    - `fetched_at: String`  <sub>:29</sub>
-    - `from_cache: bool`  <sub>:30</sub>
-    - `stale: bool`  <sub>:31</sub>
-    - `failure: Option<AppError>`  <sub>:32</sub>
+- `pub type ScheduleOutcome = super::ReadSnapshot<ScheduleData>;`
+  <sub>type · rust/crates/ginkgo_domain/src/ports/academic.rs:26</sub>
 - `pub struct TodayOutcome`
-  <sub>struct · rust/crates/ginkgo_domain/src/ports/academic.rs:36</sub>
-    - `date: String`  <sub>:37</sub>
-    - `courses: Vec<TodayCourse>`  <sub>:38</sub>
-    - `fetched_at: String`  <sub>:39</sub>
-    - `from_cache: bool`  <sub>:40</sub>
-    - `stale: bool`  <sub>:41</sub>
-    - `failure: Option<AppError>`  <sub>:42</sub>
+  <sub>struct · rust/crates/ginkgo_domain/src/ports/academic.rs:29</sub>
+    - `date: String`  <sub>:30</sub>
+    - `courses: Vec<TodayCourse>`  <sub>:31</sub>
+    - `fetched_at: String`  <sub>:32</sub>
+    - `from_cache: bool`  <sub>:33</sub>
+    - `stale: bool`  <sub>:34</sub>
+    - `failure: Option<AppError>`  <sub>:35</sub>
 - `pub struct GradeData`
-  <sub>struct · rust/crates/ginkgo_domain/src/ports/academic.rs:46</sub>
-    - `term_id: String`  <sub>:47</sub>
-    - `courses: Vec<GradeCourse>`  <sub>:48</sub>
+  <sub>struct · rust/crates/ginkgo_domain/src/ports/academic.rs:39</sub>
+    - `term_id: String`  <sub>:40</sub>
+    - `courses: Vec<GradeCourse>`  <sub>:41</sub>
 - `pub struct GradeOutcome`
-  <sub>struct · rust/crates/ginkgo_domain/src/ports/academic.rs:51</sub>
-    - `term_id: String`  <sub>:52</sub>
-    - `courses: Vec<GradeCourse>`  <sub>:53</sub>
-    - `summary: GradeSummary`  <sub>:54</sub>
-    - `fetched_at: String`  <sub>:55</sub>
-    - `from_cache: bool`  <sub>:56</sub>
-    - `stale: bool`  <sub>:57</sub>
-    - `failure: Option<AppError>`  <sub>:58</sub>
+  <sub>struct · rust/crates/ginkgo_domain/src/ports/academic.rs:44</sub>
+    - `term_id: String`  <sub>:45</sub>
+    - `courses: Vec<GradeCourse>`  <sub>:46</sub>
+    - `summary: GradeSummary`  <sub>:47</sub>
+    - `fetched_at: String`  <sub>:48</sub>
+    - `from_cache: bool`  <sub>:49</sub>
+    - `stale: bool`  <sub>:50</sub>
+    - `failure: Option<AppError>`  <sub>:51</sub>
 - `pub trait ScheduleSource: Send + Sync`
-  <sub>trait · rust/crates/ginkgo_domain/src/ports/academic.rs:61</sub>
-    - `fn load_schedule( &self, input: &ScheduleQueryInput, ) -> Future<Result<ScheduleOutcome, AppError>>;`  <sub>:62</sub>
+  <sub>trait · rust/crates/ginkgo_domain/src/ports/academic.rs:54</sub>
+    - `fn load_schedule( &self, input: &ScheduleQueryInput, ) -> Future<Result<ScheduleOutcome, AppError>>;`  <sub>:55</sub>
 - `pub trait TodaySource: Send + Sync`
-  <sub>trait · rust/crates/ginkgo_domain/src/ports/academic.rs:68</sub>
-    - `fn load_today( &self, force_refresh: bool, ) -> Future<Result<TodayOutcome, AppError>>;`  <sub>:69</sub>
+  <sub>trait · rust/crates/ginkgo_domain/src/ports/academic.rs:61</sub>
+    - `fn load_today( &self, force_refresh: bool, ) -> Future<Result<TodayOutcome, AppError>>;`  <sub>:62</sub>
 - `pub trait GradeSource: Send + Sync`
-  <sub>trait · rust/crates/ginkgo_domain/src/ports/academic.rs:75</sub>
-    - `fn load_grades( &self, term_code: Option<&str>, force_refresh: bool, ) -> Future<Result<GradeOutcome, AppError>>;`  <sub>:76</sub>
-    - `fn load_grade_terms( &self, ) -> Future<Result<Vec<Term>, AppError>>;`  <sub>:81</sub>
+  <sub>trait · rust/crates/ginkgo_domain/src/ports/academic.rs:68</sub>
+    - `fn load_grades( &self, term_code: Option<&str>, force_refresh: bool, ) -> Future<Result<GradeOutcome, AppError>>;`  <sub>:69</sub>
+    - `fn load_grade_terms( &self, ) -> Future<Result<Vec<Term>, AppError>>;`  <sub>:74</sub>
 
 ## bykc
 
@@ -99,13 +94,11 @@
 
 ## campus_activities
 
-- `pub struct CampusActivitiesOutcome`
-  <sub>struct · rust/crates/ginkgo_domain/src/ports/campus_activities.rs:5</sub>
-    - `data: CampusActivities`  <sub>:6</sub>
-    - `failure: Option<AppError>`  <sub>:7</sub>
+- `pub type CampusActivitiesOutcome = super::ReadSnapshot<CampusActivities>;`
+  <sub>type · rust/crates/ginkgo_domain/src/ports/campus_activities.rs:4</sub>
 - `pub trait CampusActivitiesSource: Send + Sync`
-  <sub>trait · rust/crates/ginkgo_domain/src/ports/campus_activities.rs:10</sub>
-    - `fn load_campus_activities( &self, page: i32, force: bool, ) -> Future<Result<CampusActivitiesOutcome, AppError>>;`  <sub>:11</sub>
+  <sub>trait · rust/crates/ginkgo_domain/src/ports/campus_activities.rs:6</sub>
+    - `fn load_campus_activities( &self, page: i32, force: bool, ) -> Future<Result<CampusActivitiesOutcome, AppError>>;`  <sub>:7</sub>
 
 ## campus_card
 
@@ -115,13 +108,11 @@
 
 ## career
 
-- `pub struct CareerEventsOutcome`
-  <sub>struct · rust/crates/ginkgo_domain/src/ports/career.rs:5</sub>
-    - `data: CareerEvents`  <sub>:6</sub>
-    - `failure: Option<AppError>`  <sub>:7</sub>
+- `pub type CareerEventsOutcome = super::ReadSnapshot<CareerEvents>;`
+  <sub>type · rust/crates/ginkgo_domain/src/ports/career.rs:4</sub>
 - `pub trait CareerEventsSource: Send + Sync`
-  <sub>trait · rust/crates/ginkgo_domain/src/ports/career.rs:10</sub>
-    - `fn load_career_events( &self, month: &str, force: bool, ) -> Future<Result<CareerEventsOutcome, AppError>>;`  <sub>:11</sub>
+  <sub>trait · rust/crates/ginkgo_domain/src/ports/career.rs:6</sub>
+    - `fn load_career_events( &self, month: &str, force: bool, ) -> Future<Result<CareerEventsOutcome, AppError>>;`  <sub>:7</sub>
 
 ## cgyy
 
@@ -204,17 +195,14 @@
 
 ## homework
 
-- `pub struct HomeworkOutcome`
-  <sub>struct · rust/crates/ginkgo_domain/src/ports/homework.rs:5</sub>
-    - `data: HomeworkData`  <sub>:6</sub>
-    - `fetched_at: String`  <sub>:7</sub>
-    - `failure: Option<AppError>`  <sub>:8</sub>
+- `pub type HomeworkOutcome = ReadSnapshot<HomeworkData>;`
+  <sub>type · rust/crates/ginkgo_domain/src/ports/homework.rs:4</sub>
 - `pub trait HomeworkSource: Send + Sync`
-  <sub>trait · rust/crates/ginkgo_domain/src/ports/homework.rs:11</sub>
-    - `fn load_homework( &self, force: bool, ) -> Future<Result<HomeworkOutcome, AppError>>;`  <sub>:12</sub>
-    - `fn load_homework_detail( &self, id: &str, force: bool, ) -> Future<Result<HomeworkDetailOutcome, AppError>>;`  <sub>:16</sub>
-- `pub type HomeworkDetailOutcome = DataOutcome<crate::features::homework::HomeworkDetail>;`
-  <sub>type · rust/crates/ginkgo_domain/src/ports/homework.rs:23</sub>
+  <sub>trait · rust/crates/ginkgo_domain/src/ports/homework.rs:6</sub>
+    - `fn load_homework( &self, force: bool, ) -> Future<Result<HomeworkOutcome, AppError>>;`  <sub>:7</sub>
+    - `fn load_homework_detail( &self, id: &str, force: bool, ) -> Future<Result<HomeworkDetailOutcome, AppError>>;`  <sub>:11</sub>
+- `pub type HomeworkDetailOutcome = ReadSnapshot<crate::features::homework::HomeworkDetail>;`
+  <sub>type · rust/crates/ginkgo_domain/src/ports/homework.rs:18</sub>
 
 ## homework_submission
 
@@ -334,7 +322,7 @@
     - `fn course_announcement_attachment( &self, course: &str, id: &str, file: &str, ) -> Future<Result<LearningDownload, AppError>>;`  <sub>:83</sub>
 - `pub trait CourseResourceSource: Send + Sync`
   <sub>trait · rust/crates/ginkgo_domain/src/ports/learning.rs:90</sub>
-    - `fn course_resources(&self…)  -> Future<Result<DataOutcome<CourseResourcePage>, AppError>>;`  <sub>:91</sub>
+    - `fn course_resources( &self, course: &str, folder: Option<&str>, page: u32, force: bool, ) -> Future<Result<DataOutcome<CourseResourcePage>, AppError>>;`  <sub>:91</sub>
     - `fn course_resource_download( &self, course: &str, folder: Option<&str>, page: u32, id: &str, ) -> Future<Result<LearningDownload, AppError>>;`  <sub>:98</sub>
 - `pub trait CourseAssessmentSource: Send + Sync`
   <sub>trait · rust/crates/ginkgo_domain/src/ports/learning.rs:106</sub>
@@ -383,25 +371,20 @@
     - `from_cache: bool`  <sub>:22</sub>
     - `stale: bool`  <sub>:23</sub>
     - `failure: Option<AppError>`  <sub>:24</sub>
-- `pub struct LibraryHistoryOutcome`
-  <sub>struct · rust/crates/ginkgo_domain/src/ports/library.rs:28</sub>
-    - `data: crate::features::library::LibraryHistoryPage`  <sub>:29</sub>
-    - `fetched_at: String`  <sub>:30</sub>
-    - `from_cache: bool`  <sub>:31</sub>
-    - `stale: bool`  <sub>:32</sub>
-    - `failure: Option<AppError>`  <sub>:33</sub>
+- `pub type LibraryHistoryOutcome = super::ReadSnapshot<crate::features::library::LibraryHistoryPage>;`
+  <sub>type · rust/crates/ginkgo_domain/src/ports/library.rs:27</sub>
 - `pub trait LibrarySource: Send + Sync`
-  <sub>trait · rust/crates/ginkgo_domain/src/ports/library.rs:36</sub>
-    - `fn load_library_history( &self, page: i32, force_refresh: bool, ) -> Future<Result<LibraryHistoryOutcome, AppError>>;`  <sub>:37</sub>
-    - `fn load_library_venues( &self, force_refresh: bool, ) -> Future<Result<LibraryVenuesOutcome, AppError>>;`  <sub>:42</sub>
-    - `fn load_library_areas( &self, library_id: &str, ) -> Future<Result<Vec<LibraryArea>, AppError>>;`  <sub>:46</sub>
-    - `fn load_library_slots( &self, area_id: &str, ) -> Future<Result<Vec<LibrarySlot>, AppError>>;`  <sub>:50</sub>
-    - `fn load_library_seats( &self, area_id: &str, slot_id: &str, day: &str, start: &str, end: &str, ) -> Future<Result<Vec<LibrarySeat>, AppError>>;`  <sub>:54</sub>
-    - `fn load_library_bookings( &self, force_refresh: bool, ) -> Future<Result<LibraryBookingsOutcome, AppError>>;`  <sub>:62</sub>
+  <sub>trait · rust/crates/ginkgo_domain/src/ports/library.rs:29</sub>
+    - `fn load_library_history( &self, page: i32, force_refresh: bool, ) -> Future<Result<LibraryHistoryOutcome, AppError>>;`  <sub>:30</sub>
+    - `fn load_library_venues( &self, force_refresh: bool, ) -> Future<Result<LibraryVenuesOutcome, AppError>>;`  <sub>:35</sub>
+    - `fn load_library_areas( &self, library_id: &str, ) -> Future<Result<Vec<LibraryArea>, AppError>>;`  <sub>:39</sub>
+    - `fn load_library_slots( &self, area_id: &str, ) -> Future<Result<Vec<LibrarySlot>, AppError>>;`  <sub>:43</sub>
+    - `fn load_library_seats( &self, area_id: &str, slot_id: &str, day: &str, start: &str, end: &str, ) -> Future<Result<Vec<LibrarySeat>, AppError>>;`  <sub>:47</sub>
+    - `fn load_library_bookings( &self, force_refresh: bool, ) -> Future<Result<LibraryBookingsOutcome, AppError>>;`  <sub>:55</sub>
 - `pub trait LibraryMutationSource: Send + Sync`
-  <sub>trait · rust/crates/ginkgo_domain/src/ports/library.rs:68</sub>
-    - `fn reserve_library_seat( &self, area_id: &str, seat_id: &str, slot: LibrarySlot, ) -> Future<MutationOutcome>;`  <sub>:69</sub>
-    - `fn perform_library_action( &self, booking_id: &str, action: &str, ) -> Future<MutationOutcome>;`  <sub>:75</sub>
+  <sub>trait · rust/crates/ginkgo_domain/src/ports/library.rs:61</sub>
+    - `fn reserve_library_seat( &self, area_id: &str, seat_id: &str, slot: LibrarySlot, ) -> Future<MutationOutcome>;`  <sub>:62</sub>
+    - `fn perform_library_action( &self, booking_id: &str, action: &str, ) -> Future<MutationOutcome>;`  <sub>:68</sub>
 
 ## library_books
 
@@ -445,7 +428,7 @@
 - `pub trait NoticeSource: Send + Sync`
   <sub>trait · rust/crates/ginkgo_domain/src/ports/notices.rs:4</sub>
     - `fn load_notices( &self, force: bool, ) -> Future<Result<NoticesOutcome, AppError>>;`  <sub>:5</sub>
-- `pub type NoticesOutcome = DataOutcome<Vec<crate::features::notices::Notice>>;`
+- `pub type NoticesOutcome = ReadSnapshot<Vec<crate::features::notices::Notice>>;`
   <sub>type · rust/crates/ginkgo_domain/src/ports/notices.rs:11</sub>
 
 ## outcome
@@ -454,6 +437,13 @@
   <sub>struct · rust/crates/ginkgo_domain/src/ports/outcome.rs:4</sub>
     - `data: T`  <sub>:5</sub>
     - `failure: Option<AppError>`  <sub>:6</sub>
+- `pub struct ReadSnapshot<T>`
+  <sub>struct · rust/crates/ginkgo_domain/src/ports/outcome.rs:10</sub>
+    - `data: T`  <sub>:11</sub>
+    - `fetched_at: String`  <sub>:12</sub>
+    - `from_cache: bool`  <sub>:13</sub>
+    - `stale: bool`  <sub>:14</sub>
+    - `failure: Option<AppError>`  <sub>:15</sub>
 
 ## query_snapshots
 
@@ -488,9 +478,10 @@
     - `fn set_route(&self, preference: RoutePreference);`  <sub>:55</sub>
     - `fn sign_in( &self, account: &str, password: &str, captcha: Option<&str>, remember: bool, ) -> Future<Result<SessionOutcome, AppError>>;`  <sub>:56</sub>
     - `fn restore(&self) -> Future<Result<SessionOutcome, AppError>>;`  <sub>:63</sub>
-    - `fn sign_out(&self) -> Future<()>;`  <sub>:65</sub>
-    - `fn clear_snapshots(&self);`  <sub>:66</sub>
-    - `fn account(&self) -> Result<String, AppError>;`  <sub>:67</sub>
+    - `fn sign_out(&self) -> Future<()>;` — Revoke the in-memory session: identity, cookies and snapshots.  <sub>:70</sub>
+    - `fn purge_credentials(&self) -> Future<()>;` — Remove every saved password. Local platform storage; may block.  <sub>:72</sub>
+    - `fn clear_snapshots(&self);`  <sub>:73</sub>
+    - `fn account(&self) -> Result<String, AppError>;`  <sub>:74</sub>
 
 ## shuttle
 

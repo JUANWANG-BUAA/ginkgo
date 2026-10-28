@@ -12,55 +12,45 @@ pub(super) async fn edit_tasks(
 ) -> ReadOnlyResponse {
     // Local CRUD waits for the session gate instead of failing while a login
     // holds the write lock: the command is queued, never silently dropped.
-    let _access = SESSION_ACCESS.read().await;
-    // The account namespace comes from the authenticated Rust session, never
-    // from a Dart-supplied identifier.
-    let account = if demo {
-        "ginkgo-isolated-demo".to_owned()
-    } else {
-        match service() {
-            Ok(service) => match service.status().account.clone() {
-                Some(account) => account,
-                None => return read_only_value::<()>(Err(AppError::session_expired())),
-            },
-            Err(error) => return read_only_value::<()>(Err(error)),
-        }
-    };
-    // Local storage does blocking fsync work; keep it off the async worker so a
-    // large待办 file cannot stall other commands.
-    let result = tokio::task::spawn_blocking(move || {
-        ginkgo_core::application::tasks_service::edit(
-            std::path::Path::new(&root),
-            &account,
-            &action,
-            id.as_deref(),
-            title.as_deref(),
-            due.as_deref(),
-            completed,
-        )
+    // The gate wait and the write are both bounded, so the command always
+    // terminates even if the disk stalls.
+    let result = with_session_read(|| async {
+        // The account namespace comes from the authenticated Rust session, never
+        // from a Dart-supplied identifier.
+        let account = if demo {
+            "ginkgo-isolated-demo".to_owned()
+        } else {
+            match service() {
+                Ok(service) => match service.status().account.clone() {
+                    Some(account) => account,
+                    None => return Err(AppError::session_expired()),
+                },
+                Err(error) => return Err(error),
+            }
+        };
+        // Local storage does blocking fsync work; keep it off the async worker so a
+        // large待办 file cannot stall other commands.
+        tokio::task::spawn_blocking(move || {
+            ginkgo_core::application::tasks_service::edit(
+                std::path::Path::new(&root),
+                &account,
+                &action,
+                id.as_deref(),
+                title.as_deref(),
+                due.as_deref(),
+                completed,
+            )
+        })
+        .await
+        .unwrap_or_else(|_| Err(AppError::unavailable()))
     })
-    .await
-    .unwrap_or_else(|_| Err(AppError::unavailable()));
+    .await;
     read_only_value(result)
 }
 
 pub(super) async fn load_notices(force_refresh: bool) -> ReadOnlyResponse {
-    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => bounded_read(service.load_notices(force_refresh)).await,
-        Err(error) => Err(error),
-    };
-    read_only_response(result)
-}
-
-pub(super) fn load_demo_notices() -> ReadOnlyResponse {
-    read_only_value(ginkgo_runtime::demo::demo_campus::load_demo_notices())
-}
-
-pub(super) async fn load_career_events(month: String, force_refresh: bool) -> ReadOnlyResponse {
-    let _access = SESSION_ACCESS.read().await;
-    let result = match service() {
-        Ok(service) => bounded_read(service.load_career_events(&month, force_refresh)).await,
+        Ok(service) => with_session_read(|| service.load_notices(force_refresh)).await,
         Err(error) => Err(error),
     };
     read_only_response(result.map(|outcome| ginkgo_core::application::DataOutcome {
@@ -69,10 +59,65 @@ pub(super) async fn load_career_events(month: String, force_refresh: bool) -> Re
     }))
 }
 
-pub(super) async fn load_campus_activities(page: i32, force_refresh: bool) -> ReadOnlyResponse {
-    let _access = SESSION_ACCESS.read().await;
+pub(super) fn load_demo_notices() -> ReadOnlyResponse {
+    read_only_value(ginkgo_runtime::demo::demo_campus::load_demo_notices())
+}
+
+pub(super) async fn load_career_events(month: String, force_refresh: bool) -> CareerEventsResponse {
     let result = match service() {
-        Ok(service) => bounded_read(service.load_campus_activities(page, force_refresh)).await,
+        Ok(service) => {
+            with_session_read(|| service.load_career_events(&month, force_refresh)).await
+        }
+        Err(error) => Err(error),
+    };
+    career_events_response(result.map(|outcome| ginkgo_core::application::DataOutcome {
+        data: outcome.data,
+        failure: outcome.failure,
+    }))
+}
+
+fn career_events_response(
+    result: Result<
+        ginkgo_core::application::DataOutcome<ginkgo_core::features::career::CareerEvents>,
+        AppError,
+    >,
+) -> CareerEventsResponse {
+    match result {
+        Ok(outcome) => CareerEventsResponse {
+            data: Some(CareerEventsDto {
+                month: outcome.data.month,
+                fetched_at: outcome.data.fetched_at,
+                events: outcome
+                    .data
+                    .events
+                    .into_iter()
+                    .map(|event| CareerEventDto {
+                        id: event.id,
+                        title: event.title,
+                        campus: event.campus,
+                        place: event.place,
+                        begins_at: event.begins_at,
+                        ends_at: event.ends_at,
+                        fair_type: event.fair_type,
+                        status: event.status,
+                        url: event.url,
+                    })
+                    .collect(),
+            }),
+            failure: outcome.failure.map(|error| error.code.into()),
+        },
+        Err(error) => CareerEventsResponse {
+            data: None,
+            failure: Some(error.code.into()),
+        },
+    }
+}
+
+pub(super) async fn load_campus_activities(page: i32, force_refresh: bool) -> ReadOnlyResponse {
+    let result = match service() {
+        Ok(service) => {
+            with_session_read(|| service.load_campus_activities(page, force_refresh)).await
+        }
         Err(error) => Err(error),
     };
     read_only_response(result.map(|outcome| ginkgo_core::application::DataOutcome {
@@ -82,9 +127,8 @@ pub(super) async fn load_campus_activities(page: i32, force_refresh: bool) -> Re
 }
 
 pub(super) async fn load_campus_card_balance() -> CampusCardBalanceResponse {
-    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => bounded_read(service.campus_card_balance()).await,
+        Ok(service) => with_session_read(|| service.campus_card_balance()).await,
         Err(error) => Err(error),
     };
     match result {
@@ -130,10 +174,13 @@ pub(super) async fn load_cgyy(
         "lockCode" => CgyyQuery::LockCode,
         _ => return read_only_value::<()>(Err(AppError::invalid())),
     };
-    let _access = SESSION_ACCESS.read().await;
-    let _module = CGYY_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => bounded_read(service.load_cgyy(query, force_refresh)).await,
+        Ok(service) => {
+            with_module_read(ModuleAccess::Cgyy, || {
+                service.load_cgyy(query, force_refresh)
+            })
+            .await
+        }
         Err(error) => Err(error),
     };
     read_only_response(result)
@@ -145,17 +192,17 @@ pub(super) async fn execute_cgyy(command: String) -> ReadOnlyResponse {
         // busy without touching the school write endpoint again.
         return read_only_value::<()>(Err(AppError::unavailable()));
     };
-    let _access = SESSION_ACCESS.read().await;
-    let _module = CGYY_ACCESS.write().await;
     let result = match service() {
         // A dropped command may still have been submitted school-side; the
         // pending marker the command wrote survives the drop and the next
         // status read reports the outcome as unverified.
         Ok(service) => {
             let runtime = tokio::runtime::Handle::current();
-            match bounded_submit(tokio::task::spawn_blocking(move || {
-                runtime.block_on(service.execute_cgyy_json(&command))
-            }))
+            match with_module_submit(ModuleAccess::Cgyy, || {
+                tokio::task::spawn_blocking(move || {
+                    runtime.block_on(service.execute_cgyy_json(&command))
+                })
+            })
             .await
             {
                 Some(Ok(result)) => result,
@@ -180,10 +227,9 @@ pub(super) async fn load_library_books(
     sort: String,
     descending: bool,
 ) -> ReadOnlyResponse {
-    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
         Ok(service) => {
-            bounded_read(service.search_library_books(query, page, sort, descending)).await
+            with_session_read(|| service.search_library_books(query, page, sort, descending)).await
         }
         Err(error) => Err(error),
     };
@@ -192,9 +238,8 @@ pub(super) async fn load_library_books(
 
 /// Published shuttle timetable. Public page, no identity, no ticketing.
 pub(super) async fn load_shuttle_timetable() -> ReadOnlyResponse {
-    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => bounded_read(service.load_shuttle_timetable()).await,
+        Ok(service) => with_session_read(|| service.load_shuttle_timetable()).await,
         Err(error) => Err(error),
     };
     read_only_value(result)
@@ -202,23 +247,22 @@ pub(super) async fn load_shuttle_timetable() -> ReadOnlyResponse {
 
 /// Public holdings for one bib id. The nested JSON string is decoded in Rust.
 pub(super) async fn load_library_holdings(bib_id: String) -> ReadOnlyResponse {
-    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => bounded_read(service.load_book_holdings(bib_id)).await,
+        Ok(service) => with_session_read(|| service.load_book_holdings(bib_id)).await,
         Err(error) => Err(error),
     };
     read_only_value(result)
 }
 
 pub(super) async fn export_learning_snapshots(expected: String) -> LearningSnapshotResponse {
-    let _access = SESSION_ACCESS.read().await;
-    let result = (|| {
+    let result = with_session_read(|| async {
         let s = service()?;
         if expected.is_empty() || s.status().account.as_deref() != Some(expected.as_str()) {
             return Err(AppError::session_expired());
         }
         s.export_learning_snapshots()
-    })();
+    })
+    .await;
     match result {
         Ok(bytes) => LearningSnapshotResponse {
             bytes: Some(bytes),
@@ -235,31 +279,123 @@ pub(super) async fn import_learning_snapshots(
     bytes: Vec<u8>,
 ) -> ReadOnlyResponse {
     // Import must not race a network command or session/cache invalidation.
-    let _access = SESSION_ACCESS.write().await;
-    read_only_value((|| {
-        let s = service()?;
-        if expected.is_empty() || s.status().account.as_deref() != Some(expected.as_str()) {
-            return Err(AppError::session_expired());
-        }
-        s.import_learning_snapshots(&bytes)
-    })())
+    read_only_value(
+        with_session_write(|| async {
+            let s = service()?;
+            if expected.is_empty() || s.status().account.as_deref() != Some(expected.as_str()) {
+                return Err(AppError::session_expired());
+            }
+            s.import_learning_snapshots(&bytes)
+        })
+        .await,
+    )
 }
 
 pub(super) async fn load_library_loans(expected: String, page: u32) -> ReadOnlyResponse {
-    let _access = SESSION_ACCESS.read().await;
-    let result = async {
+    let result = with_session_read(|| async {
         let s = service()?;
         if expected.is_empty() || s.status().account.as_deref() != Some(expected.as_str()) {
             return Err(AppError::session_expired());
         }
-        bounded_read(s.load_library_loans(page)).await
-    }
+        s.load_library_loans(page).await
+    })
     .await;
     read_only_value(result)
 }
 
 pub(super) async fn check_android_update(current: String) -> ReadOnlyResponse {
     read_only_value(ginkgo_runtime::check_update(&current).await)
+}
+
+#[cfg(test)]
+mod bounded_command_tests {
+    use super::*;
+
+    #[test]
+    fn career_typed_response_preserves_empty_snapshot_failure_and_event_fields() {
+        use ginkgo_core::features::career::{CareerEvent, CareerEvents};
+        let make_data = |events| CareerEvents {
+            month: "2026-10".into(),
+            fetched_at: "2026-10-28T10:00:00+08:00".into(),
+            events,
+        };
+        let empty = career_events_response(Ok(ginkgo_core::application::DataOutcome {
+            data: make_data(vec![]),
+            failure: None,
+        }));
+        assert!(empty.data.unwrap().events.is_empty());
+        assert!(empty.failure.is_none());
+
+        let stale = career_events_response(Ok(ginkgo_core::application::DataOutcome {
+            data: make_data(vec![CareerEvent {
+                id: "1".into(),
+                title: "合成宣讲".into(),
+                campus: "学院路".into(),
+                place: "合成楼".into(),
+                begins_at: "10:00".into(),
+                ends_at: "11:00".into(),
+                fair_type: "宣讲".into(),
+                status: "学校原文".into(),
+                url: "https://example.invalid".into(),
+            }]),
+            failure: Some(AppError::unavailable()),
+        }));
+        assert!(matches!(
+            stale.failure,
+            Some(FailureCode::ServiceUnavailable)
+        ));
+        let data = stale.data.unwrap();
+        assert_eq!(data.fetched_at, "2026-10-28T10:00:00+08:00");
+        let event = &data.events[0];
+        assert_eq!(
+            (&*event.id, &*event.title, &*event.campus, &*event.place),
+            ("1", "合成宣讲", "学院路", "合成楼")
+        );
+        assert_eq!(
+            (
+                &*event.begins_at,
+                &*event.ends_at,
+                &*event.fair_type,
+                &*event.status,
+                &*event.url
+            ),
+            (
+                "10:00",
+                "11:00",
+                "宣讲",
+                "学校原文",
+                "https://example.invalid"
+            )
+        );
+
+        let error = career_events_response(Err(AppError::session_expired()));
+        assert!(error.data.is_none());
+        assert!(matches!(error.failure, Some(FailureCode::SessionExpired)));
+    }
+
+    /// Local CRUD does blocking fsync work. A stalled disk must surface as a
+    /// failure, not as a command that never returns.
+    #[tokio::test(start_paused = true)]
+    async fn a_queued_local_write_fails_instead_of_waiting_for_the_gate() {
+        let _serial = TEST_GATE.lock().await;
+        let write = SESSION_ACCESS.write().await;
+        let response = edit_tasks(
+            "/tmp/ginkgo-unused".into(),
+            true,
+            "load".into(),
+            None,
+            None,
+            None,
+            None,
+        )
+        .await;
+        assert!(
+            matches!(response.failure, Some(FailureCode::ServiceUnavailable)),
+            "a queued local write must report unavailable, not hang"
+        );
+        assert!(response.payload.is_none());
+        drop(write);
+    }
 }
 
 #[cfg(test)]

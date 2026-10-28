@@ -1,12 +1,7 @@
 //! Stable homework business capability and values.
-use super::DataOutcome;
+use super::ReadSnapshot;
 use crate::{features::homework::HomeworkData, AppError};
-#[derive(Debug, PartialEq, Eq)]
-pub struct HomeworkOutcome {
-    pub data: HomeworkData,
-    pub fetched_at: String,
-    pub failure: Option<AppError>,
-}
+pub type HomeworkOutcome = ReadSnapshot<HomeworkData>;
 
 pub trait HomeworkSource: Send + Sync {
     fn load_homework(
@@ -20,4 +15,4 @@ pub trait HomeworkSource: Send + Sync {
     ) -> impl std::future::Future<Output = Result<HomeworkDetailOutcome, AppError>> + Send;
 }
 
-pub type HomeworkDetailOutcome = DataOutcome<crate::features::homework::HomeworkDetail>;
+pub type HomeworkDetailOutcome = ReadSnapshot<crate::features::homework::HomeworkDetail>;

@@ -9,7 +9,7 @@ HTTP 传输、Cookie、路由与错误映射。
 
 - `pub(crate) const HOMEWORK_PORTAL: &str = "https://spoc.buaa.edu.cn/spocnew/";` — Official browser destinations supplied by the school integration.
   <sub>const · rust/crates/ginkgo_upstream/src/endpoints.rs:2</sub>
-- `pub(crate) static NOTICE_PAGE: LazyLock<url::Url> = LazyLock::new(\|\| { url::Url::parse( … ews.buaa.edu.cn/tzgg.htm").expect("constant notice URL") });`
+- `pub(crate) static NOTICE_PAGE: LazyLock<url::Url> = LazyLock::new(\|\| { url::Url::parse("https://news.buaa.edu.cn/tzgg.htm").expect("constant notice URL") });`
   <sub>static · rust/crates/ginkgo_upstream/src/endpoints.rs:5</sub>
 
 ## cookie

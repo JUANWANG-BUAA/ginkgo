@@ -24,13 +24,12 @@ class BykcCourseTile extends StatelessWidget {
   final VoidCallback onTap;
 
   /// 类别标签配色：美育、劳动教育、安全健康各有固定色，其余沿用主题色。
-  Color _categoryTint(BuildContext context) =>
-      switch (course.categoryLabel) {
-        '美育' => AppleDesign.resourcePurple.resolveFrom(context),
-        '劳动教育' => AppleDesign.resourceTeal.resolveFrom(context),
-        '安全健康' => AppleDesign.resourceBlue.resolveFrom(context),
-        _ => CupertinoTheme.of(context).primaryColor,
-      };
+  Color _categoryTint(BuildContext context) => switch (course.categoryLabel) {
+    '美育' => AppleDesign.resourcePurple.resolveFrom(context),
+    '劳动教育' => AppleDesign.resourceTeal.resolveFrom(context),
+    '安全健康' => AppleDesign.resourceBlue.resolveFrom(context),
+    _ => CupertinoTheme.of(context).primaryColor,
+  };
 
   /// 人数接近或达到上限时用告警色，已有人报名但未满用待定色。
   Color? _capacityTint(BuildContext context, BykcCourseDetails details) {
@@ -50,7 +49,9 @@ class BykcCourseTile extends StatelessWidget {
     final details = course.details ?? BykcCourseDetails.empty();
     return AppleListTile(
       key: ValueKey(
-        record != null ? 'bykc-chosen-${record!.id}' : 'bykc-course-${course.id}',
+        record != null
+            ? 'bykc-chosen-${record!.id}'
+            : 'bykc-course-${course.id}',
       ),
       leading: record != null
           ? Icon(
@@ -75,7 +76,10 @@ class BykcCourseTile extends StatelessWidget {
               spacing: 8,
               runSpacing: 6,
               children: [
-                BykcLabel(text: course.categoryLabel, tint: _categoryTint(context)),
+                BykcLabel(
+                  text: course.categoryLabel,
+                  tint: _categoryTint(context),
+                ),
                 if (record == null && details.selected == true)
                   const BykcLabel(text: '已选', positive: true),
                 if (record == null &&

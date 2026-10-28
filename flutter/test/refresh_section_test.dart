@@ -4,6 +4,72 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 
 void main() {
+  test('old queued refresh cannot clear a newer forced refresh', () async {
+    final section = RefreshSection<int>();
+    addTearDown(section.dispose);
+    final old = Completer<SectionResult<int>>();
+    final current = Completer<SectionResult<int>>();
+    var forcedReads = 0;
+    final oldTask = section.refresh(() => old.future, fallbackError: 'old');
+    final oldForced = section.refresh(
+      () async => const SectionResult(value: 1),
+      fallbackError: 'old',
+      force: true,
+    );
+    section.invalidate();
+    final currentTask = section.refresh(
+      () => current.future,
+      fallbackError: 'new',
+    );
+    Future<SectionResult<int>> forceRead() async {
+      forcedReads++;
+      return const SectionResult(value: 2);
+    }
+
+    final newForced = section.refresh(
+      forceRead,
+      fallbackError: 'new',
+      force: true,
+    );
+    old.complete(const SectionResult(value: 0));
+    await Future.wait([oldTask, oldForced]);
+    final joined = section.refresh(
+      forceRead,
+      fallbackError: 'new',
+      force: true,
+    );
+    expect(identical(joined, newForced), isTrue);
+    current.complete(const SectionResult(value: 1));
+    await Future.wait([currentTask, newForced, joined]);
+    expect(forcedReads, 1);
+    expect(section.value, 2);
+  });
+
+  testWidgets('old completion cannot cancel the current read stall timer', (
+    tester,
+  ) async {
+    final section = RefreshSection<int>(
+      stallDeadline: const Duration(seconds: 3),
+    );
+    addTearDown(section.dispose);
+    final old = Completer<SectionResult<int>>();
+    final current = Completer<SectionResult<int>>();
+    final oldTask = section.refresh(() => old.future, fallbackError: 'old');
+    section.invalidate();
+    final currentTask = section.refresh(
+      () => current.future,
+      fallbackError: 'current',
+    );
+    old.complete(const SectionResult(value: 1));
+    await oldTask;
+    await tester.pump(const Duration(seconds: 4));
+    expect(section.loading, isFalse);
+    expect(section.error, 'current');
+    current.complete(const SectionResult(value: 2));
+    await currentTask;
+    expect(section.value, isNull);
+  });
+
   test(
     'overlapping refreshes share a read; failure preserves the last value',
     () async {
@@ -87,31 +153,124 @@ void main() {
     },
   );
 
-  test('a plain refresh joins the slot occupied by the forced re-run', () async {
+  test(
+    'a plain refresh joins the slot occupied by the forced re-run',
+    () async {
+      final section = RefreshSection<int>();
+      addTearDown(section.dispose);
+      final slow = Completer<SectionResult<int>>();
+      var reads = 0;
+      final first = section.refresh(() async {
+        reads++;
+        return slow.future;
+      }, fallbackError: '无法读取');
+      final forced = section.refresh(
+        () async {
+          reads++;
+          return const SectionResult(value: 9);
+        },
+        fallbackError: '无法读取',
+        force: true,
+      );
+      slow.complete(const SectionResult(value: 1));
+      await first;
+      // The forced re-run now occupies the slot; a plain caller must join it
+      // instead of starting yet another read.
+      final plain = section.refresh(() async {
+        reads++;
+        return const SectionResult(value: 99);
+      }, fallbackError: '无法读取');
+      await plain;
+      expect(reads, 2, reason: 'plain caller must not start a second read');
+      expect(identical(plain, forced), isTrue);
+      await forced;
+      expect(section.value, 9);
+    },
+  );
+
+  test('invalidation starts a new read and abandons the old slot', () async {
     final section = RefreshSection<int>();
     addTearDown(section.dispose);
-    final slow = Completer<SectionResult<int>>();
+    final oldRead = Completer<SectionResult<int>>();
+    final newRead = Completer<SectionResult<int>>();
     var reads = 0;
-    final first = section.refresh(() async {
+
+    final oldTask = section.refresh(
+      () => oldRead.future,
+      fallbackError: '无法读取',
+    );
+    section.invalidate();
+    final newTask = section.refresh(() {
       reads++;
-      return slow.future;
+      return newRead.future;
     }, fallbackError: '无法读取');
-    final forced = section.refresh(() async {
-      reads++;
-      return const SectionResult(value: 9);
-    }, fallbackError: '无法读取', force: true);
-    slow.complete(const SectionResult(value: 1));
-    await first;
-    // The forced re-run now occupies the slot; a plain caller must join it
-    // instead of starting yet another read.
-    final plain = section.refresh(() async {
+    expect(reads, 1, reason: 'invalidation must reopen the slot immediately');
+
+    oldRead.complete(const SectionResult(value: 1));
+    await oldTask;
+    expect(section.value, isNull);
+    expect(section.loading, isTrue);
+
+    final joined = section.refresh(() async {
       reads++;
       return const SectionResult(value: 99);
     }, fallbackError: '无法读取');
-    await plain;
-    expect(reads, 2, reason: 'plain caller must not start a second read');
-    expect(identical(plain, forced), isTrue);
-    await forced;
-    expect(section.value, 9);
+    expect(identical(joined, newTask), isTrue);
+    expect(reads, 1, reason: 'the old completion must not clear the new slot');
+
+    newRead.complete(const SectionResult(value: 2));
+    await newTask;
+    expect(section.value, 2);
+    expect(section.loading, isFalse);
+  });
+
+  testWidgets('a read that never settles stalls instead of loading forever', (
+    tester,
+  ) async {
+    final section = RefreshSection<List<int>>(
+      stallDeadline: const Duration(seconds: 30),
+    );
+    addTearDown(section.dispose);
+    await section.refresh(
+      () async => const SectionResult(value: [1]),
+      fallbackError: '无法读取',
+    );
+
+    // The read never completes.
+    final pending = Completer<SectionResult<List<int>>>();
+    final running = section.refresh(
+      () => pending.future,
+      fallbackError: '读取未完成',
+    );
+    expect(section.loading, isTrue);
+
+    await tester.pump(const Duration(seconds: 29));
+    expect(section.loading, isTrue, reason: 'the deadline has not passed yet');
+
+    await tester.pump(const Duration(seconds: 2));
+    expect(section.loading, isFalse, reason: 'the section must stop waiting');
+    expect(section.error, '读取未完成');
+    expect(section.value, [
+      1,
+    ], reason: 'a stalled read must not discard the last known value');
+
+    // A later refresh is not captured by the stalled slot.
+    await tester.pump();
+    var reads = 0;
+    final again = section.refresh(() async {
+      reads++;
+      return const SectionResult(value: [2]);
+    }, fallbackError: '无法读取');
+    await tester.pump();
+    await tester.pump();
+    await again;
+    expect(reads, 1, reason: 'the stalled slot must not absorb a new read');
+    expect(section.value, [2]);
+
+    // The abandoned read stays abandoned.
+    pending.complete(const SectionResult(value: [99]));
+    await running;
+    await tester.pump();
+    expect(section.value, [2], reason: 'a late stalled result must not land');
   });
 }

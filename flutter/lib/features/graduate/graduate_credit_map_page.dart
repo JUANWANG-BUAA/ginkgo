@@ -11,15 +11,15 @@ import 'graduate_credit_map_widgets.dart';
 
 Future<void> refreshGraduateCreditMap(
   RefreshSection<GraduateCreditMapRead> target,
-  Object service, {
+  GraduateCreditMapGateway? gateway, {
   bool force = false,
 }) {
-  if (service is! GraduateCreditMapGateway) return Future.value();
+  if (gateway == null) return Future.value();
   return target.refresh(
     () async {
       GraduateCreditMapRead result;
       try {
-        result = await service.graduateCreditMap(forceRefresh: force);
+        result = await gateway.graduateCreditMap(forceRefresh: force);
       } on TimeoutException {
         result = const GraduateCreditMapRead(
           issue: GraduateCreditReadIssue(GraduateCreditIssueKind.timeout),
@@ -102,7 +102,7 @@ class GraduateCreditMapPage extends StatefulWidget {
     required this.service,
     this.accountId,
   });
-  final Object service;
+  final GraduateCreditMapGateway? service;
   final String? accountId;
   @override
   State<GraduateCreditMapPage> createState() => _GraduateCreditMapPageState();
@@ -146,7 +146,7 @@ class _GraduateCreditMapPageState extends State<GraduateCreditMapPage> {
 
   @override
   Widget build(BuildContext context) {
-    final supported = widget.service is GraduateCreditMapGateway;
+    final supported = widget.service != null;
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
         context,

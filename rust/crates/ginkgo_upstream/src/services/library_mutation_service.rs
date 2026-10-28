@@ -24,9 +24,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibraryMutationSource
         seat_id: &str,
         slot: LibrarySlot,
     ) -> MutationOutcome {
-        if self.current_account().is_err() {
+        // Bind the whole write to one identity. Today the FFI layer holds the
+        // shared session gate for the duration, so an account switch cannot
+        // interleave; this check makes the guarantee local instead of implicit,
+        // so the port is safe for any caller and the rule is testable without
+        // the bridge.
+        let Ok(owner) = self.account_owner() else {
             return MutationOutcome::not_submitted("请先登录，未提交预约");
-        }
+        };
         // Revalidate the selected slot and seat from upstream before the single write.
         let Ok(slots) = self.load_library_slots(area_id).await else {
             return MutationOutcome::not_submitted("无法核对时段，未提交预约");
@@ -53,6 +58,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibraryMutationSource
         let Ok(token) = self.library_token().await else {
             return MutationOutcome::not_submitted("图书馆登录失效，未提交预约");
         };
+        if self.check_account_owner(&owner).is_err() {
+            return MutationOutcome::not_submitted("账号已变化，未提交预约");
+        }
         let result = library_http::mutate(
             &self.session,
             &token,
@@ -65,6 +73,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibraryMutationSource
     }
 
     async fn perform_library_action(&self, booking_id: &str, action: &str) -> MutationOutcome {
+        let Ok(owner) = self.account_owner() else {
+            return MutationOutcome::not_submitted("请先登录，未提交操作");
+        };
         let snapshot = match self.load_library_bookings(true).await {
             Ok(snapshot) if snapshot.failure.is_none() => snapshot,
             _ => return MutationOutcome::not_submitted("无法核对当前预约，未提交操作"),
@@ -103,6 +114,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibraryMutationSource
         let Ok(token) = self.library_token().await else {
             return MutationOutcome::not_submitted("图书馆登录失效，未提交操作");
         };
+        if self.check_account_owner(&owner).is_err() {
+            return MutationOutcome::not_submitted("账号已变化，未提交操作");
+        }
         let result = library_http::mutate(&self.session, &token, path, &body).await;
         self.invalidate_library_after_write();
         result

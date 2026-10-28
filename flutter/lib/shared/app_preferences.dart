@@ -133,7 +133,9 @@ class AppPreferences extends ChangeNotifier {
   Future<void> _scheduleSave(String failureMessage) {
     saveError = null;
     notifyListeners();
-    _pending = _pending.then((_) => _writer(_snapshot())).catchError((Object _) {
+    _pending = _pending.then((_) => _writer(_snapshot())).catchError((
+      Object _,
+    ) {
       saveError = failureMessage;
       notifyListeners();
     });

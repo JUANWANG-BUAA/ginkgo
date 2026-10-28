@@ -1,5 +1,5 @@
 //! Stable notices business capability and values.
-use super::DataOutcome;
+use super::ReadSnapshot;
 use crate::AppError;
 pub trait NoticeSource: Send + Sync {
     fn load_notices(
@@ -8,4 +8,4 @@ pub trait NoticeSource: Send + Sync {
     ) -> impl std::future::Future<Output = Result<NoticesOutcome, AppError>> + Send;
 }
 
-pub type NoticesOutcome = DataOutcome<Vec<crate::features::notices::Notice>>;
+pub type NoticesOutcome = ReadSnapshot<Vec<crate::features::notices::Notice>>;

@@ -12,7 +12,8 @@ void main() {
         expect(
           messages.containsKey(message),
           isFalse,
-          reason: '$code reuses the sentence already used by '
+          reason:
+              '$code reuses the sentence already used by '
               '${messages[message]}: "$message"',
         );
         messages[message] = code.name;
@@ -43,7 +44,10 @@ void main() {
       final withSignIn = FailureCode.values
           .where((code) => failureMessage(code).contains('重新登录'))
           .toSet();
-      expect(withSignIn, {FailureCode.sessionExpired, FailureCode.captchaRequired});
+      expect(withSignIn, {
+        FailureCode.sessionExpired,
+        FailureCode.captchaRequired,
+      });
     });
   });
 
@@ -51,7 +55,12 @@ void main() {
     test('no raw status words leak into user-facing copy', () {
       for (final code in FailureCode.values) {
         final message = failureMessage(code);
-        for (final leak in ['accepted', 'rejected', 'notSubmitted', 'uncertain']) {
+        for (final leak in [
+          'accepted',
+          'rejected',
+          'notSubmitted',
+          'uncertain',
+        ]) {
           expect(
             message.contains(leak),
             isFalse,

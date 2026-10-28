@@ -9,5 +9,5 @@
 
 - `class GradesPage extends StatefulWidget`
   <sub>class · features/grades/grades_page.dart:9</sub>
-    - `const GradesPage( {…}`  <sub>:10</sub>
-    - `State<GradesPage> createState() => _GradesPageState();`  <sub>:13</sub>
+    - `const GradesPage({super.key, required this.service});`  <sub>:10</sub>
+    - `State<GradesPage> createState() => …`  <sub>:13</sub>

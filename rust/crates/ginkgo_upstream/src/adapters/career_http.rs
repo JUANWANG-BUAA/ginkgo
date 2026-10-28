@@ -48,13 +48,15 @@ pub async fn load<T: HttpTransport + Sync>(
     month: &str,
 ) -> Result<CareerEvents, AppError> {
     validate_month(month)?;
+    let preference = session.route();
     let response = session
-        .send_following_redirects(
+        .send_anonymous(
             HttpRequest::get(format!(
                 "{BASE}/f/recruitmentFair/ajax_calendar_list?time={month}"
             ))
             .header("Accept", "application/json")
             .header("User-Agent", "Ginkgo/1.0"),
+            preference,
         )
         .await?;
     let final_host = url::Url::parse(&response.final_url)

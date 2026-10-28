@@ -282,8 +282,7 @@ class ShuttleDirectionRuns extends StatelessWidget {
           for (final run in runs)
             ShuttleRunChip(
               run: run,
-              departed:
-                  run.minuteOfDay != null && run.minuteOfDay! < nowMinute,
+              departed: run.minuteOfDay != null && run.minuteOfDay! < nowMinute,
             ),
         ],
       ),

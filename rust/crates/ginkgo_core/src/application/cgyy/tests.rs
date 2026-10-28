@@ -168,6 +168,7 @@ impl SessionSource for Mock {
         Err(AppError::invalid())
     }
     async fn sign_out(&self) {}
+    async fn purge_credentials(&self) {}
     fn clear_snapshots(&self) {}
 }
 

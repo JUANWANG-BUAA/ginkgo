@@ -54,61 +54,38 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> ClassroomSource for Sch
         validate(input)?;
         let key = (input.campus, input.date.clone());
 
-        if !input.force_refresh {
-            let cached = self.snapshots.classrooms.lock();
-            if let Some(entry) = cached.fresh(&key) {
-                return Ok(ClassroomOutcome {
-                    result: filter(entry.value.clone(), input)?,
-                    fetched_at: entry.timestamp.clone(),
-                    from_cache: true,
-                    stale: false,
-                    failure: None,
-                });
-            }
-        }
-
-        let ticket = self.snapshots.classrooms.lock().begin(&key);
-        let fetched = match query_classrooms(&self.session, input.campus, &input.date).await {
-            Err(error) if error.code == crate::ErrorCode::SessionExpired => {
-                match self.silent_login().await {
-                    Ok(()) => query_classrooms(&self.session, input.campus, &input.date).await,
-                    Err(error) => Err(error),
+        let snapshot = super::cache::read_with_snapshot_checked(
+            &self.snapshots.classrooms,
+            key,
+            input.force_refresh,
+            async {
+                match query_classrooms(&self.session, input.campus, &input.date).await {
+                    Err(error) if error.code == crate::ErrorCode::SessionExpired => {
+                        match self.silent_login().await {
+                            Ok(()) => {
+                                query_classrooms(&self.session, input.campus, &input.date).await
+                            }
+                            Err(error) => Err(error),
+                        }
+                    }
+                    other => other,
                 }
-            }
-            other => other,
-        };
-        if self.current_account()? != account {
-            return Err(AppError::session_expired());
-        }
-
-        match fetched {
-            Ok(rooms) => {
-                let timestamp =
-                    self.snapshots
-                        .classrooms
-                        .lock()
-                        .insert_if_current(key, ticket, rooms.clone());
-                Ok(ClassroomOutcome {
-                    result: filter(rooms, input)?,
-                    fetched_at: timestamp,
-                    from_cache: false,
-                    stale: false,
-                    failure: None,
-                })
-            }
-            Err(error) => {
-                let cached = self.snapshots.classrooms.lock();
-                match cached.any(&key) {
-                    Some(entry) => Ok(ClassroomOutcome {
-                        result: filter(entry.value.clone(), input)?,
-                        fetched_at: entry.timestamp.clone(),
-                        from_cache: true,
-                        stale: true,
-                        failure: Some(error),
-                    }),
-                    None => Err(error),
+            },
+            || {
+                if self.current_account()? == account {
+                    Ok(())
+                } else {
+                    Err(AppError::session_expired())
                 }
-            }
-        }
+            },
+        )
+        .await?;
+        Ok(ClassroomOutcome {
+            result: filter(snapshot.data, input)?,
+            fetched_at: snapshot.fetched_at,
+            from_cache: snapshot.from_cache,
+            stale: snapshot.stale,
+            failure: snapshot.failure,
+        })
     }
 }

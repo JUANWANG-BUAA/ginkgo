@@ -1,12 +1,11 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
 import 'cgyy_gateway.dart';
 import 'cgyy_models.dart';
-import 'cgyy_widgets.dart';
 
 class CgyyOrderDetailPage extends StatefulWidget {
   const CgyyOrderDetailPage({
@@ -20,7 +19,7 @@ class CgyyOrderDetailPage extends StatefulWidget {
   final int orderId;
   final bool demo;
   final CgyyLoader? loader;
-  final CampusGateway? service;
+  final CgyyGateway? service;
 
   @override
   State<CgyyOrderDetailPage> createState() => _CgyyOrderDetailPageState();
@@ -46,7 +45,6 @@ class _CgyyOrderDetailPageState extends State<CgyyOrderDetailPage> {
     });
     try {
       final result = await cgyyOrderDetail(
-        demo: widget.demo,
         loader: widget.loader,
         service: widget.service,
         orderId: widget.orderId,
@@ -87,11 +85,11 @@ class _CgyyOrderDetailPageState extends State<CgyyOrderDetailPage> {
         children: [
           if (busy) const GinkgoLoadingView(label: '正在读取预约详情…'),
           if (error != null)
-            CgyyStatusSection(
+            AppleStatusSection(
               title: error!,
               description: order == null ? '请稍后重试。' : '正在显示上次预约详情。',
-              onRetry: () => load(force: true),
-              isError: true,
+              onAction: () => load(force: true),
+              error: true,
             ),
           if (order case final current?)
             AppleSection(

@@ -145,6 +145,7 @@ class FakeService extends Fake implements MirrorService {
     signOutCalls++;
     return signedOut;
   }
+
   @override
   Future<QueryDates> dates(String instant) async =>
       const QueryDates(today: '2026-10-20', tomorrow: '2026-10-21');

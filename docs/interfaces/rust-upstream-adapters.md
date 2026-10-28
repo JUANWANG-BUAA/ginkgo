@@ -17,7 +17,7 @@
 - [grades_http](#gradeshttp) (2)
 - [graduate_http](#graduatehttp) (3)
 - [graduate_schedule_http](#graduateschedulehttp) (7)
-- [homework_files_http](#homeworkfileshttp) (5)
+- [homework_files_http](#homeworkfileshttp) (9)
 - [homework_http](#homeworkhttp) (9)
 - [announcements](#announcements) (4)
 - [assessments](#assessments) (2)
@@ -92,7 +92,7 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/cgyy_http.rs:242</sub>
 - `pub async fn read_orders<T: HttpTransport>( session: &Session<T>, token: &str, ) -> Result<Value, AppError> {…}` — Bounded orders read. Starts at the official page 0 / size 5 and merges at
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/cgyy_http.rs:271</sub>
-- `pub async fn business<T: HttpTransport>(session: &Session<T>…)  -> Result<Value, AppError> {…}` — Signed business request; caller owns mutation confirmation and retry policy.
+- `pub async fn business<T: HttpTransport>( session: &Session<T>, path: &str, params: BTreeMap<String, String>, token: &str, ) -> Result<Value, AppError> {…}` — Signed business request; caller owns mutation confirmation and retry policy.
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/cgyy_http.rs:315</sub>
 
 ## checkin_http
@@ -107,18 +107,18 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:23</sub>
 - `pub async fn app_login<T: HttpTransport>( session: &Session<T>, login_name: &str, ) -> Result<IClassSession, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:68</sub>
-- `pub async fn course_schedule<T: HttpTransport>(session: &Session<T>…)  -> Result<Vec<CheckInCourse>, AppError> {…}`
+- `pub async fn course_schedule<T: HttpTransport>( session: &Session<T>, iclass: &IClassSession, date: &str, ) -> Result<Vec<CheckInCourse>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:80</sub>
-- `pub async fn sign_in<T: HttpTransport>(session: &Session<T>…)  -> crate::codecs::mutation::MutationOutcome {…}` — CheckInClient.performSignIn / API.md §7.2. Timestamp is a safe read;
+- `pub async fn sign_in<T: HttpTransport>( session: &Session<T>, iclass: &IClassSession, course_id: &str, ) -> crate::codecs::mutation::MutationOutcome {…}` — CheckInClient.performSignIn / API.md §7.2. Timestamp is a safe read;
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:146</sub>
 
 ## classroom_http
 
-- `pub const ACTIVATION_URL: &str = "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fa … ry%252Findex%26from%3Dwap%26login_from%3D&noAutoRedirect=1";`
+- `pub const ACTIVATION_URL: &str = "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fapp.buaa.edu.cn%2Fa_buaa%2Fapi%2Fcas%2Findex%3Fredirect%3Dhttps%253A%252F%252Fapp.buaa.edu.cn%252Fsite%252FclassRoomQuery%252Findex%26from%3Dwap%26login_from%3D&noAutoRedirect=1";`
   <sub>const · rust/crates/ginkgo_upstream/src/adapters/classroom_http.rs:14</sub>
 - `pub async fn query_classrooms<T: HttpTransport>( session: &Session<T>, campus: i32, date: &str, ) -> Result<BTreeMap<String, Vec<Room>>, AppError> {…}` — Run the two documented classroom requests with the caller-owned session.
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/classroom_http.rs:20</sub>
-- `pub async fn query_classrooms_with_recovery<T: HttpTransport, C: CredentialSource>(……)  -> Result<BTreeMap<String, Vec<Room>>, AppError> {…}` — Retry a classroom read exactly once after a confirmed expired session.
+- `pub async fn query_classrooms_with_recovery<T: HttpTransport, C: CredentialSource>( session: &Session<T>, store: &C, account: &str, campus: i32, date: &str, ) -> Result<BTreeMap<String, Vec<Room>>, AppError> {…}` — Retry a classroom read exactly once after a confirmed expired session.
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/classroom_http.rs:54</sub>
 
 ## grades_http
@@ -172,6 +172,14 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_files_http.rs:233</sub>
 - `pub(crate) fn accepts(workspace: &HomeworkWorkspace, name: &str) -> bool {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_files_http.rs:236</sub>
+- `pub(crate) async fn upload_checked<T: HttpTransport>( session: &Session<T>, auth: &SpocAuth, name: &str, bytes: &[u8], check_owner: impl Fn() -> Result<(), AppError> + Send, ) -> Result<String, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_files_http.rs:254</sub>
+- `pub(crate) async fn submit<T: HttpTransport>( session: &Session<T>, auth: &SpocAuth, id: &str, course: &str, file: &str, name: &str, ) -> Result<(), AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_files_http.rs:334</sub>
+- `pub(crate) async fn download<T: HttpTransport>( session: &Session<T>, auth: &SpocAuth, file: &str, ) -> Result<Vec<u8>, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_files_http.rs:361</sub>
+- `pub(crate) fn matches_file(submission: &Value, file: &str, baseline: u32) -> bool {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_files_http.rs:390</sub>
 
 ## homework_http
 
@@ -191,7 +199,7 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:72</sub>
 - `pub async fn load<T: HttpTransport>( session: &Session<T>, ) -> Result<homework::HomeworkData, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:167</sub>
-- `pub(crate) async fn course_ids<T: HttpTransport>( session: &Session<T>…)  -> Result<std::collections::BTreeSet<String>, AppError> {…}`
+- `pub(crate) async fn course_ids<T: HttpTransport>( session: &Session<T>, auth: &SpocAuth, path: &str, ) -> Result<std::collections::BTreeSet<String>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:258</sub>
 - `pub async fn load_detail<T: HttpTransport>( session: &Session<T>, id: &str, ) -> Result<homework::HomeworkDetail, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:291</sub>
@@ -200,7 +208,7 @@
 
 - `pub async fn list<T: HttpTransport>( s: &Session<T>, a: &SpocAuth, course: &str, ) -> Result<Vec<CourseAnnouncement>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/learning/announcements.rs:3</sub>
-- `pub async fn list_in<T: HttpTransport>(s: &Session<T>…)  -> Result<Vec<CourseAnnouncement>, AppError> {…}`
+- `pub async fn list_in<T: HttpTransport>( s: &Session<T>, a: &SpocAuth, course: &str, selected: Option<&str>, ) -> Result<Vec<CourseAnnouncement>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/learning/announcements.rs:10</sub>
 - `pub async fn detail<T: HttpTransport>( s: &Session<T>, a: &SpocAuth, id: &str, ) -> Result<CourseAnnouncementDetail, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/learning/announcements.rs:29</sub>
@@ -211,7 +219,7 @@
 
 - `pub async fn list<T: HttpTransport>( s: &Session<T>, a: &SpocAuth, course: &str, ) -> Result<Vec<CourseAssessment>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/learning/assessments.rs:3</sub>
-- `pub async fn list_in<T: HttpTransport>(s: &Session<T>…)  -> Result<Vec<CourseAssessment>, AppError> {…}`
+- `pub async fn list_in<T: HttpTransport>( s: &Session<T>, a: &SpocAuth, course: &str, selected: Option<&str>, ) -> Result<Vec<CourseAssessment>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/learning/assessments.rs:10</sub>
 
 ## mod
@@ -226,9 +234,9 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/learning/mod.rs:43</sub>
 - `pub async fn ensure_course<T: HttpTransport>( s: &Session<T>, a: &SpocAuth, id: &str, ) -> Result<(), AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/learning/mod.rs:77</sub>
-- `pub async fn columns<T: HttpTransport>(s: &Session<T>…)  -> Result<Vec<ginkgo_domain::ports::LearningColumn>, AppError> {…}`
+- `pub async fn columns<T: HttpTransport>( s: &Session<T>, a: &SpocAuth, course: &str, ) -> Result<Vec<ginkgo_domain::ports::LearningColumn>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/learning/mod.rs:88</sub>
-- `pub(super) async fn select_column<T: HttpTransport>( s: &Session<T>…)  -> Result<String, AppError> {…}`
+- `pub(super) async fn select_column<T: HttpTransport>( s: &Session<T>, a: &SpocAuth, course: &str, kind: ginkgo_domain::ports::LearningColumnKind, selected: Option<&str>, ) -> Result<String, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/learning/mod.rs:104</sub>
 - `pub async fn binary<T: HttpTransport>( s: &Session<T>, a: &SpocAuth, url: String, ) -> Result<Vec<u8>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/learning/mod.rs:128</sub>
@@ -237,9 +245,9 @@
 
 ## resources
 
-- `pub async fn page<T: HttpTransport>(s: &Session<T>…)  -> Result<CourseResourcePage, AppError> {…}`
+- `pub async fn page<T: HttpTransport>( s: &Session<T>, a: &SpocAuth, course: &str, folder: Option<&str>, page: u32, ) -> Result<CourseResourcePage, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/learning/resources.rs:3</sub>
-- `pub async fn page_at<T: HttpTransport>(s: &Session<T>…)  -> Result<CourseResourcePage, AppError> {…}` — A caller provides a root-to-leaf chain, not authority. Every edge is freshly
+- `pub async fn page_at<T: HttpTransport>( s: &Session<T>, a: &SpocAuth, course: &str, path: &[String], page: u32, ) -> Result<CourseResourcePage, AppError> {…}` — A caller provides a root-to-leaf chain, not authority. Every edge is freshly
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/learning/resources.rs:15</sub>
 - `pub async fn download<T: HttpTransport>( s: &Session<T>, a: &SpocAuth, id: &str, ) -> Result<Vec<u8>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/learning/resources.rs:103</sub>
@@ -249,11 +257,11 @@
 - `pub const BASE: &str = "https://space.lib.buaa.edu.cn/meta-local";`
   <sub>const · rust/crates/ginkgo_upstream/src/adapters/library_books_http.rs:12</sub>
 - `pub fn search_body( query: &str, page: i64, page_size: i64, sort: &str, descending: bool, ) -> serde_json::Value {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_books_http.rs:53</sub>
-- `pub async fn search<T: HttpTransport + Sync>(shared: &Session<T>…)  -> Result<BookPage, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_books_http.rs:78</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_books_http.rs:45</sub>
+- `pub async fn search<T: HttpTransport + Sync>( shared: &Session<T>, preference: RouteMode, query: &str, page: i64, page_size: i64, sort: &str, descending: bool, ) -> Result<BookPage, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_books_http.rs:70</sub>
 - `pub async fn holdings<T: HttpTransport + Sync>( shared: &Session<T>, preference: RouteMode, bib_id: &str, ) -> Result<Vec<BookHolding>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_books_http.rs:104</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_books_http.rs:93</sub>
 
 ## library_http
 
@@ -271,11 +279,11 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:96</sub>
 - `pub async fn slots<T: HttpTransport>( session: &Session<T>, token: &str, area_id: &str, ) -> Result<Vec<LibrarySlot>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:121</sub>
-- `pub async fn seats<T: HttpTransport>(session: &Session<T>…)  -> Result<Vec<LibrarySeat>, AppError> {…}`
+- `pub async fn seats<T: HttpTransport>( session: &Session<T>, token: &str, area_id: &str, slot: &LibrarySlot, ) -> Result<Vec<LibrarySeat>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:133</sub>
 - `pub async fn bookings<T: HttpTransport>( session: &Session<T>, token: &str, ) -> Result<Vec<LibraryBooking>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:160</sub>
-- `pub async fn history<T: HttpTransport>(session: &Session<T>…)  -> Result<library::LibraryHistoryPage, AppError> {…}` — Read-only history, same bearer token and envelope as current bookings.
+- `pub async fn history<T: HttpTransport>( session: &Session<T>, token: &str, page: i32, limit: i32, ) -> Result<library::LibraryHistoryPage, AppError> {…}` — Read-only history, same bearer token and envelope as current bookings.
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:169</sub>
 - `pub fn parse_envelope(response: &HttpResponse) -> Result<Value, AppError> {…}` — The envelope is shared by every business endpoint: HTTP auth, a login
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:217</sub>
@@ -298,13 +306,13 @@
 - `pub const URL: &str = "https://lib.buaa.edu.cn/engine2/buaa/more/1082575?websiteId=113745&pageId=208561&wfwfid=16662";`
   <sub>const · rust/crates/ginkgo_upstream/src/adapters/library_stats_http.rs:8</sub>
 - `pub fn parse_response(response: &HttpResponse) -> Result<Vec<CampusStats>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_stats_http.rs:17</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_stats_http.rs:10</sub>
 - `pub async fn load<T: HttpTransport + Sync>( shared: &Session<T>, preference: RouteMode, ) -> Result<Vec<CampusStats>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_stats_http.rs:27</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_stats_http.rs:20</sub>
 
 ## notices_http
 
-- `pub async fn load<T: HttpTransport>(session: &Session<T>) -> Result<Vec<Notice>, AppError> {…}`
+- `pub async fn load<T: HttpTransport + Sync>(session: &Session<T>) -> Result<Vec<Notice>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/notices_http.rs:7</sub>
 
 ## reqwest_transport
@@ -346,9 +354,9 @@
 ## shuttle_http
 
 - `pub fn parse_response(response: &HttpResponse) -> Result<ShuttleTimetable, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/shuttle_http.rs:20</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/shuttle_http.rs:11</sub>
 - `pub async fn load<T: HttpTransport + Sync>( shared: &Session<T>, preference: RouteMode, ) -> Result<ShuttleTimetable, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/shuttle_http.rs:34</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/shuttle_http.rs:25</sub>
 
 ## student_services
 

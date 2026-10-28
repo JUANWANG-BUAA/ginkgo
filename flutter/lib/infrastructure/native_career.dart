@@ -1,26 +1,39 @@
-import 'dart:convert';
-
 import '../application/career.dart';
 import '../application/mirror_service.dart';
 import '../application/contracts.dart';
 import '../src/rust/api/live.dart' as live;
 
-CareerEventsRead decodeCareerEvents(live.ReadOnlyResponse response) {
-  if (response.failure != null) {
-    return CareerEventsRead(failure: response.failure);
-  }
-  if (response.payload == null) {
-    return const CareerEventsRead(failure: FailureCode.changedResponse);
-  }
-  try {
+import 'package:ginkgo_mirror/infrastructure/native_command.dart';
+
+CareerEventsRead decodeCareerEvents(live.CareerEventsResponse response) {
+  final data = response.data;
+  if (data == null) {
     return CareerEventsRead(
-      data: CareerEvents.fromJson(
-        jsonDecode(response.payload!) as Map<String, dynamic>,
-      ),
+      failure: response.failure ?? FailureCode.changedResponse,
     );
-  } catch (_) {
-    return const CareerEventsRead(failure: FailureCode.changedResponse);
   }
+  return CareerEventsRead(
+    data: CareerEvents(
+      month: data.month,
+      fetchedAt: data.fetchedAt,
+      events: List.unmodifiable(
+        data.events.map(
+          (event) => CareerEvent(
+            id: event.id,
+            title: event.title,
+            campus: event.campus,
+            place: event.place,
+            beginsAt: event.beginsAt,
+            endsAt: event.endsAt,
+            fairType: event.fairType,
+            status: event.status,
+            url: event.url,
+          ),
+        ),
+      ),
+    ),
+    failure: response.failure,
+  );
 }
 
 mixin NativeCareer implements CareerEventsGateway {
@@ -29,6 +42,8 @@ mixin NativeCareer implements CareerEventsGateway {
     required String month,
     bool forceRefresh = false,
   }) async => decodeCareerEvents(
-    await live.loadCareerEvents(month: month, forceRefresh: forceRefresh),
+    await boundedNativeRead(
+      () => live.loadCareerEvents(month: month, forceRefresh: forceRefresh),
+    ),
   );
 }

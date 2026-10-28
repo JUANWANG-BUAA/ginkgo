@@ -15,7 +15,7 @@ import 'package:ginkgo_mirror/features/library/library_loans_page.dart';
 import 'package:ginkgo_mirror/features/library/library_books_page.dart';
 import 'package:ginkgo_mirror/features/shuttle/shuttle_page.dart';
 import 'package:ginkgo_mirror/features/settings/settings_page.dart';
-import 'package:ginkgo_mirror/design/ginkgo_visuals.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 import 'package:ginkgo_mirror/workspace/workspace_tab_transition.dart';
 import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';

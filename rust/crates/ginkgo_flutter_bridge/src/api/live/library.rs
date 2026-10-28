@@ -2,8 +2,6 @@
 use super::*;
 
 pub(super) async fn load_library_venues(force_refresh: bool) -> LibraryVenuesResponse {
-    let _access = SESSION_ACCESS.read().await;
-    let _module = LIBRARY_ACCESS.read().await;
     let Ok(service) = service() else {
         return LibraryVenuesResponse {
             venues: vec![],
@@ -14,7 +12,11 @@ pub(super) async fn load_library_venues(force_refresh: bool) -> LibraryVenuesRes
             failure_detail: None,
         };
     };
-    match bounded_read(service.load_library_venues(force_refresh)).await {
+    match with_module_read(ModuleAccess::Library, || {
+        service.load_library_venues(force_refresh)
+    })
+    .await
+    {
         Ok(outcome) => {
             let (failure, failure_detail) = outcome
                 .failure
@@ -42,8 +44,7 @@ pub(super) async fn load_library_venues(force_refresh: bool) -> LibraryVenuesRes
 }
 
 pub(super) async fn load_library_areas(library_id: String) -> LibraryAreasResponse {
-    let _access = SESSION_ACCESS.read().await;
-    let _module = LIBRARY_ACCESS.read().await;
+    let _module_marker = ();
     let Ok(service) = service() else {
         return LibraryAreasResponse {
             areas: vec![],
@@ -51,7 +52,11 @@ pub(super) async fn load_library_areas(library_id: String) -> LibraryAreasRespon
             failure_detail: None,
         };
     };
-    match bounded_read(service.load_library_areas(&library_id)).await {
+    match with_module_read(ModuleAccess::Library, || {
+        service.load_library_areas(&library_id)
+    })
+    .await
+    {
         Ok(areas) => LibraryAreasResponse {
             areas: areas.into_iter().map(library_area).collect(),
             failure: None,
@@ -66,8 +71,7 @@ pub(super) async fn load_library_areas(library_id: String) -> LibraryAreasRespon
 }
 
 pub(super) async fn load_library_slots(area_id: String) -> LibrarySlotsResponse {
-    let _access = SESSION_ACCESS.read().await;
-    let _module = LIBRARY_ACCESS.read().await;
+    let _module_marker = ();
     let Ok(service) = service() else {
         return LibrarySlotsResponse {
             slots: vec![],
@@ -75,7 +79,11 @@ pub(super) async fn load_library_slots(area_id: String) -> LibrarySlotsResponse 
             failure_detail: None,
         };
     };
-    match bounded_read(service.load_library_slots(&area_id)).await {
+    match with_module_read(ModuleAccess::Library, || {
+        service.load_library_slots(&area_id)
+    })
+    .await
+    {
         Ok(slots) => LibrarySlotsResponse {
             slots: slots.into_iter().map(library_slot).collect(),
             failure: None,
@@ -96,8 +104,7 @@ pub(super) async fn load_library_seats(
     start: String,
     end: String,
 ) -> LibrarySeatsResponse {
-    let _access = SESSION_ACCESS.read().await;
-    let _module = LIBRARY_ACCESS.read().await;
+    let _module_marker = ();
     let Ok(service) = service() else {
         return LibrarySeatsResponse {
             seats: vec![],
@@ -105,7 +112,11 @@ pub(super) async fn load_library_seats(
             failure_detail: None,
         };
     };
-    match bounded_read(service.load_library_seats(&area_id, &slot_id, &day, &start, &end)).await {
+    match with_module_read(ModuleAccess::Library, || {
+        service.load_library_seats(&area_id, &slot_id, &day, &start, &end)
+    })
+    .await
+    {
         Ok(seats) => LibrarySeatsResponse {
             seats: seats.into_iter().map(library_seat).collect(),
             failure: None,
@@ -120,8 +131,7 @@ pub(super) async fn load_library_seats(
 }
 
 pub(super) async fn load_library_bookings(force_refresh: bool) -> LibraryBookingsResponse {
-    let _access = SESSION_ACCESS.read().await;
-    let _module = LIBRARY_ACCESS.read().await;
+    let _module_marker = ();
     let Ok(service) = service() else {
         return LibraryBookingsResponse {
             bookings: vec![],
@@ -132,7 +142,11 @@ pub(super) async fn load_library_bookings(force_refresh: bool) -> LibraryBooking
             failure_detail: None,
         };
     };
-    match bounded_read(service.load_library_bookings(force_refresh)).await {
+    match with_module_read(ModuleAccess::Library, || {
+        service.load_library_bookings(force_refresh)
+    })
+    .await
+    {
         Ok(outcome) => {
             let (failure, failure_detail) = outcome
                 .failure
@@ -160,10 +174,14 @@ pub(super) async fn load_library_bookings(force_refresh: bool) -> LibraryBooking
 }
 
 pub(super) async fn load_library_history(page: i32, force_refresh: bool) -> LibraryHistoryResponse {
-    let _access = SESSION_ACCESS.read().await;
-    let _module = LIBRARY_ACCESS.read().await;
+    let _module_marker = ();
     let result = match service() {
-        Ok(service) => bounded_read(service.load_library_history(page, force_refresh)).await,
+        Ok(service) => {
+            with_module_read(ModuleAccess::Library, || {
+                service.load_library_history(page, force_refresh)
+            })
+            .await
+        }
         Err(error) => Err(error),
     };
     match result {
@@ -237,9 +255,8 @@ pub(super) fn load_demo_library_history(page: i32) -> LibraryHistoryResponse {
 }
 
 pub(super) async fn load_library_stats(force_refresh: bool) -> ReadOnlyResponse {
-    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => bounded_read(service.load_library_stats(force_refresh)).await,
+        Ok(service) => with_session_read(|| service.load_library_stats(force_refresh)).await,
         Err(error) => Err(error),
     };
     match result {
@@ -288,8 +305,6 @@ pub(super) async fn reserve_library_seat(
             message: "预约正在处理，请勿重复提交".into(),
         };
     };
-    let _access = SESSION_ACCESS.read().await;
-    let _module = LIBRARY_ACCESS.write().await;
     match service() {
         Ok(service) => {
             let booking = service.reserve_library_seat(
@@ -302,7 +317,7 @@ pub(super) async fn reserve_library_seat(
                     end: slot.end,
                 },
             );
-            match bounded_submit(booking).await {
+            match with_module_submit(ModuleAccess::Library, || booking).await {
                 Some(outcome) => mutation_response(outcome),
                 None => MutationResponse {
                     state: "uncertain".into(),
@@ -324,11 +339,13 @@ pub(super) async fn perform_library_action(booking_id: String, action: String) -
             message: "预约正在处理，请勿重复提交".into(),
         };
     };
-    let _access = SESSION_ACCESS.read().await;
-    let _module = LIBRARY_ACCESS.write().await;
     match service() {
         Ok(service) => {
-            match bounded_submit(service.perform_library_action(&booking_id, &action)).await {
+            match with_module_submit(ModuleAccess::Library, || {
+                service.perform_library_action(&booking_id, &action)
+            })
+            .await
+            {
                 Some(outcome) => mutation_response(outcome),
                 None => MutationResponse {
                     state: "uncertain".into(),

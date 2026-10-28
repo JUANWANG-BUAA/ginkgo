@@ -19,63 +19,41 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> HomeworkSource for Scho
     async fn load_homework(&self, force: bool) -> Result<HomeworkOutcome, AppError> {
         let account = self.current_account()?;
         let key = "current".to_owned();
-        if !force {
-            let cache = self.snapshots.homework.lock();
-            if let Some(entry) = cache.fresh(&key) {
-                return Ok(HomeworkOutcome {
-                    data: entry.value.clone(),
-                    fetched_at: entry.timestamp.clone(),
-                    failure: None,
-                });
-            }
-        }
-        let ticket = self.snapshots.homework.lock().begin(&key);
-        let mut result = homework_http::load(&self.session).await;
-        if result
-            .as_ref()
-            .is_err_and(|e| e.detail.as_deref() == Some("webvpn_login_required"))
-        {
-            result = match self.ensure_webvpn_session().await {
-                Ok(()) => homework_http::load(&self.session).await,
-                Err(error) => Err(error),
-            };
-        } else if result
-            .as_ref()
-            .is_err_and(|e| e.code == ErrorCode::SessionExpired)
-        {
-            result = match self.silent_login().await {
-                Ok(()) => homework_http::load(&self.session).await,
-                Err(error) => Err(error),
-            };
-        }
-        if self.current_account()? != account {
-            return Err(AppError::session_expired());
-        }
-        match result {
-            Ok(data) => {
-                let fetched_at =
-                    self.snapshots
-                        .homework
-                        .lock()
-                        .insert_if_current(key, ticket, data.clone());
-                Ok(HomeworkOutcome {
-                    data,
-                    fetched_at,
-                    failure: None,
-                })
-            }
-            Err(error) => {
-                let cache = self.snapshots.homework.lock();
-                match cache.any(&key) {
-                    Some(entry) => Ok(HomeworkOutcome {
-                        data: entry.value.clone(),
-                        fetched_at: entry.timestamp.clone(),
-                        failure: Some(error),
-                    }),
-                    None => Err(error),
+        let snapshot = super::cache::read_with_snapshot_checked(
+            &self.snapshots.homework,
+            key,
+            force,
+            async {
+                let mut result = homework_http::load(&self.session).await;
+                if result
+                    .as_ref()
+                    .is_err_and(|e| e.detail.as_deref() == Some("webvpn_login_required"))
+                {
+                    result = match self.ensure_webvpn_session().await {
+                        Ok(()) => homework_http::load(&self.session).await,
+                        Err(error) => Err(error),
+                    };
+                } else if result
+                    .as_ref()
+                    .is_err_and(|e| e.code == ErrorCode::SessionExpired)
+                {
+                    result = match self.silent_login().await {
+                        Ok(()) => homework_http::load(&self.session).await,
+                        Err(error) => Err(error),
+                    };
                 }
-            }
-        }
+                result
+            },
+            || {
+                if self.current_account()? == account {
+                    Ok(())
+                } else {
+                    Err(AppError::session_expired())
+                }
+            },
+        )
+        .await?;
+        Ok(snapshot)
     }
 
     async fn load_homework_detail(
@@ -87,51 +65,35 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> HomeworkSource for Scho
         // Public item IDs include the source namespace; upstream expects zyid only.
         let id = id.strip_prefix("spoc:").unwrap_or(id);
         let key = id.to_owned();
-        if !force {
-            let cache = self.snapshots.homework_details.lock();
-            if let Some(entry) = cache.fresh(&key) {
-                return Ok(HomeworkDetailOutcome {
-                    data: entry.value.clone(),
-                    failure: None,
-                });
-            }
-        }
-        let ticket = self.snapshots.homework_details.lock().begin(&key);
-        let mut result = homework_http::load_detail(&self.session, id).await;
-        if result
-            .as_ref()
-            .is_err_and(|e| e.code == ErrorCode::SessionExpired)
-        {
-            result = match self.silent_login().await {
-                Ok(()) => homework_http::load_detail(&self.session, id).await,
-                Err(error) => Err(error),
-            };
-        }
-        if self.current_account()? != account {
-            return Err(AppError::session_expired());
-        }
-        match result {
-            Ok(mut data) => {
-                data.source_url = Some(crate::endpoints::HOMEWORK_PORTAL.to_owned());
-                self.snapshots
-                    .homework_details
-                    .lock()
-                    .insert_if_current(key, ticket, data.clone());
-                Ok(HomeworkDetailOutcome {
-                    data,
-                    failure: None,
-                })
-            }
-            Err(error) => {
-                let cache = self.snapshots.homework_details.lock();
-                match cache.any(&key) {
-                    Some(entry) => Ok(HomeworkDetailOutcome {
-                        data: entry.value.clone(),
-                        failure: Some(error),
-                    }),
-                    None => Err(error),
+        let snapshot = super::cache::read_with_snapshot_checked(
+            &self.snapshots.homework_details,
+            key,
+            force,
+            async {
+                let mut result = homework_http::load_detail(&self.session, id).await;
+                if result
+                    .as_ref()
+                    .is_err_and(|e| e.code == ErrorCode::SessionExpired)
+                {
+                    result = match self.silent_login().await {
+                        Ok(()) => homework_http::load_detail(&self.session, id).await,
+                        Err(error) => Err(error),
+                    };
                 }
-            }
-        }
+                result.map(|mut data| {
+                    data.source_url = Some(crate::endpoints::HOMEWORK_PORTAL.to_owned());
+                    data
+                })
+            },
+            || {
+                if self.current_account()? == account {
+                    Ok(())
+                } else {
+                    Err(AppError::session_expired())
+                }
+            },
+        )
+        .await?;
+        Ok(snapshot)
     }
 }

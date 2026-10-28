@@ -17,10 +17,13 @@ pub(super) async fn checkin_load_progress() -> ReadOnlyResponse {
 }
 
 pub(super) async fn load_checkin_on_date(date: String, force_refresh: bool) -> CheckInResponse {
-    let _access = SESSION_ACCESS.read().await;
-    let _module = CHECKIN_ACCESS.read().await;
     let result = match service() {
-        Ok(service) => bounded_read(service.load_checkin_on_date(Some(date), force_refresh)).await,
+        Ok(service) => {
+            with_module_read(ModuleAccess::CheckIn, || {
+                service.load_checkin_on_date(Some(date), force_refresh)
+            })
+            .await
+        }
         Err(error) => Err(error),
     };
     match result {
@@ -36,16 +39,18 @@ pub(super) async fn submit_checkin(course_id: String) -> MutationResponse {
             message: "签到正在处理，请勿重复提交".into(),
         };
     };
-    let _access = SESSION_ACCESS.read().await;
-    let _module = CHECKIN_ACCESS.write().await;
     match service() {
-        Ok(service) => match bounded_submit(service.submit_checkin(&course_id)).await {
-            Some(outcome) => mutation_response(outcome),
-            None => MutationResponse {
-                state: "uncertain".into(),
-                message: "提交超时，结果待核实；请刷新确认，勿重复提交".into(),
-            },
-        },
+        Ok(service) => {
+            match with_module_submit(ModuleAccess::CheckIn, || service.submit_checkin(&course_id))
+                .await
+            {
+                Some(outcome) => mutation_response(outcome),
+                None => MutationResponse {
+                    state: "uncertain".into(),
+                    message: "提交超时，结果待核实；请刷新确认，勿重复提交".into(),
+                },
+            }
+        }
         Err(_) => MutationResponse {
             state: "notSubmitted".into(),
             message: "本地服务不可用，未提交签到".into(),

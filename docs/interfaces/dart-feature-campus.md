@@ -7,7 +7,7 @@
 
 ## features/campus/campus_activities_page.dart
 
-- `class CampusActivitiesPage extends StatefulWidget`
+- `class CampusActivitiesPage extends StatelessWidget`
   <sub>class · features/campus/campus_activities_page.dart:10</sub>
-    - `const CampusActivitiesPage( {…}`  <sub>:11</sub>
-    - `State<CampusActivitiesPage> createState() => _CampusActivitiesPageState();`  <sub>:15</sub>
+    - `const CampusActivitiesPage({super.key, required this.service});`  <sub>:11</sub>
+    - `Widget build( BuildContext context, ) => …`  <sub>:15</sub>

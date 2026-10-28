@@ -52,9 +52,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 .homework_context(id.strip_prefix("spoc:").unwrap_or(id))
                 .await?;
             self.check_homework_owner(&owner)?;
+            self.restore_journal(&owner).await?;
             let pending = {
-                let mut files = self.homework_files.lock();
-                journal::restore(&mut files, &owner)?;
+                let files = self.homework_files.lock();
                 files.uploads.values().any(|u| {
                     u.owner == owner
                         && u.assignment == id.strip_prefix("spoc:").unwrap_or(id)

@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/design/ginkgo_mark.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_mark.dart';
 import 'package:ginkgo_mirror/design/tokens/spacing.dart';
 import 'package:ginkgo_mirror/design/tokens/typography.dart';
 
@@ -85,10 +85,7 @@ class _StartupPageState extends State<StartupPage>
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (reduced)
-                  const GinkgoMark(
-                    key: Key('startup-mark'),
-                    size: 104,
-                  )
+                  const GinkgoMark(key: Key('startup-mark'), size: 104)
                 else
                   AnimatedBuilder(
                     key: const Key('startup-entrance'),
@@ -133,7 +130,9 @@ class _StartupPageState extends State<StartupPage>
                 AnimatedBuilder(
                   animation: _controller,
                   builder: (context, child) => Opacity(
-                    opacity: reduced ? 1 : ((_wordmark.value - 0.4) / 0.6).clamp(0, 1),
+                    opacity: reduced
+                        ? 1
+                        : ((_wordmark.value - 0.4) / 0.6).clamp(0, 1),
                     child: child,
                   ),
                   child: Text(
@@ -141,7 +140,9 @@ class _StartupPageState extends State<StartupPage>
                     textAlign: TextAlign.center,
                     style: GinkgoTypography.footnote.copyWith(
                       letterSpacing: .4,
-                      color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                      color: CupertinoColors.secondaryLabel.resolveFrom(
+                        context,
+                      ),
                     ),
                   ),
                 ),

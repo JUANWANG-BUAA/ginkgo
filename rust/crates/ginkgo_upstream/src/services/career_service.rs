@@ -15,38 +15,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CareerEventsSource for 
         force: bool,
     ) -> Result<CareerEventsOutcome, AppError> {
         career_http::validate_month(month)?;
-        let key = month.to_owned();
-        if !force {
-            if let Some(entry) = self.snapshots.career.lock().fresh(&key) {
-                return Ok(CareerEventsOutcome {
-                    data: entry.value.clone(),
-                    failure: None,
-                });
-            }
-        }
-        let ticket = self.snapshots.career.lock().begin(&key);
-        match career_http::load(&self.session, month).await {
-            Ok(data) => {
-                let data = CareerEvents {
-                    fetched_at: super::cache::now_shanghai(),
-                    ..data
-                };
-                self.snapshots
-                    .career
-                    .lock()
-                    .insert_if_current(key, ticket, data.clone());
-                Ok(CareerEventsOutcome {
-                    data,
-                    failure: None,
-                })
-            }
-            Err(error) => match self.snapshots.career.lock().any(&key) {
-                Some(entry) => Ok(CareerEventsOutcome {
-                    data: entry.value.clone(),
-                    failure: Some(error),
-                }),
-                None => Err(error),
-            },
-        }
+        super::cache::read_with_snapshot(&self.snapshots.career, month.to_owned(), force, async {
+            let data = career_http::load(&self.session, month).await?;
+            Ok(CareerEvents {
+                fetched_at: super::cache::now_shanghai(),
+                ..data
+            })
+        })
+        .await
     }
 }

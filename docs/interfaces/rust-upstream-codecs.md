@@ -10,7 +10,7 @@
 - [bykc](#bykc) (3)
 - [campus_card](#campuscard) (3)
 - [cgyy](#cgyy) (10)
-- [checkin](#checkin) (5)
+- [checkin](#checkin) (6)
 - [classroom](#classroom) (1)
 - [grades](#grades) (1)
 - [graduate](#graduate) (3)
@@ -85,6 +85,8 @@
 - `pub struct DayInput`
   <sub>struct · rust/crates/ginkgo_upstream/src/codecs/checkin.rs:304</sub>
     - `body: Value`  <sub>:305</sub>
+- `pub fn parse_sign_in(value: &Value) -> super::mutation::MutationOutcome {…}` — Match Apple STATUS + result.stuSignStatus confirmation, never assume HTTP 200.
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/checkin.rs:433</sub>
 
 ## classroom
 

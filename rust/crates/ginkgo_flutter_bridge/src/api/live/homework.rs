@@ -2,10 +2,9 @@
 use super::*;
 
 pub(super) async fn load_homework(force_refresh: bool) -> crate::api::mirror::HomeworkResponse {
-    let _access = SESSION_ACCESS.read().await;
     use crate::api::mirror::{HomeworkItem, HomeworkResponse, HomeworkStatus};
     let result = match service() {
-        Ok(service) => bounded_read(service.load_homework(force_refresh)).await,
+        Ok(service) => with_session_read(|| service.load_homework(force_refresh)).await,
         Err(error) => Err(error),
     };
     match result {
@@ -61,10 +60,9 @@ pub(super) async fn load_homework_detail(
     assignment_id: String,
     force_refresh: bool,
 ) -> HomeworkDetailResponse {
-    let _access = SESSION_ACCESS.read().await;
     let result = match service() {
         Ok(service) => {
-            bounded_read(service.load_homework_detail(&assignment_id, force_refresh)).await
+            with_session_read(|| service.load_homework_detail(&assignment_id, force_refresh)).await
         }
         Err(error) => Err(error),
     };
@@ -121,11 +119,13 @@ fn file_response<T: serde::Serialize>(result: Result<T, AppError>) -> ReadOnlyRe
     }
 }
 pub(super) async fn file_workspace(expected: String, id: String) -> ReadOnlyResponse {
-    let _session = SESSION_ACCESS.read().await;
-    file_response(match bound_service(&expected) {
-        Ok(s) => bounded_read(s.homework_workspace(&id)).await,
-        Err(e) => Err(e),
-    })
+    file_response(
+        with_session_read(|| async {
+            let s = bound_service(&expected)?;
+            s.homework_workspace(&id).await
+        })
+        .await,
+    )
 }
 pub(super) async fn upload_file(
     expected: String,
@@ -136,16 +136,10 @@ pub(super) async fn upload_file(
     let Ok(_write) = FILE_WRITE.try_lock() else {
         return file_response::<u8>(Err(AppError::invalid()));
     };
-    let _session = SESSION_ACCESS.read().await;
-    let result = async {
+    let result = with_session_read_in(std::time::Duration::from_secs(180), || async {
         let s = bound_service(&expected)?;
-        tokio::time::timeout(
-            std::time::Duration::from_secs(180),
-            s.upload_homework_file(&id, &name, bytes),
-        )
-        .await
-        .map_err(|_| AppError::unavailable())?
-    }
+        s.upload_homework_file(&id, &name, bytes).await
+    })
     .await;
     file_response(result)
 }
@@ -161,18 +155,21 @@ pub(super) async fn submit_file(
             message: "作业操作处理中，请勿重复提交".into(),
         };
     };
-    let _session = SESSION_ACCESS.read().await;
-    let Ok(s) = bound_service(&expected) else {
-        return MutationResponse {
-            state: "notSubmitted".into(),
-            message: "账号已变化，未提交".into(),
-        };
-    };
-    let outcome = if reconcile {
-        bounded_submit(s.reconcile_homework_file(&handle)).await
-    } else {
-        bounded_submit(s.submit_homework_file(&handle, confirmed)).await
-    };
+    let outcome = with_session_submit(|| async {
+        match bound_service(&expected) {
+            Ok(s) => {
+                if reconcile {
+                    s.reconcile_homework_file(&handle).await
+                } else {
+                    s.submit_homework_file(&handle, confirmed).await
+                }
+            }
+            Err(_) => ginkgo_core::features::mutation::MutationOutcome::not_submitted(
+                "账号已变化，未提交",
+            ),
+        }
+    })
+    .await;
     mutation_response(
         outcome.unwrap_or_else(ginkgo_core::features::mutation::MutationOutcome::uncertain),
     )
@@ -182,11 +179,10 @@ pub(super) async fn download_file(
     id: String,
     attachment: String,
 ) -> HomeworkFileDownloadResponse {
-    let _session = SESSION_ACCESS.read().await;
-    let result = async {
+    let result = with_session_read(|| async {
         let s = bound_service(&expected)?;
-        bounded_read(s.download_homework_file(&id, &attachment)).await
-    }
+        s.download_homework_file(&id, &attachment).await
+    })
     .await;
     match result {
         Ok(file) => HomeworkFileDownloadResponse {
@@ -204,33 +200,36 @@ pub(super) async fn download_file(
 
 pub(super) async fn configure_recovery(expected: String, root: String) -> ReadOnlyResponse {
     let _write = FILE_WRITE.lock().await;
-    let _session = SESSION_ACCESS.read().await;
-    file_response(bound_service(&expected).and_then(|s| s.configure_homework_recovery(&root)))
+    file_response(
+        with_session_read(|| async {
+            let s = bound_service(&expected)?;
+            s.configure_homework_recovery(&root)
+        })
+        .await,
+    )
 }
 pub(super) async fn pending_submissions(
     expected: String,
     assignment: Option<String>,
 ) -> ReadOnlyResponse {
-    let _session = SESSION_ACCESS.read().await;
     file_response(
-        async {
-            let mut items =
-                bounded_read(bound_service(&expected)?.pending_homework_submissions()).await?;
+        with_session_read(|| async {
+            let s = bound_service(&expected)?;
+            let mut items = s.pending_homework_submissions().await?;
             if let Some(id) = assignment {
                 items.retain(|item| item.assignment_id == id);
             }
             Ok(items)
-        }
+        })
         .await,
     )
 }
 pub(super) async fn capabilities(expected: String, id: String) -> ReadOnlyResponse {
-    let _session = SESSION_ACCESS.read().await;
     file_response(
-        async {
-            bounded_read(async { Ok(bound_service(&expected)?.homework_capabilities(&id).await) })
-                .await
-        }
+        with_session_read(|| async {
+            let s = bound_service(&expected)?;
+            Ok(s.homework_capabilities(&id).await)
+        })
         .await,
     )
 }

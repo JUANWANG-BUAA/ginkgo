@@ -265,7 +265,7 @@ void main() {
       expect(find.textContaining('读取超时'), findsOneWidget);
       expect(find.textContaining('接口返回结构已变化'), findsNothing);
       await tester.pumpWidget(
-        CupertinoApp(home: GraduateCreditMapPage(service: Object())),
+        CupertinoApp(home: const GraduateCreditMapPage(service: null)),
       );
       await tester.pumpAndSettle();
       expect(find.textContaining('未发起学校读取'), findsOneWidget);

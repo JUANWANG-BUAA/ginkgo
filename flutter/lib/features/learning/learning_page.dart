@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/learning.dart';
 import 'package:ginkgo_mirror/application/learning_file_actions.dart';
+import 'package:ginkgo_mirror/application/learning_ports.dart';
 import 'package:ginkgo_mirror/infrastructure/learning_file_actions.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
@@ -45,11 +46,11 @@ class _LearningPageState extends State<LearningPage> {
   }
 
   Future<void> _load({bool force = false}) {
-    final service = widget.service;
-    if (service is! LearningCourseGateway) return Future.value();
+    final gateway = LearningPorts.resolve(widget.service).courses;
+    if (gateway == null) return Future.value();
     return learningRefresh(
       courses,
-      () => service.learningCourses(forceRefresh: force),
+      () => gateway.learningCourses(forceRefresh: force),
       force,
     );
   }
@@ -99,7 +100,8 @@ class _LearningPageState extends State<LearningPage> {
             trailing: AppleGlassButton(
               label: '刷新课程',
               onPressed:
-                  widget.service is LearningCourseGateway && !courses.loading
+                  LearningPorts.resolve(widget.service).courses != null &&
+                      !courses.loading
                   ? () => _load(force: true)
                   : null,
               child: const Icon(CupertinoIcons.refresh),

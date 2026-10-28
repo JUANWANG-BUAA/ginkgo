@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 
@@ -11,6 +13,16 @@ class SectionResult<T> {
 /// Independent section refreshes preserve content and join overlapping reads.
 /// Disposing a section prevents a previous provider's late response resurfacing.
 class RefreshSection<T> extends ChangeNotifier {
+  RefreshSection({this.stallDeadline = const Duration(minutes: 3)});
+
+  /// How long a read may stay in flight before the section stops waiting.
+  ///
+  /// A read that never settles would otherwise leave [loading] set forever and
+  /// keep the slot occupied, so every later refresh joins a future that never
+  /// completes. Reaching the deadline discards the late response the same way
+  /// [invalidate] does, reports a stall, and reopens the slot.
+  final Duration stallDeadline;
+
   T? value;
   String? error;
   bool loading = false;
@@ -18,6 +30,7 @@ class RefreshSection<T> extends ChangeNotifier {
   Future<void>? _task;
   Future<void>? _forcedRun;
   int _generation = 0;
+  Timer? _stall;
 
   /// Drops every in-flight read at its next await: call when the account or
   /// service generation behind [read] changes, so a late response from the
@@ -33,16 +46,31 @@ class RefreshSection<T> extends ChangeNotifier {
     bool force = false,
   }) {
     final inFlight = _task;
-    if (inFlight == null) {
+    // Invalidated and stalled slots belong to an abandoned context. They must
+    // not capture a new read, and their completion must not clear the new slot.
+    if (inFlight == null || _isStalled || _taskGeneration != _generation) {
       _forcedRun = null;
-      return _task = _refresh(
-        read,
-        fallbackError,
-      ).whenComplete(() => _task = null);
+      return _start(read, fallbackError);
     }
     if (!force) return inFlight;
     return _forcedRun ??= _chainForced(read, fallbackError, inFlight);
   }
+
+  int _taskGeneration = 0;
+
+  Future<void> _start(
+    Future<SectionResult<T>> Function() read,
+    String fallbackError,
+  ) {
+    final taskGeneration = _generation;
+    _taskGeneration = taskGeneration;
+    return _task = _refresh(read, fallbackError).whenComplete(() {
+      if (_taskGeneration == taskGeneration) _task = null;
+    });
+  }
+
+  /// Whether the last read hit [stallDeadline] and was discarded.
+  bool _isStalled = false;
 
   Future<void> _chainForced(
     Future<SectionResult<T>> Function() read,
@@ -51,14 +79,16 @@ class RefreshSection<T> extends ChangeNotifier {
   ) {
     final epoch = _generation;
     late final Future<void> run;
-    run = inFlight.then((_) async {
-      if (_disposed || epoch != _generation) return;
-      _task = run;
-      await _refresh(read, fallbackError);
-    }).whenComplete(() {
-      _forcedRun = null;
-      if (identical(_task, run)) _task = null;
-    });
+    run = inFlight
+        .then((_) async {
+          if (_disposed || epoch != _generation) return;
+          _task = run;
+          await _refresh(read, fallbackError);
+        })
+        .whenComplete(() {
+          if (identical(_forcedRun, run)) _forcedRun = null;
+          if (identical(_task, run)) _task = null;
+        });
     return run;
   }
 
@@ -68,20 +98,35 @@ class RefreshSection<T> extends ChangeNotifier {
   ) async {
     if (_disposed) return;
     final epoch = _generation;
+    _isStalled = false;
     loading = true;
     error = null;
     notifyListeners();
+    // The read itself is not cancelled (a native command cannot be); only the
+    // caller stops waiting and its late result is discarded via the epoch.
+    _stall?.cancel();
+    final stall = Timer(stallDeadline, () {
+      if (_disposed || epoch != _generation || !loading) return;
+      _generation++;
+      _isStalled = true;
+      loading = false;
+      error = fallbackError;
+      notifyListeners();
+    });
+    _stall = stall;
     try {
       final result = await read();
       if (_disposed || epoch != _generation) return;
       if (result.value != null) value = result.value;
       error = result.error;
     } catch (_) {
-      if (_disposed) return;
+      if (_disposed || epoch != _generation) return;
       DiagnosticLog.shared.record(null);
       error = fallbackError;
     } finally {
-      if (!_disposed) {
+      stall.cancel();
+      if (identical(_stall, stall)) _stall = null;
+      if (!_disposed && epoch == _generation) {
         loading = false;
         notifyListeners();
       }
@@ -91,6 +136,8 @@ class RefreshSection<T> extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _stall?.cancel();
+    _stall = null;
     super.dispose();
   }
 }

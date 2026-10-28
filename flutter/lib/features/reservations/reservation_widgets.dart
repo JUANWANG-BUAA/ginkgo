@@ -64,7 +64,7 @@ class _ReservationActionButtonState extends State<ReservationActionButton> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 15,
+                    fontSize: AppleDesign.calloutSize,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -104,9 +104,9 @@ class _ReservationActionButtonState extends State<ReservationActionButton> {
           child: CupertinoTheme(
             data: widget.tint == null
                 ? CupertinoTheme.of(context)
-                : CupertinoTheme.of(context).copyWith(
-                    primaryColor: widget.tint!.resolveFrom(context),
-                  ),
+                : CupertinoTheme.of(
+                    context,
+                  ).copyWith(primaryColor: widget.tint!.resolveFrom(context)),
             child: button,
           ),
         ),

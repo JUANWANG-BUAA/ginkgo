@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/design/ginkgo_mark.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_mark.dart';
 import 'package:ginkgo_mirror/startup_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 

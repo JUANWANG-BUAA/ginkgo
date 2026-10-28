@@ -6,8 +6,8 @@ docs/interfaces/。同一份源码只被解析一次，输出可直接 diff 审�
 
 设计约束：
 - 只索引公开面（Rust `pub*`、Dart 非下划线开头），私有实现不进入索引。
-- 测试代码不计入接口面：Rust 跳过 `#[cfg(test)]` 后的内容，Dart 跳过 test/ 目录。
-- 签名跨行时按括号平衡合并；超长签名折叠，避免表格难以阅读。
+- 测试代码不计入接口面：Rust 跳过 `#[cfg(test)]` 修饰的条目，Dart 跳过 test/ 目录。
+- 签名跨行时按括号平衡合并，保留完整参数与返回类型。
 """
 from __future__ import annotations
 
@@ -60,9 +60,7 @@ def collapse(text: str) -> str:
     """把跨行签名压成单行；超长时按参数边界智能缩写，保留返回类型。"""
     flat = re.sub(r'\s+', ' ', text).strip()
     flat = normalize_future(flat)
-    if len(flat) <= SIGNATURE_LIMIT:
-        return flat
-    return abbreviate(flat)
+    return flat
 
 
 FUTURE_PATTERN = re.compile(
@@ -105,9 +103,16 @@ def signature_only(text: str) -> str:
     flat = re.sub(r'\s+', ' ', text).strip()
     # 找到签名部分：第一个 `{` 之前的内容（排除结构体字面量外的块）。
     depth = 0
+    parens = 0
     for index, char in enumerate(flat):
-        if char == '{':
-            if depth == 0:
+        if char == '=' and flat[index:index + 2] == '=>' and parens == 0 and depth == 0:
+            return flat[:index].rstrip() + ' => …'
+        if char in '([':
+            parens += 1
+        elif char in ')]':
+            parens -= 1
+        elif char == '{':
+            if depth == 0 and parens == 0:
                 return flat[:index].rstrip() + ' {…}'
             depth += 1
         elif char == '}':
@@ -189,17 +194,17 @@ def scan_rust(path: Path, crate: str) -> Section:
     lines = path.read_text(encoding='utf-8').splitlines()
     relative = path.relative_to(REPO).as_posix()
 
-    # 测试模块之后不再是接口面。
-    cut = len(lines)
-    for index, line in enumerate(lines):
-        if line.strip() == '#[cfg(test)]':
-            cut = index
-            break
-    lines = lines[:cut]
-
     section = Section(title=path.stem, location=relative)
     index = 0
     while index < len(lines):
+        if lines[index].strip() == '#[cfg(test)]':
+            item = index + 1
+            while item < len(lines) and (not lines[item].strip() or lines[item].lstrip().startswith('#[')):
+                item += 1
+            if item < len(lines):
+                end = block_end(lines, item) if '{' in lines[item] else balanced_end(lines, item, ';{')
+                index = end + 1
+                continue
         match = RUST_DECL.match(lines[index])
         if not match:
             index += 1
@@ -301,6 +306,10 @@ DART_MEMBER = re.compile(
     r'(?P<sig>(?:const\s+)?[A-Za-z_][A-Za-z0-9_<>,?. ]*\s+'
     r'(?:get\s+)?[a-zA-Z_][A-Za-z0-9_]*\s*[({=])'
 )
+DART_FUNCTION = re.compile(
+    r'^(?:[A-Za-z_][A-Za-z0-9_<>,?. ]*\s+)'
+    r'(?P<name>[A-Za-z][A-Za-z0-9_]*)\s*\('
+)
 
 
 def scan_dart(path: Path) -> list[Section]:
@@ -316,6 +325,16 @@ def scan_dart(path: Path) -> list[Section]:
     while index < len(lines):
         match = DART_TOP.match(lines[index])
         if not match:
+            function = DART_FUNCTION.match(lines[index])
+            if function:
+                end = balanced_end(lines, index, ';{')
+                body = '\n'.join(lines[index:end + 1])
+                entries.append(Entry(name=function.group('name'), kind='function',
+                                     signature=collapse(signature_only(body)),
+                                     doc=doc_head(lines, index),
+                                     location=f'{relative}:{index + 1}'))
+                index = end + 1
+                continue
             index += 1
             continue
         kind = match.group('kind')

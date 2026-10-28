@@ -7,6 +7,9 @@ import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/features/settings/preferences_pages.dart';
 import 'package:ginkgo_mirror/platform/system_settings_service.dart';
+import 'package:ginkgo_mirror/application/reminder_store.dart';
+import 'package:ginkgo_mirror/infrastructure/demo_mirror_service.dart';
+import 'package:ginkgo_mirror/shared/reminders.dart';
 
 class TestSystemSettings implements SystemSettingsService {
   String permission = 'notRequested';
@@ -49,7 +52,65 @@ class PendingSystemSettings extends TestSystemSettings {
   }
 }
 
+class _RetryStore implements ReminderStore {
+  bool failed = true;
+  @override
+  Future<String?> read() async {
+    if (failed) throw StateError('unavailable');
+    return '{"task":true,"read":{}}';
+  }
+
+  @override
+  Future<void> write(String data) async {}
+}
+
+class _ReminderPlatform implements ReminderPlatform {
+  @override
+  Future<void> replace(List<Map<String, Object>> plans) async {}
+}
+
 void main() {
+  testWidgets('failed reminder restore disables switches and offers retry', (
+    tester,
+  ) async {
+    final store = _RetryStore();
+    const mirror = DemoMirrorService();
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: ReminderScope(
+          service: mirror,
+          account: 'synthetic',
+          controllerFactory: (service, account, visibility) =>
+              ReminderController(
+                service: service,
+                account: account,
+                visibility: visibility,
+                store: store,
+                platform: _ReminderPlatform(),
+              ),
+          child: SystemPreferencesPage(service: TestSystemSettings()),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('重新读取提醒偏好'), findsOneWidget);
+    expect(
+      tester
+          .widgetList<CupertinoSwitch>(find.byType(CupertinoSwitch))
+          .every((switcher) => switcher.onChanged == null),
+      isTrue,
+    );
+    store.failed = false;
+    await tester.ensureVisible(find.text('重新读取提醒偏好'));
+    await tester.tap(find.text('重新读取提醒偏好'));
+    await tester.pump();
+    expect(find.text('重新读取提醒偏好'), findsNothing);
+    final switches = tester
+        .widgetList<CupertinoSwitch>(find.byType(CupertinoSwitch))
+        .toList();
+    expect(switches.every((switcher) => switcher.onChanged != null), isTrue);
+    expect(switches.last.value, isTrue);
+  });
   testWidgets(
     'appearance applies immediately, preserves route and serializes storage',
     (tester) async {

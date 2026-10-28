@@ -94,10 +94,7 @@ void main() {
     final first = ExamFake();
     final second = ExamFake();
     Widget page(ExamFake service) => host(
-      TodayExamSection(
-        service: service,
-        now: DateTime.utc(2026, 10, 22, 9),
-      ),
+      TodayExamSection(service: service, now: DateTime.utc(2026, 10, 22, 9)),
     );
     await tester.pumpWidget(page(first));
     await tester.pumpWidget(page(second));

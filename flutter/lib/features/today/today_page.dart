@@ -4,9 +4,10 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/local_tasks.dart';
+import 'package:ginkgo_mirror/application/task_storage_scope.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
-import 'package:ginkgo_mirror/features/schedule/course_visibility.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/shared/course_visibility.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
@@ -201,7 +202,8 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     );
   }
 
-  Future<String> _tasksRoot() => localTasksStorageRoot(widget.storageRoot);
+  Future<String> _tasksRoot() async =>
+      widget.storageRoot ?? await TaskStorageScope.read(context)();
 
   Future<void> _loadTasks() {
     final service = widget.service;

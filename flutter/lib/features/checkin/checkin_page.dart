@@ -11,11 +11,12 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_loading.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/features/schedule/course_visibility.dart';
+import 'package:ginkgo_mirror/shared/course_visibility.dart';
+import 'package:ginkgo_mirror/features/schedule/course_range_page.dart';
 
 /// Confirmed per-course submission with a subsequent status read.
 class CheckInPage extends StatefulWidget {
@@ -113,6 +114,22 @@ class _CheckInPageState extends State<CheckInPage> {
       if (mounted) setState(() {});
     });
     load();
+  }
+
+  @override
+  void didUpdateWidget(CheckInPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service ||
+        oldWidget.history != widget.history) {
+      requestSerial++;
+      data = null;
+      error = null;
+      notice = null;
+      busy = false;
+      submitting = null;
+      awaitingVerification.clear();
+      load();
+    }
   }
 
   @override

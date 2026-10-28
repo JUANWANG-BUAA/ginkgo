@@ -1,10 +1,10 @@
 # Ginkgo 架构拓扑与数据流
 
-更新：2026-10-27。本文用图说明 **Android（Flutter + Rust）的调用拓扑与数据 IO**，配合 [接口索引](INTERFACE-INDEX.md) 使用：索引给出签名与位置，本文给出结构与走向。
+更新：2026-10-29。工程由五个 Rust crate 组成；本文用图说明 **Android（Flutter + Rust）的七段调用拓扑与数据 IO**，配合 [接口索引](INTERFACE-INDEX.md) 使用：索引给出签名与位置，本文给出结构与走向。
 
 图为 Mermaid，GitHub 原生渲染；依赖图由 `scripts/generate-interface-index.py` 从源码算出，不手绘。
 
-## 1. 一眼看懂的五层
+## 1. 五个 Rust crate 与七段调用拓扑
 
 ```mermaid
 flowchart TB
@@ -25,7 +25,7 @@ flowchart TB
     ws["ginkgo_core<br/>Workspace 命令、账号隔离、本机存储"]
   end
   subgraph ports["⑥ 业务端口"]
-    traits["ginkgo_domain::ports<br/>26 个 trait"]
+    traits["ginkgo_domain::ports<br/>按业务功能拆分的端口"]
   end
   subgraph up["⑦ 上游实现"]
     services["ginkgo_upstream::services<br/>会话、缓存、时序"]
@@ -139,7 +139,7 @@ stateDiagram-v2
 
 ## 4. 模块依赖图（生成）
 
-完整图与循环检测结果见 [依赖图](interfaces/DEPENDENCY-GRAPH.md)。当前快照：26 个分组节点（其中 25 个有出向依赖）、143 条跨组依赖。
+完整图与循环检测结果见 [依赖图](interfaces/DEPENDENCY-GRAPH.md)。**本文不复制具体数字**：分组数、依赖条数与循环分量随代码变化，以该生成文件的首段为准（由 `scripts/generate-interface-index.py` 从源码算出）。
 
 ### 4.1 分层依赖方向
 
@@ -157,20 +157,62 @@ flowchart LR
   infrastructure["infrastructure"] --> application
 ```
 
-### 4.2 已存在的循环依赖（待收敛）
+### 4.2 文件依赖与目录聚合图
 
-Dart 侧没有 Rust 那样的依赖方向门禁，因此目录级环不会被自动拦截。当前实测到 **25 个分组同属一个强连通分量**，其中最短的一条真实环是：
+Dart 目录聚合图会把同一目录里的多个文件压成一个节点，因此目录级强连通分量不一定代表文件之间存在真实 import 环。2026-10-28 的文件级审查结果为 **0 个循环分量**；当前目录聚合图中的分组关系见[生成图](interfaces/DEPENDENCY-GRAPH.md)，不能将目录级分量直接解释成编译期文件环。目录仍有跨职责依赖需要按 [镜像待办](MIRROR-TODO.md) 收敛。
 
-```mermaid
-flowchart LR
-  application -->|local_tasks.dart 用 school_timestamp| shared
-  shared -->|reminders.dart 用 course_visibility| features_schedule["features/schedule"]
-  features_schedule -->|页面用 contracts.dart| application
+`course_visibility.dart` 和 `homework_visibility.dart` 已移至 `shared/`；这修复了审查中确认的 `shared/ → features/schedule/` 文件依赖。自动索引只能展示目录聚合，文件路径级结构应以源码导入和审计记录复核。
+
+## 4.3 目录层级与归属规则
+
+目录名回答「这段代码属于哪一层」，而不是「它由谁写的」。新增文件前先按下表定位；放不进去说明缺一层，不要塞进最近的目录。
+
+### 4.3.1 各目录职责（自外向内）
+
+| 目录 | 只做 | 禁止 |
+| --- | --- | --- |
+| `app/` | 应用外壳：`CupertinoApp`、主题、locale、文本缩放 | 业务判断、网络 |
+| `workspace/` | 导航壳：标签/侧栏、目的地登记、跨断点状态提升、聚合入口页 | 学校协议、本机持久化 |
+| `features/<域>/` | 单域页面、域内组件、域内模型解码（`*_models.dart`） | 直接 import `src/rust`、自建服务实例 |
+| `application/` | 页面契约：gateway 接口、值类型、呈现状态机（`refresh_section`、`busy_gate`）、失败文案 | 平台插件、文件 IO、具体 adapter |
+| `shared/` | 跨域**纯**能力：日期时间、业务规则、共享偏好 | import `features/`、`infrastructure/` |
+| `widgets/` · `design/` | 无业务语义的组件与设计 token | 应用状态、持久化、网络 |
+| `infrastructure/` | 真实/演示 adapter、FRB 调用、本机存储、平台通道 | 页面语义、导航 |
+| `platform/` | 平台端口与系统交互（通知、更新、系统设置） | 页面组件、学校协议 |
+
+### 4.3.2 依赖方向
+
+```text
+app → workspace → features → application → (shared, design, widgets)
+                                    ↑
+                        infrastructure（只被组合根与 workspace 装配）
 ```
 
-根因很具体：`flutter/lib/features/schedule/course_visibility.dart` 定义的是**跨域共享状态**（课程可见性），却被放在课表域内，于是 `shared/` 反向依赖了 `features/`。
+该图是目标依赖方向，不是当前全量现状：`features/` 仍有独立页面服务工厂、文件动作和设置维护服务的 infrastructure 引用，待按 [镜像待办](MIRROR-TODO.md) 逐项改为端口注入。
 
-> 这是本次可视化查出的真实问题，尚未修复。修法是把 `course_visibility.dart` 移到 `shared/`，但会牵动 `shared/`、`features/schedule/`、`features/checkin/`、`features/homework/` 的导入与若干测试，属于独立改动。
+三条硬规则：
+
+1. **`features/` 不 import `src/rust`**。页面只消费 `application/contracts.dart` 导出的类型。
+2. **`shared/` 不 import `features/`**。发现需要时，说明那段规则是跨域共享的，应上移到 `shared/`（2026-10-28 的 `course_visibility` / `homework_visibility` 即此例）。
+3. **目标：页面不自建服务**。主要服务由 `WorkspaceContext.service` 注入；目前四个独立页面仍通过 `mirrorServiceFor()` 兜底，属于待清理例外。
+
+### 4.3.3 命名口径
+
+`features/` 下统一用**业务功能**命名（`homework`、`learning`、`tasks`、`notices`），不用学校系统名（`spos`、`gsmis`）。学校系统名只出现在 `application/` 的 gateway 文档注释与 `docs/API.md` 里——它们属于协议事实，不属于客户端结构。
+
+已知历史例外（保留原名，避免大范围改名风险）：`cgyy`、`bykc`、`library`、`shuttle`、`classroom`。新增目录不要再沿用系统名。
+
+### 4.3.4 文件名后缀（五种，不新增）
+
+| 后缀 | 含义 |
+| --- | --- |
+| `*_page.dart` | 一个可导航的页面 |
+| `*_section.dart` | 页面内的一块独立区域 |
+| `*_widgets.dart` | 一域内复用的组件集合 |
+| `*_models.dart` | 该域的载荷解码与值投影（`jsonDecode` 唯一允许的位置之一） |
+| `*_controller.dart` / `*_gateway.dart` | 状态控制或能力边界 |
+
+不要用 `*_views.dart` / `*_presentation.dart` / `*_cards.dart` 之类的合集命名：一个文件放多个不相关组件，读者无法从文件名判断内容。
 
 ## 5. 数据 IO 契约图
 
@@ -242,7 +284,7 @@ flowchart LR
 
 ## 6. 能力地图
 
-24 项能力如何分布到学校系统，见 [§2 能力总表](INTERFACE-INDEX.md#2-能力总表)。下面是同一份数据的关系视图。
+各项能力如何分布到学校系统，见 [§2 能力总表](INTERFACE-INDEX.md#2-能力总表)（该表是能力的唯一清单，本文不重复计数）。下面是同一份数据的关系视图。
 
 ```mermaid
 flowchart LR

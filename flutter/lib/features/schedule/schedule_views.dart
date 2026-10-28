@@ -67,7 +67,7 @@ class ScheduleCourseBrowser extends StatelessWidget {
           ),
         ),
         if (visibleCourses.isEmpty)
-          ScheduleEmptySection(
+          AppleStatusSection(
             title: searching
                 ? '没有匹配的课程'
                 : snapshot.weeks.isEmpty

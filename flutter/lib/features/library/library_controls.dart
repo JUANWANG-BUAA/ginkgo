@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
 /// The catalogue search field: one magnifier row with a submit button. The
@@ -64,7 +65,7 @@ class LibrarySearchField extends StatelessWidget {
                 : Text(
                     submitLabel,
                     style: const TextStyle(
-                      fontSize: 15,
+                      fontSize: AppleDesign.calloutSize,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

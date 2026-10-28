@@ -259,7 +259,7 @@ abstract class RustLibApi extends BaseApi {
 
   Future<CampusCardBalanceResponse> crateApiLiveLoadCampusCardBalance();
 
-  Future<ReadOnlyResponse> crateApiLiveLoadCareerEvents({
+  Future<CareerEventsResponse> crateApiLiveLoadCareerEvents({
     required String month,
     required bool forceRefresh,
   });
@@ -1654,7 +1654,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "load_campus_card_balance", argNames: []);
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadCareerEvents({
+  Future<CareerEventsResponse> crateApiLiveLoadCareerEvents({
     required String month,
     required bool forceRefresh,
   }) {
@@ -1672,7 +1672,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_career_events_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadCareerEventsConstMeta,
@@ -3574,6 +3574,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CareerEventsDto dco_decode_box_autoadd_career_events_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_career_events_dto(raw);
+  }
+
+  @protected
   ClassroomQuery dco_decode_box_autoadd_classroom_query(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_classroom_query(raw);
@@ -3640,6 +3646,50 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       fetchedAt: dco_decode_opt_String(arr[1]),
       failure: dco_decode_opt_box_autoadd_failure_code(arr[2]),
       failureDetail: dco_decode_opt_String(arr[3]),
+    );
+  }
+
+  @protected
+  CareerEventDto dco_decode_career_event_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
+    return CareerEventDto(
+      id: dco_decode_String(arr[0]),
+      title: dco_decode_String(arr[1]),
+      campus: dco_decode_String(arr[2]),
+      place: dco_decode_String(arr[3]),
+      beginsAt: dco_decode_String(arr[4]),
+      endsAt: dco_decode_String(arr[5]),
+      fairType: dco_decode_String(arr[6]),
+      status: dco_decode_String(arr[7]),
+      url: dco_decode_String(arr[8]),
+    );
+  }
+
+  @protected
+  CareerEventsDto dco_decode_career_events_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return CareerEventsDto(
+      month: dco_decode_String(arr[0]),
+      events: dco_decode_list_career_event_dto(arr[1]),
+      fetchedAt: dco_decode_String(arr[2]),
+    );
+  }
+
+  @protected
+  CareerEventsResponse dco_decode_career_events_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return CareerEventsResponse(
+      data: dco_decode_opt_box_autoadd_career_events_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
     );
   }
 
@@ -4147,6 +4197,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<CareerEventDto> dco_decode_list_career_event_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_career_event_dto).toList();
+  }
+
+  @protected
   List<CheckInCourse> dco_decode_list_check_in_course(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_check_in_course).toList();
@@ -4328,6 +4384,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   bool? dco_decode_opt_box_autoadd_bool(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_bool(raw);
+  }
+
+  @protected
+  CareerEventsDto? dco_decode_opt_box_autoadd_career_events_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_career_events_dto(raw);
   }
 
   @protected
@@ -4653,6 +4715,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CareerEventsDto sse_decode_box_autoadd_career_events_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_career_events_dto(deserializer));
+  }
+
+  @protected
   ClassroomQuery sse_decode_box_autoadd_classroom_query(
     SseDeserializer deserializer,
   ) {
@@ -4729,6 +4799,54 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       failure: var_failure,
       failureDetail: var_failureDetail,
     );
+  }
+
+  @protected
+  CareerEventDto sse_decode_career_event_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_campus = sse_decode_String(deserializer);
+    var var_place = sse_decode_String(deserializer);
+    var var_beginsAt = sse_decode_String(deserializer);
+    var var_endsAt = sse_decode_String(deserializer);
+    var var_fairType = sse_decode_String(deserializer);
+    var var_status = sse_decode_String(deserializer);
+    var var_url = sse_decode_String(deserializer);
+    return CareerEventDto(
+      id: var_id,
+      title: var_title,
+      campus: var_campus,
+      place: var_place,
+      beginsAt: var_beginsAt,
+      endsAt: var_endsAt,
+      fairType: var_fairType,
+      status: var_status,
+      url: var_url,
+    );
+  }
+
+  @protected
+  CareerEventsDto sse_decode_career_events_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_month = sse_decode_String(deserializer);
+    var var_events = sse_decode_list_career_event_dto(deserializer);
+    var var_fetchedAt = sse_decode_String(deserializer);
+    return CareerEventsDto(
+      month: var_month,
+      events: var_events,
+      fetchedAt: var_fetchedAt,
+    );
+  }
+
+  @protected
+  CareerEventsResponse sse_decode_career_events_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_career_events_dto(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return CareerEventsResponse(data: var_data, failure: var_failure);
   }
 
   @protected
@@ -5341,6 +5459,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<CareerEventDto> sse_decode_list_career_event_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CareerEventDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_career_event_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<CheckInCourse> sse_decode_list_check_in_course(
     SseDeserializer deserializer,
   ) {
@@ -5674,6 +5806,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_box_autoadd_bool(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  CareerEventsDto? sse_decode_opt_box_autoadd_career_events_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_career_events_dto(deserializer));
     } else {
       return null;
     }
@@ -6068,6 +6213,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_career_events_dto(
+    CareerEventsDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_career_events_dto(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_classroom_query(
     ClassroomQuery self,
     SseSerializer serializer,
@@ -6152,6 +6306,44 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_String(self.fetchedAt, serializer);
     sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
     sse_encode_opt_String(self.failureDetail, serializer);
+  }
+
+  @protected
+  void sse_encode_career_event_dto(
+    CareerEventDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_String(self.campus, serializer);
+    sse_encode_String(self.place, serializer);
+    sse_encode_String(self.beginsAt, serializer);
+    sse_encode_String(self.endsAt, serializer);
+    sse_encode_String(self.fairType, serializer);
+    sse_encode_String(self.status, serializer);
+    sse_encode_String(self.url, serializer);
+  }
+
+  @protected
+  void sse_encode_career_events_dto(
+    CareerEventsDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.month, serializer);
+    sse_encode_list_career_event_dto(self.events, serializer);
+    sse_encode_String(self.fetchedAt, serializer);
+  }
+
+  @protected
+  void sse_encode_career_events_response(
+    CareerEventsResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_career_events_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
   }
 
   @protected
@@ -6577,6 +6769,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_career_event_dto(
+    List<CareerEventDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_career_event_dto(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_check_in_course(
     List<CheckInCourse> self,
     SseSerializer serializer,
@@ -6884,6 +7088,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_box_autoadd_bool(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_career_events_dto(
+    CareerEventsDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_career_events_dto(self, serializer);
     }
   }
 

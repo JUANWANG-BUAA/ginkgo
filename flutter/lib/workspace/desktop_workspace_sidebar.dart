@@ -55,7 +55,7 @@ Widget workspaceBrandIdentity(
               const Text(
                 'Ginkgo',
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: AppleDesign.calloutSize,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.2,
                 ),

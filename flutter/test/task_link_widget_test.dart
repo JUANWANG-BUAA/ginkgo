@@ -30,7 +30,7 @@ Map<String, dynamic> record(
   if (source != null) 'source': {'kind': 'homework', 'assignment_id': source},
 };
 
-class TaskFake implements CampusGateway, AcademicGateway {
+class TaskFake implements LocalTaskGateway, AcademicGateway {
   final rows = <Map<String, dynamic>>[];
   final calls = <String>[];
   final roots = <String>[];

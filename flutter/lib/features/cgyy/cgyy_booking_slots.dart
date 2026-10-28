@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
+import 'package:ginkgo_mirror/design/apple_design.dart';
+
 import 'cgyy_models.dart';
 
 /// One venue's bookable slots.
@@ -43,7 +45,7 @@ class CgyySlotGrid extends StatelessWidget {
                 child: Text(
                   spaceName,
                   style: const TextStyle(
-                    fontSize: 15,
+                    fontSize: AppleDesign.calloutSize,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

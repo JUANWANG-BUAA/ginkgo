@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:ginkgo_mirror/shared/school_links.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/library_loans.dart';
@@ -10,8 +10,12 @@ import 'library_controls.dart';
 
 /// Private records exist only while this page is active. No background reads.
 class LibraryLoansPage extends StatefulWidget {
-  const LibraryLoansPage({super.key, this.gateway});
+  const LibraryLoansPage({super.key, this.gateway, this.officialGateway});
   final LibraryLoansGateway? gateway;
+
+  /// The official portal entry is an independent capability; a service may
+  /// offer the private read without offering the public link.
+  final LibraryLoansOfficialGateway? officialGateway;
   @override
   State<LibraryLoansPage> createState() => _LibraryLoansPageState();
 }
@@ -86,17 +90,11 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
   }
 
   Future<void> _openOfficial() async {
-    final gateway = widget.gateway;
-    if (gateway == null || gateway is! LibraryLoansOfficialGateway) return;
+    final gateway = widget.officialGateway;
+    if (gateway == null) return;
     try {
-      final uri = Uri.tryParse(
-        (gateway as LibraryLoansOfficialGateway).libraryLoansPortalUrl(),
-      );
-      if (uri == null ||
-          uri.scheme != 'https' ||
-          uri.host.isEmpty ||
-          uri.userInfo.isNotEmpty ||
-          !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      final url = gateway.libraryLoansPortalUrl();
+      if (!await openSchoolLink(url)) {
         throw StateError('official website unavailable');
       }
     } catch (_) {
@@ -156,7 +154,7 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
                     child: Text(data == null ? '读取本人借阅' : '刷新本人借阅'),
                   ),
                 if (_busy) const GinkgoActivity(size: 24),
-                if (widget.gateway is LibraryLoansOfficialGateway)
+                if (widget.officialGateway != null)
                   CupertinoButton(
                     onPressed: _openOfficial,
                     child: const Text('打开图书馆官网'),

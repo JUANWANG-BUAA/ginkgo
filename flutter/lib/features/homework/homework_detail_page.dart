@@ -3,11 +3,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 
 import 'package:flutter/material.dart' show SelectableText;
-import 'package:url_launcher/url_launcher.dart';
+import 'package:ginkgo_mirror/shared/school_links.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
@@ -26,7 +27,7 @@ class HomeworkDetailPage extends StatefulWidget {
   });
   final HomeworkItem item;
   final AcademicGateway service;
-  final CampusGateway? taskService;
+  final LocalTaskGateway? taskService;
   final String? storageRoot;
   final bool openTaskOnLinked;
   @override
@@ -34,11 +35,12 @@ class HomeworkDetailPage extends StatefulWidget {
 }
 
 class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
-  HomeworkDetailResponse? data;
-  String? error;
-  bool busy = false;
+  late final RefreshSection<HomeworkDetailResponse> section;
+  HomeworkDetailResponse? get data => section.value;
+  String? get error => section.error;
+  set error(String? value) => section.error = value;
+  bool get busy => section.loading;
   int generation = 0;
-  bool _pendingRefresh = false;
 
   @override
   void didUpdateWidget(covariant HomeworkDetailPage oldWidget) {
@@ -46,10 +48,11 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
     if (oldWidget.service != widget.service ||
         oldWidget.item.id != widget.item.id) {
       generation++;
-      data = null;
-      error = null;
-      busy = false;
-      _pendingRefresh = false;
+      section
+        ..invalidate()
+        ..value = null
+        ..error = null
+        ..loading = false;
       load();
     }
   }
@@ -57,48 +60,36 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
   @override
   void initState() {
     super.initState();
+    section = RefreshSection<HomeworkDetailResponse>()
+      ..addListener(() {
+        if (mounted) setState(() {});
+      });
     load();
   }
 
-  Future<void> load({bool force = false}) async {
-    // A pull-to-refresh during an in-flight read is remembered and rerun
-    // once it settles, never silently dropped.
-    if (busy) {
-      if (force) _pendingRefresh = true;
-      return;
-    }
-    final epoch = generation;
-    setState(() {
-      busy = true;
-      error = null;
-    });
-    try {
-      final result = await widget.service.homeworkDetail(
-        widget.item.id.replaceFirst('spoc:', ''),
-        forceRefresh: force,
-      );
-      if (!mounted || epoch != generation) return;
-      setState(() {
-        busy = false;
+  @override
+  void dispose() {
+    section.dispose();
+    super.dispose();
+  }
+
+  Future<void> load({bool force = false}) {
+    final service = widget.service;
+    final itemId = widget.item.id;
+    return section.refresh(
+      () async {
+        final result = await service.homeworkDetail(
+          itemId.replaceFirst('spoc:', ''),
+          forceRefresh: force,
+        );
         if (result.failure != null && !result.stale) {
-          error = failureMessage(result.failure);
-        } else {
-          data = result;
+          return SectionResult(error: failureMessage(result.failure));
         }
-      });
-    } catch (_) {
-      if (mounted && epoch == generation) {
-        setState(() {
-          busy = false;
-          error = failureMessage(null);
-        });
-      }
-    }
-    if (!mounted || epoch != generation) return;
-    if (_pendingRefresh) {
-      _pendingRefresh = false;
-      await load(force: true);
-    }
+        return SectionResult(value: result);
+      },
+      fallbackError: failureMessage(null),
+      force: force,
+    );
   }
 
   /// The freshest submission status. The loaded detail wins over the list
@@ -294,7 +285,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                     child: SelectableText(
                       detail.content ?? '上游未返回正文，请在 SPOC 原站点查看。',
                       style: GinkgoTypography.body.copyWith(
-                        fontSize: 16,
+                        fontSize: AppleDesign.bodyCondensedSize,
                         textBaseline: TextBaseline.alphabetic,
                         height: 1.6,
                         color: CupertinoColors.label.resolveFrom(context),
@@ -346,22 +337,9 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                     ? null
                     : () async {
                         final epoch = generation;
-                        try {
-                          final url = Uri.parse(data!.sourceUrl!);
-                          if (url.scheme != 'https' || url.host.isEmpty) {
-                            throw const FormatException('Invalid source URL');
-                          }
-                          final opened = await launchUrl(
-                            url,
-                            mode: LaunchMode.externalApplication,
-                          );
-                          if (!opened && mounted && epoch == generation) {
-                            setState(() => error = '无法打开浏览器，请稍后重试。');
-                          }
-                        } catch (_) {
-                          if (mounted && epoch == generation) {
-                            setState(() => error = '无法打开浏览器，请稍后重试。');
-                          }
+                        final opened = await openSchoolLink(data!.sourceUrl!);
+                        if (!opened && mounted && epoch == generation) {
+                          setState(() => error = schoolLinkError);
                         }
                       },
               ),
@@ -391,7 +369,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
             value,
             contextMenuBuilder: _cupertinoSelectionMenu,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AppleDesign.bodyCondensedSize,
               color: CupertinoColors.label.resolveFrom(context),
             ),
           ),

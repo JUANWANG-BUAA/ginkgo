@@ -340,6 +340,8 @@ async fn sign_out_clears_identity_credentials_and_snapshots() {
     service.load_classrooms(&input()).await.expect("classrooms");
     let requests = transport.request_count();
     service.sign_out().await;
+    // Revocation is complete before the second step runs: no upstream request,
+    // no identity, no cookies.
     assert_eq!(transport.request_count(), requests);
     assert_eq!(
         service.status(),
@@ -349,6 +351,16 @@ async fn sign_out_clears_identity_credentials_and_snapshots() {
             route: RoutePreference::Automatic,
         }
     );
+    assert_eq!(
+        service.vault.names().len(),
+        1,
+        "revocation must not depend on platform storage latency"
+    );
+    // The saved password is purged by the separate, gate-free second step.
+    service.purge_credentials().await;
+    assert!(service.vault.names().is_empty());
+    // Purging twice is harmless and never resurrects an account.
+    service.purge_credentials().await;
     assert!(service.vault.names().is_empty());
 }
 
@@ -447,6 +459,7 @@ async fn sign_out_after_route_change_removes_saved_account() {
     assert!(!service.status().signed_in());
     assert_eq!(service.vault.names().len(), 1);
     service.sign_out().await;
+    service.purge_credentials().await;
     assert!(service.vault.names().is_empty());
 }
 
@@ -476,6 +489,21 @@ async fn concurrent_school_recovery_joins_one_login_chain() {
     let (a, b) = tokio::join!(service.silent_login(), service.silent_login());
     assert!(a.is_ok() && b.is_ok());
     assert_eq!(transport.request_count() - before, 5);
+}
+
+#[tokio::test]
+async fn school_and_gateway_recovery_do_not_share_a_gate() {
+    let (service, _) = recovery_failure_service();
+    let _school = service.school_recovery_gate.lock().await;
+    let gateway = tokio::time::timeout(
+        std::time::Duration::from_millis(50),
+        service.ensure_webvpn_session(),
+    )
+    .await;
+    assert!(
+        gateway.is_ok(),
+        "gateway recovery must not wait for the independent school CAS chain"
+    );
 }
 
 #[tokio::test]

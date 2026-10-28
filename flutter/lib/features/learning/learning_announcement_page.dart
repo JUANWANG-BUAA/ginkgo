@@ -1,9 +1,8 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/application/learning.dart';
-import 'package:ginkgo_mirror/application/learning_context.dart';
 import 'package:ginkgo_mirror/application/learning_file_actions.dart';
+import 'package:ginkgo_mirror/application/learning_ports.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
@@ -45,14 +44,16 @@ class LearningAnnouncementPageState extends State<LearningAnnouncementPage> {
   }
 
   Future<void> _load() => detail.refresh(() async {
-    final s = widget.service;
-    final value = s is CourseLearningContextGateway
-        ? await s.courseAnnouncementDetailIn(
+    final ports = LearningPorts.resolve(widget.service);
+    final context = ports.context;
+    final gateway = ports.announcements;
+    final value = context != null
+        ? await context.courseAnnouncementDetailIn(
             widget.course,
             widget.column!,
             widget.announcement.id,
           )
-        : await (s as CourseAnnouncementGateway).courseAnnouncementDetail(
+        : await gateway!.courseAnnouncementDetail(
             widget.course,
             widget.announcement.id,
           );
@@ -60,19 +61,21 @@ class LearningAnnouncementPageState extends State<LearningAnnouncementPage> {
     return SectionResult(value: value);
   }, fallbackError: '公告读取失败，请重试或前往官网');
   Future<LearningDownload> _download(String file) {
-    final s = widget.service;
-    return s is CourseLearningContextGateway
-        ? s.courseAnnouncementAttachmentIn(
-            widget.course,
-            widget.column!,
-            widget.announcement.id,
-            file,
-          )
-        : (s as CourseAnnouncementGateway).courseAnnouncementAttachment(
-            widget.course,
-            widget.announcement.id,
-            file,
-          );
+    final ports = LearningPorts.resolve(widget.service);
+    final context = ports.context;
+    if (context != null) {
+      return context.courseAnnouncementAttachmentIn(
+        widget.course,
+        widget.column!,
+        widget.announcement.id,
+        file,
+      );
+    }
+    return ports.announcements!.courseAnnouncementAttachment(
+      widget.course,
+      widget.announcement.id,
+      file,
+    );
   }
 
   @override

@@ -62,7 +62,9 @@ class HomeworkSummaryMetrics extends StatelessWidget {
                     metric.label,
                     style: TextStyle(
                       fontSize: 12,
-                      color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                      color: CupertinoColors.secondaryLabel.resolveFrom(
+                        context,
+                      ),
                     ),
                   ),
                 ],
@@ -141,7 +143,11 @@ class HomeworkStatusBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
       ),
     );
   }
@@ -165,18 +171,15 @@ class HomeworkDeadlineText extends StatelessWidget {
     final late =
         item.status == HomeworkStatus.pending &&
         isHomeworkOverdue(item.dueAt, clock);
-    final relative =
-        item.status == HomeworkStatus.submitted
-            ? null
-            : homeworkRelativeDeadline(item.dueAt, clock);
+    final relative = item.status == HomeworkStatus.submitted
+        ? null
+        : homeworkRelativeDeadline(item.dueAt, clock);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           item.dueAt == null
-              ? (item.status == HomeworkStatus.submitted
-                    ? '已提交'
-                    : '截止时间未确认')
+              ? (item.status == HomeworkStatus.submitted ? '已提交' : '截止时间未确认')
               : (item.status == HomeworkStatus.submitted
                     ? '已提交 · 截止 ${schoolTimestampLabel(item.dueAt)}'
                     : '截止 ${schoolTimestampLabel(item.dueAt)}'),
@@ -235,8 +238,7 @@ class HomeworkItemTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (item.courseRole == 'assistant')
-            const Text('助教课程 · 不代表个人待交作业'),
+          if (item.courseRole == 'assistant') const Text('助教课程 · 不代表个人待交作业'),
           Wrap(
             spacing: 10,
             runSpacing: 7,

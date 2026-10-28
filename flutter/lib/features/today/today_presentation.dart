@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/design/ginkgo_visuals.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 
 /// Course fields the school left out stay readable: a missing place never
 /// renders as an empty line, and the focus card and the course list always
@@ -105,11 +105,7 @@ class TodaySectionHeader extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 2),
-                Icon(
-                  CupertinoIcons.chevron_forward,
-                  size: 13,
-                  color: accent,
-                ),
+                Icon(CupertinoIcons.chevron_forward, size: 13, color: accent),
               ],
             ),
           )

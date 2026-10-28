@@ -23,14 +23,7 @@ pub struct ScheduleQueryInput {
     pub force_refresh: bool,
 }
 
-#[derive(Debug, PartialEq, Eq)]
-pub struct ScheduleOutcome {
-    pub data: ScheduleData,
-    pub fetched_at: String,
-    pub from_cache: bool,
-    pub stale: bool,
-    pub failure: Option<AppError>,
-}
+pub type ScheduleOutcome = super::ReadSnapshot<ScheduleData>;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct TodayOutcome {

@@ -93,9 +93,11 @@ pub struct SchoolClient<T: HttpTransport, V: CredentialVault> {
     pub(crate) route: StdMutex<RoutePreference>,
     pub(crate) snapshots: ReadSnapshots,
     pub(crate) bykc_access: tokio::sync::Mutex<()>,
-    pub(crate) checkin_request_gate: tokio::sync::Mutex<()>,
+    pub(crate) checkin_request_gates:
+        Mutex<std::collections::BTreeMap<String, std::sync::Arc<tokio::sync::Mutex<()>>>>,
     pub(crate) checkin_progress: Mutex<super::checkin_service::CheckInProgress>,
-    recovery_gate: tokio::sync::Mutex<()>,
+    pub(crate) school_recovery_gate: tokio::sync::Mutex<()>,
+    gateway_recovery_gate: tokio::sync::Mutex<()>,
     pub(crate) automatic_login_failure: Mutex<Option<(Instant, AppError)>>,
     school_generation: AtomicU64,
     gateway_generation: AtomicU64,
@@ -105,6 +107,9 @@ pub struct SchoolClient<T: HttpTransport, V: CredentialVault> {
     pub(crate) cgyy_safety:
         Mutex<std::collections::BTreeMap<String, super::cgyy_booking_service::BookingSafety>>,
     pub(crate) cgyy_mutation_gate: tokio::sync::Mutex<()>,
+    /// Account revoked by the last sign-out, handed from the fast revocation
+    /// step to the credential purge that runs outside the caller's gate.
+    pub(crate) forgotten_account: Mutex<Option<String>>,
 }
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
@@ -119,17 +124,27 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             snapshots: ReadSnapshots::default(),
             route: StdMutex::new(RoutePreference::Automatic),
             bykc_access: tokio::sync::Mutex::new(()),
-            checkin_request_gate: tokio::sync::Mutex::new(()),
+            checkin_request_gates: Mutex::default(),
             checkin_progress: Mutex::default(),
-            recovery_gate: tokio::sync::Mutex::new(()),
+            school_recovery_gate: tokio::sync::Mutex::new(()),
+            gateway_recovery_gate: tokio::sync::Mutex::new(()),
             automatic_login_failure: Mutex::new(None),
             school_generation: AtomicU64::new(0),
             gateway_generation: AtomicU64::new(0),
             graduate_request_gate: tokio::sync::Mutex::new(()),
             library_login_gate: tokio::sync::Mutex::new(()),
             cgyy_safety: Mutex::default(),
+            forgotten_account: Mutex::default(),
             cgyy_mutation_gate: tokio::sync::Mutex::new(()),
         }
+    }
+
+    pub(crate) fn checkin_day_gate(&self, date: &str) -> std::sync::Arc<tokio::sync::Mutex<()>> {
+        self.checkin_request_gates
+            .lock()
+            .entry(date.to_owned())
+            .or_default()
+            .clone()
     }
 
     pub(crate) fn set_authenticated(&self, account: String, profile: UserProfile) {
@@ -224,7 +239,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
 
     pub(crate) async fn silent_login(&self) -> Result<(), AppError> {
         let generation = self.school_generation.load(Ordering::Acquire);
-        let _recovery = self.recovery_gate.lock().await;
+        let _recovery = self.school_recovery_gate.lock().await;
         if self.school_generation.load(Ordering::Acquire) != generation {
             return Ok(());
         }
@@ -268,7 +283,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     /// never leave every later request stranded.
     pub(crate) async fn ensure_webvpn_session(&self) -> Result<(), AppError> {
         let generation = self.gateway_generation.load(Ordering::Acquire);
-        let _recovery = self.recovery_gate.lock().await;
+        let _recovery = self.gateway_recovery_gate.lock().await;
         if self.gateway_generation.load(Ordering::Acquire) != generation {
             return Ok(());
         }

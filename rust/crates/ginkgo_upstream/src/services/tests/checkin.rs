@@ -120,7 +120,7 @@ async fn checkin_retry_after_a_failed_day_read_keeps_the_successful_app_login() 
 }
 
 #[tokio::test]
-async fn checkin_fresh_snapshot_does_not_wait_for_another_day_network_query() {
+async fn checkin_day_gates_only_serialize_reads_for_the_same_date() {
     use std::{future::Future, task::Poll};
     let transport = MockTransport::default();
     let service = SchoolClient::new(
@@ -135,12 +135,14 @@ async fn checkin_fresh_snapshot_does_not_wait_for_another_day_network_query() {
         },
     );
     let date = "2026-01-01".to_owned();
+    let other_date = "2026-01-02".to_owned();
     let timestamp = service
         .snapshots
         .checkin
         .lock()
         .insert(date.clone(), vec![]);
-    let gate = service.checkin_request_gate.lock().await;
+    let other_day_gate = service.checkin_day_gate(&other_date);
+    let gate = other_day_gate.lock().await;
     let mut cached = Box::pin(service.load_checkin_on_date(Some(date.clone()), false));
     match std::future::poll_fn(|cx| Poll::Ready(cached.as_mut().poll(cx))).await {
         Poll::Ready(Ok(outcome)) => {
@@ -149,15 +151,28 @@ async fn checkin_fresh_snapshot_does_not_wait_for_another_day_network_query() {
         }
         _ => panic!("a cached day must not wait for a different day's network query"),
     }
+    let mut other_day = Box::pin(service.load_checkin_on_date(Some(date.clone()), true));
+    assert!(
+        std::future::poll_fn(|cx| Poll::Ready(other_day.as_mut().poll(cx)))
+            .await
+            .is_ready(),
+        "a different day must reach its own network read instead of waiting"
+    );
+    drop(other_day);
+    drop(gate);
+
+    let requests_before_same_day = transport.request_count();
+    let date_gate = service.checkin_day_gate(&date);
+    let same_day_gate = date_gate.lock().await;
     let mut forced = Box::pin(service.load_checkin_on_date(Some(date), true));
     assert!(
         std::future::poll_fn(|cx| Poll::Ready(forced.as_mut().poll(cx)))
             .await
             .is_pending()
     );
-    assert_eq!(transport.request_count(), 0);
+    assert_eq!(transport.request_count(), requests_before_same_day);
     drop(forced);
-    drop(gate);
+    drop(same_day_gate);
 }
 
 #[tokio::test]

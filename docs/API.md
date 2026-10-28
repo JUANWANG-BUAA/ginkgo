@@ -11,6 +11,7 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 87 | 匿名公开读取与就业活动协议（工作树） | 部分公开只读适配器复用已登录会话的 Cookie 容器；就业月历协议只在修订摘要中出现 | 已迁移的 Android 公开只读适配器不发送、不接收 Cookie / Authorization / Proxy-Authorization，也不改变学校会话路线；就业月历的 URL、参数、字段、结构变化与证据边界完整登记于 §6G | [匿名公开入口复核](_audit/2026-10-28-student-services-public.md)；`Session::send_anonymous` 合成回归与公开适配器回归；未使用真实账号 |
 | 86 | 工作台呈现与异步边界（工作树） | 聚合时间线重复信息；目录视觉重构破坏原 iOS 分组；服务替换可写入旧响应；CGYY fsync 阻塞 worker | 删除时间线，考试有内容才显示；恢复原 iOS 目录与二级搜索；服务替换丢弃迟到响应；CGYY 与待办阻塞写进入 `spawn_blocking` | [最终交互规则](UI-DESIGN.md#最终交互规则2026-10-28)；考试/目录/服务替换 widget 回归、bridge 与 CGYY 合成写回归 |
 | 85 | §7.2 签到重复场次展示（工作树） | 同场次不同上游 ID 全部拆成独立行，已签到记录重复 | 仅未签到目标保留独立操作入口；已签到等无需操作的同场次记录折叠为一行，冲突仍待确认 | 本文件 §7.2；Rust 同 ID、不同 ID 未签到和四条已签到合成回归 |
 | 84 | §1.9 Android 显式退出（工作树） | 退出等待上游登出 GET；工作区回调丢失；偏好写入阻塞登录页 | 退出改为本地身份/Cookie/快照/凭据清理，不再等待学校往返；补传工作区回调，先返回登录页再完成偏好写入。学校 SSO 服务端注销不作承诺 | 本文件 §1.9；Rust 零上游请求与 Flutter 完整退出 UI 回归 |
@@ -141,6 +142,10 @@
 - **重定向策略**：认证链路上的请求必须用不自动跟随重定向的会话手动逐跳处理（见 §1.6）；业务数据请求可自动跟随。
 
 ---
+
+### 0.1 Android 匿名公开读取的会话边界（2026-10-29）
+
+Rust 的 `Session::send_anonymous` 为已迁移的 Android 公开只读适配器创建临时会话：不发送 `Cookie`、`Authorization` 或 `Proxy-Authorization`，不接收/保存响应 `Set-Cookie`，且不会修改已登录学校会话的 Cookie 或路由。该通道用于就业月历、学术文化、校园通知、校车时刻表、公开书目/馆藏、图书馆人数和 GitHub 更新检查；需要登录的本人数据仍使用各自的认证会话。本条描述当前 Rust/Flutter 工作树，不外推到冻结的 Apple 客户端。协议章节说明各端点和证据，完整跨层签名见 [接口索引](INTERFACE-INDEX.md)。
 
 ## 1. 统一认证（SSO + UC）✅
 
@@ -716,7 +721,7 @@ Rust/Flutter镜像采用借用共享transport的独立Session，复制用户原�
 >
 > 处置：**不放宽全局 TLS、不改系统信任库、不绕 WebVPN**，改为**按主机作用域**加载该中间证书——`rust/certs/globalsign_gcc_r3_dv_tls_ca_2020.pem`（来自叶子证书 AIA 地址，`CN=GlobalSign GCC R3 DV TLS CA 2020`，签发者 GlobalSign Root CA - R3，`CA:TRUE, pathlen:0`，2029-03-18 到期）只加到 `space.lib.buaa.edu.cn` 专用 client；其他主机仍用默认信任库。回滚＝删除该文件与 `reqwest_transport.rs` 中的常量即可。2026-10-23 实机复验：检索返回真实 9 条结果、馆藏返回真实复本与“可借”状态。
 
-> **2026-10-23 Android 只读接入（search 与 holdings）**：`POST /opac/search` 与 `GET /opac/bibs/{bibId}/holdings` 已进入 Rust 适配层，使用**隔离 Cookie 会话**（不带登录态），`code !== 0` 归为业务拒绝而不是空列表；`data.holdings` 的 JSON 字符串在 Rust 内二次解码，限制 512 KiB／深度 8／500 条。页面只做检索与复本展示，不提供续借、预约、委托或任何写操作，也不读取本人借阅。字段缺失保留空值，`callno` 兼收数组与字符串，馆藏状态只保留学校原文。**真实服务的完整字段、状态码映射与分页边界仍未验收。**
+> **2026-10-23 Android 只读接入（search 与 holdings）**：`POST /opac/search` 与 `GET /opac/bibs/{bibId}/holdings` 已进入 Rust 适配层，使用 `Session::send_anonymous` 无 Cookie 通道；请求不带登录态，响应 `Set-Cookie` 不保存，跨重定向也不共享公开 Cookie。`code !== 0` 归为业务拒绝而不是空列表；`data.holdings` 的 JSON 字符串在 Rust 内二次解码，限制 512 KiB／深度 8／500 条。页面只做检索与复本展示，不提供续借、预约、委托或任何写操作，也不读取本人借阅。字段缺失保留空值，`callno` 兼收数组与字符串，馆藏状态只保留学校原文。**真实服务的完整字段、状态码映射与分页边界仍未验收。**
 
 | 方法／路径（接基址） | 参数／形状 | 证据状态 |
 | --- | --- | --- |
@@ -838,6 +843,22 @@ OPAC 非零业务码仍为业务拒绝，不推测具体含义。
 
 非摆渡余票先 open_seat_num-student_num-teacher_num，再按type/is_parttime/currentTime/ticket_all_minute/seat_retain_num分支扣保留，负数夹0；摆渡显示“摆渡车”，不显示计算值0。此为当前身份展示算法，匿名可见性、资格、票价、时间单位／时区、所有放票分支未验。时刻表通知发布日和适用日分开，不用计划人数代余票。POST退款、购票、订单、团体票等未调用。详见[审计 §6](_audit/2026-10-23-ibuaa-protocol-research.md)。
 
+## 6D. 阳光打卡（官方静态；下一阶段手动提交需求，真实写未验收）⚠️
+
+用户明确要求手动提交功能；本轮仅研究，不实现／不上传／不提交。完整原站hash与UTF-16偏移见[审计 §8](_audit/2026-10-23-ibuaa-protocol-research.md)；设计见[方案 §12.7](NEXT-STAGE-PLAN-2026-10-23.md)。不把阳光活动打卡与iClass课程签到混同。
+
+- YM/1172：逻辑路径 `getList/getCount/get/clockin` 在 `/Front/Clockin/Clockin/` 下；上传 `/Front/Upload/File/post`。base由部署origin/path再拼api，**最终URL未实网确认**。get包装除登录外转POST并合并身份字段，code==1解包；不是HTTP POST即写。UTP重复合并的线缆编码仍待验证。
+- 体育／艺术表单K共同字段 `start_time,end_time,place_type,place,isopen,form_time_fmt,images,classify_id,item_id,item_name`，艺术另 `thought,issync`。分类／子项目动态加载；moment X生成Unix秒字符串，时区、跨天、合法时长和补录政策仍未确认。
+- 地点手填，place_type1校内/2校外；已读表单无坐标／定位SDK调用，不能凭整站阴性检索断言没有宿主安全校验，亦无依据现在申请定位权限。
+- 至少1最多3张本人出镜图，JPG/JPEG/PNG、每张5MiB；多次FormData字段file上传→file_name数组JSON字符串→K.images，再一次clockin。上传本身为写；部分成功与提交未知要分别保护，不自动重传或删残留。
+- 官网isopen默认1公开广场。方案建议新草稿向学校请求 `isopen=0`，上传前确认页醒目告知；这是客户端提议，服务端是否接受／私密是否真实生效必须实测。证据不足时不得把界面标成“已私密／不会公开”，并应阻断真实提交。首期不承诺艺术issync博雅同步（未见可达切换及完整协议）。
+- clockin响应静态读取record_id、period_id/term_id、体育week_count/week_num或艺术month_count/month_num。周月超额／非周期提示来自**提交之后**，不是前置拒绝；已记录、有效计数和审核／考勤不可混同。
+- YD/2860按record_id查询详情是回查候选，未实测；无ID超时用人工记录核验，不靠模糊列表或空列表自动判断结果。不照搬官网缺业务catch/finally／单飞门禁的行为。
+- 下一阶段必须做到上传前本人确认、账号绑定、批次单飞、一次clockin、未知不重发、重认证不重放、失败清理敏感本地临时数据、按ID只读核验。照片处理／EXIF、上传残留权限、服务器幂等、所有字段规则尚未知；真实写须另明确授权。
+
+---
+
+
 ## 6E. 校园卡余额（官方前端与脱敏结构，真实 App 验收中）⚠️
 
 证据索引：[2026-10-28 校园卡余额协议](_audit/2026-10-28-campus-card-balance.md)。仅只读校园卡余额，不接入银行卡、消费明细、充值、挂失、转账或支付密码。
@@ -857,22 +878,17 @@ OPAC 非零业务码仍为业务拒绝，不推测具体含义。
 - 详情：`../info/1076/<id>.htm` 归一化为 `https://www.buaa.edu.cn/info/1076/<id>.htm`，用户点击后交外部浏览器，不自动读取附件或名单。
 - 分页：官网按倒序文件页码排列，逻辑页 `p` 对应“当次总页数 + 1 - p”。后续页先读取首页当次总页数，再请求 `/index/xswh1/<倒序页码>.htm`；不得把某次观察到的 63 页或 `62.htm` 固定为永久规则。
 - 失败形态：未匹配到列表项、标题为空或 ID 重复按结构变化处理，不能转换成确认空；成功结果使用 5 分钟进程缓存，失败保留旧快照和原成功时间。真实设备、原文跳转和官网对照仍未验收。
+- 隐私边界：请求不携带账号 Cookie 或认证头；响应的 `Set-Cookie` 不写入学校登录会话。该列表无需登录。
 
-## 6D. 阳光打卡（官方静态；下一阶段手动提交需求，真实写未验收）⚠️
+## 6G. 就业活动公开月历（工作树，只读）
 
-用户明确要求手动提交功能；本轮仅研究，不实现／不上传／不提交。完整原站hash与UTF-16偏移见[审计 §8](_audit/2026-10-23-ibuaa-protocol-research.md)；设计见[方案 §12.7](NEXT-STAGE-PLAN-2026-10-23.md)。不把阳光活动打卡与iClass课程签到混同。
+证据索引：[2026-10-28 公开入口复核](_audit/2026-10-28-student-services-public.md)。只读取公开宣讲会／双选会月历，不接报名、收藏等写操作。
 
-- YM/1172：逻辑路径 `getList/getCount/get/clockin` 在 `/Front/Clockin/Clockin/` 下；上传 `/Front/Upload/File/post`。base由部署origin/path再拼api，**最终URL未实网确认**。get包装除登录外转POST并合并身份字段，code==1解包；不是HTTP POST即写。UTP重复合并的线缆编码仍待验证。
-- 体育／艺术表单K共同字段 `start_time,end_time,place_type,place,isopen,form_time_fmt,images,classify_id,item_id,item_name`，艺术另 `thought,issync`。分类／子项目动态加载；moment X生成Unix秒字符串，时区、跨天、合法时长和补录政策仍未确认。
-- 地点手填，place_type1校内/2校外；已读表单无坐标／定位SDK调用，不能凭整站阴性检索断言没有宿主安全校验，亦无依据现在申请定位权限。
-- 至少1最多3张本人出镜图，JPG/JPEG/PNG、每张5MiB；多次FormData字段file上传→file_name数组JSON字符串→K.images，再一次clockin。上传本身为写；部分成功与提交未知要分别保护，不自动重传或删残留。
-- 官网isopen默认1公开广场。方案建议新草稿向学校请求 `isopen=0`，上传前确认页醒目告知；这是客户端提议，服务端是否接受／私密是否真实生效必须实测。证据不足时不得把界面标成“已私密／不会公开”，并应阻断真实提交。首期不承诺艺术issync博雅同步（未见可达切换及完整协议）。
-- clockin响应静态读取record_id、period_id/term_id、体育week_count/week_num或艺术month_count/month_num。周月超额／非周期提示来自**提交之后**，不是前置拒绝；已记录、有效计数和审核／考勤不可混同。
-- YD/2860按record_id查询详情是回查候选，未实测；无ID超时用人工记录核验，不靠模糊列表或空列表自动判断结果。不照搬官网缺业务catch/finally／单飞门禁的行为。
-- 下一阶段必须做到上传前本人确认、账号绑定、批次单飞、一次clockin、未知不重发、重认证不重放、失败清理敏感本地临时数据、按ID只读核验。照片处理／EXIF、上传残留权限、服务器幂等、所有字段规则尚未知；真实写须另明确授权。
-
-
----
+- 请求：`GET https://career.buaa.edu.cn/f/recruitmentFair/ajax_calendar_list?time=YYYY-MM`；`time` 为严格的 `YYYY-MM`，月份范围 `01`–`12`。发送 `Accept: application/json`；使用 HTTPS 官方域名，不使用账号凭据。
+- 响应：只接受 HTTP 200、最终主机 `career.buaa.edu.cn`、JSON `state=1` 且 `data` 为数组。`id` 与 `title` 必须是非空字符串且 ID 不重复；其他已观察字段为 `campus`、`field`、`startTime`、`endTime`、`fairTypeName`、`status`、`url`，仅保留字符串值，缺失或非字符串的可选字段投影为空字符串。`field` 投影为地点，根相对路径补成就业网绝对链接。
+- 失败语义：JSON 结构错误、`state` 非 1、`data` 类型错误、重复 ID 或必需字段缺失按结构变化处理；失败保留原快照与原成功时间。成功空数组是有效空结果。当前进程缓存 5 分钟。
+- 证据边界：2026-10-28 匿名请求观察到 HTTP 200、`state=1` 与 135 条数据；首个 15 秒请求超时并只收到部分正文，随后延长等待才完整返回。样本只证明当次公开读取；不据此推断状态码含义、取消语义、分页、限流或其他日期形态。真实非空设备验收仍待完成。
+- 隐私边界：请求不携带账号 Cookie 或认证头；响应的 `Set-Cookie` 不写入学校登录会话。就业日历为匿名公开读取。
 
 ## 7. 本期不接入的系统（中转接口说明）
 
@@ -903,6 +919,46 @@ Judge 作业详情页同时包含开始/截止时间、满分、题目表格、�
 
 `/api/v1/judge/*` 和 `/api/v1/spoc/*` 仍是 BBAA 服务端中转路由，本项目不调用它们。当前 Swift 工程保留 Judge 与 SPOC 两个直连 provider 和统一作业模型；SPOC AES-CBC 有 UBAA 黄金向量回归测试。2026-10-18 在 WebVPN 下按上述 SPA 预热/完整回调/原样 body 规则实测读取 13 项作业；SPOC 全课程完整性与发布字段逐条正确性仍需继续核对。希冀来源暂时下线（见上），当前真实账号请求仍在课程列表阶段报结构无法识别；重新启用 Judge 前必须取得脱敏页面样本并由本人逐项对照详情页提交状态。
 
+### 7.1.1 SPOC 上传与提交补充探查（2026-10-25）
+
+本次授权登录及学生作业详情页面验证了教师附件、文件提交方式、次数和精确时间的可见性；未上传文件、未执行正式提交。当前公开 `app.c5dc702c.js` 的学生路由经 `chunk-5669dd74.6bab02af.js` / `61b4.save()` 调用 `d891.hf`，可关联到 `POST /kczy/submitKcz2` 的 form 包装，修正 §7.1 旧版 bundle 中“只见定义、未见导出/页面调用”的证据边界（旧版历史观察保留）。学生附件使用 `inco-filesystem/fileManagerSystem/uploadFile` 分片及 `mergeFile` 合并，回调文件 ID 绑定 `scwjid`，不能混用编辑器上传接口。此为静态调用链证据，不是实网写入成功契约；完整分片参数、成功条件和写后回查仍未验收。详情与提交内容组件还关联教师附件、允许提交方式、次数、已提交文件及评阅附件。资源摘要、字段、工程缺口与风险边界见 [探查记录](_audit/2026-10-25-spoc-homework-submission-research.md)。本轮不新增产品写入口。
+
+
+### 7.1.2 Android 作业文件实验适配（2026-10-25）
+
+工作树新增独立 HomeworkSubmissionSource / HomeworkFilesGateway、教师及已提交文件信息、附件下载、实验分片上传与确认提交/回查。SPOC 协议只在 upstream adapter；core/UI 不包含学校 URL、token 或 form 字段。默认关闭真实上传，通过 `experimental-homework-upload` 显式编译启用；小组及非文件作答不支持。实验请求采用 chunkNumber/chunkSize/currentChunkSize/totalSize/identifier/filename/relativePath/totalChunks 与 multipart file，MD5 为 identifier；尾片允许包含余数。上述分片细节与响应处理仍是**待真实验证的适配候选**，不是新的学校实测契约。最终写单次发送，未知只回查；成功判定需文件 ID/提交方式匹配及次数增长。详情仍允许字段缺失，不将空正文解释为没有教师附件。实现、测试层级、重启/孤儿文件限制及开关见 [集成记录](_audit/2026-10-25-spoc-homework-integration.md)。未使用真实作业执行写入。
+
+
+### 7.1.3 文件模块真实只读修正（2026-10-26）
+
+通过当前 Rust 实现分别执行默认路线与显式 WebVPN：登录、16 项作业列表、两项学生作业详情/附件 workspace 成功；鉴权下载教师附件 43,413 字节与已提交附件 3,200,881 字节，均核对 PDF 文件头。普通只读 `queryKczyInfoByid` 应只传 `id`；错误附加编辑页 `falg=xstj` 在实测返回空 content，已从该读取路径移除并补回归。此结论限于已抽查读取，不据此修改或宣称学生编辑页的权限协议已完成验证。没有调用上传/合并/提交接口，真实写入仍未验收。见 [真实只读记录](_audit/2026-10-26-spoc-live-read-acceptance.md)。
+
+后续[公开静态复核](_audit/2026-10-26-spoc-submission-protocol-followup.md)确认 `newup/newup1` 共用 `61b4` 提交组件，文本/链接使用 `wbsrnr/wzurl`，小组传递 `xztjfs/teamid`（提交映射 `ssxzid`）并有组长 UI 门禁。字段存在不等于当前账号具备小组代表资格，也未验证后端富文本/URL 处理及实际回查，因此仍不开放这些新写方式。客户端上传候选适配另修复矛盾响应：去重或合并若含显式非数值 200 的业务码，必须在读取文件 ID 前拒绝，不能把失败转为上传成功；这是合成回归约束，不宣称学校实网出现过该响应。
+
+
+### 7.1.4 SPOC 课程学习只读扩展（2026-10-26，静态证据与实测分开）
+
+来源：[当前公开 SPA 调用链研究](_audit/2026-10-26-spoc-learning-static-research.md)。主 bundle 为 `app.c5dc702c.js`，研究记录各 chunk 的 SHA-256、webpack 模块及函数；该来源只证明前端请求构造，不自动证明服务器当前接受、响应非空或覆盖完整。基础鉴权沿用 §7.1 `Token: Inco-…`、`RoleCode` 和业务 `code==200/content`。
+
+| 只读能力 | 请求形状（相对于 `/spocnewht`） | 响应/上下文及证据边界 |
+| --- | --- | --- |
+| 学生课程 | GET `/kc/queryXskcListPage`，URL query `pageNum/pageSize`；官方 UI 默认 1/100 | PageInfo `list/hasNextPage`，课程 `kcid/kcmc/xnxq`。`jsmc` 作授课教师、学期代码的人类名称尚未证实，缺值不补造。 |
+| 学生课程栏目 | GET `/kczxdhl/queryKcdhlList`，URL query `kcid/sflx=2` | 树 `children[]`；学生 UI 父 `lmlxdm=0`→子 `01` 是公告、父 `3`→子 `32` 是测验。子节点 `id` 是下游栏目 ID，不是课程 ID；多候选不能擅自取首个。课程卡片的 `lmid_gg` 是另一条公告快捷来源，不混作测验栏目。 |
+| 公告列表 | POST JSON `/kcgg/queryKcggList`，`{sslmid:<公告栏目id>,kcid,sfxs:1}` | UI 读取标题 `bt`；发布态时间 `zhxgsj`，否则 `cjsj`。旧候选 `fssj` 没有本轮证据。 |
+| 公告详情 | POST JSON `/kcgg/queryDgKcgg`，`{id}` | 正文 `nr`，附件 `fjlist[].wjid/wjmc`；标题/ID 必有性仍需非空样本。客户端先验证公告属于指定课程列表，不执行官网旁路标读。 |
+| 公告附件 | GET `https://spoc.buaa.edu.cn/inco-filesystem/fileManagerSystem/downLoadFile?scjlid=<wjid>` | 只允许已验证公告详情中的附件，不与课程资源下载端点混用。 |
+| 课程资料根/目录 | POST `/kcwj/queryListPageXs`（根）或 `/grwj1/queryKcwjListgr`（子目录），参数在 **URL query**：`pageNum,pageSize,pid,mcTab,kcid,lmlxdm,wjlx`（UI 另透传 `pxfs`） | 根 `pid=0`，目录取已列行 `id`；PageInfo `list/hasNextPage`，行 `id/wjmc/sfwjj/sfkxz/wjhzm/czsj`。本客户端仅允许本课程根列表可证的一层目录；页大小、分页上限、重复ID拒绝、从属与下载大小限制为本地策略，不是学校保证。 |
+| 单资料下载 | GET `/grwj1/getWjids?ids=<row.id>` 先检查；`flag==1` 方可 **POST** `/grwj1/downLoadFile?id=<row.id>`，JSON `{}`，blob | UI `flag==0` 拒绝。下载前重新核对课程、目录、列表行及下载资格；文件内容不能仅按 JSON/HTML MIME 全拒或全放行，应防错误信封/登录页伪文件。 |
+| 测验只读列表 | POST **form** `/csgl/queryCsglXsList`，`kcid,flag=xs,id=<测验栏目id>` | `content.list`；UI 读 `id/csmc/kssj/jzsj/mf`，`mf` 是满分，**不是本人得分**。未确认个人得分字段就保留未知；空列表不证明栏目/课程无测验。 |
+
+**严格排除**：`/kcgg/updYdb`（标读）、`/kc/addKczxFwjl3`（访问记录）、`myTask` 旁路、测验入口/开始/作答/提交，以及上传、删除、同步、发布等。GET 不等于无副作用，不能整体复制网页点击流程。只读客户端不执行上述请求，也不自动在浏览器打开测验页。
+
+工作树以独立 domain 端口 → upstream 协议/缓存 → core → account-bound bridge → Flutter gateway/业务类型传递数据；失败旧快照仍携带 failure/stale，不能当本次新成功。公开包不包含本节工作树扩展；合成回归、真实只读探查与 Android UI/设备验收分别记录。
+
+
+---
+
+
 ### 7.2 iclass 签到状态与手动提交（写协议尚待真实验收）
 
 候选流程最初来自 BBAA `LocalSigninApi.kt` 与模拟测试。2026-10-15 经用户授权的临时账号，通过北航 WebVPN 浏览器会话对真实服务进行了只读请求观察；没有执行签到提交，未保存原始响应或账号字段。
@@ -926,36 +982,6 @@ Judge 作业详情页同时包含开始/截止时间、满分、题目表格、�
 只读字段以真实 WebVPN 转发响应为据；本轮 CUA 已验证当前 App 经 WebVPN CAS 读取当天无课状态。提交协议目前仅以 BBAA 源码为参考，真实签到写入、通知投递和后台/休眠行为仍待验收。
 
 > 镜像实现（2026-10-20）：Rust/Flutter 已接入入口 SSO、app login 与当天课程查询的只读链路，字段与状态语义按本节；STATUS=2 只对当天课程查询解释为空，其他非成功 STATUS 返回业务拒绝；重复记录按 id 或课程时间合并，状态冲突显示待确认；同场次不同 ID 仅在存在未签到目标时保留独立操作入口，已签到等无需操作的记录折叠为一行。WebVPN 路由下，`session` 把网关响应的 final URL/Location 还原为上游 URL；直连不可达时只对有界安全 GET 回退。网关自身需要 CAS 会话，镜像仅在平台保险库保存了密码时自动建立，否则要求重新登录。镜像没有实现 `stu_scan_sign.action`，页面没有签到提交入口；共享 fixture 与 Android 合成设备测试不能替代真实签到状态验收。
-
----
-
-## 8. 统一错误处理
-
-```swift
-enum APIError: Error {
-    // 网络
-    case noConnection, timeout, tlsFailure
-    // 认证（判定依据见 §1.10，勿只看单一状态码）
-    case sessionExpired      // uc/status 复核确认无效
-    case invalidCredentials  // 登录页错误特征（§1.6）
-    case captchaRequired(CaptchaChallenge)  // §1.3，附图片
-    case passwordExpiryPage  // §1.5，可自动跳过一次
-    // 业务
-    case upstreamError(Int, String?)   // 各系统 code!=成功值
-    case graduatePortalUnsupported     // §2.6 研究生访本科考试
-    // 解析
-    case unexpectedResponse            // 结构与本文档不符 → 触发快照回归排查
-}
-```
-
-错误处理策略保持旧版框架（sessionExpired → 刷新会话重试一次；captchaRequired → 弹验证码；upstreamError → 展示上游消息），但**会话过期的判定必须走 §1.8 的两步确认**，避免上游 5xx 抖动导致误登出。
-
-## 9. 请求拦截器
-
-旧版的 RetryInterceptor/CookieInterceptor 思路保留，修订两点：
-
-1. **自动重试只对幂等 GET 开启**。POST（尤其预约、选课类写操作）不自动重发——上游切换语义下重发会反向操作（教训见 `BBAA/docs/features/ihome.md` 的写操作约束）。
-2. Cookie 注入交给 `HTTPCookieStorage`（或独立 `URLSession` 的默认行为），**不要**手拼 Cookie 头——图书馆 CAS 链依赖 Set-Cookie 的域/path 语义，手拼容易丢 `HttpOnly` 标记的票据。
 
 ### 7.3 2026-10-18 教育系统只读数据盘点
 
@@ -990,6 +1016,37 @@ UBAA 源码另提供操场 CGYY、阳光打卡 YGDK、iHome、课程评教、图
 其中博雅课程库、研讨室空档和研究生教务摘要已完成共享客户端与原生 iOS 页面接入，并通过真实账号 live UI 测试；三者均为只读，不发送选课、预约、评教或提交请求。
 
 ---
+
+
+---
+
+## 8. 统一错误处理
+
+```swift
+enum APIError: Error {
+    // 网络
+    case noConnection, timeout, tlsFailure
+    // 认证（判定依据见 §1.10，勿只看单一状态码）
+    case sessionExpired      // uc/status 复核确认无效
+    case invalidCredentials  // 登录页错误特征（§1.6）
+    case captchaRequired(CaptchaChallenge)  // §1.3，附图片
+    case passwordExpiryPage  // §1.5，可自动跳过一次
+    // 业务
+    case upstreamError(Int, String?)   // 各系统 code!=成功值
+    case graduatePortalUnsupported     // §2.6 研究生访本科考试
+    // 解析
+    case unexpectedResponse            // 结构与本文档不符 → 触发快照回归排查
+}
+```
+
+错误处理策略保持旧版框架（sessionExpired → 刷新会话重试一次；captchaRequired → 弹验证码；upstreamError → 展示上游消息），但**会话过期的判定必须走 §1.8 的两步确认**，避免上游 5xx 抖动导致误登出。
+
+## 9. 请求拦截器
+
+旧版的 RetryInterceptor/CookieInterceptor 思路保留，修订两点：
+
+1. **自动重试只对幂等 GET 开启**。POST（尤其预约、选课类写操作）不自动重发——上游切换语义下重发会反向操作（教训见 `BBAA/docs/features/ihome.md` 的写操作约束）。
+2. Cookie 注入交给 `HTTPCookieStorage`（或独立 `URLSession` 的默认行为），**不要**手拼 Cookie 头——图书馆 CAS 链依赖 Set-Cookie 的域/path 语义，手拼容易丢 `HttpOnly` 标记的票据。
 
 ## 附录 A：已验证 URL 总表
 
@@ -1054,40 +1111,3 @@ UBAA 源码另提供操场 CGYY、阳光打卡 YGDK、iHome、课程评教、图
 Android 上经用户授权，通过实际登录表单及 Rust 会话读取今天、课表与另一周、成绩学期/成绩、三个校区空教室、当天/前一天签到、SPOC 列表/首条详情、博雅目录/已选/统计、研究生学籍/执行报告、图书馆场馆/预约/历史/区域/时段/座位、通知和 CGYY 场馆/当日/订单。均未返回失败码；空结果不构成非空路径验收，未执行任何上游写操作。详细设备、耗时与视觉边界见 [验收记录](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md)。
 
 SPOC 抽样详情的发布时间、截止时间和分值有值，正文与提交时间为空，与 §7.1 的可空字段边界一致，不推广为所有作业均无正文。对 `zynr` 的对象/数组类型漂移现返回结构错误，防止以假空结果覆盖已有完整详情；没有新增端点或修改请求参数。
-
-
-### 7.1.1 SPOC 上传与提交补充探查（2026-10-25）
-
-本次授权登录及学生作业详情页面验证了教师附件、文件提交方式、次数和精确时间的可见性；未上传文件、未执行正式提交。当前公开 `app.c5dc702c.js` 的学生路由经 `chunk-5669dd74.6bab02af.js` / `61b4.save()` 调用 `d891.hf`，可关联到 `POST /kczy/submitKcz2` 的 form 包装，修正 §7.1 旧版 bundle 中“只见定义、未见导出/页面调用”的证据边界（旧版历史观察保留）。学生附件使用 `inco-filesystem/fileManagerSystem/uploadFile` 分片及 `mergeFile` 合并，回调文件 ID 绑定 `scwjid`，不能混用编辑器上传接口。此为静态调用链证据，不是实网写入成功契约；完整分片参数、成功条件和写后回查仍未验收。详情与提交内容组件还关联教师附件、允许提交方式、次数、已提交文件及评阅附件。资源摘要、字段、工程缺口与风险边界见 [探查记录](_audit/2026-10-25-spoc-homework-submission-research.md)。本轮不新增产品写入口。
-
-
-### 7.1.2 Android 作业文件实验适配（2026-10-25）
-
-工作树新增独立 HomeworkSubmissionSource / HomeworkFilesGateway、教师及已提交文件信息、附件下载、实验分片上传与确认提交/回查。SPOC 协议只在 upstream adapter；core/UI 不包含学校 URL、token 或 form 字段。默认关闭真实上传，通过 `experimental-homework-upload` 显式编译启用；小组及非文件作答不支持。实验请求采用 chunkNumber/chunkSize/currentChunkSize/totalSize/identifier/filename/relativePath/totalChunks 与 multipart file，MD5 为 identifier；尾片允许包含余数。上述分片细节与响应处理仍是**待真实验证的适配候选**，不是新的学校实测契约。最终写单次发送，未知只回查；成功判定需文件 ID/提交方式匹配及次数增长。详情仍允许字段缺失，不将空正文解释为没有教师附件。实现、测试层级、重启/孤儿文件限制及开关见 [集成记录](_audit/2026-10-25-spoc-homework-integration.md)。未使用真实作业执行写入。
-
-
-### 7.1.3 文件模块真实只读修正（2026-10-26）
-
-通过当前 Rust 实现分别执行默认路线与显式 WebVPN：登录、16 项作业列表、两项学生作业详情/附件 workspace 成功；鉴权下载教师附件 43,413 字节与已提交附件 3,200,881 字节，均核对 PDF 文件头。普通只读 `queryKczyInfoByid` 应只传 `id`；错误附加编辑页 `falg=xstj` 在实测返回空 content，已从该读取路径移除并补回归。此结论限于已抽查读取，不据此修改或宣称学生编辑页的权限协议已完成验证。没有调用上传/合并/提交接口，真实写入仍未验收。见 [真实只读记录](_audit/2026-10-26-spoc-live-read-acceptance.md)。
-
-后续[公开静态复核](_audit/2026-10-26-spoc-submission-protocol-followup.md)确认 `newup/newup1` 共用 `61b4` 提交组件，文本/链接使用 `wbsrnr/wzurl`，小组传递 `xztjfs/teamid`（提交映射 `ssxzid`）并有组长 UI 门禁。字段存在不等于当前账号具备小组代表资格，也未验证后端富文本/URL 处理及实际回查，因此仍不开放这些新写方式。客户端上传候选适配另修复矛盾响应：去重或合并若含显式非数值 200 的业务码，必须在读取文件 ID 前拒绝，不能把失败转为上传成功；这是合成回归约束，不宣称学校实网出现过该响应。
-
-
-### 7.1.4 SPOC 课程学习只读扩展（2026-10-26，静态证据与实测分开）
-
-来源：[当前公开 SPA 调用链研究](_audit/2026-10-26-spoc-learning-static-research.md)。主 bundle 为 `app.c5dc702c.js`，研究记录各 chunk 的 SHA-256、webpack 模块及函数；该来源只证明前端请求构造，不自动证明服务器当前接受、响应非空或覆盖完整。基础鉴权沿用 §7.1 `Token: Inco-…`、`RoleCode` 和业务 `code==200/content`。
-
-| 只读能力 | 请求形状（相对于 `/spocnewht`） | 响应/上下文及证据边界 |
-| --- | --- | --- |
-| 学生课程 | GET `/kc/queryXskcListPage`，URL query `pageNum/pageSize`；官方 UI 默认 1/100 | PageInfo `list/hasNextPage`，课程 `kcid/kcmc/xnxq`。`jsmc` 作授课教师、学期代码的人类名称尚未证实，缺值不补造。 |
-| 学生课程栏目 | GET `/kczxdhl/queryKcdhlList`，URL query `kcid/sflx=2` | 树 `children[]`；学生 UI 父 `lmlxdm=0`→子 `01` 是公告、父 `3`→子 `32` 是测验。子节点 `id` 是下游栏目 ID，不是课程 ID；多候选不能擅自取首个。课程卡片的 `lmid_gg` 是另一条公告快捷来源，不混作测验栏目。 |
-| 公告列表 | POST JSON `/kcgg/queryKcggList`，`{sslmid:<公告栏目id>,kcid,sfxs:1}` | UI 读取标题 `bt`；发布态时间 `zhxgsj`，否则 `cjsj`。旧候选 `fssj` 没有本轮证据。 |
-| 公告详情 | POST JSON `/kcgg/queryDgKcgg`，`{id}` | 正文 `nr`，附件 `fjlist[].wjid/wjmc`；标题/ID 必有性仍需非空样本。客户端先验证公告属于指定课程列表，不执行官网旁路标读。 |
-| 公告附件 | GET `https://spoc.buaa.edu.cn/inco-filesystem/fileManagerSystem/downLoadFile?scjlid=<wjid>` | 只允许已验证公告详情中的附件，不与课程资源下载端点混用。 |
-| 课程资料根/目录 | POST `/kcwj/queryListPageXs`（根）或 `/grwj1/queryKcwjListgr`（子目录），参数在 **URL query**：`pageNum,pageSize,pid,mcTab,kcid,lmlxdm,wjlx`（UI 另透传 `pxfs`） | 根 `pid=0`，目录取已列行 `id`；PageInfo `list/hasNextPage`，行 `id/wjmc/sfwjj/sfkxz/wjhzm/czsj`。本客户端仅允许本课程根列表可证的一层目录；页大小、分页上限、重复ID拒绝、从属与下载大小限制为本地策略，不是学校保证。 |
-| 单资料下载 | GET `/grwj1/getWjids?ids=<row.id>` 先检查；`flag==1` 方可 **POST** `/grwj1/downLoadFile?id=<row.id>`，JSON `{}`，blob | UI `flag==0` 拒绝。下载前重新核对课程、目录、列表行及下载资格；文件内容不能仅按 JSON/HTML MIME 全拒或全放行，应防错误信封/登录页伪文件。 |
-| 测验只读列表 | POST **form** `/csgl/queryCsglXsList`，`kcid,flag=xs,id=<测验栏目id>` | `content.list`；UI 读 `id/csmc/kssj/jzsj/mf`，`mf` 是满分，**不是本人得分**。未确认个人得分字段就保留未知；空列表不证明栏目/课程无测验。 |
-
-**严格排除**：`/kcgg/updYdb`（标读）、`/kc/addKczxFwjl3`（访问记录）、`myTask` 旁路、测验入口/开始/作答/提交，以及上传、删除、同步、发布等。GET 不等于无副作用，不能整体复制网页点击流程。只读客户端不执行上述请求，也不自动在浏览器打开测验页。
-
-工作树以独立 domain 端口 → upstream 协议/缓存 → core → account-bound bridge → Flutter gateway/业务类型传递数据；失败旧快照仍携带 failure/stale，不能当本次新成功。公开包不包含本节工作树扩展；合成回归、真实只读探查与 Android UI/设备验收分别记录。

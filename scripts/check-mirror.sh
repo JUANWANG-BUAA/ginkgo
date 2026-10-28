@@ -4,6 +4,7 @@ cd "$(dirname "$0")/.."
 source scripts/rust-toolchain-env.sh
 python3 scripts/check-mirror-architecture.py
 python3 scripts/check-mirror-architecture-test.py
+python3 scripts/generate-interface-index-test.py
 python3 scripts/check-design-tokens.py
 python3 scripts/generate-interface-index.py --check
 cargo fmt --manifest-path rust/Cargo.toml --all --check

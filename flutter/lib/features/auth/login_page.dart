@@ -1,11 +1,12 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
-import 'package:ginkgo_mirror/design/ginkgo_mark.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_mark.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
-import 'package:ginkgo_mirror/application/contracts.dart' show SessionResponse, SessionState;
+import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/contracts.dart'
+    show SessionResponse, SessionState;
 import 'package:ginkgo_mirror/application/auth_challenge.dart';
 
 class LoginPage extends StatefulWidget {
@@ -239,7 +240,7 @@ class _LoginPageState extends State<LoginPage> {
                       '让校园生活井然有序',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: AppleDesign.bodyCondensedSize,
                         color: CupertinoColors.secondaryLabel.resolveFrom(
                           context,
                         ),

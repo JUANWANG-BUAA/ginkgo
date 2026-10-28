@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// 最低版本门禁：学校协议出现不兼容变化时，旧客户端不静默失败。
@@ -140,7 +141,7 @@ class UpdateRequiredPage extends StatelessWidget {
                 gate.message ?? '当前版本已不兼容学校接口的变化，请安装新版本后继续使用。',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: AppleDesign.bodyCondensedSize,
                   height: 1.5,
                   color: CupertinoColors.secondaryLabel,
                 ),

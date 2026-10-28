@@ -270,34 +270,35 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('a notices pull-to-refresh during an in-flight read is rerun, not dropped', (
-    tester,
-  ) async {
-    desktopViewport(tester);
-    final service = PendingPageService();
-    await tester.pumpWidget(ginkgoApp(home: NoticesPage(service: service)));
-    expect(service.noticesRequests, hasLength(1));
+  testWidgets(
+    'a notices pull-to-refresh during an in-flight read is rerun, not dropped',
+    (tester) async {
+      desktopViewport(tester);
+      final service = PendingPageService();
+      await tester.pumpWidget(ginkgoApp(home: NoticesPage(service: service)));
+      expect(service.noticesRequests, hasLength(1));
 
-    // Pull to refresh while the initial read is still in flight.
-    await tester.fling(
-      find.byKey(const Key('notices-scroll')),
-      const Offset(0, 400),
-      1000,
-    );
-    await tester.pump();
-    // The refresh is remembered: no blind second request starts mid-flight.
-    expect(service.noticesRequests, hasLength(1));
+      // Pull to refresh while the initial read is still in flight.
+      await tester.fling(
+        find.byKey(const Key('notices-scroll')),
+        const Offset(0, 400),
+        1000,
+      );
+      await tester.pump();
+      // The refresh is remembered: no blind second request starts mid-flight.
+      expect(service.noticesRequests, hasLength(1));
 
-    service.noticesRequests.single.complete(_notices());
-    await tester.pump();
-    // Once the initial read settles, the remembered refresh runs as forced.
-    expect(service.noticesRequests, hasLength(2));
-    expect(service.noticesForces.last, isTrue);
-    service.noticesRequests.last.complete(_notices());
-    await tester.pumpAndSettle();
-    expect(find.text('合成校园通知'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+      service.noticesRequests.single.complete(_notices());
+      await tester.pump();
+      // Once the initial read settles, the remembered refresh runs as forced.
+      expect(service.noticesRequests, hasLength(2));
+      expect(service.noticesForces.last, isTrue);
+      service.noticesRequests.last.complete(_notices());
+      await tester.pumpAndSettle();
+      expect(find.text('合成校园通知'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('shuttle keeps its plan and identity under the branded load', (
     tester,

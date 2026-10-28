@@ -11,6 +11,7 @@ import io.flutter.plugin.common.StandardMethodCodec
 class MainActivity : FlutterActivity() {
     private var homeworkFileSaver: HomeworkFileSaver? = null
     private var settingsHandler: SystemSettingsHandler? = null
+    private var reminderScheduler: ReminderScheduler? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -23,8 +24,10 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler(LearningSnapshotHandler(applicationContext))
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/update")
             .setMethodCallHandler(UpdateInstaller(this))
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/reminders")
-            .setMethodCallHandler(ReminderScheduler(applicationContext))
+        reminderScheduler = ReminderScheduler(applicationContext).also {
+            MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/reminders")
+                .setMethodCallHandler(it)
+        }
         settingsHandler = SystemSettingsHandler(this).also {
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/system")
                 .setMethodCallHandler(it)
@@ -39,6 +42,8 @@ class MainActivity : FlutterActivity() {
     override fun onDestroy() {
         homeworkFileSaver?.dispose()
         homeworkFileSaver = null
+        reminderScheduler?.dispose()
+        reminderScheduler = null
         super.onDestroy()
     }
 

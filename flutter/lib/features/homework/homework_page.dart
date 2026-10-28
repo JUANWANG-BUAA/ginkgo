@@ -7,10 +7,12 @@ import 'package:ginkgo_mirror/shared/reminders.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/features/schedule/course_visibility.dart';
+import 'package:ginkgo_mirror/shared/course_visibility.dart';
+import 'package:ginkgo_mirror/features/schedule/course_range_page.dart';
 import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
 import 'package:ginkgo_mirror/features/homework/homework_widgets.dart';
 
@@ -31,11 +33,13 @@ class HomeworkPage extends StatefulWidget {
 }
 
 class _HomeworkPageState extends State<HomeworkPage> {
-  HomeworkResponse? data;
-  String? error;
-  String? notice;
-  bool busy = false;
-  bool _pendingRefresh = false;
+  late final RefreshSection<HomeworkResponse> section;
+  HomeworkResponse? get data => section.value;
+  String? get error => data == null ? section.error : null;
+  String? get notice => data != null && section.error != null
+      ? '${section.error}，正在显示上次结果。'
+      : null;
+  bool get busy => section.loading;
   late int filter;
   int pending = 0, submitted = 0, overdue = 0, unknown = 0;
   String search = '';
@@ -114,65 +118,62 @@ class _HomeworkPageState extends State<HomeworkPage> {
   void initState() {
     super.initState();
     filter = widget.initialFilter;
+    section = RefreshSection<HomeworkResponse>()
+      ..addListener(() {
+        if (mounted) setState(prepare);
+      });
     load();
   }
 
   @override
+  void didUpdateWidget(HomeworkPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service) {
+      section
+        ..invalidate()
+        ..value = null
+        ..error = null
+        ..loading = false;
+      load();
+    } else if (oldWidget.now != widget.now) {
+      prepare();
+    }
+  }
+
+  @override
   void dispose() {
+    section.dispose();
     searchController.dispose();
     super.dispose();
   }
 
-  Future<void> load({bool force = false}) async {
-    // A pull-to-refresh during an in-flight read is remembered and rerun
-    // once it settles, never silently dropped.
-    if (busy) {
-      if (force) _pendingRefresh = true;
-      return;
-    }
-    setState(() {
-      busy = true;
-      error = null;
-      notice = null;
-    });
-    try {
-      final result = await widget.service.homework(forceRefresh: force);
-      if (!mounted) return;
-      final reminders = ReminderScope.of(context);
-      reminders?.updateHomework(result);
-      if (reminders != null) {
-        reminders.markRead('homework');
-        unawaited(reminders.reconcile());
-      }
-      setState(() {
-        busy = false;
-        if (result.failure != null) {
-          if (data == null && result.termCode.isEmpty) {
-            error = failureMessage(result.failure);
-            return;
-          }
-          notice = '${failureMessage(result.failure)}，正在显示上次结果。';
-          if (result.termCode.isEmpty) return;
+  Future<void> load({bool force = false}) {
+    final service = widget.service;
+    return section.refresh(
+      () async {
+        final result = await service.homework(forceRefresh: force);
+        if (!mounted || service != widget.service) {
+          return const SectionResult<HomeworkResponse>();
         }
-        data = result;
-        prepare();
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        busy = false;
-        if (data == null) {
-          error = failureMessage(null);
-        } else {
-          notice = '${failureMessage(null)}，正在显示上次结果。';
+        final reminders = ReminderScope.of(context);
+        reminders?.updateHomework(result);
+        if (reminders != null) {
+          reminders.markRead('homework');
+          unawaited(reminders.reconcile());
         }
-      });
-    }
-    if (!mounted) return;
-    if (_pendingRefresh) {
-      _pendingRefresh = false;
-      await load(force: true);
-    }
+        if (result.failure != null && data == null && result.termCode.isEmpty) {
+          return SectionResult(error: failureMessage(result.failure));
+        }
+        return SectionResult(
+          value: result.failure != null && result.termCode.isEmpty
+              ? null
+              : result,
+          error: result.failure == null ? null : failureMessage(result.failure),
+        );
+      },
+      fallbackError: failureMessage(null),
+      force: force,
+    );
   }
 
   @override
@@ -388,7 +389,10 @@ class _HomeworkPageState extends State<HomeworkPage> {
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 10),
         child: Text(
           '${visible.length} 项作业',
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+          style: const TextStyle(
+            fontSize: AppleDesign.calloutSize,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     ),

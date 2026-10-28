@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
+import 'package:ginkgo_mirror/design/apple_design.dart';
+
 import 'bykc_models.dart';
 
 /// A compact tag used for course categories, enrollment and results.
@@ -197,7 +199,7 @@ class BykcStatisticsCard extends StatelessWidget {
                   Text(
                     entry.subcategory,
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: AppleDesign.bodyCondensedSize,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

@@ -60,7 +60,7 @@ def source_violations(root):
 # cannot silently promote a codec into an unchecked layer.
 LOCAL_JSON_CODECS = {
     'shared/app_preferences.dart',
-    'features/schedule/course_visibility.dart',
+    'shared/course_visibility.dart',
     'shared/reminders.dart',
     'platform/update_gate.dart',
     'workspace/workspace_shortcut_preferences.dart',
@@ -108,6 +108,15 @@ def dart_boundary_violations(root):
         relative = file.relative_to(lib)
         if relative.parts[0] in ('src', 'infrastructure'):
             continue
+        if relative.parts[0] == 'application' and re.search(
+            r"(?:import|export)\s+['\"]package:path_provider/", file.read_text()
+        ):
+            errors.append(f'{relative}: platform storage belongs to infrastructure')
+        if relative.as_posix() in {'shared/reminders.dart', 'shared/reminder_scope.dart'} and re.search(
+            r"(?:import|export)\s+['\"](?:package:ginkgo_mirror/infrastructure/|package:flutter/services\.dart|dart:io)",
+            file.read_text(),
+        ):
+            errors.append(f'{relative}: reminder adapters belong to composition/infrastructure')
         if re.search(r"[\"'][^\"']*buaa\.edu\.cn", file.read_text()):
             errors.append(f'{relative}: school destinations and domain policies belong to the provider')
         for imported in re.findall(r"(?:import|export)\s+['\"]([^'\"]+)['\"]", file.read_text()):
@@ -163,6 +172,33 @@ def layout_violations(root):
     return errors
 
 
+def sync_lock_await_violations(root):
+    """Custom synchronous guards must be dropped before an async suspension."""
+    errors = []
+    declaration = re.compile(r'\blet\s+(?:mut\s+)?(\w+)\s*=\s*[^;]*\.lock\(\)\s*;')
+    for file in (root / 'rust/crates/ginkgo_upstream/src').rglob('*.rs'):
+        lines = file.read_text().splitlines()
+        depth = 0
+        guards = {}
+        for number, line in enumerate(lines, 1):
+            code = re.sub(r'//.*$', '', line)
+            match = declaration.search(code)
+            if match:
+                guards[match.group(1)] = (depth, number)
+            for name, (scope, start) in list(guards.items()):
+                if re.search(rf'\bdrop\s*\(\s*{re.escape(name)}\s*\)', code):
+                    del guards[name]
+                elif '.await' in code:
+                    errors.append(
+                        f'{file.relative_to(root)}:{start}: synchronous guard `{name}` crosses await at line {number}')
+                    del guards[name]
+            depth += code.count('{') - code.count('}')
+            for name, (scope, _) in list(guards.items()):
+                if depth < scope:
+                    del guards[name]
+    return errors
+
+
 def violations(root):
     metadata = json.loads(subprocess.check_output(
         ['cargo', 'metadata', '--manifest-path', str(root / 'rust/Cargo.toml'),
@@ -171,6 +207,7 @@ def violations(root):
     errors += payload_decode_violations(root)
     errors += dart_boundary_violations(root)
     errors += layout_violations(root)
+    errors += sync_lock_await_violations(root)
     return errors
 
 

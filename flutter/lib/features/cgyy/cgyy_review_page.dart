@@ -121,7 +121,11 @@ class _CgyyReviewPageState extends State<CgyyReviewPage> {
         child: CustomScrollView(
           key: const Key('cgyy-review-scroll'),
           slivers: [
-            const CgyyPageHeader(title: '核对上次操作'),
+            const AppleRefreshPageHeader(
+              title: '核对上次操作',
+              subtitle: '选择场馆并查看可预约空间',
+              icon: CupertinoIcons.person_3,
+            ),
             SliverList.list(
               children: [
                 const AppleSection(

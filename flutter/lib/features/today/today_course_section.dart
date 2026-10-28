@@ -189,7 +189,7 @@ class TodayCourseSection extends StatelessWidget {
 String _syncedAtLabel(String value) {
   final date = DateTime.tryParse(value);
   if (date == null) return value;
-  final beijing = date.toUtc().add(const Duration(hours: 8));
+  final beijing = todaySchoolNow(date);
   final hour = beijing.hour.toString().padLeft(2, '0');
   final minute = beijing.minute.toString().padLeft(2, '0');
   return '${beijing.month}月${beijing.day}日 $hour:$minute';

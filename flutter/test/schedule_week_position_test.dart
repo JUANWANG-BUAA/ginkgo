@@ -82,6 +82,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       final scale = ValueNotifier(1.0);
       addTearDown(scale.dispose);
+      final service = ManyWeekService();
       await tester.pumpWidget(
         ginkgoApp(
           home: ValueListenableBuilder<double>(
@@ -89,7 +90,7 @@ void main() {
             builder: (context, value, _) => MediaQuery(
               data: MediaQuery.of(context)
                   .copyWith(textScaler: TextScaler.linear(value)),
-              child: SchedulePage(service: ManyWeekService()),
+              child: SchedulePage(service: service),
             ),
           ),
         ),

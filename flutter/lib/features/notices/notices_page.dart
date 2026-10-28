@@ -1,65 +1,69 @@
 import 'package:flutter/cupertino.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:ginkgo_mirror/shared/school_links.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/features/notices/notices_models.dart';
+import 'package:ginkgo_mirror/infrastructure/service_factory.dart';
 
 class NoticesPage extends StatefulWidget {
   const NoticesPage({super.key, this.demo = false, this.service});
   final bool demo;
-  final CampusGateway? service;
+  final NoticeGateway? service;
   @override
   State<NoticesPage> createState() => _NoticesPageState();
 }
 
 class _NoticesPageState extends State<NoticesPage> {
-  List<Notice>? notices;
-  String? error;
-  bool busy = false;
-  bool _pendingRefresh = false;
+  late final RefreshSection<List<Notice>> section;
+  List<Notice>? get notices => section.value;
+  String? get error => section.error;
+  bool get busy => section.loading;
+
   @override
   void initState() {
     super.initState();
+    section = RefreshSection<List<Notice>>()
+      ..addListener(() {
+        if (mounted) setState(() {});
+      });
     load();
   }
 
-  Future<void> load({bool force = false}) async {
-    // A pull-to-refresh during an in-flight read is remembered and rerun
-    // once it settles, never silently dropped.
-    if (busy) {
-      if (force) _pendingRefresh = true;
-      return;
+  @override
+  void didUpdateWidget(NoticesPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service || oldWidget.demo != widget.demo) {
+      section
+        ..invalidate()
+        ..value = null
+        ..error = null
+        ..loading = false;
+      load();
     }
-    setState(() {
-      busy = true;
-      error = null;
-    });
-    try {
-      final service = widget.service ?? mirrorServiceFor(demo: widget.demo);
-      final result = await service.notices(forceRefresh: force);
-      if (!mounted) return;
-      setState(() {
-        busy = false;
-        if (result.failure != null) error = failureMessage(result.failure);
-        if (result.payload != null) {
-          notices = noticeList(result.payload!);
-        }
-      });
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          busy = false;
-          error = failureMessage(null);
-        });
-      }
-    }
-    if (!mounted) return;
-    if (_pendingRefresh) {
-      _pendingRefresh = false;
-      await load(force: true);
-    }
+  }
+
+  @override
+  void dispose() {
+    section.dispose();
+    super.dispose();
+  }
+
+  Future<void> load({bool force = false}) {
+    final service = widget.service ?? mirrorServiceFor(demo: widget.demo);
+    return section.refresh(
+      () async {
+        final result = await service.notices(forceRefresh: force);
+        return SectionResult(
+          value: result.payload == null ? null : noticeList(result.payload!),
+          error: result.failure == null ? null : failureMessage(result.failure),
+        );
+      },
+      fallbackError: failureMessage(null),
+      force: force,
+    );
   }
 
   @override
@@ -98,29 +102,20 @@ class _NoticesPageState extends State<NoticesPage> {
               ),
             ),
             if (error != null)
-              AppleSection(
-                children: [
-                  AppleEmptyState(
-                    title: error!,
-                    description: notices == null ? '请重试或前往官网。' : '正在显示上次结果。',
-                    action: '重试',
-                    onAction: () => load(force: true),
-                    error: true,
-                  ),
-                ],
+              AppleStatusSection(
+                title: error!,
+                description: notices == null ? '请重试或前往官网。' : '正在显示上次结果。',
+                onAction: () => load(force: true),
+                error: true,
               ),
             if (notices == null && busy)
               const AppleSection(
                 children: [GinkgoLoadingView(label: '正在读取校园通知…')],
               ),
             if (notices != null && notices!.isEmpty && !busy)
-              const AppleSection(
-                children: [
-                  AppleEmptyState(
-                    title: '暂无校园通知',
-                    description: '学校通知列表当前为空；可下拉刷新或稍后再看。',
-                  ),
-                ],
+              const AppleStatusSection(
+                title: '暂无校园通知',
+                description: '学校通知列表当前为空；可下拉刷新或稍后再看。',
               ),
             if (notices != null && notices!.isNotEmpty)
               AppleSection(
@@ -159,15 +154,8 @@ class _NoticeDetail extends StatefulWidget {
 class _NoticeDetailState extends State<_NoticeDetail> {
   String? error;
   Future<void> open() async {
-    try {
-      final url = Uri.parse(widget.notice.url);
-      if (url.scheme != 'https' ||
-          url.host.isEmpty ||
-          !await launchUrl(url, mode: LaunchMode.externalApplication)) {
-        if (mounted) setState(() => error = '无法打开官网，请稍后重试。');
-      }
-    } catch (_) {
-      if (mounted) setState(() => error = '无法打开官网，请稍后重试。');
+    if (!await openSchoolLink(widget.notice.url) && mounted) {
+      setState(() => error = schoolLinkError);
     }
   }
 

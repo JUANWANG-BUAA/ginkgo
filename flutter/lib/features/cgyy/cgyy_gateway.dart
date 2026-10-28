@@ -1,5 +1,5 @@
 import 'package:ginkgo_mirror/application/contracts.dart' as live;
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 
 import 'cgyy_models.dart';
 
@@ -11,12 +11,14 @@ typedef CgyyLoader = Future<live.ReadOnlyResponse> Function({
   required bool forceRefresh,
 });
 
-/// Reads CGYY data through the injected loader, or through the campus
-/// gateway when the page was built without a loader.
+/// Reads CGYY data through the injected loader or the injected campus gateway.
+///
+/// The page never constructs a service: the shell already resolved one, and a
+/// fallback locator here would quietly give a page its own adapter instance
+/// (and therefore its own account binding) instead of the workspace's.
 Future<live.ReadOnlyResponse> cgyyRead({
-  required bool demo,
   required CgyyLoader? loader,
-  required CampusGateway? service,
+  required CgyyGateway? service,
   required String kind,
   required int siteId,
   required String date,
@@ -31,7 +33,9 @@ Future<live.ReadOnlyResponse> cgyyRead({
       forceRefresh: forceRefresh,
     );
   }
-  return (service ?? mirrorServiceFor(demo: demo)).cgyy(
+  final gateway = service;
+  if (gateway == null) throw StateError('当前页面没有可用的研讨室服务');
+  return gateway.cgyy(
     kind: kind,
     siteId: siteId,
     date: date,
@@ -40,13 +44,11 @@ Future<live.ReadOnlyResponse> cgyyRead({
 }
 
 Future<live.ReadOnlyResponse> cgyyOrderDetail({
-  required bool demo,
   required int orderId,
   CgyyLoader? loader,
-  CampusGateway? service,
+  CgyyGateway? service,
   bool forceRefresh = false,
 }) => cgyyRead(
-  demo: demo,
   loader: loader,
   service: service,
   kind: 'order',
@@ -56,12 +58,10 @@ Future<live.ReadOnlyResponse> cgyyOrderDetail({
 );
 
 Future<live.ReadOnlyResponse> cgyyLockCode({
-  required bool demo,
   CgyyLoader? loader,
-  CampusGateway? service,
+  CgyyGateway? service,
   bool forceRefresh = false,
 }) => cgyyRead(
-  demo: demo,
   loader: loader,
   service: service,
   kind: 'lockCode',

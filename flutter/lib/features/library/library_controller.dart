@@ -1,15 +1,25 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart' show failureMessage;
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 
 /// One library page owns its read snapshots and post-write readback queue.
 /// Disposing the page suppresses notifications, never replays a write.
 class LibraryController extends ChangeNotifier {
-  LibraryController(this.service);
+  LibraryController(
+    this.service, {
+    this.stallDeadline = const Duration(minutes: 3),
+  });
 
-  final LibraryGateway service;
+  /// How long a read may stay in flight before the section stops waiting.
+  /// A read that never settles would otherwise leave its loading flag set
+  /// forever and keep the slot occupied.
+  final Duration stallDeadline;
+
+  final LibrarySeatingGateway service;
   LibraryBookingsResponse? bookings;
   LibraryVenuesResponse? venues;
   String? bookingError, venueError, mutationNotice;
@@ -19,6 +29,7 @@ class LibraryController extends ChangeNotifier {
   Future<void>? _bookingForcedRun, _venueForcedRun;
   bool _disposed = false;
   int _generation = 0;
+  final Map<String, Timer> _stalls = {};
   bool get busy => loadingBookings || loadingVenues;
 
   /// Drops every in-flight read at its next await: call when the account or
@@ -71,15 +82,17 @@ class LibraryController extends ChangeNotifier {
   ) {
     final epoch = _generation;
     late final Future<void> run;
-    run = inFlight.then((_) async {
-      if (_disposed || epoch != _generation) return;
-      late final Future<void> task;
-      task = fetch(true).whenComplete(() {
-        if (identical(slot(), task)) setSlot(null);
-      });
-      setSlot(task);
-      await task;
-    }).whenComplete(() => setForcedRun(null));
+    run = inFlight
+        .then((_) async {
+          if (_disposed || epoch != _generation) return;
+          late final Future<void> task;
+          task = fetch(true).whenComplete(() {
+            if (identical(slot(), task)) setSlot(null);
+          });
+          setSlot(task);
+          await task;
+        })
+        .whenComplete(() => setForcedRun(null));
     return run;
   }
 
@@ -97,6 +110,11 @@ class LibraryController extends ChangeNotifier {
     loadingVenues = true;
     venueError = null;
     _publish();
+    // A read that never settles must not keep the venue section loading.
+    _armStall('venues', epoch, () => loadingVenues = false, () {
+      _venueTask = null;
+      _venueForcedRun = null;
+    });
     try {
       final result = await service.libraryVenues(forceRefresh: force);
       if (_generation != epoch) return;
@@ -108,9 +126,42 @@ class LibraryController extends ChangeNotifier {
       if (_generation != epoch) return;
       venueError = failureMessage(null);
     } finally {
-      loadingVenues = false;
-      _publish();
+      _clearStall('venues');
+      if (epoch == _generation) {
+        loadingVenues = false;
+        _publish();
+      }
     }
+  }
+
+  /// Stop waiting for one section once [stallDeadline] passes. The abandoned
+  /// read is discarded through the generation, exactly like [invalidate].
+  void _armStall(
+    String key,
+    int epoch,
+    void Function() stopLoading,
+    void Function() resetSlot,
+  ) {
+    _clearStall(key);
+    _stalls[key] = Timer(stallDeadline, () {
+      if (_disposed || epoch != _generation) return;
+      _generation++;
+      stopLoading();
+      // The abandoned read can never clear its own slot, so free it here;
+      // otherwise every later refresh would queue behind it forever.
+      resetSlot();
+      if (key == 'venues') {
+        venueError = failureMessage(null);
+      } else {
+        bookingError = failureMessage(null);
+      }
+      _stalls.remove(key);
+      _publish();
+    });
+  }
+
+  void _clearStall(String key) {
+    _stalls.remove(key)?.cancel();
   }
 
   Future<void> loadBookings({bool force = false}) => _enqueue(
@@ -127,6 +178,11 @@ class LibraryController extends ChangeNotifier {
     loadingBookings = true;
     bookingError = null;
     _publish();
+    // A read that never settles must not keep the booking section loading.
+    _armStall('bookings', epoch, () => loadingBookings = false, () {
+      _bookingTask = null;
+      _bookingForcedRun = null;
+    });
     try {
       final result = await service.libraryBookings(forceRefresh: force);
       if (_generation != epoch) return;
@@ -138,15 +194,22 @@ class LibraryController extends ChangeNotifier {
       if (_generation != epoch) return;
       bookingError = failureMessage(null);
     } finally {
-      loadingBookings = false;
-      _publish();
+      _clearStall('bookings');
+      if (epoch == _generation) {
+        loadingBookings = false;
+        _publish();
+      }
     }
   }
 
   /// A pre-write read must finish before the forced read can be published.
   /// All selection routes call this same queue, including after being popped.
   Future<void> reservationChanged() async {
-    await _bookingTask;
+    // Wait for whichever read currently owns the booking slot. `_bookingTask`
+    // alone is not enough: a chained forced read clears it before installing
+    // its replacement, and awaiting during that gap would start a second
+    // overlapping read.
+    await (_bookingForcedRun ?? _bookingTask);
     await loadBookings(force: true);
   }
 
@@ -169,7 +232,12 @@ class LibraryController extends ChangeNotifier {
         return;
       }
       message = result.message;
-      if (result.state == 'notSubmitted' || result.state == 'rejected') {
+      // Only an unconfirmed result keeps the action blocked. `accepted` is a
+      // confirmed write: the readback below refreshes the booking, and the page
+      // re-derives what is allowed from that fresh snapshot. Leaving it blocked
+      // would disable the button for the rest of the page's life with no way
+      // for the user to clear it.
+      if (result.state != 'uncertain') {
         uncertainActions.remove(key);
       }
     } catch (_) {
@@ -185,6 +253,10 @@ class LibraryController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    for (final stall in _stalls.values) {
+      stall.cancel();
+    }
+    _stalls.clear();
     super.dispose();
   }
 }

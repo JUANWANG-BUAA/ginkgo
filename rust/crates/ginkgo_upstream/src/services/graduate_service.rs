@@ -80,24 +80,36 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 });
             }
         }
-        let ticket = self.snapshots.graduate.lock().begin(&key);
-        let mut result = load_part(part, &self.session, &account).await;
-        if result
-            .as_ref()
-            .is_err_and(|e| e.code == ErrorCode::SessionExpired)
-        {
-            result = match self.silent_login().await {
-                Ok(()) => load_part(part, &self.session, &account).await,
-                Err(e) => Err(e),
-            };
-        }
-        if self.current_account()? != account {
-            return Err(AppError::session_expired());
-        }
-        self.snapshots
-            .graduate
-            .lock()
-            .resolve_current(key, ticket, result)
+        let snapshot = super::cache::read_with_snapshot_checked(
+            &self.snapshots.graduate,
+            key,
+            true,
+            async {
+                let mut result = load_part(part, &self.session, &account).await;
+                if result
+                    .as_ref()
+                    .is_err_and(|e| e.code == ErrorCode::SessionExpired)
+                {
+                    result = match self.silent_login().await {
+                        Ok(()) => load_part(part, &self.session, &account).await,
+                        Err(e) => Err(e),
+                    };
+                }
+                result
+            },
+            || {
+                if self.current_account()? == account {
+                    Ok(())
+                } else {
+                    Err(AppError::session_expired())
+                }
+            },
+        )
+        .await?;
+        Ok(GraduateOutcome {
+            data: snapshot.data,
+            failure: snapshot.failure,
+        })
     }
 }
 

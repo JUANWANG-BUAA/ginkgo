@@ -18,6 +18,7 @@ import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
 
 import 'support.dart';
+import 'package:ginkgo_mirror/infrastructure/service_factory.dart';
 
 const native = DemoMirrorService();
 

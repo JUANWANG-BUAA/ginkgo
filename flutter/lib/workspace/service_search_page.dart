@@ -1,9 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
-import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:ginkgo_mirror/shared/school_links.dart';
 
 enum ServiceArea {
   academic('学业'),
@@ -144,7 +143,6 @@ List<ServiceDescriptor> get searchableServices => [
   ),
 ];
 
-
 class ServiceSearchPage extends StatefulWidget {
   const ServiceSearchPage({super.key, required this.context});
   final WorkspaceContext context;
@@ -164,34 +162,15 @@ class _ServiceSearchPageState extends State<ServiceSearchPage> {
       );
       return;
     }
-    final service = widget.context.service;
+    final links = widget.context.capabilities.studentServiceLinks;
     var opened = false;
     try {
-      final value = service is StudentServiceLinksGateway
-          ? (service as StudentServiceLinksGateway).studentServiceUrl(entry.id)
-          : null;
-      final uri = Uri.tryParse(value ?? '');
-      if (uri != null && uri.scheme == 'https' && uri.host.isNotEmpty) {
-        opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
-      }
+      final value = links?.studentServiceUrl(entry.id);
+      opened = await openSchoolLink(value ?? '');
     } catch (_) {
       opened = false;
     }
-    if (!opened && mounted) {
-      await showCupertinoDialog<void>(
-        context: context,
-        builder: (context) => CupertinoAlertDialog(
-          title: const Text('无法打开官网'),
-          content: const Text('请稍后重试。'),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('知道了'),
-            ),
-          ],
-        ),
-      );
-    }
+    if (!opened && mounted) await showSchoolLinkError(context);
   }
 
   @override
@@ -246,21 +225,22 @@ class _ServiceSearchPageState extends State<ServiceSearchPage> {
                         title: Text(entry.title),
                         subtitle: Text(
                           '${entry.description}${entry.destination == null
-                              ? widget.context.service is StudentServiceLinksGateway
+                              ? widget.context.capabilities.studentServiceLinks !=
+                                    null
                                     ? ' · 前往官网 ↗'
                                     : ' · 暂未接入'
                               : ''}',
                         ),
                         trailing:
                             entry.destination == null &&
-                                widget.context.service
-                                    is! StudentServiceLinksGateway
+                                widget.context.capabilities.studentServiceLinks ==
+                                    null
                             ? null
                             : const Icon(CupertinoIcons.chevron_right),
                         onTap:
                             entry.destination == null &&
-                                widget.context.service
-                                    is! StudentServiceLinksGateway
+                                widget.context.capabilities.studentServiceLinks ==
+                                    null
                             ? null
                             : () => open(entry),
                       ),

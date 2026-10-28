@@ -119,7 +119,9 @@ Future<void> visible(WidgetTester tester, Finder finder) async {
 }
 
 Future<void> openRecords(WidgetTester tester, ManagementService service) async {
-  await tester.pumpWidget(ginkgoApp(home: CgyyPage(service: service)));
+  await tester.pumpWidget(
+    ginkgoApp(home: CgyyPage(service: service, bookingGateway: service)),
+  );
   await tester.pumpAndSettle();
   await tester.tap(find.text('我的预约记录'));
   await tester.pumpAndSettle();

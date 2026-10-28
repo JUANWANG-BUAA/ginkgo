@@ -19,7 +19,7 @@ import 'package:ginkgo_mirror/features/library/library_stats_page.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/features/auth/login_page.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/platform/maintenance_service.dart';
+import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/features/notices/notices_page.dart';
 import 'package:ginkgo_mirror/features/settings/settings_page.dart';
@@ -31,6 +31,7 @@ import 'package:ginkgo_mirror/features/today/today_page.dart';
 import 'package:ginkgo_mirror/features/schedule/schedule_page.dart';
 
 import 'support.dart';
+import 'package:ginkgo_mirror/infrastructure/native_mirror_service.dart';
 
 const enabled = bool.fromEnvironment('GINKGO_LIVE_ACCEPTANCE');
 const endpoint = String.fromEnvironment(

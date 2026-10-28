@@ -4,11 +4,12 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_page.dart';
 import 'package:ginkgo_mirror/features/graduate/graduate_page.dart';
-import 'package:ginkgo_mirror/design/ginkgo_visuals.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
 import 'package:ginkgo_mirror/features/notices/notices_page.dart';
 import 'package:ginkgo_mirror/features/grades/grades_page.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/service_capabilities.dart';
 import 'package:ginkgo_mirror/features/settings/settings_page.dart';
 import 'package:ginkgo_mirror/workspace/service_search_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
@@ -93,7 +94,12 @@ class ServiceDirectory extends StatelessWidget {
             '研究生教务',
             CupertinoIcons.briefcase_fill,
             GinkgoColors.accent,
-            GraduatePage(demo: service.isDemo, service: service),
+            GraduatePage(
+              demo: service.isDemo,
+              service: service,
+              creditMapGateway: ServiceCapabilities.resolve(service)
+                  .graduateCreditMap,
+            ),
           ),
         ],
       ),

@@ -24,14 +24,7 @@ pub struct LibraryBookingsOutcome {
     pub failure: Option<AppError>,
 }
 
-#[derive(Debug, Clone)]
-pub struct LibraryHistoryOutcome {
-    pub data: crate::features::library::LibraryHistoryPage,
-    pub fetched_at: String,
-    pub from_cache: bool,
-    pub stale: bool,
-    pub failure: Option<AppError>,
-}
+pub type LibraryHistoryOutcome = super::ReadSnapshot<crate::features::library::LibraryHistoryPage>;
 
 pub trait LibrarySource: Send + Sync {
     fn load_library_history(

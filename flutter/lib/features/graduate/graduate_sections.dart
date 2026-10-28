@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/design/academic_widgets.dart';
+import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 

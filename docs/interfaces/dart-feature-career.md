@@ -7,7 +7,7 @@
 
 ## features/career/career_events_page.dart
 
-- `class CareerEventsPage extends StatefulWidget`
-  <sub>class · features/career/career_events_page.dart:11</sub>
-    - `const CareerEventsPage( {…}`  <sub>:12</sub>
-    - `State<CareerEventsPage> createState() => _CareerEventsPageState();`  <sub>:16</sub>
+- `class CareerEventsPage extends StatelessWidget`
+  <sub>class · features/career/career_events_page.dart:12</sub>
+    - `const CareerEventsPage({super.key, required this.service});`  <sub>:13</sub>
+    - `Widget build( BuildContext context, ) => …`  <sub>:17</sub>

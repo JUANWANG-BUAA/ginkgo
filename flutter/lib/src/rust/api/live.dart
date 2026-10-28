@@ -215,7 +215,7 @@ Future<ReadOnlyResponse> loadDemoNotices() =>
     RustLib.instance.api.crateApiLiveLoadDemoNotices();
 
 /// Public career-calendar events for a school month (YYYY-MM). Read-only.
-Future<ReadOnlyResponse> loadCareerEvents({
+Future<CareerEventsResponse> loadCareerEvents({
   required String month,
   required bool forceRefresh,
 }) => RustLib.instance.api.crateApiLiveLoadCareerEvents(
@@ -623,6 +623,100 @@ class CampusCardBalanceResponse {
           fetchedAt == other.fetchedAt &&
           failure == other.failure &&
           failureDetail == other.failureDetail;
+}
+
+class CareerEventDto {
+  final String id;
+  final String title;
+  final String campus;
+  final String place;
+  final String beginsAt;
+  final String endsAt;
+  final String fairType;
+  final String status;
+  final String url;
+
+  const CareerEventDto({
+    required this.id,
+    required this.title,
+    required this.campus,
+    required this.place,
+    required this.beginsAt,
+    required this.endsAt,
+    required this.fairType,
+    required this.status,
+    required this.url,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      title.hashCode ^
+      campus.hashCode ^
+      place.hashCode ^
+      beginsAt.hashCode ^
+      endsAt.hashCode ^
+      fairType.hashCode ^
+      status.hashCode ^
+      url.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CareerEventDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          campus == other.campus &&
+          place == other.place &&
+          beginsAt == other.beginsAt &&
+          endsAt == other.endsAt &&
+          fairType == other.fairType &&
+          status == other.status &&
+          url == other.url;
+}
+
+class CareerEventsDto {
+  final String month;
+  final List<CareerEventDto> events;
+  final String fetchedAt;
+
+  const CareerEventsDto({
+    required this.month,
+    required this.events,
+    required this.fetchedAt,
+  });
+
+  @override
+  int get hashCode => month.hashCode ^ events.hashCode ^ fetchedAt.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CareerEventsDto &&
+          runtimeType == other.runtimeType &&
+          month == other.month &&
+          events == other.events &&
+          fetchedAt == other.fetchedAt;
+}
+
+/// A failure may accompany data only when it is a previous successful snapshot.
+class CareerEventsResponse {
+  final CareerEventsDto? data;
+  final FailureCode? failure;
+
+  const CareerEventsResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CareerEventsResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
 }
 
 class GradeTermsResponse {

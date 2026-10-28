@@ -2,85 +2,102 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/widgets/resource_meter.dart';
 
 import 'library_stats_models.dart';
-import 'library_widgets.dart';
+
+import 'package:ginkgo_mirror/shared/today_time.dart';
 
 /// Public counts are a snapshot, not a promise that a resource is bookable.
 class LibraryStatsPage extends StatefulWidget {
   const LibraryStatsPage({super.key, required this.service});
-  final LibraryGateway service;
+  final LibrarySeatingGateway service;
   @override
   State<LibraryStatsPage> createState() => _LibraryStatsPageState();
 }
 
+class _LibraryStatsSnapshot {
+  const _LibraryStatsSnapshot(this.campuses, this.updatedAt, this.fromCache);
+  final List<LibraryCampusStats> campuses;
+  final String? updatedAt;
+  final bool fromCache;
+}
+
 class _LibraryStatsPageState extends State<LibraryStatsPage> {
-  List<LibraryCampusStats>? campuses;
-  String? updatedAt;
-  String? error;
-  bool busy = false;
-  bool fromCache = false;
-  bool _pendingRefresh = false;
+  late final RefreshSection<_LibraryStatsSnapshot> section;
+  List<LibraryCampusStats>? get campuses => section.value?.campuses;
+  String? get updatedAt => section.value?.updatedAt;
+  String? get error => section.error;
+  bool get busy => section.loading;
+  bool get fromCache => section.value?.fromCache ?? false;
 
   @override
   void initState() {
     super.initState();
+    section = RefreshSection<_LibraryStatsSnapshot>()
+      ..addListener(() {
+        if (mounted) setState(() {});
+      });
     load();
   }
 
-  Future<void> load({bool force = false}) async {
-    // Pull-to-refresh and the toolbar share one in-flight request; a refresh
-    // that arrives mid-flight is remembered and rerun, never dropped.
-    if (busy) {
-      if (force) _pendingRefresh = true;
-      return;
+  @override
+  void didUpdateWidget(LibraryStatsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service) {
+      section
+        ..invalidate()
+        ..value = null
+        ..error = null
+        ..loading = false;
+      load();
     }
-    setState(() {
-      busy = true;
-      error = null;
-    });
-    try {
-      final result = await widget.service.libraryStats(forceRefresh: force);
-      if (!mounted) return;
-      if (result.payload != null && (result.failure == null || result.stale)) {
-        // Decode only when data changes, never during layout.
-        final snapshot = libraryStats(result.payload!);
-        final items = snapshot.campuses;
-        final instant = snapshot.fetchedAt == null
-            ? null
-            : DateTime.tryParse(snapshot.fetchedAt!);
-        final local = instant?.toUtc().add(const Duration(hours: 8));
-        final formatted = local == null
-            ? null
-            : '${local.month}月${local.day}日 '
-                  '${local.hour.toString().padLeft(2, '0')}:'
-                  '${local.minute.toString().padLeft(2, '0')}（北京时间）';
-        setState(() {
-          campuses = items;
-          updatedAt = formatted;
-          fromCache = snapshot.fromCache;
-        });
-      }
-      setState(() {
-        error = result.failure != null
-            ? failureMessage(result.failure)
-            : campuses == null
-            ? '官网数据暂未读取到'
-            : null;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => error = failureMessage(null));
-    } finally {
-      if (mounted) setState(() => busy = false);
-    }
-    if (!mounted) return;
-    if (_pendingRefresh) {
-      _pendingRefresh = false;
-      await load(force: true);
-    }
+  }
+
+  @override
+  void dispose() {
+    section.dispose();
+    super.dispose();
+  }
+
+  Future<void> load({bool force = false}) {
+    final service = widget.service;
+    return section.refresh(
+      () async {
+        final result = await service.libraryStats(forceRefresh: force);
+        var next = section.value;
+        if (result.payload != null &&
+            (result.failure == null || result.stale)) {
+          final snapshot = libraryStats(result.payload!);
+          final instant = snapshot.fetchedAt == null
+              ? null
+              : DateTime.tryParse(snapshot.fetchedAt!);
+          final local = instant == null ? null : todaySchoolNow(instant);
+          final formatted = local == null
+              ? null
+              : '${local.month}月${local.day}日 '
+                    '${local.hour.toString().padLeft(2, '0')}:'
+                    '${local.minute.toString().padLeft(2, '0')}（北京时间）';
+          next = _LibraryStatsSnapshot(
+            snapshot.campuses,
+            formatted,
+            snapshot.fromCache,
+          );
+        }
+        return SectionResult(
+          value: next,
+          error: result.failure != null
+              ? failureMessage(result.failure)
+              : next == null
+              ? '官网数据暂未读取到'
+              : null,
+        );
+      },
+      fallbackError: failureMessage(null),
+      force: force,
+    );
   }
 
   @override
@@ -91,7 +108,7 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
     child: CustomScrollView(
       key: const Key('library-stats-scroll'),
       slivers: [
-        LibraryPageHeader(
+        AppleRefreshPageHeader(
           title: '在馆与空间',
           subtitle: '学院路 · 沙河在馆人数与空间余量',
           icon: CupertinoIcons.person_2_fill,
@@ -117,7 +134,7 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
               ),
             ),
             if (error != null)
-              LibraryEmptyState(
+              AppleStatusSection(
                 title: error!,
                 description: campuses == null
                     ? '公开信息无需预约登录，请稍后重试。'

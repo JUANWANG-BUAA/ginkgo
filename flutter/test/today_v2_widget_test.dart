@@ -109,6 +109,11 @@ class TodayFake extends Fake implements MirrorService {
   }
 }
 
+class _ReminderPlatform implements ReminderPlatform {
+  @override
+  Future<void> replace(List<Map<String, Object>> plans) async {}
+}
+
 class ReminderSpy extends ReminderController {
   ReminderSpy(MirrorService service)
     : super(
@@ -116,6 +121,7 @@ class ReminderSpy extends ReminderController {
         account: 'synthetic',
         visibility: null,
         persist: false,
+        platform: _ReminderPlatform(),
       );
   final updates = <HomeworkResponse>[];
   @override

@@ -4,11 +4,11 @@ Android 是本工程的主推平台：Flutter 界面 + 进程内 Rust 业务核�
 
 当前主开发平台为 **Android**，以新功能与体验/UI 优化为主、稳定性托底。产品与验收设定见 [Android 开发设定](../docs/ANDROID-DEVELOPMENT.md)，未完成项统一见 [镜像待办](../docs/MIRROR-TODO.md)。沿用简洁信息层级，Android 系统返回、权限和无障碍行为优先，不要求逐像素复制 iOS。
 
-当前手机入口为工作台 / 签到 / 课表 / 作业 / 预约，宽屏切换桌面侧栏；各目的地保留独立导航。认证、主要只读模块、Android Keystore、Windows Credential Manager、离线演示和本地待办已接入；签到及图书馆实验写路径包含确认、单次提交与回查，真实写入未验收。Android Alpha.9 与 Windows Alpha.6 已发布，最近实网登录失败仍需复验。Windows 主推未签名 x64 单文件安装器，同时保留需完整解压的便携 ZIP；物理 x64、干净系统运行依赖和真实学校业务仍待验收。范围见 [实施现状](../docs/MIRROR-IMPLEMENTATION.md)、[Android Alpha.9](../docs/releases/android-alpha9.md)、[模块对照](../docs/MIRROR-PARITY.md) 和 [待办](../docs/MIRROR-TODO.md)。
+当前手机入口为工作台 / 签到 / 课表 / 作业 / 预约，宽屏切换桌面侧栏；各目的地保留独立导航。认证、主要只读模块、Android Keystore、Windows Credential Manager、离线演示和本地待办已接入；签到及图书馆实验写路径包含确认、单次提交与回查，真实写入未验收。Android Beta.1 与 Windows Alpha.6 已发布，最近实网登录失败仍需复验。Windows 提供未签名 x64 单文件安装器和需完整解压的便携 ZIP；物理 x64、干净系统运行依赖和真实学校业务仍待验收。范围见 [实施现状](../docs/MIRROR-IMPLEMENTATION.md)、[Android Beta.1](../docs/releases/android-beta1.md)、[模块对照](../docs/MIRROR-PARITY.md) 和 [待办](../docs/MIRROR-TODO.md)。
 
 ## Android 发布线
 
-Android [Alpha.9 已发布](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-alpha.9)，公开版 `0.1.0-alpha.9+10`；当前工作树为 `0.1.0-beta.1+11`（**尚未发布**），准备记录见 [Beta.1 准备记录](../docs/_audit/2026-10-27-android-beta1-preparation.md)。[功能与接口协议](../docs/FEATURES-AND-PROTOCOLS.md) 为长期维护入口，用户说明见 [Android Alpha.9](../docs/releases/android-alpha9.md) 与 [Android Beta.1](../docs/releases/android-beta1.md)。测试/Debug APK 不是公开更新资产。升级前备份重要待办，不建议降级或卸载。最低门禁仍为 5，本轮不发布 Windows / Apple 包。
+Android Beta.1（`0.1.0-beta.1+11`）已公开，发布与验收证据见 [Beta.1 记录](../docs/_audit/2026-10-27-android-beta1-preparation.md)。工作树的后续改动不因版本号相同而视为已发布。[功能与接口协议](../docs/FEATURES-AND-PROTOCOLS.md) 为长期维护入口，用户说明见 [Android Alpha.9](../docs/releases/android-alpha9.md) 与 [Android Beta.1](../docs/releases/android-beta1.md)。测试/Debug APK 不是公开更新资产。升级前备份重要待办，不建议降级或卸载。最低门禁仍为 5。
 
 对外宣传口径（仓库描述、topics、社区发帖、社交文案）统一维护在 [宣传文案](../docs/PROMOTION.md)，按 Android 主推书写。
 

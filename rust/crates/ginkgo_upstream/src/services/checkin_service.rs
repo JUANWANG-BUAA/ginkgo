@@ -174,10 +174,10 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CheckInSource for Schoo
             }
         }
 
-        // Concurrent callers can request the same uncached day at once.
-        // Stage their network chains so they share one app login and
-        // snapshot; fresh days above never wait for a different day's query.
-        let _gate = self.checkin_request_gate.lock().await;
+        // Only the same uncached day shares authentication and a snapshot;
+        // independent dates never wait for each other's network chain.
+        let day_gate = self.checkin_day_gate(&date);
+        let _gate = day_gate.lock().await;
         if self.current_account()? != account {
             return Err(AppError::session_expired());
         }
@@ -199,50 +199,54 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CheckInSource for Schoo
         }
 
         *self.checkin_progress.lock() = CheckInProgress::default();
-        let ticket = self.snapshots.checkin.lock().begin(&date);
-        let fetched = self.fetch_checkin(&compact).await;
-        self.checkin_stage(if fetched.is_ok() {
-            "complete"
-        } else {
-            "failed"
-        });
-        if self.current_account()? != account {
-            return Err(AppError::session_expired());
-        }
-        match fetched {
-            Ok(courses) => {
-                let timestamp = self.snapshots.checkin.lock().insert_if_current(
-                    date.clone(),
-                    ticket,
-                    courses.clone(),
-                );
-                Ok(CheckInOutcome {
-                    date,
-                    courses,
-                    fetched_at: timestamp,
-                    from_cache: false,
-                    stale: false,
-                    failure: None,
-                })
-            }
-            Err(error) => {
-                if error.code == ErrorCode::SessionExpired {
-                    self.identity.lock().iclass = None;
+        let result = super::cache::read_with_snapshot_checked(
+            &self.snapshots.checkin,
+            date.clone(),
+            true,
+            async {
+                let fetched = self.fetch_checkin(&compact).await;
+                self.checkin_stage(if fetched.is_ok() {
+                    "complete"
+                } else {
+                    "failed"
+                });
+                fetched
+            },
+            || {
+                if self.current_account()? == account {
+                    Ok(())
+                } else {
+                    Err(AppError::session_expired())
                 }
-                let cached = self.snapshots.checkin.lock();
-                match cached.any(&date) {
-                    Some(entry) => Ok(CheckInOutcome {
-                        date,
-                        courses: entry.value.clone(),
-                        fetched_at: entry.timestamp.clone(),
-                        from_cache: true,
-                        stale: true,
-                        failure: Some(error),
-                    }),
-                    None => Err(error),
-                }
-            }
+            },
+        )
+        .await;
+        if self.current_account()? == account
+            && result
+                .as_ref()
+                .is_err_and(|error| error.code == ErrorCode::SessionExpired)
+        {
+            self.identity.lock().iclass = None;
         }
+        if self.current_account()? == account
+            && result.as_ref().ok().is_some_and(|snapshot| {
+                snapshot
+                    .failure
+                    .as_ref()
+                    .is_some_and(|error| error.code == ErrorCode::SessionExpired)
+            })
+        {
+            self.identity.lock().iclass = None;
+        }
+        let snapshot = result?;
+        Ok(CheckInOutcome {
+            date,
+            courses: snapshot.data,
+            fetched_at: snapshot.fetched_at,
+            from_cache: snapshot.from_cache,
+            stale: snapshot.stale,
+            failure: snapshot.failure,
+        })
     }
 }
 

@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/design/academic_widgets.dart';
+import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 
 class GradesPage extends StatefulWidget {
@@ -26,6 +26,21 @@ class _GradesPageState extends State<GradesPage> {
   void initState() {
     super.initState();
     load();
+  }
+
+  @override
+  void didUpdateWidget(GradesPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service) {
+      requestSerial++;
+      data = null;
+      error = null;
+      notice = null;
+      busy = false;
+      terms = const [];
+      selectedTerm = null;
+      load();
+    }
   }
 
   Future<void> load({bool force = false}) async {

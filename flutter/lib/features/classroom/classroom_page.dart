@@ -4,8 +4,8 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/collection_window.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/features/tasks/rules_page.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/features/academic/rules_page.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/collection_toolbar.dart';
 import 'package:ginkgo_mirror/widgets/long_page_scroll.dart';

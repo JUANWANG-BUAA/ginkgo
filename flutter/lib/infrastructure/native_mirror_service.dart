@@ -18,6 +18,7 @@ import 'package:ginkgo_mirror/infrastructure/native_library_loans.dart';
 import 'package:ginkgo_mirror/infrastructure/learning_snapshot_store.dart';
 import 'package:ginkgo_mirror/infrastructure/native_reminder_planning.dart';
 import 'package:ginkgo_mirror/infrastructure/graduate_credit_map_payload.dart';
+import 'package:ginkgo_mirror/infrastructure/native_command.dart';
 
 final class NativeMirrorService
     with
@@ -44,7 +45,7 @@ final class NativeMirrorService
 
   @override
   Future<live.CampusCardBalanceResponse> campusCardBalance() =>
-      live.loadCampusCardBalance();
+      boundedNativeRead(() => live.loadCampusCardBalance());
 
   String get _homeworkOwner {
     final owner = expectedAccount;
@@ -64,9 +65,11 @@ final class NativeMirrorService
   Future<void> _prepareHomework() async {
     final root = await getApplicationSupportDirectory();
     final canonical = await root.resolveSymbolicLinks();
-    final r = await live.configureHomeworkRecovery(
-      expectedAccount: _homeworkOwner,
-      storageRoot: canonical,
+    final r = await boundedNativeRead(
+      () => live.configureHomeworkRecovery(
+        expectedAccount: _homeworkOwner,
+        storageRoot: canonical,
+      ),
     );
     if (r.failure != null) {
       throw StateError('提交保护存储不可用，已阻止写入；附件读取不受影响');
@@ -78,9 +81,11 @@ final class NativeMirrorService
     String? assignmentId,
   }) async {
     await _prepareHomework();
-    final r = await live.pendingHomeworkSubmissions(
-      expectedAccount: _homeworkOwner,
-      assignmentId: assignmentId,
+    final r = await boundedNativeRead(
+      () => live.pendingHomeworkSubmissions(
+        expectedAccount: _homeworkOwner,
+        assignmentId: assignmentId,
+      ),
     );
     if (r.failure != null || r.payload == null) {
       throw StateError('未能读取待核实提交，请勿重复提交');
@@ -97,9 +102,11 @@ final class NativeMirrorService
     String assignmentId,
   ) async {
     await _prepareHomework();
-    final r = await live.homeworkCapabilities(
-      expectedAccount: _homeworkOwner,
-      assignmentId: assignmentId,
+    final r = await boundedNativeRead(
+      () => live.homeworkCapabilities(
+        expectedAccount: _homeworkOwner,
+        assignmentId: assignmentId,
+      ),
     );
     if (r.failure != null || r.payload == null) {
       throw StateError('作业接口状态检测失败，请重新登录或重试');
@@ -115,9 +122,11 @@ final class NativeMirrorService
   Future<GraduateCreditMapRead> graduateCreditMap({
     bool forceRefresh = false,
   }) async => decodeGraduateCreditMapRead(
-    await live.loadGraduateCreditMap(
-      expectedAccount: _homeworkOwner,
-      forceRefresh: forceRefresh,
+    await boundedNativeRead(
+      () => live.loadGraduateCreditMap(
+        expectedAccount: _homeworkOwner,
+        forceRefresh: forceRefresh,
+      ),
     ),
   );
 
@@ -125,9 +134,11 @@ final class NativeMirrorService
   Future<HomeworkFileWorkspace> homeworkFiles(String assignmentId) async =>
       HomeworkFileWorkspace.fromJson(
         _homeworkPayload(
-          await live.homeworkFileWorkspace(
-            expectedAccount: _homeworkOwner,
-            assignmentId: assignmentId,
+          await boundedNativeRead(
+            () => live.homeworkFileWorkspace(
+              expectedAccount: _homeworkOwner,
+              assignmentId: assignmentId,
+            ),
           ),
         ),
       );
@@ -139,11 +150,13 @@ final class NativeMirrorService
   ) async {
     await _prepareHomework();
     final j = _homeworkPayload(
-      await live.uploadHomeworkFile(
-        expectedAccount: _homeworkOwner,
-        assignmentId: assignmentId,
-        name: name,
-        bytes: bytes,
+      await boundedNativeWrite(
+        () => live.uploadHomeworkFile(
+          expectedAccount: _homeworkOwner,
+          assignmentId: assignmentId,
+          name: name,
+          bytes: bytes,
+        ),
       ),
     );
     return HomeworkFileReceipt(
@@ -156,10 +169,12 @@ final class NativeMirrorService
   @override
   Future<MutationResponse> submitHomeworkFile(String handle) async {
     await _prepareHomework();
-    return live.submitHomeworkFile(
-      expectedAccount: _homeworkOwner,
-      handle: handle,
-      confirmed: true,
+    return boundedNativeWrite(
+      () => live.submitHomeworkFile(
+        expectedAccount: _homeworkOwner,
+        handle: handle,
+        confirmed: true,
+      ),
     );
   }
 
@@ -171,10 +186,12 @@ final class NativeMirrorService
     String assignmentId,
     String attachmentId,
   ) async {
-    final r = await live.downloadHomeworkFile(
-      expectedAccount: _homeworkOwner,
-      assignmentId: assignmentId,
-      attachmentId: attachmentId,
+    final r = await boundedNativeWrite(
+      () => live.downloadHomeworkFile(
+        expectedAccount: _homeworkOwner,
+        assignmentId: assignmentId,
+        attachmentId: attachmentId,
+      ),
     );
     if (r.failure != null || r.bytes == null || r.name == null) {
       throw StateError('附件下载失败，请前往官网');
@@ -190,45 +207,58 @@ final class NativeMirrorService
       throw StateError('CGYY requires an account-bound workspace');
     }
     final root = await getApplicationSupportDirectory();
-    return live.executeCgyy(
-      command: jsonEncode({
-        ...command,
-        'storage_root': root.path,
-        'expected_account': expectedAccount,
-      }),
+    return boundedNativeWrite(
+      () => live.executeCgyy(
+        command: jsonEncode({
+          ...command,
+          'storage_root': root.path,
+          'expected_account': expectedAccount,
+        }),
+      ),
     );
   }
 
   @override
-  Future<live.ReadOnlyResponse> checkinProgress() => live.checkinLoadProgress();
+  Future<live.ReadOnlyResponse> checkinProgress() =>
+      boundedNativeRead(() => live.checkinLoadProgress());
   @override
   Future<live.ReadOnlyResponse> bykcPart(
     BykcPart part, {
     bool forceRefresh = false,
   }) => switch (part) {
-    BykcPart.catalog => live.loadBykc(forceRefresh: forceRefresh),
-    BykcPart.chosen => live.loadBykcChosen(forceRefresh: forceRefresh),
-    BykcPart.statistics => live.loadBykcStatistics(forceRefresh: forceRefresh),
+    BykcPart.catalog => boundedNativeRead(
+      () => live.loadBykc(forceRefresh: forceRefresh),
+    ),
+    BykcPart.chosen => boundedNativeRead(
+      () => live.loadBykcChosen(forceRefresh: forceRefresh),
+    ),
+    BykcPart.statistics => boundedNativeRead(
+      () => live.loadBykcStatistics(forceRefresh: forceRefresh),
+    ),
   };
   @override
   Future<live.ReadOnlyResponse> graduatePart({
     required bool report,
     required bool forceRefresh,
-  }) => live.loadGraduatePart(report: report, forceRefresh: forceRefresh);
+  }) => boundedNativeRead(
+    () => live.loadGraduatePart(report: report, forceRefresh: forceRefresh),
+  );
   @override
   Future<live.ReadOnlyResponse> notices({bool forceRefresh = false}) =>
-      live.loadNotices(forceRefresh: forceRefresh);
+      boundedNativeRead(() => live.loadNotices(forceRefresh: forceRefresh));
   @override
   Future<live.ReadOnlyResponse> cgyy({
     required String kind,
     required int siteId,
     required String date,
     required bool forceRefresh,
-  }) => live.loadCgyy(
-    kind: kind,
-    siteId: siteId,
-    date: date,
-    forceRefresh: forceRefresh,
+  }) => boundedNativeRead(
+    () => live.loadCgyy(
+      kind: kind,
+      siteId: siteId,
+      date: date,
+      forceRefresh: forceRefresh,
+    ),
   );
   @override
   Future<live.ReadOnlyResponse> editTasks({
@@ -238,18 +268,20 @@ final class NativeMirrorService
     String? title,
     String? due,
     bool? completed,
-  }) => live.editTasks(
-    root: root,
-    demo: false,
-    action: action,
-    id: id,
-    title: title,
-    due: due,
-    completed: completed,
+  }) => boundedNativeRead(
+    () => live.editTasks(
+      root: root,
+      demo: false,
+      action: action,
+      id: id,
+      title: title,
+      due: due,
+      completed: completed,
+    ),
   );
   @override
   Future<bool> verifyBridgeContract() async {
-    final result = await rust.loadDemoSchedule();
+    final result = await boundedNativeRead(() => rust.loadDemoSchedule());
     return result.failure == null && result.courses.isNotEmpty;
   }
 
@@ -258,30 +290,37 @@ final class NativeMirrorService
     required String areaId,
     required String seatId,
     required LibrarySlot slot,
-  }) => live.reserveLibrarySeat(areaId: areaId, seatId: seatId, slot: slot);
+  }) => boundedNativeWrite(
+    () => live.reserveLibrarySeat(areaId: areaId, seatId: seatId, slot: slot),
+  );
   @override
   Future<live.MutationResponse> performLibraryAction(
     String bookingId,
     String action,
-  ) => live.performLibraryAction(bookingId: bookingId, action: action);
+  ) => boundedNativeWrite(
+    () => live.performLibraryAction(bookingId: bookingId, action: action),
+  );
   @override
   Future<live.MutationResponse> submitCheckin(String courseId) =>
-      live.submitCheckin(courseId: courseId);
+      boundedNativeWrite(() => live.submitCheckin(courseId: courseId));
   @override
   bool get isDemo => false;
   @override
-  Future<SessionResponse> restoreSession() => live.restoreSession();
+  Future<SessionResponse> restoreSession() =>
+      boundedNativeWrite(() => live.restoreSession());
   @override
   Future<SessionResponse> login({
     required String account,
     required String password,
     String? captcha,
     required bool remember,
-  }) => live.login(
-    account: account,
-    password: password,
-    captcha: captcha,
-    remember: remember,
+  }) => boundedNativeWrite(
+    () => live.login(
+      account: account,
+      password: password,
+      captcha: captcha,
+      remember: remember,
+    ),
   );
   @override
   Future<SessionResponse> signOut() async {
@@ -290,118 +329,147 @@ final class NativeMirrorService
     } catch (_) {
       /* Storage is fail-closed; authentication must still be revoked. */
     }
-    return live.signOut();
+    return boundedNativeWrite(() => live.signOut());
   }
 
   @override
   Future<SessionResponse> setRoute(RouteChoice route) async {
     await learningSnapshots.clear();
-    return live.setRoute(route: route);
+    return boundedNativeWrite(() => live.setRoute(route: route));
   }
 
   @override
   Future<bool> clearCache() async {
     await learningSnapshots.clear();
-    return live.clearCache();
+    return boundedNativeRead(() => live.clearCache());
   }
 
   @override
   Future<QueryDates> dates(String instant) =>
-      rust.loadQueryDates(instant: instant);
+      boundedNativeRead(() => rust.loadQueryDates(instant: instant));
   @override
   Future<ClassroomResponse> classrooms(DemoScope scope, ClassroomQuery query) =>
-      live.loadClassrooms(
-        scope: live.LiveScope(
-          campus: scope.campus,
-          date: scope.date,
-          forceRefresh: scope.forceRefresh,
+      boundedNativeRead(
+        () => live.loadClassrooms(
+          scope: live.LiveScope(
+            campus: scope.campus,
+            date: scope.date,
+            forceRefresh: scope.forceRefresh,
+          ),
+          query: query,
         ),
-        query: query,
       );
   @override
-  Future<RuleExamples> rules() => rust.loadRuleExamples();
+  Future<RuleExamples> rules() =>
+      boundedNativeRead(() => rust.loadRuleExamples());
   @override
   Future<ScheduleResponse> schedule({
     String? termId,
     int? week,
     bool forceRefresh = false,
-  }) =>
-      live.loadSchedule(termId: termId, week: week, forceRefresh: forceRefresh);
+  }) => boundedNativeRead(
+    () => live.loadSchedule(
+      termId: termId,
+      week: week,
+      forceRefresh: forceRefresh,
+    ),
+  );
   @override
-  Future<GradeTermsResponse> gradeTerms() => live.loadGradeTerms();
+  Future<GradeTermsResponse> gradeTerms() =>
+      boundedNativeRead(() => live.loadGradeTerms());
   @override
   Future<GradeResponse> grades({String? termCode, bool forceRefresh = false}) =>
-      live.loadGrades(termCode: termCode, forceRefresh: forceRefresh);
+      boundedNativeRead(
+        () => live.loadGrades(termCode: termCode, forceRefresh: forceRefresh),
+      );
   @override
   Future<TodayResponse> today({bool forceRefresh = false}) =>
-      live.loadToday(forceRefresh: forceRefresh);
+      boundedNativeRead(() => live.loadToday(forceRefresh: forceRefresh));
   @override
   Future<CheckInResponse> checkin({bool forceRefresh = false}) =>
-      live.loadCheckinToday(forceRefresh: forceRefresh);
+      boundedNativeRead(
+        () => live.loadCheckinToday(forceRefresh: forceRefresh),
+      );
   @override
   Future<CheckInResponse> checkinOnDate(
     String date, {
     bool forceRefresh = false,
-  }) => live.loadCheckinOnDate(date: date, forceRefresh: forceRefresh);
+  }) => boundedNativeRead(
+    () => live.loadCheckinOnDate(date: date, forceRefresh: forceRefresh),
+  );
   @override
   Future<live.ReadOnlyResponse> libraryStats({bool forceRefresh = false}) =>
-      live.loadLibraryStats(forceRefresh: forceRefresh);
+      boundedNativeRead(
+        () => live.loadLibraryStats(forceRefresh: forceRefresh),
+      );
   @override
   Future<live.ReadOnlyResponse> libraryBooks({
     required String query,
     required int page,
     String sort = 'relevance',
     bool descending = true,
-  }) => live.loadLibraryBooks(
-    query: query,
-    page: page,
-    sort: sort,
-    descending: descending,
+  }) => boundedNativeRead(
+    () => live.loadLibraryBooks(
+      query: query,
+      page: page,
+      sort: sort,
+      descending: descending,
+    ),
   );
   @override
   Future<live.ReadOnlyResponse> shuttleTimetable() =>
-      live.loadShuttleTimetable();
+      boundedNativeRead(() => live.loadShuttleTimetable());
   @override
   Future<live.ReadOnlyResponse> libraryHoldings(String bibId) =>
-      live.loadLibraryHoldings(bibId: bibId);
+      boundedNativeRead(() => live.loadLibraryHoldings(bibId: bibId));
   @override
   Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false}) =>
-      live.loadLibraryVenues(forceRefresh: forceRefresh);
+      boundedNativeRead(
+        () => live.loadLibraryVenues(forceRefresh: forceRefresh),
+      );
   @override
   Future<LibraryAreasResponse> libraryAreas(String libraryId) =>
-      live.loadLibraryAreas(libraryId: libraryId);
+      boundedNativeRead(() => live.loadLibraryAreas(libraryId: libraryId));
   @override
   Future<LibrarySlotsResponse> librarySlots(String areaId) =>
-      live.loadLibrarySlots(areaId: areaId);
+      boundedNativeRead(() => live.loadLibrarySlots(areaId: areaId));
   @override
   Future<LibrarySeatsResponse> librarySeats({
     required String areaId,
     required LibrarySlot slot,
-  }) => live.loadLibrarySeats(
-    areaId: areaId,
-    slotId: slot.id,
-    day: slot.day,
-    start: slot.start,
-    end: slot.end,
+  }) => boundedNativeRead(
+    () => live.loadLibrarySeats(
+      areaId: areaId,
+      slotId: slot.id,
+      day: slot.day,
+      start: slot.start,
+      end: slot.end,
+    ),
   );
   @override
   Future<LibraryBookingsResponse> libraryBookings({
     bool forceRefresh = false,
-  }) => live.loadLibraryBookings(forceRefresh: forceRefresh);
+  }) => boundedNativeRead(
+    () => live.loadLibraryBookings(forceRefresh: forceRefresh),
+  );
   @override
   Future<live.LibraryHistoryResponse> libraryHistory(
     int page, {
     bool forceRefresh = false,
-  }) => live.loadLibraryHistory(page: page, forceRefresh: forceRefresh);
+  }) => boundedNativeRead(
+    () => live.loadLibraryHistory(page: page, forceRefresh: forceRefresh),
+  );
   @override
   Future<HomeworkResponse> homework({bool forceRefresh = false}) =>
-      live.loadHomework(forceRefresh: forceRefresh);
+      boundedNativeRead(() => live.loadHomework(forceRefresh: forceRefresh));
   @override
   Future<live.HomeworkDetailResponse> homeworkDetail(
     String assignmentId, {
     bool forceRefresh = false,
-  }) => live.loadHomeworkDetail(
-    assignmentId: assignmentId,
-    forceRefresh: forceRefresh,
+  }) => boundedNativeRead(
+    () => live.loadHomeworkDetail(
+      assignmentId: assignmentId,
+      forceRefresh: forceRefresh,
+    ),
   );
 }

@@ -27,7 +27,7 @@ LIB = ROOT / 'flutter' / 'lib'
 # `BorderRadius.circular(`；注释不计入；`flutter/lib/design/` 与生成物不计入。
 # 用了 token 的写法不计为硬编码。
 BUDGET = {
-    'font_size': 204,
+    'font_size': 179,
     'edge_insets': 268,
     'sized_box': 208,
     'border_radius': 42,
@@ -69,6 +69,19 @@ def scan() -> dict[str, int]:
     return counts
 
 
+def legacy_font_sizes() -> list[str]:
+    """15/16 已有字阶 token，不允许继续在页面里写字面量。"""
+    occurrences = []
+    for path in sorted(LIB.rglob('*.dart')):
+        relative = path.relative_to(LIB).as_posix()
+        if relative.startswith(EXEMPT_PREFIXES):
+            continue
+        code = strip_comments(path.read_text(encoding='utf-8'))
+        for match in re.finditer(r'\bfontSize\s*:\s*(?:15|16)(?:\.0)?\s*,', code):
+            occurrences.append(f'{relative}:{code.count(chr(10), 0, match.start()) + 1}')
+    return occurrences
+
+
 def main() -> None:
     counts = scan()
     print('design token adoption (hard-coded occurrences):')
@@ -76,12 +89,19 @@ def main() -> None:
         budget = BUDGET.get(key, 0)
         status = 'ok' if value <= budget else 'over budget'
         print(f'  {key:<14} {value:>4} / budget {budget:>4}  {status}')
+    legacy = legacy_font_sizes()
+    print(f'  legacy 15/16 font sizes: {len(legacy)}')
     if '--report' in sys.argv:
         return
     exceeded = [key for key, value in counts.items() if value > BUDGET.get(key, 0)]
-    if exceeded:
+    if exceeded or legacy:
+        details = []
+        if exceeded:
+            details.append('hard-coded design values grew: ' + ', '.join(exceeded))
+        if legacy:
+            details.append('use callout/bodyCondensed font tokens: ' + ', '.join(legacy))
         raise SystemExit(
-            'hard-coded design values grew: ' + ', '.join(exceeded)
+            '\n'.join(details)
             + '\nuse the tokens in flutter/lib/design/tokens/ instead'
             + '\n(if the count dropped, lower the budget in scripts/check-design-tokens.py)')
 

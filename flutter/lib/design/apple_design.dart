@@ -37,7 +37,20 @@ abstract final class AppleDesign {
   static const font = GinkgoTypography.font;
   static const fallback = GinkgoTypography.fallback;
   static const body = GinkgoTypography.body;
-  static const title = GinkgoTypography.largeTitle;
+  static const bodyCondensedSize = GinkgoTypography.bodyCondensedSize;
+  static const calloutSize = GinkgoTypography.calloutSize;
+  static const bodyCondensed = GinkgoTypography.bodyCondensed;
+  static const callout = GinkgoTypography.callout;
+  static const subheadline = GinkgoTypography.subheadline;
+  static const footnote = GinkgoTypography.footnote;
+  static const caption = GinkgoTypography.caption;
+  static const caption2 = GinkgoTypography.caption2;
+  // `title` used to alias largeTitle, so the scale jumped 34 → 26 with nothing
+  // between. Keep `title` on title2 and expose the rest of the scale.
+  static const largeTitle = GinkgoTypography.largeTitle;
+  static const title = GinkgoTypography.title;
+  static const title2 = GinkgoTypography.title2;
+  static const headline = GinkgoTypography.headline;
 
   static Duration duration(BuildContext context, int milliseconds) =>
       GinkgoMotion.duration(context, milliseconds);

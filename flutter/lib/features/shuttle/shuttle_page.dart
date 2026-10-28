@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show SelectableText;
-import 'package:url_launcher/url_launcher.dart';
+import 'package:ginkgo_mirror/shared/school_links.dart';
 
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
@@ -16,7 +16,7 @@ import 'shuttle_widgets.dart';
 /// not guess live seat counts and never proxies ticketing.
 class ShuttlePage extends StatefulWidget {
   const ShuttlePage({super.key, required this.service, this.now});
-  final MirrorService service;
+  final ShuttleGateway service;
 
   /// Beijing wall time used by the first-screen plan; tests inject it so the
   /// selection never depends on the device clock or timezone.
@@ -137,12 +137,7 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
       return;
     }
     final generation = _generation;
-    var opened = false;
-    try {
-      opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (_) {
-      opened = false;
-    }
+    final opened = await openSchoolLink(uri.toString());
     if (opened || !mounted || generation != _generation) return;
     await _showOfficialDialog(
       '未能打开浏览器',

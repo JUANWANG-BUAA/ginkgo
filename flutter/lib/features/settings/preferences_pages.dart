@@ -205,12 +205,23 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
                 '基于最近成功读取的数据，前台每两分钟刷新；不会自动签到或提交作业。本地计划 ${reminders.scheduled} 条，不代表系统实际投递数量。',
           ),
           children: [
+            if (reminders.canRetryRestore)
+              AppleListTile(
+                title: const Text('重新读取提醒偏好'),
+                trailing: const CupertinoListTileChevron(),
+                onTap: () async {
+                  await reminders.restore();
+                  if (reminders.settingsReady) await reminders.refresh();
+                },
+              ),
             AppleListTile(
               title: const Text('课前签到提醒'),
               subtitle: const Text('课前 10 分钟 · 每节课一次'),
               trailing: CupertinoSwitch(
                 value: reminders.checkinEnabled,
-                onChanged: (value) => reminders.setEnabled('checkin', value),
+                onChanged: reminders.settingsReady
+                    ? (value) => reminders.setEnabled('checkin', value)
+                    : null,
               ),
             ),
             AppleListTile(
@@ -218,7 +229,9 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
               subtitle: const Text('提前两天和一天 · 仅个人课程未完成作业'),
               trailing: CupertinoSwitch(
                 value: reminders.homeworkEnabled,
-                onChanged: (value) => reminders.setEnabled('homework', value),
+                onChanged: reminders.settingsReady
+                    ? (value) => reminders.setEnabled('homework', value)
+                    : null,
               ),
             ),
             AppleListTile(
@@ -226,10 +239,12 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
               subtitle: const Text('提前 10 分钟 · 当前周已读取的课程'),
               trailing: CupertinoSwitch(
                 value: reminders.courseEnabled,
-                onChanged: (value) async {
-                  await reminders.setEnabled('course', value);
-                  await reminders.refresh();
-                },
+                onChanged: !reminders.settingsReady
+                    ? null
+                    : (value) async {
+                        await reminders.setEnabled('course', value);
+                        await reminders.refresh();
+                      },
               ),
             ),
             AppleListTile(
@@ -237,10 +252,12 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
               subtitle: const Text('提前一天 · 仅有精确截止时间的未完成待办'),
               trailing: CupertinoSwitch(
                 value: reminders.taskEnabled,
-                onChanged: (value) async {
-                  await reminders.setEnabled('task', value);
-                  await reminders.refresh();
-                },
+                onChanged: !reminders.settingsReady
+                    ? null
+                    : (value) async {
+                        await reminders.setEnabled('task', value);
+                        await reminders.refresh();
+                      },
               ),
             ),
           ],

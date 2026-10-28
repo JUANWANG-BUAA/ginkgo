@@ -4,8 +4,10 @@ import '../application/campus_activities.dart';
 import '../application/contracts.dart';
 import '../src/rust/api/live.dart' as live;
 
+import 'package:ginkgo_mirror/infrastructure/native_command.dart';
+
 CampusActivitiesRead decodeCampusActivities(live.ReadOnlyResponse response) {
-  if (response.failure != null) {
+  if (response.failure != null && !response.stale) {
     return CampusActivitiesRead(failure: response.failure);
   }
   if (response.payload == null) {
@@ -16,6 +18,7 @@ CampusActivitiesRead decodeCampusActivities(live.ReadOnlyResponse response) {
       data: CampusActivities.fromJson(
         jsonDecode(response.payload!) as Map<String, dynamic>,
       ),
+      failure: response.failure,
     );
   } catch (_) {
     return const CampusActivitiesRead(failure: FailureCode.changedResponse);
@@ -28,6 +31,8 @@ mixin NativeCampusActivities implements CampusActivitiesGateway {
     int page = 1,
     bool forceRefresh = false,
   }) async => decodeCampusActivities(
-    await live.loadCampusActivities(page: page, forceRefresh: forceRefresh),
+    await boundedNativeRead(
+      () => live.loadCampusActivities(page: page, forceRefresh: forceRefresh),
+    ),
   );
 }

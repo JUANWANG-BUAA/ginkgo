@@ -71,11 +71,13 @@ pub async fn load<T: HttpTransport + Sync>(
     page: i32,
 ) -> Result<CampusActivities, AppError> {
     validate_page(page)?;
+    let preference = session.route();
     let mut response = session
-        .send_following_redirects(
+        .send_anonymous(
             HttpRequest::get(format!("{BASE}/index/xswh1.htm"))
                 .header("Accept", "text/html")
                 .header("User-Agent", "Ginkgo/1.0"),
+            preference,
         )
         .await?;
     validate_response(&response)?;
@@ -88,10 +90,11 @@ pub async fn load<T: HttpTransport + Sync>(
             return Err(AppError::invalid());
         }
         response = session
-            .send_following_redirects(
+            .send_anonymous(
                 HttpRequest::get(format!("{BASE}/index/xswh1/{}.htm", total + 1 - page))
                     .header("Accept", "text/html")
                     .header("User-Agent", "Ginkgo/1.0"),
+                preference,
             )
             .await?;
         validate_response(&response)?;

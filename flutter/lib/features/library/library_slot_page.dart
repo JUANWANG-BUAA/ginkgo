@@ -1,12 +1,11 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 
 import 'library_seat_page.dart';
-import 'library_widgets.dart';
 
 /// Library hierarchy and explicit, single-attempt booking actions.
 class LibrarySlotPage extends StatefulWidget {
@@ -19,7 +18,7 @@ class LibrarySlotPage extends StatefulWidget {
   });
   final Future<void> Function() onReservationChanged;
   final VoidCallback onViewReservations;
-  final LibraryGateway service;
+  final LibrarySeatingGateway service;
   final LibraryArea area;
   @override
   State<LibrarySlotPage> createState() => _LibrarySlotPageState();
@@ -30,6 +29,7 @@ class _LibrarySlotPageState extends State<LibrarySlotPage> {
   String? error;
   bool busy = false;
   Future<void>? _loadTask;
+  int requestSerial = 0;
 
   @override
   void initState() {
@@ -37,17 +37,39 @@ class _LibrarySlotPageState extends State<LibrarySlotPage> {
     load();
   }
 
-  Future<void> load() =>
-      _loadTask ??= _fetch().whenComplete(() => _loadTask = null);
+  @override
+  void didUpdateWidget(LibrarySlotPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service ||
+        oldWidget.area.id != widget.area.id) {
+      requestSerial++;
+      _loadTask = null;
+      slots = null;
+      error = null;
+      busy = false;
+      load();
+    }
+  }
+
+  Future<void> load() {
+    final running = _loadTask;
+    if (running != null) return running;
+    late final Future<void> task;
+    task = _fetch().whenComplete(() {
+      if (identical(_loadTask, task)) _loadTask = null;
+    });
+    return _loadTask = task;
+  }
 
   Future<void> _fetch() async {
+    final serial = ++requestSerial;
     setState(() {
       busy = true;
       error = null;
     });
     try {
       final result = await widget.service.librarySlots(widget.area.id);
-      if (!mounted) return;
+      if (!mounted || serial != requestSerial) return;
       setState(() {
         if (result.failure != null) {
           error = failureMessage(result.failure);
@@ -56,10 +78,12 @@ class _LibrarySlotPageState extends State<LibrarySlotPage> {
         slots = result.slots;
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || serial != requestSerial) return;
       setState(() => error = failureMessage(null));
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (mounted && serial == requestSerial) {
+        setState(() => busy = false);
+      }
     }
   }
 
@@ -71,7 +95,7 @@ class _LibrarySlotPageState extends State<LibrarySlotPage> {
     child: CustomScrollView(
       key: const Key('library-slots-scroll'),
       slivers: [
-        LibraryPageHeader(
+        AppleRefreshPageHeader(
           title: widget.area.name,
           subtitle: '选择时段后查看空闲座位',
           icon: CupertinoIcons.clock,
@@ -83,7 +107,7 @@ class _LibrarySlotPageState extends State<LibrarySlotPage> {
         SliverList.list(
           children: [
             if (error != null)
-              LibraryEmptyState(
+              AppleStatusSection(
                 title: error!,
                 description: slots == null
                     ? '时段列表读取失败，请稍后重试。'

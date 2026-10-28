@@ -1,13 +1,12 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/widgets/resource_meter.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 
 import 'library_slot_page.dart';
-import 'library_widgets.dart';
 
 /// Library hierarchy and explicit, single-attempt booking actions.
 class LibraryAreaPage extends StatefulWidget {
@@ -20,7 +19,7 @@ class LibraryAreaPage extends StatefulWidget {
   });
   final Future<void> Function() onReservationChanged;
   final VoidCallback onViewReservations;
-  final LibraryGateway service;
+  final LibrarySeatingGateway service;
   final LibraryVenue venue;
   @override
   State<LibraryAreaPage> createState() => _LibraryAreaPageState();
@@ -31,6 +30,7 @@ class _LibraryAreaPageState extends State<LibraryAreaPage> {
   String? error;
   bool busy = false;
   Future<void>? _loadTask;
+  int requestSerial = 0;
 
   @override
   void initState() {
@@ -38,17 +38,39 @@ class _LibraryAreaPageState extends State<LibraryAreaPage> {
     load();
   }
 
-  Future<void> load() =>
-      _loadTask ??= _fetch().whenComplete(() => _loadTask = null);
+  @override
+  void didUpdateWidget(LibraryAreaPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service ||
+        oldWidget.venue.id != widget.venue.id) {
+      requestSerial++;
+      _loadTask = null;
+      areas = null;
+      error = null;
+      busy = false;
+      load();
+    }
+  }
+
+  Future<void> load() {
+    final running = _loadTask;
+    if (running != null) return running;
+    late final Future<void> task;
+    task = _fetch().whenComplete(() {
+      if (identical(_loadTask, task)) _loadTask = null;
+    });
+    return _loadTask = task;
+  }
 
   Future<void> _fetch() async {
+    final serial = ++requestSerial;
     setState(() {
       busy = true;
       error = null;
     });
     try {
       final result = await widget.service.libraryAreas(widget.venue.id);
-      if (!mounted) return;
+      if (!mounted || serial != requestSerial) return;
       setState(() {
         if (result.failure != null) {
           error = failureMessage(result.failure);
@@ -57,10 +79,12 @@ class _LibraryAreaPageState extends State<LibraryAreaPage> {
         areas = result.areas;
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || serial != requestSerial) return;
       setState(() => error = failureMessage(null));
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (mounted && serial == requestSerial) {
+        setState(() => busy = false);
+      }
     }
   }
 
@@ -72,7 +96,7 @@ class _LibraryAreaPageState extends State<LibraryAreaPage> {
     child: CustomScrollView(
       key: const Key('library-areas-scroll'),
       slivers: [
-        LibraryPageHeader(
+        AppleRefreshPageHeader(
           title: widget.venue.name,
           subtitle: '查看开放区域与座位余量',
           icon: CupertinoIcons.rectangle_grid_2x2,
@@ -84,7 +108,7 @@ class _LibraryAreaPageState extends State<LibraryAreaPage> {
         SliverList.list(
           children: [
             if (error != null)
-              LibraryEmptyState(
+              AppleStatusSection(
                 title: error!,
                 description: areas == null
                     ? '区域列表读取失败，请稍后重试。'

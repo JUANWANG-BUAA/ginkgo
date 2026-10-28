@@ -33,6 +33,11 @@ impl<U: SessionSource> Workspace<U> {
     pub async fn sign_out(&self) {
         self.upstream.sign_out().await
     }
+    /// Second sign-out step: delete saved passwords. Deliberately separate so
+    /// the caller does not hold its gate across platform storage.
+    pub async fn purge_credentials(&self) {
+        self.upstream.purge_credentials().await
+    }
     pub fn clear_snapshots(&self) {
         self.upstream.clear_snapshots()
     }

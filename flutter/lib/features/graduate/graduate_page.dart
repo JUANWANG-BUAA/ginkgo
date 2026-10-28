@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/application/contracts.dart' as live;
 import 'package:ginkgo_mirror/application/graduate_credit_map.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/long_page_scroll.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
@@ -13,6 +13,8 @@ import 'graduate_course_widgets.dart';
 import 'graduate_credit_map_page.dart';
 import 'graduate_models.dart';
 import 'graduate_sections.dart';
+
+import 'package:ginkgo_mirror/infrastructure/service_factory.dart';
 
 export 'graduate_widgets.dart' show GraduateCreditProgress;
 
@@ -27,11 +29,15 @@ class GraduatePage extends StatefulWidget {
     this.demo = false,
     this.loader,
     this.service,
+    this.creditMapGateway,
     this.initialView = GraduateView.credits,
   });
   final bool demo;
   final GraduateLoader? loader;
-  final CampusGateway? service;
+  final GraduateGateway? service;
+
+  /// The credit-map projection is an independent capability.
+  final GraduateCreditMapGateway? creditMapGateway;
   final GraduateView initialView;
   @override
   State<GraduatePage> createState() => _GraduatePageState();
@@ -144,7 +150,7 @@ class _GraduatePageState extends State<GraduatePage> {
     _loadPart(report, force: force),
     refreshGraduateCreditMap(
       creditMap,
-      widget.service ?? Object(),
+      widget.creditMapGateway,
       force: force,
     ),
   ]);
@@ -322,7 +328,7 @@ class _GraduatePageState extends State<GraduatePage> {
                                 reportDataExpanded = value,
                           ),
                         ),
-                      if (widget.service is GraduateCreditMapGateway) ...[
+                      if (widget.creditMapGateway != null) ...[
                         const Padding(
                           padding: EdgeInsets.fromLTRB(24, 20, 24, 4),
                           child: Text(

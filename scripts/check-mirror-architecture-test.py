@@ -11,6 +11,31 @@ SPEC.loader.exec_module(BOUNDARY)
 
 
 class BoundaryTests(unittest.TestCase):
+    def test_reminder_controller_cannot_import_platform_adapters(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            file = root / 'flutter/lib/shared/reminders.dart'
+            file.parent.mkdir(parents=True)
+            for directive in [
+                "import 'dart:io';",
+                "import 'package:flutter/services.dart';",
+                "import 'package:ginkgo_mirror/infrastructure/reminder_store.dart';",
+            ]:
+                file.write_text(directive)
+                self.assertTrue(BOUNDARY.dart_boundary_violations(root), directive)
+            file.write_text("import 'package:ginkgo_mirror/application/reminder_store.dart';")
+            self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
+
+    def test_application_cannot_import_platform_storage_plugin(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            file = root / 'flutter/lib/application/example.dart'
+            file.parent.mkdir(parents=True)
+            file.write_text("import 'package:path_provider/path_provider.dart';\n")
+            self.assertTrue(BOUNDARY.dart_boundary_violations(root))
+            file.write_text('abstract class TaskStorageRoot {}\n')
+            self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
+
     def test_core_cannot_reintroduce_upstream_even_as_a_test_dependency(self):
         errors = BOUNDARY.dependency_violations([{
             'name': 'ginkgo_core', 'dependencies': [
@@ -149,9 +174,9 @@ class BoundaryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             lib = root / 'flutter/lib'
-            shared = lib / 'shared/course_visibility.dart'
+            shared = lib / 'shared/checkin_sessions.dart'
             shared.parent.mkdir(parents=True)
-            design = lib / 'design/ginkgo_visuals.dart'
+            design = lib / 'widgets/ginkgo_visuals.dart'
             design.parent.mkdir(parents=True)
             shared.write_text('final rows = <Map<String, dynamic>>[];\n')
             design.write_text('final rows = <Map<String, dynamic>>[];\n')
@@ -210,6 +235,31 @@ class BoundaryTests(unittest.TestCase):
             self.assertIn('split by responsibility', errors[0])
             page.write_text('\n'.join(['// line'] * 600))
             self.assertEqual(BOUNDARY.layout_violations(root), [])
+
+    def test_synchronous_mutex_guard_cannot_cross_await(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / 'rust/crates/ginkgo_upstream/src/services/example.rs'
+            source.parent.mkdir(parents=True)
+            source.write_text('''async fn unsafe_read(&self) {
+    let guard = self.identity.lock();
+    self.fetch().await;
+    drop(guard);
+}
+''')
+            errors = BOUNDARY.sync_lock_await_violations(root)
+            self.assertEqual(len(errors), 1)
+            self.assertIn('guard', errors[0])
+            source.write_text('''async fn safe_read(&self) {
+    let guard = self.identity.lock();
+    drop(guard);
+    self.fetch().await;
+    let async_guard = self.requests.lock().await;
+    self.fetch().await;
+    drop(async_guard);
+}
+''')
+            self.assertEqual(BOUNDARY.sync_lock_await_violations(root), [])
 
 
 if __name__ == '__main__':

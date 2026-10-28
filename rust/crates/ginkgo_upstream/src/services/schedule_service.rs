@@ -273,56 +273,40 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> GradeSource for SchoolC
             }
         }
 
-        let ticket = self.snapshots.grades.lock().begin(&cache_key);
-        let fetched = match self.fetch_grades(term_code).await {
-            Err(error) if error.code == ErrorCode::SessionExpired => {
-                match self.silent_login().await {
-                    Ok(()) => self.fetch_grades(term_code).await,
-                    Err(error) => Err(error),
+        let snapshot = super::cache::read_with_snapshot_checked(
+            &self.snapshots.grades,
+            cache_key,
+            force_refresh,
+            async {
+                let fetched = match self.fetch_grades(term_code).await {
+                    Err(error) if error.code == ErrorCode::SessionExpired => {
+                        match self.silent_login().await {
+                            Ok(()) => self.fetch_grades(term_code).await,
+                            Err(error) => Err(error),
+                        }
+                    }
+                    other => other,
+                };
+                fetched.map(|(term_id, courses)| GradeData { term_id, courses })
+            },
+            || {
+                if self.current_account()? == account {
+                    Ok(())
+                } else {
+                    Err(AppError::session_expired())
                 }
-            }
-            other => other,
-        };
-        if self.current_account()? != account {
-            return Err(AppError::session_expired());
-        }
-
-        match fetched {
-            Ok((term_id, courses)) => {
-                let timestamp = self.snapshots.grades.lock().insert_if_current(
-                    cache_key,
-                    ticket,
-                    GradeData {
-                        term_id: term_id.clone(),
-                        courses: courses.clone(),
-                    },
-                );
-                Ok(GradeOutcome {
-                    term_id,
-                    summary: grades::summarize(&courses),
-                    courses,
-                    fetched_at: timestamp,
-                    from_cache: false,
-                    stale: false,
-                    failure: None,
-                })
-            }
-            Err(error) => {
-                let cached = self.snapshots.grades.lock();
-                match cached.any(&cache_key) {
-                    Some(entry) => Ok(GradeOutcome {
-                        term_id: entry.value.term_id.clone(),
-                        summary: grades::summarize(&entry.value.courses),
-                        courses: entry.value.courses.clone(),
-                        fetched_at: entry.timestamp.clone(),
-                        from_cache: true,
-                        stale: true,
-                        failure: Some(error),
-                    }),
-                    None => Err(error),
-                }
-            }
-        }
+            },
+        )
+        .await?;
+        Ok(GradeOutcome {
+            term_id: snapshot.data.term_id,
+            summary: grades::summarize(&snapshot.data.courses),
+            courses: snapshot.data.courses,
+            fetched_at: snapshot.fetched_at,
+            from_cache: snapshot.from_cache,
+            stale: snapshot.stale,
+            failure: snapshot.failure,
+        })
     }
 
     async fn load_grade_terms(&self) -> Result<Vec<Term>, AppError> {
@@ -360,7 +344,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> TodaySource for SchoolC
             }
         }
 
-        let ticket = self.snapshots.today.lock().begin(&date);
         let portal = schedule_http::detect_portal(&self.session).await?;
         if portal != Portal::Undergraduate {
             let outcome = self.load_today_from_schedule(&date, force_refresh).await;
@@ -370,50 +353,38 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> TodaySource for SchoolC
             return outcome;
         }
 
-        let fetched = match schedule_http::load_today(&self.session, &date).await {
-            Err(error) if error.code == ErrorCode::SessionExpired => {
-                match self.silent_login().await {
-                    Ok(()) => schedule_http::load_today(&self.session, &date).await,
-                    Err(error) => Err(error),
+        let snapshot = super::cache::read_with_snapshot_checked(
+            &self.snapshots.today,
+            date.clone(),
+            force_refresh,
+            async {
+                match schedule_http::load_today(&self.session, &date).await {
+                    Err(error) if error.code == ErrorCode::SessionExpired => {
+                        match self.silent_login().await {
+                            Ok(()) => schedule_http::load_today(&self.session, &date).await,
+                            Err(error) => Err(error),
+                        }
+                    }
+                    other => other,
                 }
-            }
-            other => other,
-        };
-        if self.current_account()? != account {
-            return Err(AppError::session_expired());
-        }
-
-        match fetched {
-            Ok(courses) => {
-                let timestamp = self.snapshots.today.lock().insert_if_current(
-                    date.clone(),
-                    ticket,
-                    courses.clone(),
-                );
-                Ok(TodayOutcome {
-                    date,
-                    courses,
-                    fetched_at: timestamp,
-                    from_cache: false,
-                    stale: false,
-                    failure: None,
-                })
-            }
-            Err(error) => {
-                let cached = self.snapshots.today.lock();
-                match cached.any(&date) {
-                    Some(entry) => Ok(TodayOutcome {
-                        date,
-                        courses: entry.value.clone(),
-                        fetched_at: entry.timestamp.clone(),
-                        from_cache: true,
-                        stale: true,
-                        failure: Some(error),
-                    }),
-                    None => Err(error),
+            },
+            || {
+                if self.current_account()? == account {
+                    Ok(())
+                } else {
+                    Err(AppError::session_expired())
                 }
-            }
-        }
+            },
+        )
+        .await?;
+        Ok(TodayOutcome {
+            date,
+            courses: snapshot.data,
+            fetched_at: snapshot.fetched_at,
+            from_cache: snapshot.from_cache,
+            stale: snapshot.stale,
+            failure: snapshot.failure,
+        })
     }
 }
 
@@ -424,68 +395,36 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> ScheduleSource for Scho
             return Err(AppError::invalid());
         }
         let key = (input.term_id.clone(), input.week);
-        if !input.force_refresh {
-            let cached = self.snapshots.schedules.lock();
-            if let Some(entry) = cached.fresh(&key) {
-                return Ok(ScheduleOutcome {
-                    data: entry.value.clone(),
-                    fetched_at: entry.timestamp.clone(),
-                    from_cache: true,
-                    stale: false,
-                    failure: None,
-                });
-            }
-        }
-
-        let ticket = self.snapshots.schedules.lock().begin(&key);
-
-        let fetched = match self
-            .fetch_schedule(input.term_id.as_deref(), input.week)
-            .await
-        {
-            Err(error) if error.code == ErrorCode::SessionExpired => {
-                match self.silent_login().await {
-                    Ok(()) => {
-                        self.fetch_schedule(input.term_id.as_deref(), input.week)
-                            .await
+        let snapshot = super::cache::read_with_snapshot_checked(
+            &self.snapshots.schedules,
+            key,
+            input.force_refresh,
+            async {
+                match self
+                    .fetch_schedule(input.term_id.as_deref(), input.week)
+                    .await
+                {
+                    Err(error) if error.code == ErrorCode::SessionExpired => {
+                        match self.silent_login().await {
+                            Ok(()) => {
+                                self.fetch_schedule(input.term_id.as_deref(), input.week)
+                                    .await
+                            }
+                            Err(error) => Err(error),
+                        }
                     }
-                    Err(error) => Err(error),
+                    other => other,
                 }
-            }
-            other => other,
-        };
-        if self.current_account()? != account {
-            return Err(AppError::session_expired());
-        }
-
-        match fetched {
-            Ok(data) => {
-                let timestamp =
-                    self.snapshots
-                        .schedules
-                        .lock()
-                        .insert_if_current(key, ticket, data.clone());
-                Ok(ScheduleOutcome {
-                    data,
-                    fetched_at: timestamp,
-                    from_cache: false,
-                    stale: false,
-                    failure: None,
-                })
-            }
-            Err(error) => {
-                let cached = self.snapshots.schedules.lock();
-                match cached.any(&key) {
-                    Some(entry) => Ok(ScheduleOutcome {
-                        data: entry.value.clone(),
-                        fetched_at: entry.timestamp.clone(),
-                        from_cache: true,
-                        stale: true,
-                        failure: Some(error),
-                    }),
-                    None => Err(error),
+            },
+            || {
+                if self.current_account()? == account {
+                    Ok(())
+                } else {
+                    Err(AppError::session_expired())
                 }
-            }
-        }
+            },
+        )
+        .await?;
+        Ok(snapshot)
     }
 }

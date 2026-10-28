@@ -9,10 +9,12 @@
 
 - `class Notice` — Typed projection of `ginkgo_domain::features::notices` payloads.
   <sub>class · features/notices/notices_models.dart:4</sub>
+- `List<Notice> noticeList(String payload) => …`
+  <sub>function · features/notices/notices_models.dart:14</sub>
 
 ## features/notices/notices_page.dart
 
 - `class NoticesPage extends StatefulWidget`
-  <sub>class · features/notices/notices_page.dart:9</sub>
-    - `const NoticesPage( {…}`  <sub>:10</sub>
-    - `State<NoticesPage> createState() => _NoticesPageState();`  <sub>:14</sub>
+  <sub>class · features/notices/notices_page.dart:11</sub>
+    - `const NoticesPage({super.key, this.demo = false, this.service});`  <sub>:12</sub>
+    - `State<NoticesPage> createState() => …`  <sub>:16</sub>

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/graduate_credit_map.dart';
-import 'package:ginkgo_mirror/design/academic_widgets.dart';
+import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 

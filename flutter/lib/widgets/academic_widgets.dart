@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
+import 'package:ginkgo_mirror/design/apple_design.dart';
+
 String academicNumber(num? value) => value == null
     ? '未提供'
     : value == value.roundToDouble()
@@ -20,22 +22,22 @@ class AcademicBadge extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.09),
-        borderRadius: BorderRadius.circular(7),
+        borderRadius: BorderRadius.circular(GinkgoRadii.badge),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        padding: GinkgoSpacing.edgeInsetsBadge,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
               Icon(icon, size: 14, color: color),
-              const SizedBox(width: 4),
+              const SizedBox(width: GinkgoSpacing.xs),
             ],
             Flexible(
               child: Text(
                 label,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: GinkgoTypography.footnote.fontSize,
                   fontWeight: FontWeight.w500,
                   color: color,
                 ),
@@ -56,32 +58,39 @@ class AcademicFactRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+    padding: GinkgoSpacing.edgeInsetsFact,
     child: LayoutBuilder(
       builder: (context, constraints) {
         final heading = Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: GinkgoTypography.subheadline.fontSize,
             color: CupertinoColors.secondaryLabel.resolveFrom(context),
           ),
         );
         final content = Text(
           value,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          style: const TextStyle(
+            fontSize: AppleDesign.bodyCondensedSize,
+            fontWeight: FontWeight.w500,
+          ),
         );
         if (constraints.maxWidth < 300 ||
             MediaQuery.textScalerOf(context).scale(1) > 1.4) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [heading, const SizedBox(height: 5), content],
+            children: [
+              heading,
+              const SizedBox(height: GinkgoSpacing.compact),
+              content,
+            ],
           );
         }
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(width: 124, child: heading),
-            const SizedBox(width: 12),
+            SizedBox(width: GinkgoSpacing.factLabelWidth, child: heading),
+            const SizedBox(width: GinkgoSpacing.md),
             Expanded(child: content),
           ],
         );
@@ -106,15 +115,17 @@ class AcademicMetric extends StatelessWidget {
       Text(
         label,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: GinkgoTypography.footnote.fontSize,
           color: CupertinoColors.secondaryLabel.resolveFrom(context),
         ),
       ),
-      const SizedBox(height: 6),
+      const SizedBox(height: GinkgoSpacing.small),
       Text(
         value,
         style: TextStyle(
-          fontSize: prominent ? 32 : 24,
+          fontSize: prominent
+              ? GinkgoTypography.metricProminentSize
+              : GinkgoTypography.metricSize,
           fontWeight: FontWeight.w600,
           fontFeatures: const [FontFeature.tabularFigures()],
         ),
@@ -135,19 +146,25 @@ class AcademicMetricGrid extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
       final scale = MediaQuery.textScalerOf(context).scale(1);
-      final columns = (constraints.maxWidth / (108 * scale)).floor().clamp(
-        1,
-        maxColumns == null
-            ? children.length
-            : maxColumns!.clamp(1, children.length),
-      );
+      final columns =
+          (constraints.maxWidth / (GinkgoSpacing.metricColumnWidth * scale))
+              .floor()
+              .clamp(
+                1,
+                maxColumns == null
+                    ? children.length
+                    : maxColumns!.clamp(1, children.length),
+              );
+      final gapCount = columns - 1;
       return Wrap(
-        spacing: 16,
-        runSpacing: 18,
+        spacing: GinkgoSpacing.base,
+        runSpacing: GinkgoSpacing.metricGridSpacing,
         children: [
           for (final child in children)
             SizedBox(
-              width: (constraints.maxWidth - 16 * (columns - 1)) / columns,
+              width:
+                  (constraints.maxWidth - GinkgoSpacing.base * gapCount) /
+                  columns,
               child: child,
             ),
         ],

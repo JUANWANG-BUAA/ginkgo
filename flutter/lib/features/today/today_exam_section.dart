@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/failure_message.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 
@@ -86,15 +86,20 @@ class _TodayExamSectionState extends State<TodayExamSection> {
       widget.now.month,
       widget.now.day,
     );
-    final upcoming = data.exams.where((exam) {
-      final day = exam.examDate == null ? null : todayDate(exam.examDate!);
-      return day == null || !day.isBefore(today);
-    }).toList()..sort((left, right) {
-      final dateOrder = (left.examDate ?? '').compareTo(right.examDate ?? '');
-      if (dateOrder != 0) return dateOrder;
-      final timeOrder = (left.startTime ?? '').compareTo(right.startTime ?? '');
-      return timeOrder != 0 ? timeOrder : left.id.compareTo(right.id);
-    });
+    final upcoming =
+        data.exams.where((exam) {
+          final day = exam.examDate == null ? null : todayDate(exam.examDate!);
+          return day == null || !day.isBefore(today);
+        }).toList()..sort((left, right) {
+          final dateOrder = (left.examDate ?? '').compareTo(
+            right.examDate ?? '',
+          );
+          if (dateOrder != 0) return dateOrder;
+          final timeOrder = (left.startTime ?? '').compareTo(
+            right.startTime ?? '',
+          );
+          return timeOrder != 0 ? timeOrder : left.id.compareTo(right.id);
+        });
     if (upcoming.isEmpty) return const SizedBox.shrink();
     return TodayVisualSection(
       key: const Key('today-exams'),

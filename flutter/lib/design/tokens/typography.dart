@@ -56,6 +56,32 @@ abstract final class GinkgoTypography {
     color: GinkgoColors.label,
   );
 
+  static const bodyCondensedSize = 16.0;
+  static const calloutSize = 15.0;
+  static const metricSize = 24.0;
+  static const metricProminentSize = 32.0;
+
+  /// Dense rows and sidebars. 16 and 15 are the two most used sizes in the
+  /// app after body/footnote; leaving them out of the scale is what pushed
+  /// pages to hard-code `fontSize: 16` / `fontSize: 15` instead.
+  static const bodyCondensed = TextStyle(
+    inherit: false,
+    fontFamily: font,
+    fontFamilyFallback: fallback,
+    fontSize: bodyCondensedSize,
+    letterSpacing: -0.2,
+    color: GinkgoColors.label,
+  );
+
+  static const callout = TextStyle(
+    inherit: false,
+    fontFamily: font,
+    fontFamilyFallback: fallback,
+    fontSize: calloutSize,
+    letterSpacing: -0.18,
+    color: GinkgoColors.label,
+  );
+
   static const subheadline = TextStyle(
     inherit: false,
     fontFamily: font,

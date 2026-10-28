@@ -20,6 +20,7 @@ jobs:
           components: rustfmt, clippy
       - run: python3 scripts/check-mirror-architecture.py
       - run: python3 scripts/check-mirror-architecture-test.py
+      - run: python3 scripts/generate-interface-index-test.py
       - run: python3 scripts/check-design-tokens.py
       - run: python3 scripts/generate-interface-index.py --check
       - run: cargo fmt --manifest-path rust/Cargo.toml --all --check

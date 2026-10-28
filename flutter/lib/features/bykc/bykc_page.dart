@@ -8,9 +8,11 @@ import 'package:ginkgo_mirror/features/bykc/bykc_course_tile.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_models.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_statistics_view.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_widgets.dart';
-export 'package:ginkgo_mirror/features/bykc/bykc_widgets.dart' show BykcStatisticsCard;
-import 'package:ginkgo_mirror/mirror_service.dart';
+export 'package:ginkgo_mirror/features/bykc/bykc_widgets.dart'
+    show BykcStatisticsCard;
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/contracts.dart' as live;
+import 'package:ginkgo_mirror/infrastructure/service_factory.dart';
 
 typedef BykcLoader = Future<live.ReadOnlyResponse> Function({
   required BykcPart part,
@@ -21,7 +23,7 @@ class BykcPage extends StatefulWidget {
   const BykcPage({super.key, this.demo = false, this.loader, this.service});
   final bool demo;
   final BykcLoader? loader;
-  final CampusGateway? service;
+  final BykcGateway? service;
   @override
   State<BykcPage> createState() => _BykcPageState();
 }
@@ -187,50 +189,47 @@ class _BykcPageState extends State<BykcPage> {
 
   /// Only visible rows are built, including large catalogs. Filters and parsed
   /// snapshots stay in state while moving among the three independent views.
-  Widget _courseList(
-    List<Object> rows, {
-    bool chosen = false,
-  }) => SliverList.builder(
-    itemCount: rows.length,
-    addAutomaticKeepAlives: false,
-    itemBuilder: (context, index) {
-      final record = chosen ? rows[index] as BykcChosenRecord : null;
-      final course = chosen ? record!.course : rows[index] as BykcCourse;
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: ClipRSuperellipse(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(index == 0 ? 20 : 0),
-            bottom: Radius.circular(index == rows.length - 1 ? 20 : 0),
-          ),
-          child: ColoredBox(
-            color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(
-              context,
-            ),
-            child: Column(
-              children: [
-                BykcCourseTile(
-                  course: course,
-                  record: record,
-                  onTap: () => _open(course, record: record),
-                ),
-                if (index != rows.length - 1)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Container(
-                      height: 0.5,
-                      color: CupertinoColors.separator
-                          .resolveFrom(context)
-                          .withValues(alpha: 0.2),
+  Widget _courseList(List<Object> rows, {bool chosen = false}) =>
+      SliverList.builder(
+        itemCount: rows.length,
+        addAutomaticKeepAlives: false,
+        itemBuilder: (context, index) {
+          final record = chosen ? rows[index] as BykcChosenRecord : null;
+          final course = chosen ? record!.course : rows[index] as BykcCourse;
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ClipRSuperellipse(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(index == 0 ? 20 : 0),
+                bottom: Radius.circular(index == rows.length - 1 ? 20 : 0),
+              ),
+              child: ColoredBox(
+                color: CupertinoColors.secondarySystemGroupedBackground
+                    .resolveFrom(context),
+                child: Column(
+                  children: [
+                    BykcCourseTile(
+                      course: course,
+                      record: record,
+                      onTap: () => _open(course, record: record),
                     ),
-                  ),
-              ],
+                    if (index != rows.length - 1)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Container(
+                          height: 0.5,
+                          color: CupertinoColors.separator
+                              .resolveFrom(context)
+                              .withValues(alpha: 0.2),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       );
-    },
-  );
 
   List<Widget> _catalog() => [
     SliverToBoxAdapter(

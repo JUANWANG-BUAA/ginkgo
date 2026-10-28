@@ -1,12 +1,11 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
 import 'cgyy_gateway.dart';
 import 'cgyy_models.dart';
-import 'cgyy_widgets.dart';
 
 class CgyyLockCodePage extends StatefulWidget {
   const CgyyLockCodePage({
@@ -18,7 +17,7 @@ class CgyyLockCodePage extends StatefulWidget {
 
   final bool demo;
   final CgyyLoader? loader;
-  final CampusGateway? service;
+  final CgyyGateway? service;
 
   @override
   State<CgyyLockCodePage> createState() => _CgyyLockCodePageState();
@@ -44,7 +43,6 @@ class _CgyyLockCodePageState extends State<CgyyLockCodePage> {
     });
     try {
       final result = await cgyyLockCode(
-        demo: widget.demo,
         loader: widget.loader,
         service: widget.service,
         forceRefresh: force,
@@ -88,10 +86,10 @@ class _CgyyLockCodePageState extends State<CgyyLockCodePage> {
         children: [
           if (busy) const GinkgoLoadingView(label: '正在读取门锁密码…'),
           if (error != null)
-            const CgyyStatusSection(
+            const AppleStatusSection(
               title: '门锁密码读取失败',
               description: '请检查学校会话和网络后重试；读取失败不代表没有预约。',
-              isError: true,
+              error: true,
             ),
           if (error != null)
             AppleSection(
@@ -130,7 +128,7 @@ class _CgyyLockCodePageState extends State<CgyyLockCodePage> {
                 ],
               )
             else
-              CgyyStatusSection(
+              AppleStatusSection(
                 title: current.hasUpcomingReservation ? '未到开门时段' : '当前无可用预约',
                 description: current.hasUpcomingReservation
                     ? '门锁密码会在可开门时段内返回，可稍后手动刷新。'

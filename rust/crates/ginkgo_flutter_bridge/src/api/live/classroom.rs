@@ -2,7 +2,6 @@
 use super::*;
 
 pub(super) async fn load_classrooms(scope: LiveScope, query: ClassroomQuery) -> ClassroomResponse {
-    let _access = SESSION_ACCESS.read().await;
     let Ok(service) = service() else {
         return ClassroomResponse {
             buildings: vec![],
@@ -26,7 +25,7 @@ pub(super) async fn load_classrooms(scope: LiveScope, query: ClassroomQuery) -> 
         building: query.building,
         sort: classroom_sort(query.sort),
     };
-    match bounded_read(service.load_classrooms(&input)).await {
+    match with_session_read(|| service.load_classrooms(&input)).await {
         Ok(outcome) => classroom_response(outcome),
         Err(error) => {
             let (failure, failure_detail) = failure(&error);

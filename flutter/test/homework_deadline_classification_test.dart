@@ -397,7 +397,9 @@ void main() {
         ),
       );
       await tester.pumpWidget(
-        ginkgoApp(home: HomeworkPage(service: gateway, now: beijingNow)),
+        ginkgoApp(
+          home: HomeworkPage(service: gateway, now: beijingNow),
+        ),
       );
       await tester.pumpAndSettle();
 

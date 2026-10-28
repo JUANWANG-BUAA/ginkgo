@@ -9,39 +9,18 @@ pub use ginkgo_domain::ports::LibraryStatsOutcome;
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibraryStatsSource for SchoolClient<T, V> {
     async fn load_library_stats(&self, force: bool) -> Result<LibraryStatsOutcome, AppError> {
-        let key = "public".to_owned();
-        if !force {
-            if let Some(entry) = self.snapshots.library_stats.lock().fresh(&key) {
-                return Ok(LibraryStatsOutcome {
-                    campuses: entry.value.clone(),
-                    fetched_at: entry.timestamp.clone(),
-                    from_cache: true,
-                    failure: None,
-                });
-            }
-        }
-        let ticket = self.snapshots.library_stats.lock().begin(&key);
-        let result = library_stats_http::load(&self.session, self.preference().into()).await;
-        let mut cache = self.snapshots.library_stats.lock();
-        match result {
-            Ok(campuses) => {
-                let fetched_at = cache.insert_if_current(key, ticket, campuses.clone());
-                Ok(LibraryStatsOutcome {
-                    campuses,
-                    fetched_at,
-                    from_cache: false,
-                    failure: None,
-                })
-            }
-            Err(error) => match cache.any(&key) {
-                Some(entry) => Ok(LibraryStatsOutcome {
-                    campuses: entry.value.clone(),
-                    fetched_at: entry.timestamp.clone(),
-                    from_cache: true,
-                    failure: Some(error),
-                }),
-                None => Err(error),
-            },
-        }
+        let snapshot = super::cache::read_with_snapshot(
+            &self.snapshots.library_stats,
+            "public".to_owned(),
+            force,
+            library_stats_http::load(&self.session, self.preference().into()),
+        )
+        .await?;
+        Ok(LibraryStatsOutcome {
+            campuses: snapshot.data,
+            fetched_at: snapshot.fetched_at,
+            from_cache: snapshot.from_cache,
+            failure: snapshot.failure,
+        })
     }
 }

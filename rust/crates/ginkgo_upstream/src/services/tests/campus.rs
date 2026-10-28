@@ -238,14 +238,24 @@ async fn notices_public_list_caches_and_preserves_last_result_on_drift() {
     let url = "https://news.buaa.edu.cn/tzgg.htm";
     let (service, transport) = build_service(
         vec![
-            HttpResponse::new(200, url, body),
+            HttpResponse::new(200, "https://sso.buaa.edu.cn/session", "seed")
+                .with_set_cookie("CASTGC=synthetic-account; Domain=buaa.edu.cn; Path=/; Secure"),
+            HttpResponse::new(200, url, body)
+                .with_set_cookie("public-session=synthetic; Domain=buaa.edu.cn; Path=/; Secure"),
             HttpResponse::new(200, url, "<html>changed</html>"),
         ],
         MemoryVault::default(),
     );
+    service
+        .session
+        .send_direct(HttpRequest::get("https://sso.buaa.edu.cn/session"))
+        .await
+        .expect("seed parent-domain login cookie");
     assert_eq!(service.load_notices(false).await.unwrap().data.len(), 1);
     assert_eq!(service.load_notices(false).await.unwrap().data.len(), 1);
-    assert_eq!(transport.request_count(), 1);
+    assert_eq!(transport.request_count(), 2);
+    let requests = transport.requests();
+    assert_eq!(requests[1].header_value("cookie"), None);
     let stale = service.load_notices(true).await.unwrap();
     assert_eq!(stale.data[0].title, "合成校园通知");
     assert_eq!(stale.failure.unwrap().code, ErrorCode::ChangedResponse);

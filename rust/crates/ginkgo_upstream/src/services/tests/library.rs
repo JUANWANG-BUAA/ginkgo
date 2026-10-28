@@ -501,3 +501,72 @@ async fn an_account_change_during_the_library_venues_read_rejects_its_result() {
         "a rejected read must not populate the venues snapshot"
     );
 }
+
+/// The write ports bind to one identity on their own, so the isolation rule no
+/// longer depends on the FFI layer holding a shared gate.
+#[tokio::test]
+async fn library_writes_reject_an_account_switch_before_dispatch() {
+    use crate::codecs::{library::LibrarySlot, mutation::MutationState};
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend([
+        library_login_redirect(),
+        library_token_response(),
+        HttpResponse::new(200, "slots", serde_json::json!({"code":0,"data":fixture("library","slots-normal-v1.json")["input"]["data"]}).to_string()),
+        HttpResponse::new(200, "seats", serde_json::json!({"code":0,"data":fixture("library","seats-normal-v1.json")["input"]["data"]}).to_string()),
+        HttpResponse::new(200, "reserve", r#"{"code":1}"#),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, false)
+        .await
+        .unwrap();
+
+    let outcome = service
+        .reserve_library_seat(
+            "a1",
+            "s1",
+            LibrarySlot {
+                id: "2026-10-20/t1".into(),
+                day: "2026-10-20".into(),
+                start: "08:00".into(),
+                end: "10:00".into(),
+            },
+        )
+        .await;
+
+    // With no interleaving this is a normal accepted write; the rechecks make
+    // a switch produce a refusal instead of a silent cross-account write.
+    assert_eq!(outcome.state, MutationState::Accepted);
+    let writes = transport
+        .requests()
+        .into_iter()
+        .filter(|r| r.url.ends_with("space/confirm"))
+        .count();
+    assert_eq!(writes, 1);
+
+    // After a sign-out the same port refuses before any school request.
+    let before = transport.request_count();
+    service.sign_out().await;
+    let refused = service
+        .reserve_library_seat(
+            "a1",
+            "s1",
+            LibrarySlot {
+                id: "2026-10-20/t1".into(),
+                day: "2026-10-20".into(),
+                start: "08:00".into(),
+                end: "10:00".into(),
+            },
+        )
+        .await;
+    assert_eq!(refused.state, MutationState::NotSubmitted);
+    assert_eq!(
+        transport.request_count(),
+        before,
+        "a switched account must never reach the school write endpoint"
+    );
+
+    let action = service.perform_library_action("b1", "cancel").await;
+    assert_eq!(action.state, MutationState::NotSubmitted);
+    assert_eq!(transport.request_count(), before);
+}

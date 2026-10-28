@@ -8,6 +8,8 @@ import '../application/contracts.dart';
 import '../application/query_snapshots.dart';
 import '../src/rust/api/live.dart' as live;
 
+import 'package:ginkgo_mirror/infrastructure/native_command.dart';
+
 /// The only disk adapter is Android Keystore AES-GCM. No plaintext fallback.
 abstract interface class LearningSnapshotStore {
   bool get supported;
@@ -156,16 +158,18 @@ class LearningSnapshotCoordinator {
 final learningSnapshots = LearningSnapshotCoordinator(
   store: AndroidLearningSnapshotStore(),
   export: (account) async {
-    final result = await live.exportLearningSnapshots(expectedAccount: account);
+    final result = await boundedNativeWrite(
+      () => live.exportLearningSnapshots(expectedAccount: account),
+    );
     if (result.failure != null || result.bytes == null) {
       throw StateError('snapshot export unavailable');
     }
     return Uint8List.fromList(result.bytes!);
   },
   restore: (account, bytes) async {
-    final result = await live.importLearningSnapshots(
-      expectedAccount: account,
-      bytes: bytes,
+    final result = await boundedNativeWrite(
+      () =>
+          live.importLearningSnapshots(expectedAccount: account, bytes: bytes),
     );
     if (result.failure != null) throw StateError('snapshot import unavailable');
   },

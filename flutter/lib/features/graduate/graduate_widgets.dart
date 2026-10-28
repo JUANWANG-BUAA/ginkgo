@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/design/academic_widgets.dart';
+import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
@@ -218,7 +218,7 @@ class _GraduateDisclosureState extends State<GraduateDisclosure> {
           children: [
             Text(
               widget.title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              style: const TextStyle(fontSize: AppleDesign.bodyCondensedSize, fontWeight: FontWeight.w600),
             ),
             if (widget.subtitle != null) ...[
               const SizedBox(height: 5),

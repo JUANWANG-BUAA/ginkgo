@@ -47,7 +47,7 @@ const data = CareerEvents(
   ],
 );
 
-Widget host(Fake service) =>
+Widget host(CareerEventsGateway service) =>
     CupertinoApp(home: CareerEventsPage(service: service));
 
 void main() {

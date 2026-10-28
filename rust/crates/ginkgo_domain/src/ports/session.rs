@@ -62,7 +62,14 @@ pub trait SessionSource: Send + Sync {
     ) -> impl std::future::Future<Output = Result<SessionOutcome, AppError>> + Send;
     fn restore(&self)
         -> impl std::future::Future<Output = Result<SessionOutcome, AppError>> + Send;
+    /// Revoke the in-memory session: identity, cookies and snapshots.
+    ///
+    /// Kept separate from [`SessionSource::purge_credentials`] so the caller
+    /// can release its exclusive gate before touching platform storage, and so
+    /// a slow or failing vault can never block the revocation itself.
     fn sign_out(&self) -> impl std::future::Future<Output = ()> + Send;
+    /// Remove every saved password. Local platform storage; may block.
+    fn purge_credentials(&self) -> impl std::future::Future<Output = ()> + Send;
     fn clear_snapshots(&self);
     fn account(&self) -> Result<String, AppError>;
 }

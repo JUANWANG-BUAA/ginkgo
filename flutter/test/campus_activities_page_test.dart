@@ -43,10 +43,28 @@ const data = CampusActivities(
   ],
 );
 
-Widget host(Fake service) =>
+Widget host(CampusActivitiesGateway service) =>
     CupertinoApp(home: CampusActivitiesPage(service: service));
 
 void main() {
+  testWidgets('changing page cannot display the prior page on failure', (
+    tester,
+  ) async {
+    final fake = SyntheticService();
+    await tester.pumpWidget(host(fake));
+    fake.completers.single.complete(const CampusActivitiesRead(data: data));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('第 2 页'));
+    await tester.pump();
+    expect(fake.requests.last.page, 2);
+    expect(find.text('合成学术活动'), findsNothing);
+    fake.completers.last.complete(
+      const CampusActivitiesRead(failure: FailureCode.serviceUnavailable),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('合成学术活动'), findsNothing);
+    expect(find.text('请重试或前往官网。'), findsOneWidget);
+  });
   testWidgets('campus activities render source, event time and publish date', (
     tester,
   ) async {
@@ -86,25 +104,26 @@ void main() {
     expect(find.textContaining('同步 10月28日 10:00'), findsOneWidget);
   });
 
-  testWidgets('gateway replacement discards late activities from the old service', (
-    tester,
-  ) async {
-    final first = SyntheticService();
-    final second = SyntheticService();
-    await tester.pumpWidget(host(first));
-    await tester.pumpWidget(host(second));
+  testWidgets(
+    'gateway replacement discards late activities from the old service',
+    (tester) async {
+      final first = SyntheticService();
+      final second = SyntheticService();
+      await tester.pumpWidget(host(first));
+      await tester.pumpWidget(host(second));
 
-    expect(second.requests, hasLength(1));
-    first.completers.single.complete(const CampusActivitiesRead(data: data));
-    await tester.pump();
-    expect(find.text('合成学术活动'), findsNothing);
+      expect(second.requests, hasLength(1));
+      first.completers.single.complete(const CampusActivitiesRead(data: data));
+      await tester.pump();
+      expect(find.text('合成学术活动'), findsNothing);
 
-    second.completers.single.complete(
-      const CampusActivitiesRead(
-        data: CampusActivities(page: 1, activities: [], fetchedAt: ''),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('0 条公开安排'), findsOneWidget);
-  });
+      second.completers.single.complete(
+        const CampusActivitiesRead(
+          data: CampusActivities(page: 1, activities: [], fetchedAt: ''),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('0 条公开安排'), findsOneWidget);
+    },
+  );
 }

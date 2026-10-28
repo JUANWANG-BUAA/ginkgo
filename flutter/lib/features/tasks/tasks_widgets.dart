@@ -106,9 +106,8 @@ class TaskRowCard extends StatelessWidget {
               button: true,
               child: CupertinoButton(
                 key: Key('task-toggle-${task.id}'),
-                color: CupertinoTheme.of(
-                  context,
-                ).primaryColor.withValues(alpha: 0.1),
+                color: CupertinoTheme.of(context).primaryColor
+                    .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
                 minimumSize: const Size(48, 48),
                 padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -116,7 +115,7 @@ class TaskRowCard extends StatelessWidget {
                 child: Text(
                   task.completed ? '撤销完成' : '本机完成',
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: AppleDesign.calloutSize,
                     fontWeight: FontWeight.w600,
                     color: CupertinoColors.label.resolveFrom(context),
                   ),

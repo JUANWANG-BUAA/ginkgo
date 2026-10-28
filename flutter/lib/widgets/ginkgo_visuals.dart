@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
+import 'package:ginkgo_mirror/design/tokens.dart';
+
 /// A rounded tinted base for a single glyph. The glyph follows text scaling
 /// within the fixed tile, with padding retained even at accessibility sizes.
 class GinkgoIconTile extends StatelessWidget {
@@ -37,7 +39,7 @@ class GinkgoIconTile extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         color: accent.withValues(alpha: alpha),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(GinkgoRadii.panel),
       ),
       child: Center(
         child: Icon(
@@ -79,15 +81,13 @@ class GinkgoBadge extends StatelessWidget {
       context,
     );
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 6 : 8,
-        vertical: MediaQuery.textScalerOf(context).scale(1) > 1.3
-            ? 4
-            : (compact ? 2 : 3),
+      padding: GinkgoSpacing.badgeInsets(
+        compact: compact,
+        largeText: MediaQuery.textScalerOf(context).scale(1) > 1.3,
       ),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: dark ? 0.22 : 0.12),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(GinkgoRadii.compact),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -99,7 +99,7 @@ class GinkgoBadge extends StatelessWidget {
               color: accent,
               applyTextScaling: false,
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: GinkgoSpacing.xs),
           ],
           Flexible(
             child: Text(
@@ -107,7 +107,9 @@ class GinkgoBadge extends StatelessWidget {
               // A status qualifier must not disappear at accessibility sizes.
               softWrap: true,
               style: TextStyle(
-                fontSize: compact ? 11 : 12,
+                fontSize: compact
+                    ? GinkgoTypography.caption2.fontSize
+                    : GinkgoTypography.caption.fontSize,
                 fontWeight: FontWeight.w600,
                 color: accent,
               ),

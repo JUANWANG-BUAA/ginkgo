@@ -26,6 +26,27 @@ pub struct Session<T: HttpTransport> {
     webvpn_jar: Mutex<CookieJar>,
 }
 
+/// A transport view for public reads. It prevents the shared session from
+/// sending authentication headers or importing cookies received by a public
+/// origin. Route fallback remains available in the temporary session.
+struct AnonymousTransport<'a, T>(&'a T);
+
+impl<T: HttpTransport + Sync> HttpTransport for AnonymousTransport<'_, T> {
+    async fn send(
+        &self,
+        mut request: HttpRequest,
+    ) -> Result<HttpResponse, crate::foundation::http::TransportError> {
+        request.headers.retain(|name, _| {
+            !name.eq_ignore_ascii_case("cookie")
+                && !name.eq_ignore_ascii_case("authorization")
+                && !name.eq_ignore_ascii_case("proxy-authorization")
+        });
+        let mut response = self.0.send(request).await?;
+        response.set_cookies.clear();
+        Ok(response)
+    }
+}
+
 impl<T: HttpTransport> Session<T> {
     pub fn new(transport: T) -> Self {
         Self {
@@ -127,6 +148,22 @@ impl<T: HttpTransport> Session<T> {
             current = HttpRequest::get(next);
         }
         Err(AppError::new(crate::ErrorCode::RedirectLimit))
+    }
+
+    /// Make an anonymous request without exposing or modifying the signed-in
+    /// session. GET redirects remain bounded and may use the supplied route;
+    /// non-GET requests are sent once, matching `send_following_redirects`.
+    pub async fn send_anonymous(
+        &self,
+        request: HttpRequest,
+        preference: RouteMode,
+    ) -> Result<HttpResponse, AppError>
+    where
+        T: Sync,
+    {
+        let isolated = Session::new(AnonymousTransport(&self.transport));
+        isolated.set_route(preference);
+        isolated.send_following_redirects(request).await
     }
 
     /// Send once, then retry a safe GET once through WebVPN when automatic
@@ -268,5 +305,88 @@ mod concurrent_fallback_tests {
             "a route switch by another read must not suppress this read's fallback"
         );
         assert_eq!(calls.load(Ordering::SeqCst), 2);
+    }
+}
+
+#[cfg(test)]
+mod anonymous_request_tests {
+    use super::*;
+    use crate::foundation::http::TransportError;
+    use std::{collections::VecDeque, sync::Mutex as StdMutex};
+
+    const CAREER_URL: &str =
+        "https://career.buaa.edu.cn/f/recruitmentFair/ajax_calendar_list?time=2026-10";
+
+    struct ScriptedTransport {
+        requests: StdMutex<Vec<HttpRequest>>,
+        responses: StdMutex<VecDeque<HttpResponse>>,
+    }
+
+    impl HttpTransport for ScriptedTransport {
+        async fn send(&self, request: HttpRequest) -> Result<HttpResponse, TransportError> {
+            self.requests.lock().unwrap().push(request);
+            self.responses
+                .lock()
+                .unwrap()
+                .pop_front()
+                .map(Ok)
+                .unwrap_or(Err(TransportError::Unavailable))
+        }
+    }
+
+    #[tokio::test]
+    async fn anonymous_requests_neither_send_nor_store_shared_cookies() {
+        let mut redirect = HttpResponse::new(302, CAREER_URL, "")
+            .with_set_cookie("PUBLIC_REDIRECT=synthetic; Domain=buaa.edu.cn; Path=/; Secure");
+        redirect
+            .headers
+            .insert("location".into(), "/calendar".into());
+        let transport = ScriptedTransport {
+            requests: StdMutex::new(Vec::new()),
+            responses: StdMutex::new(
+                vec![
+                    HttpResponse::new(200, "https://sso.buaa.edu.cn/session", "signed in")
+                        .with_set_cookie(
+                            "CASTGC=account-synthetic; Domain=buaa.edu.cn; Path=/; Secure",
+                        ),
+                    redirect,
+                    HttpResponse::new(200, "https://career.buaa.edu.cn/calendar", "public")
+                        .with_set_cookie(
+                            "PUBLIC_FINAL=synthetic; Domain=buaa.edu.cn; Path=/; Secure",
+                        ),
+                ]
+                .into(),
+            ),
+        };
+        let session = Session::new(transport);
+        session
+            .send_direct(HttpRequest::get("https://sso.buaa.edu.cn/session"))
+            .await
+            .unwrap();
+        assert!(session.direct_jar.lock().contains("CASTGC"));
+
+        let response = session
+            .send_anonymous(
+                HttpRequest::get(CAREER_URL)
+                    .header("Authorization", "Bearer synthetic")
+                    .header("Accept", "application/json"),
+                RouteMode::Direct,
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status, 200);
+        assert_eq!(response.final_url, "https://career.buaa.edu.cn/calendar");
+        assert_eq!(session.route(), RouteMode::Automatic);
+        assert!(session.direct_jar.lock().contains("CASTGC"));
+        assert!(!session.direct_jar.lock().contains("PUBLIC_REDIRECT"));
+        assert!(!session.direct_jar.lock().contains("PUBLIC_FINAL"));
+
+        let requests = session.transport().requests.lock().unwrap();
+        assert_eq!(requests.len(), 3);
+        for request in &requests[1..] {
+            assert_eq!(request.header_value("cookie"), None);
+            assert_eq!(request.header_value("authorization"), None);
+        }
     }
 }

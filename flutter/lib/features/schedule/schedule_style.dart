@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
+import 'package:ginkgo_mirror/shared/today_time.dart';
 
 const weekdayNames = schoolWeekdays;
 
@@ -60,7 +61,7 @@ String shortDate(String date) {
 int? scheduleTodayColumn(String? weekStart) {
   final start = DateTime.tryParse(weekStart ?? '');
   if (start == null) return null;
-  final now = DateTime.now().toUtc().add(const Duration(hours: 8));
+  final now = todaySchoolNow(DateTime.now());
   final date = DateTime(start.year, start.month, start.day);
   final diff = DateTime(now.year, now.month, now.day).difference(date).inDays;
   return diff >= 0 && diff < 7 ? diff + 1 : null;
@@ -73,7 +74,7 @@ int? scheduleTodayColumn(String? weekStart) {
 String scheduleDayTitle(int day, String? weekStart) {
   final start = DateTime.tryParse(weekStart ?? '');
   final date = start?.add(Duration(days: day - 1));
-  final now = DateTime.now().toUtc().add(const Duration(hours: 8));
+  final now = todaySchoolNow(DateTime.now());
   final today =
       date != null &&
       date.year == now.year &&

@@ -14,15 +14,32 @@ class LearningSnapshotsPage extends StatefulWidget {
 class _LearningSnapshotsPageState extends State<LearningSnapshotsPage> {
   LearningSnapshotStatus? status;
   bool busy = false;
+  int requestSerial = 0;
+
   @override
   void initState() {
     super.initState();
     _load();
   }
 
+  @override
+  void didUpdateWidget(LearningSnapshotsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.gateway != widget.gateway) {
+      requestSerial++;
+      status = null;
+      busy = false;
+      _load();
+    }
+  }
+
   Future<void> _load() async {
-    final value = await widget.gateway.learningSnapshotStatus();
-    if (mounted) setState(() => status = value);
+    final serial = ++requestSerial;
+    final gateway = widget.gateway;
+    final value = await gateway.learningSnapshotStatus();
+    if (mounted && serial == requestSerial) {
+      setState(() => status = value);
+    }
   }
 
   Future<void> _toggle(bool enabled) async {

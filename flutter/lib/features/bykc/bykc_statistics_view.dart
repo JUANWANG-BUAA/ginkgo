@@ -59,10 +59,7 @@ class BykcStatisticsView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (row.first)
-                  BykcSectionHeading(
-                    title: row.category,
-                    detail: '已完成 / 应完成',
-                  ),
+                  BykcSectionHeading(title: row.category, detail: '已完成 / 应完成'),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: ClipRSuperellipse(

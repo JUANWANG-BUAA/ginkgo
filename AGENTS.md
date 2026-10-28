@@ -10,7 +10,7 @@ Ginkgo（BUAA Assistant，北航校园工作台）是北航校园服务聚合客
 - **macOS / iOS 的 Swift/SwiftUI 应用暂时冻结**：不再做功能开发、不再做跨端对齐、不再为其排期。只在影响 Android 构建、共享 fixture 或存在安全问题时被动修。公共契约变化不必顾虑 Apple 端。
 - 2026-10-24 的全方位工程 / 设计 / UI 评审与 Android-only 重排见 [`docs/_audit/2026-10-24-comprehensive-review.md`](docs/_audit/2026-10-24-comprehensive-review.md)；其中的 P0/P1 顺序是当前待办排序的依据。
 - 应用没有项目自建中转服务器。学校请求在设备进程内直连北航系统，或经北航官方 WebVPN；Rust 不是独立后端服务。
-- 当前公开基线为 Android Alpha.9（`0.1.0-alpha.9+10`）和 Windows Alpha.6。`flutter/pubspec.yaml` 的版本号不能证明工作树中的后续改动已经发布；公开内容以对应 tag、Release 和发布记录为准。
+- 当前公开基线为 Android Beta.1（`0.1.0-beta.1+11`）和 Windows Alpha.6，证据见 [`docs/_audit/2026-10-27-android-beta1-preparation.md`](docs/_audit/2026-10-27-android-beta1-preparation.md)。`flutter/pubspec.yaml` 的版本号不能证明工作树中的后续改动已经发布；公开内容以对应 tag、Release 和发布记录为准。
 - 当前工作树已移除作业详情“加入个人待办”入口。保留既有本机记录，不要根据历史迭代文档重新添加该入口。
 - 未完成任务只维护在 `docs/MIRROR-TODO.md`，当前顺序为 P0 可复现回归与安全边界、P1 设备/账号验收及小步体验、P2 扩展。不要另建重复 TODO 清单。
 

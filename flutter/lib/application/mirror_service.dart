@@ -8,7 +8,9 @@ abstract interface class MirrorService
         AcademicGateway,
         CheckInGateway,
         LibraryGateway,
-        CampusGateway {}
+        CampusGateway,
+        ShuttleGateway,
+        LocalTaskGateway {}
 
 abstract interface class CampusCardGateway implements MirrorEnvironment {
   Future<CampusCardBalanceResponse> campusCardBalance();
@@ -90,7 +92,7 @@ abstract interface class CheckInGateway implements MirrorEnvironment {
   Future<ReadOnlyResponse> checkinProgress();
 }
 
-abstract interface class LibraryGateway implements MirrorEnvironment {
+abstract interface class LibrarySeatingGateway implements MirrorEnvironment {
   Future<ReadOnlyResponse> libraryStats({bool forceRefresh = false});
 
   Future<MutationResponse> reserveLibrarySeat({
@@ -121,7 +123,9 @@ abstract interface class LibraryGateway implements MirrorEnvironment {
     int page, {
     bool forceRefresh = false,
   });
+}
 
+abstract interface class LibraryCatalogGateway implements MirrorEnvironment {
   /// Public OPAC search. Anonymous and read-only; never personal records.
   /// `sort` is one of `relevance` / `pub_year` / `title`.
   Future<ReadOnlyResponse> libraryBooks({
@@ -133,28 +137,44 @@ abstract interface class LibraryGateway implements MirrorEnvironment {
 
   /// Public holdings for one bib id; the school's nested JSON stays in Rust.
   Future<ReadOnlyResponse> libraryHoldings(String bibId);
+}
 
+abstract interface class LibraryGateway
+    implements LibrarySeatingGateway, LibraryCatalogGateway {}
+
+abstract interface class ShuttleGateway implements MirrorEnvironment {
   /// Published shuttle timetable (official page). No live seats, no ticketing.
   Future<ReadOnlyResponse> shuttleTimetable();
 }
 
-abstract interface class CampusGateway {
+abstract interface class BykcGateway implements MirrorEnvironment {
   Future<ReadOnlyResponse> bykcPart(BykcPart part, {bool forceRefresh = false});
+}
 
+abstract interface class GraduateGateway implements MirrorEnvironment {
   Future<ReadOnlyResponse> graduatePart({
     required bool report,
     required bool forceRefresh,
   });
+}
 
+abstract interface class NoticeGateway implements MirrorEnvironment {
   Future<ReadOnlyResponse> notices({bool forceRefresh = false});
+}
 
+abstract interface class CgyyGateway implements MirrorEnvironment {
   Future<ReadOnlyResponse> cgyy({
     required String kind,
     required int siteId,
     required String date,
     required bool forceRefresh,
   });
+}
 
+abstract interface class CampusGateway
+    implements BykcGateway, GraduateGateway, NoticeGateway, CgyyGateway {}
+
+abstract interface class LocalTaskGateway implements MirrorEnvironment {
   Future<ReadOnlyResponse> editTasks({
     required String root,
     required String action,

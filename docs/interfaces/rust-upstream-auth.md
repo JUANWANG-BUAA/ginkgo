@@ -16,7 +16,7 @@
 - [keyring_vault](#keyringvault) (2)
 - [mod](#mod) (2)
 - [redirect](#redirect) (1)
-- [session](#session) (16)
+- [session](#session) (17)
 - [uc](#uc) (3)
 - [vault](#vault) (5)
 
@@ -63,7 +63,7 @@
 
 - `pub async fn fetch_login_page<T: HttpTransport>( session: &Session<T>, ) -> Result<LoginPage, AppError> {…}` — Fetch the CAS login page without automatic redirects.
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:12</sub>
-- `pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>( session: &Session<T>…)  -> Result<(), AppError> {…}` — Follow up to ten redirects, classifying each hop before requesting the
+- `pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>( session: &Session<T>, mut response: HttpResponse, mut current_url: String, ) -> Result<(), AppError> {…}` — Follow up to ten redirects, classifying each hop before requesting the
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:60</sub>
 - `pub(crate) fn validate_login_action(action: &str) -> Result<(), AppError> {…}` — The password POST target must be the documented CAS endpoint over HTTPS on
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:135</sub>
@@ -95,9 +95,9 @@
   <sub>enum · rust/crates/ginkgo_upstream/src/auth/mod.rs:70</sub>
 - `pub async fn login<T: HttpTransport>( session: &Session<T>, credentials: &Credentials, ) -> Result<LoginResult, AppError> {…}` — Complete the documented CAS → UC chain. A captcha challenge is returned
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:77</sub>
-- `pub async fn complete_login<T: HttpTransport>(session: &Session<T>…)  -> Result<LoginResult, AppError> {…}` — Finish a login from an already fetched page. Keeping the page lets a
+- `pub async fn complete_login<T: HttpTransport>( session: &Session<T>, credentials: &Credentials, page: LoginPage, ) -> Result<LoginResult, AppError> {…}` — Finish a login from an already fetched page. Keeping the page lets a
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:88</sub>
-- `pub async fn login_with_store<T: HttpTransport, C: CredentialSource + ?Sized>(session: &Session<T>…)  -> Result<LoginResult, AppError> {…}` — Load credentials from the platform vault, then log in. This is the only
+- `pub async fn login_with_store<T: HttpTransport, C: CredentialSource + ?Sized>( session: &Session<T>, store: &C, account: &str, ) -> Result<LoginResult, AppError> {…}` — Load credentials from the platform vault, then log in. This is the only
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:157</sub>
 - `pub async fn establish_webvpn_session<T: HttpTransport>( session: &Session<T>, credentials: &Credentials, ) -> Result<(), AppError> {…}` — Explicitly establish a WebVPN session before routed campus traffic. The
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:168</sub>
@@ -135,33 +135,35 @@
 - `pub struct Session<T: HttpTransport>`
   <sub>struct · rust/crates/ginkgo_upstream/src/auth/session.rs:22</sub>
 - `pub fn new(transport: T) -> Self {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:30</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:51</sub>
 - `pub fn route(&self) -> RouteMode {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:39</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:60</sub>
 - `pub fn transport(&self) -> &T {…}` — Read-only access to the injected transport, used by tests and adapters
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:45</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:66</sub>
 - `pub fn set_route(&self, mode: RouteMode) {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:49</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:70</sub>
 - `pub fn activate_automatic_webvpn_fallback(&self) -> bool {…}` — Automatic mode remembers the first confirmed access-policy block and
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:55</sub>
-- `pub fn clear_cookies(&self) {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:64</sub>
-- `pub fn poison_events(&self) -> u64 {…}` — How often one of the cookie-jar locks was recovered from a poisoned
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:72</sub>
-- `pub fn webvpn_cookie_present(&self) -> bool {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:76</sub>
-- `pub fn direct_cookie_present(&self) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:80</sub>
-- `pub async fn send_direct(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {…}` — CGYY is direct-only. Never mutate the shared route across an await.
+- `pub fn clear_cookies(&self) {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:85</sub>
+- `pub fn poison_events(&self) -> u64 {…}` — How often one of the cookie-jar locks was recovered from a poisoned
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:93</sub>
+- `pub fn webvpn_cookie_present(&self) -> bool {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:97</sub>
+- `pub fn direct_cookie_present(&self) -> bool {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:101</sub>
+- `pub async fn send_direct(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {…}` — CGYY is direct-only. Never mutate the shared route across an await.
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:106</sub>
 - `pub(crate) fn cgyy_sso_token(&self) -> Option<String> {…}` — Rust-only access for CGYY's documented SSO cookie; never bridged to Dart.
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:90</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:111</sub>
 - `pub async fn send(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:102</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:123</sub>
 - `pub async fn send_following_redirects( &self, request: HttpRequest, ) -> Result<HttpResponse, AppError> {…}` — Follow browser-style redirects for a safe GET. Business systems such as
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:110</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:131</sub>
+- `pub async fn send_anonymous( &self, request: HttpRequest, preference: RouteMode, ) -> Result<HttpResponse, AppError>` — Make an anonymous request without exposing or modifying the signed-in
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:156</sub>
 - `pub async fn send_with_fallback(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {…}` — Send once, then retry a safe GET once through WebVPN when automatic
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:134</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:171</sub>
 
 ## uc
 

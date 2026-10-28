@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
-import 'package:ginkgo_mirror/features/schedule/course_visibility.dart';
+import 'package:ginkgo_mirror/shared/course_visibility.dart';
 import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 

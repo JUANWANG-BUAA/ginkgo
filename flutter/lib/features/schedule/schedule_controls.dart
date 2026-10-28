@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
 import 'schedule_style.dart';
@@ -50,7 +51,7 @@ class ScheduleControls extends StatelessWidget {
           terms[selectedTerm]?.name ?? snapshot.termId,
           style: TextStyle(
             color: CupertinoColors.secondaryLabel.resolveFrom(context),
-            fontSize: 15,
+            fontSize: AppleDesign.calloutSize,
             fontWeight: FontWeight.w500,
           ),
         ),

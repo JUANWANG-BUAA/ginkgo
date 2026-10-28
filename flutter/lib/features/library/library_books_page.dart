@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
@@ -14,7 +14,7 @@ import 'library_widgets.dart';
 /// fetched on demand and the school's nested JSON is decoded in Rust.
 class LibraryBooksPage extends StatefulWidget {
   const LibraryBooksPage({super.key, required this.service});
-  final LibraryGateway service;
+  final LibraryCatalogGateway service;
   @override
   State<LibraryBooksPage> createState() => _LibraryBooksPageState();
 }
@@ -119,7 +119,7 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
         child: CustomScrollView(
           key: const Key('library-books-scroll'),
           slivers: [
-            const LibraryPageHeader(
+            const AppleRefreshPageHeader(
               title: '查书目与馆藏',
               section: '图书与借阅',
               subtitle: '公开目录检索 · 复本状态',
@@ -175,11 +175,9 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
                   ],
                 ),
                 if (error != null)
-                  LibraryEmptyState(
+                  AppleStatusSection(
                     title: error!,
-                    description: items == null
-                        ? '请检查网络后重试。'
-                        : '正在保留上一次检索结果。',
+                    description: items == null ? '请检查网络后重试。' : '正在保留上一次检索结果。',
                     action: '重试',
                     onAction: () => search(page: attemptedPage),
                     error: true,
@@ -187,7 +185,7 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
                 if (busy && items == null)
                   const GinkgoLoadingView(label: '正在读取书目…'),
                 if (items != null && items.isEmpty)
-                  const LibraryEmptyState(
+                  const AppleStatusSection(
                     title: '没有匹配的书目',
                     description: '换个关键词或检查拼写后再试。',
                   ),
@@ -224,7 +222,7 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
                     ],
                   ),
                 if (items == null && !busy && error == null)
-                  const LibraryEmptyState(
+                  const AppleStatusSection(
                     title: '输入关键词开始检索',
                     description: '例如书名、作者或 ISBN；结果按学校默认相关度排序。',
                   ),

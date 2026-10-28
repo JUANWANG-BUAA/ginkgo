@@ -28,13 +28,20 @@ fn career_response(status: u16, body: &str) -> HttpResponse {
 
 #[tokio::test]
 async fn career_events_cache_and_failure_preserves_old_snapshot() {
-    let mut responses = vec![
-        career_response(200, &calendar_body()),
+    let responses = vec![
+        HttpResponse::new(200, "https://sso.buaa.edu.cn/session", "seed")
+            .with_set_cookie("CASTGC=synthetic-account; Domain=buaa.edu.cn; Path=/; Secure"),
+        career_response(200, &calendar_body())
+            .with_set_cookie("public-session=synthetic; Domain=buaa.edu.cn; Path=/; Secure"),
         career_response(503, "unavailable"),
         career_response(200, &calendar_body()),
     ];
-    responses[0] = responses[0].clone();
     let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .session
+        .send_direct(HttpRequest::get("https://sso.buaa.edu.cn/session"))
+        .await
+        .expect("seed parent-domain login cookie");
     let first = service
         .load_career_events("2026-10", false)
         .await
@@ -46,6 +53,9 @@ async fn career_events_cache_and_failure_preserves_old_snapshot() {
         first.data.events[0].url,
         "https://career.buaa.edu.cn/f/recruitmentFair/show?recruitmentFairId=career-1"
     );
+    let requests = transport.requests();
+    assert_eq!(requests.len(), 2);
+    assert_eq!(requests[1].header_value("cookie"), None);
     let count = transport.request_count();
     let cached = service
         .load_career_events("2026-10", false)

@@ -14,9 +14,9 @@ void main() {
     platformCalls = <MethodCall>[];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
-      platformCalls.add(call);
-      return null;
-    });
+          platformCalls.add(call);
+          return null;
+        });
   });
 
   tearDown(() {
@@ -24,7 +24,8 @@ void main() {
         .setMockMethodCallHandler(SystemChannels.platform, null);
   });
 
-  bool popped() => platformCalls.any((call) => call.method == 'SystemNavigator.pop');
+  bool popped() =>
+      platformCalls.any((call) => call.method == 'SystemNavigator.pop');
 
   testWidgets('a single back press only arms the exit hint', (tester) async {
     final controller = WorkspaceBackController();

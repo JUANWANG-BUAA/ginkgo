@@ -162,6 +162,79 @@ impl<K: Ord + Clone, V: Clone> SnapshotCache<K, V> {
     }
 }
 
+pub(crate) async fn read_with_snapshot<K, V, F>(
+    cache: &crate::foundation::mutex::Mutex<SnapshotCache<K, V>>,
+    key: K,
+    force: bool,
+    read: F,
+) -> Result<ginkgo_domain::ports::ReadSnapshot<V>, crate::AppError>
+where
+    K: Ord + Clone + Send + Sync,
+    V: Clone + Send + Sync,
+    F: std::future::Future<Output = Result<V, crate::AppError>>,
+{
+    read_with_snapshot_checked(cache, key, force, read, || Ok(())).await
+}
+
+pub(crate) async fn read_with_snapshot_checked<K, V, F, G>(
+    cache: &crate::foundation::mutex::Mutex<SnapshotCache<K, V>>,
+    key: K,
+    force: bool,
+    read: F,
+    check: G,
+) -> Result<ginkgo_domain::ports::ReadSnapshot<V>, crate::AppError>
+where
+    K: Ord + Clone + Send + Sync,
+    V: Clone + Send + Sync,
+    F: std::future::Future<Output = Result<V, crate::AppError>>,
+    G: FnOnce() -> Result<(), crate::AppError>,
+{
+    if !force {
+        if let Some(entry) = cache.lock().fresh(&key) {
+            return Ok(ginkgo_domain::ports::ReadSnapshot {
+                data: entry.value.clone(),
+                fetched_at: entry.timestamp.clone(),
+                from_cache: true,
+                stale: false,
+                failure: None,
+            });
+        }
+    }
+    let ticket = cache.lock().begin(&key);
+    let result = read.await;
+    check()?;
+    let mut cache = cache.lock();
+    match result {
+        Ok(data) => {
+            let fetched_at = cache.insert_if_current(key, ticket, data.clone());
+            Ok(ginkgo_domain::ports::ReadSnapshot {
+                data,
+                fetched_at,
+                from_cache: false,
+                stale: false,
+                failure: None,
+            })
+        }
+        Err(error) => match cache.any(&key) {
+            Some(entry)
+                if entry.restored
+                    && (error.code != crate::ErrorCode::ServiceUnavailable
+                        || entry.fetched_at.elapsed() >= CACHE_TTL) =>
+            {
+                Err(error)
+            }
+            Some(entry) => Ok(ginkgo_domain::ports::ReadSnapshot {
+                data: entry.value.clone(),
+                fetched_at: entry.timestamp.clone(),
+                from_cache: true,
+                stale: true,
+                failure: Some(error),
+            }),
+            None => Err(error),
+        },
+    }
+}
+
 pub(crate) fn now_shanghai() -> String {
     let now: DateTime<Utc> = SystemTime::now().into();
     now.with_timezone(&chrono_tz::Asia::Shanghai).to_rfc3339()
@@ -248,6 +321,55 @@ mod tests {
             .expect("fresh empty snapshot")
             .value
             .is_empty());
+    }
+
+    #[tokio::test]
+    async fn read_with_snapshot_preserves_success_and_fallback_metadata() {
+        let cache = crate::foundation::mutex::Mutex::new(SnapshotCache::<String, i32>::default());
+        let key = "scope".to_owned();
+        let fresh = read_with_snapshot(&cache, key.clone(), false, async { Ok(7) })
+            .await
+            .expect("network success");
+        assert_eq!(fresh.data, 7);
+        assert!(!fresh.from_cache);
+        assert!(!fresh.stale);
+        assert!(fresh.failure.is_none());
+
+        let cached = read_with_snapshot(&cache, key.clone(), false, async {
+            Err(crate::AppError::unavailable())
+        })
+        .await
+        .expect("fresh cache");
+        assert_eq!(cached.data, 7);
+        assert!(cached.from_cache);
+        assert!(!cached.stale);
+        assert_eq!(cached.fetched_at, fresh.fetched_at);
+
+        let original_time = cached.fetched_at.clone();
+        let fallback = read_with_snapshot(&cache, key, true, async {
+            Err(crate::AppError::unavailable())
+        })
+        .await
+        .expect("stale fallback");
+        assert_eq!(fallback.data, 7);
+        assert!(fallback.from_cache);
+        assert!(fallback.stale);
+        assert_eq!(fallback.fetched_at, original_time);
+        assert_eq!(fallback.failure, Some(crate::AppError::unavailable()));
+    }
+
+    #[tokio::test]
+    async fn checked_read_rejects_before_cache_write_or_fallback() {
+        let cache = crate::foundation::mutex::Mutex::new(SnapshotCache::<String, i32>::default());
+        let key = "scope".to_owned();
+        cache.lock().insert(key.clone(), 1);
+        let error = read_with_snapshot_checked(&cache, key.clone(), true, async { Ok(2) }, || {
+            Err(crate::AppError::session_expired())
+        })
+        .await
+        .expect_err("changed account must not publish");
+        assert_eq!(error, crate::AppError::session_expired());
+        assert_eq!(cache.lock().any(&key).expect("old snapshot").value, 1);
     }
 
     #[test]

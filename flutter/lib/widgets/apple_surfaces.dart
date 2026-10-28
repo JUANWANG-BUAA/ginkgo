@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
-import 'package:ginkgo_mirror/design/ginkgo_visuals.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 
 /// Phone pages keep the native collapsing title. Wide windows use the same
 /// section / title / description hierarchy as Swift's AcademicPageHeader.
@@ -166,7 +166,7 @@ class AppleEmptyState extends StatelessWidget {
           description,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 15,
+            fontSize: AppleDesign.calloutSize,
             color: CupertinoColors.secondaryLabel.resolveFrom(context),
           ),
         ),
@@ -201,7 +201,7 @@ class AppleSection extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(32, 0, 32, 10),
             child: DefaultTextStyle.merge(
               style: TextStyle(
-                fontSize: 15,
+                fontSize: AppleDesign.calloutSize,
                 fontWeight: FontWeight.w600,
                 color: CupertinoColors.secondaryLabel.resolveFrom(context),
               ),

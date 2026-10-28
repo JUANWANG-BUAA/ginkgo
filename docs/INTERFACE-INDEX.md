@@ -1,6 +1,6 @@
 # Ginkgo 接口索引
 
-更新：2026-10-27。本文是 **Android（Flutter + Rust）全链路接口的单一索引**：按层次列出每个接口的标识、功能、输入、输出、副作用与源码位置，用于快速定位「某个能力从界面一路走到学校协议」的完整路径。
+更新：2026-10-29。本文是 **Android（Flutter + Rust）全链路接口的单一索引**：按层次列出每个接口的标识、功能、输入、输出、副作用与源码位置，用于快速定位「某个能力从界面一路走到学校协议」的完整路径。
 
 本文只做索引与契约说明，不重复上游协议事实。URL、参数、成功码、证据等级以 [API.md](API.md) 为唯一来源；用户能做什么、读写边界与本机数据见 [FEATURES-AND-PROTOCOLS.md](FEATURES-AND-PROTOCOLS.md)；分层职责见 [MIRROR-ARCHITECTURE.md](MIRROR-ARCHITECTURE.md)。
 
@@ -8,7 +8,7 @@
 
 本文是**手工维护的总览**：讲清分层、能力归属与跨层不变量。
 
-配套阅读：[架构拓扑与数据流](ARCHITECTURE-TOPOLOGY.md) 用图说明五层拓扑、读写时序、写入状态机与数据 IO 形状；本文用表说明每个接口的签名、位置与契约。
+配套阅读：[架构拓扑与数据流](ARCHITECTURE-TOPOLOGY.md) 用图说明七段调用拓扑、读写时序、写入状态机与数据 IO 形状；本文用表说明每个接口的签名、位置与契约。
 
 **全量接口清单**（每个公开类型、函数、方法、字段，含签名与源码行号）由生成器产出在 [interfaces/](interfaces/README.md)，不要手工编辑：
 
@@ -96,20 +96,20 @@ Flutter 页面
 | 作业附件与提交 | `homework-files` | **写** | SPOC | [`HomeworkFilesGateway`](#77-homeworkfilesgateway) | `upload_homework_file`、`submit_homework_file`、`reconcile_homework_file`、`download_homework_file` 等 | `HomeworkSubmissionSource` | [§7.1](API.md#71-bbaa-原版作业实现对照2026-10-15) |
 | SPOC 学习 | `learning` | 读 | SPOC | [`LearningCourseGateway` 等](#78-learning-系列-gateway) | `learning_courses`、`course_announcements` 等 | `Learning*Source` | [§7.1.4](API.md#714-spoc-课程学习只读扩展2026-10-26静态证据与实测分开) |
 | 课程签到 | `checkin` | **写** | iClass | [`CheckInGateway`](#73-checkingateway) | `load_checkin_today`、`load_checkin_on_date`、`submit_checkin` | `CheckInSource`、`CheckInMutationSource` | [§7.2](API.md#72-iclass-签到状态与手动提交写协议尚待真实验收) |
-| 图书馆座位 | `library` | **写** | booking.lib | [`LibraryGateway`](#74-librarygateway) | `reserve_library_seat`、`perform_library_action`、`load_library_*` | `LibrarySource`、`LibraryMutationSource` | [§5](API.md#5-图书馆座位bookinglib-v4) |
-| 公开查书 | `library-books` | 读 | OPAC | [`LibraryGateway.libraryBooks`](#74-librarygateway) | `load_library_books`、`load_library_holdings` | `LibraryCatalogSource` | [§6](API.md#6-图书目录馆藏与本人借阅2026-10-23-部分只读验证) |
+| 图书馆座位 | `library` | **写** | booking.lib | `LibrarySeatingGateway` | `reserve_library_seat`、`perform_library_action`、`load_library_*` | `LibrarySource`、`LibraryMutationSource` | [§5](API.md#5-图书馆座位bookinglib-v4) |
+| 公开查书 | `library-books` | 读 | OPAC | `LibraryCatalogGateway.libraryBooks` | `load_library_books`、`load_library_holdings` | `LibraryCatalogSource` | [§6](API.md#6-图书目录馆藏与本人借阅2026-10-23-部分只读验证) |
 | 本人借阅 | `library-loans` | 读 | OPAC | [`LibraryLoansGateway`](#79-libraryloansgateway) | `load_library_loans` | `LibraryLoansSource` | [§6.2](API.md#62-本人借阅与隐私) |
-| 图书馆人数 | `library-stats` | 读 | 图书馆公开站 | [`LibraryGateway.libraryStats`](#74-librarygateway) | `load_library_stats` | `LibraryStatsSource` | [§5.5](API.md#55-官网实时空间数据公开只读) |
+| 图书馆人数 | `library-stats` | 读 | 图书馆公开站 | `LibrarySeatingGateway.libraryStats` | `load_library_stats` | `LibraryStatsSource` | [§5.5](API.md#55-官网实时空间数据公开只读) |
 | 空教室 | `classroom` | 读 | 空教室系统 | [`AcademicGateway.classrooms`](#72-academicgateway) | `load_classrooms` | `ClassroomSource` | [§6A](API.md#6a-空教室源码已核对真机待验收) |
-| 研讨室 CGYY | `cgyy` | 读 + **写** | CGYY | [`CampusGateway.cgyy`](#75-campusgateway)、[`CgyyBookingGateway`](#75-campusgateway) | `load_cgyy`、`execute_cgyy` | `CgyySource`、`CgyyMutationSource` | [§6B](API.md#6b-教学楼研讨室cgyy前端ubaa-协议移植真实写操作未验收) |
-| 博雅 | `bykc` | 读 | BYKC | [`CampusGateway.bykcPart`](#75-campusgateway) | `load_bykc`、`load_bykc_chosen`、`load_bykc_statistics` | `BykcSource` | [§7.3](API.md#73-2026-10-18-教育系统只读数据盘点) |
-| 研究生教务 | `graduate` | 读 | GSMIS | [`CampusGateway.graduatePart`](#75-campusgateway)、[`GraduateCreditMapGateway`](#710-graduatecreditmapgateway) | `load_graduate_part`、`load_graduate_credit_map` | `GraduateSource` | [§7.4](API.md#74-培养方案执行报告结构化类别课组) |
-| 校园通知 | `notices` | 读 | 新闻网 | [`CampusGateway.notices`](#75-campusgateway) | `load_notices` | `NoticeSource` | [§7.3](API.md#73-2026-10-18-教育系统只读数据盘点) |
+| 研讨室 CGYY | `cgyy` | 读 + **写** | CGYY | `CgyyGateway.cgyy`、`CgyyBookingGateway` | `load_cgyy`、`execute_cgyy` | `CgyySource`、`CgyyMutationSource` | [§6B](API.md#6b-教学楼研讨室cgyy前端ubaa-协议移植真实写操作未验收) |
+| 博雅 | `bykc` | 读 | BYKC | `BykcGateway.bykcPart` | `load_bykc`、`load_bykc_chosen`、`load_bykc_statistics` | `BykcSource` | [§7.3](API.md#73-2026-10-18-教育系统只读数据盘点) |
+| 研究生教务 | `graduate` | 读 | GSMIS | `GraduateGateway.graduatePart`、[`GraduateCreditMapGateway`](#710-graduatecreditmapgateway) | `load_graduate_part`、`load_graduate_credit_map` | `GraduateSource` | [§7.4](API.md#74-培养方案执行报告结构化类别课组) |
+| 校园通知 | `notices` | 读 | 新闻网 | `NoticeGateway.notices` | `load_notices` | `NoticeSource` | [§7.3](API.md#73-2026-10-18-教育系统只读数据盘点) |
 | 校园卡余额 | `campus-card` | 读 | 航财通 | [`CampusCardGateway`](#714-campuscardgateway) | `load_campus_card_balance` | `CampusCardBalanceSource` | [§6E](API.md#6e-校园卡余额官方前端与脱敏结构真实-app-验收中) |
-| 就业活动 | `career-events` | 读 | 学校就业网 | `CareerEventsGateway` | `load_career_events` | `CareerEventsSource` | [§0.0 修订 82](API.md#00-修订对照记录旧版--本版) |
+| 就业活动 | `career-events` | 读 | 学校就业网 | `CareerEventsGateway` | `load_career_events` | `CareerEventsSource` | [§6G](API.md#6g-就业活动公开月历工作树只读) |
 | 学术文化 | `campus-activities` | 读 | 学校公开页 | `CampusActivitiesGateway` | `load_campus_activities` | `CampusActivitiesSource` | [§6F](API.md#6f-学术文化公开列表工作树只读) |
-| 校车时刻表 | `shuttle` | 读 | 学校公开页 | [`LibraryGateway.shuttleTimetable`](#74-librarygateway) | `load_shuttle_timetable` | `ShuttleSource` | [§6C](API.md#6c-智慧校车脚本静态本人查询页面观察未购票) |
-| 个人待办 | `tasks` | 本机写 | 无 | [`CampusGateway.editTasks`](#75-campusgateway) | `edit_tasks` | （core `tasks_store`） | 无上游协议 |
+| 校车时刻表 | `shuttle` | 读 | 学校公开页 | `ShuttleGateway.shuttleTimetable` | `load_shuttle_timetable` | `ShuttleSource` | [§6C](API.md#6c-智慧校车脚本静态本人查询页面观察未购票) |
+| 个人待办 | `tasks` | 本机写 | 无 | `LocalTaskGateway.editTasks` | `edit_tasks` | （core `tasks_store`） | 无上游协议 |
 | 学习快照 | `learning-snapshots` | 本机写 | 无 | [`LearningSnapshotGateway`](#711-learningsnapshotgateway) | `export_learning_snapshots`、`import_learning_snapshots` | `LearningSnapshotSource` | 无上游协议 |
 | 提醒规划 | `reminders` | 本机 | 无 | [`ReminderPlanningGateway`](#712-reminderplanninggateway) | `plan_course_task_reminders` | （core 纯规则） | 无上游协议 |
 | 应用更新 | `updates` | 读 | GitHub Releases | [`MaintenanceService`](#713-平台服务) | `check_android_update`、`verify_credential_storage` | （runtime） | [更新源](API.md#android-镜像更新源2026-10-20) |
@@ -126,6 +126,9 @@ Flutter 页面
 | [§4 成绩](API.md#4-成绩buaascore) | `adapters/grades_http.rs` | `GRADE_URL` | `session_service`/成绩读取 |
 | [§5 图书馆座位](API.md#5-图书馆座位bookinglib-v4) | `adapters/library_http.rs` | `/api/login`、`/api/reservation/day/info`、`/api/orders/*`、`/api/front/website/venues` | `library_service`、`library_mutation_service` |
 | [§6 图书目录与借阅](API.md#6-图书目录馆藏与本人借阅2026-10-23-部分只读验证) | `adapters/library_books_http.rs`、`library_loans_http.rs` | `/meta-local/opac/search`、`/bibs/`、`/users/loans` | `library_books_service`、`library_loans_service` |
+| [§6E 校园卡余额](API.md#6e-校园卡余额官方前端与脱敏结构真实-app-验收中) | `adapters/campus_card_http.rs` | `/api/campus_cards`、`/api/campus_card/balance` | `campus_card_service` |
+| [§6F 学术文化](API.md#6f-学术文化公开列表工作树只读) | `adapters/campus_activities_http.rs` | `/index/xswh1.htm`、`/index/xswh1/<page>.htm` | `campus_activities_service` |
+| [§6G 就业活动](API.md#6g-就业活动公开月历工作树只读) | `adapters/career_http.rs` | `/f/recruitmentFair/ajax_calendar_list?time=YYYY-MM` | `career_service` |
 | [§6A 空教室](API.md#6a-空教室源码已核对真机待验收) | `adapters/classroom_http.rs` | `ACTIVATION_URL`、`CLASSROOM_BASE`、`/kc/queryXskcListPage` | `classroom_service` |
 | [§6B CGYY](API.md#6b-教学楼研讨室cgyy前端ubaa-协议移植真实写操作未验收) | `adapters/cgyy_http.rs` | `/api/reservation/*`、`/api/orders/*`、`/api/captcha/check` | `cgyy_service`、`cgyy_booking_service` |
 | [§6C 校车](API.md#6c-智慧校车脚本静态本人查询页面观察未购票) | `adapters/shuttle_http.rs` | 学校公开页面 | `shuttle_service` |
@@ -140,7 +143,7 @@ Flutter 页面
 
 | 目录 | 职责 | 禁止 |
 | --- | --- | --- |
-| `adapters/*_http.rs` | 请求构造、Header/Cookie 注入、响应分类 | 不放业务规则，不写日志落盘 |
+| `adapters/*_http.rs` | 请求构造、认证会话 Header/Cookie 注入、响应分类；公开只读请求走 `Session::send_anonymous`，不发送认证头/Cookie、不保存响应 Cookie，也不改共享路由 | 不放业务规则，不写日志落盘 |
 | `codecs/*.rs` | 响应结构解析为 domain 值 | 不推断缺失字段，不改成功码语义 |
 | `auth/` | 登录页解析、表单提交、凭据、会话验证 | 不接触业务端点 |
 | `endpoints.rs` | 官方浏览器目标地址 | 不含 token 或会话状态 |
@@ -319,16 +322,16 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 | 形态 | 数量 | 含义 | 解码位置 |
 | --- | --- | --- | --- |
-| 类型化 DTO | 48 | 命令直接返回结构体（`SessionResponse`、`ScheduleResponse`、`CheckInResponse`、`MutationResponse` …） | 无需解码 |
-| `ReadOnlyResponse` 载荷 | 41 | 命令返回领域 JSON 字符串 + `stale` + `failure` | 只能在 `infrastructure/` 或各域 `*_models.dart` 解码 |
+| 类型化 DTO | 47 | 命令直接返回结构体（`SessionResponse`、`ScheduleResponse`、`CheckInResponse`、`MutationResponse` …） | 无需 JSON 解码 |
+| `ReadOnlyResponse` 载荷 | 42 | 命令返回领域 JSON 字符串 + `stale` + `failure` | 只能在 `infrastructure/` 或各域 `*_models.dart` 解码 |
 
-使用载荷信封的 41 个命令：
+使用载荷信封的 42 个命令：
 
-`checkinLoadProgress`、`loadBykc`、`loadDemoBykc`、`loadBykcChosen`、`loadBykcStatistics`、`loadDemoBykcChosen`、`loadDemoBykcStatistics`、`loadGraduatePart`、`loadDemoGraduateStatus`、`loadDemoGraduate`、`editTasks`、`loadNotices`、`loadDemoNotices`、`loadCgyy`、`executeCgyy`、`loadDemoCgyy`、`loadLibraryBooks`、`loadShuttleTimetable`、`loadLibraryHoldings`、`importLearningSnapshots`、`loadLibraryLoans`、`loadLibraryStats`、`loadDemoLibraryStats`、`checkAndroidUpdate`、`homeworkFileWorkspace`、`uploadHomeworkFile`、`learningCourses`、`courseAnnouncements`、`courseAnnouncementDetail`、`courseResources`、`courseAssessments`、`courseLearningColumns`、`courseLearningCapabilities`、`courseAnnouncementsIn`、`courseAssessmentsIn`、`courseAnnouncementDetailIn`、`courseResourcesAt`、`loadGraduateCreditMap`、`configureHomeworkRecovery`、`pendingHomeworkSubmissions`、`homeworkCapabilities`。
+`checkAndroidUpdate`、`checkinLoadProgress`、`configureHomeworkRecovery`、`courseAnnouncementDetail`、`courseAnnouncementDetailIn`、`courseAnnouncements`、`courseAnnouncementsIn`、`courseAssessments`、`courseAssessmentsIn`、`courseLearningCapabilities`、`courseLearningColumns`、`courseResources`、`courseResourcesAt`、`editTasks`、`executeCgyy`、`homeworkCapabilities`、`homeworkFileWorkspace`、`importLearningSnapshots`、`learningCourses`、`loadBykc`、`loadBykcChosen`、`loadBykcStatistics`、`loadCampusActivities`、`loadCgyy`、`loadDemoBykc`、`loadDemoBykcChosen`、`loadDemoBykcStatistics`、`loadDemoCgyy`、`loadDemoGraduate`、`loadDemoGraduateStatus`、`loadDemoLibraryStats`、`loadDemoNotices`、`loadGraduateCreditMap`、`loadGraduatePart`、`loadLibraryBooks`、`loadLibraryHoldings`、`loadLibraryLoans`、`loadLibraryStats`、`loadNotices`、`loadShuttleTimetable`、`pendingHomeworkSubmissions`、`uploadHomeworkFile`。
 
-载荷契约的三条硬约束（由 `scripts/check-mirror-architecture.py` 强制）：
+载荷契约要求如下；架构门禁只检查部分依赖与解码位置，不能证明载荷字段或失败语义正确：
 
-1. `payload` 是 **Rust 净化后的领域投影**，不是学校原始响应；学校字段名只存在于 upstream。
+1. `payload` 应是 **Rust 净化后的业务投影**，不是学校原始响应；部分历史投影仍沿用如 `space_id` 的学校字段名称，需在 DTO 迁移时消除这类耦合。
 2. 解码只允许在 `infrastructure/` 或 `*_models.dart`；页面与共享组件不得出现 `jsonDecode`。
 3. 载荷解码失败按“解析失败”处理（`FormatException` → 失败态），不得降级为空结果。
 
@@ -357,15 +360,17 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 `checkin({forceRefresh})`、`checkinOnDate(date, {forceRefresh})`、`submitCheckin(courseId)`、`checkinProgress()`。
 
-### 7.4 LibraryGateway
+### 7.4 LibrarySeatingGateway / LibraryCatalogGateway / ShuttleGateway
 
-`libraryStats`、`libraryVenues`、`libraryAreas`、`librarySlots`、`librarySeats`、`libraryBookings`、`libraryHistory`、`libraryBooks`、`libraryHoldings`、`shuttleTimetable`、`reserveLibrarySeat`、`performLibraryAction`。
+`LibrarySeatingGateway`：`libraryStats`、`libraryVenues`、`libraryAreas`、`librarySlots`、`librarySeats`、`libraryBookings`、`libraryHistory`、`reserveLibrarySeat`、`performLibraryAction`。
 
-### 7.5 CampusGateway
+`LibraryCatalogGateway`：`libraryBooks`、`libraryHoldings`。`ShuttleGateway`：`shuttleTimetable`。`LibraryGateway` 仅作为座位与书目能力的兼容聚合，不再包含校车。
 
-`bykcPart(part)`、`graduatePart({part, forceRefresh})`、`notices()`、`cgyy({kind, ...})`、`editTasks(command)`。
+### 7.5 CampusGateway 与 LocalTaskGateway
 
-同文件定义 `CgyyBookingGateway.executeCgyy(Map<String, Object?>)`——写能力单列，不因具备 `cgyy` 只读能力就自动获得。
+`CampusGateway` 聚合 `BykcGateway.bykcPart`、`GraduateGateway.graduatePart`、`NoticeGateway.notices`、`CgyyGateway.cgyy`；各页面按实际能力注入独立端口。
+
+`LocalTaskGateway.editTasks(command)` 是本机待办端口，不属于学校校园服务。`CgyyBookingGateway.executeCgyy(Map<String, Object?>)` 写能力单列，不因具备 `cgyy` 只读能力就自动获得。
 
 ### 7.6 AuthChallengeGateway
 
@@ -417,14 +422,14 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 | 参数形态 | 含义 | 约束 |
 | --- | --- | --- |
-| `service` / `gateway` | 注入的应用接口 | 必填；页面不自行构造 `NativeMirrorService` |
+| `service` / `gateway` | 注入的应用接口 | 目标是必填或显式表示能力缺失；部分独立页面仍允许为空并经工厂兜底，待迁移 |
 | `accountId` / `account` | 账号隔离键 | 可空；用于本机数据命名与代次校验 |
 | `forceRefresh` / `initialFilter` 等 | 一次性初始状态 | 可空；不承载跨页持久状态 |
 | `onXxx` 回调 | 上抛导航或确认动作 | 页面不直接改壳层状态 |
 | `now` / `clock` | 时间注入 | 仅测试用，生产走 `todaySchoolNow` |
 | `saveFile` / `picker` | 平台能力注入 | 可空；为空时页面必须降级提示而非崩溃 |
 
-**页面永不接收原始 payload**：参数与字段只能是 `application/contracts.dart` 的类型。这条由架构门禁强制。
+页面不得直接调用 `jsonDecode`；部分既有页面仍接收 `ReadOnlyResponse.payload` 并交给模型解码器，不能称为完全类型化。架构门禁检查直接解码和部分裸 Map 使用，但不能证明所有页面参数和字段都已消除字符串载荷。
 
 ### 7A.2 组件契约
 
@@ -444,6 +449,8 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | `RefreshSection<T>` | `application/refresh_section.dart` | 重叠读取合流、刷新保留旧值、失败带错误、dispose 后丢弃迟到结果 |
 | `LibraryController` | `features/library/library_controller.dart` | 分页与分区快照、账号/服务代次变化后丢弃旧状态 |
 | `CollectionWindow` | `application/collection_window.dart` | 本机分页；页码随结果变化重置，不代表上游分页 |
+
+就业活动使用 `CareerEventsResponse` 类型化 DTO；学术文化仍使用 JSON 信封，缺少必需投影字段或字段类型错误归为结构变化。两者均可同时返回有效旧快照与失败码；页面切换月份或页码后不复用上一查询的可见数据。
 
 ### 7A.4 导航与登记
 
@@ -553,7 +560,7 @@ features/cgyy/cgyy_booking_page.dart          用户填写并确认
 
 ```text
 features/tasks/tasks_page.dart
-  → CampusGateway.editTasks()                  application/mirror_service.dart
+  → LocalTaskGateway.editTasks()               application/mirror_service.dart
   → edit_tasks                                 bridge/api/live.rs
   → core/src/tasks_store.rs                    按账号命名、v1→v2 原子升级
 ```
@@ -572,7 +579,7 @@ features/tasks/tasks_page.dart
 6. **账号绑定**：读写的归属由 Rust 已认证会话派生，不由调用方指定的账号决定。
 7. **本机数据隔离**：清查询缓存不删个人待办；账号摘要只用于命名隔离，不是加密。
 
-其中 1–3 由 [`check-mirror-architecture.py`](../scripts/check-mirror-architecture.py) 强制，并有对应自测。
+其中 1–3 有 [`check-mirror-architecture.py`](../scripts/check-mirror-architecture.py) 的部分静态检查及自测；规则不覆盖所有依赖形式、字段语义或载荷流向，不能据此证明三项约束已完全满足。
 
 ## 11. 维护方法
 
@@ -581,6 +588,7 @@ features/tasks/tasks_page.dart
 - 改上游协议：先在 [API.md](API.md) 补证据与修订，再改适配器与 fixture，最后回来更新 [§3](#3-上游协议层) 的对照行。
 - 改 FFI 命令：必须重新生成 FRB 绑定（`bash scripts/generate-mirror-bridge.sh`），并同步 [§6](#6-ffi-命令层)、[§6.10](#610-返回形态与载荷契约) 与 [§2](#2-能力总表)。
 - 改任何公开接口后：运行 `python3 scripts/generate-interface-index.py` 刷新 [interfaces/](interfaces/README.md)；`--check` 模式可校验索引是否过期，CI 用它做防回退。
+- 自动索引是源码导航而非完整语义契约：它按语法启发式提取，包含 Dart 顶层函数及 Rust 测试模块之后的公开条目，但无法证明所有成员、条件编译分支或副作用均已覆盖；变更时仍须人工核对具体签名、读写语义和协议证据。
 - 每个接口的读写属性以业务副作用为准：认证与查询可能用 POST，仍算读；只有会改变学校记录的才算写。
 - 本文档描述源码现状，不代表已发布或已通过真实账号验收。真实设备、账号只读与真实写入的证据分别记录在发布与审计文档中。
 
@@ -591,6 +599,7 @@ features/tasks/tasks_page.dart
 | 分层与边界 | `python3 scripts/check-mirror-architecture.py` | 跨层依赖、页面解析响应、页面传裸 Map、目录归类、文件体积上限 |
 | 门禁自测 | `python3 scripts/check-mirror-architecture-test.py` | 门禁本身被改坏（规则失效仍通过） |
 | 接口索引 | `python3 scripts/generate-interface-index.py --check` | 改了公开接口但没刷新文档 |
+| 接口索引自测 | `python3 scripts/generate-interface-index-test.py` | 测试模块截断及 Dart 顶层函数遗漏等生成器回归 |
 | 设计 token 采纳 | `python3 scripts/check-design-tokens.py` | 硬编码字号/间距/圆角重新回潮 |
 | Rust 质量 | `cargo fmt --check` / `cargo clippy -D warnings` | 格式与告警 |
 | 全量基线 | `bash scripts/check-mirror.sh` | 以上全部 + Flutter 分析与测试 + FRB 再生成一致性 |

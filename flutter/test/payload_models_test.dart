@@ -36,9 +36,11 @@ void main() {
     // switch to typed-failure decoding is a deliberate, visible change.
     test('a drifted payload fails loudly instead of inventing a notice', () {
       expect(
-        () => noticeList(jsonEncode([
-          {'title': '只剩标题'},
-        ])),
+        () => noticeList(
+          jsonEncode([
+            {'title': '只剩标题'},
+          ]),
+        ),
         throwsA(isA<TypeError>()),
       );
     });
@@ -79,16 +81,18 @@ void main() {
       expect(hit.itemCount, 5);
     });
 
-    test('blank text is trimmed away so factLine never shows stray separators',
-        () {
-      final hit = BookHit.fromJson({
-        'bibId': 'syn-1',
-        'author': '  ',
-        'publisher': '高等教育出版社',
-        'year': '2024',
-      });
-      expect(hit.factLine, '高等教育出版社 · 2024');
-    });
+    test(
+      'blank text is trimmed away so factLine never shows stray separators',
+      () {
+        final hit = BookHit.fromJson({
+          'bibId': 'syn-1',
+          'author': '  ',
+          'publisher': '高等教育出版社',
+          'year': '2024',
+        });
+        expect(hit.factLine, '高等教育出版社 · 2024');
+      },
+    );
   });
 
   group('library campus stats', () {
@@ -113,8 +117,7 @@ void main() {
       expect(stats.id, 'campus-1');
       expect(stats.name, '学院路校区');
       expect(stats.people, 812);
-      expect(stats.readingRooms.map((room) => room.name),
-          ['一层阅览室', '二层阅览室']);
+      expect(stats.readingRooms.map((room) => room.name), ['一层阅览室', '二层阅览室']);
       expect(stats.readingRooms.map((room) => room.people), [120, 96]);
       expect(stats.seats?.available, 40);
       expect(stats.seats?.total, 200);
@@ -139,11 +142,16 @@ void main() {
 
     test('an empty or everyday label always applies', () {
       for (final label in ['', '每天', '每日', '全年']) {
-        for (var weekday = DateTime.monday;
-            weekday <= DateTime.sunday;
-            weekday++) {
-          expect(table(label).appliesToday(weekday), isTrue,
-              reason: '"$label" must apply on weekday $weekday');
+        for (
+          var weekday = DateTime.monday;
+          weekday <= DateTime.sunday;
+          weekday++
+        ) {
+          expect(
+            table(label).appliesToday(weekday),
+            isTrue,
+            reason: '"$label" must apply on weekday $weekday',
+          );
         }
       }
     });
@@ -164,9 +172,11 @@ void main() {
 
     test('an explicit range covers both endpoints', () {
       final range = table('星期一至星期五');
-      for (var weekday = DateTime.monday;
-          weekday <= DateTime.friday;
-          weekday++) {
+      for (
+        var weekday = DateTime.monday;
+        weekday <= DateTime.friday;
+        weekday++
+      ) {
         expect(range.appliesToday(weekday), isTrue);
       }
       expect(range.appliesToday(DateTime.saturday), isFalse);
@@ -182,16 +192,23 @@ void main() {
       expect(range.appliesToday(DateTime.wednesday), isFalse);
     });
 
-    test('an unfamiliar label keeps its runs visible rather than hiding them',
-        () {
-      final odd = table('另行通知');
-      for (var weekday = DateTime.monday;
+    test(
+      'an unfamiliar label keeps its runs visible rather than hiding them',
+      () {
+        final odd = table('另行通知');
+        for (
+          var weekday = DateTime.monday;
           weekday <= DateTime.sunday;
-          weekday++) {
-        expect(odd.appliesToday(weekday), isTrue,
-            reason: 'an unreadable label must not claim a day does not apply');
-      }
-    });
+          weekday++
+        ) {
+          expect(
+            odd.appliesToday(weekday),
+            isTrue,
+            reason: 'an unreadable label must not claim a day does not apply',
+          );
+        }
+      },
+    );
   });
 
   group('shuttle runs and sections', () {

@@ -14,18 +14,6 @@ class CareerEvent {
     required this.url,
   });
 
-  factory CareerEvent.fromJson(Map<String, dynamic> json) => CareerEvent(
-    id: json['id'] as String? ?? '',
-    title: json['title'] as String? ?? '',
-    campus: json['campus'] as String? ?? '',
-    place: json['place'] as String? ?? '',
-    beginsAt: json['beginsAt'] as String? ?? '',
-    endsAt: json['endsAt'] as String? ?? '',
-    fairType: json['fairType'] as String? ?? '',
-    status: json['status'] as String? ?? '',
-    url: json['url'] as String? ?? '',
-  );
-
   final String id,
       title,
       campus,
@@ -43,15 +31,6 @@ class CareerEvents {
     required this.events,
     required this.fetchedAt,
   });
-
-  factory CareerEvents.fromJson(Map<String, dynamic> json) => CareerEvents(
-    month: json['month'] as String? ?? '',
-    events: (json['events'] as List? ?? const [])
-        .cast<Map<String, dynamic>>()
-        .map(CareerEvent.fromJson)
-        .toList(growable: false),
-    fetchedAt: json['fetchedAt'] as String? ?? '',
-  );
 
   final String month, fetchedAt;
   final List<CareerEvent> events;

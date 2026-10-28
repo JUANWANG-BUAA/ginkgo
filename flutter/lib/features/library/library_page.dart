@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
@@ -77,7 +77,7 @@ class _LibraryPageState extends State<LibraryPage> {
     child: CustomScrollView(
       key: const Key('library-scroll'),
       slivers: [
-        LibraryPageHeader(
+        AppleRefreshPageHeader(
           title: '图书馆',
           subtitle: '选择场馆、区域与可预约时段',
           icon: CupertinoIcons.book,

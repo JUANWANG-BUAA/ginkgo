@@ -13,11 +13,7 @@ import 'library_books_models.dart';
 /// One catalogue hit. The call number and the fact line are shown only when
 /// the school returned them.
 class LibraryBookCard extends StatelessWidget {
-  const LibraryBookCard({
-    super.key,
-    required this.hit,
-    required this.onTap,
-  });
+  const LibraryBookCard({super.key, required this.hit, required this.onTap});
 
   final BookHit hit;
   final VoidCallback onTap;
@@ -29,7 +25,7 @@ class LibraryBookCard extends StatelessWidget {
       maxLines: 3,
       overflow: TextOverflow.ellipsis,
       style: const TextStyle(
-        fontSize: 16,
+        fontSize: AppleDesign.bodyCondensedSize,
         fontWeight: FontWeight.w600,
         height: 1.3,
       ),
@@ -88,9 +84,7 @@ class LibraryHoldingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final secondary = CupertinoColors.tertiaryLabel.resolveFrom(context);
     return AppleListTile(
-      title: Text(
-        holding.place.isEmpty ? '馆藏位置待确认' : '馆藏地：${holding.place}',
-      ),
+      title: Text(holding.place.isEmpty ? '馆藏位置待确认' : '馆藏地：${holding.place}'),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

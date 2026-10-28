@@ -9,7 +9,12 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      ginkgoApp(home: GraduatePage(service: const DemoMirrorService())),
+      ginkgoApp(
+        home: GraduatePage(
+          service: const DemoMirrorService(),
+          creditMapGateway: const DemoMirrorService(),
+        ),
+      ),
     );
     await tester.pumpAndSettle();
     expect(find.byType(GraduateCreditMapNodeCard), findsWidgets);

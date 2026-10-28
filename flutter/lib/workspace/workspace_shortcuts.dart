@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/design/ginkgo_visuals.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 import 'package:ginkgo_mirror/features/today/today_presentation.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shortcut_preferences.dart';
 
@@ -157,7 +158,7 @@ class _WorkspaceShortcutsState extends State<WorkspaceShortcuts>
                 title,
                 textAlign: TextAlign.start,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: AppleDesign.bodyCondensedSize,
                   fontWeight: FontWeight.w500,
                   color: CupertinoColors.label.resolveFrom(context),
                 ),

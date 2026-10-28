@@ -47,10 +47,13 @@ class TodayActionRow extends StatelessWidget {
                       status!,
                       style: TextStyle(
                         fontSize: 13,
-                        color: statusColor ??
+                        color:
+                            statusColor ??
                             (emphasized
                                 ? accent
-                                : AppleDesign.statusInactive.resolveFrom(context)),
+                                : AppleDesign.statusInactive.resolveFrom(
+                                    context,
+                                  )),
                         fontWeight: (emphasized || statusColor != null)
                             ? FontWeight.w600
                             : FontWeight.w500,

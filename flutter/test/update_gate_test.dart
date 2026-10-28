@@ -25,7 +25,10 @@ void main() {
     expect(gate, isNotNull);
     expect(gate!.minBuild, 7);
     expect(gate.message, '学校接口已更新');
-    expect(gate.releasesUrl, 'https://github.com/JUANWANG-BUAA/ginkgo/releases');
+    expect(
+      gate.releasesUrl,
+      'https://github.com/JUANWANG-BUAA/ginkgo/releases',
+    );
     expect(gate.blocks(6), isTrue);
     expect(gate.blocks(7), isFalse);
     expect(gate.blocks(8), isFalse);

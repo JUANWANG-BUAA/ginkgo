@@ -13,6 +13,7 @@ import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 
 import 'support.dart' show settle, show;
+import 'package:ginkgo_mirror/infrastructure/demo_mirror_service.dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();

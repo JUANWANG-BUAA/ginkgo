@@ -12,7 +12,9 @@ void main() {
     tester,
   ) async {
     final service = ManagementService();
-    await tester.pumpWidget(ginkgoApp(home: CgyyPage(service: service)));
+    await tester.pumpWidget(
+      ginkgoApp(home: CgyyPage(service: service, bookingGateway: service)),
+    );
     await tester.pumpAndSettle();
     expect(find.text('预约研讨室'), findsOneWidget);
     expect(find.text('我的预约记录'), findsOneWidget);

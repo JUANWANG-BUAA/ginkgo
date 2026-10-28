@@ -65,6 +65,33 @@ async fn campus_activities_cache_and_failure_preserves_old_snapshot() {
 }
 
 #[tokio::test]
+async fn campus_activities_do_not_send_parent_domain_login_cookies() {
+    let (service, transport) = build_service(
+        vec![
+            HttpResponse::new(200, "https://sso.buaa.edu.cn/session", "seed")
+                .with_set_cookie("CASTGC=synthetic-account; Domain=buaa.edu.cn; Path=/; Secure"),
+            activities_response(200, activities_body())
+                .with_set_cookie("public-session=synthetic; Domain=buaa.edu.cn; Path=/; Secure"),
+        ],
+        MemoryVault::default(),
+    );
+    service
+        .session
+        .send_direct(HttpRequest::get("https://sso.buaa.edu.cn/session"))
+        .await
+        .expect("seed parent-domain login cookie");
+
+    service
+        .load_campus_activities(1, false)
+        .await
+        .expect("public activities");
+
+    let requests = transport.requests();
+    assert_eq!(requests.len(), 2);
+    assert_eq!(requests[1].header_value("cookie"), None);
+}
+
+#[tokio::test]
 async fn campus_activities_changed_markup_is_not_an_empty_result() {
     let (service, _) = build_service(
         vec![

@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/design/academic_widgets.dart';
+import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 import 'package:ginkgo_mirror/features/reservations/reservation_widgets.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
@@ -155,7 +155,7 @@ List<Widget> cgyyDaySlots(BuildContext context, CgyyDay day) => [
     ),
   ),
   if (day.spaces.isEmpty)
-    const CgyyStatusSection(title: '当天暂无空间时段', description: '可切换其他日期。'),
+    const AppleStatusSection(title: '当天暂无空间时段', description: '可切换其他日期。'),
   for (final space in day.spaces)
     AppleSection(
       header: Text(space.name),

@@ -1,6 +1,12 @@
+import 'dart:convert';
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/reminder_store.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_mirror_service.dart';
+import 'package:ginkgo_mirror/infrastructure/reminder_store.dart';
 import 'package:ginkgo_mirror/shared/reminder_rules.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
 import 'package:ginkgo_mirror/application/diagnostic_log.dart';
@@ -38,7 +44,218 @@ class FakeReminderPlatform implements ReminderPlatform {
   }
 }
 
+class MemoryReminderStore implements ReminderStore {
+  String? data;
+  bool failWrites = false;
+  @override
+  Future<String?> read() async => data;
+  @override
+  Future<void> write(String value) async {
+    if (failWrites) throw StateError('unavailable');
+    data = value;
+  }
+}
+
+class _DelayedReminderStore implements ReminderStore {
+  final reading = Completer<String?>();
+  final writes = <String>[];
+  @override
+  Future<String?> read() => reading.future;
+  @override
+  Future<void> write(String data) async => writes.add(data);
+}
+
 void main() {
+  test(
+    'failed file write does not poison later same-account operations',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'ginkgo-reminders-failure-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      var fail = true;
+      final store = FileReminderStore(
+        'failure-test',
+        directory: () async {
+          if (fail) throw StateError('unavailable');
+          return directory;
+        },
+      );
+      await expectLater(store.write('old'), throwsStateError);
+      fail = false;
+      await store.write('new');
+      expect(await store.read(), 'new');
+    },
+  );
+
+  test('corrupt reminder preferences are never overwritten on edit', () async {
+    final store = MemoryReminderStore()..data = '{"checkin":false,"read":[]}';
+    final controller = ReminderController(
+      service: const DemoMirrorService(),
+      account: 'synthetic',
+      visibility: null,
+      store: store,
+      platform: FakeReminderPlatform(),
+    );
+    addTearDown(controller.dispose);
+    await controller.restore();
+    expect(controller.checkinEnabled, isTrue);
+    expect(controller.settingsReady, isFalse);
+    expect(controller.canRetryRestore, isTrue);
+    await controller.setEnabled('checkin', false);
+    expect(store.data, '{"checkin":false,"read":[]}');
+  });
+
+  test(
+    'replacement controller restores after both pending same-account edits',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'ginkgo-reminders-switch-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final blocked = Completer<Directory>();
+      var blockNext = false;
+      Future<Directory> resolve() {
+        if (blockNext) {
+          blockNext = false;
+          return blocked.future;
+        }
+        return Future.value(directory);
+      }
+
+      ReminderController create() => ReminderController(
+        service: const DemoMirrorService(),
+        account: 'synthetic',
+        visibility: null,
+        store: FileReminderStore('synthetic', directory: resolve),
+        platform: FakeReminderPlatform(),
+      );
+      final old = create();
+      final next = create();
+      addTearDown(old.dispose);
+      addTearDown(next.dispose);
+      await old.restore();
+      blockNext = true;
+      final first = old.setEnabled('task', true);
+      final second = old.setEnabled('course', true);
+      var restored = false;
+      final read = next.restore().then((_) => restored = true);
+      await Future<void>.delayed(Duration.zero);
+      expect(restored, isFalse);
+      blocked.complete(directory);
+      await Future.wait([first, second, read]);
+      expect(next.taskEnabled, isTrue);
+      expect(next.courseEnabled, isTrue);
+    },
+  );
+
+  test(
+    'same-account store reads wait for all previously accepted writes',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'ginkgo-reminders-queue-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final blocked = Completer<Directory>();
+      var resolutions = 0;
+      Future<Directory> resolve() {
+        resolutions++;
+        return resolutions == 1 ? blocked.future : Future.value(directory);
+      }
+
+      final old = FileReminderStore('synthetic', directory: resolve);
+      final next = FileReminderStore('synthetic', directory: resolve);
+      final first = old.write('first');
+      final second = old.write('second');
+      final read = next.read();
+      await Future<void>.delayed(Duration.zero);
+      expect(resolutions, 1);
+      blocked.complete(directory);
+      await Future.wait([first, second]);
+      expect(await read, 'second');
+    },
+  );
+
+  test(
+    'preferences cannot be changed while restoration is unresolved',
+    () async {
+      final store = _DelayedReminderStore();
+      final controller = ReminderController(
+        service: const DemoMirrorService(),
+        account: 'synthetic',
+        visibility: null,
+        store: store,
+        platform: FakeReminderPlatform(),
+      );
+      addTearDown(controller.dispose);
+      final restoring = controller.restore();
+      await controller.setEnabled('task', true);
+      expect(controller.taskEnabled, isFalse);
+      expect(store.writes, isEmpty);
+      expect(controller.hint, contains('读取'));
+      store.reading.complete('{"task":false,"read":{}}');
+      await restoring;
+      await controller.setEnabled('task', true);
+      expect(controller.taskEnabled, isTrue);
+      expect(store.writes, hasLength(1));
+    },
+  );
+  test(
+    'file store reads the existing account file and isolates accounts',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'ginkgo-reminders-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final controller = ReminderController(
+        service: const DemoMirrorService(),
+        account: 'synthetic',
+        visibility: null,
+        persist: false,
+        platform: FakeReminderPlatform(),
+      );
+      addTearDown(controller.dispose);
+      final oldFile = File(
+        '${directory.path}/reminders-${controller.digest('account')}.json',
+      );
+      await oldFile.writeAsString('{"checkin":false}');
+      final store = FileReminderStore(
+        'synthetic',
+        directory: () async => directory,
+      );
+      final other = FileReminderStore(
+        'other',
+        directory: () async => directory,
+      );
+      expect(await store.read(), '{"checkin":false}');
+      expect(await other.read(), isNull);
+      await store.write('{"checkin":true}');
+      expect(await oldFile.readAsString(), '{"checkin":true}');
+      expect(await File('${oldFile.path}.tmp').exists(), isFalse);
+    },
+  );
+  test('reminder settings restore and persist through the injected store', () async {
+    final store = MemoryReminderStore()
+      ..data =
+          '{"checkin":false,"homework":true,"course":true,"task":false,"read":{}}';
+    final controller = ReminderController(
+      service: const DemoMirrorService(),
+      account: 'synthetic',
+      visibility: null,
+      store: store,
+      platform: FakeReminderPlatform(),
+    );
+    addTearDown(controller.dispose);
+    await controller.restore();
+    expect(controller.checkinEnabled, isFalse);
+    expect(controller.courseEnabled, isTrue);
+    await controller.setEnabled('task', true);
+    expect((jsonDecode(store.data!) as Map)['task'], isTrue);
+    store.failWrites = true;
+    await controller.setEnabled('task', false);
+    expect(controller.hint, '提醒已更新，但本机保存失败');
+    expect((jsonDecode(store.data!) as Map)['task'], isTrue);
+  });
   test('check-in opens at exactly ten minutes and closes at end, Beijing independent of device zone', () {
     bool open(String now) =>
         checkinWindowOpen(course(), '2026-10-20', DateTime.parse(now));
@@ -150,6 +367,7 @@ void main() {
       account: 'other',
       visibility: null,
       persist: false,
+      platform: FakeReminderPlatform(),
     );
     expect(controller.digest('same'), isNot(other.digest('same')));
     other.dispose();

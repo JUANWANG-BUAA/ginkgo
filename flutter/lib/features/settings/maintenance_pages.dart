@@ -3,8 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/platform/maintenance_service.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/platform/android_update_controller.dart';
 import 'package:ginkgo_mirror/platform/update_download_section.dart';
 
@@ -206,7 +206,7 @@ class _SoftwareUpdatePageState extends State<SoftwareUpdatePage> {
                   child: Text(
                     result!.notes!,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: AppleDesign.calloutSize,
                       height: 1.5,
                       color: CupertinoColors.secondaryLabel.resolveFrom(
                         context,

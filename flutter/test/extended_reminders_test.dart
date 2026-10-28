@@ -10,9 +10,19 @@ import 'package:ginkgo_mirror/shared/reminders.dart';
 
 class RecordingPlatform implements ReminderPlatform {
   List<Map<String, Object>> plans = [];
+  int calls = 0;
+  int inFlight = 0;
+  int maxInFlight = 0;
+  Completer<void>? gate;
   @override
   Future<void> replace(List<Map<String, Object>> plans) async {
+    calls++;
+    inFlight++;
+    if (inFlight > maxInFlight) maxInFlight = inFlight;
     this.plans = plans;
+    final pending = gate;
+    if (pending != null) await pending.future;
+    inFlight--;
   }
 }
 
@@ -342,5 +352,42 @@ void main() {
     service.pendingSchedule!.complete(scheduleData());
     await refresh;
     expect(controller.plans.where((p) => p.group == 'course'), isEmpty);
+  });
+
+  test('overlapping reconciles are joined and rerun once', () async {
+    final platform = RecordingPlatform();
+    final controller = ReminderController(
+      service: const Service(),
+      account: 'sy2501001',
+      visibility: null,
+      platform: platform,
+      persist: false,
+      planner: Planner(),
+    );
+    addTearDown(controller.dispose);
+
+    // Hold the first platform call open, then ask for two more passes.
+    platform.gate = Completer<void>();
+    final first = controller.reconcile();
+    await Future<void>.delayed(Duration.zero);
+    expect(platform.calls, 1);
+
+    final second = controller.reconcile();
+    final third = controller.reconcile();
+    expect(
+      identical(second, third),
+      isTrue,
+      reason: 'a tick during a running pass must join, not stack',
+    );
+    expect(platform.calls, 1, reason: 'only one replace may be in flight');
+
+    platform.gate!.complete();
+    await first;
+    await second;
+    await third;
+    // The invariant: a tick can never overlap a running pass on the platform
+    // channel. Without the join, three ticks would push three replaces onto the
+    // Android main thread at once.
+    expect(platform.maxInFlight, 1);
   });
 }

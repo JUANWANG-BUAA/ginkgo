@@ -1,24 +1,16 @@
-//! Public OPAC catalogue HTTP (API §6.1). Anonymous reads on an isolated
-//! cookie jar: searching a book must not carry the signed-in library session.
+//! Public OPAC catalogue HTTP (API §6.1). Anonymous reads never send or retain
+//! cookies from either the public site or the signed-in library session.
 use crate::{
     auth::session::{RouteMode, Session},
     codecs::library_books,
     codecs::library_books::{BookHolding, BookPage},
-    foundation::http::{HttpMethod, HttpRequest, HttpResponse, HttpTransport, TransportError},
+    foundation::http::{HttpMethod, HttpRequest, HttpResponse, HttpTransport},
     AppError,
 };
 use serde_json::json;
 
 pub const BASE: &str = "https://space.lib.buaa.edu.cn/meta-local";
 const HOST: &str = "space.lib.buaa.edu.cn";
-
-/// Borrow the transport, not the signed-in session's cookie jars.
-struct PublicTransport<'a, T>(&'a T);
-impl<T: HttpTransport + Sync> HttpTransport for PublicTransport<'_, T> {
-    async fn send(&self, request: HttpRequest) -> Result<HttpResponse, TransportError> {
-        self.0.send(request).await
-    }
-}
 
 fn check(response: &HttpResponse, path: &str) -> Result<(), AppError> {
     // The detail stays coarse (status + which check failed) so the diagnostic
@@ -84,9 +76,6 @@ pub async fn search<T: HttpTransport + Sync>(
     sort: &str,
     descending: bool,
 ) -> Result<BookPage, AppError> {
-    let isolated = Session::new(PublicTransport(shared.transport()));
-    // Start from the user preference, not a transient fallback state.
-    isolated.set_route(preference);
     let mut request = HttpRequest::new(
         HttpMethod::Post,
         format!("{BASE}/opac/search?coverFirst=false&disable_facet=false"),
@@ -96,7 +85,7 @@ pub async fn search<T: HttpTransport + Sync>(
     .header("Referer", "https://space.lib.buaa.edu.cn/")
     .header("User-Agent", "Ginkgo/1.0");
     request.body = Some(search_body(query, page, page_size, sort, descending).to_string());
-    let response = isolated.send_following_redirects(request).await?;
+    let response = shared.send_anonymous(request, preference).await?;
     check(&response, "/meta-local/opac/search")?;
     library_books::page(&body(&response)?, page, page_size)
 }
@@ -107,16 +96,15 @@ pub async fn holdings<T: HttpTransport + Sync>(
     bib_id: &str,
 ) -> Result<Vec<BookHolding>, AppError> {
     let encoded = url::form_urlencoded::byte_serialize(bib_id.as_bytes()).collect::<String>();
-    let isolated = Session::new(PublicTransport(shared.transport()));
-    isolated.set_route(preference);
-    let response = isolated
-        .send_following_redirects(
+    let response = shared
+        .send_anonymous(
             HttpRequest::get(format!(
                 "{BASE}/opac/bibs/{encoded}/holdings?isMobile=0&relateStat=1"
             ))
             .header("Accept", "application/json, text/plain, */*")
             .header("Referer", "https://space.lib.buaa.edu.cn/")
             .header("User-Agent", "Ginkgo/1.0"),
+            preference,
         )
         .await?;
     check(&response, "/meta-local/opac/bibs/")?;

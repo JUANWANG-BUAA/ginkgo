@@ -12,7 +12,7 @@
 - [bykc_projection](#bykcprojection) (2)
 - [campus_card](#campuscard) (1)
 - [campus_info](#campusinfo) (2)
-- [cgyy](#cgyy) (2)
+- [cgyy](#cgyy) (3)
 - [checkin](#checkin) (4)
 - [classroom](#classroom) (1)
 - [graduate](#graduate) (2)
@@ -26,7 +26,7 @@
 - [mod](#mod) (2)
 - [notices](#notices) (1)
 - [query_snapshots](#querysnapshots) (2)
-- [session](#session) (7)
+- [session](#session) (8)
 - [shuttle](#shuttle) (1)
 - [tasks_service](#tasksservice) (2)
 - [cgyy_pending_store](#cgyypendingstore) (6)
@@ -79,6 +79,8 @@
   <sub>fn · rust/crates/ginkgo_core/src/application/cgyy.rs:8</sub>
 - `pub async fn execute_cgyy(&self, command: CgyyCommand) -> Result<CgyyActionResult, AppError> {…}` — Legacy typed entry: only reads are allowed without an application-support root.
   <sub>fn · rust/crates/ginkgo_core/src/application/cgyy.rs:33</sub>
+- `pub async fn load_cgyy(&self, query: CgyyQuery, force: bool) -> Result<CgyyOutcome, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_core/src/application/cgyy.rs:138</sub>
 
 ## checkin
 
@@ -168,7 +170,7 @@
   <sub>fn · rust/crates/ginkgo_core/src/application/learning.rs:19</sub>
 - `pub async fn course_announcement_attachment( &self, course: &str, id: &str, file: &str, ) -> Result<LearningDownload, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/learning.rs:26</sub>
-- `pub async fn course_resources(&self…)  -> Result<DataOutcome<CourseResourcePage>, AppError> {…}`
+- `pub async fn course_resources( &self, course: &str, folder: Option<&str>, page: u32, force: bool, ) -> Result<DataOutcome<CourseResourcePage>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/learning.rs:38</sub>
 - `pub async fn course_resource_download( &self, course: &str, folder: Option<&str>, page: u32, id: &str, ) -> Result<LearningDownload, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/learning.rs:49</sub>
@@ -184,7 +186,7 @@
   <sub>fn · rust/crates/ginkgo_core/src/application/learning.rs:99</sub>
 - `pub async fn course_assessments_in( &self, course: &str, column: &str, force: bool, ) -> Result<DataOutcome<Vec<CourseAssessment>>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/learning.rs:110</sub>
-- `pub async fn course_resources_at(&self…)  -> Result<DataOutcome<CourseResourcePage>, AppError> {…}`
+- `pub async fn course_resources_at( &self, course: &str, path: &[String], page: u32, force: bool, ) -> Result<DataOutcome<CourseResourcePage>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/learning.rs:120</sub>
 - `pub async fn course_resource_download_at( &self, course: &str, path: &[String], page: u32, id: &str, ) -> Result<LearningDownload, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/learning.rs:131</sub>
@@ -260,8 +262,10 @@
   <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:30</sub>
 - `pub async fn sign_out(&self) {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:33</sub>
+- `pub async fn purge_credentials(&self) {…}` — Second sign-out step: delete saved passwords. Deliberately separate so
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:38</sub>
 - `pub fn clear_snapshots(&self) {…}`
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:36</sub>
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:41</sub>
 
 ## shuttle
 
@@ -270,9 +274,9 @@
 
 ## tasks_service
 
-- `pub fn edit(root: &Path…)  -> Result<Vec<Task>, AppError> {…}` — Account is derived by the bridge from the authenticated Rust session.
+- `pub fn edit( root: &Path, account: &str, action: &str, id: Option<&str>, title: Option<&str>, due: Option<&str>, completed: Option<bool>, ) -> Result<Vec<Task>, AppError> {…}` — Account is derived by the bridge from the authenticated Rust session.
   <sub>fn · rust/crates/ginkgo_core/src/application/tasks_service.rs:12</sub>
-- `pub fn edit_tasks(&self…)  -> Result<Vec<Task>, AppError> {…}`
+- `pub fn edit_tasks( &self, root: &Path, action: &str, id: Option<&str>, title: Option<&str>, due: Option<&str>, completed: Option<bool>, ) -> Result<Vec<Task>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/tasks_service.rs:76</sub>
 
 ## cgyy_pending_store

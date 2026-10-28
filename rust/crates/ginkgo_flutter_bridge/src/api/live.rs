@@ -284,8 +284,32 @@ pub fn load_demo_notices() -> ReadOnlyResponse {
 }
 
 /// Public career-calendar events for a school month (YYYY-MM). Read-only.
-pub async fn load_career_events(month: String, force_refresh: bool) -> ReadOnlyResponse {
+pub async fn load_career_events(month: String, force_refresh: bool) -> CareerEventsResponse {
     utilities::load_career_events(month, force_refresh).await
+}
+
+pub struct CareerEventDto {
+    pub id: String,
+    pub title: String,
+    pub campus: String,
+    pub place: String,
+    pub begins_at: String,
+    pub ends_at: String,
+    pub fair_type: String,
+    pub status: String,
+    pub url: String,
+}
+
+pub struct CareerEventsDto {
+    pub month: String,
+    pub events: Vec<CareerEventDto>,
+    pub fetched_at: String,
+}
+
+/// A failure may accompany data only when it is a previous successful snapshot.
+pub struct CareerEventsResponse {
+    pub data: Option<CareerEventsDto>,
+    pub failure: Option<FailureCode>,
 }
 
 /// Public campus cultural activities (page 1-based). Read-only.
@@ -400,23 +424,20 @@ pub async fn perform_library_action(booking_id: String, action: String) -> Mutat
 #[cfg(test)]
 mod lifecycle_tests {
     use super::*;
-    use std::{
-        future::Future,
-        pin::pin,
-        task::{Context, Poll, Waker},
-    };
 
-    #[test]
-    fn sign_out_waits_for_active_bridge_reads() {
-        let read = SESSION_ACCESS.try_read().expect("initial read");
-        let mut logout = pin!(sign_out());
-        let mut context = Context::from_waker(Waker::noop());
-        assert!(logout.as_mut().poll(&mut context).is_pending());
-        assert!(SESSION_ACCESS.try_read().is_err());
+    #[tokio::test]
+    async fn sign_out_waits_for_active_bridge_reads() {
+        let _serial = runtime::TEST_GATE.lock().await;
+        let read = SESSION_ACCESS.read().await;
+        let mut logout = Box::pin(sign_out());
+        assert!(
+            tokio::time::timeout(std::time::Duration::from_millis(50), &mut logout)
+                .await
+                .is_err(),
+            "sign-out must wait for the active read"
+        );
         drop(read);
-        let Poll::Ready(response) = logout.as_mut().poll(&mut context) else {
-            panic!("logout ready")
-        };
+        let response = logout.await;
         assert!(matches!(response.state, SessionState::SignedOut));
         assert!(SESSION_ACCESS.try_read().is_ok());
     }
