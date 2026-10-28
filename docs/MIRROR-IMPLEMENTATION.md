@@ -1,13 +1,13 @@
 # Rust + Flutter 镜像实施现状
 
-更新：2026-10-27。功能与本地接口统一索引见 [功能和接口协议](FEATURES-AND-PROTOCOLS.md)，全代码接口总览与逐层清单见 [接口索引](INTERFACE-INDEX.md)。本页描述工作树；公开 APK 的内容以对应发布记录为准。模块差距只维护在 [功能对照](MIRROR-PARITY.md)，未完成事项只维护在 [待办](MIRROR-TODO.md)，过程与历次测试见 [历史证据索引](archive/mirror/README.md)。
+更新：2026-10-29。功能与本地接口统一索引见 [功能和接口协议](FEATURES-AND-PROTOCOLS.md)，全代码接口总览与逐层清单见 [接口索引](INTERFACE-INDEX.md)。本页描述工作树；公开 APK 的内容以对应发布记录为准。模块差距只维护在 [功能对照](MIRROR-PARITY.md)，未完成事项只维护在 [待办](MIRROR-TODO.md)，过程与历次测试见 [历史证据索引](archive/mirror/README.md)。
 
 ## 产品与验收边界
 
 | 平台 | 当前状态 | 证据与限制 |
 | --- | --- | --- |
 | macOS / iOS | 独立 SwiftUI 应用，共享 Swift 客户端、模型与工作区编排 | Apple 测试见 [TESTING](TESTING.md)；模拟器通过不代表真机、签名分发或真实写入通过 |
-| Android | Rust + Flutter；公开包 Beta.1（build 11，2026-10-27） | [Beta.1 发布与验收记录](_audit/2026-10-27-android-beta1-preparation.md)；学习、借阅、提醒等只读与 CGYY 主动写闭环已接入，真实认证和学校写入未验收 |
+| Android | Rust + Flutter；公开包 Beta.2（build 12，2026-10-29） | [Beta.2 发布与验收记录](_audit/2026-10-29-android-beta2-release.md)；公开只读请求与登录态隔离，真实认证、设备和学校写入未验收 |
 | Windows | Rust + Flutter；公开包 Alpha.6（build 7），Windows 10 / 11 x64 单文件安装器 + 便携 ZIP | [首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)、[主机验证](archive/mirror/WINDOWS-2026-10-21.md)；系统保险库、宽屏侧栏、窄屏底部导航、键盘与返回栈基础通过；安装器未签名，物理 x64 / 干净系统运行依赖 / 真实学校业务仍未验收 |
 
 既往真实账号只读检查已覆盖已接入模块，但最近一次集成登录失败；两次结果分别保留于 [验收记录](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md) 与 [认证异常诊断](_audit/2026-10-21-auth-redirect-incident.md)。不能把早先通过推广为当前所有网络均可用，也不能将工作树改动当作已经发布。
@@ -95,7 +95,13 @@ Android 更新检查仍读取 GitHub Releases，但 Alpha.4 起可在应用内�
 
 ## 当前源码与发布基线
 
-Android Beta.1（`0.1.0-beta.1+11`）已公开；[发布与验收记录](_audit/2026-10-27-android-beta1-preparation.md) 包含全量门禁、签名、摘要、公开资产回下载与 Alpha.9→Beta.1 覆盖升级证据。上一公开基线为 Alpha.9（`0.1.0-alpha.9+10`），记录见 [Alpha.9 发布记录](_audit/2026-10-26-android-alpha9-release.md)。`docs/update-gate.json` 的 `minBuild` 仍为 5，未随本次发布提高。
+Android Beta.2（`0.1.0-beta.2+12`）已公开；[发布与验收记录](_audit/2026-10-29-android-beta2-release.md) 包含全量本地门禁、签名、摘要、公开 APK/校验文件回下载和验收限制。Beta.1 的历史发布与覆盖升级证据见 [Beta.1 记录](_audit/2026-10-27-android-beta1-preparation.md)。`docs/update-gate.json` 的 `minBuild` 仍为 5，未随本次发布提高。
+
+## Android Beta.2 严重问题与工程收口（2026-10-29，已发布）
+
+公开就业、学术文化、通知、校车、书目/馆藏、图书馆人数等请求此前复用了学校认证会话的 Cookie 容器。Rust `Session::send_anonymous` 为已迁移适配器创建隔离会话，移除 Cookie 与认证头，不导入响应 `Set-Cookie`，也不污染账号会话路线；父域 Cookie、响应 Cookie 和路线隔离均由合成回归覆盖。
+
+本版同时按架构边界评审收拢 Flutter gateway、任务存储、提醒存储/平台通知与 native command 适配，补充单飞/迟到响应门禁并将可能阻塞的持久化工作移出异步执行路径。逐项依据和未完成项见 [工程整改记录](_audit/2026-10-28-review-remediation.md)。学校协议及其证据已同步到唯一事实源 [API.md](API.md)，完整 Dart/Rust 接口目录重新生成并通过新鲜度检查；发布范围与验收缺口见 [Beta.2 发布审计](_audit/2026-10-29-android-beta2-release.md)。
 
 Alpha.9 在 Alpha.8 基础上带入连续左右翻页、SPOC 学习与资料保存、文件作业入口、验证码、学分地图、提醒、本人借阅、手机目录和视觉/无障碍修复。可选加密学习快照因尚缺人工安全审查，在公开 Release 中关闭。学校真实认证、借阅非空分页、校车余票和写操作仍未验收。
 
