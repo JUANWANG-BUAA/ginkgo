@@ -10,6 +10,8 @@ pub(super) async fn load_homework(force_refresh: bool) -> crate::api::mirror::Ho
     };
     match result {
         Ok(outcome) => HomeworkResponse {
+            fetched_at: Some(outcome.fetched_at),
+            roles_complete: Some(outcome.data.roles_complete),
             term_name: outcome.data.term_name,
             term_code: outcome.data.term_code,
             items: outcome
@@ -44,6 +46,8 @@ pub(super) async fn load_homework(force_refresh: bool) -> crate::api::mirror::Ho
             failure: outcome.failure.map(|e| e.code.into()),
         },
         Err(error) => HomeworkResponse {
+            fetched_at: None,
+            roles_complete: None,
             term_name: String::new(),
             term_code: String::new(),
             items: vec![],

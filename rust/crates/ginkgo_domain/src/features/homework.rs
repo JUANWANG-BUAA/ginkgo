@@ -155,6 +155,7 @@ pub struct HomeworkData {
     pub term_code: String,
     pub term_name: String,
     pub items: Vec<HomeworkItem>,
+    pub roles_complete: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

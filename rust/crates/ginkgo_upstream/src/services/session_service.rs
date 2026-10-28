@@ -49,6 +49,12 @@ pub(crate) struct AuthenticatedIdentity {
     pub profile: UserProfile,
 }
 
+#[derive(Clone)]
+pub(crate) struct AccountOwner {
+    pub(crate) account: String,
+    pub(crate) generation: u64,
+}
+
 pub(crate) struct PendingLogin {
     page: LoginPage,
     account: String,
@@ -190,6 +196,32 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             .ok_or_else(AppError::session_expired)
     }
 
+    pub(crate) fn account_owner(&self) -> Result<AccountOwner, AppError> {
+        let identity = self.identity.lock();
+        Ok(AccountOwner {
+            account: identity
+                .authenticated
+                .as_ref()
+                .ok_or_else(AppError::session_expired)?
+                .account
+                .clone(),
+            generation: identity.generation,
+        })
+    }
+
+    pub(crate) fn check_account_owner(&self, owner: &AccountOwner) -> Result<(), AppError> {
+        let identity = self.identity.lock();
+        if identity.generation != owner.generation
+            || !identity
+                .authenticated
+                .as_ref()
+                .is_some_and(|user| user.account == owner.account)
+        {
+            return Err(AppError::session_expired());
+        }
+        Ok(())
+    }
+
     pub(crate) async fn silent_login(&self) -> Result<(), AppError> {
         let generation = self.school_generation.load(Ordering::Acquire);
         let _recovery = self.recovery_gate.lock().await;
@@ -197,7 +229,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             return Ok(());
         }
         self.check_automatic_login_failure()?;
-        let owner = self.booking_owner()?;
+        let owner = self.account_owner()?;
         let account = owner.account.clone();
         let credentials = self
             .vault

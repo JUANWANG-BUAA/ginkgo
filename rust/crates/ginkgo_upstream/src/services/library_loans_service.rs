@@ -9,11 +9,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> LibraryLoansSource for 
         if !(1..=100).contains(&page) {
             return Err(AppError::invalid());
         }
-        let owner = self.booking_owner()?;
+        let owner = self.account_owner()?;
         library_loans_http::establish(&self.session).await?;
-        self.check_booking_owner(&owner)?;
+        self.check_account_owner(&owner)?;
         let result = library_loans_http::load(&self.session, page).await;
-        self.check_booking_owner(&owner)?;
+        self.check_account_owner(&owner)?;
         result
     }
 }

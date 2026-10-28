@@ -1,4 +1,5 @@
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/career.dart';
 
 /// Page-facing capabilities. Tests and alternative adapters need no native runtime.
 abstract interface class MirrorService
@@ -8,6 +9,23 @@ abstract interface class MirrorService
         CheckInGateway,
         LibraryGateway,
         CampusGateway {}
+
+abstract interface class CampusCardGateway implements MirrorEnvironment {
+  Future<CampusCardBalanceResponse> campusCardBalance();
+}
+
+/// Public official destinations only; does not read or transmit account data.
+abstract interface class StudentServiceLinksGateway {
+  String? studentServiceUrl(String id);
+}
+
+/// Public career-calendar reads; no login and no background refresh.
+abstract interface class CareerEventsGateway implements MirrorEnvironment {
+  Future<CareerEventsRead> careerEvents({
+    required String month,
+    bool forceRefresh = false,
+  });
+}
 
 abstract interface class MirrorEnvironment {
   bool get isDemo;

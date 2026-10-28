@@ -237,6 +237,8 @@ pub struct HomeworkResponse {
     pub term_name: String,
     pub term_code: String,
     pub items: Vec<HomeworkItem>,
+    pub fetched_at: Option<String>,
+    pub roles_complete: Option<bool>,
     pub failure: Option<FailureCode>,
     pub failure_detail: Option<String>,
 }
@@ -282,7 +284,7 @@ pub struct CheckInCourse {
     pub classroom_name: Option<String>,
     pub merged_record_count: i32,
     pub conflicting: bool,
-    /// Explicit false also covers merged sessions containing multiple upstream IDs.
+    /// Explicit false covers merged sessions with conflicting records.
     pub sign_in_allowed: Option<bool>,
 }
 

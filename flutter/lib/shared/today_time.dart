@@ -16,6 +16,8 @@ DateTime? todayDate(String value) {
   return parsed;
 }
 
+/// Presentation ordering and urgency only; never schedule an alarm from the
+/// end-of-day value assigned to a date-only deadline.
 DateTime? todayDue(String? value) {
   final text = value?.trim() ?? '';
   final day = todayDate(text);

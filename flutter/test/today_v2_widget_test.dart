@@ -12,6 +12,7 @@ import 'package:ginkgo_mirror/shared/reminders.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
 import 'package:ginkgo_mirror/features/today/today_action_row.dart';
 import 'package:ginkgo_mirror/features/today/today_course_focus.dart';
+import 'package:ginkgo_mirror/features/today/today_course_section.dart';
 import 'package:ginkgo_mirror/features/today/today_homework_section.dart';
 import 'package:ginkgo_mirror/features/today/today_page.dart';
 import 'package:ginkgo_mirror/features/today/today_tasks_section.dart';
@@ -229,6 +230,27 @@ void main() {
     expect(find.text('课表日期待更新'), findsOneWidget);
   });
 
+  testWidgets('an empty snapshot from yesterday is not today confirmed empty', (
+    tester,
+  ) async {
+    size(tester);
+    await tester.pumpWidget(
+      host(
+        TodayCourseSection(
+          data: emptyCourses,
+          now: DateTime.utc(2026, 10, 23),
+          loading: false,
+          error: null,
+          expanded: false,
+          onToggleExpanded: () {},
+          onRetry: () {},
+        ),
+      ),
+    );
+    expect(find.text('今天没有课程'), findsNothing);
+    expect(find.text('课表日期待更新'), findsOneWidget);
+  });
+
   testWidgets(
     'homework sorts deadlines, opens exact item, never labels unknown empty',
     (tester) async {
@@ -313,6 +335,47 @@ void main() {
     },
   );
 
+  testWidgets('homework shows the source snapshot time on a failed refresh', (
+    tester,
+  ) async {
+    size(tester);
+    final section = RefreshSection<HomeworkResponse>()
+      ..value = const HomeworkResponse(
+        termName: '合成学期',
+        termCode: 'synthetic',
+        items: [],
+        fetchedAt: '2026-10-22T01:23:00Z',
+      )
+      ..error = '读取失败';
+    await tester.pumpWidget(
+      host(TodayHomeworkSection(section: section, onRetry: () {}, now: clock)),
+    );
+    expect(find.textContaining('作业同步：10月22日 09:23'), findsOneWidget);
+    expect(find.text('读取失败'), findsOneWidget);
+    expect(find.text('当前没有待处理作业'), findsNothing);
+    section.dispose();
+  });
+
+  testWidgets('empty assignments still report incomplete course roles', (
+    tester,
+  ) async {
+    size(tester);
+    final section = RefreshSection<HomeworkResponse>()
+      ..value = const HomeworkResponse(
+        termName: '合成学期',
+        termCode: 'synthetic',
+        items: [],
+        rolesComplete: false,
+      );
+    await tester.pumpWidget(
+      host(TodayHomeworkSection(section: section, onRetry: () {}, now: clock)),
+    );
+    expect(find.text('作业结果不完整'), findsOneWidget);
+    expect(find.textContaining('课程身份未能全部核对'), findsWidgets);
+    expect(find.text('当前没有待处理作业'), findsNothing);
+    section.dispose();
+  });
+
   testWidgets(
     'tasks publish while school requests wait; missing payload is not zero',
     (tester) async {
@@ -384,6 +447,43 @@ void main() {
       expect(find.text('事项date'), findsOneWidget);
       expect(find.text('合成读取失败'), findsOneWidget);
       expect(find.text('显示上次读取结果，请重试确认。'), findsOneWidget);
+      section.dispose();
+    },
+  );
+
+  testWidgets(
+    'linked tasks are hidden only when their homework row is visible',
+    (tester) async {
+      size(tester);
+      LocalTaskRecord linked(String id, String assignment) => LocalTaskRecord(
+        id: id,
+        title: '本机$id',
+        due: '',
+        completed: false,
+        sourceAssignmentId: assignment,
+      );
+      final section = RefreshSection<TodayTasksSnapshot>()
+        ..value = TodayTasksSnapshot([
+          linked('visible', 'assignment-visible'),
+          linked('missing', 'assignment-missing'),
+        ], clock);
+      Widget view(Set<String> visible) => host(
+        TodayTasksSection(
+          section: section,
+          now: clock,
+          onRetry: () {},
+          onOpen: (_) {},
+          visibleHomeworkIds: visible,
+        ),
+      );
+      await tester.pumpWidget(view({'assignment-visible'}));
+      expect(find.text('本机visible'), findsNothing);
+      expect(find.text('本机missing'), findsOneWidget);
+      expect(find.text('已在学校作业区显示，不在此重复；可在待办页查看'), findsOneWidget);
+      await tester.pumpWidget(view({}));
+      expect(find.text('本机visible'), findsOneWidget);
+      expect(find.text('本机missing'), findsOneWidget);
+      expect(find.byKey(const Key('today-tasks-linked-note')), findsNothing);
       section.dispose();
     },
   );

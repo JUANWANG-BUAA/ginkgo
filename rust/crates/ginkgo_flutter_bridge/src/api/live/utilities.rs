@@ -57,6 +57,64 @@ pub(super) fn load_demo_notices() -> ReadOnlyResponse {
     read_only_value(ginkgo_runtime::demo::demo_campus::load_demo_notices())
 }
 
+pub(super) async fn load_career_events(month: String, force_refresh: bool) -> ReadOnlyResponse {
+    let _access = SESSION_ACCESS.read().await;
+    let result = match service() {
+        Ok(service) => bounded_read(service.load_career_events(&month, force_refresh)).await,
+        Err(error) => Err(error),
+    };
+    read_only_response(result.map(|outcome| ginkgo_core::application::DataOutcome {
+        data: outcome.data,
+        failure: outcome.failure,
+    }))
+}
+
+pub(super) async fn load_campus_activities(page: i32, force_refresh: bool) -> ReadOnlyResponse {
+    let _access = SESSION_ACCESS.read().await;
+    let result = match service() {
+        Ok(service) => bounded_read(service.load_campus_activities(page, force_refresh)).await,
+        Err(error) => Err(error),
+    };
+    read_only_response(result.map(|outcome| ginkgo_core::application::DataOutcome {
+        data: outcome.data,
+        failure: outcome.failure,
+    }))
+}
+
+pub(super) async fn load_campus_card_balance() -> CampusCardBalanceResponse {
+    let _access = SESSION_ACCESS.read().await;
+    let result = match service() {
+        Ok(service) => bounded_read(service.campus_card_balance()).await,
+        Err(error) => Err(error),
+    };
+    match result {
+        Ok(balance) => CampusCardBalanceResponse {
+            balance_minor: Some(balance.balance_minor),
+            fetched_at: Some(balance.fetched_at),
+            failure: None,
+            failure_detail: None,
+        },
+        Err(error) => {
+            let (failure, failure_detail) = failure(&error);
+            CampusCardBalanceResponse {
+                balance_minor: None,
+                fetched_at: None,
+                failure,
+                failure_detail,
+            }
+        }
+    }
+}
+
+pub(super) fn load_demo_campus_card_balance() -> CampusCardBalanceResponse {
+    CampusCardBalanceResponse {
+        balance_minor: Some(12345),
+        fetched_at: Some("2026-10-20T08:00:00+08:00".into()),
+        failure: None,
+        failure_detail: None,
+    }
+}
+
 pub(super) async fn load_cgyy(
     kind: String,
     site_id: i64,
@@ -93,10 +151,17 @@ pub(super) async fn execute_cgyy(command: String) -> ReadOnlyResponse {
         // A dropped command may still have been submitted school-side; the
         // pending marker the command wrote survives the drop and the next
         // status read reports the outcome as unverified.
-        Ok(service) => match bounded_submit(service.execute_cgyy_json(&command)).await {
-            Some(result) => result,
-            None => Err(AppError::unavailable()),
-        },
+        Ok(service) => {
+            let runtime = tokio::runtime::Handle::current();
+            match bounded_submit(tokio::task::spawn_blocking(move || {
+                runtime.block_on(service.execute_cgyy_json(&command))
+            }))
+            .await
+            {
+                Some(Ok(result)) => result,
+                Some(Err(_)) | None => Err(AppError::unavailable()),
+            }
+        }
         Err(error) => Err(error),
     };
     read_only_value(result)

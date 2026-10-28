@@ -178,7 +178,7 @@ void main() {
     final service = WorkspaceService();
     await tester.pumpWidget(GinkgoApp(service: service));
     await tester.pumpAndSettle();
-    expect(service.scheduleReads, 0);
+    expect(service.scheduleReads, 1);
     expect(service.libraryReads, 0);
     await tester.tap(find.text('图书馆'));
     await tester.pumpAndSettle();

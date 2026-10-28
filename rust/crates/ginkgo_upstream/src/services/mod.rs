@@ -1,6 +1,7 @@
 //! Coarse use cases. Decode untrusted input here; domain never sees Flutter state.
 mod bykc_service;
 mod cache;
+mod campus_card_service;
 pub use bykc_service::{BykcChosenOutcome, BykcOutcome, BykcStatisticsOutcome};
 mod checkin_service;
 mod classroom_service;
@@ -87,6 +88,8 @@ mod tests;
 mod graduate_service;
 pub use graduate_service::{GraduateOutcome, GraduatePart};
 
+mod campus_activities_service;
+mod career_service;
 mod notices_service;
 pub use notices_service::NoticesOutcome;
 mod cgyy_booking_service;

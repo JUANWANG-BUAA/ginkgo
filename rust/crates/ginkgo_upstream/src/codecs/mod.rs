@@ -1,4 +1,5 @@
 pub mod bykc;
+pub mod campus_card;
 pub mod checkin;
 pub mod classroom;
 pub mod grades;

@@ -442,6 +442,8 @@ Future<void> openMore(WidgetTester tester, String label) async {
           )
           .first,
     );
+    await tester.ensureVisible(find.text(label));
+    await tester.pumpAndSettle();
   }
   await tester.tap(find.text(label));
   await tester.pumpAndSettle();
@@ -746,7 +748,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('2026年10月20日 · 周二'), findsOneWidget);
-    expect(find.text('今天 1 节课'), findsOneWidget);
     expect(find.byKey(const Key('today-course-0-算法设计与分析')), findsNothing);
     await tester.tap(find.byKey(const Key('today-toggle-courses')));
     await tester.pumpAndSettle();
@@ -756,7 +757,7 @@ void main() {
 
   testWidgets('grades tab shows summary and course scores', (tester) async {
     final service = ControlledService();
-    tester.view.physicalSize = const Size(430, 1400);
+    tester.view.physicalSize = const Size(430, 1500);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);

@@ -303,6 +303,9 @@ fn recovery_failure_service() -> (
 
 mod academic;
 mod campus;
+mod campus_activities;
+mod campus_card;
+mod career;
 mod cgyy_booking;
 mod checkin;
 mod classroom;

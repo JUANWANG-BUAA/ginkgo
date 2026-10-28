@@ -29,6 +29,8 @@ pub(crate) struct ReadSnapshots {
     pub(crate) schedules: Mutex<ScheduleCache>,
     pub(crate) cgyy: Mutex<SnapshotCache<String, ginkgo_domain::ports::CgyyData>>,
     pub(crate) notices: Mutex<SnapshotCache<String, Vec<crate::codecs::notices::Notice>>>,
+    pub(crate) career: Mutex<super::career_service::CareerEventsCache>,
+    pub(crate) activities: Mutex<super::campus_activities_service::CampusActivitiesCache>,
     pub(crate) graduate: Mutex<SnapshotCache<String, crate::codecs::graduate::AcademicData>>,
     pub(crate) bykc: Mutex<SnapshotCache<String, crate::codecs::bykc::Catalog>>,
     pub(crate) bykc_chosen: Mutex<SnapshotCache<String, crate::codecs::bykc::ChosenCourses>>,
@@ -52,6 +54,8 @@ impl ReadSnapshots {
         self.schedules.lock().clear();
         self.cgyy.lock().clear();
         self.notices.lock().clear();
+        self.career.lock().clear();
+        self.activities.lock().clear();
         self.graduate.lock().clear();
         self.bykc.lock().clear();
         self.bykc_chosen.lock().clear();
@@ -76,6 +80,8 @@ impl ReadSnapshots {
             + self.schedules.poison_count()
             + self.cgyy.poison_count()
             + self.notices.poison_count()
+            + self.career.poison_count()
+            + self.activities.poison_count()
             + self.graduate.poison_count()
             + self.bykc.poison_count()
             + self.bykc_chosen.poison_count()

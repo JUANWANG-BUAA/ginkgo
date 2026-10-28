@@ -23,6 +23,8 @@ impl<U> Workspace<U> {
 
 mod academic;
 mod bykc;
+mod campus_card;
+mod campus_info;
 mod cgyy;
 mod checkin;
 mod classroom;

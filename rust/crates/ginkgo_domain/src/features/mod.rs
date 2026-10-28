@@ -1,4 +1,7 @@
 pub mod bykc;
+pub mod campus_activities;
+pub mod campus_card;
+pub mod career;
 pub mod cgyy;
 pub mod cgyy_booking;
 pub mod checkin;

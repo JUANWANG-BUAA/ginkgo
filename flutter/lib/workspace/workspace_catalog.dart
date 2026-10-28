@@ -1,8 +1,11 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/features/bykc/bykc_page.dart';
+import 'package:ginkgo_mirror/features/campus_card/campus_card_page.dart';
+import 'package:ginkgo_mirror/features/campus/campus_activities_page.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_page.dart';
 import 'package:ginkgo_mirror/features/classroom/classroom_page.dart';
+import 'package:ginkgo_mirror/features/career/career_events_page.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
 import 'package:ginkgo_mirror/features/graduate/graduate_page.dart';
 import 'package:ginkgo_mirror/features/graduate/graduate_models.dart'
@@ -16,6 +19,7 @@ import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/features/notices/notices_page.dart';
 import 'package:ginkgo_mirror/features/reservations/reservations_page.dart';
 import 'package:ginkgo_mirror/features/schedule/schedule_page.dart';
+import 'package:ginkgo_mirror/features/shuttle/shuttle_page.dart';
 import 'package:ginkgo_mirror/workspace/service_directory.dart';
 import 'package:ginkgo_mirror/features/settings/settings_page.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
@@ -248,12 +252,45 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     build: (context) => ClassroomPage(service: context.service),
   ),
   WorkspaceDestination(
+    id: 'campus-card',
+    title: '校园卡',
+    icon: CupertinoIcons.creditcard,
+    section: WorkspaceSection.campus,
+    build: (context) => CampusCardPage(
+      gateway: context.service is CampusCardGateway
+          ? context.service as CampusCardGateway
+          : null,
+    ),
+  ),
+  WorkspaceDestination(
     id: 'notices',
     title: '校园通知',
     icon: CupertinoIcons.news_solid,
     section: WorkspaceSection.campus,
     build: (context) =>
         NoticesPage(demo: context.service.isDemo, service: context.service),
+  ),
+  WorkspaceDestination(
+    id: 'career-events',
+    title: '就业活动',
+    icon: CupertinoIcons.briefcase,
+    section: WorkspaceSection.campus,
+    build: (context) => CareerEventsPage(service: context.service),
+  ),
+  WorkspaceDestination(
+    id: 'campus-activities',
+    title: '学术文化',
+    icon: CupertinoIcons.music_note,
+    section: WorkspaceSection.campus,
+    build: (context) => CampusActivitiesPage(service: context.service),
+  ),
+  WorkspaceDestination(
+    id: 'shuttle',
+    title: '校车时刻表',
+    icon: CupertinoIcons.bus,
+    section: WorkspaceSection.campus,
+    sidebar: false,
+    build: (context) => ShuttlePage(service: context.service),
   ),
   WorkspaceDestination(
     id: 'reservations',

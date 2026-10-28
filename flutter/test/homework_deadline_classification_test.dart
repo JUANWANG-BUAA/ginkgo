@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/features/homework/homework_page.dart';
 import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
 import 'package:ginkgo_mirror/main.dart';
@@ -148,6 +149,26 @@ void main() {
         }
       },
     );
+
+    test('date-only today is urgent and exact tomorrow is upcoming', () {
+      expect(
+        homeworkDeadlineTint('2026-10-23', beijingNow),
+        AppleDesign.statusDanger,
+      );
+      expect(
+        homeworkDeadlineTint('2026-10-24 11:59:00', beijingNow),
+        AppleDesign.statusDanger,
+      );
+      expect(
+        homeworkDeadlineTint('2026-10-24 12:00:00', beijingNow),
+        AppleDesign.statusPending,
+      );
+      expect(homeworkCompactDeadline('2026-10-23', beijingNow), contains('今天'));
+      expect(
+        homeworkCompactDeadline('2026-10-24', beijingNow),
+        contains('10/24'),
+      );
+    });
   });
 
   group('TodayHomeworkSection & HomeworkPage Orthogonal Filtering', () {
@@ -365,5 +386,23 @@ void main() {
         expect(find.text('未知状态作业'), findsOneWidget);
       },
     );
+
+    testWidgets('HomeworkPage reports incomplete course roles', (tester) async {
+      final gateway = FakeAcademicGateway(
+        const HomeworkResponse(
+          termName: '2026秋',
+          termCode: '2026-autumn',
+          items: [],
+          rolesComplete: false,
+        ),
+      );
+      await tester.pumpWidget(
+        ginkgoApp(home: HomeworkPage(service: gateway, now: beijingNow)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('作业结果不完整'), findsOneWidget);
+      expect(find.textContaining('课程身份未能全部核对'), findsOneWidget);
+    });
   });
 }

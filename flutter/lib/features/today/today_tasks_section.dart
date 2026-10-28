@@ -4,8 +4,11 @@ import 'package:ginkgo_mirror/application/local_tasks.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
+
 import 'today_action_row.dart';
+
 import 'package:ginkgo_mirror/shared/today_time.dart';
+
 import 'today_presentation.dart';
 
 class TodayTasksSnapshot {
@@ -21,20 +24,35 @@ class TodayTasksSection extends StatelessWidget {
     required this.now,
     required this.onRetry,
     required this.onOpen,
+    this.visibleHomeworkIds = const {},
   });
   final RefreshSection<TodayTasksSnapshot> section;
   final DateTime now;
   final VoidCallback onRetry;
   final ValueChanged<String?> onOpen;
+  final Set<String> visibleHomeworkIds;
 
   @override
   Widget build(BuildContext context) {
     final data = section.value;
     final all = data?.items ?? <LocalTaskRecord>[];
-    // Homework-derived to-dos are shown once, in the school-homework section.
-    // They stay in the to-do list itself so nothing is deleted or edited here.
-    final linked = all.where((task) => task.sourceAssignmentId != null).toList();
-    final own = all.where((task) => task.sourceAssignmentId == null).toList();
+    // Suppress only assignments actually visible in the homework section.
+    // A failed, filtered, completed or off-screen assignment must not make its
+    // local task disappear from the dashboard.
+    final linked = all
+        .where(
+          (task) =>
+              task.sourceAssignmentId != null &&
+              visibleHomeworkIds.contains(task.sourceAssignmentId),
+        )
+        .toList();
+    final own = all
+        .where(
+          (task) =>
+              task.sourceAssignmentId == null ||
+              !visibleHomeworkIds.contains(task.sourceAssignmentId),
+        )
+        .toList();
     final pending = own.where((task) => !task.completed).toList();
     final completed = own.where((task) => task.completed).toList();
     final dated = pending.where((task) => todayDue(task.due) != null).toList()
@@ -71,9 +89,7 @@ class TodayTasksSection extends StatelessWidget {
             key: const Key('today-open-tasks'),
             summary: true,
             title: pending.isEmpty
-                ? (section.error != null
-                    ? '待办状态尚未确认'
-                    : '当前没有未完成待办')
+                ? (section.error != null ? '待办状态尚未确认' : '当前没有未完成待办')
                 : '${pending.length} 项个人待办',
             subtitle: section.error != null
                 ? '显示上次读取结果，请重试确认。'
@@ -110,7 +126,11 @@ class TodayTasksSection extends StatelessWidget {
     );
   }
 
-  Widget _row(BuildContext context, LocalTaskRecord task, {bool isPriority = false}) {
+  Widget _row(
+    BuildContext context,
+    LocalTaskRecord task, {
+    bool isPriority = false,
+  }) {
     final status = _taskStatus(task);
     final tint = homeworkDeadlineTint(task.due, now).resolveFrom(context);
     return TodayActionRow(
@@ -119,7 +139,9 @@ class TodayTasksSection extends StatelessWidget {
       title: task.title,
       status: status,
       statusColor: task.due.trim().isEmpty ? null : tint,
-      subtitle: '个人事项 · 未完成',
+      subtitle: task.sourceAssignmentId == null
+          ? '个人事项 · 未完成'
+          : '本机待办 · 来自学校作业',
       onTap: () => onOpen(task.id),
     );
   }

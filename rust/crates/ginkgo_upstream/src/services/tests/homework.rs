@@ -64,6 +64,7 @@ async fn homework_full_read_chain_caches_list_and_reads_detail() {
         .await
         .expect("login");
     let list = service.load_homework(false).await.expect("list");
+    assert!(list.data.roles_complete);
     assert_eq!(list.data.items.len(), 2);
     assert_eq!(list.data.items[0].teacher_name.as_deref(), Some("合成教师"));
     assert_eq!(list.data.items[0].course_role.as_deref(), Some("student"));
@@ -109,6 +110,58 @@ async fn homework_full_read_chain_caches_list_and_reads_detail() {
     );
     service.sign_out().await;
     assert!(service.load_homework(false).await.is_err());
+}
+
+#[tokio::test]
+async fn homework_keeps_assignments_when_course_role_lookup_fails() {
+    use crate::adapters::homework_http::SPOC_BASE;
+    let envelope = |content: Value| serde_json::json!({"code":200,"content":content}).to_string();
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend([
+        HttpResponse::new(200, "https://spoc.buaa.edu.cn/spocnew/", "spa"),
+        HttpResponse::new(
+            404,
+            "https://spoc.buaa.edu.cn/spocnew/cas?token=fixture",
+            "callback",
+        ),
+        HttpResponse::new(
+            200,
+            format!("{SPOC_BASE}/sys/casLogin"),
+            envelope(serde_json::json!({"rolecode":"01"})),
+        ),
+        HttpResponse::new(
+            200,
+            "term",
+            envelope(serde_json::json!({"mrxq":"2026-20271","dqxq":"合成学期"})),
+        ),
+        HttpResponse::new(
+            200,
+            "courses",
+            envelope(serde_json::json!([{"kcid":"c1","kcmc":"合成课程"}])),
+        ),
+        HttpResponse::new(
+            200,
+            "page",
+            envelope(fixture("homework", "spoc-page-v1.json")["input"]["body"].clone()),
+        ),
+        HttpResponse::new(503, "student-courses", "unavailable"),
+        HttpResponse::new(
+            200,
+            "assistant-courses",
+            envelope(serde_json::json!({"list":[],"hasNextPage":false})),
+        ),
+    ]);
+    let (service, _) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("login");
+    let list = service
+        .load_homework(false)
+        .await
+        .expect("assignments remain available");
+    assert!(!list.data.roles_complete);
+    assert_eq!(list.data.items.len(), 2);
 }
 
 #[tokio::test]

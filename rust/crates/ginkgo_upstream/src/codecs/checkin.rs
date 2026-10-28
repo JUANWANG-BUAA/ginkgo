@@ -134,9 +134,9 @@ fn parse_candidate(record: &Value) -> Result<Candidate, AppError> {
     })
 }
 
-/// Apple rule: records that share an id OR the same visible session are the
-/// same course. A group whose session key or sign status disagrees becomes
-/// "待确认" so no caller can mistake it for a single signable row.
+/// Records that share an id OR the same visible session are compared as one
+/// group. Conflicting groups become "待确认". Distinct unsigned upstream IDs
+/// stay actionable; records needing no sign-in collapse into one display row.
 fn merge_candidates(candidates: Vec<Candidate>) -> Vec<CheckInCourse> {
     let count = candidates.len();
     let mut parents: Vec<usize> = (0..count).collect();
@@ -168,7 +168,7 @@ fn merge_candidates(candidates: Vec<Candidate>) -> Vec<CheckInCourse> {
 
     let mut items: Vec<CheckInCourse> = groups
         .into_iter()
-        .map(|indices| {
+        .flat_map(|indices| {
             let first = &candidates[indices[0]];
             let first_key = session_key(first);
             let conflicting = indices
@@ -183,7 +183,34 @@ fn merge_candidates(candidates: Vec<Candidate>) -> Vec<CheckInCourse> {
                 .collect();
             ids.sort();
             ids.dedup();
-            CheckInCourse {
+            if !conflicting
+                && ids.len() > 1
+                && indices
+                    .iter()
+                    .any(|index| candidates[*index].status == CheckInStatus::NotSigned)
+            {
+                return indices
+                    .iter()
+                    .map(|index| {
+                        let candidate = &candidates[*index];
+                        CheckInCourse {
+                            id: candidate.id.clone(),
+                            course_id: candidate.course_id.clone(),
+                            course_num: candidate.course_num.clone(),
+                            course_name: candidate.course_name.clone(),
+                            begins_at: candidate.begins_at.clone(),
+                            ends_at: candidate.ends_at.clone(),
+                            status: candidate.status,
+                            teacher_name: candidate.teacher_name.clone(),
+                            classroom_name: candidate.classroom_name.clone(),
+                            merged_record_count: 1,
+                            sign_in_allowed: true,
+                            conflicting: false,
+                        }
+                    })
+                    .collect();
+            }
+            vec![CheckInCourse {
                 id: ids.first().cloned().unwrap_or_else(|| first.id.clone()),
                 course_id: first.course_id.clone(),
                 course_num: first.course_num.clone(),
@@ -198,9 +225,9 @@ fn merge_candidates(candidates: Vec<Candidate>) -> Vec<CheckInCourse> {
                 teacher_name: first.teacher_name.clone(),
                 classroom_name: first.classroom_name.clone(),
                 merged_record_count: indices.len(),
-                sign_in_allowed: ids.len() == 1 && !conflicting,
+                sign_in_allowed: !conflicting,
                 conflicting,
-            }
+            }]
         })
         .collect();
     items.sort_by(|left, right| {
@@ -341,6 +368,50 @@ mod tests {
     }
 
     #[test]
+    fn same_session_distinct_ids_remain_separate_sign_in_targets() {
+        let courses = parse_course_schedule(&json!({
+            "STATUS": 0,
+            "result": [
+                {"id": "101", "courseName": "机器人控制技术", "classBeginTime": "09:50", "classEndTime": "12:15", "signStatus": 0, "teacherName": "教师甲", "classroomName": "B228"},
+                {"id": "102", "courseName": "机器人控制技术", "classBeginTime": "09:50", "classEndTime": "12:15", "signStatus": 0, "teacherName": "教师乙", "classroomName": "B229"},
+                {"id": "201", "courseName": "嵌入式系统", "classBeginTime": "14:00", "classEndTime": "15:35", "signStatus": 0, "teacherName": "教师丙", "classroomName": "C101"},
+                {"id": "202", "courseName": "嵌入式系统", "classBeginTime": "14:00", "classEndTime": "15:35", "signStatus": 0, "teacherName": "教师丁", "classroomName": "C102"}
+            ]
+        }))
+        .expect("courses");
+
+        assert_eq!(courses.len(), 4);
+        assert_eq!(courses[0].id, "101");
+        assert_eq!(courses[1].id, "102");
+        assert_eq!(courses[2].id, "201");
+        assert_eq!(courses[3].id, "202");
+        assert!(courses.iter().all(|course| {
+            course.status == CheckInStatus::NotSigned
+                && course.sign_in_allowed
+                && !course.conflicting
+                && course.merged_record_count == 1
+        }));
+    }
+
+    #[test]
+    fn signed_records_from_duplicate_sessions_collapse_to_one_row() {
+        let courses = parse_course_schedule(&json!({
+            "STATUS": 0,
+            "result": [
+                {"id": "301", "courseName": "嵌入式系统原理与应用", "classBeginTime": "09:50", "classEndTime": "11:25", "signStatus": 1, "teacherName": "教师甲", "classroomName": "主M102"},
+                {"id": "302", "courseName": "嵌入式系统原理与应用", "classBeginTime": "09:50", "classEndTime": "11:25", "signStatus": 1, "teacherName": "教师乙", "classroomName": "主M102"},
+                {"id": "303", "courseName": "嵌入式系统原理与应用", "classBeginTime": "09:50", "classEndTime": "11:25", "signStatus": 1, "teacherName": "教师丙", "classroomName": "主M102"},
+                {"id": "304", "courseName": "嵌入式系统原理与应用", "classBeginTime": "09:50", "classEndTime": "11:25", "signStatus": 1, "teacherName": "教师丁", "classroomName": "主M102"}
+            ]
+        }))
+        .expect("courses");
+
+        assert_eq!(courses.len(), 1);
+        assert_eq!(courses[0].status, CheckInStatus::Signed);
+        assert_eq!(courses[0].merged_record_count, 4);
+    }
+
+    #[test]
     fn unknown_sign_status_is_kept_as_unknown() {
         let courses = parse_course_schedule(&json!({
             "STATUS": "0",
@@ -416,11 +487,5 @@ mod mutation_tests {
             parse_sign_in(&json!({"STATUS":9,"ERRMSG":"synthetic secret should not escape"}));
         assert_eq!(rejected.state, MutationState::Rejected);
         assert!(!rejected.message.contains("secret"));
-        let rows = json!({"STATUS":0,"result":[
-            {"id":"1","courseName":"synthetic","classBeginTime":"08:00","classEndTime":"10:00","signStatus":0},
-            {"id":"2","courseName":"synthetic","classBeginTime":"08:00","classEndTime":"10:00","signStatus":0}
-        ]});
-        let courses = parse_course_schedule(&rows).unwrap();
-        assert!(!courses[0].sign_in_allowed);
     }
 }

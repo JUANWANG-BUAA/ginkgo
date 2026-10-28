@@ -19,8 +19,14 @@ void main() {
       find.text('2026年10月20日 · 周二'),
       scrollKey: 'today-scroll',
     );
-    expect(find.text('今天 2 节课'), findsOneWidget);
+    expect(find.text('课表日期待更新'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('today-toggle-courses')));
+    await settle(tester);
     expect(find.byKey(const Key('today-course-0-算法设计与分析')), findsOneWidget);
+    await show(tester, find.text('近期考试'), scrollKey: 'today-scroll');
+    expect(find.text('近期考试'), findsOneWidget);
+    expect(find.textContaining('2026-11-16'), findsOneWidget);
+    expect(find.text('近期时间线'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

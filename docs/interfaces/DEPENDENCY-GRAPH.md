@@ -4,7 +4,7 @@
 > 修改接口后运行 `python3 scripts/generate-interface-index.py` 重新生成；
 > 手工总览与分层说明见 [INTERFACE-INDEX.md](../INTERFACE-INDEX.md)。
 
-按目录分组统计：26 个分组节点（其中 25 个有出向依赖）、143 条跨组依赖。箭头方向为「依赖方 → 被依赖方」。
+按目录分组统计：29 个分组节点（其中 28 个有出向依赖）、158 条跨组依赖。箭头方向为「依赖方 → 被依赖方」。
 
 ## 依赖图
 
@@ -15,6 +15,9 @@ flowchart LR
   n_design["design"]
   n_features_auth["features/auth"]
   n_features_bykc["features/bykc"]
+  n_features_campus["features/campus"]
+  n_features_campus_card["features/campus_card"]
+  n_features_career["features/career"]
   n_features_cgyy["features/cgyy"]
   n_features_checkin["features/checkin"]
   n_features_classroom["features/classroom"]
@@ -50,6 +53,18 @@ flowchart LR
   n_features_bykc --> n_root
   n_features_bykc --> n_shared
   n_features_bykc --> n_widgets
+  n_features_campus --> n_application
+  n_features_campus --> n_design
+  n_features_campus --> n_shared
+  n_features_campus --> n_widgets
+  n_features_campus_card --> n_application
+  n_features_campus_card --> n_design
+  n_features_campus_card --> n_shared
+  n_features_campus_card --> n_widgets
+  n_features_career --> n_application
+  n_features_career --> n_design
+  n_features_career --> n_shared
+  n_features_career --> n_widgets
   n_features_cgyy --> n_application
   n_features_cgyy --> n_design
   n_features_cgyy --> n_features_reservations
@@ -160,6 +175,9 @@ flowchart LR
   n_workspace --> n_application
   n_workspace --> n_design
   n_workspace --> n_features_bykc
+  n_workspace --> n_features_campus
+  n_workspace --> n_features_campus_card
+  n_workspace --> n_features_career
   n_workspace --> n_features_cgyy
   n_workspace --> n_features_checkin
   n_workspace --> n_features_classroom
@@ -185,7 +203,7 @@ flowchart LR
 
 以下分组互相依赖，构成强连通分量。Dart 侧没有像 Rust 那样的依赖方向门禁，因此这些环不会被自动拦截；改动前先确认是否真的需要双向引用。
 
-- **25 个分组**：`app`、`application`、`features/auth`、`features/bykc`、`features/cgyy`、`features/checkin`、`features/classroom`、`features/grades`、`features/graduate`、`features/homework`、`features/learning`、`features/library`、`features/notices`、`features/reservations`、`features/schedule`、`features/settings`、`features/shuttle`、`features/tasks`、`features/today`、`infrastructure`、`platform`、`root`、`shared`、`widgets`、`workspace`
+- **28 个分组**：`app`、`application`、`features/auth`、`features/bykc`、`features/campus`、`features/campus_card`、`features/career`、`features/cgyy`、`features/checkin`、`features/classroom`、`features/grades`、`features/graduate`、`features/homework`、`features/learning`、`features/library`、`features/notices`、`features/reservations`、`features/schedule`、`features/settings`、`features/shuttle`、`features/tasks`、`features/today`、`infrastructure`、`platform`、`root`、`shared`、`widgets`、`workspace`
 
 ```mermaid
 flowchart LR
@@ -200,6 +218,15 @@ flowchart LR
   n_features_bykc --> n_root
   n_features_bykc --> n_shared
   n_features_bykc --> n_widgets
+  n_features_campus --> n_application
+  n_features_campus --> n_shared
+  n_features_campus --> n_widgets
+  n_features_campus_card --> n_application
+  n_features_campus_card --> n_shared
+  n_features_campus_card --> n_widgets
+  n_features_career --> n_application
+  n_features_career --> n_shared
+  n_features_career --> n_widgets
   n_features_cgyy --> n_application
   n_features_cgyy --> n_features_reservations
   n_features_cgyy --> n_root
@@ -292,6 +319,9 @@ flowchart LR
   n_workspace --> n_app
   n_workspace --> n_application
   n_workspace --> n_features_bykc
+  n_workspace --> n_features_campus
+  n_workspace --> n_features_campus_card
+  n_workspace --> n_features_career
   n_workspace --> n_features_cgyy
   n_workspace --> n_features_checkin
   n_workspace --> n_features_classroom

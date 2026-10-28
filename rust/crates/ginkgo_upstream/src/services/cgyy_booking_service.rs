@@ -1,6 +1,6 @@
 //! CGYY writes (API §6B; Swift CgyyClient / UBAA LocalCgyyApi).
 //! All POSTs are single-attempt. Captcha is completed manually, not bypassed.
-use super::SchoolClient;
+use super::{session_service::AccountOwner, SchoolClient};
 use crate::{
     adapters::cgyy_http, auth::CredentialVault, foundation::http::HttpTransport, AppError,
     ErrorCode,
@@ -30,15 +30,9 @@ pub(crate) struct ReviewCredential {
     pub(crate) created: Instant,
     generation: u64,
 }
-#[derive(Clone)]
-pub(super) struct BookingOwner {
-    pub(super) account: String,
-    pub(super) generation: u64,
-}
-
 pub(crate) struct BookingContext {
     id: String,
-    owner: BookingOwner,
+    owner: AccountOwner,
     booking: BookingRequest,
     /// Signed `reservationOrderJson` produced from the prepare-day response.
     selections: String,
@@ -54,37 +48,13 @@ pub(crate) struct BookingContext {
 }
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
-    pub(super) fn booking_owner(&self) -> Result<BookingOwner, AppError> {
-        let identity = self.identity.lock();
-        Ok(BookingOwner {
-            account: identity
-                .authenticated
-                .as_ref()
-                .ok_or_else(AppError::session_expired)?
-                .account
-                .clone(),
-            generation: identity.generation,
-        })
-    }
-    pub(super) fn check_booking_owner(&self, owner: &BookingOwner) -> Result<(), AppError> {
-        let identity = self.identity.lock();
-        if identity.generation != owner.generation
-            || !identity
-                .authenticated
-                .as_ref()
-                .is_some_and(|u| u.account == owner.account)
-        {
-            return Err(AppError::session_expired());
-        }
-        Ok(())
-    }
-    fn booking_pending(&self, owner: &BookingOwner) -> bool {
+    fn booking_pending(&self, owner: &AccountOwner) -> bool {
         self.cgyy_safety
             .lock()
             .get(&owner.account)
             .is_some_and(|s| s.pending)
     }
-    fn set_booking_pending(&self, owner: &BookingOwner, pending: bool) -> Result<(), AppError> {
+    fn set_booking_pending(&self, owner: &AccountOwner, pending: bool) -> Result<(), AppError> {
         let identity = self.identity.lock();
         if identity.generation != owner.generation
             || !identity
@@ -108,7 +78,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     // deliberately retain their single-attempt policy.
     pub(super) async fn load_booking_read(
         &self,
-        owner: &BookingOwner,
+        owner: &AccountOwner,
         kind: &str,
         site: i64,
         date: &str,
@@ -117,12 +87,12 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             return Err(AppError::invalid());
         }
         for renew in [false, true] {
-            self.check_booking_owner(owner)?;
+            self.check_account_owner(owner)?;
             let token = self.cgyy_token(renew).await;
-            self.check_booking_owner(owner)?;
+            self.check_account_owner(owner)?;
             let token = token?;
             let result = cgyy_http::load(&self.session, kind, site, date, Some(&token)).await;
-            self.check_booking_owner(owner)?;
+            self.check_account_owner(owner)?;
             if result
                 .as_ref()
                 .is_err_and(|error| error.code == ErrorCode::SessionExpired)
@@ -150,8 +120,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         // drift and must fail closed rather than abort the FFI process.
         Err(AppError::changed())
     }
-    async fn review_booking(&self, owner: &BookingOwner) -> Result<CgyyActionResult, AppError> {
-        self.check_booking_owner(owner)?;
+    async fn review_booking(&self, owner: &AccountOwner) -> Result<CgyyActionResult, AppError> {
+        self.check_account_owner(owner)?;
         self.cgyy_safety
             .lock()
             .entry(owner.account.clone())
@@ -188,7 +158,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     }
     fn acknowledge_booking(
         &self,
-        owner: &BookingOwner,
+        owner: &AccountOwner,
         id: &str,
     ) -> Result<CgyyActionResult, AppError> {
         let identity = self.identity.lock();
@@ -216,7 +186,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     }
     async fn booking_options(
         &self,
-        owner: &BookingOwner,
+        owner: &AccountOwner,
         site_id: i64,
         date: &str,
     ) -> Result<CgyyActionResult, AppError> {
@@ -225,7 +195,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         }
         let (day, token) = self.load_booking_read(owner, "day", site_id, date).await?;
         let codes = cgyy_http::business(&self.session, "/api/codes", BTreeMap::new(), &token).await;
-        self.check_booking_owner(owner)?;
+        self.check_account_owner(owner)?;
         let (purposes, uses_fallback_purposes) = match codes {
             Ok(codes) => match data(&codes) {
                 Ok(data) => {
@@ -260,12 +230,12 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     }
     async fn prepare_booking(
         &self,
-        owner: &BookingOwner,
+        owner: &AccountOwner,
         booking: BookingRequest,
     ) -> Result<CgyyActionResult, AppError> {
         validate(&booking)?;
         let token = self.cgyy_token(false).await?;
-        self.check_booking_owner(owner)?;
+        self.check_account_owner(owner)?;
         let day = cgyy_http::load(
             &self.session,
             "day",
@@ -279,7 +249,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             .ok_or_else(AppError::changed)?
             .to_owned();
         let week_start = crate::codecs::cgyy::week_start(&day).unwrap_or_default();
-        self.check_booking_owner(owner)?;
+        self.check_account_owner(owner)?;
         let mut context = BookingContext {
             owner: owner.clone(),
             id: format!("{:032x}", rand::random::<u128>()),
@@ -311,7 +281,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         context.trade_no = text(&data(&draft)?["tradeNo"])
             .unwrap_or_default()
             .to_owned();
-        self.check_booking_owner(owner)?;
+        self.check_account_owner(owner)?;
         let timestamp = chrono::DateTime::parse_from_rfc3339(&super::cache::now_shanghai())
             .map_err(|_| AppError::unavailable())?
             .timestamp_millis()
@@ -358,7 +328,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         result.challenge = Some(challenge);
         Ok(result)
     }
-    fn booking_failure(&self, owner: &BookingOwner, error: AppError) -> CgyyActionResult {
+    fn booking_failure(&self, owner: &AccountOwner, error: AppError) -> CgyyActionResult {
         // No verified upstream rejection codes exist in §6B. Never turn a generic
         // BusinessRejected, authentication error, 5xx or parse error into unlock.
         self.snapshots.cgyy.lock().clear();
@@ -373,7 +343,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     }
     async fn submit_booking(
         &self,
-        owner: &BookingOwner,
+        owner: &AccountOwner,
         id: &str,
         x: f64,
         width: Option<f64>,
@@ -385,7 +355,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             .cgyy_booking
             .take()
             .ok_or_else(AppError::invalid)?;
-        self.check_booking_owner(&context.owner)?;
+        self.check_account_owner(&context.owner)?;
         if context.id != id || context.created.elapsed() > Duration::from_secs(120) {
             return Err(AppError::invalid());
         }
@@ -409,7 +379,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             Ok(v) => v,
             Err(e) => return Ok(self.booking_failure(owner, e)),
         };
-        self.check_booking_owner(owner)?;
+        self.check_account_owner(owner)?;
         if data(&checked)?["success"] == false {
             self.set_booking_pending(owner, false)?;
             return Ok(CgyyActionResult::message(
@@ -428,7 +398,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             Some(&token),
         )
         .await?;
-        self.check_booking_owner(owner)?;
+        self.check_account_owner(owner)?;
         let selected = match selections(&latest, &context.booking) {
             Ok(selected) => selected,
             Err(error) if error.code == ErrorCode::BusinessRejected => String::new(),
@@ -486,7 +456,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 Err(error) => return Ok(self.booking_failure(owner, error)),
             };
         self.snapshots.cgyy.lock().clear();
-        self.check_booking_owner(owner)?;
+        self.check_account_owner(owner)?;
         let body = data(&response)?;
         let order_id = number(&body["orderInfo"]["id"]);
         let response_trade = text(&body["tradeNo"])
@@ -497,7 +467,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         // alone: the row must carry the requested reservation date and, when the
         // draft or the response names a trade number, the same one.
         if let (Some(id), Ok(readback)) = (order_id, readback) {
-            self.check_booking_owner(owner)?;
+            self.check_account_owner(owner)?;
             let root = data(&readback)?;
             let matched = root["content"]
                 .as_array()
@@ -524,14 +494,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     }
     async fn cancel_booking(
         &self,
-        owner: &BookingOwner,
+        owner: &AccountOwner,
         order_id: i64,
     ) -> Result<CgyyActionResult, AppError> {
         if order_id <= 0 {
             return Err(AppError::invalid());
         }
         let token = self.cgyy_token(false).await?;
-        self.check_booking_owner(owner)?;
+        self.check_account_owner(owner)?;
         let value = cgyy_http::load(&self.session, "orders", 0, "", Some(&token)).await?;
         let rows = data(&value)?["content"]
             .as_array()
@@ -567,9 +537,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             return Ok(self.booking_failure(owner, error));
         }
         self.snapshots.cgyy.lock().clear();
-        self.check_booking_owner(owner)?;
+        self.check_account_owner(owner)?;
         if let Ok(value) = cgyy_http::load(&self.session, "orders", 0, "", Some(&token)).await {
-            self.check_booking_owner(owner)?;
+            self.check_account_owner(owner)?;
             let root = data(&value)?;
             if root["content"]
                 .as_array()
@@ -597,7 +567,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CgyyMutationSource for 
             .cgyy_mutation_gate
             .try_lock()
             .map_err(|_| AppError::invalid())?;
-        let owner = self.booking_owner()?;
+        let owner = self.account_owner()?;
         match command {
             CgyyCommand::Status => {
                 return Ok(CgyyActionResult::message(
@@ -637,7 +607,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CgyyMutationSource for 
             _ => Err(AppError::changed()),
         };
         // Parse/readback errors after dispatch still preserve pending and invalidate.
-        self.check_booking_owner(&owner)?;
+        self.check_account_owner(&owner)?;
         match result {
             Err(error) if self.booking_pending(&owner) => Ok(self.booking_failure(&owner, error)),
             result => result,
@@ -668,7 +638,7 @@ mod tests {
     fn context(week_start: &str) -> BookingContext {
         BookingContext {
             id: "fixture".into(),
-            owner: BookingOwner {
+            owner: AccountOwner {
                 account: "synthetic".into(),
                 generation: 1,
             },

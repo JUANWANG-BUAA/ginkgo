@@ -19,6 +19,13 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
         return Err(AppError::new(ErrorCode::UnsupportedContract));
     }
     let value = match contract {
+        "campus_card.balance" => {
+            let card_number = crate::codecs::campus_card::campus_card_number(&input["cards"])?;
+            if card_number.is_empty() {
+                return Err(AppError::changed());
+            }
+            json!({"balanceMinor": crate::codecs::campus_card::balance_minor(&input["balance"])?})
+        }
         "homework.course_context" => {
             let mut page = homework::parse_page(input["page"].clone())?;
             homework::apply_course_context(&mut page.items, &input["courses"])?;

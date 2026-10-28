@@ -49,6 +49,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_box_autoadd_i_32(dynamic raw);
 
   @protected
+  PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
+
+  @protected
   LibrarySlot dco_decode_box_autoadd_library_slot(dynamic raw);
 
   @protected
@@ -56,6 +59,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RouteChoice dco_decode_box_autoadd_route_choice(dynamic raw);
+
+  @protected
+  CampusCardBalanceResponse dco_decode_campus_card_balance_response(
+    dynamic raw,
+  );
 
   @protected
   CheckInCourse dco_decode_check_in_course(dynamic raw);
@@ -261,6 +269,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? dco_decode_opt_box_autoadd_i_32(dynamic raw);
 
   @protected
+  PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
+
+  @protected
   RouteChoice? dco_decode_opt_box_autoadd_route_choice(dynamic raw);
 
   @protected
@@ -356,6 +367,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_box_autoadd_i_32(SseDeserializer deserializer);
 
   @protected
+  PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
+
+  @protected
   LibrarySlot sse_decode_box_autoadd_library_slot(SseDeserializer deserializer);
 
   @protected
@@ -363,6 +377,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RouteChoice sse_decode_box_autoadd_route_choice(SseDeserializer deserializer);
+
+  @protected
+  CampusCardBalanceResponse sse_decode_campus_card_balance_response(
+    SseDeserializer deserializer,
+  );
 
   @protected
   CheckInCourse sse_decode_check_in_course(SseDeserializer deserializer);
@@ -622,6 +641,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? sse_decode_opt_box_autoadd_i_32(SseDeserializer deserializer);
 
   @protected
+  PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer);
+
+  @protected
   RouteChoice? sse_decode_opt_box_autoadd_route_choice(
     SseDeserializer deserializer,
   );
@@ -728,6 +750,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_box_autoadd_i_32(int self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_i_64(
+    PlatformInt64 self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_library_slot(
     LibrarySlot self,
     SseSerializer serializer,
@@ -742,6 +770,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_route_choice(
     RouteChoice self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_campus_card_balance_response(
+    CampusCardBalanceResponse self,
     SseSerializer serializer,
   );
 
@@ -1074,6 +1108,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_opt_box_autoadd_i_32(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_i_64(
+    PlatformInt64? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_box_autoadd_route_choice(

@@ -182,13 +182,15 @@ class _GinkgoRootState extends State<GinkgoRoot> {
     await widget.liveService.signOut();
     // Recorded before the state change: even if a vault deletion once failed,
     // the next start must show the login page, never auto-restore.
-    await AppPreferences.shared.setExplicitSignOut(true);
-    if (!mounted) return;
-    setState(() {
-      session = null;
-      stage = _Stage.signedOut;
-      message = null;
-    });
+    final saved = AppPreferences.shared.setExplicitSignOut(true);
+    if (mounted) {
+      setState(() {
+        session = null;
+        stage = _Stage.signedOut;
+        message = null;
+      });
+    }
+    await saved;
   }
 
   void signedIn(SessionResponse response) {

@@ -58,7 +58,7 @@ class CheckInCourse {
   final int mergedRecordCount;
   final bool conflicting;
 
-  /// Explicit false also covers merged sessions containing multiple upstream IDs.
+  /// Explicit false covers merged sessions with conflicting records.
   final bool? signInAllowed;
 
   const CheckInCourse({
@@ -521,6 +521,8 @@ class HomeworkResponse {
   final String termName;
   final String termCode;
   final List<HomeworkItem> items;
+  final String? fetchedAt;
+  final bool? rolesComplete;
   final FailureCode? failure;
   final String? failureDetail;
 
@@ -528,6 +530,8 @@ class HomeworkResponse {
     required this.termName,
     required this.termCode,
     required this.items,
+    this.fetchedAt,
+    this.rolesComplete,
     this.failure,
     this.failureDetail,
   });
@@ -537,6 +541,8 @@ class HomeworkResponse {
       termName.hashCode ^
       termCode.hashCode ^
       items.hashCode ^
+      fetchedAt.hashCode ^
+      rolesComplete.hashCode ^
       failure.hashCode ^
       failureDetail.hashCode;
 
@@ -548,6 +554,8 @@ class HomeworkResponse {
           termName == other.termName &&
           termCode == other.termCode &&
           items == other.items &&
+          fetchedAt == other.fetchedAt &&
+          rolesComplete == other.rolesComplete &&
           failure == other.failure &&
           failureDetail == other.failureDetail;
 }

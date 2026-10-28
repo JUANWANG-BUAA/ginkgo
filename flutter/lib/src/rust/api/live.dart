@@ -203,8 +203,34 @@ Future<ReadOnlyResponse> editTasks({
 Future<ReadOnlyResponse> loadNotices({required bool forceRefresh}) =>
     RustLib.instance.api.crateApiLiveLoadNotices(forceRefresh: forceRefresh);
 
+/// Explicit, user-triggered campus-card balance read. No disk cache or bank data.
+Future<CampusCardBalanceResponse> loadCampusCardBalance() =>
+    RustLib.instance.api.crateApiLiveLoadCampusCardBalance();
+
+/// Synthetic balance for the isolated demo workspace.
+Future<CampusCardBalanceResponse> loadDemoCampusCardBalance() =>
+    RustLib.instance.api.crateApiLiveLoadDemoCampusCardBalance();
+
 Future<ReadOnlyResponse> loadDemoNotices() =>
     RustLib.instance.api.crateApiLiveLoadDemoNotices();
+
+/// Public career-calendar events for a school month (YYYY-MM). Read-only.
+Future<ReadOnlyResponse> loadCareerEvents({
+  required String month,
+  required bool forceRefresh,
+}) => RustLib.instance.api.crateApiLiveLoadCareerEvents(
+  month: month,
+  forceRefresh: forceRefresh,
+);
+
+/// Public campus cultural activities (page 1-based). Read-only.
+Future<ReadOnlyResponse> loadCampusActivities({
+  required int page,
+  required bool forceRefresh,
+}) => RustLib.instance.api.crateApiLiveLoadCampusActivities(
+  page: page,
+  forceRefresh: forceRefresh,
+);
 
 Future<ReadOnlyResponse> loadCgyy({
   required String kind,
@@ -263,6 +289,10 @@ Future<ReadOnlyResponse> importLearningSnapshots({
 /// Public website metadata only. Does not initialize an authenticated session.
 String libraryLoansPortalUrl() =>
     RustLib.instance.api.crateApiLiveLibraryLoansPortalUrl();
+
+/// Public destination metadata; does not initialize an authenticated session.
+String? studentServiceUrl({required String id}) =>
+    RustLib.instance.api.crateApiLiveStudentServiceUrl(id: id);
 
 /// Explicit private read, scoped to the caller's account. No disk cache or writes.
 Future<ReadOnlyResponse> loadLibraryLoans({
@@ -563,6 +593,37 @@ Future<ReadOnlyResponse> homeworkCapabilities({
   expectedAccount: expectedAccount,
   assignmentId: assignmentId,
 );
+
+class CampusCardBalanceResponse {
+  final PlatformInt64? balanceMinor;
+  final String? fetchedAt;
+  final FailureCode? failure;
+  final String? failureDetail;
+
+  const CampusCardBalanceResponse({
+    this.balanceMinor,
+    this.fetchedAt,
+    this.failure,
+    this.failureDetail,
+  });
+
+  @override
+  int get hashCode =>
+      balanceMinor.hashCode ^
+      fetchedAt.hashCode ^
+      failure.hashCode ^
+      failureDetail.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CampusCardBalanceResponse &&
+          runtimeType == other.runtimeType &&
+          balanceMinor == other.balanceMinor &&
+          fetchedAt == other.fetchedAt &&
+          failure == other.failure &&
+          failureDetail == other.failureDetail;
+}
 
 class GradeTermsResponse {
   final List<ScheduleTerm> terms;

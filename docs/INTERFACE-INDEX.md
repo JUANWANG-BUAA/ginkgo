@@ -105,6 +105,9 @@ Flutter 页面
 | 博雅 | `bykc` | 读 | BYKC | [`CampusGateway.bykcPart`](#75-campusgateway) | `load_bykc`、`load_bykc_chosen`、`load_bykc_statistics` | `BykcSource` | [§7.3](API.md#73-2026-10-18-教育系统只读数据盘点) |
 | 研究生教务 | `graduate` | 读 | GSMIS | [`CampusGateway.graduatePart`](#75-campusgateway)、[`GraduateCreditMapGateway`](#710-graduatecreditmapgateway) | `load_graduate_part`、`load_graduate_credit_map` | `GraduateSource` | [§7.4](API.md#74-培养方案执行报告结构化类别课组) |
 | 校园通知 | `notices` | 读 | 新闻网 | [`CampusGateway.notices`](#75-campusgateway) | `load_notices` | `NoticeSource` | [§7.3](API.md#73-2026-10-18-教育系统只读数据盘点) |
+| 校园卡余额 | `campus-card` | 读 | 航财通 | [`CampusCardGateway`](#714-campuscardgateway) | `load_campus_card_balance` | `CampusCardBalanceSource` | [§6E](API.md#6e-校园卡余额官方前端与脱敏结构真实-app-验收中) |
+| 就业活动 | `career-events` | 读 | 学校就业网 | `CareerEventsGateway` | `load_career_events` | `CareerEventsSource` | [§0.0 修订 82](API.md#00-修订对照记录旧版--本版) |
+| 学术文化 | `campus-activities` | 读 | 学校公开页 | `CampusActivitiesGateway` | `load_campus_activities` | `CampusActivitiesSource` | [§6F](API.md#6f-学术文化公开列表工作树只读) |
 | 校车时刻表 | `shuttle` | 读 | 学校公开页 | [`LibraryGateway.shuttleTimetable`](#74-librarygateway) | `load_shuttle_timetable` | `ShuttleSource` | [§6C](API.md#6c-智慧校车脚本静态本人查询页面观察未购票) |
 | 个人待办 | `tasks` | 本机写 | 无 | [`CampusGateway.editTasks`](#75-campusgateway) | `edit_tasks` | （core `tasks_store`） | 无上游协议 |
 | 学习快照 | `learning-snapshots` | 本机写 | 无 | [`LearningSnapshotGateway`](#711-learningsnapshotgateway) | `export_learning_snapshots`、`import_learning_snapshots` | `LearningSnapshotSource` | 无上游协议 |
@@ -217,6 +220,9 @@ pub struct DataOutcome<T> {
 | `BykcSource` | `load_bykc`、`load_bykc_chosen`、`load_bykc_statistics` | `ports/bykc.rs` |
 | `GraduateSource` | `load_graduate`、`load_graduate_execution`、`load_graduate_part` | `ports/graduate.rs` |
 | `NoticeSource` | `load_notices` | `ports/notices.rs` |
+| `CareerEventsSource` | `load_career_events` | `ports/career.rs` |
+| `CampusActivitiesSource` | `load_campus_activities` | `ports/campus_activities.rs` |
+| `CampusCardBalanceSource` | `load_campus_card_balance` | `ports/campus_card.rs` |
 | `ShuttleSource` | `load_shuttle_timetable` | `ports/shuttle.rs` |
 | `LearningSnapshotSource` | `export_learning_snapshots`、`import_learning_snapshots` | `ports/query_snapshots.rs` |
 
@@ -250,9 +256,9 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ## 6. FFI 命令层
 
-`ginkgo_flutter_bridge` 导出 **87 个命令**，是 Dart 唯一可见的 Rust 面。Dart 侧只允许 [contracts.dart](../flutter/lib/application/contracts.dart) 以类型形式引用生成绑定，命令本身只能由 `NativeMirrorService` 调用。
+`ginkgo_flutter_bridge` 导出 **89 个命令**，是 Dart 唯一可见的 Rust 面。Dart 侧只允许 [contracts.dart](../flutter/lib/application/contracts.dart) 以类型形式引用生成绑定，命令本身只能由 `NativeMirrorService` 调用。
 
-命令计数口径：`flutter/lib/src/rust/api/**` 生成的 Dart 命令函数（`live` 75 + `live/auth_challenge` 1 + `mirror` 10 + `reminder_planning` 1）。改命令后该数字会变，改完请同步本行与 [§6.10](#610-返回形态与载荷契约)。
+命令计数口径：`flutter/lib/src/rust/api/**` 生成的 Dart 命令函数（`live` 77 + `live/auth_challenge` 1 + `mirror` 10 + `reminder_planning` 1）。改命令后该数字会变，改完请同步本行与 [§6.10](#610-返回形态与载荷契约)。
 
 ### 6.1 会话
 
@@ -291,7 +297,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ### 6.7 校园
 
-`load_cgyy`（`kind` 为 `venues` / `day` / `orders` / `order` / `lockCode`；`order` 时 `site_id` 传订单 ID）、`execute_cgyy`（写）、`load_bykc`、`load_bykc_chosen`、`load_bykc_statistics`、`load_graduate_part`、`load_graduate_credit_map`、`load_notices`、`edit_tasks`（本机写）、`plan_course_task_reminders`（纯规则）。
+`load_cgyy`（`kind` 为 `venues` / `day` / `orders` / `order` / `lockCode`；`order` 时 `site_id` 传订单 ID）、`execute_cgyy`（写）、`load_bykc`、`load_bykc_chosen`、`load_bykc_statistics`、`load_graduate_part`、`load_graduate_credit_map`、`load_notices`、`load_campus_card_balance`（校园卡只读）、`edit_tasks`（本机写）、`plan_course_task_reminders`（纯规则）。
 
 ### 6.8 演示数据
 
@@ -309,11 +315,11 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ### 6.10 返回形态与载荷契约
 
-87 个命令按返回形态分为两类：
+89 个命令按返回形态分为两类：
 
 | 形态 | 数量 | 含义 | 解码位置 |
 | --- | --- | --- | --- |
-| 类型化 DTO | 46 | 命令直接返回结构体（`SessionResponse`、`ScheduleResponse`、`CheckInResponse`、`MutationResponse` …） | 无需解码 |
+| 类型化 DTO | 48 | 命令直接返回结构体（`SessionResponse`、`ScheduleResponse`、`CheckInResponse`、`MutationResponse` …） | 无需解码 |
 | `ReadOnlyResponse` 载荷 | 41 | 命令返回领域 JSON 字符串 + `stale` + `failure` | 只能在 `infrastructure/` 或各域 `*_models.dart` 解码 |
 
 使用载荷信封的 41 个命令：
@@ -396,6 +402,10 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | `MaintenanceService` | `supportsUpdates`、`version`、`checkUpdate`、`openReleases`、`checkBridge`、`checkStorage`、`checkVault` | 更新检查与本地诊断 |
 | `SystemSettingsService` | `notificationPermission`、`requestNotifications`、`openNotifications`、`openAppSettings`、`shareProject` | 平台系统设置 |
 | `ReminderPlatform` | `replace(plans)` | 系统通知调度 |
+
+### 7.14 CampusCardGateway
+
+`campusCardBalance()` → `CampusCardBalanceResponse`。独立只读接口，用户主动触发；金额以整数分返回，不包含卡号、银行卡或消费明细，不写通用查询快照。
 
 ## 7A. Flutter UI 层接口约定
 
@@ -485,6 +495,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | `graduate` | `part`、`forceRefresh` | `ReadOnlyResponse`（学籍/报告/学分地图） | 读失败保留旧值 | 进程快照 |
 | `notices` | `forceRefresh` | `ReadOnlyResponse` | 读失败保留旧值 | 进程快照 |
 | `shuttle` | — | `ReadOnlyResponse`（分方向班次） | 读失败保留旧值 | 进程快照 |
+| `campus-card` | 用户主动查询 | `CampusCardBalanceResponse{balanceMinor, fetchedAt, failure}` | 失败仅保留本页旧值并标注可能过期 | **不持久化**；离页/后台/换账号清除，默认遮挡，无轮询或资金写操作 |
 | `tasks` | `action` + 任务字段 | 本机任务列表 | 损坏拒绝覆盖 | `tasks-<SHA-1(account)>.json`，v1→v2 原子升级 |
 | `learning-snapshots` | `enabled` / 导出字节 | `LearningSnapshotStatus` | 导入失败不部分生效 | 可选加密快照文件 |
 | `reminders` | 课程、作业、待办、签到快照 | `ExtendedReminderPlans` | 规划失败不影响主流程 | 已读摘要与开关（按账号） |

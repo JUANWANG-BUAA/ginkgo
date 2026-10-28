@@ -35,7 +35,16 @@ pub fn transact(
         })
         .map_err(|_| AppError::changed())?;
         let temporary = file.with_extension("tmp");
-        let mut output = std::fs::File::create(&temporary).map_err(|_| AppError::unavailable())?;
+        let mut options = std::fs::OpenOptions::new();
+        options.write(true).create(true).truncate(true);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            options.mode(0o600);
+        }
+        let mut output = options
+            .open(&temporary)
+            .map_err(|_| AppError::unavailable())?;
         use std::io::Write;
         output
             .write_all(&bytes)

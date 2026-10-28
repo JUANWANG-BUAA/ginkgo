@@ -69,6 +69,26 @@ void main() {
     );
     expect(checkinReminders(response([course()], stale: true)), isEmpty);
   });
+  test('distinct teaching-class IDs keep separate reminders and duplicate IDs fold', () {
+    CheckInCourse target(String id) => CheckInCourse(
+      id: id,
+      courseName: '机器人控制技术',
+      beginsAt: '09:50',
+      endsAt: '12:15',
+      status: CheckInStatus.notSigned,
+      mergedRecordCount: 1,
+      conflicting: false,
+      signInAllowed: true,
+    );
+    final response = CheckInResponse(
+      date: '2026-10-20',
+      courses: [target('101'), target('102'), target('101')],
+      fromCache: false,
+      stale: false,
+    );
+
+    expect(checkinReminders(response), hasLength(2));
+  });
   test('homework schedules 48h / 24h, skips completed, unknown deadlines and overdue; no two-stage catch-up flood', () {
     final now = DateTime.parse('2026-10-21T00:00:00Z');
     final plans = homeworkReminders([assignment()], now);

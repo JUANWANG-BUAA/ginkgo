@@ -332,14 +332,15 @@ async fn sign_out_clears_identity_credentials_and_snapshots() {
     let mut responses = login_chain("sy2501001", "fixture");
     responses.push(HttpResponse::new(200, "activation", ""));
     responses.push(HttpResponse::new(200, "search", classroom_body()));
-    responses.push(HttpResponse::new(200, "logout", "ok"));
-    let (service, _) = build_service(responses, MemoryVault::default());
+    let (service, transport) = build_service(responses, MemoryVault::default());
     service
         .sign_in("sy2501001", "pa+ss/word", None, true)
         .await
         .expect("signed in");
     service.load_classrooms(&input()).await.expect("classrooms");
+    let requests = transport.request_count();
     service.sign_out().await;
+    assert_eq!(transport.request_count(), requests);
     assert_eq!(
         service.status(),
         SessionStatus {

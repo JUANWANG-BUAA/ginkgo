@@ -341,3 +341,18 @@ fn failed_atomic_replacement_keeps_the_previous_document() {
         assert_eq!(std::fs::read(store.file("synthetic-a")).unwrap(), bytes);
     }
 }
+
+#[cfg(unix)]
+#[test]
+fn task_files_are_private_to_the_owner() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let store = Store::new();
+    add(&store.0, "synthetic-a", "spoc:private", "私人待办", "");
+    let mode = std::fs::metadata(store.file("synthetic-a"))
+        .expect("task file metadata")
+        .permissions()
+        .mode()
+        & 0o777;
+    assert_eq!(mode, 0o600);
+}

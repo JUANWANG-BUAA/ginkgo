@@ -74,7 +74,11 @@ void main() {
     // Every destination either shows in the sidebar or a mobile tab, so no
     // feature can be registered without a way to reach it.
     for (final destination in workspaceDestinations) {
-      if (destination.id == 'graduate-credit-map') continue;
+      // These are reached through the mobile service directory or graduate page.
+      if (destination.id == 'graduate-credit-map' ||
+          destination.id == 'shuttle') {
+        continue;
+      }
       expect(
         destination.sidebar ||
             destination.footer ||

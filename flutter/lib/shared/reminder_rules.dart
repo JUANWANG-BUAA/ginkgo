@@ -1,4 +1,5 @@
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/shared/checkin_sessions.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 
 /// School wall-clock values are never interpreted in the device timezone.
@@ -45,7 +46,7 @@ class ReminderPlan {
 
 List<ReminderPlan> checkinReminders(CheckInResponse data) => [
   if (data.failure == null && !data.stale)
-    for (final course in data.courses)
+    for (final course in uniqueCheckinSessions(data.courses))
       if (course.status == CheckInStatus.notSigned &&
           !course.conflicting &&
           (course.signInAllowed ?? course.mergedRecordCount == 1))

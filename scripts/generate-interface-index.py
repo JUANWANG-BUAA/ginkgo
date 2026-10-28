@@ -418,7 +418,8 @@ def write(name: str, title: str, sections: list[Section], note: str = '') -> int
         lines.append(note)
         lines.append('')
     lines.extend(render_sections(sections))
-    (OUT_DIR / name).write_text('\n'.join(lines).rstrip() + '\n', encoding='utf-8')
+    content = '\n'.join(line.rstrip() for line in lines).rstrip() + '\n'
+    (OUT_DIR / name).write_text(content, encoding='utf-8')
     return sum(len(section.entries) for section in sections)
 
 

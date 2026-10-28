@@ -1,4 +1,7 @@
 pub mod bykc_http;
+pub mod campus_activities_http;
+pub mod campus_card_http;
+pub mod career_http;
 pub mod checkin_http;
 pub mod classroom_http;
 pub mod grades_http;
@@ -13,6 +16,7 @@ pub mod graduate_http;
 
 pub mod cgyy_http;
 pub mod notices_http;
+pub mod student_services;
 
 pub mod library_books_http;
 pub mod library_loans_http;

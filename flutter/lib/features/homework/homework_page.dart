@@ -235,6 +235,17 @@ class _HomeworkPageState extends State<HomeworkPage> {
   );
 
   List<Widget> _content(HomeworkResponse data) => [
+    if (data.rolesComplete == false)
+      const SliverToBoxAdapter(
+        child: AppleSection(
+          children: [
+            AppleListTile(
+              title: Text('作业结果不完整'),
+              subtitle: Text('课程身份未能全部核对；已显示的作业仍可查看。'),
+            ),
+          ],
+        ),
+      ),
     if (range != null && data.items.isNotEmpty)
       SliverToBoxAdapter(
         child: AppleSection(

@@ -191,6 +191,8 @@ pub(super) fn load_demo_today() -> TodayResponse {
 pub(super) fn load_demo_homework() -> HomeworkResponse {
     match application::demo_homework::load() {
         Ok(bundle) => HomeworkResponse {
+            fetched_at: None,
+            roles_complete: None,
             term_name: bundle.term_name,
             term_code: bundle.term_code,
             items: bundle
@@ -225,6 +227,8 @@ pub(super) fn load_demo_homework() -> HomeworkResponse {
             failure_detail: None,
         },
         Err(error) => HomeworkResponse {
+            fetched_at: None,
+            roles_complete: None,
             term_name: String::new(),
             term_code: String::new(),
             items: vec![],

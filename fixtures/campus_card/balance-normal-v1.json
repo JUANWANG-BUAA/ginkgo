@@ -1,0 +1,30 @@
+{
+  "contract": "campus_card.balance",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "cards": {
+      "success": true,
+      "type": 200,
+      "message": "正常完成",
+      "data": {
+        "data": [
+          {"stuNo": "sy2501001"}
+        ]
+      }
+    },
+    "balance": {
+      "success": true,
+      "type": 200,
+      "message": "正常完成",
+      "data": {
+        "balance": "123.45",
+        "unclaimedAmount": "0.00",
+        "status": "0"
+      }
+    }
+  },
+  "expected": {
+    "balanceMinor": 12345
+  }
+}

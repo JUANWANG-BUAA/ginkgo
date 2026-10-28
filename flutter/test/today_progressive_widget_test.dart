@@ -121,7 +121,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('刷新今天').first);
       await tester.pump();
-      expect(find.text('算法设计与分析'), findsOneWidget);
+      expect(find.byKey(const Key('today-course-0-算法设计与分析')), findsOneWidget);
       expect(find.text('合成作业'), findsOneWidget);
       service.courses.last.complete(
         const TodayResponse(
@@ -132,7 +132,7 @@ void main() {
       );
       service.assignments.last.complete(assignments);
       await tester.pumpAndSettle();
-      expect(find.text('算法设计与分析'), findsOneWidget);
+      expect(find.byKey(const Key('today-course-0-算法设计与分析')), findsOneWidget);
       await tester.tap(find.text('重试'));
       await tester.pump();
       expect(service.courses.length, 3);
@@ -152,19 +152,27 @@ void main() {
     final current = ProgressiveService();
     await tester.pumpWidget(
       ginkgoApp(
-        home: TodayPage(storageRoot: '/synthetic/tasks', service: old),
+        home: TodayPage(
+          storageRoot: '/synthetic/tasks',
+          service: old,
+          now: () => DateTime.utc(2026, 10, 22),
+        ),
       ),
     );
     await tester.pumpWidget(
       ginkgoApp(
-        home: TodayPage(storageRoot: '/synthetic/tasks', service: current),
+        home: TodayPage(
+          storageRoot: '/synthetic/tasks',
+          service: current,
+          now: () => DateTime.utc(2026, 10, 22),
+        ),
       ),
     );
     old.courses.single.complete(todayFixture);
     old.assignments.single.complete(assignments);
     await tester.pump();
     expect(find.text('合成作业'), findsNothing);
-    expect(find.text('算法设计与分析'), findsNothing);
+    expect(find.byKey(const Key('today-course-0-算法设计与分析')), findsNothing);
     current.courses.single.complete(
       const TodayResponse(date: '2026-10-22', courses: []),
     );

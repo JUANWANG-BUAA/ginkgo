@@ -1,0 +1,16 @@
+{
+  "contract": "campus_card.balance",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "cards": {
+      "success": false,
+      "type": 401,
+      "message": "用户验证失败: 需要用户登陆"
+    },
+    "balance": {}
+  },
+  "expected": {
+    "error": "session_expired"
+  }
+}

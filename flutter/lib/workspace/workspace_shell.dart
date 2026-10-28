@@ -52,7 +52,15 @@ class GinkgoApp extends StatelessWidget {
         service: service,
         account: service.isDemo ? '__demo__' : accountId ?? '__account__',
         child: DiagnosticHintOverlay(
-          child: QueryCacheScope(child: WorkspaceShell(service: service)),
+          child: QueryCacheScope(
+            child: WorkspaceShell(
+              service: service,
+              accountName: accountName,
+              accountId: accountId,
+              route: route,
+              onSignOut: onSignOut,
+            ),
+          ),
         ),
       ),
     ),

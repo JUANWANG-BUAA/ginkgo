@@ -175,7 +175,13 @@ String homeworkCompactDeadline(String? dueAt, [DateTime? beijingNow]) {
       final remaining = days > 0
           ? (hours > 0 ? '剩 $days天$hours时' : '剩 $days 天')
           : '剩 $hours 小时';
-      return '${dateOnly.month}/${dateOnly.day} 当天截止 · $remaining';
+      final isToday =
+          dateOnly.year == now.year &&
+          dateOnly.month == now.month &&
+          dateOnly.day == now.day;
+      return isToday
+          ? '今天截止 · $remaining'
+          : '${dateOnly.month}/${dateOnly.day} 当天截止 · $remaining';
     }
   }
 
@@ -237,12 +243,9 @@ CupertinoDynamicColor homeworkDeadlineTint(
     return AppleDesign.statusUncertain;
   }
 
-  // Check if urgent (< 24 hours remaining)
-  final instant = parseSchoolTimestamp(text);
-  if (instant != null) {
-    if (instant.difference(now).inHours < 24) {
-      return AppleDesign.statusDanger;
-    }
+  final effectiveDue = todayDue(text);
+  if (effectiveDue != null && effectiveDue.difference(now).inHours < 24) {
+    return AppleDesign.statusDanger;
   }
 
   return AppleDesign.statusPending;

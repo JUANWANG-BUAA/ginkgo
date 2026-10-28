@@ -1,5 +1,8 @@
 import '../application/contracts.dart';
+import '../application/career.dart';
+import '../application/campus_activities.dart';
 import '../application/homework_files.dart';
+
 import 'package:ginkgo_mirror/infrastructure/demo_homework_files.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_learning.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_library_loans.dart';
@@ -13,10 +16,19 @@ import '../src/rust/api/mirror.dart' as rust;
 
 final class DemoMirrorService
     with DemoLearning, DemoGraduateCreditMap, DemoLibraryLoans
-    implements MirrorService, HomeworkFilesGateway {
+    implements
+        MirrorService,
+        CampusCardGateway,
+        HomeworkFilesGateway,
+        StudentServiceLinksGateway,
+        CareerEventsGateway,
+        CampusActivitiesGateway {
+  // Demo uses the same public gateway contract; school data is synthetic.
   static final _files = Expando<DemoHomeworkFiles>();
   DemoHomeworkFiles get _homeworkFiles => _files[this] ??= DemoHomeworkFiles();
   const DemoMirrorService();
+  @override
+  String? studentServiceUrl(String id) => live.studentServiceUrl(id: id);
   @override
   Future<HomeworkFileWorkspace> homeworkFiles(String id) =>
       _homeworkFiles.homeworkFiles(id);
@@ -48,6 +60,55 @@ final class DemoMirrorService
   @override
   Future<live.ReadOnlyResponse> checkinProgress() async =>
       const live.ReadOnlyResponse(stale: false);
+  @override
+  Future<live.CampusCardBalanceResponse> campusCardBalance() =>
+      live.loadDemoCampusCardBalance();
+
+  @override
+  Future<CareerEventsRead> careerEvents({
+    required String month,
+    bool forceRefresh = false,
+  }) async => const CareerEventsRead(
+    data: CareerEvents(
+      month: '2026-10',
+      fetchedAt: '2026-10-28T10:00:00+08:00',
+      events: [
+        CareerEvent(
+          id: 'demo-career-1',
+          title: '合成专场宣讲会',
+          campus: '学院路校区',
+          place: '合成教学楼 201',
+          beginsAt: '2026-10-28 14:00:00',
+          endsAt: '2026-10-28 15:30:00',
+          fairType: '线下宣讲会',
+          status: '1',
+          url: 'https://career.buaa.edu.cn/frontpage/buaa/html/index.html',
+        ),
+      ],
+    ),
+  );
+
+  @override
+  Future<CampusActivitiesRead> campusActivities({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async => const CampusActivitiesRead(
+    data: CampusActivities(
+      page: 1,
+      fetchedAt: '2026-10-28T10:00:00+08:00',
+      activities: [
+        CampusActivity(
+          id: 'demo-activity-1',
+          title: '合成学术讲座',
+          category: '讲座',
+          publishedAt: '2026年10月28日',
+          activityTime: '10月30日',
+          place: '合成报告厅',
+          url: 'https://www.buaa.edu.cn/index/xswh1.htm',
+        ),
+      ],
+    ),
+  );
   @override
   Future<live.ReadOnlyResponse> bykcPart(
     BykcPart part, {

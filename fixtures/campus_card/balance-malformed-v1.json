@@ -1,0 +1,26 @@
+{
+  "contract": "campus_card.balance",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "cards": {
+      "success": true,
+      "type": 200,
+      "data": {
+        "data": [
+          {"stuNo": "sy2501001"}
+        ]
+      }
+    },
+    "balance": {
+      "success": true,
+      "type": 200,
+      "data": {
+        "balance": "not-a-number"
+      }
+    }
+  },
+  "expected": {
+    "error": "changed_response"
+  }
+}

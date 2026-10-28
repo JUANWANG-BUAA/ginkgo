@@ -3,7 +3,6 @@
 > 本文件由 `scripts/generate-interface-index.py` 从源码生成，请勿手工编辑。
 > 修改接口后运行 `python3 scripts/generate-interface-index.py` 重新生成；
 > 手工总览与分层说明见 [INTERFACE-INDEX.md](../INTERFACE-INDEX.md)。
-
 token 层与视觉常量。
 
 ## 目录
@@ -21,26 +20,26 @@ token 层与视觉常量。
 
 ## design/academic_widgets.dart
 
-- `class AcademicBadge extends StatelessWidget` — Quiet semantic labels that wrap with text size; color never carries status  
+- `class AcademicBadge extends StatelessWidget` — Quiet semantic labels that wrap with text size; color never carries status
   <sub>class · design/academic_widgets.dart:11</sub>
     - `const AcademicBadge(this.label, {…}`  <sub>:12</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:18</sub>
-- `class AcademicFactRow extends StatelessWidget` — Readable label/value alignment, stacking before large text gets squeezed.  
+- `class AcademicFactRow extends StatelessWidget` — Readable label/value alignment, stacking before large text gets squeezed.
   <sub>class · design/academic_widgets.dart:52</sub>
     - `const AcademicFactRow( {…}`  <sub>:53</sub>
     - `Widget build(BuildContext context) => Padding( padding: const EdgeInsets.symmetric(hori … ), child: LayoutBuilder( builder: (context, constraints) {…}`  <sub>:58</sub>
-- `class AcademicMetric extends StatelessWidget`  
+- `class AcademicMetric extends StatelessWidget`
   <sub>class · design/academic_widgets.dart:93</sub>
     - `const AcademicMetric( {…}`  <sub>:94</sub>
     - `Widget build(BuildContext context) => Column( crossAxisAlignment: CrossAxisAlignment.st … tFeatures: const [FontFeature.tabularFigures()], ), ), ], );`  <sub>:103</sub>
-- `class AcademicMetricGrid extends StatelessWidget`  
+- `class AcademicMetricGrid extends StatelessWidget`
   <sub>class · design/academic_widgets.dart:126</sub>
     - `const AcademicMetricGrid( {…}`  <sub>:127</sub>
     - `Widget build(BuildContext context) => LayoutBuilder( builder: (context, constraints) {…}`  <sub>:135</sub>
 
 ## design/apple_design.dart
 
-- `abstract final class AppleDesign` — Product values measured against the repository's iOS 27 reference capture.  
+- `abstract final class AppleDesign` — Product values measured against the repository's iOS 27 reference capture.
   <sub>class · design/apple_design.dart:14</sub>
     - `static const groupRadius = GinkgoRadii.group;`  <sub>:15</sub>
     - `static const rowHeight = GinkgoLayout.rowHeight;`  <sub>:16</sub>
@@ -64,25 +63,25 @@ token 层与视觉常量。
 
 ## design/ginkgo_mark.dart
 
-- `class GinkgoMark extends StatelessWidget` — Ginkgo 品牌标记：银杏叶的矢量绘制，与 Android 启动图标、主页 logo 同源。  
+- `class GinkgoMark extends StatelessWidget` — Ginkgo 品牌标记：银杏叶的矢量绘制，与 Android 启动图标、主页 logo 同源。
   <sub>class · design/ginkgo_mark.dart:9</sub>
     - `const GinkgoMark( {…}`  <sub>:10</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:31</sub>
 
 ## design/ginkgo_visuals.dart
 
-- `class GinkgoIconTile extends StatelessWidget` — A rounded tinted base for a single glyph. The glyph follows text scaling  
+- `class GinkgoIconTile extends StatelessWidget` — A rounded tinted base for a single glyph. The glyph follows text scaling
   <sub>class · design/ginkgo_visuals.dart:5</sub>
     - `const GinkgoIconTile( {…}`  <sub>:6</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:24</sub>
-- `class GinkgoBadge extends StatelessWidget` — A compact tinted label. The text always carries the meaning; color is only  
+- `class GinkgoBadge extends StatelessWidget` — A compact tinted label. The text always carries the meaning; color is only
   <sub>class · design/ginkgo_visuals.dart:60</sub>
     - `const GinkgoBadge( {…}`  <sub>:61</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:75</sub>
 
 ## design/tokens/colors.dart
 
-- `abstract final class GinkgoColors` — Semantic colors for Ginkgo across light and dark brightness modes.  
+- `abstract final class GinkgoColors` — Semantic colors for Ginkgo across light and dark brightness modes.
   <sub>class · design/tokens/colors.dart:5</sub>
     - `static const accent = CupertinoDynamicColor.withBrightness( color: Color(0xff189840), darkColor: Color(0xff47bd6b), );`  <sub>:7</sub>
     - `static const accentSubtle = CupertinoDynamicColor.withBrightness( color: Color(0x1a189840), darkColor: Color(0x2447bd6b), );`  <sub>:12</sub>
@@ -109,7 +108,7 @@ token 层与视觉常量。
 
 ## design/tokens/layout.dart
 
-- `abstract final class GinkgoLayout` — Layout breakpoints and structural dimensions.  
+- `abstract final class GinkgoLayout` — Layout breakpoints and structural dimensions.
   <sub>class · design/tokens/layout.dart:6</sub>
     - `static const double desktopBreakpoint = 760.0;`  <sub>:8</sub>
     - `static const double wideBreakpoint = 1200.0;`  <sub>:9</sub>
@@ -125,7 +124,7 @@ token 层与视觉常量。
 
 ## design/tokens/motion.dart
 
-- `abstract final class GinkgoMotion` — Motion tokens respecting system accessibility reduce-motion settings.  
+- `abstract final class GinkgoMotion` — Motion tokens respecting system accessibility reduce-motion settings.
   <sub>class · design/tokens/motion.dart:4</sub>
     - `static const fast = Duration(milliseconds: 140);`  <sub>:5</sub>
     - `static const normal = Duration(milliseconds: 180);`  <sub>:6</sub>
@@ -137,7 +136,7 @@ token 层与视觉常量。
 
 ## design/tokens/radii.dart
 
-- `abstract final class GinkgoRadii` — Corner radius tokens using continuous Apple superellipse curves.  
+- `abstract final class GinkgoRadii` — Corner radius tokens using continuous Apple superellipse curves.
   <sub>class · design/tokens/radii.dart:4</sub>
     - `static const double pill = 2.0;`  <sub>:5</sub>
     - `static const double badge = 7.0;`  <sub>:6</sub>
@@ -156,7 +155,7 @@ token 层与视觉常量。
 
 ## design/tokens/spacing.dart
 
-- `abstract final class GinkgoSpacing` — 4pt / 8pt spatial layout scale matching Apple Human Interface Guidelines.  
+- `abstract final class GinkgoSpacing` — 4pt / 8pt spatial layout scale matching Apple Human Interface Guidelines.
   <sub>class · design/tokens/spacing.dart:4</sub>
     - `static const double xxs = 2.0;`  <sub>:5</sub>
     - `static const double xs = 4.0;`  <sub>:6</sub>
@@ -179,7 +178,7 @@ token 层与视觉常量。
 
 ## design/tokens/typography.dart
 
-- `abstract final class GinkgoTypography` — Semantic typography scale matching Apple Human Interface Guidelines.  
+- `abstract final class GinkgoTypography` — Semantic typography scale matching Apple Human Interface Guidelines.
   <sub>class · design/tokens/typography.dart:6</sub>
     - `static const font = 'Ginkgo Sans';`  <sub>:7</sub>
     - `static const fallback = ['Ginkgo Han'];`  <sub>:8</sub>

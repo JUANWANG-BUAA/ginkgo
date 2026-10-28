@@ -109,6 +109,7 @@ class FakeService extends Fake implements MirrorService {
   final SessionResponse loginResponse;
   final ClassroomResponse classroomResponse;
   final bool demo;
+  int signOutCalls = 0;
   @override
   Future<MutationResponse> reserveLibrarySeat({
     required String areaId,
@@ -140,7 +141,10 @@ class FakeService extends Fake implements MirrorService {
   @override
   Future<bool> clearCache() async => true;
   @override
-  Future<SessionResponse> signOut() async => signedOut;
+  Future<SessionResponse> signOut() async {
+    signOutCalls++;
+    return signedOut;
+  }
   @override
   Future<QueryDates> dates(String instant) async =>
       const QueryDates(today: '2026-10-20', tomorrow: '2026-10-21');
@@ -378,6 +382,43 @@ void main() {
     );
     expect(find.text('统一身份认证'), findsNothing);
     expect(find.byKey(const Key('today-scroll')), findsOneWidget);
+  });
+
+  testWidgets('explicit sign-out returns from the workspace to login', (
+    tester,
+  ) async {
+    final service = FakeService(
+      restoreResponse: signedIn,
+      loginResponse: signedIn,
+    );
+    await phone(
+      tester,
+      GinkgoRoot(
+        liveService: service,
+        demoService: FakeService(
+          restoreResponse: signedOut,
+          loginResponse: signedIn,
+          demo: true,
+        ),
+      ),
+    );
+    expect(find.byKey(const Key('today-scroll')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('workspace-settings')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('退出登录'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('继续'));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(service.signOutCalls, 1);
+    expect(AppPreferences.shared.explicitSignOut, isTrue);
+    expect(find.text('统一身份认证'), findsOneWidget);
+    expect(find.byKey(const Key('today-scroll')), findsNothing);
   });
 
   testWidgets('failed remember explains the storage result before continuing', (

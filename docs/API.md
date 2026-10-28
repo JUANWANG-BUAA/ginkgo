@@ -11,6 +11,13 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 86 | 工作台呈现与异步边界（工作树） | 聚合时间线重复信息；目录视觉重构破坏原 iOS 分组；服务替换可写入旧响应；CGYY fsync 阻塞 worker | 删除时间线，考试有内容才显示；恢复原 iOS 目录与二级搜索；服务替换丢弃迟到响应；CGYY 与待办阻塞写进入 `spawn_blocking` | [最终交互规则](UI-DESIGN.md#最终交互规则2026-10-28)；考试/目录/服务替换 widget 回归、bridge 与 CGYY 合成写回归 |
+| 85 | §7.2 签到重复场次展示（工作树） | 同场次不同上游 ID 全部拆成独立行，已签到记录重复 | 仅未签到目标保留独立操作入口；已签到等无需操作的同场次记录折叠为一行，冲突仍待确认 | 本文件 §7.2；Rust 同 ID、不同 ID 未签到和四条已签到合成回归 |
+| 84 | §1.9 Android 显式退出（工作树） | 退出等待上游登出 GET；工作区回调丢失；偏好写入阻塞登录页 | 退出改为本地身份/Cookie/快照/凭据清理，不再等待学校往返；补传工作区回调，先返回登录页再完成偏好写入。学校 SSO 服务端注销不作承诺 | 本文件 §1.9；Rust 零上游请求与 Flutter 完整退出 UI 回归 |
+| 83 | §6F 学术文化公开列表（工作树，只读） | 数据源清单只有入口与字段候选 | 2026-10-28 匿名复核列表结构、活动字段、相对详情与倒序分页；工作树接入当次总页数计算、缓存、失败旧快照和合成回归。真实设备与原文对照仍待完成 | [公开入口复核](_audit/2026-10-28-student-services-public.md)；本文件 §6F |
+| 82 | 就业活动公开日历（工作树，只读） | 候选接口仅留历史数据源清单 | 2026-10-28 匿名只读请求返回 HTTP 200、JSON `state=1` 和活动数组；工作树已接入 month 查询、缓存、失败旧快照和合成回归。`status` 语义、限流和真实非空设备验收仍待完成 | [公开入口复核](_audit/2026-10-28-student-services-public.md)；不推断 `status` 语义 |
+| 81 | 安全加固与模块化接口 | 依赖存在可升级公告；个人待办默认文件权限偏宽；通用账号代次逻辑耦合 CGYY；主页 CSP 不完整 | `tokio` / `rustls-webpki` / `webpki-roots` 升级，个人待办 Unix 0600，账号所有者归回 session，主页补 `frame-ancestors` 与 Trusted Types；无学校端点、参数或成功码变化。`rsa` 的 RUSTSEC-2023-0071 无修复版本，保留并单列风险评估 | [安全加固记录](_audit/2026-10-28-security-hardening.md)；`cargo audit`、文件权限测试、CGYY/借阅/校园卡回归和完整基线 |
+| 80 | §6E 校园卡余额（工作树，只读） | 只有入口候选和充值禁止范围，真实端点/认证待取证 | 航财通 `GET /api/campus_cards` → `GET /api/campus_card/balance?stuNo=...`；`channel=BUAASSO` 跳学校 SSO，业务 `type=401` 按会话失效；金额默认遮挡、仅内存、无银行卡/资金写操作。真实 App 回跳与余额一致性仍待验收 | [E1–E6 协议证据](_audit/2026-10-28-campus-card-balance.md)；官方前端、匿名 302/业务失败、用户脱敏结构确认与合成 fixture |
 | 79 | §6.2 / §6C 用户日常入口 | 借阅官网落在通用桌面首页；校车外链直达 indexPage，CAS 引导路径未核对 | 借阅官网改为 `/mspace/reader/lendList`；HTTP 校车根址本次 302 到 CASLogin，HTTPS CASLogin 再跳学校 CAS，外链改走该入口；HTTP service 回程及应用内会话仍未验 | [借阅移动页复核](_audit/2026-10-26-library-loans-auth-followup.md#用户日常移动端入口复核)、[校车根址补充](_audit/2026-10-26-shuttle-auth-followup.md#用户准确入口补充根地址会进入-cas)；匿名 GET/静态代码、外链回归，不含真实认证 |
 | 78 | §6.2 / §6C / §7.1 提交接续 | 借阅循环阶段不明、校车入口无授权、文本/URL/小组证据不完整 | 匿名 rosetta 可跳 SSO；办事大厅校车服务仍给旧 HTTP 根址；SPOC newup/newup1 共用组件，字段已定位但身份/后端处理/回查仍缺验；客户端上传显式失败不得因文件 ID 转为成功 | [借阅复核](_audit/2026-10-26-library-loans-auth-followup.md)、[校车入口](_audit/2026-10-26-shuttle-auth-followup.md)、[提交核对与回归](_audit/2026-10-26-spoc-submission-protocol-followup.md)；无真实登录或写入 |
 | 77 | §6C 校车认证证据边界 | 一次 CAS 负结果被写成“确认不可接入” | 仅能确认当前认证入口未接通，不能排除存在独立授权入口；静态原文与智慧校车入口分开，不把静态容量当余票 | [本轮核对](_audit/2026-10-26-module-integration.md)：公开入口仍明确要求认证，未执行购票；Alpha.8 演示空态单独复现 |
@@ -274,6 +281,8 @@ GET https://sso.buaa.edu.cn/logout
 ```
 
 无论成败，清空本地会话与 Cookie（LCA:613-622）。
+
+> Android 工作树修订（2026-10-28）：显式退出是本地操作，不再等待该上游 GET。客户端清除身份、Cookie、业务快照和已保存密码后立即返回登录页；根页面补传退出回调，偏好文件写入在页面切换后收尾。此变化不修改学校端点，也不表示学校 SSO 会话已在服务端注销。
 
 ### 1.10 业务系统「未登录」通用判定模式
 
@@ -829,6 +838,26 @@ OPAC 非零业务码仍为业务拒绝，不推测具体含义。
 
 非摆渡余票先 open_seat_num-student_num-teacher_num，再按type/is_parttime/currentTime/ticket_all_minute/seat_retain_num分支扣保留，负数夹0；摆渡显示“摆渡车”，不显示计算值0。此为当前身份展示算法，匿名可见性、资格、票价、时间单位／时区、所有放票分支未验。时刻表通知发布日和适用日分开，不用计划人数代余票。POST退款、购票、订单、团体票等未调用。详见[审计 §6](_audit/2026-10-23-ibuaa-protocol-research.md)。
 
+## 6E. 校园卡余额（官方前端与脱敏结构，真实 App 验收中）⚠️
+
+证据索引：[2026-10-28 校园卡余额协议](_audit/2026-10-28-campus-card-balance.md)。仅只读校园卡余额，不接入银行卡、消费明细、充值、挂失、转账或支付密码。
+
+- 统一认证：`GET https://pass.cc-pay.cn/login?backUrl=<官方当前页>&channel=BUAASSO`。匿名观察返回 302 到 `https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fpass.cc-pay.cn%2Flogin`；沿用现有 CAS/Cookie 会话，不复制浏览器 Cookie。
+- 校园卡列表：`GET https://pass.cc-pay.cn/api/campus_cards`，官方 model 读取 `response.data.data` 数组，并取首项 `stuNo` 作为余额参数。该标识只在 Rust 进程内使用，不跨 FFI、不写日志。
+- 余额：`GET https://pass.cc-pay.cn/api/campus_card/balance?stuNo=<值>`，官方页面读取 `response.data.balance`。金额由 Rust 精确转换为整数分；`unclaimedAmount`、`status` 不进入本客户端投影。
+- 失败：匿名 `GET /api/campus_cards` 虽为 HTTP 200，正文是 `success=false,type=401`；`/api/user` 可见 `sub_type=4000011`。业务 `type=401` 按会话失效，不把 HTTP 200 当成功，不伪造 0 余额。
+- 证据边界：真实请求/响应头及统一认证方式已确认；所提供 HAR 未含成功响应正文，字段形状来自官方 dashboard 前端。真实 App 回跳、金额与官网一致性仍未验收。
+
+## 6F. 学术文化公开列表（工作树，只读）
+
+证据索引：[2026-10-28 公开入口复核](_audit/2026-10-28-student-services-public.md)。匿名读取，不携带个人凭据，不做全站镜像或后台批量抓取。
+
+- 首页：`GET https://www.buaa.edu.cn/index/xswh1.htm`，只接受 HTTP 200 且最终主机仍为 `www.buaa.edu.cn`。
+- 列表字段：`li id="line_u14_*"` 内的 `h4` 为类型、`h3` 为标题；`p.sj` 的隐藏 `span` 是发布日期，其余文字是活动时间，`p.dz` 是地点。发布日期不得当作活动日期或截止日。
+- 详情：`../info/1076/<id>.htm` 归一化为 `https://www.buaa.edu.cn/info/1076/<id>.htm`，用户点击后交外部浏览器，不自动读取附件或名单。
+- 分页：官网按倒序文件页码排列，逻辑页 `p` 对应“当次总页数 + 1 - p”。后续页先读取首页当次总页数，再请求 `/index/xswh1/<倒序页码>.htm`；不得把某次观察到的 63 页或 `62.htm` 固定为永久规则。
+- 失败形态：未匹配到列表项、标题为空或 ID 重复按结构变化处理，不能转换成确认空；成功结果使用 5 分钟进程缓存，失败保留旧快照和原成功时间。真实设备、原文跳转和官网对照仍未验收。
+
 ## 6D. 阳光打卡（官方静态；下一阶段手动提交需求，真实写未验收）⚠️
 
 用户明确要求手动提交功能；本轮仅研究，不实现／不上传／不提交。完整原站hash与UTF-16偏移见[审计 §8](_audit/2026-10-23-ibuaa-protocol-research.md)；设计见[方案 §12.7](NEXT-STAGE-PLAN-2026-10-23.md)。不把阳光活动打卡与iClass课程签到混同。
@@ -896,7 +925,7 @@ Judge 作业详情页同时包含开始/截止时间、满分、题目表格、�
 
 只读字段以真实 WebVPN 转发响应为据；本轮 CUA 已验证当前 App 经 WebVPN CAS 读取当天无课状态。提交协议目前仅以 BBAA 源码为参考，真实签到写入、通知投递和后台/休眠行为仍待验收。
 
-> 镜像实现（2026-10-20）：Rust/Flutter 已接入入口 SSO、app login 与当天课程查询的只读链路，字段与状态语义按本节；STATUS=2 只对当天课程查询解释为空，其他非成功 STATUS 返回业务拒绝；重复记录按 id 或课程时间合并，状态冲突显示待确认。WebVPN 路由下，`session` 把网关响应的 final URL/Location 还原为上游 URL；直连不可达时只对有界安全 GET 回退。网关自身需要 CAS 会话，镜像仅在平台保险库保存了密码时自动建立，否则要求重新登录。镜像没有实现 `stu_scan_sign.action`，页面没有签到提交入口；共享 fixture 与 Android 合成设备测试不能替代真实签到状态验收。
+> 镜像实现（2026-10-20）：Rust/Flutter 已接入入口 SSO、app login 与当天课程查询的只读链路，字段与状态语义按本节；STATUS=2 只对当天课程查询解释为空，其他非成功 STATUS 返回业务拒绝；重复记录按 id 或课程时间合并，状态冲突显示待确认；同场次不同 ID 仅在存在未签到目标时保留独立操作入口，已签到等无需操作的记录折叠为一行。WebVPN 路由下，`session` 把网关响应的 final URL/Location 还原为上游 URL；直连不可达时只对有界安全 GET 回退。网关自身需要 CAS 会话，镜像仅在平台保险库保存了密码时自动建立，否则要求重新登录。镜像没有实现 `stu_scan_sign.action`，页面没有签到提交入口；共享 fixture 与 Android 合成设备测试不能替代真实签到状态验收。
 
 ---
 

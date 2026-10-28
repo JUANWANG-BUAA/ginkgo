@@ -6,10 +6,14 @@ import '../application/homework_files.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../application/contracts.dart';
+import '../application/campus_activities.dart';
 import '../application/mirror_service.dart';
 import '../src/rust/api/live.dart' as live;
 import '../src/rust/api/mirror.dart' as rust;
+
 import 'package:ginkgo_mirror/infrastructure/native_learning.dart';
+import 'package:ginkgo_mirror/infrastructure/native_campus_activities.dart';
+import 'package:ginkgo_mirror/infrastructure/native_career.dart';
 import 'package:ginkgo_mirror/infrastructure/native_library_loans.dart';
 import 'package:ginkgo_mirror/infrastructure/learning_snapshot_store.dart';
 import 'package:ginkgo_mirror/infrastructure/native_reminder_planning.dart';
@@ -18,17 +22,30 @@ import 'package:ginkgo_mirror/infrastructure/graduate_credit_map_payload.dart';
 final class NativeMirrorService
     with
         NativeLearning,
+        NativeCareer,
+        NativeCampusActivities,
         NativeReminderPlanning,
         NativeLibraryLoans,
         NativeLearningSnapshots
     implements
         MirrorService,
         CgyyBookingGateway,
+        CampusCardGateway,
+        StudentServiceLinksGateway,
         HomeworkFilesGateway,
+        CareerEventsGateway,
+        CampusActivitiesGateway,
         GraduateCreditMapGateway {
   const NativeMirrorService({this.expectedAccount});
   @override
+  String? studentServiceUrl(String id) => live.studentServiceUrl(id: id);
+  @override
   final String? expectedAccount;
+
+  @override
+  Future<live.CampusCardBalanceResponse> campusCardBalance() =>
+      live.loadCampusCardBalance();
+
   String get _homeworkOwner {
     final owner = expectedAccount;
     if (owner == null || owner.isEmpty) {

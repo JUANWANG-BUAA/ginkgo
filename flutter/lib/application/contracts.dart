@@ -9,8 +9,10 @@ export 'package:ginkgo_mirror/application/learning_models.dart'
         CourseResourcePage,
         CourseAssessment,
         LearningDownload;
+
 export '../src/rust/api/live.dart'
     show
+        CampusCardBalanceResponse,
         GradeTermsResponse,
         HomeworkDetailResponse,
         LibraryHistoryResponse,
@@ -59,7 +61,9 @@ export '../src/rust/api/mirror.dart'
         SectionState,
         TodayCourse,
         TodayResponse;
-export 'package:ginkgo_mirror/application/learning_context.dart' show LearningColumn, LearningCapabilities;
+
+export 'package:ginkgo_mirror/application/learning_context.dart'
+    show LearningColumn, LearningCapabilities;
 export 'package:ginkgo_mirror/application/graduate_credit_map.dart'
     show
         GraduateCreditMapGateway,
@@ -71,4 +75,5 @@ export 'package:ginkgo_mirror/application/graduate_credit_map.dart'
         GraduateCreditRow,
         GraduateCreditNode,
         GraduateCreditMap;
-export 'package:ginkgo_mirror/application/auth_challenge.dart' show AuthChallengeGateway, LoginChallenge;
+export 'package:ginkgo_mirror/application/auth_challenge.dart'
+    show AuthChallengeGateway, LoginChallenge;

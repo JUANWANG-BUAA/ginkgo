@@ -17,6 +17,10 @@ pub fn library_loans_portal_url() -> String {
     ginkgo_upstream::adapters::library_loans_http::portal_url()
 }
 
+pub fn student_service_url(id: &str) -> Option<String> {
+    ginkgo_upstream::adapters::student_services::official_url(id)
+}
+
 /// Called lazily on the first command, never while Flutter initializes.
 pub fn create_service() -> Result<AppService, AppError> {
     let transport = ReqwestTransport::new().map_err(|_| AppError::unavailable())?;

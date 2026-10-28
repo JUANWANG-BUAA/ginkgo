@@ -8,7 +8,7 @@ use ginkgo_domain::ports::*;
 use ginkgo_domain::ports::{CgyyData, CgyyQuery};
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     pub(super) async fn cgyy_token(&self, renew: bool) -> Result<String, AppError> {
-        let owner = self.booking_owner()?;
+        let owner = self.account_owner()?;
         {
             let identity = self.identity.lock();
             if identity.generation != owner.generation {
@@ -22,7 +22,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         }
         let credentials = self.vault.load(&owner.account)?;
         let token = cgyy_http::login(&self.session, credentials.as_ref()).await?;
-        self.check_booking_owner(&owner)?;
+        self.check_account_owner(&owner)?;
         let mut identity = self.identity.lock();
         // Recheck while holding the publication lock.
         if identity.generation != owner.generation {
@@ -53,9 +53,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CgyySource for SchoolCl
             self.current_account()?;
         }
         if matches!(query, CgyyQuery::Order { .. } | CgyyQuery::LockCode) {
-            let owner = self.booking_owner()?;
+            let owner = self.account_owner()?;
             let (value, _) = self.load_booking_read(&owner, kind, site, date).await?;
-            self.check_booking_owner(&owner)?;
+            self.check_account_owner(&owner)?;
             let data = if kind == "order" {
                 CgyyData::Order(cgyy::order(&value)?)
             } else {

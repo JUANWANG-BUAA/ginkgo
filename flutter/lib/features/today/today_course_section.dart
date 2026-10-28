@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
+import 'package:ginkgo_mirror/shared/today_time.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
@@ -72,6 +73,8 @@ class TodayCourseSection extends StatelessWidget {
     final date = DateTime.tryParse(data.date);
     final dateLabel = date == null ? data.date : schoolDateWeekdayLabel(date);
     final courses = data.courses;
+    final isToday =
+        todayDate(data.date) == DateTime.utc(now.year, now.month, now.day);
     return TodayVisualSection(
       key: const Key('today-courses'),
       header: Column(
@@ -80,7 +83,9 @@ class TodayCourseSection extends StatelessWidget {
           TodaySectionHeader(
             icon: CupertinoIcons.calendar_today,
             title: '今日课程',
-            badge: courses.isNotEmpty ? '今天 ${courses.length} 节课' : null,
+            badge: isToday && courses.isNotEmpty
+                ? '今天 ${courses.length} 节课'
+                : null,
             actionLabel: onOpenSchedule == null ? null : '完整课表',
             onAction: onOpenSchedule,
           ),
@@ -99,11 +104,7 @@ class TodayCourseSection extends StatelessWidget {
         children: [
           if (data.fetchedAt != null)
             Text('课表同步：${_syncedAtLabel(data.fetchedAt!)}'),
-          Text(
-            demo
-                ? '离线演示 · 课程与日期为合成样例'
-                : '课程来自教务课表，签到状态请进入课程签到核对。',
-          ),
+          Text(demo ? '离线演示 · 课程与日期为合成样例' : '课程来自教务课表，签到状态请进入课程签到核对。'),
         ],
       ),
       children: [
@@ -115,8 +116,10 @@ class TodayCourseSection extends StatelessWidget {
             error: error,
             onRetry: onRetry,
           ),
-        if (courses.isEmpty)
+        if (courses.isEmpty && isToday)
           TodayCourseEmpty(error: error, onOpenSchedule: onOpenSchedule),
+        if (courses.isEmpty && !isToday)
+          TodayCourseFocus(data: data, now: now, onOpen: onOpenSchedule),
         if (courses.isNotEmpty) ...[
           TodayCourseFocus(
             data: data,
@@ -138,7 +141,9 @@ class TodayCourseSection extends StatelessWidget {
                     ),
                   ),
                   Icon(
-                    expanded ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down,
+                    expanded
+                        ? CupertinoIcons.chevron_up
+                        : CupertinoIcons.chevron_down,
                     size: 16,
                   ),
                 ],

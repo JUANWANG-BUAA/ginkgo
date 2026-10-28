@@ -262,8 +262,35 @@ pub async fn load_notices(force_refresh: bool) -> ReadOnlyResponse {
     utilities::load_notices(force_refresh).await
 }
 
+pub struct CampusCardBalanceResponse {
+    pub balance_minor: Option<i64>,
+    pub fetched_at: Option<String>,
+    pub failure: Option<FailureCode>,
+    pub failure_detail: Option<String>,
+}
+
+/// Explicit, user-triggered campus-card balance read. No disk cache or bank data.
+pub async fn load_campus_card_balance() -> CampusCardBalanceResponse {
+    utilities::load_campus_card_balance().await
+}
+
+/// Synthetic balance for the isolated demo workspace.
+pub fn load_demo_campus_card_balance() -> CampusCardBalanceResponse {
+    utilities::load_demo_campus_card_balance()
+}
+
 pub fn load_demo_notices() -> ReadOnlyResponse {
     utilities::load_demo_notices()
+}
+
+/// Public career-calendar events for a school month (YYYY-MM). Read-only.
+pub async fn load_career_events(month: String, force_refresh: bool) -> ReadOnlyResponse {
+    utilities::load_career_events(month, force_refresh).await
+}
+
+/// Public campus cultural activities (page 1-based). Read-only.
+pub async fn load_campus_activities(page: i32, force_refresh: bool) -> ReadOnlyResponse {
+    utilities::load_campus_activities(page, force_refresh).await
 }
 
 pub async fn load_cgyy(
@@ -323,6 +350,12 @@ pub async fn import_learning_snapshots(
 #[flutter_rust_bridge::frb(sync)]
 pub fn library_loans_portal_url() -> String {
     ginkgo_runtime::library_loans_portal_url()
+}
+
+/// Public destination metadata; does not initialize an authenticated session.
+#[flutter_rust_bridge::frb(sync)]
+pub fn student_service_url(id: String) -> Option<String> {
+    ginkgo_runtime::student_service_url(&id)
 }
 
 /// Explicit private read, scoped to the caller's account. No disk cache or writes.

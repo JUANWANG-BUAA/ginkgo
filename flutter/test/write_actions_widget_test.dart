@@ -53,6 +53,40 @@ class WriteService extends ControlledService {
   }
 }
 
+class RepeatedCourseService extends ControlledService {
+  @override
+  Future<CheckInResponse> checkin({bool forceRefresh = false}) async {
+    CheckInCourse target(
+      String id,
+      String name,
+      String begin,
+      String end,
+      String classroom,
+    ) => CheckInCourse(
+      id: id,
+      courseName: name,
+      beginsAt: begin,
+      endsAt: end,
+      status: CheckInStatus.notSigned,
+      classroomName: classroom,
+      mergedRecordCount: 1,
+      conflicting: false,
+      signInAllowed: true,
+    );
+    return CheckInResponse(
+      date: '2026-10-20',
+      courses: [
+        target('101', '机器人控制技术', '09:50', '12:15', 'B228'),
+        target('102', '机器人控制技术', '09:50', '12:15', 'B229'),
+        target('201', '嵌入式系统', '14:00', '15:35', 'C101'),
+        target('202', '嵌入式系统', '14:00', '15:35', 'C102'),
+      ],
+      fromCache: false,
+      stale: false,
+    );
+  }
+}
+
 void main() {
   testWidgets(
     'checkin requires confirmation, prevents double submit and reads back uncertain outcome',
@@ -101,6 +135,33 @@ void main() {
       expect(service.readbacks, 1);
       expect(find.text('测试：结果待核实'), findsOneWidget);
       expect(tester.widget<CupertinoButton>(button).onPressed, isNull);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'split teaching-class targets keep session totals and sign-in actions',
+    (tester) async {
+      tester.view.physicalSize = const Size(430, 1300);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        ginkgoApp(
+          home: CheckInPage(
+            service: RepeatedCourseService(),
+            clock: () => DateTime.parse('2026-10-20T09:45:00+08:00'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('今天 4 节课'), findsOneWidget);
+      expect(find.text('已签到 0 · 未签到 4'), findsOneWidget);
+      expect(find.text('待签 4'), findsOneWidget);
+      for (final id in ['101', '102', '201', '202']) {
+        expect(find.byKey(Key('checkin-submit-$id')), findsOneWidget);
+      }
       expect(tester.takeException(), isNull);
     },
   );

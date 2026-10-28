@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 
+import 'package:ginkgo_mirror/shared/checkin_sessions.dart';
 import 'package:ginkgo_mirror/shared/reminder_rules.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
 
@@ -389,13 +390,14 @@ class _CheckInPageState extends State<CheckInPage> {
     );
     final date = DateTime.tryParse(data.date);
     final dateLabel = date == null ? data.date : schoolDateWeekdayLabel(date);
-    final signed = data.courses
+    final sessions = uniqueCheckinSessions(data.courses);
+    final signed = sessions
         .where((course) => course.status == CheckInStatus.signed)
         .length;
-    final unknown = data.courses
+    final unknown = sessions
         .where((course) => course.status == CheckInStatus.unknown)
         .length;
-    final notSigned = data.courses.length - signed - unknown;
+    final notSigned = sessions.length - signed - unknown;
     return [
       if (range != null && original.courses.isNotEmpty)
         AppleSection(
@@ -441,8 +443,7 @@ class _CheckInPageState extends State<CheckInPage> {
       else ...[
         CheckinStatusSummary(
           dateLabel: dateLabel,
-          scopeLabel:
-              '${widget.history ? '当天' : '今天'} ${data.courses.length} 节课',
+          scopeLabel: '${widget.history ? '当天' : '今天'} ${sessions.length} 节课',
           signed: signed,
           notSigned: notSigned,
           unknown: unknown,

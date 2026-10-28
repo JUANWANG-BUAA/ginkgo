@@ -301,8 +301,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
         Ok(SessionOutcome::SignedOut)
     }
 
-    /// Best-effort upstream logout; local identity and snapshots are always
-    /// cleared and the saved password is removed.
+    /// Local sign-out never waits for an upstream round trip. Identity,
+    /// cookies, snapshots and the saved password are always cleared.
     async fn sign_out(&self) {
         let account = {
             let mut identity = self.identity.lock();
@@ -313,7 +313,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
             };
             account
         };
-        let _ = auth::logout(&self.session).await;
+        self.session.clear_cookies();
         // A route change or failed restore can already have cleared identity.
         // Explicit logout must still remove saved accounts to prevent restoration.
         // An enumeration failure defaults to knowing only the signed-in account

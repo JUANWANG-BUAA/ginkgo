@@ -10,7 +10,7 @@ import 'package:ginkgo_mirror/features/notices/notices_page.dart';
 import 'package:ginkgo_mirror/features/grades/grades_page.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/features/settings/settings_page.dart';
-import 'package:ginkgo_mirror/features/shuttle/shuttle_page.dart';
+import 'package:ginkgo_mirror/workspace/service_search_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 import 'package:ginkgo_mirror/application/contracts.dart' show RouteChoice;
 
@@ -37,6 +37,19 @@ class ServiceDirectory extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     children: [
       AppleSection(
+        children: [
+          AppleListTile(
+            leading: const Icon(CupertinoIcons.search),
+            title: const Text('全部服务 / 搜索服务'),
+            trailing: const Icon(CupertinoIcons.chevron_right),
+            onTap: () => _push(
+              context,
+              ServiceSearchPage(context: _featureContext(context)),
+            ),
+          ),
+        ],
+      ),
+      AppleSection(
         header: const Text('个人与校园'),
         children: [
           _row(
@@ -53,13 +66,8 @@ class ServiceDirectory extends StatelessWidget {
             GinkgoColors.accent,
             TasksPage(demo: service.isDemo, service: service),
           ),
-          _row(
-            context,
-            '校车时刻表',
-            CupertinoIcons.bus,
-            GinkgoColors.resourceTeal,
-            ShuttlePage(service: service),
-          ),
+          _destination(context, 'campus-card', GinkgoColors.accent),
+          _destination(context, 'shuttle', GinkgoColors.resourceTeal),
         ],
       ),
       AppleSection(

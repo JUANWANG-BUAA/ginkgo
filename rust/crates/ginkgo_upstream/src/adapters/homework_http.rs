@@ -212,7 +212,7 @@ pub async fn load<T: HttpTransport>(
             // Classification is optional: errors never erase assignments.
             // Optional course membership must not hold a complete assignment
             // list hostage to an unavailable role endpoint.
-            if let Ok((Ok(students), Ok(assistants))) =
+            let roles_complete = if let Ok((Ok(students), Ok(assistants))) =
                 tokio::time::timeout(std::time::Duration::from_secs(4), async {
                     tokio::join!(
                         course_ids(session, &auth, "/kc/queryXskcListPage"),
@@ -222,11 +222,15 @@ pub async fn load<T: HttpTransport>(
                 .await
             {
                 apply_course_roles(&mut items, &students, &assistants);
-            }
+                true
+            } else {
+                false
+            };
             return Ok(homework::HomeworkData {
                 term_code: code.to_owned(),
                 term_name: term["dqxq"].as_str().unwrap_or("").to_owned(),
                 items,
+                roles_complete,
             });
         }
     }

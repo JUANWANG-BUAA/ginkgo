@@ -1,0 +1,28 @@
+{
+  "contract": "campus_card.balance",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "cards": {
+      "success": true,
+      "type": 200,
+      "data": {
+        "data": [
+          {"stuNo": "sy2501001"}
+        ]
+      }
+    },
+    "balance": {
+      "success": true,
+      "type": 200,
+      "data": {
+        "balance": 0,
+        "unclaimedAmount": 0,
+        "status": "0"
+      }
+    }
+  },
+  "expected": {
+    "balanceMinor": 0
+  }
+}

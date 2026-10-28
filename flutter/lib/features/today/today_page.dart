@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/local_tasks.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
+import 'package:ginkgo_mirror/features/schedule/course_visibility.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
@@ -17,6 +18,7 @@ import 'today_homework_section.dart';
 import 'today_page_actions.dart';
 import 'today_page_header.dart';
 import 'today_tasks_section.dart';
+import 'today_exam_section.dart';
 
 class TodayPage extends StatefulWidget {
   const TodayPage({
@@ -80,6 +82,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   }
 
   int _generation = 0;
+  int examRefreshToken = 0;
   DateTime get _now => todaySchoolNow((widget.now ?? DateTime.now)());
   late RefreshSection<TodayTasksSnapshot> tasks;
   late RefreshSection<TodayResponse> courses;
@@ -152,11 +155,14 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  Future<void> load({bool force = false}) => Future.wait([
-    _loadCourses(force: force),
-    _loadHomework(force: force),
-    _loadTasks(),
-  ]);
+  Future<void> load({bool force = false}) {
+    examRefreshToken++;
+    return Future.wait([
+      _loadCourses(force: force),
+      _loadHomework(force: force),
+      _loadTasks(),
+    ]);
+  }
 
   Future<void> _loadCourses({bool force = false}) => courses.refresh(
     () async {
@@ -184,7 +190,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
           if (reminders != null) unawaited(reminders.reconcile());
         }
         return SectionResult(
-          value: result.failure == null || result.termCode.isNotEmpty
+          value: result.failure == null || result.fetchedAt != null
               ? result
               : null,
           error: result.failure == null ? null : failureMessage(result.failure),
@@ -295,8 +301,9 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
                         loading: courses.loading,
                         error: error,
                         expanded: _coursesExpanded,
-                        onToggleExpanded: () =>
-                            setState(() => _coursesExpanded = !_coursesExpanded),
+                        onToggleExpanded: () => setState(
+                          () => _coursesExpanded = !_coursesExpanded,
+                        ),
                         onRetry: () => _loadCourses(force: true),
                         onOpenSchedule: widget.onOpenFeature == null
                             ? null
@@ -304,6 +311,17 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
                         demo: widget.service.isDemo,
                       ),
                     ),
+                  TodayExamSection(
+                    key: ValueKey((
+                      widget.accountId,
+                      widget.accountName,
+                      widget.storageRoot,
+                    )),
+                    service: widget.service,
+                    now: _now,
+                    refreshToken: examRefreshToken,
+                    onOpen: widget.onOpenFeature,
+                  ),
                   TodayHomeworkSection(
                     section: homework,
                     now: _now,
@@ -316,6 +334,11 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
                   TodayTasksSection(
                     section: tasks,
                     now: _now,
+                    visibleHomeworkIds: todayVisibleHomework(
+                      homework.value,
+                      CourseVisibilityScope.of(context),
+                      _now,
+                    ).map((item) => item.id).toSet(),
                     onRetry: _loadTasks,
                     onOpen: _openTasks,
                   ),

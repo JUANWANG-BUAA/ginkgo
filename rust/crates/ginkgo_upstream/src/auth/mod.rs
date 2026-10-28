@@ -30,7 +30,6 @@ pub const LOGIN_URL: &str = "https://sso.buaa.edu.cn/login";
 pub const UC_ACTIVATION_URL: &str =
     "https://uc.buaa.edu.cn/api/login?target=https%3A%2F%2Fuc.buaa.edu.cn%2F%23%2Fuser%2Flogin";
 pub const UC_STATUS_URL: &str = "https://uc.buaa.edu.cn/api/uc/status";
-pub const LOGOUT_URL: &str = "https://sso.buaa.edu.cn/logout";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Credentials {
@@ -179,14 +178,6 @@ pub async fn establish_webvpn_session<T: HttpTransport>(
             challenge.id,
         )),
     }
-}
-
-/// Logout is best-effort: callers must clear local state even when upstream
-/// returns an error.
-pub async fn logout<T: HttpTransport>(session: &Session<T>) -> Result<(), AppError> {
-    let result = session.send(HttpRequest::get(LOGOUT_URL)).await;
-    session.clear_cookies();
-    result.map(|_| ())
 }
 
 pub use session::RouteMode as SessionRoute;
