@@ -44,7 +44,9 @@ GitHub 仓库目前仅有 macOS 签名 secrets，没有 Android workflow 所需�
 | GitHub prerelease | [Ginkgo Android 0.1.0-beta.2](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.2)，2026-10-29 00:18 CST 发布 |
 | APK 公开资产 | 43,851,525 字节；GitHub asset 与回下载 SHA-256 均为 `7c7470d2fda7a19b5f42cf3fdc72ee714e05ca6321809058c487790b6f093fad`，与本地已验签候选一致 |
 | `checksums.txt` | 104 字节；SHA-256 `7580cb51b2af75b555aeee0bb6d2978ab3bde9bb2cb93457cc2d746a90ca5a44`。文件使用 APK basename；公开回下载后 `shasum -a 256 -c checksums.txt` 通过 |
+| 主线镜像 CI | [run 40724537686](https://github.com/JUANWANG-BUAA/ginkgo/actions/runs/40724537686) 在 tag 对应提交上通过：Android ARM64 Debug 构建、Rust 合约/Clippy/测试、FRB 与 Dart 分析/测试、Windows 构建和集成任务均成功 |
+| macOS CI | [run 40724537851](https://github.com/JUANWANG-BUAA/ginkgo/actions/runs/40724537851) 通过；Apple 端未因 Beta.2 做功能改动 |
 | Android Release workflow | [run 40724615021](https://github.com/JUANWANG-BUAA/ginkgo/actions/runs/40724615021) 失败在“Materialize external signing configuration”：缺少 4 个 `GINKGO_ANDROID_*` 仓库 secrets。构建与签名步骤未运行；本机外部签名包独立完成核验后手动发布，没有绕过 workflow 的 fail-closed 设置 |
-| GitHub Pages | 代码及版本入口已推送；首页/下载链接 live 核验结果将在本记录后续提交补录 |
+| GitHub Pages | [首页](https://juanwang-buaa.github.io/ginkgo/) 返回 HTTP 200；Pages build `1322005572` 为 `built` 且对应 `5691170`。带 cache-buster 的线上 HTML 显示 `0.1.0-beta.2`，APK、checksum 和 Release 链接均指向 Beta.2 |
 
 已知验收边界：没有物理 Android 设备；现有 Beta.1 Debug 模拟器拒绝异签 Release 覆盖后保持原数据。新建干净 Android 37 AVD 在首次启动时 QEMU 卡死退出。因此 Beta.1 Release → Beta.2 Release 覆盖升级、个人待办保留、TalkBack、大字号设备行为和厂商后台行为未验收；Beta.2 Debug 正常入口模拟器冒烟仅代表合成演示代码路径。

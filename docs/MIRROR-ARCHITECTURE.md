@@ -1,6 +1,6 @@
 # Rust / Flutter 工程与上游隔离边界
 
-更新：2026-10-22。本文描述当前源码的工程边界；学校协议事实仍以 [API.md](API.md) 为准，公开安装包与真实学校业务验收仍以 [MIRROR-IMPLEMENTATION.md](MIRROR-IMPLEMENTATION.md) 为准。
+更新：2026-10-29。本文描述当前源码的工程边界；学校协议事实仍以 [API.md](API.md) 为准，公开安装包与真实学校业务验收仍以 [MIRROR-IMPLEMENTATION.md](MIRROR-IMPLEMENTATION.md) 为准。末尾的“后续演进方向”是策略，不代表事项已实现。
 
 ## 隔离目标与当前结构
 
@@ -119,6 +119,18 @@ scripts/check-mirror.sh
 ```
 
 Rust 的核心合成测试验证接口可替换、旧数据/失败一起返回、不确定写入不重发、本地待办根据注入身份隔离账号。上游保留原登录、验证码、学校/网关恢复、业务 token 失效、请求次数、查询缓存和写入回查测试。测试通过不替代真实账号与 Windows 主机验收。
+
+## 后续演进方向（2026-10-29）
+
+> 本节记录架构演进原则，不替代实现状态或待办清单；未完成事项、当前顺序与验收证据统一维护在 [MIRROR-TODO.md](MIRROR-TODO.md)。
+
+目标不是继续增加抽象层，而是让现有模块化单体更可靠、更易验证。Rust 继续在设备进程内运行，保持明确依赖矩阵：domain 无本项目依赖，core 与 upstream 只依赖 domain，runtime 依赖 core 与 upstream，bridge 依赖 core 与 runtime；不引入自建后端或微服务。
+
+1. **先收口正确性，再清结构债。** 按待办中的 P0 → P1 → P2 推进。优先验证认证与账号切换、异步读取上界、迟到响应与缓存语义，以及写操作单次提交和回查；每个问题都用能复现原风险的回归测试锁定，不通过放宽协议断言来消除失败。
+2. **渐进收紧跨层契约。** 新增或修改的 FFI 命令优先使用类型化 DTO；既有 `ReadOnlyResponse` 载荷按功能逐步迁移，具体清单以 [INTERFACE-INDEX §6.10](INTERFACE-INDEX.md#610-返回形态与载荷契约) 为准，不在本文复制易过时的数量。载荷只能是净化后的业务投影，不能承载学校原始响应。稳定业务规则归 Rust domain，纯呈现格式留在 Dart；Flutter 页面依赖 application gateway，直接依赖 infrastructure 的旧路径随功能修改逐项收敛，不做全量重写。
+3. **用端到端证据推动演进。** 新功能沿用本文件“新增功能的路径”，覆盖 upstream / core / bridge / Flutter gateway 与页面测试；Android 正常入口构建和设备验收单独记录。合成测试、授权真实只读和真实写入分别陈述，不互相替代。若补充诊断日志，先按 [COLLABORATION.md](COLLABORATION.md) 建立脱敏白名单并经人工安全审查。
+
+开发范围仍以 [多平台路线](MULTI-PLATFORM-STRATEGY.md#当前开发范围2026-10-24-决策) 为准：Android 是唯一功能开发目标；Windows 保持可编译；macOS / iOS 冻结。除非出现具体需求和证据，不引入全局状态框架、动态插件系统或大规模跨层重写。
 
 ## 性能与精简范围
 
