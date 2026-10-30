@@ -33,6 +33,8 @@
 - APK 公开资产大小为 43,835,741 字节，GitHub 资产摘要与本地 SHA-256 均为 `182d4563dc04e85b4b0654c2527b6710a7e1cc843e5dafdf0a5b7da6728eb688`。
 - 首次回下载因网络 `no route to host` 中断；随后直接公开 URL 回下载成功，APK 与 checksums 逐字节对比本地候选一致，`shasum -a 256 -c checksums.txt` 通过。
 - [Android Release workflow](https://github.com/JUANWANG-BUAA/ginkgo/actions/runs/41041524421) 在“Materialize external signing configuration”因缺少 4 个 Android 签名 secrets 失败，构建与上传步骤未运行。公开资产使用上述本机外部签名候选，未改变 fail-closed 规则。
+- [主线镜像 CI](https://github.com/JUANWANG-BUAA/ginkgo/actions/runs/41041490961) 在标签对应提交上通过：bindings、contracts、Android ARM64 Debug 和 Windows 全部成功；macOS CI 与 iOS workflow 也通过。
+- 公开文档同步提交为 `b22e43b5afe66efeeb7fb951fac52548e9f1cc42`。GitHub Pages 已完成部署，线上 HTML 显示 `0.1.0-beta.3`，APK、checksums 和 Release 链接均指向 Beta.3。
 
 ## 发布后仍未覆盖的验收边界
 
