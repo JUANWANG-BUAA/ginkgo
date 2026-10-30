@@ -197,7 +197,8 @@ class _BykcPageState extends State<BykcPage> {
           final course = chosen ? record!.course : rows[index] as BykcCourse;
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ClipRSuperellipse(
+            child: SafeArea(
+              child: ClipRSuperellipse(
               borderRadius: BorderRadius.vertical(
                 top: Radius.circular(index == 0 ? 20 : 0),
                 bottom: Radius.circular(index == rows.length - 1 ? 20 : 0),
@@ -225,6 +226,7 @@ class _BykcPageState extends State<BykcPage> {
                   ],
                 ),
               ),
+            )
             ),
           );
         },

@@ -10,7 +10,8 @@ import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shortcuts.dart';
 
 import 'ios_visual_refinement_test.dart' show VisualService;
-import 'support.dart' show settle, show;
+import 'support.dart' show platformActions, settle, show;
+
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -53,7 +54,7 @@ void main() {
         await tester.pumpWidget(
           ginkgoApp(
             preferences: settings,
-            home: TodayPage(
+            home: TodayPage(fileActions: platformActions,
               service: service,
               storageRoot: '/synthetic-visual-only',
               accountId: 'synthetic-demo',
@@ -85,7 +86,7 @@ void main() {
         await tester.pumpWidget(
           ginkgoApp(
             preferences: settings,
-            home: TasksPage(
+            home: TasksPage(fileActions: platformActions,
               service: service,
               academicService: service,
               storageRoot: '/synthetic-visual-only',

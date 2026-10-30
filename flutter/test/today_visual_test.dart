@@ -7,6 +7,7 @@ import 'package:ginkgo_mirror/features/today/today_page.dart';
 
 import 'today_v2_widget_test.dart'
     show TodayFake, oneHomework, task, tasksPayload;
+import 'platform_actions_fake.dart';
 
 class _VisualTodayService extends TodayFake {
   @override
@@ -90,7 +91,7 @@ void main() {
             ..local = tasksPayload([task('visual', due: '2026-10-22')]);
           await tester.pumpWidget(
             _host(
-              TodayPage(
+              TodayPage(fileActions: platformActions,
                 service: service,
                 storageRoot: '/synthetic/tasks',
                 now: () => DateTime.utc(2026, 10, 22, 1),

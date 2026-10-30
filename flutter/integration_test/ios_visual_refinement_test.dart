@@ -5,6 +5,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/main.dart';
+
 import 'package:ginkgo_mirror/features/today/today_page.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
 import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
@@ -12,7 +13,7 @@ import 'package:ginkgo_mirror/features/tasks/task_editor.dart';
 import 'package:ginkgo_mirror/application/local_tasks_read.dart';
 import '../test/local_tasks_read_fixture.dart';
 
-import 'support.dart' show settle, show;
+import 'support.dart' show platformActions, settle, show;
 
 // Fixed synthetic snapshots: this visual suite must never read credentials,
 // initialize native networking, or change task documents.
@@ -126,7 +127,7 @@ void main() {
       await tester.pumpWidget(
         ginkgoApp(
           brightness: mode,
-          home: TodayPage(
+          home: TodayPage(fileActions: platformActions,
             service: service,
             storageRoot: '/synthetic-visual-only',
             accountId: 'synthetic-visual',
@@ -147,7 +148,7 @@ void main() {
       await tester.pumpWidget(
         ginkgoApp(
           brightness: mode,
-          home: TasksPage(
+          home: TasksPage(fileActions: platformActions,
             service: service,
             academicService: service,
             storageRoot: '/synthetic-visual-only',
@@ -173,7 +174,7 @@ void main() {
       await tester.pumpWidget(
         ginkgoApp(
           brightness: mode,
-          home: HomeworkDetailPage(
+          home: HomeworkDetailPage(fileActions: platformActions,
             item: VisualService.assignment,
             service: service,
             taskService: service,
@@ -209,7 +210,7 @@ void main() {
     await tester.pumpWidget(
       ginkgoApp(
         brightness: Brightness.dark,
-        home: TasksPage(
+        home: TasksPage(fileActions: platformActions,
           service: service,
           storageRoot: '/synthetic-visual-only',
           initialTaskId: 'visual-linked',

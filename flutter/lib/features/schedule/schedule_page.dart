@@ -198,7 +198,8 @@ class _SchedulePageState extends State<SchedulePage> {
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
       context,
     ),
-    child: LongPageScroll(
+    child: SafeArea(
+      child: LongPageScroll(
       controller: scrollController,
       child: CustomScrollView(
         controller: scrollController,
@@ -263,6 +264,7 @@ class _SchedulePageState extends State<SchedulePage> {
           ),
         ],
       ),
+    )
     ),
   );
 

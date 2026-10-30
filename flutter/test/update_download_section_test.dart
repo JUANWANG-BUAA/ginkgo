@@ -7,6 +7,7 @@ import 'package:ginkgo_mirror/platform/android_update_controller.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/platform/update_download_section.dart';
+import 'package:ginkgo_mirror/application/maintenance.dart';
 
 /// The download never leaves its directory wait, so the busy phase is observed
 /// without network traffic or file writes.

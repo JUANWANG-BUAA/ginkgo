@@ -588,7 +588,7 @@ void main() {
 
         // Real-data pages, including independent tabs and navigation, are rendered
         // on the Android engine. Images go only to the private temporary server.
-        await page('today', const TodayPage(service: service));
+        await page('today', TodayPage(service: service, fileActions: platformActions));
         await page('schedule', const SchedulePage(service: service));
         await page('grades', const GradesPage(service: service));
         await page('checkin', const CheckInPage(service: service));
@@ -596,7 +596,7 @@ void main() {
           'checkin-history',
           const CheckInPage(service: service, history: true),
         );
-        await page('homework', const HomeworkPage(service: service));
+        await page('homework', HomeworkPage(service: service, fileActions: platformActions));
         if (homework?.items.isNotEmpty == true) {
           // The page collapses confirmed teaching-assistant courses by
           // default, so the first read item may have no rendered row; pick the
@@ -685,14 +685,14 @@ void main() {
           await ready('cgyy-orders');
           await capture('cgyy-orders');
         }
-        await page('tasks', const TasksPage(service: service));
+        await page('tasks', const TasksPage(fileActions: platformActions,service: service));
         final taskDirectory = await tester.runAsync(
           () => Directory.systemTemp.createTemp('ginkgo-acceptance-tasks'),
         );
         try {
           await page(
             'tasks-empty',
-            TasksPage(service: service, storageRoot: taskDirectory!.path),
+            TasksPage(fileActions: platformActions,service: service, storageRoot: taskDirectory!.path),
           );
           await tester.tap(find.bySemanticsLabel('新增待办'));
           await settle(tester, frames: 5);
@@ -729,7 +729,7 @@ void main() {
         }
         await page(
           'settings',
-          SettingsPage(service: service, onSignOut: () async {}),
+          SettingsPage(maintenance: platformActions.maintenance,service: service, onSignOut: () async {}),
         );
         // Complete end-to-end shell acceptance without exposing an account name.
         await tester.pumpWidget(const GinkgoApp(service: service));
@@ -747,7 +747,7 @@ void main() {
         );
         await page(
           'homework-dark-large',
-          const HomeworkPage(service: service),
+          HomeworkPage(service: service, fileActions: platformActions),
           brightness: Brightness.dark,
           textScale: 1.8,
         );

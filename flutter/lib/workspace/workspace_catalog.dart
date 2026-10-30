@@ -38,7 +38,7 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     icon: CupertinoIcons.sun_max,
     section: WorkspaceSection.workbench,
     mobileTab: 0,
-    build: (context) => TodayPage(
+    build: (context) => TodayPage(fileActions: context.platformActions,
       service: context.service,
       accountName: context.accountName,
       accountId: context.accountId,
@@ -61,6 +61,7 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
       directory: context.mobile
           ? ServiceDirectory(
               service: context.service,
+              platformActions: context.platformActions,
               destinations: workspaceDestinations,
               accountName: context.accountName,
               accountId: context.accountId,
@@ -76,7 +77,7 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     icon: CupertinoIcons.list_bullet,
     section: WorkspaceSection.workbench,
     build: (context) =>
-        TasksPage(service: context.service),
+        TasksPage(fileActions: context.platformActions,service: context.service),
   ),
   WorkspaceDestination(
     id: 'checkin',
@@ -109,7 +110,7 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     icon: CupertinoIcons.doc_text,
     section: WorkspaceSection.academics,
     mobileTab: 3,
-    build: (context) => HomeworkPage(service: context.service),
+    build: (context) => HomeworkPage(fileActions: context.platformActions,service: context.service),
   ),
   WorkspaceDestination(
     id: 'learning',
@@ -117,7 +118,7 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     icon: CupertinoIcons.book_circle,
     section: WorkspaceSection.academics,
     build: (context) =>
-        LearningPage(service: context.service, accountId: context.accountId),
+        LearningPage(fileActions: context.platformActions,service: context.service, accountId: context.accountId),
   ),
   WorkspaceDestination(
     id: 'bykc',
@@ -238,7 +239,7 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     icon: CupertinoIcons.gear_alt,
     sidebar: false,
     footer: true,
-    build: (context) => SettingsPage(
+    build: (context) => SettingsPage(maintenance: context.platformActions.maintenance,
       service: context.service,
       accountName: context.accountName,
       accountId: context.accountId,

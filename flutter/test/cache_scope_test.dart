@@ -5,6 +5,7 @@ import 'package:ginkgo_mirror/shared/query_cache_scope.dart';
 import 'package:ginkgo_mirror/features/settings/settings_page.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
+import 'platform_actions_fake.dart';
 
 class ClearService extends ControlledService {
   int calls = 0;
@@ -24,7 +25,7 @@ void main() {
       await tester.pumpWidget(
         ginkgoApp(
           home: QueryCacheScope(
-            child: SettingsPage(service: service, onSignOut: () async {}),
+            child: SettingsPage(maintenance: platformActions.maintenance,service: service, onSignOut: () async {}),
           ),
         ),
       );

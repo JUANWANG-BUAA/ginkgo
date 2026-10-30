@@ -2,9 +2,8 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/learning.dart';
-import 'package:ginkgo_mirror/application/learning_file_actions.dart';
 import 'package:ginkgo_mirror/application/learning_ports.dart';
-import 'package:ginkgo_mirror/infrastructure/learning_file_actions.dart';
+import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
@@ -17,11 +16,12 @@ class LearningPage extends StatefulWidget {
     super.key,
     required this.service,
     this.accountId,
-    this.saveFile = saveLearningFile,
+    required this.fileActions,
   });
   final Object service;
   final String? accountId;
-  final LearningFileSaver? saveFile;
+  /// The platform actions bound by the composition root.
+  final PlatformActions fileActions;
   @override
   State<LearningPage> createState() => _LearningPageState();
 }
@@ -89,7 +89,8 @@ class _LearningPageState extends State<LearningPage> {
       backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
         context,
       ),
-      child: CustomScrollView(
+      child: SafeArea(
+        child: CustomScrollView(
         key: const Key('learning-scroll'),
         slivers: [
           ApplePageHeader(
@@ -159,7 +160,7 @@ class _LearningPageState extends State<LearningPage> {
                           course: course,
                           service: widget.service,
                           accountId: widget.accountId,
-                          saveFile: widget.saveFile,
+                          saveFile: widget.fileActions.learningFileSaver,
                           isOwnerCurrent: () => mounted && e == epoch,
                         ),
                       ),
@@ -170,6 +171,7 @@ class _LearningPageState extends State<LearningPage> {
             },
           ),
         ],
+      )
       ),
     );
   }

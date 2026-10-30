@@ -3,9 +3,13 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/school_rules.dart';
+import 'package:ginkgo_mirror/application/reminder_planning.dart';
 import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
 import 'package:ginkgo_mirror/shared/reminder_rules.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
+
+import 'reminder_rule_double.dart';
 
 /// The shared rule tables in `fixtures/rules/`. The Rust domain rules own the
 /// same files through the upstream contract runner, so a rule that changes on
@@ -43,6 +47,58 @@ void main() {
         isHomeworkOverdue(dueAt, now),
         want['overdue'],
         reason: 'case $index ($dueAt) must agree on the overdue flag',
+      );
+    }
+  });
+
+  test('the reminder rule matches the shared table', () {
+    final fixture = _fixture('reminders-v1.json');
+    final now = DateTime.fromMillisecondsSinceEpoch(
+      fixture['input']['nowMillis'] as int,
+      isUtc: true,
+    );
+    final cases = fixture['input']['cases'] as List<dynamic>;
+    final expected = fixture['expected']['results'] as List<dynamic>;
+    expect(cases.length, expected.length);
+
+    for (var index = 0; index < cases.length; index++) {
+      final testCase = cases[index] as Map<String, dynamic>;
+      final want = expected[index] as Map<String, dynamic>;
+      final result = const ReminderRuleDouble().plan(
+        checkin: [
+          for (final seed in testCase['checkin'] as List<dynamic>)
+            CheckInReminderSeed(
+              id: seed['id'] as String,
+              date: seed['date'] as String,
+              beginsAt: seed['beginsAt'] as String,
+              endsAt: seed['endsAt'] as String,
+              notSigned: seed['notSigned'] as bool,
+              conflicting: seed['conflicting'] as bool,
+              signInAllowed: seed['signInAllowed'] as bool?,
+              mergedRecordCount: seed['mergedRecordCount'] as int,
+            ),
+        ],
+        homework: [
+          for (final seed in testCase['homework'] as List<dynamic>)
+            HomeworkReminderSeed(
+              id: seed['id'] as String,
+              dueAt: seed['dueAt'] as String,
+              pending: seed['pending'] as bool,
+            ),
+        ],
+        now: now,
+      );
+      expect(
+        result.plans.map((plan) => plan.key).toList(),
+        [
+          for (final plan in want['plans'] as List<dynamic>) plan['key'] as String,
+        ],
+        reason: 'case $index must plan the same reminders on both sides',
+      );
+      expect(
+        result.skipped,
+        want['skipped'],
+        reason: 'case $index must skip the same inputs on both sides',
       );
     }
   });

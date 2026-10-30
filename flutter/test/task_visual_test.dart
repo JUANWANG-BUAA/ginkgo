@@ -6,6 +6,7 @@ import 'package:ginkgo_mirror/features/tasks/task_editor.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
 
 import 'task_link_widget_test.dart' show TaskFake, assignment, record, press;
+import 'platform_actions_fake.dart';
 
 Widget visualApp(Widget page, Brightness brightness, double scale) => ginkgoApp(
   brightness: brightness,
@@ -55,7 +56,7 @@ void main() {
           );
         await tester.pumpWidget(
           visualApp(
-            TasksPage(
+            TasksPage(fileActions: platformActions,
               service: fake,
               storageRoot: '/synthetic/visual',
               initialTaskId: 'visual',
@@ -185,7 +186,7 @@ void main() {
           final fake = TaskFake();
           await tester.pumpWidget(
             visualApp(
-              HomeworkDetailPage(
+              HomeworkDetailPage(fileActions: platformActions,
                 item: assignment,
                 service: fake,
                 storageRoot: '/synthetic/visual',

@@ -35,11 +35,11 @@
   <sub>class · features/graduate/graduate_credit_map_page.dart:47</sub>
     - `const GraduateCreditMapView({ super.key, required this.report, required this.supported, });`  <sub>:48</sub>
     - `List<Widget> children(BuildContext context) {…}`  <sub>:57</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:94</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:96</sub>
 - `class GraduateCreditMapPage extends StatefulWidget` — Parent supplies an account-scoped gateway and identity. This page never
-  <sub>class · features/graduate/graduate_credit_map_page.dart:99</sub>
-    - `const GraduateCreditMapPage({ super.key, required this.service, this.accountId, });`  <sub>:100</sub>
-    - `State<GraduateCreditMapPage> createState() => …`  <sub>:108</sub>
+  <sub>class · features/graduate/graduate_credit_map_page.dart:101</sub>
+    - `const GraduateCreditMapPage({ super.key, required this.service, this.accountId, });`  <sub>:102</sub>
+    - `State<GraduateCreditMapPage> createState() => …`  <sub>:110</sub>
 
 ## features/graduate/graduate_credit_map_widgets.dart
 

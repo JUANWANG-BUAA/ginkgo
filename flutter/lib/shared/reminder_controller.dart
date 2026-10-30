@@ -15,7 +15,6 @@ import 'package:ginkgo_mirror/application/reminder_store.dart';
 import 'package:ginkgo_mirror/application/reminder_platform.dart';
 import 'package:ginkgo_mirror/shared/course_visibility.dart';
 import 'package:ginkgo_mirror/shared/homework_visibility.dart';
-import 'package:ginkgo_mirror/shared/reminder_rules.dart';
 
 export 'package:ginkgo_mirror/application/reminder_platform.dart';
 
@@ -272,15 +271,44 @@ class ReminderController extends ChangeNotifier {
   }
 
   void updateCheckin(CheckInResponse data) {
-    if (data.failure == null && !data.stale) _checkin = checkinReminders(data);
+    final planner = this.planner;
+    if (planner == null || data.failure != null || data.stale) return;
+    final result = planner.planCheckinHomeworkReminders(
+      checkin: checkinReminderSeeds(data.date, data.courses),
+      homework: const [],
+      nowMillis: clock().millisecondsSinceEpoch,
+    );
+    if (result.unsupported) {
+      hint = '当前服务暂不支持签到提醒计划';
+      notifyListeners();
+      return;
+    }
+    _checkin = result.plans;
+    if (result.skipped > 0) {
+      hint = '部分提醒时间不明确或已过期，未排程，请进入对应页面核对';
+      notifyListeners();
+    }
   }
 
   void updateHomework(HomeworkResponse data) {
-    if (data.failure == null) {
-      _homework = homeworkReminders(
+    final planner = this.planner;
+    if (planner == null || data.failure != null) return;
+    final result = planner.planCheckinHomeworkReminders(
+      checkin: const [],
+      homework: homeworkReminderSeeds(
         personalHomeworkItems(data.items, visibility),
-        clock(),
-      );
+      ),
+      nowMillis: clock().millisecondsSinceEpoch,
+    );
+    if (result.unsupported) {
+      hint = '当前服务暂不支持作业提醒计划';
+      notifyListeners();
+      return;
+    }
+    _homework = result.plans;
+    if (result.skipped > 0) {
+      hint = '部分提醒时间不明确或已过期，未排程，请进入对应页面核对';
+      notifyListeners();
     }
   }
 

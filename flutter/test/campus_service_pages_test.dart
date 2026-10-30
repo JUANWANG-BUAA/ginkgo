@@ -19,6 +19,7 @@ import 'package:ginkgo_mirror/application/local_tasks_read.dart';
 import 'local_tasks_read_fixture.dart';
 
 import 'mirror_widget_test.dart' show ControlledService, checkInFixture;
+import 'platform_actions_fake.dart';
 
 /// One pending read per page. Nothing here reaches native bindings, demo
 /// initialization or a school network.
@@ -361,7 +362,7 @@ void main() {
       final service = PendingPageService();
       await tester.pumpWidget(
         ginkgoApp(
-          home: TasksPage(service: service, storageRoot: '/synthetic'),
+          home: TasksPage(fileActions: platformActions,service: service, storageRoot: '/synthetic'),
         ),
       );
       expectBrandedLoading(tester, '正在读取待办…');

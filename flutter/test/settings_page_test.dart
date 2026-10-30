@@ -7,6 +7,7 @@ import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/features/settings/settings_page.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
+import 'platform_actions_fake.dart';
 
 class PendingClearService extends ControlledService {
   final pending = Completer<bool>();
@@ -25,7 +26,7 @@ void main() {
       final service = PendingClearService();
       await tester.pumpWidget(
         ginkgoApp(
-          home: SettingsPage(service: service, onSignOut: () async {}),
+          home: SettingsPage(maintenance: platformActions.maintenance,service: service, onSignOut: () async {}),
         ),
       );
       await tester.pumpAndSettle();

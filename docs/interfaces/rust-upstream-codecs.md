@@ -197,8 +197,8 @@
 
 - `pub fn encrypt(value: &Value, day: &str) -> Result<String, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/codecs/library_mutation.rs:11</sub>
-- `pub fn parse_result(value: &Value) -> MutationOutcome {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/library_mutation.rs:34</sub>
+- `pub fn parse_result(value: &Value) -> MutationOutcome {…}` — Classify one library write answer.
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/library_mutation.rs:79</sub>
 
 ## library_stats
 

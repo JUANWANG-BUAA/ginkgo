@@ -11,6 +11,7 @@ import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 import 'package:ginkgo_mirror/application/homework_files.dart';
@@ -20,12 +21,16 @@ class HomeworkDetailPage extends StatefulWidget {
   const HomeworkDetailPage({
     super.key,
     required this.item,
+    required this.fileActions,
     required this.service,
     this.taskService,
     this.storageRoot,
     this.openTaskOnLinked = true,
   });
   final HomeworkItem item;
+
+  /// The platform actions bound by the composition root.
+  final PlatformActions fileActions;
   final AcademicGateway service;
   final LocalTaskGateway? taskService;
   final String? storageRoot;
@@ -315,13 +320,17 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
               widget.item.statusDetail != null)
             AppleSection(children: [_field('上游状态', widget.item.statusDetail!)]),
           if (widget.service case final HomeworkFilesGateway files)
-            HomeworkFilesPanel(
-              assignmentId: widget.item.id,
-              title: widget.item.title,
-              course: widget.item.courseName,
-              gateway: files,
-              onSubmitted: () => load(force: true),
-            ),
+            if (widget.fileActions.homeworkFilePicker != null &&
+                widget.fileActions.homeworkFileSave != null)
+              HomeworkFilesPanel(
+                assignmentId: widget.item.id,
+                title: widget.item.title,
+                course: widget.item.courseName,
+                gateway: files,
+                onSubmitted: () => load(force: true),
+                pickFile: widget.fileActions.homeworkFilePicker!,
+                saveFile: widget.fileActions.homeworkFileSave!,
+              ),
           AppleSection(
             footer: const Text('不支持的提交类型及结果未知时，请在 SPOC 官网核对。'),
             children: [

@@ -1,0 +1,133 @@
+{
+  "contract": "rules.reminders",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "nowMillis": 1792972200000,
+    "cases": [
+      {
+        "checkin": [
+          {
+            "id": "a",
+            "date": "2026-10-26",
+            "beginsAt": "08:00",
+            "endsAt": "09:00",
+            "notSigned": true,
+            "conflicting": false,
+            "mergedRecordCount": 1
+          }
+        ],
+        "homework": []
+      },
+      {
+        "checkin": [
+          {
+            "id": "b",
+            "date": "2026-10-26",
+            "beginsAt": "08:00",
+            "endsAt": "09:00",
+            "notSigned": false,
+            "conflicting": false,
+            "mergedRecordCount": 1
+          },
+          {
+            "id": "c",
+            "date": "2026-10-26",
+            "beginsAt": "08:00",
+            "endsAt": "09:00",
+            "notSigned": true,
+            "conflicting": true,
+            "mergedRecordCount": 1
+          }
+        ],
+        "homework": []
+      },
+      {
+        "checkin": [],
+        "homework": [
+          {
+            "id": "h",
+            "dueAt": "2026-10-30T08:00:00+08:00",
+            "pending": true
+          }
+        ]
+      },
+      {
+        "checkin": [],
+        "homework": [
+          {
+            "id": "h2",
+            "dueAt": "2026-10-27T06:00:00+08:00",
+            "pending": true
+          }
+        ]
+      },
+      {
+        "checkin": [],
+        "homework": [
+          {
+            "id": "h3",
+            "dueAt": "2026-10-30T08:00:00+08:00",
+            "pending": false
+          },
+          {
+            "id": "h4",
+            "dueAt": "not-a-date",
+            "pending": true
+          }
+        ]
+      }
+    ]
+  },
+  "expected": {
+    "results": [
+      {
+        "plans": [
+          {
+            "key": "checkin:2026-10-26:1:a:1792972800000",
+            "group": "checkin",
+            "atMillis": 1792972200000,
+            "expiresMillis": 1792976400000
+          }
+        ],
+        "skipped": 0
+      },
+      {
+        "plans": [],
+        "skipped": 2
+      },
+      {
+        "plans": [
+          {
+            "key": "homework:1:h:1793318400000:48",
+            "group": "homework",
+            "atMillis": 1793145600000,
+            "expiresMillis": 1793318400000
+          },
+          {
+            "key": "homework:1:h:1793318400000:24",
+            "group": "homework",
+            "atMillis": 1793232000000,
+            "expiresMillis": 1793318400000
+          }
+        ],
+        "skipped": 0
+      },
+      {
+        "plans": [
+          {
+            "key": "homework:2:h2:1793052000000:24",
+            "group": "homework",
+            "atMillis": 1792965600000,
+            "expiresMillis": 1793052000000
+          }
+        ],
+        "skipped": 0
+      },
+      {
+        "plans": [],
+        "skipped": 2
+      }
+    ]
+  }
+}

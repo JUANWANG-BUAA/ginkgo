@@ -6,7 +6,7 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/features/settings/maintenance_pages.dart';
-import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
+import 'package:ginkgo_mirror/application/maintenance.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/platform/startup_update.dart';
 import 'package:ginkgo_mirror/platform/update_gate.dart';

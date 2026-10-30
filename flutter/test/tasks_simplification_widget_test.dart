@@ -13,6 +13,7 @@ import 'local_tasks_read_fixture.dart';
 
 import 'task_link_widget_test.dart' show TaskFake, record, press, phone;
 import 'task_visual_test.dart' show visualApp, narrowPhone, expectTouchTarget;
+import 'platform_actions_fake.dart';
 
 void main() {
   testWidgets('task storage location is supplied by the composition scope', (
@@ -24,7 +25,7 @@ void main() {
       ginkgoApp(
         home: TaskStorageScope(
           resolve: () async => '/injected/tasks',
-          child: TasksPage(service: fake),
+          child: TasksPage(fileActions: platformActions,service: fake),
         ),
       ),
     );
@@ -42,7 +43,7 @@ void main() {
         ginkgoApp(
           home: TaskStorageScope(
             resolve: () async => throw StateError('storage unavailable'),
-            child: TasksPage(service: fake),
+            child: TasksPage(fileActions: platformActions,service: fake),
           ),
         ),
       );
@@ -64,7 +65,7 @@ void main() {
       ]);
     await tester.pumpWidget(
       ginkgoApp(
-        home: TasksPage(service: fake, storageRoot: '/synthetic'),
+        home: TasksPage(fileActions: platformActions,service: fake, storageRoot: '/synthetic'),
       ),
     );
     await tester.pumpAndSettle();
@@ -92,7 +93,7 @@ void main() {
       final fake = TaskFake()..rows.add(record('one', title: '合成待办'));
       await tester.pumpWidget(
         ginkgoApp(
-          home: TasksPage(service: fake, storageRoot: '/synthetic'),
+          home: TasksPage(fileActions: platformActions,service: fake, storageRoot: '/synthetic'),
         ),
       );
       await tester.pumpAndSettle();
@@ -136,7 +137,7 @@ void main() {
       final fake = TaskFake()..rows.add(record('one'));
       await tester.pumpWidget(
         ginkgoApp(
-          home: TasksPage(service: fake, storageRoot: '/synthetic'),
+          home: TasksPage(fileActions: platformActions,service: fake, storageRoot: '/synthetic'),
         ),
       );
       await tester.pumpAndSettle();
@@ -183,7 +184,7 @@ void main() {
       ginkgoApp(
         home: ValueListenableBuilder<TaskFake>(
           valueListenable: current,
-          builder: (_, gateway, _) => TasksPage(
+          builder: (_, gateway, _) => TasksPage(fileActions: platformActions,
             service: gateway,
             storageRoot: gateway == old ? '/old' : '/next',
           ),
@@ -217,7 +218,7 @@ void main() {
                   builder: (_) => MediaQuery(
                     data: MediaQuery.of(context)
                         .copyWith(textScaler: const TextScaler.linear(2)),
-                    child: TasksPage(
+                    child: TasksPage(fileActions: platformActions,
                       service: fake,
                       storageRoot: '/synthetic',
                       initialTaskId: 'target',
@@ -292,7 +293,7 @@ void main() {
             record('target', title: '已完成的长标题定位目标', completed: true),
           ]);
         Widget page(String? id) => visualApp(
-          TasksPage(
+          TasksPage(fileActions: platformActions,
             service: fake,
             storageRoot: '/synthetic',
             initialTaskId: id,

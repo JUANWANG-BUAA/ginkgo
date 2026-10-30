@@ -7,6 +7,7 @@ import 'api/live.dart';
 import 'api/live/auth_challenge.dart';
 import 'api/mirror.dart';
 import 'api/reminder_planning.dart';
+import 'api/rules.dart';
 
 import 'dart:async';
 import 'dart:convert';
@@ -307,6 +308,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CheckInCourse dco_decode_check_in_course(dynamic raw);
 
   @protected
+  CheckInReminderSeed dco_decode_check_in_reminder_seed(dynamic raw);
+
+  @protected
   CheckInResponse dco_decode_check_in_response(dynamic raw);
 
   @protected
@@ -447,6 +451,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  HomeworkDeadlineStatus dco_decode_homework_deadline_status(dynamic raw);
+
+  @protected
   HomeworkDetailResponse dco_decode_homework_detail_response(dynamic raw);
 
   @protected
@@ -472,6 +479,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   HomeworkRecoveryResponse dco_decode_homework_recovery_response(dynamic raw);
+
+  @protected
+  HomeworkReminderSeed dco_decode_homework_reminder_seed(dynamic raw);
 
   @protected
   HomeworkResponse dco_decode_homework_response(dynamic raw);
@@ -635,6 +645,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<CheckInCourse> dco_decode_list_check_in_course(dynamic raw);
 
   @protected
+  List<CheckInReminderSeed> dco_decode_list_check_in_reminder_seed(dynamic raw);
+
+  @protected
   List<ClassroomBuilding> dco_decode_list_classroom_building(dynamic raw);
 
   @protected
@@ -688,6 +701,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   List<HomeworkPendingSubmissionDto>
   dco_decode_list_homework_pending_submission_dto(dynamic raw);
+
+  @protected
+  List<HomeworkReminderSeed> dco_decode_list_homework_reminder_seed(
+    dynamic raw,
+  );
 
   @protected
   List<LearningAttachmentDto> dco_decode_list_learning_attachment_dto(
@@ -1443,6 +1461,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CheckInCourse sse_decode_check_in_course(SseDeserializer deserializer);
 
   @protected
+  CheckInReminderSeed sse_decode_check_in_reminder_seed(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CheckInResponse sse_decode_check_in_response(SseDeserializer deserializer);
 
   @protected
@@ -1615,6 +1638,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  HomeworkDeadlineStatus sse_decode_homework_deadline_status(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   HomeworkDetailResponse sse_decode_homework_detail_response(
     SseDeserializer deserializer,
   );
@@ -1644,6 +1672,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   HomeworkRecoveryResponse sse_decode_homework_recovery_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  HomeworkReminderSeed sse_decode_homework_reminder_seed(
     SseDeserializer deserializer,
   );
 
@@ -1873,6 +1906,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<CheckInReminderSeed> sse_decode_list_check_in_reminder_seed(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<ClassroomBuilding> sse_decode_list_classroom_building(
     SseDeserializer deserializer,
   );
@@ -1944,6 +1982,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   List<HomeworkPendingSubmissionDto>
   sse_decode_list_homework_pending_submission_dto(SseDeserializer deserializer);
+
+  @protected
+  List<HomeworkReminderSeed> sse_decode_list_homework_reminder_seed(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<LearningAttachmentDto> sse_decode_list_learning_attachment_dto(
@@ -2903,6 +2946,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_check_in_course(CheckInCourse self, SseSerializer serializer);
 
   @protected
+  void sse_encode_check_in_reminder_seed(
+    CheckInReminderSeed self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_check_in_response(
     CheckInResponse self,
     SseSerializer serializer,
@@ -3119,6 +3168,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_homework_deadline_status(
+    HomeworkDeadlineStatus self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_homework_detail_response(
     HomeworkDetailResponse self,
     SseSerializer serializer,
@@ -3154,6 +3209,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_homework_recovery_response(
     HomeworkRecoveryResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_homework_reminder_seed(
+    HomeworkReminderSeed self,
     SseSerializer serializer,
   );
 
@@ -3443,6 +3504,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_check_in_reminder_seed(
+    List<CheckInReminderSeed> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_classroom_building(
     List<ClassroomBuilding> self,
     SseSerializer serializer,
@@ -3529,6 +3596,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_homework_pending_submission_dto(
     List<HomeworkPendingSubmissionDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_homework_reminder_seed(
+    List<HomeworkReminderSeed> self,
     SseSerializer serializer,
   );
 

@@ -1,5 +1,7 @@
 //! Pure local planning command, independent from session/network initialization.
-use ginkgo_core::features::reminders::{self, CourseReminderInput, TaskReminderInput};
+use ginkgo_core::features::reminders::{
+    self, CheckInReminderInput, CourseReminderInput, HomeworkReminderInput, TaskReminderInput,
+};
 
 pub struct CourseReminderSeed {
     pub id: String,
@@ -62,6 +64,77 @@ pub fn plan_course_task_reminders(
         })
         .collect::<Vec<_>>();
     let result = reminders::plan_local_reminders(&courses, &tasks, now_millis);
+    ReminderPlanResponse {
+        plans: result
+            .plans
+            .into_iter()
+            .map(|v| PlannedReminder {
+                key: v.key,
+                group: v.group,
+                at_millis: v.at_millis,
+                expires_millis: v.expires_millis,
+            })
+            .collect(),
+        skipped: result.skipped,
+        unsupported: false,
+    }
+}
+
+pub struct CheckInReminderSeed {
+    pub id: String,
+    pub date: String,
+    pub begins_at: String,
+    pub ends_at: String,
+    pub not_signed: bool,
+    pub conflicting: bool,
+    pub sign_in_allowed: Option<bool>,
+    pub merged_record_count: u32,
+}
+
+pub struct HomeworkReminderSeed {
+    pub id: String,
+    pub due_at: String,
+    pub pending: bool,
+}
+
+/// Data-only plans for check-in and assignment deadlines. The rule lives in the
+/// domain; this command only moves the inputs across the bridge.
+#[flutter_rust_bridge::frb(sync)]
+pub fn plan_checkin_homework_reminders(
+    checkin: Vec<CheckInReminderSeed>,
+    homework: Vec<HomeworkReminderSeed>,
+    now_millis: i64,
+) -> ReminderPlanResponse {
+    // Bound FFI processing. Oversized requests fail closed rather than truncate unnoticed.
+    if checkin.len() > 500 || homework.len() > 2000 {
+        return ReminderPlanResponse {
+            plans: vec![],
+            skipped: 0,
+            unsupported: true,
+        };
+    }
+    let checkin = checkin
+        .into_iter()
+        .map(|v| CheckInReminderInput {
+            id: v.id,
+            date: v.date,
+            begins_at: v.begins_at,
+            ends_at: v.ends_at,
+            not_signed: v.not_signed,
+            conflicting: v.conflicting,
+            sign_in_allowed: v.sign_in_allowed,
+            merged_record_count: v.merged_record_count as usize,
+        })
+        .collect::<Vec<_>>();
+    let homework = homework
+        .into_iter()
+        .map(|v| HomeworkReminderInput {
+            id: v.id,
+            due_at: v.due_at,
+            pending: v.pending,
+        })
+        .collect::<Vec<_>>();
+    let result = reminders::plan_checkin_homework_reminders(&checkin, &homework, now_millis);
     ReminderPlanResponse {
         plans: result
             .plans

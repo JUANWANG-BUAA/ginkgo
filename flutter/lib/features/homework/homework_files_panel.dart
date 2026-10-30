@@ -2,8 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/file_actions.dart';
 import 'package:ginkgo_mirror/application/homework_files.dart';
-import 'package:ginkgo_mirror/infrastructure/homework_file_io.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
@@ -17,14 +17,14 @@ class HomeworkFilesPanel extends StatefulWidget {
     required this.course,
     required this.gateway,
     this.onSubmitted,
-    this.pickFile = pickHomeworkFile,
-    this.saveFile,
+    required this.pickFile,
+    required this.saveFile,
   });
   final String assignmentId, title, course;
   final HomeworkFilesGateway gateway;
   final VoidCallback? onSubmitted;
   final HomeworkFilePicker pickFile;
-  final HomeworkFileSaver? saveFile;
+  final HomeworkFileSave saveFile;
   @override
   State<HomeworkFilesPanel> createState() => _HomeworkFilesPanelState();
 }
@@ -314,24 +314,19 @@ class _HomeworkFilesPanelState extends State<HomeworkFilesPanel> {
     try {
       final file = await gateway.downloadHomeworkFile(id, attachment.id);
       if (!current(e)) return;
-      final customSaver = widget.saveFile;
-      if (customSaver != null) {
-        await customSaver(file);
-      } else {
-        final result = await saveAndOpenSchoolFile(
-          file,
-          isCurrent: () => current(e),
-        );
-        if (!current(e)) return;
-        setState(() {
-          savedFile = result.status == FileSaveStatus.saved ? result : null;
-          message = switch (result.status) {
-            FileSaveStatus.saved => '文件已保存',
-            FileSaveStatus.cancelled => '已取消保存',
-            FileSaveStatus.stale => '页面已变化，已停止保存',
-          };
-        });
-      }
+      final result = await widget.saveFile(
+        file,
+        isCurrent: () => current(e),
+      );
+      if (!current(e)) return;
+      setState(() {
+        savedFile = result.status == FileSaveStatus.saved ? result : null;
+        message = switch (result.status) {
+          FileSaveStatus.saved => '文件已保存',
+          FileSaveStatus.cancelled => '已取消保存',
+          FileSaveStatus.stale => '页面已变化，已停止保存',
+        };
+      });
     } catch (_) {
       if (current(e)) setState(() => message = '附件保存失败，请在官网查看');
     } finally {

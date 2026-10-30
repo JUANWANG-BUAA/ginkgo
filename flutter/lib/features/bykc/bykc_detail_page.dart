@@ -23,12 +23,14 @@ class BykcDetailPage extends StatelessWidget {
       ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 5),
-        child: Text(
+        child: SafeArea(
+          child: Text(
           value,
           style: TextStyle(
             fontSize: AppleDesign.bodyCondensedSize,
             color: CupertinoColors.label.resolveFrom(context),
           ),
+        )
         ),
       ),
     );

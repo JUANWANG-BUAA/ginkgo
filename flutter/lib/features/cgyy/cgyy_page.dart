@@ -107,7 +107,8 @@ class _CgyyPageState extends State<CgyyPage> {
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
       context,
     ),
-    child: CustomScrollView(
+    child: SafeArea(
+      child: CustomScrollView(
       key: const Key('cgyy-scroll'),
       slivers: [
         ApplePageHeader(
@@ -198,6 +199,7 @@ class _CgyyPageState extends State<CgyyPage> {
           ],
         ),
       ],
+    )
     ),
   );
 }

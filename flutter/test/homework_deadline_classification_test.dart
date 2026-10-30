@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/school_rules.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/features/homework/homework_page.dart';
@@ -9,6 +10,7 @@ import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/features/today/today_homework_section.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
+import 'platform_actions_fake.dart';
 
 class FakeAcademicGateway extends ControlledService {
   FakeAcademicGateway(this.response);
@@ -316,7 +318,7 @@ void main() {
 
         await tester.pumpWidget(
           ginkgoApp(
-            home: HomeworkPage(service: gateway, now: beijingNow),
+            home: HomeworkPage(fileActions: platformActions,service: gateway, now: beijingNow),
           ),
         );
         await tester.pumpAndSettle();
@@ -398,7 +400,7 @@ void main() {
       );
       await tester.pumpWidget(
         ginkgoApp(
-          home: HomeworkPage(service: gateway, now: beijingNow),
+          home: HomeworkPage(fileActions: platformActions,service: gateway, now: beijingNow),
         ),
       );
       await tester.pumpAndSettle();

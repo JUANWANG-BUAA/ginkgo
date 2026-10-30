@@ -8,6 +8,7 @@ import 'package:ginkgo_mirror/workspace/service_search_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
+import 'platform_actions_fake.dart';
 
 class SearchService extends ControlledService
     implements StudentServiceLinksGateway {
@@ -80,7 +81,7 @@ void main() {
           home: CupertinoPageScaffold(
             child: ListView(
               children: [
-                ServiceDirectory(
+                ServiceDirectory(platformActions: platformActions,
                   service: service,
                   destinations: workspaceDestinations,
                   onSignOut: () async {},

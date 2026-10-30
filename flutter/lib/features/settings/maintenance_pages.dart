@@ -4,7 +4,7 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/widgets/release_notes_view.dart';
-import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
+import 'package:ginkgo_mirror/application/maintenance.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/platform/android_update_controller.dart';
 import 'package:ginkgo_mirror/platform/update_download_section.dart';
@@ -36,20 +36,22 @@ class MaintenanceScaffold extends StatelessWidget {
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
       context,
     ),
-    child: CustomScrollView(
-      key: ValueKey('maintenance-$title'),
-      slivers: [
-        ApplePageHeader(
-          largeTitle: Text(title),
-          border: null,
-          section: section,
-          subtitle: subtitle,
-          icon: icon,
-        ),
-        if (onRefresh != null)
-          CupertinoSliverRefreshControl(onRefresh: onRefresh),
-        SliverList.list(children: [...children, const SizedBox(height: 96)]),
-      ],
+    child: SafeArea(
+      child: CustomScrollView(
+        key: ValueKey('maintenance-$title'),
+        slivers: [
+          ApplePageHeader(
+            largeTitle: Text(title),
+            border: null,
+            section: section,
+            subtitle: subtitle,
+            icon: icon,
+          ),
+          if (onRefresh != null)
+            CupertinoSliverRefreshControl(onRefresh: onRefresh),
+          SliverList.list(children: [...children, const SizedBox(height: 96)]),
+        ],
+      ),
     ),
   );
 }
@@ -264,7 +266,7 @@ class _DiagnosticsPageState extends State<DiagnosticsPage> {
       widget.service.checkBridge,
       widget.service.checkStorage,
       widget.service.checkVault,
-      () => checkPublicService(widget.mirror),
+      () => widget.service.checkPublicService(widget.mirror),
     ];
     for (var i = 0; i < checks.length; i++) {
       if (!mounted) return;

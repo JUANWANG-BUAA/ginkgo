@@ -5,6 +5,7 @@ import 'package:ginkgo_mirror/features/today/today_page.dart';
 
 import 'today_v2_widget_test.dart'
     show TodayFake, oneHomework, task, tasksPayload;
+import 'platform_actions_fake.dart';
 
 class CompactService extends TodayFake {
   @override
@@ -33,7 +34,7 @@ void main() {
       ..local = tasksPayload([task('one')]);
     var settings = 0;
     Widget host(String account) => CupertinoApp(
-      home: TodayPage(
+      home: TodayPage(fileActions: platformActions,
         service: service,
         accountId: account,
         storageRoot: '/synthetic/tasks',

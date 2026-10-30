@@ -5,6 +5,7 @@ import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
+import 'platform_actions_fake.dart';
 
 class CourseRoleService extends ControlledService {
   @override
@@ -49,7 +50,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
-        ginkgoApp(home: HomeworkPage(service: CourseRoleService())),
+        ginkgoApp(home: HomeworkPage(fileActions: platformActions,service: CourseRoleService())),
       );
       await tester.pumpAndSettle();
       final summary = find.byKey(const ValueKey('homework-summary-待完成'));

@@ -181,7 +181,8 @@ class _LibrarySeatPageState extends State<LibrarySeatPage> {
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
       context,
     ),
-    child: LongPageScroll(
+    child: SafeArea(
+      child: LongPageScroll(
       controller: scrollController,
       child: CustomScrollView(
         controller: scrollController,
@@ -328,6 +329,7 @@ class _LibrarySeatPageState extends State<LibrarySeatPage> {
           const SliverToBoxAdapter(child: SizedBox(height: 96)),
         ],
       ),
+    )
     ),
   );
 

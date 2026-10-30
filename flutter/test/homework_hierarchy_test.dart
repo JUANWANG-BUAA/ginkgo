@@ -6,6 +6,7 @@ import 'package:ginkgo_mirror/src/rust/api/live.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
+import 'platform_actions_fake.dart';
 
 class HomeworkHierarchyService extends ControlledService {
   int listCalls = 0;
@@ -57,7 +58,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       final service = HomeworkHierarchyService();
-      await tester.pumpWidget(ginkgoApp(home: HomeworkPage(service: service)));
+      await tester.pumpWidget(ginkgoApp(home: HomeworkPage(fileActions: platformActions,service: service)));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('homework-spoc:0')), findsOneWidget);
       expect(find.byKey(const Key('homework-spoc:499')), findsNothing);
@@ -117,7 +118,7 @@ void main() {
               textScaler: TextScaler.linear(1.8),
               disableAnimations: true,
             ),
-            child: HomeworkPage(service: HomeworkHierarchyService()),
+            child: HomeworkPage(fileActions: platformActions,service: HomeworkHierarchyService()),
           ),
         ),
       );

@@ -5,8 +5,9 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/local_tasks.dart';
 import 'package:ginkgo_mirror/application/reminder_planning.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
-import 'package:ginkgo_mirror/shared/reminder_rules.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
+
+import 'reminder_planner_fake.dart';
 
 class RecordingPlatform implements ReminderPlatform {
   List<Map<String, Object>> plans = [];
@@ -23,23 +24,6 @@ class RecordingPlatform implements ReminderPlatform {
     final pending = gate;
     if (pending != null) await pending.future;
     inFlight--;
-  }
-}
-
-class Planner implements ReminderPlanningGateway {
-  List<CourseReminderSeed> courses = [];
-  List<TaskReminderSeed> tasks = [];
-  ExtendedReminderPlans result = ExtendedReminderPlans(plans: []);
-  Completer<ExtendedReminderPlans>? pending;
-  @override
-  Future<ExtendedReminderPlans> planReminders({
-    required List<CourseReminderSeed> courses,
-    required List<TaskReminderSeed> tasks,
-    required int nowMillis,
-  }) async {
-    this.courses = courses;
-    this.tasks = tasks;
-    return pending?.future ?? result;
   }
 }
 

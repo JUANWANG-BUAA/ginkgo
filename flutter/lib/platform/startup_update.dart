@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 import 'package:ginkgo_mirror/features/settings/maintenance_pages.dart';
-import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
+import 'package:ginkgo_mirror/application/maintenance.dart';
 
 /// One best-effort check per root lifetime. No timers, downloads or installation.
 class StartupUpdateController extends ChangeNotifier {

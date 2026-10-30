@@ -10,6 +10,7 @@ import 'package:ginkgo_mirror/features/today/today_course_focus.dart';
 import 'mirror_widget_test.dart'
     show ControlledService, mockLocalTaskSupportDirectory;
 import 'session_widget_test.dart' show FakeService, signedOut;
+import 'platform_actions_fake.dart';
 
 class WorkspaceService extends ControlledService {
   int scheduleReads = 0;
@@ -302,7 +303,7 @@ void main() {
                 textScaler: const TextScaler.linear(1.8),
                 disableAnimations: true,
               ),
-              child: TodayPage(service: service),
+              child: TodayPage(fileActions: platformActions,service: service),
             ),
           ),
         ),

@@ -5,7 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/features/settings/maintenance_pages.dart';
-import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
+import 'package:ginkgo_mirror/application/maintenance.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
 
@@ -14,6 +15,8 @@ class TestMaintenance implements MaintenanceService {
   Completer<UpdateResult>? pending;
   @override
   bool get supportsUpdates => true;
+  @override
+  Future<bool> checkPublicService(MirrorService service) async => false;
   @override
   Future<InstalledVersion> version() async =>
       const InstalledVersion('0.1.0-alpha.1', '2');

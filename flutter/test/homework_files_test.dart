@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/features/homework/homework_files_panel.dart';
 import 'package:ginkgo_mirror/application/homework_files.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/file_actions.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_homework_files.dart';
 
 class Files extends DemoHomeworkFiles {
@@ -68,7 +69,7 @@ class Files extends DemoHomeworkFiles {
 Widget panel(
   Files files, {
   Future<XFile?> Function()? picker,
-  Future<void> Function(HomeworkFileDownload)? saver,
+  HomeworkFileSave? saver,
   String assignmentId = 'fixture',
 }) => CupertinoApp(
   home: CupertinoPageScaffold(
@@ -83,7 +84,10 @@ Widget panel(
             () => Future.value(
               XFile.fromData(Uint8List.fromList([0, 255]), path: 'answer.pdf'),
             ),
-        saveFile: saver ?? (_) => Future.value(),
+        saveFile:
+            saver ??
+            (file, {required bool Function() isCurrent, bool openAfterSave = false}) async =>
+                const FileSaveResult.saved(),
       ),
     ),
   ),
@@ -174,8 +178,9 @@ void main() {
     await tester.pumpWidget(
       panel(
         files,
-        saver: (file) async {
+        saver: (file, {required bool Function() isCurrent, bool openAfterSave = false}) async {
           saved = file;
+          return const FileSaveResult.saved();
         },
       ),
     );

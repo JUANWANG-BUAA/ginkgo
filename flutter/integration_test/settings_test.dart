@@ -32,7 +32,7 @@ void main() {
                   textScaler: TextScaler.linear(appearance.$2),
                   disableAnimations: appearance.$2 > 1,
                 ),
-                child: SettingsPage(
+                child: SettingsPage(maintenance: platformActions.maintenance,
                   key: UniqueKey(),
                   service: const DemoMirrorService(),
                   onSignOut: () async {},

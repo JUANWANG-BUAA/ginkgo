@@ -8,6 +8,7 @@ import 'package:ginkgo_mirror/application/task_storage_scope.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/shared/course_visibility.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
@@ -25,6 +26,7 @@ class TodayPage extends StatefulWidget {
   const TodayPage({
     super.key,
     required this.service,
+    required this.fileActions,
     this.accountName,
     this.accountId,
     this.storageRoot,
@@ -36,6 +38,9 @@ class TodayPage extends StatefulWidget {
     this.shortcutChoices = const [],
   });
   final MirrorService service;
+
+  /// The platform actions bound by the composition root.
+  final PlatformActions fileActions;
   final List<WorkspaceShortcut> shortcutChoices;
   final Widget? directory;
   final ValueChanged<String>? onOpenFeature;
@@ -219,6 +224,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     return navigator.openTasks(
       context,
       service: widget.service,
+      fileActions: widget.fileActions,
       storageRoot: widget.storageRoot,
       taskId: id,
       isCurrent: () => mounted && generation == _generation,
@@ -235,6 +241,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     return navigator.openHomework(
       context,
       service: widget.service,
+      fileActions: widget.fileActions,
       storageRoot: widget.storageRoot,
       item: item,
       isCurrent: () => mounted && generation == _generation,
@@ -260,7 +267,8 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) => PageRefreshShortcut(
     onRefresh: busy ? null : () => load(force: true),
-    child: CupertinoPageScaffold(
+    child: SafeArea(
+      child: CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
         context,
       ),
@@ -353,6 +361,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
           ),
         ],
       ),
+    )
     ),
   );
 

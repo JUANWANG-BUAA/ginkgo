@@ -92,7 +92,8 @@ class _LibrarySlotPageState extends State<LibrarySlotPage> {
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
       context,
     ),
-    child: CustomScrollView(
+    child: SafeArea(
+      child: CustomScrollView(
       key: const Key('library-slots-scroll'),
       slivers: [
         AppleRefreshPageHeader(
@@ -157,6 +158,7 @@ class _LibrarySlotPageState extends State<LibrarySlotPage> {
           ],
         ),
       ],
+    )
     ),
   );
 }

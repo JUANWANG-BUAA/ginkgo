@@ -25,7 +25,8 @@ class _RulesPageState extends State<RulesPage> {
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
       context,
     ),
-    child: CustomScrollView(
+    child: SafeArea(
+      child: CustomScrollView(
       key: const Key('rules-scroll'),
       slivers: [
         const ApplePageHeader(
@@ -107,6 +108,7 @@ class _RulesPageState extends State<RulesPage> {
           },
         ),
       ],
+    )
     ),
   );
 }

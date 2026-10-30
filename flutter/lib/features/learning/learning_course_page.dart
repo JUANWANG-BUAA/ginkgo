@@ -7,7 +7,6 @@ import 'package:ginkgo_mirror/application/learning_context.dart';
 import 'package:ginkgo_mirror/application/learning_file_actions.dart';
 import 'package:ginkgo_mirror/application/learning_ports.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
-import 'package:ginkgo_mirror/infrastructure/learning_file_actions.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
 import 'learning_announcement_page.dart';
@@ -22,7 +21,7 @@ class LearningCoursePage extends StatefulWidget {
     required this.course,
     required this.service,
     this.accountId,
-    this.saveFile = saveLearningFile,
+    required this.saveFile,
     this.isOwnerCurrent,
   });
   final LearningCourse course;

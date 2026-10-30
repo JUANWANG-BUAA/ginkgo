@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart' show RouteChoice;
 import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/application/service_capabilities.dart';
 
 enum WorkspaceSection {
@@ -18,6 +19,7 @@ enum WorkspaceSection {
 class WorkspaceContext {
   WorkspaceContext({
     required this.service,
+    required this.platformActions,
     required this.mobile,
     required this.openFeature,
     required this.openSettings,
@@ -28,6 +30,10 @@ class WorkspaceContext {
   }) : capabilities = ServiceCapabilities.resolve(service);
 
   final MirrorService service;
+
+  /// The platform actions the pages may use, bound once by the composition
+  /// root. A page never names an adapter itself.
+  final PlatformActions platformActions;
   final ServiceCapabilities capabilities;
   final bool mobile;
   final String? accountName;

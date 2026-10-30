@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import '../application/contracts.dart' show RouteChoice;
+import '../application/platform_actions.dart';
 import '../mirror_service.dart';
 
 import 'package:ginkgo_mirror/widgets/reminder_badge.dart';
@@ -18,6 +19,7 @@ class MobileWorkspaceShell extends StatefulWidget {
     super.key,
     required this.shell,
     required this.service,
+    required this.platformActions,
     this.accountName,
     this.accountId,
     this.route,
@@ -25,6 +27,7 @@ class MobileWorkspaceShell extends StatefulWidget {
   });
   final WorkspaceShellState shell;
   final MirrorService service;
+  final PlatformActions platformActions;
   final String? accountName;
   final String? accountId;
   final RouteChoice? route;
@@ -66,6 +69,7 @@ class _MobileWorkspaceShellState extends State<MobileWorkspaceShell> {
   WorkspaceContext _contextFor(BuildContext navigatorContext) =>
       WorkspaceContext(
         service: widget.service,
+        platformActions: widget.platformActions,
         mobile: true,
         accountName: widget.accountName,
         accountId: widget.accountId,

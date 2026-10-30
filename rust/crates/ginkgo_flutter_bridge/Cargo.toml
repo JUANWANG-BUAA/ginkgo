@@ -13,10 +13,11 @@ serde_json.workspace = true
 tokio = { version = "1", features = ["sync", "rt"] }
 flutter_rust_bridge = "=2.12.0"
 ginkgo_core = { path = "../ginkgo_core" }
+# The pure rule commands need the school wall clock, not the device timezone.
+chrono = { version = "0.4", default-features = false, features = ["std"] }
+chrono-tz = "0.10"
 
 [dev-dependencies]
-# Week dates are chrono values on the domain side; mapping tests build them.
-chrono = { version = "0.4", default-features = false, features = ["std"] }
 tokio = { version = "1", features = ["macros", "rt", "sync", "time", "test-util"] }
 
 [lints.rust]

@@ -1,23 +1,13 @@
 import 'package:flutter/cupertino.dart';
 
+import 'package:ginkgo_mirror/application/school_rules.dart';
+
 import 'package:ginkgo_mirror/design/apple_design.dart';
 export 'package:ginkgo_mirror/shared/homework_visibility.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 
-enum HomeworkDeadlineStatus {
-  /// Clearly within deadline.
-  active,
 
-  /// Clearly past deadline (now >= deadline, or now >= next-day 00:00 for date-only).
-  overdue,
-
-  /// No deadline provided (null or empty string).
-  undated,
-
-  /// Malformed or unparseable deadline (e.g. invalid date 2026-02-30 or garbage string).
-  invalid,
-}
 
 /// Classify a homework deadline against Beijing wall clock time.
 ///
@@ -29,33 +19,10 @@ enum HomeworkDeadlineStatus {
 HomeworkDeadlineStatus classifyHomeworkDeadline(
   String? dueAt, [
   DateTime? beijingNow,
-]) {
-  final text = dueAt?.trim() ?? '';
-  if (text.isEmpty) return HomeworkDeadlineStatus.undated;
-
-  final now = beijingNow ?? todaySchoolNow(DateTime.now());
-
-  // 1. Strict YYYY-MM-DD date-only check
-  final dateOnly = todayDate(text);
-  if (dateOnly != null) {
-    // Upper exclusive bound is next day 00:00:00 in Beijing time.
-    final exclusiveUpperBound = dateOnly.add(const Duration(days: 1));
-    return now.isBefore(exclusiveUpperBound)
-        ? HomeworkDeadlineStatus.active
-        : HomeworkDeadlineStatus.overdue;
-  }
-
-  // 2. Timestamp with time (HH:mm or HH:mm:ss with optional offset)
-  final instant = parseSchoolTimestamp(text);
-  if (instant != null) {
-    // Exact deadline: overdue when now >= deadline.
-    return now.isBefore(instant)
-        ? HomeworkDeadlineStatus.active
-        : HomeworkDeadlineStatus.overdue;
-  }
-
-  return HomeworkDeadlineStatus.invalid;
-}
+]) => schoolRules.homeworkDeadline(
+  dueAt,
+  beijingNow ?? todaySchoolNow(DateTime.now()),
+);
 
 /// Helper to test if a deadline is strictly classified as overdue.
 bool isHomeworkOverdue(String? dueAt, [DateTime? beijingNow]) =>

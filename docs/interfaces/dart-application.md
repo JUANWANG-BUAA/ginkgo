@@ -18,6 +18,7 @@
 - [application/diagnostic_log.dart](#applicationdiagnosticlogdart) (2)
 - [application/environment.dart](#applicationenvironmentdart) (1)
 - [application/failure_message.dart](#applicationfailuremessagedart) (2)
+- [application/file_actions.dart](#applicationfileactionsdart) (5)
 - [application/graduate.dart](#applicationgraduatedart) (8)
 - [application/graduate_credit_map.dart](#applicationgraduatecreditmapdart) (9)
 - [application/homework_files.dart](#applicationhomeworkfilesdart) (7)
@@ -31,13 +32,16 @@
 - [application/library_loans.dart](#applicationlibraryloansdart) (5)
 - [application/library_stats.dart](#applicationlibrarystatsdart) (5)
 - [application/local_tasks.dart](#applicationlocaltasksdart) (7)
+- [application/maintenance.dart](#applicationmaintenancedart) (4)
 - [application/mirror_service.dart](#applicationmirrorservicedart) (17)
 - [application/notices.dart](#applicationnoticesdart) (2)
+- [application/platform_actions.dart](#applicationplatformactionsdart) (1)
 - [application/query_snapshots.dart](#applicationquerysnapshotsdart) (2)
 - [application/refresh_section.dart](#applicationrefreshsectiondart) (2)
-- [application/reminder_planning.dart](#applicationreminderplanningdart) (6)
+- [application/reminder_planning.dart](#applicationreminderplanningdart) (11)
 - [application/reminder_platform.dart](#applicationreminderplatformdart) (1)
 - [application/reminder_store.dart](#applicationreminderstoredart) (1)
+- [application/school_rules.dart](#applicationschoolrulesdart) (1)
 - [application/service_capabilities.dart](#applicationservicecapabilitiesdart) (1)
 - [application/shuttle.dart](#applicationshuttledart) (7)
 - [application/task_storage_scope.dart](#applicationtaskstoragescopedart) (2)
@@ -217,6 +221,22 @@
   <sub>function · application/failure_message.dart:5</sub>
 - `String failureAdvice({required bool hasStaleValue, FailureCode? failure}) {…}` — The advice line shown under a failed read.
   <sub>function · application/failure_message.dart:32</sub>
+
+## application/file_actions.dart
+
+- `typedef HomeworkFilePicker = Future<XFile?> Function();` — Local file actions the presentation layer needs. The composition root binds
+  <sub>typedef · application/file_actions.dart:9</sub>
+- `typedef HomeworkFileSave = Future<FileSaveResult> Function(` — Saves the file the user chose. The commit is the authorization point: a
+  <sub>typedef · application/file_actions.dart:13</sub>
+- `enum FileSaveStatus { saved, cancelled, stale }`
+  <sub>enum · application/file_actions.dart:19</sub>
+- `enum FileOpenStatus { opened, unsupported, unavailable, stale }`
+  <sub>enum · application/file_actions.dart:21</sub>
+- `class FileSaveResult` — Contains a local capability only, never a school URL, credential or raw URI.
+  <sub>class · application/file_actions.dart:24</sub>
+    - `final Future<FileOpenStatus> Function()? _opener;`  <sub>:36</sub>
+    - `bool get canOpen => …`  <sub>:37</sub>
+    - `Future<FileOpenStatus> open() async => …`  <sub>:38</sub>
 
 ## application/graduate.dart
 
@@ -467,6 +487,30 @@
 - `Future<List<LocalTaskRecord>> editLocalTasks( LocalTaskGateway service, { required String root, required String action, String? id, String? title, String? due, bool? completed, }) async {…}` — The only JSON decoding path shared by Today, Tasks and homework linking.
   <sub>function · application/local_tasks.dart:79</sub>
 
+## application/maintenance.dart
+
+- `class InstalledVersion` — The update and self-check capability the settings pages use.
+  <sub>class · application/maintenance.dart:7</sub>
+    - `const InstalledVersion(this.version, this.build);`  <sub>:8</sub>
+    - `String get label => …`  <sub>:10</sub>
+- `class AndroidDownload`
+  <sub>class · application/maintenance.dart:13</sub>
+    - `const AndroidDownload({ required this.version, required this.name, required this.url, required this.apiUrl, required this.size, required this.sha256, });`  <sub>:14</sub>
+    - `bool get isValid => …`  <sub>:24</sub>
+- `class UpdateResult`
+  <sub>class · application/maintenance.dart:38</sub>
+    - `const UpdateResult({ required this.latest, required this.available, required this.apkAvailable, this.pageUrl, this.notes, this.download, });`  <sub>:39</sub>
+    - `String get headline => …`  <sub>:50</sub>
+- `abstract interface class MaintenanceService`
+  <sub>class · application/maintenance.dart:59</sub>
+    - `Future<bool> checkPublicService(MirrorService service);` — Network check is deliberately separate from the local checks. A cached  <sub>:65</sub>
+    - `Future<InstalledVersion> version();`  <sub>:66</sub>
+    - `Future<UpdateResult> checkUpdate(String current);`  <sub>:67</sub>
+    - `Future<bool> openReleases(String? page);`  <sub>:68</sub>
+    - `Future<bool> checkBridge();`  <sub>:69</sub>
+    - `Future<bool> checkStorage();`  <sub>:70</sub>
+    - `Future<bool> checkVault();`  <sub>:71</sub>
+
 ## application/mirror_service.dart
 
 - `abstract interface class MirrorService` — Page-facing capabilities. Tests and alternative adapters need no native runtime.
@@ -551,6 +595,12 @@
   <sub>class · application/notices.dart:16</sub>
     - `const NoticesRead({this.data, this.failure});`  <sub>:17</sub>
 
+## application/platform_actions.dart
+
+- `class PlatformActions` — The platform actions the presentation layer needs.
+  <sub>class · application/platform_actions.dart:11</sub>
+    - `const PlatformActions({ this.learningFileSaver, this.homeworkFilePicker, this.homeworkFileSave, this.maintenance, });`  <sub>:12</sub>
+
 ## application/query_snapshots.dart
 
 - `class LearningSnapshotStatus`
@@ -575,21 +625,35 @@
 
 ## application/reminder_planning.dart
 
-- `abstract interface class ReminderPlanningGateway` — Typed, local-only business capability. No school payload or platform API.
+- `class ReminderPlan` — One scheduled reminder. The domain decides when a reminder is due; this
   <sub>class · application/reminder_planning.dart:6</sub>
-    - `Future<ExtendedReminderPlans> planReminders({ required List<CourseReminderSeed> courses, required List<TaskReminderSeed> tasks, required int nowMillis, });`  <sub>:7</sub>
+    - `const ReminderPlan({ required this.key, required this.group, required this.at, required this.expires, });`  <sub>:7</sub>
+- `abstract interface class ReminderPlanningGateway` — Typed, local-only business capability. No school payload or platform API.
+  <sub>class · application/reminder_planning.dart:18</sub>
+    - `Future<ExtendedReminderPlans> planReminders({ required List<CourseReminderSeed> courses, required List<TaskReminderSeed> tasks, required int nowMillis, });`  <sub>:19</sub>
+    - `ExtendedReminderPlans planCheckinHomeworkReminders({ required List<CheckInReminderSeed> checkin, required List<HomeworkReminderSeed> homework, required int nowMillis, });` — Plans the check-in and assignment reminders. The rule lives in the  <sub>:28</sub>
 - `class CourseReminderSeed`
-  <sub>class · application/reminder_planning.dart:14</sub>
-    - `const CourseReminderSeed({ required this.id, required this.weekStart, required this.day, required this.startsAt, required this.endsAt, });`  <sub>:15</sub>
+  <sub>class · application/reminder_planning.dart:35</sub>
+    - `const CourseReminderSeed({ required this.id, required this.weekStart, required this.day, required this.startsAt, required this.endsAt, });`  <sub>:36</sub>
 - `class TaskReminderSeed`
-  <sub>class · application/reminder_planning.dart:26</sub>
-    - `const TaskReminderSeed({ required this.id, required this.due, required this.completed, });`  <sub>:27</sub>
+  <sub>class · application/reminder_planning.dart:47</sub>
+    - `const TaskReminderSeed({ required this.id, required this.due, required this.completed, });`  <sub>:48</sub>
 - `class ExtendedReminderPlans`
-  <sub>class · application/reminder_planning.dart:36</sub>
+  <sub>class · application/reminder_planning.dart:57</sub>
 - `List<CourseReminderSeed> courseReminderSeeds(ScheduleResponse data) {…}`
-  <sub>function · application/reminder_planning.dart:47</sub>
+  <sub>function · application/reminder_planning.dart:68</sub>
 - `List<TaskReminderSeed> taskReminderSeeds(Iterable<LocalTaskRecord> data) => …`
-  <sub>function · application/reminder_planning.dart:63</sub>
+  <sub>function · application/reminder_planning.dart:84</sub>
+- `List<CheckInReminderSeed> checkinReminderSeeds( String date, Iterable<CheckInCourse> courses, ) => …` — The check-in sessions of one queried day. The domain decides which of them
+  <sub>function · application/reminder_planning.dart:91</sub>
+- `List<HomeworkReminderSeed> homeworkReminderSeeds( Iterable<HomeworkItem> items, ) => …` — The assignments whose deadline may still be pending.
+  <sub>function · application/reminder_planning.dart:109</sub>
+- `class CheckInReminderSeed` — A check-in session that may still need a reminder.
+  <sub>class · application/reminder_planning.dart:121</sub>
+    - `const CheckInReminderSeed({ required this.id, required this.date, required this.beginsAt, required this.endsAt, required this.notSigned, required this.conflicting, required this.mergedRecordCount, this.signInAllowed, });`  <sub>:122</sub>
+- `class HomeworkReminderSeed` — A school assignment that may still need a deadline reminder.
+  <sub>class · application/reminder_planning.dart:146</sub>
+    - `const HomeworkReminderSeed({ required this.id, required this.dueAt, required this.pending, });`  <sub>:147</sub>
 
 ## application/reminder_platform.dart
 
@@ -603,6 +667,13 @@
   <sub>class · application/reminder_store.dart:4</sub>
     - `Future<String?> read();`  <sub>:5</sub>
     - `Future<void> write(String data);`  <sub>:6</sub>
+
+## application/school_rules.dart
+
+- `abstract interface class SchoolRules` — The school rules the presentation layer needs. The domain owns them; a page
+  <sub>class · application/school_rules.dart:8</sub>
+    - `HomeworkDeadlineStatus homeworkDeadline(String? dueAt, DateTime now);` — Classify a school deadline against the Beijing wall clock.  <sub>:10</sub>
+    - `bool checkinWindowOpen( String date, String beginsAt, String endsAt, DateTime now, );` — Whether a check-in session accepts a sign-in at `now`.  <sub>:13</sub>
 
 ## application/service_capabilities.dart
 

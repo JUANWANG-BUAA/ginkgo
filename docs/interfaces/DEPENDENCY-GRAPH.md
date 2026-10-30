@@ -4,7 +4,7 @@
 > 修改接口后运行 `python3 scripts/generate-interface-index.py` 重新生成；
 > 手工总览与分层说明见 [INTERFACE-INDEX.md](../INTERFACE-INDEX.md)。
 
-按目录分组统计：31 个分组节点（其中 29 个有出向依赖）、147 条跨组依赖。箭头方向为「依赖方 → 被依赖方」。
+按目录分组统计：31 个分组节点（其中 29 个有出向依赖）、141 条跨组依赖。箭头方向为「依赖方 → 被依赖方」。
 
 ## 依赖图
 
@@ -90,13 +90,11 @@ flowchart LR
   n_features_homework --> n_application
   n_features_homework --> n_design
   n_features_homework --> n_features_schedule
-  n_features_homework --> n_infrastructure
   n_features_homework --> n_shared
   n_features_homework --> n_widgets
   n_features_learning --> n_application
   n_features_learning --> n_design
   n_features_learning --> n_features_settings
-  n_features_learning --> n_infrastructure
   n_features_learning --> n_shared
   n_features_learning --> n_widgets
   n_features_library --> n_application
@@ -120,7 +118,6 @@ flowchart LR
   n_features_settings --> n_application
   n_features_settings --> n_design
   n_features_settings --> n_features_learning
-  n_features_settings --> n_infrastructure
   n_features_settings --> n_platform
   n_features_settings --> n_shared
   n_features_settings --> n_widgets
@@ -142,12 +139,9 @@ flowchart LR
   n_features_today --> n_widgets
   n_features_today --> n_workspace
   n_infrastructure --> n_application
-  n_infrastructure --> n_platform
-  n_infrastructure --> n_shared
   n_platform --> n_application
   n_platform --> n_design
   n_platform --> n_features_settings
-  n_platform --> n_infrastructure
   n_platform --> n_widgets
   n_root --> n_application
   n_root --> n_design
@@ -224,18 +218,14 @@ flowchart LR
   n_widgets --> n_shared
 ```
 
-- **4 个分组**：`features/learning`、`features/settings`、`infrastructure`、`platform`
+- **3 个分组**：`features/learning`、`features/settings`、`platform`
 
 ```mermaid
 flowchart LR
   n_features_learning --> n_features_settings
-  n_features_learning --> n_infrastructure
   n_features_settings --> n_features_learning
-  n_features_settings --> n_infrastructure
   n_features_settings --> n_platform
-  n_infrastructure --> n_platform
   n_platform --> n_features_settings
-  n_platform --> n_infrastructure
 ```
 
 - **3 个分组**：`features/shuttle`、`features/today`、`workspace`

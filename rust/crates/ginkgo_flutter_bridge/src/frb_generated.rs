@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 346072683;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 2102366342;
 
 // Section: executor
 
@@ -117,6 +117,77 @@ fn wire__crate__api__live__checkin_load_progress_impl(
                     .await,
                 )
             }
+        },
+    )
+}
+fn wire__crate__api__rules__checkin_sign_in_window_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "checkin_sign_in_window",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_date = <String>::sse_decode(&mut deserializer);
+            let api_begins_at = <String>::sse_decode(&mut deserializer);
+            let api_ends_at = <String>::sse_decode(&mut deserializer);
+            let api_now_millis = <i64>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok(crate::api::rules::checkin_sign_in_window(
+                    api_date,
+                    api_begins_at,
+                    api_ends_at,
+                    api_now_millis,
+                ))?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__rules__classify_homework_deadline_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "classify_homework_deadline",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_due_at = <Option<String>>::sse_decode(&mut deserializer);
+            let api_now_millis = <i64>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok(
+                    crate::api::rules::classify_homework_deadline(api_due_at, api_now_millis),
+                )?;
+                Ok(output_ok)
+            })())
         },
     )
 }
@@ -3247,6 +3318,49 @@ fn wire__crate__api__live__perform_library_action_impl(
         },
     )
 }
+fn wire__crate__api__reminder_planning__plan_checkin_homework_reminders_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "plan_checkin_homework_reminders",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_checkin = <Vec<crate::api::reminder_planning::CheckInReminderSeed>>::sse_decode(
+                &mut deserializer,
+            );
+            let api_homework =
+                <Vec<crate::api::reminder_planning::HomeworkReminderSeed>>::sse_decode(
+                    &mut deserializer,
+                );
+            let api_now_millis = <i64>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok(
+                    crate::api::reminder_planning::plan_checkin_homework_reminders(
+                        api_checkin,
+                        api_homework,
+                        api_now_millis,
+                    ),
+                )?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__reminder_planning__plan_course_task_reminders_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -4430,6 +4544,30 @@ impl SseDecode for crate::api::mirror::CheckInCourse {
     }
 }
 
+impl SseDecode for crate::api::reminder_planning::CheckInReminderSeed {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_date = <String>::sse_decode(deserializer);
+        let mut var_beginsAt = <String>::sse_decode(deserializer);
+        let mut var_endsAt = <String>::sse_decode(deserializer);
+        let mut var_notSigned = <bool>::sse_decode(deserializer);
+        let mut var_conflicting = <bool>::sse_decode(deserializer);
+        let mut var_signInAllowed = <Option<bool>>::sse_decode(deserializer);
+        let mut var_mergedRecordCount = <u32>::sse_decode(deserializer);
+        return crate::api::reminder_planning::CheckInReminderSeed {
+            id: var_id,
+            date: var_date,
+            begins_at: var_beginsAt,
+            ends_at: var_endsAt,
+            not_signed: var_notSigned,
+            conflicting: var_conflicting,
+            sign_in_allowed: var_signInAllowed,
+            merged_record_count: var_mergedRecordCount,
+        };
+    }
+}
+
 impl SseDecode for crate::api::mirror::CheckInResponse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5091,6 +5229,20 @@ impl SseDecode for crate::api::live::HomeworkCapabilityStateDto {
     }
 }
 
+impl SseDecode for crate::api::rules::HomeworkDeadlineStatus {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::rules::HomeworkDeadlineStatus::Active,
+            1 => crate::api::rules::HomeworkDeadlineStatus::Overdue,
+            2 => crate::api::rules::HomeworkDeadlineStatus::Undated,
+            3 => crate::api::rules::HomeworkDeadlineStatus::Invalid,
+            _ => unreachable!("Invalid variant for HomeworkDeadlineStatus: {}", inner),
+        };
+    }
+}
+
 impl SseDecode for crate::api::live::HomeworkDetailResponse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5211,6 +5363,20 @@ impl SseDecode for crate::api::live::HomeworkRecoveryResponse {
         return crate::api::live::HomeworkRecoveryResponse {
             configured: var_configured,
             failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::reminder_planning::HomeworkReminderSeed {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_dueAt = <String>::sse_decode(deserializer);
+        let mut var_pending = <bool>::sse_decode(deserializer);
+        return crate::api::reminder_planning::HomeworkReminderSeed {
+            id: var_id,
+            due_at: var_dueAt,
+            pending: var_pending,
         };
     }
 }
@@ -5993,6 +6159,20 @@ impl SseDecode for Vec<crate::api::mirror::CheckInCourse> {
     }
 }
 
+impl SseDecode for Vec<crate::api::reminder_planning::CheckInReminderSeed> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(
+                <crate::api::reminder_planning::CheckInReminderSeed>::sse_decode(deserializer),
+            );
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::mirror::ClassroomBuilding> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -6186,6 +6366,20 @@ impl SseDecode for Vec<crate::api::live::HomeworkPendingSubmissionDto> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<crate::api::live::HomeworkPendingSubmissionDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::reminder_planning::HomeworkReminderSeed> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(
+                <crate::api::reminder_planning::HomeworkReminderSeed>::sse_decode(deserializer),
+            );
         }
         return ans_;
     }
@@ -7742,197 +7936,197 @@ fn pde_ffi_dispatcher_primary_impl(
     match func_id {
         1 => wire__crate__api__live__check_android_update_impl(port, ptr, rust_vec_len, data_len),
         2 => wire__crate__api__live__checkin_load_progress_impl(port, ptr, rust_vec_len, data_len),
-        3 => wire__crate__api__live__clear_cache_impl(port, ptr, rust_vec_len, data_len),
-        4 => wire__crate__api__live__configure_homework_recovery_impl(
+        5 => wire__crate__api__live__clear_cache_impl(port, ptr, rust_vec_len, data_len),
+        6 => wire__crate__api__live__configure_homework_recovery_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        5 => wire__crate__api__live__course_announcement_attachment_impl(
+        7 => wire__crate__api__live__course_announcement_attachment_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        6 => wire__crate__api__live__course_announcement_attachment_in_impl(
+        8 => wire__crate__api__live__course_announcement_attachment_in_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        7 => wire__crate__api__live__course_announcement_detail_impl(
+        9 => wire__crate__api__live__course_announcement_detail_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        8 => wire__crate__api__live__course_announcement_detail_in_impl(
+        10 => wire__crate__api__live__course_announcement_detail_in_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        9 => wire__crate__api__live__course_announcements_impl(port, ptr, rust_vec_len, data_len),
-        10 => {
+        11 => wire__crate__api__live__course_announcements_impl(port, ptr, rust_vec_len, data_len),
+        12 => {
             wire__crate__api__live__course_announcements_in_impl(port, ptr, rust_vec_len, data_len)
         }
-        11 => wire__crate__api__live__course_assessments_impl(port, ptr, rust_vec_len, data_len),
-        12 => wire__crate__api__live__course_assessments_in_impl(port, ptr, rust_vec_len, data_len),
-        13 => wire__crate__api__live__course_learning_capabilities_impl(
+        13 => wire__crate__api__live__course_assessments_impl(port, ptr, rust_vec_len, data_len),
+        14 => wire__crate__api__live__course_assessments_in_impl(port, ptr, rust_vec_len, data_len),
+        15 => wire__crate__api__live__course_learning_capabilities_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        14 => {
+        16 => {
             wire__crate__api__live__course_learning_columns_impl(port, ptr, rust_vec_len, data_len)
         }
-        15 => {
+        17 => {
             wire__crate__api__live__course_resource_download_impl(port, ptr, rust_vec_len, data_len)
         }
-        16 => wire__crate__api__live__course_resource_download_at_impl(
+        18 => wire__crate__api__live__course_resource_download_at_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        17 => wire__crate__api__live__course_resources_impl(port, ptr, rust_vec_len, data_len),
-        18 => wire__crate__api__live__course_resources_at_impl(port, ptr, rust_vec_len, data_len),
-        19 => {
+        19 => wire__crate__api__live__course_resources_impl(port, ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__live__course_resources_at_impl(port, ptr, rust_vec_len, data_len),
+        21 => {
             wire__crate__api__live__download_homework_file_impl(port, ptr, rust_vec_len, data_len)
         }
-        20 => wire__crate__api__live__edit_tasks_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__live__execute_cgyy_impl(port, ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__live__export_learning_snapshots_impl(
+        22 => wire__crate__api__live__edit_tasks_impl(port, ptr, rust_vec_len, data_len),
+        23 => wire__crate__api__live__execute_cgyy_impl(port, ptr, rust_vec_len, data_len),
+        24 => wire__crate__api__live__export_learning_snapshots_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        23 => wire__crate__api__live__homework_capabilities_impl(port, ptr, rust_vec_len, data_len),
-        24 => {
+        25 => wire__crate__api__live__homework_capabilities_impl(port, ptr, rust_vec_len, data_len),
+        26 => {
             wire__crate__api__live__homework_file_workspace_impl(port, ptr, rust_vec_len, data_len)
         }
-        25 => wire__crate__api__live__import_learning_snapshots_impl(
+        27 => wire__crate__api__live__import_learning_snapshots_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        26 => wire__crate__api__mirror__init_app_impl(port, ptr, rust_vec_len, data_len),
-        27 => wire__crate__api__live__learning_courses_impl(port, ptr, rust_vec_len, data_len),
-        29 => wire__crate__api__live__load_bykc_impl(port, ptr, rust_vec_len, data_len),
-        30 => wire__crate__api__live__load_bykc_chosen_impl(port, ptr, rust_vec_len, data_len),
-        31 => wire__crate__api__live__load_bykc_statistics_impl(port, ptr, rust_vec_len, data_len),
-        32 => {
+        28 => wire__crate__api__mirror__init_app_impl(port, ptr, rust_vec_len, data_len),
+        29 => wire__crate__api__live__learning_courses_impl(port, ptr, rust_vec_len, data_len),
+        31 => wire__crate__api__live__load_bykc_impl(port, ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__live__load_bykc_chosen_impl(port, ptr, rust_vec_len, data_len),
+        33 => wire__crate__api__live__load_bykc_statistics_impl(port, ptr, rust_vec_len, data_len),
+        34 => {
             wire__crate__api__live__load_campus_activities_impl(port, ptr, rust_vec_len, data_len)
         }
-        33 => {
+        35 => {
             wire__crate__api__live__load_campus_card_balance_impl(port, ptr, rust_vec_len, data_len)
         }
-        34 => wire__crate__api__live__load_career_events_impl(port, ptr, rust_vec_len, data_len),
-        35 => wire__crate__api__live__load_cgyy_impl(port, ptr, rust_vec_len, data_len),
-        36 => wire__crate__api__live__load_checkin_on_date_impl(port, ptr, rust_vec_len, data_len),
-        37 => wire__crate__api__live__load_checkin_today_impl(port, ptr, rust_vec_len, data_len),
-        38 => wire__crate__api__live__load_classrooms_impl(port, ptr, rust_vec_len, data_len),
-        39 => wire__crate__api__live__load_demo_bykc_impl(port, ptr, rust_vec_len, data_len),
-        40 => wire__crate__api__live__load_demo_bykc_chosen_impl(port, ptr, rust_vec_len, data_len),
-        41 => wire__crate__api__live__load_demo_bykc_statistics_impl(
+        36 => wire__crate__api__live__load_career_events_impl(port, ptr, rust_vec_len, data_len),
+        37 => wire__crate__api__live__load_cgyy_impl(port, ptr, rust_vec_len, data_len),
+        38 => wire__crate__api__live__load_checkin_on_date_impl(port, ptr, rust_vec_len, data_len),
+        39 => wire__crate__api__live__load_checkin_today_impl(port, ptr, rust_vec_len, data_len),
+        40 => wire__crate__api__live__load_classrooms_impl(port, ptr, rust_vec_len, data_len),
+        41 => wire__crate__api__live__load_demo_bykc_impl(port, ptr, rust_vec_len, data_len),
+        42 => wire__crate__api__live__load_demo_bykc_chosen_impl(port, ptr, rust_vec_len, data_len),
+        43 => wire__crate__api__live__load_demo_bykc_statistics_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        42 => wire__crate__api__live__load_demo_campus_card_balance_impl(
+        44 => wire__crate__api__live__load_demo_campus_card_balance_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        43 => wire__crate__api__live__load_demo_cgyy_impl(port, ptr, rust_vec_len, data_len),
-        44 => wire__crate__api__mirror__load_demo_checkin_impl(port, ptr, rust_vec_len, data_len),
-        45 => {
+        45 => wire__crate__api__live__load_demo_cgyy_impl(port, ptr, rust_vec_len, data_len),
+        46 => wire__crate__api__mirror__load_demo_checkin_impl(port, ptr, rust_vec_len, data_len),
+        47 => {
             wire__crate__api__mirror__load_demo_classrooms_impl(port, ptr, rust_vec_len, data_len)
         }
-        46 => wire__crate__api__mirror__load_demo_grades_impl(port, ptr, rust_vec_len, data_len),
-        47 => wire__crate__api__live__load_demo_graduate_impl(port, ptr, rust_vec_len, data_len),
-        48 => wire__crate__api__live__load_demo_graduate_status_impl(
+        48 => wire__crate__api__mirror__load_demo_grades_impl(port, ptr, rust_vec_len, data_len),
+        49 => wire__crate__api__live__load_demo_graduate_impl(port, ptr, rust_vec_len, data_len),
+        50 => wire__crate__api__live__load_demo_graduate_status_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        49 => wire__crate__api__mirror__load_demo_homework_impl(port, ptr, rust_vec_len, data_len),
-        50 => wire__crate__api__mirror__load_demo_library_impl(port, ptr, rust_vec_len, data_len),
-        51 => wire__crate__api__live__load_demo_library_history_impl(
+        51 => wire__crate__api__mirror__load_demo_homework_impl(port, ptr, rust_vec_len, data_len),
+        52 => wire__crate__api__mirror__load_demo_library_impl(port, ptr, rust_vec_len, data_len),
+        53 => wire__crate__api__live__load_demo_library_history_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        52 => {
+        54 => {
             wire__crate__api__live__load_demo_library_stats_impl(port, ptr, rust_vec_len, data_len)
         }
-        53 => wire__crate__api__live__load_demo_notices_impl(port, ptr, rust_vec_len, data_len),
-        54 => wire__crate__api__mirror__load_demo_schedule_impl(port, ptr, rust_vec_len, data_len),
-        55 => wire__crate__api__mirror__load_demo_today_impl(port, ptr, rust_vec_len, data_len),
-        56 => wire__crate__api__live__load_grade_terms_impl(port, ptr, rust_vec_len, data_len),
-        57 => wire__crate__api__live__load_grades_impl(port, ptr, rust_vec_len, data_len),
-        58 => {
+        55 => wire__crate__api__live__load_demo_notices_impl(port, ptr, rust_vec_len, data_len),
+        56 => wire__crate__api__mirror__load_demo_schedule_impl(port, ptr, rust_vec_len, data_len),
+        57 => wire__crate__api__mirror__load_demo_today_impl(port, ptr, rust_vec_len, data_len),
+        58 => wire__crate__api__live__load_grade_terms_impl(port, ptr, rust_vec_len, data_len),
+        59 => wire__crate__api__live__load_grades_impl(port, ptr, rust_vec_len, data_len),
+        60 => {
             wire__crate__api__live__load_graduate_credit_map_impl(port, ptr, rust_vec_len, data_len)
         }
-        59 => wire__crate__api__live__load_graduate_part_impl(port, ptr, rust_vec_len, data_len),
-        60 => wire__crate__api__live__load_homework_impl(port, ptr, rust_vec_len, data_len),
-        61 => wire__crate__api__live__load_homework_detail_impl(port, ptr, rust_vec_len, data_len),
-        62 => wire__crate__api__live__load_library_areas_impl(port, ptr, rust_vec_len, data_len),
-        63 => wire__crate__api__live__load_library_bookings_impl(port, ptr, rust_vec_len, data_len),
-        64 => wire__crate__api__live__load_library_books_impl(port, ptr, rust_vec_len, data_len),
-        65 => wire__crate__api__live__load_library_history_impl(port, ptr, rust_vec_len, data_len),
-        66 => wire__crate__api__live__load_library_holdings_impl(port, ptr, rust_vec_len, data_len),
-        67 => wire__crate__api__live__load_library_loans_impl(port, ptr, rust_vec_len, data_len),
-        68 => wire__crate__api__live__load_library_seats_impl(port, ptr, rust_vec_len, data_len),
-        69 => wire__crate__api__live__load_library_slots_impl(port, ptr, rust_vec_len, data_len),
-        70 => wire__crate__api__live__load_library_stats_impl(port, ptr, rust_vec_len, data_len),
-        71 => wire__crate__api__live__load_library_venues_impl(port, ptr, rust_vec_len, data_len),
-        72 => wire__crate__api__live__auth_challenge__load_login_challenge_impl(
+        61 => wire__crate__api__live__load_graduate_part_impl(port, ptr, rust_vec_len, data_len),
+        62 => wire__crate__api__live__load_homework_impl(port, ptr, rust_vec_len, data_len),
+        63 => wire__crate__api__live__load_homework_detail_impl(port, ptr, rust_vec_len, data_len),
+        64 => wire__crate__api__live__load_library_areas_impl(port, ptr, rust_vec_len, data_len),
+        65 => wire__crate__api__live__load_library_bookings_impl(port, ptr, rust_vec_len, data_len),
+        66 => wire__crate__api__live__load_library_books_impl(port, ptr, rust_vec_len, data_len),
+        67 => wire__crate__api__live__load_library_history_impl(port, ptr, rust_vec_len, data_len),
+        68 => wire__crate__api__live__load_library_holdings_impl(port, ptr, rust_vec_len, data_len),
+        69 => wire__crate__api__live__load_library_loans_impl(port, ptr, rust_vec_len, data_len),
+        70 => wire__crate__api__live__load_library_seats_impl(port, ptr, rust_vec_len, data_len),
+        71 => wire__crate__api__live__load_library_slots_impl(port, ptr, rust_vec_len, data_len),
+        72 => wire__crate__api__live__load_library_stats_impl(port, ptr, rust_vec_len, data_len),
+        73 => wire__crate__api__live__load_library_venues_impl(port, ptr, rust_vec_len, data_len),
+        74 => wire__crate__api__live__auth_challenge__load_login_challenge_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        73 => wire__crate__api__live__load_notices_impl(port, ptr, rust_vec_len, data_len),
-        74 => wire__crate__api__mirror__load_query_dates_impl(port, ptr, rust_vec_len, data_len),
-        75 => wire__crate__api__mirror__load_rule_examples_impl(port, ptr, rust_vec_len, data_len),
-        76 => wire__crate__api__live__load_schedule_impl(port, ptr, rust_vec_len, data_len),
-        77 => {
+        75 => wire__crate__api__live__load_notices_impl(port, ptr, rust_vec_len, data_len),
+        76 => wire__crate__api__mirror__load_query_dates_impl(port, ptr, rust_vec_len, data_len),
+        77 => wire__crate__api__mirror__load_rule_examples_impl(port, ptr, rust_vec_len, data_len),
+        78 => wire__crate__api__live__load_schedule_impl(port, ptr, rust_vec_len, data_len),
+        79 => {
             wire__crate__api__live__load_shuttle_timetable_impl(port, ptr, rust_vec_len, data_len)
         }
-        78 => wire__crate__api__live__load_today_impl(port, ptr, rust_vec_len, data_len),
-        79 => wire__crate__api__live__login_impl(port, ptr, rust_vec_len, data_len),
-        80 => wire__crate__api__live__pending_homework_submissions_impl(
+        80 => wire__crate__api__live__load_today_impl(port, ptr, rust_vec_len, data_len),
+        81 => wire__crate__api__live__login_impl(port, ptr, rust_vec_len, data_len),
+        82 => wire__crate__api__live__pending_homework_submissions_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        81 => {
+        83 => {
             wire__crate__api__live__perform_library_action_impl(port, ptr, rust_vec_len, data_len)
         }
-        83 => {
+        86 => {
             wire__crate__api__mirror__query_demo_classrooms_impl(port, ptr, rust_vec_len, data_len)
         }
-        84 => {
+        87 => {
             wire__crate__api__live__reconcile_homework_file_impl(port, ptr, rust_vec_len, data_len)
         }
-        85 => wire__crate__api__live__reserve_library_seat_impl(port, ptr, rust_vec_len, data_len),
-        86 => wire__crate__api__live__restore_session_impl(port, ptr, rust_vec_len, data_len),
-        87 => wire__crate__api__live__set_route_impl(port, ptr, rust_vec_len, data_len),
-        88 => wire__crate__api__live__sign_out_impl(port, ptr, rust_vec_len, data_len),
-        90 => wire__crate__api__live__submit_checkin_impl(port, ptr, rust_vec_len, data_len),
-        91 => wire__crate__api__live__submit_homework_file_impl(port, ptr, rust_vec_len, data_len),
-        92 => wire__crate__api__live__upload_homework_file_impl(port, ptr, rust_vec_len, data_len),
-        93 => wire__crate__api__live__verify_credential_storage_impl(
+        88 => wire__crate__api__live__reserve_library_seat_impl(port, ptr, rust_vec_len, data_len),
+        89 => wire__crate__api__live__restore_session_impl(port, ptr, rust_vec_len, data_len),
+        90 => wire__crate__api__live__set_route_impl(port, ptr, rust_vec_len, data_len),
+        91 => wire__crate__api__live__sign_out_impl(port, ptr, rust_vec_len, data_len),
+        93 => wire__crate__api__live__submit_checkin_impl(port, ptr, rust_vec_len, data_len),
+        94 => wire__crate__api__live__submit_homework_file_impl(port, ptr, rust_vec_len, data_len),
+        95 => wire__crate__api__live__upload_homework_file_impl(port, ptr, rust_vec_len, data_len),
+        96 => wire__crate__api__live__verify_credential_storage_impl(
             port,
             ptr,
             rust_vec_len,
@@ -7950,13 +8144,20 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        28 => wire__crate__api__live__library_loans_portal_url_impl(ptr, rust_vec_len, data_len),
-        82 => wire__crate__api__reminder_planning__plan_course_task_reminders_impl(
+        3 => wire__crate__api__rules__checkin_sign_in_window_impl(ptr, rust_vec_len, data_len),
+        4 => wire__crate__api__rules__classify_homework_deadline_impl(ptr, rust_vec_len, data_len),
+        30 => wire__crate__api__live__library_loans_portal_url_impl(ptr, rust_vec_len, data_len),
+        84 => wire__crate__api__reminder_planning__plan_checkin_homework_reminders_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        89 => wire__crate__api__live__student_service_url_impl(ptr, rust_vec_len, data_len),
+        85 => wire__crate__api__reminder_planning__plan_course_task_reminders_impl(
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        92 => wire__crate__api__live__student_service_url_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -8889,6 +9090,33 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::CheckInCourse>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::reminder_planning::CheckInReminderSeed {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.date.into_into_dart().into_dart(),
+            self.begins_at.into_into_dart().into_dart(),
+            self.ends_at.into_into_dart().into_dart(),
+            self.not_signed.into_into_dart().into_dart(),
+            self.conflicting.into_into_dart().into_dart(),
+            self.sign_in_allowed.into_into_dart().into_dart(),
+            self.merged_record_count.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::reminder_planning::CheckInReminderSeed
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::reminder_planning::CheckInReminderSeed>
+    for crate::api::reminder_planning::CheckInReminderSeed
+{
+    fn into_into_dart(self) -> crate::api::reminder_planning::CheckInReminderSeed {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::mirror::CheckInResponse {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -9817,6 +10045,29 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkCapabilityState
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::rules::HomeworkDeadlineStatus {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Active => 0.into_dart(),
+            Self::Overdue => 1.into_dart(),
+            Self::Undated => 2.into_dart(),
+            Self::Invalid => 3.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::rules::HomeworkDeadlineStatus
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::rules::HomeworkDeadlineStatus>
+    for crate::api::rules::HomeworkDeadlineStatus
+{
+    fn into_into_dart(self) -> crate::api::rules::HomeworkDeadlineStatus {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::live::HomeworkDetailResponse {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -9979,6 +10230,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkRecoveryRespons
     for crate::api::live::HomeworkRecoveryResponse
 {
     fn into_into_dart(self) -> crate::api::live::HomeworkRecoveryResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::reminder_planning::HomeworkReminderSeed {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.due_at.into_into_dart().into_dart(),
+            self.pending.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::reminder_planning::HomeworkReminderSeed
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::reminder_planning::HomeworkReminderSeed>
+    for crate::api::reminder_planning::HomeworkReminderSeed
+{
+    fn into_into_dart(self) -> crate::api::reminder_planning::HomeworkReminderSeed {
         self
     }
 }
@@ -11921,6 +12194,20 @@ impl SseEncode for crate::api::mirror::CheckInCourse {
     }
 }
 
+impl SseEncode for crate::api::reminder_planning::CheckInReminderSeed {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.date, serializer);
+        <String>::sse_encode(self.begins_at, serializer);
+        <String>::sse_encode(self.ends_at, serializer);
+        <bool>::sse_encode(self.not_signed, serializer);
+        <bool>::sse_encode(self.conflicting, serializer);
+        <Option<bool>>::sse_encode(self.sign_in_allowed, serializer);
+        <u32>::sse_encode(self.merged_record_count, serializer);
+    }
+}
+
 impl SseEncode for crate::api::mirror::CheckInResponse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -12379,6 +12666,24 @@ impl SseEncode for crate::api::live::HomeworkCapabilityStateDto {
     }
 }
 
+impl SseEncode for crate::api::rules::HomeworkDeadlineStatus {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::rules::HomeworkDeadlineStatus::Active => 0,
+                crate::api::rules::HomeworkDeadlineStatus::Overdue => 1,
+                crate::api::rules::HomeworkDeadlineStatus::Undated => 2,
+                crate::api::rules::HomeworkDeadlineStatus::Invalid => 3,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
 impl SseEncode for crate::api::live::HomeworkDetailResponse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -12453,6 +12758,15 @@ impl SseEncode for crate::api::live::HomeworkRecoveryResponse {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Option<bool>>::sse_encode(self.configured, serializer);
         <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::reminder_planning::HomeworkReminderSeed {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.due_at, serializer);
+        <bool>::sse_encode(self.pending, serializer);
     }
 }
 
@@ -13002,6 +13316,16 @@ impl SseEncode for Vec<crate::api::mirror::CheckInCourse> {
     }
 }
 
+impl SseEncode for Vec<crate::api::reminder_planning::CheckInReminderSeed> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::reminder_planning::CheckInReminderSeed>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::mirror::ClassroomBuilding> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -13148,6 +13472,16 @@ impl SseEncode for Vec<crate::api::live::HomeworkPendingSubmissionDto> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::live::HomeworkPendingSubmissionDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::reminder_planning::HomeworkReminderSeed> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::reminder_planning::HomeworkReminderSeed>::sse_encode(item, serializer);
         }
     }
 }

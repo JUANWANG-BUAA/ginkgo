@@ -108,13 +108,7 @@ def payload_decode_violations(root):
 PRESENTATION_COMPOSITION_ROOTS = {'workspace/workspace_shell.dart'}
 # Still pending migration: these name an injected port as a default value
 # instead of composing an adapter. They are listed so the set cannot grow.
-PENDING_ADAPTER_IMPORTS = {
-    'features/homework/homework_files_panel.dart',
-    'features/learning/learning_course_page.dart',
-    'features/learning/learning_page.dart',
-    'features/settings/maintenance_pages.dart',
-    'features/settings/settings_page.dart',
-}
+PENDING_ADAPTER_IMPORTS: set[str] = set()
 
 
 def dart_boundary_violations(root):

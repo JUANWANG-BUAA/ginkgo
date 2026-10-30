@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 
 import '../application/contracts.dart' show RouteChoice;
+import '../application/platform_actions.dart';
 import '../mirror_service.dart';
 
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
@@ -17,6 +18,7 @@ class DesktopWorkspaceShell extends StatelessWidget {
     super.key,
     required this.shell,
     required this.service,
+    required this.platformActions,
     this.accountName,
     this.accountId,
     this.route,
@@ -24,6 +26,7 @@ class DesktopWorkspaceShell extends StatelessWidget {
   });
   final WorkspaceShellState shell;
   final MirrorService service;
+  final PlatformActions platformActions;
   final String? accountName;
   final String? accountId;
   final RouteChoice? route;
@@ -31,6 +34,7 @@ class DesktopWorkspaceShell extends StatelessWidget {
 
   WorkspaceContext _contextFor() => WorkspaceContext(
     service: service,
+    platformActions: platformActions,
     mobile: false,
     accountName: accountName,
     accountId: accountId,

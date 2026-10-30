@@ -4,11 +4,15 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/reminder_planning.dart';
 import 'package:ginkgo_mirror/application/reminder_store.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_mirror_service.dart';
 import 'package:ginkgo_mirror/infrastructure/reminder_store.dart';
 import 'package:ginkgo_mirror/shared/reminder_rules.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
+
+import 'reminder_planner_fake.dart';
+import 'reminder_rule_double.dart';
 import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 
 CheckInCourse course({
@@ -64,6 +68,23 @@ class _DelayedReminderStore implements ReminderStore {
   @override
   Future<void> write(String data) async => writes.add(data);
 }
+
+/// The check-in and assignment reminder rule lives in the domain; the unit
+/// tests cannot load it, so they plan through the double that the shared table
+/// pins against the domain implementation.
+List<ReminderPlan> planCheckin(CheckInResponse response, DateTime now) =>
+    const ReminderRuleDouble().plan(
+      checkin: checkinReminderSeeds(response.date, response.courses),
+      homework: const [],
+      now: now,
+    ).plans;
+
+List<ReminderPlan> planHomework(List<HomeworkItem> items, DateTime now) =>
+    const ReminderRuleDouble().plan(
+      checkin: const [],
+      homework: homeworkReminderSeeds(items),
+      now: now,
+    ).plans;
 
 void main() {
   test(
@@ -274,17 +295,30 @@ void main() {
           fromCache: false,
           stale: stale,
         );
-    expect(checkinReminders(response([course()])).length, 1);
+    // Before the session starts: a class already running never reminds.
+    final now = DateTime.parse('2026-10-20T07:55:00+08:00');
+    expect(planCheckin(response([course()]), now).length, 1);
     expect(
-      checkinReminders(
+      planCheckin(
         response([
           course(status: CheckInStatus.signed),
           course(conflict: true),
         ]),
+        now,
       ),
       isEmpty,
     );
-    expect(checkinReminders(response([course()], stale: true)), isEmpty);
+    // Stale data is not a rule question: the controller refuses to plan from
+    // a snapshot it could not refresh.
+    final controller = ReminderController(
+      service: const DemoMirrorService(),
+      account: 'synthetic',
+      visibility: null,
+      platform: FakeReminderPlatform(),
+      planner: Planner(),
+    );
+    controller.updateCheckin(response([course()], stale: true));
+    expect(controller.plans, isEmpty);
   });
   test('distinct teaching-class IDs keep separate reminders and duplicate IDs fold', () {
     CheckInCourse target(String id) => CheckInCourse(
@@ -304,23 +338,24 @@ void main() {
       stale: false,
     );
 
-    expect(checkinReminders(response), hasLength(2));
+    expect(
+      planCheckin(response, DateTime.parse('2026-10-20T01:40:00Z')),
+      hasLength(2),
+    );
   });
   test('homework schedules 48h / 24h, skips completed, unknown deadlines and overdue; no two-stage catch-up flood', () {
     final now = DateTime.parse('2026-10-21T00:00:00Z');
-    final plans = homeworkReminders([assignment()], now);
+    final plans = planHomework([assignment()], now);
     expect(plans.map((p) => p.at.toIso8601String()), [
       '2026-10-21T00:00:00.000Z',
       '2026-10-22T00:00:00.000Z',
     ]);
     expect(
-      homeworkReminders([
-        assignment(),
-      ], DateTime.parse('2026-10-22T01:00:00Z')).length,
+      planHomework([assignment()], DateTime.parse('2026-10-22T01:00:00Z')).length,
       1,
     );
     expect(
-      homeworkReminders([
+      planHomework([
         assignment(status: HomeworkStatus.submitted),
         assignment(due: 'invalid'),
         assignment(due: null),
@@ -328,7 +363,7 @@ void main() {
       isEmpty,
     );
     expect(
-      homeworkReminders([assignment()], DateTime.parse('2026-10-23T00:00:00Z')),
+      planHomework([assignment()], DateTime.parse('2026-10-23T00:00:00Z')),
       isEmpty,
     );
   });
@@ -342,6 +377,7 @@ void main() {
       platform: platform,
       persist: false,
       clock: () => now,
+      planner: Planner(),
     );
     addTearDown(controller.dispose);
     HomeworkResponse response(HomeworkStatus status) => HomeworkResponse(

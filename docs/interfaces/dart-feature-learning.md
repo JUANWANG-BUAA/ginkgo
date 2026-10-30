@@ -22,18 +22,18 @@
 ## features/learning/learning_course_page.dart
 
 - `enum LearningCourseTab { resources, announcements, assessments }`
-  <sub>enum · features/learning/learning_course_page.dart:17</sub>
+  <sub>enum · features/learning/learning_course_page.dart:16</sub>
 - `class LearningCoursePage extends StatefulWidget`
-  <sub>class · features/learning/learning_course_page.dart:19</sub>
-    - `const LearningCoursePage({ super.key, required this.course, required this.service, this.accountId, this.saveFile = saveLearningFile, this.isOwnerCurrent, });`  <sub>:20</sub>
-    - `final bool Function()? isOwnerCurrent;`  <sub>:32</sub>
-    - `State<LearningCoursePage> createState() => …`  <sub>:34</sub>
+  <sub>class · features/learning/learning_course_page.dart:18</sub>
+    - `const LearningCoursePage({ super.key, required this.course, required this.service, this.accountId, required this.saveFile, this.isOwnerCurrent, });`  <sub>:19</sub>
+    - `final bool Function()? isOwnerCurrent;`  <sub>:31</sub>
+    - `State<LearningCoursePage> createState() => …`  <sub>:33</sub>
 
 ## features/learning/learning_page.dart
 
 - `class LearningPage extends StatefulWidget`
-  <sub>class · features/learning/learning_page.dart:15</sub>
-    - `const LearningPage({ super.key, required this.service, this.accountId, this.saveFile = saveLearningFile, });`  <sub>:16</sub>
+  <sub>class · features/learning/learning_page.dart:14</sub>
+    - `const LearningPage({ super.key, required this.service, this.accountId, required this.fileActions, });`  <sub>:15</sub>
     - `State<LearningPage> createState() => …`  <sub>:26</sub>
 
 ## features/learning/learning_resource_section.dart

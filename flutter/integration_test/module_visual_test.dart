@@ -5,6 +5,10 @@ import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:ginkgo_mirror/application/platform_actions.dart';
+import 'package:ginkgo_mirror/infrastructure/homework_file_io.dart';
+import 'package:ginkgo_mirror/infrastructure/learning_file_actions.dart';
+import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/features/learning/learning_page.dart';
@@ -23,6 +27,14 @@ import 'package:ginkgo_mirror/application/library_books.dart';
 import 'support.dart' show settle;
 
 const demo = DemoMirrorService();
+
+/// The platform actions the visual pass drives; the app binds them once.
+final actions = PlatformActions(
+  learningFileSaver: saveLearningFile,
+  homeworkFilePicker: pickHomeworkFile,
+  homeworkFileSave: saveAndOpenSchoolFile,
+  maintenance: const NativeMaintenanceService(),
+);
 
 class PublicBooks implements LibraryGateway {
   @override
@@ -229,7 +241,7 @@ void main() {
         }
         continue;
       }
-      await show(LearningPage(service: demo), dark);
+      await show(LearningPage(service: demo, fileActions: actions), dark);
       await capture('learning-$mode');
       await tester.tap(
         find.byKey(const ValueKey('learning-course-demo-learning-course')),
@@ -245,6 +257,8 @@ void main() {
             child: ListView(
               children: [
                 HomeworkFilesPanel(
+                  pickFile: actions.homeworkFilePicker!,
+                  saveFile: actions.homeworkFileSave!,
                   assignmentId: 'fixture',
                   title: '合成课程设计报告',
                   course: '合成课程',
@@ -273,7 +287,14 @@ void main() {
         dark,
       );
       await capture('shuttle-$mode');
-      await show(SettingsPage(service: demo, onSignOut: () async {}), dark);
+      await show(
+        SettingsPage(
+          service: demo,
+          maintenance: actions.maintenance,
+          onSignOut: () async {},
+        ),
+        dark,
+      );
       await capture('settings-$mode');
     }
   });

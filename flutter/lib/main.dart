@@ -12,6 +12,12 @@ import 'package:ginkgo_mirror/application/auth_challenge.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/startup_page.dart';
 import 'package:ginkgo_mirror/platform/startup_update.dart';
+import 'package:ginkgo_mirror/application/maintenance.dart';
+import 'package:ginkgo_mirror/application/platform_actions.dart';
+import 'package:ginkgo_mirror/application/school_rules.dart';
+import 'package:ginkgo_mirror/infrastructure/native_school_rules.dart';
+import 'package:ginkgo_mirror/infrastructure/homework_file_io.dart';
+import 'package:ginkgo_mirror/infrastructure/learning_file_actions.dart';
 import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
 import 'package:ginkgo_mirror/platform/update_gate.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
@@ -22,6 +28,8 @@ export 'package:ginkgo_mirror/workspace/workspace_shell.dart'
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // The school rules live in the domain; the app uses them through the bridge.
+  schoolRules = const NativeSchoolRules();
   await AppPreferences.shared.restore();
   try {
     await initializeMirrorRuntime();
@@ -53,6 +61,14 @@ Future<void> main() async {
 /// Chooses between the real-account session and the explicit offline demo.
 /// The workspace itself stays a plain widget so page tests can inject a fake
 /// service without touching Rust or a keychain.
+/// The platform actions the pages may use, bound once for the whole app.
+final _platformActions = PlatformActions(
+  learningFileSaver: saveLearningFile,
+  homeworkFilePicker: pickHomeworkFile,
+  homeworkFileSave: saveAndOpenSchoolFile,
+  maintenance: const NativeMaintenanceService(),
+);
+
 class GinkgoRoot extends StatefulWidget {
   const GinkgoRoot({
     super.key,
@@ -227,6 +243,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
       _Stage.restoring => ginkgoApp(home: const StartupPage()),
       _Stage.demo => GinkgoApp(
         service: widget.demoService,
+        platformActions: _platformActions,
         startupUpdate: startupUpdate,
         onSignOut: () async => setState(() => stage = _Stage.signedOut),
       ),
@@ -250,6 +267,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
         ),
       ),
       _Stage.signedIn => GinkgoApp(
+        platformActions: _platformActions,
         service: widget.liveService is NativeMirrorService
             ? NativeMirrorService(expectedAccount: session?.account)
             : widget.liveService,

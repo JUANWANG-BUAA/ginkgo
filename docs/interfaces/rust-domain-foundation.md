@@ -17,40 +17,8 @@
     - `minutes_since_midnight: u32`  <sub>:15</sub>
 - `pub fn beijing_day(instant: &str) -> Result<SchoolDay, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_domain/src/foundation/school_time.rs:18</sub>
-
-## snapshot_persistence
-
-- `pub const SNAPSHOT_TTL_MS: i64 = 300_000;`
-  <sub>const · rust/crates/ginkgo_domain/src/foundation/snapshot_persistence.rs:12</sub>
-- `pub const MAX_SNAPSHOT_BYTES: usize = 512 * 1024;`
-  <sub>const · rust/crates/ginkgo_domain/src/foundation/snapshot_persistence.rs:13</sub>
-- `pub struct SnapshotScope`
-  <sub>struct · rust/crates/ginkgo_domain/src/foundation/snapshot_persistence.rs:20</sub>
-    - `account_digest: String` — SHA-256 identity digest, not an encryption mechanism.  <sub>:22</sub>
-    - `generation: u64`  <sub>:23</sub>
-    - `epoch: u64`  <sub>:24</sub>
-    - `session_nonce: String` — Cryptographically random 128-bit nonce; renewed on every session boundary.  <sub>:26</sub>
-- `pub struct SnapshotFallback` — Returned values remain stale/failure-qualified at the application boundary.
-  <sub>struct · rust/crates/ginkgo_domain/src/foundation/snapshot_persistence.rs:54</sub>
-    - `payload: Value`  <sub>:55</sub>
-    - `fetched_at_ms: i64`  <sub>:56</sub>
-    - `failure: AppError`  <sub>:57</sub>
-- `pub struct SnapshotBook` — Caller serializes access and holds the identity lock while committing or
-  <sub>struct · rust/crates/ginkgo_domain/src/foundation/snapshot_persistence.rs:61</sub>
-- `pub fn new(scope: SnapshotScope) -> Result<Self, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_domain/src/foundation/snapshot_persistence.rs:67</sub>
-- `pub fn begin(&mut self, scope: &SnapshotScope, query_digest: &str) -> Result<u64, AppError> {…}` — Query must be a digest of canonical module/query coordinates, not a URL,
-  <sub>fn · rust/crates/ginkgo_domain/src/foundation/snapshot_persistence.rs:83</sub>
-- `pub fn commit_success( &mut self, scope: &SnapshotScope, query_digest: &str, ticket: u64, fetched_at_ms: i64, now_ms: i64, payload: Value, ) -> Result<bool, AppError> {…}` — No failure overload: failed reads cannot refresh the timestamp or replace
-  <sub>fn · rust/crates/ginkgo_domain/src/foundation/snapshot_persistence.rs:100</sub>
-- `pub fn fallback( &self, scope: &SnapshotScope, query_digest: &str, now_ms: i64, failure: AppError, ) -> Result<Option<SnapshotFallback>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_domain/src/foundation/snapshot_persistence.rs:141</sub>
-- `pub fn encode(&self) -> Result<Vec<u8>, AppError> {…}` — Only transient plaintext bytes in memory. The caller must encrypt the
-  <sub>fn · rust/crates/ginkgo_domain/src/foundation/snapshot_persistence.rs:166</sub>
-- `pub fn decode(bytes: &[u8], scope: &SnapshotScope, now_ms: i64) -> Result<Self, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_domain/src/foundation/snapshot_persistence.rs:176</sub>
-- `pub fn clear(&mut self, next_scope: SnapshotScope) -> Result<(), AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_domain/src/foundation/snapshot_persistence.rs:210</sub>
+- `pub fn school_instant(date: Option<&str>, raw: &str) -> Option<DateTime<Utc>> {…}` — The instant of a school wall time.
+  <sub>fn · rust/crates/ginkgo_domain/src/foundation/school_time.rs:33</sub>
 
 ## lib
 

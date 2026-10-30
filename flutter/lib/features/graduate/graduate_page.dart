@@ -231,7 +231,8 @@ class _GraduatePageState extends State<GraduatePage> {
   @override
   Widget build(BuildContext context) => PageRefreshShortcut(
     onRefresh: busy ? null : () => load(force: true),
-    child: CupertinoPageScaffold(
+    child: SafeArea(
+      child: CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
         context,
       ),
@@ -389,6 +390,7 @@ class _GraduatePageState extends State<GraduatePage> {
           ],
         ),
       ),
+    )
     ),
   );
 }

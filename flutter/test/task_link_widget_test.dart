@@ -10,6 +10,7 @@ import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 
 import 'local_tasks_read_fixture.dart';
+import 'platform_actions_fake.dart';
 
 const assignment = HomeworkItem(
   id: 'spoc:123',
@@ -146,7 +147,7 @@ void main() {
     final fake = TaskFake();
     await tester.pumpWidget(
       ginkgoApp(
-        home: HomeworkDetailPage(
+        home: HomeworkDetailPage(fileActions: platformActions,
           item: assignment,
           service: fake,
           storageRoot: '/synthetic/tasks',

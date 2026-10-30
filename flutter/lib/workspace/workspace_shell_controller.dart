@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart' show RouteChoice;
 import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
@@ -12,6 +13,7 @@ class WorkspaceShell extends StatefulWidget {
   const WorkspaceShell({
     super.key,
     required this.service,
+    required this.platformActions,
     required this.mobileBuilder,
     required this.desktopBuilder,
     this.accountName,
@@ -21,6 +23,7 @@ class WorkspaceShell extends StatefulWidget {
   });
 
   final MirrorService service;
+  final PlatformActions platformActions;
   final Widget Function(WorkspaceShellState shell) mobileBuilder;
   final Widget Function(WorkspaceShellState shell) desktopBuilder;
   final String? accountName;

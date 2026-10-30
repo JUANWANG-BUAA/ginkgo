@@ -9,6 +9,7 @@ import 'package:ginkgo_mirror/features/learning/learning_page.dart';
 import 'package:ginkgo_mirror/features/library/library_loans_page.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
+import 'platform_actions_fake.dart';
 
 class InjectedNotices extends ControlledService {
   int reads = 0;
@@ -41,7 +42,7 @@ void main() {
     await tester.pumpWidget(
       ginkgoApp(
         home: CupertinoPageScaffold(
-          child: ServiceDirectory(
+          child: ServiceDirectory(platformActions: platformActions,
             service: service,
             destinations: workspaceDestinations,
             onSignOut: () async {},
@@ -62,7 +63,7 @@ void main() {
     await tester.pumpWidget(
       ginkgoApp(
         home: CupertinoPageScaffold(
-          child: ServiceDirectory(
+          child: ServiceDirectory(platformActions: platformActions,
             service: const DemoMirrorService(),
             destinations: workspaceDestinations,
             onSignOut: () async {},
@@ -91,7 +92,7 @@ void main() {
             child: CupertinoPageScaffold(
               child: ListView(
                 children: [
-                  ServiceDirectory(
+                  ServiceDirectory(platformActions: platformActions,
                     service: const DemoMirrorService(),
                     destinations: workspaceDestinations,
                     accountId: 'synthetic-account',

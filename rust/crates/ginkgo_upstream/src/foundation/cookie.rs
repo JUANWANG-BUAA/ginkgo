@@ -197,13 +197,6 @@ impl CookieJar {
         )
     }
 
-    pub fn cookie_value(&self, name: &str) -> Option<&str> {
-        self.cookies
-            .iter()
-            .find(|cookie| cookie.name == name)
-            .map(|cookie| cookie.value.as_str())
-    }
-
     pub fn contains(&self, name: &str) -> bool {
         self.cookies.iter().any(|cookie| cookie.name == name)
     }

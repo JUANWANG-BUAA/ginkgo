@@ -11,6 +11,7 @@ import 'package:ginkgo_mirror/features/today/today_page.dart';
 import 'package:ginkgo_mirror/application/local_tasks_read.dart';
 
 import 'mirror_widget_test.dart' show ControlledService, todayFixture;
+import 'platform_actions_fake.dart';
 
 class ProgressiveService extends ControlledService {
   @override
@@ -86,7 +87,7 @@ void main() {
     final service = ProgressiveService();
     await tester.pumpWidget(
       ginkgoApp(
-        home: TodayPage(storageRoot: '/synthetic/tasks', service: service),
+        home: TodayPage(fileActions: platformActions,storageRoot: '/synthetic/tasks', service: service),
       ),
     );
     expect(DiagnosticLog.shared.entries, isEmpty);
@@ -104,7 +105,7 @@ void main() {
       final service = ProgressiveService();
       await tester.pumpWidget(
         ginkgoApp(
-          home: TodayPage(storageRoot: '/synthetic/tasks', service: service),
+          home: TodayPage(fileActions: platformActions,storageRoot: '/synthetic/tasks', service: service),
         ),
       );
       expect(service.courses.length, 1);
@@ -153,7 +154,7 @@ void main() {
     final current = ProgressiveService();
     await tester.pumpWidget(
       ginkgoApp(
-        home: TodayPage(
+        home: TodayPage(fileActions: platformActions,
           storageRoot: '/synthetic/tasks',
           service: old,
           now: () => DateTime.utc(2026, 10, 22),
@@ -162,7 +163,7 @@ void main() {
     );
     await tester.pumpWidget(
       ginkgoApp(
-        home: TodayPage(
+        home: TodayPage(fileActions: platformActions,
           storageRoot: '/synthetic/tasks',
           service: current,
           now: () => DateTime.utc(2026, 10, 22),
@@ -191,7 +192,7 @@ void main() {
     final service = ProgressiveService();
     await tester.pumpWidget(
       ginkgoApp(
-        home: TodayPage(storageRoot: '/synthetic/tasks', service: service),
+        home: TodayPage(fileActions: platformActions,storageRoot: '/synthetic/tasks', service: service),
       ),
     );
     service.courses.single.complete(todayFixture);
@@ -249,7 +250,7 @@ void main() {
               disableAnimations: true,
               platformBrightness: Brightness.dark,
             ),
-            child: TodayPage(storageRoot: '/synthetic/tasks', service: service),
+            child: TodayPage(fileActions: platformActions,storageRoot: '/synthetic/tasks', service: service),
           ),
         ),
       );

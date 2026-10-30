@@ -10,6 +10,7 @@ import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/workspace/service_directory.dart';
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 import 'package:ginkgo_mirror/features/shuttle/shuttle_page.dart';
+import 'platform_actions_fake.dart';
 
 // Only this read capability is implemented. Unexpected calls fail rather than
 // reaching native bindings, demo initialization, or a school network.
@@ -903,7 +904,7 @@ void main() {
           CupertinoPageScaffold(
             child: ListView(
               children: [
-                ServiceDirectory(
+                ServiceDirectory(platformActions: platformActions,
                   service: service,
                   destinations: workspaceDestinations,
                   onSignOut: () async {},

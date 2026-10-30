@@ -24,10 +24,10 @@
 ## workspace/desktop_workspace_shell.dart
 
 - `class DesktopWorkspaceShell extends StatelessWidget` — 桌面侧栏壳：侧栏 + IndexedStack 惰性挂载各目的地。选中状态、已访问
-  <sub>class · workspace/desktop_workspace_shell.dart:15</sub>
-    - `const DesktopWorkspaceShell({ super.key, required this.shell, required this.service, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:16</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:30</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:45</sub>
+  <sub>class · workspace/desktop_workspace_shell.dart:16</sub>
+    - `const DesktopWorkspaceShell({ super.key, required this.shell, required this.service, required this.platformActions, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:17</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:33</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:49</sub>
 
 ## workspace/desktop_workspace_sidebar.dart
 
@@ -41,18 +41,18 @@
 ## workspace/mobile_workspace_shell.dart
 
 - `class MobileWorkspaceShell extends StatefulWidget` — 移动标签壳：底部导航 + 每个目的地一个常驻导航栈。选中状态与导航栈
-  <sub>class · workspace/mobile_workspace_shell.dart:16</sub>
-    - `const MobileWorkspaceShell({ super.key, required this.shell, required this.service, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:17</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:31</sub>
-    - `State<MobileWorkspaceShell> createState() => …`  <sub>:33</sub>
+  <sub>class · workspace/mobile_workspace_shell.dart:17</sub>
+    - `const MobileWorkspaceShell({ super.key, required this.shell, required this.service, required this.platformActions, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:18</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:34</sub>
+    - `State<MobileWorkspaceShell> createState() => …`  <sub>:36</sub>
 
 ## workspace/service_directory.dart
 
 - `class ServiceDirectory extends StatelessWidget`
-  <sub>class · workspace/service_directory.dart:18</sub>
-    - `const ServiceDirectory({ super.key, required this.service, required this.destinations, required this.onSignOut, this.accountName, this.accountId, this.route, });`  <sub>:19</sub>
-    - `final Future<void> Function() onSignOut;`  <sub>:30</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:40</sub>
+  <sub>class · workspace/service_directory.dart:19</sub>
+    - `const ServiceDirectory({ super.key, required this.service, required this.platformActions, required this.destinations, required this.onSignOut, this.accountName, this.accountId, this.route, });`  <sub>:20</sub>
+    - `final Future<void> Function() onSignOut;`  <sub>:33</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:43</sub>
 
 ## workspace/service_search_page.dart
 
@@ -92,37 +92,37 @@
 ## workspace/workspace_catalog.dart
 
 - `WorkspaceDestination? destinationById(String id) {…}` — 按 id 查找；壳层与今日快捷入口只使用字符串标识。
-  <sub>function · workspace/workspace_catalog.dart:252</sub>
+  <sub>function · workspace/workspace_catalog.dart:253</sub>
 - `List<WorkspaceDestination> sidebarDestinations(WorkspaceSection section) => …` — 某个侧栏分组内的条目，顺序即登记顺序。
-  <sub>function · workspace/workspace_catalog.dart:270</sub>
+  <sub>function · workspace/workspace_catalog.dart:271</sub>
 
 ## workspace/workspace_shell.dart
 
 - `class GinkgoApp extends StatelessWidget` — 工作区外壳：只负责会话切换、移动/桌面布局与功能登记表的消费，
-  <sub>class · workspace/workspace_shell.dart:30</sub>
-    - `const GinkgoApp({ super.key, required this.service, this.brightness, this.startupUpdate, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:31</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:47</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:49</sub>
+  <sub>class · workspace/workspace_shell.dart:31</sub>
+    - `const GinkgoApp({ super.key, required this.service, this.platformActions = const PlatformActions(), this.brightness, this.startupUpdate, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:32</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:53</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:55</sub>
 
 ## workspace/workspace_shell_controller.dart
 
 - `class WorkspaceShell extends StatefulWidget` — Shared navigation state above the mobile/desktop breakpoint. The concrete
-  <sub>class · workspace/workspace_shell_controller.dart:11</sub>
-    - `const WorkspaceShell({ super.key, required this.service, required this.mobileBuilder, required this.desktopBuilder, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:12</sub>
-    - `final Widget Function(WorkspaceShellState shell) mobileBuilder;`  <sub>:24</sub>
-    - `final Widget Function(WorkspaceShellState shell) desktopBuilder;`  <sub>:25</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:29</sub>
-    - `State<WorkspaceShell> createState() => …`  <sub>:32</sub>
+  <sub>class · workspace/workspace_shell_controller.dart:12</sub>
+    - `const WorkspaceShell({ super.key, required this.service, required this.platformActions, required this.mobileBuilder, required this.desktopBuilder, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:13</sub>
+    - `final Widget Function(WorkspaceShellState shell) mobileBuilder;`  <sub>:27</sub>
+    - `final Widget Function(WorkspaceShellState shell) desktopBuilder;`  <sub>:28</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:32</sub>
+    - `State<WorkspaceShell> createState() => …`  <sub>:35</sub>
 - `class WorkspaceShellState extends State<WorkspaceShell>`
-  <sub>class · workspace/workspace_shell_controller.dart:35</sub>
-    - `String selectedId = mobileDestinations.first.id;`  <sub>:36</sub>
-    - `final navigators = <String, GlobalKey<NavigatorState>> {…}`  <sub>:37</sub>
-    - `final Set<String> visited = {…}`  <sub>:38</sub>
-    - `int get mobileIndex {…}`  <sub>:44</sub>
-    - `GlobalKey<NavigatorState> navigatorFor(String id) => …`  <sub>:51</sub>
-    - `void onMobileTab(int index) {…}`  <sub>:54</sub>
-    - `void select(String id) {…}`  <sub>:60</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:73</sub>
+  <sub>class · workspace/workspace_shell_controller.dart:38</sub>
+    - `String selectedId = mobileDestinations.first.id;`  <sub>:39</sub>
+    - `final navigators = <String, GlobalKey<NavigatorState>> {…}`  <sub>:40</sub>
+    - `final Set<String> visited = {…}`  <sub>:41</sub>
+    - `int get mobileIndex {…}`  <sub>:47</sub>
+    - `GlobalKey<NavigatorState> navigatorFor(String id) => …`  <sub>:54</sub>
+    - `void onMobileTab(int index) {…}`  <sub>:57</sub>
+    - `void select(String id) {…}`  <sub>:63</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:76</sub>
 
 ## workspace/workspace_shortcut_preferences.dart
 
@@ -171,12 +171,12 @@
 ## workspace/workspace_types.dart
 
 - `enum WorkspaceSection`
-  <sub>enum · workspace/workspace_types.dart:7</sub>
-    - `const WorkspaceSection(this.title);`  <sub>:13</sub>
+  <sub>enum · workspace/workspace_types.dart:8</sub>
+    - `const WorkspaceSection(this.title);`  <sub>:14</sub>
 - `class WorkspaceContext` — Page construction context: capabilities are resolved once above the page.
-  <sub>class · workspace/workspace_types.dart:18</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:36</sub>
+  <sub>class · workspace/workspace_types.dart:19</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:42</sub>
 - `class WorkspaceDestination`
-  <sub>class · workspace/workspace_types.dart:41</sub>
-    - `const WorkspaceDestination({ required this.id, required this.title, required this.icon, required this.build, this.mobileLabel, this.section, this.mobileTab, this.sidebar = true, this.footer = false, });`  <sub>:42</sub>
-    - `final Widget Function(WorkspaceContext context) build;`  <sub>:57</sub>
+  <sub>class · workspace/workspace_types.dart:47</sub>
+    - `const WorkspaceDestination({ required this.id, required this.title, required this.icon, required this.build, this.mobileLabel, this.section, this.mobileTab, this.sidebar = true, this.footer = false, });`  <sub>:48</sub>
+    - `final Widget Function(WorkspaceContext context) build;`  <sub>:63</sub>

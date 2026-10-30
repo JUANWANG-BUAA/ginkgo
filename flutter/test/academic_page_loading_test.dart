@@ -15,6 +15,7 @@ import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 
 import 'mirror_widget_test.dart'
     show ControlledService, gradesFixture, homeworkFixture, scheduleFixture;
+import 'platform_actions_fake.dart';
 
 class PendingAcademicService extends ControlledService {
   final terms = Completer<GradeTermsResponse>();
@@ -163,7 +164,7 @@ void main() {
     tester,
   ) async {
     final service = PendingAcademicService();
-    await pumpPage(tester, HomeworkPage(service: service));
+    await pumpPage(tester, HomeworkPage(fileActions: platformActions,service: service));
     expect(find.byType(GinkgoLoadingView), findsOneWidget);
     expect(find.text('正在读取作业…'), findsOneWidget);
     expect(find.byType(CupertinoActivityIndicator), findsNothing);
@@ -178,7 +179,7 @@ void main() {
     final service = PendingAcademicService();
     await pumpPage(
       tester,
-      HomeworkDetailPage(item: homeworkFixture.items.first, service: service),
+      HomeworkDetailPage(fileActions: platformActions,item: homeworkFixture.items.first, service: service),
     );
     expect(find.byType(GinkgoLoadingView), findsOneWidget);
     expect(find.text('正在读取作业详情…'), findsOneWidget);
@@ -218,7 +219,7 @@ void main() {
 
   testWidgets('homework refresh shows the small branded leaf', (tester) async {
     final service = RefreshingAcademicService();
-    await pumpPage(tester, HomeworkPage(service: service));
+    await pumpPage(tester, HomeworkPage(fileActions: platformActions,service: service));
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(CupertinoIcons.refresh));
     await tester.pump();
@@ -233,7 +234,7 @@ void main() {
     final service = RefreshingAcademicService();
     await pumpPage(
       tester,
-      HomeworkDetailPage(item: homeworkFixture.items.first, service: service),
+      HomeworkDetailPage(fileActions: platformActions,item: homeworkFixture.items.first, service: service),
     );
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(CupertinoIcons.refresh));
@@ -270,7 +271,7 @@ void main() {
         CupertinoIcons.calendar,
       ),
       (
-        HomeworkPage(service: PendingAcademicService()),
+        HomeworkPage(fileActions: platformActions,service: PendingAcademicService()),
         '区分个人作业状态与助教课程',
         '正在读取作业…',
         CupertinoIcons.doc_text,

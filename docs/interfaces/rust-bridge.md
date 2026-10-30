@@ -25,7 +25,8 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 - [classroom](#classroom) (3)
 - [library](#library) (1)
 - [mirror](#mirror) (53)
-- [reminder_planning](#reminderplanning) (5)
+- [reminder_planning](#reminderplanning) (8)
+- [rules](#rules) (3)
 
 ## academic
 
@@ -1409,27 +1410,53 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 ## reminder_planning
 
 - `pub struct CourseReminderSeed`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/reminder_planning.rs:4</sub>
-    - `id: String`  <sub>:5</sub>
-    - `week_start: String`  <sub>:6</sub>
-    - `day: i32`  <sub>:7</sub>
-    - `starts_at: String`  <sub>:8</sub>
-    - `ends_at: String`  <sub>:9</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/reminder_planning.rs:6</sub>
+    - `id: String`  <sub>:7</sub>
+    - `week_start: String`  <sub>:8</sub>
+    - `day: i32`  <sub>:9</sub>
+    - `starts_at: String`  <sub>:10</sub>
+    - `ends_at: String`  <sub>:11</sub>
 - `pub struct TaskReminderSeed`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/reminder_planning.rs:12</sub>
-    - `id: String`  <sub>:13</sub>
-    - `due: String`  <sub>:14</sub>
-    - `completed: bool`  <sub>:15</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/reminder_planning.rs:14</sub>
+    - `id: String`  <sub>:15</sub>
+    - `due: String`  <sub>:16</sub>
+    - `completed: bool`  <sub>:17</sub>
 - `pub struct PlannedReminder`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/reminder_planning.rs:18</sub>
-    - `key: String`  <sub>:19</sub>
-    - `group: String`  <sub>:20</sub>
-    - `at_millis: i64`  <sub>:21</sub>
-    - `expires_millis: i64`  <sub>:22</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/reminder_planning.rs:20</sub>
+    - `key: String`  <sub>:21</sub>
+    - `group: String`  <sub>:22</sub>
+    - `at_millis: i64`  <sub>:23</sub>
+    - `expires_millis: i64`  <sub>:24</sub>
 - `pub struct ReminderPlanResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/reminder_planning.rs:25</sub>
-    - `plans: Vec<PlannedReminder>`  <sub>:26</sub>
-    - `skipped: u32`  <sub>:27</sub>
-    - `unsupported: bool`  <sub>:28</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/reminder_planning.rs:27</sub>
+    - `plans: Vec<PlannedReminder>`  <sub>:28</sub>
+    - `skipped: u32`  <sub>:29</sub>
+    - `unsupported: bool`  <sub>:30</sub>
 - `pub fn plan_course_task_reminders( courses: Vec<CourseReminderSeed>, tasks: Vec<TaskReminderSeed>, now_millis: i64, ) -> ReminderPlanResponse {…}` — Data-only plans. Calling this never requests notification permissions or sends notifications.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/reminder_planning.rs:33</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/reminder_planning.rs:35</sub>
+- `pub struct CheckInReminderSeed`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/reminder_planning.rs:83</sub>
+    - `id: String`  <sub>:84</sub>
+    - `date: String`  <sub>:85</sub>
+    - `begins_at: String`  <sub>:86</sub>
+    - `ends_at: String`  <sub>:87</sub>
+    - `not_signed: bool`  <sub>:88</sub>
+    - `conflicting: bool`  <sub>:89</sub>
+    - `sign_in_allowed: Option<bool>`  <sub>:90</sub>
+    - `merged_record_count: u32`  <sub>:91</sub>
+- `pub struct HomeworkReminderSeed`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/reminder_planning.rs:94</sub>
+    - `id: String`  <sub>:95</sub>
+    - `due_at: String`  <sub>:96</sub>
+    - `pending: bool`  <sub>:97</sub>
+- `pub fn plan_checkin_homework_reminders( checkin: Vec<CheckInReminderSeed>, homework: Vec<HomeworkReminderSeed>, now_millis: i64, ) -> ReminderPlanResponse {…}` — Data-only plans for check-in and assignment deadlines. The rule lives in the
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/reminder_planning.rs:103</sub>
+
+## rules
+
+- `pub enum HomeworkDeadlineStatus`
+  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/rules.rs:6</sub>
+- `pub fn classify_homework_deadline( due_at: Option<String>, now_millis: i64, ) -> HomeworkDeadlineStatus {…}` — Classify a school deadline against the Beijing wall clock.
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/rules.rs:29</sub>
+- `pub fn checkin_sign_in_window( date: String, begins_at: String, ends_at: String, now_millis: i64, ) -> bool {…}` — Whether a check-in session accepts a sign-in at `now_millis`.
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/rules.rs:48</sub>

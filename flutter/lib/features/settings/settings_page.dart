@@ -6,7 +6,7 @@ import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
-import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
+import 'package:ginkgo_mirror/application/maintenance.dart';
 import 'package:ginkgo_mirror/features/settings/maintenance_pages.dart';
 import 'package:ginkgo_mirror/features/settings/network_diagnostics_page.dart';
 import 'package:ginkgo_mirror/shared/query_cache_scope.dart';
@@ -25,10 +25,13 @@ class SettingsPage extends StatefulWidget {
     this.accountName,
     this.accountId,
     this.route,
-    this.maintenance = const NativeMaintenanceService(),
+    required this.maintenance,
   });
   final MirrorService service;
-  final MaintenanceService maintenance;
+  /// The self-check and update capability. It is absent when the app was
+  /// started without the platform binding, and the entries that need it are
+  /// then hidden instead of failing.
+  final MaintenanceService? maintenance;
   final Future<void> Function() onSignOut;
   final String? accountName;
   final String? accountId;
@@ -50,7 +53,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
     widget.maintenance
-        .version()
+        ?.version()
         .then((value) {
           if (mounted) setState(() => versionLabel = value.label);
         })
@@ -165,7 +168,8 @@ class _SettingsPageState extends State<SettingsPage> {
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
       context,
     ),
-    child: CustomScrollView(
+    child: SafeArea(
+      child: CustomScrollView(
       key: const Key("settings-scroll"),
       slivers: [
         const ApplePageHeader(
@@ -304,7 +308,8 @@ class _SettingsPageState extends State<SettingsPage> {
             AppleSection(
               header: const Text('支持与更新'),
               children: [
-                AppleListTile(
+                if (widget.maintenance != null)
+                  AppleListTile(
                   leading: const Icon(
                     CupertinoIcons.checkmark_shield,
                     color: AppleDesign.accent,
@@ -316,7 +321,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       ? null
                       : () => _open(
                           DiagnosticsPage(
-                            service: widget.maintenance,
+                            service: widget.maintenance!,
                             mirror: widget.service,
                           ),
                         ),
@@ -335,7 +340,8 @@ class _SettingsPageState extends State<SettingsPage> {
                           NetworkDiagnosticsPage(service: widget.service),
                         ),
                 ),
-                AppleListTile(
+                if (widget.maintenance != null)
+                  AppleListTile(
                   leading: const Icon(
                     CupertinoIcons.arrow_down_circle,
                     color: AppleDesign.accent,
@@ -346,7 +352,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   onTap: busy
                       ? null
                       : () => _open(
-                          SoftwareUpdatePage(service: widget.maintenance),
+                          SoftwareUpdatePage(service: widget.maintenance!),
                         ),
                 ),
               ],
@@ -371,6 +377,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ],
         ),
       ],
+    )
     ),
   );
 }

@@ -21,7 +21,8 @@ class ReservationsPage extends StatelessWidget {
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
       context,
     ),
-    child: CustomScrollView(
+    child: SafeArea(
+      child: CustomScrollView(
       slivers: [
         const ApplePageHeader(
           largeTitle: Text('预约'),
@@ -92,6 +93,7 @@ class ReservationsPage extends StatelessWidget {
           ),
         ),
       ],
+    )
     ),
   );
 

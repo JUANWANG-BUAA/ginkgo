@@ -38,7 +38,7 @@ void main() {
     expect(find.byType(GraduateCreditMapNodeCard), findsWidgets);
     expect(tester.takeException(), isNull);
 
-    await tester.pumpWidget(ginkgoApp(home: LearningPage(service: service)));
+    await tester.pumpWidget(ginkgoApp(home: LearningPage(service: service, fileActions: platformActions)));
     await settle(tester);
     await tester.tap(find.text('学习服务演示课程'));
     await settle(tester);

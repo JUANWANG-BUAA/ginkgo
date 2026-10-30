@@ -1,0 +1,51 @@
+{
+  "contract": "rules.library_mutation",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "cases": [
+      { "value": { "code": 1 } },
+      { "value": { "code": 1, "msg": "预约成功" } },
+      { "value": { "code": "1" } },
+      { "value": { "code": 0 } },
+      { "value": { "code": 0, "msg": "该时段已满" } },
+      { "value": { "code": 1, "msg": "余额不足" } },
+      { "value": { "code": 1, "msg": "请重新登录" } },
+      { "value": { "code": 500 } },
+      { "value": { "msg": "已满" } },
+      { "value": {} }
+    ]
+  },
+  "expected": {
+    "results": [
+      {
+        "state": "accepted",
+        "message": "学校已受理，请核对刷新后的预约记录"
+      },
+      {
+        "state": "accepted",
+        "message": "学校已受理，请核对刷新后的预约记录"
+      },
+      {
+        "state": "accepted",
+        "message": "学校已受理，请核对刷新后的预约记录"
+      },
+      {
+        "state": "accepted",
+        "message": "学校已受理，请核对刷新后的预约记录"
+      },
+      {
+        "state": "rejected",
+        "message": "学校未接受本次操作，请核对可用时段与预约规则"
+      },
+      {
+        "state": "rejected",
+        "message": "学校未接受本次操作，请核对可用时段与预约规则"
+      },
+      { "state": "uncertain", "message": "提交结果待确认，请刷新状态核实，勿重复提交" },
+      { "state": "uncertain", "message": "提交结果待确认，请刷新状态核实，勿重复提交" },
+      { "state": "uncertain", "message": "提交结果待确认，请刷新状态核实，勿重复提交" },
+      { "state": "uncertain", "message": "提交结果待确认，请刷新状态核实，勿重复提交" }
+    ]
+  }
+}

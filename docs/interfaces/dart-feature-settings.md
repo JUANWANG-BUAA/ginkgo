@@ -24,13 +24,13 @@
     - `final Future<void> Function()? onRefresh;`  <sub>:30</sub>
     - `Widget build(BuildContext context) => …`  <sub>:35</sub>
 - `class SoftwareUpdatePage extends StatefulWidget`
-  <sub>class · features/settings/maintenance_pages.dart:57</sub>
-    - `const SoftwareUpdatePage({ super.key, required this.service, this.downloader, this.initialVersion, this.initialResult, this.initialCheckedAt, });`  <sub>:58</sub>
-    - `State<SoftwareUpdatePage> createState() => …`  <sub>:72</sub>
+  <sub>class · features/settings/maintenance_pages.dart:59</sub>
+    - `const SoftwareUpdatePage({ super.key, required this.service, this.downloader, this.initialVersion, this.initialResult, this.initialCheckedAt, });`  <sub>:60</sub>
+    - `State<SoftwareUpdatePage> createState() => …`  <sub>:74</sub>
 - `class DiagnosticsPage extends StatefulWidget`
-  <sub>class · features/settings/maintenance_pages.dart:231</sub>
-    - `const DiagnosticsPage({ super.key, required this.service, required this.mirror, });`  <sub>:232</sub>
-    - `State<DiagnosticsPage> createState() => …`  <sub>:240</sub>
+  <sub>class · features/settings/maintenance_pages.dart:233</sub>
+    - `const DiagnosticsPage({ super.key, required this.service, required this.mirror, });`  <sub>:234</sub>
+    - `State<DiagnosticsPage> createState() => …`  <sub>:242</sub>
 
 ## features/settings/network_diagnostics_page.dart
 
@@ -77,6 +77,6 @@
 
 - `class SettingsPage extends StatefulWidget`
   <sub>class · features/settings/settings_page.dart:20</sub>
-    - `const SettingsPage({ super.key, required this.service, required this.onSignOut, this.accountName, this.accountId, this.route, this.maintenance = const NativeMaintenanceService(), });`  <sub>:21</sub>
-    - `final Future<void> Function() onSignOut;`  <sub>:32</sub>
-    - `State<SettingsPage> createState() => …`  <sub>:37</sub>
+    - `const SettingsPage({ super.key, required this.service, required this.onSignOut, this.accountName, this.accountId, this.route, required this.maintenance, });`  <sub>:21</sub>
+    - `final Future<void> Function() onSignOut;`  <sub>:35</sub>
+    - `State<SettingsPage> createState() => …`  <sub>:40</sub>

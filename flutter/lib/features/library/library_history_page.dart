@@ -76,7 +76,8 @@ class _LibraryHistoryPageState extends State<LibraryHistoryPage> {
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
       context,
     ),
-    child: CustomScrollView(
+    child: SafeArea(
+      child: CustomScrollView(
       key: const Key('library-history-scroll'),
       slivers: [
         AppleRefreshPageHeader(
@@ -185,6 +186,7 @@ class _LibraryHistoryPageState extends State<LibraryHistoryPage> {
           ],
         ),
       ],
+    )
     ),
   );
 }

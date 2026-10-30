@@ -29,7 +29,7 @@ void main() {
     );
     try {
       await tester.pumpWidget(
-        ginkgoApp(home: TasksPage(service: DemoMirrorService(), storageRoot: directory.path)),
+        ginkgoApp(home: TasksPage(fileActions: platformActions,service: DemoMirrorService(), storageRoot: directory.path)),
       );
       await settle(tester);
       await tapTask(tester, find.bySemanticsLabel('新增待办'));
@@ -69,7 +69,7 @@ void main() {
       await tester.pumpWidget(ginkgoApp(home: const SizedBox()));
       await settle(tester);
       await tester.pumpWidget(
-        ginkgoApp(home: TasksPage(service: DemoMirrorService(), storageRoot: directory.path)),
+        ginkgoApp(home: TasksPage(fileActions: platformActions,service: DemoMirrorService(), storageRoot: directory.path)),
       );
       await settle(tester);
       await tapTask(tester, find.byKey(const Key('tasks-completed-toggle')));

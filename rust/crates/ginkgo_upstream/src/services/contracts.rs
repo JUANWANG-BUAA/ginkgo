@@ -257,6 +257,106 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
             }
             json!({"results": results})
         }
+        "rules.reminders" => {
+            #[derive(Deserialize)]
+            #[serde(rename_all = "camelCase")]
+            struct CheckInCase {
+                id: String,
+                date: String,
+                begins_at: String,
+                ends_at: String,
+                not_signed: bool,
+                conflicting: bool,
+                sign_in_allowed: Option<bool>,
+                merged_record_count: usize,
+            }
+            #[derive(Deserialize)]
+            #[serde(rename_all = "camelCase")]
+            struct HomeworkCase {
+                id: String,
+                due_at: String,
+                pending: bool,
+            }
+            #[derive(Deserialize)]
+            #[serde(rename_all = "camelCase")]
+            struct ReminderCase {
+                checkin: Vec<CheckInCase>,
+                homework: Vec<HomeworkCase>,
+            }
+            #[derive(Deserialize)]
+            #[serde(rename_all = "camelCase")]
+            struct ReminderInput {
+                now_millis: i64,
+                cases: Vec<ReminderCase>,
+            }
+            let input: ReminderInput = decode(input)?;
+            let mut results = Vec::with_capacity(input.cases.len());
+            for case in input.cases {
+                let checkin = case
+                    .checkin
+                    .into_iter()
+                    .map(
+                        |v| ginkgo_domain::features::reminders::CheckInReminderInput {
+                            id: v.id,
+                            date: v.date,
+                            begins_at: v.begins_at,
+                            ends_at: v.ends_at,
+                            not_signed: v.not_signed,
+                            conflicting: v.conflicting,
+                            sign_in_allowed: v.sign_in_allowed,
+                            merged_record_count: v.merged_record_count,
+                        },
+                    )
+                    .collect::<Vec<_>>();
+                let homework = case
+                    .homework
+                    .into_iter()
+                    .map(
+                        |v| ginkgo_domain::features::reminders::HomeworkReminderInput {
+                            id: v.id,
+                            due_at: v.due_at,
+                            pending: v.pending,
+                        },
+                    )
+                    .collect::<Vec<_>>();
+                let planned = ginkgo_domain::features::reminders::plan_checkin_homework_reminders(
+                    &checkin,
+                    &homework,
+                    input.now_millis,
+                );
+                results.push(json!({
+                    "plans": planned.plans.into_iter().map(|v| json!({
+                        "key": v.key,
+                        "group": v.group,
+                        "atMillis": v.at_millis,
+                        "expiresMillis": v.expires_millis,
+                    })).collect::<Vec<_>>(),
+                    "skipped": planned.skipped,
+                }));
+            }
+            json!({"results": results})
+        }
+        "rules.library_mutation" => {
+            #[derive(Deserialize)]
+            struct MutationCase {
+                value: Value,
+            }
+            #[derive(Deserialize)]
+            struct MutationInput {
+                cases: Vec<MutationCase>,
+            }
+            let input: MutationInput = decode(input)?;
+            let mut results = Vec::with_capacity(input.cases.len());
+            for case in input.cases {
+                results.push(
+                    serde_json::to_value(crate::codecs::library_mutation::parse_result(
+                        &case.value,
+                    ))
+                    .map_err(|_| AppError::changed())?,
+                );
+            }
+            json!({"results": results})
+        }
         "rules.checkin_window" => {
             #[derive(Deserialize)]
             struct WindowCase {

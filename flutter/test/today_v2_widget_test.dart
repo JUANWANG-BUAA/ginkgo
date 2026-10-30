@@ -18,6 +18,7 @@ import 'package:ginkgo_mirror/features/today/today_tasks_section.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 
 import 'local_tasks_read_fixture.dart';
+import 'platform_actions_fake.dart';
 
 final clock = DateTime.utc(2026, 10, 22, 9);
 const emptyCourses = TodayResponse(date: '2026-10-22', courses: []);
@@ -155,7 +156,7 @@ Widget host(
     child: child,
   ),
 );
-Widget page(TodayFake service, {String account = 'a'}) => TodayPage(
+Widget page(TodayFake service, {String account = 'a'}) => TodayPage(fileActions: platformActions,
   service: service,
   storageRoot: '/synthetic/tasks',
   accountName: '同名用户',

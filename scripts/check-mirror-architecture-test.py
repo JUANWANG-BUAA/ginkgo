@@ -316,15 +316,8 @@ class BoundaryTests(unittest.TestCase):
             page.write_text(
                 "import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';\n"
             )
-            # Listed as pending migration: allowed, but pinned to this name.
-            self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
-            self.assertIn(
-                'features/settings/settings_page.dart', BOUNDARY.PENDING_ADAPTER_IMPORTS
-            )
-            other = root / 'flutter/lib/features/settings/other_page.dart'
-            other.write_text(
-                "import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';\n"
-            )
+            # The migration is done: the list is empty and the file is caught.
+            self.assertEqual(BOUNDARY.PENDING_ADAPTER_IMPORTS, set())
             self.assertTrue(BOUNDARY.dart_boundary_violations(root))
 
 

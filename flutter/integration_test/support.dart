@@ -1,7 +1,20 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ginkgo_mirror/application/platform_actions.dart';
+import 'package:ginkgo_mirror/infrastructure/homework_file_io.dart';
+import 'package:ginkgo_mirror/infrastructure/learning_file_actions.dart';
+import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
 import 'package:ginkgo_mirror/main.dart';
+
 import 'package:ginkgo_mirror/mirror_service.dart';
+
+/// The platform actions the device tests drive, bound exactly as the app does.
+const platformActions = PlatformActions(
+  learningFileSaver: saveLearningFile,
+  homeworkFilePicker: pickHomeworkFile,
+  homeworkFileSave: saveAndOpenSchoolFile,
+  maintenance: NativeMaintenanceService(),
+);
 
 /// Advance a fixed number of frames. Live mode can wait indefinitely for an
 /// engine frame that never arrives, even though the page is stable.

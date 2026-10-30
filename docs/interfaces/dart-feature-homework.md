@@ -8,15 +8,15 @@
 ## features/homework/homework_detail_page.dart
 
 - `class HomeworkDetailPage extends StatefulWidget`
-  <sub>class · features/homework/homework_detail_page.dart:19</sub>
-    - `const HomeworkDetailPage({ super.key, required this.item, required this.service, this.taskService, this.storageRoot, this.openTaskOnLinked = true, });`  <sub>:20</sub>
-    - `State<HomeworkDetailPage> createState() => …`  <sub>:34</sub>
+  <sub>class · features/homework/homework_detail_page.dart:20</sub>
+    - `const HomeworkDetailPage({ super.key, required this.item, required this.fileActions, required this.service, this.taskService, this.storageRoot, this.openTaskOnLinked = true, });`  <sub>:21</sub>
+    - `State<HomeworkDetailPage> createState() => …`  <sub>:39</sub>
 
 ## features/homework/homework_files_panel.dart
 
 - `class HomeworkFilesPanel extends StatefulWidget`
   <sub>class · features/homework/homework_files_panel.dart:12</sub>
-    - `const HomeworkFilesPanel({ super.key, required this.assignmentId, required this.title, required this.course, required this.gateway, this.onSubmitted, this.pickFile = pickHomeworkFile, this.saveFile, });`  <sub>:13</sub>
+    - `const HomeworkFilesPanel({ super.key, required this.assignmentId, required this.title, required this.course, required this.gateway, this.onSubmitted, required this.pickFile, required this.saveFile, });`  <sub>:13</sub>
     - `State<HomeworkFilesPanel> createState() => …`  <sub>:29</sub>
 
 ## features/homework/homework_files_widgets.dart
@@ -61,24 +61,22 @@
 ## features/homework/homework_page.dart
 
 - `class HomeworkPage extends StatefulWidget`
-  <sub>class · features/homework/homework_page.dart:21</sub>
-    - `const HomeworkPage({ super.key, required this.service, this.initialFilter = 0, this.now, });`  <sub>:22</sub>
-    - `State<HomeworkPage> createState() => …`  <sub>:32</sub>
+  <sub>class · features/homework/homework_page.dart:22</sub>
+    - `const HomeworkPage({ super.key, required this.service, required this.fileActions, this.initialFilter = 0, this.now, });`  <sub>:23</sub>
+    - `State<HomeworkPage> createState() => …`  <sub>:37</sub>
 
 ## features/homework/homework_projection.dart
 
-- `enum HomeworkDeadlineStatus`
-  <sub>enum · features/homework/homework_projection.dart:8</sub>
-- `HomeworkDeadlineStatus classifyHomeworkDeadline( String? dueAt, [ DateTime? beijingNow, ]) {…}` — Classify a homework deadline against Beijing wall clock time.
-  <sub>function · features/homework/homework_projection.dart:29</sub>
+- `HomeworkDeadlineStatus classifyHomeworkDeadline( String? dueAt, [ DateTime? beijingNow, ]) => …` — Classify a homework deadline against Beijing wall clock time.
+  <sub>function · features/homework/homework_projection.dart:19</sub>
 - `bool isHomeworkOverdue(String? dueAt, [DateTime? beijingNow]) => …` — Helper to test if a deadline is strictly classified as overdue.
-  <sub>function · features/homework/homework_projection.dart:61</sub>
+  <sub>function · features/homework/homework_projection.dart:28</sub>
 - `String? homeworkRelativeDeadline(String? dueAt, [DateTime? beijingNow]) {…}` — Returns an intuitive relative deadline countdown with 00:00 midnight warning.
-  <sub>function · features/homework/homework_projection.dart:72</sub>
+  <sub>function · features/homework/homework_projection.dart:39</sub>
 - `String homeworkCompactDeadline(String? dueAt, [DateTime? beijingNow]) {…}` — Produces a strict single-line, unambiguous deadline string (under 22 chars).
-  <sub>function · features/homework/homework_projection.dart:138</sub>
+  <sub>function · features/homework/homework_projection.dart:105</sub>
 - `CupertinoDynamicColor homeworkDeadlineTint( String? dueAt, [ DateTime? beijingNow, ]) {…}` — Color for the deadline status:
-  <sub>function · features/homework/homework_projection.dart:213</sub>
+  <sub>function · features/homework/homework_projection.dart:180</sub>
 
 ## features/homework/homework_widgets.dart
 

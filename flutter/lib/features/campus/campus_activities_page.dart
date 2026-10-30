@@ -43,7 +43,9 @@ class CampusActivitiesPage extends StatelessWidget {
           subtitle: const Text('列表页顺序按学校官网分页'),
           trailing: CupertinoButton(
             onPressed: busy ? null : () => select(page == 1 ? 2 : 1),
-            child: Text(page == 1 ? '第 2 页' : '第 1 页'),
+            child: SafeArea(
+              child: Text(page == 1 ? '第 2 页' : '第 1 页')
+            ),
           ),
         ),
       ],

@@ -15,7 +15,7 @@ Swift 解析 runner 支持 `auth.cas_login_page`、`schedule.terms`、`schedule.
 
 此覆盖不是“全部契约两端一致”：签到、图书馆、博雅上游解析、研究生、SPOC 列表 / 详情及部分认证错误目前仍主要由 Rust runner 检查。后续共享测试应扩展现有 runner；新增支持的契约必须有样例，已有样例不能被静默跳过。
 
-`rules/` 是规则表而非协议响应：一次给出多组输入，`expected.results` 逐条对应。Rust 的领域规则（`ginkgo_domain::features::homework::classify_deadline`、`ginkgo_domain::features::checkin::sign_in_window`）是权威，Dart 侧用同一份表断言自己的实现，两边任何一边改出差异都会红。表覆盖跨零点、日期型与精确时刻型截止、无法解析的输入，以及签到窗口的开放前一刻、开放瞬间、关闭瞬间、跨日与畸形时间。Swift runner 按既有约定跳过未登记的契约，因此这些规则目前是 Rust↔Dart 共享。
+`rules/` 是规则表而非协议响应：一次给出多组输入，`expected.results` 逐条对应。Rust 的领域规则是权威（`homework::classify_deadline`、`checkin::sign_in_window`、`reminders::plan_checkin_homework_reminders`、`library_mutation::parse_result`），Dart 侧用同一份表断言自己的实现或替身，两边任何一边改出差异都会红。表覆盖跨零点、日期型与精确时刻型截止、无法解析的输入，以及签到窗口的开放前一刻、开放瞬间、关闭瞬间、跨日与畸形时间，以及图书馆写结果的受理/拒绝/待确认。Swift runner 按既有约定跳过未登记的契约，因此这些规则目前是 Rust↔Dart 共享。
 
 ## 语义约束
 

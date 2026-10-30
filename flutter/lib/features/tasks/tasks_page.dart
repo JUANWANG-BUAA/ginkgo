@@ -4,6 +4,7 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/application/local_tasks.dart';
+import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/application/task_storage_scope.dart';
 import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
@@ -19,11 +20,15 @@ class TasksPage extends StatefulWidget {
     super.key,
     this.storageRoot,
     required this.service,
+    required this.fileActions,
     this.academicService,
     this.initialTaskId,
   });
   final String? storageRoot;
   final LocalTaskGateway service;
+
+  /// The platform actions bound by the composition root.
+  final PlatformActions fileActions;
   final AcademicGateway? academicService;
   final String? initialTaskId;
   @override
@@ -274,6 +279,7 @@ class _TasksPageState extends State<TasksPage> {
         CupertinoPageRoute(
           builder: (_) => HomeworkDetailPage(
             item: matches.single,
+            fileActions: widget.fileActions,
             service: academic,
             taskService: service,
             storageRoot: widget.storageRoot,
@@ -332,7 +338,8 @@ class _TasksPageState extends State<TasksPage> {
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
       context,
     ),
-    child: CustomScrollView(
+    child: SafeArea(
+      child: CustomScrollView(
       key: const Key('tasks-scroll'),
       slivers: [
         pageHeader(),
@@ -443,6 +450,7 @@ class _TasksPageState extends State<TasksPage> {
           ),
         ),
       ],
+    )
     ),
   );
 }

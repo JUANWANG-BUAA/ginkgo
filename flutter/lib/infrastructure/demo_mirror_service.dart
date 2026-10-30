@@ -11,6 +11,7 @@ import '../application/homework_files.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_homework_files.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_learning.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_library_loans.dart';
+import 'package:ginkgo_mirror/infrastructure/native_reminder_planning.dart';
 import 'package:ginkgo_mirror/infrastructure/local_tasks_decode.dart';
 import 'package:ginkgo_mirror/infrastructure/notices_decode.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_graduate_credit_map.dart';
@@ -32,7 +33,11 @@ import '../src/rust/api/live.dart' as live;
 import '../src/rust/api/mirror.dart' as rust;
 
 final class DemoMirrorService
-    with DemoLearning, DemoGraduateCreditMap, DemoLibraryLoans
+    with
+        DemoLearning,
+        DemoGraduateCreditMap,
+        DemoLibraryLoans,
+        NativeReminderPlanning
     implements
         MirrorService,
         CampusCardGateway,

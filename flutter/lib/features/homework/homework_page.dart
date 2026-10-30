@@ -11,6 +11,7 @@ import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/shared/course_visibility.dart';
 import 'package:ginkgo_mirror/features/schedule/course_range_page.dart';
 import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
@@ -22,10 +23,14 @@ class HomeworkPage extends StatefulWidget {
   const HomeworkPage({
     super.key,
     required this.service,
+    required this.fileActions,
     this.initialFilter = 0,
     this.now,
   });
   final AcademicGateway service;
+
+  /// The platform actions bound by the composition root.
+  final PlatformActions fileActions;
   final int initialFilter;
   final DateTime? now;
   @override
@@ -181,7 +186,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
       context,
     ),
-    child: CustomScrollView(
+    child: SafeArea(
+      child: CustomScrollView(
       key: const Key('homework-scroll'),
       slivers: [
         ApplePageHeader(
@@ -232,6 +238,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
           ..._content(data!),
         const SliverToBoxAdapter(child: SizedBox(height: 96)),
       ],
+    )
     ),
   );
 
@@ -427,6 +434,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                       onTap: () => Navigator.of(context).push(
                         CupertinoPageRoute<void>(
                           builder: (_) => HomeworkDetailPage(
+                            fileActions: widget.fileActions,
                             item: item,
                             service: widget.service,
                           ),

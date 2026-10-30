@@ -6,49 +6,13 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../mirror_service.dart';
 
-import 'package:ginkgo_mirror/platform/android_update_controller.dart';
+
+import '../application/maintenance.dart';
 
 import '../src/rust/api/live.dart' as live;
 import '../src/rust/api/mirror.dart' as bridge;
 
 import 'package:ginkgo_mirror/infrastructure/native_command.dart';
-
-class InstalledVersion {
-  const InstalledVersion(this.version, this.build);
-  final String version, build;
-  String get label => '$version ($build)';
-}
-
-class UpdateResult {
-  const UpdateResult({
-    required this.latest,
-    required this.available,
-    required this.apkAvailable,
-    this.pageUrl,
-    this.notes,
-    this.download,
-  });
-  final String? latest, pageUrl, notes;
-  final bool available, apkAvailable;
-  final AndroidDownload? download;
-  String get headline => latest == null
-      ? '尚无 Android 发布'
-      : !apkAvailable
-      ? '发布尚未提供 Android 安装包'
-      : available
-      ? '发现 Android 新版本'
-      : '当前已是最新 Android 版本';
-}
-
-abstract interface class MaintenanceService {
-  bool get supportsUpdates;
-  Future<InstalledVersion> version();
-  Future<UpdateResult> checkUpdate(String current);
-  Future<bool> openReleases(String? page);
-  Future<bool> checkBridge();
-  Future<bool> checkStorage();
-  Future<bool> checkVault();
-}
 
 class NativeMaintenanceService implements MaintenanceService {
   const NativeMaintenanceService();
@@ -131,6 +95,15 @@ class NativeMaintenanceService implements MaintenanceService {
   }
 
   @override
+  Future<bool> checkPublicService(MirrorService service) async {
+    if (service.isDemo) return false;
+    final result = await service.libraryStats(forceRefresh: true);
+    final data = result.data;
+    if (result.failure != null || data == null) return false;
+    return !data.fromCache;
+  }
+
+  @override
   Future<bool> checkVault() => boundedNativeRead(
     () => live.verifyCredentialStorage(
       account:
@@ -138,14 +111,4 @@ class NativeMaintenanceService implements MaintenanceService {
       secret: 'synthetic-diagnostic-not-a-password',
     ),
   );
-}
-
-/// Network check is deliberately separate from local checks. Cached fallback
-/// cannot prove connectivity, and synthetic demo data cannot prove a live API.
-Future<bool> checkPublicService(MirrorService service) async {
-  if (service.isDemo) return false;
-  final result = await service.libraryStats(forceRefresh: true);
-  final data = result.data;
-  if (result.failure != null || data == null) return false;
-  return !data.fromCache;
 }

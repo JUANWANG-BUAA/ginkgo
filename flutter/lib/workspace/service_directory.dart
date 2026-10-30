@@ -14,11 +14,13 @@ import 'package:ginkgo_mirror/features/settings/settings_page.dart';
 import 'package:ginkgo_mirror/workspace/service_search_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_types.dart';
 import 'package:ginkgo_mirror/application/contracts.dart' show RouteChoice;
+import 'package:ginkgo_mirror/application/platform_actions.dart';
 
 class ServiceDirectory extends StatelessWidget {
   const ServiceDirectory({
     super.key,
     required this.service,
+    required this.platformActions,
     required this.destinations,
     required this.onSignOut,
     this.accountName,
@@ -26,6 +28,7 @@ class ServiceDirectory extends StatelessWidget {
     this.route,
   });
   final MirrorService service;
+  final PlatformActions platformActions;
   final List<WorkspaceDestination> destinations;
   final Future<void> Function() onSignOut;
   final String? accountName;
@@ -70,7 +73,7 @@ class ServiceDirectory extends StatelessWidget {
             '待办',
             CupertinoIcons.list_bullet,
             GinkgoColors.accent,
-            TasksPage(service: service),
+            TasksPage(fileActions: platformActions,service: service),
           ),
           _destination(context, 'campus-card', GinkgoColors.accent),
           _destination(context, 'shuttle', GinkgoColors.resourceTeal),
@@ -122,6 +125,7 @@ class ServiceDirectory extends StatelessWidget {
             GinkgoColors.statusInactive,
             SettingsPage(
               service: service,
+              maintenance: platformActions.maintenance,
               onSignOut: onSignOut,
               accountName: accountName,
               accountId: accountId,
@@ -136,6 +140,7 @@ class ServiceDirectory extends StatelessWidget {
 
   WorkspaceContext _featureContext(BuildContext context) => WorkspaceContext(
     service: service,
+    platformActions: platformActions,
     mobile: true,
     accountName: accountName,
     accountId: accountId,

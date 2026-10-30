@@ -119,9 +119,9 @@ Dart 文件级 import/export/part 循环已消除并纳入架构门禁及自测�
 
 ## 共享规则契约与页面分层清理（2026-10-30 工作树）
 
-截止分类与签到窗口此前在 Rust（`ginkgo_domain::features::homework::classify_deadline`、`features::checkin::sign_in_window`）和 Dart（`homework_projection.dart`、`shared/reminder_rules.dart`）各有一份实现，Rust 侧的截止分类甚至无人调用。现在 `fixtures/rules/` 提供两张共享规则表：Rust 侧作为权威实现接入契约 runner，Dart 侧用同一份 `expected` 断言自己的实现，任一侧改出差异都会红。表覆盖跨零点、日期型与精确时刻型截止、无法解析的输入，以及签到窗口开放前一刻、开放瞬间、关闭瞬间、跨日与畸形时间。签到与作业提醒规则仍只有 Dart 实现，迁移路径见 TODO。
+截止分类与签到窗口此前在 Rust（`ginkgo_domain::features::homework::classify_deadline`、`features::checkin::sign_in_window`）和 Dart（`homework_projection.dart`、`shared/reminder_rules.dart`）各有一份实现，Rust 侧的截止分类甚至无人调用。现在三处规则都只有领域实现：`fixtures/rules/` 的共享规则表锁定行为；`ginkgo_domain::features::reminders` 的 `plan_checkin_homework_reminders` 通过 `ReminderPlanningGateway` 注入；截止分类与签到窗口通过新的 `SchoolRules` 端口调用纯同步桥接命令，Dart 页面只做呈现。单元测试在 `flutter_test_config.dart` 注入 Dart 替身，替身与领域实现受同一张表约束，任一侧改出差异都会红。表覆盖跨零点、日期型与精确时刻型截止、无法解析的输入，以及签到窗口开放前一刻、开放瞬间、关闭瞬间、跨日与畸形时间。
 
-页面分层：`infrastructure/service_factory.dart` 已删除。通知、待办、博雅、研究生教务四个页面不再在缺少注入服务时自行组装适配器——自行组装会让页面读到与工作区不同的账号绑定；博雅与研究生保留 loader 注入口，缺失时抛出明确错误。架构门禁新增"`features/` 与 `workspace/`（组合根除外）不得导入 `infrastructure/`"，学习课程页、作业文件面板与设置维护页的默认实现作为待迁移清单显式列出。
+页面分层：`infrastructure/service_factory.dart` 已删除。通知、待办、博雅、研究生教务四个页面不再在缺少注入服务时自行组装适配器——自行组装会让页面读到与工作区不同的账号绑定；博雅与研究生保留 loader 注入口，缺失时抛出明确错误。学习课程页、作业文件面板与设置维护页的默认实现也已上移：`MaintenanceService`、`AndroidDownload` 与文件读写端口迁到 `application/`，组合根（`main.dart`）绑定真实实现并经 `WorkspaceContext` 的 `PlatformActions` 传到页面，页面不再引用基础设施类型。架构门禁新增"`features/` 与 `workspace/`（组合根除外）不得导入 `infrastructure/`"，待迁移清单已清空。
 
 Alpha.9 在 Alpha.8 基础上带入连续左右翻页、SPOC 学习与资料保存、文件作业入口、验证码、学分地图、提醒、本人借阅、手机目录和视觉/无障碍修复。可选加密学习快照因尚缺人工安全审查，在公开 Release 中关闭。学校真实认证、借阅非空分页、校车余票和写操作仍未验收。
 

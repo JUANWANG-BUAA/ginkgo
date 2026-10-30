@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/file_actions.dart';
 import 'package:ginkgo_mirror/application/homework_files.dart';
 
 import 'homework_files_test.dart' as fixture;
@@ -45,8 +46,9 @@ void main() {
       await tester.pumpWidget(
         fixture.panel(
           files,
-          saver: (_) async {
+          saver: (file, {required bool Function() isCurrent, bool openAfterSave = false}) async {
             saved++;
+            return const FileSaveResult.saved();
           },
         ),
       );

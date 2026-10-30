@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import '../application/contracts.dart' show RouteChoice;
+import '../application/platform_actions.dart';
 
 import 'package:ginkgo_mirror/shared/course_visibility.dart';
 import 'package:ginkgo_mirror/widgets/diagnostic_hints.dart';
@@ -31,6 +32,7 @@ class GinkgoApp extends StatelessWidget {
   const GinkgoApp({
     super.key,
     required this.service,
+    this.platformActions = const PlatformActions(),
     this.brightness,
     this.startupUpdate,
     this.accountName,
@@ -39,6 +41,10 @@ class GinkgoApp extends StatelessWidget {
     this.onSignOut,
   });
   final MirrorService service;
+
+  /// The platform actions the pages may use. The app root binds the real
+  /// implementations; a test that does not need them keeps them empty.
+  final PlatformActions platformActions;
   final Brightness? brightness;
   final StartupUpdateController? startupUpdate;
   final String? accountName;
@@ -60,6 +66,7 @@ class GinkgoApp extends StatelessWidget {
           child: QueryCacheScope(
             child: WorkspaceShell(
               service: service,
+              platformActions: platformActions,
               accountName: accountName,
               accountId: accountId,
               route: route,
@@ -67,6 +74,7 @@ class GinkgoApp extends StatelessWidget {
               mobileBuilder: (shell) => MobileWorkspaceShell(
                 shell: shell,
                 service: service,
+                platformActions: platformActions,
                 accountName: accountName,
                 accountId: accountId,
                 route: route,
@@ -75,6 +83,7 @@ class GinkgoApp extends StatelessWidget {
               desktopBuilder: (shell) => DesktopWorkspaceShell(
                 shell: shell,
                 service: service,
+                platformActions: platformActions,
                 accountName: accountName,
                 accountId: accountId,
                 route: route,

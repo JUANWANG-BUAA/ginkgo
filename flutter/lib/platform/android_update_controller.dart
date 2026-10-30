@@ -7,30 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
-class AndroidDownload {
-  const AndroidDownload({
-    required this.version,
-    required this.name,
-    required this.url,
-    required this.apiUrl,
-    required this.size,
-    required this.sha256,
-  });
-  final String version, name, url, apiUrl, sha256;
-  final int size;
-  bool get isValid =>
-      RegExp(r'^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$').hasMatch(version) &&
-      name == 'Ginkgo-$version-android-arm64.apk' &&
-      url ==
-          'https://github.com/JUANWANG-BUAA/ginkgo/releases/download/'
-              'android-v$version/$name' &&
-      RegExp(
-        r'^https://api\.github\.com/repos/JUANWANG-BUAA/ginkgo/releases/assets/[1-9][0-9]*$',
-      ).hasMatch(apiUrl) &&
-      size > 0 &&
-      size <= 268435456 &&
-      RegExp(r'^[a-f0-9]{64}$').hasMatch(sha256);
-}
+import 'package:ginkgo_mirror/application/maintenance.dart';
 
 enum UpdateDownloadSource {
   automatic('自动选择官方入口'),

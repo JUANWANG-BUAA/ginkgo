@@ -3,33 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../application/file_actions.dart';
 import '../application/homework_files.dart';
-
-typedef HomeworkFilePicker = Future<XFile?> Function();
-typedef HomeworkFileSaver = Future<void> Function(HomeworkFileDownload file);
-
-enum FileSaveStatus { saved, cancelled, stale }
-
-enum FileOpenStatus { opened, unsupported, unavailable, stale }
-
-/// Contains a local capability only, never a school URL, credential or raw URI.
-class FileSaveResult {
-  const FileSaveResult.saved({Future<FileOpenStatus> Function()? opener})
-    : status = FileSaveStatus.saved,
-      // Named public callback initializes a deliberately private capability.
-      // ignore: prefer_initializing_formals
-      _opener = opener;
-  const FileSaveResult.cancelled()
-    : status = FileSaveStatus.cancelled,
-      _opener = null;
-  const FileSaveResult.stale() : status = FileSaveStatus.stale, _opener = null;
-
-  final FileSaveStatus status;
-  final Future<FileOpenStatus> Function()? _opener;
-  bool get canOpen => status == FileSaveStatus.saved && _opener != null;
-  Future<FileOpenStatus> open() async =>
-      await _opener?.call() ?? FileOpenStatus.unsupported;
-}
 
 Future<XFile?> pickHomeworkFile() => openFile();
 

@@ -24,7 +24,7 @@
 - [library_stats](#librarystats) (3)
 - [mutation](#mutation) (5)
 - [notices](#notices) (1)
-- [reminders](#reminders) (5)
+- [reminders](#reminders) (8)
 - [schedule](#schedule) (9)
 - [shuttle](#shuttle) (4)
 - [tasks](#tasks) (8)
@@ -591,6 +591,23 @@
     - `skipped: u32`  <sub>:35</sub>
 - `pub fn plan_local_reminders( courses: &[CourseReminderInput], tasks: &[TaskReminderInput], now_millis: i64, ) -> ReminderPlanningResult {…}` — Course: ten minutes before an explicitly timed lesson, expires at lesson start.
   <sub>fn · rust/crates/ginkgo_domain/src/features/reminders.rs:43</sub>
+- `pub struct CheckInReminderInput` — A check-in session that may still need a reminder.
+  <sub>struct · rust/crates/ginkgo_domain/src/features/reminders.rs:180</sub>
+    - `id: String`  <sub>:181</sub>
+    - `date: String` — The queried school day, not the phone's current day.  <sub>:183</sub>
+    - `begins_at: String`  <sub>:184</sub>
+    - `ends_at: String`  <sub>:185</sub>
+    - `not_signed: bool` — True only when the session is exactly "not signed". An unknown status  <sub>:188</sub>
+    - `conflicting: bool`  <sub>:189</sub>
+    - `sign_in_allowed: Option<bool>` — Explicit false covers merged sessions with conflicting records.  <sub>:191</sub>
+    - `merged_record_count: usize`  <sub>:192</sub>
+- `pub struct HomeworkReminderInput` — A school assignment that may still need a deadline reminder.
+  <sub>struct · rust/crates/ginkgo_domain/src/features/reminders.rs:197</sub>
+    - `id: String`  <sub>:198</sub>
+    - `due_at: String` — The school deadline string. An unparsable deadline plans nothing.  <sub>:200</sub>
+    - `pending: bool`  <sub>:201</sub>
+- `pub fn plan_checkin_homework_reminders( checkin: &[CheckInReminderInput], homework: &[HomeworkReminderInput], now_millis: i64, ) -> ReminderPlanningResult {…}` — Plan the check-in and assignment reminders.
+  <sub>fn · rust/crates/ginkgo_domain/src/features/reminders.rs:215</sub>
 
 ## schedule
 

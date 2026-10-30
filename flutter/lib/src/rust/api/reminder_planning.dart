@@ -18,6 +18,65 @@ ReminderPlanResponse planCourseTaskReminders({
   nowMillis: nowMillis,
 );
 
+/// Data-only plans for check-in and assignment deadlines. The rule lives in the
+/// domain; this command only moves the inputs across the bridge.
+ReminderPlanResponse planCheckinHomeworkReminders({
+  required List<CheckInReminderSeed> checkin,
+  required List<HomeworkReminderSeed> homework,
+  required PlatformInt64 nowMillis,
+}) => RustLib.instance.api.crateApiReminderPlanningPlanCheckinHomeworkReminders(
+  checkin: checkin,
+  homework: homework,
+  nowMillis: nowMillis,
+);
+
+class CheckInReminderSeed {
+  final String id;
+  final String date;
+  final String beginsAt;
+  final String endsAt;
+  final bool notSigned;
+  final bool conflicting;
+  final bool? signInAllowed;
+  final int mergedRecordCount;
+
+  const CheckInReminderSeed({
+    required this.id,
+    required this.date,
+    required this.beginsAt,
+    required this.endsAt,
+    required this.notSigned,
+    required this.conflicting,
+    this.signInAllowed,
+    required this.mergedRecordCount,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      date.hashCode ^
+      beginsAt.hashCode ^
+      endsAt.hashCode ^
+      notSigned.hashCode ^
+      conflicting.hashCode ^
+      signInAllowed.hashCode ^
+      mergedRecordCount.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CheckInReminderSeed &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          date == other.date &&
+          beginsAt == other.beginsAt &&
+          endsAt == other.endsAt &&
+          notSigned == other.notSigned &&
+          conflicting == other.conflicting &&
+          signInAllowed == other.signInAllowed &&
+          mergedRecordCount == other.mergedRecordCount;
+}
+
 class CourseReminderSeed {
   final String id;
   final String weekStart;
@@ -51,6 +110,30 @@ class CourseReminderSeed {
           day == other.day &&
           startsAt == other.startsAt &&
           endsAt == other.endsAt;
+}
+
+class HomeworkReminderSeed {
+  final String id;
+  final String dueAt;
+  final bool pending;
+
+  const HomeworkReminderSeed({
+    required this.id,
+    required this.dueAt,
+    required this.pending,
+  });
+
+  @override
+  int get hashCode => id.hashCode ^ dueAt.hashCode ^ pending.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HomeworkReminderSeed &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          dueAt == other.dueAt &&
+          pending == other.pending;
 }
 
 class PlannedReminder {

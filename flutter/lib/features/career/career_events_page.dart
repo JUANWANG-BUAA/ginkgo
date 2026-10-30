@@ -105,7 +105,8 @@ Future<String?> _pickMonth(BuildContext context, String month) async {
     builder: (context) => Container(
       height: 280,
       color: CupertinoColors.systemBackground.resolveFrom(context),
-      child: Column(
+      child: SafeArea(
+        child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -132,6 +133,7 @@ Future<String?> _pickMonth(BuildContext context, String month) async {
             ),
           ),
         ],
+      )
       ),
     ),
   );

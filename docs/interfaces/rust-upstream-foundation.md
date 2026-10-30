@@ -36,16 +36,14 @@ HTTP 传输、Cookie、路由与错误映射。
   <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:67</sub>
 - `pub fn header_for(&mut self, url: &str, now_ms: i64) -> Option<String> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:172</sub>
-- `pub fn cookie_value(&self, name: &str) -> Option<&str> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:200</sub>
 - `pub fn contains(&self, name: &str) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:207</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:200</sub>
 - `pub fn len(&self) -> usize {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:211</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:204</sub>
 - `pub fn is_empty(&self) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:215</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:208</sub>
 - `pub fn clear(&mut self) {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:219</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:212</sub>
 
 ## http
 

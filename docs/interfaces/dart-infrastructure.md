@@ -16,14 +16,14 @@ native/demo 适配器、运行时与持久化实现。
 - [infrastructure/demo_mirror_service.dart](#infrastructuredemomirrorservicedart) (1)
 - [infrastructure/graduate_credit_map_payload.dart](#infrastructuregraduatecreditmappayloaddart) (1)
 - [infrastructure/graduate_decode.dart](#infrastructuregraduatedecodedart) (1)
-- [infrastructure/homework_file_io.dart](#infrastructurehomeworkfileiodart) (11)
+- [infrastructure/homework_file_io.dart](#infrastructurehomeworkfileiodart) (6)
 - [infrastructure/learning_file_actions.dart](#infrastructurelearningfileactionsdart) (1)
 - [infrastructure/learning_snapshot_store.dart](#infrastructurelearningsnapshotstoredart) (4)
 - [infrastructure/library_books_decode.dart](#infrastructurelibrarybooksdecodedart) (1)
 - [infrastructure/library_holdings_decode.dart](#infrastructurelibraryholdingsdecodedart) (1)
 - [infrastructure/library_stats_decode.dart](#infrastructurelibrarystatsdecodedart) (1)
 - [infrastructure/local_tasks_decode.dart](#infrastructurelocaltasksdecodedart) (1)
-- [infrastructure/maintenance_service.dart](#infrastructuremaintenanceservicedart) (5)
+- [infrastructure/maintenance_service.dart](#infrastructuremaintenanceservicedart) (1)
 - [infrastructure/mirror_runtime.dart](#infrastructuremirrorruntimedart) (1)
 - [infrastructure/native_auth_challenge.dart](#infrastructurenativeauthchallengedart) (2)
 - [infrastructure/native_campus_activities.dart](#infrastructurenativecampusactivitiesdart) (2)
@@ -33,6 +33,7 @@ native/demo 适配器、运行时与持久化实现。
 - [infrastructure/native_mirror_service.dart](#infrastructurenativemirrorservicedart) (1)
 - [infrastructure/native_reminder_planning.dart](#infrastructurenativereminderplanningdart) (1)
 - [infrastructure/native_reminder_platform.dart](#infrastructurenativereminderplatformdart) (1)
+- [infrastructure/native_school_rules.dart](#infrastructurenativeschoolrulesdart) (1)
 - [infrastructure/notices_decode.dart](#infrastructurenoticesdecodedart) (1)
 - [infrastructure/reminder_store.dart](#infrastructurereminderstoredart) (1)
 - [infrastructure/serial_reminder_platform.dart](#infrastructureserialreminderplatformdart) (1)
@@ -87,7 +88,7 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/demo_mirror_service.dart
 
 - `final class DemoMirrorService`
-  <sub>class · infrastructure/demo_mirror_service.dart:34</sub>
+  <sub>class · infrastructure/demo_mirror_service.dart:35</sub>
 
 ## infrastructure/graduate_credit_map_payload.dart
 
@@ -101,42 +102,29 @@ native/demo 适配器、运行时与持久化实现。
 
 ## infrastructure/homework_file_io.dart
 
-- `typedef HomeworkFilePicker = Future<XFile?> Function();`
-  <sub>typedef · infrastructure/homework_file_io.dart:8</sub>
-- `typedef HomeworkFileSaver = Future<void> Function(HomeworkFileDownload file);`
-  <sub>typedef · infrastructure/homework_file_io.dart:9</sub>
-- `enum FileSaveStatus { saved, cancelled, stale }`
-  <sub>enum · infrastructure/homework_file_io.dart:11</sub>
-- `enum FileOpenStatus { opened, unsupported, unavailable, stale }`
-  <sub>enum · infrastructure/homework_file_io.dart:13</sub>
-- `class FileSaveResult` — Contains a local capability only, never a school URL, credential or raw URI.
-  <sub>class · infrastructure/homework_file_io.dart:16</sub>
-    - `final Future<FileOpenStatus> Function()? _opener;`  <sub>:28</sub>
-    - `bool get canOpen => …`  <sub>:29</sub>
-    - `Future<FileOpenStatus> open() async => …`  <sub>:30</sub>
 - `Future<XFile?> pickHomeworkFile() => …`
-  <sub>function · infrastructure/homework_file_io.dart:34</sub>
+  <sub>function · infrastructure/homework_file_io.dart:9</sub>
 - `Future<FileSaveResult> saveAndOpenSchoolFile( HomeworkFileDownload file, { required bool Function() isCurrent, bool openAfterSave = false, }) => …`
-  <sub>function · infrastructure/homework_file_io.dart:36</sub>
+  <sub>function · infrastructure/homework_file_io.dart:11</sub>
 - `class SchoolFileSaveService` — Selection and byte commit are separate so a dismissed page/account never
-  <sub>class · infrastructure/homework_file_io.dart:49</sub>
-    - `const SchoolFileSaveService() : _select = _selectDestination;`  <sub>:50</sub>
-    - `Future<FileSaveResult> save( HomeworkFileDownload file, { required bool Function() isCurrent, bool openAfterSave = false, }) async {…}`  <sub>:56</sub>
+  <sub>class · infrastructure/homework_file_io.dart:24</sub>
+    - `const SchoolFileSaveService() : _select = _selectDestination;`  <sub>:25</sub>
+    - `Future<FileSaveResult> save( HomeworkFileDownload file, { required bool Function() isCurrent, bool openAfterSave = false, }) async {…}`  <sub>:31</sub>
 - `typedef SchoolFileDestinationPicker = Future<SchoolFileDestination?> Function(`
-  <sub>typedef · infrastructure/homework_file_io.dart:107</sub>
+  <sub>typedef · infrastructure/homework_file_io.dart:82</sub>
 - `class SchoolFileDestination` — Opaque local selection capability. Production never accepts a caller URI.
-  <sub>class · infrastructure/homework_file_io.dart:113</sub>
-    - `const SchoolFileDestination({ required this.commit, required this.discard, this.open, });`  <sub>:114</sub>
-    - `final Future<void> Function(Uint8List bytes) commit;`  <sub>:119</sub>
-    - `final Future<void> Function() discard;`  <sub>:120</sub>
-    - `final Future<FileOpenStatus> Function()? open;`  <sub>:121</sub>
+  <sub>class · infrastructure/homework_file_io.dart:88</sub>
+    - `const SchoolFileDestination({ required this.commit, required this.discard, this.open, });`  <sub>:89</sub>
+    - `final Future<void> Function(Uint8List bytes) commit;`  <sub>:94</sub>
+    - `final Future<void> Function() discard;`  <sub>:95</sub>
+    - `final Future<FileOpenStatus> Function()? open;`  <sub>:96</sub>
 - `String safeSchoolFileName(String raw) {…}`
-  <sub>function · infrastructure/homework_file_io.dart:124</sub>
+  <sub>function · infrastructure/homework_file_io.dart:99</sub>
 
 ## infrastructure/learning_file_actions.dart
 
 - `Future<LearningSavedFile?> saveLearningFile( LearningDownload file, bool Function() isCurrent, ) async {…}` — Learning and homework share only the local byte-save capability, not URLs
-  <sub>function · infrastructure/learning_file_actions.dart:9</sub>
+  <sub>function · infrastructure/learning_file_actions.dart:10</sub>
 
 ## infrastructure/learning_snapshot_store.dart
 
@@ -190,35 +178,18 @@ native/demo 适配器、运行时与持久化实现。
 
 ## infrastructure/maintenance_service.dart
 
-- `class InstalledVersion`
-  <sub>class · infrastructure/maintenance_service.dart:16</sub>
-    - `const InstalledVersion(this.version, this.build);`  <sub>:17</sub>
-    - `String get label => …`  <sub>:19</sub>
-- `class UpdateResult`
-  <sub>class · infrastructure/maintenance_service.dart:22</sub>
-    - `const UpdateResult({ required this.latest, required this.available, required this.apkAvailable, this.pageUrl, this.notes, this.download, });`  <sub>:23</sub>
-    - `String get headline => …`  <sub>:34</sub>
-- `abstract interface class MaintenanceService`
-  <sub>class · infrastructure/maintenance_service.dart:43</sub>
-    - `Future<InstalledVersion> version();`  <sub>:45</sub>
-    - `Future<UpdateResult> checkUpdate(String current);`  <sub>:46</sub>
-    - `Future<bool> openReleases(String? page);`  <sub>:47</sub>
-    - `Future<bool> checkBridge();`  <sub>:48</sub>
-    - `Future<bool> checkStorage();`  <sub>:49</sub>
-    - `Future<bool> checkVault();`  <sub>:50</sub>
 - `class NativeMaintenanceService implements MaintenanceService`
-  <sub>class · infrastructure/maintenance_service.dart:53</sub>
-    - `const NativeMaintenanceService();`  <sub>:54</sub>
-    - `static const repository = 'https://github.com/JUANWANG-BUAA/ginkgo';`  <sub>:55</sub>
-    - `bool get supportsUpdates => …`  <sub>:57</sub>
-    - `Future<InstalledVersion> version() async {…}`  <sub>:59</sub>
-    - `Future<UpdateResult> checkUpdate(String current) async {…}`  <sub>:65</sub>
-    - `Future<bool> openReleases(String? page) async {…}`  <sub>:92</sub>
-    - `Future<bool> checkBridge() async {…}`  <sub>:108</sub>
-    - `Future<bool> checkStorage() async {…}`  <sub>:114</sub>
-    - `Future<bool> checkVault() => …`  <sub>:134</sub>
-- `Future<bool> checkPublicService(MirrorService service) async {…}` — Network check is deliberately separate from local checks. Cached fallback
-  <sub>function · infrastructure/maintenance_service.dart:145</sub>
+  <sub>class · infrastructure/maintenance_service.dart:17</sub>
+    - `const NativeMaintenanceService();`  <sub>:18</sub>
+    - `static const repository = 'https://github.com/JUANWANG-BUAA/ginkgo';`  <sub>:19</sub>
+    - `bool get supportsUpdates => …`  <sub>:21</sub>
+    - `Future<InstalledVersion> version() async {…}`  <sub>:23</sub>
+    - `Future<UpdateResult> checkUpdate(String current) async {…}`  <sub>:29</sub>
+    - `Future<bool> openReleases(String? page) async {…}`  <sub>:56</sub>
+    - `Future<bool> checkBridge() async {…}`  <sub>:72</sub>
+    - `Future<bool> checkStorage() async {…}`  <sub>:78</sub>
+    - `Future<bool> checkPublicService(MirrorService service) async {…}`  <sub>:98</sub>
+    - `Future<bool> checkVault() => …`  <sub>:107</sub>
 
 ## infrastructure/mirror_runtime.dart
 
@@ -272,8 +243,9 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/native_reminder_planning.dart
 
 - `mixin NativeReminderPlanning implements ReminderPlanningGateway` — Pure Rust command; does not initialize the network runtime.
-  <sub>mixin · infrastructure/native_reminder_planning.dart:8</sub>
-    - `Future<ExtendedReminderPlans> planReminders({ required List<CourseReminderSeed> courses, required List<TaskReminderSeed> tasks, required int nowMillis, }) async {…}`  <sub>:10</sub>
+  <sub>mixin · infrastructure/native_reminder_planning.dart:7</sub>
+    - `Future<ExtendedReminderPlans> planReminders({ required List<CourseReminderSeed> courses, required List<TaskReminderSeed> tasks, required int nowMillis, }) async {…}`  <sub>:9</sub>
+    - `ExtendedReminderPlans planCheckinHomeworkReminders({ required List<CheckInReminderSeed> checkin, required List<HomeworkReminderSeed> homework, required int nowMillis, }) {…}`  <sub>:57</sub>
 
 ## infrastructure/native_reminder_platform.dart
 
@@ -282,6 +254,14 @@ native/demo 适配器、运行时与持久化实现。
     - `const NativeReminderPlatform();`  <sub>:7</sub>
     - `static const channel = MethodChannel('cn.edu.buaa.ginkgo/reminders');`  <sub>:9</sub>
     - `Future<void> replace(List<Map<String, Object>> plans) async {…}`  <sub>:12</sub>
+
+## infrastructure/native_school_rules.dart
+
+- `class NativeSchoolRules implements SchoolRules` — The domain rules through the bridge. Pure commands, no session or network.
+  <sub>class · infrastructure/native_school_rules.dart:6</sub>
+    - `const NativeSchoolRules();`  <sub>:7</sub>
+    - `HomeworkDeadlineStatus homeworkDeadline(String? dueAt, DateTime now) => …`  <sub>:10</sub>
+    - `bool checkinWindowOpen( String date, String beginsAt, String endsAt, DateTime now, ) => …`  <sub>:17</sub>
 
 ## infrastructure/notices_decode.dart
 

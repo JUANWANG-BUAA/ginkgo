@@ -1,6 +1,5 @@
 import '../application/reminder_planning.dart';
 
-import 'package:ginkgo_mirror/shared/reminder_rules.dart';
 
 import '../src/rust/api/reminder_planning.dart' as native;
 
@@ -29,6 +28,57 @@ mixin NativeReminderPlanning implements ReminderPlanningGateway {
             id: value.id,
             due: value.due,
             completed: value.completed,
+          ),
+      ],
+      nowMillis: nowMillis,
+    );
+    return ExtendedReminderPlans(
+      plans: [
+        for (final value in response.plans)
+          ReminderPlan(
+            key: value.key,
+            group: value.group,
+            at: DateTime.fromMillisecondsSinceEpoch(
+              value.atMillis.toInt(),
+              isUtc: true,
+            ),
+            expires: DateTime.fromMillisecondsSinceEpoch(
+              value.expiresMillis.toInt(),
+              isUtc: true,
+            ),
+          ),
+      ],
+      skipped: response.skipped,
+      unsupported: response.unsupported,
+    );
+  }
+
+  @override
+  ExtendedReminderPlans planCheckinHomeworkReminders({
+    required List<CheckInReminderSeed> checkin,
+    required List<HomeworkReminderSeed> homework,
+    required int nowMillis,
+  }) {
+    final response = native.planCheckinHomeworkReminders(
+      checkin: [
+        for (final value in checkin)
+          native.CheckInReminderSeed(
+            id: value.id,
+            date: value.date,
+            beginsAt: value.beginsAt,
+            endsAt: value.endsAt,
+            notSigned: value.notSigned,
+            conflicting: value.conflicting,
+            signInAllowed: value.signInAllowed,
+            mergedRecordCount: value.mergedRecordCount,
+          ),
+      ],
+      homework: [
+        for (final value in homework)
+          native.HomeworkReminderSeed(
+            id: value.id,
+            dueAt: value.dueAt,
+            pending: value.pending,
           ),
       ],
       nowMillis: nowMillis,

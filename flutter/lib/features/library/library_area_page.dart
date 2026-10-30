@@ -93,7 +93,8 @@ class _LibraryAreaPageState extends State<LibraryAreaPage> {
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
       context,
     ),
-    child: CustomScrollView(
+    child: SafeArea(
+      child: CustomScrollView(
       key: const Key('library-areas-scroll'),
       slivers: [
         AppleRefreshPageHeader(
@@ -154,6 +155,7 @@ class _LibraryAreaPageState extends State<LibraryAreaPage> {
           ],
         ),
       ],
+    )
     ),
   );
 }

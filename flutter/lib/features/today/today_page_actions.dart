@@ -4,6 +4,7 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/platform_actions.dart';
 
 /// Opens the pages the today dashboard links to. Only one route may be
 /// pushed at a time: a second tap while a page is still opening is ignored
@@ -17,6 +18,7 @@ class TodayNavigator {
   Future<void> openTasks(
     BuildContext context, {
     required MirrorService service,
+    required PlatformActions fileActions,
     required String? storageRoot,
     required String? taskId,
     required bool Function() isCurrent,
@@ -32,6 +34,7 @@ class TodayNavigator {
           builder: (_) => TasksPage(
             storageRoot: storageRoot,
             service: service,
+            fileActions: fileActions,
             academicService: service,
             initialTaskId: taskId,
           ),
@@ -50,6 +53,7 @@ class TodayNavigator {
   Future<void> openHomework(
     BuildContext context, {
     required MirrorService service,
+    required PlatformActions fileActions,
     required String? storageRoot,
     required HomeworkItem item,
     required bool Function() isCurrent,
@@ -63,6 +67,7 @@ class TodayNavigator {
         CupertinoPageRoute<void>(
           builder: (_) => HomeworkDetailPage(
             item: item,
+            fileActions: fileActions,
             service: service,
             taskService: service,
             storageRoot: storageRoot,
