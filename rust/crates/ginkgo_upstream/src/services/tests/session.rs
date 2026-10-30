@@ -243,6 +243,47 @@ async fn sign_in_returns_profile_and_stores_sanitized_credentials() {
 }
 
 #[tokio::test]
+async fn sign_in_accepts_an_ascii_case_only_school_id_difference() {
+    let (service, transport) =
+        build_service(login_chain("SY2501001", "fixture"), MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("CAS accepted the lowercase account");
+
+    assert!(service.status().signed_in());
+    assert_eq!(service.status().account.as_deref(), Some("SY2501001"));
+    let saved = service
+        .vault
+        .load("SY2501001")
+        .expect("canonical vault key")
+        .expect("saved credentials");
+    assert_eq!(saved.username, "sy2501001");
+    assert!(service
+        .vault
+        .load("sy2501001")
+        .expect("lowercase vault key")
+        .is_none());
+    let login_post = transport
+        .requests()
+        .into_iter()
+        .find(|request| request.method == HttpMethod::Post)
+        .expect("login POST");
+    let body = login_post.body.expect("login body");
+    assert!(body.contains("username=sy2501001"));
+    assert!(!body.contains("username=SY2501001"));
+}
+
+#[tokio::test]
+async fn restore_accepts_an_ascii_case_only_school_id_difference() {
+    let (service, _) = build_service(login_chain("SY2501001", "fixture"), seeded("sy2501001"));
+    service.restore().await.expect("restore");
+
+    assert!(service.status().signed_in());
+    assert_eq!(service.status().account.as_deref(), Some("SY2501001"));
+}
+
+#[tokio::test]
 async fn sign_in_without_remember_removes_an_old_entry() {
     let (service, _) = build_service(login_chain("sy2501001", "fixture"), seeded("sy2501001"));
     service

@@ -142,7 +142,10 @@ pub async fn complete_login<T: HttpTransport>(
     // pre-existing cookie session for another login (for example an
     // ExistingSession hop after a failed restore) must never be bound to the
     // entered username, so the foreign cookies are dropped here.
-    if user.school_id != credentials.username.trim() {
+    if !user
+        .school_id
+        .eq_ignore_ascii_case(credentials.username.trim())
+    {
         session.clear_cookies();
         return Err(AppError::with_detail(
             ErrorCode::SessionExpired,

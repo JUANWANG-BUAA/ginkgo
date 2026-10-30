@@ -153,7 +153,12 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         // A mismatch means the cookie session belongs to another login; fail
         // closed to a signed-out state instead of rebinding it.
         let authenticated =
-            (account == profile.school_id).then_some(AuthenticatedIdentity { account, profile });
+            account
+                .eq_ignore_ascii_case(&profile.school_id)
+                .then(|| AuthenticatedIdentity {
+                    account: profile.school_id.clone(),
+                    profile,
+                });
         if authenticated.is_none() {
             self.session.clear_cookies();
         }

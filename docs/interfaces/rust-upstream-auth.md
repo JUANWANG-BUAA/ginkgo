@@ -100,9 +100,9 @@
 - `pub async fn complete_login<T: HttpTransport>( session: &Session<T>, credentials: &Credentials, page: LoginPage, ) -> Result<LoginResult, AppError> {…}` — Finish a login from an already fetched page. Keeping the page lets a
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:88</sub>
 - `pub async fn login_with_store<T: HttpTransport, C: CredentialSource + ?Sized>( session: &Session<T>, store: &C, account: &str, ) -> Result<LoginResult, AppError> {…}` — Load credentials from the platform vault, then log in. This is the only
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:157</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:160</sub>
 - `pub async fn establish_webvpn_session<T: HttpTransport>( session: &Session<T>, credentials: &Credentials, ) -> Result<(), AppError> {…}` — Explicitly establish a WebVPN session before routed campus traffic. The
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:168</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:171</sub>
 
 ## android_vault
 

@@ -211,14 +211,22 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
             }
             Ok(LoginResult::SignedIn(profile)) => {
                 self.clear_automatic_login_failure();
+                let canonical_account = profile.school_id.clone();
                 let remembered = if remember {
-                    self.vault.save(account, &credentials).is_ok()
+                    let saved = self.vault.save(&canonical_account, &credentials).is_ok();
+                    if saved && canonical_account != account {
+                        let _ = self.vault.delete(account);
+                    }
+                    saved
                 } else {
-                    let _ = self.vault.delete(account);
+                    let _ = self.vault.delete(&canonical_account);
+                    if canonical_account != account {
+                        let _ = self.vault.delete(account);
+                    }
                     false
                 };
                 self.clear_caches();
-                self.set_authenticated(account.to_owned(), profile.clone());
+                self.set_authenticated(canonical_account, profile.clone());
                 Ok(SessionOutcome::SignedIn {
                     profile,
                     remembered,

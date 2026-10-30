@@ -353,25 +353,25 @@
 - `pub(crate) fn set_authenticated(&self, account: String, profile: UserProfile) {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:150</sub>
 - `pub fn verify_vault_round_trip(&self, account: &str, secret: &str) -> bool {…}` — Diagnostic used by device acceptance: write, read back and remove one
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:181</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:186</sub>
 - `pub fn lock_poison_events(&self) -> u64 {…}` — How often one of this client's in-memory locks was recovered from a
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:192</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:197</sub>
 - `pub(crate) fn preference(&self) -> RoutePreference {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:201</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:206</sub>
 - `pub(crate) fn current_account(&self) -> Result<String, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:205</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:210</sub>
 - `pub(crate) fn account_owner(&self) -> Result<AccountOwner, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:214</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:219</sub>
 - `pub(crate) fn check_account_owner(&self, owner: &AccountOwner) -> Result<(), AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:227</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:232</sub>
 - `pub(crate) async fn silent_login(&self) -> Result<(), AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:240</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:245</sub>
 - `pub(crate) async fn ensure_webvpn_session(&self) -> Result<(), AppError> {…}` — Establish the WebVPN gateway's own CAS session after an automatic route
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:284</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:289</sub>
 - `pub(crate) fn clear_caches(&self) {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:330</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:335</sub>
 - `pub(crate) fn is_library_login_error(error: &AppError) -> bool {…}` — booking.lib answers 200 with its own login-expired message; that only means
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:356</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:361</sub>
 
 ## snapshots
 
