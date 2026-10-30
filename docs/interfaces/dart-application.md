@@ -207,8 +207,8 @@
   <sub>class · application/diagnostic_log.dart:26</sub>
     - `static final shared = DiagnosticLog();`  <sub>:27</sub>
     - `final List<DiagnosticEntry> entries = [];`  <sub>:28</sub>
-    - `void record(FailureCode? failure) {…}`  <sub>:30</sub>
-    - `void dismiss() {…}`  <sub>:46</sub>
+    - `void record(FailureCode? failure, {bool showHint = true}) {…}`  <sub>:30</sub>
+    - `void dismiss() {…}`  <sub>:52</sub>
 
 ## application/environment.dart
 
@@ -220,7 +220,7 @@
 - `String failureMessage(FailureCode? code) {…}` — Maps typed Rust domain failure codes to human-readable Chinese error messages.
   <sub>function · application/failure_message.dart:5</sub>
 - `String failureAdvice({required bool hasStaleValue, FailureCode? failure}) {…}` — The advice line shown under a failed read.
-  <sub>function · application/failure_message.dart:32</sub>
+  <sub>function · application/failure_message.dart:34</sub>
 
 ## application/file_actions.dart
 

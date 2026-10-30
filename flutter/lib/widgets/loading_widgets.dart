@@ -48,11 +48,16 @@ class _GinkgoActivityState extends State<GinkgoActivity>
         opacity: 0.55 + 0.45 * _pulse.value,
         child: Transform.scale(scale: 0.92 + 0.08 * _pulse.value, child: child),
       ),
-      child: CustomPaint(
-        size: Size.square(widget.size),
-        // The ginkgo leaf is brand identity, not a theme accent: a blue or
-        // coral leaf reads as a generic leaf. Page accents stay in controls.
-        painter: _GinkgoPainter(AppleDesign.accent.resolveFrom(context)),
+      child: Center(
+        child: SizedBox.square(
+          dimension: widget.size,
+          child: CustomPaint(
+            size: Size.square(widget.size),
+            // The ginkgo leaf is brand identity, not a theme accent: a blue or
+            // coral leaf reads as a generic leaf. Page accents stay in controls.
+            painter: _GinkgoPainter(AppleDesign.accent.resolveFrom(context)),
+          ),
+        ),
       ),
     ),
   );

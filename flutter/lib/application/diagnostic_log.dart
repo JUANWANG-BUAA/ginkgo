@@ -27,20 +27,26 @@ class DiagnosticLog extends ChangeNotifier {
   static final shared = DiagnosticLog();
   final List<DiagnosticEntry> entries = [];
   DiagnosticEntry? current;
-  void record(FailureCode? failure) {
+  void record(FailureCode? failure, {bool showHint = true}) {
     final code = failure?.name ?? 'localService';
     final now = DateTime.now();
     if (entries.isNotEmpty &&
         entries.last.code == code &&
         now.difference(entries.last.at).inSeconds < 60) {
+      if (showHint) {
+        current = entries.last;
+        scheduleMicrotask(notifyListeners);
+      }
       return;
     }
     final entry = DiagnosticEntry(code, now);
     entries.add(entry);
     if (entries.length > 50) entries.removeAt(0);
-    current = entry;
-    // Callers can map failures while building; never notify mid-build.
-    scheduleMicrotask(notifyListeners);
+    if (showHint) {
+      current = entry;
+      // Callers can map failures while building; never notify mid-build.
+      scheduleMicrotask(notifyListeners);
+    }
   }
 
   void dismiss() {

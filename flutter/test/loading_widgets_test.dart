@@ -30,6 +30,27 @@ class _RecordingCanvas implements Canvas {
 }
 
 void main() {
+  testWidgets('brand leaf stays square inside a non-square tight parent', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const CupertinoApp(
+        home: Center(
+          child: SizedBox(
+            width: 48,
+            height: 24,
+            child: GinkgoActivity(size: 22),
+          ),
+        ),
+      ),
+    );
+    final paint = find.descendant(
+      of: find.byType(GinkgoActivity),
+      matching: find.byType(CustomPaint),
+    );
+    expect(tester.getSize(paint), const Size.square(22));
+  });
+
   testWidgets(
     'full-page loading keeps a stable semantic label and no spinner',
     (tester) async {

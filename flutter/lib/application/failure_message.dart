@@ -3,7 +3,9 @@ import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 
 /// Maps typed Rust domain failure codes to human-readable Chinese error messages.
 String failureMessage(FailureCode? code) {
-  DiagnosticLog.shared.record(code);
+  if (code != null) {
+    DiagnosticLog.shared.record(code, showHint: false);
+  }
   return switch (code) {
     FailureCode.invalidRequest => '查询或筛选条件无效，请调整后重试',
     FailureCode.changedResponse => '数据格式无法识别，请重试',

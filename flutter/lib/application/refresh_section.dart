@@ -132,7 +132,7 @@ class RefreshSection<T> extends ChangeNotifier {
       failure = result.failure;
     } catch (_) {
       if (_disposed || epoch != _generation) return;
-      DiagnosticLog.shared.record(null);
+      DiagnosticLog.shared.record(null, showHint: false);
       error = fallbackError;
     } finally {
       stall.cancel();

@@ -156,21 +156,21 @@
     - `const GinkgoActivity({super.key, this.size = 22});`  <sub>:11</sub>
     - `State<GinkgoActivity> createState() => …`  <sub>:15</sub>
 - `class GinkgoLoadingView extends StatelessWidget` — Unified first-load feedback: a branded leaf plus one stable live-region
-  <sub>class · widgets/loading_widgets.dart:102</sub>
-    - `const GinkgoLoadingView({ super.key, required this.label, this.detail, this.compact = false, });`  <sub>:103</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:115</sub>
+  <sub>class · widgets/loading_widgets.dart:107</sub>
+    - `const GinkgoLoadingView({ super.key, required this.label, this.detail, this.compact = false, });`  <sub>:108</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:120</sub>
 - `class SectionFeedback extends StatelessWidget` — Stable, inline status: stale content stays in place during refresh/failure.
-  <sub>class · widgets/loading_widgets.dart:156</sub>
-    - `const SectionFeedback({ super.key, required this.loading, required this.label, required this.hasData, this.error, this.onRetry, });`  <sub>:157</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:171</sub>
+  <sub>class · widgets/loading_widgets.dart:161</sub>
+    - `const SectionFeedback({ super.key, required this.loading, required this.label, required this.hasData, this.error, this.onRetry, });`  <sub>:162</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:176</sub>
 - `class SectionReveal extends StatelessWidget` — Fade only on first insertion; later refreshes keep layout and content steady.
-  <sub>class · widgets/loading_widgets.dart:218</sub>
-    - `const SectionReveal({super.key, required this.child});`  <sub>:219</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:223</sub>
+  <sub>class · widgets/loading_widgets.dart:223</sub>
+    - `const SectionReveal({super.key, required this.child});`  <sub>:224</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:228</sub>
 - `class PageRefreshShortcut extends StatelessWidget` — Desktop refresh lives in the focused page, including its search fields.
-  <sub>class · widgets/loading_widgets.dart:232</sub>
-    - `const PageRefreshShortcut({super.key, required this.child, this.onRefresh});`  <sub>:233</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:238</sub>
+  <sub>class · widgets/loading_widgets.dart:237</sub>
+    - `const PageRefreshShortcut({super.key, required this.child, this.onRefresh});`  <sub>:238</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:243</sub>
 
 ## widgets/long_page_scroll.dart
 

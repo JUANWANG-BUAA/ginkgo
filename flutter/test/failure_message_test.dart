@@ -1,8 +1,27 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 import 'package:ginkgo_mirror/application/failure_message.dart';
 
 void main() {
+  test('inline failures stay in the log without raising a global hint', () {
+    final log = DiagnosticLog.shared;
+    log.entries.clear();
+    log.dismiss();
+    addTearDown(() {
+      log.entries.clear();
+      log.dismiss();
+    });
+
+    failureMessage(null);
+    expect(log.entries, isEmpty);
+    expect(log.current, isNull);
+
+    failureMessage(FailureCode.moduleAuthRequired);
+    expect(log.entries.single.code, 'moduleAuthRequired');
+    expect(log.current, isNull);
+  });
+
   group('every failure code maps to its own actionable sentence', () {
     test('all codes produce a non-empty, mutually distinct message', () {
       final messages = <String, String>{};

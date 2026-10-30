@@ -6,10 +6,11 @@
 
 ## 自动化与设备证据
 
-- `bash scripts/check-mirror.sh` 最终通过：Rust 格式、严格 Clippy、core/upstream/workspace 测试、架构与接口索引、FRB 零漂移、Flutter 分析和 647 项 Flutter 测试均通过。
-- 新增研讨室写状态、学分地图、待办来源替换回归均先验证旧实现失败，再转绿；另证明替换学校来源服务不会取消本机待办读取。
+- `bash scripts/check-mirror.sh` 最终通过：Rust 格式、严格 Clippy、core/upstream/workspace 测试、架构与接口索引、FRB 零漂移、Flutter 分析和 649 项 Flutter 测试均通过。
+- 新增研讨室写状态、学分地图、待办来源替换回归均先验证旧实现失败，再转绿；另证明替换学校来源服务不会取消本机待办读取。诊断回归证明 `null` 不产生日志、页面错误只记录脱敏日志而不弹全局 Hint；加载图标回归证明非正方形紧约束下仍按正方形绘制。
 - `flutter test integration_test/cgyy_test.dart integration_test/academic_learning_ux_test.dart -d emulator-5554` 两项通过。研讨室实际进入合成场馆、时段、订单和门锁页；学分地图实际渲染。测试后重新构建并安装正常 `main` Debug APK，设备未停留在测试驱动等待页。
-- 正常入口启动只恢复到登录页；当前进程环境没有真实账号凭据，也没有可恢复的真实会话。因此小写研究生学号登录、真实非空数据和真实页面链路**本轮尚未复验**。没有执行学校写操作。
+- 账号本人随后使用小写研究生学号完成真实登录。正常入口中，工作台显示真实作业，课表切换到有课程的日期，作业列表显示待处理/截止，研究生教务显示学籍与学分地图；空教室返回 158 间、4 页，第二页范围 51–100；研讨室真实场馆、时段与预约表单均可达。未触发任何学校写确认或提交。
+- 作业详情仍复现 `moduleAuthRequired`，证明模块错误范围话术已分离但学校认证跳转链尚未修复。覆盖安装优化包后应用回到登录页，真实会话未保留，因此诊断 Hint 与加载图标的优化已由合成/设备构建验证，**优化后的真实账号复验仍待重新登录**。
 
 ## Release 候选产物
 
@@ -18,7 +19,7 @@
 产物：`artifacts/local/android-beta3/Ginkgo-0.1.0-beta.3-android-arm64.apk`。
 
 - 大小：43,835,741 字节。
-- SHA-256：`847074a996020fc23a26eafaabc90d4a285f447cdb8694aad15d683440e48e05`。
+- SHA-256：`182d4563dc04e85b4b0654c2527b6710a7e1cc843e5dafdf0a5b7da6728eb688`。
 - 包名 `cn.edu.buaa.ginkgo.ginkgo_mirror`，`versionName=0.1.0-beta.3`、`versionCode=13`，仅 `arm64-v8a`，非 debuggable。
 - `GeneratedPluginRegistrant.java` 不含 `integration_test`；使用 `--pub` 和正常 `main` 构建。
 - `zipalign -c -P 16 -v 4`、`apksigner verify` 和本地 `shasum -a 256 -c checksums.txt` 通过。
@@ -28,4 +29,4 @@
 
 尝试以 `Ginkgo_Beta2_Release_QA` 独立模拟器验证 Release 覆盖升级；QEMU 冷启动反复报告主循环/CPU 线程无响应后以段错误退出，`emulator-5556` 未上线。这与 Beta.2 的干净 AVD 启动限制一致。因此 **Beta.2 Release → Beta.3 Release 覆盖升级、个人待办保留和 Release 启动仍未验收**，没有用卸载 Debug 应用来绕过签名差异或牺牲本机数据。
 
-物理 Android 设备、TalkBack、大字号、厂商后台行为、真实账号只读、真实学校写入、远端 CI、公开资产回下载均未在本轮完成。公开发布前需由账号本人完成小写学号与核心页面复验，并在可用设备上执行同签名覆盖升级。学校写入仍须本人逐次指定对象并确认，代理不自动试单。`docs/update-gate.json` 未修改；新资产可下载前不得提高 `minBuild`。
+物理 Android 设备、TalkBack、大字号、厂商后台行为、完整真实账号只读、真实学校写入、远端 CI、公开资产回下载均未在本轮完成。小写学号与上述核心页面已复验；公开发布前仍需定位作业详情认证跳转链、重新登录复验本轮体验优化，并在可用设备上执行同签名覆盖升级。学校写入仍须本人逐次指定对象并确认，代理不自动试单。`docs/update-gate.json` 未修改；新资产可下载前不得提高 `minBuild`。
