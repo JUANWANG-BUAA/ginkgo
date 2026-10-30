@@ -7,7 +7,7 @@
 | 平台 | 当前状态 | 证据与限制 |
 | --- | --- | --- |
 | macOS / iOS | 独立 SwiftUI 应用，共享 Swift 客户端、模型与工作区编排 | Apple 测试见 [TESTING](TESTING.md)；模拟器通过不代表真机、签名分发或真实写入通过 |
-| Android | Rust + Flutter；公开包 Beta.2（build 12，2026-10-29） | [Beta.2 发布与验收记录](_audit/2026-10-29-android-beta2-release.md)；公开只读请求与登录态隔离，真实认证、设备和学校写入未验收 |
+| Android | Rust + Flutter；公开包 Beta.3（build 13，2026-10-30） | [Beta.3 发布与验收记录](_audit/2026-10-30-android-beta3-readiness.md)；核心真实只读与视觉闭环通过，Release 覆盖升级、物理设备和学校写入未验收 |
 | Windows | Rust + Flutter；公开包 Alpha.6（build 7），Windows 10 / 11 x64 单文件安装器 + 便携 ZIP | [首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)、[主机验证](archive/mirror/WINDOWS-2026-10-21.md)；系统保险库、宽屏侧栏、窄屏底部导航、键盘与返回栈基础通过；安装器未签名，物理 x64 / 干净系统运行依赖 / 真实学校业务仍未验收 |
 
 既往真实账号只读检查已覆盖已接入模块，但最近一次集成登录失败；两次结果分别保留于 [验收记录](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md) 与 [认证异常诊断](_audit/2026-10-21-auth-redirect-incident.md)。不能把早先通过推广为当前所有网络均可用，也不能将工作树改动当作已经发布。
@@ -95,7 +95,7 @@ Android 更新检查仍读取 GitHub Releases，但 Alpha.4 起可在应用内�
 
 ## 当前源码与发布基线
 
-Android Beta.2（`0.1.0-beta.2+12`）已公开；[发布与验收记录](_audit/2026-10-29-android-beta2-release.md) 包含全量本地门禁、签名、摘要、公开 APK/校验文件回下载和验收限制。Beta.1 的历史发布与覆盖升级证据见 [Beta.1 记录](_audit/2026-10-27-android-beta1-preparation.md)。`docs/update-gate.json` 的 `minBuild` 仍为 5，未随本次发布提高。
+Android Beta.3（`0.1.0-beta.3+13`）已公开；[发布与验收记录](_audit/2026-10-30-android-beta3-readiness.md) 包含全量本地门禁、签名、核心真实只读与视觉闭环、公开 APK/校验文件回下载和验收限制。Beta.1 的历史发布与覆盖升级证据见 [Beta.1 记录](_audit/2026-10-27-android-beta1-preparation.md)。`docs/update-gate.json` 的 `minBuild` 仍为 5，未随本次发布提高。
 
 ## Android Beta.2 严重问题与工程收口（2026-10-29，已发布）
 

@@ -1,8 +1,8 @@
-# Android Beta.3 候选准备与验收边界（2026-10-30）
+# Android Beta.3 发布与验收记录（2026-10-30）
 
 ## 范围与状态
 
-候选版本 `0.1.0-beta.3+13`，计划标签 `android-v0.1.0-beta.3`。本轮是可靠性与体验修复版：兼容含字母学号的小写输入，恢复研讨室预约入口，优化空教室展示，修复验收端口漏注入和独立能力替换后的旧响应。当前仅构建并核验本地候选，**尚未推送标签或公开发布**。
+公开版本 `0.1.0-beta.3+13`，标签 `android-v0.1.0-beta.3`。本轮是可靠性与体验修复版：兼容含字母学号的小写输入，恢复研讨室预约入口，优化空教室展示，修复验收端口漏注入和独立能力替换后的旧响应，并收敛跨页诊断提示和加载图标比例。标签与主分支已推送，GitHub Beta prerelease 已公开。
 
 ## 自动化与设备证据
 
@@ -26,8 +26,16 @@
 - `zipalign -c -P 16 -v 4`、`apksigner verify` 和本地 `shasum -a 256 -c checksums.txt` 通过。
 - 签名证书 SHA-256 为 `451748b957b44d5a28ebcc967cc2aeec7e7bea6a13d9edcb021c9fd8dc7fb245`，与 Beta.2 候选证书一致。
 
-## 未完成的发布门禁
+## 公开发布与回下载
 
-尝试以 `Ginkgo_Beta2_Release_QA` 独立模拟器验证 Release 覆盖升级；QEMU 冷启动反复报告主循环/CPU 线程无响应后以段错误退出，`emulator-5556` 未上线。这与 Beta.2 的干净 AVD 启动限制一致。因此 **Beta.2 Release → Beta.3 Release 覆盖升级、个人待办保留和 Release 启动仍未验收**，没有用卸载 Debug 应用来绕过签名差异或牺牲本机数据。
+- Git 提交 / 标签：`32b6a1d604128cec39a93826da684d5054cb0ea6` / `android-v0.1.0-beta.3`，已推送。
+- [GitHub Beta prerelease](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.3) 已公开，APK 与 `checksums.txt` 均处于 uploaded 状态。
+- APK 公开资产大小为 43,835,741 字节，GitHub 资产摘要与本地 SHA-256 均为 `182d4563dc04e85b4b0654c2527b6710a7e1cc843e5dafdf0a5b7da6728eb688`。
+- 首次回下载因网络 `no route to host` 中断；随后直接公开 URL 回下载成功，APK 与 checksums 逐字节对比本地候选一致，`shasum -a 256 -c checksums.txt` 通过。
+- [Android Release workflow](https://github.com/JUANWANG-BUAA/ginkgo/actions/runs/41041524421) 在“Materialize external signing configuration”因缺少 4 个 Android 签名 secrets 失败，构建与上传步骤未运行。公开资产使用上述本机外部签名候选，未改变 fail-closed 规则。
 
-物理 Android 设备、TalkBack、大字号、厂商后台行为、完整真实账号只读、真实学校写入、远端 CI、公开资产回下载均未在本轮完成。小写学号、上述核心页面及优化后视觉闭环已复验；公开发布前仍需在可用设备上执行同签名覆盖升级。学校写入仍须本人逐次指定对象并确认，代理不自动试单。`docs/update-gate.json` 未修改；新资产可下载前不得提高 `minBuild`。
+## 发布后仍未覆盖的验收边界
+
+尝试以 `Ginkgo_Beta2_Release_QA` 独立模拟器验证 Release 覆盖升级；QEMU 冷启动反复报告主循环/CPU 线程无响应后以段错误退出，`emulator-5556` 未上线。因此 **Beta.2 Release → Beta.3 Release 覆盖升级、个人待办保留和 Release 启动仍未验收**，没有用卸载 Debug 应用来绕过签名差异或牺牲本机数据。
+
+物理 Android 设备、TalkBack、大字号、厂商后台行为、完整真实账号只读和真实学校写入仍未完成；间歇性模块认证问题继续跟踪，不能由一次成功复验推断永久修复。学校写入仍须本人逐次指定对象并确认，代理不自动试单。`docs/update-gate.json` 的 `minBuild` 仍为 5，未随本次发布提高。

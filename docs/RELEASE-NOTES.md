@@ -1,6 +1,6 @@
 # 发布说明
 
-## Ginkgo Android 0.1.0-beta.3（候选）
+## Ginkgo Android 0.1.0-beta.3（2026-10-30，已发布）
 
 - 修复含字母学号使用小写输入时无法登录的问题，不同账号仍会严格隔离。
 - 恢复研讨室预约入口，保留订单核对、取消保护和结果不明时不自动重发。
@@ -8,9 +8,9 @@
 - 修复切换服务后旧学分地图、旧预约状态或旧作业来源误入新页面的问题。
 - 减少跨页错误提示并修复加载图标比例，学校单模块需要重新验证时不再误报为全局退出。
 
-提醒：候选版本尚未公开发布。核心真实只读页面与视觉闭环已通过，Release 覆盖升级和物理设备验收仍未完成；预约、签到、上传和提交仍须逐次确认，结果不明时先回查。
+提醒：核心真实只读页面与视觉闭环已通过，Release 覆盖升级和物理设备验收仍未完成；预约、签到、上传和提交仍须逐次确认，结果不明时先回查。
 
-[用户说明](releases/android-beta3.md) · [候选审计与限制](_audit/2026-10-30-android-beta3-readiness.md)
+[用户说明](releases/android-beta3.md) · [发布审计与限制](_audit/2026-10-30-android-beta3-readiness.md) · [GitHub Release](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.3)
 
 ## Ginkgo Android 0.1.0-beta.2（2026-10-29）
 
