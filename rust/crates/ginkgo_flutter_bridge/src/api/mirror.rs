@@ -55,6 +55,8 @@ pub enum FailureCode {
     UnsupportedPortal,
     CredentialStore,
     BusinessRejected,
+    NetworkUnreachable,
+    ModuleAuthRequired,
 }
 
 impl From<ErrorCode> for FailureCode {
@@ -73,6 +75,8 @@ impl From<ErrorCode> for FailureCode {
             ErrorCode::UnsupportedPortal => Self::UnsupportedPortal,
             ErrorCode::CredentialStore => Self::CredentialStore,
             ErrorCode::BusinessRejected => Self::BusinessRejected,
+            ErrorCode::NetworkUnreachable => Self::NetworkUnreachable,
+            ErrorCode::ModuleAuthRequired => Self::ModuleAuthRequired,
         }
     }
 }

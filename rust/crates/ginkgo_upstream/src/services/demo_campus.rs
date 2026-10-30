@@ -62,7 +62,10 @@ pub fn load_demo_notices() -> Result<Vec<crate::codecs::notices::Notice>, AppErr
     )
 }
 
-pub fn load_demo_cgyy(kind: String) -> Result<serde_json::Value, AppError> {
+use ginkgo_domain::ports::CgyyData;
+
+pub fn load_demo_cgyy(kind: String) -> Result<CgyyData, AppError> {
+    use crate::codecs::cgyy as codec;
     let fixture: serde_json::Value = serde_json::from_str(match kind.as_str() {
         "venues" => include_str!("../../../../../fixtures/cgyy/venues-normal-v1.json"),
         "day" => include_str!("../../../../../fixtures/cgyy/day-normal-v1.json"),
@@ -72,7 +75,20 @@ pub fn load_demo_cgyy(kind: String) -> Result<serde_json::Value, AppError> {
         _ => return Err(AppError::invalid()),
     })
     .map_err(|_| AppError::changed())?;
-    crate::services::execute_contract(&format!("cgyy.{kind}"), 1, fixture["input"].clone())
+    let input = &fixture["input"];
+    // Same codec the live path uses, so demo and real data stay one projection.
+    Ok(match kind.as_str() {
+        "venues" => CgyyData::Venues(codec::sites(input)?),
+        "day" => CgyyData::Day(codec::day(
+            &input["response"],
+            input["site_id"].as_i64().ok_or_else(AppError::invalid)?,
+            input["date"].as_str().ok_or_else(AppError::invalid)?,
+        )?),
+        "orders" => CgyyData::Orders(codec::orders(input)?),
+        "order" => CgyyData::Order(codec::order(input)?),
+        "lockCode" => CgyyData::LockCode(codec::lock_code(input)?),
+        _ => return Err(AppError::invalid()),
+    })
 }
 
 pub fn graduate_status() -> Result<crate::codecs::graduate::AcademicData, AppError> {

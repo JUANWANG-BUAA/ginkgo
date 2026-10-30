@@ -11,13 +11,15 @@
 - [workspace/desktop_workspace_sidebar.dart](#workspacedesktopworkspacesidebardart) (3)
 - [workspace/mobile_workspace_shell.dart](#workspacemobileworkspaceshelldart) (1)
 - [workspace/service_directory.dart](#workspaceservicedirectorydart) (1)
-- [workspace/service_search_page.dart](#workspaceservicesearchpagedart) (3)
+- [workspace/service_search_page.dart](#workspaceservicesearchpagedart) (4)
 - [workspace/workspace_back_guard.dart](#workspaceworkspacebackguarddart) (3)
-- [workspace/workspace_catalog.dart](#workspaceworkspacecatalogdart) (5)
-- [workspace/workspace_shell.dart](#workspaceworkspaceshelldart) (3)
+- [workspace/workspace_catalog.dart](#workspaceworkspacecatalogdart) (2)
+- [workspace/workspace_shell.dart](#workspaceworkspaceshelldart) (1)
+- [workspace/workspace_shell_controller.dart](#workspaceworkspaceshellcontrollerdart) (2)
 - [workspace/workspace_shortcut_preferences.dart](#workspaceworkspaceshortcutpreferencesdart) (1)
 - [workspace/workspace_shortcuts.dart](#workspaceworkspaceshortcutsdart) (2)
 - [workspace/workspace_tab_transition.dart](#workspaceworkspacetabtransitiondart) (3)
+- [workspace/workspace_types.dart](#workspaceworkspacetypesdart) (3)
 
 ## workspace/desktop_workspace_shell.dart
 
@@ -48,9 +50,9 @@
 
 - `class ServiceDirectory extends StatelessWidget`
   <sub>class · workspace/service_directory.dart:18</sub>
-    - `const ServiceDirectory({ super.key, required this.service, required this.onSignOut, this.accountName, this.accountId, this.route, });`  <sub>:19</sub>
-    - `final Future<void> Function() onSignOut;`  <sub>:28</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:38</sub>
+    - `const ServiceDirectory({ super.key, required this.service, required this.destinations, required this.onSignOut, this.accountName, this.accountId, this.route, });`  <sub>:19</sub>
+    - `final Future<void> Function() onSignOut;`  <sub>:30</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:40</sub>
 
 ## workspace/service_search_page.dart
 
@@ -64,10 +66,12 @@
     - `String get title => …`  <sub>:34</sub>
     - `IconData get icon => …`  <sub>:35</sub>
     - `bool matches(String query) {…}`  <sub>:39</sub>
+- `List<ServiceDescriptor> searchableServices( List<WorkspaceDestination> destinations, ) => …` — Searches compile-time metadata; it does not request school or personal data.
+  <sub>function · workspace/service_search_page.dart:52</sub>
 - `class ServiceSearchPage extends StatefulWidget`
-  <sub>class · workspace/service_search_page.dart:146</sub>
-    - `const ServiceSearchPage({super.key, required this.context});`  <sub>:147</sub>
-    - `State<ServiceSearchPage> createState() => …`  <sub>:150</sub>
+  <sub>class · workspace/service_search_page.dart:148</sub>
+    - `const ServiceSearchPage({ super.key, required this.context, required this.destinations, });`  <sub>:149</sub>
+    - `State<ServiceSearchPage> createState() => …`  <sub>:157</sub>
 
 ## workspace/workspace_back_guard.dart
 
@@ -87,20 +91,10 @@
 
 ## workspace/workspace_catalog.dart
 
-- `enum WorkspaceSection` — 侧栏分组。顺序即桌面侧栏的呈现顺序；新增功能只登记到既有分组即可。
-  <sub>enum · workspace/workspace_catalog.dart:32</sub>
-    - `const WorkspaceSection(this.title);`  <sub>:38</sub>
-- `class WorkspaceContext` — 功能页面构建上下文：页面只拿到服务与工作区导航能力，不接触壳层状态。
-  <sub>class · workspace/workspace_catalog.dart:43</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:63</sub>
-- `class WorkspaceDestination` — 一次功能登记：标题、图标、所在分组、移动端标签位置与页面构建器。
-  <sub>class · workspace/workspace_catalog.dart:73</sub>
-    - `const WorkspaceDestination({ required this.id, required this.title, required this.icon, required this.build, this.mobileLabel, this.section, this.mobileTab, this.sidebar = true, this.footer = false, });`  <sub>:74</sub>
-    - `final Widget Function(WorkspaceContext context) build;`  <sub>:89</sub>
 - `WorkspaceDestination? destinationById(String id) {…}` — 按 id 查找；壳层与今日快捷入口只使用字符串标识。
-  <sub>function · workspace/workspace_catalog.dart:328</sub>
+  <sub>function · workspace/workspace_catalog.dart:252</sub>
 - `List<WorkspaceDestination> sidebarDestinations(WorkspaceSection section) => …` — 某个侧栏分组内的条目，顺序即登记顺序。
-  <sub>function · workspace/workspace_catalog.dart:346</sub>
+  <sub>function · workspace/workspace_catalog.dart:270</sub>
 
 ## workspace/workspace_shell.dart
 
@@ -109,21 +103,26 @@
     - `const GinkgoApp({ super.key, required this.service, this.brightness, this.startupUpdate, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:31</sub>
     - `final Future<void> Function()? onSignOut;`  <sub>:47</sub>
     - `Widget build(BuildContext context) => …`  <sub>:49</sub>
-- `class WorkspaceShell extends StatefulWidget` — 断点两侧共享的壳层状态。旋转跨越 760dp 时移动标签壳与桌面侧栏壳会
-  <sub>class · workspace/workspace_shell.dart:96</sub>
-    - `const WorkspaceShell({ super.key, required this.service, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:97</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:109</sub>
-    - `State<WorkspaceShell> createState() => …`  <sub>:111</sub>
+
+## workspace/workspace_shell_controller.dart
+
+- `class WorkspaceShell extends StatefulWidget` — Shared navigation state above the mobile/desktop breakpoint. The concrete
+  <sub>class · workspace/workspace_shell_controller.dart:11</sub>
+    - `const WorkspaceShell({ super.key, required this.service, required this.mobileBuilder, required this.desktopBuilder, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:12</sub>
+    - `final Widget Function(WorkspaceShellState shell) mobileBuilder;`  <sub>:24</sub>
+    - `final Widget Function(WorkspaceShellState shell) desktopBuilder;`  <sub>:25</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:29</sub>
+    - `State<WorkspaceShell> createState() => …`  <sub>:32</sub>
 - `class WorkspaceShellState extends State<WorkspaceShell>`
-  <sub>class · workspace/workspace_shell.dart:114</sub>
-    - `String selectedId = mobileDestinations.first.id;`  <sub>:115</sub>
-    - `final navigators = <String, GlobalKey<NavigatorState>> {…}`  <sub>:116</sub>
-    - `final Set<String> visited = {…}`  <sub>:117</sub>
-    - `int get mobileIndex {…}` — 桌面选中的目的地可能是移动端没有的页面（如成绩）；此时移动壳回到  <sub>:125</sub>
-    - `GlobalKey<NavigatorState> navigatorFor(String id) => …`  <sub>:132</sub>
-    - `void onMobileTab(int index) {…}` — 移动标签切换只同步字段不触发重建：可见页面已由 tab 控制器驱动。  <sub>:136</sub>
-    - `void select(String id) {…}`  <sub>:142</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:155</sub>
+  <sub>class · workspace/workspace_shell_controller.dart:35</sub>
+    - `String selectedId = mobileDestinations.first.id;`  <sub>:36</sub>
+    - `final navigators = <String, GlobalKey<NavigatorState>> {…}`  <sub>:37</sub>
+    - `final Set<String> visited = {…}`  <sub>:38</sub>
+    - `int get mobileIndex {…}`  <sub>:44</sub>
+    - `GlobalKey<NavigatorState> navigatorFor(String id) => …`  <sub>:51</sub>
+    - `void onMobileTab(int index) {…}`  <sub>:54</sub>
+    - `void select(String id) {…}`  <sub>:60</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:73</sub>
 
 ## workspace/workspace_shortcut_preferences.dart
 
@@ -168,3 +167,16 @@
   <sub>class · workspace/workspace_tab_transition.dart:293</sub>
     - `const WorkspaceTabTransition({ super.key, required this.index, required this.child, });`  <sub>:294</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:304</sub>
+
+## workspace/workspace_types.dart
+
+- `enum WorkspaceSection`
+  <sub>enum · workspace/workspace_types.dart:7</sub>
+    - `const WorkspaceSection(this.title);`  <sub>:13</sub>
+- `class WorkspaceContext` — Page construction context: capabilities are resolved once above the page.
+  <sub>class · workspace/workspace_types.dart:18</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:36</sub>
+- `class WorkspaceDestination`
+  <sub>class · workspace/workspace_types.dart:41</sub>
+    - `const WorkspaceDestination({ required this.id, required this.title, required this.icon, required this.build, this.mobileLabel, this.section, this.mobileTab, this.sidebar = true, this.footer = false, });`  <sub>:42</sub>
+    - `final Widget Function(WorkspaceContext context) build;`  <sub>:57</sub>

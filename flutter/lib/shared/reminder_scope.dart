@@ -7,7 +7,7 @@ import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 import 'package:ginkgo_mirror/shared/course_visibility.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 
-import 'reminders.dart';
+import 'reminder_controller.dart';
 
 /// 把 [ReminderController] 的作用域挂到子树上，并跟随应用生命周期启停。
 ///

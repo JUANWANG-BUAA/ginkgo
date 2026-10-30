@@ -7,7 +7,8 @@ import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/features/settings/network_diagnostics_page.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
-import 'package:ginkgo_mirror/src/rust/api/live.dart' show ReadOnlyResponse;
+
+import 'graduate_fixture.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
 
@@ -20,11 +21,17 @@ void main() {
         ControlledService(),
         academic: ({required report, required forceRefresh}) async {
           forces.add(forceRefresh);
-          return const ReadOnlyResponse(
-            stale: true,
-            failure: FailureCode.serviceUnavailable,
-            payload: '{"sections":[{"rows":[{"detail":"synthetic-private-value"},{"detail":"other"}]}]}',
-          );
+          return graduateRead({
+            'sections': [
+              {
+                'title': '合成',
+                'rows': [
+                  {'title': 'a', 'detail': 'synthetic-private-value'},
+                  {'title': 'b', 'detail': 'other'},
+                ],
+              },
+            ],
+          }, failure: FailureCode.serviceUnavailable);
         },
       );
       final result = await probes[3].read(true);

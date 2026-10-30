@@ -1,54 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/local_tasks.dart';
 
-Map<String, dynamic> task({String due = '', Object? source}) => {
-  'id': 'local:1',
-  'title': '合成待办',
-  'due': due,
-  'completed': false,
-  'source': ?source,
-};
-
 void main() {
-  test('legacy date and optional source preserve exact values', () {
-    final old = LocalTaskRecord.fromJson(task(due: '2026-10-22'));
-    expect(old.sourceAssignmentId, isNull);
-    expect(old.due, '2026-10-22');
-    final linked = LocalTaskRecord.fromJson(
-      task(source: {'kind': 'homework', 'assignment_id': 'spoc:123'}),
-    );
-    expect(linked.sourceAssignmentId, 'spoc:123');
-    expect(linked.due, '');
-    expect(parseLocalTasksPayload('[]'), isEmpty);
-  });
-
-  test('invalid payload is never a successful empty list', () {
-    for (final input in <String?>[
-      null,
-      '',
-      '{}',
-      'null',
-      '[1]',
-      '[{}]',
-      jsonEncode([task(), task()]),
-    ]) {
-      expect(
-        () => parseLocalTasksPayload(input),
-        throwsFormatException,
-        reason: input,
-      );
-    }
-    for (final value in [
-      task()..['completed'] = 'false',
-      task(source: {}),
-      task()..['due'] = null,
-    ]) {
-      expect(() => LocalTaskRecord.fromJson(value), throwsFormatException);
-    }
-  });
-
   test('deadline validates real calendar and RFC3339 offsets', () {
     for (final value in [
       '',

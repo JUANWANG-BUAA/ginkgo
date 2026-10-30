@@ -4,7 +4,7 @@
 > 修改接口后运行 `python3 scripts/generate-interface-index.py` 重新生成；
 > 手工总览与分层说明见 [INTERFACE-INDEX.md](../INTERFACE-INDEX.md)。
 
-按目录分组统计：30 个分组节点（其中 29 个有出向依赖）、150 条跨组依赖。箭头方向为「依赖方 → 被依赖方」。
+按目录分组统计：31 个分组节点（其中 29 个有出向依赖）、147 条跨组依赖。箭头方向为「依赖方 → 被依赖方」。
 
 ## 依赖图
 
@@ -38,6 +38,7 @@ flowchart LR
   n_platform["platform"]
   n_root["root"]
   n_shared["shared"]
+  n_src["src"]
   n_widgets["widgets"]
   n_workspace["workspace"]
   n_app --> n_application
@@ -45,7 +46,9 @@ flowchart LR
   n_app --> n_infrastructure
   n_app --> n_platform
   n_app --> n_shared
+  n_application --> n_features_cgyy
   n_application --> n_shared
+  n_application --> n_src
   n_features_academic --> n_application
   n_features_academic --> n_widgets
   n_features_auth --> n_application
@@ -53,7 +56,6 @@ flowchart LR
   n_features_auth --> n_widgets
   n_features_bykc --> n_application
   n_features_bykc --> n_design
-  n_features_bykc --> n_infrastructure
   n_features_bykc --> n_shared
   n_features_bykc --> n_widgets
   n_features_campus --> n_application
@@ -84,7 +86,6 @@ flowchart LR
   n_features_grades --> n_widgets
   n_features_graduate --> n_application
   n_features_graduate --> n_design
-  n_features_graduate --> n_infrastructure
   n_features_graduate --> n_widgets
   n_features_homework --> n_application
   n_features_homework --> n_design
@@ -104,7 +105,6 @@ flowchart LR
   n_features_library --> n_shared
   n_features_library --> n_widgets
   n_features_notices --> n_application
-  n_features_notices --> n_infrastructure
   n_features_notices --> n_shared
   n_features_notices --> n_widgets
   n_features_reservations --> n_application
@@ -119,7 +119,6 @@ flowchart LR
   n_features_schedule --> n_widgets
   n_features_settings --> n_application
   n_features_settings --> n_design
-  n_features_settings --> n_features_graduate
   n_features_settings --> n_features_learning
   n_features_settings --> n_infrastructure
   n_features_settings --> n_platform
@@ -133,7 +132,6 @@ flowchart LR
   n_features_tasks --> n_application
   n_features_tasks --> n_design
   n_features_tasks --> n_features_homework
-  n_features_tasks --> n_infrastructure
   n_features_tasks --> n_shared
   n_features_tasks --> n_widgets
   n_features_today --> n_application
@@ -196,30 +194,48 @@ flowchart LR
 
 以下分组互相依赖，构成强连通分量。Dart 侧没有像 Rust 那样的依赖方向门禁，因此这些环不会被自动拦截；改动前先确认是否真的需要双向引用。
 
-- **5 个分组**：`features/graduate`、`features/learning`、`features/settings`、`infrastructure`、`platform`
+- **8 个分组**：`application`、`features/academic`、`features/cgyy`、`features/classroom`、`features/library`、`features/reservations`、`shared`、`widgets`
 
 ```mermaid
 flowchart LR
-  n_features_graduate --> n_infrastructure
+  n_application --> n_features_cgyy
+  n_application --> n_shared
+  n_features_academic --> n_application
+  n_features_academic --> n_widgets
+  n_features_cgyy --> n_application
+  n_features_cgyy --> n_features_reservations
+  n_features_cgyy --> n_shared
+  n_features_cgyy --> n_widgets
+  n_features_classroom --> n_application
+  n_features_classroom --> n_features_academic
+  n_features_classroom --> n_shared
+  n_features_classroom --> n_widgets
+  n_features_library --> n_application
+  n_features_library --> n_features_reservations
+  n_features_library --> n_shared
+  n_features_library --> n_widgets
+  n_features_reservations --> n_application
+  n_features_reservations --> n_features_cgyy
+  n_features_reservations --> n_features_classroom
+  n_features_reservations --> n_features_library
+  n_features_reservations --> n_widgets
+  n_shared --> n_application
+  n_widgets --> n_application
+  n_widgets --> n_shared
+```
+
+- **4 个分组**：`features/learning`、`features/settings`、`infrastructure`、`platform`
+
+```mermaid
+flowchart LR
   n_features_learning --> n_features_settings
   n_features_learning --> n_infrastructure
-  n_features_settings --> n_features_graduate
   n_features_settings --> n_features_learning
   n_features_settings --> n_infrastructure
   n_features_settings --> n_platform
   n_infrastructure --> n_platform
   n_platform --> n_features_settings
   n_platform --> n_infrastructure
-```
-
-- **3 个分组**：`features/cgyy`、`features/library`、`features/reservations`
-
-```mermaid
-flowchart LR
-  n_features_cgyy --> n_features_reservations
-  n_features_library --> n_features_reservations
-  n_features_reservations --> n_features_cgyy
-  n_features_reservations --> n_features_library
 ```
 
 - **3 个分组**：`features/shuttle`、`features/today`、`workspace`
@@ -230,13 +246,5 @@ flowchart LR
   n_features_today --> n_workspace
   n_workspace --> n_features_shuttle
   n_workspace --> n_features_today
-```
-
-- **2 个分组**：`application`、`shared`
-
-```mermaid
-flowchart LR
-  n_application --> n_shared
-  n_shared --> n_application
 ```
 

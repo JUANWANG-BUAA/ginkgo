@@ -11,13 +11,13 @@
 - [features/cgyy/cgyy_booking_form.dart](#featurescgyycgyybookingformdart) (5)
 - [features/cgyy/cgyy_booking_page.dart](#featurescgyycgyybookingpagedart) (1)
 - [features/cgyy/cgyy_booking_slots.dart](#featurescgyycgyybookingslotsdart) (1)
-- [features/cgyy/cgyy_booking_write.dart](#featurescgyycgyybookingwritedart) (2)
+- [features/cgyy/cgyy_booking_write.dart](#featurescgyycgyybookingwritedart) (1)
 - [features/cgyy/cgyy_captcha_page.dart](#featurescgyycgyycaptchapagedart) (1)
 - [features/cgyy/cgyy_day_page.dart](#featurescgyycgyydaypagedart) (1)
 - [features/cgyy/cgyy_day_view.dart](#featurescgyycgyydayviewdart) (8)
 - [features/cgyy/cgyy_gateway.dart](#featurescgyycgyygatewaydart) (5)
 - [features/cgyy/cgyy_lock_code_page.dart](#featurescgyycgyylockcodepagedart) (1)
-- [features/cgyy/cgyy_models.dart](#featurescgyycgyymodelsdart) (20)
+- [features/cgyy/cgyy_models.dart](#featurescgyycgyymodelsdart) (14)
 - [features/cgyy/cgyy_order_detail_page.dart](#featurescgyycgyyorderdetailpagedart) (1)
 - [features/cgyy/cgyy_page.dart](#featurescgyycgyypagedart) (1)
 - [features/cgyy/cgyy_review_page.dart](#featurescgyycgyyreviewpagedart) (1)
@@ -64,9 +64,9 @@
 ## features/cgyy/cgyy_booking_page.dart
 
 - `class CgyyBookingPage extends StatefulWidget` — Mirrors IOSCgyyView's grouped native form and explicit confirmation flow.
-  <sub>class · features/cgyy/cgyy_booking_page.dart:14</sub>
-    - `const CgyyBookingPage({ super.key, required this.gateway, required this.siteId, required this.siteName, required this.date, });`  <sub>:15</sub>
-    - `State<CgyyBookingPage> createState() => …`  <sub>:26</sub>
+  <sub>class · features/cgyy/cgyy_booking_page.dart:15</sub>
+    - `const CgyyBookingPage({ super.key, required this.gateway, required this.siteId, required this.siteName, required this.date, });`  <sub>:16</sub>
+    - `State<CgyyBookingPage> createState() => …`  <sub>:27</sub>
 
 ## features/cgyy/cgyy_booking_slots.dart
 
@@ -78,29 +78,23 @@
 
 ## features/cgyy/cgyy_booking_write.dart
 
-- `class CgyyBookingFailure implements Exception` — The booking command failed before a draft existed.
-  <sub>class · features/cgyy/cgyy_booking_write.dart:14</sub>
-    - `const CgyyBookingFailure();`  <sub>:15</sub>
-- `class CgyyBookingDraft` — The booking form values as one snapshot.
-  <sub>class · features/cgyy/cgyy_booking_write.dart:23</sub>
-    - `const CgyyBookingDraft({ required this.siteId, required this.siteName, required this.date, required this.spaceId, required this.spaceName, required this.timeIds, required this.times, required this.participantCount, required this.purposeId, required this.purposeName, required this.phone, required this.theme, required this.content, required this.joiners, required this.philosophy, required this.offSchool, });`  <sub>:24</sub>
-    - `bool get isComplete => …` — Whether the draft carries everything the school requires: one venue,  <sub>:53</sub>
-    - `String get summary => …` — The confirmation text shared by the dialog and the captcha page.  <sub>:68</sub>
-    - `Map<String, Object?> get payload => …` — The draft request the school receives.  <sub>:84</sub>
+- `class CgyyBookingFailure implements Exception` — The booking command failed before a draft existed. The typed school failure
+  <sub>class · features/cgyy/cgyy_booking_write.dart:9</sub>
+    - `const CgyyBookingFailure();`  <sub>:10</sub>
 
 ## features/cgyy/cgyy_captcha_page.dart
 
 - `class CgyyCaptchaPage extends StatefulWidget` — School jigsaw verification. The drag is performed manually by the user;
-  <sub>class · features/cgyy/cgyy_captcha_page.dart:16</sub>
-    - `const CgyyCaptchaPage({ super.key, required this.gateway, required this.challenge, required this.summary, required this.consumedChallenges, });`  <sub>:17</sub>
-    - `State<CgyyCaptchaPage> createState() => …`  <sub>:29</sub>
+  <sub>class · features/cgyy/cgyy_captcha_page.dart:17</sub>
+    - `const CgyyCaptchaPage({ super.key, required this.gateway, required this.challenge, required this.summary, required this.consumedChallenges, });`  <sub>:18</sub>
+    - `State<CgyyCaptchaPage> createState() => …`  <sub>:30</sub>
 
 ## features/cgyy/cgyy_day_page.dart
 
 - `class CgyyDayPage extends StatefulWidget`
-  <sub>class · features/cgyy/cgyy_day_page.dart:19</sub>
-    - `const CgyyDayPage({ super.key, required this.demo, this.site, this.loader, this.service, this.bookingGateway, });`  <sub>:20</sub>
-    - `State<CgyyDayPage> createState() => …`  <sub>:36</sub>
+  <sub>class · features/cgyy/cgyy_day_page.dart:20</sub>
+    - `const CgyyDayPage({ super.key, required this.demo, this.site, this.loader, this.service, this.bookingGateway, });`  <sub>:21</sub>
+    - `State<CgyyDayPage> createState() => …`  <sub>:37</sub>
 
 ## features/cgyy/cgyy_day_view.dart
 
@@ -133,13 +127,13 @@
 
 ## features/cgyy/cgyy_gateway.dart
 
-- `typedef CgyyLoader = Future<live.ReadOnlyResponse> Function(` — Loader signature shared by the CGYY hub and the day/orders page.
+- `typedef CgyyLoader = Future<CgyyLoadRead> Function(` — Loader signature shared by the CGYY hub and the day/orders page.
   <sub>typedef · features/cgyy/cgyy_gateway.dart:7</sub>
-- `Future<live.ReadOnlyResponse> cgyyRead({ required CgyyLoader? loader, required CgyyGateway? service, required String kind, required int siteId, required String date, required bool forceRefresh, }) async {…}` — Reads CGYY data through the injected loader or the injected campus gateway.
+- `Future<CgyyLoadRead> cgyyRead({ required CgyyLoader? loader, required CgyyGateway? service, required String kind, required int siteId, required String date, required bool forceRefresh, }) async {…}` — Reads CGYY data through the injected loader or the injected campus gateway.
   <sub>function · features/cgyy/cgyy_gateway.dart:19</sub>
-- `Future<live.ReadOnlyResponse> cgyyOrderDetail({ required int orderId, CgyyLoader? loader, CgyyGateway? service, bool forceRefresh = false, }) => …`
+- `Future<CgyyLoadRead> cgyyOrderDetail({ required int orderId, CgyyLoader? loader, CgyyGateway? service, bool forceRefresh = false, }) => …`
   <sub>function · features/cgyy/cgyy_gateway.dart:46</sub>
-- `Future<live.ReadOnlyResponse> cgyyLockCode({ CgyyLoader? loader, CgyyGateway? service, bool forceRefresh = false, }) => …`
+- `Future<CgyyLoadRead> cgyyLockCode({ CgyyLoader? loader, CgyyGateway? service, bool forceRefresh = false, }) => …`
   <sub>function · features/cgyy/cgyy_gateway.dart:60</sub>
 - `Future<CgyyWriteStatus> cgyyReadWriteStatus(CgyyBookingGateway gateway) async {…}` — Reads the local write-protection state of the last CGYY write. A failed or
   <sub>function · features/cgyy/cgyy_gateway.dart:75</sub>
@@ -155,55 +149,55 @@
 
 - `class CgyySite`
   <sub>class · features/cgyy/cgyy_models.dart:7</sub>
+    - `const CgyySite({ required this.id, required this.name, this.venue = '', this.campus = '', this.seats, });`  <sub>:8</sub>
 - `class CgyySlot`
-  <sub>class · features/cgyy/cgyy_models.dart:22</sub>
+  <sub>class · features/cgyy/cgyy_models.dart:21</sub>
+    - `const CgyySlot({required this.time, required this.status});`  <sub>:22</sub>
 - `class CgyySpace`
-  <sub>class · features/cgyy/cgyy_models.dart:30</sub>
+  <sub>class · features/cgyy/cgyy_models.dart:27</sub>
+    - `const CgyySpace({required this.name, required this.slots});`  <sub>:28</sub>
 - `class CgyyDay`
-  <sub>class · features/cgyy/cgyy_models.dart:42</sub>
+  <sub>class · features/cgyy/cgyy_models.dart:34</sub>
+    - `const CgyyDay({required this.date, required this.spaces});`  <sub>:35</sub>
 - `class CgyyOrder` — Approval labels follow API §6B and the existing CgyyModels.swift mapping.
-  <sub>class · features/cgyy/cgyy_models.dart:56</sub>
-    - `String get statusLabel {…}`  <sub>:73</sub>
-    - `String get summary => …`  <sub>:103</sub>
+  <sub>class · features/cgyy/cgyy_models.dart:43</sub>
+    - `const CgyyOrder({ required this.id, required this.place, required this.date, required this.time, required this.status, this.orderStatus, this.checkStatus, this.canCancel = false, });`  <sub>:44</sub>
+    - `String get statusLabel {…}`  <sub>:61</sub>
+    - `String get summary => …`  <sub>:91</sub>
 - `class CgyyBookingChoice`
-  <sub>class · features/cgyy/cgyy_models.dart:112</sub>
+  <sub>class · features/cgyy/cgyy_models.dart:100</sub>
+    - `const CgyyBookingChoice({ required this.spaceId, required this.spaceName, required this.timeId, required this.time, });`  <sub>:101</sub>
 - `class CgyyPurpose`
-  <sub>class · features/cgyy/cgyy_models.dart:123</sub>
+  <sub>class · features/cgyy/cgyy_models.dart:112</sub>
+    - `const CgyyPurpose({required this.id, required this.name});`  <sub>:113</sub>
 - `class CgyyBookingOptions`
-  <sub>class · features/cgyy/cgyy_models.dart:132</sub>
+  <sub>class · features/cgyy/cgyy_models.dart:119</sub>
+    - `const CgyyBookingOptions({ required this.choices, required this.purposes, required this.usesFallbackPurposes, });`  <sub>:120</sub>
 - `class CgyyChallenge` — Jigsaw challenge images stay raw data URLs; decoding happens in the widget
-  <sub>class · features/cgyy/cgyy_models.dart:151</sub>
+  <sub>class · features/cgyy/cgyy_models.dart:133</sub>
+    - `const CgyyChallenge({ required this.id, required this.background, required this.jigsaw, });`  <sub>:134</sub>
 - `class CgyyReviewSnapshot`
-  <sub>class · features/cgyy/cgyy_models.dart:160</sub>
+  <sub>class · features/cgyy/cgyy_models.dart:143</sub>
+    - `const CgyyReviewSnapshot({required this.id, required this.orders});`  <sub>:144</sub>
 - `class CgyyActionResult` — One write-flow result envelope. An unrecognized state stays `unknown`
-  <sub>class · features/cgyy/cgyy_models.dart:174</sub>
-    - `static const knownStates = {…}`  <sub>:202</sub>
-    - `bool get isKnown => …`  <sub>:220</sub>
-    - `bool get requiresReview => …`  <sub>:221</sub>
-    - `bool get isChallenge => …`  <sub>:222</sub>
-    - `bool get isReady => …`  <sub>:223</sub>
-    - `bool get isReviewRequired => …`  <sub>:224</sub>
+  <sub>class · features/cgyy/cgyy_models.dart:152</sub>
+    - `static const knownStates = {…}`  <sub>:176</sub>
+    - `bool get isKnown => …`  <sub>:194</sub>
+    - `bool get requiresReview => …`  <sub>:195</sub>
+    - `bool get isChallenge => …`  <sub>:196</sub>
+    - `bool get isReady => …`  <sub>:197</sub>
+    - `bool get isReviewRequired => …`  <sub>:198</sub>
 - `class CgyyWriteStatus` — The guard status of the last local write; anything but ready/uncertain
-  <sub>class · features/cgyy/cgyy_models.dart:229</sub>
-- `CgyyActionResult cgyyActionResult(String payload) => …`
-  <sub>function · features/cgyy/cgyy_models.dart:237</sub>
-- `CgyyWriteStatus cgyyWriteStatus(String payload) {…}`
-  <sub>function · features/cgyy/cgyy_models.dart:240</sub>
-- `List<CgyySite> cgyySites(String payload) => …`
-  <sub>function · features/cgyy/cgyy_models.dart:249</sub>
-- `CgyyDay cgyyDay(String payload) => …`
-  <sub>function · features/cgyy/cgyy_models.dart:254</sub>
-- `List<CgyyOrder> cgyyOrders(String payload) => …`
-  <sub>function · features/cgyy/cgyy_models.dart:257</sub>
-- `CgyyOrder cgyyOrder(String payload) => …`
-  <sub>function · features/cgyy/cgyy_models.dart:262</sub>
+  <sub>class · features/cgyy/cgyy_models.dart:203</sub>
 - `class CgyyLockCode`
-  <sub>class · features/cgyy/cgyy_models.dart:265</sub>
-    - `bool get hasPassword => …`  <sub>:286</sub>
-    - `bool get hasUpcomingReservation => …`  <sub>:288</sub>
-    - `String get location => …`  <sub>:294</sub>
-- `CgyyLockCode cgyyLockCodeData(String payload) => …`
-  <sub>function · features/cgyy/cgyy_models.dart:301</sub>
+  <sub>class · features/cgyy/cgyy_models.dart:218</sub>
+    - `const CgyyLockCode({ this.qrCode, this.dueDate, this.tradeNo, this.venueName, this.siteName, this.spaceName, this.orderName, this.reservationDate, this.reservationDateDetail, this.reservationStartDate, this.reservationEndDate, });`  <sub>:219</sub>
+    - `bool get hasPassword => …`  <sub>:240</sub>
+    - `bool get hasUpcomingReservation => …`  <sub>:242</sub>
+    - `String get location => …`  <sub>:248</sub>
+- `class CgyyLoadRead` — One CGYY read: exactly one shape is non-null, mirroring the Rust union.
+  <sub>class · features/cgyy/cgyy_models.dart:256</sub>
+    - `const CgyyLoadRead({ this.sites, this.day, this.orders, this.order, this.lockCode, this.failure, });`  <sub>:257</sub>
 
 ## features/cgyy/cgyy_order_detail_page.dart
 

@@ -54,7 +54,7 @@ class _CgyyLockCodePageState extends State<CgyyLockCodePage> {
           error = failureMessage(result.failure);
           code = null;
         }
-        if (result.payload != null) code = cgyyLockCodeData(result.payload!);
+        if (result.lockCode != null) code = result.lockCode!;
       });
     } catch (_) {
       if (mounted && serial == request) {

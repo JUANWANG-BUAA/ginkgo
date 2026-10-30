@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/features/checkin/checkin_models.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 
 /// Polls local progress only; never sends another authentication/read request.
@@ -37,10 +36,8 @@ class _CheckInLoadingState extends State<CheckInLoading> {
     if (reading) return;
     reading = true;
     try {
-      final response = await widget.service.checkinProgress();
-      if (!mounted || response.payload == null) return;
-      final telemetry = checkinProgress(response.payload!);
-      if (telemetry == null) return;
+      final telemetry = (await widget.service.checkinProgress()).data;
+      if (!mounted || telemetry == null) return;
       setState(() {
         label = switch (telemetry.phase) {
           'authenticating' => '正在连接学校认证…',

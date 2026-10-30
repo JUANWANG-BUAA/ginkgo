@@ -8,19 +8,20 @@ import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/features/today/today_page.dart';
+import 'package:ginkgo_mirror/application/local_tasks_read.dart';
 
 import 'mirror_widget_test.dart' show ControlledService, todayFixture;
 
 class ProgressiveService extends ControlledService {
   @override
-  Future<ReadOnlyResponse> editTasks({
+  Future<LocalTasksRead> editTasks({
     required String root,
     required String action,
     String? id,
     String? title,
     String? due,
     bool? completed,
-  }) async => const ReadOnlyResponse(stale: false, payload: '[]');
+  }) async => const LocalTasksRead(data: []);
   final courses = <Completer<TodayResponse>>[];
   final assignments = <Completer<HomeworkResponse>>[];
   final forceCourses = <bool>[];

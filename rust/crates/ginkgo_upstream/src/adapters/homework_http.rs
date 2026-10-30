@@ -1,6 +1,6 @@
 //! SPOC assignment pagination request (API.md §7.1).
 use crate::{
-    auth::session::Session,
+    auth::{cas, session::Session},
     codecs::homework::{self, HomeworkPage},
     foundation::http::{HttpRequest, HttpResponse, HttpTransport},
     AppError, ErrorCode,
@@ -52,16 +52,21 @@ pub fn page_payload(term_code: &str, page: i32) -> String {
     )
 }
 
+/// Classify a SPOC answer that is not the expected JSON.
+fn classify_refusal(response: &HttpResponse) -> AppError {
+    cas::module_refusal(&response.final_url, &response.body)
+}
+
 fn decode_page(response: &HttpResponse) -> Result<HomeworkPage, AppError> {
     check_gateway(response)?;
     if matches!(response.status, 401 | 403) {
-        return Err(AppError::session_expired());
+        return Err(classify_refusal(response));
     }
     if !(200..300).contains(&response.status) {
         return Err(AppError::new(ErrorCode::ServiceUnavailable));
     }
     if response.body.trim_start().starts_with('<') {
-        return Err(AppError::session_expired());
+        return Err(classify_refusal(response));
     }
     let value: serde_json::Value =
         serde_json::from_str(&response.body).map_err(|_| AppError::changed())?;
@@ -133,7 +138,7 @@ pub async fn authenticate<T: HttpTransport>(session: &Session<T>) -> Result<Spoc
 fn decode(response: &HttpResponse) -> Result<serde_json::Value, AppError> {
     check_gateway(response)?;
     if matches!(response.status, 401 | 403) || response.body.trim_start().starts_with('<') {
-        return Err(AppError::session_expired());
+        return Err(classify_refusal(response));
     }
     if !(200..300).contains(&response.status) {
         return Err(AppError::new(ErrorCode::ServiceUnavailable));
@@ -483,7 +488,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn unauthorized_envelope_is_session_expired() {
+    async fn unauthorized_envelope_demands_module_authentication() {
+        // SPOC refused its own token. The shared school session is untouched,
+        // so this must not be reported as a global session expiry.
         let transport = MockTransport::with_responses(vec![HttpResponse::new(
             200,
             format!("{SPOC_BASE}/inco/ht/queryListByPage"),
@@ -494,7 +501,39 @@ mod tests {
                 .await
                 .expect_err("auth")
                 .code,
+            ErrorCode::ModuleAuthRequired
+        );
+    }
+
+    #[tokio::test]
+    async fn a_cas_login_page_is_still_a_global_session_expiry() {
+        let transport = MockTransport::with_responses(vec![HttpResponse::new(
+            200,
+            "https://sso.buaa.edu.cn/login",
+            r#"<html><input name="execution" value="token"></html>"#,
+        )]);
+        assert_eq!(
+            load_page(&Session::new(transport), &auth(), "2025-20262", 1)
+                .await
+                .expect_err("auth")
+                .code,
             ErrorCode::SessionExpired
+        );
+    }
+
+    #[tokio::test]
+    async fn a_spoc_login_page_demands_module_authentication() {
+        let transport = MockTransport::with_responses(vec![HttpResponse::new(
+            200,
+            format!("{SPOC_BASE}/inco/ht/queryListByPage"),
+            "<html><body>请先登录 SPOC</body></html>",
+        )]);
+        assert_eq!(
+            load_page(&Session::new(transport), &auth(), "2025-20262", 1)
+                .await
+                .expect_err("auth")
+                .code,
+            ErrorCode::ModuleAuthRequired
         );
     }
 

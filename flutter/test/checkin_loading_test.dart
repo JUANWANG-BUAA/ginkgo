@@ -1,26 +1,24 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ginkgo_mirror/application/checkin_progress.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_loading.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
-import 'package:ginkgo_mirror/src/rust/api/live.dart';
 
 class _ProgressService implements CheckInGateway {
-  _ProgressService(this.payload);
+  _ProgressService(this.read);
 
-  final String? payload;
+  final CheckinProgressRead read;
   int reads = 0;
 
   @override
   bool get isDemo => false;
 
   @override
-  Future<ReadOnlyResponse> checkinProgress() async {
+  Future<CheckinProgressRead> checkinProgress() async {
     reads++;
-    return ReadOnlyResponse(payload: payload, stale: false);
+    return read;
   }
 
   @override
@@ -62,7 +60,9 @@ void main() {
     tester,
   ) async {
     final service = _ProgressService(
-      jsonEncode({'phase': 'courses', 'elapsedMs': 2600}),
+      CheckinProgressRead(
+        data: CheckinProgressTelemetry(phase: 'courses', elapsedSeconds: 2),
+      ),
     );
     await tester.pumpWidget(
       ginkgoApp(home: CheckInLoading(isDemo: false, service: service)),

@@ -1,7 +1,6 @@
-import 'dart:convert';
-
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
-import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/environment.dart';
+import 'package:ginkgo_mirror/application/failures.dart';
 
 /// Device-local personal task. Completion never changes a school assignment.
 class LocalTaskRecord {
@@ -20,58 +19,6 @@ class LocalTaskRecord {
   final String due;
   final bool completed;
   final String? sourceAssignmentId;
-
-  factory LocalTaskRecord.fromJson(Map<String, dynamic> json) {
-    final id = json['id'];
-    final title = json['title'];
-    final due = json['due'];
-    final completed = json['completed'];
-    if (id is! String ||
-        id.trim().isEmpty ||
-        title is! String ||
-        title.trim().isEmpty ||
-        due is! String ||
-        !isLocalTaskDue(due) ||
-        completed is! bool) {
-      throw const FormatException('Invalid local task fields');
-    }
-    String? assignmentId;
-    final source = json['source'];
-    if (source != null) {
-      if (source is! Map<String, dynamic> ||
-          source['kind'] != 'homework' ||
-          source['assignment_id'] is! String ||
-          (source['assignment_id'] as String).trim().isEmpty) {
-        throw const FormatException('Invalid local task source');
-      }
-      assignmentId = source['assignment_id'] as String;
-    }
-    return LocalTaskRecord(
-      id: id,
-      title: title,
-      due: due,
-      completed: completed,
-      sourceAssignmentId: assignmentId,
-    );
-  }
-}
-
-/// Fail closed: null, malformed lists/rows and duplicate ids are not empty data.
-List<LocalTaskRecord> parseLocalTasksPayload(String? payload) {
-  if (payload == null) throw const FormatException('Missing tasks payload');
-  final decoded = jsonDecode(payload);
-  if (decoded is! List) throw const FormatException('Expected tasks list');
-  final ids = <String>{};
-  return List.unmodifiable(
-    decoded.map((row) {
-      if (row is! Map<String, dynamic>) {
-        throw const FormatException('Invalid task row');
-      }
-      final task = LocalTaskRecord.fromJson(row);
-      if (!ids.add(task.id)) throw const FormatException('Duplicate task id');
-      return task;
-    }),
-  );
 }
 
 bool isLocalTaskDue(String value) {
@@ -111,6 +58,23 @@ String localTaskDueLabel(String due) {
       '${two(wall.hour)}:${two(wall.minute)}（北京时间）';
 }
 
+class LocalTasksRead {
+  const LocalTasksRead({this.data, this.failure});
+  final List<LocalTaskRecord>? data;
+  final FailureCode? failure;
+}
+
+abstract interface class LocalTaskGateway implements MirrorEnvironment {
+  Future<LocalTasksRead> editTasks({
+    required String root,
+    required String action,
+    String? id,
+    String? title,
+    String? due,
+    bool? completed,
+  });
+}
+
 /// The only JSON decoding path shared by Today, Tasks and homework linking.
 Future<List<LocalTaskRecord>> editLocalTasks(
   LocalTaskGateway service, {
@@ -129,8 +93,9 @@ Future<List<LocalTaskRecord>> editLocalTasks(
     due: due,
     completed: completed,
   );
-  if (result.failure != null || result.stale) {
+  final data = result.data;
+  if (result.failure != null || data == null) {
     throw const FormatException('Local tasks unavailable');
   }
-  return parseLocalTasksPayload(result.payload);
+  return data;
 }

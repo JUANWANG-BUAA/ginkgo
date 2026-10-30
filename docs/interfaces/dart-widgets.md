@@ -21,6 +21,7 @@
 - [widgets/long_page_scroll.dart](#widgetslongpagescrolldart) (1)
 - [widgets/mutation_dialog.dart](#widgetsmutationdialogdart) (1)
 - [widgets/public_information_page.dart](#widgetspublicinformationpagedart) (1)
+- [widgets/release_notes_view.dart](#widgetsreleasenotesviewdart) (11)
 - [widgets/reminder_badge.dart](#widgetsreminderbadgedart) (1)
 - [widgets/resource_meter.dart](#widgetsresourcemeterdart) (1)
 
@@ -96,9 +97,9 @@
     - `const AppleSection({ super.key, required this.children, this.header, this.footer, this.animateSize = true, });`  <sub>:183</sub>
     - `Widget build(BuildContext context) => …`  <sub>:194</sub>
 - `class AppleListTile extends StatelessWidget`
-  <sub>class · widgets/apple_surfaces.dart:275</sub>
-    - `const AppleListTile({ super.key, required this.title, this.subtitle, this.additionalInfo, this.leading, this.trailing, this.onTap, this.minimumHeight = AppleDesign.rowHeight, this.leadingSize = 30, });`  <sub>:276</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:293</sub>
+  <sub>class · widgets/apple_surfaces.dart:287</sub>
+    - `const AppleListTile({ super.key, required this.title, this.subtitle, this.additionalInfo, this.leading, this.trailing, this.onTap, this.minimumHeight = AppleDesign.rowHeight, this.leadingSize = 30, });`  <sub>:288</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:305</sub>
 
 ## widgets/collection_toolbar.dart
 
@@ -192,6 +193,40 @@
     - `final Widget Function( BuildContext context, Q query, bool loading, ValueChanged<Q> select, )`  <sub>:31</sub>
     - `final Widget Function(BuildContext context, T data) contentBuilder;`  <sub>:38</sub>
     - `State<PublicInformationPage<T, Q>> createState() => …`  <sub>:49</sub>
+
+## widgets/release_notes_view.dart
+
+- `sealed class NotesBlock`
+  <sub>class · widgets/release_notes_view.dart:19</sub>
+    - `const NotesBlock();`  <sub>:20</sub>
+- `class NotesHeading extends NotesBlock`
+  <sub>class · widgets/release_notes_view.dart:23</sub>
+    - `const NotesHeading(this.level, this.spans);`  <sub>:24</sub>
+- `class NotesBullet extends NotesBlock`
+  <sub>class · widgets/release_notes_view.dart:29</sub>
+    - `const NotesBullet(this.spans);`  <sub>:30</sub>
+- `class NotesParagraph extends NotesBlock`
+  <sub>class · widgets/release_notes_view.dart:34</sub>
+    - `const NotesParagraph(this.spans);`  <sub>:35</sub>
+- `sealed class NotesSpan`
+  <sub>class · widgets/release_notes_view.dart:39</sub>
+    - `const NotesSpan();`  <sub>:40</sub>
+- `class NotesText extends NotesSpan`
+  <sub>class · widgets/release_notes_view.dart:43</sub>
+    - `const NotesText(this.text, {this.bold = false});`  <sub>:44</sub>
+- `class NotesLink extends NotesSpan` — [url] is `null` when the destination failed the allow-list, which renders
+  <sub>class · widgets/release_notes_view.dart:51</sub>
+    - `const NotesLink(this.text, this.url);`  <sub>:52</sub>
+- `bool openableReleaseLink(String url) {…}` — Only the project's own GitHub pages may be opened from remote release copy.
+  <sub>function · widgets/release_notes_view.dart:64</sub>
+- `List<NotesSpan> parseNotesInline(String input) {…}`
+  <sub>function · widgets/release_notes_view.dart:90</sub>
+- `List<NotesBlock> parseReleaseNotes(String source) {…}`
+  <sub>function · widgets/release_notes_view.dart:136</sub>
+- `class ReleaseNotesView extends StatelessWidget` — Renders parsed release notes.
+  <sub>class · widgets/release_notes_view.dart:185</sub>
+    - `const ReleaseNotesView({super.key, required this.source});`  <sub>:186</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:291</sub>
 
 ## widgets/reminder_badge.dart
 

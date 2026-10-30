@@ -1,41 +1,35 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
+import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_gateway.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
-import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/features/reservations/reservation_widgets.dart';
-import 'package:ginkgo_mirror/src/rust/api/live.dart';
-import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
+import 'package:ginkgo_mirror/main.dart';
+import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 
-Object fixture(String name) => (jsonDecode(
-  File('../fixtures/cgyy/$name-normal-v1.json').readAsStringSync(),
-) as Map)['expected'];
+import 'cgyy_fixture.dart';
 
 void main() {
   test('CGYY order and lock code projections preserve three states', () {
-    final order = cgyyOrder(
-      jsonEncode({
-        'id': 42,
-        'place': '合成楼',
-        'date': '2026-10-27',
-        'time': '08:00–09:00',
-        'status': '订单状态 1',
-      }),
+    final order = CgyyOrder(
+      id: 42,
+      place: '合成楼',
+      date: '2026-10-27',
+      time: '08:00–09:00',
+      status: '订单状态 1',
     );
     expect(order.id, 42);
-    final active = cgyyLockCodeData(
-      jsonEncode({'qrCode': '246810', 'tradeNo': 'synthetic-trade'}),
+    final active = const CgyyLockCode(
+      qrCode: '246810',
+      tradeNo: 'synthetic-trade',
     );
-    final upcoming = cgyyLockCodeData(
-      jsonEncode({'qrCode': 'null', 'reservationDate': '2026-10-28'}),
+    final upcoming = const CgyyLockCode(
+      qrCode: 'null',
+      reservationDate: '2026-10-28',
     );
-    final empty = cgyyLockCodeData('{}');
+    final empty = const CgyyLockCode();
     expect(active.hasPassword, isTrue);
     expect(upcoming.hasPassword, isFalse);
     expect(upcoming.hasUpcomingReservation, isTrue);
@@ -44,14 +38,14 @@ void main() {
 
   test('CGYY detail helpers use the existing bounded gateway shapes', () async {
     final calls = <String>[];
-    Future<ReadOnlyResponse> loader({
+    Future<CgyyLoadRead> loader({
       required String kind,
       required int siteId,
       required String date,
       required bool forceRefresh,
     }) async {
       calls.add('$kind/$siteId/$date');
-      return const ReadOnlyResponse(payload: '{}', stale: false);
+      return const CgyyLoadRead();
     }
 
     await cgyyOrderDetail(loader: loader, orderId: 42);
@@ -80,7 +74,7 @@ void main() {
                   required forceRefresh,
                 }) async {
                   requests.add(kind);
-                  final data = fixture(kind);
+                  final data = cgyyFixture(kind);
                   if (kind == 'day') {
                     final day = data as Map;
                     (day['spaces'] as List).first['slots'] = [
@@ -89,10 +83,7 @@ void main() {
                       {'time': '10:00–11:00', 'status': '状态待确认'},
                     ];
                   }
-                  return ReadOnlyResponse(
-                    payload: jsonEncode(data),
-                    stale: false,
-                  );
+                  return cgyyLoadRead(kind, data);
                 },
           ),
         ),
@@ -158,15 +149,13 @@ void main() {
                   required forceRefresh,
                 }) async {
                   if (kind == 'venues' && venues++ > 0) {
-                    return const ReadOnlyResponse(
-                      stale: false,
+                    return cgyyLoadRead(
+                      kind,
+                      null,
                       failure: FailureCode.serviceUnavailable,
                     );
                   }
-                  return ReadOnlyResponse(
-                    payload: jsonEncode(fixture(kind)),
-                    stale: false,
-                  );
+                  return cgyyLoadRead(kind, cgyyFixture(kind));
                 },
           ),
         ),

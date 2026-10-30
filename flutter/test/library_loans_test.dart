@@ -6,6 +6,7 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/library_loans.dart';
 import 'package:ginkgo_mirror/features/library/library_loans_page.dart';
 import 'package:ginkgo_mirror/infrastructure/native_library_loans.dart';
+import 'package:ginkgo_mirror/src/rust/api/live.dart' as live;
 
 const page = LibraryLoanPage(
   items: [LibraryLoan(id: 'fixture', title: '合成书名', dueAt: '2026-11-01')],
@@ -39,28 +40,28 @@ Future<void> read(WidgetTester tester, {bool refresh = false}) async {
 }
 
 void main() {
-  test('invalid business payload is a failure, not empty', () {
+  test('a typed read keeps an empty page and a failure distinct', () {
+    // No page at all is a failure, not an empty success.
     expect(
-      decodeLibraryLoans(const ReadOnlyResponse(payload: '{}', stale: false))
-          .failure,
+      decodeLibraryLoans(const live.LibraryLoansResponse()).failure,
       FailureCode.changedResponse,
     );
     expect(
       decodeLibraryLoans(
-        const ReadOnlyResponse(
-          payload: '{"items":[],"page":1,"total":0,"hasMore":false}',
-          stale: false,
+        const live.LibraryLoansResponse(
+          data: live.LibraryLoanPageDto(
+            items: [],
+            page: 1,
+            total: 0,
+            hasMore: false,
+          ),
         ),
       ).data!.items,
       isEmpty,
     );
     expect(
       decodeLibraryLoans(
-        const ReadOnlyResponse(
-          payload: '{}',
-          stale: false,
-          failure: FailureCode.sessionExpired,
-        ),
+        const live.LibraryLoansResponse(failure: FailureCode.sessionExpired),
       ).failure,
       FailureCode.sessionExpired,
     );

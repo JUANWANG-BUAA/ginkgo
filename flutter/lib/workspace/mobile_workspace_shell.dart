@@ -7,7 +7,7 @@ import 'package:ginkgo_mirror/widgets/reminder_badge.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
 import 'package:ginkgo_mirror/workspace/workspace_back_guard.dart';
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
-import 'package:ginkgo_mirror/workspace/workspace_shell.dart'
+import 'package:ginkgo_mirror/workspace/workspace_shell_controller.dart'
     show WorkspaceShellState;
 import 'package:ginkgo_mirror/workspace/workspace_tab_transition.dart';
 

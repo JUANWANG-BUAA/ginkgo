@@ -41,3 +41,7 @@ __pycache__/
 # Local conversation exports may contain credentials; never publish them.
 dsh-tui-export-*.md
 pi-session-*.html
+kimi-export-session_*.md
+
+# Local architecture-diagram tool output
+.archify/

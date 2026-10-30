@@ -7,12 +7,15 @@
 | 消费端 | 入口 | 实际覆盖 |
 | --- | --- | --- |
 | Rust | [tests/contracts.rs](../rust/crates/ginkgo_upstream/tests/contracts.rs)、[execute_contract](../rust/crates/ginkgo_upstream/src/services/contracts.rs) | 递归执行本目录全部 JSON，对未知契约失败 |
+| Dart 规则 | [rules_parity_test.dart](../flutter/test/rules_parity_test.dart) | `rules/` 下的规则表：作业截止分类与签到窗口，与 Rust 领域规则共用同一份 `expected` |
 | Swift 规则 | ClassroomViewModelTests、BykcCourseCatalogTests、SharedHelpersTests、WorkspaceIntegrationTests | 教室筛选、博雅过滤、北京时间、课表已知周次保留的共享黄金样例 |
 | Swift 解析 | [SharedParserContractTests](../BUAA-AssistantTests/SharedParserContractTests.swift) | 递归读取同目录；CAS 登录页、教务学期 / 周次 / 本科课程 / 考试、成绩与学期码、SPOC 分页加密 |
 
 Swift 解析 runner 支持 `auth.cas_login_page`、`schedule.terms`、`schedule.graduate_terms`、`schedule.weeks`、`schedule.undergraduate_courses`、`schedule.exams`、`grades.buaa_score`、`grades.term_parts`、`homework.spoc_encrypt`。两端调用各自生产解析器，对同一 `expected` 投影断言；Swift 仅归一化属性命名、可选 null 和错误码，不复制 Rust 算法或生成另一份 JSON。
 
 此覆盖不是“全部契约两端一致”：签到、图书馆、博雅上游解析、研究生、SPOC 列表 / 详情及部分认证错误目前仍主要由 Rust runner 检查。后续共享测试应扩展现有 runner；新增支持的契约必须有样例，已有样例不能被静默跳过。
+
+`rules/` 是规则表而非协议响应：一次给出多组输入，`expected.results` 逐条对应。Rust 的领域规则（`ginkgo_domain::features::homework::classify_deadline`、`ginkgo_domain::features::checkin::sign_in_window`）是权威，Dart 侧用同一份表断言自己的实现，两边任何一边改出差异都会红。表覆盖跨零点、日期型与精确时刻型截止、无法解析的输入，以及签到窗口的开放前一刻、开放瞬间、关闭瞬间、跨日与畸形时间。Swift runner 按既有约定跳过未登记的契约，因此这些规则目前是 Rust↔Dart 共享。
 
 ## 语义约束
 

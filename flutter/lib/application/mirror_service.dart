@@ -1,5 +1,20 @@
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/career.dart';
+import 'package:ginkgo_mirror/application/cgyy_commands.dart';
+import 'package:ginkgo_mirror/application/checkin_progress.dart';
+import 'package:ginkgo_mirror/application/library_holdings.dart';
+import 'package:ginkgo_mirror/application/library_stats.dart';
+import 'package:ginkgo_mirror/application/local_tasks.dart';
+
+export 'package:ginkgo_mirror/application/local_tasks.dart'
+    show LocalTaskGateway;
+import 'package:ginkgo_mirror/application/environment.dart';
+import 'package:ginkgo_mirror/application/notices.dart';
+import 'package:ginkgo_mirror/application/shuttle.dart';
+import 'package:ginkgo_mirror/application/library_books.dart';
+import 'package:ginkgo_mirror/application/graduate.dart';
+import 'package:ginkgo_mirror/application/bykc.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
 
 /// Page-facing capabilities. Tests and alternative adapters need no native runtime.
 abstract interface class MirrorService
@@ -27,10 +42,6 @@ abstract interface class CareerEventsGateway implements MirrorEnvironment {
     required String month,
     bool forceRefresh = false,
   });
-}
-
-abstract interface class MirrorEnvironment {
-  bool get isDemo;
 }
 
 abstract interface class SessionGateway implements MirrorEnvironment {
@@ -89,11 +100,11 @@ abstract interface class CheckInGateway implements MirrorEnvironment {
 
   Future<MutationResponse> submitCheckin(String courseId);
 
-  Future<ReadOnlyResponse> checkinProgress();
+  Future<CheckinProgressRead> checkinProgress();
 }
 
 abstract interface class LibrarySeatingGateway implements MirrorEnvironment {
-  Future<ReadOnlyResponse> libraryStats({bool forceRefresh = false});
+  Future<LibraryStatsRead> libraryStats({bool forceRefresh = false});
 
   Future<MutationResponse> reserveLibrarySeat({
     required String areaId,
@@ -128,7 +139,7 @@ abstract interface class LibrarySeatingGateway implements MirrorEnvironment {
 abstract interface class LibraryCatalogGateway implements MirrorEnvironment {
   /// Public OPAC search. Anonymous and read-only; never personal records.
   /// `sort` is one of `relevance` / `pub_year` / `title`.
-  Future<ReadOnlyResponse> libraryBooks({
+  Future<BookPageRead> libraryBooks({
     required String query,
     required int page,
     String sort,
@@ -136,34 +147,29 @@ abstract interface class LibraryCatalogGateway implements MirrorEnvironment {
   });
 
   /// Public holdings for one bib id; the school's nested JSON stays in Rust.
-  Future<ReadOnlyResponse> libraryHoldings(String bibId);
+  Future<BookHoldingsRead> libraryHoldings(String bibId);
 }
 
 abstract interface class LibraryGateway
     implements LibrarySeatingGateway, LibraryCatalogGateway {}
 
-abstract interface class ShuttleGateway implements MirrorEnvironment {
-  /// Published shuttle timetable (official page). No live seats, no ticketing.
-  Future<ReadOnlyResponse> shuttleTimetable();
-}
-
 abstract interface class BykcGateway implements MirrorEnvironment {
-  Future<ReadOnlyResponse> bykcPart(BykcPart part, {bool forceRefresh = false});
+  Future<BykcPartRead> bykcPart(BykcPart part, {bool forceRefresh = false});
 }
 
 abstract interface class GraduateGateway implements MirrorEnvironment {
-  Future<ReadOnlyResponse> graduatePart({
+  Future<GraduateRead> graduatePart({
     required bool report,
     required bool forceRefresh,
   });
 }
 
 abstract interface class NoticeGateway implements MirrorEnvironment {
-  Future<ReadOnlyResponse> notices({bool forceRefresh = false});
+  Future<NoticesRead> notices({bool forceRefresh = false});
 }
 
 abstract interface class CgyyGateway implements MirrorEnvironment {
-  Future<ReadOnlyResponse> cgyy({
+  Future<CgyyLoadRead> cgyy({
     required String kind,
     required int siteId,
     required String date,
@@ -174,20 +180,9 @@ abstract interface class CgyyGateway implements MirrorEnvironment {
 abstract interface class CampusGateway
     implements BykcGateway, GraduateGateway, NoticeGateway, CgyyGateway {}
 
-abstract interface class LocalTaskGateway implements MirrorEnvironment {
-  Future<ReadOnlyResponse> editTasks({
-    required String root,
-    required String action,
-    String? id,
-    String? title,
-    String? due,
-    bool? completed,
-  });
-}
-
 /// Separate capability: read-only adapters never gain writes implicitly.
 abstract interface class CgyyBookingGateway {
-  Future<ReadOnlyResponse> executeCgyy(Map<String, Object?> command);
+  Future<CgyyActionResult> executeCgyy(CgyyCommand command);
 }
 
 enum BykcPart { catalog, chosen, statistics }

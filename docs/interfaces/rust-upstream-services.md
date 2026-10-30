@@ -54,21 +54,21 @@
 - `pub fn begin(&mut self, key: &K) -> u64 {…}` — Issue the writer ticket for a new request on this key. Call it before
   <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:57</sub>
 - `pub fn insert_if_current(&mut self, key: K, ticket: u64, value: V) -> String {…}` — Insert only when no newer request for the same key has started. The
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:67</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:76</sub>
 - `pub(super) fn entries(&self) -> impl Iterator<Item = (&K, &Timed<V>)> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:106</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:115</sub>
 - `pub(super) fn restore(&mut self, key: K, value: V, timestamp: String, age: Duration) {…}` — Rebind only after archive validation and current authenticated-owner checks.
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:112</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:121</sub>
 - `pub fn clear(&mut self) {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:123</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:132</sub>
 - `pub fn resolve_current( &mut self, key: K, ticket: u64, result: Result<V, crate::AppError>, ) -> Result<super::DataOutcome<V>, crate::AppError> {…}` — Replace on success, including an empty value, unless a newer request
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:133</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:142</sub>
 - `pub(crate) async fn read_with_snapshot<K, V, F>( cache: &crate::foundation::mutex::Mutex<SnapshotCache<K, V>>, key: K, force: bool, read: F, ) -> Result<ginkgo_domain::ports::ReadSnapshot<V>, crate::AppError>`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:165</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:177</sub>
 - `pub(crate) async fn read_with_snapshot_checked<K, V, F, G>( cache: &crate::foundation::mutex::Mutex<SnapshotCache<K, V>>, key: K, force: bool, read: F, check: G, ) -> Result<ginkgo_domain::ports::ReadSnapshot<V>, crate::AppError>`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:179</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:191</sub>
 - `pub(crate) fn now_shanghai() -> String {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:238</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/cache.rs:253</sub>
 
 ## campus_activities_service
 
@@ -149,14 +149,14 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:42</sub>
 - `pub fn load_demo_notices() -> Result<Vec<crate::codecs::notices::Notice>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:53</sub>
-- `pub fn load_demo_cgyy(kind: String) -> Result<serde_json::Value, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:65</sub>
+- `pub fn load_demo_cgyy(kind: String) -> Result<CgyyData, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:67</sub>
 - `pub fn graduate_status() -> Result<crate::codecs::graduate::AcademicData, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:78</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:94</sub>
 - `pub fn library_history(page: i32) -> Result<crate::codecs::library::LibraryHistoryPage, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:87</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:103</sub>
 - `pub fn library_stats() -> Result<Vec<crate::codecs::library_stats::CampusStats>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:102</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_campus.rs:118</sub>
 
 ## demo_checkin
 
@@ -244,7 +244,7 @@
 ## capabilities
 
 - `pub(super) async fn diagnose_homework(&self, id: &str) -> Vec<HomeworkCapabilityEvidence> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/homework_submission_service/capabilities.rs:27</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/homework_submission_service/capabilities.rs:28</sub>
 
 ## journal
 

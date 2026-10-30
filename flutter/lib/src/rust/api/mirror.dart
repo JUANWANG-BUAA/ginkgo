@@ -339,6 +339,8 @@ enum FailureCode {
   unsupportedPortal,
   credentialStore,
   businessRejected,
+  networkUnreachable,
+  moduleAuthRequired,
 }
 
 class GradeCourse {

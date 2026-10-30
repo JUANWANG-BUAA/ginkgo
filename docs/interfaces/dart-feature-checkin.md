@@ -8,16 +8,9 @@
 ## features/checkin/checkin_loading.dart
 
 - `class CheckInLoading extends StatefulWidget` — Polls local progress only; never sends another authentication/read request.
-  <sub>class · features/checkin/checkin_loading.dart:11</sub>
-    - `const CheckInLoading({ super.key, required this.isDemo, required this.service, });`  <sub>:12</sub>
-    - `State<CheckInLoading> createState() => …`  <sub>:20</sub>
-
-## features/checkin/checkin_models.dart
-
-- `class CheckinProgressTelemetry` — Optional iClass progress telemetry attached to a check-in read. Local hint
-  <sub>class · features/checkin/checkin_models.dart:5</sub>
-- `CheckinProgressTelemetry? checkinProgress(String payload) {…}`
-  <sub>function · features/checkin/checkin_models.dart:14</sub>
+  <sub>class · features/checkin/checkin_loading.dart:10</sub>
+    - `const CheckInLoading({ super.key, required this.isDemo, required this.service, });`  <sub>:11</sub>
+    - `State<CheckInLoading> createState() => …`  <sub>:19</sub>
 
 ## features/checkin/checkin_page.dart
 

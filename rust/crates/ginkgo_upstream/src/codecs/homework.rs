@@ -152,7 +152,9 @@ pub fn content(value: &Value) -> Result<&Value, AppError> {
         .ok_or_else(AppError::changed)?;
     match code {
         200 => value.get("content").ok_or_else(AppError::changed),
-        401 | 403 => Err(AppError::session_expired()),
+        // SPOC refuses its own token. The shared school session is untouched
+        // by that refusal, so this is a module-scoped authentication demand.
+        401 | 403 => Err(AppError::module_auth_required()),
         _ => Err(AppError::new(crate::ErrorCode::BusinessRejected)),
     }
 }

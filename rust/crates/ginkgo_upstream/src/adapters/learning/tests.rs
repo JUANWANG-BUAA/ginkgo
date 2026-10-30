@@ -158,16 +158,29 @@ async fn learning_download_gate_and_post_blob_preserve_json_files() {
 }
 #[tokio::test]
 async fn learning_response_classification_and_pagination_reject_drift() {
+    // SPOC's own refusal asks for its token again; the shared school session
+    // is untouched, so it must not be reported as a global session expiry.
     assert_eq!(
         decode(HttpResponse::new(401, "fixture", ""))
             .unwrap_err()
             .code,
-        ErrorCode::SessionExpired
+        ErrorCode::ModuleAuthRequired
     );
     assert_eq!(
         decode(HttpResponse::new(200, "fixture", "<html>login</html>"))
             .unwrap_err()
             .code,
+        ErrorCode::ModuleAuthRequired
+    );
+    // A CAS login page means the shared session itself is gone.
+    assert_eq!(
+        decode(HttpResponse::new(
+            200,
+            "https://sso.buaa.edu.cn/login",
+            "<html>cas</html>"
+        ))
+        .unwrap_err()
+        .code,
         ErrorCode::SessionExpired
     );
     assert_eq!(

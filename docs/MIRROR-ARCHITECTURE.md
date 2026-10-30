@@ -71,13 +71,13 @@ FFI 的 `SESSION_ACCESS` 用于应用命令级排他，保证切账号、切路�
 
 `application/contracts.dart` 显式导出生成的值类型，作为字段契约的单一来源。`application/mirror_service.dart` 声明按功能拆分的 gateway，`infrastructure/` 提供 native/demo 与平台适配。页面通过注入接口调用命令，不接触生成函数或 `RustLib`。
 
-本机待办目录通过 `TaskStorageScope` 注入异步路径解析函数：组合入口接入 `infrastructure/task_storage.dart` 的平台实现，工作台和待办页只读取端口；测试可注入合成目录。目录解析失败时页面显示失败，不把失败当作空待办。提醒控制器通过 `ReminderStore` 读写偏好、通过 `ReminderPlatform` 调度；文件实现保留原账号摘要命名和原子替换，`GinkgoApp` 工作区组合入口注入适配器，`ReminderScope` 只负责控制器生命周期。
+本机待办目录通过 `TaskStorageScope` 注入异步路径解析函数：组合入口接入 `infrastructure/task_storage.dart` 的平台实现，工作台和待办页只读取端口；测试可注入合成目录。目录解析失败时页面显示失败，不把失败当作空待办。`shared/reminder_controller.dart` 通过 `ReminderStore` 读写偏好、通过 `ReminderPlatform` 调度，`shared/reminder_scope.dart` 只负责控制器生命周期；`shared/reminders.dart` 仅作兼容导出。提醒刷新按整轮代次丢弃超时前的迟到结果，文件实现保留原账号摘要命名和原子替换，`GinkgoApp` 工作区组合入口注入适配器。
 
 提醒作用域在服务实例或账号变化时隔离控制器代次，取消旧定时器与恢复等待；系统排程适配器串行处理跨控制器的替换和清理，避免旧清理晚于新排程。若平台调用一直不返回，队列不会越过它执行后续排程，以免失序；该情况不等于系统通知已更新。
 
 提醒偏好文件按账号序列化读写，包括同账号控制器替换时已经提交的写入；读取完成前禁止修改，读取失败或损坏时保留文件并提供重试。队列仅协调当前进程，不能据此推断跨进程或设备级持久化验收。
 
-FFI API 只处理应用参数与 DTO 映射。演示中的学校响应构造、fixture 选择和解析也已移入 upstream，通过 runtime 的演示入口访问。通用 `ReadOnlyResponse` 仍是与现有 Flutter 兼容的序列化容器，其数据来自有类型的应用结果；这不允许返回学校原始信封。
+FFI API 只处理应用参数与 DTO 映射。演示中的学校响应构造、fixture 选择和解析也已移入 upstream，通过 runtime 的演示入口访问。全部 89 个命令返回类型化 DTO，通用 `ReadOnlyResponse` 已删除，学校原始信封不得跨桥。CGYY 的 Dart 写调用使用 `application/cgyy_commands.dart` 的 sealed command；native 仅在附加账号与存储元数据后生成既有 JSON 契约，页面不组装裸 Map。
 
 Flutter 中的学校网址常量和新闻域名白名单已收回上游；作业详情通过可空 `sourceUrl` 元数据提供官网入口，通知链接由上游验证后返回。页面只做通用 HTTPS URI 检查，功能导航继续传递同一个注入服务。作业详情 DTO 新增了可空字段，Rust/Dart 绑定需要同步使用；现有页面构造调用无需提供该可选字段。
 
@@ -95,18 +95,19 @@ Flutter 中的学校网址常量和新闻域名白名单已收回上游；作业
 
 ### 工作区功能登记表
 
-壳层与功能页之间以 `flutter/lib/workspace_catalog.dart` 为唯一登记点：每个功能登记稳定 id、标题、图标、桌面分组、移动端标签位置与页面构建器。移动端标签、桌面侧栏、今日快捷入口与返回栈都从该表派生，`main.dart` 只保留启动与登录状态机，`workspace_shell.dart` 只负责移动/桌面两种布局。
+壳层与功能页之间以 `flutter/lib/workspace/workspace_catalog.dart` 为唯一登记点：每个功能登记稳定 id、标题、图标、桌面分组、移动端标签位置与页面构建器。移动端标签、桌面侧栏、今日快捷入口与返回栈都从该表派生，`main.dart` 只保留启动与登录状态机，`workspace_shell.dart` 只负责组合，移动/桌面实现由构建器注入。目录与搜索显式共享 destinations，不通过全局循环引用获取。
 
 登记是编译期静态表：没有运行时插件加载、远程下发或动态符号查找；新增功能仍需显式登记、接入 gateway 并重新构建。桌面侧栏与目的地 key 使用功能 id（如 `desktop-sidebar-grades`），列表顺序调整不再影响测试与深链。`workspace_catalog_test.dart` 固定 id 唯一、移动端标签连续、分组非空与每个功能都有可达入口。
 
 ## 自动防回退与测试
 
-`scripts/check-mirror-architecture.py` 与 5 项边界检查回归已接入 `check-mirror.sh` 和 CI：
+`scripts/check-mirror-architecture.py` 与一组边界检查回归已接入 `check-mirror.sh` 和 CI：
 
 - 拒绝 core 对 upstream/runtime 的正常或开发依赖，包括重命名的本地实现包。
 - 拒绝 domain/core 引入指定的协议/平台库，以及核心源码接触 HTTP、Cookie、登录表单和学校 URL。
 - 拒绝业务端口返回通用 JSON 信封；拒绝 FFI API 自行解析协议和学校 fixture。
 - 拒绝 Flutter 页面直接导入 native 绑定、构造 native 服务或通过值契约导出 native 命令。
+- 拒绝 Dart 文件级 import/export/part 循环及目录聚合图无法发现的隐式耦合。
 
 本地/CI 分别执行 core 和 upstream 的独立测试，再执行 workspace 全量验证；core 的正常依赖图没有学校客户端、HTTP、平台保险库或 Tokio。core 的异步合成测试使用 Tokio 开发依赖。
 
@@ -127,7 +128,7 @@ Rust 的核心合成测试验证接口可替换、旧数据/失败一起返回�
 目标不是继续增加抽象层，而是让现有模块化单体更可靠、更易验证。Rust 继续在设备进程内运行，保持明确依赖矩阵：domain 无本项目依赖，core 与 upstream 只依赖 domain，runtime 依赖 core 与 upstream，bridge 依赖 core 与 runtime；不引入自建后端或微服务。
 
 1. **先收口正确性，再清结构债。** 按待办中的 P0 → P1 → P2 推进。优先验证认证与账号切换、异步读取上界、迟到响应与缓存语义，以及写操作单次提交和回查；每个问题都用能复现原风险的回归测试锁定，不通过放宽协议断言来消除失败。
-2. **渐进收紧跨层契约。** 新增或修改的 FFI 命令优先使用类型化 DTO；既有 `ReadOnlyResponse` 载荷按功能逐步迁移，具体清单以 [INTERFACE-INDEX §6.10](INTERFACE-INDEX.md#610-返回形态与载荷契约) 为准，不在本文复制易过时的数量。载荷只能是净化后的业务投影，不能承载学校原始响应。稳定业务规则归 Rust domain，纯呈现格式留在 Dart；Flutter 页面依赖 application gateway，直接依赖 infrastructure 的旧路径随功能修改逐项收敛，不做全量重写。
+2. **渐进收紧跨层契约。** 全部 FFI 命令使用类型化 DTO，不重新引入通用载荷逃生舱；写调用的输入也逐步改为 typed command，不能承载学校原始响应。稳定业务规则归 Rust domain，纯呈现格式留在 Dart；Flutter 页面依赖 application gateway，直接依赖 infrastructure 的旧路径随功能修改逐项收敛，不做全量重写。
 3. **用端到端证据推动演进。** 新功能沿用本文件“新增功能的路径”，覆盖 upstream / core / bridge / Flutter gateway 与页面测试；Android 正常入口构建和设备验收单独记录。合成测试、授权真实只读和真实写入分别陈述，不互相替代。若补充诊断日志，先按 [COLLABORATION.md](COLLABORATION.md) 建立脱敏白名单并经人工安全审查。
 
 开发范围仍以 [多平台路线](MULTI-PLATFORM-STRATEGY.md#当前开发范围2026-10-24-决策) 为准：Android 是唯一功能开发目标；Windows 保持可编译；macOS / iOS 冻结。除非出现具体需求和证据，不引入全局状态框架、动态插件系统或大规模跨层重写。

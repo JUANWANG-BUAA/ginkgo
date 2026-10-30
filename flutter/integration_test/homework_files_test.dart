@@ -19,7 +19,7 @@ void main() {
         assignmentId: 'fixture',
       );
       expect(read.failure, FailureCode.sessionExpired);
-      expect(read.payload, isNull);
+      expect(read.data, isNull);
       final upload = await live.uploadHomeworkFile(
         expectedAccount: '__fixture__',
         assignmentId: 'fixture',

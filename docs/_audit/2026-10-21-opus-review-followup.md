@@ -40,7 +40,7 @@
 
 ### 4. Flutter 复杂异步页面需要明确状态所有者
 
-**定位**：[LibraryController](../../flutter/lib/library_controller.dart)、[LibraryPage](../../flutter/lib/library_page.dart)、[控制器回归](../../flutter/test/library_controller_test.dart)，原有 `library_progressive_widget_test.dart` 与 `write_actions_widget_test.dart`。
+**定位**：[LibraryController](../../flutter/lib/features/library/library_controller.dart)、[LibraryPage](../../flutter/lib/features/library/library_page.dart)、[控制器回归](../../flutter/test/library_controller_test.dart)，原有 `library_progressive_widget_test.dart` 与 `write_actions_widget_test.dart`。
 
 **校正**：`setState` 数量不能单独证明架构错误。座位回查结果通知原图书馆页的 `onReservationChanged` 回调在起始代码已存在，原评审把过去 bug 当作现状的部分过时。
 
@@ -50,7 +50,7 @@
 
 ### 5. 状态颜色缺少统一语义
 
-**定位**：[AppleDesign](../../flutter/lib/apple_design.dart)，签到 / 作业 / 图书馆 / CGYY 页面；[对比度回归](../../flutter/test/status_palette_test.dart)。
+**定位**：[AppleDesign](../../flutter/lib/design/apple_design.dart)，签到 / 作业 / 图书馆 / CGYY 页面；[对比度回归](../../flutter/test/status_palette_test.dart)。
 
 **校正**：旧分析所说“只有四个 token”已不符合基线，文件已有资源场景色；但多个业务状态仍在页面直接选 systemGreen / Orange / Grey，改进空间成立。
 

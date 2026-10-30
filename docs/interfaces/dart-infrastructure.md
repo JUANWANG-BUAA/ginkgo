@@ -7,16 +7,22 @@ native/demo 适配器、运行时与持久化实现。
 
 ## 目录
 
+- [infrastructure/bykc_decode.dart](#infrastructurebykcdecodedart) (3)
+- [infrastructure/cgyy_decode.dart](#infrastructurecgyydecodedart) (2)
 - [infrastructure/demo_graduate_credit_map.dart](#infrastructuredemograduatecreditmapdart) (1)
 - [infrastructure/demo_homework_files.dart](#infrastructuredemohomeworkfilesdart) (1)
 - [infrastructure/demo_learning.dart](#infrastructuredemolearningdart) (1)
 - [infrastructure/demo_library_loans.dart](#infrastructuredemolibraryloansdart) (1)
 - [infrastructure/demo_mirror_service.dart](#infrastructuredemomirrorservicedart) (1)
-- [infrastructure/graduate_credit_map_payload.dart](#infrastructuregraduatecreditmappayloaddart) (2)
+- [infrastructure/graduate_credit_map_payload.dart](#infrastructuregraduatecreditmappayloaddart) (1)
+- [infrastructure/graduate_decode.dart](#infrastructuregraduatedecodedart) (1)
 - [infrastructure/homework_file_io.dart](#infrastructurehomeworkfileiodart) (11)
 - [infrastructure/learning_file_actions.dart](#infrastructurelearningfileactionsdart) (1)
-- [infrastructure/learning_payload.dart](#infrastructurelearningpayloaddart) (7)
 - [infrastructure/learning_snapshot_store.dart](#infrastructurelearningsnapshotstoredart) (4)
+- [infrastructure/library_books_decode.dart](#infrastructurelibrarybooksdecodedart) (1)
+- [infrastructure/library_holdings_decode.dart](#infrastructurelibraryholdingsdecodedart) (1)
+- [infrastructure/library_stats_decode.dart](#infrastructurelibrarystatsdecodedart) (1)
+- [infrastructure/local_tasks_decode.dart](#infrastructurelocaltasksdecodedart) (1)
 - [infrastructure/maintenance_service.dart](#infrastructuremaintenanceservicedart) (5)
 - [infrastructure/mirror_runtime.dart](#infrastructuremirrorruntimedart) (1)
 - [infrastructure/native_auth_challenge.dart](#infrastructurenativeauthchallengedart) (2)
@@ -27,10 +33,27 @@ native/demo 适配器、运行时与持久化实现。
 - [infrastructure/native_mirror_service.dart](#infrastructurenativemirrorservicedart) (1)
 - [infrastructure/native_reminder_planning.dart](#infrastructurenativereminderplanningdart) (1)
 - [infrastructure/native_reminder_platform.dart](#infrastructurenativereminderplatformdart) (1)
+- [infrastructure/notices_decode.dart](#infrastructurenoticesdecodedart) (1)
 - [infrastructure/reminder_store.dart](#infrastructurereminderstoredart) (1)
 - [infrastructure/serial_reminder_platform.dart](#infrastructureserialreminderplatformdart) (1)
-- [infrastructure/service_factory.dart](#infrastructureservicefactorydart) (1)
+- [infrastructure/shuttle_decode.dart](#infrastructureshuttledecodedart) (1)
 - [infrastructure/task_storage.dart](#infrastructuretaskstoragedart) (1)
+
+## infrastructure/bykc_decode.dart
+
+- `BykcCatalogRead decodeBykcCatalog(live.BykcCatalogResponse response) {…}`
+  <sub>function · infrastructure/bykc_decode.dart:32</sub>
+- `BykcChosenRead decodeBykcChosen(live.BykcChosenResponse response) {…}`
+  <sub>function · infrastructure/bykc_decode.dart:50</sub>
+- `BykcStatisticsRead decodeBykcStatistics(live.BykcStatisticsResponse response) {…}`
+  <sub>function · infrastructure/bykc_decode.dart:78</sub>
+
+## infrastructure/cgyy_decode.dart
+
+- `CgyyLoadRead decodeCgyyLoad(live.CgyyLoadResponse response) {…}` — Projects the five-shape read. Exactly one shape field is non-null.
+  <sub>function · infrastructure/cgyy_decode.dart:56</sub>
+- `CgyyActionResult decodeCgyyAction(live.CgyyActionResultResponse response) {…}` — Projects the write result. Options/challenge/review stay optional exactly
+  <sub>function · infrastructure/cgyy_decode.dart:69</sub>
 
 ## infrastructure/demo_graduate_credit_map.dart
 
@@ -64,14 +87,17 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/demo_mirror_service.dart
 
 - `final class DemoMirrorService`
-  <sub>class · infrastructure/demo_mirror_service.dart:17</sub>
+  <sub>class · infrastructure/demo_mirror_service.dart:34</sub>
 
 ## infrastructure/graduate_credit_map_payload.dart
 
-- `GraduateCreditMapRead decodeGraduateCreditMapRead(ReadOnlyResponse response) {…}` — Decodes the core projection, not a school response. Rust owns arithmetic.
-  <sub>function · infrastructure/graduate_credit_map_payload.dart:7</sub>
-- `GraduateCreditMap decodeGraduateCreditMap(Object? value) {…}`
-  <sub>function · infrastructure/graduate_credit_map_payload.dart:25</sub>
+- `GraduateCreditMapRead decodeGraduateCreditMapRead( live.GraduateCreditMapResponse response, ) {…}` — Projects the typed core result. Rust owns the arithmetic.
+  <sub>function · infrastructure/graduate_credit_map_payload.dart:6</sub>
+
+## infrastructure/graduate_decode.dart
+
+- `GraduateRead decodeGraduate(live.GraduateResponse response) {…}`
+  <sub>function · infrastructure/graduate_decode.dart:5</sub>
 
 ## infrastructure/homework_file_io.dart
 
@@ -112,23 +138,6 @@ native/demo 适配器、运行时与持久化实现。
 - `Future<LearningSavedFile?> saveLearningFile( LearningDownload file, bool Function() isCurrent, ) async {…}` — Learning and homework share only the local byte-save capability, not URLs
   <sub>function · infrastructure/learning_file_actions.dart:9</sub>
 
-## infrastructure/learning_payload.dart
-
-- `List<LearningCourse> decodeCourses(Object value) => …`
-  <sub>function · infrastructure/learning_payload.dart:25</sub>
-- `List<CourseAnnouncement> decodeAnnouncements(Object value) => …`
-  <sub>function · infrastructure/learning_payload.dart:38</sub>
-- `CourseAnnouncementDetail decodeAnnouncement(Object value) {…}`
-  <sub>function · infrastructure/learning_payload.dart:49</sub>
-- `CourseResourcePage decodeResources(Object value) {…}`
-  <sub>function · infrastructure/learning_payload.dart:62</sub>
-- `List<CourseAssessment> decodeAssessments(Object value) => …`
-  <sub>function · infrastructure/learning_payload.dart:88</sub>
-- `List<LearningColumn> decodeLearningColumns(Object value) {…}`
-  <sub>function · infrastructure/learning_payload.dart:102</sub>
-- `LearningCapabilities decodeLearningCapabilities(Object value) {…}`
-  <sub>function · infrastructure/learning_payload.dart:118</sub>
-
 ## infrastructure/learning_snapshot_store.dart
 
 - `abstract interface class LearningSnapshotStore` — The only disk adapter is Android Keystore AES-GCM. No plaintext fallback.
@@ -154,43 +163,62 @@ native/demo 适配器、运行时与持久化实现。
     - `Future<LearningSnapshotStatus> status() => …`  <sub>:63</sub>
     - `Future<LearningSnapshotStatus> setEnabled( String account, bool enabled, ) => …`  <sub>:77</sub>
     - `Future<void> clear() => …`  <sub>:111</sub>
-    - `Future<ReadOnlyResponse> read( String account, Future<ReadOnlyResponse> Function() fetch, ) async {…}`  <sub>:124</sub>
 - `mixin NativeLearningSnapshots implements LearningSnapshotGateway`
-  <sub>mixin · infrastructure/learning_snapshot_store.dart:178</sub>
-    - `Future<LearningSnapshotStatus> learningSnapshotStatus() => …`  <sub>:181</sub>
-    - `Future<LearningSnapshotStatus> setLearningSnapshotsEnabled(bool enabled) => …`  <sub>:184</sub>
+  <sub>mixin · infrastructure/learning_snapshot_store.dart:181</sub>
+    - `Future<LearningSnapshotStatus> learningSnapshotStatus() => …`  <sub>:184</sub>
+    - `Future<LearningSnapshotStatus> setLearningSnapshotsEnabled(bool enabled) => …`  <sub>:187</sub>
+
+## infrastructure/library_books_decode.dart
+
+- `BookPageRead decodeBookPage(live.BookPageResponse response) {…}`
+  <sub>function · infrastructure/library_books_decode.dart:5</sub>
+
+## infrastructure/library_holdings_decode.dart
+
+- `BookHoldingsRead decodeBookHoldings(live.BookHoldingsResponse response) {…}`
+  <sub>function · infrastructure/library_holdings_decode.dart:5</sub>
+
+## infrastructure/library_stats_decode.dart
+
+- `LibraryStatsRead decodeLibraryStats(live.LibraryStatsResponse response) {…}`
+  <sub>function · infrastructure/library_stats_decode.dart:5</sub>
+
+## infrastructure/local_tasks_decode.dart
+
+- `LocalTasksRead decodeLocalTasks(live.LocalTasksResponse response) {…}` — Local records are validated by the Rust store on write, so the projection
+  <sub>function · infrastructure/local_tasks_decode.dart:7</sub>
 
 ## infrastructure/maintenance_service.dart
 
 - `class InstalledVersion`
-  <sub>class · infrastructure/maintenance_service.dart:17</sub>
-    - `const InstalledVersion(this.version, this.build);`  <sub>:18</sub>
-    - `String get label => …`  <sub>:20</sub>
+  <sub>class · infrastructure/maintenance_service.dart:16</sub>
+    - `const InstalledVersion(this.version, this.build);`  <sub>:17</sub>
+    - `String get label => …`  <sub>:19</sub>
 - `class UpdateResult`
-  <sub>class · infrastructure/maintenance_service.dart:23</sub>
-    - `const UpdateResult({ required this.latest, required this.available, required this.apkAvailable, this.pageUrl, this.notes, this.download, });`  <sub>:24</sub>
-    - `String get headline => …`  <sub>:45</sub>
+  <sub>class · infrastructure/maintenance_service.dart:22</sub>
+    - `const UpdateResult({ required this.latest, required this.available, required this.apkAvailable, this.pageUrl, this.notes, this.download, });`  <sub>:23</sub>
+    - `String get headline => …`  <sub>:34</sub>
 - `abstract interface class MaintenanceService`
-  <sub>class · infrastructure/maintenance_service.dart:54</sub>
-    - `Future<InstalledVersion> version();`  <sub>:56</sub>
-    - `Future<UpdateResult> checkUpdate(String current);`  <sub>:57</sub>
-    - `Future<bool> openReleases(String? page);`  <sub>:58</sub>
-    - `Future<bool> checkBridge();`  <sub>:59</sub>
-    - `Future<bool> checkStorage();`  <sub>:60</sub>
-    - `Future<bool> checkVault();`  <sub>:61</sub>
+  <sub>class · infrastructure/maintenance_service.dart:43</sub>
+    - `Future<InstalledVersion> version();`  <sub>:45</sub>
+    - `Future<UpdateResult> checkUpdate(String current);`  <sub>:46</sub>
+    - `Future<bool> openReleases(String? page);`  <sub>:47</sub>
+    - `Future<bool> checkBridge();`  <sub>:48</sub>
+    - `Future<bool> checkStorage();`  <sub>:49</sub>
+    - `Future<bool> checkVault();`  <sub>:50</sub>
 - `class NativeMaintenanceService implements MaintenanceService`
-  <sub>class · infrastructure/maintenance_service.dart:64</sub>
-    - `const NativeMaintenanceService();`  <sub>:65</sub>
-    - `static const repository = 'https://github.com/JUANWANG-BUAA/ginkgo';`  <sub>:66</sub>
-    - `bool get supportsUpdates => …`  <sub>:68</sub>
-    - `Future<InstalledVersion> version() async {…}`  <sub>:70</sub>
-    - `Future<UpdateResult> checkUpdate(String current) async {…}`  <sub>:76</sub>
-    - `Future<bool> openReleases(String? page) async {…}`  <sub>:89</sub>
-    - `Future<bool> checkBridge() async {…}`  <sub>:105</sub>
-    - `Future<bool> checkStorage() async {…}`  <sub>:111</sub>
-    - `Future<bool> checkVault() => …`  <sub>:131</sub>
+  <sub>class · infrastructure/maintenance_service.dart:53</sub>
+    - `const NativeMaintenanceService();`  <sub>:54</sub>
+    - `static const repository = 'https://github.com/JUANWANG-BUAA/ginkgo';`  <sub>:55</sub>
+    - `bool get supportsUpdates => …`  <sub>:57</sub>
+    - `Future<InstalledVersion> version() async {…}`  <sub>:59</sub>
+    - `Future<UpdateResult> checkUpdate(String current) async {…}`  <sub>:65</sub>
+    - `Future<bool> openReleases(String? page) async {…}`  <sub>:92</sub>
+    - `Future<bool> checkBridge() async {…}`  <sub>:108</sub>
+    - `Future<bool> checkStorage() async {…}`  <sub>:114</sub>
+    - `Future<bool> checkVault() => …`  <sub>:134</sub>
 - `Future<bool> checkPublicService(MirrorService service) async {…}` — Network check is deliberately separate from local checks. Cached fallback
-  <sub>function · infrastructure/maintenance_service.dart:142</sub>
+  <sub>function · infrastructure/maintenance_service.dart:145</sub>
 
 ## infrastructure/mirror_runtime.dart
 
@@ -208,11 +236,11 @@ native/demo 适配器、运行时与持久化实现。
 
 ## infrastructure/native_campus_activities.dart
 
-- `CampusActivitiesRead decodeCampusActivities(live.ReadOnlyResponse response) {…}`
-  <sub>function · infrastructure/native_campus_activities.dart:9</sub>
+- `CampusActivitiesRead decodeCampusActivities( live.CampusActivitiesResponse response, ) {…}`
+  <sub>function · infrastructure/native_campus_activities.dart:7</sub>
 - `mixin NativeCampusActivities implements CampusActivitiesGateway`
-  <sub>mixin · infrastructure/native_campus_activities.dart:28</sub>
-    - `Future<CampusActivitiesRead> campusActivities({ int page = 1, bool forceRefresh = false, }) async => …`  <sub>:30</sub>
+  <sub>mixin · infrastructure/native_campus_activities.dart:38</sub>
+    - `Future<CampusActivitiesRead> campusActivities({ int page = 1, bool forceRefresh = false, }) async => …`  <sub>:40</sub>
 
 ## infrastructure/native_career.dart
 
@@ -224,22 +252,22 @@ native/demo 适配器、运行时与持久化实现。
 
 ## infrastructure/native_learning.dart
 
-- `mixin NativeLearning` — Native business adapter shared by the account-bound workspace service.
-  <sub>mixin · infrastructure/native_learning.dart:13</sub>
+- `mixin NativeLearning`
+  <sub>mixin · infrastructure/native_learning.dart:122</sub>
 
 ## infrastructure/native_library_loans.dart
 
-- `LibraryLoansRead decodeLibraryLoans(ReadOnlyResponse response) {…}` — Decode the business projection, never the school OPAC envelope.
-  <sub>function · infrastructure/native_library_loans.dart:10</sub>
+- `LibraryLoansRead decodeLibraryLoans(live.LibraryLoansResponse response) {…}` — Decode the business projection, never the school OPAC envelope.
+  <sub>function · infrastructure/native_library_loans.dart:8</sub>
 - `mixin NativeLibraryLoans`
-  <sub>mixin · infrastructure/native_library_loans.dart:41</sub>
-    - `String libraryLoansPortalUrl() => …`  <sub>:44</sub>
-    - `Future<LibraryLoansRead> libraryLoans({int page = 1}) async {…}`  <sub>:47</sub>
+  <sub>mixin · infrastructure/native_library_loans.dart:37</sub>
+    - `String libraryLoansPortalUrl() => …`  <sub>:40</sub>
+    - `Future<LibraryLoansRead> libraryLoans({int page = 1}) async {…}`  <sub>:43</sub>
 
 ## infrastructure/native_mirror_service.dart
 
 - `final class NativeMirrorService`
-  <sub>class · infrastructure/native_mirror_service.dart:23</sub>
+  <sub>class · infrastructure/native_mirror_service.dart:44</sub>
 
 ## infrastructure/native_reminder_planning.dart
 
@@ -255,6 +283,11 @@ native/demo 适配器、运行时与持久化实现。
     - `static const channel = MethodChannel('cn.edu.buaa.ginkgo/reminders');`  <sub>:9</sub>
     - `Future<void> replace(List<Map<String, Object>> plans) async {…}`  <sub>:12</sub>
 
+## infrastructure/notices_decode.dart
+
+- `NoticesRead decodeNotices(live.NoticesResponse response) {…}` — Native and demo both cross the bridge as the same typed DTO, so they share
+  <sub>function · infrastructure/notices_decode.dart:7</sub>
+
 ## infrastructure/reminder_store.dart
 
 - `class FileReminderStore implements ReminderStore` — Stores the existing account-digest-named reminder document atomically.
@@ -269,10 +302,10 @@ native/demo 适配器、运行时与持久化实现。
   <sub>class · infrastructure/serial_reminder_platform.dart:4</sub>
     - `Future<void> replace(List<Map<String, Object>> plans) {…}`  <sub>:11</sub>
 
-## infrastructure/service_factory.dart
+## infrastructure/shuttle_decode.dart
 
-- `MirrorService mirrorServiceFor({required bool demo}) => …` — Default composition for standalone feature pages.
-  <sub>function · infrastructure/service_factory.dart:11</sub>
+- `ShuttleTimetableRead decodeShuttleTimetable( live.ShuttleTimetableResponse response, ) {…}`
+  <sub>function · infrastructure/shuttle_decode.dart:5</sub>
 
 ## infrastructure/task_storage.dart
 

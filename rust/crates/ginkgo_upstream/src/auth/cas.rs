@@ -4,6 +4,8 @@
 use regex::Regex;
 use std::sync::LazyLock;
 
+use crate::AppError;
+
 static EXECUTION: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r#"(?i)<input[^>]*name=["']execution["'][^>]*value=["']([^"']+)["'][^>]*>"#)
         .expect("execution regex")
@@ -102,6 +104,22 @@ pub fn is_login_redirect(final_url: &str, body: &str) -> bool {
         .take(5000)
         .collect::<String>()
         .contains(r#"name="execution""#)
+}
+
+/// Classify a module answer that is not the expected payload.
+///
+/// A CAS login page means the shared school session is gone: every module
+/// that relies on it fails as well, and the user has to log in again. Any
+/// other refusal is the module asking for its own token again, which leaves
+/// the shared session — and every other module — untouched. Reporting that
+/// as a global expiry sends the user to re-authenticate a session that is
+/// still working.
+pub fn module_refusal(final_url: &str, body: &str) -> AppError {
+    if is_login_redirect(final_url, body) {
+        AppError::session_expired()
+    } else {
+        AppError::module_auth_required()
+    }
 }
 
 /// Build the CAS form from the page's hidden inputs. The `+` and `/` in the

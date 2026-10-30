@@ -4,7 +4,7 @@ import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
-import 'graduate_models.dart';
+import 'package:ginkgo_mirror/application/graduate.dart';
 
 /// Credit values the school did not provide stay "未确认"; they never read as
 /// a confirmed zero.
@@ -218,7 +218,10 @@ class _GraduateDisclosureState extends State<GraduateDisclosure> {
           children: [
             Text(
               widget.title,
-              style: const TextStyle(fontSize: AppleDesign.bodyCondensedSize, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontSize: AppleDesign.bodyCondensedSize,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             if (widget.subtitle != null) ...[
               const SizedBox(height: 5),

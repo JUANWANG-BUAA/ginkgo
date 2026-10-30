@@ -89,8 +89,8 @@ HTTP 传输、Cookie、路由与错误映射。
 - `pub enum TransportError`
   <sub>enum · rust/crates/ginkgo_upstream/src/foundation/http.rs:108</sub>
 - `pub trait HttpTransport`
-  <sub>trait · rust/crates/ginkgo_upstream/src/foundation/http.rs:112</sub>
-    - `fn send( &self, request: HttpRequest, ) -> Future<Result<HttpResponse, TransportError>>;`  <sub>:113</sub>
+  <sub>trait · rust/crates/ginkgo_upstream/src/foundation/http.rs:128</sub>
+    - `fn send( &self, request: HttpRequest, ) -> Future<Result<HttpResponse, TransportError>>;`  <sub>:129</sub>
 
 ## mutex
 

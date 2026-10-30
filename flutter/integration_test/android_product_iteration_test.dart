@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -14,6 +13,7 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 
 import 'support.dart' show settle, show;
 import 'package:ginkgo_mirror/infrastructure/demo_mirror_service.dart';
+import 'package:ginkgo_mirror/application/local_tasks.dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -47,8 +47,7 @@ void main() {
         due: '',
       );
       expect(added.failure, isNull);
-      final taskId =
-          ((jsonDecode(added.payload!) as List).single as Map)['id'] as String;
+      final taskId = added.data!.single.id;
       await tester.pumpWidget(
         ginkgoApp(
           home: TodayPage(
@@ -78,10 +77,7 @@ void main() {
         root: directory.path,
         action: 'load',
       );
-      expect(
-        ((jsonDecode(result.payload!) as List).single as Map)['completed'],
-        isTrue,
-      );
+      expect(result.data!.single.completed, isTrue);
       expect(tester.takeException(), isNull);
     } finally {
       await tester.pumpWidget(ginkgoApp(home: const SizedBox()));
@@ -125,14 +121,10 @@ void main() {
         action: 'load',
       );
       expect(result.failure, isNull);
-      final rows = (jsonDecode(result.payload!) as List)
-          .cast<Map<String, dynamic>>();
+      final rows = result.data!;
       expect(rows, hasLength(1));
-      expect(rows.single['title'], '设备编辑后待办');
-      expect(rows.single['source'], {
-        'kind': 'homework',
-        'assignment_id': 'spoc:synthetic-ui-one',
-      });
+      expect(rows.single.title, '设备编辑后待办');
+      expect(rows.single.sourceAssignmentId, 'spoc:synthetic-ui-one');
       await tester.ensureVisible(find.byKey(const Key('homework-view-task')));
       await tester.tap(find.byKey(const Key('homework-view-task')));
       await settle(tester, frames: 30);
@@ -169,9 +161,20 @@ void main() {
             completed: completed,
           );
           expect(result.failure, isNull);
-          expect(result.payload, isNotNull);
-          return (jsonDecode(result.payload!) as List)
-              .cast<Map<String, dynamic>>();
+          return [
+            for (final task in result.data ?? const <LocalTaskRecord>[])
+              {
+                'id': task.id,
+                'title': task.title,
+                'due': task.due,
+                'completed': task.completed,
+                if (task.sourceAssignmentId != null)
+                  'source': {
+                    'kind': 'homework',
+                    'assignment_id': task.sourceAssignmentId,
+                  },
+              },
+          ];
         }
 
         final added = await command(
@@ -201,7 +204,6 @@ void main() {
         await tester.pumpWidget(
           ginkgoApp(
             home: TasksPage(
-              demo: true,
               service: service,
               storageRoot: directory.path,
               initialTaskId: taskId,

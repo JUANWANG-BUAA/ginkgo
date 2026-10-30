@@ -1,7 +1,7 @@
 //! School protocol registry; each feature owns its endpoint and encoding.
 use crate::{
     adapters::homework_http::{self, SpocAuth, SPOC_BASE},
-    auth::session::Session,
+    auth::{cas, session::Session},
     foundation::http::{HttpRequest, HttpResponse, HttpTransport},
     AppError, ErrorCode,
 };
@@ -33,7 +33,7 @@ pub async fn request<T: HttpTransport>(
 }
 fn decode(r: HttpResponse) -> Result<Value, AppError> {
     if matches!(r.status, 401 | 403) || r.body.trim_start().starts_with('<') {
-        return Err(AppError::session_expired());
+        return Err(cas::module_refusal(&r.final_url, &r.body));
     }
     if r.status / 100 != 2 {
         return Err(AppError::unavailable());
@@ -144,7 +144,7 @@ pub(super) async fn binary_request<T: HttpTransport>(
     r.response_limit = Some(20 * 1024 * 1024);
     let v = s.send(r).await?;
     if matches!(v.status, 401 | 403) {
-        return Err(AppError::session_expired());
+        return Err(cas::module_refusal(&v.final_url, &v.body));
     }
     // A verified file may itself be JSON/HTML. Require an attachment response
     // for ambiguous MIME types, rather than globally rejecting those files.

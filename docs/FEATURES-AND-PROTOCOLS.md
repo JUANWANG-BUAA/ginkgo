@@ -12,7 +12,7 @@
 
 ## 2. Android 功能覆盖
 
-手机一级标签为 **工作台、签到、课表、作业、预约**。工作台下方服务目录承载其他入口，常用服务可按账号选择 0–4 项；“预约”聚合图书馆、CGYY 和空教室，不在打开聚合页时同时登录全部系统。宽屏侧栏来自同一[功能登记表](../flutter/lib/workspace_catalog.dart)。
+手机一级标签为 **工作台、签到、课表、作业、预约**。工作台下方服务目录承载其他入口，常用服务可按账号选择 0–4 项；“预约”聚合图书馆、CGYY 和空教室，不在打开聚合页时同时登录全部系统。宽屏侧栏来自同一[功能登记表](../flutter/lib/workspace/workspace_catalog.dart)。
 
 “只读”按业务副作用分类：认证或查询可能使用 POST，不等于预约/签到写入。“本机写入”不修改学校记录。以下均表示源码链路覆盖，不是当前网络可用性或真实账号验收承诺。
 
@@ -42,7 +42,7 @@
 ### 本机数据的共同边界
 
 - Rust 镜像查询使用[进程内快照](../rust/crates/ginkgo_upstream/src/services/cache.rs)，通用 TTL 为 300 秒、每个缓存最多 32 个键；刷新失败可带旧值与错误，不延长原成功时间。不要将 Apple 的磁盘缓存/保留天数直接套用于 Android，也不要把它当跨重启离线数据库。
-- [个人待办存储](../rust/crates/ginkgo_core/src/tasks_store.rs)、[课程范围](../flutter/lib/course_visibility.dart)、[提醒已读/开关](../flutter/lib/reminders.dart)、[常用入口](../flutter/lib/workspace_shortcut_preferences.dart)是独立本机数据。账号摘要只用于隔离命名，**不是加密**；不能将个人数据或 CGYY 保护标记当普通查询缓存随意清除。
+- [个人待办存储](../rust/crates/ginkgo_core/src/tasks_store.rs)、[课程范围](../flutter/lib/shared/course_visibility.dart)、[提醒已读/开关](../flutter/lib/shared/reminders.dart)、[常用入口](../flutter/lib/workspace/workspace_shortcut_preferences.dart)是独立本机数据。账号摘要只用于隔离命名，**不是加密**；不能将个人数据或 CGYY 保护标记当普通查询缓存随意清除。
 - 不落盘真实密码明文、学校 Cookie/token、验证码密钥或原始学校响应。错误、旧缓存、已确认空结果、部分成功分开显示；有缓存不代表权限或会话仍有效。
 
 ## 3. 本地应用接口分层
@@ -51,7 +51,7 @@
 
 CGYY 写能力单列为 `CgyyBookingGateway.executeCgyy(Map<String, Object?>)`，不因具备 `CgyyGateway.cgyy(...)` 的只读能力就自动获得写权限。只读接口的 `kind` 为 `venues` / `day` / `orders` / `order` / `lockCode`，与下列命令的 `action` 不混用；`order` 的 `siteId` 传订单 ID，订单详情和门锁码不走查询快照。
 
-桥接沿用 `ReadOnlyResponse { payload: String?, stale: bool, failure: FailureCode? }`。**该历史类型名不意味着调用没有副作用**；`executeCgyy` 同样可能写学校系统。`payload` 是序列化后的领域 JSON 字符串，而非原始上游 JSON。命令成功映射为 `payload` 有值、`stale=false`、`failure=null`；解析/会话/存储等错误可表现为 `payload=null` 与 `failure`，不能只按 JSON `state` 处理错误。参见 [bridge DTO](../rust/crates/ginkgo_flutter_bridge/src/api/live.rs)、[命令入口](../rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs)与[映射](../rust/crates/ginkgo_flutter_bridge/src/api/live/mapping.rs)。
+R-19 迁移后桥接全部返回类型化 DTO：只读命令返回 `CgyyLoadResponse`（五个 `kind` 各占一个可空形状字段，互斥），写命令返回 `CgyyActionResultResponse`。**返回类型不代表调用没有副作用**；`executeCgyy` 同样可能写学校系统。学校响应到 DTO 的净化投影在 Rust 端完成，Dart `infrastructure/cgyy_decode.dart` 只做 DTO → 呈现模型投影；错误通过 DTO 的 `failure` 字段表达，不能只按 `state` 处理错误。参见 [bridge DTO](../rust/crates/ginkgo_flutter_bridge/src/api/live.rs)、[命令入口](../rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs)与[Dart 解码](../flutter/lib/infrastructure/cgyy_decode.dart)。
 
 ## 4. CGYY 本地 JSON 契约
 

@@ -4,12 +4,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show SelectableText;
 import 'package:ginkgo_mirror/shared/school_links.dart';
 
-import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
-import 'shuttle_models.dart';
+import 'package:ginkgo_mirror/application/shuttle.dart';
+
 import 'shuttle_widgets.dart';
 
 /// Official shuttle timetable. Only the published page is shown: the app does
@@ -99,14 +99,20 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
     try {
       final result = await widget.service.shuttleTimetable();
       if (!mounted || generation != _generation) return;
-      if (result.payload != null && result.failure == null) {
-        final decoded = shuttleTimetable(result.payload!);
+      final decoded = result.data;
+      if (result.failure == null && decoded != null) {
         setState(() {
           timetable = decoded;
           source = decoded.source;
         });
       } else {
-        setState(() => error = '时刻表读取未完成，请稍后重试');
+        // A failed refresh keeps the timetable already on screen and only adds
+        // the notice; an unexplained empty response still explains itself.
+        setState(
+          () => error = result.failure == null
+              ? '时刻表读取未完成，请稍后重试'
+              : failureMessage(result.failure),
+        );
       }
     } catch (_) {
       if (mounted && generation == _generation) {

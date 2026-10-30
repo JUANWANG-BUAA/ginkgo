@@ -32,6 +32,7 @@ import 'package:ginkgo_mirror/features/schedule/schedule_page.dart';
 
 import 'support.dart';
 import 'package:ginkgo_mirror/infrastructure/native_mirror_service.dart';
+import 'package:ginkgo_mirror/application/library_stats.dart';
 
 const enabled = bool.fromEnvironment('GINKGO_LIVE_ACCEPTANCE');
 const endpoint = String.fromEnvironment(
@@ -139,11 +140,46 @@ void main() {
         }
       }
 
-      Map<String, dynamic> readSummary(live.ReadOnlyResponse result) => {
+      Map<String, dynamic> readSummary(live.CgyyLoadResponse result) => {
         'failure': result.failure?.name,
-        'stale': result.stale,
-        'hasPayload': result.payload != null,
-        if (result.payload != null) 'bytes': result.payload!.length,
+        'shapes': [
+          if (result.venues != null) 'venues',
+          if (result.day != null) 'day',
+          if (result.orders != null) 'orders',
+          if (result.order != null) 'order',
+          if (result.lockCode != null) 'lockCode',
+        ],
+      };
+      Map<String, dynamic> statsSummary(LibraryStatsRead result) => {
+        'failure': result.failure?.name,
+        'campuses': result.data?.campuses.length,
+        'fromCache': result.data?.fromCache,
+      };
+      Map<String, dynamic> bykcCatalogSummary(live.BykcCatalogResponse r) => {
+        'failure': r.failure?.name,
+        'courses': r.data?.courses.length,
+        'hasTerm': r.data?.currentTerm != null,
+      };
+      Map<String, dynamic> bykcChosenSummary(live.BykcChosenResponse r) => {
+        'failure': r.failure?.name,
+        'records': r.data?.courses?.length,
+        'hasTerm': r.data?.term != null,
+      };
+      Map<String, dynamic> bykcStatisticsSummary(live.BykcStatisticsResponse r) => {
+        'failure': r.failure?.name,
+        'entries': r.data?.entries.length,
+      };
+      Map<String, dynamic> graduateSummary(live.GraduateResponse result) => {
+        'failure': result.failure?.name,
+        'sections': result.data?.sections.length,
+        'rows': result.data?.sections.fold<int>(
+          0,
+          (sum, section) => sum + section.rows.length,
+        ),
+      };
+      Map<String, dynamic> noticesSummary(live.NoticesResponse result) => {
+        'failure': result.failure?.name,
+        'count': result.data?.length,
       };
       Future<void> capture(String name) async {
         if (!screenshotReady) {
@@ -384,32 +420,32 @@ void main() {
         await measure(
           'bykc-catalog',
           () => live.loadBykc(forceRefresh: true),
-          readSummary,
+          bykcCatalogSummary,
         );
         await measure(
           'bykc-chosen',
           () => live.loadBykcChosen(forceRefresh: true),
-          readSummary,
+          bykcChosenSummary,
         );
         await measure(
           'bykc-statistics',
           () => live.loadBykcStatistics(forceRefresh: true),
-          readSummary,
+          bykcStatisticsSummary,
         );
         await measure(
           'graduate-status',
           () => live.loadGraduatePart(report: false, forceRefresh: true),
-          readSummary,
+          graduateSummary,
         );
         await measure(
           'graduate-report',
           () => live.loadGraduatePart(report: true, forceRefresh: true),
-          readSummary,
+          graduateSummary,
         );
         await measure(
           'library-public',
           () => service.libraryStats(forceRefresh: true),
-          readSummary,
+          statsSummary,
         );
         final venues = await measure(
           'library-venues',
@@ -479,7 +515,7 @@ void main() {
         await measure(
           'notices',
           () => live.loadNotices(forceRefresh: true),
-          readSummary,
+          noticesSummary,
         );
         final sites = await measure(
           'cgyy-venues',
@@ -491,20 +527,17 @@ void main() {
           ),
           readSummary,
         );
-        if (sites?.payload != null) {
-          final list = jsonDecode(sites!.payload!) as List;
-          if (list.isNotEmpty) {
-            await measure(
-              'cgyy-day',
-              () => live.loadCgyy(
-                kind: 'day',
-                siteId: (list.first as Map)['id'] as int,
-                date: today,
-                forceRefresh: true,
-              ),
-              readSummary,
-            );
-          }
+        if (sites?.venues != null && sites!.venues!.isNotEmpty) {
+          await measure(
+            'cgyy-day',
+            () => live.loadCgyy(
+              kind: 'day',
+              siteId: sites.venues!.first.id,
+              date: today,
+              forceRefresh: true,
+            ),
+            readSummary,
+          );
         }
         await measure(
           'cgyy-orders',
@@ -550,7 +583,7 @@ void main() {
         await measure(
           'graduate-report-cache',
           () => live.loadGraduatePart(report: true, forceRefresh: false),
-          readSummary,
+          graduateSummary,
         );
 
         // Real-data pages, including independent tabs and navigation, are rendered
@@ -565,7 +598,14 @@ void main() {
         );
         await page('homework', const HomeworkPage(service: service));
         if (homework?.items.isNotEmpty == true) {
-          final item = homework!.items.first;
+          // The page collapses confirmed teaching-assistant courses by
+          // default, so the first read item may have no rendered row; pick the
+          // first item the list actually shows instead of aborting the phase.
+          final item = homework!.items.firstWhere(
+            (candidate) =>
+                find.byKey(Key('homework-${candidate.id}')).evaluate().isNotEmpty,
+            orElse: () => homework.items.first,
+          );
           final row = find.byKey(Key('homework-${item.id}'));
           await show(tester, row, scrollKey: 'homework-scroll');
           await tester.tap(row);
@@ -574,14 +614,14 @@ void main() {
           await tester.tap(find.byType(CupertinoNavigationBarBackButton).first);
           await ready('homework-return');
         }
-        await page('bykc', const BykcPage());
+        await page('bykc', const BykcPage(service: service));
         await tester.tap(find.text('已选课程'));
         await ready('bykc-chosen');
         await capture('bykc-chosen');
         await tester.tap(find.text('完成统计'));
         await ready('bykc-statistics');
         await capture('bykc-statistics');
-        await page('graduate', const GraduatePage());
+        await page('graduate', const GraduatePage(service: service));
         await tester.tap(find.text('课程'));
         await ready('graduate-courses');
         await capture('graduate-courses');
@@ -637,7 +677,7 @@ void main() {
         await page('classroom', const ClassroomPage(service: service));
         await tap(tester, '查询空教室', scrollKey: 'classroom-scroll');
         await capture('classroom-results');
-        await page('notices', const NoticesPage());
+        await page('notices', const NoticesPage(service: service));
         await page('cgyy', const CgyyPage());
         final siteRows = find.text('我的预约记录');
         if (siteRows.evaluate().isNotEmpty) {
@@ -645,14 +685,14 @@ void main() {
           await ready('cgyy-orders');
           await capture('cgyy-orders');
         }
-        await page('tasks', const TasksPage());
+        await page('tasks', const TasksPage(service: service));
         final taskDirectory = await tester.runAsync(
           () => Directory.systemTemp.createTemp('ginkgo-acceptance-tasks'),
         );
         try {
           await page(
             'tasks-empty',
-            TasksPage(storageRoot: taskDirectory!.path),
+            TasksPage(service: service, storageRoot: taskDirectory!.path),
           );
           await tester.tap(find.bySemanticsLabel('新增待办'));
           await settle(tester, frames: 5);
@@ -713,7 +753,7 @@ void main() {
         );
         await page(
           'bykc-dark-large',
-          const BykcPage(),
+          const BykcPage(service: service),
           brightness: Brightness.dark,
           textScale: 1.8,
         );
@@ -726,7 +766,7 @@ void main() {
                   textScaler: const TextScaler.linear(1.8),
                   disableAnimations: true,
                 ),
-                child: const GraduatePage(),
+                child: const GraduatePage(service: service),
               ),
             ),
           ),

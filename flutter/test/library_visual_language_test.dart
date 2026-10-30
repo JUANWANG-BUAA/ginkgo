@@ -1,5 +1,6 @@
+import 'package:ginkgo_mirror/application/library_holdings.dart';
+
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,6 +19,10 @@ import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
+import 'package:ginkgo_mirror/application/library_stats.dart';
+import 'package:ginkgo_mirror/application/library_books.dart';
+
+import 'library_books_fixture.dart';
 
 /// Holds every library request until the test releases it, so first-load
 /// states can be inspected instead of a resolved snapshot.
@@ -35,13 +40,13 @@ class VisualLibrary implements MirrorService {
 
   final venuesPending = Completer<LibraryVenuesResponse>();
   final bookingsPending = Completer<LibraryBookingsResponse>();
-  final statsPending = Completer<ReadOnlyResponse>();
+  final statsPending = Completer<LibraryStatsRead>();
   final areasPending = Completer<LibraryAreasResponse>();
   final slotsPending = Completer<LibrarySlotsResponse>();
   final seatsPending = Completer<LibrarySeatsResponse>();
   final historyPending = Completer<LibraryHistoryResponse>();
-  final booksPending = Completer<ReadOnlyResponse>();
-  final holdingsPending = Completer<ReadOnlyResponse>();
+  final booksPending = Completer<BookPageRead>();
+  final holdingsPending = Completer<BookHoldingsRead>();
 
   LibraryVenuesResponse venuesResult = const LibraryVenuesResponse(
     venues: [LibraryVenue(id: 'v1', name: '合成馆', free: 20, total: 40)],
@@ -70,10 +75,8 @@ class VisualLibrary implements MirrorService {
         );
 
   @override
-  Future<ReadOnlyResponse> libraryStats({bool forceRefresh = false}) =>
-      holdStats
-      ? statsPending.future
-      : Future.value(const ReadOnlyResponse(stale: false));
+  Future<LibraryStatsRead> libraryStats({bool forceRefresh = false}) =>
+      holdStats ? statsPending.future : Future.value(const LibraryStatsRead());
 
   @override
   Future<LibraryAreasResponse> libraryAreas(String libraryId) => holdAreas
@@ -137,7 +140,7 @@ class VisualLibrary implements MirrorService {
         );
 
   @override
-  Future<ReadOnlyResponse> libraryBooks({
+  Future<BookPageRead> libraryBooks({
     required String query,
     required int page,
     String sort = 'relevance',
@@ -145,22 +148,19 @@ class VisualLibrary implements MirrorService {
   }) => holdBooks
       ? booksPending.future
       : Future.value(
-          ReadOnlyResponse(
-            payload: jsonEncode({
-              'actualTotal': 1,
-              'hasMore': false,
-              'items': [
-                {'bibId': 'B1', 'title': '合成书目'},
-              ],
-            }),
-            stale: false,
-          ),
+          bookPageRead({
+            'actualTotal': 1,
+            'hasMore': false,
+            'items': [
+              {'bibId': 'B1', 'title': '合成书目'},
+            ],
+          }),
         );
 
   @override
-  Future<ReadOnlyResponse> libraryHoldings(String bibId) => holdHoldings
+  Future<BookHoldingsRead> libraryHoldings(String bibId) => holdHoldings
       ? holdingsPending.future
-      : Future.value(const ReadOnlyResponse(payload: '[]', stale: false));
+      : Future.value(const BookHoldingsRead(data: []));
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -436,7 +436,7 @@ void main() {
           .size,
       17,
     );
-    service.statsPending.complete(const ReadOnlyResponse(stale: false));
+    service.statsPending.complete(const LibraryStatsRead());
     await tester.pumpAndSettle();
 
     service.holdAreas = true;
@@ -525,12 +525,7 @@ void main() {
           .size,
       17,
     );
-    service.booksPending.complete(
-      ReadOnlyResponse(
-        payload: jsonEncode({'items': <Object>[]}),
-        stale: false,
-      ),
-    );
+    service.booksPending.complete(bookPageRead({'items': <Object>[]}));
     await tester.pumpAndSettle();
 
     service.holdHoldings = true;
@@ -541,9 +536,7 @@ void main() {
     );
     expect(find.text('正在读取馆藏…'), findsOneWidget);
     expect(find.byType(GinkgoLoadingView), findsOneWidget);
-    service.holdingsPending.complete(
-      const ReadOnlyResponse(payload: '[]', stale: false),
-    );
+    service.holdingsPending.complete(const BookHoldingsRead(data: []));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });

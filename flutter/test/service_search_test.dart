@@ -5,6 +5,7 @@ import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/workspace/service_directory.dart';
 import 'package:ginkgo_mirror/workspace/service_search_page.dart';
+import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
 
@@ -30,7 +31,7 @@ class SearchService extends ControlledService
 
 void main() {
   test('aliases refer to registered destinations with unique ids', () {
-    final entries = searchableServices;
+    final entries = searchableServices(workspaceDestinations);
     expect(entries.map((e) => e.id).toSet().length, entries.length);
     expect(
       entries.where((e) => e.matches('查书')).map((e) => e.id),
@@ -79,7 +80,11 @@ void main() {
           home: CupertinoPageScaffold(
             child: ListView(
               children: [
-                ServiceDirectory(service: service, onSignOut: () async {}),
+                ServiceDirectory(
+                  service: service,
+                  destinations: workspaceDestinations,
+                  onSignOut: () async {},
+                ),
               ],
             ),
           ),

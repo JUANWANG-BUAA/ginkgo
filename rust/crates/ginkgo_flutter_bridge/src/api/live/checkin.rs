@@ -1,18 +1,29 @@
 //! Feature implementation behind the stable live API.
 use super::*;
 
-pub(super) async fn checkin_load_progress() -> ReadOnlyResponse {
+pub(super) async fn checkin_load_progress() -> CheckinLoadProgressResponse {
     match service() {
-        Ok(service) => ReadOnlyResponse {
-            payload: serde_json::to_string(&service.checkin_load_progress()).ok(),
+        Ok(service) => CheckinLoadProgressResponse {
+            data: Some(checkin_progress_dto(service.checkin_load_progress())),
             failure: None,
-            stale: false,
         },
-        Err(error) => ReadOnlyResponse {
-            payload: None,
+        Err(error) => CheckinLoadProgressResponse {
+            data: None,
             failure: Some(error.code.into()),
-            stale: false,
         },
+    }
+}
+
+/// `elapsed_ms` is a `u128` locally; a read that outlives signed milliseconds
+/// is not a real case, so the bridge narrows it instead of widening the DTO.
+fn checkin_progress_dto(
+    progress: ginkgo_core::application::CheckInLoadProgress,
+) -> CheckinLoadProgressDto {
+    CheckinLoadProgressDto {
+        phase: progress.phase,
+        elapsed_ms: progress
+            .elapsed_ms
+            .map(|value| i64::try_from(value).unwrap_or(i64::MAX)),
     }
 }
 
@@ -59,3 +70,28 @@ pub(super) async fn submit_checkin(course_id: String) -> MutationResponse {
 }
 
 static CHECKIN_WRITE: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+
+#[cfg(test)]
+mod progress_tests {
+    use super::*;
+
+    #[test]
+    fn progress_narrows_u128_milliseconds_without_fabricating_a_value() {
+        use ginkgo_core::application::CheckInLoadProgress;
+        let running = checkin_progress_dto(CheckInLoadProgress {
+            phase: "courses".into(),
+            elapsed_ms: Some(2_500),
+            stages: Vec::new(),
+        });
+        assert_eq!(running.phase, "courses");
+        assert_eq!(running.elapsed_ms, Some(2_500));
+
+        // No timer started yet: the elapsed value stays absent, not zero.
+        let idle = checkin_progress_dto(CheckInLoadProgress {
+            phase: "idle".into(),
+            elapsed_ms: None,
+            stages: Vec::new(),
+        });
+        assert_eq!(idle.elapsed_ms, None);
+    }
+}

@@ -17,6 +17,7 @@ class DiagnosticEntry {
     'unsupportedContract' => '先保留当前结果并更新应用；反馈时附下方诊断编号，无需上传学校原始响应。',
     'accessPolicyDenied' => '检查校园网 / 北航 VPN 和上游连接路线后再刷新。',
     'businessRejected' => '只刷新查询状态；预约和签到结果未确认时不要再次提交。',
+    'moduleAuthRequired' => '只重试该功能；账号会话仍然有效，不需要重新登录。',
     _ => '检查网络后重试只读查询；写操作超时请先回查，勿重复提交。',
   };
   String get summary => '${at.toUtc().toIso8601String()} code=$code';

@@ -5,7 +5,8 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/features/reservations/reservation_widgets.dart';
 
-import 'library_books_models.dart';
+import 'package:ginkgo_mirror/application/library_holdings.dart';
+import 'package:ginkgo_mirror/application/library_books.dart';
 
 /// The result rows of the library domain. Each row states exactly what the
 /// school reported and never turns a status into a local promise.

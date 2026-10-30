@@ -1,32 +1,36 @@
-import 'dart:async';
 import 'dart:convert';
+
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_detail_page.dart';
-import 'package:ginkgo_mirror/features/bykc/bykc_models.dart';
+import 'package:ginkgo_mirror/application/bykc.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart' show BykcPart;
-import 'package:ginkgo_mirror/src/rust/api/live.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/contracts.dart';
+
+import 'bykc_fixture.dart';
 
 Map<String, dynamic> fixture(String name) =>
     jsonDecode(File('../fixtures/bykc/$name-v1.json').readAsStringSync())
         as Map<String, dynamic>;
-ReadOnlyResponse response(Map<String, dynamic> data) =>
-    ReadOnlyResponse(payload: jsonEncode(data), stale: false);
+BykcPartRead response(BykcPart part, Map<String, dynamic> data) =>
+    bykcRead(part, data);
 
 class ControlledBykc {
-  final requests = <BykcPart, List<Completer<ReadOnlyResponse>>>{};
+  final requests = <BykcPart, List<Completer<BykcPartRead>>>{};
   final forces = <BykcPart, List<bool>>{};
 
-  Future<ReadOnlyResponse> load({
+  Future<BykcPartRead> load({
     required BykcPart part,
     required bool forceRefresh,
   }) {
-    final request = Completer<ReadOnlyResponse>();
+    final request = Completer<BykcPartRead>();
     (requests[part] ??= []).add(request);
     (forces[part] ??= []).add(forceRefresh);
     return request.future;
@@ -45,6 +49,7 @@ void main() {
       ginkgoApp(
         home: BykcPage(
           loader: ({required part, required forceRefresh}) async => response(
+            part,
             part == BykcPart.statistics
                 ? {
                     'validCourseCount': 1,
@@ -98,7 +103,10 @@ void main() {
       await tester.pump();
       expect(service.requests.keys, [BykcPart.catalog]);
       service.requests[BykcPart.catalog]!.single.complete(
-        response(fixture('catalog-normal')['expected'] as Map<String, dynamic>),
+        response(
+          BykcPart.catalog,
+          fixture('catalog-normal')['expected'] as Map<String, dynamic>,
+        ),
       );
       await tester.pumpAndSettle();
       expect(find.text('合成博雅课程'), findsOneWidget);
@@ -109,7 +117,7 @@ void main() {
       expect(service.requests.keys, [BykcPart.catalog, BykcPart.chosen]);
       expect(service.requests[BykcPart.statistics], isNull);
       service.requests[BykcPart.chosen]!.single.complete(
-        response({
+        response(BykcPart.chosen, {
           'term': {'name': '合成学期'},
           'courses': fixture('chosen-normal')['expected'],
         }),
@@ -139,6 +147,7 @@ void main() {
       expect(service.requests[BykcPart.statistics], hasLength(1));
       service.requests[BykcPart.statistics]!.single.complete(
         response(
+          BykcPart.statistics,
           fixture('statistics-normal')['expected'] as Map<String, dynamic>,
         ),
       );
@@ -146,10 +155,7 @@ void main() {
       expect(find.text('有效课程'), findsOneWidget);
       expect(find.text('5 门'), findsOneWidget);
       service.requests[BykcPart.chosen]!.last.complete(
-        const ReadOnlyResponse(
-          stale: false,
-          failure: FailureCode.serviceUnavailable,
-        ),
+        const BykcChosenRead(failure: FailureCode.serviceUnavailable),
       );
       await tester.pumpAndSettle();
       expect(find.text('5 门'), findsOneWidget);
@@ -197,6 +203,7 @@ void main() {
         ginkgoApp(
           home: BykcPage(
             loader: ({required part, required forceRefresh}) async => response(
+              part,
               part == BykcPart.catalog
                   ? catalog
                   : {'term': null, 'courses': []},
@@ -231,6 +238,7 @@ void main() {
       ginkgoApp(
         home: BykcPage(
           loader: ({required part, required forceRefresh}) async => response(
+            part,
             part == BykcPart.catalog
                 ? fixture('catalog-normal')['expected'] as Map<String, dynamic>
                 : {'term': null, 'courses': null},
@@ -265,8 +273,13 @@ void main() {
                 children: [
                   for (final entry in entries)
                     BykcStatisticsCard(
-                      entry: BykcStatisticsEntry.fromJson(
-                        entry as Map<String, dynamic>,
+                      entry: BykcStatisticsEntry(
+                        category:
+                            (entry as Map<String, dynamic>)['category']
+                                as String,
+                        subcategory: entry['subcategory'] as String,
+                        requiredCount: entry['required'] as int,
+                        completed: entry['completed'] as int,
                       ),
                     ),
                 ],

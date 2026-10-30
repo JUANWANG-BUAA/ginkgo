@@ -4,7 +4,8 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
-import 'bykc_models.dart';
+import 'package:ginkgo_mirror/application/bykc.dart';
+
 import 'bykc_widgets.dart';
 
 /// 博雅课程列表项。

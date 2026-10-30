@@ -1,5 +1,8 @@
+import 'package:ginkgo_mirror/application/checkin_progress.dart';
+import 'package:ginkgo_mirror/application/library_holdings.dart';
+import 'package:ginkgo_mirror/application/notices.dart';
+import 'package:ginkgo_mirror/application/shuttle.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart' show MutationResponse;
-import 'package:ginkgo_mirror/src/rust/api/live.dart' show ReadOnlyResponse;
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show LibraryHistoryResponse;
 
@@ -12,34 +15,39 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show GradeTermsResponse, RouteChoice, SessionResponse, SessionState;
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
 
 import 'support.dart';
-import 'package:ginkgo_mirror/infrastructure/service_factory.dart';
+import 'package:ginkgo_mirror/application/local_tasks_read.dart';
+import 'package:ginkgo_mirror/application/library_stats.dart';
+import 'package:ginkgo_mirror/application/library_books.dart';
+import 'package:ginkgo_mirror/application/graduate.dart';
+import 'package:ginkgo_mirror/application/bykc.dart';
 
 const native = DemoMirrorService();
 
 class FailOnceNativeService implements MirrorService {
   @override
-  Future<ReadOnlyResponse> checkinProgress() => native.checkinProgress();
+  Future<CheckinProgressRead> checkinProgress() => native.checkinProgress();
   @override
-  Future<ReadOnlyResponse> bykcPart(
+  Future<BykcPartRead> bykcPart(
     BykcPart part, {
     bool forceRefresh = false,
   }) => native.bykcPart(part, forceRefresh: forceRefresh);
   @override
-  Future<ReadOnlyResponse> graduatePart({
+  Future<GraduateRead> graduatePart({
     required bool report,
     required bool forceRefresh,
   }) => native.graduatePart(report: report, forceRefresh: forceRefresh);
   @override
-  Future<ReadOnlyResponse> notices({bool forceRefresh = false}) =>
+  Future<NoticesRead> notices({bool forceRefresh = false}) =>
       native.notices(forceRefresh: forceRefresh);
   @override
-  Future<ReadOnlyResponse> cgyy({
+  Future<CgyyLoadRead> cgyy({
     required String kind,
     required int siteId,
     required String date,
@@ -51,7 +59,7 @@ class FailOnceNativeService implements MirrorService {
     forceRefresh: forceRefresh,
   );
   @override
-  Future<ReadOnlyResponse> editTasks({
+  Future<LocalTasksRead> editTasks({
     required String root,
     required String action,
     String? id,
@@ -179,10 +187,10 @@ class FailOnceNativeService implements MirrorService {
     stale: false,
   );
   @override
-  Future<ReadOnlyResponse> libraryStats({bool forceRefresh = false}) =>
+  Future<LibraryStatsRead> libraryStats({bool forceRefresh = false}) =>
       native.libraryStats(forceRefresh: forceRefresh);
   @override
-  Future<ReadOnlyResponse> libraryBooks({
+  Future<BookPageRead> libraryBooks({
     required String query,
     required int page,
     String sort = 'relevance',
@@ -194,9 +202,10 @@ class FailOnceNativeService implements MirrorService {
     descending: descending,
   );
   @override
-  Future<ReadOnlyResponse> shuttleTimetable() => native.shuttleTimetable();
+  Future<ShuttleTimetableRead> shuttleTimetable() =>
+      native.shuttleTimetable();
   @override
-  Future<ReadOnlyResponse> libraryHoldings(String bibId) =>
+  Future<BookHoldingsRead> libraryHoldings(String bibId) =>
       native.libraryHoldings(bibId);
   @override
   Future<LibraryHistoryResponse> libraryHistory(
@@ -515,7 +524,7 @@ void main() {
       GinkgoApp(
         key: UniqueKey(),
         brightness: Brightness.dark,
-        service: mirrorServiceFor(demo: true),
+        service: const DemoMirrorService(),
       ),
     );
     await settle(tester);

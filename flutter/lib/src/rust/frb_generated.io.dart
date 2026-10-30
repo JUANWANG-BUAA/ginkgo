@@ -28,16 +28,110 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String dco_decode_String(dynamic raw);
 
   @protected
+  AcademicDataDto dco_decode_academic_data_dto(dynamic raw);
+
+  @protected
+  AndroidDownloadDto dco_decode_android_download_dto(dynamic raw);
+
+  @protected
+  BookHitDto dco_decode_book_hit_dto(dynamic raw);
+
+  @protected
+  BookHoldingDto dco_decode_book_holding_dto(dynamic raw);
+
+  @protected
+  BookHoldingsResponse dco_decode_book_holdings_response(dynamic raw);
+
+  @protected
+  BookPageDto dco_decode_book_page_dto(dynamic raw);
+
+  @protected
+  BookPageResponse dco_decode_book_page_response(dynamic raw);
+
+  @protected
   bool dco_decode_bool(dynamic raw);
+
+  @protected
+  AcademicDataDto dco_decode_box_autoadd_academic_data_dto(dynamic raw);
+
+  @protected
+  AndroidDownloadDto dco_decode_box_autoadd_android_download_dto(dynamic raw);
+
+  @protected
+  BookPageDto dco_decode_box_autoadd_book_page_dto(dynamic raw);
 
   @protected
   bool dco_decode_box_autoadd_bool(dynamic raw);
 
   @protected
+  BykcCatalogDto dco_decode_box_autoadd_bykc_catalog_dto(dynamic raw);
+
+  @protected
+  BykcChosenCoursesDto dco_decode_box_autoadd_bykc_chosen_courses_dto(
+    dynamic raw,
+  );
+
+  @protected
+  BykcCourseDetailsDto dco_decode_box_autoadd_bykc_course_details_dto(
+    dynamic raw,
+  );
+
+  @protected
+  BykcSemesterDto dco_decode_box_autoadd_bykc_semester_dto(dynamic raw);
+
+  @protected
+  BykcStatisticsDto dco_decode_box_autoadd_bykc_statistics_dto(dynamic raw);
+
+  @protected
+  CampusActivitiesDto dco_decode_box_autoadd_campus_activities_dto(dynamic raw);
+
+  @protected
   CareerEventsDto dco_decode_box_autoadd_career_events_dto(dynamic raw);
 
   @protected
+  CgyyActionResultDto dco_decode_box_autoadd_cgyy_action_result_dto(
+    dynamic raw,
+  );
+
+  @protected
+  CgyyBookingOptionsDto dco_decode_box_autoadd_cgyy_booking_options_dto(
+    dynamic raw,
+  );
+
+  @protected
+  CgyyChallengeDto dco_decode_box_autoadd_cgyy_challenge_dto(dynamic raw);
+
+  @protected
+  CgyyDayDto dco_decode_box_autoadd_cgyy_day_dto(dynamic raw);
+
+  @protected
+  CgyyLockCodeDto dco_decode_box_autoadd_cgyy_lock_code_dto(dynamic raw);
+
+  @protected
+  CgyyOrderDto dco_decode_box_autoadd_cgyy_order_dto(dynamic raw);
+
+  @protected
+  CgyyReviewDto dco_decode_box_autoadd_cgyy_review_dto(dynamic raw);
+
+  @protected
+  CheckinLoadProgressDto dco_decode_box_autoadd_checkin_load_progress_dto(
+    dynamic raw,
+  );
+
+  @protected
   ClassroomQuery dco_decode_box_autoadd_classroom_query(dynamic raw);
+
+  @protected
+  CountPairDto dco_decode_box_autoadd_count_pair_dto(dynamic raw);
+
+  @protected
+  CourseAnnouncementDetailDto
+  dco_decode_box_autoadd_course_announcement_detail_dto(dynamic raw);
+
+  @protected
+  CourseResourcePageDto dco_decode_box_autoadd_course_resource_page_dto(
+    dynamic raw,
+  );
 
   @protected
   DemoScope dco_decode_box_autoadd_demo_scope(dynamic raw);
@@ -49,19 +143,109 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FailureCode dco_decode_box_autoadd_failure_code(dynamic raw);
 
   @protected
+  GraduateCreditMapDto dco_decode_box_autoadd_graduate_credit_map_dto(
+    dynamic raw,
+  );
+
+  @protected
+  GraduateCreditMetricsDto dco_decode_box_autoadd_graduate_credit_metrics_dto(
+    dynamic raw,
+  );
+
+  @protected
+  GraduateCreditNodeDto dco_decode_box_autoadd_graduate_credit_node_dto(
+    dynamic raw,
+  );
+
+  @protected
+  GraduateProgressDto dco_decode_box_autoadd_graduate_progress_dto(dynamic raw);
+
+  @protected
+  HomeworkUploadReceiptDto dco_decode_box_autoadd_homework_upload_receipt_dto(
+    dynamic raw,
+  );
+
+  @protected
+  HomeworkWorkspaceDto dco_decode_box_autoadd_homework_workspace_dto(
+    dynamic raw,
+  );
+
+  @protected
   int dco_decode_box_autoadd_i_32(dynamic raw);
 
   @protected
   PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
 
   @protected
+  LearningCapabilitiesDto dco_decode_box_autoadd_learning_capabilities_dto(
+    dynamic raw,
+  );
+
+  @protected
+  LibraryLoanPageDto dco_decode_box_autoadd_library_loan_page_dto(dynamic raw);
+
+  @protected
   LibrarySlot dco_decode_box_autoadd_library_slot(dynamic raw);
+
+  @protected
+  LibraryStatsDto dco_decode_box_autoadd_library_stats_dto(dynamic raw);
 
   @protected
   LiveScope dco_decode_box_autoadd_live_scope(dynamic raw);
 
   @protected
   RouteChoice dco_decode_box_autoadd_route_choice(dynamic raw);
+
+  @protected
+  ShuttleTimetableDto dco_decode_box_autoadd_shuttle_timetable_dto(dynamic raw);
+
+  @protected
+  int dco_decode_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  UpdateSummaryDto dco_decode_box_autoadd_update_summary_dto(dynamic raw);
+
+  @protected
+  BykcCatalogDto dco_decode_bykc_catalog_dto(dynamic raw);
+
+  @protected
+  BykcCatalogResponse dco_decode_bykc_catalog_response(dynamic raw);
+
+  @protected
+  BykcChosenCoursesDto dco_decode_bykc_chosen_courses_dto(dynamic raw);
+
+  @protected
+  BykcChosenRecordDto dco_decode_bykc_chosen_record_dto(dynamic raw);
+
+  @protected
+  BykcChosenResponse dco_decode_bykc_chosen_response(dynamic raw);
+
+  @protected
+  BykcCourseDetailsDto dco_decode_bykc_course_details_dto(dynamic raw);
+
+  @protected
+  BykcCourseDto dco_decode_bykc_course_dto(dynamic raw);
+
+  @protected
+  BykcSemesterDto dco_decode_bykc_semester_dto(dynamic raw);
+
+  @protected
+  BykcStatisticsDto dco_decode_bykc_statistics_dto(dynamic raw);
+
+  @protected
+  BykcStatisticsEntryDto dco_decode_bykc_statistics_entry_dto(dynamic raw);
+
+  @protected
+  BykcStatisticsResponse dco_decode_bykc_statistics_response(dynamic raw);
+
+  @protected
+  CampusActivitiesDto dco_decode_campus_activities_dto(dynamic raw);
+
+  @protected
+  CampusActivitiesResponse dco_decode_campus_activities_response(dynamic raw);
+
+  @protected
+  CampusActivityDto dco_decode_campus_activity_dto(dynamic raw);
 
   @protected
   CampusCardBalanceResponse dco_decode_campus_card_balance_response(
@@ -78,6 +262,48 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CareerEventsResponse dco_decode_career_events_response(dynamic raw);
 
   @protected
+  CgyyActionResultDto dco_decode_cgyy_action_result_dto(dynamic raw);
+
+  @protected
+  CgyyActionResultResponse dco_decode_cgyy_action_result_response(dynamic raw);
+
+  @protected
+  CgyyBookingChoiceDto dco_decode_cgyy_booking_choice_dto(dynamic raw);
+
+  @protected
+  CgyyBookingOptionsDto dco_decode_cgyy_booking_options_dto(dynamic raw);
+
+  @protected
+  CgyyChallengeDto dco_decode_cgyy_challenge_dto(dynamic raw);
+
+  @protected
+  CgyyDayDto dco_decode_cgyy_day_dto(dynamic raw);
+
+  @protected
+  CgyyLoadResponse dco_decode_cgyy_load_response(dynamic raw);
+
+  @protected
+  CgyyLockCodeDto dco_decode_cgyy_lock_code_dto(dynamic raw);
+
+  @protected
+  CgyyOrderDto dco_decode_cgyy_order_dto(dynamic raw);
+
+  @protected
+  CgyyPurposeDto dco_decode_cgyy_purpose_dto(dynamic raw);
+
+  @protected
+  CgyyReviewDto dco_decode_cgyy_review_dto(dynamic raw);
+
+  @protected
+  CgyySiteDto dco_decode_cgyy_site_dto(dynamic raw);
+
+  @protected
+  CgyySlotDto dco_decode_cgyy_slot_dto(dynamic raw);
+
+  @protected
+  CgyySpaceDto dco_decode_cgyy_space_dto(dynamic raw);
+
+  @protected
   CheckInCourse dco_decode_check_in_course(dynamic raw);
 
   @protected
@@ -85,6 +311,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CheckInStatus dco_decode_check_in_status(dynamic raw);
+
+  @protected
+  CheckinLoadProgressDto dco_decode_checkin_load_progress_dto(dynamic raw);
+
+  @protected
+  CheckinLoadProgressResponse dco_decode_checkin_load_progress_response(
+    dynamic raw,
+  );
 
   @protected
   ClassroomBuilding dco_decode_classroom_building(dynamic raw);
@@ -102,7 +336,44 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ClassroomSort dco_decode_classroom_sort(dynamic raw);
 
   @protected
+  CountPairDto dco_decode_count_pair_dto(dynamic raw);
+
+  @protected
+  CourseAnnouncementDetailDto dco_decode_course_announcement_detail_dto(
+    dynamic raw,
+  );
+
+  @protected
+  CourseAnnouncementDetailResponse
+  dco_decode_course_announcement_detail_response(dynamic raw);
+
+  @protected
+  CourseAnnouncementDto dco_decode_course_announcement_dto(dynamic raw);
+
+  @protected
+  CourseAnnouncementsResponse dco_decode_course_announcements_response(
+    dynamic raw,
+  );
+
+  @protected
+  CourseAssessmentDto dco_decode_course_assessment_dto(dynamic raw);
+
+  @protected
+  CourseAssessmentsResponse dco_decode_course_assessments_response(dynamic raw);
+
+  @protected
   CourseReminderSeed dco_decode_course_reminder_seed(dynamic raw);
+
+  @protected
+  CourseResourceDto dco_decode_course_resource_dto(dynamic raw);
+
+  @protected
+  CourseResourcePageDto dco_decode_course_resource_page_dto(dynamic raw);
+
+  @protected
+  CourseResourcePageResponse dco_decode_course_resource_page_response(
+    dynamic raw,
+  );
 
   @protected
   DemoScope dco_decode_demo_scope(dynamic raw);
@@ -126,6 +397,56 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   GradeTermsResponse dco_decode_grade_terms_response(dynamic raw);
 
   @protected
+  GraduateCreditMapDto dco_decode_graduate_credit_map_dto(dynamic raw);
+
+  @protected
+  GraduateCreditMapResponse dco_decode_graduate_credit_map_response(
+    dynamic raw,
+  );
+
+  @protected
+  GraduateCreditMetricsDto dco_decode_graduate_credit_metrics_dto(dynamic raw);
+
+  @protected
+  GraduateCreditNodeDto dco_decode_graduate_credit_node_dto(dynamic raw);
+
+  @protected
+  GraduateCreditRowDto dco_decode_graduate_credit_row_dto(dynamic raw);
+
+  @protected
+  GraduateCreditStateDto dco_decode_graduate_credit_state_dto(dynamic raw);
+
+  @protected
+  GraduateProgressDto dco_decode_graduate_progress_dto(dynamic raw);
+
+  @protected
+  GraduateResponse dco_decode_graduate_response(dynamic raw);
+
+  @protected
+  GraduateRowDto dco_decode_graduate_row_dto(dynamic raw);
+
+  @protected
+  GraduateSectionDto dco_decode_graduate_section_dto(dynamic raw);
+
+  @protected
+  HomeworkAttachmentDto dco_decode_homework_attachment_dto(dynamic raw);
+
+  @protected
+  HomeworkCapabilitiesResponse dco_decode_homework_capabilities_response(
+    dynamic raw,
+  );
+
+  @protected
+  HomeworkCapabilityEvidenceDto dco_decode_homework_capability_evidence_dto(
+    dynamic raw,
+  );
+
+  @protected
+  HomeworkCapabilityStateDto dco_decode_homework_capability_state_dto(
+    dynamic raw,
+  );
+
+  @protected
   HomeworkDetailResponse dco_decode_homework_detail_response(dynamic raw);
 
   @protected
@@ -134,7 +455,23 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  HomeworkFileWorkspaceResponse dco_decode_homework_file_workspace_response(
+    dynamic raw,
+  );
+
+  @protected
   HomeworkItem dco_decode_homework_item(dynamic raw);
+
+  @protected
+  HomeworkPendingResponse dco_decode_homework_pending_response(dynamic raw);
+
+  @protected
+  HomeworkPendingSubmissionDto dco_decode_homework_pending_submission_dto(
+    dynamic raw,
+  );
+
+  @protected
+  HomeworkRecoveryResponse dco_decode_homework_recovery_response(dynamic raw);
 
   @protected
   HomeworkResponse dco_decode_homework_response(dynamic raw);
@@ -143,10 +480,50 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   HomeworkStatus dco_decode_homework_status(dynamic raw);
 
   @protected
+  HomeworkUploadReceiptDto dco_decode_homework_upload_receipt_dto(dynamic raw);
+
+  @protected
+  HomeworkUploadResponse dco_decode_homework_upload_response(dynamic raw);
+
+  @protected
+  HomeworkWorkspaceDto dco_decode_homework_workspace_dto(dynamic raw);
+
+  @protected
   int dco_decode_i_32(dynamic raw);
 
   @protected
   PlatformInt64 dco_decode_i_64(dynamic raw);
+
+  @protected
+  LearningAttachmentDto dco_decode_learning_attachment_dto(dynamic raw);
+
+  @protected
+  LearningCapabilitiesDto dco_decode_learning_capabilities_dto(dynamic raw);
+
+  @protected
+  LearningCapabilitiesResponse dco_decode_learning_capabilities_response(
+    dynamic raw,
+  );
+
+  @protected
+  LearningCapabilityStateDto dco_decode_learning_capability_state_dto(
+    dynamic raw,
+  );
+
+  @protected
+  LearningColumnDto dco_decode_learning_column_dto(dynamic raw);
+
+  @protected
+  LearningColumnKindDto dco_decode_learning_column_kind_dto(dynamic raw);
+
+  @protected
+  LearningColumnsResponse dco_decode_learning_columns_response(dynamic raw);
+
+  @protected
+  LearningCourseDto dco_decode_learning_course_dto(dynamic raw);
+
+  @protected
+  LearningCoursesResponse dco_decode_learning_courses_response(dynamic raw);
 
   @protected
   LearningSnapshotResponse dco_decode_learning_snapshot_response(dynamic raw);
@@ -164,10 +541,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   LibraryBookingsResponse dco_decode_library_bookings_response(dynamic raw);
 
   @protected
+  LibraryCampusStatsDto dco_decode_library_campus_stats_dto(dynamic raw);
+
+  @protected
   LibraryDemoResponse dco_decode_library_demo_response(dynamic raw);
 
   @protected
   LibraryHistoryResponse dco_decode_library_history_response(dynamic raw);
+
+  @protected
+  LibraryLoanDto dco_decode_library_loan_dto(dynamic raw);
+
+  @protected
+  LibraryLoanPageDto dco_decode_library_loan_page_dto(dynamic raw);
+
+  @protected
+  LibraryLoansResponse dco_decode_library_loans_response(dynamic raw);
 
   @protected
   LibrarySeat dco_decode_library_seat(dynamic raw);
@@ -182,6 +571,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   LibrarySlotsResponse dco_decode_library_slots_response(dynamic raw);
 
   @protected
+  LibraryStatsDto dco_decode_library_stats_dto(dynamic raw);
+
+  @protected
+  LibraryStatsResponse dco_decode_library_stats_response(dynamic raw);
+
+  @protected
   LibraryVenue dco_decode_library_venue(dynamic raw);
 
   @protected
@@ -191,7 +586,50 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
+  List<BookHitDto> dco_decode_list_book_hit_dto(dynamic raw);
+
+  @protected
+  List<BookHoldingDto> dco_decode_list_book_holding_dto(dynamic raw);
+
+  @protected
+  List<BykcChosenRecordDto> dco_decode_list_bykc_chosen_record_dto(dynamic raw);
+
+  @protected
+  List<BykcCourseDto> dco_decode_list_bykc_course_dto(dynamic raw);
+
+  @protected
+  List<BykcSemesterDto> dco_decode_list_bykc_semester_dto(dynamic raw);
+
+  @protected
+  List<BykcStatisticsEntryDto> dco_decode_list_bykc_statistics_entry_dto(
+    dynamic raw,
+  );
+
+  @protected
+  List<CampusActivityDto> dco_decode_list_campus_activity_dto(dynamic raw);
+
+  @protected
   List<CareerEventDto> dco_decode_list_career_event_dto(dynamic raw);
+
+  @protected
+  List<CgyyBookingChoiceDto> dco_decode_list_cgyy_booking_choice_dto(
+    dynamic raw,
+  );
+
+  @protected
+  List<CgyyOrderDto> dco_decode_list_cgyy_order_dto(dynamic raw);
+
+  @protected
+  List<CgyyPurposeDto> dco_decode_list_cgyy_purpose_dto(dynamic raw);
+
+  @protected
+  List<CgyySiteDto> dco_decode_list_cgyy_site_dto(dynamic raw);
+
+  @protected
+  List<CgyySlotDto> dco_decode_list_cgyy_slot_dto(dynamic raw);
+
+  @protected
+  List<CgyySpaceDto> dco_decode_list_cgyy_space_dto(dynamic raw);
 
   @protected
   List<CheckInCourse> dco_decode_list_check_in_course(dynamic raw);
@@ -203,19 +641,78 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<ClassroomRow> dco_decode_list_classroom_row(dynamic raw);
 
   @protected
+  List<CourseAnnouncementDto> dco_decode_list_course_announcement_dto(
+    dynamic raw,
+  );
+
+  @protected
+  List<CourseAssessmentDto> dco_decode_list_course_assessment_dto(dynamic raw);
+
+  @protected
   List<CourseReminderSeed> dco_decode_list_course_reminder_seed(dynamic raw);
+
+  @protected
+  List<CourseResourceDto> dco_decode_list_course_resource_dto(dynamic raw);
 
   @protected
   List<GradeCourse> dco_decode_list_grade_course(dynamic raw);
 
   @protected
+  List<GraduateCreditNodeDto> dco_decode_list_graduate_credit_node_dto(
+    dynamic raw,
+  );
+
+  @protected
+  List<GraduateCreditRowDto> dco_decode_list_graduate_credit_row_dto(
+    dynamic raw,
+  );
+
+  @protected
+  List<GraduateRowDto> dco_decode_list_graduate_row_dto(dynamic raw);
+
+  @protected
+  List<GraduateSectionDto> dco_decode_list_graduate_section_dto(dynamic raw);
+
+  @protected
+  List<HomeworkAttachmentDto> dco_decode_list_homework_attachment_dto(
+    dynamic raw,
+  );
+
+  @protected
+  List<HomeworkCapabilityEvidenceDto>
+  dco_decode_list_homework_capability_evidence_dto(dynamic raw);
+
+  @protected
   List<HomeworkItem> dco_decode_list_homework_item(dynamic raw);
+
+  @protected
+  List<HomeworkPendingSubmissionDto>
+  dco_decode_list_homework_pending_submission_dto(dynamic raw);
+
+  @protected
+  List<LearningAttachmentDto> dco_decode_list_learning_attachment_dto(
+    dynamic raw,
+  );
+
+  @protected
+  List<LearningColumnDto> dco_decode_list_learning_column_dto(dynamic raw);
+
+  @protected
+  List<LearningCourseDto> dco_decode_list_learning_course_dto(dynamic raw);
 
   @protected
   List<LibraryArea> dco_decode_list_library_area(dynamic raw);
 
   @protected
   List<LibraryBooking> dco_decode_list_library_booking(dynamic raw);
+
+  @protected
+  List<LibraryCampusStatsDto> dco_decode_list_library_campus_stats_dto(
+    dynamic raw,
+  );
+
+  @protected
+  List<LibraryLoanDto> dco_decode_list_library_loan_dto(dynamic raw);
 
   @protected
   List<LibrarySeat> dco_decode_list_library_seat(dynamic raw);
@@ -225,6 +722,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<LibraryVenue> dco_decode_list_library_venue(dynamic raw);
+
+  @protected
+  List<LocalTaskDto> dco_decode_list_local_task_dto(dynamic raw);
+
+  @protected
+  List<NoticeDto> dco_decode_list_notice_dto(dynamic raw);
 
   @protected
   List<PlannedReminder> dco_decode_list_planned_reminder(dynamic raw);
@@ -237,6 +740,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  List<ReadingRoomDto> dco_decode_list_reading_room_dto(dynamic raw);
 
   @protected
   List<ScheduleCourse> dco_decode_list_schedule_course(dynamic raw);
@@ -254,6 +760,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<SectionState> dco_decode_list_section_state(dynamic raw);
 
   @protected
+  List<ShuttleRunDto> dco_decode_list_shuttle_run_dto(dynamic raw);
+
+  @protected
+  List<ShuttleSectionDto> dco_decode_list_shuttle_section_dto(dynamic raw);
+
+  @protected
+  List<ShuttleTableDto> dco_decode_list_shuttle_table_dto(dynamic raw);
+
+  @protected
   List<TaskReminderSeed> dco_decode_list_task_reminder_seed(dynamic raw);
 
   @protected
@@ -263,19 +778,110 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   LiveScope dco_decode_live_scope(dynamic raw);
 
   @protected
+  LocalTaskDto dco_decode_local_task_dto(dynamic raw);
+
+  @protected
+  LocalTasksResponse dco_decode_local_tasks_response(dynamic raw);
+
+  @protected
   LoginChallengeResponse dco_decode_login_challenge_response(dynamic raw);
 
   @protected
   MutationResponse dco_decode_mutation_response(dynamic raw);
 
   @protected
+  NoticeDto dco_decode_notice_dto(dynamic raw);
+
+  @protected
+  NoticesResponse dco_decode_notices_response(dynamic raw);
+
+  @protected
   String? dco_decode_opt_String(dynamic raw);
+
+  @protected
+  AcademicDataDto? dco_decode_opt_box_autoadd_academic_data_dto(dynamic raw);
+
+  @protected
+  AndroidDownloadDto? dco_decode_opt_box_autoadd_android_download_dto(
+    dynamic raw,
+  );
+
+  @protected
+  BookPageDto? dco_decode_opt_box_autoadd_book_page_dto(dynamic raw);
 
   @protected
   bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
 
   @protected
+  BykcCatalogDto? dco_decode_opt_box_autoadd_bykc_catalog_dto(dynamic raw);
+
+  @protected
+  BykcChosenCoursesDto? dco_decode_opt_box_autoadd_bykc_chosen_courses_dto(
+    dynamic raw,
+  );
+
+  @protected
+  BykcCourseDetailsDto? dco_decode_opt_box_autoadd_bykc_course_details_dto(
+    dynamic raw,
+  );
+
+  @protected
+  BykcSemesterDto? dco_decode_opt_box_autoadd_bykc_semester_dto(dynamic raw);
+
+  @protected
+  BykcStatisticsDto? dco_decode_opt_box_autoadd_bykc_statistics_dto(
+    dynamic raw,
+  );
+
+  @protected
+  CampusActivitiesDto? dco_decode_opt_box_autoadd_campus_activities_dto(
+    dynamic raw,
+  );
+
+  @protected
   CareerEventsDto? dco_decode_opt_box_autoadd_career_events_dto(dynamic raw);
+
+  @protected
+  CgyyActionResultDto? dco_decode_opt_box_autoadd_cgyy_action_result_dto(
+    dynamic raw,
+  );
+
+  @protected
+  CgyyBookingOptionsDto? dco_decode_opt_box_autoadd_cgyy_booking_options_dto(
+    dynamic raw,
+  );
+
+  @protected
+  CgyyChallengeDto? dco_decode_opt_box_autoadd_cgyy_challenge_dto(dynamic raw);
+
+  @protected
+  CgyyDayDto? dco_decode_opt_box_autoadd_cgyy_day_dto(dynamic raw);
+
+  @protected
+  CgyyLockCodeDto? dco_decode_opt_box_autoadd_cgyy_lock_code_dto(dynamic raw);
+
+  @protected
+  CgyyOrderDto? dco_decode_opt_box_autoadd_cgyy_order_dto(dynamic raw);
+
+  @protected
+  CgyyReviewDto? dco_decode_opt_box_autoadd_cgyy_review_dto(dynamic raw);
+
+  @protected
+  CheckinLoadProgressDto? dco_decode_opt_box_autoadd_checkin_load_progress_dto(
+    dynamic raw,
+  );
+
+  @protected
+  CountPairDto? dco_decode_opt_box_autoadd_count_pair_dto(dynamic raw);
+
+  @protected
+  CourseAnnouncementDetailDto?
+  dco_decode_opt_box_autoadd_course_announcement_detail_dto(dynamic raw);
+
+  @protected
+  CourseResourcePageDto? dco_decode_opt_box_autoadd_course_resource_page_dto(
+    dynamic raw,
+  );
 
   @protected
   double? dco_decode_opt_box_autoadd_f_64(dynamic raw);
@@ -284,16 +890,112 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FailureCode? dco_decode_opt_box_autoadd_failure_code(dynamic raw);
 
   @protected
+  GraduateCreditMapDto? dco_decode_opt_box_autoadd_graduate_credit_map_dto(
+    dynamic raw,
+  );
+
+  @protected
+  GraduateCreditMetricsDto?
+  dco_decode_opt_box_autoadd_graduate_credit_metrics_dto(dynamic raw);
+
+  @protected
+  GraduateCreditNodeDto? dco_decode_opt_box_autoadd_graduate_credit_node_dto(
+    dynamic raw,
+  );
+
+  @protected
+  GraduateProgressDto? dco_decode_opt_box_autoadd_graduate_progress_dto(
+    dynamic raw,
+  );
+
+  @protected
+  HomeworkUploadReceiptDto?
+  dco_decode_opt_box_autoadd_homework_upload_receipt_dto(dynamic raw);
+
+  @protected
+  HomeworkWorkspaceDto? dco_decode_opt_box_autoadd_homework_workspace_dto(
+    dynamic raw,
+  );
+
+  @protected
   int? dco_decode_opt_box_autoadd_i_32(dynamic raw);
 
   @protected
   PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
 
   @protected
+  LearningCapabilitiesDto? dco_decode_opt_box_autoadd_learning_capabilities_dto(
+    dynamic raw,
+  );
+
+  @protected
+  LibraryLoanPageDto? dco_decode_opt_box_autoadd_library_loan_page_dto(
+    dynamic raw,
+  );
+
+  @protected
+  LibraryStatsDto? dco_decode_opt_box_autoadd_library_stats_dto(dynamic raw);
+
+  @protected
   RouteChoice? dco_decode_opt_box_autoadd_route_choice(dynamic raw);
 
   @protected
+  ShuttleTimetableDto? dco_decode_opt_box_autoadd_shuttle_timetable_dto(
+    dynamic raw,
+  );
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  UpdateSummaryDto? dco_decode_opt_box_autoadd_update_summary_dto(dynamic raw);
+
+  @protected
   List<String>? dco_decode_opt_list_String(dynamic raw);
+
+  @protected
+  List<BookHoldingDto>? dco_decode_opt_list_book_holding_dto(dynamic raw);
+
+  @protected
+  List<BykcChosenRecordDto>? dco_decode_opt_list_bykc_chosen_record_dto(
+    dynamic raw,
+  );
+
+  @protected
+  List<CgyyOrderDto>? dco_decode_opt_list_cgyy_order_dto(dynamic raw);
+
+  @protected
+  List<CgyySiteDto>? dco_decode_opt_list_cgyy_site_dto(dynamic raw);
+
+  @protected
+  List<CourseAnnouncementDto>? dco_decode_opt_list_course_announcement_dto(
+    dynamic raw,
+  );
+
+  @protected
+  List<CourseAssessmentDto>? dco_decode_opt_list_course_assessment_dto(
+    dynamic raw,
+  );
+
+  @protected
+  List<HomeworkCapabilityEvidenceDto>?
+  dco_decode_opt_list_homework_capability_evidence_dto(dynamic raw);
+
+  @protected
+  List<HomeworkPendingSubmissionDto>?
+  dco_decode_opt_list_homework_pending_submission_dto(dynamic raw);
+
+  @protected
+  List<LearningColumnDto>? dco_decode_opt_list_learning_column_dto(dynamic raw);
+
+  @protected
+  List<LearningCourseDto>? dco_decode_opt_list_learning_course_dto(dynamic raw);
+
+  @protected
+  List<LocalTaskDto>? dco_decode_opt_list_local_task_dto(dynamic raw);
+
+  @protected
+  List<NoticeDto>? dco_decode_opt_list_notice_dto(dynamic raw);
 
   @protected
   Uint8List? dco_decode_opt_list_prim_u_8_strict(dynamic raw);
@@ -305,7 +1007,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   QueryDates dco_decode_query_dates(dynamic raw);
 
   @protected
-  ReadOnlyResponse dco_decode_read_only_response(dynamic raw);
+  ReadingRoomDto dco_decode_reading_room_dto(dynamic raw);
 
   @protected
   ReminderPlanResponse dco_decode_reminder_plan_response(dynamic raw);
@@ -341,6 +1043,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   SessionState dco_decode_session_state(dynamic raw);
 
   @protected
+  ShuttleRunDto dco_decode_shuttle_run_dto(dynamic raw);
+
+  @protected
+  ShuttleSectionDto dco_decode_shuttle_section_dto(dynamic raw);
+
+  @protected
+  ShuttleTableDto dco_decode_shuttle_table_dto(dynamic raw);
+
+  @protected
+  ShuttleTimetableDto dco_decode_shuttle_timetable_dto(dynamic raw);
+
+  @protected
+  ShuttleTimetableResponse dco_decode_shuttle_timetable_response(dynamic raw);
+
+  @protected
+  SnapshotImportResponse dco_decode_snapshot_import_response(dynamic raw);
+
+  @protected
   TaskReminderSeed dco_decode_task_reminder_seed(dynamic raw);
 
   @protected
@@ -359,13 +1079,89 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void dco_decode_unit(dynamic raw);
 
   @protected
+  UpdateResponse dco_decode_update_response(dynamic raw);
+
+  @protected
+  UpdateSummaryDto dco_decode_update_summary_dto(dynamic raw);
+
+  @protected
   String sse_decode_String(SseDeserializer deserializer);
+
+  @protected
+  AcademicDataDto sse_decode_academic_data_dto(SseDeserializer deserializer);
+
+  @protected
+  AndroidDownloadDto sse_decode_android_download_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BookHitDto sse_decode_book_hit_dto(SseDeserializer deserializer);
+
+  @protected
+  BookHoldingDto sse_decode_book_holding_dto(SseDeserializer deserializer);
+
+  @protected
+  BookHoldingsResponse sse_decode_book_holdings_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BookPageDto sse_decode_book_page_dto(SseDeserializer deserializer);
+
+  @protected
+  BookPageResponse sse_decode_book_page_response(SseDeserializer deserializer);
 
   @protected
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
+  AcademicDataDto sse_decode_box_autoadd_academic_data_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  AndroidDownloadDto sse_decode_box_autoadd_android_download_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BookPageDto sse_decode_box_autoadd_book_page_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   bool sse_decode_box_autoadd_bool(SseDeserializer deserializer);
+
+  @protected
+  BykcCatalogDto sse_decode_box_autoadd_bykc_catalog_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BykcChosenCoursesDto sse_decode_box_autoadd_bykc_chosen_courses_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BykcCourseDetailsDto sse_decode_box_autoadd_bykc_course_details_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BykcSemesterDto sse_decode_box_autoadd_bykc_semester_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BykcStatisticsDto sse_decode_box_autoadd_bykc_statistics_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CampusActivitiesDto sse_decode_box_autoadd_campus_activities_dto(
+    SseDeserializer deserializer,
+  );
 
   @protected
   CareerEventsDto sse_decode_box_autoadd_career_events_dto(
@@ -373,7 +1169,61 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CgyyActionResultDto sse_decode_box_autoadd_cgyy_action_result_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CgyyBookingOptionsDto sse_decode_box_autoadd_cgyy_booking_options_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CgyyChallengeDto sse_decode_box_autoadd_cgyy_challenge_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CgyyDayDto sse_decode_box_autoadd_cgyy_day_dto(SseDeserializer deserializer);
+
+  @protected
+  CgyyLockCodeDto sse_decode_box_autoadd_cgyy_lock_code_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CgyyOrderDto sse_decode_box_autoadd_cgyy_order_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CgyyReviewDto sse_decode_box_autoadd_cgyy_review_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CheckinLoadProgressDto sse_decode_box_autoadd_checkin_load_progress_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ClassroomQuery sse_decode_box_autoadd_classroom_query(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CountPairDto sse_decode_box_autoadd_count_pair_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CourseAnnouncementDetailDto
+  sse_decode_box_autoadd_course_announcement_detail_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CourseResourcePageDto sse_decode_box_autoadd_course_resource_page_dto(
     SseDeserializer deserializer,
   );
 
@@ -387,19 +1237,141 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FailureCode sse_decode_box_autoadd_failure_code(SseDeserializer deserializer);
 
   @protected
+  GraduateCreditMapDto sse_decode_box_autoadd_graduate_credit_map_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GraduateCreditMetricsDto sse_decode_box_autoadd_graduate_credit_metrics_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GraduateCreditNodeDto sse_decode_box_autoadd_graduate_credit_node_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GraduateProgressDto sse_decode_box_autoadd_graduate_progress_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  HomeworkUploadReceiptDto sse_decode_box_autoadd_homework_upload_receipt_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  HomeworkWorkspaceDto sse_decode_box_autoadd_homework_workspace_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   int sse_decode_box_autoadd_i_32(SseDeserializer deserializer);
 
   @protected
   PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
 
   @protected
+  LearningCapabilitiesDto sse_decode_box_autoadd_learning_capabilities_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LibraryLoanPageDto sse_decode_box_autoadd_library_loan_page_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   LibrarySlot sse_decode_box_autoadd_library_slot(SseDeserializer deserializer);
+
+  @protected
+  LibraryStatsDto sse_decode_box_autoadd_library_stats_dto(
+    SseDeserializer deserializer,
+  );
 
   @protected
   LiveScope sse_decode_box_autoadd_live_scope(SseDeserializer deserializer);
 
   @protected
   RouteChoice sse_decode_box_autoadd_route_choice(SseDeserializer deserializer);
+
+  @protected
+  ShuttleTimetableDto sse_decode_box_autoadd_shuttle_timetable_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  UpdateSummaryDto sse_decode_box_autoadd_update_summary_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BykcCatalogDto sse_decode_bykc_catalog_dto(SseDeserializer deserializer);
+
+  @protected
+  BykcCatalogResponse sse_decode_bykc_catalog_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BykcChosenCoursesDto sse_decode_bykc_chosen_courses_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BykcChosenRecordDto sse_decode_bykc_chosen_record_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BykcChosenResponse sse_decode_bykc_chosen_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BykcCourseDetailsDto sse_decode_bykc_course_details_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BykcCourseDto sse_decode_bykc_course_dto(SseDeserializer deserializer);
+
+  @protected
+  BykcSemesterDto sse_decode_bykc_semester_dto(SseDeserializer deserializer);
+
+  @protected
+  BykcStatisticsDto sse_decode_bykc_statistics_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BykcStatisticsEntryDto sse_decode_bykc_statistics_entry_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BykcStatisticsResponse sse_decode_bykc_statistics_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CampusActivitiesDto sse_decode_campus_activities_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CampusActivitiesResponse sse_decode_campus_activities_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CampusActivityDto sse_decode_campus_activity_dto(
+    SseDeserializer deserializer,
+  );
 
   @protected
   CampusCardBalanceResponse sse_decode_campus_card_balance_response(
@@ -418,6 +1390,56 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CgyyActionResultDto sse_decode_cgyy_action_result_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CgyyActionResultResponse sse_decode_cgyy_action_result_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CgyyBookingChoiceDto sse_decode_cgyy_booking_choice_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CgyyBookingOptionsDto sse_decode_cgyy_booking_options_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CgyyChallengeDto sse_decode_cgyy_challenge_dto(SseDeserializer deserializer);
+
+  @protected
+  CgyyDayDto sse_decode_cgyy_day_dto(SseDeserializer deserializer);
+
+  @protected
+  CgyyLoadResponse sse_decode_cgyy_load_response(SseDeserializer deserializer);
+
+  @protected
+  CgyyLockCodeDto sse_decode_cgyy_lock_code_dto(SseDeserializer deserializer);
+
+  @protected
+  CgyyOrderDto sse_decode_cgyy_order_dto(SseDeserializer deserializer);
+
+  @protected
+  CgyyPurposeDto sse_decode_cgyy_purpose_dto(SseDeserializer deserializer);
+
+  @protected
+  CgyyReviewDto sse_decode_cgyy_review_dto(SseDeserializer deserializer);
+
+  @protected
+  CgyySiteDto sse_decode_cgyy_site_dto(SseDeserializer deserializer);
+
+  @protected
+  CgyySlotDto sse_decode_cgyy_slot_dto(SseDeserializer deserializer);
+
+  @protected
+  CgyySpaceDto sse_decode_cgyy_space_dto(SseDeserializer deserializer);
+
+  @protected
   CheckInCourse sse_decode_check_in_course(SseDeserializer deserializer);
 
   @protected
@@ -425,6 +1447,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CheckInStatus sse_decode_check_in_status(SseDeserializer deserializer);
+
+  @protected
+  CheckinLoadProgressDto sse_decode_checkin_load_progress_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CheckinLoadProgressResponse sse_decode_checkin_load_progress_response(
+    SseDeserializer deserializer,
+  );
 
   @protected
   ClassroomBuilding sse_decode_classroom_building(SseDeserializer deserializer);
@@ -442,7 +1474,54 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ClassroomSort sse_decode_classroom_sort(SseDeserializer deserializer);
 
   @protected
+  CountPairDto sse_decode_count_pair_dto(SseDeserializer deserializer);
+
+  @protected
+  CourseAnnouncementDetailDto sse_decode_course_announcement_detail_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CourseAnnouncementDetailResponse
+  sse_decode_course_announcement_detail_response(SseDeserializer deserializer);
+
+  @protected
+  CourseAnnouncementDto sse_decode_course_announcement_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CourseAnnouncementsResponse sse_decode_course_announcements_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CourseAssessmentDto sse_decode_course_assessment_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CourseAssessmentsResponse sse_decode_course_assessments_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CourseReminderSeed sse_decode_course_reminder_seed(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CourseResourceDto sse_decode_course_resource_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CourseResourcePageDto sse_decode_course_resource_page_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CourseResourcePageResponse sse_decode_course_resource_page_response(
     SseDeserializer deserializer,
   );
 
@@ -470,6 +1549,72 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  GraduateCreditMapDto sse_decode_graduate_credit_map_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GraduateCreditMapResponse sse_decode_graduate_credit_map_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GraduateCreditMetricsDto sse_decode_graduate_credit_metrics_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GraduateCreditNodeDto sse_decode_graduate_credit_node_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GraduateCreditRowDto sse_decode_graduate_credit_row_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GraduateCreditStateDto sse_decode_graduate_credit_state_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GraduateProgressDto sse_decode_graduate_progress_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GraduateResponse sse_decode_graduate_response(SseDeserializer deserializer);
+
+  @protected
+  GraduateRowDto sse_decode_graduate_row_dto(SseDeserializer deserializer);
+
+  @protected
+  GraduateSectionDto sse_decode_graduate_section_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  HomeworkAttachmentDto sse_decode_homework_attachment_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  HomeworkCapabilitiesResponse sse_decode_homework_capabilities_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  HomeworkCapabilityEvidenceDto sse_decode_homework_capability_evidence_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  HomeworkCapabilityStateDto sse_decode_homework_capability_state_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   HomeworkDetailResponse sse_decode_homework_detail_response(
     SseDeserializer deserializer,
   );
@@ -480,7 +1625,27 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  HomeworkFileWorkspaceResponse sse_decode_homework_file_workspace_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   HomeworkItem sse_decode_homework_item(SseDeserializer deserializer);
+
+  @protected
+  HomeworkPendingResponse sse_decode_homework_pending_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  HomeworkPendingSubmissionDto sse_decode_homework_pending_submission_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  HomeworkRecoveryResponse sse_decode_homework_recovery_response(
+    SseDeserializer deserializer,
+  );
 
   @protected
   HomeworkResponse sse_decode_homework_response(SseDeserializer deserializer);
@@ -489,10 +1654,70 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   HomeworkStatus sse_decode_homework_status(SseDeserializer deserializer);
 
   @protected
+  HomeworkUploadReceiptDto sse_decode_homework_upload_receipt_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  HomeworkUploadResponse sse_decode_homework_upload_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  HomeworkWorkspaceDto sse_decode_homework_workspace_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+
+  @protected
+  LearningAttachmentDto sse_decode_learning_attachment_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LearningCapabilitiesDto sse_decode_learning_capabilities_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LearningCapabilitiesResponse sse_decode_learning_capabilities_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LearningCapabilityStateDto sse_decode_learning_capability_state_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LearningColumnDto sse_decode_learning_column_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LearningColumnKindDto sse_decode_learning_column_kind_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LearningColumnsResponse sse_decode_learning_columns_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LearningCourseDto sse_decode_learning_course_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LearningCoursesResponse sse_decode_learning_courses_response(
+    SseDeserializer deserializer,
+  );
 
   @protected
   LearningSnapshotResponse sse_decode_learning_snapshot_response(
@@ -516,12 +1741,30 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  LibraryCampusStatsDto sse_decode_library_campus_stats_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   LibraryDemoResponse sse_decode_library_demo_response(
     SseDeserializer deserializer,
   );
 
   @protected
   LibraryHistoryResponse sse_decode_library_history_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LibraryLoanDto sse_decode_library_loan_dto(SseDeserializer deserializer);
+
+  @protected
+  LibraryLoanPageDto sse_decode_library_loan_page_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LibraryLoansResponse sse_decode_library_loans_response(
     SseDeserializer deserializer,
   );
 
@@ -542,6 +1785,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  LibraryStatsDto sse_decode_library_stats_dto(SseDeserializer deserializer);
+
+  @protected
+  LibraryStatsResponse sse_decode_library_stats_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   LibraryVenue sse_decode_library_venue(SseDeserializer deserializer);
 
   @protected
@@ -553,7 +1804,66 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
+  List<BookHitDto> sse_decode_list_book_hit_dto(SseDeserializer deserializer);
+
+  @protected
+  List<BookHoldingDto> sse_decode_list_book_holding_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<BykcChosenRecordDto> sse_decode_list_bykc_chosen_record_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<BykcCourseDto> sse_decode_list_bykc_course_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<BykcSemesterDto> sse_decode_list_bykc_semester_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<BykcStatisticsEntryDto> sse_decode_list_bykc_statistics_entry_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CampusActivityDto> sse_decode_list_campus_activity_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<CareerEventDto> sse_decode_list_career_event_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CgyyBookingChoiceDto> sse_decode_list_cgyy_booking_choice_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CgyyOrderDto> sse_decode_list_cgyy_order_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CgyyPurposeDto> sse_decode_list_cgyy_purpose_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CgyySiteDto> sse_decode_list_cgyy_site_dto(SseDeserializer deserializer);
+
+  @protected
+  List<CgyySlotDto> sse_decode_list_cgyy_slot_dto(SseDeserializer deserializer);
+
+  @protected
+  List<CgyySpaceDto> sse_decode_list_cgyy_space_dto(
     SseDeserializer deserializer,
   );
 
@@ -573,7 +1883,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<CourseAnnouncementDto> sse_decode_list_course_announcement_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CourseAssessmentDto> sse_decode_list_course_assessment_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<CourseReminderSeed> sse_decode_list_course_reminder_seed(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CourseResourceDto> sse_decode_list_course_resource_dto(
     SseDeserializer deserializer,
   );
 
@@ -581,7 +1906,57 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<GradeCourse> sse_decode_list_grade_course(SseDeserializer deserializer);
 
   @protected
+  List<GraduateCreditNodeDto> sse_decode_list_graduate_credit_node_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<GraduateCreditRowDto> sse_decode_list_graduate_credit_row_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<GraduateRowDto> sse_decode_list_graduate_row_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<GraduateSectionDto> sse_decode_list_graduate_section_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<HomeworkAttachmentDto> sse_decode_list_homework_attachment_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<HomeworkCapabilityEvidenceDto>
+  sse_decode_list_homework_capability_evidence_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<HomeworkItem> sse_decode_list_homework_item(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<HomeworkPendingSubmissionDto>
+  sse_decode_list_homework_pending_submission_dto(SseDeserializer deserializer);
+
+  @protected
+  List<LearningAttachmentDto> sse_decode_list_learning_attachment_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<LearningColumnDto> sse_decode_list_learning_column_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<LearningCourseDto> sse_decode_list_learning_course_dto(
     SseDeserializer deserializer,
   );
 
@@ -590,6 +1965,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<LibraryBooking> sse_decode_list_library_booking(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<LibraryCampusStatsDto> sse_decode_list_library_campus_stats_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<LibraryLoanDto> sse_decode_list_library_loan_dto(
     SseDeserializer deserializer,
   );
 
@@ -605,6 +1990,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<LocalTaskDto> sse_decode_list_local_task_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<NoticeDto> sse_decode_list_notice_dto(SseDeserializer deserializer);
+
+  @protected
   List<PlannedReminder> sse_decode_list_planned_reminder(
     SseDeserializer deserializer,
   );
@@ -617,6 +2010,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  List<ReadingRoomDto> sse_decode_list_reading_room_dto(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<ScheduleCourse> sse_decode_list_schedule_course(
@@ -644,6 +2042,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<ShuttleRunDto> sse_decode_list_shuttle_run_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<ShuttleSectionDto> sse_decode_list_shuttle_section_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<ShuttleTableDto> sse_decode_list_shuttle_table_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<TaskReminderSeed> sse_decode_list_task_reminder_seed(
     SseDeserializer deserializer,
   );
@@ -655,6 +2068,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   LiveScope sse_decode_live_scope(SseDeserializer deserializer);
 
   @protected
+  LocalTaskDto sse_decode_local_task_dto(SseDeserializer deserializer);
+
+  @protected
+  LocalTasksResponse sse_decode_local_tasks_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   LoginChallengeResponse sse_decode_login_challenge_response(
     SseDeserializer deserializer,
   );
@@ -663,13 +2084,120 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   MutationResponse sse_decode_mutation_response(SseDeserializer deserializer);
 
   @protected
+  NoticeDto sse_decode_notice_dto(SseDeserializer deserializer);
+
+  @protected
+  NoticesResponse sse_decode_notices_response(SseDeserializer deserializer);
+
+  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
+
+  @protected
+  AcademicDataDto? sse_decode_opt_box_autoadd_academic_data_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  AndroidDownloadDto? sse_decode_opt_box_autoadd_android_download_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BookPageDto? sse_decode_opt_box_autoadd_book_page_dto(
+    SseDeserializer deserializer,
+  );
 
   @protected
   bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
 
   @protected
+  BykcCatalogDto? sse_decode_opt_box_autoadd_bykc_catalog_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BykcChosenCoursesDto? sse_decode_opt_box_autoadd_bykc_chosen_courses_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BykcCourseDetailsDto? sse_decode_opt_box_autoadd_bykc_course_details_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BykcSemesterDto? sse_decode_opt_box_autoadd_bykc_semester_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BykcStatisticsDto? sse_decode_opt_box_autoadd_bykc_statistics_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CampusActivitiesDto? sse_decode_opt_box_autoadd_campus_activities_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CareerEventsDto? sse_decode_opt_box_autoadd_career_events_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CgyyActionResultDto? sse_decode_opt_box_autoadd_cgyy_action_result_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CgyyBookingOptionsDto? sse_decode_opt_box_autoadd_cgyy_booking_options_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CgyyChallengeDto? sse_decode_opt_box_autoadd_cgyy_challenge_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CgyyDayDto? sse_decode_opt_box_autoadd_cgyy_day_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CgyyLockCodeDto? sse_decode_opt_box_autoadd_cgyy_lock_code_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CgyyOrderDto? sse_decode_opt_box_autoadd_cgyy_order_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CgyyReviewDto? sse_decode_opt_box_autoadd_cgyy_review_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CheckinLoadProgressDto? sse_decode_opt_box_autoadd_checkin_load_progress_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CountPairDto? sse_decode_opt_box_autoadd_count_pair_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CourseAnnouncementDetailDto?
+  sse_decode_opt_box_autoadd_course_announcement_detail_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CourseResourcePageDto? sse_decode_opt_box_autoadd_course_resource_page_dto(
     SseDeserializer deserializer,
   );
 
@@ -682,10 +2210,57 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  GraduateCreditMapDto? sse_decode_opt_box_autoadd_graduate_credit_map_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GraduateCreditMetricsDto?
+  sse_decode_opt_box_autoadd_graduate_credit_metrics_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GraduateCreditNodeDto? sse_decode_opt_box_autoadd_graduate_credit_node_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GraduateProgressDto? sse_decode_opt_box_autoadd_graduate_progress_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  HomeworkUploadReceiptDto?
+  sse_decode_opt_box_autoadd_homework_upload_receipt_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  HomeworkWorkspaceDto? sse_decode_opt_box_autoadd_homework_workspace_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   int? sse_decode_opt_box_autoadd_i_32(SseDeserializer deserializer);
 
   @protected
   PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer);
+
+  @protected
+  LearningCapabilitiesDto? sse_decode_opt_box_autoadd_learning_capabilities_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LibraryLoanPageDto? sse_decode_opt_box_autoadd_library_loan_page_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LibraryStatsDto? sse_decode_opt_box_autoadd_library_stats_dto(
+    SseDeserializer deserializer,
+  );
 
   @protected
   RouteChoice? sse_decode_opt_box_autoadd_route_choice(
@@ -693,7 +2268,80 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ShuttleTimetableDto? sse_decode_opt_box_autoadd_shuttle_timetable_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  UpdateSummaryDto? sse_decode_opt_box_autoadd_update_summary_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<String>? sse_decode_opt_list_String(SseDeserializer deserializer);
+
+  @protected
+  List<BookHoldingDto>? sse_decode_opt_list_book_holding_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<BykcChosenRecordDto>? sse_decode_opt_list_bykc_chosen_record_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CgyyOrderDto>? sse_decode_opt_list_cgyy_order_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CgyySiteDto>? sse_decode_opt_list_cgyy_site_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CourseAnnouncementDto>? sse_decode_opt_list_course_announcement_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CourseAssessmentDto>? sse_decode_opt_list_course_assessment_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<HomeworkCapabilityEvidenceDto>?
+  sse_decode_opt_list_homework_capability_evidence_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<HomeworkPendingSubmissionDto>?
+  sse_decode_opt_list_homework_pending_submission_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<LearningColumnDto>? sse_decode_opt_list_learning_column_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<LearningCourseDto>? sse_decode_opt_list_learning_course_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<LocalTaskDto>? sse_decode_opt_list_local_task_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<NoticeDto>? sse_decode_opt_list_notice_dto(SseDeserializer deserializer);
 
   @protected
   Uint8List? sse_decode_opt_list_prim_u_8_strict(SseDeserializer deserializer);
@@ -705,7 +2353,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   QueryDates sse_decode_query_dates(SseDeserializer deserializer);
 
   @protected
-  ReadOnlyResponse sse_decode_read_only_response(SseDeserializer deserializer);
+  ReadingRoomDto sse_decode_reading_room_dto(SseDeserializer deserializer);
 
   @protected
   ReminderPlanResponse sse_decode_reminder_plan_response(
@@ -743,6 +2391,32 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   SessionState sse_decode_session_state(SseDeserializer deserializer);
 
   @protected
+  ShuttleRunDto sse_decode_shuttle_run_dto(SseDeserializer deserializer);
+
+  @protected
+  ShuttleSectionDto sse_decode_shuttle_section_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ShuttleTableDto sse_decode_shuttle_table_dto(SseDeserializer deserializer);
+
+  @protected
+  ShuttleTimetableDto sse_decode_shuttle_timetable_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ShuttleTimetableResponse sse_decode_shuttle_timetable_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  SnapshotImportResponse sse_decode_snapshot_import_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   TaskReminderSeed sse_decode_task_reminder_seed(SseDeserializer deserializer);
 
   @protected
@@ -761,13 +2435,109 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_decode_unit(SseDeserializer deserializer);
 
   @protected
+  UpdateResponse sse_decode_update_response(SseDeserializer deserializer);
+
+  @protected
+  UpdateSummaryDto sse_decode_update_summary_dto(SseDeserializer deserializer);
+
+  @protected
   void sse_encode_String(String self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_academic_data_dto(
+    AcademicDataDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_android_download_dto(
+    AndroidDownloadDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_book_hit_dto(BookHitDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_book_holding_dto(
+    BookHoldingDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_book_holdings_response(
+    BookHoldingsResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_book_page_dto(BookPageDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_book_page_response(
+    BookPageResponse self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_academic_data_dto(
+    AcademicDataDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_android_download_dto(
+    AndroidDownloadDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_book_page_dto(
+    BookPageDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_bykc_catalog_dto(
+    BykcCatalogDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_bykc_chosen_courses_dto(
+    BykcChosenCoursesDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_bykc_course_details_dto(
+    BykcCourseDetailsDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_bykc_semester_dto(
+    BykcSemesterDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_bykc_statistics_dto(
+    BykcStatisticsDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_campus_activities_dto(
+    CampusActivitiesDto self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_career_events_dto(
@@ -776,8 +2546,74 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_cgyy_action_result_dto(
+    CgyyActionResultDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_cgyy_booking_options_dto(
+    CgyyBookingOptionsDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_cgyy_challenge_dto(
+    CgyyChallengeDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_cgyy_day_dto(
+    CgyyDayDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_cgyy_lock_code_dto(
+    CgyyLockCodeDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_cgyy_order_dto(
+    CgyyOrderDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_cgyy_review_dto(
+    CgyyReviewDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_checkin_load_progress_dto(
+    CheckinLoadProgressDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_classroom_query(
     ClassroomQuery self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_count_pair_dto(
+    CountPairDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_course_announcement_detail_dto(
+    CourseAnnouncementDetailDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_course_resource_page_dto(
+    CourseResourcePageDto self,
     SseSerializer serializer,
   );
 
@@ -797,6 +2633,42 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_graduate_credit_map_dto(
+    GraduateCreditMapDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_graduate_credit_metrics_dto(
+    GraduateCreditMetricsDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_graduate_credit_node_dto(
+    GraduateCreditNodeDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_graduate_progress_dto(
+    GraduateProgressDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_homework_upload_receipt_dto(
+    HomeworkUploadReceiptDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_homework_workspace_dto(
+    HomeworkWorkspaceDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_i_32(int self, SseSerializer serializer);
 
   @protected
@@ -806,8 +2678,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_learning_capabilities_dto(
+    LearningCapabilitiesDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_library_loan_page_dto(
+    LibraryLoanPageDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_library_slot(
     LibrarySlot self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_library_stats_dto(
+    LibraryStatsDto self,
     SseSerializer serializer,
   );
 
@@ -820,6 +2710,102 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_route_choice(
     RouteChoice self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_shuttle_timetable_dto(
+    ShuttleTimetableDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_update_summary_dto(
+    UpdateSummaryDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_bykc_catalog_dto(
+    BykcCatalogDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_bykc_catalog_response(
+    BykcCatalogResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_bykc_chosen_courses_dto(
+    BykcChosenCoursesDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_bykc_chosen_record_dto(
+    BykcChosenRecordDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_bykc_chosen_response(
+    BykcChosenResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_bykc_course_details_dto(
+    BykcCourseDetailsDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_bykc_course_dto(BykcCourseDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_bykc_semester_dto(
+    BykcSemesterDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_bykc_statistics_dto(
+    BykcStatisticsDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_bykc_statistics_entry_dto(
+    BykcStatisticsEntryDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_bykc_statistics_response(
+    BykcStatisticsResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_campus_activities_dto(
+    CampusActivitiesDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_campus_activities_response(
+    CampusActivitiesResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_campus_activity_dto(
+    CampusActivityDto self,
     SseSerializer serializer,
   );
 
@@ -848,6 +2834,72 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_cgyy_action_result_dto(
+    CgyyActionResultDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_cgyy_action_result_response(
+    CgyyActionResultResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_cgyy_booking_choice_dto(
+    CgyyBookingChoiceDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_cgyy_booking_options_dto(
+    CgyyBookingOptionsDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_cgyy_challenge_dto(
+    CgyyChallengeDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_cgyy_day_dto(CgyyDayDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_cgyy_load_response(
+    CgyyLoadResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_cgyy_lock_code_dto(
+    CgyyLockCodeDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_cgyy_order_dto(CgyyOrderDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_cgyy_purpose_dto(
+    CgyyPurposeDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_cgyy_review_dto(CgyyReviewDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_cgyy_site_dto(CgyySiteDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_cgyy_slot_dto(CgyySlotDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_cgyy_space_dto(CgyySpaceDto self, SseSerializer serializer);
+
+  @protected
   void sse_encode_check_in_course(CheckInCourse self, SseSerializer serializer);
 
   @protected
@@ -858,6 +2910,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_check_in_status(CheckInStatus self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_checkin_load_progress_dto(
+    CheckinLoadProgressDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_checkin_load_progress_response(
+    CheckinLoadProgressResponse self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_classroom_building(
@@ -884,8 +2948,65 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_classroom_sort(ClassroomSort self, SseSerializer serializer);
 
   @protected
+  void sse_encode_count_pair_dto(CountPairDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_course_announcement_detail_dto(
+    CourseAnnouncementDetailDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_course_announcement_detail_response(
+    CourseAnnouncementDetailResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_course_announcement_dto(
+    CourseAnnouncementDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_course_announcements_response(
+    CourseAnnouncementsResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_course_assessment_dto(
+    CourseAssessmentDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_course_assessments_response(
+    CourseAssessmentsResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_course_reminder_seed(
     CourseReminderSeed self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_course_resource_dto(
+    CourseResourceDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_course_resource_page_dto(
+    CourseResourcePageDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_course_resource_page_response(
+    CourseResourcePageResponse self,
     SseSerializer serializer,
   );
 
@@ -914,6 +3035,90 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_graduate_credit_map_dto(
+    GraduateCreditMapDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_graduate_credit_map_response(
+    GraduateCreditMapResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_graduate_credit_metrics_dto(
+    GraduateCreditMetricsDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_graduate_credit_node_dto(
+    GraduateCreditNodeDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_graduate_credit_row_dto(
+    GraduateCreditRowDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_graduate_credit_state_dto(
+    GraduateCreditStateDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_graduate_progress_dto(
+    GraduateProgressDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_graduate_response(
+    GraduateResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_graduate_row_dto(
+    GraduateRowDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_graduate_section_dto(
+    GraduateSectionDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_homework_attachment_dto(
+    HomeworkAttachmentDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_homework_capabilities_response(
+    HomeworkCapabilitiesResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_homework_capability_evidence_dto(
+    HomeworkCapabilityEvidenceDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_homework_capability_state_dto(
+    HomeworkCapabilityStateDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_homework_detail_response(
     HomeworkDetailResponse self,
     SseSerializer serializer,
@@ -926,7 +3131,31 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_homework_file_workspace_response(
+    HomeworkFileWorkspaceResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_homework_item(HomeworkItem self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_homework_pending_response(
+    HomeworkPendingResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_homework_pending_submission_dto(
+    HomeworkPendingSubmissionDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_homework_recovery_response(
+    HomeworkRecoveryResponse self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_homework_response(
@@ -941,10 +3170,82 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_homework_upload_receipt_dto(
+    HomeworkUploadReceiptDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_homework_upload_response(
+    HomeworkUploadResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_homework_workspace_dto(
+    HomeworkWorkspaceDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_learning_attachment_dto(
+    LearningAttachmentDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_learning_capabilities_dto(
+    LearningCapabilitiesDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_learning_capabilities_response(
+    LearningCapabilitiesResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_learning_capability_state_dto(
+    LearningCapabilityStateDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_learning_column_dto(
+    LearningColumnDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_learning_column_kind_dto(
+    LearningColumnKindDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_learning_columns_response(
+    LearningColumnsResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_learning_course_dto(
+    LearningCourseDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_learning_courses_response(
+    LearningCoursesResponse self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_learning_snapshot_response(
@@ -974,6 +3275,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_library_campus_stats_dto(
+    LibraryCampusStatsDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_library_demo_response(
     LibraryDemoResponse self,
     SseSerializer serializer,
@@ -982,6 +3289,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_library_history_response(
     LibraryHistoryResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_library_loan_dto(
+    LibraryLoanDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_library_loan_page_dto(
+    LibraryLoanPageDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_library_loans_response(
+    LibraryLoansResponse self,
     SseSerializer serializer,
   );
 
@@ -1004,6 +3329,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_library_stats_dto(
+    LibraryStatsDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_library_stats_response(
+    LibraryStatsResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_library_venue(LibraryVenue self, SseSerializer serializer);
 
   @protected
@@ -1016,8 +3353,86 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_book_hit_dto(
+    List<BookHitDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_book_holding_dto(
+    List<BookHoldingDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_bykc_chosen_record_dto(
+    List<BykcChosenRecordDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_bykc_course_dto(
+    List<BykcCourseDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_bykc_semester_dto(
+    List<BykcSemesterDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_bykc_statistics_entry_dto(
+    List<BykcStatisticsEntryDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_campus_activity_dto(
+    List<CampusActivityDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_career_event_dto(
     List<CareerEventDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_cgyy_booking_choice_dto(
+    List<CgyyBookingChoiceDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_cgyy_order_dto(
+    List<CgyyOrderDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_cgyy_purpose_dto(
+    List<CgyyPurposeDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_cgyy_site_dto(
+    List<CgyySiteDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_cgyy_slot_dto(
+    List<CgyySlotDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_cgyy_space_dto(
+    List<CgyySpaceDto> self,
     SseSerializer serializer,
   );
 
@@ -1040,8 +3455,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_course_announcement_dto(
+    List<CourseAnnouncementDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_course_assessment_dto(
+    List<CourseAssessmentDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_course_reminder_seed(
     List<CourseReminderSeed> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_course_resource_dto(
+    List<CourseResourceDto> self,
     SseSerializer serializer,
   );
 
@@ -1052,8 +3485,68 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_graduate_credit_node_dto(
+    List<GraduateCreditNodeDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_graduate_credit_row_dto(
+    List<GraduateCreditRowDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_graduate_row_dto(
+    List<GraduateRowDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_graduate_section_dto(
+    List<GraduateSectionDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_homework_attachment_dto(
+    List<HomeworkAttachmentDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_homework_capability_evidence_dto(
+    List<HomeworkCapabilityEvidenceDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_homework_item(
     List<HomeworkItem> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_homework_pending_submission_dto(
+    List<HomeworkPendingSubmissionDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_learning_attachment_dto(
+    List<LearningAttachmentDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_learning_column_dto(
+    List<LearningColumnDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_learning_course_dto(
+    List<LearningCourseDto> self,
     SseSerializer serializer,
   );
 
@@ -1066,6 +3559,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_library_booking(
     List<LibraryBooking> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_library_campus_stats_dto(
+    List<LibraryCampusStatsDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_library_loan_dto(
+    List<LibraryLoanDto> self,
     SseSerializer serializer,
   );
 
@@ -1088,6 +3593,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_local_task_dto(
+    List<LocalTaskDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_notice_dto(
+    List<NoticeDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_planned_reminder(
     List<PlannedReminder> self,
     SseSerializer serializer,
@@ -1105,6 +3622,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_reading_room_dto(
+    List<ReadingRoomDto> self,
     SseSerializer serializer,
   );
 
@@ -1139,6 +3662,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_shuttle_run_dto(
+    List<ShuttleRunDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_shuttle_section_dto(
+    List<ShuttleSectionDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_shuttle_table_dto(
+    List<ShuttleTableDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_task_reminder_seed(
     List<TaskReminderSeed> self,
     SseSerializer serializer,
@@ -1154,6 +3695,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_live_scope(LiveScope self, SseSerializer serializer);
 
   @protected
+  void sse_encode_local_task_dto(LocalTaskDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_local_tasks_response(
+    LocalTasksResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_login_challenge_response(
     LoginChallengeResponse self,
     SseSerializer serializer,
@@ -1166,14 +3716,143 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_notice_dto(NoticeDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_notices_response(
+    NoticesResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_academic_data_dto(
+    AcademicDataDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_android_download_dto(
+    AndroidDownloadDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_book_page_dto(
+    BookPageDto? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_box_autoadd_bykc_catalog_dto(
+    BykcCatalogDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_bykc_chosen_courses_dto(
+    BykcChosenCoursesDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_bykc_course_details_dto(
+    BykcCourseDetailsDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_bykc_semester_dto(
+    BykcSemesterDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_bykc_statistics_dto(
+    BykcStatisticsDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_campus_activities_dto(
+    CampusActivitiesDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_career_events_dto(
     CareerEventsDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_cgyy_action_result_dto(
+    CgyyActionResultDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_cgyy_booking_options_dto(
+    CgyyBookingOptionsDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_cgyy_challenge_dto(
+    CgyyChallengeDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_cgyy_day_dto(
+    CgyyDayDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_cgyy_lock_code_dto(
+    CgyyLockCodeDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_cgyy_order_dto(
+    CgyyOrderDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_cgyy_review_dto(
+    CgyyReviewDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_checkin_load_progress_dto(
+    CheckinLoadProgressDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_count_pair_dto(
+    CountPairDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_course_announcement_detail_dto(
+    CourseAnnouncementDetailDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_course_resource_page_dto(
+    CourseResourcePageDto? self,
     SseSerializer serializer,
   );
 
@@ -1187,11 +3866,65 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_graduate_credit_map_dto(
+    GraduateCreditMapDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_graduate_credit_metrics_dto(
+    GraduateCreditMetricsDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_graduate_credit_node_dto(
+    GraduateCreditNodeDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_graduate_progress_dto(
+    GraduateProgressDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_homework_upload_receipt_dto(
+    HomeworkUploadReceiptDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_homework_workspace_dto(
+    HomeworkWorkspaceDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_i_32(int? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_box_autoadd_i_64(
     PlatformInt64? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_learning_capabilities_dto(
+    LearningCapabilitiesDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_library_loan_page_dto(
+    LibraryLoanPageDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_library_stats_dto(
+    LibraryStatsDto? self,
     SseSerializer serializer,
   );
 
@@ -1202,7 +3935,94 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_shuttle_timetable_dto(
+    ShuttleTimetableDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_update_summary_dto(
+    UpdateSummaryDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_list_String(List<String>? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_list_book_holding_dto(
+    List<BookHoldingDto>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_bykc_chosen_record_dto(
+    List<BykcChosenRecordDto>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_cgyy_order_dto(
+    List<CgyyOrderDto>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_cgyy_site_dto(
+    List<CgyySiteDto>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_course_announcement_dto(
+    List<CourseAnnouncementDto>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_course_assessment_dto(
+    List<CourseAssessmentDto>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_homework_capability_evidence_dto(
+    List<HomeworkCapabilityEvidenceDto>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_homework_pending_submission_dto(
+    List<HomeworkPendingSubmissionDto>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_learning_column_dto(
+    List<LearningColumnDto>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_learning_course_dto(
+    List<LearningCourseDto>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_local_task_dto(
+    List<LocalTaskDto>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_notice_dto(
+    List<NoticeDto>? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_list_prim_u_8_strict(
@@ -1220,8 +4040,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_query_dates(QueryDates self, SseSerializer serializer);
 
   @protected
-  void sse_encode_read_only_response(
-    ReadOnlyResponse self,
+  void sse_encode_reading_room_dto(
+    ReadingRoomDto self,
     SseSerializer serializer,
   );
 
@@ -1271,6 +4091,39 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_session_state(SessionState self, SseSerializer serializer);
 
   @protected
+  void sse_encode_shuttle_run_dto(ShuttleRunDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_shuttle_section_dto(
+    ShuttleSectionDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_shuttle_table_dto(
+    ShuttleTableDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_shuttle_timetable_dto(
+    ShuttleTimetableDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_shuttle_timetable_response(
+    ShuttleTimetableResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_snapshot_import_response(
+    SnapshotImportResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_task_reminder_seed(
     TaskReminderSeed self,
     SseSerializer serializer,
@@ -1290,6 +4143,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_unit(void self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_update_response(
+    UpdateResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_update_summary_dto(
+    UpdateSummaryDto self,
+    SseSerializer serializer,
+  );
 }
 
 // Section: wire_class

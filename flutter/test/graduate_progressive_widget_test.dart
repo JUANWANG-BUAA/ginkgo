@@ -4,11 +4,12 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/features/graduate/graduate_models.dart';
+import 'package:ginkgo_mirror/application/graduate.dart';
 import 'package:ginkgo_mirror/features/graduate/graduate_page.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/src/rust/api/live.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
+
+import 'graduate_fixture.dart';
 
 void main() {
   testWidgets('replacing the academic provider rejects its delayed snapshots', (
@@ -18,8 +19,8 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    final oldStatus = Completer<ReadOnlyResponse>();
-    final oldReport = Completer<ReadOnlyResponse>();
+    final oldStatus = Completer<GraduateRead>();
+    final oldReport = Completer<GraduateRead>();
     await tester.pumpWidget(
       ginkgoApp(
         home: GraduatePage(
@@ -32,43 +33,35 @@ void main() {
       ginkgoApp(
         home: GraduatePage(
           loader: ({required report, required forceRefresh}) async =>
-              ReadOnlyResponse(
-                stale: false,
-                payload: jsonEncode({
-                  'sections': report
-                      ? []
-                      : [
-                          {
-                            'title': '学籍信息',
-                            'rows': [
-                              {'title': '学院', 'detail': '当前合成学院'},
-                            ],
-                          },
-                        ],
-                }),
-              ),
+              graduateRead({
+                'sections': report
+                    ? []
+                    : [
+                        {
+                          'title': '学籍信息',
+                          'rows': [
+                            {'title': '学院', 'detail': '当前合成学院'},
+                          ],
+                        },
+                      ],
+              }),
         ),
       ),
     );
     await tester.pumpAndSettle();
     oldStatus.complete(
-      ReadOnlyResponse(
-        stale: false,
-        payload: jsonEncode({
-          'sections': [
-            {
-              'title': '学籍信息',
-              'rows': [
-                {'title': '学院', 'detail': '旧合成学院'},
-              ],
-            },
-          ],
-        }),
-      ),
+      graduateRead({
+        'sections': [
+          {
+            'title': '学籍信息',
+            'rows': [
+              {'title': '学院', 'detail': '旧合成学院'},
+            ],
+          },
+        ],
+      }),
     );
-    oldReport.complete(
-      const ReadOnlyResponse(stale: false, payload: '{"sections":[]}'),
-    );
+    oldReport.complete(const GraduateRead(data: GraduateReport(sections: [])));
     await tester.pumpAndSettle();
     expect(find.text('当前合成学院'), findsOneWidget);
     expect(find.text('旧合成学院'), findsNothing);
@@ -82,7 +75,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      final requests = <bool, List<Completer<ReadOnlyResponse>>>{
+      final requests = <bool, List<Completer<GraduateRead>>>{
         false: [],
         true: [],
       };
@@ -90,7 +83,7 @@ void main() {
         ginkgoApp(
           home: GraduatePage(
             loader: ({required report, required forceRefresh}) {
-              final pending = Completer<ReadOnlyResponse>();
+              final pending = Completer<GraduateRead>();
               requests[report]!.add(pending);
               return pending.future;
             },
@@ -98,19 +91,16 @@ void main() {
         ),
       );
       requests[false]!.single.complete(
-        ReadOnlyResponse(
-          stale: false,
-          payload: jsonEncode({
-            'sections': [
-              {
-                'title': '学籍信息',
-                'rows': [
-                  {'title': '学院', 'detail': '合成学院'},
-                ],
-              },
-            ],
-          }),
-        ),
+        graduateRead({
+          'sections': [
+            {
+              'title': '学籍信息',
+              'rows': [
+                {'title': '学院', 'detail': '合成学院'},
+              ],
+            },
+          ],
+        }),
       );
       await tester.pump();
       expect(find.text('合成学院'), findsOneWidget);
@@ -120,10 +110,7 @@ void main() {
             .readAsStringSync(),
       ) as Map;
       requests[true]!.single.complete(
-        ReadOnlyResponse(
-          stale: false,
-          payload: jsonEncode(fixture['expected']),
-        ),
+        graduateRead(fixture['expected'] as Map<String, dynamic>),
       );
       await tester.pumpAndSettle();
       expect(find.text('尚需 30'), findsOneWidget);
@@ -151,10 +138,7 @@ void main() {
       await tester.tap(find.bySemanticsLabel('刷新研究生教务').first);
       await tester.pump();
       requests[true]!.last.complete(
-        const ReadOnlyResponse(
-          stale: false,
-          failure: FailureCode.serviceUnavailable,
-        ),
+        const GraduateRead(failure: FailureCode.serviceUnavailable),
       );
       await tester.pump();
       expect(find.text('尚需 30'), findsOneWidget);
@@ -165,13 +149,10 @@ void main() {
       expect(requests[true]!.length, 3);
       expect(requests[false]!.length, 2);
       requests[false]!.last.complete(
-        const ReadOnlyResponse(stale: false, payload: '{"sections":[]}'),
+        const GraduateRead(data: GraduateReport(sections: [])),
       );
       requests[true]!.last.complete(
-        ReadOnlyResponse(
-          stale: false,
-          payload: jsonEncode(fixture['expected']),
-        ),
+        graduateRead(fixture['expected'] as Map<String, dynamic>),
       );
       await tester.pumpAndSettle();
       expect(find.text('合成学院'), findsNothing);
@@ -222,10 +203,7 @@ void main() {
       ginkgoApp(
         home: GraduatePage(
           loader: ({required report, required forceRefresh}) async =>
-              ReadOnlyResponse(
-                stale: false,
-                payload: jsonEncode({'sections': report ? sections : []}),
-              ),
+              graduateRead({'sections': report ? sections : []}),
         ),
       ),
     );
@@ -283,47 +261,44 @@ void main() {
               ),
               child: GraduatePage(
                 loader: ({required report, required forceRefresh}) async =>
-                    ReadOnlyResponse(
-                      stale: false,
-                      payload: jsonEncode({
-                        'sections': report
-                            ? [
-                                {
-                                  'title': '培养方案执行报告',
-                                  'progress': {
-                                    'required': 32,
-                                    'earned': 2,
-                                    'pending': 1,
-                                  },
-                                  'rows': [
-                                    {'title': '全校累计已修学分', 'detail': '4'},
-                                  ],
+                    graduateRead({
+                      'sections': report
+                          ? [
+                              {
+                                'title': '培养方案执行报告',
+                                'progress': {
+                                  'required': 32,
+                                  'earned': 2,
+                                  'pending': 1,
                                 },
-                                {
-                                  'title': categoryTitle,
-                                  'progress': {
-                                    'required': 6,
-                                    'earned': 2,
-                                    'pending': 1,
-                                  },
-                                  'rows': [
-                                    {
-                                      'title': '类别要求与进度',
-                                      'detail': '要求 6 · 已获 2 · 待考核 1 学分',
-                                    },
-                                    {
-                                      'title': courseTitle,
-                                      'detail': detail,
-                                      'isCourse': true,
-                                      'credit': 2,
-                                      'semester': '合成学期',
-                                    },
-                                  ],
+                                'rows': [
+                                  {'title': '全校累计已修学分', 'detail': '4'},
+                                ],
+                              },
+                              {
+                                'title': categoryTitle,
+                                'progress': {
+                                  'required': 6,
+                                  'earned': 2,
+                                  'pending': 1,
                                 },
-                              ]
-                            : [],
-                      }),
-                    ),
+                                'rows': [
+                                  {
+                                    'title': '类别要求与进度',
+                                    'detail': '要求 6 · 已获 2 · 待考核 1 学分',
+                                  },
+                                  {
+                                    'title': courseTitle,
+                                    'detail': detail,
+                                    'isCourse': true,
+                                    'credit': 2,
+                                    'semester': '合成学期',
+                                  },
+                                ],
+                              },
+                            ]
+                          : [],
+                    }),
               ),
             ),
           ),
@@ -410,25 +385,21 @@ void main() {
                   child: Column(
                     children: [
                       GraduateCreditProgress(
-                        progress: GraduateProgress.fromJson({
-                          'required': null,
-                          'earned': 2,
-                          'pending': null,
-                        }),
+                        progress: GraduateProgress(earned: 2),
                       ),
                       GraduateCreditProgress(
-                        progress: GraduateProgress.fromJson({
-                          'required': 0,
-                          'earned': 0,
-                          'pending': 0,
-                        }),
+                        progress: GraduateProgress(
+                          requiredCredits: 0,
+                          earned: 0,
+                          pending: 0,
+                        ),
                       ),
                       GraduateCreditProgress(
-                        progress: GraduateProgress.fromJson({
-                          'required': 4,
-                          'earned': 6,
-                          'pending': 5,
-                        }),
+                        progress: GraduateProgress(
+                          requiredCredits: 4,
+                          earned: 6,
+                          pending: 5,
+                        ),
                       ),
                     ],
                   ),

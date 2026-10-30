@@ -18,7 +18,6 @@ export '../src/rust/api/live.dart'
         LibraryHistoryResponse,
         LiveScope,
         MutationResponse,
-        ReadOnlyResponse,
         RouteChoice,
         SessionResponse,
         SessionState;

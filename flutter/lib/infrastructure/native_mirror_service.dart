@@ -7,11 +7,21 @@ import 'package:path_provider/path_provider.dart';
 
 import '../application/contracts.dart';
 import '../application/campus_activities.dart';
+import '../application/cgyy_commands.dart';
+import '../application/checkin_progress.dart';
+import '../application/library_holdings.dart';
+import '../application/local_tasks_read.dart';
+import '../application/notices.dart';
+import '../application/shuttle.dart';
 import '../application/mirror_service.dart';
 import '../src/rust/api/live.dart' as live;
 import '../src/rust/api/mirror.dart' as rust;
 
 import 'package:ginkgo_mirror/infrastructure/native_learning.dart';
+import 'package:ginkgo_mirror/infrastructure/library_holdings_decode.dart';
+import 'package:ginkgo_mirror/infrastructure/local_tasks_decode.dart';
+import 'package:ginkgo_mirror/infrastructure/notices_decode.dart';
+import 'package:ginkgo_mirror/infrastructure/shuttle_decode.dart';
 import 'package:ginkgo_mirror/infrastructure/native_campus_activities.dart';
 import 'package:ginkgo_mirror/infrastructure/native_career.dart';
 import 'package:ginkgo_mirror/infrastructure/native_library_loans.dart';
@@ -19,6 +29,17 @@ import 'package:ginkgo_mirror/infrastructure/learning_snapshot_store.dart';
 import 'package:ginkgo_mirror/infrastructure/native_reminder_planning.dart';
 import 'package:ginkgo_mirror/infrastructure/graduate_credit_map_payload.dart';
 import 'package:ginkgo_mirror/infrastructure/native_command.dart';
+import 'package:ginkgo_mirror/infrastructure/library_stats_decode.dart';
+import 'package:ginkgo_mirror/infrastructure/library_books_decode.dart';
+import 'package:ginkgo_mirror/infrastructure/graduate_decode.dart';
+import 'package:ginkgo_mirror/infrastructure/bykc_decode.dart';
+import 'package:ginkgo_mirror/infrastructure/cgyy_decode.dart';
+
+import '../features/cgyy/cgyy_models.dart';
+import '../application/bykc.dart';
+import '../application/graduate.dart';
+import '../application/library_books.dart';
+import '../application/library_stats.dart';
 
 final class NativeMirrorService
     with
@@ -55,13 +76,6 @@ final class NativeMirrorService
     return owner;
   }
 
-  Map<String, dynamic> _homeworkPayload(live.ReadOnlyResponse response) {
-    if (response.failure != null || response.payload == null) {
-      throw StateError('作业服务暂不可用，请刷新或前往官网');
-    }
-    return jsonDecode(response.payload!) as Map<String, dynamic>;
-  }
-
   Future<void> _prepareHomework() async {
     final root = await getApplicationSupportDirectory();
     final canonical = await root.resolveSymbolicLinks();
@@ -71,7 +85,7 @@ final class NativeMirrorService
         storageRoot: canonical,
       ),
     );
-    if (r.failure != null) {
+    if (r.failure != null || r.configured != true) {
       throw StateError('提交保护存储不可用，已阻止写入；附件读取不受影响');
     }
   }
@@ -87,14 +101,19 @@ final class NativeMirrorService
         assignmentId: assignmentId,
       ),
     );
-    if (r.failure != null || r.payload == null) {
+    if (r.failure != null || r.data == null) {
       throw StateError('未能读取待核实提交，请勿重复提交');
     }
-    return (jsonDecode(r.payload!) as List)
-        .map(
-          (v) => HomeworkPendingSubmission.fromJson(v as Map<String, dynamic>),
-        )
-        .toList(growable: false);
+    return List.unmodifiable(
+      r.data!.map(
+        (v) => HomeworkPendingSubmission(
+          v.handle,
+          v.assignmentId,
+          fileName: v.fileName,
+          size: v.size,
+        ),
+      ),
+    );
   }
 
   @override
@@ -108,14 +127,29 @@ final class NativeMirrorService
         assignmentId: assignmentId,
       ),
     );
-    if (r.failure != null || r.payload == null) {
+    if (r.failure != null || r.data == null) {
       throw StateError('作业接口状态检测失败，请重新登录或重试');
     }
-    return (jsonDecode(r.payload!) as List)
-        .map(
-          (v) => HomeworkCapabilityEvidence.fromJson(v as Map<String, dynamic>),
-        )
-        .toList(growable: false);
+    return List.unmodifiable(
+      r.data!.map(
+        (v) => HomeworkCapabilityEvidence(
+          capability: v.capability,
+          // The school's own state wording stays a String; the enum lives in Rust.
+          state: switch (v.state) {
+            live.HomeworkCapabilityStateDto.available => 'available',
+            live.HomeworkCapabilityStateDto.unknown => 'unknown',
+            live.HomeworkCapabilityStateDto.unsupported => 'unsupported',
+            live.HomeworkCapabilityStateDto.protocolChanged =>
+              'protocolChanged',
+            live.HomeworkCapabilityStateDto.tempUnavailable =>
+              'tempUnavailable',
+            live.HomeworkCapabilityStateDto.authRequired => 'authRequired',
+          },
+          reason: v.reason,
+          evidence: v.evidence,
+        ),
+      ),
+    );
   }
 
   @override
@@ -131,17 +165,35 @@ final class NativeMirrorService
   );
 
   @override
-  Future<HomeworkFileWorkspace> homeworkFiles(String assignmentId) async =>
-      HomeworkFileWorkspace.fromJson(
-        _homeworkPayload(
-          await boundedNativeRead(
-            () => live.homeworkFileWorkspace(
-              expectedAccount: _homeworkOwner,
-              assignmentId: assignmentId,
-            ),
-          ),
-        ),
-      );
+  Future<HomeworkFileWorkspace> homeworkFiles(String assignmentId) async {
+    final r = await boundedNativeRead(
+      () => live.homeworkFileWorkspace(
+        expectedAccount: _homeworkOwner,
+        assignmentId: assignmentId,
+      ),
+    );
+    if (r.failure != null || r.data == null) {
+      throw StateError('作业服务暂不可用，请刷新或前往官网');
+    }
+    final d = r.data!;
+    return HomeworkFileWorkspace(
+      assignmentId: d.assignmentId,
+      methods: List.unmodifiable(d.allowedMethods),
+      extensions: List.unmodifiable(d.allowedExtensions),
+      limit: d.submissionLimit,
+      count: d.submittedCount,
+      returned: d.returned,
+      text: d.submittedText,
+      feedback: d.feedback,
+      attachments: List.unmodifiable(
+        d.attachments.map((a) => HomeworkFileAttachment(a.id, a.name, a.kind)),
+      ),
+      canSubmit: d.canSubmitFile,
+      blockedReason: d.blockedReason,
+      limitBytes: d.fileLimitBytes,
+    );
+  }
+
   @override
   Future<HomeworkFileReceipt> uploadHomeworkFile(
     String assignmentId,
@@ -149,20 +201,21 @@ final class NativeMirrorService
     Uint8List bytes,
   ) async {
     await _prepareHomework();
-    final j = _homeworkPayload(
-      await boundedNativeWrite(
-        () => live.uploadHomeworkFile(
-          expectedAccount: _homeworkOwner,
-          assignmentId: assignmentId,
-          name: name,
-          bytes: bytes,
-        ),
+    final r = await boundedNativeWrite(
+      () => live.uploadHomeworkFile(
+        expectedAccount: _homeworkOwner,
+        assignmentId: assignmentId,
+        name: name,
+        bytes: bytes,
       ),
     );
+    if (r.failure != null || r.data == null) {
+      throw StateError('作业服务暂不可用，请刷新或前往官网');
+    }
     return HomeworkFileReceipt(
-      j['handle'] as String,
-      j['fileName'] as String,
-      j['size'] as int,
+      r.data!.handle,
+      r.data!.fileName,
+      r.data!.size.toInt(),
     );
   }
 
@@ -200,83 +253,116 @@ final class NativeMirrorService
   }
 
   @override
-  Future<ReadOnlyResponse> executeCgyy(Map<String, Object?> command) async {
+  Future<CgyyActionResult> executeCgyy(CgyyCommand command) async {
     // Old routes/callbacks must not mutate a newly authenticated account.
     // This value is a precondition only; Rust still derives the actual owner.
     if (expectedAccount?.isNotEmpty != true) {
       throw StateError('CGYY requires an account-bound workspace');
     }
     final root = await getApplicationSupportDirectory();
-    return boundedNativeWrite(
+    final r = await boundedNativeWrite(
       () => live.executeCgyy(
         command: jsonEncode({
-          ...command,
+          ...command.toPayload(),
           'storage_root': root.path,
           'expected_account': expectedAccount,
         }),
       ),
     );
+    // A hard failure (busy backstop, transport) must surface as an error: the
+    // caller must never read a dropped write as an uncertain school outcome.
+    if (r.failure != null || r.data == null) {
+      throw StateError('CGYY write failed; the pending marker survives');
+    }
+    return decodeCgyyAction(r);
   }
 
   @override
-  Future<live.ReadOnlyResponse> checkinProgress() =>
-      boundedNativeRead(() => live.checkinLoadProgress());
+  Future<CheckinProgressRead> checkinProgress() async {
+    final response = await boundedNativeRead(() => live.checkinLoadProgress());
+    final data = response.data;
+    return CheckinProgressRead(
+      data: data == null
+          ? null
+          : CheckinProgressTelemetry(
+              phase: data.phase,
+              elapsedSeconds: ((data.elapsedMs ?? 0) / 1000).floor(),
+            ),
+      failure: response.failure,
+    );
+  }
+
   @override
-  Future<live.ReadOnlyResponse> bykcPart(
+  Future<BykcPartRead> bykcPart(
     BykcPart part, {
     bool forceRefresh = false,
-  }) => switch (part) {
-    BykcPart.catalog => boundedNativeRead(
-      () => live.loadBykc(forceRefresh: forceRefresh),
+  }) async => switch (part) {
+    BykcPart.catalog => decodeBykcCatalog(
+      await boundedNativeRead(() => live.loadBykc(forceRefresh: forceRefresh)),
     ),
-    BykcPart.chosen => boundedNativeRead(
-      () => live.loadBykcChosen(forceRefresh: forceRefresh),
+    BykcPart.chosen => decodeBykcChosen(
+      await boundedNativeRead(
+        () => live.loadBykcChosen(forceRefresh: forceRefresh),
+      ),
     ),
-    BykcPart.statistics => boundedNativeRead(
-      () => live.loadBykcStatistics(forceRefresh: forceRefresh),
+    BykcPart.statistics => decodeBykcStatistics(
+      await boundedNativeRead(
+        () => live.loadBykcStatistics(forceRefresh: forceRefresh),
+      ),
     ),
   };
+
   @override
-  Future<live.ReadOnlyResponse> graduatePart({
+  Future<GraduateRead> graduatePart({
     required bool report,
     required bool forceRefresh,
-  }) => boundedNativeRead(
-    () => live.loadGraduatePart(report: report, forceRefresh: forceRefresh),
+  }) async => decodeGraduate(
+    await boundedNativeRead(
+      () => live.loadGraduatePart(report: report, forceRefresh: forceRefresh),
+    ),
   );
   @override
-  Future<live.ReadOnlyResponse> notices({bool forceRefresh = false}) =>
-      boundedNativeRead(() => live.loadNotices(forceRefresh: forceRefresh));
+  Future<NoticesRead> notices({bool forceRefresh = false}) async =>
+      decodeNotices(
+        await boundedNativeRead(
+          () => live.loadNotices(forceRefresh: forceRefresh),
+        ),
+      );
   @override
-  Future<live.ReadOnlyResponse> cgyy({
+  Future<CgyyLoadRead> cgyy({
     required String kind,
     required int siteId,
     required String date,
     required bool forceRefresh,
-  }) => boundedNativeRead(
-    () => live.loadCgyy(
-      kind: kind,
-      siteId: siteId,
-      date: date,
-      forceRefresh: forceRefresh,
+  }) async => decodeCgyyLoad(
+    await boundedNativeRead(
+      () => live.loadCgyy(
+        kind: kind,
+        siteId: siteId,
+        date: date,
+        forceRefresh: forceRefresh,
+      ),
     ),
   );
   @override
-  Future<live.ReadOnlyResponse> editTasks({
+  Future<LocalTasksRead> editTasks({
     required String root,
     required String action,
     String? id,
     String? title,
     String? due,
     bool? completed,
-  }) => boundedNativeRead(
-    () => live.editTasks(
-      root: root,
-      demo: false,
-      action: action,
-      id: id,
-      title: title,
-      due: due,
-      completed: completed,
+  }) async => decodeLocalTasks(
+    await boundedNativeRead(
+      () => live.editTasks(
+        root: root,
+        demo: false,
+        action: action,
+        id: id,
+        title: title,
+        due: due,
+        completed: completed,
+      ),
     ),
   );
   @override
@@ -398,30 +484,38 @@ final class NativeMirrorService
     () => live.loadCheckinOnDate(date: date, forceRefresh: forceRefresh),
   );
   @override
-  Future<live.ReadOnlyResponse> libraryStats({bool forceRefresh = false}) =>
-      boundedNativeRead(
-        () => live.loadLibraryStats(forceRefresh: forceRefresh),
+  Future<LibraryStatsRead> libraryStats({bool forceRefresh = false}) async =>
+      decodeLibraryStats(
+        await boundedNativeRead(
+          () => live.loadLibraryStats(forceRefresh: forceRefresh),
+        ),
       );
   @override
-  Future<live.ReadOnlyResponse> libraryBooks({
+  Future<BookPageRead> libraryBooks({
     required String query,
     required int page,
     String sort = 'relevance',
     bool descending = true,
-  }) => boundedNativeRead(
-    () => live.loadLibraryBooks(
-      query: query,
-      page: page,
-      sort: sort,
-      descending: descending,
+  }) async => decodeBookPage(
+    await boundedNativeRead(
+      () => live.loadLibraryBooks(
+        query: query,
+        page: page,
+        sort: sort,
+        descending: descending,
+      ),
     ),
   );
   @override
-  Future<live.ReadOnlyResponse> shuttleTimetable() =>
-      boundedNativeRead(() => live.loadShuttleTimetable());
+  Future<ShuttleTimetableRead> shuttleTimetable() async =>
+      decodeShuttleTimetable(
+        await boundedNativeRead(() => live.loadShuttleTimetable()),
+      );
   @override
-  Future<live.ReadOnlyResponse> libraryHoldings(String bibId) =>
-      boundedNativeRead(() => live.loadLibraryHoldings(bibId: bibId));
+  Future<BookHoldingsRead> libraryHoldings(String bibId) async =>
+      decodeBookHoldings(
+        await boundedNativeRead(() => live.loadLibraryHoldings(bibId: bibId)),
+      );
   @override
   Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false}) =>
       boundedNativeRead(

@@ -118,7 +118,7 @@
 - `pub fn content(value: &Value) -> Result<&Value, AppError> {…}` — SPOC envelope success is 200 (API.md §7.1), independent of other portals.
   <sub>fn · rust/crates/ginkgo_upstream/src/codecs/homework.rs:148</sub>
 - `pub fn parse_detail(value: &Value) -> Result<HomeworkDetail, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/homework.rs:160</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/homework.rs:162</sub>
 
 ## announcements
 

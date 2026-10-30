@@ -1,6 +1,10 @@
 //! Feature implementation behind the stable live API.
 use super::*;
 
+#[cfg(test)]
+pub(super) static LOCAL_REVOCATIONS: std::sync::atomic::AtomicUsize =
+    std::sync::atomic::AtomicUsize::new(0);
+
 pub(super) async fn login(
     account: String,
     password: String,
@@ -59,26 +63,33 @@ pub(super) async fn restore_session() -> SessionResponse {
     }
 }
 
+async fn revoke_locally(service: &LiveService) {
+    service.sign_out().await;
+    #[cfg(test)]
+    LOCAL_REVOCATIONS.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+}
+
 pub(super) async fn sign_out() -> SessionResponse {
     // Two steps, deliberately split. The exclusive gate guards only the
     // in-memory revocation; the saved-password purge touches platform storage
     // (JNI + blocking `commit()`) and runs after the gate is released, so a
     // slow Keystore can never queue other commands behind a logout.
     let revoked = with_session_write(|| async {
-        let Some(Ok(service)) = SERVICE.get() else {
+        let Some(service) = SERVICE.get() else {
             return Ok(false);
         };
-        service.sign_out().await;
+        revoke_locally(service).await;
         Ok(true)
     })
     .await;
-    let Ok(true) = revoked else {
-        // A gate timeout still reports signed-out: identity and cookies are
-        // cleared by `sign_out` before it returns, and the local flag below
-        // keeps the next start on the login page.
-        return signed_out();
-    };
-    if let Some(Ok(service)) = SERVICE.get() {
+    if !matches!(revoked, Ok(true)) {
+        // Failing to enter the gate must never skip revocation and then report
+        // a signed-out UI while the old identity and cookies remain usable.
+        if let Some(service) = SERVICE.get() {
+            revoke_locally(service).await;
+        }
+    }
+    if let Some(service) = SERVICE.get() {
         service.purge_credentials().await;
     }
     signed_out()

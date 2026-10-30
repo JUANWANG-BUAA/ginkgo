@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/shuttle.dart';
 
 class IndependentGateways extends Fake
     implements

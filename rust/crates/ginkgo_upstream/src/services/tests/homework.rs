@@ -265,3 +265,58 @@ async fn an_account_change_during_the_homework_read_rejects_its_result() {
         .expect_err("a late read must not cross accounts");
     assert_eq!(error.code, ErrorCode::SessionExpired);
 }
+
+/// A module that refuses its own token must not be reported as a global
+/// session expiry, and it must not drag the whole session through a silent
+/// re-login: the shared session may still be working for every other module.
+#[tokio::test]
+async fn a_module_auth_refusal_never_relogins_the_shared_session() {
+    use crate::adapters::homework_http::SPOC_BASE;
+    let envelope = |content: Value| serde_json::json!({"code":200,"content":content}).to_string();
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend([
+        HttpResponse::new(200, "https://spoc.buaa.edu.cn/spocnew/", "spa"),
+        HttpResponse::new(
+            404,
+            "https://spoc.buaa.edu.cn/spocnew/cas?token=fixture",
+            "callback",
+        ),
+        HttpResponse::new(
+            200,
+            format!("{SPOC_BASE}/sys/casLogin"),
+            envelope(serde_json::json!({"rolecode":"01"})),
+        ),
+        // SPOC refuses its own token on the first real read.
+        HttpResponse::new(
+            200,
+            "term",
+            serde_json::json!({"code":401,"content":null}).to_string(),
+        ),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("login");
+    let logins_before = transport
+        .requests()
+        .iter()
+        .filter(|request| request.url == LOGIN_URL)
+        .count();
+
+    let error = service
+        .load_homework(false)
+        .await
+        .expect_err("the module refused its own token");
+    assert_eq!(error.code, ErrorCode::ModuleAuthRequired);
+
+    let logins_after = transport
+        .requests()
+        .iter()
+        .filter(|request| request.url == LOGIN_URL)
+        .count();
+    assert_eq!(
+        logins_after, logins_before,
+        "a module-scoped refusal must not re-login the shared session"
+    );
+}

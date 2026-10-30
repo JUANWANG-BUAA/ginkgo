@@ -24,6 +24,6 @@
 | 导航 / 设置 | Auth/、Settings/、Core/Network/UpstreamRoute.swift | 760px 宽度切换 iOS 式手机布局与 macOS 式桌面层次；独立导航栈；非工作台返回、工作台二次确认；7 组深浅强调色与预览、账号级常用入口 0–4 项、手机栏目方向动效/减少动态效果；显示与阅读、通知与后台、账号隐私、UBAA 致谢与分享；应用内 Android 更新 | Windows 真实业务 / 完整读屏；主登录验证码图片、Windows 系统通知与后台签到仍未接通；Android 截止 / 签到本地提醒和诊断 hint 已接入 |
 | Windows | 原生 macOS 作为行为参照 | 当前公开 Alpha.6（Alpha.4 为首发），未签名 x64 单文件安装器与便携 ZIP；Parallels Windows 11 ARM 上的 Release、保险库、独立详情栈、宽窄切换、固定桌面页头、Tab / Enter 与返回栈回归已通过 | [首发边界](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)：物理 x64、干净系统依赖、读屏、真实业务、签名与更新仍待验收 |
 
-当前状态色在 [AppleDesign](../flutter/lib/apple_design.dart) 集中定义，覆盖签到、作业、图书馆与场馆的成功 / 待处理 / 待核实 / 错误 / 未激活呈现。文字仍保留具体业务状态，不由颜色反推“可签到 / 可预约”。
+当前状态色在 [AppleDesign](../flutter/lib/design/apple_design.dart) 集中定义，覆盖签到、作业、图书馆与场馆的成功 / 待处理 / 待核实 / 错误 / 未激活呈现。文字仍保留具体业务状态，不由颜色反推“可签到 / 可预约”。
 
 可重复的验证入口见 [实施现状](MIRROR-IMPLEMENTATION.md)，剩余工作只在 [TODO](MIRROR-TODO.md) 更新。旧版逐模块分析和每轮细节见 [历史索引](archive/mirror/README.md)。

@@ -23,6 +23,8 @@ jobs:
       - run: python3 scripts/generate-interface-index-test.py
       - run: python3 scripts/check-design-tokens.py
       - run: python3 scripts/generate-interface-index.py --check
+      - run: python3 scripts/check-api-doc-test.py
+      - run: python3 scripts/check-api-doc.py
       - run: cargo fmt --manifest-path rust/Cargo.toml --all --check
       - run: cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets --all-features --locked -- -D warnings
       - run: cargo test --manifest-path rust/Cargo.toml -p ginkgo_core --no-default-features --locked

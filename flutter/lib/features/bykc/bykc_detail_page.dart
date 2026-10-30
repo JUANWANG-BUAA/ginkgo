@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/features/bykc/bykc_models.dart';
+import 'package:ginkgo_mirror/application/bykc.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 
 /// A projection of the fetched snapshot. Opening it sends no new request.
@@ -147,7 +147,10 @@ class BykcDetailPage extends StatelessWidget {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         details?.summary ?? '上游未提供',
-                        style: const TextStyle(fontSize: AppleDesign.bodyCondensedSize, height: 1.5),
+                        style: const TextStyle(
+                          fontSize: AppleDesign.bodyCondensedSize,
+                          height: 1.5,
+                        ),
                       ),
                     ),
                   ),

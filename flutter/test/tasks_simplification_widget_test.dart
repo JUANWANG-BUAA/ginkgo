@@ -1,14 +1,15 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/task_storage_scope.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/features/tasks/task_editor.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
+import 'package:ginkgo_mirror/application/local_tasks_read.dart';
+
+import 'local_tasks_read_fixture.dart';
 
 import 'task_link_widget_test.dart' show TaskFake, record, press, phone;
 import 'task_visual_test.dart' show visualApp, narrowPhone, expectTouchTarget;
@@ -32,23 +33,24 @@ void main() {
     expect(fake.calls, ['load']);
   });
 
-  testWidgets('storage resolution failure does not read or invent empty tasks', (
-    tester,
-  ) async {
-    phone(tester);
-    final fake = TaskFake();
-    await tester.pumpWidget(
-      ginkgoApp(
-        home: TaskStorageScope(
-          resolve: () async => throw StateError('storage unavailable'),
-          child: TasksPage(service: fake),
+  testWidgets(
+    'storage resolution failure does not read or invent empty tasks',
+    (tester) async {
+      phone(tester);
+      final fake = TaskFake();
+      await tester.pumpWidget(
+        ginkgoApp(
+          home: TaskStorageScope(
+            resolve: () async => throw StateError('storage unavailable'),
+            child: TasksPage(service: fake),
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(fake.calls, isEmpty);
-    expect(find.text('待办读取或保存未确认，请刷新核对后再编辑。'), findsOneWidget);
-  });
+      );
+      await tester.pumpAndSettle();
+      expect(fake.calls, isEmpty);
+      expect(find.text('待办读取或保存未确认，请刷新核对后再编辑。'), findsOneWidget);
+    },
+  );
 
   testWidgets('completed deadlines merge and stay collapsed until requested', (
     tester,
@@ -143,7 +145,7 @@ void main() {
       expectTouchTarget(tester, 'tasks-add');
       await press(tester, 'tasks-more');
       expectTouchTarget(tester, 'tasks-refresh');
-      final pending = Completer<ReadOnlyResponse>();
+      final pending = Completer<LocalTasksRead>();
       fake.pendingLoad = pending;
       await tester.tap(find.byKey(const Key('tasks-refresh')));
       await tester.pump();
@@ -162,9 +164,7 @@ void main() {
             .onPressed,
         isNull,
       );
-      pending.complete(
-        ReadOnlyResponse(payload: jsonEncode(fake.rows), stale: false),
-      );
+      pending.complete(tasksRead(fake.rows));
       await tester.pumpAndSettle();
       expect(fake.calls, ['load', 'load']);
       expect(tester.takeException(), isNull);

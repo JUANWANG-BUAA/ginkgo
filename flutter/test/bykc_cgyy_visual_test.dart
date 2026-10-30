@@ -1,25 +1,25 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/cgyy_commands.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_page.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_booking_page.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_review_page.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
+import 'package:ginkgo_mirror/application/bykc.dart';
 
-ReadOnlyResponse payload(Object value) =>
-    ReadOnlyResponse(payload: jsonEncode(value), stale: false);
+import 'bykc_fixture.dart';
 
 class PendingBooking implements CgyyBookingGateway {
-  final options = Completer<ReadOnlyResponse>();
+  final options = Completer<CgyyActionResult>();
   @override
-  Future<ReadOnlyResponse> executeCgyy(Map<String, Object?> command) {
-    if (command['action'] != 'options') {
+  Future<CgyyActionResult> executeCgyy(CgyyCommand command) {
+    if (command.toPayload()['action'] != 'options') {
       throw StateError('The visual test only opens the options read');
     }
     return options.future;
@@ -27,10 +27,10 @@ class PendingBooking implements CgyyBookingGateway {
 }
 
 class PendingReview implements CgyyBookingGateway {
-  final review = Completer<ReadOnlyResponse>();
+  final review = Completer<CgyyActionResult>();
   @override
-  Future<ReadOnlyResponse> executeCgyy(Map<String, Object?> command) {
-    if (command['action'] != 'review') {
+  Future<CgyyActionResult> executeCgyy(CgyyCommand command) {
+    if (command.toPayload()['action'] != 'review') {
       throw StateError('The visual test only opens the review read');
     }
     return review.future;
@@ -38,8 +38,8 @@ class PendingReview implements CgyyBookingGateway {
 }
 
 class PendingSlots {
-  final slots = Completer<ReadOnlyResponse>();
-  Future<ReadOnlyResponse> load({
+  final slots = Completer<CgyyLoadRead>();
+  Future<CgyyLoadRead> load({
     required String kind,
     required int siteId,
     required String date,
@@ -47,9 +47,9 @@ class PendingSlots {
   }) {
     if (kind == 'venues') {
       return Future.value(
-        payload([
-          {'id': 1, 'name': '合成场馆', 'campus': '合成校区'},
-        ]),
+        CgyyLoadRead(
+          sites: const [CgyySite(id: 1, name: '合成场馆', campus: '合成校区')],
+        ),
       );
     }
     return slots.future;
@@ -74,7 +74,7 @@ void main() {
     '博雅 first load uses the branded loading view and its academic identity',
     (tester) async {
       await desktop(tester);
-      final catalog = Completer<ReadOnlyResponse>();
+      final catalog = Completer<BykcPartRead>();
       await tester.pumpWidget(
         ginkgoApp(
           home: BykcPage(
@@ -94,7 +94,9 @@ void main() {
           .map((activity) => activity.size);
       expect(sizes, containsAll(<double>[17, 36]));
 
-      catalog.complete(payload({'courses': [], 'terms': []}));
+      catalog.complete(
+        bykcRead(BykcPart.catalog, {'courses': [], 'terms': []}),
+      );
       await tester.pumpAndSettle();
       expect(find.byType(GinkgoLoadingView), findsNothing);
       expect(tester.takeException(), isNull);
@@ -105,7 +107,7 @@ void main() {
     '研讨室 first load uses the branded loading view and its space identity',
     (tester) async {
       await desktop(tester);
-      final venues = Completer<ReadOnlyResponse>();
+      final venues = Completer<CgyyLoadRead>();
       await tester.pumpWidget(
         ginkgoApp(
           home: CgyyPage(
@@ -125,7 +127,7 @@ void main() {
       expect(find.byType(CupertinoActivityIndicator), findsNothing);
       expectIdentity('空间资源', '选择场馆并查看可预约空间', CupertinoIcons.person_3);
 
-      venues.complete(payload(<Object>[]));
+      venues.complete(const CgyyLoadRead(sites: []));
       await tester.pumpAndSettle();
       expect(find.byType(GinkgoLoadingView), findsNothing);
       expect(tester.takeException(), isNull);
@@ -148,7 +150,9 @@ void main() {
     expect(find.byType(CupertinoActivityIndicator), findsNothing);
 
     loader.slots.complete(
-      payload({'date': '2026-10-25', 'spaces': <Object>[]}),
+      CgyyLoadRead(
+        day: const CgyyDay(date: '2026-10-25', spaces: []),
+      ),
     );
     await tester.pumpAndSettle();
     expect(find.byType(GinkgoLoadingView), findsNothing);
@@ -179,10 +183,14 @@ void main() {
       expect(find.byType(CupertinoActivityIndicator), findsNothing);
 
       gateway.options.complete(
-        payload({
-          'state': 'options',
-          'options': {'choices': <Object>[], 'purposes': <Object>[]},
-        }),
+        CgyyActionResult.of(
+          state: 'options',
+          options: CgyyBookingOptions(
+            choices: const [],
+            purposes: const [],
+            usesFallbackPurposes: false,
+          ),
+        ),
       );
       await tester.pumpAndSettle();
       expect(find.byType(GinkgoLoadingView), findsNothing);
@@ -207,10 +215,10 @@ void main() {
       expect(find.byType(CupertinoActivityIndicator), findsNothing);
 
       gateway.review.complete(
-        payload({
-          'state': 'reviewRequired',
-          'review': {'id': 'synthetic-review', 'orders': <Object>[]},
-        }),
+        CgyyActionResult.of(
+          state: 'reviewRequired',
+          review: const CgyyReviewSnapshot(id: 'synthetic-review', orders: []),
+        ),
       );
       await tester.pumpAndSettle();
       expect(find.byType(GinkgoLoadingView), findsNothing);

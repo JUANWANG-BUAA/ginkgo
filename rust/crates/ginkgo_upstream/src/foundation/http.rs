@@ -106,7 +106,23 @@ impl HttpResponse {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TransportError {
+    /// No response ever arrived: name resolution, TCP connect, TLS handshake
+    /// or the request deadline failed. Rerouting through the school gateway
+    /// cannot repair this, and the copy must not blame the school.
+    Unreachable,
+    /// The transport could not be used, or the server answered and the
+    /// exchange still could not be completed (client construction, response
+    /// over the size limit, body truncated, task aborted).
     Unavailable,
+}
+
+impl From<TransportError> for crate::AppError {
+    fn from(error: TransportError) -> Self {
+        match error {
+            TransportError::Unreachable => Self::network_unreachable(),
+            TransportError::Unavailable => Self::unavailable(),
+        }
+    }
 }
 
 pub trait HttpTransport {

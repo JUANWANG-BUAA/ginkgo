@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:package_info_plus/package_info_plus.dart';
@@ -29,16 +28,6 @@ class UpdateResult {
     this.notes,
     this.download,
   });
-  factory UpdateResult.fromJson(Map<String, dynamic> json) => UpdateResult(
-    latest: json['latest'] as String?,
-    available: json['available'] as bool,
-    apkAvailable: json['apkAvailable'] as bool,
-    pageUrl: json['pageUrl'] as String?,
-    notes: json['notes'] as String?,
-    download: json['download'] == null
-        ? null
-        : AndroidDownload.fromJson(json['download'] as Map<String, dynamic>),
-  );
   final String? latest, pageUrl, notes;
   final bool available, apkAvailable;
   final AndroidDownload? download;
@@ -77,11 +66,25 @@ class NativeMaintenanceService implements MaintenanceService {
     final result = await boundedNativeRead(
       () => live.checkAndroidUpdate(current: current),
     );
-    if (result.failure != null || result.payload == null) {
-      throw const FormatException('Update unavailable');
-    }
-    return UpdateResult.fromJson(
-      jsonDecode(result.payload!) as Map<String, dynamic>,
+    final summary = result.data;
+    if (summary == null) throw const FormatException('Update unavailable');
+    final asset = summary.download;
+    return UpdateResult(
+      latest: summary.latest,
+      available: summary.available,
+      apkAvailable: summary.apkAvailable,
+      pageUrl: summary.pageUrl,
+      notes: summary.notes,
+      download: asset == null
+          ? null
+          : AndroidDownload(
+              version: asset.version,
+              name: asset.name,
+              url: asset.url,
+              apiUrl: asset.apiUrl,
+              size: asset.size,
+              sha256: asset.sha256,
+            ),
     );
   }
 
@@ -142,9 +145,7 @@ class NativeMaintenanceService implements MaintenanceService {
 Future<bool> checkPublicService(MirrorService service) async {
   if (service.isDemo) return false;
   final result = await service.libraryStats(forceRefresh: true);
-  if (result.failure != null || result.stale || result.payload == null) {
-    return false;
-  }
-  final json = jsonDecode(result.payload!) as Map<String, dynamic>;
-  return json['fromCache'] == false && json['campuses'] is List;
+  final data = result.data;
+  if (result.failure != null || data == null) return false;
+  return !data.fromCache;
 }

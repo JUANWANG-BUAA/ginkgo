@@ -18,11 +18,14 @@ class CampusActivitiesPage extends StatelessWidget {
     service: service,
     initialQuery: 1,
     read: (page, force) async {
-      final result = await service!
-          .campusActivities(page: page, forceRefresh: force);
+      final result = await service!.campusActivities(
+        page: page,
+        forceRefresh: force,
+      );
       return SectionResult(
         value: result.data,
         error: result.failure == null ? null : failureMessage(result.failure),
+        failure: result.failure,
       );
     },
     scrollKey: const Key('campus-activities-scroll'),

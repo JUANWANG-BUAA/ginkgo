@@ -1,11 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/notices.dart';
+import 'package:ginkgo_mirror/application/shuttle.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_page.dart';
 import 'package:ginkgo_mirror/features/classroom/classroom_page.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
@@ -13,34 +14,37 @@ import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/features/notices/notices_page.dart';
 import 'package:ginkgo_mirror/features/shuttle/shuttle_page.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
+import 'package:ginkgo_mirror/application/local_tasks_read.dart';
+
+import 'local_tasks_read_fixture.dart';
 
 import 'mirror_widget_test.dart' show ControlledService, checkInFixture;
 
 /// One pending read per page. Nothing here reaches native bindings, demo
 /// initialization or a school network.
 class PendingPageService extends ControlledService {
-  final noticesRequests = <Completer<ReadOnlyResponse>>[];
+  final noticesRequests = <Completer<NoticesRead>>[];
   final noticesForces = <bool>[];
-  final shuttleRequests = <Completer<ReadOnlyResponse>>[];
-  final tasksRequests = <Completer<ReadOnlyResponse>>[];
+  final shuttleRequests = <Completer<ShuttleTimetableRead>>[];
+  final tasksRequests = <Completer<LocalTasksRead>>[];
 
   @override
-  Future<ReadOnlyResponse> notices({bool forceRefresh = false}) {
-    final request = Completer<ReadOnlyResponse>();
+  Future<NoticesRead> notices({bool forceRefresh = false}) {
+    final request = Completer<NoticesRead>();
     noticesRequests.add(request);
     noticesForces.add(forceRefresh);
     return request.future;
   }
 
   @override
-  Future<ReadOnlyResponse> shuttleTimetable() {
-    final request = Completer<ReadOnlyResponse>();
+  Future<ShuttleTimetableRead> shuttleTimetable() {
+    final request = Completer<ShuttleTimetableRead>();
     shuttleRequests.add(request);
     return request.future;
   }
 
   @override
-  Future<ReadOnlyResponse> editTasks({
+  Future<LocalTasksRead> editTasks({
     required String root,
     required String action,
     String? id,
@@ -51,7 +55,7 @@ class PendingPageService extends ControlledService {
     if (action != 'load') {
       throw UnimplementedError('Unexpected task write: $action');
     }
-    final request = Completer<ReadOnlyResponse>();
+    final request = Completer<LocalTasksRead>();
     tasksRequests.add(request);
     return request.future;
   }
@@ -79,48 +83,40 @@ final _rooms = ClassroomResponse(
   fromCache: false,
 );
 
-ReadOnlyResponse _notices() => ReadOnlyResponse(
-  stale: false,
-  payload: jsonEncode([
-    {
-      'title': '合成校园通知',
-      'published_at': '2026-10-20 10:00',
-      'url': 'https://news.example.test/1',
-      'summary': '合成摘要',
-    },
-  ]),
+NoticesRead _notices() => const NoticesRead(
+  data: [
+    Notice(
+      title: '合成校园通知',
+      publishedAt: '2026-10-20 10:00',
+      url: 'https://news.example.test/1',
+      summary: '合成摘要',
+    ),
+  ],
 );
 
-ReadOnlyResponse _timetable() => ReadOnlyResponse(
-  stale: false,
-  payload: jsonEncode({
-    'source': 'https://shuttle.example.test/published-timetable',
-    'tables': [
-      {
-        'left': '合成甲校区 → 合成乙校区',
-        'right': '合成乙校区 → 合成甲校区',
-        'sections': [
-          {
-            'label': '星期一至星期五',
-            'left': [
-              {'index': '1', 'time': '09:00', 'capacity': '45'},
-            ],
-            'right': [
-              {'index': '1', 'time': '10:15', 'capacity': '48'},
-            ],
-          },
+ShuttleTimetableRead _timetable() => const ShuttleTimetableRead(
+  data: ShuttleTimetable(
+    source: 'https://shuttle.example.test/published-timetable',
+    liveSource: '',
+    tables: [
+      ShuttleTable(
+        left: '合成甲校区 → 合成乙校区',
+        right: '合成乙校区 → 合成甲校区',
+        sections: [
+          ShuttleSection(
+            label: '星期一至星期五',
+            left: [ShuttleRun(index: '1', time: '09:00', capacity: '45')],
+            right: [ShuttleRun(index: '1', time: '10:15', capacity: '48')],
+          ),
         ],
-      },
+      ),
     ],
-  }),
+  ),
 );
 
-final _tasks = ReadOnlyResponse(
-  stale: false,
-  payload: jsonEncode([
-    {'id': 'one', 'title': '合成待办', 'due': '2026-10-22', 'completed': false},
-  ]),
-);
+final _tasks = tasksRead([
+  {'id': 'one', 'title': '合成待办', 'due': '2026-10-22', 'completed': false},
+]);
 
 /// Wide windows render the desktop identity; phones keep the native title.
 void desktopViewport(WidgetTester tester) {
@@ -267,6 +263,24 @@ void main() {
     expect(find.byType(GinkgoLoadingView), findsNothing);
     expect(find.text('合成校园通知'), findsOneWidget);
     expect(find.byType(CupertinoActivityIndicator), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('an offline notices read blames the connection, not the school', (
+    tester,
+  ) async {
+    desktopViewport(tester);
+    final service = PendingPageService();
+    await tester.pumpWidget(ginkgoApp(home: NoticesPage(service: service)));
+    service.noticesRequests.single.complete(
+      const NoticesRead(failure: FailureCode.networkUnreachable),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('无法连接网络，请检查手机网络或校园网后重试'), findsOneWidget);
+    expect(find.text('手机当前连不上网络，恢复网络后重试。'), findsOneWidget);
+    // Neither a school outage nor a website the offline reader cannot reach.
+    expect(find.text('学校服务暂时不可用，请稍后重试'), findsNothing);
+    expect(find.text('请稍后重试，或在服务目录中打开官网。'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

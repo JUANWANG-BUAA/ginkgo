@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_detail_page.dart';
-import 'package:ginkgo_mirror/features/bykc/bykc_models.dart';
+import 'package:ginkgo_mirror/application/bykc.dart';
 import 'package:ginkgo_mirror/main.dart';
 
 void main() {
@@ -20,23 +20,26 @@ void main() {
               disableAnimations: true,
             ),
             child: BykcDetailPage(
-              course: BykcCourse.fromJson({
-                'name': '合成课程长标题用于验证自动换行',
-                'teacher': '合成教师',
-                'position': '合成教室',
-                'category': '美育',
-                'details': {
-                  'start': '2026-10-21 14:00:00',
-                  'end': '2026-10-21 16:00:00',
-                  'enrolled': 0,
-                },
-              }),
-              chosenRecord: BykcChosenRecord.fromJson({
-                'checkin': 1,
-                'passed': 1,
-                'score': 92,
-                'selectedAt': '2026-10-20 09:00:00',
-              }),
+              course: const BykcCourse(
+                id: 0,
+                name: '合成课程长标题用于验证自动换行',
+                teacher: '合成教师',
+                position: '合成教室',
+                category: '美育',
+                details: BykcCourseDetails(
+                  start: '2026-10-21 14:00:00',
+                  end: '2026-10-21 16:00:00',
+                  enrolled: 0,
+                ),
+              ),
+              chosenRecord: const BykcChosenRecord(
+                id: 0,
+                course: BykcCourse(id: 0, name: '合成课程长标题用于验证自动换行'),
+                checkin: 1,
+                passed: 1,
+                score: 92,
+                selectedAt: '2026-10-20 09:00:00',
+              ),
             ),
           ),
         ),
@@ -78,10 +81,11 @@ void main() {
             disableAnimations: true,
           ),
           child: BykcDetailPage(
-            course: BykcCourse.fromJson({
-              'name': '合成课程长标题用于验证自动换行与可读性',
-              'details': {'enrolled': 0},
-            }),
+            course: const BykcCourse(
+              id: 0,
+              name: '合成课程长标题用于验证自动换行与可读性',
+              details: BykcCourseDetails(enrolled: 0),
+            ),
           ),
         ),
       ),

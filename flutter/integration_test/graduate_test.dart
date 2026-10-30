@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:ginkgo_mirror/features/graduate/graduate_page.dart';
 import 'package:ginkgo_mirror/main.dart';
+import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
 
 import 'support.dart';
@@ -13,7 +14,7 @@ void main() {
   testWidgets('graduate execution report shows upstream category credits', (
     tester,
   ) async {
-    await tester.pumpWidget(ginkgoApp(home: const GraduatePage(demo: true)));
+    await tester.pumpWidget(ginkgoApp(home: const GraduatePage(service: DemoMirrorService())));
     await settle(tester);
     await tap(tester, '合成类别', scrollKey: 'graduate-scroll');
     await show(

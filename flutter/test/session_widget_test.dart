@@ -1,5 +1,5 @@
+import 'package:ginkgo_mirror/application/local_tasks_read.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart' show MutationResponse;
-import 'package:ginkgo_mirror/src/rust/api/live.dart' show ReadOnlyResponse;
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show LibraryHistoryResponse;
 
@@ -18,6 +18,7 @@ import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show GradeTermsResponse, RouteChoice, SessionResponse, SessionState;
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
+import 'package:ginkgo_mirror/application/library_stats.dart';
 
 import 'mirror_widget_test.dart' show mockLocalTaskSupportDirectory;
 
@@ -85,7 +86,7 @@ final staleClassrooms = ClassroomResponse(
 
 class FakeService extends Fake implements MirrorService {
   @override
-  Future<ReadOnlyResponse> editTasks({
+  Future<LocalTasksRead> editTasks({
     required String root,
     required String action,
     String? id,
@@ -96,7 +97,7 @@ class FakeService extends Fake implements MirrorService {
     if (action != 'load') {
       throw UnimplementedError('Unexpected task write: $action');
     }
-    return const ReadOnlyResponse(stale: false, payload: '[]');
+    return const LocalTasksRead(data: []);
   }
 
   FakeService({
@@ -238,8 +239,8 @@ class FakeService extends Fake implements MirrorService {
     stale: false,
   );
   @override
-  Future<ReadOnlyResponse> libraryStats({bool forceRefresh = false}) async =>
-      const ReadOnlyResponse(stale: false);
+  Future<LibraryStatsRead> libraryStats({bool forceRefresh = false}) async =>
+      const LibraryStatsRead();
   @override
   Future<LibraryHistoryResponse> libraryHistory(
     int page, {
@@ -446,6 +447,10 @@ void main() {
       find.byKey(const Key('login-password')),
       'fixture-secret',
     );
+    // The interstitial only applies when the user asked to remember and the
+    // vault could not honour it, so opt in explicitly.
+    await tester.tap(find.byType(CupertinoSwitch));
+    await tester.pump();
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
     expect(find.text('已登录，密码未保存'), findsOneWidget);

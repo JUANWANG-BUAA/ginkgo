@@ -15,9 +15,10 @@ fn evidence(
 }
 fn error_state(error: &AppError) -> HomeworkCapabilityState {
     match error.code {
-        ErrorCode::SessionExpired | ErrorCode::InvalidCredentials | ErrorCode::CaptchaRequired => {
-            HomeworkCapabilityState::AuthRequired
-        }
+        ErrorCode::SessionExpired
+        | ErrorCode::InvalidCredentials
+        | ErrorCode::CaptchaRequired
+        | ErrorCode::ModuleAuthRequired => HomeworkCapabilityState::AuthRequired,
         ErrorCode::ChangedResponse => HomeworkCapabilityState::ProtocolChanged,
         ErrorCode::ServiceUnavailable => HomeworkCapabilityState::TempUnavailable,
         _ => HomeworkCapabilityState::Unknown,

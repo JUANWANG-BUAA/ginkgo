@@ -1,18 +1,18 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/cgyy_commands.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_review_page.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
 import 'package:ginkgo_mirror/main.dart';
 
+import 'cgyy_fixture.dart';
 import 'mirror_widget_test.dart' show ControlledService;
 
-const currentOrder = <String, dynamic>{
+CgyyOrder get currentOrder => cgyyOrderFrom(const <String, dynamic>{
   'id': 42,
   'place': '合成楼 · A101',
   'date': '2030-12-31',
@@ -21,7 +21,7 @@ const currentOrder = <String, dynamic>{
   'order_status': 1,
   'check_status': 2,
   'can_cancel': true,
-};
+});
 
 class ManagementService extends ControlledService
     implements CgyyBookingGateway {
@@ -33,23 +33,21 @@ class ManagementService extends ControlledService
   bool ackFails = false;
   bool lockFails = false;
   int lockReads = 0;
-  Object lockCode = <String, dynamic>{
-    'qrCode': '246810',
-    'dueDate': '2026-10-27 10:00:00',
-    'tradeNo': 'synthetic-trade',
-    'venueName': '合成楼',
-    'spaceName': 'A101',
-    'reservationDate': '2026-10-27',
-  };
+  CgyyLockCode lockCode = const CgyyLockCode(
+    qrCode: '246810',
+    dueDate: '2026-10-27 10:00:00',
+    tradeNo: 'synthetic-trade',
+    venueName: '合成楼',
+    spaceName: 'A101',
+    reservationDate: '2026-10-27',
+  );
   Completer<void>? cancelWait;
   Completer<void>? reviewWait;
   final reads = <bool>[];
   @override
   bool get isDemo => false;
-  ReadOnlyResponse payload(Object value) =>
-      ReadOnlyResponse(stale: false, payload: jsonEncode(value));
   @override
-  Future<ReadOnlyResponse> cgyy({
+  Future<CgyyLoadRead> cgyy({
     required String kind,
     required int siteId,
     required String date,
@@ -60,49 +58,49 @@ class ManagementService extends ControlledService
       lockReads++;
       if (lockFails) throw StateError('synthetic lock read failure');
     }
-    return payload(switch (kind) {
-      'venues' => [
-        {'id': 1, 'name': '合成研讨室', 'venue': '合成楼', 'campus': '沙河', 'seats': 8},
-      ],
-      'day' => {
-        'date': date,
-        'dates': [date],
-        'spaces': [],
-      },
-      'order' => currentOrder,
-      'lockCode' => lockCode,
-      _ => [currentOrder],
-    });
+    return switch (kind) {
+      'venues' => CgyyLoadRead(
+        sites: [
+          CgyySite(id: 1, name: '合成研讨室', venue: '合成楼', campus: '沙河', seats: 8),
+        ],
+      ),
+      'day' => CgyyLoadRead(
+        day: CgyyDay(date: date, spaces: const []),
+      ),
+      'order' => CgyyLoadRead(order: currentOrder),
+      'lockCode' => CgyyLoadRead(lockCode: lockCode),
+      _ => CgyyLoadRead(orders: [currentOrder]),
+    };
   }
 
   @override
-  Future<ReadOnlyResponse> executeCgyy(Map<String, Object?> command) async {
-    commands.add(command);
-    switch (command['action']) {
+  Future<CgyyActionResult> executeCgyy(CgyyCommand command) async {
+    commands.add(command.toPayload());
+    switch (command.toPayload()['action']) {
       case 'status':
         if (statusFails) throw StateError('synthetic status failure');
-        return payload({
-          'state': pending ? 'uncertain' : 'ready',
-          'message': '本机写入状态',
-        });
+        return CgyyActionResult.fromState(
+          pending ? 'uncertain' : 'ready',
+          '本机写入状态',
+        );
       case 'review':
         await reviewWait?.future;
         if (reviewFails) throw StateError('synthetic read failure');
-        return payload({
-          'state': 'reviewRequired',
-          'review': {
-            'id': 'fresh-review',
-            'orders': emptyReview ? [] : [currentOrder],
-          },
-        });
+        return CgyyActionResult.of(
+          state: 'reviewRequired',
+          review: CgyyReviewSnapshot(
+            id: 'fresh-review',
+            orders: emptyReview ? const [] : [currentOrder],
+          ),
+        );
       case 'acknowledge':
         if (ackFails) throw StateError('synthetic expired review');
         pending = false;
-        return payload({'state': 'ready', 'message': '已解除保护'});
+        return CgyyActionResult.fromState('ready', '已解除保护');
       case 'cancel':
         pending = true;
         await cancelWait?.future;
-        return payload({'state': 'uncertain', 'message': '取消结果待核实，请勿重发'});
+        return CgyyActionResult.fromState('uncertain', '取消结果待核实，请勿重发');
       default:
         throw StateError('Unexpected action');
     }
@@ -120,7 +118,9 @@ Future<void> visible(WidgetTester tester, Finder finder) async {
 
 Future<void> openRecords(WidgetTester tester, ManagementService service) async {
   await tester.pumpWidget(
-    ginkgoApp(home: CgyyPage(service: service, bookingGateway: service)),
+    ginkgoApp(
+      home: CgyyPage(service: service, bookingGateway: service),
+    ),
   );
   await tester.pumpAndSettle();
   await tester.tap(find.text('我的预约记录'));
@@ -129,15 +129,16 @@ Future<void> openRecords(WidgetTester tester, ManagementService service) async {
 
 void main() {
   test('booking options preserve the fallback source marker', () {
-    final fallback = CgyyBookingOptions.fromJson(const {
-      'choices': [],
-      'purposes': [],
-      'uses_fallback_purposes': true,
-    });
-    final school = CgyyBookingOptions.fromJson(const {
-      'choices': [],
-      'purposes': [],
-    });
+    final fallback = CgyyBookingOptions(
+      choices: const [],
+      purposes: const [],
+      usesFallbackPurposes: true,
+    );
+    final school = CgyyBookingOptions(
+      choices: const [],
+      purposes: const [],
+      usesFallbackPurposes: false,
+    );
     expect(fallback.usesFallbackPurposes, isTrue);
     expect(school.usesFallbackPurposes, isFalse);
   });
@@ -145,27 +146,22 @@ void main() {
   test(
     'approval states distinguish pending, approved, rejected and absent',
     () {
-      expect(CgyyOrder.fromJson(currentOrder).statusLabel, '待辅导员审批');
-      expect(
-        CgyyOrder.fromJson({...currentOrder, 'check_status': 1}).statusLabel,
-        '审批通过',
+      CgyyOrder withStatus({int? orderStatus, int? checkStatus}) => CgyyOrder(
+        id: currentOrder.id,
+        place: currentOrder.place,
+        date: currentOrder.date,
+        time: currentOrder.time,
+        status: currentOrder.status,
+        orderStatus: orderStatus ?? currentOrder.orderStatus,
+        checkStatus: checkStatus,
+        canCancel: currentOrder.canCancel,
       );
-      expect(
-        CgyyOrder.fromJson({...currentOrder, 'check_status': -2}).statusLabel,
-        '辅导员审批驳回',
-      );
-      expect(
-        CgyyOrder.fromJson({...currentOrder, 'order_status': 2}).statusLabel,
-        '已取消',
-      );
-      expect(
-        CgyyOrder.fromJson({...currentOrder, 'check_status': null}).statusLabel,
-        contains('未提供'),
-      );
-      expect(
-        CgyyOrder.fromJson({...currentOrder, 'check_status': 123}).statusLabel,
-        contains('待确认'),
-      );
+      expect(currentOrder.statusLabel, '待辅导员审批');
+      expect(withStatus(checkStatus: 1).statusLabel, '审批通过');
+      expect(withStatus(checkStatus: -2).statusLabel, '辅导员审批驳回');
+      expect(withStatus(orderStatus: 2).statusLabel, '已取消');
+      expect(withStatus().statusLabel, contains('未提供'));
+      expect(withStatus(checkStatus: 123).statusLabel, contains('待确认'));
     },
   );
 

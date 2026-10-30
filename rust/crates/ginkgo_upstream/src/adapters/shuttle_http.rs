@@ -87,11 +87,9 @@ mod tests {
     async fn public_get_is_anonymous_and_cannot_pollute_either_shared_cookie_jar_or_route() {
         let gateway_url = webvpn::wrap(SOURCE_URL).unwrap();
         for preference in [RouteMode::Direct, RouteMode::Automatic, RouteMode::WebVpn] {
-            let routed_url = if preference == RouteMode::WebVpn {
-                &gateway_url
-            } else {
-                SOURCE_URL
-            };
+            // Anonymous reads carry no gateway cookies, so even an explicit
+            // WebVPN preference resolves to the direct host.
+            let routed_url = SOURCE_URL;
             let shared = Session::new(ScriptedTransport::new(vec![
                 Ok(HttpResponse::new(200, SOURCE_URL, "seed direct")
                     .with_set_cookie("signed_direct=synthetic; Path=/; Secure")),
@@ -277,14 +275,7 @@ mod tests {
                 1
             };
             assert_eq!(requests.len(), expected_attempts, "route {preference:?}");
-            assert_eq!(
-                requests[0].url,
-                if preference == RouteMode::WebVpn {
-                    &gateway_url
-                } else {
-                    SOURCE_URL
-                }
-            );
+            assert_eq!(requests[0].url, SOURCE_URL);
             if preference == RouteMode::Automatic {
                 assert_eq!(requests[1].url, gateway_url);
             }

@@ -54,7 +54,7 @@ class _CgyyOrderDetailPageState extends State<CgyyOrderDetailPage> {
       setState(() {
         busy = false;
         if (result.failure != null) error = failureMessage(result.failure);
-        if (result.payload != null) order = cgyyOrder(result.payload!);
+        if (result.order != null) order = result.order!;
       });
     } catch (_) {
       if (mounted && serial == request) {

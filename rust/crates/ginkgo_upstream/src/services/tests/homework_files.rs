@@ -751,12 +751,13 @@ async fn homework_file_explicit_auth_envelopes_are_not_plain_business_rejection(
             token: "fixture".into(),
             role: "student".into(),
         };
+        // SPOC refused its own token; the shared school session is untouched.
         assert_eq!(
             protocol::submission(&session, &a, "work-a")
                 .await
                 .unwrap_err()
                 .code,
-            ErrorCode::SessionExpired
+            ErrorCode::ModuleAuthRequired
         );
         assert_eq!(transport.request_count(), 1);
         let transport = MockTransport::with_responses(vec![response(
@@ -768,7 +769,7 @@ async fn homework_file_explicit_auth_envelopes_are_not_plain_business_rejection(
                 .await
                 .unwrap_err()
                 .code,
-            ErrorCode::SessionExpired
+            ErrorCode::ModuleAuthRequired
         );
         assert_eq!(transport.request_count(), 1);
     }

@@ -1,5 +1,5 @@
 import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/environment.dart';
 
 class CampusActivity {
   const CampusActivity({
@@ -12,16 +12,6 @@ class CampusActivity {
     required this.url,
   });
 
-  factory CampusActivity.fromJson(Map<String, dynamic> json) => CampusActivity(
-    id: json['id'] as String,
-    title: json['title'] as String,
-    category: json['category'] as String,
-    publishedAt: json['publishedAt'] as String,
-    activityTime: json['activityTime'] as String,
-    place: json['place'] as String,
-    url: json['url'] as String,
-  );
-
   final String id, title, category, publishedAt, activityTime, place, url;
 }
 
@@ -31,19 +21,6 @@ class CampusActivities {
     required this.activities,
     required this.fetchedAt,
   });
-
-  factory CampusActivities.fromJson(Map<String, dynamic> json) {
-    final page = json['page'] as int;
-    if (page < 1) throw const FormatException('Invalid activities page');
-    return CampusActivities(
-      page: page,
-      activities: (json['activities'] as List)
-          .cast<Map<String, dynamic>>()
-          .map(CampusActivity.fromJson)
-          .toList(growable: false),
-      fetchedAt: json['fetchedAt'] as String,
-    );
-  }
 
   final int page;
   final String fetchedAt;

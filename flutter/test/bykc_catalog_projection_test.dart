@@ -1,9 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_page.dart';
 import 'package:ginkgo_mirror/main.dart';
+
+import 'bykc_fixture.dart';
 
 void main() {
   testWidgets(
@@ -13,16 +12,13 @@ void main() {
         ginkgoApp(
           home: BykcPage(
             loader: ({required part, required forceRefresh}) async =>
-                ReadOnlyResponse(
-                  payload: jsonEncode({
-                    'terms': [
-                      {'name': '原始目录中的另一个学期'},
-                    ],
-                    'currentTerm': {'name': 'Rust 选定的学期'},
-                    'courses': [],
-                  }),
-                  stale: false,
-                ),
+                bykcRead(part, {
+                  'terms': [
+                    {'name': '原始目录中的另一个学期'},
+                  ],
+                  'currentTerm': {'name': 'Rust 选定的学期'},
+                  'courses': [],
+                }),
           ),
         ),
       );

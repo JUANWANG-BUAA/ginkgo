@@ -70,6 +70,29 @@ void main() {
   );
 
   testWidgets(
+    'remember-password starts off so nothing reaches the vault unasked',
+    (tester) async {
+      await tester.pumpWidget(
+        ginkgoApp(
+          home: LoginPage(
+            service: FakeService(
+              restoreResponse: signedOut,
+              loginResponse: signedIn,
+            ),
+            onSignedIn: (_) {},
+            onDemo: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<CupertinoSwitch>(find.byType(CupertinoSwitch)).value,
+        isFalse,
+      );
+    },
+  );
+
+  testWidgets(
     'busy login shows the brand leaf with contrasting paint, not a spinner',
     (tester) async {
       final service = PendingLoginService();

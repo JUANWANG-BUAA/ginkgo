@@ -6,10 +6,9 @@ import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/features/grades/grades_page.dart';
 import 'package:ginkgo_mirror/features/graduate/graduate_page.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/src/rust/api/live.dart' show ReadOnlyResponse;
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 
-import 'dart:convert';
+import 'graduate_fixture.dart';
 
 import 'mirror_widget_test.dart' show ControlledService;
 
@@ -90,38 +89,35 @@ void main() {
       ginkgoApp(
         home: GraduatePage(
           loader: ({required report, required forceRefresh}) async =>
-              ReadOnlyResponse(
-                stale: false,
-                payload: jsonEncode({
-                  'sections': !report
-                      ? []
-                      : [
-                          {
-                            'title': '培养方案执行报告',
-                            'rows': [],
-                            'progress': {
-                              'required': 32,
-                              'earned': 2,
-                              'pending': 1,
-                            },
+              graduateRead({
+                'sections': !report
+                    ? []
+                    : [
+                        {
+                          'title': '培养方案执行报告',
+                          'rows': [],
+                          'progress': {
+                            'required': 32,
+                            'earned': 2,
+                            'pending': 1,
                           },
-                          for (var group = 0; group < 15; group++)
-                            {
-                              'title': '合成类别 $group',
-                              'rows': [
-                                {'title': '类别要求与进度', 'detail': '学校原始说明'},
-                                for (var course = 0; course < 25; course++)
-                                  {
-                                    'title': '合成课程 $group-$course',
-                                    'detail': '学校原始记录',
-                                    'credit': 2,
-                                    'isCourse': true,
-                                  },
-                              ],
-                            },
-                        ],
-                }),
-              ),
+                        },
+                        for (var group = 0; group < 15; group++)
+                          {
+                            'title': '合成类别 $group',
+                            'rows': [
+                              {'title': '类别要求与进度', 'detail': '学校原始说明'},
+                              for (var course = 0; course < 25; course++)
+                                {
+                                  'title': '合成课程 $group-$course',
+                                  'detail': '学校原始记录',
+                                  'credit': 2,
+                                  'isCourse': true,
+                                },
+                            ],
+                          },
+                      ],
+              }),
         ),
       ),
     );

@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/infrastructure/learning_snapshot_store.dart';
+import 'package:ginkgo_mirror/src/rust/api/live.dart' as live;
 
 class Store implements LearningSnapshotStore {
   @override
@@ -40,7 +41,7 @@ class Store implements LearningSnapshotStore {
   }
 }
 
-const success = ReadOnlyResponse(stale: false, payload: '[]');
+const success = live.NoticesResponse(data: [], failure: null);
 void main() {
   test(
     'disabled storage does not load save or suppress normal reads',
@@ -55,7 +56,7 @@ void main() {
       await c.read('a', () async {
         reads++;
         return success;
-      });
+      }, (r) => r.failure);
       expect(reads, 1);
       expect(store.loads, 0);
       expect(store.saves, 0);
@@ -72,13 +73,14 @@ void main() {
     expect(store.saves, 1);
     await c.read(
       'a',
-      () async => const ReadOnlyResponse(
-        stale: true,
+      () async => const live.NoticesResponse(
+        data: [],
         failure: FailureCode.serviceUnavailable,
       ),
+      (r) => r.failure,
     );
     expect(store.saves, 1);
-    await c.read('a', () async => success);
+    await c.read('a', () async => success, (r) => r.failure);
     expect(store.saves, 2);
     await c.clear();
     expect(store.consent, isFalse);
@@ -95,7 +97,7 @@ void main() {
         export: (_) async => Uint8List(1),
         restore: (_, _) async => throw StateError('foreign'),
       );
-      await c.read('b', () async => success);
+      await c.read('b', () async => success, (r) => r.failure);
       expect(store.saves, 0);
       expect(c.message, isNotNull);
     },
@@ -108,8 +110,8 @@ void main() {
       restore: (_, _) async {},
     );
     await c.setEnabled('a', true);
-    final pending = Completer<ReadOnlyResponse>();
-    final reading = c.read('a', () => pending.future);
+    final pending = Completer<live.NoticesResponse>();
+    final reading = c.read('a', () => pending.future, (r) => r.failure);
     final clearing = c.clear();
     pending.complete(success);
     await reading;
@@ -135,10 +137,11 @@ void main() {
       );
       await c.read(
         'a',
-        () async => const ReadOnlyResponse(
-          stale: true,
+        () async => const live.NoticesResponse(
+          data: [],
           failure: FailureCode.serviceUnavailable,
         ),
+        (r) => r.failure,
       );
       expect(adopted, 1);
       expect(store.saves, 0);

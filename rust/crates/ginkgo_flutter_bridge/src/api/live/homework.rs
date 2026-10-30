@@ -104,22 +104,70 @@ fn bound_service(expected: &str) -> Result<&'static LiveService, AppError> {
     }
     Ok(service)
 }
-fn file_response<T: serde::Serialize>(result: Result<T, AppError>) -> ReadOnlyResponse {
+fn outcome<T>(result: Result<T, AppError>) -> (Option<T>, Option<FailureCode>) {
     match result {
-        Ok(value) => ReadOnlyResponse {
-            payload: serde_json::to_string(&value).ok(),
-            stale: false,
-            failure: None,
-        },
-        Err(error) => ReadOnlyResponse {
-            payload: None,
-            stale: false,
-            failure: Some(error.code.into()),
-        },
+        Ok(value) => (Some(value), None),
+        Err(error) => (None, Some(error.code.into())),
     }
 }
-pub(super) async fn file_workspace(expected: String, id: String) -> ReadOnlyResponse {
-    file_response(
+
+fn workspace_dto(workspace: ginkgo_core::application::HomeworkWorkspace) -> HomeworkWorkspaceDto {
+    HomeworkWorkspaceDto {
+        assignment_id: workspace.assignment_id,
+        allowed_methods: workspace.allowed_methods,
+        allowed_extensions: workspace.allowed_extensions,
+        submission_limit: workspace.submission_limit,
+        submitted_count: workspace.submitted_count,
+        returned: workspace.returned,
+        submitted_text: workspace.submitted_text,
+        feedback: workspace.feedback,
+        attachments: workspace
+            .attachments
+            .into_iter()
+            .map(|a| HomeworkAttachmentDto {
+                id: a.id,
+                name: a.name,
+                kind: a.kind,
+            })
+            .collect(),
+        can_submit_file: workspace.can_submit_file,
+        blocked_reason: workspace.blocked_reason,
+        // The 20 MB cap upstream guarantees the widening is lossless.
+        file_limit_bytes: i64::try_from(workspace.file_limit_bytes).unwrap_or(i64::MAX),
+    }
+}
+
+fn capability_dto(
+    evidence: ginkgo_core::application::HomeworkCapabilityEvidence,
+) -> HomeworkCapabilityEvidenceDto {
+    HomeworkCapabilityEvidenceDto {
+        capability: evidence.capability,
+        state: match evidence.state {
+            ginkgo_core::application::HomeworkCapabilityState::Available => {
+                HomeworkCapabilityStateDto::Available
+            }
+            ginkgo_core::application::HomeworkCapabilityState::Unknown => {
+                HomeworkCapabilityStateDto::Unknown
+            }
+            ginkgo_core::application::HomeworkCapabilityState::Unsupported => {
+                HomeworkCapabilityStateDto::Unsupported
+            }
+            ginkgo_core::application::HomeworkCapabilityState::ProtocolChanged => {
+                HomeworkCapabilityStateDto::ProtocolChanged
+            }
+            ginkgo_core::application::HomeworkCapabilityState::TempUnavailable => {
+                HomeworkCapabilityStateDto::TempUnavailable
+            }
+            ginkgo_core::application::HomeworkCapabilityState::AuthRequired => {
+                HomeworkCapabilityStateDto::AuthRequired
+            }
+        },
+        reason: evidence.reason,
+        evidence: evidence.evidence,
+    }
+}
+pub(super) async fn file_workspace(expected: String, id: String) -> HomeworkFileWorkspaceResponse {
+    file_workspace_response(
         with_session_read(|| async {
             let s = bound_service(&expected)?;
             s.homework_workspace(&id).await
@@ -127,21 +175,51 @@ pub(super) async fn file_workspace(expected: String, id: String) -> ReadOnlyResp
         .await,
     )
 }
+
+fn file_workspace_response(
+    result: Result<ginkgo_core::application::HomeworkWorkspace, AppError>,
+) -> HomeworkFileWorkspaceResponse {
+    let (data, failure) = outcome(result);
+    HomeworkFileWorkspaceResponse {
+        data: data.map(workspace_dto),
+        failure,
+    }
+}
 pub(super) async fn upload_file(
     expected: String,
     id: String,
     name: String,
     bytes: Vec<u8>,
-) -> ReadOnlyResponse {
+) -> HomeworkUploadResponse {
     let Ok(_write) = FILE_WRITE.try_lock() else {
-        return file_response::<u8>(Err(AppError::invalid()));
+        // A second upload while one is in flight is a local backstop.
+        return HomeworkUploadResponse {
+            data: None,
+            failure: Some(FailureCode::InvalidRequest),
+        };
     };
-    let result = with_session_read_in(std::time::Duration::from_secs(180), || async {
-        let s = bound_service(&expected)?;
-        s.upload_homework_file(&id, &name, bytes).await
-    })
-    .await;
-    file_response(result)
+    upload_response(
+        with_session_read_in(std::time::Duration::from_secs(180), || async {
+            let s = bound_service(&expected)?;
+            s.upload_homework_file(&id, &name, bytes).await
+        })
+        .await,
+    )
+}
+
+fn upload_response(
+    result: Result<ginkgo_core::application::HomeworkUploadReceipt, AppError>,
+) -> HomeworkUploadResponse {
+    let (data, failure) = outcome(result);
+    HomeworkUploadResponse {
+        data: data.map(|receipt| HomeworkUploadReceiptDto {
+            handle: receipt.handle,
+            file_name: receipt.file_name,
+            // The 20 MB cap upstream guarantees the widening is lossless.
+            size: i64::try_from(receipt.size).unwrap_or(i64::MAX),
+        }),
+        failure,
+    }
 }
 pub(super) async fn submit_file(
     expected: String,
@@ -198,21 +276,25 @@ pub(super) async fn download_file(
     }
 }
 
-pub(super) async fn configure_recovery(expected: String, root: String) -> ReadOnlyResponse {
+pub(super) async fn configure_recovery(expected: String, root: String) -> HomeworkRecoveryResponse {
     let _write = FILE_WRITE.lock().await;
-    file_response(
+    let (data, failure) = outcome(
         with_session_read(|| async {
             let s = bound_service(&expected)?;
             s.configure_homework_recovery(&root)
         })
         .await,
-    )
+    );
+    HomeworkRecoveryResponse {
+        configured: data.map(|()| true),
+        failure,
+    }
 }
 pub(super) async fn pending_submissions(
     expected: String,
     assignment: Option<String>,
-) -> ReadOnlyResponse {
-    file_response(
+) -> HomeworkPendingResponse {
+    let (data, failure) = outcome(
         with_session_read(|| async {
             let s = bound_service(&expected)?;
             let mut items = s.pending_homework_submissions().await?;
@@ -222,14 +304,108 @@ pub(super) async fn pending_submissions(
             Ok(items)
         })
         .await,
-    )
+    );
+    HomeworkPendingResponse {
+        data: data.map(|items| {
+            items
+                .into_iter()
+                .map(|item| HomeworkPendingSubmissionDto {
+                    handle: item.handle,
+                    assignment_id: item.assignment_id,
+                    file_name: item.file_name,
+                    size: i64::try_from(item.size).unwrap_or(i64::MAX),
+                })
+                .collect()
+        }),
+        failure,
+    }
 }
-pub(super) async fn capabilities(expected: String, id: String) -> ReadOnlyResponse {
-    file_response(
+pub(super) async fn capabilities(expected: String, id: String) -> HomeworkCapabilitiesResponse {
+    capabilities_response(
         with_session_read(|| async {
             let s = bound_service(&expected)?;
             Ok(s.homework_capabilities(&id).await)
         })
         .await,
     )
+}
+
+fn capabilities_response(
+    result: Result<Vec<ginkgo_core::application::HomeworkCapabilityEvidence>, AppError>,
+) -> HomeworkCapabilitiesResponse {
+    let (data, failure) = outcome(result);
+    HomeworkCapabilitiesResponse {
+        data: data.map(|rows| rows.into_iter().map(capability_dto).collect()),
+        failure,
+    }
+}
+
+#[cfg(test)]
+mod homework_file_tests {
+    use super::*;
+
+    #[test]
+    fn workspace_keeps_undisclosed_counts_absent_and_attachments_typed() {
+        use ginkgo_core::application::{
+            HomeworkAttachment, HomeworkCapabilityEvidence, HomeworkCapabilityState,
+            HomeworkWorkspace,
+        };
+        let response = file_workspace_response(Ok(HomeworkWorkspace {
+            assignment_id: "syn-1".into(),
+            allowed_methods: vec!["file".into()],
+            allowed_extensions: vec!["pdf".into()],
+            submission_limit: None,
+            submitted_count: None,
+            returned: false,
+            submitted_text: None,
+            feedback: None,
+            attachments: vec![HomeworkAttachment {
+                id: "teacher".into(),
+                name: "合成作业要求.txt".into(),
+                kind: "teacher".into(),
+            }],
+            can_submit_file: true,
+            blocked_reason: None,
+            file_limit_bytes: 20 * 1024 * 1024,
+        }))
+        .data
+        .expect("workspace");
+        assert_eq!(response.assignment_id, "syn-1");
+        assert_eq!(response.allowed_methods, vec!["file".to_string()]);
+        // The school stayed silent on limits and counts: absent, not zero.
+        assert!(response.submission_limit.is_none());
+        assert!(response.submitted_count.is_none());
+        assert_eq!(response.attachments[0].name, "合成作业要求.txt");
+        assert!(response.can_submit_file);
+
+        // Capability evidence keeps its diagnostic wording verbatim.
+        let capabilities = capabilities_response(Ok(vec![HomeworkCapabilityEvidence {
+            capability: "fileSubmit".into(),
+            state: HomeworkCapabilityState::Unknown,
+            reason: "此适配器未提供作业能力诊断".into(),
+            evidence: "adapterNotProvided".into(),
+        }]))
+        .data
+        .expect("capabilities");
+        let evidence = &capabilities[0];
+        assert_eq!(evidence.reason, "此适配器未提供作业能力诊断");
+        assert_eq!(evidence.evidence, "adapterNotProvided");
+    }
+
+    #[test]
+    fn upload_receipt_crosses_with_a_lossless_size() {
+        use ginkgo_core::application::HomeworkUploadReceipt;
+        let response = upload_response(Ok(HomeworkUploadReceipt {
+            handle: "handle-1".into(),
+            file_name: "合成.pdf".into(),
+            size: 20 * 1024 * 1024,
+        }))
+        .data
+        .expect("receipt");
+        assert_eq!(
+            (&*response.handle, &*response.file_name),
+            ("handle-1", "合成.pdf")
+        );
+        assert_eq!(response.size, 20 * 1024 * 1024);
+    }
 }

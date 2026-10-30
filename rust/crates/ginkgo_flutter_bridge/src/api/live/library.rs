@@ -254,41 +254,68 @@ pub(super) fn load_demo_library_history(page: i32) -> LibraryHistoryResponse {
     }
 }
 
-pub(super) async fn load_library_stats(force_refresh: bool) -> ReadOnlyResponse {
+pub(super) async fn load_library_stats(force_refresh: bool) -> LibraryStatsResponse {
     let result = match service() {
         Ok(service) => with_session_read(|| service.load_library_stats(force_refresh)).await,
         Err(error) => Err(error),
     };
     match result {
-        Ok(outcome) => ReadOnlyResponse {
-            payload: serde_json::to_string(&serde_json::json!({"campuses":outcome.campuses,
-                "fetchedAt":outcome.fetched_at,"fromCache":outcome.from_cache}))
-            .ok(),
-            stale: outcome.failure.is_some(),
+        Ok(outcome) => LibraryStatsResponse {
+            data: Some(LibraryStatsDto {
+                campuses: outcome.campuses.into_iter().map(campus_stats_dto).collect(),
+                fetched_at: Some(outcome.fetched_at),
+                from_cache: outcome.from_cache,
+            }),
             failure: outcome.failure.map(|e| e.code.into()),
         },
-        Err(error) => ReadOnlyResponse {
-            payload: None,
-            stale: false,
+        Err(error) => LibraryStatsResponse {
+            data: None,
             failure: Some(error.code.into()),
         },
     }
 }
 
-pub(super) fn load_demo_library_stats() -> ReadOnlyResponse {
-    let result = ginkgo_runtime::demo::demo_campus::library_stats();
-    match result {
-        Ok(campuses) => ReadOnlyResponse {
-            payload: Some(
-                serde_json::json!({"campuses":campuses,"fetchedAt":null,"fromCache":false})
-                    .to_string(),
-            ),
-            stale: false,
+fn count_pair_dto(pair: ginkgo_core::features::library_stats::CountPair) -> CountPairDto {
+    CountPairDto {
+        available: pair.available,
+        total: pair.total,
+    }
+}
+
+fn campus_stats_dto(
+    stats: ginkgo_core::features::library_stats::CampusStats,
+) -> LibraryCampusStatsDto {
+    LibraryCampusStatsDto {
+        id: stats.id,
+        name: stats.name,
+        people: stats.people,
+        reading_rooms: stats
+            .reading_rooms
+            .into_iter()
+            .map(|room| ReadingRoomDto {
+                name: room.name,
+                people: room.people,
+            })
+            .collect(),
+        // An absent resource stays absent; it is never reported as zero.
+        seats: stats.seats.map(count_pair_dto),
+        study_rooms: stats.study_rooms.map(count_pair_dto),
+        lockers: stats.lockers.map(count_pair_dto),
+    }
+}
+
+pub(super) fn load_demo_library_stats() -> LibraryStatsResponse {
+    match ginkgo_runtime::demo::demo_campus::library_stats() {
+        Ok(campuses) => LibraryStatsResponse {
+            data: Some(LibraryStatsDto {
+                campuses: campuses.into_iter().map(campus_stats_dto).collect(),
+                fetched_at: None,
+                from_cache: false,
+            }),
             failure: None,
         },
-        Err(error) => ReadOnlyResponse {
-            payload: None,
-            stale: false,
+        Err(error) => LibraryStatsResponse {
+            data: None,
             failure: Some(error.code.into()),
         },
     }
@@ -361,3 +388,34 @@ pub(super) async fn perform_library_action(booking_id: String, action: String) -
 }
 
 static LIBRARY_WRITE: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+
+#[cfg(test)]
+mod library_stats_tests {
+    use super::*;
+
+    #[test]
+    fn campus_stats_keep_absent_resources_absent_and_nested_rooms_typed() {
+        use ginkgo_core::features::library_stats::{CampusStats, CountPair, ReadingRoom};
+        let dto = campus_stats_dto(CampusStats {
+            id: "a1".into(),
+            name: "学院路馆".into(),
+            people: 812,
+            reading_rooms: vec![ReadingRoom {
+                name: "一层阅览室".into(),
+                people: 120,
+            }],
+            seats: Some(CountPair {
+                available: 40,
+                total: 200,
+            }),
+            study_rooms: None,
+            lockers: None,
+        });
+        assert_eq!((&*dto.id, &*dto.name, dto.people), ("a1", "学院路馆", 812));
+        assert_eq!(dto.reading_rooms[0].name, "一层阅览室");
+        assert_eq!(dto.seats.as_ref().map(|s| s.available), Some(40));
+        // A resource the school did not publish stays absent, not zero.
+        assert!(dto.study_rooms.is_none());
+        assert!(dto.lockers.is_none());
+    }
+}

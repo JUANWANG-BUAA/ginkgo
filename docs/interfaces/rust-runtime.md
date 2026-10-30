@@ -7,17 +7,19 @@
 
 ## lib
 
+- `pub fn get_or_retry<'a, T>( cell: &'a OnceLock<T>, gate: &Mutex<()>, create: impl FnOnce() -> Result<T, AppError>, ) -> Result<&'a T, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:14</sub>
 - `pub type AppService = Workspace<SchoolClient<ReqwestTransport, PlatformVault>>;`
-  <sub>type · rust/crates/ginkgo_runtime/src/lib.rs:14</sub>
+  <sub>type · rust/crates/ginkgo_runtime/src/lib.rs:33</sub>
 - `pub fn library_loans_portal_url() -> String {…}`
-  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:16</sub>
+  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:35</sub>
 - `pub fn student_service_url(id: &str) -> Option<String> {…}`
-  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:20</sub>
+  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:39</sub>
 - `pub fn create_service() -> Result<AppService, AppError> {…}` — Called lazily on the first command, never while Flutter initializes.
-  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:25</sub>
+  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:44</sub>
 - `pub fn has_saved_accounts() -> Result<bool, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:33</sub>
+  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:52</sub>
 - `pub fn verify_credential_storage(account: &str, secret: &str) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:37</sub>
+  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:56</sub>
 - `pub async fn check_update( current: &str, ) -> Result<ginkgo_core::features::updates::UpdateSummary, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:43</sub>
+  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:62</sub>

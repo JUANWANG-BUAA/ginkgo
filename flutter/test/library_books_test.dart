@@ -1,20 +1,24 @@
+import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/library_holdings.dart';
+
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/features/library/library_books_page.dart';
-import 'package:ginkgo_mirror/src/rust/api/live.dart' as live;
+import 'package:ginkgo_mirror/application/library_books.dart';
+
+import 'library_books_fixture.dart';
 
 /// Read-only stand-in: only the two catalogue calls are exercised here.
 class FakeCatalog implements LibraryGateway {
   FakeCatalog({this.page, this.holdings, this.fail = false});
   final Map<String, dynamic>? page;
-  final List<Map<String, dynamic>>? holdings;
+  final List<BookHolding>? holdings;
   bool fail;
-  final bookResponses = Queue<Future<live.ReadOnlyResponse>>();
+  final bookResponses = Queue<Future<BookPageRead>>();
   final List<(String, int)> searches = [];
   final List<(String, bool)> sorts = [];
   final List<String> holdingIds = [];
@@ -23,7 +27,7 @@ class FakeCatalog implements LibraryGateway {
   bool get isDemo => false;
 
   @override
-  Future<live.ReadOnlyResponse> libraryBooks({
+  Future<BookPageRead> libraryBooks({
     required String query,
     required int page,
     String sort = 'relevance',
@@ -33,24 +37,18 @@ class FakeCatalog implements LibraryGateway {
     sorts.add((sort, descending));
     if (bookResponses.isNotEmpty) return bookResponses.removeFirst();
     if (fail) {
-      return const live.ReadOnlyResponse(payload: null, stale: false);
+      return const BookPageRead(failure: FailureCode.changedResponse);
     }
-    return live.ReadOnlyResponse(
-      payload: jsonEncode(this.page ?? const {}),
-      stale: false,
-    );
+    return bookPageRead(this.page ?? const {});
   }
 
   @override
-  Future<live.ReadOnlyResponse> libraryHoldings(String bibId) async {
+  Future<BookHoldingsRead> libraryHoldings(String bibId) async {
     holdingIds.add(bibId);
     if (fail) {
-      return const live.ReadOnlyResponse(payload: null, stale: false);
+      return const BookHoldingsRead(failure: FailureCode.changedResponse);
     }
-    return live.ReadOnlyResponse(
-      payload: jsonEncode(holdings ?? const []),
-      stale: false,
-    );
+    return BookHoldingsRead(data: holdings ?? const []);
   }
 
   @override
@@ -66,10 +64,7 @@ Map<String, dynamic> catalogPage(String title) => {
   ],
 };
 
-live.ReadOnlyResponse bookResult(String title) => live.ReadOnlyResponse(
-  payload: jsonEncode(catalogPage(title)),
-  stale: false,
-);
+BookPageRead bookResult(String title) => bookPageRead(catalogPage(title));
 
 void main() {
   Future<void> tap(WidgetTester tester, Finder finder) async {
@@ -223,13 +218,13 @@ void main() {
         ],
       },
       holdings: [
-        {
-          'callNo': 'TP1/1',
-          'barCode': 'C1',
-          'library': '学院路',
-          'location': '三层',
-          'status': '可借',
-        },
+        BookHolding(
+          callNo: 'TP1/1',
+          barCode: 'C1',
+          library: '学院路',
+          location: '三层',
+          status: '可借',
+        ),
       ],
     );
     await pump(tester, service);
@@ -317,29 +312,37 @@ void main() {
     (tester) async {
       final service = FakeCatalog(
         page: catalogPage('合成馆藏书目'),
-        holdings: const [
-          {
-            'callNo': 'TP1/1',
-            'barCode': 'C1',
-            'library': '学院路',
-            'location': '三层',
-            'status': '可借',
-          },
-          {
-            'callNo': 'TP1/1',
-            'barCode': 'C2',
-            'library': '学院路',
-            'location': '三层',
-            'status': '借出',
-          },
-          {
-            'callNo': 'TP2/2',
-            'barCode': 'C3',
-            'library': '沙河',
-            'location': '五层',
-            'status': '在馆',
-          },
-          {'barCode': 'C4', 'library': '沙河', 'location': '五层'},
+        holdings: [
+          BookHolding(
+            callNo: 'TP1/1',
+            barCode: 'C1',
+            library: '学院路',
+            location: '三层',
+            status: '可借',
+          ),
+          BookHolding(
+            callNo: 'TP1/1',
+            barCode: 'C2',
+            library: '学院路',
+            location: '三层',
+            status: '借出',
+          ),
+          BookHolding(
+            callNo: 'TP2/2',
+            barCode: 'C3',
+            library: '沙河',
+            location: '五层',
+            status: '在馆',
+          ),
+          // The school published no status for this copy; it must stay
+          // "未标注" rather than being invented as available.
+          BookHolding(
+            callNo: 'TP2/2',
+            barCode: 'C4',
+            library: '沙河',
+            location: '五层',
+            status: '',
+          ),
         ],
       );
       await pump(tester, service);
@@ -456,9 +459,7 @@ void main() {
     expect(find.text('合成旧书'), findsOneWidget);
     expect(find.text('当前第 2 页'), findsOneWidget);
     service.bookResponses.add(
-      Future.value(
-        const live.ReadOnlyResponse(payload: 'not-json', stale: false),
-      ),
+      Future.value(const BookPageRead(failure: FailureCode.changedResponse)),
     );
     await tap(tester, find.byKey(const Key('library-books-direction')));
     expect(service.searches.last, ('合成', 1));
@@ -472,8 +473,8 @@ void main() {
     testWidgets(
       'new provider ignores late ${lateFailure ? 'error' : 'success'}',
       (tester) async {
-        final old = Completer<live.ReadOnlyResponse>();
-        final fresh = Completer<live.ReadOnlyResponse>();
+        final old = Completer<BookPageRead>();
+        final fresh = Completer<BookPageRead>();
         final first = FakeCatalog(page: catalogPage('旧服务已有书目'));
         final second = FakeCatalog()..bookResponses.add(fresh.future);
         await pump(tester, first);

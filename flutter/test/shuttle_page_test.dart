@@ -1,26 +1,27 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show SelectableText;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/shuttle.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/workspace/service_directory.dart';
+import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 import 'package:ginkgo_mirror/features/shuttle/shuttle_page.dart';
 
 // Only this read capability is implemented. Unexpected calls fail rather than
 // reaching native bindings, demo initialization, or a school network.
 class _ShuttleService extends Fake implements MirrorService {
-  final requests = <Completer<ReadOnlyResponse>>[];
+  final requests = <Completer<ShuttleTimetableRead>>[];
 
   @override
   bool get isDemo => false;
 
   @override
-  Future<ReadOnlyResponse> shuttleTimetable() {
-    final request = Completer<ReadOnlyResponse>();
+  Future<ShuttleTimetableRead> shuttleTimetable() {
+    final request = Completer<ShuttleTimetableRead>();
     requests.add(request);
     return request.future;
   }
@@ -29,6 +30,8 @@ class _ShuttleService extends Fake implements MirrorService {
 const _source = 'https://shuttle.example.test/published-timetable';
 const _loading = '正在读取校车时刻表…';
 const _error = '时刻表读取未完成，请稍后重试';
+const _unavailable = '学校服务暂时不可用，请稍后重试';
+const _offline = '无法连接网络，请检查手机网络或校园网后重试';
 const _empty = '暂时没有可显示的时刻表';
 const _refresh = Key('shuttle-refresh');
 const _official = Key('shuttle-official');
@@ -45,41 +48,75 @@ List<Map<String, dynamic>> _weekdayRuns() => [
   {'index': '4', 'time': '18:10', 'capacity': '52'},
 ];
 
-ReadOnlyResponse _timetable({
+/// The page tests are about presentation, so fixtures stay JSON-shaped and are
+/// lifted here. Decoding itself is covered by the bridge mapping test and
+/// `public_read_contract_test`.
+ShuttleTimetableRead _read(Map<String, dynamic> json) => ShuttleTimetableRead(
+  data: ShuttleTimetable(
+    source: json['source'] as String? ?? '',
+    liveSource: json['liveSource'] as String? ?? '',
+    tables: [
+      for (final table in _maps(json['tables']))
+        ShuttleTable(
+          left: table['left'] as String? ?? '',
+          right: table['right'] as String? ?? '',
+          sections: [
+            for (final section in _maps(table['sections']))
+              ShuttleSection(
+                label: section['label'] as String? ?? '',
+                left: _runs(section['left']),
+                right: _runs(section['right']),
+              ),
+          ],
+        ),
+    ],
+  ),
+);
+
+List<Map<String, dynamic>> _maps(Object? value) =>
+    (value as List? ?? const []).cast<Map<String, dynamic>>();
+
+List<ShuttleRun> _runs(Object? value) => [
+  for (final run in _maps(value))
+    ShuttleRun(
+      index: run['index'] as String? ?? '',
+      time: run['time'] as String? ?? '',
+      capacity: run['capacity'] as String? ?? '',
+    ),
+];
+
+ShuttleTimetableRead _timetable({
   String source = _source,
   String liveSource = '',
   String time = '07:20',
   bool empty = false,
   List<Map<String, dynamic>>? sections,
-}) => ReadOnlyResponse(
-  stale: false,
-  payload: jsonEncode({
-    'source': source,
-    'liveSource': liveSource,
-    'tables': empty
-        ? []
-        : [
-            {
-              'left': '合成甲校区 → 合成乙校区',
-              'right': '合成乙校区 → 合成甲校区',
-              'sections':
-                  sections ??
-                  [
-                    {
-                      'label': '合成工作日',
-                      'left': [
-                        {'index': '1', 'time': time, 'capacity': '45'},
-                        {'index': '2', 'time': '12:35', 'capacity': ''},
-                      ],
-                      'right': [
-                        {'index': '1', 'time': '18:10', 'capacity': '50'},
-                      ],
-                    },
-                  ],
-            },
-          ],
-  }),
-);
+}) => _read({
+  'source': source,
+  'liveSource': liveSource,
+  'tables': empty
+      ? []
+      : [
+          {
+            'left': '合成甲校区 → 合成乙校区',
+            'right': '合成乙校区 → 合成甲校区',
+            'sections':
+                sections ??
+                [
+                  {
+                    'label': '合成工作日',
+                    'left': [
+                      {'index': '1', 'time': time, 'capacity': '45'},
+                      {'index': '2', 'time': '12:35', 'capacity': ''},
+                    ],
+                    'right': [
+                      {'index': '1', 'time': '18:10', 'capacity': '50'},
+                    ],
+                  },
+                ],
+          },
+        ],
+});
 
 Widget _app(Widget home, {double scale = 1, Brightness? brightness}) =>
     CupertinoApp(
@@ -201,17 +238,16 @@ void main() {
       final service = _ShuttleService();
       await _show(tester, service);
       service.requests.single.complete(
-        const ReadOnlyResponse(
-          stale: false,
-          failure: FailureCode.serviceUnavailable,
-        ),
+        const ShuttleTimetableRead(failure: FailureCode.serviceUnavailable),
       );
       await tester.pumpAndSettle();
-      expect(find.text(_error), findsOneWidget);
+      // A typed code must reach the reader instead of the generic shuttle copy.
+      expect(find.text(_unavailable), findsOneWidget);
+      expect(find.text(_error), findsNothing);
       expect(find.text(_empty), findsNothing);
       await tester.tap(find.byKey(_refresh));
       await tester.pump();
-      expect(find.text(_error), findsNothing);
+      expect(find.text(_unavailable), findsNothing);
       expect(find.text(_loading), findsOneWidget);
       service.requests.last.completeError(StateError('synthetic read failure'));
       await tester.pumpAndSettle();
@@ -225,6 +261,20 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('an offline read blames the connection, not the school', (
+    tester,
+  ) async {
+    final service = _ShuttleService();
+    await _show(tester, service);
+    service.requests.single.complete(
+      const ShuttleTimetableRead(failure: FailureCode.networkUnreachable),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(_offline), findsOneWidget);
+    expect(find.text(_unavailable), findsNothing);
+    expect(find.text(_error), findsNothing);
+  });
 
   testWidgets(
     'refresh keeps the last timetable through pending and failed reads; empty clears it',
@@ -496,10 +546,7 @@ void main() {
     final failedService = _ShuttleService();
     await _show(tester, failedService);
     failedService.requests.single.complete(
-      const ReadOnlyResponse(
-        stale: false,
-        failure: FailureCode.serviceUnavailable,
-      ),
+      const ShuttleTimetableRead(failure: FailureCode.serviceUnavailable),
     );
     await tester.pumpAndSettle();
     expect(find.byKey(_plan), findsNothing);
@@ -630,9 +677,8 @@ void main() {
 
   test('demo also exposes the official authentication entry', () async {
     final response = await const DemoMirrorService().shuttleTimetable();
-    final payload = jsonDecode(response.payload!) as Map<String, dynamic>;
     expect(
-      payload['liveSource'],
+      response.data?.liveSource,
       'https://zhihuixiaoche.buaa.edu.cn/wechat/CASLogin',
     );
   });
@@ -857,7 +903,11 @@ void main() {
           CupertinoPageScaffold(
             child: ListView(
               children: [
-                ServiceDirectory(service: service, onSignOut: () async {}),
+                ServiceDirectory(
+                  service: service,
+                  destinations: workspaceDestinations,
+                  onSignOut: () async {},
+                ),
               ],
             ),
           ),

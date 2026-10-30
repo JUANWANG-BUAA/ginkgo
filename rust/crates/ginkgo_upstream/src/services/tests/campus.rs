@@ -262,6 +262,26 @@ async fn notices_public_list_caches_and_preserves_last_result_on_drift() {
 }
 
 #[tokio::test]
+async fn notices_stay_direct_when_the_session_route_switched_to_webvpn() {
+    let body = fixture("notices", "normal-v1.json")["input"]["html"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let url = "https://news.buaa.edu.cn/tzgg.htm";
+    let (service, transport) = build_service(
+        vec![HttpResponse::new(200, url, body)],
+        MemoryVault::default(),
+    );
+    service
+        .session
+        .set_route(crate::auth::session::RouteMode::WebVpn);
+    assert_eq!(service.load_notices(true).await.unwrap().data.len(), 1);
+    let requests = transport.requests();
+    assert_eq!(requests.len(), 1);
+    assert_eq!(requests[0].url, url);
+}
+
+#[tokio::test]
 async fn cgyy_direct_public_login_day_orders_and_stale_snapshot() {
     let mut chain = login_chain("synthetic-student", "合成用户");
     let base = "https://cgyy.buaa.edu.cn/venue-zhjs-server";

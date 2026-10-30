@@ -51,6 +51,29 @@ void main() {
     });
   });
 
+  group('a module-scoped authentication demand is not a global expiry', () {
+    test('the message keeps the working session out of it', () {
+      final message = failureMessage(FailureCode.moduleAuthRequired);
+      // One portal asking for its own token again must not send the reader
+      // to log in again for a session that still works everywhere else.
+      expect(message, contains('其他功能不受影响'));
+      expect(message, isNot(contains('重新登录')));
+      expect(message, isNot(contains('会话已失效')));
+      expect(message, isNot(failureMessage(FailureCode.sessionExpired)));
+    });
+  });
+
+  group('an unreached network is never presented as a school outage', () {
+    test('the message points at the local connection instead', () {
+      final message = failureMessage(FailureCode.networkUnreachable);
+      expect(message, contains('无法连接网络'));
+      // Splitting the code exists for this sentence: an offline reader must be
+      // told to fix their own connection, not to wait for the school.
+      expect(message, isNot(contains('学校服务')));
+      expect(message, isNot(failureMessage(FailureCode.serviceUnavailable)));
+    });
+  });
+
   group('messages stay free of upstream protocol vocabulary', () {
     test('no raw status words leak into user-facing copy', () {
       for (final code in FailureCode.values) {

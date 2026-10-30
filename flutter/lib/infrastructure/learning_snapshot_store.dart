@@ -121,9 +121,10 @@ class LearningSnapshotCoordinator {
       }
     }
   });
-  Future<ReadOnlyResponse> read(
+  Future<R> read<R>(
     String account,
-    Future<ReadOnlyResponse> Function() fetch,
+    Future<R> Function() fetch,
+    FailureCode? Function(R) failureOf,
   ) async {
     if (!store.supported) return fetch();
     // The queued section owns the entire disk transaction and read. This is
@@ -143,7 +144,7 @@ class LearningSnapshotCoordinator {
         message = '旧安全快照无法采用（可能过期、损坏或属于其他账号），请关闭后重新开启';
       }
       final response = await fetch();
-      if (_enabled == true && response.failure == null) {
+      if (_enabled == true && failureOf(response) == null) {
         try {
           await store.save(await export(account));
         } catch (_) {
@@ -171,7 +172,9 @@ final learningSnapshots = LearningSnapshotCoordinator(
       () =>
           live.importLearningSnapshots(expectedAccount: account, bytes: bytes),
     );
-    if (result.failure != null) throw StateError('snapshot import unavailable');
+    if (result.failure != null || result.imported == null) {
+      throw StateError('snapshot import unavailable');
+    }
   },
 );
 

@@ -8,9 +8,9 @@
 ## features/bykc/bykc_course_tile.dart
 
 - `class BykcCourseTile extends StatelessWidget` — 博雅课程列表项。
-  <sub>class · features/bykc/bykc_course_tile.dart:14</sub>
-    - `const BykcCourseTile({ super.key, required this.course, required this.onTap, this.record, });`  <sub>:15</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:48</sub>
+  <sub>class · features/bykc/bykc_course_tile.dart:15</sub>
+    - `const BykcCourseTile({ super.key, required this.course, required this.onTap, this.record, });`  <sub>:16</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:49</sub>
 
 ## features/bykc/bykc_detail_page.dart
 
@@ -19,50 +19,21 @@
     - `const BykcDetailPage({super.key, required this.course, this.chosenRecord});`  <sub>:10</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:14</sub>
 
-## features/bykc/bykc_models.dart
-
-- `class BykcSemester`
-  <sub>class · features/bykc/bykc_models.dart:8</sub>
-- `class BykcCourseDetails` — Course enrollment details. Absent values stay null; they are never
-  <sub>class · features/bykc/bykc_models.dart:21</sub>
-- `class BykcCourse`
-  <sub>class · features/bykc/bykc_models.dart:54</sub>
-    - `String get categoryLabel {…}` — Subcategory wins when present; an empty chain stays unclassified.  <sub>:81</sub>
-- `class BykcCatalog` — Catalog view flattened by core: `terms`, `courses` and the projected
-  <sub>class · features/bykc/bykc_models.dart:91</sub>
-- `class BykcChosenRecord`
-  <sub>class · features/bykc/bykc_models.dart:105</sub>
-    - `String get attendanceLabel => …`  <sub>:122</sub>
-    - `String get resultLabel => …`  <sub>:128</sub>
-- `class BykcChosenCourses`
-  <sub>class · features/bykc/bykc_models.dart:136</sub>
-- `class BykcStatisticsEntry`
-  <sub>class · features/bykc/bykc_models.dart:153</sub>
-    - `bool get complete => …`  <sub>:163</sub>
-- `class BykcStatistics`
-  <sub>class · features/bykc/bykc_models.dart:166</sub>
-- `BykcCatalog bykcCatalog(String payload) => …`
-  <sub>function · features/bykc/bykc_models.dart:178</sub>
-- `BykcChosenCourses bykcChosenCourses(String payload) => …`
-  <sub>function · features/bykc/bykc_models.dart:181</sub>
-- `BykcStatistics bykcStatistics(String payload) => …`
-  <sub>function · features/bykc/bykc_models.dart:184</sub>
-
 ## features/bykc/bykc_page.dart
 
-- `typedef BykcLoader = Future<live.ReadOnlyResponse> Function(`
-  <sub>typedef · features/bykc/bykc_page.dart:17</sub>
+- `typedef BykcLoader = Future<BykcPartRead> Function(`
+  <sub>typedef · features/bykc/bykc_page.dart:15</sub>
 - `class BykcPage extends StatefulWidget`
-  <sub>class · features/bykc/bykc_page.dart:22</sub>
-    - `const BykcPage({super.key, this.demo = false, this.loader, this.service});`  <sub>:23</sub>
-    - `State<BykcPage> createState() => …`  <sub>:28</sub>
+  <sub>class · features/bykc/bykc_page.dart:20</sub>
+    - `const BykcPage({super.key, this.demo = false, this.loader, this.service});`  <sub>:21</sub>
+    - `State<BykcPage> createState() => …`  <sub>:26</sub>
 
 ## features/bykc/bykc_statistics_view.dart
 
 - `class BykcStatisticsView extends StatelessWidget` — 学习进度统计视图。
-  <sub>class · features/bykc/bykc_statistics_view.dart:12</sub>
-    - `const BykcStatisticsView({super.key, required this.data});`  <sub>:13</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:18</sub>
+  <sub>class · features/bykc/bykc_statistics_view.dart:13</sub>
+    - `const BykcStatisticsView({super.key, required this.data});`  <sub>:14</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:19</sub>
 
 ## features/bykc/bykc_widgets.dart
 

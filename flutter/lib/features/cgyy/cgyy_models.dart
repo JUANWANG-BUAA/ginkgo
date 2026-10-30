@@ -1,18 +1,17 @@
-import 'dart:convert';
+import 'package:ginkgo_mirror/application/contracts.dart';
 
-/// Typed projection of the CGYY payloads serialized by
-/// `ginkgo_domain::features::{cgyy, cgyy_booking}`. Pages consume these values
-/// only; payload keys and JSON casting never appear in widget code.
+/// Typed CGYY presentation values projected from the bridge DTOs. Pages
+/// consume these values only; payload keys and JSON casting never appear in
+/// widget code.
 
 class CgyySite {
-  CgyySite.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      name = json['name'] as String,
-      // The school always sends a venue, but presentation degrades to the
-      // name when absent; keep that tolerance here.
-      venue = json['venue'] as String? ?? '',
-      campus = json['campus'] as String? ?? '',
-      seats = json['seats'] as int?;
+  const CgyySite({
+    required this.id,
+    required this.name,
+    this.venue = '',
+    this.campus = '',
+    this.seats,
+  });
 
   final int id;
   final String name, venue, campus;
@@ -20,32 +19,20 @@ class CgyySite {
 }
 
 class CgyySlot {
-  CgyySlot.fromJson(Map<String, dynamic> json)
-    : time = json['time'] as String,
-      status = json['status'] as String;
+  const CgyySlot({required this.time, required this.status});
 
   final String time, status;
 }
 
 class CgyySpace {
-  CgyySpace.fromJson(Map<String, dynamic> json)
-    : name = json['name'] as String,
-      slots = (json['slots'] as List)
-          .cast<Map<String, dynamic>>()
-          .map(CgyySlot.fromJson)
-          .toList(growable: false);
+  const CgyySpace({required this.name, required this.slots});
 
   final String name;
   final List<CgyySlot> slots;
 }
 
 class CgyyDay {
-  CgyyDay.fromJson(Map<String, dynamic> json)
-    : date = json['date'] as String,
-      spaces = (json['spaces'] as List)
-          .cast<Map<String, dynamic>>()
-          .map(CgyySpace.fromJson)
-          .toList(growable: false);
+  const CgyyDay({required this.date, required this.spaces});
 
   final String date;
   final List<CgyySpace> spaces;
@@ -54,15 +41,16 @@ class CgyyDay {
 /// Approval labels follow API §6B and the existing CgyyModels.swift mapping.
 /// Request acceptance is deliberately not presented as final approval.
 class CgyyOrder {
-  CgyyOrder.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      place = json['place'] as String,
-      date = json['date'] as String,
-      time = json['time'] as String,
-      status = json['status'] as String,
-      orderStatus = json['order_status'] as int?,
-      checkStatus = json['check_status'] as int?,
-      canCancel = json['can_cancel'] == true;
+  const CgyyOrder({
+    required this.id,
+    required this.place,
+    required this.date,
+    required this.time,
+    required this.status,
+    this.orderStatus,
+    this.checkStatus,
+    this.canCancel = false,
+  });
 
   final int id;
   final String place, date, time, status;
@@ -110,36 +98,30 @@ class CgyyOrder {
 }
 
 class CgyyBookingChoice {
-  CgyyBookingChoice.fromJson(Map<String, dynamic> json)
-    : spaceId = json['space_id'] as int,
-      spaceName = json['space_name'] as String,
-      timeId = json['time_id'] as int,
-      time = json['time'] as String;
+  const CgyyBookingChoice({
+    required this.spaceId,
+    required this.spaceName,
+    required this.timeId,
+    required this.time,
+  });
 
   final int spaceId, timeId;
   final String spaceName, time;
 }
 
 class CgyyPurpose {
-  CgyyPurpose.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as int,
-      name = json['name'] as String;
+  const CgyyPurpose({required this.id, required this.name});
 
   final int id;
   final String name;
 }
 
 class CgyyBookingOptions {
-  CgyyBookingOptions.fromJson(Map<String, dynamic> json)
-    : choices = (json['choices'] as List? ?? const [])
-          .cast<Map<String, dynamic>>()
-          .map(CgyyBookingChoice.fromJson)
-          .toList(growable: false),
-      purposes = (json['purposes'] as List? ?? const [])
-          .cast<Map<String, dynamic>>()
-          .map(CgyyPurpose.fromJson)
-          .toList(growable: false),
-      usesFallbackPurposes = json['uses_fallback_purposes'] == true;
+  const CgyyBookingOptions({
+    required this.choices,
+    required this.purposes,
+    required this.usesFallbackPurposes,
+  });
 
   final List<CgyyBookingChoice> choices;
   final List<CgyyPurpose> purposes;
@@ -149,21 +131,17 @@ class CgyyBookingOptions {
 /// Jigsaw challenge images stay raw data URLs; decoding happens in the widget
 /// that displays them, never in models.
 class CgyyChallenge {
-  CgyyChallenge.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as String,
-      background = json['background'] as String,
-      jigsaw = json['jigsaw'] as String;
+  const CgyyChallenge({
+    required this.id,
+    required this.background,
+    required this.jigsaw,
+  });
 
   final String id, background, jigsaw;
 }
 
 class CgyyReviewSnapshot {
-  CgyyReviewSnapshot.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as String,
-      orders = (json['orders'] as List)
-          .cast<Map<String, dynamic>>()
-          .map(CgyyOrder.fromJson)
-          .toList(growable: false);
+  const CgyyReviewSnapshot({required this.id, required this.orders});
 
   final String id;
   final List<CgyyOrder> orders;
@@ -180,24 +158,20 @@ class CgyyActionResult {
     this.review,
   );
 
-  CgyyActionResult.fromJson(Map<String, dynamic> json)
-    : this._(
-        json['state'] as String,
-        json['message'] as String? ?? '请核对我的预约',
-        json['options'] == null
-            ? null
-            : CgyyBookingOptions.fromJson(
-                json['options'] as Map<String, dynamic>,
-              ),
-        json['challenge'] == null
-            ? null
-            : CgyyChallenge.fromJson(json['challenge'] as Map<String, dynamic>),
-        json['review'] == null
-            ? null
-            : CgyyReviewSnapshot.fromJson(
-                json['review'] as Map<String, dynamic>,
-              ),
-      );
+  /// The decoder's entry point; an absent message keeps the house wording.
+  factory CgyyActionResult.of({
+    required String state,
+    String? message,
+    CgyyBookingOptions? options,
+    CgyyChallenge? challenge,
+    CgyyReviewSnapshot? review,
+  }) => CgyyActionResult._(
+    state,
+    message ?? '请核对我的预约',
+    options,
+    challenge,
+    review,
+  );
 
   static const knownStates = {
     'accepted',
@@ -230,51 +204,31 @@ class CgyyWriteStatus {
   const CgyyWriteStatus.known(this.reviewRequired) : known = true;
   const CgyyWriteStatus.unknown() : known = false, reviewRequired = true;
 
-  final bool known;
-  final bool reviewRequired;
-}
-
-CgyyActionResult cgyyActionResult(String payload) =>
-    CgyyActionResult.fromJson(jsonDecode(payload) as Map<String, dynamic>);
-
-CgyyWriteStatus cgyyWriteStatus(String payload) {
-  final state = (jsonDecode(payload) as Map<String, dynamic>)['state'];
-  return switch (state) {
+  /// A state outside ready/uncertain keeps the protection on.
+  factory CgyyWriteStatus.fromState(String state) => switch (state) {
     'ready' => const CgyyWriteStatus.known(false),
     'uncertain' => const CgyyWriteStatus.known(true),
     _ => const CgyyWriteStatus.unknown(),
   };
+
+  final bool known;
+  final bool reviewRequired;
 }
 
-List<CgyySite> cgyySites(String payload) => (jsonDecode(payload) as List)
-    .cast<Map<String, dynamic>>()
-    .map(CgyySite.fromJson)
-    .toList(growable: false);
-
-CgyyDay cgyyDay(String payload) =>
-    CgyyDay.fromJson(jsonDecode(payload) as Map<String, dynamic>);
-
-List<CgyyOrder> cgyyOrders(String payload) => (jsonDecode(payload) as List)
-    .cast<Map<String, dynamic>>()
-    .map(CgyyOrder.fromJson)
-    .toList(growable: false);
-
-CgyyOrder cgyyOrder(String payload) =>
-    CgyyOrder.fromJson(jsonDecode(payload) as Map<String, dynamic>);
-
 class CgyyLockCode {
-  CgyyLockCode.fromJson(Map<String, dynamic> json)
-    : qrCode = json['qrCode'] as String?,
-      dueDate = json['dueDate'] as String?,
-      tradeNo = json['tradeNo'] as String?,
-      venueName = json['venueName'] as String?,
-      siteName = json['siteName'] as String?,
-      spaceName = json['spaceName'] as String?,
-      orderName = json['orderName'] as String?,
-      reservationDate = json['reservationDate'] as String?,
-      reservationDateDetail = json['reservationDateDetail'] as String?,
-      reservationStartDate = json['reservationStartDate'] as String?,
-      reservationEndDate = json['reservationEndDate'] as String?;
+  const CgyyLockCode({
+    this.qrCode,
+    this.dueDate,
+    this.tradeNo,
+    this.venueName,
+    this.siteName,
+    this.spaceName,
+    this.orderName,
+    this.reservationDate,
+    this.reservationDateDetail,
+    this.reservationStartDate,
+    this.reservationEndDate,
+  });
 
   final String? qrCode, dueDate, tradeNo;
   final String? venueName, siteName, spaceName, orderName;
@@ -298,5 +252,21 @@ class CgyyLockCode {
   ].whereType<String>().where((value) => value.isNotEmpty).join(' · ');
 }
 
-CgyyLockCode cgyyLockCodeData(String payload) =>
-    CgyyLockCode.fromJson(jsonDecode(payload) as Map<String, dynamic>);
+/// One CGYY read: exactly one shape is non-null, mirroring the Rust union.
+class CgyyLoadRead {
+  const CgyyLoadRead({
+    this.sites,
+    this.day,
+    this.orders,
+    this.order,
+    this.lockCode,
+    this.failure,
+  });
+
+  final List<CgyySite>? sites;
+  final CgyyDay? day;
+  final List<CgyyOrder>? orders;
+  final CgyyOrder? order;
+  final CgyyLockCode? lockCode;
+  final FailureCode? failure;
+}

@@ -7,7 +7,7 @@
 
 ## 目录
 
-- [cas](#cas) (12)
+- [cas](#cas) (13)
 - [challenge](#challenge) (1)
 - [iclass](#iclass) (1)
 - [login](#login) (3)
@@ -23,29 +23,31 @@
 ## cas
 
 - `pub fn extract_execution(html: &str) -> Option<String> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:41</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:43</sub>
 - `pub fn extract_login_form_action(html: &str) -> Option<String> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:45</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:47</sub>
 - `pub fn detect_captcha(html: &str) -> Option<CaptchaChallenge> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:49</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:51</sub>
 - `pub fn captcha_image_url(id: &str) -> String {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:59</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:61</sub>
 - `pub fn text_captcha_supported(challenge: &CaptchaChallenge) -> bool {…}` — Only the documented local image/text form is understood. Other challenge
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:67</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:69</sub>
 - `pub fn extract_tip_text(html: &str) -> Option<String> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:71</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:73</sub>
 - `pub fn extract_error_text(html: &str) -> Option<String> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:77</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:79</sub>
 - `pub fn is_access_policy_denied(html: &str) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:84</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:86</sub>
 - `pub fn is_password_expiry_page(html: &str) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:89</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:91</sub>
 - `pub fn is_login_redirect(final_url: &str, body: &str) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:97</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:99</sub>
+- `pub fn module_refusal(final_url: &str, body: &str) -> AppError {…}` — Classify a module answer that is not the expected payload.
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:117</sub>
 - `pub fn login_fields( html: &str, username: &str, password: &str, captcha_text: Option<&str>, ) -> Vec<(String, String)> {…}` — Build the CAS form from the page's hidden inputs. The `+` and `/` in the
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:109</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:127</sub>
 - `pub fn form_urlencode(fields: &[(String, String)]) -> String {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:149</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:167</sub>
 
 ## challenge
 
@@ -163,7 +165,7 @@
 - `pub async fn send_anonymous( &self, request: HttpRequest, preference: RouteMode, ) -> Result<HttpResponse, AppError>` — Make an anonymous request without exposing or modifying the signed-in
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:156</sub>
 - `pub async fn send_with_fallback(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {…}` — Send once, then retry a safe GET once through WebVPN when automatic
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:171</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:177</sub>
 
 ## uc
 

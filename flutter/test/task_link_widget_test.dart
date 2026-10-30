@@ -1,5 +1,6 @@
+import 'package:ginkgo_mirror/application/local_tasks_read.dart';
+
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,6 +8,8 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/main.dart';
+
+import 'local_tasks_read_fixture.dart';
 
 const assignment = HomeworkItem(
   id: 'spoc:123',
@@ -38,13 +41,13 @@ class TaskFake implements LocalTaskGateway, AcademicGateway {
   bool corrupt = false;
   bool failSave = false;
   List<HomeworkItem> assignments = [assignment];
-  Completer<ReadOnlyResponse>? pendingLoad;
-  Completer<ReadOnlyResponse>? pendingSave;
+  Completer<LocalTasksRead>? pendingLoad;
+  Completer<LocalTasksRead>? pendingSave;
   Completer<HomeworkDetailResponse>? pendingDetail;
   @override
   bool get isDemo => true;
   @override
-  Future<ReadOnlyResponse> editTasks({
+  Future<LocalTasksRead> editTasks({
     required String root,
     required String action,
     String? id,
@@ -57,7 +60,7 @@ class TaskFake implements LocalTaskGateway, AcademicGateway {
     if (action == 'load' && pendingLoad != null) return pendingLoad!.future;
     if (action != 'load' && pendingSave != null) return pendingSave!.future;
     if (action != 'load' && failSave) {
-      return const ReadOnlyResponse(stale: false);
+      return const LocalTasksRead(failure: FailureCode.changedResponse);
     }
     if (action == 'add_homework') {
       if (!rows.any((t) => (t['source'] as Map?)?['assignment_id'] == id)) {
@@ -74,10 +77,10 @@ class TaskFake implements LocalTaskGateway, AcademicGateway {
     } else if (action == 'delete') {
       rows.removeWhere((t) => t['id'] == id);
     }
-    return ReadOnlyResponse(
-      payload: corrupt ? '{}' : jsonEncode(rows),
-      stale: false,
-    );
+    if (corrupt) {
+      return const LocalTasksRead(failure: FailureCode.changedResponse);
+    }
+    return tasksRead(rows);
   }
 
   @override

@@ -19,9 +19,9 @@
 ## features/tasks/tasks_page.dart
 
 - `class TasksPage extends StatefulWidget`
-  <sub>class · features/tasks/tasks_page.dart:18</sub>
-    - `const TasksPage({ super.key, this.demo = false, this.storageRoot, this.service, this.academicService, this.initialTaskId, });`  <sub>:19</sub>
-    - `State<TasksPage> createState() => …`  <sub>:33</sub>
+  <sub>class · features/tasks/tasks_page.dart:17</sub>
+    - `const TasksPage({ super.key, this.storageRoot, required this.service, this.academicService, this.initialTaskId, });`  <sub>:18</sub>
+    - `State<TasksPage> createState() => …`  <sub>:30</sub>
 
 ## features/tasks/tasks_widgets.dart
 

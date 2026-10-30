@@ -63,7 +63,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('合成学术活动'), findsNothing);
-    expect(find.text('请重试或前往官网。'), findsOneWidget);
+    expect(find.text('请稍后重试，或在服务目录中打开官网。'), findsOneWidget);
   });
   testWidgets('campus activities render source, event time and publish date', (
     tester,
@@ -102,6 +102,24 @@ void main() {
     expect(find.text('正在显示上次结果。'), findsOneWidget);
     expect(find.text('合成学术活动'), findsOneWidget);
     expect(find.textContaining('同步 10月28日 10:00'), findsOneWidget);
+  });
+
+  testWidgets('an offline first read blames the connection, not the school', (
+    tester,
+  ) async {
+    final fake = SyntheticService();
+    await tester.pumpWidget(host(fake));
+    fake.completers.single.complete(
+      const CampusActivitiesRead(failure: FailureCode.networkUnreachable),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('无法连接网络，请检查手机网络或校园网后重试'), findsOneWidget);
+    expect(find.text('手机当前连不上网络，恢复网络后重试。'), findsOneWidget);
+    // The page subtitle legitimately mentions the school website, so assert the
+    // dead-end advice sentence itself is absent rather than the word.
+    expect(find.text('请稍后重试，或在服务目录中打开官网。'), findsNothing);
+    expect(find.text('学校服务暂时不可用，请稍后重试'), findsNothing);
+    expect(find.text('合成学术活动'), findsNothing);
   });
 
   testWidgets(

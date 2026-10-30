@@ -1,15 +1,22 @@
+use super::resources_response;
 use super::*;
-use ginkgo_core::application::{CourseResourcePage, DataOutcome, LearningDownload};
+use ginkgo_core::application::CourseResourcePage;
+use ginkgo_core::application::{DataOutcome, LearningDownload};
 #[test]
-fn learning_bridge_empty_and_stale_have_distinct_payload_and_failure() {
-    let empty = response(Ok(DataOutcome {
-        data: Vec::<String>::new(),
+fn typed_resources_page_keeps_an_empty_success_and_a_stale_snapshot_distinct() {
+    let empty = resources_response(Ok(DataOutcome {
+        data: CourseResourcePage {
+            page: 1,
+            has_next: false,
+            items: vec![],
+        },
         failure: None,
     }));
-    assert_eq!(empty.payload.as_deref(), Some("[]"));
-    assert!(!empty.stale);
-    assert!(empty.failure.is_none());
-    let stale = response(Ok(DataOutcome {
+    // A confirmed empty page is data with no failure, not an error.
+    assert!(empty.data.expect("page").items.is_empty());
+    assert!(!empty.failure.is_some());
+
+    let stale = resources_response(Ok(DataOutcome {
         data: CourseResourcePage {
             page: 2,
             has_next: false,
@@ -17,16 +24,10 @@ fn learning_bridge_empty_and_stale_have_distinct_payload_and_failure() {
         },
         failure: Some(AppError::changed()),
     }));
-    assert!(stale.stale);
+    // The previous snapshot crosses with its failure attached.
+    assert!(stale.failure.is_some());
     assert!(matches!(stale.failure, Some(FailureCode::ChangedResponse)));
-    assert_eq!(
-        stale.payload.as_deref(),
-        Some(r#"{"items":[],"page":2,"hasNext":false}"#)
-    );
-    let failed = response::<Vec<String>>(Err(AppError::session_expired()));
-    assert!(failed.payload.is_none());
-    assert!(!failed.stale);
-    assert!(matches!(failed.failure, Some(FailureCode::SessionExpired)));
+    assert_eq!(stale.data.expect("page").page, 2);
 }
 #[test]
 fn learning_bridge_download_never_includes_bytes_or_name_on_failure() {
@@ -43,23 +44,25 @@ fn learning_bridge_download_never_includes_bytes_or_name_on_failure() {
     assert!(matches!(failed.failure, Some(FailureCode::InvalidRequest)));
 }
 #[tokio::test]
-async fn learning_bridge_missing_identity_fails_closed_without_payload() {
+async fn learning_bridge_missing_identity_fails_closed_without_data() {
     assert!(
         SERVICE.get().is_none(),
         "synthetic tests must not create a live runtime"
     );
     // Empty expected-account capability fails regardless of runtime state. These
     // commands may never infer an account or manufacture a successful empty list.
-    for r in [
-        courses(String::new(), false).await,
-        announcements(String::new(), "c".into(), true).await,
-        resources(String::new(), "c".into(), Some("f".into()), 1, true).await,
-        assessments(String::new(), "c".into(), true).await,
-    ] {
-        assert!(r.payload.is_none());
-        assert!(r.failure.is_some());
-        assert!(!r.stale);
-    }
+    let courses = courses(String::new(), false).await;
+    assert!(courses.data.is_none());
+    assert!(courses.failure.is_some());
+    let announcements = announcements(String::new(), "c".into(), true).await;
+    assert!(announcements.data.is_none());
+    assert!(announcements.failure.is_some());
+    let resources = resources(String::new(), "c".into(), Some("f".into()), 1, true).await;
+    assert!(resources.data.is_none());
+    assert!(resources.failure.is_some());
+    let assessments = assessments(String::new(), "c".into(), true).await;
+    assert!(assessments.data.is_none());
+    assert!(assessments.failure.is_some());
     assert!(
         SERVICE.get().is_none(),
         "missing identity must fail before runtime creation"

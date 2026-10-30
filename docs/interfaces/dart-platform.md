@@ -10,31 +10,31 @@
 - `class AndroidDownload`
   <sub>class · platform/android_update_controller.dart:10</sub>
     - `const AndroidDownload({ required this.version, required this.name, required this.url, required this.apiUrl, required this.size, required this.sha256, });`  <sub>:11</sub>
-    - `bool get isValid => …`  <sub>:33</sub>
+    - `bool get isValid => …`  <sub>:21</sub>
 - `enum UpdateDownloadSource`
-  <sub>enum · platform/android_update_controller.dart:47</sub>
-    - `const UpdateDownloadSource(this.label);`  <sub>:52</sub>
+  <sub>enum · platform/android_update_controller.dart:35</sub>
+    - `const UpdateDownloadSource(this.label);`  <sub>:40</sub>
 - `enum UpdateDownloadPhase { idle, downloading, paused, verifying, ready, failed }`
-  <sub>enum · platform/android_update_controller.dart:56</sub>
+  <sub>enum · platform/android_update_controller.dart:44</sub>
 - `typedef UpdateRoot = Future<Directory> Function();`
-  <sub>typedef · platform/android_update_controller.dart:58</sub>
+  <sub>typedef · platform/android_update_controller.dart:46</sub>
 - `typedef ApkInstaller = Future<String> Function(AndroidDownload asset);`
-  <sub>typedef · platform/android_update_controller.dart:59</sub>
+  <sub>typedef · platform/android_update_controller.dart:47</sub>
 - `class AndroidUpdateController extends ChangeNotifier`
-  <sub>class · platform/android_update_controller.dart:64</sub>
-    - `static final shared = AndroidUpdateController();`  <sub>:73</sub>
-    - `final HttpClient Function() _newClient;`  <sub>:75</sub>
-    - `UpdateDownloadPhase phase = UpdateDownloadPhase.idle;`  <sub>:88</sub>
-    - `UpdateDownloadSource source = UpdateDownloadSource.automatic;`  <sub>:89</sub>
-    - `int received = 0;`  <sub>:91</sub>
-    - `bool installing = false;`  <sub>:95</sub>
-    - `bool get busy => …`  <sub>:96</sub>
-    - `double get progress => …`  <sub>:97</sub>
-    - `void selectSource(UpdateDownloadSource value) {…}`  <sub>:99</sub>
-    - `String get sizeLabel => …`  <sub>:105</sub>
-    - `void pause() {…}`  <sub>:114</sub>
-    - `Future<void> download(AndroidDownload next) async {…}`  <sub>:120</sub>
-    - `Future<void> install() async {…}`  <sub>:314</sub>
+  <sub>class · platform/android_update_controller.dart:52</sub>
+    - `static final shared = AndroidUpdateController();`  <sub>:61</sub>
+    - `final HttpClient Function() _newClient;`  <sub>:63</sub>
+    - `UpdateDownloadPhase phase = UpdateDownloadPhase.idle;`  <sub>:76</sub>
+    - `UpdateDownloadSource source = UpdateDownloadSource.automatic;`  <sub>:77</sub>
+    - `int received = 0;`  <sub>:79</sub>
+    - `bool installing = false;`  <sub>:83</sub>
+    - `bool get busy => …`  <sub>:84</sub>
+    - `double get progress => …`  <sub>:85</sub>
+    - `void selectSource(UpdateDownloadSource value) {…}`  <sub>:87</sub>
+    - `String get sizeLabel => …`  <sub>:93</sub>
+    - `void pause() {…}`  <sub>:102</sub>
+    - `Future<void> download(AndroidDownload next) async {…}`  <sub>:108</sub>
+    - `Future<void> install() async {…}`  <sub>:302</sub>
 
 ## platform/startup_update.dart
 

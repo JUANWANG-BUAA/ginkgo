@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_lock_code_page.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_order_detail_page.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
 import 'package:ginkgo_mirror/main.dart';
@@ -13,7 +14,9 @@ void main() {
   ) async {
     final service = ManagementService();
     await tester.pumpWidget(
-      ginkgoApp(home: CgyyPage(service: service, bookingGateway: service)),
+      ginkgoApp(
+        home: CgyyPage(service: service, bookingGateway: service),
+      ),
     );
     await tester.pumpAndSettle();
     expect(find.text('预约研讨室'), findsOneWidget);
@@ -55,14 +58,17 @@ void main() {
     tester,
   ) async {
     final service = ManagementService()
-      ..lockCode = {'qrCode': 'null', 'tradeNo': 'synthetic-upcoming'};
+      ..lockCode = const CgyyLockCode(
+        qrCode: 'null',
+        tradeNo: 'synthetic-upcoming',
+      );
     await tester.pumpWidget(
       ginkgoApp(home: CgyyLockCodePage(service: service)),
     );
     await tester.pumpAndSettle();
     expect(find.text('未到开门时段'), findsOneWidget);
 
-    service.lockCode = {};
+    service.lockCode = const CgyyLockCode();
     await tester.tap(find.bySemanticsLabel('刷新门锁密码'));
     await tester.pumpAndSettle();
     expect(find.text('当前无可用预约'), findsOneWidget);

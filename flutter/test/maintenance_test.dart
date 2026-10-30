@@ -74,6 +74,42 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+  testWidgets('release notes render as a list, not as markdown source', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 2000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final service = TestMaintenance();
+    await tester.pumpWidget(
+      ginkgoApp(home: SoftwareUpdatePage(service: service)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('检查更新'));
+    await tester.pump();
+    service.pending!.complete(
+      const UpdateResult(
+        latest: '0.1.0-beta.2',
+        available: true,
+        apkAvailable: true,
+        notes:
+            '# Ginkgo Android 0.1.0-beta.2\n\n'
+            '- 公开信息查询与账号登录态隔离。\n'
+            '- 新增按需校园卡余额查询。\n',
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Ginkgo Android 0.1.0-beta.2'), findsOneWidget);
+    expect(find.text('公开信息查询与账号登录态隔离。'), findsOneWidget);
+    expect(find.text('新增按需校园卡余额查询。'), findsOneWidget);
+    expect(find.text('•'), findsNWidgets(2));
+    // These markers are exactly what the reader used to be shown verbatim.
+    expect(find.textContaining('# Ginkgo'), findsNothing);
+    expect(find.textContaining('- 公开信息查询'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'diagnostic reports per-item failure at large text without networking',
     (tester) async {

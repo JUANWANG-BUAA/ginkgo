@@ -348,74 +348,9 @@ pub(super) fn failure(error: &AppError) -> (Option<FailureCode>, Option<String>)
     (Some(error.code.clone().into()), error.detail.clone())
 }
 
-/// Serialization failures are typed failures, never an empty successful response.
-pub(super) fn read_only_response<T: serde::Serialize>(
-    result: Result<ginkgo_core::application::DataOutcome<T>, AppError>,
-) -> ReadOnlyResponse {
-    let result = result.and_then(|outcome| {
-        let payload = serde_json::to_string(&outcome.data).map_err(|_| AppError::changed())?;
-        Ok(ReadOnlyResponse {
-            payload: Some(payload),
-            stale: outcome.failure.is_some(),
-            failure: outcome.failure.map(|error| error.code.into()),
-        })
-    });
-    result.unwrap_or_else(|error| ReadOnlyResponse {
-        payload: None,
-        stale: false,
-        failure: Some(error.code.into()),
-    })
-}
-
-pub(super) fn read_only_value<T: serde::Serialize>(
-    result: Result<T, AppError>,
-) -> ReadOnlyResponse {
-    read_only_response(result.map(|data| ginkgo_core::application::DataOutcome {
-        data,
-        failure: None,
-    }))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ginkgo_core::application::DataOutcome;
-    use serde::{Serialize, Serializer};
-
-    struct InvalidPayload;
-    impl Serialize for InvalidPayload {
-        fn serialize<S: Serializer>(&self, _: S) -> Result<S::Ok, S::Error> {
-            Err(serde::ser::Error::custom("synthetic serialization failure"))
-        }
-    }
-
-    #[test]
-    fn serialization_failure_is_not_reported_as_an_empty_success() {
-        let response = read_only_response(Ok(DataOutcome {
-            data: InvalidPayload,
-            failure: None,
-        }));
-        assert!(response.payload.is_none());
-        assert!(matches!(
-            response.failure,
-            Some(FailureCode::ChangedResponse)
-        ));
-    }
-
-    #[test]
-    fn fallback_value_and_refresh_failure_cross_the_boundary_together() {
-        let response = read_only_response(Ok(DataOutcome {
-            data: vec![7],
-            failure: Some(AppError::session_expired()),
-        }));
-        assert_eq!(response.payload.as_deref(), Some("[7]"));
-        assert!(response.stale);
-        assert!(matches!(
-            response.failure,
-            Some(FailureCode::SessionExpired)
-        ));
-    }
-
     #[test]
     fn mutation_states_map_one_to_one_and_uncertainty_never_reads_accepted() {
         use ginkgo_core::features::mutation::{MutationOutcome, MutationState};
@@ -592,5 +527,39 @@ mod tests {
             classroom_sort(ClassroomSort::Consecutive),
             Sort::Consecutive
         ));
+    }
+
+    #[test]
+    fn every_domain_error_code_keeps_its_own_failure_code() {
+        use ginkgo_core::ErrorCode;
+        let codes = [
+            ErrorCode::InvalidRequest,
+            ErrorCode::ChangedResponse,
+            ErrorCode::UnsupportedContract,
+            ErrorCode::SessionExpired,
+            ErrorCode::ServiceUnavailable,
+            ErrorCode::CaptchaRequired,
+            ErrorCode::InvalidCredentials,
+            ErrorCode::PreLoginTip,
+            ErrorCode::AccessPolicyDenied,
+            ErrorCode::RedirectLimit,
+            ErrorCode::UnsupportedPortal,
+            ErrorCode::CredentialStore,
+            ErrorCode::BusinessRejected,
+            ErrorCode::NetworkUnreachable,
+            ErrorCode::ModuleAuthRequired,
+        ];
+        let mut seen = std::collections::HashSet::new();
+        for code in &codes {
+            let failure = FailureCode::from(code.clone());
+            // Collapsing two domain codes onto one FailureCode silently drops a
+            // distinction the UI copy depends on. `NetworkUnreachable` exists
+            // because offline readers were told the school was down instead.
+            assert!(
+                seen.insert(std::mem::discriminant(&failure)),
+                "{code:?} shares its FailureCode with an earlier code"
+            );
+        }
+        assert_eq!(seen.len(), codes.len());
     }
 }

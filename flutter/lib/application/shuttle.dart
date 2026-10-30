@@ -1,14 +1,18 @@
-import 'dart:convert';
+import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/environment.dart';
 
-/// Typed projection of `ginkgo_domain::features::shuttle` payloads
-/// (camelCase). Published values only: no live seats, no ticketing.
+/// Published shuttle values only: no live seats, no ticketing.
 
 /// One scheduled departure as printed by the school.
 class ShuttleRun {
-  ShuttleRun.fromJson(Map<String, dynamic> json)
-    : time = (json['time'] as String? ?? '').trim(),
-      capacity = (json['capacity'] as String? ?? '').trim();
+  const ShuttleRun({
+    required this.index,
+    required this.time,
+    required this.capacity,
+  });
 
+  /// Published sequence number ("班次").
+  final String index;
   final String time, capacity;
 
   /// Minutes past midnight, or null when the printed time is not `H:mm`.
@@ -24,18 +28,14 @@ class ShuttleRun {
 
 /// One direction pair under a validity label such as "星期一至星期五".
 class ShuttleSection {
-  ShuttleSection.fromJson(Map<String, dynamic> json)
-    : label = (json['label'] as String? ?? '').trim(),
-      left = _runs(json['left']),
-      right = _runs(json['right']);
+  const ShuttleSection({
+    required this.label,
+    required this.left,
+    required this.right,
+  });
 
   final String label;
   final List<ShuttleRun> left, right;
-
-  static List<ShuttleRun> _runs(Object? json) => (json as List? ?? const [])
-      .cast<Map<String, dynamic>>()
-      .map(ShuttleRun.fromJson)
-      .toList(growable: false);
 
   /// Published validity labels name weekdays rather than dates. Only labels
   /// that can be read unambiguously filter the plan; an unfamiliar label keeps
@@ -84,20 +84,22 @@ class ShuttleSection {
 
 /// One published table: two directions plus their dated sections.
 class ShuttleTable {
-  ShuttleTable.fromJson(Map<String, dynamic> json)
-    : left = (json['left'] as String? ?? '').trim(),
-      right = (json['right'] as String? ?? '').trim(),
-      sections = (json['sections'] as List? ?? const [])
-          .cast<Map<String, dynamic>>()
-          .map(ShuttleSection.fromJson)
-          .toList(growable: false);
+  const ShuttleTable({
+    required this.left,
+    required this.right,
+    required this.sections,
+  });
 
   final String left, right;
   final List<ShuttleSection> sections;
 }
 
 class ShuttleTimetable {
-  ShuttleTimetable._(this.tables, this.source, this.liveSource);
+  const ShuttleTimetable({
+    required this.tables,
+    required this.source,
+    required this.liveSource,
+  });
 
   final List<ShuttleTable> tables;
   final String source, liveSource;
@@ -156,14 +158,13 @@ class ShuttleDeparture {
   final String capacity;
 }
 
-ShuttleTimetable shuttleTimetable(String payload) {
-  final decoded = jsonDecode(payload) as Map<String, dynamic>;
-  return ShuttleTimetable._(
-    (decoded['tables'] as List? ?? const [])
-        .cast<Map<String, dynamic>>()
-        .map(ShuttleTable.fromJson)
-        .toList(growable: false),
-    decoded['source'] as String? ?? '',
-    decoded['liveSource'] as String? ?? '',
-  );
+class ShuttleTimetableRead {
+  const ShuttleTimetableRead({this.data, this.failure});
+  final ShuttleTimetable? data;
+  final FailureCode? failure;
+}
+
+abstract interface class ShuttleGateway implements MirrorEnvironment {
+  /// Published shuttle timetable (official page). No live seats, no ticketing.
+  Future<ShuttleTimetableRead> shuttleTimetable();
 }

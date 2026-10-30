@@ -1,14 +1,16 @@
-import 'dart:convert';
-
-import '../application/contracts.dart' show ReadOnlyResponse;
+import '../application/contracts.dart';
 import '../application/graduate_credit_map.dart';
+import '../src/rust/api/live.dart' as live;
 
-/// Decodes the core projection, not a school response. Rust owns arithmetic.
-GraduateCreditMapRead decodeGraduateCreditMapRead(ReadOnlyResponse response) {
+/// Projects the typed core result. Rust owns the arithmetic.
+GraduateCreditMapRead decodeGraduateCreditMapRead(
+  live.GraduateCreditMapResponse response,
+) {
   final issue = GraduateCreditReadIssue.fromFailure(response.failure);
-  if (response.payload == null ||
-      issue?.kind == GraduateCreditIssueKind.authentication ||
-      (issue != null && !response.stale)) {
+  // Data may accompany a failure only as a previous successful snapshot.
+  final stale = response.failure != null;
+  if (response.data == null ||
+      issue?.kind == GraduateCreditIssueKind.authentication) {
     return GraduateCreditMapRead(
       issue:
           issue ??
@@ -16,62 +18,49 @@ GraduateCreditMapRead decodeGraduateCreditMapRead(ReadOnlyResponse response) {
     );
   }
   return GraduateCreditMapRead(
-    data: decodeGraduateCreditMap(jsonDecode(response.payload!)),
-    stale: response.stale,
+    data: _map(response.data!),
+    stale: stale,
     issue: issue,
   );
 }
 
-GraduateCreditMap decodeGraduateCreditMap(Object? value) {
-  final map = value as Map<String, dynamic>;
-  return GraduateCreditMap(
-    summary: map['summary'] == null ? null : _node(map['summary']),
-    nodes: (map['nodes'] as List).map(_node),
-    notice: map['notice'] as String?,
-  );
-}
+GraduateCreditMap _map(live.GraduateCreditMapDto dto) => GraduateCreditMap(
+  summary: dto.summary == null ? null : _node(dto.summary!),
+  nodes: List.unmodifiable(dto.nodes.map(_node)),
+  notice: dto.notice,
+);
 
-GraduateCreditNode _node(Object? value) {
-  final map = value as Map<String, dynamic>;
-  final index = map['sourceIndex'] as int;
-  if (index < 0) throw const FormatException('学分条目索引无效');
-  return GraduateCreditNode(
-    sourceIndex: index,
-    title: map['title'] as String,
-    progress: map['progress'] == null ? null : _metrics(map['progress']),
-    rows: (map['rows'] as List).map((value) {
-      final row = value as Map<String, dynamic>;
-      return GraduateCreditRow(
-        title: row['title'] as String,
-        detail: row['detail'] as String,
-        isCourse: row['isCourse'] as bool? ?? false,
-        completed: row['completed'] as bool?,
-        credit: _number(row['credit']),
-        semester: row['semester'] as String?,
-      );
-    }),
-  );
-}
+GraduateCreditNode _node(live.GraduateCreditNodeDto dto) => GraduateCreditNode(
+  sourceIndex: dto.sourceIndex,
+  title: dto.title,
+  progress: dto.progress == null ? null : _metrics(dto.progress!),
+  rows: List.unmodifiable(
+    dto.rows.map(
+      (row) => GraduateCreditRow(
+        title: row.title,
+        detail: row.detail,
+        isCourse: row.isCourse,
+        completed: row.completed,
+        credit: row.credit,
+        semester: row.semester,
+      ),
+    ),
+  ),
+);
 
-double? _number(Object? value) {
-  if (value == null) return null;
-  final number = (value as num).toDouble();
-  if (!number.isFinite || number < 0) {
-    throw const FormatException('学分投影数值无效');
-  }
-  return number;
-}
-
-GraduateCreditMetrics _metrics(Object? value) {
-  final map = value as Map<String, dynamic>;
-  final ratio = _number(map['ratio']);
-  if (ratio != null && ratio > 1) throw const FormatException('学分比例无效');
-  return GraduateCreditMetrics(
-    state: GraduateCreditState.values.byName(map['state'] as String),
-    requiredCredits: _number(map['required']),
-    earned: _number(map['earned']),
-    pending: _number(map['pending']),
-    remaining: _number(map['remaining']),
-    ratio: ratio,
-  );
-}
+GraduateCreditMetrics _metrics(live.GraduateCreditMetricsDto dto) =>
+    GraduateCreditMetrics(
+      state: switch (dto.state) {
+        live.GraduateCreditStateDto.unknown => GraduateCreditState.unknown,
+        live.GraduateCreditStateDto.noMinimum => GraduateCreditState.noMinimum,
+        live.GraduateCreditStateDto.incomplete =>
+          GraduateCreditState.incomplete,
+        live.GraduateCreditStateDto.requirementMet =>
+          GraduateCreditState.requirementMet,
+      },
+      requiredCredits: dto.required_,
+      earned: dto.earned,
+      pending: dto.pending,
+      remaining: dto.remaining,
+      ratio: dto.ratio,
+    );

@@ -125,6 +125,7 @@ Flutter 页面
 | [§3 研究生课表](API.md#3-课表--研究生gsmis) | `adapters/graduate_schedule_http.rs`、`codecs/schedule/graduate.rs` | GSMIS 学期/课表查询 | `schedule_service` |
 | [§4 成绩](API.md#4-成绩buaascore) | `adapters/grades_http.rs` | `GRADE_URL` | `session_service`/成绩读取 |
 | [§5 图书馆座位](API.md#5-图书馆座位bookinglib-v4) | `adapters/library_http.rs` | `/api/login`、`/api/reservation/day/info`、`/api/orders/*`、`/api/front/website/venues` | `library_service`、`library_mutation_service` |
+| [§5.5 官网实时空间数据](API.md#55-官网实时空间数据公开只读) | `adapters/library_stats_http.rs` | `/engine2/buaa/more/1082575`（公开只读，与选座会话隔离） | `library_stats_service` |
 | [§6 图书目录与借阅](API.md#6-图书目录馆藏与本人借阅2026-10-23-部分只读验证) | `adapters/library_books_http.rs`、`library_loans_http.rs` | `/meta-local/opac/search`、`/bibs/`、`/users/loans` | `library_books_service`、`library_loans_service` |
 | [§6E 校园卡余额](API.md#6e-校园卡余额官方前端与脱敏结构真实-app-验收中) | `adapters/campus_card_http.rs` | `/api/campus_cards`、`/api/campus_card/balance` | `campus_card_service` |
 | [§6F 学术文化](API.md#6f-学术文化公开列表工作树只读) | `adapters/campus_activities_http.rs` | `/index/xswh1.htm`、`/index/xswh1/<page>.htm` | `campus_activities_service` |
@@ -310,11 +311,10 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 | 形态 | 字段 | 说明 |
 | --- | --- | --- |
-| `ReadOnlyResponse` | `payload: String?`、`stale: bool`、`failure: FailureCode?` | **类型名不代表无副作用**；`payload` 是领域 JSON 字符串 |
 | `MutationResponse` | `state`、`message` | 写入结果，见 [§4.2](#42-错误语义) |
-| 结构化 DTO | 各字段 | 课表、成绩、签到等直接映射为 Dart 类型 |
+| 结构化 DTO | 各字段 | 课表、成绩、签到、CGYY 读取等直接映射为 Dart 类型 |
 
-成功 = `payload` 有值且 `failure` 为空；解析/会话/存储错误可以表现为 `payload=null` 加 `failure`。不能只看 JSON 里的 `state` 判定错误。
+所有只读命令都返回类型化 DTO；失败通过 DTO 上的 `failure` 字段表达，不再使用 JSON 载荷字符串。不能只看 JSON 里的 `state` 判定错误。
 
 ### 6.10 返回形态与载荷契约
 
@@ -322,20 +322,19 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 | 形态 | 数量 | 含义 | 解码位置 |
 | --- | --- | --- | --- |
-| 类型化 DTO | 47 | 命令直接返回结构体（`SessionResponse`、`ScheduleResponse`、`CheckInResponse`、`MutationResponse` …） | 无需 JSON 解码 |
-| `ReadOnlyResponse` 载荷 | 42 | 命令返回领域 JSON 字符串 + `stale` + `failure` | 只能在 `infrastructure/` 或各域 `*_models.dart` 解码 |
+| 类型化 DTO | 89 | 命令直接返回结构体（`SessionResponse`、`ScheduleResponse`、`CheckInResponse`、`MutationResponse`、`CgyyLoadResponse` …） | Rust 端投影；Dart 只做 DTO → 呈现模型 |
+| `ReadOnlyResponse` 载荷 | 0 | —— | —— |
 
-使用载荷信封的 42 个命令：
+使用载荷信封的 0 个命令：
 
-`checkAndroidUpdate`、`checkinLoadProgress`、`configureHomeworkRecovery`、`courseAnnouncementDetail`、`courseAnnouncementDetailIn`、`courseAnnouncements`、`courseAnnouncementsIn`、`courseAssessments`、`courseAssessmentsIn`、`courseLearningCapabilities`、`courseLearningColumns`、`courseResources`、`courseResourcesAt`、`editTasks`、`executeCgyy`、`homeworkCapabilities`、`homeworkFileWorkspace`、`importLearningSnapshots`、`learningCourses`、`loadBykc`、`loadBykcChosen`、`loadBykcStatistics`、`loadCampusActivities`、`loadCgyy`、`loadDemoBykc`、`loadDemoBykcChosen`、`loadDemoBykcStatistics`、`loadDemoCgyy`、`loadDemoGraduate`、`loadDemoGraduateStatus`、`loadDemoLibraryStats`、`loadDemoNotices`、`loadGraduateCreditMap`、`loadGraduatePart`、`loadLibraryBooks`、`loadLibraryHoldings`、`loadLibraryLoans`、`loadLibraryStats`、`loadNotices`、`loadShuttleTimetable`、`pendingHomeworkSubmissions`、`uploadHomeworkFile`。
+（无；`ReadOnlyResponse { payload, stale, failure }` 逃生舱已随 R-19 迁移整体删除，载荷契约约束保留如下。）
 
-载荷契约要求如下；架构门禁只检查部分依赖与解码位置，不能证明载荷字段或失败语义正确：
+历史载荷契约仍然适用的约束；架构门禁只检查依赖与解码位置，不能证明字段或失败语义正确：
 
-1. `payload` 应是 **Rust 净化后的业务投影**，不是学校原始响应；部分历史投影仍沿用如 `space_id` 的学校字段名称，需在 DTO 迁移时消除这类耦合。
-2. 解码只允许在 `infrastructure/` 或 `*_models.dart`；页面与共享组件不得出现 `jsonDecode`。
-3. 载荷解码失败按“解析失败”处理（`FormatException` → 失败态），不得降级为空结果。
+1. 学校响应到 DTO 的净化投影只发生在 Rust；页面与共享组件不得出现学校 JSON 的 `jsonDecode`。
+2. 投影失败按“解析失败”处理（`FormatException` → 失败态），不得降级为空结果或伪造零值。
 
-新增命令时优先返回类型化 DTO；确需载荷信封时，同步在 [FEATURES-AND-PROTOCOLS](FEATURES-AND-PROTOCOLS.md) 的本机/投影约定中登记，并保持解码位置在模型层。
+新增命令必须返回类型化 DTO；确需重新引入载荷信封时，同步在 [FEATURES-AND-PROTOCOLS](FEATURES-AND-PROTOCOLS.md) 的本机/投影约定中登记，并保持解码位置在模型层。
 
 ## 7. Flutter 应用接口层
 
@@ -370,7 +369,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 `CampusGateway` 聚合 `BykcGateway.bykcPart`、`GraduateGateway.graduatePart`、`NoticeGateway.notices`、`CgyyGateway.cgyy`；各页面按实际能力注入独立端口。
 
-`LocalTaskGateway.editTasks(command)` 是本机待办端口，不属于学校校园服务。`CgyyBookingGateway.executeCgyy(Map<String, Object?>)` 写能力单列，不因具备 `cgyy` 只读能力就自动获得。
+`LocalTaskGateway.editTasks(command)` 是本机待办端口，不属于学校校园服务。`CgyyBookingGateway.executeCgyy(CgyyCommand)` 写能力单列，使用 `application/cgyy_commands.dart` 的 sealed command，不因具备 `cgyy` 只读能力就自动获得。
 
 ### 7.6 AuthChallengeGateway
 
@@ -429,7 +428,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | `now` / `clock` | 时间注入 | 仅测试用，生产走 `todaySchoolNow` |
 | `saveFile` / `picker` | 平台能力注入 | 可空；为空时页面必须降级提示而非崩溃 |
 
-页面不得直接调用 `jsonDecode`；部分既有页面仍接收 `ReadOnlyResponse.payload` 并交给模型解码器，不能称为完全类型化。架构门禁检查直接解码和部分裸 Map 使用，但不能证明所有页面参数和字段都已消除字符串载荷。
+页面不得直接调用 `jsonDecode`；R-19 迁移后所有页面都接收类型化 DTO，`infrastructure/` 与各域 `*_models.dart` 只做 DTO → 呈现模型投影。架构门禁检查直接解码和部分裸 Map 使用，但不能证明所有投影字段语义正确。
 
 ### 7A.2 组件契约
 
@@ -492,16 +491,16 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | `learning` | 课程 ID、栏目、目录路径、分页 | `LearningRead<T>`（含旧值与失败）、`LearningDownload` | 分区独立失败，各自保留旧值 | 可选加密学习元数据快照（默认关闭） |
 | `checkin` | 日期、课程 ID | `CheckInResponse{date, courses[]}`、`MutationResponse` | 写 `uncertain` → 只回查 | 日期隔离快照；提醒已读摘要 |
 | `library` | 馆/区/时段/座位 ID、动作 | 各 `*Response`、`MutationResponse` | 写 `uncertain` → 只回查 | 分区/分页快照 |
-| `library-books` | 关键词、排序、分页、`bibId` | `ReadOnlyResponse`（领域投影） | 读失败保留旧值 | 进程快照 |
+| `library-books` | 关键词、排序、分页、`bibId` | `BookPageResponse{page, pageSize, total, items[], hasMore}` | 读失败保留旧值 | 进程快照 |
 | `library-loans` | `page` | `LibraryLoansRead{pages, records[]}` | 读失败与确认空分别呈现 | **不持久化**；离开页面即清 |
-| `library-stats` | `forceRefresh` | `ReadOnlyResponse`（校区人数） | 读失败保留旧值 | 进程快照 |
+| `library-stats` | `forceRefresh` | `LibraryStatsResponse{campuses[], fetchedAt}` | 读失败保留旧值 | 进程快照 |
 | `classroom` | 校区、日期、节次、楼栋、搜索 | `ClassroomResponse{rows[], buildings[]}` | 读失败保留旧值 | 进程快照；本机每页 50 条 |
-| `cgyy`（读） | `kind`（`venues`/`day`/`orders`/`order`/`lockCode`）、`siteId`、`date` | `ReadOnlyResponse`（领域投影） | 读失败保留旧值；门锁码失败不误报无预约 | 既有查询进程快照；订单详情和门锁码无快照 |
+| `cgyy`（读） | `kind`（`venues`/`day`/`orders`/`order`/`lockCode`）、`siteId`、`date` | `CgyyLoadResponse{venues?\|day?\|orders?\|order?\|lockCode?, failure}` | 读失败保留旧值；门锁码失败不误报无预约 | 既有查询进程快照；订单详情和门锁码无快照 |
 | `cgyy`（写） | `action` + 参数（见 [FEATURES-AND-PROTOCOLS §4](FEATURES-AND-PROTOCOLS.md#4-cgyy-本地-json-契约)） | `CgyyActionResult{state, message, options?, challenge?, review?}` | `uncertain` → 只回查 | pending marker（版本+布尔值，无过期） |
-| `bykc` | `part`（catalog/chosen/statistics） | `ReadOnlyResponse` | 三部分独立失败 | 进程快照 |
-| `graduate` | `part`、`forceRefresh` | `ReadOnlyResponse`（学籍/报告/学分地图） | 读失败保留旧值 | 进程快照 |
-| `notices` | `forceRefresh` | `ReadOnlyResponse` | 读失败保留旧值 | 进程快照 |
-| `shuttle` | — | `ReadOnlyResponse`（分方向班次） | 读失败保留旧值 | 进程快照 |
+| `bykc` | `part`（catalog/chosen/statistics） | `BykcCatalogResponse` / `BykcChosenResponse` / `BykcStatisticsResponse` | 三部分独立失败 | 进程快照 |
+| `graduate` | `part`、`forceRefresh` | `GraduateResponse` / `GraduateCreditMapResponse` | 读失败保留旧值 | 进程快照 |
+| `notices` | `forceRefresh` | `NoticesResponse{data[], failure}` | 读失败保留旧值 | 进程快照 |
+| `shuttle` | — | `ShuttleTimetableResponse{source, tables[]}` | 读失败保留旧值 | 进程快照 |
 | `campus-card` | 用户主动查询 | `CampusCardBalanceResponse{balanceMinor, fetchedAt, failure}` | 失败仅保留本页旧值并标注可能过期 | **不持久化**；离页/后台/换账号清除，默认遮挡，无轮询或资金写操作 |
 | `tasks` | `action` + 任务字段 | 本机任务列表 | 损坏拒绝覆盖 | `tasks-<SHA-1(account)>.json`，v1→v2 原子升级 |
 | `learning-snapshots` | `enabled` / 导出字节 | `LearningSnapshotStatus` | 导入失败不部分生效 | 可选加密快照文件 |
@@ -601,6 +600,8 @@ features/tasks/tasks_page.dart
 | 接口索引 | `python3 scripts/generate-interface-index.py --check` | 改了公开接口但没刷新文档 |
 | 接口索引自测 | `python3 scripts/generate-interface-index-test.py` | 测试模块截断及 Dart 顶层函数遗漏等生成器回归 |
 | 设计 token 采纳 | `python3 scripts/check-design-tokens.py` | 硬编码字号/间距/圆角重新回潮 |
+| 协议与接口文档同步 | `python3 scripts/check-api-doc.py` | 文档内部链接与标题锚点指空、新增协议适配器未登记、§6.10 载荷信封清单与计数跟生成绑定不一致 |
+| 文档同步门禁自测 | `python3 scripts/check-api-doc-test.py` | GitHub 锚点规则（含 CJK 标点）、代码块剥离与链接判定本身被改坏 |
 | Rust 质量 | `cargo fmt --check` / `cargo clippy -D warnings` | 格式与告警 |
 | 全量基线 | `bash scripts/check-mirror.sh` | 以上全部 + Flutter 分析与测试 + FRB 再生成一致性 |
 

@@ -7,7 +7,7 @@ import '../mirror_service.dart';
 
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 import 'package:ginkgo_mirror/workspace/desktop_workspace_sidebar.dart';
-import 'package:ginkgo_mirror/workspace/workspace_shell.dart'
+import 'package:ginkgo_mirror/workspace/workspace_shell_controller.dart'
     show WorkspaceShellState;
 
 /// 桌面侧栏壳：侧栏 + IndexedStack 惰性挂载各目的地。选中状态、已访问

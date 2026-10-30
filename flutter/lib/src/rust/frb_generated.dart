@@ -84,15 +84,15 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
-  Future<ReadOnlyResponse> crateApiLiveCheckAndroidUpdate({
+  Future<UpdateResponse> crateApiLiveCheckAndroidUpdate({
     required String current,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveCheckinLoadProgress();
+  Future<CheckinLoadProgressResponse> crateApiLiveCheckinLoadProgress();
 
   Future<bool> crateApiLiveClearCache();
 
-  Future<ReadOnlyResponse> crateApiLiveConfigureHomeworkRecovery({
+  Future<HomeworkRecoveryResponse> crateApiLiveConfigureHomeworkRecovery({
     required String expectedAccount,
     required String storageRoot,
   });
@@ -114,51 +114,53 @@ abstract class RustLibApi extends BaseApi {
     required String file,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveCourseAnnouncementDetail({
+  Future<CourseAnnouncementDetailResponse>
+  crateApiLiveCourseAnnouncementDetail({
     required String expectedAccount,
     required String course,
     required String id,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveCourseAnnouncementDetailIn({
+  Future<CourseAnnouncementDetailResponse>
+  crateApiLiveCourseAnnouncementDetailIn({
     required String expectedAccount,
     required String course,
     required String column,
     required String id,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveCourseAnnouncements({
+  Future<CourseAnnouncementsResponse> crateApiLiveCourseAnnouncements({
     required String expectedAccount,
     required String course,
     required bool force,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveCourseAnnouncementsIn({
+  Future<CourseAnnouncementsResponse> crateApiLiveCourseAnnouncementsIn({
     required String expectedAccount,
     required String course,
     required String column,
     required bool force,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveCourseAssessments({
+  Future<CourseAssessmentsResponse> crateApiLiveCourseAssessments({
     required String expectedAccount,
     required String course,
     required bool force,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveCourseAssessmentsIn({
+  Future<CourseAssessmentsResponse> crateApiLiveCourseAssessmentsIn({
     required String expectedAccount,
     required String course,
     required String column,
     required bool force,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveCourseLearningCapabilities({
+  Future<LearningCapabilitiesResponse> crateApiLiveCourseLearningCapabilities({
     required String expectedAccount,
     required String course,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveCourseLearningColumns({
+  Future<LearningColumnsResponse> crateApiLiveCourseLearningColumns({
     required String expectedAccount,
     required String course,
     required bool force,
@@ -180,7 +182,7 @@ abstract class RustLibApi extends BaseApi {
     required String id,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveCourseResources({
+  Future<CourseResourcePageResponse> crateApiLiveCourseResources({
     required String expectedAccount,
     required String course,
     String? folder,
@@ -188,7 +190,7 @@ abstract class RustLibApi extends BaseApi {
     required bool force,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveCourseResourcesAt({
+  Future<CourseResourcePageResponse> crateApiLiveCourseResourcesAt({
     required String expectedAccount,
     required String course,
     required List<String> path,
@@ -202,7 +204,7 @@ abstract class RustLibApi extends BaseApi {
     required String attachmentId,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveEditTasks({
+  Future<LocalTasksResponse> crateApiLiveEditTasks({
     required String root,
     required bool demo,
     required String action,
@@ -212,47 +214,51 @@ abstract class RustLibApi extends BaseApi {
     bool? completed,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveExecuteCgyy({required String command});
+  Future<CgyyActionResultResponse> crateApiLiveExecuteCgyy({
+    required String command,
+  });
 
   Future<LearningSnapshotResponse> crateApiLiveExportLearningSnapshots({
     required String expectedAccount,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveHomeworkCapabilities({
+  Future<HomeworkCapabilitiesResponse> crateApiLiveHomeworkCapabilities({
     required String expectedAccount,
     required String assignmentId,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveHomeworkFileWorkspace({
+  Future<HomeworkFileWorkspaceResponse> crateApiLiveHomeworkFileWorkspace({
     required String expectedAccount,
     required String assignmentId,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveImportLearningSnapshots({
+  Future<SnapshotImportResponse> crateApiLiveImportLearningSnapshots({
     required String expectedAccount,
     required List<int> bytes,
   });
 
   Future<void> crateApiMirrorInitApp();
 
-  Future<ReadOnlyResponse> crateApiLiveLearningCourses({
+  Future<LearningCoursesResponse> crateApiLiveLearningCourses({
     required String expectedAccount,
     required bool force,
   });
 
   String crateApiLiveLibraryLoansPortalUrl();
 
-  Future<ReadOnlyResponse> crateApiLiveLoadBykc({required bool forceRefresh});
-
-  Future<ReadOnlyResponse> crateApiLiveLoadBykcChosen({
+  Future<BykcCatalogResponse> crateApiLiveLoadBykc({
     required bool forceRefresh,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveLoadBykcStatistics({
+  Future<BykcChosenResponse> crateApiLiveLoadBykcChosen({
     required bool forceRefresh,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveLoadCampusActivities({
+  Future<BykcStatisticsResponse> crateApiLiveLoadBykcStatistics({
+    required bool forceRefresh,
+  });
+
+  Future<CampusActivitiesResponse> crateApiLiveLoadCampusActivities({
     required int page,
     required bool forceRefresh,
   });
@@ -264,7 +270,7 @@ abstract class RustLibApi extends BaseApi {
     required bool forceRefresh,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveLoadCgyy({
+  Future<CgyyLoadResponse> crateApiLiveLoadCgyy({
     required String kind,
     required PlatformInt64 siteId,
     required String date,
@@ -285,15 +291,15 @@ abstract class RustLibApi extends BaseApi {
     required ClassroomQuery query,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveLoadDemoBykc();
+  Future<BykcCatalogResponse> crateApiLiveLoadDemoBykc();
 
-  Future<ReadOnlyResponse> crateApiLiveLoadDemoBykcChosen();
+  Future<BykcChosenResponse> crateApiLiveLoadDemoBykcChosen();
 
-  Future<ReadOnlyResponse> crateApiLiveLoadDemoBykcStatistics();
+  Future<BykcStatisticsResponse> crateApiLiveLoadDemoBykcStatistics();
 
   Future<CampusCardBalanceResponse> crateApiLiveLoadDemoCampusCardBalance();
 
-  Future<ReadOnlyResponse> crateApiLiveLoadDemoCgyy({required String kind});
+  Future<CgyyLoadResponse> crateApiLiveLoadDemoCgyy({required String kind});
 
   Future<CheckInResponse> crateApiMirrorLoadDemoCheckin();
 
@@ -303,9 +309,9 @@ abstract class RustLibApi extends BaseApi {
 
   Future<GradeResponse> crateApiMirrorLoadDemoGrades();
 
-  Future<ReadOnlyResponse> crateApiLiveLoadDemoGraduate();
+  Future<GraduateResponse> crateApiLiveLoadDemoGraduate();
 
-  Future<ReadOnlyResponse> crateApiLiveLoadDemoGraduateStatus();
+  Future<GraduateResponse> crateApiLiveLoadDemoGraduateStatus();
 
   Future<HomeworkResponse> crateApiMirrorLoadDemoHomework();
 
@@ -315,9 +321,9 @@ abstract class RustLibApi extends BaseApi {
     required int page,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveLoadDemoLibraryStats();
+  Future<LibraryStatsResponse> crateApiLiveLoadDemoLibraryStats();
 
-  Future<ReadOnlyResponse> crateApiLiveLoadDemoNotices();
+  Future<NoticesResponse> crateApiLiveLoadDemoNotices();
 
   Future<ScheduleResponse> crateApiMirrorLoadDemoSchedule();
 
@@ -330,12 +336,12 @@ abstract class RustLibApi extends BaseApi {
     required bool forceRefresh,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveLoadGraduateCreditMap({
+  Future<GraduateCreditMapResponse> crateApiLiveLoadGraduateCreditMap({
     required String expectedAccount,
     required bool forceRefresh,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveLoadGraduatePart({
+  Future<GraduateResponse> crateApiLiveLoadGraduatePart({
     required bool report,
     required bool forceRefresh,
   });
@@ -357,7 +363,7 @@ abstract class RustLibApi extends BaseApi {
     required bool forceRefresh,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveLoadLibraryBooks({
+  Future<BookPageResponse> crateApiLiveLoadLibraryBooks({
     required String query,
     required PlatformInt64 page,
     required String sort,
@@ -369,11 +375,11 @@ abstract class RustLibApi extends BaseApi {
     required bool forceRefresh,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveLoadLibraryHoldings({
+  Future<BookHoldingsResponse> crateApiLiveLoadLibraryHoldings({
     required String bibId,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveLoadLibraryLoans({
+  Future<LibraryLoansResponse> crateApiLiveLoadLibraryLoans({
     required String expectedAccount,
     required int page,
   });
@@ -390,7 +396,7 @@ abstract class RustLibApi extends BaseApi {
     required String areaId,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveLoadLibraryStats({
+  Future<LibraryStatsResponse> crateApiLiveLoadLibraryStats({
     required bool forceRefresh,
   });
 
@@ -403,9 +409,7 @@ abstract class RustLibApi extends BaseApi {
     required bool refresh,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveLoadNotices({
-    required bool forceRefresh,
-  });
+  Future<NoticesResponse> crateApiLiveLoadNotices({required bool forceRefresh});
 
   Future<QueryDates> crateApiMirrorLoadQueryDates({required String instant});
 
@@ -417,7 +421,7 @@ abstract class RustLibApi extends BaseApi {
     required bool forceRefresh,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveLoadShuttleTimetable();
+  Future<ShuttleTimetableResponse> crateApiLiveLoadShuttleTimetable();
 
   Future<TodayResponse> crateApiLiveLoadToday({required bool forceRefresh});
 
@@ -428,7 +432,7 @@ abstract class RustLibApi extends BaseApi {
     required bool remember,
   });
 
-  Future<ReadOnlyResponse> crateApiLivePendingHomeworkSubmissions({
+  Future<HomeworkPendingResponse> crateApiLivePendingHomeworkSubmissions({
     required String expectedAccount,
     String? assignmentId,
   });
@@ -478,7 +482,7 @@ abstract class RustLibApi extends BaseApi {
     required bool confirmed,
   });
 
-  Future<ReadOnlyResponse> crateApiLiveUploadHomeworkFile({
+  Future<HomeworkUploadResponse> crateApiLiveUploadHomeworkFile({
     required String expectedAccount,
     required String assignmentId,
     required String name,
@@ -500,7 +504,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveCheckAndroidUpdate({
+  Future<UpdateResponse> crateApiLiveCheckAndroidUpdate({
     required String current,
   }) {
     return handler.executeNormal(
@@ -516,7 +520,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_update_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveCheckAndroidUpdateConstMeta,
@@ -533,7 +537,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveCheckinLoadProgress() {
+  Future<CheckinLoadProgressResponse> crateApiLiveCheckinLoadProgress() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -546,7 +550,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_checkin_load_progress_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveCheckinLoadProgressConstMeta,
@@ -587,7 +591,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "clear_cache", argNames: []);
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveConfigureHomeworkRecovery({
+  Future<HomeworkRecoveryResponse> crateApiLiveConfigureHomeworkRecovery({
     required String expectedAccount,
     required String storageRoot,
   }) {
@@ -605,7 +609,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_homework_recovery_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveConfigureHomeworkRecoveryConstMeta,
@@ -704,7 +708,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveCourseAnnouncementDetail({
+  Future<CourseAnnouncementDetailResponse>
+  crateApiLiveCourseAnnouncementDetail({
     required String expectedAccount,
     required String course,
     required String id,
@@ -724,7 +729,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_course_announcement_detail_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveCourseAnnouncementDetailConstMeta,
@@ -741,7 +746,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveCourseAnnouncementDetailIn({
+  Future<CourseAnnouncementDetailResponse>
+  crateApiLiveCourseAnnouncementDetailIn({
     required String expectedAccount,
     required String course,
     required String column,
@@ -763,7 +769,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_course_announcement_detail_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveCourseAnnouncementDetailInConstMeta,
@@ -780,7 +786,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveCourseAnnouncements({
+  Future<CourseAnnouncementsResponse> crateApiLiveCourseAnnouncements({
     required String expectedAccount,
     required String course,
     required bool force,
@@ -800,7 +806,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_course_announcements_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveCourseAnnouncementsConstMeta,
@@ -817,7 +823,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveCourseAnnouncementsIn({
+  Future<CourseAnnouncementsResponse> crateApiLiveCourseAnnouncementsIn({
     required String expectedAccount,
     required String course,
     required String column,
@@ -839,7 +845,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_course_announcements_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveCourseAnnouncementsInConstMeta,
@@ -856,7 +862,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveCourseAssessments({
+  Future<CourseAssessmentsResponse> crateApiLiveCourseAssessments({
     required String expectedAccount,
     required String course,
     required bool force,
@@ -876,7 +882,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_course_assessments_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveCourseAssessmentsConstMeta,
@@ -893,7 +899,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveCourseAssessmentsIn({
+  Future<CourseAssessmentsResponse> crateApiLiveCourseAssessmentsIn({
     required String expectedAccount,
     required String course,
     required String column,
@@ -915,7 +921,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_course_assessments_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveCourseAssessmentsInConstMeta,
@@ -932,7 +938,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveCourseLearningCapabilities({
+  Future<LearningCapabilitiesResponse> crateApiLiveCourseLearningCapabilities({
     required String expectedAccount,
     required String course,
   }) {
@@ -950,7 +956,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_learning_capabilities_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveCourseLearningCapabilitiesConstMeta,
@@ -967,7 +973,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveCourseLearningColumns({
+  Future<LearningColumnsResponse> crateApiLiveCourseLearningColumns({
     required String expectedAccount,
     required String course,
     required bool force,
@@ -987,7 +993,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_learning_columns_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveCourseLearningColumnsConstMeta,
@@ -1086,7 +1092,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveCourseResources({
+  Future<CourseResourcePageResponse> crateApiLiveCourseResources({
     required String expectedAccount,
     required String course,
     String? folder,
@@ -1110,7 +1116,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_course_resource_page_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveCourseResourcesConstMeta,
@@ -1127,7 +1133,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveCourseResourcesAt({
+  Future<CourseResourcePageResponse> crateApiLiveCourseResourcesAt({
     required String expectedAccount,
     required String course,
     required List<String> path,
@@ -1151,7 +1157,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_course_resource_page_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveCourseResourcesAtConstMeta,
@@ -1205,7 +1211,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveEditTasks({
+  Future<LocalTasksResponse> crateApiLiveEditTasks({
     required String root,
     required bool demo,
     required String action,
@@ -1233,7 +1239,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_local_tasks_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveEditTasksConstMeta,
@@ -1249,7 +1255,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveExecuteCgyy({required String command}) {
+  Future<CgyyActionResultResponse> crateApiLiveExecuteCgyy({
+    required String command,
+  }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -1263,7 +1271,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_cgyy_action_result_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveExecuteCgyyConstMeta,
@@ -1310,7 +1318,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveHomeworkCapabilities({
+  Future<HomeworkCapabilitiesResponse> crateApiLiveHomeworkCapabilities({
     required String expectedAccount,
     required String assignmentId,
   }) {
@@ -1328,7 +1336,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_homework_capabilities_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveHomeworkCapabilitiesConstMeta,
@@ -1345,7 +1353,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveHomeworkFileWorkspace({
+  Future<HomeworkFileWorkspaceResponse> crateApiLiveHomeworkFileWorkspace({
     required String expectedAccount,
     required String assignmentId,
   }) {
@@ -1363,7 +1371,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_homework_file_workspace_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveHomeworkFileWorkspaceConstMeta,
@@ -1380,7 +1388,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveImportLearningSnapshots({
+  Future<SnapshotImportResponse> crateApiLiveImportLearningSnapshots({
     required String expectedAccount,
     required List<int> bytes,
   }) {
@@ -1398,7 +1406,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_snapshot_import_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveImportLearningSnapshotsConstMeta,
@@ -1442,7 +1450,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "init_app", argNames: []);
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLearningCourses({
+  Future<LearningCoursesResponse> crateApiLiveLearningCourses({
     required String expectedAccount,
     required bool force,
   }) {
@@ -1460,7 +1468,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_learning_courses_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLearningCoursesConstMeta,
@@ -1499,7 +1507,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "library_loans_portal_url", argNames: []);
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadBykc({required bool forceRefresh}) {
+  Future<BykcCatalogResponse> crateApiLiveLoadBykc({
+    required bool forceRefresh,
+  }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -1513,7 +1523,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_bykc_catalog_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadBykcConstMeta,
@@ -1527,7 +1537,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "load_bykc", argNames: ["forceRefresh"]);
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadBykcChosen({
+  Future<BykcChosenResponse> crateApiLiveLoadBykcChosen({
     required bool forceRefresh,
   }) {
     return handler.executeNormal(
@@ -1543,7 +1553,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_bykc_chosen_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadBykcChosenConstMeta,
@@ -1559,7 +1569,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadBykcStatistics({
+  Future<BykcStatisticsResponse> crateApiLiveLoadBykcStatistics({
     required bool forceRefresh,
   }) {
     return handler.executeNormal(
@@ -1575,7 +1585,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_bykc_statistics_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadBykcStatisticsConstMeta,
@@ -1592,7 +1602,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadCampusActivities({
+  Future<CampusActivitiesResponse> crateApiLiveLoadCampusActivities({
     required int page,
     required bool forceRefresh,
   }) {
@@ -1610,7 +1620,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_campus_activities_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadCampusActivitiesConstMeta,
@@ -1689,7 +1699,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadCgyy({
+  Future<CgyyLoadResponse> crateApiLiveLoadCgyy({
     required String kind,
     required PlatformInt64 siteId,
     required String date,
@@ -1711,7 +1721,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_cgyy_load_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadCgyyConstMeta,
@@ -1829,7 +1839,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadDemoBykc() {
+  Future<BykcCatalogResponse> crateApiLiveLoadDemoBykc() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -1842,7 +1852,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_bykc_catalog_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadDemoBykcConstMeta,
@@ -1856,7 +1866,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "load_demo_bykc", argNames: []);
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadDemoBykcChosen() {
+  Future<BykcChosenResponse> crateApiLiveLoadDemoBykcChosen() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -1869,7 +1879,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_bykc_chosen_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadDemoBykcChosenConstMeta,
@@ -1883,7 +1893,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "load_demo_bykc_chosen", argNames: []);
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadDemoBykcStatistics() {
+  Future<BykcStatisticsResponse> crateApiLiveLoadDemoBykcStatistics() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -1896,7 +1906,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_bykc_statistics_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadDemoBykcStatisticsConstMeta,
@@ -1940,7 +1950,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadDemoCgyy({required String kind}) {
+  Future<CgyyLoadResponse> crateApiLiveLoadDemoCgyy({required String kind}) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -1954,7 +1964,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_cgyy_load_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadDemoCgyyConstMeta,
@@ -2055,7 +2065,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "load_demo_grades", argNames: []);
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadDemoGraduate() {
+  Future<GraduateResponse> crateApiLiveLoadDemoGraduate() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -2068,7 +2078,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_graduate_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadDemoGraduateConstMeta,
@@ -2082,7 +2092,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "load_demo_graduate", argNames: []);
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadDemoGraduateStatus() {
+  Future<GraduateResponse> crateApiLiveLoadDemoGraduateStatus() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -2095,7 +2105,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_graduate_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadDemoGraduateStatusConstMeta,
@@ -2196,7 +2206,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadDemoLibraryStats() {
+  Future<LibraryStatsResponse> crateApiLiveLoadDemoLibraryStats() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -2209,7 +2219,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_library_stats_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadDemoLibraryStatsConstMeta,
@@ -2223,7 +2233,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "load_demo_library_stats", argNames: []);
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadDemoNotices() {
+  Future<NoticesResponse> crateApiLiveLoadDemoNotices() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -2236,7 +2246,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_notices_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadDemoNoticesConstMeta,
@@ -2365,7 +2375,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadGraduateCreditMap({
+  Future<GraduateCreditMapResponse> crateApiLiveLoadGraduateCreditMap({
     required String expectedAccount,
     required bool forceRefresh,
   }) {
@@ -2383,7 +2393,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_graduate_credit_map_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadGraduateCreditMapConstMeta,
@@ -2400,7 +2410,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadGraduatePart({
+  Future<GraduateResponse> crateApiLiveLoadGraduatePart({
     required bool report,
     required bool forceRefresh,
   }) {
@@ -2418,7 +2428,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_graduate_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadGraduatePartConstMeta,
@@ -2568,7 +2578,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadLibraryBooks({
+  Future<BookPageResponse> crateApiLiveLoadLibraryBooks({
     required String query,
     required PlatformInt64 page,
     required String sort,
@@ -2590,7 +2600,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_book_page_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadLibraryBooksConstMeta,
@@ -2642,7 +2652,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadLibraryHoldings({
+  Future<BookHoldingsResponse> crateApiLiveLoadLibraryHoldings({
     required String bibId,
   }) {
     return handler.executeNormal(
@@ -2658,7 +2668,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_book_holdings_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadLibraryHoldingsConstMeta,
@@ -2675,7 +2685,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadLibraryLoans({
+  Future<LibraryLoansResponse> crateApiLiveLoadLibraryLoans({
     required String expectedAccount,
     required int page,
   }) {
@@ -2693,7 +2703,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_library_loans_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadLibraryLoansConstMeta,
@@ -2784,7 +2794,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadLibraryStats({
+  Future<LibraryStatsResponse> crateApiLiveLoadLibraryStats({
     required bool forceRefresh,
   }) {
     return handler.executeNormal(
@@ -2800,7 +2810,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_library_stats_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadLibraryStatsConstMeta,
@@ -2885,7 +2895,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadNotices({
+  Future<NoticesResponse> crateApiLiveLoadNotices({
     required bool forceRefresh,
   }) {
     return handler.executeNormal(
@@ -2901,7 +2911,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_notices_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadNoticesConstMeta,
@@ -3008,7 +3018,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveLoadShuttleTimetable() {
+  Future<ShuttleTimetableResponse> crateApiLiveLoadShuttleTimetable() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -3021,7 +3031,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_shuttle_timetable_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveLoadShuttleTimetableConstMeta,
@@ -3101,7 +3111,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
-  Future<ReadOnlyResponse> crateApiLivePendingHomeworkSubmissions({
+  Future<HomeworkPendingResponse> crateApiLivePendingHomeworkSubmissions({
     required String expectedAccount,
     String? assignmentId,
   }) {
@@ -3119,7 +3129,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_homework_pending_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLivePendingHomeworkSubmissionsConstMeta,
@@ -3482,7 +3492,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<ReadOnlyResponse> crateApiLiveUploadHomeworkFile({
+  Future<HomeworkUploadResponse> crateApiLiveUploadHomeworkFile({
     required String expectedAccount,
     required String assignmentId,
     required String name,
@@ -3504,7 +3514,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_read_only_response,
+          decodeSuccessData: sse_decode_homework_upload_response,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLiveUploadHomeworkFileConstMeta,
@@ -3562,9 +3572,129 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  AcademicDataDto dco_decode_academic_data_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return AcademicDataDto(
+      sections: dco_decode_list_graduate_section_dto(arr[0]),
+      notice: dco_decode_opt_String(arr[1]),
+    );
+  }
+
+  @protected
+  AndroidDownloadDto dco_decode_android_download_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return AndroidDownloadDto(
+      version: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      url: dco_decode_String(arr[2]),
+      apiUrl: dco_decode_String(arr[3]),
+      size: dco_decode_i_64(arr[4]),
+      sha256: dco_decode_String(arr[5]),
+    );
+  }
+
+  @protected
+  BookHitDto dco_decode_book_hit_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
+    return BookHitDto(
+      bibId: dco_decode_String(arr[0]),
+      title: dco_decode_String(arr[1]),
+      author: dco_decode_String(arr[2]),
+      publisher: dco_decode_String(arr[3]),
+      year: dco_decode_String(arr[4]),
+      callno: dco_decode_String(arr[5]),
+      isbn: dco_decode_String(arr[6]),
+      itemsAvailable: dco_decode_opt_box_autoadd_i_64(arr[7]),
+      itemCount: dco_decode_opt_box_autoadd_i_64(arr[8]),
+    );
+  }
+
+  @protected
+  BookHoldingDto dco_decode_book_holding_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return BookHoldingDto(
+      callNo: dco_decode_String(arr[0]),
+      barCode: dco_decode_String(arr[1]),
+      library_: dco_decode_String(arr[2]),
+      location: dco_decode_String(arr[3]),
+      status: dco_decode_String(arr[4]),
+    );
+  }
+
+  @protected
+  BookHoldingsResponse dco_decode_book_holdings_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return BookHoldingsResponse(
+      data: dco_decode_opt_list_book_holding_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  BookPageDto dco_decode_book_page_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return BookPageDto(
+      page: dco_decode_i_64(arr[0]),
+      pageSize: dco_decode_i_64(arr[1]),
+      total: dco_decode_i_64(arr[2]),
+      actualTotal: dco_decode_i_64(arr[3]),
+      items: dco_decode_list_book_hit_dto(arr[4]),
+      hasMore: dco_decode_bool(arr[5]),
+    );
+  }
+
+  @protected
+  BookPageResponse dco_decode_book_page_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return BookPageResponse(
+      data: dco_decode_opt_box_autoadd_book_page_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
   bool dco_decode_bool(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as bool;
+  }
+
+  @protected
+  AcademicDataDto dco_decode_box_autoadd_academic_data_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_academic_data_dto(raw);
+  }
+
+  @protected
+  AndroidDownloadDto dco_decode_box_autoadd_android_download_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_android_download_dto(raw);
+  }
+
+  @protected
+  BookPageDto dco_decode_box_autoadd_book_page_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_book_page_dto(raw);
   }
 
   @protected
@@ -3574,15 +3704,132 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BykcCatalogDto dco_decode_box_autoadd_bykc_catalog_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_bykc_catalog_dto(raw);
+  }
+
+  @protected
+  BykcChosenCoursesDto dco_decode_box_autoadd_bykc_chosen_courses_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_bykc_chosen_courses_dto(raw);
+  }
+
+  @protected
+  BykcCourseDetailsDto dco_decode_box_autoadd_bykc_course_details_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_bykc_course_details_dto(raw);
+  }
+
+  @protected
+  BykcSemesterDto dco_decode_box_autoadd_bykc_semester_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_bykc_semester_dto(raw);
+  }
+
+  @protected
+  BykcStatisticsDto dco_decode_box_autoadd_bykc_statistics_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_bykc_statistics_dto(raw);
+  }
+
+  @protected
+  CampusActivitiesDto dco_decode_box_autoadd_campus_activities_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_campus_activities_dto(raw);
+  }
+
+  @protected
   CareerEventsDto dco_decode_box_autoadd_career_events_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_career_events_dto(raw);
   }
 
   @protected
+  CgyyActionResultDto dco_decode_box_autoadd_cgyy_action_result_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_cgyy_action_result_dto(raw);
+  }
+
+  @protected
+  CgyyBookingOptionsDto dco_decode_box_autoadd_cgyy_booking_options_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_cgyy_booking_options_dto(raw);
+  }
+
+  @protected
+  CgyyChallengeDto dco_decode_box_autoadd_cgyy_challenge_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_cgyy_challenge_dto(raw);
+  }
+
+  @protected
+  CgyyDayDto dco_decode_box_autoadd_cgyy_day_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_cgyy_day_dto(raw);
+  }
+
+  @protected
+  CgyyLockCodeDto dco_decode_box_autoadd_cgyy_lock_code_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_cgyy_lock_code_dto(raw);
+  }
+
+  @protected
+  CgyyOrderDto dco_decode_box_autoadd_cgyy_order_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_cgyy_order_dto(raw);
+  }
+
+  @protected
+  CgyyReviewDto dco_decode_box_autoadd_cgyy_review_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_cgyy_review_dto(raw);
+  }
+
+  @protected
+  CheckinLoadProgressDto dco_decode_box_autoadd_checkin_load_progress_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_checkin_load_progress_dto(raw);
+  }
+
+  @protected
   ClassroomQuery dco_decode_box_autoadd_classroom_query(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_classroom_query(raw);
+  }
+
+  @protected
+  CountPairDto dco_decode_box_autoadd_count_pair_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_count_pair_dto(raw);
+  }
+
+  @protected
+  CourseAnnouncementDetailDto
+  dco_decode_box_autoadd_course_announcement_detail_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_course_announcement_detail_dto(raw);
+  }
+
+  @protected
+  CourseResourcePageDto dco_decode_box_autoadd_course_resource_page_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_course_resource_page_dto(raw);
   }
 
   @protected
@@ -3604,6 +3851,54 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  GraduateCreditMapDto dco_decode_box_autoadd_graduate_credit_map_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_graduate_credit_map_dto(raw);
+  }
+
+  @protected
+  GraduateCreditMetricsDto dco_decode_box_autoadd_graduate_credit_metrics_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_graduate_credit_metrics_dto(raw);
+  }
+
+  @protected
+  GraduateCreditNodeDto dco_decode_box_autoadd_graduate_credit_node_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_graduate_credit_node_dto(raw);
+  }
+
+  @protected
+  GraduateProgressDto dco_decode_box_autoadd_graduate_progress_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_graduate_progress_dto(raw);
+  }
+
+  @protected
+  HomeworkUploadReceiptDto dco_decode_box_autoadd_homework_upload_receipt_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_homework_upload_receipt_dto(raw);
+  }
+
+  @protected
+  HomeworkWorkspaceDto dco_decode_box_autoadd_homework_workspace_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_homework_workspace_dto(raw);
+  }
+
+  @protected
   int dco_decode_box_autoadd_i_32(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
@@ -3616,9 +3911,29 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  LearningCapabilitiesDto dco_decode_box_autoadd_learning_capabilities_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_learning_capabilities_dto(raw);
+  }
+
+  @protected
+  LibraryLoanPageDto dco_decode_box_autoadd_library_loan_page_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_library_loan_page_dto(raw);
+  }
+
+  @protected
   LibrarySlot dco_decode_box_autoadd_library_slot(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_library_slot(raw);
+  }
+
+  @protected
+  LibraryStatsDto dco_decode_box_autoadd_library_stats_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_library_stats_dto(raw);
   }
 
   @protected
@@ -3631,6 +3946,223 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RouteChoice dco_decode_box_autoadd_route_choice(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_route_choice(raw);
+  }
+
+  @protected
+  ShuttleTimetableDto dco_decode_box_autoadd_shuttle_timetable_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_shuttle_timetable_dto(raw);
+  }
+
+  @protected
+  int dco_decode_box_autoadd_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
+  UpdateSummaryDto dco_decode_box_autoadd_update_summary_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_update_summary_dto(raw);
+  }
+
+  @protected
+  BykcCatalogDto dco_decode_bykc_catalog_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return BykcCatalogDto(
+      terms: dco_decode_list_bykc_semester_dto(arr[0]),
+      courses: dco_decode_list_bykc_course_dto(arr[1]),
+      currentTerm: dco_decode_opt_box_autoadd_bykc_semester_dto(arr[2]),
+    );
+  }
+
+  @protected
+  BykcCatalogResponse dco_decode_bykc_catalog_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return BykcCatalogResponse(
+      data: dco_decode_opt_box_autoadd_bykc_catalog_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  BykcChosenCoursesDto dco_decode_bykc_chosen_courses_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return BykcChosenCoursesDto(
+      term: dco_decode_opt_box_autoadd_bykc_semester_dto(arr[0]),
+      courses: dco_decode_opt_list_bykc_chosen_record_dto(arr[1]),
+    );
+  }
+
+  @protected
+  BykcChosenRecordDto dco_decode_bykc_chosen_record_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return BykcChosenRecordDto(
+      id: dco_decode_i_64(arr[0]),
+      course: dco_decode_bykc_course_dto(arr[1]),
+      selectedAt: dco_decode_opt_String(arr[2]),
+      checkin: dco_decode_opt_box_autoadd_i_64(arr[3]),
+      passed: dco_decode_opt_box_autoadd_i_64(arr[4]),
+      score: dco_decode_opt_box_autoadd_i_64(arr[5]),
+    );
+  }
+
+  @protected
+  BykcChosenResponse dco_decode_bykc_chosen_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return BykcChosenResponse(
+      data: dco_decode_opt_box_autoadd_bykc_chosen_courses_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  BykcCourseDetailsDto dco_decode_bykc_course_details_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 11)
+      throw Exception('unexpected arr length: expect 11 but see ${arr.length}');
+    return BykcCourseDetailsDto(
+      start: dco_decode_opt_String(arr[0]),
+      end: dco_decode_opt_String(arr[1]),
+      selectStart: dco_decode_opt_String(arr[2]),
+      selectEnd: dco_decode_opt_String(arr[3]),
+      cancelEnd: dco_decode_opt_String(arr[4]),
+      capacity: dco_decode_opt_box_autoadd_i_64(arr[5]),
+      enrolled: dco_decode_opt_box_autoadd_i_64(arr[6]),
+      campuses: dco_decode_list_String(arr[7]),
+      summary: dco_decode_opt_String(arr[8]),
+      selected: dco_decode_opt_box_autoadd_bool(arr[9]),
+      hasSignConfig: dco_decode_opt_box_autoadd_bool(arr[10]),
+    );
+  }
+
+  @protected
+  BykcCourseDto dco_decode_bykc_course_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    return BykcCourseDto(
+      id: dco_decode_i_64(arr[0]),
+      name: dco_decode_String(arr[1]),
+      teacher: dco_decode_opt_String(arr[2]),
+      position: dco_decode_opt_String(arr[3]),
+      category: dco_decode_opt_String(arr[4]),
+      subcategory: dco_decode_opt_String(arr[5]),
+      details: dco_decode_opt_box_autoadd_bykc_course_details_dto(arr[6]),
+    );
+  }
+
+  @protected
+  BykcSemesterDto dco_decode_bykc_semester_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return BykcSemesterDto(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      start: dco_decode_opt_String(arr[2]),
+      end: dco_decode_opt_String(arr[3]),
+    );
+  }
+
+  @protected
+  BykcStatisticsDto dco_decode_bykc_statistics_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return BykcStatisticsDto(
+      validCourseCount: dco_decode_opt_box_autoadd_i_64(arr[0]),
+      entries: dco_decode_list_bykc_statistics_entry_dto(arr[1]),
+    );
+  }
+
+  @protected
+  BykcStatisticsEntryDto dco_decode_bykc_statistics_entry_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return BykcStatisticsEntryDto(
+      category: dco_decode_String(arr[0]),
+      subcategory: dco_decode_String(arr[1]),
+      required_: dco_decode_i_64(arr[2]),
+      completed: dco_decode_i_64(arr[3]),
+    );
+  }
+
+  @protected
+  BykcStatisticsResponse dco_decode_bykc_statistics_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return BykcStatisticsResponse(
+      data: dco_decode_opt_box_autoadd_bykc_statistics_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  CampusActivitiesDto dco_decode_campus_activities_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return CampusActivitiesDto(
+      page: dco_decode_i_32(arr[0]),
+      activities: dco_decode_list_campus_activity_dto(arr[1]),
+      fetchedAt: dco_decode_String(arr[2]),
+    );
+  }
+
+  @protected
+  CampusActivitiesResponse dco_decode_campus_activities_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return CampusActivitiesResponse(
+      data: dco_decode_opt_box_autoadd_campus_activities_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  CampusActivityDto dco_decode_campus_activity_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    return CampusActivityDto(
+      id: dco_decode_String(arr[0]),
+      title: dco_decode_String(arr[1]),
+      category: dco_decode_String(arr[2]),
+      publishedAt: dco_decode_String(arr[3]),
+      activityTime: dco_decode_String(arr[4]),
+      place: dco_decode_String(arr[5]),
+      url: dco_decode_String(arr[6]),
+    );
   }
 
   @protected
@@ -3694,6 +4226,207 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CgyyActionResultDto dco_decode_cgyy_action_result_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return CgyyActionResultDto(
+      state: dco_decode_String(arr[0]),
+      message: dco_decode_String(arr[1]),
+      options: dco_decode_opt_box_autoadd_cgyy_booking_options_dto(arr[2]),
+      challenge: dco_decode_opt_box_autoadd_cgyy_challenge_dto(arr[3]),
+      review: dco_decode_opt_box_autoadd_cgyy_review_dto(arr[4]),
+    );
+  }
+
+  @protected
+  CgyyActionResultResponse dco_decode_cgyy_action_result_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return CgyyActionResultResponse(
+      data: dco_decode_opt_box_autoadd_cgyy_action_result_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  CgyyBookingChoiceDto dco_decode_cgyy_booking_choice_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return CgyyBookingChoiceDto(
+      spaceId: dco_decode_i_64(arr[0]),
+      spaceName: dco_decode_String(arr[1]),
+      timeId: dco_decode_i_64(arr[2]),
+      time: dco_decode_String(arr[3]),
+    );
+  }
+
+  @protected
+  CgyyBookingOptionsDto dco_decode_cgyy_booking_options_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return CgyyBookingOptionsDto(
+      choices: dco_decode_list_cgyy_booking_choice_dto(arr[0]),
+      purposes: dco_decode_list_cgyy_purpose_dto(arr[1]),
+      usesFallbackPurposes: dco_decode_bool(arr[2]),
+    );
+  }
+
+  @protected
+  CgyyChallengeDto dco_decode_cgyy_challenge_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return CgyyChallengeDto(
+      id: dco_decode_String(arr[0]),
+      background: dco_decode_String(arr[1]),
+      jigsaw: dco_decode_String(arr[2]),
+    );
+  }
+
+  @protected
+  CgyyDayDto dco_decode_cgyy_day_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return CgyyDayDto(
+      siteId: dco_decode_i_64(arr[0]),
+      date: dco_decode_String(arr[1]),
+      dates: dco_decode_list_String(arr[2]),
+      spaces: dco_decode_list_cgyy_space_dto(arr[3]),
+    );
+  }
+
+  @protected
+  CgyyLoadResponse dco_decode_cgyy_load_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return CgyyLoadResponse(
+      venues: dco_decode_opt_list_cgyy_site_dto(arr[0]),
+      day: dco_decode_opt_box_autoadd_cgyy_day_dto(arr[1]),
+      orders: dco_decode_opt_list_cgyy_order_dto(arr[2]),
+      order: dco_decode_opt_box_autoadd_cgyy_order_dto(arr[3]),
+      lockCode: dco_decode_opt_box_autoadd_cgyy_lock_code_dto(arr[4]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[5]),
+    );
+  }
+
+  @protected
+  CgyyLockCodeDto dco_decode_cgyy_lock_code_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 11)
+      throw Exception('unexpected arr length: expect 11 but see ${arr.length}');
+    return CgyyLockCodeDto(
+      qrCode: dco_decode_opt_String(arr[0]),
+      dueDate: dco_decode_opt_String(arr[1]),
+      tradeNo: dco_decode_opt_String(arr[2]),
+      venueName: dco_decode_opt_String(arr[3]),
+      siteName: dco_decode_opt_String(arr[4]),
+      spaceName: dco_decode_opt_String(arr[5]),
+      orderName: dco_decode_opt_String(arr[6]),
+      reservationDate: dco_decode_opt_String(arr[7]),
+      reservationDateDetail: dco_decode_opt_String(arr[8]),
+      reservationStartDate: dco_decode_opt_String(arr[9]),
+      reservationEndDate: dco_decode_opt_String(arr[10]),
+    );
+  }
+
+  @protected
+  CgyyOrderDto dco_decode_cgyy_order_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 8)
+      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
+    return CgyyOrderDto(
+      orderStatus: dco_decode_opt_box_autoadd_i_64(arr[0]),
+      checkStatus: dco_decode_opt_box_autoadd_i_64(arr[1]),
+      canCancel: dco_decode_bool(arr[2]),
+      id: dco_decode_i_64(arr[3]),
+      place: dco_decode_String(arr[4]),
+      date: dco_decode_String(arr[5]),
+      time: dco_decode_String(arr[6]),
+      status: dco_decode_String(arr[7]),
+    );
+  }
+
+  @protected
+  CgyyPurposeDto dco_decode_cgyy_purpose_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return CgyyPurposeDto(
+      id: dco_decode_i_64(arr[0]),
+      name: dco_decode_String(arr[1]),
+    );
+  }
+
+  @protected
+  CgyyReviewDto dco_decode_cgyy_review_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return CgyyReviewDto(
+      id: dco_decode_String(arr[0]),
+      orders: dco_decode_list_cgyy_order_dto(arr[1]),
+    );
+  }
+
+  @protected
+  CgyySiteDto dco_decode_cgyy_site_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    return CgyySiteDto(
+      id: dco_decode_i_64(arr[0]),
+      name: dco_decode_String(arr[1]),
+      venue: dco_decode_String(arr[2]),
+      campus: dco_decode_String(arr[3]),
+      seats: dco_decode_opt_box_autoadd_i_64(arr[4]),
+      openStart: dco_decode_String(arr[5]),
+      openEnd: dco_decode_String(arr[6]),
+    );
+  }
+
+  @protected
+  CgyySlotDto dco_decode_cgyy_slot_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return CgyySlotDto(
+      time: dco_decode_String(arr[0]),
+      status: dco_decode_String(arr[1]),
+    );
+  }
+
+  @protected
+  CgyySpaceDto dco_decode_cgyy_space_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return CgyySpaceDto(
+      name: dco_decode_String(arr[0]),
+      slots: dco_decode_list_cgyy_slot_dto(arr[1]),
+    );
+  }
+
+  @protected
   CheckInCourse dco_decode_check_in_course(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -3736,6 +4469,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   CheckInStatus dco_decode_check_in_status(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return CheckInStatus.values[raw as int];
+  }
+
+  @protected
+  CheckinLoadProgressDto dco_decode_checkin_load_progress_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return CheckinLoadProgressDto(
+      phase: dco_decode_String(arr[0]),
+      elapsedMs: dco_decode_opt_box_autoadd_i_64(arr[1]),
+    );
+  }
+
+  @protected
+  CheckinLoadProgressResponse dco_decode_checkin_load_progress_response(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return CheckinLoadProgressResponse(
+      data: dco_decode_opt_box_autoadd_checkin_load_progress_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
   }
 
   @protected
@@ -3807,6 +4566,104 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CountPairDto dco_decode_count_pair_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return CountPairDto(
+      available: dco_decode_i_32(arr[0]),
+      total: dco_decode_i_32(arr[1]),
+    );
+  }
+
+  @protected
+  CourseAnnouncementDetailDto dco_decode_course_announcement_detail_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return CourseAnnouncementDetailDto(
+      id: dco_decode_String(arr[0]),
+      title: dco_decode_String(arr[1]),
+      content: dco_decode_opt_String(arr[2]),
+      attachments: dco_decode_list_learning_attachment_dto(arr[3]),
+    );
+  }
+
+  @protected
+  CourseAnnouncementDetailResponse
+  dco_decode_course_announcement_detail_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return CourseAnnouncementDetailResponse(
+      data: dco_decode_opt_box_autoadd_course_announcement_detail_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  CourseAnnouncementDto dco_decode_course_announcement_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return CourseAnnouncementDto(
+      id: dco_decode_String(arr[0]),
+      title: dco_decode_String(arr[1]),
+      publishedAt: dco_decode_opt_String(arr[2]),
+    );
+  }
+
+  @protected
+  CourseAnnouncementsResponse dco_decode_course_announcements_response(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return CourseAnnouncementsResponse(
+      data: dco_decode_opt_list_course_announcement_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  CourseAssessmentDto dco_decode_course_assessment_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return CourseAssessmentDto(
+      id: dco_decode_String(arr[0]),
+      title: dco_decode_String(arr[1]),
+      startsAt: dco_decode_opt_String(arr[2]),
+      dueAt: dco_decode_opt_String(arr[3]),
+      score: dco_decode_opt_String(arr[4]),
+      sourceUrl: dco_decode_String(arr[5]),
+    );
+  }
+
+  @protected
+  CourseAssessmentsResponse dco_decode_course_assessments_response(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return CourseAssessmentsResponse(
+      data: dco_decode_opt_list_course_assessment_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
   CourseReminderSeed dco_decode_course_reminder_seed(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -3818,6 +4675,49 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       day: dco_decode_i_32(arr[2]),
       startsAt: dco_decode_String(arr[3]),
       endsAt: dco_decode_String(arr[4]),
+    );
+  }
+
+  @protected
+  CourseResourceDto dco_decode_course_resource_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return CourseResourceDto(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      folder: dco_decode_bool(arr[2]),
+      downloadable: dco_decode_bool(arr[3]),
+      updatedAt: dco_decode_opt_String(arr[4]),
+      extension_: dco_decode_opt_String(arr[5]),
+    );
+  }
+
+  @protected
+  CourseResourcePageDto dco_decode_course_resource_page_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return CourseResourcePageDto(
+      items: dco_decode_list_course_resource_dto(arr[0]),
+      page: dco_decode_u_32(arr[1]),
+      hasNext: dco_decode_bool(arr[2]),
+    );
+  }
+
+  @protected
+  CourseResourcePageResponse dco_decode_course_resource_page_response(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return CourseResourcePageResponse(
+      data: dco_decode_opt_box_autoadd_course_resource_page_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
     );
   }
 
@@ -3908,6 +4808,190 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  GraduateCreditMapDto dco_decode_graduate_credit_map_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return GraduateCreditMapDto(
+      summary: dco_decode_opt_box_autoadd_graduate_credit_node_dto(arr[0]),
+      nodes: dco_decode_list_graduate_credit_node_dto(arr[1]),
+      notice: dco_decode_opt_String(arr[2]),
+    );
+  }
+
+  @protected
+  GraduateCreditMapResponse dco_decode_graduate_credit_map_response(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return GraduateCreditMapResponse(
+      data: dco_decode_opt_box_autoadd_graduate_credit_map_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  GraduateCreditMetricsDto dco_decode_graduate_credit_metrics_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return GraduateCreditMetricsDto(
+      state: dco_decode_graduate_credit_state_dto(arr[0]),
+      required_: dco_decode_opt_box_autoadd_f_64(arr[1]),
+      earned: dco_decode_opt_box_autoadd_f_64(arr[2]),
+      pending: dco_decode_opt_box_autoadd_f_64(arr[3]),
+      remaining: dco_decode_opt_box_autoadd_f_64(arr[4]),
+      ratio: dco_decode_opt_box_autoadd_f_64(arr[5]),
+    );
+  }
+
+  @protected
+  GraduateCreditNodeDto dco_decode_graduate_credit_node_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return GraduateCreditNodeDto(
+      sourceIndex: dco_decode_u_32(arr[0]),
+      title: dco_decode_String(arr[1]),
+      progress: dco_decode_opt_box_autoadd_graduate_credit_metrics_dto(arr[2]),
+      rows: dco_decode_list_graduate_credit_row_dto(arr[3]),
+    );
+  }
+
+  @protected
+  GraduateCreditRowDto dco_decode_graduate_credit_row_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return GraduateCreditRowDto(
+      title: dco_decode_String(arr[0]),
+      detail: dco_decode_String(arr[1]),
+      isCourse: dco_decode_bool(arr[2]),
+      completed: dco_decode_opt_box_autoadd_bool(arr[3]),
+      credit: dco_decode_opt_box_autoadd_f_64(arr[4]),
+      semester: dco_decode_opt_String(arr[5]),
+    );
+  }
+
+  @protected
+  GraduateCreditStateDto dco_decode_graduate_credit_state_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return GraduateCreditStateDto.values[raw as int];
+  }
+
+  @protected
+  GraduateProgressDto dco_decode_graduate_progress_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return GraduateProgressDto(
+      required_: dco_decode_opt_box_autoadd_f_64(arr[0]),
+      earned: dco_decode_opt_box_autoadd_f_64(arr[1]),
+      pending: dco_decode_opt_box_autoadd_f_64(arr[2]),
+    );
+  }
+
+  @protected
+  GraduateResponse dco_decode_graduate_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return GraduateResponse(
+      data: dco_decode_opt_box_autoadd_academic_data_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  GraduateRowDto dco_decode_graduate_row_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return GraduateRowDto(
+      title: dco_decode_String(arr[0]),
+      detail: dco_decode_String(arr[1]),
+      isCourse: dco_decode_bool(arr[2]),
+      completed: dco_decode_opt_box_autoadd_bool(arr[3]),
+      credit: dco_decode_opt_box_autoadd_f_64(arr[4]),
+      semester: dco_decode_opt_String(arr[5]),
+    );
+  }
+
+  @protected
+  GraduateSectionDto dco_decode_graduate_section_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return GraduateSectionDto(
+      title: dco_decode_String(arr[0]),
+      rows: dco_decode_list_graduate_row_dto(arr[1]),
+      progress: dco_decode_opt_box_autoadd_graduate_progress_dto(arr[2]),
+    );
+  }
+
+  @protected
+  HomeworkAttachmentDto dco_decode_homework_attachment_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return HomeworkAttachmentDto(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      kind: dco_decode_String(arr[2]),
+    );
+  }
+
+  @protected
+  HomeworkCapabilitiesResponse dco_decode_homework_capabilities_response(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return HomeworkCapabilitiesResponse(
+      data: dco_decode_opt_list_homework_capability_evidence_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  HomeworkCapabilityEvidenceDto dco_decode_homework_capability_evidence_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return HomeworkCapabilityEvidenceDto(
+      capability: dco_decode_String(arr[0]),
+      state: dco_decode_homework_capability_state_dto(arr[1]),
+      reason: dco_decode_String(arr[2]),
+      evidence: dco_decode_String(arr[3]),
+    );
+  }
+
+  @protected
+  HomeworkCapabilityStateDto dco_decode_homework_capability_state_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return HomeworkCapabilityStateDto.values[raw as int];
+  }
+
+  @protected
   HomeworkDetailResponse dco_decode_homework_detail_response(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -3942,6 +5026,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  HomeworkFileWorkspaceResponse dco_decode_homework_file_workspace_response(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return HomeworkFileWorkspaceResponse(
+      data: dco_decode_opt_box_autoadd_homework_workspace_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
   HomeworkItem dco_decode_homework_item(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -3959,6 +5057,46 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       status: dco_decode_homework_status(arr[8]),
       statusDetail: dco_decode_opt_String(arr[9]),
       score: dco_decode_opt_String(arr[10]),
+    );
+  }
+
+  @protected
+  HomeworkPendingResponse dco_decode_homework_pending_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return HomeworkPendingResponse(
+      data: dco_decode_opt_list_homework_pending_submission_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  HomeworkPendingSubmissionDto dco_decode_homework_pending_submission_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return HomeworkPendingSubmissionDto(
+      handle: dco_decode_String(arr[0]),
+      assignmentId: dco_decode_String(arr[1]),
+      fileName: dco_decode_String(arr[2]),
+      size: dco_decode_i_64(arr[3]),
+    );
+  }
+
+  @protected
+  HomeworkRecoveryResponse dco_decode_homework_recovery_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return HomeworkRecoveryResponse(
+      configured: dco_decode_opt_box_autoadd_bool(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
     );
   }
 
@@ -3986,6 +5124,53 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  HomeworkUploadReceiptDto dco_decode_homework_upload_receipt_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return HomeworkUploadReceiptDto(
+      handle: dco_decode_String(arr[0]),
+      fileName: dco_decode_String(arr[1]),
+      size: dco_decode_i_64(arr[2]),
+    );
+  }
+
+  @protected
+  HomeworkUploadResponse dco_decode_homework_upload_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return HomeworkUploadResponse(
+      data: dco_decode_opt_box_autoadd_homework_upload_receipt_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  HomeworkWorkspaceDto dco_decode_homework_workspace_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 12)
+      throw Exception('unexpected arr length: expect 12 but see ${arr.length}');
+    return HomeworkWorkspaceDto(
+      assignmentId: dco_decode_String(arr[0]),
+      allowedMethods: dco_decode_list_String(arr[1]),
+      allowedExtensions: dco_decode_list_String(arr[2]),
+      submissionLimit: dco_decode_opt_box_autoadd_u_32(arr[3]),
+      submittedCount: dco_decode_opt_box_autoadd_u_32(arr[4]),
+      returned: dco_decode_bool(arr[5]),
+      submittedText: dco_decode_opt_String(arr[6]),
+      feedback: dco_decode_opt_String(arr[7]),
+      attachments: dco_decode_list_homework_attachment_dto(arr[8]),
+      canSubmitFile: dco_decode_bool(arr[9]),
+      blockedReason: dco_decode_opt_String(arr[10]),
+      fileLimitBytes: dco_decode_i_64(arr[11]),
+    );
+  }
+
+  @protected
   int dco_decode_i_32(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
@@ -3995,6 +5180,114 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   PlatformInt64 dco_decode_i_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dcoDecodeI64(raw);
+  }
+
+  @protected
+  LearningAttachmentDto dco_decode_learning_attachment_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return LearningAttachmentDto(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+    );
+  }
+
+  @protected
+  LearningCapabilitiesDto dco_decode_learning_capabilities_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return LearningCapabilitiesDto(
+      columns: dco_decode_learning_capability_state_dto(arr[0]),
+      announcements: dco_decode_learning_capability_state_dto(arr[1]),
+      resources: dco_decode_learning_capability_state_dto(arr[2]),
+      assessments: dco_decode_learning_capability_state_dto(arr[3]),
+      resourceDownload: dco_decode_learning_capability_state_dto(arr[4]),
+      announcementDownload: dco_decode_learning_capability_state_dto(arr[5]),
+    );
+  }
+
+  @protected
+  LearningCapabilitiesResponse dco_decode_learning_capabilities_response(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return LearningCapabilitiesResponse(
+      data: dco_decode_opt_box_autoadd_learning_capabilities_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  LearningCapabilityStateDto dco_decode_learning_capability_state_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return LearningCapabilityStateDto.values[raw as int];
+  }
+
+  @protected
+  LearningColumnDto dco_decode_learning_column_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return LearningColumnDto(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      kind: dco_decode_learning_column_kind_dto(arr[2]),
+    );
+  }
+
+  @protected
+  LearningColumnKindDto dco_decode_learning_column_kind_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return LearningColumnKindDto.values[raw as int];
+  }
+
+  @protected
+  LearningColumnsResponse dco_decode_learning_columns_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return LearningColumnsResponse(
+      data: dco_decode_opt_list_learning_column_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  LearningCourseDto dco_decode_learning_course_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return LearningCourseDto(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      teacher: dco_decode_opt_String(arr[2]),
+      term: dco_decode_opt_String(arr[3]),
+      sourceUrl: dco_decode_String(arr[4]),
+    );
+  }
+
+  @protected
+  LearningCoursesResponse dco_decode_learning_courses_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return LearningCoursesResponse(
+      data: dco_decode_opt_list_learning_course_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
   }
 
   @protected
@@ -4072,6 +5365,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  LibraryCampusStatsDto dco_decode_library_campus_stats_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    return LibraryCampusStatsDto(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      people: dco_decode_i_32(arr[2]),
+      readingRooms: dco_decode_list_reading_room_dto(arr[3]),
+      seats: dco_decode_opt_box_autoadd_count_pair_dto(arr[4]),
+      studyRooms: dco_decode_opt_box_autoadd_count_pair_dto(arr[5]),
+      lockers: dco_decode_opt_box_autoadd_count_pair_dto(arr[6]),
+    );
+  }
+
+  @protected
   LibraryDemoResponse dco_decode_library_demo_response(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -4103,6 +5413,48 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       stale: dco_decode_bool(arr[7]),
       failure: dco_decode_opt_box_autoadd_failure_code(arr[8]),
       failureDetail: dco_decode_opt_String(arr[9]),
+    );
+  }
+
+  @protected
+  LibraryLoanDto dco_decode_library_loan_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return LibraryLoanDto(
+      id: dco_decode_String(arr[0]),
+      title: dco_decode_opt_String(arr[1]),
+      author: dco_decode_opt_String(arr[2]),
+      callNumber: dco_decode_opt_String(arr[3]),
+      borrowedAt: dco_decode_opt_String(arr[4]),
+      dueAt: dco_decode_opt_String(arr[5]),
+    );
+  }
+
+  @protected
+  LibraryLoanPageDto dco_decode_library_loan_page_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return LibraryLoanPageDto(
+      items: dco_decode_list_library_loan_dto(arr[0]),
+      page: dco_decode_u_32(arr[1]),
+      total: dco_decode_u_32(arr[2]),
+      hasMore: dco_decode_bool(arr[3]),
+    );
+  }
+
+  @protected
+  LibraryLoansResponse dco_decode_library_loans_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return LibraryLoansResponse(
+      data: dco_decode_opt_box_autoadd_library_loan_page_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
     );
   }
 
@@ -4161,6 +5513,31 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  LibraryStatsDto dco_decode_library_stats_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return LibraryStatsDto(
+      campuses: dco_decode_list_library_campus_stats_dto(arr[0]),
+      fetchedAt: dco_decode_opt_String(arr[1]),
+      fromCache: dco_decode_bool(arr[2]),
+    );
+  }
+
+  @protected
+  LibraryStatsResponse dco_decode_library_stats_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return LibraryStatsResponse(
+      data: dco_decode_opt_box_autoadd_library_stats_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
   LibraryVenue dco_decode_library_venue(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -4197,9 +5574,99 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<BookHitDto> dco_decode_list_book_hit_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_book_hit_dto).toList();
+  }
+
+  @protected
+  List<BookHoldingDto> dco_decode_list_book_holding_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_book_holding_dto).toList();
+  }
+
+  @protected
+  List<BykcChosenRecordDto> dco_decode_list_bykc_chosen_record_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_bykc_chosen_record_dto)
+        .toList();
+  }
+
+  @protected
+  List<BykcCourseDto> dco_decode_list_bykc_course_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_bykc_course_dto).toList();
+  }
+
+  @protected
+  List<BykcSemesterDto> dco_decode_list_bykc_semester_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_bykc_semester_dto).toList();
+  }
+
+  @protected
+  List<BykcStatisticsEntryDto> dco_decode_list_bykc_statistics_entry_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_bykc_statistics_entry_dto)
+        .toList();
+  }
+
+  @protected
+  List<CampusActivityDto> dco_decode_list_campus_activity_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_campus_activity_dto).toList();
+  }
+
+  @protected
   List<CareerEventDto> dco_decode_list_career_event_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_career_event_dto).toList();
+  }
+
+  @protected
+  List<CgyyBookingChoiceDto> dco_decode_list_cgyy_booking_choice_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_cgyy_booking_choice_dto)
+        .toList();
+  }
+
+  @protected
+  List<CgyyOrderDto> dco_decode_list_cgyy_order_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_cgyy_order_dto).toList();
+  }
+
+  @protected
+  List<CgyyPurposeDto> dco_decode_list_cgyy_purpose_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_cgyy_purpose_dto).toList();
+  }
+
+  @protected
+  List<CgyySiteDto> dco_decode_list_cgyy_site_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_cgyy_site_dto).toList();
+  }
+
+  @protected
+  List<CgyySlotDto> dco_decode_list_cgyy_slot_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_cgyy_slot_dto).toList();
+  }
+
+  @protected
+  List<CgyySpaceDto> dco_decode_list_cgyy_space_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_cgyy_space_dto).toList();
   }
 
   @protected
@@ -4221,9 +5688,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<CourseAnnouncementDto> dco_decode_list_course_announcement_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_course_announcement_dto)
+        .toList();
+  }
+
+  @protected
+  List<CourseAssessmentDto> dco_decode_list_course_assessment_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_course_assessment_dto)
+        .toList();
+  }
+
+  @protected
   List<CourseReminderSeed> dco_decode_list_course_reminder_seed(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_course_reminder_seed).toList();
+  }
+
+  @protected
+  List<CourseResourceDto> dco_decode_list_course_resource_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_course_resource_dto).toList();
   }
 
   @protected
@@ -4233,9 +5724,91 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<GraduateCreditNodeDto> dco_decode_list_graduate_credit_node_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_graduate_credit_node_dto)
+        .toList();
+  }
+
+  @protected
+  List<GraduateCreditRowDto> dco_decode_list_graduate_credit_row_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_graduate_credit_row_dto)
+        .toList();
+  }
+
+  @protected
+  List<GraduateRowDto> dco_decode_list_graduate_row_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_graduate_row_dto).toList();
+  }
+
+  @protected
+  List<GraduateSectionDto> dco_decode_list_graduate_section_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_graduate_section_dto).toList();
+  }
+
+  @protected
+  List<HomeworkAttachmentDto> dco_decode_list_homework_attachment_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_homework_attachment_dto)
+        .toList();
+  }
+
+  @protected
+  List<HomeworkCapabilityEvidenceDto>
+  dco_decode_list_homework_capability_evidence_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_homework_capability_evidence_dto)
+        .toList();
+  }
+
+  @protected
   List<HomeworkItem> dco_decode_list_homework_item(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_homework_item).toList();
+  }
+
+  @protected
+  List<HomeworkPendingSubmissionDto>
+  dco_decode_list_homework_pending_submission_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_homework_pending_submission_dto)
+        .toList();
+  }
+
+  @protected
+  List<LearningAttachmentDto> dco_decode_list_learning_attachment_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_learning_attachment_dto)
+        .toList();
+  }
+
+  @protected
+  List<LearningColumnDto> dco_decode_list_learning_column_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_learning_column_dto).toList();
+  }
+
+  @protected
+  List<LearningCourseDto> dco_decode_list_learning_course_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_learning_course_dto).toList();
   }
 
   @protected
@@ -4248,6 +5821,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   List<LibraryBooking> dco_decode_list_library_booking(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_library_booking).toList();
+  }
+
+  @protected
+  List<LibraryCampusStatsDto> dco_decode_list_library_campus_stats_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_library_campus_stats_dto)
+        .toList();
+  }
+
+  @protected
+  List<LibraryLoanDto> dco_decode_list_library_loan_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_library_loan_dto).toList();
   }
 
   @protected
@@ -4266,6 +5855,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   List<LibraryVenue> dco_decode_list_library_venue(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_library_venue).toList();
+  }
+
+  @protected
+  List<LocalTaskDto> dco_decode_list_local_task_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_local_task_dto).toList();
+  }
+
+  @protected
+  List<NoticeDto> dco_decode_list_notice_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_notice_dto).toList();
   }
 
   @protected
@@ -4290,6 +5891,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as Uint8List;
+  }
+
+  @protected
+  List<ReadingRoomDto> dco_decode_list_reading_room_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_reading_room_dto).toList();
   }
 
   @protected
@@ -4323,6 +5930,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<ShuttleRunDto> dco_decode_list_shuttle_run_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_shuttle_run_dto).toList();
+  }
+
+  @protected
+  List<ShuttleSectionDto> dco_decode_list_shuttle_section_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_shuttle_section_dto).toList();
+  }
+
+  @protected
+  List<ShuttleTableDto> dco_decode_list_shuttle_table_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_shuttle_table_dto).toList();
+  }
+
+  @protected
   List<TaskReminderSeed> dco_decode_list_task_reminder_seed(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_task_reminder_seed).toList();
@@ -4344,6 +5969,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       campus: dco_decode_i_32(arr[0]),
       date: dco_decode_String(arr[1]),
       forceRefresh: dco_decode_bool(arr[2]),
+    );
+  }
+
+  @protected
+  LocalTaskDto dco_decode_local_task_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return LocalTaskDto(
+      id: dco_decode_String(arr[0]),
+      title: dco_decode_String(arr[1]),
+      due: dco_decode_String(arr[2]),
+      completed: dco_decode_bool(arr[3]),
+      sourceAssignmentId: dco_decode_opt_String(arr[4]),
+    );
+  }
+
+  @protected
+  LocalTasksResponse dco_decode_local_tasks_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return LocalTasksResponse(
+      data: dco_decode_opt_list_local_task_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
     );
   }
 
@@ -4375,9 +6027,57 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  NoticeDto dco_decode_notice_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return NoticeDto(
+      title: dco_decode_String(arr[0]),
+      summary: dco_decode_String(arr[1]),
+      publishedAt: dco_decode_String(arr[2]),
+      url: dco_decode_String(arr[3]),
+    );
+  }
+
+  @protected
+  NoticesResponse dco_decode_notices_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return NoticesResponse(
+      data: dco_decode_opt_list_notice_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
   String? dco_decode_opt_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_String(raw);
+  }
+
+  @protected
+  AcademicDataDto? dco_decode_opt_box_autoadd_academic_data_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_academic_data_dto(raw);
+  }
+
+  @protected
+  AndroidDownloadDto? dco_decode_opt_box_autoadd_android_download_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_android_download_dto(raw);
+  }
+
+  @protected
+  BookPageDto? dco_decode_opt_box_autoadd_book_page_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_book_page_dto(raw);
   }
 
   @protected
@@ -4387,9 +6087,144 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BykcCatalogDto? dco_decode_opt_box_autoadd_bykc_catalog_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_bykc_catalog_dto(raw);
+  }
+
+  @protected
+  BykcChosenCoursesDto? dco_decode_opt_box_autoadd_bykc_chosen_courses_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_bykc_chosen_courses_dto(raw);
+  }
+
+  @protected
+  BykcCourseDetailsDto? dco_decode_opt_box_autoadd_bykc_course_details_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_bykc_course_details_dto(raw);
+  }
+
+  @protected
+  BykcSemesterDto? dco_decode_opt_box_autoadd_bykc_semester_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_bykc_semester_dto(raw);
+  }
+
+  @protected
+  BykcStatisticsDto? dco_decode_opt_box_autoadd_bykc_statistics_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_bykc_statistics_dto(raw);
+  }
+
+  @protected
+  CampusActivitiesDto? dco_decode_opt_box_autoadd_campus_activities_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_campus_activities_dto(raw);
+  }
+
+  @protected
   CareerEventsDto? dco_decode_opt_box_autoadd_career_events_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_career_events_dto(raw);
+  }
+
+  @protected
+  CgyyActionResultDto? dco_decode_opt_box_autoadd_cgyy_action_result_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_cgyy_action_result_dto(raw);
+  }
+
+  @protected
+  CgyyBookingOptionsDto? dco_decode_opt_box_autoadd_cgyy_booking_options_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_cgyy_booking_options_dto(raw);
+  }
+
+  @protected
+  CgyyChallengeDto? dco_decode_opt_box_autoadd_cgyy_challenge_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_cgyy_challenge_dto(raw);
+  }
+
+  @protected
+  CgyyDayDto? dco_decode_opt_box_autoadd_cgyy_day_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_cgyy_day_dto(raw);
+  }
+
+  @protected
+  CgyyLockCodeDto? dco_decode_opt_box_autoadd_cgyy_lock_code_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_cgyy_lock_code_dto(raw);
+  }
+
+  @protected
+  CgyyOrderDto? dco_decode_opt_box_autoadd_cgyy_order_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_cgyy_order_dto(raw);
+  }
+
+  @protected
+  CgyyReviewDto? dco_decode_opt_box_autoadd_cgyy_review_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_cgyy_review_dto(raw);
+  }
+
+  @protected
+  CheckinLoadProgressDto? dco_decode_opt_box_autoadd_checkin_load_progress_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_checkin_load_progress_dto(raw);
+  }
+
+  @protected
+  CountPairDto? dco_decode_opt_box_autoadd_count_pair_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_count_pair_dto(raw);
+  }
+
+  @protected
+  CourseAnnouncementDetailDto?
+  dco_decode_opt_box_autoadd_course_announcement_detail_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_course_announcement_detail_dto(raw);
+  }
+
+  @protected
+  CourseResourcePageDto? dco_decode_opt_box_autoadd_course_resource_page_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_course_resource_page_dto(raw);
   }
 
   @protected
@@ -4405,6 +6240,64 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  GraduateCreditMapDto? dco_decode_opt_box_autoadd_graduate_credit_map_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_graduate_credit_map_dto(raw);
+  }
+
+  @protected
+  GraduateCreditMetricsDto?
+  dco_decode_opt_box_autoadd_graduate_credit_metrics_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_graduate_credit_metrics_dto(raw);
+  }
+
+  @protected
+  GraduateCreditNodeDto? dco_decode_opt_box_autoadd_graduate_credit_node_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_graduate_credit_node_dto(raw);
+  }
+
+  @protected
+  GraduateProgressDto? dco_decode_opt_box_autoadd_graduate_progress_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_graduate_progress_dto(raw);
+  }
+
+  @protected
+  HomeworkUploadReceiptDto?
+  dco_decode_opt_box_autoadd_homework_upload_receipt_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_homework_upload_receipt_dto(raw);
+  }
+
+  @protected
+  HomeworkWorkspaceDto? dco_decode_opt_box_autoadd_homework_workspace_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_homework_workspace_dto(raw);
+  }
+
+  @protected
   int? dco_decode_opt_box_autoadd_i_32(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_i_32(raw);
@@ -4417,15 +6310,151 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  LearningCapabilitiesDto? dco_decode_opt_box_autoadd_learning_capabilities_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_learning_capabilities_dto(raw);
+  }
+
+  @protected
+  LibraryLoanPageDto? dco_decode_opt_box_autoadd_library_loan_page_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_library_loan_page_dto(raw);
+  }
+
+  @protected
+  LibraryStatsDto? dco_decode_opt_box_autoadd_library_stats_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_library_stats_dto(raw);
+  }
+
+  @protected
   RouteChoice? dco_decode_opt_box_autoadd_route_choice(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_route_choice(raw);
   }
 
   @protected
+  ShuttleTimetableDto? dco_decode_opt_box_autoadd_shuttle_timetable_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_shuttle_timetable_dto(raw);
+  }
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_u_32(raw);
+  }
+
+  @protected
+  UpdateSummaryDto? dco_decode_opt_box_autoadd_update_summary_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_update_summary_dto(raw);
+  }
+
+  @protected
   List<String>? dco_decode_opt_list_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_list_String(raw);
+  }
+
+  @protected
+  List<BookHoldingDto>? dco_decode_opt_list_book_holding_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_book_holding_dto(raw);
+  }
+
+  @protected
+  List<BykcChosenRecordDto>? dco_decode_opt_list_bykc_chosen_record_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_bykc_chosen_record_dto(raw);
+  }
+
+  @protected
+  List<CgyyOrderDto>? dco_decode_opt_list_cgyy_order_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_cgyy_order_dto(raw);
+  }
+
+  @protected
+  List<CgyySiteDto>? dco_decode_opt_list_cgyy_site_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_cgyy_site_dto(raw);
+  }
+
+  @protected
+  List<CourseAnnouncementDto>? dco_decode_opt_list_course_announcement_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_course_announcement_dto(raw);
+  }
+
+  @protected
+  List<CourseAssessmentDto>? dco_decode_opt_list_course_assessment_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_course_assessment_dto(raw);
+  }
+
+  @protected
+  List<HomeworkCapabilityEvidenceDto>?
+  dco_decode_opt_list_homework_capability_evidence_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_list_homework_capability_evidence_dto(raw);
+  }
+
+  @protected
+  List<HomeworkPendingSubmissionDto>?
+  dco_decode_opt_list_homework_pending_submission_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_list_homework_pending_submission_dto(raw);
+  }
+
+  @protected
+  List<LearningColumnDto>? dco_decode_opt_list_learning_column_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_learning_column_dto(raw);
+  }
+
+  @protected
+  List<LearningCourseDto>? dco_decode_opt_list_learning_course_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_learning_course_dto(raw);
+  }
+
+  @protected
+  List<LocalTaskDto>? dco_decode_opt_list_local_task_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_local_task_dto(raw);
+  }
+
+  @protected
+  List<NoticeDto>? dco_decode_opt_list_notice_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_notice_dto(raw);
   }
 
   @protected
@@ -4462,15 +6491,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ReadOnlyResponse dco_decode_read_only_response(dynamic raw) {
+  ReadingRoomDto dco_decode_reading_room_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-    return ReadOnlyResponse(
-      payload: dco_decode_opt_String(arr[0]),
-      stale: dco_decode_bool(arr[1]),
-      failure: dco_decode_opt_box_autoadd_failure_code(arr[2]),
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return ReadingRoomDto(
+      name: dco_decode_String(arr[0]),
+      people: dco_decode_i_32(arr[1]),
     );
   }
 
@@ -4636,6 +6664,82 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ShuttleRunDto dco_decode_shuttle_run_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return ShuttleRunDto(
+      index: dco_decode_String(arr[0]),
+      time: dco_decode_String(arr[1]),
+      capacity: dco_decode_String(arr[2]),
+    );
+  }
+
+  @protected
+  ShuttleSectionDto dco_decode_shuttle_section_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return ShuttleSectionDto(
+      label: dco_decode_String(arr[0]),
+      left: dco_decode_list_shuttle_run_dto(arr[1]),
+      right: dco_decode_list_shuttle_run_dto(arr[2]),
+    );
+  }
+
+  @protected
+  ShuttleTableDto dco_decode_shuttle_table_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return ShuttleTableDto(
+      left: dco_decode_String(arr[0]),
+      right: dco_decode_String(arr[1]),
+      sections: dco_decode_list_shuttle_section_dto(arr[2]),
+    );
+  }
+
+  @protected
+  ShuttleTimetableDto dco_decode_shuttle_timetable_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return ShuttleTimetableDto(
+      tables: dco_decode_list_shuttle_table_dto(arr[0]),
+      source: dco_decode_String(arr[1]),
+      liveSource: dco_decode_String(arr[2]),
+    );
+  }
+
+  @protected
+  ShuttleTimetableResponse dco_decode_shuttle_timetable_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return ShuttleTimetableResponse(
+      data: dco_decode_opt_box_autoadd_shuttle_timetable_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  SnapshotImportResponse dco_decode_snapshot_import_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return SnapshotImportResponse(
+      imported: dco_decode_opt_box_autoadd_u_32(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
   TaskReminderSeed dco_decode_task_reminder_seed(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -4696,10 +6800,147 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  UpdateResponse dco_decode_update_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return UpdateResponse(
+      data: dco_decode_opt_box_autoadd_update_summary_dto(arr[0]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[1]),
+    );
+  }
+
+  @protected
+  UpdateSummaryDto dco_decode_update_summary_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    return UpdateSummaryDto(
+      current: dco_decode_String(arr[0]),
+      latest: dco_decode_opt_String(arr[1]),
+      available: dco_decode_bool(arr[2]),
+      pageUrl: dco_decode_opt_String(arr[3]),
+      notes: dco_decode_opt_String(arr[4]),
+      apkAvailable: dco_decode_bool(arr[5]),
+      download: dco_decode_opt_box_autoadd_android_download_dto(arr[6]),
+    );
+  }
+
+  @protected
   String sse_decode_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_list_prim_u_8_strict(deserializer);
     return utf8.decoder.convert(inner);
+  }
+
+  @protected
+  AcademicDataDto sse_decode_academic_data_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_sections = sse_decode_list_graduate_section_dto(deserializer);
+    var var_notice = sse_decode_opt_String(deserializer);
+    return AcademicDataDto(sections: var_sections, notice: var_notice);
+  }
+
+  @protected
+  AndroidDownloadDto sse_decode_android_download_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_version = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_url = sse_decode_String(deserializer);
+    var var_apiUrl = sse_decode_String(deserializer);
+    var var_size = sse_decode_i_64(deserializer);
+    var var_sha256 = sse_decode_String(deserializer);
+    return AndroidDownloadDto(
+      version: var_version,
+      name: var_name,
+      url: var_url,
+      apiUrl: var_apiUrl,
+      size: var_size,
+      sha256: var_sha256,
+    );
+  }
+
+  @protected
+  BookHitDto sse_decode_book_hit_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_bibId = sse_decode_String(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_author = sse_decode_String(deserializer);
+    var var_publisher = sse_decode_String(deserializer);
+    var var_year = sse_decode_String(deserializer);
+    var var_callno = sse_decode_String(deserializer);
+    var var_isbn = sse_decode_String(deserializer);
+    var var_itemsAvailable = sse_decode_opt_box_autoadd_i_64(deserializer);
+    var var_itemCount = sse_decode_opt_box_autoadd_i_64(deserializer);
+    return BookHitDto(
+      bibId: var_bibId,
+      title: var_title,
+      author: var_author,
+      publisher: var_publisher,
+      year: var_year,
+      callno: var_callno,
+      isbn: var_isbn,
+      itemsAvailable: var_itemsAvailable,
+      itemCount: var_itemCount,
+    );
+  }
+
+  @protected
+  BookHoldingDto sse_decode_book_holding_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_callNo = sse_decode_String(deserializer);
+    var var_barCode = sse_decode_String(deserializer);
+    var var_library_ = sse_decode_String(deserializer);
+    var var_location = sse_decode_String(deserializer);
+    var var_status = sse_decode_String(deserializer);
+    return BookHoldingDto(
+      callNo: var_callNo,
+      barCode: var_barCode,
+      library_: var_library_,
+      location: var_location,
+      status: var_status,
+    );
+  }
+
+  @protected
+  BookHoldingsResponse sse_decode_book_holdings_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_list_book_holding_dto(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return BookHoldingsResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
+  BookPageDto sse_decode_book_page_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_page = sse_decode_i_64(deserializer);
+    var var_pageSize = sse_decode_i_64(deserializer);
+    var var_total = sse_decode_i_64(deserializer);
+    var var_actualTotal = sse_decode_i_64(deserializer);
+    var var_items = sse_decode_list_book_hit_dto(deserializer);
+    var var_hasMore = sse_decode_bool(deserializer);
+    return BookPageDto(
+      page: var_page,
+      pageSize: var_pageSize,
+      total: var_total,
+      actualTotal: var_actualTotal,
+      items: var_items,
+      hasMore: var_hasMore,
+    );
+  }
+
+  @protected
+  BookPageResponse sse_decode_book_page_response(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_book_page_dto(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return BookPageResponse(data: var_data, failure: var_failure);
   }
 
   @protected
@@ -4709,9 +6950,81 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  AcademicDataDto sse_decode_box_autoadd_academic_data_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_academic_data_dto(deserializer));
+  }
+
+  @protected
+  AndroidDownloadDto sse_decode_box_autoadd_android_download_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_android_download_dto(deserializer));
+  }
+
+  @protected
+  BookPageDto sse_decode_box_autoadd_book_page_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_book_page_dto(deserializer));
+  }
+
+  @protected
   bool sse_decode_box_autoadd_bool(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_bool(deserializer));
+  }
+
+  @protected
+  BykcCatalogDto sse_decode_box_autoadd_bykc_catalog_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_bykc_catalog_dto(deserializer));
+  }
+
+  @protected
+  BykcChosenCoursesDto sse_decode_box_autoadd_bykc_chosen_courses_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_bykc_chosen_courses_dto(deserializer));
+  }
+
+  @protected
+  BykcCourseDetailsDto sse_decode_box_autoadd_bykc_course_details_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_bykc_course_details_dto(deserializer));
+  }
+
+  @protected
+  BykcSemesterDto sse_decode_box_autoadd_bykc_semester_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_bykc_semester_dto(deserializer));
+  }
+
+  @protected
+  BykcStatisticsDto sse_decode_box_autoadd_bykc_statistics_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_bykc_statistics_dto(deserializer));
+  }
+
+  @protected
+  CampusActivitiesDto sse_decode_box_autoadd_campus_activities_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_campus_activities_dto(deserializer));
   }
 
   @protected
@@ -4723,11 +7036,98 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CgyyActionResultDto sse_decode_box_autoadd_cgyy_action_result_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_cgyy_action_result_dto(deserializer));
+  }
+
+  @protected
+  CgyyBookingOptionsDto sse_decode_box_autoadd_cgyy_booking_options_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_cgyy_booking_options_dto(deserializer));
+  }
+
+  @protected
+  CgyyChallengeDto sse_decode_box_autoadd_cgyy_challenge_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_cgyy_challenge_dto(deserializer));
+  }
+
+  @protected
+  CgyyDayDto sse_decode_box_autoadd_cgyy_day_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_cgyy_day_dto(deserializer));
+  }
+
+  @protected
+  CgyyLockCodeDto sse_decode_box_autoadd_cgyy_lock_code_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_cgyy_lock_code_dto(deserializer));
+  }
+
+  @protected
+  CgyyOrderDto sse_decode_box_autoadd_cgyy_order_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_cgyy_order_dto(deserializer));
+  }
+
+  @protected
+  CgyyReviewDto sse_decode_box_autoadd_cgyy_review_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_cgyy_review_dto(deserializer));
+  }
+
+  @protected
+  CheckinLoadProgressDto sse_decode_box_autoadd_checkin_load_progress_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_checkin_load_progress_dto(deserializer));
+  }
+
+  @protected
   ClassroomQuery sse_decode_box_autoadd_classroom_query(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_classroom_query(deserializer));
+  }
+
+  @protected
+  CountPairDto sse_decode_box_autoadd_count_pair_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_count_pair_dto(deserializer));
+  }
+
+  @protected
+  CourseAnnouncementDetailDto
+  sse_decode_box_autoadd_course_announcement_detail_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_course_announcement_detail_dto(deserializer));
+  }
+
+  @protected
+  CourseResourcePageDto sse_decode_box_autoadd_course_resource_page_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_course_resource_page_dto(deserializer));
   }
 
   @protected
@@ -4751,6 +7151,54 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  GraduateCreditMapDto sse_decode_box_autoadd_graduate_credit_map_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_graduate_credit_map_dto(deserializer));
+  }
+
+  @protected
+  GraduateCreditMetricsDto sse_decode_box_autoadd_graduate_credit_metrics_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_graduate_credit_metrics_dto(deserializer));
+  }
+
+  @protected
+  GraduateCreditNodeDto sse_decode_box_autoadd_graduate_credit_node_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_graduate_credit_node_dto(deserializer));
+  }
+
+  @protected
+  GraduateProgressDto sse_decode_box_autoadd_graduate_progress_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_graduate_progress_dto(deserializer));
+  }
+
+  @protected
+  HomeworkUploadReceiptDto sse_decode_box_autoadd_homework_upload_receipt_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_homework_upload_receipt_dto(deserializer));
+  }
+
+  @protected
+  HomeworkWorkspaceDto sse_decode_box_autoadd_homework_workspace_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_homework_workspace_dto(deserializer));
+  }
+
+  @protected
   int sse_decode_box_autoadd_i_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_i_32(deserializer));
@@ -4763,11 +7211,35 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  LearningCapabilitiesDto sse_decode_box_autoadd_learning_capabilities_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_learning_capabilities_dto(deserializer));
+  }
+
+  @protected
+  LibraryLoanPageDto sse_decode_box_autoadd_library_loan_page_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_library_loan_page_dto(deserializer));
+  }
+
+  @protected
   LibrarySlot sse_decode_box_autoadd_library_slot(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_library_slot(deserializer));
+  }
+
+  @protected
+  LibraryStatsDto sse_decode_box_autoadd_library_stats_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_library_stats_dto(deserializer));
   }
 
   @protected
@@ -4782,6 +7254,255 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_route_choice(deserializer));
+  }
+
+  @protected
+  ShuttleTimetableDto sse_decode_box_autoadd_shuttle_timetable_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_shuttle_timetable_dto(deserializer));
+  }
+
+  @protected
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_u_32(deserializer));
+  }
+
+  @protected
+  UpdateSummaryDto sse_decode_box_autoadd_update_summary_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_update_summary_dto(deserializer));
+  }
+
+  @protected
+  BykcCatalogDto sse_decode_bykc_catalog_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_terms = sse_decode_list_bykc_semester_dto(deserializer);
+    var var_courses = sse_decode_list_bykc_course_dto(deserializer);
+    var var_currentTerm = sse_decode_opt_box_autoadd_bykc_semester_dto(
+      deserializer,
+    );
+    return BykcCatalogDto(
+      terms: var_terms,
+      courses: var_courses,
+      currentTerm: var_currentTerm,
+    );
+  }
+
+  @protected
+  BykcCatalogResponse sse_decode_bykc_catalog_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_bykc_catalog_dto(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return BykcCatalogResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
+  BykcChosenCoursesDto sse_decode_bykc_chosen_courses_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_term = sse_decode_opt_box_autoadd_bykc_semester_dto(deserializer);
+    var var_courses = sse_decode_opt_list_bykc_chosen_record_dto(deserializer);
+    return BykcChosenCoursesDto(term: var_term, courses: var_courses);
+  }
+
+  @protected
+  BykcChosenRecordDto sse_decode_bykc_chosen_record_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_i_64(deserializer);
+    var var_course = sse_decode_bykc_course_dto(deserializer);
+    var var_selectedAt = sse_decode_opt_String(deserializer);
+    var var_checkin = sse_decode_opt_box_autoadd_i_64(deserializer);
+    var var_passed = sse_decode_opt_box_autoadd_i_64(deserializer);
+    var var_score = sse_decode_opt_box_autoadd_i_64(deserializer);
+    return BykcChosenRecordDto(
+      id: var_id,
+      course: var_course,
+      selectedAt: var_selectedAt,
+      checkin: var_checkin,
+      passed: var_passed,
+      score: var_score,
+    );
+  }
+
+  @protected
+  BykcChosenResponse sse_decode_bykc_chosen_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_bykc_chosen_courses_dto(
+      deserializer,
+    );
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return BykcChosenResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
+  BykcCourseDetailsDto sse_decode_bykc_course_details_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_start = sse_decode_opt_String(deserializer);
+    var var_end = sse_decode_opt_String(deserializer);
+    var var_selectStart = sse_decode_opt_String(deserializer);
+    var var_selectEnd = sse_decode_opt_String(deserializer);
+    var var_cancelEnd = sse_decode_opt_String(deserializer);
+    var var_capacity = sse_decode_opt_box_autoadd_i_64(deserializer);
+    var var_enrolled = sse_decode_opt_box_autoadd_i_64(deserializer);
+    var var_campuses = sse_decode_list_String(deserializer);
+    var var_summary = sse_decode_opt_String(deserializer);
+    var var_selected = sse_decode_opt_box_autoadd_bool(deserializer);
+    var var_hasSignConfig = sse_decode_opt_box_autoadd_bool(deserializer);
+    return BykcCourseDetailsDto(
+      start: var_start,
+      end: var_end,
+      selectStart: var_selectStart,
+      selectEnd: var_selectEnd,
+      cancelEnd: var_cancelEnd,
+      capacity: var_capacity,
+      enrolled: var_enrolled,
+      campuses: var_campuses,
+      summary: var_summary,
+      selected: var_selected,
+      hasSignConfig: var_hasSignConfig,
+    );
+  }
+
+  @protected
+  BykcCourseDto sse_decode_bykc_course_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_i_64(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_teacher = sse_decode_opt_String(deserializer);
+    var var_position = sse_decode_opt_String(deserializer);
+    var var_category = sse_decode_opt_String(deserializer);
+    var var_subcategory = sse_decode_opt_String(deserializer);
+    var var_details = sse_decode_opt_box_autoadd_bykc_course_details_dto(
+      deserializer,
+    );
+    return BykcCourseDto(
+      id: var_id,
+      name: var_name,
+      teacher: var_teacher,
+      position: var_position,
+      category: var_category,
+      subcategory: var_subcategory,
+      details: var_details,
+    );
+  }
+
+  @protected
+  BykcSemesterDto sse_decode_bykc_semester_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_start = sse_decode_opt_String(deserializer);
+    var var_end = sse_decode_opt_String(deserializer);
+    return BykcSemesterDto(
+      id: var_id,
+      name: var_name,
+      start: var_start,
+      end: var_end,
+    );
+  }
+
+  @protected
+  BykcStatisticsDto sse_decode_bykc_statistics_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_validCourseCount = sse_decode_opt_box_autoadd_i_64(deserializer);
+    var var_entries = sse_decode_list_bykc_statistics_entry_dto(deserializer);
+    return BykcStatisticsDto(
+      validCourseCount: var_validCourseCount,
+      entries: var_entries,
+    );
+  }
+
+  @protected
+  BykcStatisticsEntryDto sse_decode_bykc_statistics_entry_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_category = sse_decode_String(deserializer);
+    var var_subcategory = sse_decode_String(deserializer);
+    var var_required_ = sse_decode_i_64(deserializer);
+    var var_completed = sse_decode_i_64(deserializer);
+    return BykcStatisticsEntryDto(
+      category: var_category,
+      subcategory: var_subcategory,
+      required_: var_required_,
+      completed: var_completed,
+    );
+  }
+
+  @protected
+  BykcStatisticsResponse sse_decode_bykc_statistics_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_bykc_statistics_dto(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return BykcStatisticsResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
+  CampusActivitiesDto sse_decode_campus_activities_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_page = sse_decode_i_32(deserializer);
+    var var_activities = sse_decode_list_campus_activity_dto(deserializer);
+    var var_fetchedAt = sse_decode_String(deserializer);
+    return CampusActivitiesDto(
+      page: var_page,
+      activities: var_activities,
+      fetchedAt: var_fetchedAt,
+    );
+  }
+
+  @protected
+  CampusActivitiesResponse sse_decode_campus_activities_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_campus_activities_dto(
+      deserializer,
+    );
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return CampusActivitiesResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
+  CampusActivityDto sse_decode_campus_activity_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_category = sse_decode_String(deserializer);
+    var var_publishedAt = sse_decode_String(deserializer);
+    var var_activityTime = sse_decode_String(deserializer);
+    var var_place = sse_decode_String(deserializer);
+    var var_url = sse_decode_String(deserializer);
+    return CampusActivityDto(
+      id: var_id,
+      title: var_title,
+      category: var_category,
+      publishedAt: var_publishedAt,
+      activityTime: var_activityTime,
+      place: var_place,
+      url: var_url,
+    );
   }
 
   @protected
@@ -4850,6 +7571,227 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CgyyActionResultDto sse_decode_cgyy_action_result_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_state = sse_decode_String(deserializer);
+    var var_message = sse_decode_String(deserializer);
+    var var_options = sse_decode_opt_box_autoadd_cgyy_booking_options_dto(
+      deserializer,
+    );
+    var var_challenge = sse_decode_opt_box_autoadd_cgyy_challenge_dto(
+      deserializer,
+    );
+    var var_review = sse_decode_opt_box_autoadd_cgyy_review_dto(deserializer);
+    return CgyyActionResultDto(
+      state: var_state,
+      message: var_message,
+      options: var_options,
+      challenge: var_challenge,
+      review: var_review,
+    );
+  }
+
+  @protected
+  CgyyActionResultResponse sse_decode_cgyy_action_result_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_cgyy_action_result_dto(
+      deserializer,
+    );
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return CgyyActionResultResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
+  CgyyBookingChoiceDto sse_decode_cgyy_booking_choice_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_spaceId = sse_decode_i_64(deserializer);
+    var var_spaceName = sse_decode_String(deserializer);
+    var var_timeId = sse_decode_i_64(deserializer);
+    var var_time = sse_decode_String(deserializer);
+    return CgyyBookingChoiceDto(
+      spaceId: var_spaceId,
+      spaceName: var_spaceName,
+      timeId: var_timeId,
+      time: var_time,
+    );
+  }
+
+  @protected
+  CgyyBookingOptionsDto sse_decode_cgyy_booking_options_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_choices = sse_decode_list_cgyy_booking_choice_dto(deserializer);
+    var var_purposes = sse_decode_list_cgyy_purpose_dto(deserializer);
+    var var_usesFallbackPurposes = sse_decode_bool(deserializer);
+    return CgyyBookingOptionsDto(
+      choices: var_choices,
+      purposes: var_purposes,
+      usesFallbackPurposes: var_usesFallbackPurposes,
+    );
+  }
+
+  @protected
+  CgyyChallengeDto sse_decode_cgyy_challenge_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_background = sse_decode_String(deserializer);
+    var var_jigsaw = sse_decode_String(deserializer);
+    return CgyyChallengeDto(
+      id: var_id,
+      background: var_background,
+      jigsaw: var_jigsaw,
+    );
+  }
+
+  @protected
+  CgyyDayDto sse_decode_cgyy_day_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_siteId = sse_decode_i_64(deserializer);
+    var var_date = sse_decode_String(deserializer);
+    var var_dates = sse_decode_list_String(deserializer);
+    var var_spaces = sse_decode_list_cgyy_space_dto(deserializer);
+    return CgyyDayDto(
+      siteId: var_siteId,
+      date: var_date,
+      dates: var_dates,
+      spaces: var_spaces,
+    );
+  }
+
+  @protected
+  CgyyLoadResponse sse_decode_cgyy_load_response(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_venues = sse_decode_opt_list_cgyy_site_dto(deserializer);
+    var var_day = sse_decode_opt_box_autoadd_cgyy_day_dto(deserializer);
+    var var_orders = sse_decode_opt_list_cgyy_order_dto(deserializer);
+    var var_order = sse_decode_opt_box_autoadd_cgyy_order_dto(deserializer);
+    var var_lockCode = sse_decode_opt_box_autoadd_cgyy_lock_code_dto(
+      deserializer,
+    );
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return CgyyLoadResponse(
+      venues: var_venues,
+      day: var_day,
+      orders: var_orders,
+      order: var_order,
+      lockCode: var_lockCode,
+      failure: var_failure,
+    );
+  }
+
+  @protected
+  CgyyLockCodeDto sse_decode_cgyy_lock_code_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_qrCode = sse_decode_opt_String(deserializer);
+    var var_dueDate = sse_decode_opt_String(deserializer);
+    var var_tradeNo = sse_decode_opt_String(deserializer);
+    var var_venueName = sse_decode_opt_String(deserializer);
+    var var_siteName = sse_decode_opt_String(deserializer);
+    var var_spaceName = sse_decode_opt_String(deserializer);
+    var var_orderName = sse_decode_opt_String(deserializer);
+    var var_reservationDate = sse_decode_opt_String(deserializer);
+    var var_reservationDateDetail = sse_decode_opt_String(deserializer);
+    var var_reservationStartDate = sse_decode_opt_String(deserializer);
+    var var_reservationEndDate = sse_decode_opt_String(deserializer);
+    return CgyyLockCodeDto(
+      qrCode: var_qrCode,
+      dueDate: var_dueDate,
+      tradeNo: var_tradeNo,
+      venueName: var_venueName,
+      siteName: var_siteName,
+      spaceName: var_spaceName,
+      orderName: var_orderName,
+      reservationDate: var_reservationDate,
+      reservationDateDetail: var_reservationDateDetail,
+      reservationStartDate: var_reservationStartDate,
+      reservationEndDate: var_reservationEndDate,
+    );
+  }
+
+  @protected
+  CgyyOrderDto sse_decode_cgyy_order_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_orderStatus = sse_decode_opt_box_autoadd_i_64(deserializer);
+    var var_checkStatus = sse_decode_opt_box_autoadd_i_64(deserializer);
+    var var_canCancel = sse_decode_bool(deserializer);
+    var var_id = sse_decode_i_64(deserializer);
+    var var_place = sse_decode_String(deserializer);
+    var var_date = sse_decode_String(deserializer);
+    var var_time = sse_decode_String(deserializer);
+    var var_status = sse_decode_String(deserializer);
+    return CgyyOrderDto(
+      orderStatus: var_orderStatus,
+      checkStatus: var_checkStatus,
+      canCancel: var_canCancel,
+      id: var_id,
+      place: var_place,
+      date: var_date,
+      time: var_time,
+      status: var_status,
+    );
+  }
+
+  @protected
+  CgyyPurposeDto sse_decode_cgyy_purpose_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_i_64(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    return CgyyPurposeDto(id: var_id, name: var_name);
+  }
+
+  @protected
+  CgyyReviewDto sse_decode_cgyy_review_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_orders = sse_decode_list_cgyy_order_dto(deserializer);
+    return CgyyReviewDto(id: var_id, orders: var_orders);
+  }
+
+  @protected
+  CgyySiteDto sse_decode_cgyy_site_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_i_64(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_venue = sse_decode_String(deserializer);
+    var var_campus = sse_decode_String(deserializer);
+    var var_seats = sse_decode_opt_box_autoadd_i_64(deserializer);
+    var var_openStart = sse_decode_String(deserializer);
+    var var_openEnd = sse_decode_String(deserializer);
+    return CgyySiteDto(
+      id: var_id,
+      name: var_name,
+      venue: var_venue,
+      campus: var_campus,
+      seats: var_seats,
+      openStart: var_openStart,
+      openEnd: var_openEnd,
+    );
+  }
+
+  @protected
+  CgyySlotDto sse_decode_cgyy_slot_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_time = sse_decode_String(deserializer);
+    var var_status = sse_decode_String(deserializer);
+    return CgyySlotDto(time: var_time, status: var_status);
+  }
+
+  @protected
+  CgyySpaceDto sse_decode_cgyy_space_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_name = sse_decode_String(deserializer);
+    var var_slots = sse_decode_list_cgyy_slot_dto(deserializer);
+    return CgyySpaceDto(name: var_name, slots: var_slots);
+  }
+
+  @protected
   CheckInCourse sse_decode_check_in_course(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_String(deserializer);
@@ -4906,6 +7848,28 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
     return CheckInStatus.values[inner];
+  }
+
+  @protected
+  CheckinLoadProgressDto sse_decode_checkin_load_progress_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_phase = sse_decode_String(deserializer);
+    var var_elapsedMs = sse_decode_opt_box_autoadd_i_64(deserializer);
+    return CheckinLoadProgressDto(phase: var_phase, elapsedMs: var_elapsedMs);
+  }
+
+  @protected
+  CheckinLoadProgressResponse sse_decode_checkin_load_progress_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_checkin_load_progress_dto(
+      deserializer,
+    );
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return CheckinLoadProgressResponse(data: var_data, failure: var_failure);
   }
 
   @protected
@@ -4989,6 +7953,101 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CountPairDto sse_decode_count_pair_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_available = sse_decode_i_32(deserializer);
+    var var_total = sse_decode_i_32(deserializer);
+    return CountPairDto(available: var_available, total: var_total);
+  }
+
+  @protected
+  CourseAnnouncementDetailDto sse_decode_course_announcement_detail_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_content = sse_decode_opt_String(deserializer);
+    var var_attachments = sse_decode_list_learning_attachment_dto(deserializer);
+    return CourseAnnouncementDetailDto(
+      id: var_id,
+      title: var_title,
+      content: var_content,
+      attachments: var_attachments,
+    );
+  }
+
+  @protected
+  CourseAnnouncementDetailResponse
+  sse_decode_course_announcement_detail_response(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_course_announcement_detail_dto(
+      deserializer,
+    );
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return CourseAnnouncementDetailResponse(
+      data: var_data,
+      failure: var_failure,
+    );
+  }
+
+  @protected
+  CourseAnnouncementDto sse_decode_course_announcement_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_publishedAt = sse_decode_opt_String(deserializer);
+    return CourseAnnouncementDto(
+      id: var_id,
+      title: var_title,
+      publishedAt: var_publishedAt,
+    );
+  }
+
+  @protected
+  CourseAnnouncementsResponse sse_decode_course_announcements_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_list_course_announcement_dto(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return CourseAnnouncementsResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
+  CourseAssessmentDto sse_decode_course_assessment_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_startsAt = sse_decode_opt_String(deserializer);
+    var var_dueAt = sse_decode_opt_String(deserializer);
+    var var_score = sse_decode_opt_String(deserializer);
+    var var_sourceUrl = sse_decode_String(deserializer);
+    return CourseAssessmentDto(
+      id: var_id,
+      title: var_title,
+      startsAt: var_startsAt,
+      dueAt: var_dueAt,
+      score: var_score,
+      sourceUrl: var_sourceUrl,
+    );
+  }
+
+  @protected
+  CourseAssessmentsResponse sse_decode_course_assessments_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_list_course_assessment_dto(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return CourseAssessmentsResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
   CourseReminderSeed sse_decode_course_reminder_seed(
     SseDeserializer deserializer,
   ) {
@@ -5005,6 +8064,54 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       startsAt: var_startsAt,
       endsAt: var_endsAt,
     );
+  }
+
+  @protected
+  CourseResourceDto sse_decode_course_resource_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_folder = sse_decode_bool(deserializer);
+    var var_downloadable = sse_decode_bool(deserializer);
+    var var_updatedAt = sse_decode_opt_String(deserializer);
+    var var_extension_ = sse_decode_opt_String(deserializer);
+    return CourseResourceDto(
+      id: var_id,
+      name: var_name,
+      folder: var_folder,
+      downloadable: var_downloadable,
+      updatedAt: var_updatedAt,
+      extension_: var_extension_,
+    );
+  }
+
+  @protected
+  CourseResourcePageDto sse_decode_course_resource_page_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_items = sse_decode_list_course_resource_dto(deserializer);
+    var var_page = sse_decode_u_32(deserializer);
+    var var_hasNext = sse_decode_bool(deserializer);
+    return CourseResourcePageDto(
+      items: var_items,
+      page: var_page,
+      hasNext: var_hasNext,
+    );
+  }
+
+  @protected
+  CourseResourcePageResponse sse_decode_course_resource_page_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_course_resource_page_dto(
+      deserializer,
+    );
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return CourseResourcePageResponse(data: var_data, failure: var_failure);
   }
 
   @protected
@@ -5106,6 +8213,213 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  GraduateCreditMapDto sse_decode_graduate_credit_map_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_summary = sse_decode_opt_box_autoadd_graduate_credit_node_dto(
+      deserializer,
+    );
+    var var_nodes = sse_decode_list_graduate_credit_node_dto(deserializer);
+    var var_notice = sse_decode_opt_String(deserializer);
+    return GraduateCreditMapDto(
+      summary: var_summary,
+      nodes: var_nodes,
+      notice: var_notice,
+    );
+  }
+
+  @protected
+  GraduateCreditMapResponse sse_decode_graduate_credit_map_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_graduate_credit_map_dto(
+      deserializer,
+    );
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return GraduateCreditMapResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
+  GraduateCreditMetricsDto sse_decode_graduate_credit_metrics_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_state = sse_decode_graduate_credit_state_dto(deserializer);
+    var var_required_ = sse_decode_opt_box_autoadd_f_64(deserializer);
+    var var_earned = sse_decode_opt_box_autoadd_f_64(deserializer);
+    var var_pending = sse_decode_opt_box_autoadd_f_64(deserializer);
+    var var_remaining = sse_decode_opt_box_autoadd_f_64(deserializer);
+    var var_ratio = sse_decode_opt_box_autoadd_f_64(deserializer);
+    return GraduateCreditMetricsDto(
+      state: var_state,
+      required_: var_required_,
+      earned: var_earned,
+      pending: var_pending,
+      remaining: var_remaining,
+      ratio: var_ratio,
+    );
+  }
+
+  @protected
+  GraduateCreditNodeDto sse_decode_graduate_credit_node_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_sourceIndex = sse_decode_u_32(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_progress = sse_decode_opt_box_autoadd_graduate_credit_metrics_dto(
+      deserializer,
+    );
+    var var_rows = sse_decode_list_graduate_credit_row_dto(deserializer);
+    return GraduateCreditNodeDto(
+      sourceIndex: var_sourceIndex,
+      title: var_title,
+      progress: var_progress,
+      rows: var_rows,
+    );
+  }
+
+  @protected
+  GraduateCreditRowDto sse_decode_graduate_credit_row_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_title = sse_decode_String(deserializer);
+    var var_detail = sse_decode_String(deserializer);
+    var var_isCourse = sse_decode_bool(deserializer);
+    var var_completed = sse_decode_opt_box_autoadd_bool(deserializer);
+    var var_credit = sse_decode_opt_box_autoadd_f_64(deserializer);
+    var var_semester = sse_decode_opt_String(deserializer);
+    return GraduateCreditRowDto(
+      title: var_title,
+      detail: var_detail,
+      isCourse: var_isCourse,
+      completed: var_completed,
+      credit: var_credit,
+      semester: var_semester,
+    );
+  }
+
+  @protected
+  GraduateCreditStateDto sse_decode_graduate_credit_state_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return GraduateCreditStateDto.values[inner];
+  }
+
+  @protected
+  GraduateProgressDto sse_decode_graduate_progress_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_required_ = sse_decode_opt_box_autoadd_f_64(deserializer);
+    var var_earned = sse_decode_opt_box_autoadd_f_64(deserializer);
+    var var_pending = sse_decode_opt_box_autoadd_f_64(deserializer);
+    return GraduateProgressDto(
+      required_: var_required_,
+      earned: var_earned,
+      pending: var_pending,
+    );
+  }
+
+  @protected
+  GraduateResponse sse_decode_graduate_response(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_academic_data_dto(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return GraduateResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
+  GraduateRowDto sse_decode_graduate_row_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_title = sse_decode_String(deserializer);
+    var var_detail = sse_decode_String(deserializer);
+    var var_isCourse = sse_decode_bool(deserializer);
+    var var_completed = sse_decode_opt_box_autoadd_bool(deserializer);
+    var var_credit = sse_decode_opt_box_autoadd_f_64(deserializer);
+    var var_semester = sse_decode_opt_String(deserializer);
+    return GraduateRowDto(
+      title: var_title,
+      detail: var_detail,
+      isCourse: var_isCourse,
+      completed: var_completed,
+      credit: var_credit,
+      semester: var_semester,
+    );
+  }
+
+  @protected
+  GraduateSectionDto sse_decode_graduate_section_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_title = sse_decode_String(deserializer);
+    var var_rows = sse_decode_list_graduate_row_dto(deserializer);
+    var var_progress = sse_decode_opt_box_autoadd_graduate_progress_dto(
+      deserializer,
+    );
+    return GraduateSectionDto(
+      title: var_title,
+      rows: var_rows,
+      progress: var_progress,
+    );
+  }
+
+  @protected
+  HomeworkAttachmentDto sse_decode_homework_attachment_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_kind = sse_decode_String(deserializer);
+    return HomeworkAttachmentDto(id: var_id, name: var_name, kind: var_kind);
+  }
+
+  @protected
+  HomeworkCapabilitiesResponse sse_decode_homework_capabilities_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_list_homework_capability_evidence_dto(
+      deserializer,
+    );
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return HomeworkCapabilitiesResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
+  HomeworkCapabilityEvidenceDto sse_decode_homework_capability_evidence_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_capability = sse_decode_String(deserializer);
+    var var_state = sse_decode_homework_capability_state_dto(deserializer);
+    var var_reason = sse_decode_String(deserializer);
+    var var_evidence = sse_decode_String(deserializer);
+    return HomeworkCapabilityEvidenceDto(
+      capability: var_capability,
+      state: var_state,
+      reason: var_reason,
+      evidence: var_evidence,
+    );
+  }
+
+  @protected
+  HomeworkCapabilityStateDto sse_decode_homework_capability_state_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return HomeworkCapabilityStateDto.values[inner];
+  }
+
+  @protected
   HomeworkDetailResponse sse_decode_homework_detail_response(
     SseDeserializer deserializer,
   ) {
@@ -5148,6 +8462,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  HomeworkFileWorkspaceResponse sse_decode_homework_file_workspace_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_homework_workspace_dto(
+      deserializer,
+    );
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return HomeworkFileWorkspaceResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
   HomeworkItem sse_decode_homework_item(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_courseRole = sse_decode_opt_String(deserializer);
@@ -5173,6 +8499,48 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       status: var_status,
       statusDetail: var_statusDetail,
       score: var_score,
+    );
+  }
+
+  @protected
+  HomeworkPendingResponse sse_decode_homework_pending_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_list_homework_pending_submission_dto(
+      deserializer,
+    );
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return HomeworkPendingResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
+  HomeworkPendingSubmissionDto sse_decode_homework_pending_submission_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_handle = sse_decode_String(deserializer);
+    var var_assignmentId = sse_decode_String(deserializer);
+    var var_fileName = sse_decode_String(deserializer);
+    var var_size = sse_decode_i_64(deserializer);
+    return HomeworkPendingSubmissionDto(
+      handle: var_handle,
+      assignmentId: var_assignmentId,
+      fileName: var_fileName,
+      size: var_size,
+    );
+  }
+
+  @protected
+  HomeworkRecoveryResponse sse_decode_homework_recovery_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_configured = sse_decode_opt_box_autoadd_bool(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return HomeworkRecoveryResponse(
+      configured: var_configured,
+      failure: var_failure,
     );
   }
 
@@ -5205,6 +8573,66 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  HomeworkUploadReceiptDto sse_decode_homework_upload_receipt_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_handle = sse_decode_String(deserializer);
+    var var_fileName = sse_decode_String(deserializer);
+    var var_size = sse_decode_i_64(deserializer);
+    return HomeworkUploadReceiptDto(
+      handle: var_handle,
+      fileName: var_fileName,
+      size: var_size,
+    );
+  }
+
+  @protected
+  HomeworkUploadResponse sse_decode_homework_upload_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_homework_upload_receipt_dto(
+      deserializer,
+    );
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return HomeworkUploadResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
+  HomeworkWorkspaceDto sse_decode_homework_workspace_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_assignmentId = sse_decode_String(deserializer);
+    var var_allowedMethods = sse_decode_list_String(deserializer);
+    var var_allowedExtensions = sse_decode_list_String(deserializer);
+    var var_submissionLimit = sse_decode_opt_box_autoadd_u_32(deserializer);
+    var var_submittedCount = sse_decode_opt_box_autoadd_u_32(deserializer);
+    var var_returned = sse_decode_bool(deserializer);
+    var var_submittedText = sse_decode_opt_String(deserializer);
+    var var_feedback = sse_decode_opt_String(deserializer);
+    var var_attachments = sse_decode_list_homework_attachment_dto(deserializer);
+    var var_canSubmitFile = sse_decode_bool(deserializer);
+    var var_blockedReason = sse_decode_opt_String(deserializer);
+    var var_fileLimitBytes = sse_decode_i_64(deserializer);
+    return HomeworkWorkspaceDto(
+      assignmentId: var_assignmentId,
+      allowedMethods: var_allowedMethods,
+      allowedExtensions: var_allowedExtensions,
+      submissionLimit: var_submissionLimit,
+      submittedCount: var_submittedCount,
+      returned: var_returned,
+      submittedText: var_submittedText,
+      feedback: var_feedback,
+      attachments: var_attachments,
+      canSubmitFile: var_canSubmitFile,
+      blockedReason: var_blockedReason,
+      fileLimitBytes: var_fileLimitBytes,
+    );
+  }
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getInt32();
@@ -5214,6 +8642,125 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getPlatformInt64();
+  }
+
+  @protected
+  LearningAttachmentDto sse_decode_learning_attachment_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    return LearningAttachmentDto(id: var_id, name: var_name);
+  }
+
+  @protected
+  LearningCapabilitiesDto sse_decode_learning_capabilities_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_columns = sse_decode_learning_capability_state_dto(deserializer);
+    var var_announcements = sse_decode_learning_capability_state_dto(
+      deserializer,
+    );
+    var var_resources = sse_decode_learning_capability_state_dto(deserializer);
+    var var_assessments = sse_decode_learning_capability_state_dto(
+      deserializer,
+    );
+    var var_resourceDownload = sse_decode_learning_capability_state_dto(
+      deserializer,
+    );
+    var var_announcementDownload = sse_decode_learning_capability_state_dto(
+      deserializer,
+    );
+    return LearningCapabilitiesDto(
+      columns: var_columns,
+      announcements: var_announcements,
+      resources: var_resources,
+      assessments: var_assessments,
+      resourceDownload: var_resourceDownload,
+      announcementDownload: var_announcementDownload,
+    );
+  }
+
+  @protected
+  LearningCapabilitiesResponse sse_decode_learning_capabilities_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_learning_capabilities_dto(
+      deserializer,
+    );
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return LearningCapabilitiesResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
+  LearningCapabilityStateDto sse_decode_learning_capability_state_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return LearningCapabilityStateDto.values[inner];
+  }
+
+  @protected
+  LearningColumnDto sse_decode_learning_column_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_kind = sse_decode_learning_column_kind_dto(deserializer);
+    return LearningColumnDto(id: var_id, name: var_name, kind: var_kind);
+  }
+
+  @protected
+  LearningColumnKindDto sse_decode_learning_column_kind_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return LearningColumnKindDto.values[inner];
+  }
+
+  @protected
+  LearningColumnsResponse sse_decode_learning_columns_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_list_learning_column_dto(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return LearningColumnsResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
+  LearningCourseDto sse_decode_learning_course_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_teacher = sse_decode_opt_String(deserializer);
+    var var_term = sse_decode_opt_String(deserializer);
+    var var_sourceUrl = sse_decode_String(deserializer);
+    return LearningCourseDto(
+      id: var_id,
+      name: var_name,
+      teacher: var_teacher,
+      term: var_term,
+      sourceUrl: var_sourceUrl,
+    );
+  }
+
+  @protected
+  LearningCoursesResponse sse_decode_learning_courses_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_list_learning_course_dto(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return LearningCoursesResponse(data: var_data, failure: var_failure);
   }
 
   @protected
@@ -5303,6 +8850,31 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  LibraryCampusStatsDto sse_decode_library_campus_stats_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_people = sse_decode_i_32(deserializer);
+    var var_readingRooms = sse_decode_list_reading_room_dto(deserializer);
+    var var_seats = sse_decode_opt_box_autoadd_count_pair_dto(deserializer);
+    var var_studyRooms = sse_decode_opt_box_autoadd_count_pair_dto(
+      deserializer,
+    );
+    var var_lockers = sse_decode_opt_box_autoadd_count_pair_dto(deserializer);
+    return LibraryCampusStatsDto(
+      id: var_id,
+      name: var_name,
+      people: var_people,
+      readingRooms: var_readingRooms,
+      seats: var_seats,
+      studyRooms: var_studyRooms,
+      lockers: var_lockers,
+    );
+  }
+
+  @protected
   LibraryDemoResponse sse_decode_library_demo_response(
     SseDeserializer deserializer,
   ) {
@@ -5348,6 +8920,54 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       failure: var_failure,
       failureDetail: var_failureDetail,
     );
+  }
+
+  @protected
+  LibraryLoanDto sse_decode_library_loan_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_title = sse_decode_opt_String(deserializer);
+    var var_author = sse_decode_opt_String(deserializer);
+    var var_callNumber = sse_decode_opt_String(deserializer);
+    var var_borrowedAt = sse_decode_opt_String(deserializer);
+    var var_dueAt = sse_decode_opt_String(deserializer);
+    return LibraryLoanDto(
+      id: var_id,
+      title: var_title,
+      author: var_author,
+      callNumber: var_callNumber,
+      borrowedAt: var_borrowedAt,
+      dueAt: var_dueAt,
+    );
+  }
+
+  @protected
+  LibraryLoanPageDto sse_decode_library_loan_page_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_items = sse_decode_list_library_loan_dto(deserializer);
+    var var_page = sse_decode_u_32(deserializer);
+    var var_total = sse_decode_u_32(deserializer);
+    var var_hasMore = sse_decode_bool(deserializer);
+    return LibraryLoanPageDto(
+      items: var_items,
+      page: var_page,
+      total: var_total,
+      hasMore: var_hasMore,
+    );
+  }
+
+  @protected
+  LibraryLoansResponse sse_decode_library_loans_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_library_loan_page_dto(
+      deserializer,
+    );
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return LibraryLoansResponse(data: var_data, failure: var_failure);
   }
 
   @protected
@@ -5411,6 +9031,29 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  LibraryStatsDto sse_decode_library_stats_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_campuses = sse_decode_list_library_campus_stats_dto(deserializer);
+    var var_fetchedAt = sse_decode_opt_String(deserializer);
+    var var_fromCache = sse_decode_bool(deserializer);
+    return LibraryStatsDto(
+      campuses: var_campuses,
+      fetchedAt: var_fetchedAt,
+      fromCache: var_fromCache,
+    );
+  }
+
+  @protected
+  LibraryStatsResponse sse_decode_library_stats_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_library_stats_dto(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return LibraryStatsResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
   LibraryVenue sse_decode_library_venue(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_String(deserializer);
@@ -5459,6 +9102,102 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<BookHitDto> sse_decode_list_book_hit_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <BookHitDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_book_hit_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<BookHoldingDto> sse_decode_list_book_holding_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <BookHoldingDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_book_holding_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<BykcChosenRecordDto> sse_decode_list_bykc_chosen_record_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <BykcChosenRecordDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_bykc_chosen_record_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<BykcCourseDto> sse_decode_list_bykc_course_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <BykcCourseDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_bykc_course_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<BykcSemesterDto> sse_decode_list_bykc_semester_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <BykcSemesterDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_bykc_semester_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<BykcStatisticsEntryDto> sse_decode_list_bykc_statistics_entry_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <BykcStatisticsEntryDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_bykc_statistics_entry_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<CampusActivityDto> sse_decode_list_campus_activity_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CampusActivityDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_campus_activity_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<CareerEventDto> sse_decode_list_career_event_dto(
     SseDeserializer deserializer,
   ) {
@@ -5468,6 +9207,90 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var ans_ = <CareerEventDto>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_career_event_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<CgyyBookingChoiceDto> sse_decode_list_cgyy_booking_choice_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CgyyBookingChoiceDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_cgyy_booking_choice_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<CgyyOrderDto> sse_decode_list_cgyy_order_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CgyyOrderDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_cgyy_order_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<CgyyPurposeDto> sse_decode_list_cgyy_purpose_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CgyyPurposeDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_cgyy_purpose_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<CgyySiteDto> sse_decode_list_cgyy_site_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CgyySiteDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_cgyy_site_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<CgyySlotDto> sse_decode_list_cgyy_slot_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CgyySlotDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_cgyy_slot_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<CgyySpaceDto> sse_decode_list_cgyy_space_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CgyySpaceDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_cgyy_space_dto(deserializer));
     }
     return ans_;
   }
@@ -5515,6 +9338,34 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<CourseAnnouncementDto> sse_decode_list_course_announcement_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CourseAnnouncementDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_course_announcement_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<CourseAssessmentDto> sse_decode_list_course_assessment_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CourseAssessmentDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_course_assessment_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<CourseReminderSeed> sse_decode_list_course_reminder_seed(
     SseDeserializer deserializer,
   ) {
@@ -5524,6 +9375,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var ans_ = <CourseReminderSeed>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_course_reminder_seed(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<CourseResourceDto> sse_decode_list_course_resource_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CourseResourceDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_course_resource_dto(deserializer));
     }
     return ans_;
   }
@@ -5541,6 +9406,91 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<GraduateCreditNodeDto> sse_decode_list_graduate_credit_node_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <GraduateCreditNodeDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_graduate_credit_node_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<GraduateCreditRowDto> sse_decode_list_graduate_credit_row_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <GraduateCreditRowDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_graduate_credit_row_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<GraduateRowDto> sse_decode_list_graduate_row_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <GraduateRowDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_graduate_row_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<GraduateSectionDto> sse_decode_list_graduate_section_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <GraduateSectionDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_graduate_section_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<HomeworkAttachmentDto> sse_decode_list_homework_attachment_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <HomeworkAttachmentDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_homework_attachment_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<HomeworkCapabilityEvidenceDto>
+  sse_decode_list_homework_capability_evidence_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <HomeworkCapabilityEvidenceDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_homework_capability_evidence_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<HomeworkItem> sse_decode_list_homework_item(
     SseDeserializer deserializer,
   ) {
@@ -5550,6 +9500,63 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var ans_ = <HomeworkItem>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_homework_item(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<HomeworkPendingSubmissionDto>
+  sse_decode_list_homework_pending_submission_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <HomeworkPendingSubmissionDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_homework_pending_submission_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<LearningAttachmentDto> sse_decode_list_learning_attachment_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <LearningAttachmentDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_learning_attachment_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<LearningColumnDto> sse_decode_list_learning_column_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <LearningColumnDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_learning_column_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<LearningCourseDto> sse_decode_list_learning_course_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <LearningCourseDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_learning_course_dto(deserializer));
     }
     return ans_;
   }
@@ -5576,6 +9583,34 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var ans_ = <LibraryBooking>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_library_booking(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<LibraryCampusStatsDto> sse_decode_list_library_campus_stats_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <LibraryCampusStatsDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_library_campus_stats_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<LibraryLoanDto> sse_decode_list_library_loan_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <LibraryLoanDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_library_loan_dto(deserializer));
     }
     return ans_;
   }
@@ -5619,6 +9654,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<LocalTaskDto> sse_decode_list_local_task_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <LocalTaskDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_local_task_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<NoticeDto> sse_decode_list_notice_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <NoticeDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_notice_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<PlannedReminder> sse_decode_list_planned_reminder(
     SseDeserializer deserializer,
   ) {
@@ -5651,6 +9712,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
     return deserializer.buffer.getUint8List(len_);
+  }
+
+  @protected
+  List<ReadingRoomDto> sse_decode_list_reading_room_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <ReadingRoomDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_reading_room_dto(deserializer));
+    }
+    return ans_;
   }
 
   @protected
@@ -5724,6 +9799,48 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<ShuttleRunDto> sse_decode_list_shuttle_run_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <ShuttleRunDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_shuttle_run_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<ShuttleSectionDto> sse_decode_list_shuttle_section_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <ShuttleSectionDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_shuttle_section_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<ShuttleTableDto> sse_decode_list_shuttle_table_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <ShuttleTableDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_shuttle_table_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<TaskReminderSeed> sse_decode_list_task_reminder_seed(
     SseDeserializer deserializer,
   ) {
@@ -5763,6 +9880,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  LocalTaskDto sse_decode_local_task_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_due = sse_decode_String(deserializer);
+    var var_completed = sse_decode_bool(deserializer);
+    var var_sourceAssignmentId = sse_decode_opt_String(deserializer);
+    return LocalTaskDto(
+      id: var_id,
+      title: var_title,
+      due: var_due,
+      completed: var_completed,
+      sourceAssignmentId: var_sourceAssignmentId,
+    );
+  }
+
+  @protected
+  LocalTasksResponse sse_decode_local_tasks_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_list_local_task_dto(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return LocalTasksResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
   LoginChallengeResponse sse_decode_login_challenge_response(
     SseDeserializer deserializer,
   ) {
@@ -5790,11 +9934,73 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  NoticeDto sse_decode_notice_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_title = sse_decode_String(deserializer);
+    var var_summary = sse_decode_String(deserializer);
+    var var_publishedAt = sse_decode_String(deserializer);
+    var var_url = sse_decode_String(deserializer);
+    return NoticeDto(
+      title: var_title,
+      summary: var_summary,
+      publishedAt: var_publishedAt,
+      url: var_url,
+    );
+  }
+
+  @protected
+  NoticesResponse sse_decode_notices_response(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_list_notice_dto(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return NoticesResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_String(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  AcademicDataDto? sse_decode_opt_box_autoadd_academic_data_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_academic_data_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  AndroidDownloadDto? sse_decode_opt_box_autoadd_android_download_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_android_download_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  BookPageDto? sse_decode_opt_box_autoadd_book_page_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_book_page_dto(deserializer));
     } else {
       return null;
     }
@@ -5812,6 +10018,84 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BykcCatalogDto? sse_decode_opt_box_autoadd_bykc_catalog_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_bykc_catalog_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  BykcChosenCoursesDto? sse_decode_opt_box_autoadd_bykc_chosen_courses_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_bykc_chosen_courses_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  BykcCourseDetailsDto? sse_decode_opt_box_autoadd_bykc_course_details_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_bykc_course_details_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  BykcSemesterDto? sse_decode_opt_box_autoadd_bykc_semester_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_bykc_semester_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  BykcStatisticsDto? sse_decode_opt_box_autoadd_bykc_statistics_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_bykc_statistics_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  CampusActivitiesDto? sse_decode_opt_box_autoadd_campus_activities_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_campus_activities_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   CareerEventsDto? sse_decode_opt_box_autoadd_career_events_dto(
     SseDeserializer deserializer,
   ) {
@@ -5819,6 +10103,152 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_box_autoadd_career_events_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  CgyyActionResultDto? sse_decode_opt_box_autoadd_cgyy_action_result_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_cgyy_action_result_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  CgyyBookingOptionsDto? sse_decode_opt_box_autoadd_cgyy_booking_options_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_cgyy_booking_options_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  CgyyChallengeDto? sse_decode_opt_box_autoadd_cgyy_challenge_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_cgyy_challenge_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  CgyyDayDto? sse_decode_opt_box_autoadd_cgyy_day_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_cgyy_day_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  CgyyLockCodeDto? sse_decode_opt_box_autoadd_cgyy_lock_code_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_cgyy_lock_code_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  CgyyOrderDto? sse_decode_opt_box_autoadd_cgyy_order_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_cgyy_order_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  CgyyReviewDto? sse_decode_opt_box_autoadd_cgyy_review_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_cgyy_review_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  CheckinLoadProgressDto? sse_decode_opt_box_autoadd_checkin_load_progress_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_checkin_load_progress_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  CountPairDto? sse_decode_opt_box_autoadd_count_pair_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_count_pair_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  CourseAnnouncementDetailDto?
+  sse_decode_opt_box_autoadd_course_announcement_detail_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_course_announcement_detail_dto(
+        deserializer,
+      ));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  CourseResourcePageDto? sse_decode_opt_box_autoadd_course_resource_page_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_course_resource_page_dto(deserializer));
     } else {
       return null;
     }
@@ -5849,6 +10279,86 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  GraduateCreditMapDto? sse_decode_opt_box_autoadd_graduate_credit_map_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_graduate_credit_map_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  GraduateCreditMetricsDto?
+  sse_decode_opt_box_autoadd_graduate_credit_metrics_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_graduate_credit_metrics_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  GraduateCreditNodeDto? sse_decode_opt_box_autoadd_graduate_credit_node_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_graduate_credit_node_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  GraduateProgressDto? sse_decode_opt_box_autoadd_graduate_progress_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_graduate_progress_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  HomeworkUploadReceiptDto?
+  sse_decode_opt_box_autoadd_homework_upload_receipt_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_homework_upload_receipt_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  HomeworkWorkspaceDto? sse_decode_opt_box_autoadd_homework_workspace_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_homework_workspace_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   int? sse_decode_opt_box_autoadd_i_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -5871,6 +10381,45 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  LearningCapabilitiesDto? sse_decode_opt_box_autoadd_learning_capabilities_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_learning_capabilities_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  LibraryLoanPageDto? sse_decode_opt_box_autoadd_library_loan_page_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_library_loan_page_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  LibraryStatsDto? sse_decode_opt_box_autoadd_library_stats_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_library_stats_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   RouteChoice? sse_decode_opt_box_autoadd_route_choice(
     SseDeserializer deserializer,
   ) {
@@ -5884,11 +10433,206 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ShuttleTimetableDto? sse_decode_opt_box_autoadd_shuttle_timetable_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_shuttle_timetable_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_u_32(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  UpdateSummaryDto? sse_decode_opt_box_autoadd_update_summary_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_update_summary_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   List<String>? sse_decode_opt_list_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_list_String(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<BookHoldingDto>? sse_decode_opt_list_book_holding_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_book_holding_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<BykcChosenRecordDto>? sse_decode_opt_list_bykc_chosen_record_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_bykc_chosen_record_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<CgyyOrderDto>? sse_decode_opt_list_cgyy_order_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_cgyy_order_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<CgyySiteDto>? sse_decode_opt_list_cgyy_site_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_cgyy_site_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<CourseAnnouncementDto>? sse_decode_opt_list_course_announcement_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_course_announcement_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<CourseAssessmentDto>? sse_decode_opt_list_course_assessment_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_course_assessment_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<HomeworkCapabilityEvidenceDto>?
+  sse_decode_opt_list_homework_capability_evidence_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_homework_capability_evidence_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<HomeworkPendingSubmissionDto>?
+  sse_decode_opt_list_homework_pending_submission_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_homework_pending_submission_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<LearningColumnDto>? sse_decode_opt_list_learning_column_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_learning_column_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<LearningCourseDto>? sse_decode_opt_list_learning_course_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_learning_course_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<LocalTaskDto>? sse_decode_opt_list_local_task_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_local_task_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<NoticeDto>? sse_decode_opt_list_notice_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_notice_dto(deserializer));
     } else {
       return null;
     }
@@ -5934,16 +10678,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ReadOnlyResponse sse_decode_read_only_response(SseDeserializer deserializer) {
+  ReadingRoomDto sse_decode_reading_room_dto(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_payload = sse_decode_opt_String(deserializer);
-    var var_stale = sse_decode_bool(deserializer);
-    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
-    return ReadOnlyResponse(
-      payload: var_payload,
-      stale: var_stale,
-      failure: var_failure,
-    );
+    var var_name = sse_decode_String(deserializer);
+    var var_people = sse_decode_i_32(deserializer);
+    return ReadingRoomDto(name: var_name, people: var_people);
   }
 
   @protected
@@ -6137,6 +10876,84 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ShuttleRunDto sse_decode_shuttle_run_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_index = sse_decode_String(deserializer);
+    var var_time = sse_decode_String(deserializer);
+    var var_capacity = sse_decode_String(deserializer);
+    return ShuttleRunDto(
+      index: var_index,
+      time: var_time,
+      capacity: var_capacity,
+    );
+  }
+
+  @protected
+  ShuttleSectionDto sse_decode_shuttle_section_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_label = sse_decode_String(deserializer);
+    var var_left = sse_decode_list_shuttle_run_dto(deserializer);
+    var var_right = sse_decode_list_shuttle_run_dto(deserializer);
+    return ShuttleSectionDto(
+      label: var_label,
+      left: var_left,
+      right: var_right,
+    );
+  }
+
+  @protected
+  ShuttleTableDto sse_decode_shuttle_table_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_left = sse_decode_String(deserializer);
+    var var_right = sse_decode_String(deserializer);
+    var var_sections = sse_decode_list_shuttle_section_dto(deserializer);
+    return ShuttleTableDto(
+      left: var_left,
+      right: var_right,
+      sections: var_sections,
+    );
+  }
+
+  @protected
+  ShuttleTimetableDto sse_decode_shuttle_timetable_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_tables = sse_decode_list_shuttle_table_dto(deserializer);
+    var var_source = sse_decode_String(deserializer);
+    var var_liveSource = sse_decode_String(deserializer);
+    return ShuttleTimetableDto(
+      tables: var_tables,
+      source: var_source,
+      liveSource: var_liveSource,
+    );
+  }
+
+  @protected
+  ShuttleTimetableResponse sse_decode_shuttle_timetable_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_shuttle_timetable_dto(
+      deserializer,
+    );
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return ShuttleTimetableResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
+  SnapshotImportResponse sse_decode_snapshot_import_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_imported = sse_decode_opt_box_autoadd_u_32(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return SnapshotImportResponse(imported: var_imported, failure: var_failure);
+  }
+
+  @protected
   TaskReminderSeed sse_decode_task_reminder_seed(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_String(deserializer);
@@ -6195,9 +11012,122 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  UpdateResponse sse_decode_update_response(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_data = sse_decode_opt_box_autoadd_update_summary_dto(deserializer);
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return UpdateResponse(data: var_data, failure: var_failure);
+  }
+
+  @protected
+  UpdateSummaryDto sse_decode_update_summary_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_current = sse_decode_String(deserializer);
+    var var_latest = sse_decode_opt_String(deserializer);
+    var var_available = sse_decode_bool(deserializer);
+    var var_pageUrl = sse_decode_opt_String(deserializer);
+    var var_notes = sse_decode_opt_String(deserializer);
+    var var_apkAvailable = sse_decode_bool(deserializer);
+    var var_download = sse_decode_opt_box_autoadd_android_download_dto(
+      deserializer,
+    );
+    return UpdateSummaryDto(
+      current: var_current,
+      latest: var_latest,
+      available: var_available,
+      pageUrl: var_pageUrl,
+      notes: var_notes,
+      apkAvailable: var_apkAvailable,
+      download: var_download,
+    );
+  }
+
+  @protected
   void sse_encode_String(String self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer);
+  }
+
+  @protected
+  void sse_encode_academic_data_dto(
+    AcademicDataDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_graduate_section_dto(self.sections, serializer);
+    sse_encode_opt_String(self.notice, serializer);
+  }
+
+  @protected
+  void sse_encode_android_download_dto(
+    AndroidDownloadDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.version, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_String(self.url, serializer);
+    sse_encode_String(self.apiUrl, serializer);
+    sse_encode_i_64(self.size, serializer);
+    sse_encode_String(self.sha256, serializer);
+  }
+
+  @protected
+  void sse_encode_book_hit_dto(BookHitDto self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.bibId, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_String(self.author, serializer);
+    sse_encode_String(self.publisher, serializer);
+    sse_encode_String(self.year, serializer);
+    sse_encode_String(self.callno, serializer);
+    sse_encode_String(self.isbn, serializer);
+    sse_encode_opt_box_autoadd_i_64(self.itemsAvailable, serializer);
+    sse_encode_opt_box_autoadd_i_64(self.itemCount, serializer);
+  }
+
+  @protected
+  void sse_encode_book_holding_dto(
+    BookHoldingDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.callNo, serializer);
+    sse_encode_String(self.barCode, serializer);
+    sse_encode_String(self.library_, serializer);
+    sse_encode_String(self.location, serializer);
+    sse_encode_String(self.status, serializer);
+  }
+
+  @protected
+  void sse_encode_book_holdings_response(
+    BookHoldingsResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_list_book_holding_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_book_page_dto(BookPageDto self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_64(self.page, serializer);
+    sse_encode_i_64(self.pageSize, serializer);
+    sse_encode_i_64(self.total, serializer);
+    sse_encode_i_64(self.actualTotal, serializer);
+    sse_encode_list_book_hit_dto(self.items, serializer);
+    sse_encode_bool(self.hasMore, serializer);
+  }
+
+  @protected
+  void sse_encode_book_page_response(
+    BookPageResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_book_page_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
   }
 
   @protected
@@ -6207,9 +11137,90 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_academic_data_dto(
+    AcademicDataDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_academic_data_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_android_download_dto(
+    AndroidDownloadDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_android_download_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_book_page_dto(
+    BookPageDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_book_page_dto(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_bool(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_bykc_catalog_dto(
+    BykcCatalogDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bykc_catalog_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_bykc_chosen_courses_dto(
+    BykcChosenCoursesDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bykc_chosen_courses_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_bykc_course_details_dto(
+    BykcCourseDetailsDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bykc_course_details_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_bykc_semester_dto(
+    BykcSemesterDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bykc_semester_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_bykc_statistics_dto(
+    BykcStatisticsDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bykc_statistics_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_campus_activities_dto(
+    CampusActivitiesDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_campus_activities_dto(self, serializer);
   }
 
   @protected
@@ -6222,12 +11233,111 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_cgyy_action_result_dto(
+    CgyyActionResultDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_cgyy_action_result_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_cgyy_booking_options_dto(
+    CgyyBookingOptionsDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_cgyy_booking_options_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_cgyy_challenge_dto(
+    CgyyChallengeDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_cgyy_challenge_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_cgyy_day_dto(
+    CgyyDayDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_cgyy_day_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_cgyy_lock_code_dto(
+    CgyyLockCodeDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_cgyy_lock_code_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_cgyy_order_dto(
+    CgyyOrderDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_cgyy_order_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_cgyy_review_dto(
+    CgyyReviewDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_cgyy_review_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_checkin_load_progress_dto(
+    CheckinLoadProgressDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_checkin_load_progress_dto(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_classroom_query(
     ClassroomQuery self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_classroom_query(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_count_pair_dto(
+    CountPairDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_count_pair_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_course_announcement_detail_dto(
+    CourseAnnouncementDetailDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_course_announcement_detail_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_course_resource_page_dto(
+    CourseResourcePageDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_course_resource_page_dto(self, serializer);
   }
 
   @protected
@@ -6255,6 +11365,60 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_graduate_credit_map_dto(
+    GraduateCreditMapDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_graduate_credit_map_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_graduate_credit_metrics_dto(
+    GraduateCreditMetricsDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_graduate_credit_metrics_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_graduate_credit_node_dto(
+    GraduateCreditNodeDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_graduate_credit_node_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_graduate_progress_dto(
+    GraduateProgressDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_graduate_progress_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_homework_upload_receipt_dto(
+    HomeworkUploadReceiptDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_homework_upload_receipt_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_homework_workspace_dto(
+    HomeworkWorkspaceDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_homework_workspace_dto(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_i_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self, serializer);
@@ -6270,12 +11434,39 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_learning_capabilities_dto(
+    LearningCapabilitiesDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_learning_capabilities_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_library_loan_page_dto(
+    LibraryLoanPageDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_library_loan_page_dto(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_library_slot(
     LibrarySlot self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_library_slot(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_library_stats_dto(
+    LibraryStatsDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_library_stats_dto(self, serializer);
   }
 
   @protected
@@ -6294,6 +11485,202 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_route_choice(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_shuttle_timetable_dto(
+    ShuttleTimetableDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_shuttle_timetable_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_update_summary_dto(
+    UpdateSummaryDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_update_summary_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_bykc_catalog_dto(
+    BykcCatalogDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_bykc_semester_dto(self.terms, serializer);
+    sse_encode_list_bykc_course_dto(self.courses, serializer);
+    sse_encode_opt_box_autoadd_bykc_semester_dto(self.currentTerm, serializer);
+  }
+
+  @protected
+  void sse_encode_bykc_catalog_response(
+    BykcCatalogResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_bykc_catalog_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_bykc_chosen_courses_dto(
+    BykcChosenCoursesDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_bykc_semester_dto(self.term, serializer);
+    sse_encode_opt_list_bykc_chosen_record_dto(self.courses, serializer);
+  }
+
+  @protected
+  void sse_encode_bykc_chosen_record_dto(
+    BykcChosenRecordDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_64(self.id, serializer);
+    sse_encode_bykc_course_dto(self.course, serializer);
+    sse_encode_opt_String(self.selectedAt, serializer);
+    sse_encode_opt_box_autoadd_i_64(self.checkin, serializer);
+    sse_encode_opt_box_autoadd_i_64(self.passed, serializer);
+    sse_encode_opt_box_autoadd_i_64(self.score, serializer);
+  }
+
+  @protected
+  void sse_encode_bykc_chosen_response(
+    BykcChosenResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_bykc_chosen_courses_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_bykc_course_details_dto(
+    BykcCourseDetailsDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_String(self.start, serializer);
+    sse_encode_opt_String(self.end, serializer);
+    sse_encode_opt_String(self.selectStart, serializer);
+    sse_encode_opt_String(self.selectEnd, serializer);
+    sse_encode_opt_String(self.cancelEnd, serializer);
+    sse_encode_opt_box_autoadd_i_64(self.capacity, serializer);
+    sse_encode_opt_box_autoadd_i_64(self.enrolled, serializer);
+    sse_encode_list_String(self.campuses, serializer);
+    sse_encode_opt_String(self.summary, serializer);
+    sse_encode_opt_box_autoadd_bool(self.selected, serializer);
+    sse_encode_opt_box_autoadd_bool(self.hasSignConfig, serializer);
+  }
+
+  @protected
+  void sse_encode_bykc_course_dto(
+    BykcCourseDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_64(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_opt_String(self.teacher, serializer);
+    sse_encode_opt_String(self.position, serializer);
+    sse_encode_opt_String(self.category, serializer);
+    sse_encode_opt_String(self.subcategory, serializer);
+    sse_encode_opt_box_autoadd_bykc_course_details_dto(
+      self.details,
+      serializer,
+    );
+  }
+
+  @protected
+  void sse_encode_bykc_semester_dto(
+    BykcSemesterDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_opt_String(self.start, serializer);
+    sse_encode_opt_String(self.end, serializer);
+  }
+
+  @protected
+  void sse_encode_bykc_statistics_dto(
+    BykcStatisticsDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_i_64(self.validCourseCount, serializer);
+    sse_encode_list_bykc_statistics_entry_dto(self.entries, serializer);
+  }
+
+  @protected
+  void sse_encode_bykc_statistics_entry_dto(
+    BykcStatisticsEntryDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.category, serializer);
+    sse_encode_String(self.subcategory, serializer);
+    sse_encode_i_64(self.required_, serializer);
+    sse_encode_i_64(self.completed, serializer);
+  }
+
+  @protected
+  void sse_encode_bykc_statistics_response(
+    BykcStatisticsResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_bykc_statistics_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_campus_activities_dto(
+    CampusActivitiesDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.page, serializer);
+    sse_encode_list_campus_activity_dto(self.activities, serializer);
+    sse_encode_String(self.fetchedAt, serializer);
+  }
+
+  @protected
+  void sse_encode_campus_activities_response(
+    CampusActivitiesResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_campus_activities_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_campus_activity_dto(
+    CampusActivityDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_String(self.category, serializer);
+    sse_encode_String(self.publishedAt, serializer);
+    sse_encode_String(self.activityTime, serializer);
+    sse_encode_String(self.place, serializer);
+    sse_encode_String(self.url, serializer);
   }
 
   @protected
@@ -6347,6 +11734,167 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_cgyy_action_result_dto(
+    CgyyActionResultDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.state, serializer);
+    sse_encode_String(self.message, serializer);
+    sse_encode_opt_box_autoadd_cgyy_booking_options_dto(
+      self.options,
+      serializer,
+    );
+    sse_encode_opt_box_autoadd_cgyy_challenge_dto(self.challenge, serializer);
+    sse_encode_opt_box_autoadd_cgyy_review_dto(self.review, serializer);
+  }
+
+  @protected
+  void sse_encode_cgyy_action_result_response(
+    CgyyActionResultResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_cgyy_action_result_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_cgyy_booking_choice_dto(
+    CgyyBookingChoiceDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_64(self.spaceId, serializer);
+    sse_encode_String(self.spaceName, serializer);
+    sse_encode_i_64(self.timeId, serializer);
+    sse_encode_String(self.time, serializer);
+  }
+
+  @protected
+  void sse_encode_cgyy_booking_options_dto(
+    CgyyBookingOptionsDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_cgyy_booking_choice_dto(self.choices, serializer);
+    sse_encode_list_cgyy_purpose_dto(self.purposes, serializer);
+    sse_encode_bool(self.usesFallbackPurposes, serializer);
+  }
+
+  @protected
+  void sse_encode_cgyy_challenge_dto(
+    CgyyChallengeDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.background, serializer);
+    sse_encode_String(self.jigsaw, serializer);
+  }
+
+  @protected
+  void sse_encode_cgyy_day_dto(CgyyDayDto self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_64(self.siteId, serializer);
+    sse_encode_String(self.date, serializer);
+    sse_encode_list_String(self.dates, serializer);
+    sse_encode_list_cgyy_space_dto(self.spaces, serializer);
+  }
+
+  @protected
+  void sse_encode_cgyy_load_response(
+    CgyyLoadResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_list_cgyy_site_dto(self.venues, serializer);
+    sse_encode_opt_box_autoadd_cgyy_day_dto(self.day, serializer);
+    sse_encode_opt_list_cgyy_order_dto(self.orders, serializer);
+    sse_encode_opt_box_autoadd_cgyy_order_dto(self.order, serializer);
+    sse_encode_opt_box_autoadd_cgyy_lock_code_dto(self.lockCode, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_cgyy_lock_code_dto(
+    CgyyLockCodeDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_String(self.qrCode, serializer);
+    sse_encode_opt_String(self.dueDate, serializer);
+    sse_encode_opt_String(self.tradeNo, serializer);
+    sse_encode_opt_String(self.venueName, serializer);
+    sse_encode_opt_String(self.siteName, serializer);
+    sse_encode_opt_String(self.spaceName, serializer);
+    sse_encode_opt_String(self.orderName, serializer);
+    sse_encode_opt_String(self.reservationDate, serializer);
+    sse_encode_opt_String(self.reservationDateDetail, serializer);
+    sse_encode_opt_String(self.reservationStartDate, serializer);
+    sse_encode_opt_String(self.reservationEndDate, serializer);
+  }
+
+  @protected
+  void sse_encode_cgyy_order_dto(CgyyOrderDto self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_i_64(self.orderStatus, serializer);
+    sse_encode_opt_box_autoadd_i_64(self.checkStatus, serializer);
+    sse_encode_bool(self.canCancel, serializer);
+    sse_encode_i_64(self.id, serializer);
+    sse_encode_String(self.place, serializer);
+    sse_encode_String(self.date, serializer);
+    sse_encode_String(self.time, serializer);
+    sse_encode_String(self.status, serializer);
+  }
+
+  @protected
+  void sse_encode_cgyy_purpose_dto(
+    CgyyPurposeDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_64(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+  }
+
+  @protected
+  void sse_encode_cgyy_review_dto(
+    CgyyReviewDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_list_cgyy_order_dto(self.orders, serializer);
+  }
+
+  @protected
+  void sse_encode_cgyy_site_dto(CgyySiteDto self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_64(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_String(self.venue, serializer);
+    sse_encode_String(self.campus, serializer);
+    sse_encode_opt_box_autoadd_i_64(self.seats, serializer);
+    sse_encode_String(self.openStart, serializer);
+    sse_encode_String(self.openEnd, serializer);
+  }
+
+  @protected
+  void sse_encode_cgyy_slot_dto(CgyySlotDto self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.time, serializer);
+    sse_encode_String(self.status, serializer);
+  }
+
+  @protected
+  void sse_encode_cgyy_space_dto(CgyySpaceDto self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.name, serializer);
+    sse_encode_list_cgyy_slot_dto(self.slots, serializer);
+  }
+
+  @protected
   void sse_encode_check_in_course(
     CheckInCourse self,
     SseSerializer serializer,
@@ -6388,6 +11936,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_checkin_load_progress_dto(
+    CheckinLoadProgressDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.phase, serializer);
+    sse_encode_opt_box_autoadd_i_64(self.elapsedMs, serializer);
+  }
+
+  @protected
+  void sse_encode_checkin_load_progress_response(
+    CheckinLoadProgressResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_checkin_load_progress_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
   }
 
   @protected
@@ -6448,6 +12016,83 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_count_pair_dto(CountPairDto self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.available, serializer);
+    sse_encode_i_32(self.total, serializer);
+  }
+
+  @protected
+  void sse_encode_course_announcement_detail_dto(
+    CourseAnnouncementDetailDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_opt_String(self.content, serializer);
+    sse_encode_list_learning_attachment_dto(self.attachments, serializer);
+  }
+
+  @protected
+  void sse_encode_course_announcement_detail_response(
+    CourseAnnouncementDetailResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_course_announcement_detail_dto(
+      self.data,
+      serializer,
+    );
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_course_announcement_dto(
+    CourseAnnouncementDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_opt_String(self.publishedAt, serializer);
+  }
+
+  @protected
+  void sse_encode_course_announcements_response(
+    CourseAnnouncementsResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_list_course_announcement_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_course_assessment_dto(
+    CourseAssessmentDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_opt_String(self.startsAt, serializer);
+    sse_encode_opt_String(self.dueAt, serializer);
+    sse_encode_opt_String(self.score, serializer);
+    sse_encode_String(self.sourceUrl, serializer);
+  }
+
+  @protected
+  void sse_encode_course_assessments_response(
+    CourseAssessmentsResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_list_course_assessment_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
   void sse_encode_course_reminder_seed(
     CourseReminderSeed self,
     SseSerializer serializer,
@@ -6458,6 +12103,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.day, serializer);
     sse_encode_String(self.startsAt, serializer);
     sse_encode_String(self.endsAt, serializer);
+  }
+
+  @protected
+  void sse_encode_course_resource_dto(
+    CourseResourceDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_bool(self.folder, serializer);
+    sse_encode_bool(self.downloadable, serializer);
+    sse_encode_opt_String(self.updatedAt, serializer);
+    sse_encode_opt_String(self.extension_, serializer);
+  }
+
+  @protected
+  void sse_encode_course_resource_page_dto(
+    CourseResourcePageDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_course_resource_dto(self.items, serializer);
+    sse_encode_u_32(self.page, serializer);
+    sse_encode_bool(self.hasNext, serializer);
+  }
+
+  @protected
+  void sse_encode_course_resource_page_response(
+    CourseResourcePageResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_course_resource_page_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
   }
 
   @protected
@@ -6525,6 +12205,170 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_graduate_credit_map_dto(
+    GraduateCreditMapDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_graduate_credit_node_dto(
+      self.summary,
+      serializer,
+    );
+    sse_encode_list_graduate_credit_node_dto(self.nodes, serializer);
+    sse_encode_opt_String(self.notice, serializer);
+  }
+
+  @protected
+  void sse_encode_graduate_credit_map_response(
+    GraduateCreditMapResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_graduate_credit_map_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_graduate_credit_metrics_dto(
+    GraduateCreditMetricsDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_graduate_credit_state_dto(self.state, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.required_, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.earned, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.pending, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.remaining, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.ratio, serializer);
+  }
+
+  @protected
+  void sse_encode_graduate_credit_node_dto(
+    GraduateCreditNodeDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self.sourceIndex, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_opt_box_autoadd_graduate_credit_metrics_dto(
+      self.progress,
+      serializer,
+    );
+    sse_encode_list_graduate_credit_row_dto(self.rows, serializer);
+  }
+
+  @protected
+  void sse_encode_graduate_credit_row_dto(
+    GraduateCreditRowDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.title, serializer);
+    sse_encode_String(self.detail, serializer);
+    sse_encode_bool(self.isCourse, serializer);
+    sse_encode_opt_box_autoadd_bool(self.completed, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.credit, serializer);
+    sse_encode_opt_String(self.semester, serializer);
+  }
+
+  @protected
+  void sse_encode_graduate_credit_state_dto(
+    GraduateCreditStateDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_graduate_progress_dto(
+    GraduateProgressDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_f_64(self.required_, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.earned, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.pending, serializer);
+  }
+
+  @protected
+  void sse_encode_graduate_response(
+    GraduateResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_academic_data_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_graduate_row_dto(
+    GraduateRowDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.title, serializer);
+    sse_encode_String(self.detail, serializer);
+    sse_encode_bool(self.isCourse, serializer);
+    sse_encode_opt_box_autoadd_bool(self.completed, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.credit, serializer);
+    sse_encode_opt_String(self.semester, serializer);
+  }
+
+  @protected
+  void sse_encode_graduate_section_dto(
+    GraduateSectionDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.title, serializer);
+    sse_encode_list_graduate_row_dto(self.rows, serializer);
+    sse_encode_opt_box_autoadd_graduate_progress_dto(self.progress, serializer);
+  }
+
+  @protected
+  void sse_encode_homework_attachment_dto(
+    HomeworkAttachmentDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_String(self.kind, serializer);
+  }
+
+  @protected
+  void sse_encode_homework_capabilities_response(
+    HomeworkCapabilitiesResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_list_homework_capability_evidence_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_homework_capability_evidence_dto(
+    HomeworkCapabilityEvidenceDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.capability, serializer);
+    sse_encode_homework_capability_state_dto(self.state, serializer);
+    sse_encode_String(self.reason, serializer);
+    sse_encode_String(self.evidence, serializer);
+  }
+
+  @protected
+  void sse_encode_homework_capability_state_dto(
+    HomeworkCapabilityStateDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
   void sse_encode_homework_detail_response(
     HomeworkDetailResponse self,
     SseSerializer serializer,
@@ -6553,6 +12397,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_homework_file_workspace_response(
+    HomeworkFileWorkspaceResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_homework_workspace_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
   void sse_encode_homework_item(HomeworkItem self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_opt_String(self.courseRole, serializer);
@@ -6566,6 +12420,38 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_homework_status(self.status, serializer);
     sse_encode_opt_String(self.statusDetail, serializer);
     sse_encode_opt_String(self.score, serializer);
+  }
+
+  @protected
+  void sse_encode_homework_pending_response(
+    HomeworkPendingResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_list_homework_pending_submission_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_homework_pending_submission_dto(
+    HomeworkPendingSubmissionDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.handle, serializer);
+    sse_encode_String(self.assignmentId, serializer);
+    sse_encode_String(self.fileName, serializer);
+    sse_encode_i_64(self.size, serializer);
+  }
+
+  @protected
+  void sse_encode_homework_recovery_response(
+    HomeworkRecoveryResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_bool(self.configured, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
   }
 
   @protected
@@ -6593,6 +12479,50 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_homework_upload_receipt_dto(
+    HomeworkUploadReceiptDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.handle, serializer);
+    sse_encode_String(self.fileName, serializer);
+    sse_encode_i_64(self.size, serializer);
+  }
+
+  @protected
+  void sse_encode_homework_upload_response(
+    HomeworkUploadResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_homework_upload_receipt_dto(
+      self.data,
+      serializer,
+    );
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_homework_workspace_dto(
+    HomeworkWorkspaceDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.assignmentId, serializer);
+    sse_encode_list_String(self.allowedMethods, serializer);
+    sse_encode_list_String(self.allowedExtensions, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.submissionLimit, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.submittedCount, serializer);
+    sse_encode_bool(self.returned, serializer);
+    sse_encode_opt_String(self.submittedText, serializer);
+    sse_encode_opt_String(self.feedback, serializer);
+    sse_encode_list_homework_attachment_dto(self.attachments, serializer);
+    sse_encode_bool(self.canSubmitFile, serializer);
+    sse_encode_opt_String(self.blockedReason, serializer);
+    sse_encode_i_64(self.fileLimitBytes, serializer);
+  }
+
+  @protected
   void sse_encode_i_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putInt32(self);
@@ -6602,6 +12532,105 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putPlatformInt64(self);
+  }
+
+  @protected
+  void sse_encode_learning_attachment_dto(
+    LearningAttachmentDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+  }
+
+  @protected
+  void sse_encode_learning_capabilities_dto(
+    LearningCapabilitiesDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_learning_capability_state_dto(self.columns, serializer);
+    sse_encode_learning_capability_state_dto(self.announcements, serializer);
+    sse_encode_learning_capability_state_dto(self.resources, serializer);
+    sse_encode_learning_capability_state_dto(self.assessments, serializer);
+    sse_encode_learning_capability_state_dto(self.resourceDownload, serializer);
+    sse_encode_learning_capability_state_dto(
+      self.announcementDownload,
+      serializer,
+    );
+  }
+
+  @protected
+  void sse_encode_learning_capabilities_response(
+    LearningCapabilitiesResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_learning_capabilities_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_learning_capability_state_dto(
+    LearningCapabilityStateDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_learning_column_dto(
+    LearningColumnDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_learning_column_kind_dto(self.kind, serializer);
+  }
+
+  @protected
+  void sse_encode_learning_column_kind_dto(
+    LearningColumnKindDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_learning_columns_response(
+    LearningColumnsResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_list_learning_column_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_learning_course_dto(
+    LearningCourseDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_opt_String(self.teacher, serializer);
+    sse_encode_opt_String(self.term, serializer);
+    sse_encode_String(self.sourceUrl, serializer);
+  }
+
+  @protected
+  void sse_encode_learning_courses_response(
+    LearningCoursesResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_list_learning_course_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
   }
 
   @protected
@@ -6666,6 +12695,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_library_campus_stats_dto(
+    LibraryCampusStatsDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_i_32(self.people, serializer);
+    sse_encode_list_reading_room_dto(self.readingRooms, serializer);
+    sse_encode_opt_box_autoadd_count_pair_dto(self.seats, serializer);
+    sse_encode_opt_box_autoadd_count_pair_dto(self.studyRooms, serializer);
+    sse_encode_opt_box_autoadd_count_pair_dto(self.lockers, serializer);
+  }
+
+  @protected
   void sse_encode_library_demo_response(
     LibraryDemoResponse self,
     SseSerializer serializer,
@@ -6694,6 +12738,42 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self.stale, serializer);
     sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
     sse_encode_opt_String(self.failureDetail, serializer);
+  }
+
+  @protected
+  void sse_encode_library_loan_dto(
+    LibraryLoanDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_opt_String(self.title, serializer);
+    sse_encode_opt_String(self.author, serializer);
+    sse_encode_opt_String(self.callNumber, serializer);
+    sse_encode_opt_String(self.borrowedAt, serializer);
+    sse_encode_opt_String(self.dueAt, serializer);
+  }
+
+  @protected
+  void sse_encode_library_loan_page_dto(
+    LibraryLoanPageDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_library_loan_dto(self.items, serializer);
+    sse_encode_u_32(self.page, serializer);
+    sse_encode_u_32(self.total, serializer);
+    sse_encode_bool(self.hasMore, serializer);
+  }
+
+  @protected
+  void sse_encode_library_loans_response(
+    LibraryLoansResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_library_loan_page_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
   }
 
   @protected
@@ -6737,6 +12817,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_library_stats_dto(
+    LibraryStatsDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_library_campus_stats_dto(self.campuses, serializer);
+    sse_encode_opt_String(self.fetchedAt, serializer);
+    sse_encode_bool(self.fromCache, serializer);
+  }
+
+  @protected
+  void sse_encode_library_stats_response(
+    LibraryStatsResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_library_stats_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
   void sse_encode_library_venue(LibraryVenue self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.id, serializer);
@@ -6769,6 +12870,90 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_book_hit_dto(
+    List<BookHitDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_book_hit_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_book_holding_dto(
+    List<BookHoldingDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_book_holding_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_bykc_chosen_record_dto(
+    List<BykcChosenRecordDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_bykc_chosen_record_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_bykc_course_dto(
+    List<BykcCourseDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_bykc_course_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_bykc_semester_dto(
+    List<BykcSemesterDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_bykc_semester_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_bykc_statistics_entry_dto(
+    List<BykcStatisticsEntryDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_bykc_statistics_entry_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_campus_activity_dto(
+    List<CampusActivityDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_campus_activity_dto(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_career_event_dto(
     List<CareerEventDto> self,
     SseSerializer serializer,
@@ -6777,6 +12962,78 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_career_event_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_cgyy_booking_choice_dto(
+    List<CgyyBookingChoiceDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_cgyy_booking_choice_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_cgyy_order_dto(
+    List<CgyyOrderDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_cgyy_order_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_cgyy_purpose_dto(
+    List<CgyyPurposeDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_cgyy_purpose_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_cgyy_site_dto(
+    List<CgyySiteDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_cgyy_site_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_cgyy_slot_dto(
+    List<CgyySlotDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_cgyy_slot_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_cgyy_space_dto(
+    List<CgyySpaceDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_cgyy_space_dto(item, serializer);
     }
   }
 
@@ -6817,6 +13074,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_course_announcement_dto(
+    List<CourseAnnouncementDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_course_announcement_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_course_assessment_dto(
+    List<CourseAssessmentDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_course_assessment_dto(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_course_reminder_seed(
     List<CourseReminderSeed> self,
     SseSerializer serializer,
@@ -6825,6 +13106,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_course_reminder_seed(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_course_resource_dto(
+    List<CourseResourceDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_course_resource_dto(item, serializer);
     }
   }
 
@@ -6841,6 +13134,78 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_graduate_credit_node_dto(
+    List<GraduateCreditNodeDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_graduate_credit_node_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_graduate_credit_row_dto(
+    List<GraduateCreditRowDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_graduate_credit_row_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_graduate_row_dto(
+    List<GraduateRowDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_graduate_row_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_graduate_section_dto(
+    List<GraduateSectionDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_graduate_section_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_homework_attachment_dto(
+    List<HomeworkAttachmentDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_homework_attachment_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_homework_capability_evidence_dto(
+    List<HomeworkCapabilityEvidenceDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_homework_capability_evidence_dto(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_homework_item(
     List<HomeworkItem> self,
     SseSerializer serializer,
@@ -6849,6 +13214,54 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_homework_item(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_homework_pending_submission_dto(
+    List<HomeworkPendingSubmissionDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_homework_pending_submission_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_learning_attachment_dto(
+    List<LearningAttachmentDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_learning_attachment_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_learning_column_dto(
+    List<LearningColumnDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_learning_column_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_learning_course_dto(
+    List<LearningCourseDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_learning_course_dto(item, serializer);
     }
   }
 
@@ -6873,6 +13286,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_library_booking(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_library_campus_stats_dto(
+    List<LibraryCampusStatsDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_library_campus_stats_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_library_loan_dto(
+    List<LibraryLoanDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_library_loan_dto(item, serializer);
     }
   }
 
@@ -6909,6 +13346,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_library_venue(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_local_task_dto(
+    List<LocalTaskDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_local_task_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_notice_dto(
+    List<NoticeDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_notice_dto(item, serializer);
     }
   }
 
@@ -6954,6 +13415,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     serializer.buffer.putUint8List(self);
+  }
+
+  @protected
+  void sse_encode_list_reading_room_dto(
+    List<ReadingRoomDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_reading_room_dto(item, serializer);
+    }
   }
 
   @protected
@@ -7017,6 +13490,42 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_shuttle_run_dto(
+    List<ShuttleRunDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_shuttle_run_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_shuttle_section_dto(
+    List<ShuttleSectionDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_shuttle_section_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_shuttle_table_dto(
+    List<ShuttleTableDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_shuttle_table_dto(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_task_reminder_seed(
     List<TaskReminderSeed> self,
     SseSerializer serializer,
@@ -7049,6 +13558,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_local_task_dto(LocalTaskDto self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_String(self.due, serializer);
+    sse_encode_bool(self.completed, serializer);
+    sse_encode_opt_String(self.sourceAssignmentId, serializer);
+  }
+
+  @protected
+  void sse_encode_local_tasks_response(
+    LocalTasksResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_list_local_task_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
   void sse_encode_login_challenge_response(
     LoginChallengeResponse self,
     SseSerializer serializer,
@@ -7072,12 +13601,70 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_notice_dto(NoticeDto self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.title, serializer);
+    sse_encode_String(self.summary, serializer);
+    sse_encode_String(self.publishedAt, serializer);
+    sse_encode_String(self.url, serializer);
+  }
+
+  @protected
+  void sse_encode_notices_response(
+    NoticesResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_list_notice_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_String(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_academic_data_dto(
+    AcademicDataDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_academic_data_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_android_download_dto(
+    AndroidDownloadDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_android_download_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_book_page_dto(
+    BookPageDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_book_page_dto(self, serializer);
     }
   }
 
@@ -7092,6 +13679,84 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_bykc_catalog_dto(
+    BykcCatalogDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_bykc_catalog_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_bykc_chosen_courses_dto(
+    BykcChosenCoursesDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_bykc_chosen_courses_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_bykc_course_details_dto(
+    BykcCourseDetailsDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_bykc_course_details_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_bykc_semester_dto(
+    BykcSemesterDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_bykc_semester_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_bykc_statistics_dto(
+    BykcStatisticsDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_bykc_statistics_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_campus_activities_dto(
+    CampusActivitiesDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_campus_activities_dto(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_career_events_dto(
     CareerEventsDto? self,
     SseSerializer serializer,
@@ -7101,6 +13766,149 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_box_autoadd_career_events_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_cgyy_action_result_dto(
+    CgyyActionResultDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_cgyy_action_result_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_cgyy_booking_options_dto(
+    CgyyBookingOptionsDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_cgyy_booking_options_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_cgyy_challenge_dto(
+    CgyyChallengeDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_cgyy_challenge_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_cgyy_day_dto(
+    CgyyDayDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_cgyy_day_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_cgyy_lock_code_dto(
+    CgyyLockCodeDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_cgyy_lock_code_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_cgyy_order_dto(
+    CgyyOrderDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_cgyy_order_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_cgyy_review_dto(
+    CgyyReviewDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_cgyy_review_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_checkin_load_progress_dto(
+    CheckinLoadProgressDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_checkin_load_progress_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_count_pair_dto(
+    CountPairDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_count_pair_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_course_announcement_detail_dto(
+    CourseAnnouncementDetailDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_course_announcement_detail_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_course_resource_page_dto(
+    CourseResourcePageDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_course_resource_page_dto(self, serializer);
     }
   }
 
@@ -7128,6 +13936,84 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_graduate_credit_map_dto(
+    GraduateCreditMapDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_graduate_credit_map_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_graduate_credit_metrics_dto(
+    GraduateCreditMetricsDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_graduate_credit_metrics_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_graduate_credit_node_dto(
+    GraduateCreditNodeDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_graduate_credit_node_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_graduate_progress_dto(
+    GraduateProgressDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_graduate_progress_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_homework_upload_receipt_dto(
+    HomeworkUploadReceiptDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_homework_upload_receipt_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_homework_workspace_dto(
+    HomeworkWorkspaceDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_homework_workspace_dto(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_i_32(int? self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -7151,6 +14037,45 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_learning_capabilities_dto(
+    LearningCapabilitiesDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_learning_capabilities_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_library_loan_page_dto(
+    LibraryLoanPageDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_library_loan_page_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_library_stats_dto(
+    LibraryStatsDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_library_stats_dto(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_route_choice(
     RouteChoice? self,
     SseSerializer serializer,
@@ -7164,6 +14089,42 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_shuttle_timetable_dto(
+    ShuttleTimetableDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_shuttle_timetable_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_u_32(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_update_summary_dto(
+    UpdateSummaryDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_update_summary_dto(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_list_String(
     List<String>? self,
     SseSerializer serializer,
@@ -7173,6 +14134,162 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_list_String(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_book_holding_dto(
+    List<BookHoldingDto>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_book_holding_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_bykc_chosen_record_dto(
+    List<BykcChosenRecordDto>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_bykc_chosen_record_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_cgyy_order_dto(
+    List<CgyyOrderDto>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_cgyy_order_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_cgyy_site_dto(
+    List<CgyySiteDto>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_cgyy_site_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_course_announcement_dto(
+    List<CourseAnnouncementDto>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_course_announcement_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_course_assessment_dto(
+    List<CourseAssessmentDto>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_course_assessment_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_homework_capability_evidence_dto(
+    List<HomeworkCapabilityEvidenceDto>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_homework_capability_evidence_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_homework_pending_submission_dto(
+    List<HomeworkPendingSubmissionDto>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_homework_pending_submission_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_learning_column_dto(
+    List<LearningColumnDto>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_learning_column_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_learning_course_dto(
+    List<LearningCourseDto>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_learning_course_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_local_task_dto(
+    List<LocalTaskDto>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_local_task_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_notice_dto(
+    List<NoticeDto>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_notice_dto(self, serializer);
     }
   }
 
@@ -7210,14 +14327,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_read_only_response(
-    ReadOnlyResponse self,
+  void sse_encode_reading_room_dto(
+    ReadingRoomDto self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_opt_String(self.payload, serializer);
-    sse_encode_bool(self.stale, serializer);
-    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_i_32(self.people, serializer);
   }
 
   @protected
@@ -7349,6 +14465,70 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_shuttle_run_dto(
+    ShuttleRunDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.index, serializer);
+    sse_encode_String(self.time, serializer);
+    sse_encode_String(self.capacity, serializer);
+  }
+
+  @protected
+  void sse_encode_shuttle_section_dto(
+    ShuttleSectionDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.label, serializer);
+    sse_encode_list_shuttle_run_dto(self.left, serializer);
+    sse_encode_list_shuttle_run_dto(self.right, serializer);
+  }
+
+  @protected
+  void sse_encode_shuttle_table_dto(
+    ShuttleTableDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.left, serializer);
+    sse_encode_String(self.right, serializer);
+    sse_encode_list_shuttle_section_dto(self.sections, serializer);
+  }
+
+  @protected
+  void sse_encode_shuttle_timetable_dto(
+    ShuttleTimetableDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_shuttle_table_dto(self.tables, serializer);
+    sse_encode_String(self.source, serializer);
+    sse_encode_String(self.liveSource, serializer);
+  }
+
+  @protected
+  void sse_encode_shuttle_timetable_response(
+    ShuttleTimetableResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_shuttle_timetable_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_snapshot_import_response(
+    SnapshotImportResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_u_32(self.imported, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
   void sse_encode_task_reminder_seed(
     TaskReminderSeed self,
     SseSerializer serializer,
@@ -7393,5 +14573,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   void sse_encode_unit(void self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+
+  @protected
+  void sse_encode_update_response(
+    UpdateResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_update_summary_dto(self.data, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
+  void sse_encode_update_summary_dto(
+    UpdateSummaryDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.current, serializer);
+    sse_encode_opt_String(self.latest, serializer);
+    sse_encode_bool(self.available, serializer);
+    sse_encode_opt_String(self.pageUrl, serializer);
+    sse_encode_opt_String(self.notes, serializer);
+    sse_encode_bool(self.apkAvailable, serializer);
+    sse_encode_opt_box_autoadd_android_download_dto(self.download, serializer);
   }
 }

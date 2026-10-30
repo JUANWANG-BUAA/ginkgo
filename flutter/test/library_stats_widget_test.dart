@@ -7,18 +7,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/features/library/library_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
-import 'package:ginkgo_mirror/src/rust/api/live.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
+import 'package:ginkgo_mirror/application/library_stats.dart';
+
+import 'library_stats_fixture.dart';
 
 class StatsService implements MirrorService {
-  final requests = <Completer<ReadOnlyResponse>>[];
+  final requests = <Completer<LibraryStatsRead>>[];
   final forces = <bool>[];
   @override
   bool get isDemo => false;
   @override
-  Future<ReadOnlyResponse> libraryStats({bool forceRefresh = false}) {
+  Future<LibraryStatsRead> libraryStats({bool forceRefresh = false}) {
     forces.add(forceRefresh);
-    final request = Completer<ReadOnlyResponse>();
+    final request = Completer<LibraryStatsRead>();
     requests.add(request);
     return request.future;
   }
@@ -59,14 +61,11 @@ void main() {
       await tester.tap(find.byKey(const Key('library-public-stats')));
       await tester.pump();
       service.requests.single.complete(
-        ReadOnlyResponse(
-          payload: jsonEncode({
-            'campuses': fixture['expected'],
-            'fetchedAt': '2026-10-20T02:03:00Z',
-            'fromCache': false,
-          }),
-          stale: false,
-        ),
+        statsRead({
+          'campuses': fixture['expected'],
+          'fetchedAt': '2026-10-20T02:03:00Z',
+          'fromCache': false,
+        }),
       );
       await tester.pumpAndSettle();
       expect(find.text('120 人', findRichText: true), findsOneWidget);
@@ -74,10 +73,7 @@ void main() {
       await tester.tap(find.bySemanticsLabel('刷新公共统计').first);
       await tester.pump();
       service.requests.last.complete(
-        const ReadOnlyResponse(
-          stale: false,
-          failure: FailureCode.serviceUnavailable,
-        ),
+        const LibraryStatsRead(failure: FailureCode.serviceUnavailable),
       );
       await tester.pumpAndSettle();
       expect(service.forces, [false, true]);

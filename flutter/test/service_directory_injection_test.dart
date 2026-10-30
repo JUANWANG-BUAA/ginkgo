@@ -1,10 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/notices.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/workspace/service_directory.dart';
+import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_mirror_service.dart';
 import 'package:ginkgo_mirror/features/learning/learning_page.dart';
 import 'package:ginkgo_mirror/features/library/library_loans_page.dart';
@@ -15,18 +14,17 @@ class InjectedNotices extends ControlledService {
   int reads = 0;
 
   @override
-  Future<ReadOnlyResponse> notices({bool forceRefresh = false}) async {
+  Future<NoticesRead> notices({bool forceRefresh = false}) async {
     reads++;
-    return ReadOnlyResponse(
-      payload: jsonEncode([
-        {
-          'title': '来自注入服务的通知',
-          'summary': '合成摘要',
-          'published_at': '2026-10-22',
-          'url': 'https://example.invalid/synthetic',
-        },
-      ]),
-      stale: false,
+    return const NoticesRead(
+      data: [
+        Notice(
+          title: '来自注入服务的通知',
+          summary: '合成摘要',
+          publishedAt: '2026-10-22',
+          url: 'https://example.invalid/synthetic',
+        ),
+      ],
     );
   }
 }
@@ -43,7 +41,11 @@ void main() {
     await tester.pumpWidget(
       ginkgoApp(
         home: CupertinoPageScaffold(
-          child: ServiceDirectory(service: service, onSignOut: () async {}),
+          child: ServiceDirectory(
+            service: service,
+            destinations: workspaceDestinations,
+            onSignOut: () async {},
+          ),
         ),
       ),
     );
@@ -62,6 +64,7 @@ void main() {
         home: CupertinoPageScaffold(
           child: ServiceDirectory(
             service: const DemoMirrorService(),
+            destinations: workspaceDestinations,
             onSignOut: () async {},
           ),
         ),
@@ -90,6 +93,7 @@ void main() {
                 children: [
                   ServiceDirectory(
                     service: const DemoMirrorService(),
+                    destinations: workspaceDestinations,
                     accountId: 'synthetic-account',
                     onSignOut: () async {},
                   ),

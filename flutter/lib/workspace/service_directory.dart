@@ -12,19 +12,21 @@ import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/service_capabilities.dart';
 import 'package:ginkgo_mirror/features/settings/settings_page.dart';
 import 'package:ginkgo_mirror/workspace/service_search_page.dart';
-import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
+import 'package:ginkgo_mirror/workspace/workspace_types.dart';
 import 'package:ginkgo_mirror/application/contracts.dart' show RouteChoice;
 
 class ServiceDirectory extends StatelessWidget {
   const ServiceDirectory({
     super.key,
     required this.service,
+    required this.destinations,
     required this.onSignOut,
     this.accountName,
     this.accountId,
     this.route,
   });
   final MirrorService service;
+  final List<WorkspaceDestination> destinations;
   final Future<void> Function() onSignOut;
   final String? accountName;
   final String? accountId;
@@ -45,7 +47,10 @@ class ServiceDirectory extends StatelessWidget {
             trailing: const Icon(CupertinoIcons.chevron_right),
             onTap: () => _push(
               context,
-              ServiceSearchPage(context: _featureContext(context)),
+              ServiceSearchPage(
+                context: _featureContext(context),
+                destinations: destinations,
+              ),
             ),
           ),
         ],
@@ -58,14 +63,14 @@ class ServiceDirectory extends StatelessWidget {
             '校园通知',
             CupertinoIcons.news_solid,
             GinkgoColors.resourceBlue,
-            NoticesPage(demo: service.isDemo, service: service),
+            NoticesPage(service: service),
           ),
           _row(
             context,
             '待办',
             CupertinoIcons.list_bullet,
             GinkgoColors.accent,
-            TasksPage(demo: service.isDemo, service: service),
+            TasksPage(service: service),
           ),
           _destination(context, 'campus-card', GinkgoColors.accent),
           _destination(context, 'shuttle', GinkgoColors.resourceTeal),
@@ -95,7 +100,6 @@ class ServiceDirectory extends StatelessWidget {
             CupertinoIcons.briefcase_fill,
             GinkgoColors.accent,
             GraduatePage(
-              demo: service.isDemo,
               service: service,
               creditMapGateway: ServiceCapabilities.resolve(service)
                   .graduateCreditMap,
@@ -141,8 +145,15 @@ class ServiceDirectory extends StatelessWidget {
     openSettings: () => _pushDestination(context, 'settings'),
   );
 
+  WorkspaceDestination? _destinationById(String id) {
+    for (final destination in destinations) {
+      if (destination.id == id) return destination;
+    }
+    return null;
+  }
+
   void _pushDestination(BuildContext context, String id) {
-    final destination = destinationById(id);
+    final destination = _destinationById(id);
     if (destination != null) {
       _push(context, destination.build(_featureContext(context)));
     }
@@ -150,7 +161,7 @@ class ServiceDirectory extends StatelessWidget {
 
   // Reuse catalog metadata and factories, including the injected account context.
   Widget _destination(BuildContext context, String id, Color tint) {
-    final destination = destinationById(id)!;
+    final destination = _destinationById(id)!;
     return _row(
       context,
       destination.title,

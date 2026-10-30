@@ -27,6 +27,7 @@ class CareerEventsPage extends StatelessWidget {
       return SectionResult(
         value: result.data,
         error: result.failure == null ? null : failureMessage(result.failure),
+        failure: result.failure,
       );
     },
     scrollKey: const Key('career-events-scroll'),

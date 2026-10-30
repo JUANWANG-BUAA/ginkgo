@@ -1,10 +1,10 @@
-import 'package:ginkgo_mirror/application/contracts.dart' as live;
+import 'package:ginkgo_mirror/application/cgyy_commands.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 
 import 'cgyy_models.dart';
 
 /// Loader signature shared by the CGYY hub and the day/orders page.
-typedef CgyyLoader = Future<live.ReadOnlyResponse> Function({
+typedef CgyyLoader = Future<CgyyLoadRead> Function({
   required String kind,
   required int siteId,
   required String date,
@@ -16,7 +16,7 @@ typedef CgyyLoader = Future<live.ReadOnlyResponse> Function({
 /// The page never constructs a service: the shell already resolved one, and a
 /// fallback locator here would quietly give a page its own adapter instance
 /// (and therefore its own account binding) instead of the workspace's.
-Future<live.ReadOnlyResponse> cgyyRead({
+Future<CgyyLoadRead> cgyyRead({
   required CgyyLoader? loader,
   required CgyyGateway? service,
   required String kind,
@@ -43,7 +43,7 @@ Future<live.ReadOnlyResponse> cgyyRead({
   );
 }
 
-Future<live.ReadOnlyResponse> cgyyOrderDetail({
+Future<CgyyLoadRead> cgyyOrderDetail({
   required int orderId,
   CgyyLoader? loader,
   CgyyGateway? service,
@@ -57,7 +57,7 @@ Future<live.ReadOnlyResponse> cgyyOrderDetail({
   forceRefresh: forceRefresh,
 );
 
-Future<live.ReadOnlyResponse> cgyyLockCode({
+Future<CgyyLoadRead> cgyyLockCode({
   CgyyLoader? loader,
   CgyyGateway? service,
   bool forceRefresh = false,
@@ -74,13 +74,8 @@ Future<live.ReadOnlyResponse> cgyyLockCode({
 /// unknown read keeps the protection on; it never clears it silently.
 Future<CgyyWriteStatus> cgyyReadWriteStatus(CgyyBookingGateway gateway) async {
   try {
-    final response = await gateway.executeCgyy({'action': 'status'});
-    if (response.failure != null ||
-        response.stale ||
-        response.payload == null) {
-      throw const FormatException('Missing write status');
-    }
-    final status = cgyyWriteStatus(response.payload!);
+    final result = await gateway.executeCgyy(const CgyyStatusCommand());
+    final status = CgyyWriteStatus.fromState(result.state);
     if (!status.known) {
       throw const FormatException('Unknown write status');
     }

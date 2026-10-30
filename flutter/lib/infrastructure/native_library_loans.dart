@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import '../application/contracts.dart';
 import '../application/library_loans.dart';
 import '../src/rust/api/live.dart' as live;
@@ -7,35 +5,33 @@ import '../src/rust/api/live.dart' as live;
 import 'package:ginkgo_mirror/infrastructure/native_command.dart';
 
 /// Decode the business projection, never the school OPAC envelope.
-LibraryLoansRead decodeLibraryLoans(ReadOnlyResponse response) {
-  if (response.failure != null) {
-    return LibraryLoansRead(failure: response.failure);
-  }
-  try {
-    final j = jsonDecode(response.payload!) as Map<String, dynamic>;
+LibraryLoansRead decodeLibraryLoans(live.LibraryLoansResponse response) {
+  final page = response.data;
+  if (page == null) {
     return LibraryLoansRead(
-      data: LibraryLoanPage(
-        items: (j['items'] as List)
-            .map((value) {
-              final row = value as Map<String, dynamic>;
-              return LibraryLoan(
-                id: row['id'] as String,
-                title: row['title'] as String?,
-                author: row['author'] as String?,
-                callNumber: row['callNumber'] as String?,
-                borrowedAt: row['borrowedAt'] as String?,
-                dueAt: row['dueAt'] as String?,
-              );
-            })
-            .toList(growable: false),
-        page: j['page'] as int,
-        total: j['total'] as int,
-        hasMore: j['hasMore'] as bool,
-      ),
+      failure: response.failure ?? FailureCode.changedResponse,
     );
-  } catch (_) {
-    return const LibraryLoansRead(failure: FailureCode.changedResponse);
   }
+  return LibraryLoansRead(
+    data: LibraryLoanPage(
+      items: List.unmodifiable(
+        page.items.map(
+          (loan) => LibraryLoan(
+            id: loan.id,
+            title: loan.title,
+            author: loan.author,
+            callNumber: loan.callNumber,
+            borrowedAt: loan.borrowedAt,
+            dueAt: loan.dueAt,
+          ),
+        ),
+      ),
+      page: page.page,
+      total: page.total,
+      hasMore: page.hasMore,
+    ),
+    failure: response.failure,
+  );
 }
 
 mixin NativeLibraryLoans

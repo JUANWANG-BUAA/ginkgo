@@ -1,28 +1,38 @@
-import 'dart:convert';
-
 import '../application/campus_activities.dart';
 import '../application/contracts.dart';
 import '../src/rust/api/live.dart' as live;
 
 import 'package:ginkgo_mirror/infrastructure/native_command.dart';
 
-CampusActivitiesRead decodeCampusActivities(live.ReadOnlyResponse response) {
-  if (response.failure != null && !response.stale) {
-    return CampusActivitiesRead(failure: response.failure);
-  }
-  if (response.payload == null) {
-    return const CampusActivitiesRead(failure: FailureCode.changedResponse);
-  }
-  try {
+CampusActivitiesRead decodeCampusActivities(
+  live.CampusActivitiesResponse response,
+) {
+  final data = response.data;
+  if (data == null) {
     return CampusActivitiesRead(
-      data: CampusActivities.fromJson(
-        jsonDecode(response.payload!) as Map<String, dynamic>,
-      ),
-      failure: response.failure,
+      failure: response.failure ?? FailureCode.changedResponse,
     );
-  } catch (_) {
-    return const CampusActivitiesRead(failure: FailureCode.changedResponse);
   }
+  return CampusActivitiesRead(
+    data: CampusActivities(
+      page: data.page,
+      fetchedAt: data.fetchedAt,
+      activities: List.unmodifiable(
+        data.activities.map(
+          (activity) => CampusActivity(
+            id: activity.id,
+            title: activity.title,
+            category: activity.category,
+            publishedAt: activity.publishedAt,
+            activityTime: activity.activityTime,
+            place: activity.place,
+            url: activity.url,
+          ),
+        ),
+      ),
+    ),
+    failure: response.failure,
+  );
 }
 
 mixin NativeCampusActivities implements CampusActivitiesGateway {

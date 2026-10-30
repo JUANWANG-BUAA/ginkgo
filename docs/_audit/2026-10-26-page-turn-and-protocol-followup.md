@@ -52,13 +52,13 @@ flutter test integration_test/module_visual_test.dart \
 - **提交**：修复去重/合并显式失败被文件 ID 转为成功的缺陷，合成回归先红后绿。
   官方 newup/newup1 共用组件，文本、URL、小组字段及组长 UI 门禁已定位；
   仍缺当前组身份/代表资格、后端内容处理及真实回查，未开放新写方式。
-  详见 [提交核对](_audit/2026-10-26-spoc-submission-protocol-followup.md)。
+  详见 [提交核对](2026-10-26-spoc-submission-protocol-followup.md)。
 - **借阅**：匿名 rosetta 会跳学校 SSO，入口本身未自循环；普通 CAS 与 UNION token 不能混用。
   无上次真实循环阶段链，后续匿名 SSO 又遇本机 TLS 错误，真实读者认证仍未修复。
-  详见 [借阅复核](_audit/2026-10-26-library-loans-auth-followup.md)。
+  详见 [借阅复核](2026-10-26-library-loans-auth-followup.md)。
 - **校车**：官方办事大厅成功返回智慧校车服务卡片，但仍指旧 HTTP 根址，无授权参数；
   HTTPS indexPage 仍要求认证。仍需本人日常官方宿主的授权跳转和完整余票只读事务。
-  详见 [校车入口复核](_audit/2026-10-26-shuttle-auth-followup.md)。
+  详见 [校车入口复核](2026-10-26-shuttle-auth-followup.md)。
 
 以上公开 GET、静态阅读和合成回归不是私人数据读取或真实写入验收；没有从网络错误推断账号状态。
 

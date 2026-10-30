@@ -92,6 +92,18 @@ impl Drop for AbortOnDrop {
     }
 }
 
+/// A failure before any response arrived is a network-path problem, not a
+/// school outage: DNS, TCP connect, TLS handshake or the request deadline.
+/// Reporting it as `Unavailable` tells an offline user to keep waiting for a
+/// server that was never reached.
+fn classify(error: &reqwest::Error) -> TransportError {
+    if error.is_connect() || error.is_timeout() {
+        TransportError::Unreachable
+    } else {
+        TransportError::Unavailable
+    }
+}
+
 async fn execute(client: Client, request: HttpRequest) -> Result<HttpResponse, TransportError> {
     let method = match request.method {
         HttpMethod::Get => Method::GET,
@@ -110,10 +122,7 @@ async fn execute(client: Client, request: HttpRequest) -> Result<HttpResponse, T
     if let Some(body) = request.binary_body {
         builder = builder.body(body);
     }
-    let mut response = builder
-        .send()
-        .await
-        .map_err(|_| TransportError::Unavailable)?;
+    let mut response = builder.send().await.map_err(|error| classify(&error))?;
     let status = response.status().as_u16();
     let final_url = response.url().to_string();
     let mut headers = BTreeMap::new();
@@ -134,11 +143,7 @@ async fn execute(client: Client, request: HttpRequest) -> Result<HttpResponse, T
         return Err(TransportError::Unavailable);
     }
     let mut body = Vec::new();
-    while let Some(chunk) = response
-        .chunk()
-        .await
-        .map_err(|_| TransportError::Unavailable)?
-    {
+    while let Some(chunk) = response.chunk().await.map_err(|error| classify(&error))? {
         if body.len().saturating_add(chunk.len()) > limit {
             return Err(TransportError::Unavailable);
         }

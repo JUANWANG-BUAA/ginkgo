@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/application/contracts.dart' as live;
 import 'package:ginkgo_mirror/application/graduate_credit_map.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
@@ -11,14 +10,15 @@ import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'graduate_course_controls.dart';
 import 'graduate_course_widgets.dart';
 import 'graduate_credit_map_page.dart';
-import 'graduate_models.dart';
+
+import 'package:ginkgo_mirror/application/graduate.dart';
+
 import 'graduate_sections.dart';
 
-import 'package:ginkgo_mirror/infrastructure/service_factory.dart';
 
 export 'graduate_widgets.dart' show GraduateCreditProgress;
 
-typedef GraduateLoader = Future<live.ReadOnlyResponse> Function({
+typedef GraduateLoader = Future<GraduateRead> Function({
   required bool report,
   required bool forceRefresh,
 });
@@ -26,13 +26,11 @@ typedef GraduateLoader = Future<live.ReadOnlyResponse> Function({
 class GraduatePage extends StatefulWidget {
   const GraduatePage({
     super.key,
-    this.demo = false,
     this.loader,
     this.service,
     this.creditMapGateway,
     this.initialView = GraduateView.credits,
   });
-  final bool demo;
   final GraduateLoader? loader;
   final GraduateGateway? service;
 
@@ -84,8 +82,7 @@ class _GraduatePageState extends State<GraduatePage> {
       view = widget.initialView;
     }
     if (oldWidget.service != widget.service ||
-        oldWidget.loader != widget.loader ||
-        oldWidget.demo != widget.demo) {
+        oldWidget.loader != widget.loader) {
       generation++;
       status = _AcademicPart();
       report = _AcademicPart();
@@ -148,11 +145,7 @@ class _GraduatePageState extends State<GraduatePage> {
   Future<void> load({bool force = false}) => Future.wait([
     _loadPart(status, force: force),
     _loadPart(report, force: force),
-    refreshGraduateCreditMap(
-      creditMap,
-      widget.creditMapGateway,
-      force: force,
-    ),
+    refreshGraduateCreditMap(creditMap, widget.creditMapGateway, force: force),
   ]);
 
   Future<void> _loadPart(_AcademicPart part, {bool force = false}) =>
@@ -160,6 +153,15 @@ class _GraduatePageState extends State<GraduatePage> {
         part,
         force: force,
       ).whenComplete(() => part.task = null);
+
+  /// The shell already resolved the campus service. A fallback locator here
+  /// would give the page its own adapter instance, and therefore its own
+  /// account binding.
+  Future<GraduateRead> _readPart(bool report, bool force) {
+    final service = widget.service;
+    if (service == null) throw StateError('当前页面没有可用的研究生教务服务');
+    return service.graduatePart(report: report, forceRefresh: force);
+  }
 
   Future<void> _fetchPart(_AcademicPart part, {required bool force}) async {
     final requestGeneration = generation;
@@ -169,12 +171,11 @@ class _GraduatePageState extends State<GraduatePage> {
     });
     try {
       final isReport = identical(part, report);
-      final service = widget.service ?? mirrorServiceFor(demo: widget.demo);
       final result = widget.loader != null
           ? await widget.loader!(report: isReport, forceRefresh: force)
-          : await service.graduatePart(report: isReport, forceRefresh: force);
+          : await _readPart(isReport, force);
       // Decode once on data change, never sort or parse inside build.
-      final decoded = graduateReport(result.payload);
+      final decoded = result.data;
       final sections = decoded?.sections;
       if (!mounted || generation != requestGeneration) return;
       setState(() {

@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/library_holdings.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/features/library/library_area_page.dart';
 import 'package:ginkgo_mirror/features/library/library_history_page.dart';
@@ -15,7 +15,7 @@ class LibraryReads extends Fake implements LibraryGateway {
   final areaReads = <Completer<LibraryAreasResponse>>[];
   final slotReads = <Completer<LibrarySlotsResponse>>[];
   final seatReads = <Completer<LibrarySeatsResponse>>[];
-  final holdingReads = <Completer<ReadOnlyResponse>>[];
+  final holdingReads = <Completer<BookHoldingsRead>>[];
   final historyReads = <Completer<LibraryHistoryResponse>>[];
 
   @override
@@ -46,8 +46,8 @@ class LibraryReads extends Fake implements LibraryGateway {
   }
 
   @override
-  Future<ReadOnlyResponse> libraryHoldings(String bibId) {
-    final read = Completer<ReadOnlyResponse>();
+  Future<BookHoldingsRead> libraryHoldings(String bibId) {
+    final read = Completer<BookHoldingsRead>();
     holdingReads.add(read);
     return read.future;
   }
@@ -233,21 +233,31 @@ void main() {
     await tester.pumpWidget(page(second));
     expect(second.holdingReads, hasLength(1));
     first.holdingReads.single.complete(
-      ReadOnlyResponse(
-        payload: jsonEncode([
-          {'callNo': '旧服务索书号', 'location': '旧馆藏地'},
-        ]),
-        stale: false,
+      const BookHoldingsRead(
+        data: [
+          BookHolding(
+            callNo: '旧服务索书号',
+            barCode: '',
+            library: '',
+            location: '旧馆藏地',
+            status: '',
+          ),
+        ],
       ),
     );
     await tester.pump();
     expect(find.textContaining('旧服务索书号'), findsNothing);
     second.holdingReads.single.complete(
-      ReadOnlyResponse(
-        payload: jsonEncode([
-          {'callNo': '新服务索书号', 'location': '新馆藏地'},
-        ]),
-        stale: false,
+      const BookHoldingsRead(
+        data: [
+          BookHolding(
+            callNo: '新服务索书号',
+            barCode: '',
+            library: '',
+            location: '新馆藏地',
+            status: '',
+          ),
+        ],
       ),
     );
     await tester.pumpAndSettle();

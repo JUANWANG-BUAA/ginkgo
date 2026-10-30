@@ -9,7 +9,26 @@ use ginkgo_upstream::{
     },
     services::session_service::SchoolClient,
 };
-use std::sync::OnceLock;
+use std::sync::{Mutex, OnceLock};
+
+pub fn get_or_retry<'a, T>(
+    cell: &'a OnceLock<T>,
+    gate: &Mutex<()>,
+    create: impl FnOnce() -> Result<T, AppError>,
+) -> Result<&'a T, AppError> {
+    if let Some(value) = cell.get() {
+        return Ok(value);
+    }
+    let _guard = gate
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    if let Some(value) = cell.get() {
+        return Ok(value);
+    }
+    let value = create()?;
+    cell.set(value).map_err(|_| AppError::unavailable())?;
+    cell.get().ok_or_else(AppError::unavailable)
+}
 
 pub type AppService = Workspace<SchoolClient<ReqwestTransport, PlatformVault>>;
 
@@ -43,14 +62,12 @@ pub fn verify_credential_storage(account: &str, secret: &str) -> bool {
 pub async fn check_update(
     current: &str,
 ) -> Result<ginkgo_core::features::updates::UpdateSummary, AppError> {
-    static TRANSPORT: OnceLock<Result<ReqwestTransport, AppError>> = OnceLock::new();
-    match TRANSPORT.get_or_init(|| ReqwestTransport::new().map_err(|_| AppError::unavailable())) {
-        Ok(transport) => {
-            ginkgo_upstream::services::updates_service::check(UpdateTransport(transport), current)
-                .await
-        }
-        Err(error) => Err(error.clone()),
-    }
+    static TRANSPORT: OnceLock<ReqwestTransport> = OnceLock::new();
+    static TRANSPORT_INIT: Mutex<()> = Mutex::new(());
+    let transport = get_or_retry(&TRANSPORT, &TRANSPORT_INIT, || {
+        ReqwestTransport::new().map_err(|_| AppError::unavailable())
+    })?;
+    ginkgo_upstream::services::updates_service::check(UpdateTransport(transport), current).await
 }
 struct UpdateTransport(&'static ReqwestTransport);
 impl ginkgo_upstream::foundation::http::HttpTransport for UpdateTransport {
@@ -94,5 +111,32 @@ mod composition_tests {
             };
             assert_eq!(error.code, ginkgo_core::ErrorCode::CredentialStore);
         }
+    }
+
+    #[test]
+    fn failed_initialization_is_retried_and_success_is_cached() {
+        let cell = OnceLock::new();
+        let gate = std::sync::Mutex::new(());
+        let mut attempts = 0;
+
+        let error = get_or_retry(&cell, &gate, || -> Result<usize, AppError> {
+            attempts += 1;
+            Err(AppError::unavailable())
+        })
+        .expect_err("the injected failure must reach the caller");
+        assert_eq!(error.code, ginkgo_core::ErrorCode::ServiceUnavailable);
+        let value = get_or_retry(&cell, &gate, || {
+            attempts += 1;
+            Ok(7)
+        })
+        .expect("a later attempt must be allowed to succeed");
+        assert_eq!(*value, 7);
+        let cached = get_or_retry(&cell, &gate, || {
+            attempts += 1;
+            Ok(9)
+        })
+        .expect("the successful value must be cached");
+        assert_eq!(*cached, 7);
+        assert_eq!(attempts, 2);
     }
 }

@@ -57,23 +57,29 @@
 - `pub enum ErrorCode`
   <sub>enum · rust/crates/ginkgo_domain/src/lib.rs:9</sub>
 - `pub struct AppError`
-  <sub>struct · rust/crates/ginkgo_domain/src/lib.rs:29</sub>
-    - `code: ErrorCode`  <sub>:30</sub>
-    - `detail: Option<String>` — Optional upstream-provided text (already stripped of markup). Callers  <sub>:34</sub>
+  <sub>struct · rust/crates/ginkgo_domain/src/lib.rs:42</sub>
+    - `code: ErrorCode`  <sub>:43</sub>
+    - `detail: Option<String>` — Optional upstream-provided text (already stripped of markup). Callers  <sub>:47</sub>
 - `pub fn new(code: ErrorCode) -> Self {…}`
-  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:38</sub>
+  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:51</sub>
 - `pub fn with_detail(code: ErrorCode, detail: impl Into<String>) -> Self {…}`
-  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:41</sub>
+  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:54</sub>
 - `pub fn invalid() -> Self {…}`
-  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:47</sub>
+  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:60</sub>
 - `pub fn changed() -> Self {…}`
-  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:50</sub>
+  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:63</sub>
 - `pub fn session_expired() -> Self {…}`
-  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:53</sub>
+  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:66</sub>
+- `pub fn module_auth_required() -> Self {…}`
+  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:69</sub>
 - `pub fn unavailable() -> Self {…}`
-  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:56</sub>
+  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:72</sub>
+- `pub fn network_unreachable() -> Self {…}`
+  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:75</sub>
+- `pub fn allows_stale_snapshot(&self) -> bool {…}`
+  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:78</sub>
 - `pub fn credential_store() -> Self {…}`
-  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:59</sub>
+  <sub>fn · rust/crates/ginkgo_domain/src/lib.rs:84</sub>
 
 ## session
 

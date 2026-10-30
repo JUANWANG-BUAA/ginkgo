@@ -3728,10 +3728,365 @@ impl SseDecode for String {
     }
 }
 
+impl SseDecode for crate::api::live::AcademicDataDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_sections =
+            <Vec<crate::api::live::GraduateSectionDto>>::sse_decode(deserializer);
+        let mut var_notice = <Option<String>>::sse_decode(deserializer);
+        return crate::api::live::AcademicDataDto {
+            sections: var_sections,
+            notice: var_notice,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::AndroidDownloadDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_version = <String>::sse_decode(deserializer);
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_url = <String>::sse_decode(deserializer);
+        let mut var_apiUrl = <String>::sse_decode(deserializer);
+        let mut var_size = <i64>::sse_decode(deserializer);
+        let mut var_sha256 = <String>::sse_decode(deserializer);
+        return crate::api::live::AndroidDownloadDto {
+            version: var_version,
+            name: var_name,
+            url: var_url,
+            api_url: var_apiUrl,
+            size: var_size,
+            sha256: var_sha256,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::BookHitDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_bibId = <String>::sse_decode(deserializer);
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_author = <String>::sse_decode(deserializer);
+        let mut var_publisher = <String>::sse_decode(deserializer);
+        let mut var_year = <String>::sse_decode(deserializer);
+        let mut var_callno = <String>::sse_decode(deserializer);
+        let mut var_isbn = <String>::sse_decode(deserializer);
+        let mut var_itemsAvailable = <Option<i64>>::sse_decode(deserializer);
+        let mut var_itemCount = <Option<i64>>::sse_decode(deserializer);
+        return crate::api::live::BookHitDto {
+            bib_id: var_bibId,
+            title: var_title,
+            author: var_author,
+            publisher: var_publisher,
+            year: var_year,
+            callno: var_callno,
+            isbn: var_isbn,
+            items_available: var_itemsAvailable,
+            item_count: var_itemCount,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::BookHoldingDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_callNo = <String>::sse_decode(deserializer);
+        let mut var_barCode = <String>::sse_decode(deserializer);
+        let mut var_library_ = <String>::sse_decode(deserializer);
+        let mut var_location = <String>::sse_decode(deserializer);
+        let mut var_status = <String>::sse_decode(deserializer);
+        return crate::api::live::BookHoldingDto {
+            call_no: var_callNo,
+            bar_code: var_barCode,
+            library: var_library_,
+            location: var_location,
+            status: var_status,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::BookHoldingsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<Vec<crate::api::live::BookHoldingDto>>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::BookHoldingsResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::BookPageDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_page = <i64>::sse_decode(deserializer);
+        let mut var_pageSize = <i64>::sse_decode(deserializer);
+        let mut var_total = <i64>::sse_decode(deserializer);
+        let mut var_actualTotal = <i64>::sse_decode(deserializer);
+        let mut var_items = <Vec<crate::api::live::BookHitDto>>::sse_decode(deserializer);
+        let mut var_hasMore = <bool>::sse_decode(deserializer);
+        return crate::api::live::BookPageDto {
+            page: var_page,
+            page_size: var_pageSize,
+            total: var_total,
+            actual_total: var_actualTotal,
+            items: var_items,
+            has_more: var_hasMore,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::BookPageResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data = <Option<crate::api::live::BookPageDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::BookPageResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
 impl SseDecode for bool {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         deserializer.cursor.read_u8().unwrap() != 0
+    }
+}
+
+impl SseDecode for crate::api::live::BykcCatalogDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_terms = <Vec<crate::api::live::BykcSemesterDto>>::sse_decode(deserializer);
+        let mut var_courses = <Vec<crate::api::live::BykcCourseDto>>::sse_decode(deserializer);
+        let mut var_currentTerm =
+            <Option<crate::api::live::BykcSemesterDto>>::sse_decode(deserializer);
+        return crate::api::live::BykcCatalogDto {
+            terms: var_terms,
+            courses: var_courses,
+            current_term: var_currentTerm,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::BykcCatalogResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data = <Option<crate::api::live::BykcCatalogDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::BykcCatalogResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::BykcChosenCoursesDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_term = <Option<crate::api::live::BykcSemesterDto>>::sse_decode(deserializer);
+        let mut var_courses =
+            <Option<Vec<crate::api::live::BykcChosenRecordDto>>>::sse_decode(deserializer);
+        return crate::api::live::BykcChosenCoursesDto {
+            term: var_term,
+            courses: var_courses,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::BykcChosenRecordDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <i64>::sse_decode(deserializer);
+        let mut var_course = <crate::api::live::BykcCourseDto>::sse_decode(deserializer);
+        let mut var_selectedAt = <Option<String>>::sse_decode(deserializer);
+        let mut var_checkin = <Option<i64>>::sse_decode(deserializer);
+        let mut var_passed = <Option<i64>>::sse_decode(deserializer);
+        let mut var_score = <Option<i64>>::sse_decode(deserializer);
+        return crate::api::live::BykcChosenRecordDto {
+            id: var_id,
+            course: var_course,
+            selected_at: var_selectedAt,
+            checkin: var_checkin,
+            passed: var_passed,
+            score: var_score,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::BykcChosenResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<crate::api::live::BykcChosenCoursesDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::BykcChosenResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::BykcCourseDetailsDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_start = <Option<String>>::sse_decode(deserializer);
+        let mut var_end = <Option<String>>::sse_decode(deserializer);
+        let mut var_selectStart = <Option<String>>::sse_decode(deserializer);
+        let mut var_selectEnd = <Option<String>>::sse_decode(deserializer);
+        let mut var_cancelEnd = <Option<String>>::sse_decode(deserializer);
+        let mut var_capacity = <Option<i64>>::sse_decode(deserializer);
+        let mut var_enrolled = <Option<i64>>::sse_decode(deserializer);
+        let mut var_campuses = <Vec<String>>::sse_decode(deserializer);
+        let mut var_summary = <Option<String>>::sse_decode(deserializer);
+        let mut var_selected = <Option<bool>>::sse_decode(deserializer);
+        let mut var_hasSignConfig = <Option<bool>>::sse_decode(deserializer);
+        return crate::api::live::BykcCourseDetailsDto {
+            start: var_start,
+            end: var_end,
+            select_start: var_selectStart,
+            select_end: var_selectEnd,
+            cancel_end: var_cancelEnd,
+            capacity: var_capacity,
+            enrolled: var_enrolled,
+            campuses: var_campuses,
+            summary: var_summary,
+            selected: var_selected,
+            has_sign_config: var_hasSignConfig,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::BykcCourseDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <i64>::sse_decode(deserializer);
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_teacher = <Option<String>>::sse_decode(deserializer);
+        let mut var_position = <Option<String>>::sse_decode(deserializer);
+        let mut var_category = <Option<String>>::sse_decode(deserializer);
+        let mut var_subcategory = <Option<String>>::sse_decode(deserializer);
+        let mut var_details =
+            <Option<crate::api::live::BykcCourseDetailsDto>>::sse_decode(deserializer);
+        return crate::api::live::BykcCourseDto {
+            id: var_id,
+            name: var_name,
+            teacher: var_teacher,
+            position: var_position,
+            category: var_category,
+            subcategory: var_subcategory,
+            details: var_details,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::BykcSemesterDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_start = <Option<String>>::sse_decode(deserializer);
+        let mut var_end = <Option<String>>::sse_decode(deserializer);
+        return crate::api::live::BykcSemesterDto {
+            id: var_id,
+            name: var_name,
+            start: var_start,
+            end: var_end,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::BykcStatisticsDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_validCourseCount = <Option<i64>>::sse_decode(deserializer);
+        let mut var_entries =
+            <Vec<crate::api::live::BykcStatisticsEntryDto>>::sse_decode(deserializer);
+        return crate::api::live::BykcStatisticsDto {
+            valid_course_count: var_validCourseCount,
+            entries: var_entries,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::BykcStatisticsEntryDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_category = <String>::sse_decode(deserializer);
+        let mut var_subcategory = <String>::sse_decode(deserializer);
+        let mut var_required_ = <i64>::sse_decode(deserializer);
+        let mut var_completed = <i64>::sse_decode(deserializer);
+        return crate::api::live::BykcStatisticsEntryDto {
+            category: var_category,
+            subcategory: var_subcategory,
+            required: var_required_,
+            completed: var_completed,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::BykcStatisticsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data = <Option<crate::api::live::BykcStatisticsDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::BykcStatisticsResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CampusActivitiesDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_page = <i32>::sse_decode(deserializer);
+        let mut var_activities =
+            <Vec<crate::api::live::CampusActivityDto>>::sse_decode(deserializer);
+        let mut var_fetchedAt = <String>::sse_decode(deserializer);
+        return crate::api::live::CampusActivitiesDto {
+            page: var_page,
+            activities: var_activities,
+            fetched_at: var_fetchedAt,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CampusActivitiesResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<crate::api::live::CampusActivitiesDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::CampusActivitiesResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CampusActivityDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_category = <String>::sse_decode(deserializer);
+        let mut var_publishedAt = <String>::sse_decode(deserializer);
+        let mut var_activityTime = <String>::sse_decode(deserializer);
+        let mut var_place = <String>::sse_decode(deserializer);
+        let mut var_url = <String>::sse_decode(deserializer);
+        return crate::api::live::CampusActivityDto {
+            id: var_id,
+            title: var_title,
+            category: var_category,
+            published_at: var_publishedAt,
+            activity_time: var_activityTime,
+            place: var_place,
+            url: var_url,
+        };
     }
 }
 
@@ -3803,6 +4158,246 @@ impl SseDecode for crate::api::live::CareerEventsResponse {
     }
 }
 
+impl SseDecode for crate::api::live::CgyyActionResultDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_state = <String>::sse_decode(deserializer);
+        let mut var_message = <String>::sse_decode(deserializer);
+        let mut var_options =
+            <Option<crate::api::live::CgyyBookingOptionsDto>>::sse_decode(deserializer);
+        let mut var_challenge =
+            <Option<crate::api::live::CgyyChallengeDto>>::sse_decode(deserializer);
+        let mut var_review = <Option<crate::api::live::CgyyReviewDto>>::sse_decode(deserializer);
+        return crate::api::live::CgyyActionResultDto {
+            state: var_state,
+            message: var_message,
+            options: var_options,
+            challenge: var_challenge,
+            review: var_review,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CgyyActionResultResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<crate::api::live::CgyyActionResultDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::CgyyActionResultResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CgyyBookingChoiceDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_spaceId = <i64>::sse_decode(deserializer);
+        let mut var_spaceName = <String>::sse_decode(deserializer);
+        let mut var_timeId = <i64>::sse_decode(deserializer);
+        let mut var_time = <String>::sse_decode(deserializer);
+        return crate::api::live::CgyyBookingChoiceDto {
+            space_id: var_spaceId,
+            space_name: var_spaceName,
+            time_id: var_timeId,
+            time: var_time,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CgyyBookingOptionsDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_choices =
+            <Vec<crate::api::live::CgyyBookingChoiceDto>>::sse_decode(deserializer);
+        let mut var_purposes = <Vec<crate::api::live::CgyyPurposeDto>>::sse_decode(deserializer);
+        let mut var_usesFallbackPurposes = <bool>::sse_decode(deserializer);
+        return crate::api::live::CgyyBookingOptionsDto {
+            choices: var_choices,
+            purposes: var_purposes,
+            uses_fallback_purposes: var_usesFallbackPurposes,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CgyyChallengeDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_background = <String>::sse_decode(deserializer);
+        let mut var_jigsaw = <String>::sse_decode(deserializer);
+        return crate::api::live::CgyyChallengeDto {
+            id: var_id,
+            background: var_background,
+            jigsaw: var_jigsaw,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CgyyDayDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_siteId = <i64>::sse_decode(deserializer);
+        let mut var_date = <String>::sse_decode(deserializer);
+        let mut var_dates = <Vec<String>>::sse_decode(deserializer);
+        let mut var_spaces = <Vec<crate::api::live::CgyySpaceDto>>::sse_decode(deserializer);
+        return crate::api::live::CgyyDayDto {
+            site_id: var_siteId,
+            date: var_date,
+            dates: var_dates,
+            spaces: var_spaces,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CgyyLoadResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_venues = <Option<Vec<crate::api::live::CgyySiteDto>>>::sse_decode(deserializer);
+        let mut var_day = <Option<crate::api::live::CgyyDayDto>>::sse_decode(deserializer);
+        let mut var_orders =
+            <Option<Vec<crate::api::live::CgyyOrderDto>>>::sse_decode(deserializer);
+        let mut var_order = <Option<crate::api::live::CgyyOrderDto>>::sse_decode(deserializer);
+        let mut var_lockCode =
+            <Option<crate::api::live::CgyyLockCodeDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::CgyyLoadResponse {
+            venues: var_venues,
+            day: var_day,
+            orders: var_orders,
+            order: var_order,
+            lock_code: var_lockCode,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CgyyLockCodeDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_qrCode = <Option<String>>::sse_decode(deserializer);
+        let mut var_dueDate = <Option<String>>::sse_decode(deserializer);
+        let mut var_tradeNo = <Option<String>>::sse_decode(deserializer);
+        let mut var_venueName = <Option<String>>::sse_decode(deserializer);
+        let mut var_siteName = <Option<String>>::sse_decode(deserializer);
+        let mut var_spaceName = <Option<String>>::sse_decode(deserializer);
+        let mut var_orderName = <Option<String>>::sse_decode(deserializer);
+        let mut var_reservationDate = <Option<String>>::sse_decode(deserializer);
+        let mut var_reservationDateDetail = <Option<String>>::sse_decode(deserializer);
+        let mut var_reservationStartDate = <Option<String>>::sse_decode(deserializer);
+        let mut var_reservationEndDate = <Option<String>>::sse_decode(deserializer);
+        return crate::api::live::CgyyLockCodeDto {
+            qr_code: var_qrCode,
+            due_date: var_dueDate,
+            trade_no: var_tradeNo,
+            venue_name: var_venueName,
+            site_name: var_siteName,
+            space_name: var_spaceName,
+            order_name: var_orderName,
+            reservation_date: var_reservationDate,
+            reservation_date_detail: var_reservationDateDetail,
+            reservation_start_date: var_reservationStartDate,
+            reservation_end_date: var_reservationEndDate,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CgyyOrderDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_orderStatus = <Option<i64>>::sse_decode(deserializer);
+        let mut var_checkStatus = <Option<i64>>::sse_decode(deserializer);
+        let mut var_canCancel = <bool>::sse_decode(deserializer);
+        let mut var_id = <i64>::sse_decode(deserializer);
+        let mut var_place = <String>::sse_decode(deserializer);
+        let mut var_date = <String>::sse_decode(deserializer);
+        let mut var_time = <String>::sse_decode(deserializer);
+        let mut var_status = <String>::sse_decode(deserializer);
+        return crate::api::live::CgyyOrderDto {
+            order_status: var_orderStatus,
+            check_status: var_checkStatus,
+            can_cancel: var_canCancel,
+            id: var_id,
+            place: var_place,
+            date: var_date,
+            time: var_time,
+            status: var_status,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CgyyPurposeDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <i64>::sse_decode(deserializer);
+        let mut var_name = <String>::sse_decode(deserializer);
+        return crate::api::live::CgyyPurposeDto {
+            id: var_id,
+            name: var_name,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CgyyReviewDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_orders = <Vec<crate::api::live::CgyyOrderDto>>::sse_decode(deserializer);
+        return crate::api::live::CgyyReviewDto {
+            id: var_id,
+            orders: var_orders,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CgyySiteDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <i64>::sse_decode(deserializer);
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_venue = <String>::sse_decode(deserializer);
+        let mut var_campus = <String>::sse_decode(deserializer);
+        let mut var_seats = <Option<i64>>::sse_decode(deserializer);
+        let mut var_openStart = <String>::sse_decode(deserializer);
+        let mut var_openEnd = <String>::sse_decode(deserializer);
+        return crate::api::live::CgyySiteDto {
+            id: var_id,
+            name: var_name,
+            venue: var_venue,
+            campus: var_campus,
+            seats: var_seats,
+            open_start: var_openStart,
+            open_end: var_openEnd,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CgyySlotDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_time = <String>::sse_decode(deserializer);
+        let mut var_status = <String>::sse_decode(deserializer);
+        return crate::api::live::CgyySlotDto {
+            time: var_time,
+            status: var_status,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CgyySpaceDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_slots = <Vec<crate::api::live::CgyySlotDto>>::sse_decode(deserializer);
+        return crate::api::live::CgyySpaceDto {
+            name: var_name,
+            slots: var_slots,
+        };
+    }
+}
+
 impl SseDecode for crate::api::mirror::CheckInCourse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3866,6 +4461,31 @@ impl SseDecode for crate::api::mirror::CheckInStatus {
             1 => crate::api::mirror::CheckInStatus::Signed,
             2 => crate::api::mirror::CheckInStatus::Unknown,
             _ => unreachable!("Invalid variant for CheckInStatus: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CheckinLoadProgressDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_phase = <String>::sse_decode(deserializer);
+        let mut var_elapsedMs = <Option<i64>>::sse_decode(deserializer);
+        return crate::api::live::CheckinLoadProgressDto {
+            phase: var_phase,
+            elapsed_ms: var_elapsedMs,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CheckinLoadProgressResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<crate::api::live::CheckinLoadProgressDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::CheckinLoadProgressResponse {
+            data: var_data,
+            failure: var_failure,
         };
     }
 }
@@ -3961,6 +4581,108 @@ impl SseDecode for crate::api::mirror::ClassroomSort {
     }
 }
 
+impl SseDecode for crate::api::live::CountPairDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_available = <i32>::sse_decode(deserializer);
+        let mut var_total = <i32>::sse_decode(deserializer);
+        return crate::api::live::CountPairDto {
+            available: var_available,
+            total: var_total,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CourseAnnouncementDetailDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_content = <Option<String>>::sse_decode(deserializer);
+        let mut var_attachments =
+            <Vec<crate::api::live::LearningAttachmentDto>>::sse_decode(deserializer);
+        return crate::api::live::CourseAnnouncementDetailDto {
+            id: var_id,
+            title: var_title,
+            content: var_content,
+            attachments: var_attachments,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CourseAnnouncementDetailResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<crate::api::live::CourseAnnouncementDetailDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::CourseAnnouncementDetailResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CourseAnnouncementDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_publishedAt = <Option<String>>::sse_decode(deserializer);
+        return crate::api::live::CourseAnnouncementDto {
+            id: var_id,
+            title: var_title,
+            published_at: var_publishedAt,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CourseAnnouncementsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<Vec<crate::api::live::CourseAnnouncementDto>>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::CourseAnnouncementsResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CourseAssessmentDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_startsAt = <Option<String>>::sse_decode(deserializer);
+        let mut var_dueAt = <Option<String>>::sse_decode(deserializer);
+        let mut var_score = <Option<String>>::sse_decode(deserializer);
+        let mut var_sourceUrl = <String>::sse_decode(deserializer);
+        return crate::api::live::CourseAssessmentDto {
+            id: var_id,
+            title: var_title,
+            starts_at: var_startsAt,
+            due_at: var_dueAt,
+            score: var_score,
+            source_url: var_sourceUrl,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CourseAssessmentsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<Vec<crate::api::live::CourseAssessmentDto>>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::CourseAssessmentsResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
 impl SseDecode for crate::api::reminder_planning::CourseReminderSeed {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3975,6 +4697,53 @@ impl SseDecode for crate::api::reminder_planning::CourseReminderSeed {
             day: var_day,
             starts_at: var_startsAt,
             ends_at: var_endsAt,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CourseResourceDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_folder = <bool>::sse_decode(deserializer);
+        let mut var_downloadable = <bool>::sse_decode(deserializer);
+        let mut var_updatedAt = <Option<String>>::sse_decode(deserializer);
+        let mut var_extension_ = <Option<String>>::sse_decode(deserializer);
+        return crate::api::live::CourseResourceDto {
+            id: var_id,
+            name: var_name,
+            folder: var_folder,
+            downloadable: var_downloadable,
+            updated_at: var_updatedAt,
+            extension: var_extension_,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CourseResourcePageDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_items = <Vec<crate::api::live::CourseResourceDto>>::sse_decode(deserializer);
+        let mut var_page = <u32>::sse_decode(deserializer);
+        let mut var_hasNext = <bool>::sse_decode(deserializer);
+        return crate::api::live::CourseResourcePageDto {
+            items: var_items,
+            page: var_page,
+            has_next: var_hasNext,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::CourseResourcePageResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<crate::api::live::CourseResourcePageDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::CourseResourcePageResponse {
+            data: var_data,
+            failure: var_failure,
         };
     }
 }
@@ -4018,6 +4787,8 @@ impl SseDecode for crate::api::mirror::FailureCode {
             10 => crate::api::mirror::FailureCode::UnsupportedPortal,
             11 => crate::api::mirror::FailureCode::CredentialStore,
             12 => crate::api::mirror::FailureCode::BusinessRejected,
+            13 => crate::api::mirror::FailureCode::NetworkUnreachable,
+            14 => crate::api::mirror::FailureCode::ModuleAuthRequired,
             _ => unreachable!("Invalid variant for FailureCode: {}", inner),
         };
     }
@@ -4097,6 +4868,229 @@ impl SseDecode for crate::api::live::GradeTermsResponse {
     }
 }
 
+impl SseDecode for crate::api::live::GraduateCreditMapDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_summary =
+            <Option<crate::api::live::GraduateCreditNodeDto>>::sse_decode(deserializer);
+        let mut var_nodes =
+            <Vec<crate::api::live::GraduateCreditNodeDto>>::sse_decode(deserializer);
+        let mut var_notice = <Option<String>>::sse_decode(deserializer);
+        return crate::api::live::GraduateCreditMapDto {
+            summary: var_summary,
+            nodes: var_nodes,
+            notice: var_notice,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::GraduateCreditMapResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<crate::api::live::GraduateCreditMapDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::GraduateCreditMapResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::GraduateCreditMetricsDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_state = <crate::api::live::GraduateCreditStateDto>::sse_decode(deserializer);
+        let mut var_required_ = <Option<f64>>::sse_decode(deserializer);
+        let mut var_earned = <Option<f64>>::sse_decode(deserializer);
+        let mut var_pending = <Option<f64>>::sse_decode(deserializer);
+        let mut var_remaining = <Option<f64>>::sse_decode(deserializer);
+        let mut var_ratio = <Option<f64>>::sse_decode(deserializer);
+        return crate::api::live::GraduateCreditMetricsDto {
+            state: var_state,
+            required: var_required_,
+            earned: var_earned,
+            pending: var_pending,
+            remaining: var_remaining,
+            ratio: var_ratio,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::GraduateCreditNodeDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_sourceIndex = <u32>::sse_decode(deserializer);
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_progress =
+            <Option<crate::api::live::GraduateCreditMetricsDto>>::sse_decode(deserializer);
+        let mut var_rows = <Vec<crate::api::live::GraduateCreditRowDto>>::sse_decode(deserializer);
+        return crate::api::live::GraduateCreditNodeDto {
+            source_index: var_sourceIndex,
+            title: var_title,
+            progress: var_progress,
+            rows: var_rows,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::GraduateCreditRowDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_detail = <String>::sse_decode(deserializer);
+        let mut var_isCourse = <bool>::sse_decode(deserializer);
+        let mut var_completed = <Option<bool>>::sse_decode(deserializer);
+        let mut var_credit = <Option<f64>>::sse_decode(deserializer);
+        let mut var_semester = <Option<String>>::sse_decode(deserializer);
+        return crate::api::live::GraduateCreditRowDto {
+            title: var_title,
+            detail: var_detail,
+            is_course: var_isCourse,
+            completed: var_completed,
+            credit: var_credit,
+            semester: var_semester,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::GraduateCreditStateDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::live::GraduateCreditStateDto::Unknown,
+            1 => crate::api::live::GraduateCreditStateDto::NoMinimum,
+            2 => crate::api::live::GraduateCreditStateDto::Incomplete,
+            3 => crate::api::live::GraduateCreditStateDto::RequirementMet,
+            _ => unreachable!("Invalid variant for GraduateCreditStateDto: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::GraduateProgressDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_required_ = <Option<f64>>::sse_decode(deserializer);
+        let mut var_earned = <Option<f64>>::sse_decode(deserializer);
+        let mut var_pending = <Option<f64>>::sse_decode(deserializer);
+        return crate::api::live::GraduateProgressDto {
+            required: var_required_,
+            earned: var_earned,
+            pending: var_pending,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::GraduateResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data = <Option<crate::api::live::AcademicDataDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::GraduateResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::GraduateRowDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_detail = <String>::sse_decode(deserializer);
+        let mut var_isCourse = <bool>::sse_decode(deserializer);
+        let mut var_completed = <Option<bool>>::sse_decode(deserializer);
+        let mut var_credit = <Option<f64>>::sse_decode(deserializer);
+        let mut var_semester = <Option<String>>::sse_decode(deserializer);
+        return crate::api::live::GraduateRowDto {
+            title: var_title,
+            detail: var_detail,
+            is_course: var_isCourse,
+            completed: var_completed,
+            credit: var_credit,
+            semester: var_semester,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::GraduateSectionDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_rows = <Vec<crate::api::live::GraduateRowDto>>::sse_decode(deserializer);
+        let mut var_progress =
+            <Option<crate::api::live::GraduateProgressDto>>::sse_decode(deserializer);
+        return crate::api::live::GraduateSectionDto {
+            title: var_title,
+            rows: var_rows,
+            progress: var_progress,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::HomeworkAttachmentDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_kind = <String>::sse_decode(deserializer);
+        return crate::api::live::HomeworkAttachmentDto {
+            id: var_id,
+            name: var_name,
+            kind: var_kind,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::HomeworkCapabilitiesResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<Vec<crate::api::live::HomeworkCapabilityEvidenceDto>>>::sse_decode(
+                deserializer,
+            );
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::HomeworkCapabilitiesResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::HomeworkCapabilityEvidenceDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_capability = <String>::sse_decode(deserializer);
+        let mut var_state =
+            <crate::api::live::HomeworkCapabilityStateDto>::sse_decode(deserializer);
+        let mut var_reason = <String>::sse_decode(deserializer);
+        let mut var_evidence = <String>::sse_decode(deserializer);
+        return crate::api::live::HomeworkCapabilityEvidenceDto {
+            capability: var_capability,
+            state: var_state,
+            reason: var_reason,
+            evidence: var_evidence,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::HomeworkCapabilityStateDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::live::HomeworkCapabilityStateDto::Available,
+            1 => crate::api::live::HomeworkCapabilityStateDto::Unknown,
+            2 => crate::api::live::HomeworkCapabilityStateDto::Unsupported,
+            3 => crate::api::live::HomeworkCapabilityStateDto::ProtocolChanged,
+            4 => crate::api::live::HomeworkCapabilityStateDto::TempUnavailable,
+            5 => crate::api::live::HomeworkCapabilityStateDto::AuthRequired,
+            _ => unreachable!("Invalid variant for HomeworkCapabilityStateDto: {}", inner),
+        };
+    }
+}
+
 impl SseDecode for crate::api::live::HomeworkDetailResponse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4137,6 +5131,19 @@ impl SseDecode for crate::api::live::HomeworkFileDownloadResponse {
     }
 }
 
+impl SseDecode for crate::api::live::HomeworkFileWorkspaceResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<crate::api::live::HomeworkWorkspaceDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::HomeworkFileWorkspaceResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
 impl SseDecode for crate::api::mirror::HomeworkItem {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4163,6 +5170,47 @@ impl SseDecode for crate::api::mirror::HomeworkItem {
             status: var_status,
             status_detail: var_statusDetail,
             score: var_score,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::HomeworkPendingResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<Vec<crate::api::live::HomeworkPendingSubmissionDto>>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::HomeworkPendingResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::HomeworkPendingSubmissionDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_handle = <String>::sse_decode(deserializer);
+        let mut var_assignmentId = <String>::sse_decode(deserializer);
+        let mut var_fileName = <String>::sse_decode(deserializer);
+        let mut var_size = <i64>::sse_decode(deserializer);
+        return crate::api::live::HomeworkPendingSubmissionDto {
+            handle: var_handle,
+            assignment_id: var_assignmentId,
+            file_name: var_fileName,
+            size: var_size,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::HomeworkRecoveryResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_configured = <Option<bool>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::HomeworkRecoveryResponse {
+            configured: var_configured,
+            failure: var_failure,
         };
     }
 }
@@ -4202,6 +5250,66 @@ impl SseDecode for crate::api::mirror::HomeworkStatus {
     }
 }
 
+impl SseDecode for crate::api::live::HomeworkUploadReceiptDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_handle = <String>::sse_decode(deserializer);
+        let mut var_fileName = <String>::sse_decode(deserializer);
+        let mut var_size = <i64>::sse_decode(deserializer);
+        return crate::api::live::HomeworkUploadReceiptDto {
+            handle: var_handle,
+            file_name: var_fileName,
+            size: var_size,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::HomeworkUploadResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<crate::api::live::HomeworkUploadReceiptDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::HomeworkUploadResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::HomeworkWorkspaceDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_assignmentId = <String>::sse_decode(deserializer);
+        let mut var_allowedMethods = <Vec<String>>::sse_decode(deserializer);
+        let mut var_allowedExtensions = <Vec<String>>::sse_decode(deserializer);
+        let mut var_submissionLimit = <Option<u32>>::sse_decode(deserializer);
+        let mut var_submittedCount = <Option<u32>>::sse_decode(deserializer);
+        let mut var_returned = <bool>::sse_decode(deserializer);
+        let mut var_submittedText = <Option<String>>::sse_decode(deserializer);
+        let mut var_feedback = <Option<String>>::sse_decode(deserializer);
+        let mut var_attachments =
+            <Vec<crate::api::live::HomeworkAttachmentDto>>::sse_decode(deserializer);
+        let mut var_canSubmitFile = <bool>::sse_decode(deserializer);
+        let mut var_blockedReason = <Option<String>>::sse_decode(deserializer);
+        let mut var_fileLimitBytes = <i64>::sse_decode(deserializer);
+        return crate::api::live::HomeworkWorkspaceDto {
+            assignment_id: var_assignmentId,
+            allowed_methods: var_allowedMethods,
+            allowed_extensions: var_allowedExtensions,
+            submission_limit: var_submissionLimit,
+            submitted_count: var_submittedCount,
+            returned: var_returned,
+            submitted_text: var_submittedText,
+            feedback: var_feedback,
+            attachments: var_attachments,
+            can_submit_file: var_canSubmitFile,
+            blocked_reason: var_blockedReason,
+            file_limit_bytes: var_fileLimitBytes,
+        };
+    }
+}
+
 impl SseDecode for i32 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4213,6 +5321,143 @@ impl SseDecode for i64 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         deserializer.cursor.read_i64::<NativeEndian>().unwrap()
+    }
+}
+
+impl SseDecode for crate::api::live::LearningAttachmentDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_name = <String>::sse_decode(deserializer);
+        return crate::api::live::LearningAttachmentDto {
+            id: var_id,
+            name: var_name,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::LearningCapabilitiesDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_columns =
+            <crate::api::live::LearningCapabilityStateDto>::sse_decode(deserializer);
+        let mut var_announcements =
+            <crate::api::live::LearningCapabilityStateDto>::sse_decode(deserializer);
+        let mut var_resources =
+            <crate::api::live::LearningCapabilityStateDto>::sse_decode(deserializer);
+        let mut var_assessments =
+            <crate::api::live::LearningCapabilityStateDto>::sse_decode(deserializer);
+        let mut var_resourceDownload =
+            <crate::api::live::LearningCapabilityStateDto>::sse_decode(deserializer);
+        let mut var_announcementDownload =
+            <crate::api::live::LearningCapabilityStateDto>::sse_decode(deserializer);
+        return crate::api::live::LearningCapabilitiesDto {
+            columns: var_columns,
+            announcements: var_announcements,
+            resources: var_resources,
+            assessments: var_assessments,
+            resource_download: var_resourceDownload,
+            announcement_download: var_announcementDownload,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::LearningCapabilitiesResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<crate::api::live::LearningCapabilitiesDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::LearningCapabilitiesResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::LearningCapabilityStateDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::live::LearningCapabilityStateDto::Unknown,
+            1 => crate::api::live::LearningCapabilityStateDto::Available,
+            2 => crate::api::live::LearningCapabilityStateDto::AuthRequired,
+            3 => crate::api::live::LearningCapabilityStateDto::TemporarilyUnavailable,
+            4 => crate::api::live::LearningCapabilityStateDto::ProtocolChanged,
+            5 => crate::api::live::LearningCapabilityStateDto::AccessDenied,
+            _ => unreachable!("Invalid variant for LearningCapabilityStateDto: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::LearningColumnDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_kind = <crate::api::live::LearningColumnKindDto>::sse_decode(deserializer);
+        return crate::api::live::LearningColumnDto {
+            id: var_id,
+            name: var_name,
+            kind: var_kind,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::LearningColumnKindDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::live::LearningColumnKindDto::Announcement,
+            1 => crate::api::live::LearningColumnKindDto::Assessment,
+            _ => unreachable!("Invalid variant for LearningColumnKindDto: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::LearningColumnsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<Vec<crate::api::live::LearningColumnDto>>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::LearningColumnsResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::LearningCourseDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_teacher = <Option<String>>::sse_decode(deserializer);
+        let mut var_term = <Option<String>>::sse_decode(deserializer);
+        let mut var_sourceUrl = <String>::sse_decode(deserializer);
+        return crate::api::live::LearningCourseDto {
+            id: var_id,
+            name: var_name,
+            teacher: var_teacher,
+            term: var_term,
+            source_url: var_sourceUrl,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::LearningCoursesResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<Vec<crate::api::live::LearningCourseDto>>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::LearningCoursesResponse {
+            data: var_data,
+            failure: var_failure,
+        };
     }
 }
 
@@ -4304,6 +5549,29 @@ impl SseDecode for crate::api::mirror::LibraryBookingsResponse {
     }
 }
 
+impl SseDecode for crate::api::live::LibraryCampusStatsDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_people = <i32>::sse_decode(deserializer);
+        let mut var_readingRooms =
+            <Vec<crate::api::live::ReadingRoomDto>>::sse_decode(deserializer);
+        let mut var_seats = <Option<crate::api::live::CountPairDto>>::sse_decode(deserializer);
+        let mut var_studyRooms = <Option<crate::api::live::CountPairDto>>::sse_decode(deserializer);
+        let mut var_lockers = <Option<crate::api::live::CountPairDto>>::sse_decode(deserializer);
+        return crate::api::live::LibraryCampusStatsDto {
+            id: var_id,
+            name: var_name,
+            people: var_people,
+            reading_rooms: var_readingRooms,
+            seats: var_seats,
+            study_rooms: var_studyRooms,
+            lockers: var_lockers,
+        };
+    }
+}
+
 impl SseDecode for crate::api::mirror::LibraryDemoResponse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4346,6 +5614,54 @@ impl SseDecode for crate::api::live::LibraryHistoryResponse {
             stale: var_stale,
             failure: var_failure,
             failure_detail: var_failureDetail,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::LibraryLoanDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_title = <Option<String>>::sse_decode(deserializer);
+        let mut var_author = <Option<String>>::sse_decode(deserializer);
+        let mut var_callNumber = <Option<String>>::sse_decode(deserializer);
+        let mut var_borrowedAt = <Option<String>>::sse_decode(deserializer);
+        let mut var_dueAt = <Option<String>>::sse_decode(deserializer);
+        return crate::api::live::LibraryLoanDto {
+            id: var_id,
+            title: var_title,
+            author: var_author,
+            call_number: var_callNumber,
+            borrowed_at: var_borrowedAt,
+            due_at: var_dueAt,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::LibraryLoanPageDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_items = <Vec<crate::api::live::LibraryLoanDto>>::sse_decode(deserializer);
+        let mut var_page = <u32>::sse_decode(deserializer);
+        let mut var_total = <u32>::sse_decode(deserializer);
+        let mut var_hasMore = <bool>::sse_decode(deserializer);
+        return crate::api::live::LibraryLoanPageDto {
+            items: var_items,
+            page: var_page,
+            total: var_total,
+            has_more: var_hasMore,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::LibraryLoansResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data = <Option<crate::api::live::LibraryLoanPageDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::LibraryLoansResponse {
+            data: var_data,
+            failure: var_failure,
         };
     }
 }
@@ -4410,6 +5726,33 @@ impl SseDecode for crate::api::mirror::LibrarySlotsResponse {
     }
 }
 
+impl SseDecode for crate::api::live::LibraryStatsDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_campuses =
+            <Vec<crate::api::live::LibraryCampusStatsDto>>::sse_decode(deserializer);
+        let mut var_fetchedAt = <Option<String>>::sse_decode(deserializer);
+        let mut var_fromCache = <bool>::sse_decode(deserializer);
+        return crate::api::live::LibraryStatsDto {
+            campuses: var_campuses,
+            fetched_at: var_fetchedAt,
+            from_cache: var_fromCache,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::LibraryStatsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data = <Option<crate::api::live::LibraryStatsDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::LibraryStatsResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
 impl SseDecode for crate::api::mirror::LibraryVenue {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4458,6 +5801,98 @@ impl SseDecode for Vec<String> {
     }
 }
 
+impl SseDecode for Vec<crate::api::live::BookHitDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::BookHitDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::BookHoldingDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::BookHoldingDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::BykcChosenRecordDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::BykcChosenRecordDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::BykcCourseDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::BykcCourseDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::BykcSemesterDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::BykcSemesterDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::BykcStatisticsEntryDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::BykcStatisticsEntryDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::CampusActivityDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::CampusActivityDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::live::CareerEventDto> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4465,6 +5900,80 @@ impl SseDecode for Vec<crate::api::live::CareerEventDto> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<crate::api::live::CareerEventDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::CgyyBookingChoiceDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::CgyyBookingChoiceDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::CgyyOrderDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::CgyyOrderDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::CgyyPurposeDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::CgyyPurposeDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::CgyySiteDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::CgyySiteDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::CgyySlotDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::CgyySlotDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::CgyySpaceDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::CgyySpaceDto>::sse_decode(deserializer));
         }
         return ans_;
     }
@@ -4510,6 +6019,34 @@ impl SseDecode for Vec<crate::api::mirror::ClassroomRow> {
     }
 }
 
+impl SseDecode for Vec<crate::api::live::CourseAnnouncementDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::CourseAnnouncementDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::CourseAssessmentDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::CourseAssessmentDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::reminder_planning::CourseReminderSeed> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4519,6 +6056,20 @@ impl SseDecode for Vec<crate::api::reminder_planning::CourseReminderSeed> {
             ans_.push(
                 <crate::api::reminder_planning::CourseReminderSeed>::sse_decode(deserializer),
             );
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::CourseResourceDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::CourseResourceDto>::sse_decode(
+                deserializer,
+            ));
         }
         return ans_;
     }
@@ -4536,6 +6087,86 @@ impl SseDecode for Vec<crate::api::mirror::GradeCourse> {
     }
 }
 
+impl SseDecode for Vec<crate::api::live::GraduateCreditNodeDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::GraduateCreditNodeDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::GraduateCreditRowDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::GraduateCreditRowDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::GraduateRowDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::GraduateRowDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::GraduateSectionDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::GraduateSectionDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::HomeworkAttachmentDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::HomeworkAttachmentDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::HomeworkCapabilityEvidenceDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::HomeworkCapabilityEvidenceDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::mirror::HomeworkItem> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4543,6 +6174,60 @@ impl SseDecode for Vec<crate::api::mirror::HomeworkItem> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<crate::api::mirror::HomeworkItem>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::HomeworkPendingSubmissionDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::HomeworkPendingSubmissionDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::LearningAttachmentDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::LearningAttachmentDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::LearningColumnDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::LearningColumnDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::LearningCourseDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::LearningCourseDto>::sse_decode(
+                deserializer,
+            ));
         }
         return ans_;
     }
@@ -4569,6 +6254,32 @@ impl SseDecode for Vec<crate::api::mirror::LibraryBooking> {
             ans_.push(<crate::api::mirror::LibraryBooking>::sse_decode(
                 deserializer,
             ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::LibraryCampusStatsDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::LibraryCampusStatsDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::LibraryLoanDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::LibraryLoanDto>::sse_decode(deserializer));
         }
         return ans_;
     }
@@ -4610,6 +6321,30 @@ impl SseDecode for Vec<crate::api::mirror::LibraryVenue> {
     }
 }
 
+impl SseDecode for Vec<crate::api::live::LocalTaskDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::LocalTaskDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::NoticeDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::NoticeDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::reminder_planning::PlannedReminder> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4641,6 +6376,18 @@ impl SseDecode for Vec<u8> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<u8>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::ReadingRoomDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::ReadingRoomDto>::sse_decode(deserializer));
         }
         return ans_;
     }
@@ -4708,6 +6455,46 @@ impl SseDecode for Vec<crate::api::mirror::SectionState> {
     }
 }
 
+impl SseDecode for Vec<crate::api::live::ShuttleRunDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::ShuttleRunDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::ShuttleSectionDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::ShuttleSectionDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::live::ShuttleTableDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::live::ShuttleTableDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::reminder_planning::TaskReminderSeed> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4746,6 +6533,36 @@ impl SseDecode for crate::api::live::LiveScope {
     }
 }
 
+impl SseDecode for crate::api::live::LocalTaskDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_due = <String>::sse_decode(deserializer);
+        let mut var_completed = <bool>::sse_decode(deserializer);
+        let mut var_sourceAssignmentId = <Option<String>>::sse_decode(deserializer);
+        return crate::api::live::LocalTaskDto {
+            id: var_id,
+            title: var_title,
+            due: var_due,
+            completed: var_completed,
+            source_assignment_id: var_sourceAssignmentId,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::LocalTasksResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data = <Option<Vec<crate::api::live::LocalTaskDto>>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::LocalTasksResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
 impl SseDecode for crate::api::live::auth_challenge::LoginChallengeResponse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4776,11 +6593,76 @@ impl SseDecode for crate::api::live::MutationResponse {
     }
 }
 
+impl SseDecode for crate::api::live::NoticeDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_summary = <String>::sse_decode(deserializer);
+        let mut var_publishedAt = <String>::sse_decode(deserializer);
+        let mut var_url = <String>::sse_decode(deserializer);
+        return crate::api::live::NoticeDto {
+            title: var_title,
+            summary: var_summary,
+            published_at: var_publishedAt,
+            url: var_url,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::NoticesResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data = <Option<Vec<crate::api::live::NoticeDto>>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::NoticesResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
 impl SseDecode for Option<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<String>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::AcademicDataDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::AcademicDataDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::AndroidDownloadDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::AndroidDownloadDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::BookPageDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::BookPageDto>::sse_decode(deserializer));
         } else {
             return None;
         }
@@ -4798,11 +6680,222 @@ impl SseDecode for Option<bool> {
     }
 }
 
+impl SseDecode for Option<crate::api::live::BykcCatalogDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::BykcCatalogDto>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::BykcChosenCoursesDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::BykcChosenCoursesDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::BykcCourseDetailsDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::BykcCourseDetailsDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::BykcSemesterDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::BykcSemesterDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::BykcStatisticsDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::BykcStatisticsDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::CampusActivitiesDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::CampusActivitiesDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<crate::api::live::CareerEventsDto> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<crate::api::live::CareerEventsDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::CgyyActionResultDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::CgyyActionResultDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::CgyyBookingOptionsDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::CgyyBookingOptionsDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::CgyyChallengeDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::CgyyChallengeDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::CgyyDayDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::CgyyDayDto>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::CgyyLockCodeDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::CgyyLockCodeDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::CgyyOrderDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::CgyyOrderDto>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::CgyyReviewDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::CgyyReviewDto>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::CheckinLoadProgressDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::CheckinLoadProgressDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::CountPairDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::CountPairDto>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::CourseAnnouncementDetailDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::CourseAnnouncementDetailDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::CourseResourcePageDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::CourseResourcePageDto>::sse_decode(
                 deserializer,
             ));
         } else {
@@ -4833,6 +6926,84 @@ impl SseDecode for Option<crate::api::mirror::FailureCode> {
     }
 }
 
+impl SseDecode for Option<crate::api::live::GraduateCreditMapDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::GraduateCreditMapDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::GraduateCreditMetricsDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::GraduateCreditMetricsDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::GraduateCreditNodeDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::GraduateCreditNodeDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::GraduateProgressDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::GraduateProgressDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::HomeworkUploadReceiptDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::HomeworkUploadReceiptDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::HomeworkWorkspaceDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::HomeworkWorkspaceDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<i32> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4855,6 +7026,45 @@ impl SseDecode for Option<i64> {
     }
 }
 
+impl SseDecode for Option<crate::api::live::LearningCapabilitiesDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::LearningCapabilitiesDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::LibraryLoanPageDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::LibraryLoanPageDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::LibraryStatsDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::LibraryStatsDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<crate::api::live::RouteChoice> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4866,11 +7076,202 @@ impl SseDecode for Option<crate::api::live::RouteChoice> {
     }
 }
 
+impl SseDecode for Option<crate::api::live::ShuttleTimetableDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::ShuttleTimetableDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<u32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<u32>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::live::UpdateSummaryDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::live::UpdateSummaryDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<Vec<String>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<Vec<String>>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::live::BookHoldingDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::live::BookHoldingDto>>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::live::BykcChosenRecordDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::live::BykcChosenRecordDto>>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::live::CgyyOrderDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::live::CgyyOrderDto>>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::live::CgyySiteDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::live::CgyySiteDto>>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::live::CourseAnnouncementDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::live::CourseAnnouncementDto>>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::live::CourseAssessmentDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::live::CourseAssessmentDto>>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::live::HomeworkCapabilityEvidenceDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(
+                <Vec<crate::api::live::HomeworkCapabilityEvidenceDto>>::sse_decode(deserializer),
+            );
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::live::HomeworkPendingSubmissionDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(
+                <Vec<crate::api::live::HomeworkPendingSubmissionDto>>::sse_decode(deserializer),
+            );
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::live::LearningColumnDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::live::LearningColumnDto>>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::live::LearningCourseDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::live::LearningCourseDto>>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::live::LocalTaskDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::live::LocalTaskDto>>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::live::NoticeDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::live::NoticeDto>>::sse_decode(deserializer));
         } else {
             return None;
         }
@@ -4918,16 +7319,14 @@ impl SseDecode for crate::api::mirror::QueryDates {
     }
 }
 
-impl SseDecode for crate::api::live::ReadOnlyResponse {
+impl SseDecode for crate::api::live::ReadingRoomDto {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_payload = <Option<String>>::sse_decode(deserializer);
-        let mut var_stale = <bool>::sse_decode(deserializer);
-        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
-        return crate::api::live::ReadOnlyResponse {
-            payload: var_payload,
-            stale: var_stale,
-            failure: var_failure,
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_people = <i32>::sse_decode(deserializer);
+        return crate::api::live::ReadingRoomDto {
+            name: var_name,
+            people: var_people,
         };
     }
 }
@@ -5149,6 +7548,87 @@ impl SseDecode for crate::api::live::SessionState {
     }
 }
 
+impl SseDecode for crate::api::live::ShuttleRunDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_index = <String>::sse_decode(deserializer);
+        let mut var_time = <String>::sse_decode(deserializer);
+        let mut var_capacity = <String>::sse_decode(deserializer);
+        return crate::api::live::ShuttleRunDto {
+            index: var_index,
+            time: var_time,
+            capacity: var_capacity,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::ShuttleSectionDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_label = <String>::sse_decode(deserializer);
+        let mut var_left = <Vec<crate::api::live::ShuttleRunDto>>::sse_decode(deserializer);
+        let mut var_right = <Vec<crate::api::live::ShuttleRunDto>>::sse_decode(deserializer);
+        return crate::api::live::ShuttleSectionDto {
+            label: var_label,
+            left: var_left,
+            right: var_right,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::ShuttleTableDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_left = <String>::sse_decode(deserializer);
+        let mut var_right = <String>::sse_decode(deserializer);
+        let mut var_sections = <Vec<crate::api::live::ShuttleSectionDto>>::sse_decode(deserializer);
+        return crate::api::live::ShuttleTableDto {
+            left: var_left,
+            right: var_right,
+            sections: var_sections,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::ShuttleTimetableDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_tables = <Vec<crate::api::live::ShuttleTableDto>>::sse_decode(deserializer);
+        let mut var_source = <String>::sse_decode(deserializer);
+        let mut var_liveSource = <String>::sse_decode(deserializer);
+        return crate::api::live::ShuttleTimetableDto {
+            tables: var_tables,
+            source: var_source,
+            live_source: var_liveSource,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::ShuttleTimetableResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data =
+            <Option<crate::api::live::ShuttleTimetableDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::ShuttleTimetableResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::SnapshotImportResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_imported = <Option<u32>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::SnapshotImportResponse {
+            imported: var_imported,
+            failure: var_failure,
+        };
+    }
+}
+
 impl SseDecode for crate::api::reminder_planning::TaskReminderSeed {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5214,6 +7694,41 @@ impl SseDecode for u8 {
 impl SseDecode for () {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {}
+}
+
+impl SseDecode for crate::api::live::UpdateResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_data = <Option<crate::api::live::UpdateSummaryDto>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::UpdateResponse {
+            data: var_data,
+            failure: var_failure,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::UpdateSummaryDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_current = <String>::sse_decode(deserializer);
+        let mut var_latest = <Option<String>>::sse_decode(deserializer);
+        let mut var_available = <bool>::sse_decode(deserializer);
+        let mut var_pageUrl = <Option<String>>::sse_decode(deserializer);
+        let mut var_notes = <Option<String>>::sse_decode(deserializer);
+        let mut var_apkAvailable = <bool>::sse_decode(deserializer);
+        let mut var_download =
+            <Option<crate::api::live::AndroidDownloadDto>>::sse_decode(deserializer);
+        return crate::api::live::UpdateSummaryDto {
+            current: var_current,
+            latest: var_latest,
+            available: var_available,
+            page_url: var_pageUrl,
+            notes: var_notes,
+            apk_available: var_apkAvailable,
+            download: var_download,
+        };
+    }
 }
 
 fn pde_ffi_dispatcher_primary_impl(
@@ -5449,6 +7964,488 @@ fn pde_ffi_dispatcher_sync_impl(
 // Section: rust2dart
 
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::AcademicDataDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.sections.into_into_dart().into_dart(),
+            self.notice.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::AcademicDataDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::AcademicDataDto>
+    for crate::api::live::AcademicDataDto
+{
+    fn into_into_dart(self) -> crate::api::live::AcademicDataDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::AndroidDownloadDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.version.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.url.into_into_dart().into_dart(),
+            self.api_url.into_into_dart().into_dart(),
+            self.size.into_into_dart().into_dart(),
+            self.sha256.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::AndroidDownloadDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::AndroidDownloadDto>
+    for crate::api::live::AndroidDownloadDto
+{
+    fn into_into_dart(self) -> crate::api::live::AndroidDownloadDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BookHitDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.bib_id.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.author.into_into_dart().into_dart(),
+            self.publisher.into_into_dart().into_dart(),
+            self.year.into_into_dart().into_dart(),
+            self.callno.into_into_dart().into_dart(),
+            self.isbn.into_into_dart().into_dart(),
+            self.items_available.into_into_dart().into_dart(),
+            self.item_count.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::live::BookHitDto {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BookHitDto>
+    for crate::api::live::BookHitDto
+{
+    fn into_into_dart(self) -> crate::api::live::BookHitDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BookHoldingDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.call_no.into_into_dart().into_dart(),
+            self.bar_code.into_into_dart().into_dart(),
+            self.library.into_into_dart().into_dart(),
+            self.location.into_into_dart().into_dart(),
+            self.status.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::BookHoldingDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BookHoldingDto>
+    for crate::api::live::BookHoldingDto
+{
+    fn into_into_dart(self) -> crate::api::live::BookHoldingDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BookHoldingsResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::BookHoldingsResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BookHoldingsResponse>
+    for crate::api::live::BookHoldingsResponse
+{
+    fn into_into_dart(self) -> crate::api::live::BookHoldingsResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BookPageDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.page.into_into_dart().into_dart(),
+            self.page_size.into_into_dart().into_dart(),
+            self.total.into_into_dart().into_dart(),
+            self.actual_total.into_into_dart().into_dart(),
+            self.items.into_into_dart().into_dart(),
+            self.has_more.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::live::BookPageDto {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BookPageDto>
+    for crate::api::live::BookPageDto
+{
+    fn into_into_dart(self) -> crate::api::live::BookPageDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BookPageResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::BookPageResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BookPageResponse>
+    for crate::api::live::BookPageResponse
+{
+    fn into_into_dart(self) -> crate::api::live::BookPageResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BykcCatalogDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.terms.into_into_dart().into_dart(),
+            self.courses.into_into_dart().into_dart(),
+            self.current_term.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::BykcCatalogDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BykcCatalogDto>
+    for crate::api::live::BykcCatalogDto
+{
+    fn into_into_dart(self) -> crate::api::live::BykcCatalogDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BykcCatalogResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::BykcCatalogResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BykcCatalogResponse>
+    for crate::api::live::BykcCatalogResponse
+{
+    fn into_into_dart(self) -> crate::api::live::BykcCatalogResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BykcChosenCoursesDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.term.into_into_dart().into_dart(),
+            self.courses.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::BykcChosenCoursesDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BykcChosenCoursesDto>
+    for crate::api::live::BykcChosenCoursesDto
+{
+    fn into_into_dart(self) -> crate::api::live::BykcChosenCoursesDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BykcChosenRecordDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.course.into_into_dart().into_dart(),
+            self.selected_at.into_into_dart().into_dart(),
+            self.checkin.into_into_dart().into_dart(),
+            self.passed.into_into_dart().into_dart(),
+            self.score.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::BykcChosenRecordDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BykcChosenRecordDto>
+    for crate::api::live::BykcChosenRecordDto
+{
+    fn into_into_dart(self) -> crate::api::live::BykcChosenRecordDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BykcChosenResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::BykcChosenResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BykcChosenResponse>
+    for crate::api::live::BykcChosenResponse
+{
+    fn into_into_dart(self) -> crate::api::live::BykcChosenResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BykcCourseDetailsDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.start.into_into_dart().into_dart(),
+            self.end.into_into_dart().into_dart(),
+            self.select_start.into_into_dart().into_dart(),
+            self.select_end.into_into_dart().into_dart(),
+            self.cancel_end.into_into_dart().into_dart(),
+            self.capacity.into_into_dart().into_dart(),
+            self.enrolled.into_into_dart().into_dart(),
+            self.campuses.into_into_dart().into_dart(),
+            self.summary.into_into_dart().into_dart(),
+            self.selected.into_into_dart().into_dart(),
+            self.has_sign_config.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::BykcCourseDetailsDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BykcCourseDetailsDto>
+    for crate::api::live::BykcCourseDetailsDto
+{
+    fn into_into_dart(self) -> crate::api::live::BykcCourseDetailsDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BykcCourseDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.teacher.into_into_dart().into_dart(),
+            self.position.into_into_dart().into_dart(),
+            self.category.into_into_dart().into_dart(),
+            self.subcategory.into_into_dart().into_dart(),
+            self.details.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::BykcCourseDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BykcCourseDto>
+    for crate::api::live::BykcCourseDto
+{
+    fn into_into_dart(self) -> crate::api::live::BykcCourseDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BykcSemesterDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.start.into_into_dart().into_dart(),
+            self.end.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::BykcSemesterDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BykcSemesterDto>
+    for crate::api::live::BykcSemesterDto
+{
+    fn into_into_dart(self) -> crate::api::live::BykcSemesterDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BykcStatisticsDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.valid_course_count.into_into_dart().into_dart(),
+            self.entries.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::BykcStatisticsDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BykcStatisticsDto>
+    for crate::api::live::BykcStatisticsDto
+{
+    fn into_into_dart(self) -> crate::api::live::BykcStatisticsDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BykcStatisticsEntryDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.category.into_into_dart().into_dart(),
+            self.subcategory.into_into_dart().into_dart(),
+            self.required.into_into_dart().into_dart(),
+            self.completed.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::BykcStatisticsEntryDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BykcStatisticsEntryDto>
+    for crate::api::live::BykcStatisticsEntryDto
+{
+    fn into_into_dart(self) -> crate::api::live::BykcStatisticsEntryDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BykcStatisticsResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::BykcStatisticsResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BykcStatisticsResponse>
+    for crate::api::live::BykcStatisticsResponse
+{
+    fn into_into_dart(self) -> crate::api::live::BykcStatisticsResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CampusActivitiesDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.page.into_into_dart().into_dart(),
+            self.activities.into_into_dart().into_dart(),
+            self.fetched_at.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CampusActivitiesDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CampusActivitiesDto>
+    for crate::api::live::CampusActivitiesDto
+{
+    fn into_into_dart(self) -> crate::api::live::CampusActivitiesDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CampusActivitiesResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CampusActivitiesResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CampusActivitiesResponse>
+    for crate::api::live::CampusActivitiesResponse
+{
+    fn into_into_dart(self) -> crate::api::live::CampusActivitiesResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CampusActivityDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.category.into_into_dart().into_dart(),
+            self.published_at.into_into_dart().into_dart(),
+            self.activity_time.into_into_dart().into_dart(),
+            self.place.into_into_dart().into_dart(),
+            self.url.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CampusActivityDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CampusActivityDto>
+    for crate::api::live::CampusActivityDto
+{
+    fn into_into_dart(self) -> crate::api::live::CampusActivityDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::live::CampusCardBalanceResponse {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -5543,6 +8540,324 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CareerEventsResponse>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CgyyActionResultDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.state.into_into_dart().into_dart(),
+            self.message.into_into_dart().into_dart(),
+            self.options.into_into_dart().into_dart(),
+            self.challenge.into_into_dart().into_dart(),
+            self.review.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CgyyActionResultDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CgyyActionResultDto>
+    for crate::api::live::CgyyActionResultDto
+{
+    fn into_into_dart(self) -> crate::api::live::CgyyActionResultDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CgyyActionResultResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CgyyActionResultResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CgyyActionResultResponse>
+    for crate::api::live::CgyyActionResultResponse
+{
+    fn into_into_dart(self) -> crate::api::live::CgyyActionResultResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CgyyBookingChoiceDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.space_id.into_into_dart().into_dart(),
+            self.space_name.into_into_dart().into_dart(),
+            self.time_id.into_into_dart().into_dart(),
+            self.time.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CgyyBookingChoiceDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CgyyBookingChoiceDto>
+    for crate::api::live::CgyyBookingChoiceDto
+{
+    fn into_into_dart(self) -> crate::api::live::CgyyBookingChoiceDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CgyyBookingOptionsDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.choices.into_into_dart().into_dart(),
+            self.purposes.into_into_dart().into_dart(),
+            self.uses_fallback_purposes.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CgyyBookingOptionsDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CgyyBookingOptionsDto>
+    for crate::api::live::CgyyBookingOptionsDto
+{
+    fn into_into_dart(self) -> crate::api::live::CgyyBookingOptionsDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CgyyChallengeDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.background.into_into_dart().into_dart(),
+            self.jigsaw.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CgyyChallengeDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CgyyChallengeDto>
+    for crate::api::live::CgyyChallengeDto
+{
+    fn into_into_dart(self) -> crate::api::live::CgyyChallengeDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CgyyDayDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.site_id.into_into_dart().into_dart(),
+            self.date.into_into_dart().into_dart(),
+            self.dates.into_into_dart().into_dart(),
+            self.spaces.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::live::CgyyDayDto {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CgyyDayDto>
+    for crate::api::live::CgyyDayDto
+{
+    fn into_into_dart(self) -> crate::api::live::CgyyDayDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CgyyLoadResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.venues.into_into_dart().into_dart(),
+            self.day.into_into_dart().into_dart(),
+            self.orders.into_into_dart().into_dart(),
+            self.order.into_into_dart().into_dart(),
+            self.lock_code.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CgyyLoadResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CgyyLoadResponse>
+    for crate::api::live::CgyyLoadResponse
+{
+    fn into_into_dart(self) -> crate::api::live::CgyyLoadResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CgyyLockCodeDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.qr_code.into_into_dart().into_dart(),
+            self.due_date.into_into_dart().into_dart(),
+            self.trade_no.into_into_dart().into_dart(),
+            self.venue_name.into_into_dart().into_dart(),
+            self.site_name.into_into_dart().into_dart(),
+            self.space_name.into_into_dart().into_dart(),
+            self.order_name.into_into_dart().into_dart(),
+            self.reservation_date.into_into_dart().into_dart(),
+            self.reservation_date_detail.into_into_dart().into_dart(),
+            self.reservation_start_date.into_into_dart().into_dart(),
+            self.reservation_end_date.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CgyyLockCodeDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CgyyLockCodeDto>
+    for crate::api::live::CgyyLockCodeDto
+{
+    fn into_into_dart(self) -> crate::api::live::CgyyLockCodeDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CgyyOrderDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.order_status.into_into_dart().into_dart(),
+            self.check_status.into_into_dart().into_dart(),
+            self.can_cancel.into_into_dart().into_dart(),
+            self.id.into_into_dart().into_dart(),
+            self.place.into_into_dart().into_dart(),
+            self.date.into_into_dart().into_dart(),
+            self.time.into_into_dart().into_dart(),
+            self.status.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CgyyOrderDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CgyyOrderDto>
+    for crate::api::live::CgyyOrderDto
+{
+    fn into_into_dart(self) -> crate::api::live::CgyyOrderDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CgyyPurposeDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CgyyPurposeDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CgyyPurposeDto>
+    for crate::api::live::CgyyPurposeDto
+{
+    fn into_into_dart(self) -> crate::api::live::CgyyPurposeDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CgyyReviewDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.orders.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CgyyReviewDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CgyyReviewDto>
+    for crate::api::live::CgyyReviewDto
+{
+    fn into_into_dart(self) -> crate::api::live::CgyyReviewDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CgyySiteDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.venue.into_into_dart().into_dart(),
+            self.campus.into_into_dart().into_dart(),
+            self.seats.into_into_dart().into_dart(),
+            self.open_start.into_into_dart().into_dart(),
+            self.open_end.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::live::CgyySiteDto {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CgyySiteDto>
+    for crate::api::live::CgyySiteDto
+{
+    fn into_into_dart(self) -> crate::api::live::CgyySiteDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CgyySlotDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.time.into_into_dart().into_dart(),
+            self.status.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::live::CgyySlotDto {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CgyySlotDto>
+    for crate::api::live::CgyySlotDto
+{
+    fn into_into_dart(self) -> crate::api::live::CgyySlotDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CgyySpaceDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.name.into_into_dart().into_dart(),
+            self.slots.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CgyySpaceDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CgyySpaceDto>
+    for crate::api::live::CgyySpaceDto
+{
+    fn into_into_dart(self) -> crate::api::live::CgyySpaceDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::mirror::CheckInCourse {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -5618,6 +8933,48 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::CheckInStatus>
     for crate::api::mirror::CheckInStatus
 {
     fn into_into_dart(self) -> crate::api::mirror::CheckInStatus {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CheckinLoadProgressDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.phase.into_into_dart().into_dart(),
+            self.elapsed_ms.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CheckinLoadProgressDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CheckinLoadProgressDto>
+    for crate::api::live::CheckinLoadProgressDto
+{
+    fn into_into_dart(self) -> crate::api::live::CheckinLoadProgressDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CheckinLoadProgressResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CheckinLoadProgressResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CheckinLoadProgressResponse>
+    for crate::api::live::CheckinLoadProgressResponse
+{
+    fn into_into_dart(self) -> crate::api::live::CheckinLoadProgressResponse {
         self
     }
 }
@@ -5744,6 +9101,160 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::ClassroomSort>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CountPairDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.available.into_into_dart().into_dart(),
+            self.total.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CountPairDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CountPairDto>
+    for crate::api::live::CountPairDto
+{
+    fn into_into_dart(self) -> crate::api::live::CountPairDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CourseAnnouncementDetailDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.content.into_into_dart().into_dart(),
+            self.attachments.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CourseAnnouncementDetailDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CourseAnnouncementDetailDto>
+    for crate::api::live::CourseAnnouncementDetailDto
+{
+    fn into_into_dart(self) -> crate::api::live::CourseAnnouncementDetailDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CourseAnnouncementDetailResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CourseAnnouncementDetailResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CourseAnnouncementDetailResponse>
+    for crate::api::live::CourseAnnouncementDetailResponse
+{
+    fn into_into_dart(self) -> crate::api::live::CourseAnnouncementDetailResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CourseAnnouncementDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.published_at.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CourseAnnouncementDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CourseAnnouncementDto>
+    for crate::api::live::CourseAnnouncementDto
+{
+    fn into_into_dart(self) -> crate::api::live::CourseAnnouncementDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CourseAnnouncementsResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CourseAnnouncementsResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CourseAnnouncementsResponse>
+    for crate::api::live::CourseAnnouncementsResponse
+{
+    fn into_into_dart(self) -> crate::api::live::CourseAnnouncementsResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CourseAssessmentDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.starts_at.into_into_dart().into_dart(),
+            self.due_at.into_into_dart().into_dart(),
+            self.score.into_into_dart().into_dart(),
+            self.source_url.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CourseAssessmentDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CourseAssessmentDto>
+    for crate::api::live::CourseAssessmentDto
+{
+    fn into_into_dart(self) -> crate::api::live::CourseAssessmentDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CourseAssessmentsResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CourseAssessmentsResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CourseAssessmentsResponse>
+    for crate::api::live::CourseAssessmentsResponse
+{
+    fn into_into_dart(self) -> crate::api::live::CourseAssessmentsResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::reminder_planning::CourseReminderSeed {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -5764,6 +9275,74 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::reminder_planning::CourseRemi
     for crate::api::reminder_planning::CourseReminderSeed
 {
     fn into_into_dart(self) -> crate::api::reminder_planning::CourseReminderSeed {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CourseResourceDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.folder.into_into_dart().into_dart(),
+            self.downloadable.into_into_dart().into_dart(),
+            self.updated_at.into_into_dart().into_dart(),
+            self.extension.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CourseResourceDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CourseResourceDto>
+    for crate::api::live::CourseResourceDto
+{
+    fn into_into_dart(self) -> crate::api::live::CourseResourceDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CourseResourcePageDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.items.into_into_dart().into_dart(),
+            self.page.into_into_dart().into_dart(),
+            self.has_next.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CourseResourcePageDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CourseResourcePageDto>
+    for crate::api::live::CourseResourcePageDto
+{
+    fn into_into_dart(self) -> crate::api::live::CourseResourcePageDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::CourseResourcePageResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::CourseResourcePageResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::CourseResourcePageResponse>
+    for crate::api::live::CourseResourcePageResponse
+{
+    fn into_into_dart(self) -> crate::api::live::CourseResourcePageResponse {
         self
     }
 }
@@ -5803,6 +9382,8 @@ impl flutter_rust_bridge::IntoDart for crate::api::mirror::FailureCode {
             Self::UnsupportedPortal => 10.into_dart(),
             Self::CredentialStore => 11.into_dart(),
             Self::BusinessRejected => 12.into_dart(),
+            Self::NetworkUnreachable => 13.into_dart(),
+            Self::ModuleAuthRequired => 14.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -5916,6 +9497,326 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::GradeTermsResponse>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::GraduateCreditMapDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.summary.into_into_dart().into_dart(),
+            self.nodes.into_into_dart().into_dart(),
+            self.notice.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::GraduateCreditMapDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::GraduateCreditMapDto>
+    for crate::api::live::GraduateCreditMapDto
+{
+    fn into_into_dart(self) -> crate::api::live::GraduateCreditMapDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::GraduateCreditMapResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::GraduateCreditMapResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::GraduateCreditMapResponse>
+    for crate::api::live::GraduateCreditMapResponse
+{
+    fn into_into_dart(self) -> crate::api::live::GraduateCreditMapResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::GraduateCreditMetricsDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.state.into_into_dart().into_dart(),
+            self.required.into_into_dart().into_dart(),
+            self.earned.into_into_dart().into_dart(),
+            self.pending.into_into_dart().into_dart(),
+            self.remaining.into_into_dart().into_dart(),
+            self.ratio.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::GraduateCreditMetricsDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::GraduateCreditMetricsDto>
+    for crate::api::live::GraduateCreditMetricsDto
+{
+    fn into_into_dart(self) -> crate::api::live::GraduateCreditMetricsDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::GraduateCreditNodeDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.source_index.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.progress.into_into_dart().into_dart(),
+            self.rows.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::GraduateCreditNodeDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::GraduateCreditNodeDto>
+    for crate::api::live::GraduateCreditNodeDto
+{
+    fn into_into_dart(self) -> crate::api::live::GraduateCreditNodeDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::GraduateCreditRowDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.title.into_into_dart().into_dart(),
+            self.detail.into_into_dart().into_dart(),
+            self.is_course.into_into_dart().into_dart(),
+            self.completed.into_into_dart().into_dart(),
+            self.credit.into_into_dart().into_dart(),
+            self.semester.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::GraduateCreditRowDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::GraduateCreditRowDto>
+    for crate::api::live::GraduateCreditRowDto
+{
+    fn into_into_dart(self) -> crate::api::live::GraduateCreditRowDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::GraduateCreditStateDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Unknown => 0.into_dart(),
+            Self::NoMinimum => 1.into_dart(),
+            Self::Incomplete => 2.into_dart(),
+            Self::RequirementMet => 3.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::GraduateCreditStateDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::GraduateCreditStateDto>
+    for crate::api::live::GraduateCreditStateDto
+{
+    fn into_into_dart(self) -> crate::api::live::GraduateCreditStateDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::GraduateProgressDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.required.into_into_dart().into_dart(),
+            self.earned.into_into_dart().into_dart(),
+            self.pending.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::GraduateProgressDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::GraduateProgressDto>
+    for crate::api::live::GraduateProgressDto
+{
+    fn into_into_dart(self) -> crate::api::live::GraduateProgressDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::GraduateResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::GraduateResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::GraduateResponse>
+    for crate::api::live::GraduateResponse
+{
+    fn into_into_dart(self) -> crate::api::live::GraduateResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::GraduateRowDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.title.into_into_dart().into_dart(),
+            self.detail.into_into_dart().into_dart(),
+            self.is_course.into_into_dart().into_dart(),
+            self.completed.into_into_dart().into_dart(),
+            self.credit.into_into_dart().into_dart(),
+            self.semester.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::GraduateRowDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::GraduateRowDto>
+    for crate::api::live::GraduateRowDto
+{
+    fn into_into_dart(self) -> crate::api::live::GraduateRowDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::GraduateSectionDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.title.into_into_dart().into_dart(),
+            self.rows.into_into_dart().into_dart(),
+            self.progress.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::GraduateSectionDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::GraduateSectionDto>
+    for crate::api::live::GraduateSectionDto
+{
+    fn into_into_dart(self) -> crate::api::live::GraduateSectionDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::HomeworkAttachmentDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.kind.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::HomeworkAttachmentDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkAttachmentDto>
+    for crate::api::live::HomeworkAttachmentDto
+{
+    fn into_into_dart(self) -> crate::api::live::HomeworkAttachmentDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::HomeworkCapabilitiesResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::HomeworkCapabilitiesResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkCapabilitiesResponse>
+    for crate::api::live::HomeworkCapabilitiesResponse
+{
+    fn into_into_dart(self) -> crate::api::live::HomeworkCapabilitiesResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::HomeworkCapabilityEvidenceDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.capability.into_into_dart().into_dart(),
+            self.state.into_into_dart().into_dart(),
+            self.reason.into_into_dart().into_dart(),
+            self.evidence.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::HomeworkCapabilityEvidenceDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkCapabilityEvidenceDto>
+    for crate::api::live::HomeworkCapabilityEvidenceDto
+{
+    fn into_into_dart(self) -> crate::api::live::HomeworkCapabilityEvidenceDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::HomeworkCapabilityStateDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Available => 0.into_dart(),
+            Self::Unknown => 1.into_dart(),
+            Self::Unsupported => 2.into_dart(),
+            Self::ProtocolChanged => 3.into_dart(),
+            Self::TempUnavailable => 4.into_dart(),
+            Self::AuthRequired => 5.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::HomeworkCapabilityStateDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkCapabilityStateDto>
+    for crate::api::live::HomeworkCapabilityStateDto
+{
+    fn into_into_dart(self) -> crate::api::live::HomeworkCapabilityStateDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::live::HomeworkDetailResponse {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -5966,6 +9867,27 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkFileDownloadRes
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::HomeworkFileWorkspaceResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::HomeworkFileWorkspaceResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkFileWorkspaceResponse>
+    for crate::api::live::HomeworkFileWorkspaceResponse
+{
+    fn into_into_dart(self) -> crate::api::live::HomeworkFileWorkspaceResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::mirror::HomeworkItem {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -5992,6 +9914,71 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::HomeworkItem>
     for crate::api::mirror::HomeworkItem
 {
     fn into_into_dart(self) -> crate::api::mirror::HomeworkItem {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::HomeworkPendingResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::HomeworkPendingResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkPendingResponse>
+    for crate::api::live::HomeworkPendingResponse
+{
+    fn into_into_dart(self) -> crate::api::live::HomeworkPendingResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::HomeworkPendingSubmissionDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.handle.into_into_dart().into_dart(),
+            self.assignment_id.into_into_dart().into_dart(),
+            self.file_name.into_into_dart().into_dart(),
+            self.size.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::HomeworkPendingSubmissionDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkPendingSubmissionDto>
+    for crate::api::live::HomeworkPendingSubmissionDto
+{
+    fn into_into_dart(self) -> crate::api::live::HomeworkPendingSubmissionDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::HomeworkRecoveryResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.configured.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::HomeworkRecoveryResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkRecoveryResponse>
+    for crate::api::live::HomeworkRecoveryResponse
+{
+    fn into_into_dart(self) -> crate::api::live::HomeworkRecoveryResponse {
         self
     }
 }
@@ -6040,6 +10027,281 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::HomeworkStatus>
     for crate::api::mirror::HomeworkStatus
 {
     fn into_into_dart(self) -> crate::api::mirror::HomeworkStatus {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::HomeworkUploadReceiptDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.handle.into_into_dart().into_dart(),
+            self.file_name.into_into_dart().into_dart(),
+            self.size.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::HomeworkUploadReceiptDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkUploadReceiptDto>
+    for crate::api::live::HomeworkUploadReceiptDto
+{
+    fn into_into_dart(self) -> crate::api::live::HomeworkUploadReceiptDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::HomeworkUploadResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::HomeworkUploadResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkUploadResponse>
+    for crate::api::live::HomeworkUploadResponse
+{
+    fn into_into_dart(self) -> crate::api::live::HomeworkUploadResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::HomeworkWorkspaceDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.assignment_id.into_into_dart().into_dart(),
+            self.allowed_methods.into_into_dart().into_dart(),
+            self.allowed_extensions.into_into_dart().into_dart(),
+            self.submission_limit.into_into_dart().into_dart(),
+            self.submitted_count.into_into_dart().into_dart(),
+            self.returned.into_into_dart().into_dart(),
+            self.submitted_text.into_into_dart().into_dart(),
+            self.feedback.into_into_dart().into_dart(),
+            self.attachments.into_into_dart().into_dart(),
+            self.can_submit_file.into_into_dart().into_dart(),
+            self.blocked_reason.into_into_dart().into_dart(),
+            self.file_limit_bytes.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::HomeworkWorkspaceDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::HomeworkWorkspaceDto>
+    for crate::api::live::HomeworkWorkspaceDto
+{
+    fn into_into_dart(self) -> crate::api::live::HomeworkWorkspaceDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LearningAttachmentDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LearningAttachmentDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LearningAttachmentDto>
+    for crate::api::live::LearningAttachmentDto
+{
+    fn into_into_dart(self) -> crate::api::live::LearningAttachmentDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LearningCapabilitiesDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.columns.into_into_dart().into_dart(),
+            self.announcements.into_into_dart().into_dart(),
+            self.resources.into_into_dart().into_dart(),
+            self.assessments.into_into_dart().into_dart(),
+            self.resource_download.into_into_dart().into_dart(),
+            self.announcement_download.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LearningCapabilitiesDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LearningCapabilitiesDto>
+    for crate::api::live::LearningCapabilitiesDto
+{
+    fn into_into_dart(self) -> crate::api::live::LearningCapabilitiesDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LearningCapabilitiesResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LearningCapabilitiesResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LearningCapabilitiesResponse>
+    for crate::api::live::LearningCapabilitiesResponse
+{
+    fn into_into_dart(self) -> crate::api::live::LearningCapabilitiesResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LearningCapabilityStateDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Unknown => 0.into_dart(),
+            Self::Available => 1.into_dart(),
+            Self::AuthRequired => 2.into_dart(),
+            Self::TemporarilyUnavailable => 3.into_dart(),
+            Self::ProtocolChanged => 4.into_dart(),
+            Self::AccessDenied => 5.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LearningCapabilityStateDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LearningCapabilityStateDto>
+    for crate::api::live::LearningCapabilityStateDto
+{
+    fn into_into_dart(self) -> crate::api::live::LearningCapabilityStateDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LearningColumnDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.kind.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LearningColumnDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LearningColumnDto>
+    for crate::api::live::LearningColumnDto
+{
+    fn into_into_dart(self) -> crate::api::live::LearningColumnDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LearningColumnKindDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Announcement => 0.into_dart(),
+            Self::Assessment => 1.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LearningColumnKindDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LearningColumnKindDto>
+    for crate::api::live::LearningColumnKindDto
+{
+    fn into_into_dart(self) -> crate::api::live::LearningColumnKindDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LearningColumnsResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LearningColumnsResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LearningColumnsResponse>
+    for crate::api::live::LearningColumnsResponse
+{
+    fn into_into_dart(self) -> crate::api::live::LearningColumnsResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LearningCourseDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.teacher.into_into_dart().into_dart(),
+            self.term.into_into_dart().into_dart(),
+            self.source_url.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LearningCourseDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LearningCourseDto>
+    for crate::api::live::LearningCourseDto
+{
+    fn into_into_dart(self) -> crate::api::live::LearningCourseDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LearningCoursesResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LearningCoursesResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LearningCoursesResponse>
+    for crate::api::live::LearningCoursesResponse
+{
+    fn into_into_dart(self) -> crate::api::live::LearningCoursesResponse {
         self
     }
 }
@@ -6163,6 +10425,32 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::LibraryBookingsRespon
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LibraryCampusStatsDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.people.into_into_dart().into_dart(),
+            self.reading_rooms.into_into_dart().into_dart(),
+            self.seats.into_into_dart().into_dart(),
+            self.study_rooms.into_into_dart().into_dart(),
+            self.lockers.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LibraryCampusStatsDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LibraryCampusStatsDto>
+    for crate::api::live::LibraryCampusStatsDto
+{
+    fn into_into_dart(self) -> crate::api::live::LibraryCampusStatsDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::mirror::LibraryDemoResponse {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -6212,6 +10500,75 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LibraryHistoryResponse>
     for crate::api::live::LibraryHistoryResponse
 {
     fn into_into_dart(self) -> crate::api::live::LibraryHistoryResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LibraryLoanDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.author.into_into_dart().into_dart(),
+            self.call_number.into_into_dart().into_dart(),
+            self.borrowed_at.into_into_dart().into_dart(),
+            self.due_at.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LibraryLoanDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LibraryLoanDto>
+    for crate::api::live::LibraryLoanDto
+{
+    fn into_into_dart(self) -> crate::api::live::LibraryLoanDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LibraryLoanPageDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.items.into_into_dart().into_dart(),
+            self.page.into_into_dart().into_dart(),
+            self.total.into_into_dart().into_dart(),
+            self.has_more.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LibraryLoanPageDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LibraryLoanPageDto>
+    for crate::api::live::LibraryLoanPageDto
+{
+    fn into_into_dart(self) -> crate::api::live::LibraryLoanPageDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LibraryLoansResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LibraryLoansResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LibraryLoansResponse>
+    for crate::api::live::LibraryLoansResponse
+{
+    fn into_into_dart(self) -> crate::api::live::LibraryLoansResponse {
         self
     }
 }
@@ -6306,6 +10663,49 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::LibrarySlotsResponse>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LibraryStatsDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.campuses.into_into_dart().into_dart(),
+            self.fetched_at.into_into_dart().into_dart(),
+            self.from_cache.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LibraryStatsDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LibraryStatsDto>
+    for crate::api::live::LibraryStatsDto
+{
+    fn into_into_dart(self) -> crate::api::live::LibraryStatsDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LibraryStatsResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LibraryStatsResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LibraryStatsResponse>
+    for crate::api::live::LibraryStatsResponse
+{
+    fn into_into_dart(self) -> crate::api::live::LibraryStatsResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::mirror::LibraryVenue {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -6373,6 +10773,51 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LiveScope>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LocalTaskDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.due.into_into_dart().into_dart(),
+            self.completed.into_into_dart().into_dart(),
+            self.source_assignment_id.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LocalTaskDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LocalTaskDto>
+    for crate::api::live::LocalTaskDto
+{
+    fn into_into_dart(self) -> crate::api::live::LocalTaskDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::LocalTasksResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::LocalTasksResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::LocalTasksResponse>
+    for crate::api::live::LocalTasksResponse
+{
+    fn into_into_dart(self) -> crate::api::live::LocalTasksResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::live::auth_challenge::LoginChallengeResponse {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -6414,6 +10859,47 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::MutationResponse>
     for crate::api::live::MutationResponse
 {
     fn into_into_dart(self) -> crate::api::live::MutationResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::NoticeDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.title.into_into_dart().into_dart(),
+            self.summary.into_into_dart().into_dart(),
+            self.published_at.into_into_dart().into_dart(),
+            self.url.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::live::NoticeDto {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::NoticeDto>
+    for crate::api::live::NoticeDto
+{
+    fn into_into_dart(self) -> crate::api::live::NoticeDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::NoticesResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::NoticesResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::NoticesResponse>
+    for crate::api::live::NoticesResponse
+{
+    fn into_into_dart(self) -> crate::api::live::NoticesResponse {
         self
     }
 }
@@ -6463,24 +10949,23 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::QueryDates>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::live::ReadOnlyResponse {
+impl flutter_rust_bridge::IntoDart for crate::api::live::ReadingRoomDto {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
-            self.payload.into_into_dart().into_dart(),
-            self.stale.into_into_dart().into_dart(),
-            self.failure.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.people.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::live::ReadOnlyResponse
+    for crate::api::live::ReadingRoomDto
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<crate::api::live::ReadOnlyResponse>
-    for crate::api::live::ReadOnlyResponse
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::ReadingRoomDto>
+    for crate::api::live::ReadingRoomDto
 {
-    fn into_into_dart(self) -> crate::api::live::ReadOnlyResponse {
+    fn into_into_dart(self) -> crate::api::live::ReadingRoomDto {
         self
     }
 }
@@ -6756,6 +11241,136 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::SessionState>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::ShuttleRunDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.index.into_into_dart().into_dart(),
+            self.time.into_into_dart().into_dart(),
+            self.capacity.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::ShuttleRunDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::ShuttleRunDto>
+    for crate::api::live::ShuttleRunDto
+{
+    fn into_into_dart(self) -> crate::api::live::ShuttleRunDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::ShuttleSectionDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.label.into_into_dart().into_dart(),
+            self.left.into_into_dart().into_dart(),
+            self.right.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::ShuttleSectionDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::ShuttleSectionDto>
+    for crate::api::live::ShuttleSectionDto
+{
+    fn into_into_dart(self) -> crate::api::live::ShuttleSectionDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::ShuttleTableDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.left.into_into_dart().into_dart(),
+            self.right.into_into_dart().into_dart(),
+            self.sections.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::ShuttleTableDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::ShuttleTableDto>
+    for crate::api::live::ShuttleTableDto
+{
+    fn into_into_dart(self) -> crate::api::live::ShuttleTableDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::ShuttleTimetableDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.tables.into_into_dart().into_dart(),
+            self.source.into_into_dart().into_dart(),
+            self.live_source.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::ShuttleTimetableDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::ShuttleTimetableDto>
+    for crate::api::live::ShuttleTimetableDto
+{
+    fn into_into_dart(self) -> crate::api::live::ShuttleTimetableDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::ShuttleTimetableResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::ShuttleTimetableResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::ShuttleTimetableResponse>
+    for crate::api::live::ShuttleTimetableResponse
+{
+    fn into_into_dart(self) -> crate::api::live::ShuttleTimetableResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::SnapshotImportResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.imported.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::SnapshotImportResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::SnapshotImportResponse>
+    for crate::api::live::SnapshotImportResponse
+{
+    fn into_into_dart(self) -> crate::api::live::SnapshotImportResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::reminder_planning::TaskReminderSeed {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -6824,6 +11439,53 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::TodayResponse>
         self
     }
 }
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::UpdateResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.data.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::UpdateResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::UpdateResponse>
+    for crate::api::live::UpdateResponse
+{
+    fn into_into_dart(self) -> crate::api::live::UpdateResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::UpdateSummaryDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.current.into_into_dart().into_dart(),
+            self.latest.into_into_dart().into_dart(),
+            self.available.into_into_dart().into_dart(),
+            self.page_url.into_into_dart().into_dart(),
+            self.notes.into_into_dart().into_dart(),
+            self.apk_available.into_into_dart().into_dart(),
+            self.download.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::UpdateSummaryDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::UpdateSummaryDto>
+    for crate::api::live::UpdateSummaryDto
+{
+    fn into_into_dart(self) -> crate::api::live::UpdateSummaryDto {
+        self
+    }
+}
 
 impl SseEncode for String {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -6832,10 +11494,225 @@ impl SseEncode for String {
     }
 }
 
+impl SseEncode for crate::api::live::AcademicDataDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<crate::api::live::GraduateSectionDto>>::sse_encode(self.sections, serializer);
+        <Option<String>>::sse_encode(self.notice, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::AndroidDownloadDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.version, serializer);
+        <String>::sse_encode(self.name, serializer);
+        <String>::sse_encode(self.url, serializer);
+        <String>::sse_encode(self.api_url, serializer);
+        <i64>::sse_encode(self.size, serializer);
+        <String>::sse_encode(self.sha256, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::BookHitDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.bib_id, serializer);
+        <String>::sse_encode(self.title, serializer);
+        <String>::sse_encode(self.author, serializer);
+        <String>::sse_encode(self.publisher, serializer);
+        <String>::sse_encode(self.year, serializer);
+        <String>::sse_encode(self.callno, serializer);
+        <String>::sse_encode(self.isbn, serializer);
+        <Option<i64>>::sse_encode(self.items_available, serializer);
+        <Option<i64>>::sse_encode(self.item_count, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::BookHoldingDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.call_no, serializer);
+        <String>::sse_encode(self.bar_code, serializer);
+        <String>::sse_encode(self.library, serializer);
+        <String>::sse_encode(self.location, serializer);
+        <String>::sse_encode(self.status, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::BookHoldingsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<Vec<crate::api::live::BookHoldingDto>>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::BookPageDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i64>::sse_encode(self.page, serializer);
+        <i64>::sse_encode(self.page_size, serializer);
+        <i64>::sse_encode(self.total, serializer);
+        <i64>::sse_encode(self.actual_total, serializer);
+        <Vec<crate::api::live::BookHitDto>>::sse_encode(self.items, serializer);
+        <bool>::sse_encode(self.has_more, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::BookPageResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::BookPageDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
 impl SseEncode for bool {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         serializer.cursor.write_u8(self as _).unwrap();
+    }
+}
+
+impl SseEncode for crate::api::live::BykcCatalogDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<crate::api::live::BykcSemesterDto>>::sse_encode(self.terms, serializer);
+        <Vec<crate::api::live::BykcCourseDto>>::sse_encode(self.courses, serializer);
+        <Option<crate::api::live::BykcSemesterDto>>::sse_encode(self.current_term, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::BykcCatalogResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::BykcCatalogDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::BykcChosenCoursesDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::BykcSemesterDto>>::sse_encode(self.term, serializer);
+        <Option<Vec<crate::api::live::BykcChosenRecordDto>>>::sse_encode(self.courses, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::BykcChosenRecordDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i64>::sse_encode(self.id, serializer);
+        <crate::api::live::BykcCourseDto>::sse_encode(self.course, serializer);
+        <Option<String>>::sse_encode(self.selected_at, serializer);
+        <Option<i64>>::sse_encode(self.checkin, serializer);
+        <Option<i64>>::sse_encode(self.passed, serializer);
+        <Option<i64>>::sse_encode(self.score, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::BykcChosenResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::BykcChosenCoursesDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::BykcCourseDetailsDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<String>>::sse_encode(self.start, serializer);
+        <Option<String>>::sse_encode(self.end, serializer);
+        <Option<String>>::sse_encode(self.select_start, serializer);
+        <Option<String>>::sse_encode(self.select_end, serializer);
+        <Option<String>>::sse_encode(self.cancel_end, serializer);
+        <Option<i64>>::sse_encode(self.capacity, serializer);
+        <Option<i64>>::sse_encode(self.enrolled, serializer);
+        <Vec<String>>::sse_encode(self.campuses, serializer);
+        <Option<String>>::sse_encode(self.summary, serializer);
+        <Option<bool>>::sse_encode(self.selected, serializer);
+        <Option<bool>>::sse_encode(self.has_sign_config, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::BykcCourseDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i64>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.name, serializer);
+        <Option<String>>::sse_encode(self.teacher, serializer);
+        <Option<String>>::sse_encode(self.position, serializer);
+        <Option<String>>::sse_encode(self.category, serializer);
+        <Option<String>>::sse_encode(self.subcategory, serializer);
+        <Option<crate::api::live::BykcCourseDetailsDto>>::sse_encode(self.details, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::BykcSemesterDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.name, serializer);
+        <Option<String>>::sse_encode(self.start, serializer);
+        <Option<String>>::sse_encode(self.end, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::BykcStatisticsDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<i64>>::sse_encode(self.valid_course_count, serializer);
+        <Vec<crate::api::live::BykcStatisticsEntryDto>>::sse_encode(self.entries, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::BykcStatisticsEntryDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.category, serializer);
+        <String>::sse_encode(self.subcategory, serializer);
+        <i64>::sse_encode(self.required, serializer);
+        <i64>::sse_encode(self.completed, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::BykcStatisticsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::BykcStatisticsDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CampusActivitiesDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.page, serializer);
+        <Vec<crate::api::live::CampusActivityDto>>::sse_encode(self.activities, serializer);
+        <String>::sse_encode(self.fetched_at, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CampusActivitiesResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::CampusActivitiesDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CampusActivityDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.title, serializer);
+        <String>::sse_encode(self.category, serializer);
+        <String>::sse_encode(self.published_at, serializer);
+        <String>::sse_encode(self.activity_time, serializer);
+        <String>::sse_encode(self.place, serializer);
+        <String>::sse_encode(self.url, serializer);
     }
 }
 
@@ -6878,6 +11755,151 @@ impl SseEncode for crate::api::live::CareerEventsResponse {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Option<crate::api::live::CareerEventsDto>>::sse_encode(self.data, serializer);
         <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CgyyActionResultDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.state, serializer);
+        <String>::sse_encode(self.message, serializer);
+        <Option<crate::api::live::CgyyBookingOptionsDto>>::sse_encode(self.options, serializer);
+        <Option<crate::api::live::CgyyChallengeDto>>::sse_encode(self.challenge, serializer);
+        <Option<crate::api::live::CgyyReviewDto>>::sse_encode(self.review, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CgyyActionResultResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::CgyyActionResultDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CgyyBookingChoiceDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i64>::sse_encode(self.space_id, serializer);
+        <String>::sse_encode(self.space_name, serializer);
+        <i64>::sse_encode(self.time_id, serializer);
+        <String>::sse_encode(self.time, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CgyyBookingOptionsDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<crate::api::live::CgyyBookingChoiceDto>>::sse_encode(self.choices, serializer);
+        <Vec<crate::api::live::CgyyPurposeDto>>::sse_encode(self.purposes, serializer);
+        <bool>::sse_encode(self.uses_fallback_purposes, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CgyyChallengeDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.background, serializer);
+        <String>::sse_encode(self.jigsaw, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CgyyDayDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i64>::sse_encode(self.site_id, serializer);
+        <String>::sse_encode(self.date, serializer);
+        <Vec<String>>::sse_encode(self.dates, serializer);
+        <Vec<crate::api::live::CgyySpaceDto>>::sse_encode(self.spaces, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CgyyLoadResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<Vec<crate::api::live::CgyySiteDto>>>::sse_encode(self.venues, serializer);
+        <Option<crate::api::live::CgyyDayDto>>::sse_encode(self.day, serializer);
+        <Option<Vec<crate::api::live::CgyyOrderDto>>>::sse_encode(self.orders, serializer);
+        <Option<crate::api::live::CgyyOrderDto>>::sse_encode(self.order, serializer);
+        <Option<crate::api::live::CgyyLockCodeDto>>::sse_encode(self.lock_code, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CgyyLockCodeDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<String>>::sse_encode(self.qr_code, serializer);
+        <Option<String>>::sse_encode(self.due_date, serializer);
+        <Option<String>>::sse_encode(self.trade_no, serializer);
+        <Option<String>>::sse_encode(self.venue_name, serializer);
+        <Option<String>>::sse_encode(self.site_name, serializer);
+        <Option<String>>::sse_encode(self.space_name, serializer);
+        <Option<String>>::sse_encode(self.order_name, serializer);
+        <Option<String>>::sse_encode(self.reservation_date, serializer);
+        <Option<String>>::sse_encode(self.reservation_date_detail, serializer);
+        <Option<String>>::sse_encode(self.reservation_start_date, serializer);
+        <Option<String>>::sse_encode(self.reservation_end_date, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CgyyOrderDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<i64>>::sse_encode(self.order_status, serializer);
+        <Option<i64>>::sse_encode(self.check_status, serializer);
+        <bool>::sse_encode(self.can_cancel, serializer);
+        <i64>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.place, serializer);
+        <String>::sse_encode(self.date, serializer);
+        <String>::sse_encode(self.time, serializer);
+        <String>::sse_encode(self.status, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CgyyPurposeDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i64>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.name, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CgyyReviewDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <Vec<crate::api::live::CgyyOrderDto>>::sse_encode(self.orders, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CgyySiteDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i64>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.name, serializer);
+        <String>::sse_encode(self.venue, serializer);
+        <String>::sse_encode(self.campus, serializer);
+        <Option<i64>>::sse_encode(self.seats, serializer);
+        <String>::sse_encode(self.open_start, serializer);
+        <String>::sse_encode(self.open_end, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CgyySlotDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.time, serializer);
+        <String>::sse_encode(self.status, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CgyySpaceDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.name, serializer);
+        <Vec<crate::api::live::CgyySlotDto>>::sse_encode(self.slots, serializer);
     }
 }
 
@@ -6926,6 +11948,22 @@ impl SseEncode for crate::api::mirror::CheckInStatus {
             },
             serializer,
         );
+    }
+}
+
+impl SseEncode for crate::api::live::CheckinLoadProgressDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.phase, serializer);
+        <Option<i64>>::sse_encode(self.elapsed_ms, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CheckinLoadProgressResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::CheckinLoadProgressDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
     }
 }
 
@@ -6992,6 +12030,69 @@ impl SseEncode for crate::api::mirror::ClassroomSort {
     }
 }
 
+impl SseEncode for crate::api::live::CountPairDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.available, serializer);
+        <i32>::sse_encode(self.total, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CourseAnnouncementDetailDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.title, serializer);
+        <Option<String>>::sse_encode(self.content, serializer);
+        <Vec<crate::api::live::LearningAttachmentDto>>::sse_encode(self.attachments, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CourseAnnouncementDetailResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::CourseAnnouncementDetailDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CourseAnnouncementDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.title, serializer);
+        <Option<String>>::sse_encode(self.published_at, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CourseAnnouncementsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<Vec<crate::api::live::CourseAnnouncementDto>>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CourseAssessmentDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.title, serializer);
+        <Option<String>>::sse_encode(self.starts_at, serializer);
+        <Option<String>>::sse_encode(self.due_at, serializer);
+        <Option<String>>::sse_encode(self.score, serializer);
+        <String>::sse_encode(self.source_url, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CourseAssessmentsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<Vec<crate::api::live::CourseAssessmentDto>>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
 impl SseEncode for crate::api::reminder_planning::CourseReminderSeed {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7000,6 +12101,35 @@ impl SseEncode for crate::api::reminder_planning::CourseReminderSeed {
         <i32>::sse_encode(self.day, serializer);
         <String>::sse_encode(self.starts_at, serializer);
         <String>::sse_encode(self.ends_at, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CourseResourceDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.name, serializer);
+        <bool>::sse_encode(self.folder, serializer);
+        <bool>::sse_encode(self.downloadable, serializer);
+        <Option<String>>::sse_encode(self.updated_at, serializer);
+        <Option<String>>::sse_encode(self.extension, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CourseResourcePageDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<crate::api::live::CourseResourceDto>>::sse_encode(self.items, serializer);
+        <u32>::sse_encode(self.page, serializer);
+        <bool>::sse_encode(self.has_next, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::CourseResourcePageResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::CourseResourcePageDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
     }
 }
 
@@ -7037,6 +12167,8 @@ impl SseEncode for crate::api::mirror::FailureCode {
                 crate::api::mirror::FailureCode::UnsupportedPortal => 10,
                 crate::api::mirror::FailureCode::CredentialStore => 11,
                 crate::api::mirror::FailureCode::BusinessRejected => 12,
+                crate::api::mirror::FailureCode::NetworkUnreachable => 13,
+                crate::api::mirror::FailureCode::ModuleAuthRequired => 14,
                 _ => {
                     unimplemented!("");
                 }
@@ -7091,6 +12223,162 @@ impl SseEncode for crate::api::live::GradeTermsResponse {
     }
 }
 
+impl SseEncode for crate::api::live::GraduateCreditMapDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::GraduateCreditNodeDto>>::sse_encode(self.summary, serializer);
+        <Vec<crate::api::live::GraduateCreditNodeDto>>::sse_encode(self.nodes, serializer);
+        <Option<String>>::sse_encode(self.notice, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::GraduateCreditMapResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::GraduateCreditMapDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::GraduateCreditMetricsDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::live::GraduateCreditStateDto>::sse_encode(self.state, serializer);
+        <Option<f64>>::sse_encode(self.required, serializer);
+        <Option<f64>>::sse_encode(self.earned, serializer);
+        <Option<f64>>::sse_encode(self.pending, serializer);
+        <Option<f64>>::sse_encode(self.remaining, serializer);
+        <Option<f64>>::sse_encode(self.ratio, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::GraduateCreditNodeDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u32>::sse_encode(self.source_index, serializer);
+        <String>::sse_encode(self.title, serializer);
+        <Option<crate::api::live::GraduateCreditMetricsDto>>::sse_encode(self.progress, serializer);
+        <Vec<crate::api::live::GraduateCreditRowDto>>::sse_encode(self.rows, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::GraduateCreditRowDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.title, serializer);
+        <String>::sse_encode(self.detail, serializer);
+        <bool>::sse_encode(self.is_course, serializer);
+        <Option<bool>>::sse_encode(self.completed, serializer);
+        <Option<f64>>::sse_encode(self.credit, serializer);
+        <Option<String>>::sse_encode(self.semester, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::GraduateCreditStateDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::live::GraduateCreditStateDto::Unknown => 0,
+                crate::api::live::GraduateCreditStateDto::NoMinimum => 1,
+                crate::api::live::GraduateCreditStateDto::Incomplete => 2,
+                crate::api::live::GraduateCreditStateDto::RequirementMet => 3,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::live::GraduateProgressDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<f64>>::sse_encode(self.required, serializer);
+        <Option<f64>>::sse_encode(self.earned, serializer);
+        <Option<f64>>::sse_encode(self.pending, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::GraduateResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::AcademicDataDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::GraduateRowDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.title, serializer);
+        <String>::sse_encode(self.detail, serializer);
+        <bool>::sse_encode(self.is_course, serializer);
+        <Option<bool>>::sse_encode(self.completed, serializer);
+        <Option<f64>>::sse_encode(self.credit, serializer);
+        <Option<String>>::sse_encode(self.semester, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::GraduateSectionDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.title, serializer);
+        <Vec<crate::api::live::GraduateRowDto>>::sse_encode(self.rows, serializer);
+        <Option<crate::api::live::GraduateProgressDto>>::sse_encode(self.progress, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::HomeworkAttachmentDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.name, serializer);
+        <String>::sse_encode(self.kind, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::HomeworkCapabilitiesResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<Vec<crate::api::live::HomeworkCapabilityEvidenceDto>>>::sse_encode(
+            self.data, serializer,
+        );
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::HomeworkCapabilityEvidenceDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.capability, serializer);
+        <crate::api::live::HomeworkCapabilityStateDto>::sse_encode(self.state, serializer);
+        <String>::sse_encode(self.reason, serializer);
+        <String>::sse_encode(self.evidence, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::HomeworkCapabilityStateDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::live::HomeworkCapabilityStateDto::Available => 0,
+                crate::api::live::HomeworkCapabilityStateDto::Unknown => 1,
+                crate::api::live::HomeworkCapabilityStateDto::Unsupported => 2,
+                crate::api::live::HomeworkCapabilityStateDto::ProtocolChanged => 3,
+                crate::api::live::HomeworkCapabilityStateDto::TempUnavailable => 4,
+                crate::api::live::HomeworkCapabilityStateDto::AuthRequired => 5,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
 impl SseEncode for crate::api::live::HomeworkDetailResponse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7115,6 +12403,14 @@ impl SseEncode for crate::api::live::HomeworkFileDownloadResponse {
     }
 }
 
+impl SseEncode for crate::api::live::HomeworkFileWorkspaceResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::HomeworkWorkspaceDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
 impl SseEncode for crate::api::mirror::HomeworkItem {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7129,6 +12425,34 @@ impl SseEncode for crate::api::mirror::HomeworkItem {
         <crate::api::mirror::HomeworkStatus>::sse_encode(self.status, serializer);
         <Option<String>>::sse_encode(self.status_detail, serializer);
         <Option<String>>::sse_encode(self.score, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::HomeworkPendingResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<Vec<crate::api::live::HomeworkPendingSubmissionDto>>>::sse_encode(
+            self.data, serializer,
+        );
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::HomeworkPendingSubmissionDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.handle, serializer);
+        <String>::sse_encode(self.assignment_id, serializer);
+        <String>::sse_encode(self.file_name, serializer);
+        <i64>::sse_encode(self.size, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::HomeworkRecoveryResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<bool>>::sse_encode(self.configured, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
     }
 }
 
@@ -7162,6 +12486,41 @@ impl SseEncode for crate::api::mirror::HomeworkStatus {
     }
 }
 
+impl SseEncode for crate::api::live::HomeworkUploadReceiptDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.handle, serializer);
+        <String>::sse_encode(self.file_name, serializer);
+        <i64>::sse_encode(self.size, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::HomeworkUploadResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::HomeworkUploadReceiptDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::HomeworkWorkspaceDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.assignment_id, serializer);
+        <Vec<String>>::sse_encode(self.allowed_methods, serializer);
+        <Vec<String>>::sse_encode(self.allowed_extensions, serializer);
+        <Option<u32>>::sse_encode(self.submission_limit, serializer);
+        <Option<u32>>::sse_encode(self.submitted_count, serializer);
+        <bool>::sse_encode(self.returned, serializer);
+        <Option<String>>::sse_encode(self.submitted_text, serializer);
+        <Option<String>>::sse_encode(self.feedback, serializer);
+        <Vec<crate::api::live::HomeworkAttachmentDto>>::sse_encode(self.attachments, serializer);
+        <bool>::sse_encode(self.can_submit_file, serializer);
+        <Option<String>>::sse_encode(self.blocked_reason, serializer);
+        <i64>::sse_encode(self.file_limit_bytes, serializer);
+    }
+}
+
 impl SseEncode for i32 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7173,6 +12532,112 @@ impl SseEncode for i64 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         serializer.cursor.write_i64::<NativeEndian>(self).unwrap();
+    }
+}
+
+impl SseEncode for crate::api::live::LearningAttachmentDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.name, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::LearningCapabilitiesDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::live::LearningCapabilityStateDto>::sse_encode(self.columns, serializer);
+        <crate::api::live::LearningCapabilityStateDto>::sse_encode(self.announcements, serializer);
+        <crate::api::live::LearningCapabilityStateDto>::sse_encode(self.resources, serializer);
+        <crate::api::live::LearningCapabilityStateDto>::sse_encode(self.assessments, serializer);
+        <crate::api::live::LearningCapabilityStateDto>::sse_encode(
+            self.resource_download,
+            serializer,
+        );
+        <crate::api::live::LearningCapabilityStateDto>::sse_encode(
+            self.announcement_download,
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::live::LearningCapabilitiesResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::LearningCapabilitiesDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::LearningCapabilityStateDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::live::LearningCapabilityStateDto::Unknown => 0,
+                crate::api::live::LearningCapabilityStateDto::Available => 1,
+                crate::api::live::LearningCapabilityStateDto::AuthRequired => 2,
+                crate::api::live::LearningCapabilityStateDto::TemporarilyUnavailable => 3,
+                crate::api::live::LearningCapabilityStateDto::ProtocolChanged => 4,
+                crate::api::live::LearningCapabilityStateDto::AccessDenied => 5,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::live::LearningColumnDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.name, serializer);
+        <crate::api::live::LearningColumnKindDto>::sse_encode(self.kind, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::LearningColumnKindDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::live::LearningColumnKindDto::Announcement => 0,
+                crate::api::live::LearningColumnKindDto::Assessment => 1,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::live::LearningColumnsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<Vec<crate::api::live::LearningColumnDto>>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::LearningCourseDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.name, serializer);
+        <Option<String>>::sse_encode(self.teacher, serializer);
+        <Option<String>>::sse_encode(self.term, serializer);
+        <String>::sse_encode(self.source_url, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::LearningCoursesResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<Vec<crate::api::live::LearningCourseDto>>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
     }
 }
 
@@ -7230,6 +12695,19 @@ impl SseEncode for crate::api::mirror::LibraryBookingsResponse {
     }
 }
 
+impl SseEncode for crate::api::live::LibraryCampusStatsDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.name, serializer);
+        <i32>::sse_encode(self.people, serializer);
+        <Vec<crate::api::live::ReadingRoomDto>>::sse_encode(self.reading_rooms, serializer);
+        <Option<crate::api::live::CountPairDto>>::sse_encode(self.seats, serializer);
+        <Option<crate::api::live::CountPairDto>>::sse_encode(self.study_rooms, serializer);
+        <Option<crate::api::live::CountPairDto>>::sse_encode(self.lockers, serializer);
+    }
+}
+
 impl SseEncode for crate::api::mirror::LibraryDemoResponse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7254,6 +12732,36 @@ impl SseEncode for crate::api::live::LibraryHistoryResponse {
         <bool>::sse_encode(self.stale, serializer);
         <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
         <Option<String>>::sse_encode(self.failure_detail, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::LibraryLoanDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <Option<String>>::sse_encode(self.title, serializer);
+        <Option<String>>::sse_encode(self.author, serializer);
+        <Option<String>>::sse_encode(self.call_number, serializer);
+        <Option<String>>::sse_encode(self.borrowed_at, serializer);
+        <Option<String>>::sse_encode(self.due_at, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::LibraryLoanPageDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<crate::api::live::LibraryLoanDto>>::sse_encode(self.items, serializer);
+        <u32>::sse_encode(self.page, serializer);
+        <u32>::sse_encode(self.total, serializer);
+        <bool>::sse_encode(self.has_more, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::LibraryLoansResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::LibraryLoanPageDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
     }
 }
 
@@ -7295,6 +12803,23 @@ impl SseEncode for crate::api::mirror::LibrarySlotsResponse {
     }
 }
 
+impl SseEncode for crate::api::live::LibraryStatsDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<crate::api::live::LibraryCampusStatsDto>>::sse_encode(self.campuses, serializer);
+        <Option<String>>::sse_encode(self.fetched_at, serializer);
+        <bool>::sse_encode(self.from_cache, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::LibraryStatsResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::LibraryStatsDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
 impl SseEncode for crate::api::mirror::LibraryVenue {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7327,12 +12852,142 @@ impl SseEncode for Vec<String> {
     }
 }
 
+impl SseEncode for Vec<crate::api::live::BookHitDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::BookHitDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::BookHoldingDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::BookHoldingDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::BykcChosenRecordDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::BykcChosenRecordDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::BykcCourseDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::BykcCourseDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::BykcSemesterDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::BykcSemesterDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::BykcStatisticsEntryDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::BykcStatisticsEntryDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::CampusActivityDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::CampusActivityDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::live::CareerEventDto> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::live::CareerEventDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::CgyyBookingChoiceDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::CgyyBookingChoiceDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::CgyyOrderDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::CgyyOrderDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::CgyyPurposeDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::CgyyPurposeDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::CgyySiteDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::CgyySiteDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::CgyySlotDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::CgyySlotDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::CgyySpaceDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::CgyySpaceDto>::sse_encode(item, serializer);
         }
     }
 }
@@ -7367,12 +13022,42 @@ impl SseEncode for Vec<crate::api::mirror::ClassroomRow> {
     }
 }
 
+impl SseEncode for Vec<crate::api::live::CourseAnnouncementDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::CourseAnnouncementDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::CourseAssessmentDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::CourseAssessmentDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::reminder_planning::CourseReminderSeed> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::reminder_planning::CourseReminderSeed>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::CourseResourceDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::CourseResourceDto>::sse_encode(item, serializer);
         }
     }
 }
@@ -7387,12 +13072,112 @@ impl SseEncode for Vec<crate::api::mirror::GradeCourse> {
     }
 }
 
+impl SseEncode for Vec<crate::api::live::GraduateCreditNodeDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::GraduateCreditNodeDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::GraduateCreditRowDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::GraduateCreditRowDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::GraduateRowDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::GraduateRowDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::GraduateSectionDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::GraduateSectionDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::HomeworkAttachmentDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::HomeworkAttachmentDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::HomeworkCapabilityEvidenceDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::HomeworkCapabilityEvidenceDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::mirror::HomeworkItem> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::mirror::HomeworkItem>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::HomeworkPendingSubmissionDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::HomeworkPendingSubmissionDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::LearningAttachmentDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::LearningAttachmentDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::LearningColumnDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::LearningColumnDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::LearningCourseDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::LearningCourseDto>::sse_encode(item, serializer);
         }
     }
 }
@@ -7413,6 +13198,26 @@ impl SseEncode for Vec<crate::api::mirror::LibraryBooking> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::mirror::LibraryBooking>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::LibraryCampusStatsDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::LibraryCampusStatsDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::LibraryLoanDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::LibraryLoanDto>::sse_encode(item, serializer);
         }
     }
 }
@@ -7447,6 +13252,26 @@ impl SseEncode for Vec<crate::api::mirror::LibraryVenue> {
     }
 }
 
+impl SseEncode for Vec<crate::api::live::LocalTaskDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::LocalTaskDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::NoticeDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::NoticeDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::reminder_planning::PlannedReminder> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7473,6 +13298,16 @@ impl SseEncode for Vec<u8> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <u8>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::ReadingRoomDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::ReadingRoomDto>::sse_encode(item, serializer);
         }
     }
 }
@@ -7527,6 +13362,36 @@ impl SseEncode for Vec<crate::api::mirror::SectionState> {
     }
 }
 
+impl SseEncode for Vec<crate::api::live::ShuttleRunDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::ShuttleRunDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::ShuttleSectionDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::ShuttleSectionDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::live::ShuttleTableDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::live::ShuttleTableDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::reminder_planning::TaskReminderSeed> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7556,6 +13421,25 @@ impl SseEncode for crate::api::live::LiveScope {
     }
 }
 
+impl SseEncode for crate::api::live::LocalTaskDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.title, serializer);
+        <String>::sse_encode(self.due, serializer);
+        <bool>::sse_encode(self.completed, serializer);
+        <Option<String>>::sse_encode(self.source_assignment_id, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::LocalTasksResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<Vec<crate::api::live::LocalTaskDto>>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
 impl SseEncode for crate::api::live::auth_challenge::LoginChallengeResponse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7575,12 +13459,60 @@ impl SseEncode for crate::api::live::MutationResponse {
     }
 }
 
+impl SseEncode for crate::api::live::NoticeDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.title, serializer);
+        <String>::sse_encode(self.summary, serializer);
+        <String>::sse_encode(self.published_at, serializer);
+        <String>::sse_encode(self.url, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::NoticesResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<Vec<crate::api::live::NoticeDto>>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
 impl SseEncode for Option<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <String>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::AcademicDataDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::AcademicDataDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::AndroidDownloadDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::AndroidDownloadDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::BookPageDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::BookPageDto>::sse_encode(value, serializer);
         }
     }
 }
@@ -7595,12 +13527,182 @@ impl SseEncode for Option<bool> {
     }
 }
 
+impl SseEncode for Option<crate::api::live::BykcCatalogDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::BykcCatalogDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::BykcChosenCoursesDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::BykcChosenCoursesDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::BykcCourseDetailsDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::BykcCourseDetailsDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::BykcSemesterDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::BykcSemesterDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::BykcStatisticsDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::BykcStatisticsDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::CampusActivitiesDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::CampusActivitiesDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<crate::api::live::CareerEventsDto> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <crate::api::live::CareerEventsDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::CgyyActionResultDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::CgyyActionResultDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::CgyyBookingOptionsDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::CgyyBookingOptionsDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::CgyyChallengeDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::CgyyChallengeDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::CgyyDayDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::CgyyDayDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::CgyyLockCodeDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::CgyyLockCodeDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::CgyyOrderDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::CgyyOrderDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::CgyyReviewDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::CgyyReviewDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::CheckinLoadProgressDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::CheckinLoadProgressDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::CountPairDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::CountPairDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::CourseAnnouncementDetailDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::CourseAnnouncementDetailDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::CourseResourcePageDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::CourseResourcePageDto>::sse_encode(value, serializer);
         }
     }
 }
@@ -7625,6 +13727,66 @@ impl SseEncode for Option<crate::api::mirror::FailureCode> {
     }
 }
 
+impl SseEncode for Option<crate::api::live::GraduateCreditMapDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::GraduateCreditMapDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::GraduateCreditMetricsDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::GraduateCreditMetricsDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::GraduateCreditNodeDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::GraduateCreditNodeDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::GraduateProgressDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::GraduateProgressDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::HomeworkUploadReceiptDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::HomeworkUploadReceiptDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::HomeworkWorkspaceDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::HomeworkWorkspaceDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<i32> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7645,6 +13807,36 @@ impl SseEncode for Option<i64> {
     }
 }
 
+impl SseEncode for Option<crate::api::live::LearningCapabilitiesDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::LearningCapabilitiesDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::LibraryLoanPageDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::LibraryLoanPageDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::LibraryStatsDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::LibraryStatsDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<crate::api::live::RouteChoice> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7655,12 +13847,162 @@ impl SseEncode for Option<crate::api::live::RouteChoice> {
     }
 }
 
+impl SseEncode for Option<crate::api::live::ShuttleTimetableDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::ShuttleTimetableDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<u32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <u32>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::live::UpdateSummaryDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::live::UpdateSummaryDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<Vec<String>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <Vec<String>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::live::BookHoldingDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::live::BookHoldingDto>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::live::BykcChosenRecordDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::live::BykcChosenRecordDto>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::live::CgyyOrderDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::live::CgyyOrderDto>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::live::CgyySiteDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::live::CgyySiteDto>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::live::CourseAnnouncementDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::live::CourseAnnouncementDto>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::live::CourseAssessmentDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::live::CourseAssessmentDto>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::live::HomeworkCapabilityEvidenceDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::live::HomeworkCapabilityEvidenceDto>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::live::HomeworkPendingSubmissionDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::live::HomeworkPendingSubmissionDto>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::live::LearningColumnDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::live::LearningColumnDto>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::live::LearningCourseDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::live::LearningCourseDto>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::live::LocalTaskDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::live::LocalTaskDto>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::live::NoticeDto>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::live::NoticeDto>>::sse_encode(value, serializer);
         }
     }
 }
@@ -7694,12 +14036,11 @@ impl SseEncode for crate::api::mirror::QueryDates {
     }
 }
 
-impl SseEncode for crate::api::live::ReadOnlyResponse {
+impl SseEncode for crate::api::live::ReadingRoomDto {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <Option<String>>::sse_encode(self.payload, serializer);
-        <bool>::sse_encode(self.stale, serializer);
-        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+        <String>::sse_encode(self.name, serializer);
+        <i32>::sse_encode(self.people, serializer);
     }
 }
 
@@ -7850,6 +14191,58 @@ impl SseEncode for crate::api::live::SessionState {
     }
 }
 
+impl SseEncode for crate::api::live::ShuttleRunDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.index, serializer);
+        <String>::sse_encode(self.time, serializer);
+        <String>::sse_encode(self.capacity, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::ShuttleSectionDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.label, serializer);
+        <Vec<crate::api::live::ShuttleRunDto>>::sse_encode(self.left, serializer);
+        <Vec<crate::api::live::ShuttleRunDto>>::sse_encode(self.right, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::ShuttleTableDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.left, serializer);
+        <String>::sse_encode(self.right, serializer);
+        <Vec<crate::api::live::ShuttleSectionDto>>::sse_encode(self.sections, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::ShuttleTimetableDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<crate::api::live::ShuttleTableDto>>::sse_encode(self.tables, serializer);
+        <String>::sse_encode(self.source, serializer);
+        <String>::sse_encode(self.live_source, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::ShuttleTimetableResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::ShuttleTimetableDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::SnapshotImportResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<u32>>::sse_encode(self.imported, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
 impl SseEncode for crate::api::reminder_planning::TaskReminderSeed {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7897,6 +14290,27 @@ impl SseEncode for u8 {
 impl SseEncode for () {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {}
+}
+
+impl SseEncode for crate::api::live::UpdateResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<crate::api::live::UpdateSummaryDto>>::sse_encode(self.data, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::UpdateSummaryDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.current, serializer);
+        <Option<String>>::sse_encode(self.latest, serializer);
+        <bool>::sse_encode(self.available, serializer);
+        <Option<String>>::sse_encode(self.page_url, serializer);
+        <Option<String>>::sse_encode(self.notes, serializer);
+        <bool>::sse_encode(self.apk_available, serializer);
+        <Option<crate::api::live::AndroidDownloadDto>>::sse_encode(self.download, serializer);
+    }
 }
 
 #[cfg(not(target_family = "wasm"))]

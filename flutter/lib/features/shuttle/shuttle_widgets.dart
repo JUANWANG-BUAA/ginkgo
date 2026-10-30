@@ -4,7 +4,7 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/features/today/today_presentation.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
-import 'shuttle_models.dart';
+import 'package:ginkgo_mirror/application/shuttle.dart';
 
 /// The capacity the school printed for a run. A missing number stays
 /// "未公布" instead of reading as an empty bus.

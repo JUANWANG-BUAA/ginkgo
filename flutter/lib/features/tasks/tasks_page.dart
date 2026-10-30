@@ -11,22 +11,19 @@ import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/features/tasks/task_editor.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_widgets.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
-import 'package:ginkgo_mirror/infrastructure/service_factory.dart';
 
 enum _TaskAction { edit, delete }
 
 class TasksPage extends StatefulWidget {
   const TasksPage({
     super.key,
-    this.demo = false,
     this.storageRoot,
-    this.service,
+    required this.service,
     this.academicService,
     this.initialTaskId,
   });
-  final bool demo;
   final String? storageRoot;
-  final LocalTaskGateway? service;
+  final LocalTaskGateway service;
   final AcademicGateway? academicService;
   final String? initialTaskId;
   @override
@@ -42,8 +39,7 @@ class _TasksPageState extends State<TasksPage> {
   final targetKey = GlobalKey();
   bool located = false;
   bool completedExpanded = false;
-  LocalTaskGateway get service =>
-      widget.service ?? mirrorServiceFor(demo: widget.demo);
+  LocalTaskGateway get service => widget.service;
 
   @override
   void initState() {
@@ -55,8 +51,7 @@ class _TasksPageState extends State<TasksPage> {
   void didUpdateWidget(covariant TasksPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.service != widget.service ||
-        oldWidget.storageRoot != widget.storageRoot ||
-        oldWidget.demo != widget.demo) {
+        oldWidget.storageRoot != widget.storageRoot) {
       generation++;
       tasks = [];
       busy = false;

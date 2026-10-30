@@ -57,7 +57,7 @@ Future<CheckInResponse> loadCheckinToday({required bool forceRefresh}) =>
     );
 
 /// Observe the current read without issuing any school request.
-Future<ReadOnlyResponse> checkinLoadProgress() =>
+Future<CheckinLoadProgressResponse> checkinLoadProgress() =>
     RustLib.instance.api.crateApiLiveCheckinLoadProgress();
 
 /// Historical day in Asia/Shanghai, yyyy-MM-dd; no sign-in submission.
@@ -145,29 +145,30 @@ Future<HomeworkDetailResponse> loadHomeworkDetail({
   forceRefresh: forceRefresh,
 );
 
-Future<ReadOnlyResponse> loadBykc({required bool forceRefresh}) =>
+Future<BykcCatalogResponse> loadBykc({required bool forceRefresh}) =>
     RustLib.instance.api.crateApiLiveLoadBykc(forceRefresh: forceRefresh);
 
-Future<ReadOnlyResponse> loadDemoBykc() =>
+Future<BykcCatalogResponse> loadDemoBykc() =>
     RustLib.instance.api.crateApiLiveLoadDemoBykc();
 
-Future<ReadOnlyResponse> loadBykcChosen({required bool forceRefresh}) =>
+Future<BykcChosenResponse> loadBykcChosen({required bool forceRefresh}) =>
     RustLib.instance.api.crateApiLiveLoadBykcChosen(forceRefresh: forceRefresh);
 
-Future<ReadOnlyResponse> loadBykcStatistics({required bool forceRefresh}) =>
-    RustLib.instance.api.crateApiLiveLoadBykcStatistics(
-      forceRefresh: forceRefresh,
-    );
+Future<BykcStatisticsResponse> loadBykcStatistics({
+  required bool forceRefresh,
+}) => RustLib.instance.api.crateApiLiveLoadBykcStatistics(
+  forceRefresh: forceRefresh,
+);
 
-Future<ReadOnlyResponse> loadDemoBykcChosen() =>
+Future<BykcChosenResponse> loadDemoBykcChosen() =>
     RustLib.instance.api.crateApiLiveLoadDemoBykcChosen();
 
-Future<ReadOnlyResponse> loadDemoBykcStatistics() =>
+Future<BykcStatisticsResponse> loadDemoBykcStatistics() =>
     RustLib.instance.api.crateApiLiveLoadDemoBykcStatistics();
 
 /// Independently cached sections, allowing Flutter to render the first response
 /// while the remaining academic request is still in flight.
-Future<ReadOnlyResponse> loadGraduatePart({
+Future<GraduateResponse> loadGraduatePart({
   required bool report,
   required bool forceRefresh,
 }) => RustLib.instance.api.crateApiLiveLoadGraduatePart(
@@ -175,14 +176,14 @@ Future<ReadOnlyResponse> loadGraduatePart({
   forceRefresh: forceRefresh,
 );
 
-Future<ReadOnlyResponse> loadDemoGraduateStatus() =>
+Future<GraduateResponse> loadDemoGraduateStatus() =>
     RustLib.instance.api.crateApiLiveLoadDemoGraduateStatus();
 
-Future<ReadOnlyResponse> loadDemoGraduate() =>
+Future<GraduateResponse> loadDemoGraduate() =>
     RustLib.instance.api.crateApiLiveLoadDemoGraduate();
 
 /// Local CRUD only. Account identity comes from Rust, never a Dart-supplied identifier.
-Future<ReadOnlyResponse> editTasks({
+Future<LocalTasksResponse> editTasks({
   required String root,
   required bool demo,
   required String action,
@@ -200,7 +201,7 @@ Future<ReadOnlyResponse> editTasks({
   completed: completed,
 );
 
-Future<ReadOnlyResponse> loadNotices({required bool forceRefresh}) =>
+Future<NoticesResponse> loadNotices({required bool forceRefresh}) =>
     RustLib.instance.api.crateApiLiveLoadNotices(forceRefresh: forceRefresh);
 
 /// Explicit, user-triggered campus-card balance read. No disk cache or bank data.
@@ -211,7 +212,7 @@ Future<CampusCardBalanceResponse> loadCampusCardBalance() =>
 Future<CampusCardBalanceResponse> loadDemoCampusCardBalance() =>
     RustLib.instance.api.crateApiLiveLoadDemoCampusCardBalance();
 
-Future<ReadOnlyResponse> loadDemoNotices() =>
+Future<NoticesResponse> loadDemoNotices() =>
     RustLib.instance.api.crateApiLiveLoadDemoNotices();
 
 /// Public career-calendar events for a school month (YYYY-MM). Read-only.
@@ -224,7 +225,7 @@ Future<CareerEventsResponse> loadCareerEvents({
 );
 
 /// Public campus cultural activities (page 1-based). Read-only.
-Future<ReadOnlyResponse> loadCampusActivities({
+Future<CampusActivitiesResponse> loadCampusActivities({
   required int page,
   required bool forceRefresh,
 }) => RustLib.instance.api.crateApiLiveLoadCampusActivities(
@@ -232,7 +233,7 @@ Future<ReadOnlyResponse> loadCampusActivities({
   forceRefresh: forceRefresh,
 );
 
-Future<ReadOnlyResponse> loadCgyy({
+Future<CgyyLoadResponse> loadCgyy({
   required String kind,
   required PlatformInt64 siteId,
   required String date,
@@ -245,14 +246,13 @@ Future<ReadOnlyResponse> loadCgyy({
 );
 
 /// User-confirmed CGYY commands; payload contains no upstream credentials.
-Future<ReadOnlyResponse> executeCgyy({required String command}) =>
+Future<CgyyActionResultResponse> executeCgyy({required String command}) =>
     RustLib.instance.api.crateApiLiveExecuteCgyy(command: command);
 
-Future<ReadOnlyResponse> loadDemoCgyy({required String kind}) =>
+Future<CgyyLoadResponse> loadDemoCgyy({required String kind}) =>
     RustLib.instance.api.crateApiLiveLoadDemoCgyy(kind: kind);
 
-/// Public OPAC search (read-only, anonymous). Payload is the projected page.
-Future<ReadOnlyResponse> loadLibraryBooks({
+Future<BookPageResponse> loadLibraryBooks({
   required String query,
   required PlatformInt64 page,
   required String sort,
@@ -265,11 +265,11 @@ Future<ReadOnlyResponse> loadLibraryBooks({
 );
 
 /// Published shuttle timetable (official page). Read-only, no ticketing.
-Future<ReadOnlyResponse> loadShuttleTimetable() =>
+Future<ShuttleTimetableResponse> loadShuttleTimetable() =>
     RustLib.instance.api.crateApiLiveLoadShuttleTimetable();
 
 /// Public holdings for one bib id; the nested JSON string never crosses the bridge.
-Future<ReadOnlyResponse> loadLibraryHoldings({required String bibId}) =>
+Future<BookHoldingsResponse> loadLibraryHoldings({required String bibId}) =>
     RustLib.instance.api.crateApiLiveLoadLibraryHoldings(bibId: bibId);
 
 Future<LearningSnapshotResponse> exportLearningSnapshots({
@@ -278,7 +278,7 @@ Future<LearningSnapshotResponse> exportLearningSnapshots({
   expectedAccount: expectedAccount,
 );
 
-Future<ReadOnlyResponse> importLearningSnapshots({
+Future<SnapshotImportResponse> importLearningSnapshots({
   required String expectedAccount,
   required List<int> bytes,
 }) => RustLib.instance.api.crateApiLiveImportLearningSnapshots(
@@ -294,8 +294,7 @@ String libraryLoansPortalUrl() =>
 String? studentServiceUrl({required String id}) =>
     RustLib.instance.api.crateApiLiveStudentServiceUrl(id: id);
 
-/// Explicit private read, scoped to the caller's account. No disk cache or writes.
-Future<ReadOnlyResponse> loadLibraryLoans({
+Future<LibraryLoansResponse> loadLibraryLoans({
   required String expectedAccount,
   required int page,
 }) => RustLib.instance.api.crateApiLiveLoadLibraryLoans(
@@ -303,17 +302,16 @@ Future<ReadOnlyResponse> loadLibraryLoans({
   page: page,
 );
 
-/// Public counts only. No school identity or library token is serialized.
-Future<ReadOnlyResponse> loadLibraryStats({required bool forceRefresh}) =>
+Future<LibraryStatsResponse> loadLibraryStats({required bool forceRefresh}) =>
     RustLib.instance.api.crateApiLiveLoadLibraryStats(
       forceRefresh: forceRefresh,
     );
 
-Future<ReadOnlyResponse> loadDemoLibraryStats() =>
+Future<LibraryStatsResponse> loadDemoLibraryStats() =>
     RustLib.instance.api.crateApiLiveLoadDemoLibraryStats();
 
 /// Deliberately independent from login, school routes and account caches.
-Future<ReadOnlyResponse> checkAndroidUpdate({required String current}) =>
+Future<UpdateResponse> checkAndroidUpdate({required String current}) =>
     RustLib.instance.api.crateApiLiveCheckAndroidUpdate(current: current);
 
 Future<MutationResponse> submitCheckin({required String courseId}) =>
@@ -338,7 +336,7 @@ Future<MutationResponse> performLibraryAction({
 );
 
 /// Homework business JSON only; raw SPOC payloads never leave upstream.
-Future<ReadOnlyResponse> homeworkFileWorkspace({
+Future<HomeworkFileWorkspaceResponse> homeworkFileWorkspace({
   required String expectedAccount,
   required String assignmentId,
 }) => RustLib.instance.api.crateApiLiveHomeworkFileWorkspace(
@@ -346,7 +344,7 @@ Future<ReadOnlyResponse> homeworkFileWorkspace({
   assignmentId: assignmentId,
 );
 
-Future<ReadOnlyResponse> uploadHomeworkFile({
+Future<HomeworkUploadResponse> uploadHomeworkFile({
   required String expectedAccount,
   required String assignmentId,
   required String name,
@@ -386,8 +384,7 @@ Future<HomeworkFileDownloadResponse> downloadHomeworkFile({
   attachmentId: attachmentId,
 );
 
-/// Learning queries return business DTO JSON, never school response envelopes.
-Future<ReadOnlyResponse> learningCourses({
+Future<LearningCoursesResponse> learningCourses({
   required String expectedAccount,
   required bool force,
 }) => RustLib.instance.api.crateApiLiveLearningCourses(
@@ -395,7 +392,7 @@ Future<ReadOnlyResponse> learningCourses({
   force: force,
 );
 
-Future<ReadOnlyResponse> courseAnnouncements({
+Future<CourseAnnouncementsResponse> courseAnnouncements({
   required String expectedAccount,
   required String course,
   required bool force,
@@ -405,7 +402,7 @@ Future<ReadOnlyResponse> courseAnnouncements({
   force: force,
 );
 
-Future<ReadOnlyResponse> courseAnnouncementDetail({
+Future<CourseAnnouncementDetailResponse> courseAnnouncementDetail({
   required String expectedAccount,
   required String course,
   required String id,
@@ -415,7 +412,7 @@ Future<ReadOnlyResponse> courseAnnouncementDetail({
   id: id,
 );
 
-Future<ReadOnlyResponse> courseResources({
+Future<CourseResourcePageResponse> courseResources({
   required String expectedAccount,
   required String course,
   String? folder,
@@ -429,7 +426,7 @@ Future<ReadOnlyResponse> courseResources({
   force: force,
 );
 
-Future<ReadOnlyResponse> courseAssessments({
+Future<CourseAssessmentsResponse> courseAssessments({
   required String expectedAccount,
   required String course,
   required bool force,
@@ -466,7 +463,7 @@ Future<HomeworkFileDownloadResponse> courseAnnouncementAttachment({
 );
 
 /// Explicit module context; all identifiers are revalidated by the source.
-Future<ReadOnlyResponse> courseLearningColumns({
+Future<LearningColumnsResponse> courseLearningColumns({
   required String expectedAccount,
   required String course,
   required bool force,
@@ -476,7 +473,7 @@ Future<ReadOnlyResponse> courseLearningColumns({
   force: force,
 );
 
-Future<ReadOnlyResponse> courseLearningCapabilities({
+Future<LearningCapabilitiesResponse> courseLearningCapabilities({
   required String expectedAccount,
   required String course,
 }) => RustLib.instance.api.crateApiLiveCourseLearningCapabilities(
@@ -484,7 +481,7 @@ Future<ReadOnlyResponse> courseLearningCapabilities({
   course: course,
 );
 
-Future<ReadOnlyResponse> courseAnnouncementsIn({
+Future<CourseAnnouncementsResponse> courseAnnouncementsIn({
   required String expectedAccount,
   required String course,
   required String column,
@@ -496,7 +493,7 @@ Future<ReadOnlyResponse> courseAnnouncementsIn({
   force: force,
 );
 
-Future<ReadOnlyResponse> courseAssessmentsIn({
+Future<CourseAssessmentsResponse> courseAssessmentsIn({
   required String expectedAccount,
   required String course,
   required String column,
@@ -508,7 +505,7 @@ Future<ReadOnlyResponse> courseAssessmentsIn({
   force: force,
 );
 
-Future<ReadOnlyResponse> courseAnnouncementDetailIn({
+Future<CourseAnnouncementDetailResponse> courseAnnouncementDetailIn({
   required String expectedAccount,
   required String course,
   required String column,
@@ -534,7 +531,7 @@ Future<HomeworkFileDownloadResponse> courseAnnouncementAttachmentIn({
   file: file,
 );
 
-Future<ReadOnlyResponse> courseResourcesAt({
+Future<CourseResourcePageResponse> courseResourcesAt({
   required String expectedAccount,
   required String course,
   required List<String> path,
@@ -562,7 +559,7 @@ Future<HomeworkFileDownloadResponse> courseResourceDownloadAt({
   id: id,
 );
 
-Future<ReadOnlyResponse> loadGraduateCreditMap({
+Future<GraduateCreditMapResponse> loadGraduateCreditMap({
   required String expectedAccount,
   required bool forceRefresh,
 }) => RustLib.instance.api.crateApiLiveLoadGraduateCreditMap(
@@ -570,7 +567,7 @@ Future<ReadOnlyResponse> loadGraduateCreditMap({
   forceRefresh: forceRefresh,
 );
 
-Future<ReadOnlyResponse> configureHomeworkRecovery({
+Future<HomeworkRecoveryResponse> configureHomeworkRecovery({
   required String expectedAccount,
   required String storageRoot,
 }) => RustLib.instance.api.crateApiLiveConfigureHomeworkRecovery(
@@ -578,7 +575,7 @@ Future<ReadOnlyResponse> configureHomeworkRecovery({
   storageRoot: storageRoot,
 );
 
-Future<ReadOnlyResponse> pendingHomeworkSubmissions({
+Future<HomeworkPendingResponse> pendingHomeworkSubmissions({
   required String expectedAccount,
   String? assignmentId,
 }) => RustLib.instance.api.crateApiLivePendingHomeworkSubmissions(
@@ -586,13 +583,646 @@ Future<ReadOnlyResponse> pendingHomeworkSubmissions({
   assignmentId: assignmentId,
 );
 
-Future<ReadOnlyResponse> homeworkCapabilities({
+Future<HomeworkCapabilitiesResponse> homeworkCapabilities({
   required String expectedAccount,
   required String assignmentId,
 }) => RustLib.instance.api.crateApiLiveHomeworkCapabilities(
   expectedAccount: expectedAccount,
   assignmentId: assignmentId,
 );
+
+class AcademicDataDto {
+  final List<GraduateSectionDto> sections;
+  final String? notice;
+
+  const AcademicDataDto({required this.sections, this.notice});
+
+  @override
+  int get hashCode => sections.hashCode ^ notice.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AcademicDataDto &&
+          runtimeType == other.runtimeType &&
+          sections == other.sections &&
+          notice == other.notice;
+}
+
+class AndroidDownloadDto {
+  final String version;
+  final String name;
+  final String url;
+  final String apiUrl;
+
+  /// Upstream only ever publishes a verified asset inside
+  /// `1..=268_435_456`, so widening to a signed 64-bit count is lossless.
+  final PlatformInt64 size;
+  final String sha256;
+
+  const AndroidDownloadDto({
+    required this.version,
+    required this.name,
+    required this.url,
+    required this.apiUrl,
+    required this.size,
+    required this.sha256,
+  });
+
+  @override
+  int get hashCode =>
+      version.hashCode ^
+      name.hashCode ^
+      url.hashCode ^
+      apiUrl.hashCode ^
+      size.hashCode ^
+      sha256.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AndroidDownloadDto &&
+          runtimeType == other.runtimeType &&
+          version == other.version &&
+          name == other.name &&
+          url == other.url &&
+          apiUrl == other.apiUrl &&
+          size == other.size &&
+          sha256 == other.sha256;
+}
+
+/// Public OPAC search (read-only, anonymous). Payload is the projected page.
+class BookHitDto {
+  final String bibId;
+  final String title;
+  final String author;
+  final String publisher;
+  final String year;
+  final String callno;
+  final String isbn;
+
+  /// Reported copy availability, or `None` when the source stays silent.
+  final PlatformInt64? itemsAvailable;
+  final PlatformInt64? itemCount;
+
+  const BookHitDto({
+    required this.bibId,
+    required this.title,
+    required this.author,
+    required this.publisher,
+    required this.year,
+    required this.callno,
+    required this.isbn,
+    this.itemsAvailable,
+    this.itemCount,
+  });
+
+  @override
+  int get hashCode =>
+      bibId.hashCode ^
+      title.hashCode ^
+      author.hashCode ^
+      publisher.hashCode ^
+      year.hashCode ^
+      callno.hashCode ^
+      isbn.hashCode ^
+      itemsAvailable.hashCode ^
+      itemCount.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BookHitDto &&
+          runtimeType == other.runtimeType &&
+          bibId == other.bibId &&
+          title == other.title &&
+          author == other.author &&
+          publisher == other.publisher &&
+          year == other.year &&
+          callno == other.callno &&
+          isbn == other.isbn &&
+          itemsAvailable == other.itemsAvailable &&
+          itemCount == other.itemCount;
+}
+
+class BookHoldingDto {
+  final String callNo;
+  final String barCode;
+  final String library_;
+  final String location;
+
+  /// The school's own status text; never a local available/unavailable flag.
+  final String status;
+
+  const BookHoldingDto({
+    required this.callNo,
+    required this.barCode,
+    required this.library_,
+    required this.location,
+    required this.status,
+  });
+
+  @override
+  int get hashCode =>
+      callNo.hashCode ^
+      barCode.hashCode ^
+      library_.hashCode ^
+      location.hashCode ^
+      status.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BookHoldingDto &&
+          runtimeType == other.runtimeType &&
+          callNo == other.callNo &&
+          barCode == other.barCode &&
+          library_ == other.library_ &&
+          location == other.location &&
+          status == other.status;
+}
+
+class BookHoldingsResponse {
+  final List<BookHoldingDto>? data;
+  final FailureCode? failure;
+
+  const BookHoldingsResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BookHoldingsResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class BookPageDto {
+  final PlatformInt64 page;
+  final PlatformInt64 pageSize;
+  final PlatformInt64 total;
+  final PlatformInt64 actualTotal;
+  final List<BookHitDto> items;
+
+  /// True when the school reported more matches than this page returned.
+  final bool hasMore;
+
+  const BookPageDto({
+    required this.page,
+    required this.pageSize,
+    required this.total,
+    required this.actualTotal,
+    required this.items,
+    required this.hasMore,
+  });
+
+  @override
+  int get hashCode =>
+      page.hashCode ^
+      pageSize.hashCode ^
+      total.hashCode ^
+      actualTotal.hashCode ^
+      items.hashCode ^
+      hasMore.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BookPageDto &&
+          runtimeType == other.runtimeType &&
+          page == other.page &&
+          pageSize == other.pageSize &&
+          total == other.total &&
+          actualTotal == other.actualTotal &&
+          items == other.items &&
+          hasMore == other.hasMore;
+}
+
+class BookPageResponse {
+  final BookPageDto? data;
+  final FailureCode? failure;
+
+  const BookPageResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BookPageResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class BykcCatalogDto {
+  final List<BykcSemesterDto> terms;
+  final List<BykcCourseDto> courses;
+
+  /// Chosen by the shared Beijing semester policy, not by the device clock.
+  final BykcSemesterDto? currentTerm;
+
+  const BykcCatalogDto({
+    required this.terms,
+    required this.courses,
+    this.currentTerm,
+  });
+
+  @override
+  int get hashCode => terms.hashCode ^ courses.hashCode ^ currentTerm.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BykcCatalogDto &&
+          runtimeType == other.runtimeType &&
+          terms == other.terms &&
+          courses == other.courses &&
+          currentTerm == other.currentTerm;
+}
+
+class BykcCatalogResponse {
+  final BykcCatalogDto? data;
+  final FailureCode? failure;
+
+  const BykcCatalogResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BykcCatalogResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class BykcChosenCoursesDto {
+  final BykcSemesterDto? term;
+
+  /// `None` means no valid semester range was available, not zero selections.
+  final List<BykcChosenRecordDto>? courses;
+
+  const BykcChosenCoursesDto({this.term, this.courses});
+
+  @override
+  int get hashCode => term.hashCode ^ courses.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BykcChosenCoursesDto &&
+          runtimeType == other.runtimeType &&
+          term == other.term &&
+          courses == other.courses;
+}
+
+class BykcChosenRecordDto {
+  final PlatformInt64 id;
+  final BykcCourseDto course;
+  final String? selectedAt;
+  final PlatformInt64? checkin;
+  final PlatformInt64? passed;
+  final PlatformInt64? score;
+
+  const BykcChosenRecordDto({
+    required this.id,
+    required this.course,
+    this.selectedAt,
+    this.checkin,
+    this.passed,
+    this.score,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      course.hashCode ^
+      selectedAt.hashCode ^
+      checkin.hashCode ^
+      passed.hashCode ^
+      score.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BykcChosenRecordDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          course == other.course &&
+          selectedAt == other.selectedAt &&
+          checkin == other.checkin &&
+          passed == other.passed &&
+          score == other.score;
+}
+
+class BykcChosenResponse {
+  final BykcChosenCoursesDto? data;
+  final FailureCode? failure;
+
+  const BykcChosenResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BykcChosenResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class BykcCourseDetailsDto {
+  final String? start;
+  final String? end;
+  final String? selectStart;
+  final String? selectEnd;
+  final String? cancelEnd;
+  final PlatformInt64? capacity;
+  final PlatformInt64? enrolled;
+  final List<String> campuses;
+  final String? summary;
+  final bool? selected;
+  final bool? hasSignConfig;
+
+  const BykcCourseDetailsDto({
+    this.start,
+    this.end,
+    this.selectStart,
+    this.selectEnd,
+    this.cancelEnd,
+    this.capacity,
+    this.enrolled,
+    required this.campuses,
+    this.summary,
+    this.selected,
+    this.hasSignConfig,
+  });
+
+  @override
+  int get hashCode =>
+      start.hashCode ^
+      end.hashCode ^
+      selectStart.hashCode ^
+      selectEnd.hashCode ^
+      cancelEnd.hashCode ^
+      capacity.hashCode ^
+      enrolled.hashCode ^
+      campuses.hashCode ^
+      summary.hashCode ^
+      selected.hashCode ^
+      hasSignConfig.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BykcCourseDetailsDto &&
+          runtimeType == other.runtimeType &&
+          start == other.start &&
+          end == other.end &&
+          selectStart == other.selectStart &&
+          selectEnd == other.selectEnd &&
+          cancelEnd == other.cancelEnd &&
+          capacity == other.capacity &&
+          enrolled == other.enrolled &&
+          campuses == other.campuses &&
+          summary == other.summary &&
+          selected == other.selected &&
+          hasSignConfig == other.hasSignConfig;
+}
+
+class BykcCourseDto {
+  final PlatformInt64 id;
+  final String name;
+  final String? teacher;
+  final String? position;
+  final String? category;
+  final String? subcategory;
+  final BykcCourseDetailsDto? details;
+
+  const BykcCourseDto({
+    required this.id,
+    required this.name,
+    this.teacher,
+    this.position,
+    this.category,
+    this.subcategory,
+    this.details,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      name.hashCode ^
+      teacher.hashCode ^
+      position.hashCode ^
+      category.hashCode ^
+      subcategory.hashCode ^
+      details.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BykcCourseDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          teacher == other.teacher &&
+          position == other.position &&
+          category == other.category &&
+          subcategory == other.subcategory &&
+          details == other.details;
+}
+
+/// Sanitized domain JSON, never raw upstream data, credentials or tokens.
+class BykcSemesterDto {
+  final String id;
+  final String name;
+  final String? start;
+  final String? end;
+
+  const BykcSemesterDto({
+    required this.id,
+    required this.name,
+    this.start,
+    this.end,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^ name.hashCode ^ start.hashCode ^ end.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BykcSemesterDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          start == other.start &&
+          end == other.end;
+}
+
+class BykcStatisticsDto {
+  final PlatformInt64? validCourseCount;
+  final List<BykcStatisticsEntryDto> entries;
+
+  const BykcStatisticsDto({this.validCourseCount, required this.entries});
+
+  @override
+  int get hashCode => validCourseCount.hashCode ^ entries.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BykcStatisticsDto &&
+          runtimeType == other.runtimeType &&
+          validCourseCount == other.validCourseCount &&
+          entries == other.entries;
+}
+
+class BykcStatisticsEntryDto {
+  final String category;
+  final String subcategory;
+  final PlatformInt64 required_;
+  final PlatformInt64 completed;
+
+  const BykcStatisticsEntryDto({
+    required this.category,
+    required this.subcategory,
+    required this.required_,
+    required this.completed,
+  });
+
+  @override
+  int get hashCode =>
+      category.hashCode ^
+      subcategory.hashCode ^
+      required_.hashCode ^
+      completed.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BykcStatisticsEntryDto &&
+          runtimeType == other.runtimeType &&
+          category == other.category &&
+          subcategory == other.subcategory &&
+          required_ == other.required_ &&
+          completed == other.completed;
+}
+
+class BykcStatisticsResponse {
+  final BykcStatisticsDto? data;
+  final FailureCode? failure;
+
+  const BykcStatisticsResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BykcStatisticsResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class CampusActivitiesDto {
+  final int page;
+  final List<CampusActivityDto> activities;
+  final String fetchedAt;
+
+  const CampusActivitiesDto({
+    required this.page,
+    required this.activities,
+    required this.fetchedAt,
+  });
+
+  @override
+  int get hashCode => page.hashCode ^ activities.hashCode ^ fetchedAt.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CampusActivitiesDto &&
+          runtimeType == other.runtimeType &&
+          page == other.page &&
+          activities == other.activities &&
+          fetchedAt == other.fetchedAt;
+}
+
+/// Published and displayed dates stay separate fields; neither is a deadline.
+class CampusActivitiesResponse {
+  final CampusActivitiesDto? data;
+  final FailureCode? failure;
+
+  const CampusActivitiesResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CampusActivitiesResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class CampusActivityDto {
+  final String id;
+  final String title;
+  final String category;
+  final String publishedAt;
+  final String activityTime;
+  final String place;
+  final String url;
+
+  const CampusActivityDto({
+    required this.id,
+    required this.title,
+    required this.category,
+    required this.publishedAt,
+    required this.activityTime,
+    required this.place,
+    required this.url,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      title.hashCode ^
+      category.hashCode ^
+      publishedAt.hashCode ^
+      activityTime.hashCode ^
+      place.hashCode ^
+      url.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CampusActivityDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          category == other.category &&
+          publishedAt == other.publishedAt &&
+          activityTime == other.activityTime &&
+          place == other.place &&
+          url == other.url;
+}
 
 class CampusCardBalanceResponse {
   final PlatformInt64? balanceMinor;
@@ -719,6 +1349,707 @@ class CareerEventsResponse {
           failure == other.failure;
 }
 
+class CgyyActionResultDto {
+  final String state;
+  final String message;
+  final CgyyBookingOptionsDto? options;
+  final CgyyChallengeDto? challenge;
+  final CgyyReviewDto? review;
+
+  const CgyyActionResultDto({
+    required this.state,
+    required this.message,
+    this.options,
+    this.challenge,
+    this.review,
+  });
+
+  @override
+  int get hashCode =>
+      state.hashCode ^
+      message.hashCode ^
+      options.hashCode ^
+      challenge.hashCode ^
+      review.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CgyyActionResultDto &&
+          runtimeType == other.runtimeType &&
+          state == other.state &&
+          message == other.message &&
+          options == other.options &&
+          challenge == other.challenge &&
+          review == other.review;
+}
+
+class CgyyActionResultResponse {
+  final CgyyActionResultDto? data;
+  final FailureCode? failure;
+
+  const CgyyActionResultResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CgyyActionResultResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class CgyyBookingChoiceDto {
+  final PlatformInt64 spaceId;
+  final String spaceName;
+  final PlatformInt64 timeId;
+  final String time;
+
+  const CgyyBookingChoiceDto({
+    required this.spaceId,
+    required this.spaceName,
+    required this.timeId,
+    required this.time,
+  });
+
+  @override
+  int get hashCode =>
+      spaceId.hashCode ^ spaceName.hashCode ^ timeId.hashCode ^ time.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CgyyBookingChoiceDto &&
+          runtimeType == other.runtimeType &&
+          spaceId == other.spaceId &&
+          spaceName == other.spaceName &&
+          timeId == other.timeId &&
+          time == other.time;
+}
+
+class CgyyBookingOptionsDto {
+  final List<CgyyBookingChoiceDto> choices;
+  final List<CgyyPurposeDto> purposes;
+  final bool usesFallbackPurposes;
+
+  const CgyyBookingOptionsDto({
+    required this.choices,
+    required this.purposes,
+    required this.usesFallbackPurposes,
+  });
+
+  @override
+  int get hashCode =>
+      choices.hashCode ^ purposes.hashCode ^ usesFallbackPurposes.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CgyyBookingOptionsDto &&
+          runtimeType == other.runtimeType &&
+          choices == other.choices &&
+          purposes == other.purposes &&
+          usesFallbackPurposes == other.usesFallbackPurposes;
+}
+
+class CgyyChallengeDto {
+  final String id;
+  final String background;
+  final String jigsaw;
+
+  const CgyyChallengeDto({
+    required this.id,
+    required this.background,
+    required this.jigsaw,
+  });
+
+  @override
+  int get hashCode => id.hashCode ^ background.hashCode ^ jigsaw.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CgyyChallengeDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          background == other.background &&
+          jigsaw == other.jigsaw;
+}
+
+class CgyyDayDto {
+  final PlatformInt64 siteId;
+  final String date;
+  final List<String> dates;
+  final List<CgyySpaceDto> spaces;
+
+  const CgyyDayDto({
+    required this.siteId,
+    required this.date,
+    required this.dates,
+    required this.spaces,
+  });
+
+  @override
+  int get hashCode =>
+      siteId.hashCode ^ date.hashCode ^ dates.hashCode ^ spaces.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CgyyDayDto &&
+          runtimeType == other.runtimeType &&
+          siteId == other.siteId &&
+          date == other.date &&
+          dates == other.dates &&
+          spaces == other.spaces;
+}
+
+/// Exactly one shape field is `Some`; the rest stay `None` so Dart can switch
+/// on the shape without re-parsing a payload string.
+class CgyyLoadResponse {
+  final List<CgyySiteDto>? venues;
+  final CgyyDayDto? day;
+  final List<CgyyOrderDto>? orders;
+  final CgyyOrderDto? order;
+  final CgyyLockCodeDto? lockCode;
+  final FailureCode? failure;
+
+  const CgyyLoadResponse({
+    this.venues,
+    this.day,
+    this.orders,
+    this.order,
+    this.lockCode,
+    this.failure,
+  });
+
+  @override
+  int get hashCode =>
+      venues.hashCode ^
+      day.hashCode ^
+      orders.hashCode ^
+      order.hashCode ^
+      lockCode.hashCode ^
+      failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CgyyLoadResponse &&
+          runtimeType == other.runtimeType &&
+          venues == other.venues &&
+          day == other.day &&
+          orders == other.orders &&
+          order == other.order &&
+          lockCode == other.lockCode &&
+          failure == other.failure;
+}
+
+class CgyyLockCodeDto {
+  final String? qrCode;
+  final String? dueDate;
+  final String? tradeNo;
+  final String? venueName;
+  final String? siteName;
+  final String? spaceName;
+  final String? orderName;
+  final String? reservationDate;
+  final String? reservationDateDetail;
+  final String? reservationStartDate;
+  final String? reservationEndDate;
+
+  const CgyyLockCodeDto({
+    this.qrCode,
+    this.dueDate,
+    this.tradeNo,
+    this.venueName,
+    this.siteName,
+    this.spaceName,
+    this.orderName,
+    this.reservationDate,
+    this.reservationDateDetail,
+    this.reservationStartDate,
+    this.reservationEndDate,
+  });
+
+  @override
+  int get hashCode =>
+      qrCode.hashCode ^
+      dueDate.hashCode ^
+      tradeNo.hashCode ^
+      venueName.hashCode ^
+      siteName.hashCode ^
+      spaceName.hashCode ^
+      orderName.hashCode ^
+      reservationDate.hashCode ^
+      reservationDateDetail.hashCode ^
+      reservationStartDate.hashCode ^
+      reservationEndDate.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CgyyLockCodeDto &&
+          runtimeType == other.runtimeType &&
+          qrCode == other.qrCode &&
+          dueDate == other.dueDate &&
+          tradeNo == other.tradeNo &&
+          venueName == other.venueName &&
+          siteName == other.siteName &&
+          spaceName == other.spaceName &&
+          orderName == other.orderName &&
+          reservationDate == other.reservationDate &&
+          reservationDateDetail == other.reservationDateDetail &&
+          reservationStartDate == other.reservationStartDate &&
+          reservationEndDate == other.reservationEndDate;
+}
+
+class CgyyOrderDto {
+  final PlatformInt64? orderStatus;
+  final PlatformInt64? checkStatus;
+  final bool canCancel;
+  final PlatformInt64 id;
+  final String place;
+  final String date;
+  final String time;
+  final String status;
+
+  const CgyyOrderDto({
+    this.orderStatus,
+    this.checkStatus,
+    required this.canCancel,
+    required this.id,
+    required this.place,
+    required this.date,
+    required this.time,
+    required this.status,
+  });
+
+  @override
+  int get hashCode =>
+      orderStatus.hashCode ^
+      checkStatus.hashCode ^
+      canCancel.hashCode ^
+      id.hashCode ^
+      place.hashCode ^
+      date.hashCode ^
+      time.hashCode ^
+      status.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CgyyOrderDto &&
+          runtimeType == other.runtimeType &&
+          orderStatus == other.orderStatus &&
+          checkStatus == other.checkStatus &&
+          canCancel == other.canCancel &&
+          id == other.id &&
+          place == other.place &&
+          date == other.date &&
+          time == other.time &&
+          status == other.status;
+}
+
+class CgyyPurposeDto {
+  final PlatformInt64 id;
+  final String name;
+
+  const CgyyPurposeDto({required this.id, required this.name});
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CgyyPurposeDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name;
+}
+
+class CgyyReviewDto {
+  final String id;
+  final List<CgyyOrderDto> orders;
+
+  const CgyyReviewDto({required this.id, required this.orders});
+
+  @override
+  int get hashCode => id.hashCode ^ orders.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CgyyReviewDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          orders == other.orders;
+}
+
+class CgyySiteDto {
+  final PlatformInt64 id;
+  final String name;
+  final String venue;
+  final String campus;
+  final PlatformInt64? seats;
+  final String openStart;
+  final String openEnd;
+
+  const CgyySiteDto({
+    required this.id,
+    required this.name,
+    required this.venue,
+    required this.campus,
+    this.seats,
+    required this.openStart,
+    required this.openEnd,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      name.hashCode ^
+      venue.hashCode ^
+      campus.hashCode ^
+      seats.hashCode ^
+      openStart.hashCode ^
+      openEnd.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CgyySiteDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          venue == other.venue &&
+          campus == other.campus &&
+          seats == other.seats &&
+          openStart == other.openStart &&
+          openEnd == other.openEnd;
+}
+
+class CgyySlotDto {
+  final String time;
+  final String status;
+
+  const CgyySlotDto({required this.time, required this.status});
+
+  @override
+  int get hashCode => time.hashCode ^ status.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CgyySlotDto &&
+          runtimeType == other.runtimeType &&
+          time == other.time &&
+          status == other.status;
+}
+
+class CgyySpaceDto {
+  final String name;
+  final List<CgyySlotDto> slots;
+
+  const CgyySpaceDto({required this.name, required this.slots});
+
+  @override
+  int get hashCode => name.hashCode ^ slots.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CgyySpaceDto &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          slots == other.slots;
+}
+
+class CheckinLoadProgressDto {
+  final String phase;
+  final PlatformInt64? elapsedMs;
+
+  const CheckinLoadProgressDto({required this.phase, this.elapsedMs});
+
+  @override
+  int get hashCode => phase.hashCode ^ elapsedMs.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CheckinLoadProgressDto &&
+          runtimeType == other.runtimeType &&
+          phase == other.phase &&
+          elapsedMs == other.elapsedMs;
+}
+
+class CheckinLoadProgressResponse {
+  final CheckinLoadProgressDto? data;
+  final FailureCode? failure;
+
+  const CheckinLoadProgressResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CheckinLoadProgressResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+/// Public counts only. No school identity or library token is serialized.
+class CountPairDto {
+  final int available;
+  final int total;
+
+  const CountPairDto({required this.available, required this.total});
+
+  @override
+  int get hashCode => available.hashCode ^ total.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CountPairDto &&
+          runtimeType == other.runtimeType &&
+          available == other.available &&
+          total == other.total;
+}
+
+class CourseAnnouncementDetailDto {
+  final String id;
+  final String title;
+  final String? content;
+  final List<LearningAttachmentDto> attachments;
+
+  const CourseAnnouncementDetailDto({
+    required this.id,
+    required this.title,
+    this.content,
+    required this.attachments,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^ title.hashCode ^ content.hashCode ^ attachments.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CourseAnnouncementDetailDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          content == other.content &&
+          attachments == other.attachments;
+}
+
+class CourseAnnouncementDetailResponse {
+  final CourseAnnouncementDetailDto? data;
+  final FailureCode? failure;
+
+  const CourseAnnouncementDetailResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CourseAnnouncementDetailResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class CourseAnnouncementDto {
+  final String id;
+  final String title;
+  final String? publishedAt;
+
+  const CourseAnnouncementDto({
+    required this.id,
+    required this.title,
+    this.publishedAt,
+  });
+
+  @override
+  int get hashCode => id.hashCode ^ title.hashCode ^ publishedAt.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CourseAnnouncementDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          publishedAt == other.publishedAt;
+}
+
+class CourseAnnouncementsResponse {
+  final List<CourseAnnouncementDto>? data;
+  final FailureCode? failure;
+
+  const CourseAnnouncementsResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CourseAnnouncementsResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class CourseAssessmentDto {
+  final String id;
+  final String title;
+  final String? startsAt;
+  final String? dueAt;
+  final String? score;
+  final String sourceUrl;
+
+  const CourseAssessmentDto({
+    required this.id,
+    required this.title,
+    this.startsAt,
+    this.dueAt,
+    this.score,
+    required this.sourceUrl,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      title.hashCode ^
+      startsAt.hashCode ^
+      dueAt.hashCode ^
+      score.hashCode ^
+      sourceUrl.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CourseAssessmentDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          startsAt == other.startsAt &&
+          dueAt == other.dueAt &&
+          score == other.score &&
+          sourceUrl == other.sourceUrl;
+}
+
+class CourseAssessmentsResponse {
+  final List<CourseAssessmentDto>? data;
+  final FailureCode? failure;
+
+  const CourseAssessmentsResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CourseAssessmentsResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class CourseResourceDto {
+  final String id;
+  final String name;
+  final bool folder;
+  final bool downloadable;
+  final String? updatedAt;
+  final String? extension_;
+
+  const CourseResourceDto({
+    required this.id,
+    required this.name,
+    required this.folder,
+    required this.downloadable,
+    this.updatedAt,
+    this.extension_,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      name.hashCode ^
+      folder.hashCode ^
+      downloadable.hashCode ^
+      updatedAt.hashCode ^
+      extension_.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CourseResourceDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          folder == other.folder &&
+          downloadable == other.downloadable &&
+          updatedAt == other.updatedAt &&
+          extension_ == other.extension_;
+}
+
+class CourseResourcePageDto {
+  final List<CourseResourceDto> items;
+  final int page;
+  final bool hasNext;
+
+  const CourseResourcePageDto({
+    required this.items,
+    required this.page,
+    required this.hasNext,
+  });
+
+  @override
+  int get hashCode => items.hashCode ^ page.hashCode ^ hasNext.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CourseResourcePageDto &&
+          runtimeType == other.runtimeType &&
+          items == other.items &&
+          page == other.page &&
+          hasNext == other.hasNext;
+}
+
+class CourseResourcePageResponse {
+  final CourseResourcePageDto? data;
+  final FailureCode? failure;
+
+  const CourseResourcePageResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CourseResourcePageResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
 class GradeTermsResponse {
   final List<ScheduleTerm> terms;
   final FailureCode? failure;
@@ -742,6 +2073,340 @@ class GradeTermsResponse {
           terms == other.terms &&
           failure == other.failure &&
           failureDetail == other.failureDetail;
+}
+
+class GraduateCreditMapDto {
+  final GraduateCreditNodeDto? summary;
+  final List<GraduateCreditNodeDto> nodes;
+  final String? notice;
+
+  const GraduateCreditMapDto({this.summary, required this.nodes, this.notice});
+
+  @override
+  int get hashCode => summary.hashCode ^ nodes.hashCode ^ notice.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GraduateCreditMapDto &&
+          runtimeType == other.runtimeType &&
+          summary == other.summary &&
+          nodes == other.nodes &&
+          notice == other.notice;
+}
+
+class GraduateCreditMapResponse {
+  final GraduateCreditMapDto? data;
+  final FailureCode? failure;
+
+  const GraduateCreditMapResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GraduateCreditMapResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class GraduateCreditMetricsDto {
+  final GraduateCreditStateDto state;
+  final double? required_;
+  final double? earned;
+  final double? pending;
+
+  /// Derived only from this node's official requirement and earned credits.
+  final double? remaining;
+  final double? ratio;
+
+  const GraduateCreditMetricsDto({
+    required this.state,
+    this.required_,
+    this.earned,
+    this.pending,
+    this.remaining,
+    this.ratio,
+  });
+
+  @override
+  int get hashCode =>
+      state.hashCode ^
+      required_.hashCode ^
+      earned.hashCode ^
+      pending.hashCode ^
+      remaining.hashCode ^
+      ratio.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GraduateCreditMetricsDto &&
+          runtimeType == other.runtimeType &&
+          state == other.state &&
+          required_ == other.required_ &&
+          earned == other.earned &&
+          pending == other.pending &&
+          remaining == other.remaining &&
+          ratio == other.ratio;
+}
+
+class GraduateCreditNodeDto {
+  /// Source ordinal, not an inferred category/group relationship.
+  final int sourceIndex;
+  final String title;
+  final GraduateCreditMetricsDto? progress;
+  final List<GraduateCreditRowDto> rows;
+
+  const GraduateCreditNodeDto({
+    required this.sourceIndex,
+    required this.title,
+    this.progress,
+    required this.rows,
+  });
+
+  @override
+  int get hashCode =>
+      sourceIndex.hashCode ^ title.hashCode ^ progress.hashCode ^ rows.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GraduateCreditNodeDto &&
+          runtimeType == other.runtimeType &&
+          sourceIndex == other.sourceIndex &&
+          title == other.title &&
+          progress == other.progress &&
+          rows == other.rows;
+}
+
+class GraduateCreditRowDto {
+  final String title;
+  final String detail;
+  final bool isCourse;
+  final bool? completed;
+  final double? credit;
+  final String? semester;
+
+  const GraduateCreditRowDto({
+    required this.title,
+    required this.detail,
+    required this.isCourse,
+    this.completed,
+    this.credit,
+    this.semester,
+  });
+
+  @override
+  int get hashCode =>
+      title.hashCode ^
+      detail.hashCode ^
+      isCourse.hashCode ^
+      completed.hashCode ^
+      credit.hashCode ^
+      semester.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GraduateCreditRowDto &&
+          runtimeType == other.runtimeType &&
+          title == other.title &&
+          detail == other.detail &&
+          isCourse == other.isCourse &&
+          completed == other.completed &&
+          credit == other.credit &&
+          semester == other.semester;
+}
+
+enum GraduateCreditStateDto { unknown, noMinimum, incomplete, requirementMet }
+
+class GraduateProgressDto {
+  final double? required_;
+  final double? earned;
+  final double? pending;
+
+  const GraduateProgressDto({this.required_, this.earned, this.pending});
+
+  @override
+  int get hashCode => required_.hashCode ^ earned.hashCode ^ pending.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GraduateProgressDto &&
+          runtimeType == other.runtimeType &&
+          required_ == other.required_ &&
+          earned == other.earned &&
+          pending == other.pending;
+}
+
+class GraduateResponse {
+  final AcademicDataDto? data;
+  final FailureCode? failure;
+
+  const GraduateResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GraduateResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class GraduateRowDto {
+  final String title;
+  final String detail;
+
+  /// Explicitly distinguishes a course with an unknown result from metadata.
+  final bool isCourse;
+  final bool? completed;
+  final double? credit;
+  final String? semester;
+
+  const GraduateRowDto({
+    required this.title,
+    required this.detail,
+    required this.isCourse,
+    this.completed,
+    this.credit,
+    this.semester,
+  });
+
+  @override
+  int get hashCode =>
+      title.hashCode ^
+      detail.hashCode ^
+      isCourse.hashCode ^
+      completed.hashCode ^
+      credit.hashCode ^
+      semester.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GraduateRowDto &&
+          runtimeType == other.runtimeType &&
+          title == other.title &&
+          detail == other.detail &&
+          isCourse == other.isCourse &&
+          completed == other.completed &&
+          credit == other.credit &&
+          semester == other.semester;
+}
+
+class GraduateSectionDto {
+  final String title;
+  final List<GraduateRowDto> rows;
+  final GraduateProgressDto? progress;
+
+  const GraduateSectionDto({
+    required this.title,
+    required this.rows,
+    this.progress,
+  });
+
+  @override
+  int get hashCode => title.hashCode ^ rows.hashCode ^ progress.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GraduateSectionDto &&
+          runtimeType == other.runtimeType &&
+          title == other.title &&
+          rows == other.rows &&
+          progress == other.progress;
+}
+
+class HomeworkAttachmentDto {
+  final String id;
+  final String name;
+  final String kind;
+
+  const HomeworkAttachmentDto({
+    required this.id,
+    required this.name,
+    required this.kind,
+  });
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode ^ kind.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HomeworkAttachmentDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          kind == other.kind;
+}
+
+class HomeworkCapabilitiesResponse {
+  final List<HomeworkCapabilityEvidenceDto>? data;
+  final FailureCode? failure;
+
+  const HomeworkCapabilitiesResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HomeworkCapabilitiesResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class HomeworkCapabilityEvidenceDto {
+  final String capability;
+  final HomeworkCapabilityStateDto state;
+  final String reason;
+  final String evidence;
+
+  const HomeworkCapabilityEvidenceDto({
+    required this.capability,
+    required this.state,
+    required this.reason,
+    required this.evidence,
+  });
+
+  @override
+  int get hashCode =>
+      capability.hashCode ^
+      state.hashCode ^
+      reason.hashCode ^
+      evidence.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HomeworkCapabilityEvidenceDto &&
+          runtimeType == other.runtimeType &&
+          capability == other.capability &&
+          state == other.state &&
+          reason == other.reason &&
+          evidence == other.evidence;
+}
+
+enum HomeworkCapabilityStateDto {
+  available,
+  unknown,
+  unsupported,
+  protocolChanged,
+  tempUnavailable,
+  authRequired,
 }
 
 class HomeworkDetailResponse {
@@ -815,6 +2480,385 @@ class HomeworkFileDownloadResponse {
           failure == other.failure;
 }
 
+class HomeworkFileWorkspaceResponse {
+  final HomeworkWorkspaceDto? data;
+  final FailureCode? failure;
+
+  const HomeworkFileWorkspaceResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HomeworkFileWorkspaceResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class HomeworkPendingResponse {
+  final List<HomeworkPendingSubmissionDto>? data;
+  final FailureCode? failure;
+
+  const HomeworkPendingResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HomeworkPendingResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class HomeworkPendingSubmissionDto {
+  final String handle;
+  final String assignmentId;
+  final String fileName;
+
+  /// Widened from `u64`; the 20 MB upload cap keeps this lossless.
+  final PlatformInt64 size;
+
+  const HomeworkPendingSubmissionDto({
+    required this.handle,
+    required this.assignmentId,
+    required this.fileName,
+    required this.size,
+  });
+
+  @override
+  int get hashCode =>
+      handle.hashCode ^
+      assignmentId.hashCode ^
+      fileName.hashCode ^
+      size.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HomeworkPendingSubmissionDto &&
+          runtimeType == other.runtimeType &&
+          handle == other.handle &&
+          assignmentId == other.assignmentId &&
+          fileName == other.fileName &&
+          size == other.size;
+}
+
+class HomeworkRecoveryResponse {
+  /// `Some(true)` only after the store accepted the private directory.
+  final bool? configured;
+  final FailureCode? failure;
+
+  const HomeworkRecoveryResponse({this.configured, this.failure});
+
+  @override
+  int get hashCode => configured.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HomeworkRecoveryResponse &&
+          runtimeType == other.runtimeType &&
+          configured == other.configured &&
+          failure == other.failure;
+}
+
+class HomeworkUploadReceiptDto {
+  final String handle;
+  final String fileName;
+
+  /// Widened from `u64`; the 20 MB upload cap keeps this lossless.
+  final PlatformInt64 size;
+
+  const HomeworkUploadReceiptDto({
+    required this.handle,
+    required this.fileName,
+    required this.size,
+  });
+
+  @override
+  int get hashCode => handle.hashCode ^ fileName.hashCode ^ size.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HomeworkUploadReceiptDto &&
+          runtimeType == other.runtimeType &&
+          handle == other.handle &&
+          fileName == other.fileName &&
+          size == other.size;
+}
+
+class HomeworkUploadResponse {
+  final HomeworkUploadReceiptDto? data;
+  final FailureCode? failure;
+
+  const HomeworkUploadResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HomeworkUploadResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class HomeworkWorkspaceDto {
+  final String assignmentId;
+  final List<String> allowedMethods;
+  final List<String> allowedExtensions;
+  final int? submissionLimit;
+  final int? submittedCount;
+  final bool returned;
+  final String? submittedText;
+  final String? feedback;
+  final List<HomeworkAttachmentDto> attachments;
+  final bool canSubmitFile;
+  final String? blockedReason;
+
+  /// Widened from `u64`; the 20 MB upload cap keeps this lossless.
+  final PlatformInt64 fileLimitBytes;
+
+  const HomeworkWorkspaceDto({
+    required this.assignmentId,
+    required this.allowedMethods,
+    required this.allowedExtensions,
+    this.submissionLimit,
+    this.submittedCount,
+    required this.returned,
+    this.submittedText,
+    this.feedback,
+    required this.attachments,
+    required this.canSubmitFile,
+    this.blockedReason,
+    required this.fileLimitBytes,
+  });
+
+  @override
+  int get hashCode =>
+      assignmentId.hashCode ^
+      allowedMethods.hashCode ^
+      allowedExtensions.hashCode ^
+      submissionLimit.hashCode ^
+      submittedCount.hashCode ^
+      returned.hashCode ^
+      submittedText.hashCode ^
+      feedback.hashCode ^
+      attachments.hashCode ^
+      canSubmitFile.hashCode ^
+      blockedReason.hashCode ^
+      fileLimitBytes.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HomeworkWorkspaceDto &&
+          runtimeType == other.runtimeType &&
+          assignmentId == other.assignmentId &&
+          allowedMethods == other.allowedMethods &&
+          allowedExtensions == other.allowedExtensions &&
+          submissionLimit == other.submissionLimit &&
+          submittedCount == other.submittedCount &&
+          returned == other.returned &&
+          submittedText == other.submittedText &&
+          feedback == other.feedback &&
+          attachments == other.attachments &&
+          canSubmitFile == other.canSubmitFile &&
+          blockedReason == other.blockedReason &&
+          fileLimitBytes == other.fileLimitBytes;
+}
+
+class LearningAttachmentDto {
+  final String id;
+  final String name;
+
+  const LearningAttachmentDto({required this.id, required this.name});
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LearningAttachmentDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name;
+}
+
+class LearningCapabilitiesDto {
+  final LearningCapabilityStateDto columns;
+  final LearningCapabilityStateDto announcements;
+  final LearningCapabilityStateDto resources;
+  final LearningCapabilityStateDto assessments;
+  final LearningCapabilityStateDto resourceDownload;
+  final LearningCapabilityStateDto announcementDownload;
+
+  const LearningCapabilitiesDto({
+    required this.columns,
+    required this.announcements,
+    required this.resources,
+    required this.assessments,
+    required this.resourceDownload,
+    required this.announcementDownload,
+  });
+
+  @override
+  int get hashCode =>
+      columns.hashCode ^
+      announcements.hashCode ^
+      resources.hashCode ^
+      assessments.hashCode ^
+      resourceDownload.hashCode ^
+      announcementDownload.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LearningCapabilitiesDto &&
+          runtimeType == other.runtimeType &&
+          columns == other.columns &&
+          announcements == other.announcements &&
+          resources == other.resources &&
+          assessments == other.assessments &&
+          resourceDownload == other.resourceDownload &&
+          announcementDownload == other.announcementDownload;
+}
+
+class LearningCapabilitiesResponse {
+  final LearningCapabilitiesDto? data;
+  final FailureCode? failure;
+
+  const LearningCapabilitiesResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LearningCapabilitiesResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+enum LearningCapabilityStateDto {
+  unknown,
+  available,
+  authRequired,
+  temporarilyUnavailable,
+  protocolChanged,
+  accessDenied,
+}
+
+class LearningColumnDto {
+  final String id;
+  final String name;
+  final LearningColumnKindDto kind;
+
+  const LearningColumnDto({
+    required this.id,
+    required this.name,
+    required this.kind,
+  });
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode ^ kind.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LearningColumnDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          kind == other.kind;
+}
+
+enum LearningColumnKindDto { announcement, assessment }
+
+class LearningColumnsResponse {
+  final List<LearningColumnDto>? data;
+  final FailureCode? failure;
+
+  const LearningColumnsResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LearningColumnsResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+/// Learning queries return business DTO JSON, never school response envelopes.
+class LearningCourseDto {
+  final String id;
+  final String name;
+  final String? teacher;
+  final String? term;
+  final String sourceUrl;
+
+  const LearningCourseDto({
+    required this.id,
+    required this.name,
+    this.teacher,
+    this.term,
+    required this.sourceUrl,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      name.hashCode ^
+      teacher.hashCode ^
+      term.hashCode ^
+      sourceUrl.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LearningCourseDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          teacher == other.teacher &&
+          term == other.term &&
+          sourceUrl == other.sourceUrl;
+}
+
+class LearningCoursesResponse {
+  final List<LearningCourseDto>? data;
+  final FailureCode? failure;
+
+  const LearningCoursesResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LearningCoursesResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
 /// Transient archive bytes. Hosts must use explicitly opted-in encrypted storage.
 class LearningSnapshotResponse {
   final Uint8List? bytes;
@@ -832,6 +2876,51 @@ class LearningSnapshotResponse {
           runtimeType == other.runtimeType &&
           bytes == other.bytes &&
           failure == other.failure;
+}
+
+class LibraryCampusStatsDto {
+  final String id;
+  final String name;
+  final int people;
+  final List<ReadingRoomDto> readingRooms;
+
+  /// Absent means the school did not publish that resource, not zero.
+  final CountPairDto? seats;
+  final CountPairDto? studyRooms;
+  final CountPairDto? lockers;
+
+  const LibraryCampusStatsDto({
+    required this.id,
+    required this.name,
+    required this.people,
+    required this.readingRooms,
+    this.seats,
+    this.studyRooms,
+    this.lockers,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      name.hashCode ^
+      people.hashCode ^
+      readingRooms.hashCode ^
+      seats.hashCode ^
+      studyRooms.hashCode ^
+      lockers.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibraryCampusStatsDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          people == other.people &&
+          readingRooms == other.readingRooms &&
+          seats == other.seats &&
+          studyRooms == other.studyRooms &&
+          lockers == other.lockers;
 }
 
 class LibraryHistoryResponse {
@@ -889,6 +2978,135 @@ class LibraryHistoryResponse {
           failureDetail == other.failureDetail;
 }
 
+/// Explicit private read, scoped to the caller's account. No disk cache or writes.
+class LibraryLoanDto {
+  final String id;
+  final String? title;
+  final String? author;
+  final String? callNumber;
+  final String? borrowedAt;
+  final String? dueAt;
+
+  const LibraryLoanDto({
+    required this.id,
+    this.title,
+    this.author,
+    this.callNumber,
+    this.borrowedAt,
+    this.dueAt,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      title.hashCode ^
+      author.hashCode ^
+      callNumber.hashCode ^
+      borrowedAt.hashCode ^
+      dueAt.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibraryLoanDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          author == other.author &&
+          callNumber == other.callNumber &&
+          borrowedAt == other.borrowedAt &&
+          dueAt == other.dueAt;
+}
+
+class LibraryLoanPageDto {
+  final List<LibraryLoanDto> items;
+  final int page;
+  final int total;
+  final bool hasMore;
+
+  const LibraryLoanPageDto({
+    required this.items,
+    required this.page,
+    required this.total,
+    required this.hasMore,
+  });
+
+  @override
+  int get hashCode =>
+      items.hashCode ^ page.hashCode ^ total.hashCode ^ hasMore.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibraryLoanPageDto &&
+          runtimeType == other.runtimeType &&
+          items == other.items &&
+          page == other.page &&
+          total == other.total &&
+          hasMore == other.hasMore;
+}
+
+class LibraryLoansResponse {
+  final LibraryLoanPageDto? data;
+  final FailureCode? failure;
+
+  const LibraryLoansResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibraryLoansResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class LibraryStatsDto {
+  final List<LibraryCampusStatsDto> campuses;
+  final String? fetchedAt;
+  final bool fromCache;
+
+  const LibraryStatsDto({
+    required this.campuses,
+    this.fetchedAt,
+    required this.fromCache,
+  });
+
+  @override
+  int get hashCode =>
+      campuses.hashCode ^ fetchedAt.hashCode ^ fromCache.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibraryStatsDto &&
+          runtimeType == other.runtimeType &&
+          campuses == other.campuses &&
+          fetchedAt == other.fetchedAt &&
+          fromCache == other.fromCache;
+}
+
+class LibraryStatsResponse {
+  final LibraryStatsDto? data;
+  final FailureCode? failure;
+
+  const LibraryStatsResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibraryStatsResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
 class LiveScope {
   final int campus;
   final String date;
@@ -913,6 +3131,63 @@ class LiveScope {
           forceRefresh == other.forceRefresh;
 }
 
+class LocalTaskDto {
+  final String id;
+  final String title;
+
+  /// Empty means no deadline; a calendar date stays a date.
+  final String due;
+  final bool completed;
+
+  /// Set only for a historical record linked to a school assignment.
+  final String? sourceAssignmentId;
+
+  const LocalTaskDto({
+    required this.id,
+    required this.title,
+    required this.due,
+    required this.completed,
+    this.sourceAssignmentId,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      title.hashCode ^
+      due.hashCode ^
+      completed.hashCode ^
+      sourceAssignmentId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LocalTaskDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          due == other.due &&
+          completed == other.completed &&
+          sourceAssignmentId == other.sourceAssignmentId;
+}
+
+class LocalTasksResponse {
+  final List<LocalTaskDto>? data;
+  final FailureCode? failure;
+
+  const LocalTasksResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LocalTasksResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
 /// User-confirmed write. Never retries the mutation and never exposes raw upstream text.
 /// The module gate rejects double taps rather than queuing a second write.
 class MutationResponse {
@@ -933,25 +3208,69 @@ class MutationResponse {
           message == other.message;
 }
 
-/// Sanitized domain JSON, never raw upstream data, credentials or tokens.
-class ReadOnlyResponse {
-  final String? payload;
-  final bool stale;
-  final FailureCode? failure;
+class NoticeDto {
+  final String title;
+  final String summary;
+  final String publishedAt;
+  final String url;
 
-  const ReadOnlyResponse({this.payload, required this.stale, this.failure});
+  const NoticeDto({
+    required this.title,
+    required this.summary,
+    required this.publishedAt,
+    required this.url,
+  });
 
   @override
-  int get hashCode => payload.hashCode ^ stale.hashCode ^ failure.hashCode;
+  int get hashCode =>
+      title.hashCode ^ summary.hashCode ^ publishedAt.hashCode ^ url.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ReadOnlyResponse &&
+      other is NoticeDto &&
           runtimeType == other.runtimeType &&
-          payload == other.payload &&
-          stale == other.stale &&
+          title == other.title &&
+          summary == other.summary &&
+          publishedAt == other.publishedAt &&
+          url == other.url;
+}
+
+/// A failure may accompany data only when it is a previous successful snapshot.
+class NoticesResponse {
+  final List<NoticeDto>? data;
+  final FailureCode? failure;
+
+  const NoticesResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NoticesResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
           failure == other.failure;
+}
+
+class ReadingRoomDto {
+  final String name;
+  final int people;
+
+  const ReadingRoomDto({required this.name, required this.people});
+
+  @override
+  int get hashCode => name.hashCode ^ people.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ReadingRoomDto &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          people == other.people;
 }
 
 enum RouteChoice { automatic, direct, webVpn }
@@ -1008,3 +3327,197 @@ class SessionResponse {
 }
 
 enum SessionState { signedOut, signedIn, captchaRequired }
+
+class ShuttleRunDto {
+  final String index;
+  final String time;
+  final String capacity;
+
+  const ShuttleRunDto({
+    required this.index,
+    required this.time,
+    required this.capacity,
+  });
+
+  @override
+  int get hashCode => index.hashCode ^ time.hashCode ^ capacity.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ShuttleRunDto &&
+          runtimeType == other.runtimeType &&
+          index == other.index &&
+          time == other.time &&
+          capacity == other.capacity;
+}
+
+class ShuttleSectionDto {
+  final String label;
+  final List<ShuttleRunDto> left;
+  final List<ShuttleRunDto> right;
+
+  const ShuttleSectionDto({
+    required this.label,
+    required this.left,
+    required this.right,
+  });
+
+  @override
+  int get hashCode => label.hashCode ^ left.hashCode ^ right.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ShuttleSectionDto &&
+          runtimeType == other.runtimeType &&
+          label == other.label &&
+          left == other.left &&
+          right == other.right;
+}
+
+class ShuttleTableDto {
+  final String left;
+  final String right;
+  final List<ShuttleSectionDto> sections;
+
+  const ShuttleTableDto({
+    required this.left,
+    required this.right,
+    required this.sections,
+  });
+
+  @override
+  int get hashCode => left.hashCode ^ right.hashCode ^ sections.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ShuttleTableDto &&
+          runtimeType == other.runtimeType &&
+          left == other.left &&
+          right == other.right &&
+          sections == other.sections;
+}
+
+class ShuttleTimetableDto {
+  final List<ShuttleTableDto> tables;
+  final String source;
+  final String liveSource;
+
+  const ShuttleTimetableDto({
+    required this.tables,
+    required this.source,
+    required this.liveSource,
+  });
+
+  @override
+  int get hashCode => tables.hashCode ^ source.hashCode ^ liveSource.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ShuttleTimetableDto &&
+          runtimeType == other.runtimeType &&
+          tables == other.tables &&
+          source == other.source &&
+          liveSource == other.liveSource;
+}
+
+class ShuttleTimetableResponse {
+  final ShuttleTimetableDto? data;
+  final FailureCode? failure;
+
+  const ShuttleTimetableResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ShuttleTimetableResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class SnapshotImportResponse {
+  /// Count of snapshots actually merged, not the number offered.
+  final int? imported;
+  final FailureCode? failure;
+
+  const SnapshotImportResponse({this.imported, this.failure});
+
+  @override
+  int get hashCode => imported.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SnapshotImportResponse &&
+          runtimeType == other.runtimeType &&
+          imported == other.imported &&
+          failure == other.failure;
+}
+
+class UpdateResponse {
+  final UpdateSummaryDto? data;
+  final FailureCode? failure;
+
+  const UpdateResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UpdateResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class UpdateSummaryDto {
+  final String current;
+  final String? latest;
+  final bool available;
+  final String? pageUrl;
+  final String? notes;
+  final bool apkAvailable;
+  final AndroidDownloadDto? download;
+
+  const UpdateSummaryDto({
+    required this.current,
+    this.latest,
+    required this.available,
+    this.pageUrl,
+    this.notes,
+    required this.apkAvailable,
+    this.download,
+  });
+
+  @override
+  int get hashCode =>
+      current.hashCode ^
+      latest.hashCode ^
+      available.hashCode ^
+      pageUrl.hashCode ^
+      notes.hashCode ^
+      apkAvailable.hashCode ^
+      download.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UpdateSummaryDto &&
+          runtimeType == other.runtimeType &&
+          current == other.current &&
+          latest == other.latest &&
+          available == other.available &&
+          pageUrl == other.pageUrl &&
+          notes == other.notes &&
+          apkAvailable == other.apkAvailable &&
+          download == other.download;
+}

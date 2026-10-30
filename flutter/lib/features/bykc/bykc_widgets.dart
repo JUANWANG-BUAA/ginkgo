@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 
-import 'bykc_models.dart';
+import 'package:ginkgo_mirror/application/bykc.dart';
 
 /// A compact tag used for course categories, enrollment and results.
 class BykcLabel extends StatelessWidget {

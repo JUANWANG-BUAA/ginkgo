@@ -35,7 +35,7 @@ class _LoginPageState extends State<LoginPage> {
   final account = TextEditingController();
   final password = TextEditingController();
   final captcha = TextEditingController();
-  bool remember = true;
+  bool remember = false;
   bool busy = false;
   bool showPassword = false;
   late bool needCaptcha = widget.initialCaptcha;

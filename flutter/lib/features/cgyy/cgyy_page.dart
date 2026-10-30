@@ -82,7 +82,7 @@ class _CgyyPageState extends State<CgyyPage> {
           forceRefresh: force,
         );
         return SectionResult(
-          value: result.payload == null ? null : cgyySites(result.payload!),
+          value: result.sites,
           error: result.failure == null ? null : failureMessage(result.failure),
         );
       },

@@ -4,7 +4,8 @@ import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
-import 'library_books_models.dart';
+import 'package:ginkgo_mirror/application/library_books.dart';
+
 import 'library_cards.dart';
 import 'library_controls.dart';
 import 'library_holdings_page.dart';
@@ -75,9 +76,10 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
         descending: descending,
       );
       if (!mounted || generation != _generation) return;
-      if (result.payload != null && result.failure == null) {
+      final decoded = result.data;
+      if (result.failure == null && decoded != null) {
         setState(() {
-          this.page = bookPage(result.payload!);
+          this.page = decoded;
           requested = page;
         });
       } else {

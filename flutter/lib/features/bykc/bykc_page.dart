@@ -5,16 +5,14 @@ import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/widgets/long_page_scroll.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_detail_page.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_course_tile.dart';
-import 'package:ginkgo_mirror/features/bykc/bykc_models.dart';
+import 'package:ginkgo_mirror/application/bykc.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_statistics_view.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_widgets.dart';
 export 'package:ginkgo_mirror/features/bykc/bykc_widgets.dart'
     show BykcStatisticsCard;
 import 'package:ginkgo_mirror/application/mirror_service.dart';
-import 'package:ginkgo_mirror/application/contracts.dart' as live;
-import 'package:ginkgo_mirror/infrastructure/service_factory.dart';
 
-typedef BykcLoader = Future<live.ReadOnlyResponse> Function({
+typedef BykcLoader = Future<BykcPartRead> Function({
   required BykcPart part,
   required bool forceRefresh,
 });
@@ -70,11 +68,14 @@ class _BykcPageState extends State<BykcPage> {
     ).whenComplete(() => snapshot.task = null);
   }
 
-  Future<live.ReadOnlyResponse> _request(BykcPart part, bool force) {
+  Future<BykcPartRead> _request(BykcPart part, bool force) {
     if (widget.loader != null) {
       return widget.loader!(part: part, forceRefresh: force);
     }
-    final service = widget.service ?? mirrorServiceFor(demo: widget.demo);
+    final service = widget.service;
+    // The shell already resolved one. A fallback locator here would give the
+    // page its own adapter instance, and therefore its own account binding.
+    if (service == null) throw StateError('当前页面没有可用的博雅服务');
     return service.bykcPart(part, forceRefresh: force);
   }
 
@@ -87,32 +88,30 @@ class _BykcPageState extends State<BykcPage> {
     });
     try {
       final result = await _request(part, force);
-      String? payload = result.payload;
       if (!mounted) return;
       setState(() {
         snapshot.error = result.failure == null
             ? null
             : failureMessage(result.failure);
-        if (payload != null) {
-          switch (part) {
-            case BykcPart.catalog:
-              snapshot.catalog = bykcCatalog(payload);
-              termName = snapshot.catalog!.currentTerm?.name ?? '学期课程目录';
-              categories = [
-                '全部',
-                ...snapshot.catalog!.courses
-                    .map((course) => course.categoryLabel)
-                    .toSet()
-                    .toList()
-                  ..sort(),
-              ];
-              if (!categories.contains(category)) category = '全部';
-              filter();
-            case BykcPart.chosen:
-              snapshot.chosen = bykcChosenCourses(payload);
-            case BykcPart.statistics:
-              snapshot.statistics = bykcStatistics(payload);
-          }
+        switch (result) {
+          case BykcCatalogRead(:final data):
+            if (data == null) return;
+            snapshot.catalog = data;
+            termName = data.currentTerm?.name ?? '学期课程目录';
+            categories = [
+              '全部',
+              ...data.courses
+                  .map((course) => course.categoryLabel)
+                  .toSet()
+                  .toList()
+                ..sort(),
+            ];
+            if (!categories.contains(category)) category = '全部';
+            filter();
+          case BykcChosenRead(:final data):
+            if (data != null) snapshot.chosen = data;
+          case BykcStatisticsRead(:final data):
+            if (data != null) snapshot.statistics = data;
         }
       });
     } catch (_) {

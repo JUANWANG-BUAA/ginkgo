@@ -14,7 +14,7 @@ class BoundaryTests(unittest.TestCase):
     def test_reminder_controller_cannot_import_platform_adapters(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            file = root / 'flutter/lib/shared/reminders.dart'
+            file = root / 'flutter/lib/shared/reminder_controller.dart'
             file.parent.mkdir(parents=True)
             for directive in [
                 "import 'dart:io';",
@@ -137,6 +137,11 @@ class BoundaryTests(unittest.TestCase):
             self.assertEqual(len(BOUNDARY.dart_boundary_violations(root)), 1)
             facade.write_text("export '../src/rust/api/mirror.dart' show ScheduleDto;\n")
             self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
+            failures = root / 'flutter/lib/application/failures.dart'
+            failures.write_text("export '../src/rust/api/mirror.dart' show FailureCode, loadSchedule;\n")
+            self.assertEqual(len(BOUNDARY.dart_boundary_violations(root)), 1)
+            failures.write_text("export '../src/rust/api/mirror.dart' show FailureCode;\n")
+            self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
 
     def test_pages_cannot_decode_school_payload_json(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -236,6 +241,22 @@ class BoundaryTests(unittest.TestCase):
             page.write_text('\n'.join(['// line'] * 600))
             self.assertEqual(BOUNDARY.layout_violations(root), [])
 
+    def test_dart_import_and_export_cycles_are_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            lib = root / 'flutter/lib'
+            first = lib / 'application/first.dart'
+            second = lib / 'application/second.dart'
+            first.parent.mkdir(parents=True)
+            first.write_text("import 'second.dart';\n")
+            second.write_text("export 'first.dart';\n")
+            errors = BOUNDARY.dart_import_cycles(root)
+            self.assertEqual(len(errors), 1)
+            self.assertIn('first.dart', errors[0])
+            self.assertIn('second.dart', errors[0])
+            second.write_text('class Second {}\n')
+            self.assertEqual(BOUNDARY.dart_import_cycles(root), [])
+
     def test_synchronous_mutex_guard_cannot_cross_await(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -260,6 +281,52 @@ class BoundaryTests(unittest.TestCase):
 }
 ''')
             self.assertEqual(BOUNDARY.sync_lock_await_violations(root), [])
+
+    def test_presentation_pages_cannot_import_adapters(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            page = root / 'flutter/lib/features/example/example_page.dart'
+            page.parent.mkdir(parents=True)
+            page.write_text(
+                "import 'package:ginkgo_mirror/infrastructure/native_mirror_service.dart';\n"
+            )
+            errors = BOUNDARY.dart_boundary_violations(root)
+            self.assertEqual(len(errors), 1)
+            self.assertIn('adapters belong to the composition root', errors[0])
+            page.write_text(
+                "import 'package:ginkgo_mirror/application/mirror_service.dart';\n"
+            )
+            self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
+
+    def test_the_composition_root_may_still_wire_adapters(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            shell = root / 'flutter/lib/workspace/workspace_shell.dart'
+            shell.parent.mkdir(parents=True)
+            shell.write_text(
+                "import 'package:ginkgo_mirror/infrastructure/task_storage.dart';\n"
+            )
+            self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
+
+    def test_the_pending_adapter_import_list_cannot_grow_silently(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            page = root / 'flutter/lib/features/settings/settings_page.dart'
+            page.parent.mkdir(parents=True)
+            page.write_text(
+                "import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';\n"
+            )
+            # Listed as pending migration: allowed, but pinned to this name.
+            self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
+            self.assertIn(
+                'features/settings/settings_page.dart', BOUNDARY.PENDING_ADAPTER_IMPORTS
+            )
+            other = root / 'flutter/lib/features/settings/other_page.dart'
+            other.write_text(
+                "import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';\n"
+            )
+            self.assertTrue(BOUNDARY.dart_boundary_violations(root))
+
 
 
 if __name__ == '__main__':

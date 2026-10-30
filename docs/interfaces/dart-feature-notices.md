@@ -5,16 +5,9 @@
 > 手工总览与分层说明见 [INTERFACE-INDEX.md](../INTERFACE-INDEX.md)。
 `flutter/lib/features/notices/` 的页面、域内组件与模型。
 
-## features/notices/notices_models.dart
-
-- `class Notice` — Typed projection of `ginkgo_domain::features::notices` payloads.
-  <sub>class · features/notices/notices_models.dart:4</sub>
-- `List<Notice> noticeList(String payload) => …`
-  <sub>function · features/notices/notices_models.dart:14</sub>
-
 ## features/notices/notices_page.dart
 
 - `class NoticesPage extends StatefulWidget`
-  <sub>class · features/notices/notices_page.dart:11</sub>
-    - `const NoticesPage({super.key, this.demo = false, this.service});`  <sub>:12</sub>
-    - `State<NoticesPage> createState() => …`  <sub>:16</sub>
+  <sub>class · features/notices/notices_page.dart:10</sub>
+    - `const NoticesPage({super.key, required this.service});`  <sub>:11</sub>
+    - `State<NoticesPage> createState() => …`  <sub>:14</sub>

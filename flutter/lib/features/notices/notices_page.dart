@@ -5,13 +5,11 @@ import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
-import 'package:ginkgo_mirror/features/notices/notices_models.dart';
-import 'package:ginkgo_mirror/infrastructure/service_factory.dart';
+import 'package:ginkgo_mirror/application/notices.dart';
 
 class NoticesPage extends StatefulWidget {
-  const NoticesPage({super.key, this.demo = false, this.service});
-  final bool demo;
-  final NoticeGateway? service;
+  const NoticesPage({super.key, required this.service});
+  final NoticeGateway service;
   @override
   State<NoticesPage> createState() => _NoticesPageState();
 }
@@ -35,11 +33,12 @@ class _NoticesPageState extends State<NoticesPage> {
   @override
   void didUpdateWidget(NoticesPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.service != widget.service || oldWidget.demo != widget.demo) {
+    if (oldWidget.service != widget.service) {
       section
         ..invalidate()
         ..value = null
         ..error = null
+        ..failure = null
         ..loading = false;
       load();
     }
@@ -52,13 +51,14 @@ class _NoticesPageState extends State<NoticesPage> {
   }
 
   Future<void> load({bool force = false}) {
-    final service = widget.service ?? mirrorServiceFor(demo: widget.demo);
+    final service = widget.service;
     return section.refresh(
       () async {
         final result = await service.notices(forceRefresh: force);
         return SectionResult(
-          value: result.payload == null ? null : noticeList(result.payload!),
+          value: result.data,
           error: result.failure == null ? null : failureMessage(result.failure),
+          failure: result.failure,
         );
       },
       fallbackError: failureMessage(null),
@@ -104,7 +104,10 @@ class _NoticesPageState extends State<NoticesPage> {
             if (error != null)
               AppleStatusSection(
                 title: error!,
-                description: notices == null ? '请重试或前往官网。' : '正在显示上次结果。',
+                description: failureAdvice(
+                  hasStaleValue: notices != null,
+                  failure: section.failure,
+                ),
                 onAction: () => load(force: true),
                 error: true,
               ),

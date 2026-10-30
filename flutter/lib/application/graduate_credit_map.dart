@@ -1,7 +1,7 @@
 /// Rust's execution-report projection. No course/category credit aggregation.
 library;
 
-import 'package:ginkgo_mirror/application/contracts.dart' show FailureCode;
+import 'package:ginkgo_mirror/application/failures.dart';
 
 abstract interface class GraduateCreditMapGateway {
   Future<GraduateCreditMapRead> graduateCreditMap({bool forceRefresh = false});
@@ -39,6 +39,7 @@ class GraduateCreditReadIssue {
         FailureCode.sessionExpired ||
         FailureCode.captchaRequired ||
         FailureCode.invalidCredentials ||
+        FailureCode.moduleAuthRequired ||
         FailureCode.preLoginTip => const GraduateCreditReadIssue(
           GraduateCreditIssueKind.authentication,
         ),

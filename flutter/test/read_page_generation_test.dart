@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -178,15 +177,10 @@ void main() {
   });
 
   testWidgets('CGYY loader replacement discards the old day', (tester) async {
-    final site = CgyySite.fromJson(const {
-      'id': 3,
-      'name': '合成研讨室',
-      'venue': '合成场馆',
-      'campus': '学院路',
-    });
-    final first = Completer<ReadOnlyResponse>();
-    final second = Completer<ReadOnlyResponse>();
-    CgyyLoader loader(Completer<ReadOnlyResponse> read) =>
+    const site = CgyySite(id: 3, name: '合成研讨室', venue: '合成场馆', campus: '学院路');
+    final first = Completer<CgyyLoadRead>();
+    final second = Completer<CgyyLoadRead>();
+    CgyyLoader loader(Completer<CgyyLoadRead> read) =>
         ({
           required kind,
           required siteId,
@@ -204,37 +198,31 @@ void main() {
       ),
     );
     first.complete(
-      ReadOnlyResponse(
-        payload: jsonEncode({
-          'date': '2026-10-20',
-          'spaces': [
-            {
-              'name': '旧服务空间',
-              'slots': [
-                {'time': '08:00–09:00', 'status': '空闲'},
-              ],
-            },
+      CgyyLoadRead(
+        day: const CgyyDay(
+          date: '2026-10-20',
+          spaces: [
+            CgyySpace(
+              name: '旧服务空间',
+              slots: [CgyySlot(time: '08:00–09:00', status: '空闲')],
+            ),
           ],
-        }),
-        stale: false,
+        ),
       ),
     );
     await tester.pump();
     expect(find.text('旧服务空间'), findsNothing);
     second.complete(
-      ReadOnlyResponse(
-        payload: jsonEncode({
-          'date': '2026-10-20',
-          'spaces': [
-            {
-              'name': '新服务空间',
-              'slots': [
-                {'time': '08:00–09:00', 'status': '空闲'},
-              ],
-            },
+      CgyyLoadRead(
+        day: const CgyyDay(
+          date: '2026-10-20',
+          spaces: [
+            CgyySpace(
+              name: '新服务空间',
+              slots: [CgyySlot(time: '08:00–09:00', status: '空闲')],
+            ),
           ],
-        }),
-        stale: false,
+        ),
       ),
     );
     await tester.pumpAndSettle();

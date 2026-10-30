@@ -61,12 +61,21 @@ impl<K: Ord + Clone, V> SnapshotCache<K, V> {
         ticket
     }
 
+    fn take_if_current(&mut self, key: &K, ticket: u64) -> bool {
+        if self.tickets.get(key).copied() == Some(ticket) {
+            self.tickets.remove(key);
+            true
+        } else {
+            false
+        }
+    }
+
     /// Insert only when no newer request for the same key has started. The
     /// returned timestamp describes this response either way; a superseded
     /// caller reports its own result without touching the cached snapshot.
     pub fn insert_if_current(&mut self, key: K, ticket: u64, value: V) -> String {
         let timestamp = now_shanghai();
-        if self.tickets.get(&key).copied() == Some(ticket) {
+        if self.take_if_current(&key, ticket) {
             self.insert_with_timestamp(key, value, timestamp.clone());
         }
         timestamp
@@ -144,20 +153,23 @@ impl<K: Ord + Clone, V: Clone> SnapshotCache<K, V> {
                     failure: None,
                 })
             }
-            Err(error) => match self.any(&key) {
-                Some(entry)
-                    if entry.restored
-                        && (error.code != crate::ErrorCode::ServiceUnavailable
-                            || entry.fetched_at.elapsed() >= CACHE_TTL) =>
-                {
-                    Err(error)
+            Err(error) => {
+                self.take_if_current(&key, ticket);
+                match self.any(&key) {
+                    Some(entry)
+                        if entry.restored
+                            && (!error.allows_stale_snapshot()
+                                || entry.fetched_at.elapsed() >= CACHE_TTL) =>
+                    {
+                        Err(error)
+                    }
+                    Some(entry) => Ok(super::DataOutcome {
+                        data: entry.value.clone(),
+                        failure: Some(error),
+                    }),
+                    None => Err(error),
                 }
-                Some(entry) => Ok(super::DataOutcome {
-                    data: entry.value.clone(),
-                    failure: Some(error),
-                }),
-                None => Err(error),
-            },
+            }
         }
     }
 }
@@ -215,23 +227,26 @@ where
                 failure: None,
             })
         }
-        Err(error) => match cache.any(&key) {
-            Some(entry)
-                if entry.restored
-                    && (error.code != crate::ErrorCode::ServiceUnavailable
-                        || entry.fetched_at.elapsed() >= CACHE_TTL) =>
-            {
-                Err(error)
+        Err(error) => {
+            cache.take_if_current(&key, ticket);
+            match cache.any(&key) {
+                Some(entry)
+                    if entry.restored
+                        && (!error.allows_stale_snapshot()
+                            || entry.fetched_at.elapsed() >= CACHE_TTL) =>
+                {
+                    Err(error)
+                }
+                Some(entry) => Ok(ginkgo_domain::ports::ReadSnapshot {
+                    data: entry.value.clone(),
+                    fetched_at: entry.timestamp.clone(),
+                    from_cache: true,
+                    stale: true,
+                    failure: Some(error),
+                }),
+                None => Err(error),
             }
-            Some(entry) => Ok(ginkgo_domain::ports::ReadSnapshot {
-                data: entry.value.clone(),
-                fetched_at: entry.timestamp.clone(),
-                from_cache: true,
-                stale: true,
-                failure: Some(error),
-            }),
-            None => Err(error),
-        },
+        }
     }
 }
 
@@ -282,6 +297,36 @@ mod tests {
         assert_eq!(cache.any(&"scope".into()).expect("current").value, 1);
     }
 
+    #[tokio::test]
+    async fn settled_requests_release_tickets_without_letting_old_writers_through() {
+        let cache = crate::foundation::mutex::Mutex::new(SnapshotCache::<String, i32>::default());
+        for key in 0..CAPACITY * 2 {
+            read_with_snapshot(&cache, key.to_string(), true, async move { Ok(key as i32) })
+                .await
+                .expect("successful read");
+        }
+        assert_eq!(cache.lock().entries.len(), CAPACITY);
+        assert!(cache.lock().tickets.is_empty());
+
+        let failure_key = "failure".to_owned();
+        let error = read_with_snapshot(&cache, failure_key, true, async {
+            Err(crate::AppError::unavailable())
+        })
+        .await
+        .expect_err("no snapshot exists yet");
+        assert_eq!(error, crate::AppError::unavailable());
+        assert!(cache.lock().tickets.is_empty());
+
+        let key = "scope".to_owned();
+        let old = cache.lock().begin(&key);
+        let latest = cache.lock().begin(&key);
+        cache.lock().insert_if_current(key.clone(), latest, 2);
+        assert!(cache.lock().tickets.is_empty());
+        cache.lock().insert_if_current(key.clone(), old, 1);
+        cache.lock().insert_if_current(key.clone(), latest, 3);
+        assert_eq!(cache.lock().any(&key).unwrap().value, 2);
+    }
+
     #[test]
     fn failed_refresh_retains_value_age_and_error_but_successful_empty_replaces_it() {
         let mut cache = SnapshotCache::<String, Vec<i32>>::default();
@@ -311,8 +356,9 @@ mod tests {
             error
         );
 
+        let empty_ticket = cache.begin(&key);
         let empty = cache
-            .resolve_current(key.clone(), ticket, Ok(vec![]))
+            .resolve_current(key.clone(), empty_ticket, Ok(vec![]))
             .expect("empty success");
         assert!(empty.data.is_empty());
         assert!(empty.failure.is_none());
@@ -356,6 +402,36 @@ mod tests {
         assert!(fallback.stale);
         assert_eq!(fallback.fetched_at, original_time);
         assert_eq!(fallback.failure, Some(crate::AppError::unavailable()));
+    }
+
+    #[test]
+    fn restored_snapshot_allows_network_unreachable_but_not_auth_failure() {
+        let mut cache = SnapshotCache::<String, i32>::default();
+        let key = "scope".to_owned();
+        cache.restore(key.clone(), 7, now_shanghai(), Duration::from_secs(1));
+        let original_time = cache.any(&key).unwrap().timestamp.clone();
+
+        for error in [
+            crate::AppError::unavailable(),
+            crate::AppError::network_unreachable(),
+        ] {
+            let ticket = cache.begin(&key);
+            let retained = cache
+                .resolve_current(key.clone(), ticket, Err(error.clone()))
+                .expect("transient failures use a valid restored snapshot");
+            assert_eq!(retained.data, 7);
+            assert_eq!(retained.failure, Some(error));
+            assert_eq!(cache.any(&key).unwrap().timestamp, original_time);
+        }
+
+        let ticket = cache.begin(&key);
+        assert_eq!(
+            cache
+                .resolve_current(key, ticket, Err(crate::AppError::session_expired()))
+                .expect_err("authentication failures never use restored data")
+                .code,
+            crate::ErrorCode::SessionExpired
+        );
     }
 
     #[tokio::test]

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
+import 'package:ginkgo_mirror/application/cgyy_commands.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
@@ -58,15 +59,15 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
     super.dispose();
   }
 
-  Future<CgyyActionResult> execute(Map<String, Object?> command) async {
-    final result = await widget.gateway.executeCgyy(command);
-    if (result.failure != null || result.payload == null) {
-      // failureMessage records the typed school failure in the diagnostic
-      // log; the page itself only needs to know that no draft exists.
-      failureMessage(result.failure);
+  Future<CgyyActionResult> execute(CgyyCommand command) async {
+    try {
+      return await widget.gateway.executeCgyy(command);
+    } on Object {
+      // The gateway records the typed failure in the diagnostic log; the
+      // page itself only needs to know that no draft exists.
+      failureMessage(null);
       throw const CgyyBookingFailure();
     }
-    return cgyyActionResult(result.payload!);
   }
 
   void markDirty() {
@@ -104,11 +105,9 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
       notice = null;
     });
     try {
-      final result = await execute({
-        'action': 'options',
-        'site_id': widget.siteId,
-        'date': widget.date,
-      });
+      final result = await execute(
+        CgyyOptionsCommand(siteId: widget.siteId, date: widget.date),
+      );
       if (!mounted) return;
       setState(() {
         options = result.options;
@@ -191,10 +190,7 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
       );
       if (!mounted || !confirmed) return;
       requested = true;
-      final result = await execute({
-        'action': 'prepare',
-        'booking': draft.payload,
-      });
+      final result = await execute(CgyyPrepareCommand(draft));
       if (!mounted) return;
       if (result.isChallenge) {
         final message = await Navigator.of(context).push<CgyyActionResult>(

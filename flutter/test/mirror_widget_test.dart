@@ -1,5 +1,5 @@
+import 'package:ginkgo_mirror/application/local_tasks_read.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart' show MutationResponse;
-import 'package:ginkgo_mirror/src/rust/api/live.dart' show ReadOnlyResponse;
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show LibraryHistoryResponse;
 
@@ -18,6 +18,7 @@ import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show GradeTermsResponse, RouteChoice, SessionResponse, SessionState;
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
+import 'package:ginkgo_mirror/application/library_stats.dart';
 
 const empty = ClassroomResponse(
   buildings: [],
@@ -256,7 +257,7 @@ void mockLocalTaskSupportDirectory() {
 
 class ControlledService extends Fake implements MirrorService {
   @override
-  Future<ReadOnlyResponse> editTasks({
+  Future<LocalTasksRead> editTasks({
     required String root,
     required String action,
     String? id,
@@ -267,7 +268,7 @@ class ControlledService extends Fake implements MirrorService {
     if (action != 'load') {
       throw UnimplementedError('Unexpected task write: $action');
     }
-    return const ReadOnlyResponse(stale: false, payload: '[]');
+    return const LocalTasksRead(data: []);
   }
 
   String? requestedScheduleTerm;
@@ -410,8 +411,8 @@ class ControlledService extends Fake implements MirrorService {
   final historyPages = <int>[];
   final historyRequests = <Completer<LibraryHistoryResponse>>[];
   @override
-  Future<ReadOnlyResponse> libraryStats({bool forceRefresh = false}) async =>
-      const ReadOnlyResponse(stale: false);
+  Future<LibraryStatsRead> libraryStats({bool forceRefresh = false}) async =>
+      const LibraryStatsRead();
   @override
   Future<LibraryHistoryResponse> libraryHistory(
     int page, {

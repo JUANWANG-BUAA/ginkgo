@@ -33,7 +33,6 @@ class TodayNavigator {
             storageRoot: storageRoot,
             service: service,
             academicService: service,
-            demo: service.isDemo,
             initialTaskId: taskId,
           ),
         ),

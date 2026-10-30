@@ -8,7 +8,6 @@ import 'package:ginkgo_mirror/application/learning.dart';
 import 'package:ginkgo_mirror/application/learning_context.dart';
 import 'package:ginkgo_mirror/application/learning_file_actions.dart';
 import 'package:ginkgo_mirror/features/learning/learning_course_page.dart';
-import 'package:ginkgo_mirror/infrastructure/learning_payload.dart';
 
 const course = LearningCourse(id: 'course', name: '合成课程', sourceUrl: '');
 const folder = CourseResource(
@@ -165,19 +164,6 @@ Future<void> tap(WidgetTester t, Finder f, {bool settle = true}) async {
 }
 
 void main() {
-  test('columns reject duplicate IDs and unknown states', () {
-    expect(
-      () => decodeLearningColumns([
-        {'id': 'a', 'name': '甲', 'kind': 'announcement'},
-        {'id': 'a', 'name': '乙', 'kind': 'assessment'},
-      ]),
-      throwsFormatException,
-    );
-    expect(
-      () => decodeLearningCapabilities({'columns': 'fake'}),
-      throwsFormatException,
-    );
-  });
   testWidgets(
     'multiple columns require explicit selection while assessment loads independently',
     (t) async {

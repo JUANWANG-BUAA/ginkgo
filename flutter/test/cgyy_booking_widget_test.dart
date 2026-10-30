@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -6,49 +5,44 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/cgyy_commands.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_booking_page.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 
 class BookingGateway implements CgyyBookingGateway {
   final commands = <Map<String, Object?>>[];
   bool fallback = false;
   @override
-  Future<ReadOnlyResponse> executeCgyy(Map<String, Object?> command) async {
-    commands.add(command);
-    return ReadOnlyResponse(
-      stale: false,
-      payload: jsonEncode(
-        command['action'] == 'options'
-            ? {
-                'state': 'options',
-                'message': '选择时段',
-                'options': {
-                  'choices': [
-                    {
-                      'space_id': 1,
-                      'space_name': '研讨室 A101',
-                      'time_id': 1,
-                      'time': '08:00–09:00',
-                    },
-                    {
-                      'space_id': 1,
-                      'space_name': '研讨室 A101',
-                      'time_id': 2,
-                      'time': '09:00–10:00',
-                    },
-                  ],
-                  'purposes': [
-                    {'id': 1, 'name': '学习研讨类'},
-                  ],
-                  'uses_fallback_purposes': fallback,
-                },
-              }
-            : {'state': 'uncertain', 'message': '结果待核实，请先到我的预约回查，勿重复提交'},
-      ),
-    );
+  Future<CgyyActionResult> executeCgyy(CgyyCommand command) async {
+    commands.add(command.toPayload());
+    if (command.toPayload()['action'] == 'options') {
+      return CgyyActionResult.of(
+        state: 'options',
+        message: '选择时段',
+        options: CgyyBookingOptions(
+          choices: [
+            const CgyyBookingChoice(
+              spaceId: 1,
+              spaceName: '研讨室 A101',
+              timeId: 1,
+              time: '08:00–09:00',
+            ),
+            const CgyyBookingChoice(
+              spaceId: 1,
+              spaceName: '研讨室 A101',
+              timeId: 2,
+              time: '09:00–10:00',
+            ),
+          ],
+          purposes: const [CgyyPurpose(id: 1, name: '学习研讨类')],
+          usesFallbackPurposes: fallback,
+        ),
+      );
+    }
+    return CgyyActionResult.fromState('uncertain', '结果待核实，请先到我的预约回查，勿重复提交');
   }
 }
 

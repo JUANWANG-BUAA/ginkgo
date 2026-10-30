@@ -23,6 +23,19 @@ pub enum ErrorCode {
     /// request (for example an expired app-level session). This is not a
     /// logout: the school session may still be valid.
     BusinessRejected,
+    /// No response ever arrived: name resolution, TCP connect, TLS handshake
+    /// or the request deadline failed. Distinct from `ServiceUnavailable`,
+    /// which means the school answered or the transport itself was unusable.
+    /// Blaming the school for a device that is offline sends the user to wait
+    /// and retry instead of fixing their own connection.
+    NetworkUnreachable,
+    /// One module demanded its own re-authentication: its portal bounced to
+    /// the school login while the shared school session may still be valid
+    /// for every other module. Distinct from `SessionExpired`, which means
+    /// the shared session itself is gone. Reporting a module-scoped bounce as
+    /// a global expiry tells the user to log in again for a session that is
+    /// still working.
+    ModuleAuthRequired,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -53,8 +66,20 @@ impl AppError {
     pub fn session_expired() -> Self {
         Self::new(ErrorCode::SessionExpired)
     }
+    pub fn module_auth_required() -> Self {
+        Self::new(ErrorCode::ModuleAuthRequired)
+    }
     pub fn unavailable() -> Self {
         Self::new(ErrorCode::ServiceUnavailable)
+    }
+    pub fn network_unreachable() -> Self {
+        Self::new(ErrorCode::NetworkUnreachable)
+    }
+    pub fn allows_stale_snapshot(&self) -> bool {
+        matches!(
+            &self.code,
+            ErrorCode::ServiceUnavailable | ErrorCode::NetworkUnreachable
+        )
     }
     pub fn credential_store() -> Self {
         Self::new(ErrorCode::CredentialStore)

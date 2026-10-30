@@ -19,40 +19,40 @@
 ## features/settings/maintenance_pages.dart
 
 - `class MaintenanceScaffold extends StatelessWidget`
-  <sub>class · features/settings/maintenance_pages.dart:16</sub>
-    - `const MaintenanceScaffold({ super.key, required this.title, required this.children, this.onRefresh, this.busy = false, this.section, this.subtitle, this.icon, });`  <sub>:17</sub>
-    - `final Future<void> Function()? onRefresh;`  <sub>:29</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:34</sub>
+  <sub>class · features/settings/maintenance_pages.dart:17</sub>
+    - `const MaintenanceScaffold({ super.key, required this.title, required this.children, this.onRefresh, this.busy = false, this.section, this.subtitle, this.icon, });`  <sub>:18</sub>
+    - `final Future<void> Function()? onRefresh;`  <sub>:30</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:35</sub>
 - `class SoftwareUpdatePage extends StatefulWidget`
-  <sub>class · features/settings/maintenance_pages.dart:56</sub>
-    - `const SoftwareUpdatePage({ super.key, required this.service, this.downloader, this.initialVersion, this.initialResult, this.initialCheckedAt, });`  <sub>:57</sub>
-    - `State<SoftwareUpdatePage> createState() => …`  <sub>:71</sub>
+  <sub>class · features/settings/maintenance_pages.dart:57</sub>
+    - `const SoftwareUpdatePage({ super.key, required this.service, this.downloader, this.initialVersion, this.initialResult, this.initialCheckedAt, });`  <sub>:58</sub>
+    - `State<SoftwareUpdatePage> createState() => …`  <sub>:72</sub>
 - `class DiagnosticsPage extends StatefulWidget`
-  <sub>class · features/settings/maintenance_pages.dart:245</sub>
-    - `const DiagnosticsPage({ super.key, required this.service, required this.mirror, });`  <sub>:246</sub>
-    - `State<DiagnosticsPage> createState() => …`  <sub>:254</sub>
+  <sub>class · features/settings/maintenance_pages.dart:231</sub>
+    - `const DiagnosticsPage({ super.key, required this.service, required this.mirror, });`  <sub>:232</sub>
+    - `State<DiagnosticsPage> createState() => …`  <sub>:240</sub>
 
 ## features/settings/network_diagnostics_page.dart
 
-- `typedef AcademicProbe = Future<live.ReadOnlyResponse> Function(`
-  <sub>typedef · features/settings/network_diagnostics_page.dart:11</sub>
+- `typedef AcademicProbe = Future<GraduateRead> Function(`
+  <sub>typedef · features/settings/network_diagnostics_page.dart:10</sub>
 - `class NetworkProbeResult` — Only aggregate counts and error codes leave a probe. Response bodies and
-  <sub>class · features/settings/network_diagnostics_page.dart:18</sub>
-    - `const NetworkProbeResult({ required this.count, this.fromCache, this.stale = false, this.failure, });`  <sub>:19</sub>
+  <sub>class · features/settings/network_diagnostics_page.dart:17</sub>
+    - `const NetworkProbeResult({ required this.count, this.fromCache, this.stale = false, this.failure, });`  <sub>:18</sub>
 - `class NetworkProbe`
-  <sub>class · features/settings/network_diagnostics_page.dart:31</sub>
-    - `const NetworkProbe(this.title, this.read);`  <sub>:32</sub>
-    - `final Future<NetworkProbeResult> Function(bool force) read;`  <sub>:34</sub>
+  <sub>class · features/settings/network_diagnostics_page.dart:30</sub>
+    - `const NetworkProbe(this.title, this.read);`  <sub>:31</sub>
+    - `final Future<NetworkProbeResult> Function(bool force) read;`  <sub>:33</sub>
 - `List<NetworkProbe> schoolNetworkProbes( MirrorService service, { AcademicProbe? academic, }) {…}`
-  <sub>function · features/settings/network_diagnostics_page.dart:37</sub>
+  <sub>function · features/settings/network_diagnostics_page.dart:36</sub>
 - `class NetworkDiagnosticsPage extends StatelessWidget`
-  <sub>class · features/settings/network_diagnostics_page.dart:86</sub>
-    - `const NetworkDiagnosticsPage({super.key, required this.service});`  <sub>:87</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:90</sub>
+  <sub>class · features/settings/network_diagnostics_page.dart:90</sub>
+    - `const NetworkDiagnosticsPage({super.key, required this.service});`  <sub>:91</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:94</sub>
 - `class SchoolNetworkChecks extends StatefulWidget` — Injectable checks also allow deterministic delayed-render tests without
-  <sub>class · features/settings/network_diagnostics_page.dart:119</sub>
-    - `const SchoolNetworkChecks({super.key, required this.probes});`  <sub>:120</sub>
-    - `State<SchoolNetworkChecks> createState() => …`  <sub>:123</sub>
+  <sub>class · features/settings/network_diagnostics_page.dart:123</sub>
+    - `const SchoolNetworkChecks({super.key, required this.probes});`  <sub>:124</sub>
+    - `State<SchoolNetworkChecks> createState() => …`  <sub>:127</sub>
 
 ## features/settings/preferences_pages.dart
 

@@ -196,13 +196,13 @@
 - `pub fn page_payload(term_code: &str, page: i32) -> String {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:48</sub>
 - `pub async fn authenticate<T: HttpTransport>(session: &Session<T>) -> Result<SpocAuth, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:72</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:77</sub>
 - `pub async fn load<T: HttpTransport>( session: &Session<T>, ) -> Result<homework::HomeworkData, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:167</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:172</sub>
 - `pub(crate) async fn course_ids<T: HttpTransport>( session: &Session<T>, auth: &SpocAuth, path: &str, ) -> Result<std::collections::BTreeSet<String>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:258</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:263</sub>
 - `pub async fn load_detail<T: HttpTransport>( session: &Session<T>, id: &str, ) -> Result<homework::HomeworkDetail, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:291</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:296</sub>
 
 ## announcements
 

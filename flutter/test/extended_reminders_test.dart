@@ -84,7 +84,7 @@ class RefreshService implements MirrorService {
         items: [],
       );
   @override
-  Future<ReadOnlyResponse> editTasks({
+  Future<LocalTasksRead> editTasks({
     required String root,
     required String action,
     String? id,
@@ -94,12 +94,69 @@ class RefreshService implements MirrorService {
   }) async {
     taskCalls++;
     taskAction = action;
-    return const ReadOnlyResponse(payload: '[]', stale: false);
+    return const LocalTasksRead(data: []);
   }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
+
+class StalledRefreshService implements MirrorService {
+  final checkinRequests = <Completer<CheckInResponse>>[];
+  final homeworkRequests = <Completer<HomeworkResponse>>[];
+
+  @override
+  bool get isDemo => false;
+
+  @override
+  Future<CheckInResponse> checkin({bool forceRefresh = false}) {
+    final request = Completer<CheckInResponse>();
+    checkinRequests.add(request);
+    return request.future;
+  }
+
+  @override
+  Future<HomeworkResponse> homework({bool forceRefresh = false}) {
+    final request = Completer<HomeworkResponse>();
+    homeworkRequests.add(request);
+    return request.future;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+CheckInResponse checkinReminderResult(String id) => CheckInResponse(
+  date: '2026-10-26',
+  courses: [
+    CheckInCourse(
+      id: id,
+      courseName: 'synthetic',
+      beginsAt: '08:00',
+      endsAt: '09:40',
+      status: CheckInStatus.notSigned,
+      mergedRecordCount: 1,
+      conflicting: false,
+    ),
+  ],
+  fromCache: false,
+  stale: false,
+);
+
+HomeworkResponse homeworkReminderResult(String id) => HomeworkResponse(
+  termName: 'synthetic',
+  termCode: 'synthetic',
+  items: [
+    HomeworkItem(
+      id: id,
+      courseName: 'synthetic',
+      title: 'synthetic',
+      dueAt: '2026-10-27 08:00:00',
+      status: HomeworkStatus.pending,
+      courseRole: 'student',
+    ),
+  ],
+);
 
 const task = LocalTaskRecord(
   id: 'synthetic',
@@ -389,5 +446,49 @@ void main() {
     // channel. Without the join, three ticks would push three replaces onto the
     // Android main thread at once.
     expect(platform.maxInFlight, 1);
+  });
+
+  testWidgets('stalled refresh cannot overwrite a newer reminder generation', (
+    tester,
+  ) async {
+    final service = StalledRefreshService();
+    final platform = RecordingPlatform();
+    final controller = ReminderController(
+      service: service,
+      account: 'synthetic',
+      visibility: null,
+      persist: false,
+      planner: Planner(),
+      platform: platform,
+      clock: () => now,
+    );
+    addTearDown(controller.dispose);
+
+    final first = controller.refresh();
+    await tester.pump();
+    expect(service.checkinRequests, hasLength(1));
+    expect(service.homeworkRequests, hasLength(1));
+
+    await tester.pump(const Duration(minutes: 5));
+    final second = controller.refresh();
+    await tester.pump();
+    expect(service.checkinRequests, hasLength(2));
+    expect(service.homeworkRequests, hasLength(2));
+
+    service.checkinRequests[1].complete(checkinReminderResult('new'));
+    service.homeworkRequests[1].complete(homeworkReminderResult('new'));
+    await second;
+    await tester.pump();
+
+    service.checkinRequests[0].complete(checkinReminderResult('old'));
+    service.homeworkRequests[0].complete(homeworkReminderResult('old'));
+    await first;
+    await tester.pump();
+
+    final keys = controller.plans.map((plan) => plan.key).join('\n');
+    expect(keys, contains('new'));
+    expect(keys, isNot(contains('old')));
+    final scheduled = platform.plans.map((plan) => plan['key']).join('\n');
+    expect(scheduled, isNot(contains('old')));
   });
 }

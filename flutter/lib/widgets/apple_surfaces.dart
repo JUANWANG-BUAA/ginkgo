@@ -193,81 +193,93 @@ class AppleSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: EdgeInsets.only(top: AppleDesign.desktop(context) ? 20 : 24),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (header != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(32, 0, 32, 10),
-            child: DefaultTextStyle.merge(
-              style: TextStyle(
-                fontSize: AppleDesign.calloutSize,
-                fontWeight: FontWeight.w600,
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
-              ),
-              child: header!,
-            ),
-          ),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppleDesign.pageInset,
-          ),
-          child: ClipRSuperellipse(
-            borderRadius: BorderRadius.circular(
-              AppleDesign.panelRadius(context),
-            ),
-            child: _AppleGroupResize(
-              enabled: animateSize,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: CupertinoColors.secondarySystemGroupedBackground
-                      .resolveFrom(context),
-                  borderRadius: BorderRadius.circular(
-                    AppleDesign.panelRadius(context),
+    // The section is a semantic boundary with explicit children. Without it
+    // Flutter folds every row, header and footer of the section into one
+    // node whose label is their concatenated text and whose bounds cover the
+    // whole card, so screen readers and automation aim at the card instead of
+    // the control the user sees.
+    child: Semantics(
+      container: true,
+      explicitChildNodes: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (header != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(32, 0, 32, 10),
+              child: Semantics(
+                header: true,
+                child: DefaultTextStyle.merge(
+                  style: TextStyle(
+                    fontSize: AppleDesign.calloutSize,
+                    fontWeight: FontWeight.w600,
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
                   ),
-                  border: AppleDesign.desktop(context)
-                      ? Border.all(
-                          color: CupertinoColors.separator
-                              .resolveFrom(context)
-                              .withValues(alpha: 0.3),
-                          width: 0.5,
-                        )
-                      : null,
+                  child: header!,
                 ),
-                child: Column(
-                  children: [
-                    for (var i = 0; i < children.length; i++) ...[
-                      children[i],
-                      if (i != children.length - 1)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Container(
-                            height: 0.5,
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppleDesign.pageInset,
+            ),
+            child: ClipRSuperellipse(
+              borderRadius: BorderRadius.circular(
+                AppleDesign.panelRadius(context),
+              ),
+              child: _AppleGroupResize(
+                enabled: animateSize,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.secondarySystemGroupedBackground
+                        .resolveFrom(context),
+                    borderRadius: BorderRadius.circular(
+                      AppleDesign.panelRadius(context),
+                    ),
+                    border: AppleDesign.desktop(context)
+                        ? Border.all(
                             color: CupertinoColors.separator
                                 .resolveFrom(context)
-                                .withValues(alpha: 0.16),
+                                .withValues(alpha: 0.3),
+                            width: 0.5,
+                          )
+                        : null,
+                  ),
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < children.length; i++) ...[
+                        children[i],
+                        if (i != children.length - 1)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Container(
+                              height: 0.5,
+                              color: CupertinoColors.separator
+                                  .resolveFrom(context)
+                                  .withValues(alpha: 0.16),
+                            ),
                           ),
-                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        if (footer != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(32, 8, 32, 0),
-            child: DefaultTextStyle.merge(
-              style: TextStyle(
-                fontSize: 13,
-                height: 1.4,
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+          if (footer != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(32, 8, 32, 0),
+              child: DefaultTextStyle.merge(
+                style: TextStyle(
+                  fontSize: 13,
+                  height: 1.4,
+                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                ),
+                child: footer!,
               ),
-              child: footer!,
             ),
-          ),
-      ],
+        ],
+      ),
     ),
   );
 }
@@ -290,21 +302,29 @@ class AppleListTile extends StatelessWidget {
   final double minimumHeight;
   final double leadingSize;
   @override
-  Widget build(BuildContext context) => ConstrainedBox(
-    constraints: BoxConstraints(minHeight: minimumHeight),
-    child: CupertinoListTile(
-      title: _wrapText(title),
-      subtitle: subtitle == null ? null : _wrapText(subtitle!),
-      additionalInfo: additionalInfo,
-      leading: leading,
-      trailing: trailing,
-      onTap: onTap,
-      padding: EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: AppPreferencesScope.of(context).compactLists ? 6 : 10,
+  Widget build(BuildContext context) => Semantics(
+    // One node per row: the title and subtitle read together and the row's own
+    // tap action stays on it. A trailing control keeps its own node, so it
+    // cannot replace the row's action in the merged row.
+    container: true,
+    child: ConstrainedBox(
+      constraints: BoxConstraints(minHeight: minimumHeight),
+      child: CupertinoListTile(
+        title: _wrapText(title),
+        subtitle: subtitle == null ? null : _wrapText(subtitle!),
+        additionalInfo: additionalInfo,
+        leading: leading,
+        trailing: trailing == null
+            ? null
+            : Semantics(container: true, child: trailing),
+        onTap: onTap,
+        padding: EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: AppPreferencesScope.of(context).compactLists ? 6 : 10,
+        ),
+        leadingToTitle: 12,
+        leadingSize: leadingSize,
       ),
-      leadingToTitle: 12,
-      leadingSize: leadingSize,
     ),
   );
   Widget _wrapText(Widget child) => Builder(

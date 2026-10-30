@@ -28,7 +28,7 @@ LIB = ROOT / 'flutter' / 'lib'
 # 用了 token 的写法不计为硬编码。
 BUDGET = {
     'font_size': 179,
-    'edge_insets': 268,
+    'edge_insets': 267,
     'sized_box': 208,
     'border_radius': 42,
 }

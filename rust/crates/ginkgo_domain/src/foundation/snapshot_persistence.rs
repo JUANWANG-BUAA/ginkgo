@@ -4,7 +4,7 @@
 //! plaintext file/preferences store. This module is not installed by default.
 //! A random session nonce prevents process-local generation counters colliding
 //! after restart. Cross-session adoption is deliberately unsupported.
-use crate::{AppError, ErrorCode};
+use crate::AppError;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap;
@@ -147,7 +147,7 @@ impl SnapshotBook {
     ) -> Result<Option<SnapshotFallback>, AppError> {
         self.check_scope(scope)?;
         // Authentication/protocol/access failures must not become offline success.
-        if failure.code != ErrorCode::ServiceUnavailable {
+        if !failure.allows_stale_snapshot() {
             return Err(failure);
         }
         Ok(self
@@ -234,6 +234,7 @@ fn in_ttl(fetched_at_ms: i64, now_ms: i64) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ErrorCode;
     use serde_json::json;
     fn scope() -> SnapshotScope {
         SnapshotScope {
@@ -271,6 +272,26 @@ mod tests {
             json!([])
         );
     }
+    #[test]
+    fn network_unreachable_uses_valid_snapshot_but_auth_failure_does_not() {
+        let s = scope();
+        let mut book = SnapshotBook::new(s.clone()).unwrap();
+        let ticket = book.begin(&s, &key()).unwrap();
+        book.commit_success(&s, &key(), ticket, 1000, 1001, json!(["course"]))
+            .unwrap();
+        let copy = SnapshotBook::decode(&book.encode().unwrap(), &s, 2000).unwrap();
+
+        let old = copy
+            .fallback(&s, &key(), 2000, AppError::network_unreachable())
+            .unwrap()
+            .unwrap();
+        assert_eq!(old.fetched_at_ms, 1000);
+        assert_eq!(old.failure.code, ErrorCode::NetworkUnreachable);
+        assert!(copy
+            .fallback(&s, &key(), 2000, AppError::session_expired())
+            .is_err());
+    }
+
     #[test]
     fn newest_request_wins_and_clear_rejects_a_b_a_late_results() {
         let s = scope();

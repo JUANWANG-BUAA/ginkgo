@@ -8,14 +8,12 @@ import 'package:ginkgo_mirror/features/classroom/classroom_page.dart';
 import 'package:ginkgo_mirror/features/career/career_events_page.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
 import 'package:ginkgo_mirror/features/graduate/graduate_page.dart';
-import 'package:ginkgo_mirror/features/graduate/graduate_models.dart'
-    show GraduateView;
+import 'package:ginkgo_mirror/application/graduate.dart';
 import 'package:ginkgo_mirror/features/library/library_loans_page.dart';
 import 'package:ginkgo_mirror/features/grades/grades_page.dart';
 import 'package:ginkgo_mirror/features/homework/homework_page.dart';
 import 'package:ginkgo_mirror/features/library/library_page.dart';
 import 'package:ginkgo_mirror/features/learning/learning_page.dart';
-import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/features/notices/notices_page.dart';
 import 'package:ginkgo_mirror/features/reservations/reservations_page.dart';
 import 'package:ginkgo_mirror/features/schedule/schedule_page.dart';
@@ -25,84 +23,11 @@ import 'package:ginkgo_mirror/features/settings/settings_page.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
 import 'package:ginkgo_mirror/features/today/today_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shortcuts.dart';
-import 'package:ginkgo_mirror/application/contracts.dart' show RouteChoice;
-import 'package:ginkgo_mirror/application/service_capabilities.dart';
 
-/// 侧栏分组。顺序即桌面侧栏的呈现顺序；新增功能只登记到既有分组即可。
-enum WorkspaceSection {
-  workbench('工作台'),
-  academics('学业'),
-  spaces('空间资源'),
-  campus('校园');
+import 'package:ginkgo_mirror/workspace/workspace_types.dart';
 
-  const WorkspaceSection(this.title);
-  final String title;
-}
-
-/// 功能页面构建上下文：页面只拿到服务与工作区导航能力，不接触壳层状态。
-class WorkspaceContext {
-  WorkspaceContext({
-    required this.service,
-    required this.mobile,
-    required this.openFeature,
-    required this.openSettings,
-    this.accountName,
-    this.accountId,
-    this.route,
-    this.onSignOut,
-  }) : capabilities = ServiceCapabilities.resolve(service);
-
-  final MirrorService service;
-
-  /// Optional capabilities resolved once here, so no page probes the service.
-  final ServiceCapabilities capabilities;
-  final bool mobile;
-  final String? accountName;
-  final String? accountId;
-  final RouteChoice? route;
-  final Future<void> Function()? onSignOut;
-  final ValueChanged<String> openFeature;
-  final VoidCallback openSettings;
-}
-
-/// 一次功能登记：标题、图标、所在分组、移动端标签位置与页面构建器。
-///
-/// 这是壳层与功能页之间唯一的登记点：移动端标签、桌面侧栏、今日快捷入口与
-/// 工作区返回逻辑都从 [workspaceDestinations] 派生。登记是编译期静态表，
-/// 不做运行时插件加载或远程下发；新增功能仍需显式接入并重新构建。
-class WorkspaceDestination {
-  const WorkspaceDestination({
-    required this.id,
-    required this.title,
-    required this.icon,
-    required this.build,
-    this.mobileLabel,
-    this.section,
-    this.mobileTab,
-    this.sidebar = true,
-    this.footer = false,
-  });
-
-  final String id;
-  final String title;
-  final IconData icon;
-  final Widget Function(WorkspaceContext context) build;
-
-  /// 移动端标签文案，默认沿用侧栏标题。
-  final String? mobileLabel;
-
-  /// 桌面侧栏分组；为 null 表示不进入分组列表。
-  final WorkspaceSection? section;
-
-  /// 移动端标签顺序；为 null 表示不是一级标签，只能从其它入口进入。
-  final int? mobileTab;
-
-  /// 是否进入桌面侧栏分组列表。
-  final bool sidebar;
-
-  /// 是否固定在桌面侧栏底部（设置类入口）。
-  final bool footer;
-}
+export 'package:ginkgo_mirror/workspace/workspace_types.dart'
+    show WorkspaceContext, WorkspaceDestination, WorkspaceSection;
 
 /// 功能登记表。id 是稳定标识，供导航、快捷入口与测试引用；不要用索引当标识。
 final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
@@ -136,6 +61,7 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
       directory: context.mobile
           ? ServiceDirectory(
               service: context.service,
+              destinations: workspaceDestinations,
               accountName: context.accountName,
               accountId: context.accountId,
               route: context.route,
@@ -150,7 +76,7 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     icon: CupertinoIcons.list_bullet,
     section: WorkspaceSection.workbench,
     build: (context) =>
-        TasksPage(demo: context.service.isDemo, service: context.service),
+        TasksPage(service: context.service),
   ),
   WorkspaceDestination(
     id: 'checkin',
@@ -207,7 +133,6 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     icon: CupertinoIcons.briefcase_fill,
     section: WorkspaceSection.academics,
     build: (context) => GraduatePage(
-      demo: context.service.isDemo,
       service: context.service,
       creditMapGateway: context.capabilities.graduateCreditMap,
     ),
@@ -219,7 +144,6 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     section: WorkspaceSection.academics,
     sidebar: false,
     build: (context) => GraduatePage(
-      demo: context.service.isDemo,
       service: context.service,
       creditMapGateway: context.capabilities.graduateCreditMap,
       initialView: GraduateView.credits,
@@ -265,9 +189,8 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     title: '校园卡',
     icon: CupertinoIcons.creditcard,
     section: WorkspaceSection.campus,
-    build: (context) => CampusCardPage(
-      gateway: context.capabilities.campusCard,
-    ),
+    build: (context) =>
+        CampusCardPage(gateway: context.capabilities.campusCard),
   ),
   WorkspaceDestination(
     id: 'notices',
@@ -275,14 +198,15 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     icon: CupertinoIcons.news_solid,
     section: WorkspaceSection.campus,
     build: (context) =>
-        NoticesPage(demo: context.service.isDemo, service: context.service),
+        NoticesPage(service: context.service),
   ),
   WorkspaceDestination(
     id: 'career-events',
     title: '就业活动',
     icon: CupertinoIcons.briefcase,
     section: WorkspaceSection.campus,
-    build: (context) => CareerEventsPage(service: context.capabilities.careerEvents),
+    build: (context) =>
+        CareerEventsPage(service: context.capabilities.careerEvents),
   ),
   WorkspaceDestination(
     id: 'campus-activities',

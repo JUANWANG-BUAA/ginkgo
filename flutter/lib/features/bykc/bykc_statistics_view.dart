@@ -2,7 +2,8 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
-import 'bykc_models.dart';
+import 'package:ginkgo_mirror/application/bykc.dart';
+
 import 'bykc_widgets.dart';
 
 /// 学习进度统计视图。

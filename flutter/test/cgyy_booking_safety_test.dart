@@ -4,57 +4,55 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/cgyy_commands.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_booking_page.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 
 class SafetyGateway implements CgyyBookingGateway {
   final commands = <Map<String, Object?>>[];
   int slots = 2;
-  Map<String, dynamic> prepared = {
-    'state': 'not_submitted',
-    'message': '未提交，可修改',
-  };
-  Map<String, dynamic> submitted = {
-    'state': 'accepted',
-    'message': '已查回预约，审批状态请以学校为准',
-  };
-  Completer<ReadOnlyResponse>? optionsWait, prepareWait, submitWait;
+  CgyyActionResult prepared = CgyyActionResult.fromState(
+    'not_submitted',
+    '未提交，可修改',
+  );
+  CgyyActionResult submitted = CgyyActionResult.fromState(
+    'accepted',
+    '已查回预约，审批状态请以学校为准',
+  );
+  Completer<CgyyActionResult>? optionsWait, prepareWait, submitWait;
   bool throwPrepare = false, throwSubmit = false;
   int calls(String action) =>
       commands.where((c) => c['action'] == action).length;
-  ReadOnlyResponse response(Map<String, dynamic> value) =>
-      ReadOnlyResponse(stale: false, payload: jsonEncode(value));
   @override
-  Future<ReadOnlyResponse> executeCgyy(Map<String, Object?> command) async {
-    commands.add(command);
-    switch (command['action']) {
+  Future<CgyyActionResult> executeCgyy(CgyyCommand command) async {
+    commands.add(command.toPayload());
+    switch (command.toPayload()['action']) {
       case 'options':
         if (optionsWait != null) return optionsWait!.future;
-        return response({
-          'state': 'options',
-          'options': {
-            'choices': [
+        return CgyyActionResult.of(
+          state: 'options',
+          options: CgyyBookingOptions(
+            choices: [
               for (var i = 1; i <= slots; i++)
-                {
-                  'space_id': 1,
-                  'space_name': '合成空间',
-                  'time_id': i,
-                  'time': '时段 $i',
-                },
+                CgyyBookingChoice(
+                  spaceId: 1,
+                  spaceName: '合成空间',
+                  timeId: i,
+                  time: '时段 $i',
+                ),
             ],
-            'purposes': [
-              {'id': 1, 'name': '学习研讨类'},
-            ],
-          },
-        });
+            purposes: const [CgyyPurpose(id: 1, name: '学习研讨类')],
+            usesFallbackPurposes: false,
+          ),
+        );
       case 'prepare':
         if (throwPrepare) throw StateError('synthetic transport');
-        return prepareWait?.future ?? response(prepared);
+        return prepareWait?.future ?? prepared;
       case 'submit':
         if (throwSubmit) throw StateError('synthetic pre-check failure');
-        return submitWait?.future ?? response(submitted);
+        return submitWait?.future ?? submitted;
     }
     throw StateError('Unexpected synthetic command');
   }
@@ -211,14 +209,14 @@ void main() {
     jigsaw = await png(60, 155);
   });
   SafetyGateway challenge() => SafetyGateway()
-    ..prepared = {
-      'state': 'challenge',
-      'challenge': {
-        'id': 'synthetic-challenge',
-        'background': background,
-        'jigsaw': jigsaw,
-      },
-    };
+    ..prepared = CgyyActionResult.of(
+      state: 'challenge',
+      challenge: CgyyChallenge(
+        id: 'synthetic-challenge',
+        background: background,
+        jigsaw: jigsaw,
+      ),
+    );
   testWidgets(
     'prepare summary and same-frame double tap; cancel does not write',
     (tester) async {
@@ -268,17 +266,21 @@ void main() {
     'options read allows return and late completion is mounted-safe',
     (tester) async {
       final gateway = SafetyGateway()
-        ..optionsWait = Completer<ReadOnlyResponse>();
+        ..optionsWait = Completer<CgyyActionResult>();
       await open(tester, gateway);
       await tester.tap(bookingBack());
       await tester.pumpAndSettle();
       expect(find.text('打开合成预约'), findsOneWidget);
       expect(find.byType(CupertinoAlertDialog), findsNothing);
       gateway.optionsWait!.complete(
-        gateway.response({
-          'state': 'options',
-          'options': {'choices': [], 'purposes': []},
-        }),
+        CgyyActionResult.of(
+          state: 'options',
+          options: CgyyBookingOptions(
+            choices: const [],
+            purposes: const [],
+            usesFallbackPurposes: false,
+          ),
+        ),
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
@@ -306,7 +308,7 @@ void main() {
     tester,
   ) async {
     final gateway = SafetyGateway()
-      ..prepareWait = Completer<ReadOnlyResponse>();
+      ..prepareWait = Completer<CgyyActionResult>();
     await open(tester, gateway);
     await fill(tester);
     await prepare(tester);
@@ -319,7 +321,7 @@ void main() {
     expect(find.byType(CgyyBookingPage), findsOneWidget);
     expect(gateway.calls('prepare'), 1);
     gateway.prepareWait!.complete(
-      gateway.response({'state': 'notSubmitted', 'message': '尚未提交，可修改'}),
+      CgyyActionResult.fromState('notSubmitted', '尚未提交，可修改'),
     );
     await tester.pumpAndSettle();
     expect(control(tester, '确认信息并验证').onPressed, isNotNull);
@@ -328,7 +330,7 @@ void main() {
     testWidgets('unknown prepare locks; throws=$throws', (tester) async {
       final gateway = SafetyGateway()
         ..throwPrepare = throws
-        ..prepared = {'state': 'mystery', 'message': 'not trusted'};
+        ..prepared = CgyyActionResult.fromState('mystery', 'not trusted');
       await open(tester, gateway);
       await fill(tester);
       await prepare(tester);
@@ -339,8 +341,15 @@ void main() {
     });
   }
   testWidgets('bad captcha image cannot submit', (tester) async {
-    final gateway = challenge();
-    (gateway.prepared['challenge'] as Map)['jigsaw'] = 'invalid';
+    final gateway = challenge()
+      ..prepared = CgyyActionResult.of(
+        state: 'challenge',
+        challenge: CgyyChallenge(
+          id: 'synthetic-challenge',
+          background: background,
+          jigsaw: 'invalid',
+        ),
+      );
     await open(tester, gateway);
     await fill(tester);
     await prepare(tester);
@@ -392,7 +401,7 @@ void main() {
   ]) {
     testWidgets('single-use challenge terminal state $state', (tester) async {
       final gateway = challenge()
-        ..submitted = {'state': state, 'message': '合成终态 $state'}
+        ..submitted = CgyyActionResult.fromState(state, '合成终态 $state')
         ..throwSubmit = state == 'throw';
       await open(tester, gateway);
       await fill(tester);
@@ -446,7 +455,7 @@ void main() {
   testWidgets('delayed submit disables returns and preserves one call', (
     tester,
   ) async {
-    final gateway = challenge()..submitWait = Completer<ReadOnlyResponse>();
+    final gateway = challenge()..submitWait = Completer<CgyyActionResult>();
     await open(tester, gateway);
     await fill(tester);
     await prepare(tester);
@@ -469,7 +478,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('学校拼图验证'), findsOneWidget);
     gateway.submitWait!.complete(
-      gateway.response({'state': 'uncertain', 'message': '结果待核实'}),
+      CgyyActionResult.fromState('uncertain', '结果待核实'),
     );
     await tester.pumpAndSettle();
     expect(gateway.calls('submit'), 1);
@@ -480,7 +489,7 @@ void main() {
       tester,
     ) async {
       final gateway = challenge();
-      final completer = Completer<ReadOnlyResponse>();
+      final completer = Completer<CgyyActionResult>();
       if (action == 'prepare') {
         gateway.prepareWait = completer;
       } else {
@@ -498,9 +507,7 @@ void main() {
         await tester.pumpAndSettle();
       }
       await tester.pumpWidget(const SizedBox.shrink());
-      completer.complete(
-        gateway.response({'state': 'uncertain', 'message': '结果待核实'}),
-      );
+      completer.complete(CgyyActionResult.fromState('uncertain', '结果待核实'));
       await tester.pumpAndSettle();
       expect(gateway.calls(action), 1);
       expect(tester.takeException(), isNull);

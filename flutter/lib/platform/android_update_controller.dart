@@ -16,18 +16,6 @@ class AndroidDownload {
     required this.size,
     required this.sha256,
   });
-  factory AndroidDownload.fromJson(Map<String, dynamic> value) {
-    final asset = AndroidDownload(
-      version: value['version'] as String,
-      name: value['name'] as String,
-      url: value['url'] as String,
-      apiUrl: value['apiUrl'] as String,
-      size: value['size'] as int,
-      sha256: value['sha256'] as String,
-    );
-    if (!asset.isValid) throw const FormatException('Invalid update asset');
-    return asset;
-  }
   final String version, name, url, apiUrl, sha256;
   final int size;
   bool get isValid =>

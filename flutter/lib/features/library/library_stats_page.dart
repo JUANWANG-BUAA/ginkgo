@@ -6,7 +6,7 @@ import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/widgets/resource_meter.dart';
 
-import 'library_stats_models.dart';
+import 'package:ginkgo_mirror/application/library_stats.dart';
 
 import 'package:ginkgo_mirror/shared/today_time.dart';
 
@@ -68,9 +68,8 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
       () async {
         final result = await service.libraryStats(forceRefresh: force);
         var next = section.value;
-        if (result.payload != null &&
-            (result.failure == null || result.stale)) {
-          final snapshot = libraryStats(result.payload!);
+        final snapshot = result.data;
+        if (snapshot != null) {
           final instant = snapshot.fetchedAt == null
               ? null
               : DateTime.tryParse(snapshot.fetchedAt!);

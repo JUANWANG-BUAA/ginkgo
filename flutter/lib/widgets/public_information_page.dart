@@ -73,6 +73,7 @@ class _PublicInformationPageState<T, Q>
         ..invalidate()
         ..value = null
         ..error = null
+        ..failure = null
         ..loading = false;
       load();
     }
@@ -99,7 +100,8 @@ class _PublicInformationPageState<T, Q>
     section
       ..invalidate()
       ..value = null
-      ..error = null;
+      ..error = null
+      ..failure = null;
     setState(() => query = value);
     load(force: true);
   }
@@ -135,9 +137,10 @@ class _PublicInformationPageState<T, Q>
               if (section.error != null)
                 AppleStatusSection(
                   title: section.error!,
-                  description: section.value == null
-                      ? '请重试或前往官网。'
-                      : '正在显示上次结果。',
+                  description: failureAdvice(
+                    hasStaleValue: section.value != null,
+                    failure: section.failure,
+                  ),
                   onAction: () => load(force: true),
                   error: true,
                 ),

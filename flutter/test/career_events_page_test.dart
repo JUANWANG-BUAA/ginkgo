@@ -105,6 +105,47 @@ void main() {
     expect(find.text('学校服务暂时不可用，请稍后重试'), findsNothing);
   });
 
+  testWidgets('an offline first read blames the connection, not the school', (
+    tester,
+  ) async {
+    final fake = SyntheticService();
+    await tester.pumpWidget(host(fake));
+    fake.completers.last.complete(
+      const CareerEventsRead(failure: FailureCode.networkUnreachable),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('无法连接网络，请检查手机网络或校园网后重试'), findsOneWidget);
+    expect(find.text('手机当前连不上网络，恢复网络后重试。'), findsOneWidget);
+    // Nothing is cached, so the stale branch must stay hidden, and an offline
+    // reader must not be pointed at a website it cannot reach either.
+    expect(find.text('正在显示上次结果。'), findsNothing);
+    expect(find.text('请稍后重试，或在服务目录中打开官网。'), findsNothing);
+    expect(find.text('学校服务暂时不可用，请稍后重试'), findsNothing);
+  });
+
+  testWidgets('retrying an offline read keeps the queried month', (
+    tester,
+  ) async {
+    final fake = SyntheticService();
+    await tester.pumpWidget(host(fake));
+    final month = fake.requests.single.month;
+    fake.completers.last.complete(
+      const CareerEventsRead(failure: FailureCode.networkUnreachable),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('重试'));
+    await tester.pump();
+    expect(fake.requests, hasLength(2));
+    expect(fake.requests.last.month, month);
+    expect(fake.requests.last.forceRefresh, isTrue);
+
+    fake.completers.last.complete(const CareerEventsRead(data: data));
+    await tester.pumpAndSettle();
+    expect(find.text('合成宣讲'), findsOneWidget);
+    expect(find.text('手机当前连不上网络，恢复网络后重试。'), findsNothing);
+  });
+
   testWidgets('gateway replacement discards late events from the old service', (
     tester,
   ) async {

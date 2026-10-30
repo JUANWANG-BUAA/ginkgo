@@ -12,9 +12,9 @@
 - [shared/course_visibility.dart](#sharedcoursevisibilitydart) (2)
 - [shared/homework_visibility.dart](#sharedhomeworkvisibilitydart) (1)
 - [shared/query_cache_scope.dart](#sharedquerycachescopedart) (1)
+- [shared/reminder_controller.dart](#sharedremindercontrollerdart) (1)
 - [shared/reminder_rules.dart](#sharedreminderrulesdart) (5)
 - [shared/reminder_scope.dart](#sharedreminderscopedart) (1)
-- [shared/reminders.dart](#sharedremindersdart) (1)
 - [shared/school_links.dart](#sharedschoollinksdart) (2)
 - [shared/school_timestamp.dart](#sharedschooltimestampdart) (6)
 - [shared/today_time.dart](#sharedtodaytimedart) (5)
@@ -88,6 +88,36 @@
     - `static void invalidate(BuildContext context) => …`  <sub>:9</sub>
     - `State<QueryCacheScope> createState() => …`  <sub>:13</sub>
 
+## shared/reminder_controller.dart
+
+- `class ReminderController extends ChangeNotifier` — Account-scoped read receipts contain only digests, not school content.
+  <sub>class · shared/reminder_controller.dart:23</sub>
+    - `final Future<String> Function() tasksRoot;`  <sub>:44</sub>
+    - `final DateTime Function() clock;`  <sub>:46</sub>
+    - `bool checkinEnabled = true, homeworkEnabled = true;`  <sub>:52</sub>
+    - `bool courseEnabled = false, taskEnabled = false;`  <sub>:54</sub>
+    - `bool get busy => …`  <sub>:61</sub>
+    - `bool get settingsReady => …`  <sub>:64</sub>
+    - `bool get canRetryRestore => …`  <sub>:65</sub>
+    - `int scheduled = 0;`  <sub>:66</sub>
+    - `String digest(String key) => …`  <sub>:68</sub>
+    - `Future<void> restore() async {…}`  <sub>:73</sub>
+    - `void reportRestoreTimeout() {…}`  <sub>:118</sub>
+    - `List<ReminderPlan> get plans => …`  <sub>:146</sub>
+    - `int unread(String group) => …`  <sub>:158</sub>
+    - `void markRead(String group) {…}`  <sub>:167</sub>
+    - `void setActive(String group) {…}`  <sub>:185</sub>
+    - `Future<void> setEnabled(String group, bool value) async {…}`  <sub>:190</sub>
+    - `Future<void> updateSchedule(ScheduleResponse data) async {…}` — Failed or stale school reads never replace a previously accepted plan.  <sub>:217</sub>
+    - `Future<void> updateTasks(List<LocalTaskRecord> tasks) async {…}`  <sub>:233</sub>
+    - `void updateCheckin(CheckInResponse data) {…}`  <sub>:274</sub>
+    - `void updateHomework(HomeworkResponse data) {…}`  <sub>:278</sub>
+    - `Future<void> refresh({bool includeHomework = true}) async {…}`  <sub>:287</sub>
+    - `Future<void> reconcile() {…}`  <sub>:372</sub>
+    - `Future<void> reschedule() async {…}`  <sub>:419</sub>
+    - `Future<void> stop() async {…}`  <sub>:424</sub>
+    - `void dispose() {…}`  <sub>:430</sub>
+
 ## shared/reminder_rules.dart
 
 - `DateTime? schoolInstant(String raw, {String? day}) {…}` — School wall-clock values are never interpreted in the device timezone.
@@ -111,36 +141,6 @@
     - `static ReminderController? of(BuildContext context) => …`  <sub>:34</sub>
     - `static ReminderController? read(BuildContext context) => …`  <sub>:36</sub>
     - `State<ReminderScope> createState() => …`  <sub>:39</sub>
-
-## shared/reminders.dart
-
-- `class ReminderController extends ChangeNotifier` — Account-scoped read receipts contain only digests, not school content.
-  <sub>class · shared/reminders.dart:26</sub>
-    - `final Future<String> Function() tasksRoot;`  <sub>:47</sub>
-    - `final DateTime Function() clock;`  <sub>:49</sub>
-    - `bool checkinEnabled = true, homeworkEnabled = true;`  <sub>:55</sub>
-    - `bool courseEnabled = false, taskEnabled = false;`  <sub>:57</sub>
-    - `bool get busy => …`  <sub>:63</sub>
-    - `bool get settingsReady => …`  <sub>:66</sub>
-    - `bool get canRetryRestore => …`  <sub>:67</sub>
-    - `int scheduled = 0;`  <sub>:68</sub>
-    - `String digest(String key) => …`  <sub>:70</sub>
-    - `Future<void> restore() async {…}`  <sub>:75</sub>
-    - `void reportRestoreTimeout() {…}`  <sub>:120</sub>
-    - `List<ReminderPlan> get plans => …`  <sub>:148</sub>
-    - `int unread(String group) => …`  <sub>:160</sub>
-    - `void markRead(String group) {…}`  <sub>:169</sub>
-    - `void setActive(String group) {…}`  <sub>:187</sub>
-    - `Future<void> setEnabled(String group, bool value) async {…}`  <sub>:192</sub>
-    - `Future<void> updateSchedule(ScheduleResponse data) async {…}` — Failed or stale school reads never replace a previously accepted plan.  <sub>:219</sub>
-    - `Future<void> updateTasks(List<LocalTaskRecord> tasks) async {…}`  <sub>:235</sub>
-    - `void updateCheckin(CheckInResponse data) {…}`  <sub>:276</sub>
-    - `void updateHomework(HomeworkResponse data) {…}`  <sub>:280</sub>
-    - `Future<void> refresh({bool includeHomework = true}) async {…}`  <sub>:289</sub>
-    - `Future<void> reconcile() {…}`  <sub>:368</sub>
-    - `Future<void> reschedule() async {…}`  <sub>:415</sub>
-    - `Future<void> stop() async {…}`  <sub>:420</sub>
-    - `void dispose() {…}`  <sub>:426</sub>
 
 ## shared/school_links.dart
 

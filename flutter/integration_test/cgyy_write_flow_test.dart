@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/cgyy_commands.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_review_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
@@ -16,9 +17,10 @@ import 'support.dart' show settle;
 class DeviceBookingService extends ManagementService {
   final form = SafetyGateway();
   @override
-  Future<ReadOnlyResponse> executeCgyy(Map<String, Object?> command) async {
-    if (['options', 'prepare', 'submit'].contains(command['action'])) {
-      if (command['action'] == 'submit') pending = true;
+  Future<CgyyActionResult> executeCgyy(CgyyCommand command) async {
+    final action = command.toPayload()['action'];
+    if (['options', 'prepare', 'submit'].contains(action)) {
+      if (action == 'submit') pending = true;
       return form.executeCgyy(command);
     }
     return super.executeCgyy(command);
@@ -53,19 +55,21 @@ void main() {
     'synthetic room form captcha unknown review and cancellation closure',
     (tester) async {
       final service = DeviceBookingService();
-      service.form.prepared = {
-        'state': 'challenge',
-        'challenge': {
-          'id': 'device-fixture',
-          'background': await png(310, 155),
-          'jigsaw': await png(60, 155),
-        },
-      };
-      service.form.submitted = {
-        'state': 'uncertain',
-        'message': '合成：提交结果待核实，请查订单',
-      };
-      await tester.pumpWidget(ginkgoApp(home: CgyyPage(service: service)));
+      service.form.prepared = CgyyActionResult.of(
+        state: 'challenge',
+        challenge: CgyyChallenge(
+          id: 'device-fixture',
+          background: await png(310, 155),
+          jigsaw: await png(60, 155),
+        ),
+      );
+      service.form.submitted = CgyyActionResult.fromState(
+        'uncertain',
+        '合成：提交结果待核实，请查订单',
+      );
+      await tester.pumpWidget(
+        ginkgoApp(home: CgyyPage(service: service, bookingGateway: service)),
+      );
       await settle(tester);
       await tester.tap(find.byKey(const Key('cgyy-site-1')));
       await settle(tester);
@@ -146,7 +150,7 @@ void main() {
       expect(service.form.calls('submit'), 1);
       expect(tester.takeException(), isNull);
       // Explicitly prove all effects went to in-memory fixtures.
-      expect(currentOrder['id'], 42);
+      expect(currentOrder.id, 42);
       expect(jsonEncode(service.form.commands), contains('device-fixture'));
     },
   );

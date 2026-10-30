@@ -1,12 +1,29 @@
 import '../application/contracts.dart';
 import '../application/career.dart';
+import '../application/checkin_progress.dart';
+import '../application/library_holdings.dart';
+import '../application/local_tasks_read.dart';
 import '../application/campus_activities.dart';
+import '../application/notices.dart';
+import '../application/shuttle.dart';
 import '../application/homework_files.dart';
 
 import 'package:ginkgo_mirror/infrastructure/demo_homework_files.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_learning.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_library_loans.dart';
+import 'package:ginkgo_mirror/infrastructure/local_tasks_decode.dart';
+import 'package:ginkgo_mirror/infrastructure/notices_decode.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_graduate_credit_map.dart';
+import 'package:ginkgo_mirror/infrastructure/library_stats_decode.dart';
+import 'package:ginkgo_mirror/infrastructure/graduate_decode.dart';
+import 'package:ginkgo_mirror/infrastructure/bykc_decode.dart';
+import 'package:ginkgo_mirror/infrastructure/cgyy_decode.dart';
+
+import '../features/cgyy/cgyy_models.dart';
+import '../application/bykc.dart';
+import '../application/graduate.dart';
+import '../application/library_books.dart';
+import '../application/library_stats.dart';
 
 import 'dart:typed_data';
 
@@ -58,8 +75,8 @@ final class DemoMirrorService
     String assignmentId,
   ) => _homeworkFiles.homeworkCapabilities(assignmentId);
   @override
-  Future<live.ReadOnlyResponse> checkinProgress() async =>
-      const live.ReadOnlyResponse(stale: false);
+  Future<CheckinProgressRead> checkinProgress() async =>
+      const CheckinProgressRead();
   @override
   Future<live.CampusCardBalanceResponse> campusCardBalance() =>
       live.loadDemoCampusCardBalance();
@@ -110,45 +127,51 @@ final class DemoMirrorService
     ),
   );
   @override
-  Future<live.ReadOnlyResponse> bykcPart(
+  Future<BykcPartRead> bykcPart(
     BykcPart part, {
     bool forceRefresh = false,
-  }) => switch (part) {
-    BykcPart.catalog => live.loadDemoBykc(),
-    BykcPart.chosen => live.loadDemoBykcChosen(),
-    BykcPart.statistics => live.loadDemoBykcStatistics(),
+  }) async => switch (part) {
+    BykcPart.catalog => decodeBykcCatalog(await live.loadDemoBykc()),
+    BykcPart.chosen => decodeBykcChosen(await live.loadDemoBykcChosen()),
+    BykcPart.statistics => decodeBykcStatistics(
+      await live.loadDemoBykcStatistics(),
+    ),
   };
   @override
-  Future<live.ReadOnlyResponse> graduatePart({
+  Future<GraduateRead> graduatePart({
     required bool report,
     required bool forceRefresh,
-  }) => report ? live.loadDemoGraduate() : live.loadDemoGraduateStatus();
+  }) async => decodeGraduate(
+    await (report ? live.loadDemoGraduate() : live.loadDemoGraduateStatus()),
+  );
   @override
-  Future<live.ReadOnlyResponse> notices({bool forceRefresh = false}) =>
-      live.loadDemoNotices();
+  Future<NoticesRead> notices({bool forceRefresh = false}) async =>
+      decodeNotices(await live.loadDemoNotices());
   @override
-  Future<live.ReadOnlyResponse> cgyy({
+  Future<CgyyLoadRead> cgyy({
     required String kind,
     required int siteId,
     required String date,
     required bool forceRefresh,
-  }) => live.loadDemoCgyy(kind: kind);
+  }) async => decodeCgyyLoad(await live.loadDemoCgyy(kind: kind));
   @override
-  Future<live.ReadOnlyResponse> editTasks({
+  Future<LocalTasksRead> editTasks({
     required String root,
     required String action,
     String? id,
     String? title,
     String? due,
     bool? completed,
-  }) => live.editTasks(
-    root: root,
-    demo: true,
-    action: action,
-    id: id,
-    title: title,
-    due: due,
-    completed: completed,
+  }) async => decodeLocalTasks(
+    await live.editTasks(
+      root: root,
+      demo: true,
+      action: action,
+      id: id,
+      title: title,
+      due: due,
+      completed: completed,
+    ),
   );
   @override
   Future<bool> verifyBridgeContract() async {
@@ -239,28 +262,55 @@ final class DemoMirrorService
 
   Future<LibraryDemoResponse> _demoLibrary() => rust.loadDemoLibrary();
   @override
-  Future<live.ReadOnlyResponse> libraryStats({bool forceRefresh = false}) =>
-      live.loadDemoLibraryStats();
+  Future<LibraryStatsRead> libraryStats({bool forceRefresh = false}) async =>
+      decodeLibraryStats(await live.loadDemoLibraryStats());
   @override
-  Future<live.ReadOnlyResponse> libraryBooks({
+  Future<BookPageRead> libraryBooks({
     required String query,
     required int page,
     String sort = 'relevance',
     bool descending = true,
-  }) async => const live.ReadOnlyResponse(
-    payload:
-        '{"page":1,"pageSize":20,"total":0,"actualTotal":0,'
-        '"items":[],"hasMore":false}',
-    stale: false,
+  }) async => const BookPageRead(
+    data: BookPage(
+      page: 1,
+      pageSize: 20,
+      total: 0,
+      actualTotal: 0,
+      items: [],
+      hasMore: false,
+    ),
   );
   @override
-  Future<live.ReadOnlyResponse> libraryHoldings(String bibId) async =>
-      const live.ReadOnlyResponse(payload: '[]', stale: false);
+  Future<BookHoldingsRead> libraryHoldings(String bibId) async =>
+      const BookHoldingsRead(data: []);
   @override
-  Future<live.ReadOnlyResponse> shuttleTimetable() async =>
-      const live.ReadOnlyResponse(
-        payload: '{"tables":[{"left":"合成去程：学院路→沙河","right":"合成返程：沙河→学院路","sections":[{"label":"星期一至星期五","left":[{"index":"1","time":"08:30","capacity":"45"},{"index":"2","time":"10:00","capacity":"45"},{"index":"3","time":"14:00","capacity":"45"}],"right":[{"index":"1","time":"09:00","capacity":"45"},{"index":"2","time":"11:30","capacity":"45"},{"index":"3","time":"17:00","capacity":"45"}]}]}],"source":"https://www.buaa.edu.cn/info/1065/1762.htm","liveSource":"https://zhihuixiaoche.buaa.edu.cn/wechat/CASLogin"}',
-        stale: false,
+  Future<ShuttleTimetableRead> shuttleTimetable() async =>
+      const ShuttleTimetableRead(
+        data: ShuttleTimetable(
+          source: 'https://www.buaa.edu.cn/info/1065/1762.htm',
+          liveSource: 'https://zhihuixiaoche.buaa.edu.cn/wechat/CASLogin',
+          tables: [
+            ShuttleTable(
+              left: '合成去程：学院路→沙河',
+              right: '合成返程：沙河→学院路',
+              sections: [
+                ShuttleSection(
+                  label: '星期一至星期五',
+                  left: [
+                    ShuttleRun(index: '1', time: '08:30', capacity: '45'),
+                    ShuttleRun(index: '2', time: '10:00', capacity: '45'),
+                    ShuttleRun(index: '3', time: '14:00', capacity: '45'),
+                  ],
+                  right: [
+                    ShuttleRun(index: '1', time: '09:00', capacity: '45'),
+                    ShuttleRun(index: '2', time: '11:30', capacity: '45'),
+                    ShuttleRun(index: '3', time: '17:00', capacity: '45'),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
       );
   @override
   Future<LibraryVenuesResponse> libraryVenues({

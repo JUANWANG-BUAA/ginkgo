@@ -8,7 +8,6 @@
 ## 目录
 
 - [features/library/library_area_page.dart](#featureslibrarylibraryareapagedart) (1)
-- [features/library/library_books_models.dart](#featureslibrarylibrarybooksmodelsdart) (5)
 - [features/library/library_books_page.dart](#featureslibrarylibrarybookspagedart) (1)
 - [features/library/library_cards.dart](#featureslibrarylibrarycardsdart) (4)
 - [features/library/library_controller.dart](#featureslibrarylibrarycontrollerdart) (1)
@@ -19,7 +18,6 @@
 - [features/library/library_page.dart](#featureslibrarylibrarypagedart) (1)
 - [features/library/library_seat_page.dart](#featureslibrarylibraryseatpagedart) (1)
 - [features/library/library_slot_page.dart](#featureslibrarylibraryslotpagedart) (1)
-- [features/library/library_stats_models.dart](#featureslibrarylibrarystatsmodelsdart) (5)
 - [features/library/library_stats_page.dart](#featureslibrarylibrarystatspagedart) (1)
 - [features/library/library_widgets.dart](#featureslibrarylibrarywidgetsdart) (6)
 
@@ -31,45 +29,29 @@
     - `final Future<void> Function() onReservationChanged;`  <sub>:20</sub>
     - `State<LibraryAreaPage> createState() => …`  <sub>:25</sub>
 
-## features/library/library_books_models.dart
-
-- `class BookHit`
-  <sub>class · features/library/library_books_models.dart:6</sub>
-    - `String get displayTitle => …`  <sub>:22</sub>
-    - `String get factLine => …`  <sub>:24</sub>
-- `class BookPage`
-  <sub>class · features/library/library_books_models.dart:30</sub>
-- `class BookHolding` — One physical copy. Status stays the school's own text; it is never turned
-  <sub>class · features/library/library_books_models.dart:50</sub>
-    - `String get place => …`  <sub>:60</sub>
-- `BookPage bookPage(String payload) => …`
-  <sub>function · features/library/library_books_models.dart:66</sub>
-- `List<BookHolding> bookHoldings(String payload) => …`
-  <sub>function · features/library/library_books_models.dart:69</sub>
-
 ## features/library/library_books_page.dart
 
 - `class LibraryBooksPage extends StatefulWidget` — Public OPAC search. Anonymous, read-only and never personal: holdings are
-  <sub>class · features/library/library_books_page.dart:15</sub>
-    - `const LibraryBooksPage({super.key, required this.service});`  <sub>:16</sub>
-    - `State<LibraryBooksPage> createState() => …`  <sub>:19</sub>
+  <sub>class · features/library/library_books_page.dart:16</sub>
+    - `const LibraryBooksPage({super.key, required this.service});`  <sub>:17</sub>
+    - `State<LibraryBooksPage> createState() => …`  <sub>:20</sub>
 
 ## features/library/library_cards.dart
 
 - `class LibraryBookCard extends StatelessWidget` — One catalogue hit. The call number and the fact line are shown only when
-  <sub>class · features/library/library_cards.dart:15</sub>
-    - `const LibraryBookCard({super.key, required this.hit, required this.onTap});`  <sub>:16</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:22</sub>
+  <sub>class · features/library/library_cards.dart:16</sub>
+    - `const LibraryBookCard({super.key, required this.hit, required this.onTap});`  <sub>:17</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:23</sub>
 - `class LibraryHoldingCard extends StatelessWidget` — One physical copy. The status stays the school's own text; it is never
-  <sub>class · features/library/library_cards.dart:73</sub>
-    - `const LibraryHoldingCard({ super.key, required this.holding, required this.repeatedCallNo, });`  <sub>:74</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:84</sub>
+  <sub>class · features/library/library_cards.dart:74</sub>
+    - `const LibraryHoldingCard({ super.key, required this.holding, required this.repeatedCallNo, });`  <sub>:75</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:85</sub>
 - `class LibraryVenueMeter extends StatelessWidget` — Venue capacity has three readable states: a quiet thin bar while seats
-  <sub>class · features/library/library_cards.dart:111</sub>
-    - `const LibraryVenueMeter({super.key, required this.venue, this.onTap});`  <sub>:112</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:120</sub>
+  <sub>class · features/library/library_cards.dart:112</sub>
+    - `const LibraryVenueMeter({super.key, required this.venue, this.onTap});`  <sub>:113</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:121</sub>
 - `Widget librarySeatRow( BuildContext context, { required Key groupKey, required LibrarySeat seat, required bool roundedTop, required bool roundedBottom, required bool hasSeparator, required bool reserveEnabled, required bool submitting, required VoidCallback onReserve, }) => …` — One seat row inside the seat list. The reserve action is offered only for
-  <sub>function · features/library/library_cards.dart:229</sub>
+  <sub>function · features/library/library_cards.dart:230</sub>
 
 ## features/library/library_controller.dart
 
@@ -119,9 +101,9 @@
 ## features/library/library_holdings_page.dart
 
 - `class LibraryHoldingsPage extends StatefulWidget` — The copies the school holds for one catalogue record. The status text is
-  <sub>class · features/library/library_holdings_page.dart:13</sub>
-    - `const LibraryHoldingsPage({ super.key, required this.service, required this.bibId, required this.title, });`  <sub>:14</sub>
-    - `State<LibraryHoldingsPage> createState() => …`  <sub>:24</sub>
+  <sub>class · features/library/library_holdings_page.dart:14</sub>
+    - `const LibraryHoldingsPage({ super.key, required this.service, required this.bibId, required this.title, });`  <sub>:15</sub>
+    - `State<LibraryHoldingsPage> createState() => …`  <sub>:25</sub>
 
 ## features/library/library_loans_page.dart
 
@@ -152,20 +134,6 @@
     - `const LibrarySlotPage({ super.key, required this.service, required this.area, required this.onReservationChanged, required this.onViewReservations, });`  <sub>:12</sub>
     - `final Future<void> Function() onReservationChanged;`  <sub>:19</sub>
     - `State<LibrarySlotPage> createState() => …`  <sub>:24</sub>
-
-## features/library/library_stats_models.dart
-
-- `class CountPair`
-  <sub>class · features/library/library_stats_models.dart:6</sub>
-    - `const CountPair({required this.available, required this.total});`  <sub>:7</sub>
-- `class ReadingRoom`
-  <sub>class · features/library/library_stats_models.dart:15</sub>
-- `class LibraryCampusStats`
-  <sub>class · features/library/library_stats_models.dart:24</sub>
-- `class LibraryStatsSnapshot`
-  <sub>class · features/library/library_stats_models.dart:46</sub>
-- `LibraryStatsSnapshot libraryStats(String payload) {…}`
-  <sub>function · features/library/library_stats_models.dart:56</sub>
 
 ## features/library/library_stats_page.dart
 

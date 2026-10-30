@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +9,8 @@ import 'package:ginkgo_mirror/features/today/today_page.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
 import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/features/tasks/task_editor.dart';
+import 'package:ginkgo_mirror/application/local_tasks_read.dart';
+import '../test/local_tasks_read_fixture.dart';
 
 import 'support.dart' show settle, show;
 
@@ -63,7 +64,7 @@ class VisualService extends Fake implements MirrorService {
   );
 
   @override
-  Future<ReadOnlyResponse> editTasks({
+  Future<LocalTasksRead> editTasks({
     required String root,
     required String action,
     String? id,
@@ -75,9 +76,7 @@ class VisualService extends Fake implements MirrorService {
       writes++;
       throw StateError('Visual suite attempted a task mutation');
     }
-    return ReadOnlyResponse(
-      stale: false,
-      payload: jsonEncode([
+    return tasksRead([
         {
           'id': 'visual-linked',
           'title': '整理操作系统实验报告',
@@ -97,8 +96,7 @@ class VisualService extends Fake implements MirrorService {
           'due': '2026-10-21',
           'completed': true,
         },
-      ]),
-    );
+    ]);
   }
 }
 

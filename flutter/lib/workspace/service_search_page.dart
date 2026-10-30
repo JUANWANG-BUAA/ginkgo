@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
+import 'package:ginkgo_mirror/workspace/workspace_types.dart';
 import 'package:ginkgo_mirror/shared/school_links.dart';
 
 enum ServiceArea {
@@ -49,8 +49,10 @@ class ServiceDescriptor {
 }
 
 /// Searches compile-time metadata; it does not request school or personal data.
-List<ServiceDescriptor> get searchableServices => [
-  for (final destination in workspaceDestinations)
+List<ServiceDescriptor> searchableServices(
+  List<WorkspaceDestination> destinations,
+) => [
+  for (final destination in destinations)
     if (destination.id != 'today' &&
         destination.id != 'settings' &&
         destination.id != 'graduate-credit-map')
@@ -144,8 +146,13 @@ List<ServiceDescriptor> get searchableServices => [
 ];
 
 class ServiceSearchPage extends StatefulWidget {
-  const ServiceSearchPage({super.key, required this.context});
+  const ServiceSearchPage({
+    super.key,
+    required this.context,
+    required this.destinations,
+  });
   final WorkspaceContext context;
+  final List<WorkspaceDestination> destinations;
   @override
   State<ServiceSearchPage> createState() => _ServiceSearchPageState();
 }
@@ -181,7 +188,7 @@ class _ServiceSearchPageState extends State<ServiceSearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    final matches = searchableServices
+    final matches = searchableServices(widget.destinations)
         .where((entry) => entry.matches(controller.text))
         .toList();
     return CupertinoPageScaffold(
@@ -225,21 +232,26 @@ class _ServiceSearchPageState extends State<ServiceSearchPage> {
                         title: Text(entry.title),
                         subtitle: Text(
                           '${entry.description}${entry.destination == null
-                              ? widget.context.capabilities.studentServiceLinks !=
-                                    null
+                              ? widget.context.capabilities.studentServiceLinks != null
                                     ? ' · 前往官网 ↗'
                                     : ' · 暂未接入'
                               : ''}',
                         ),
                         trailing:
                             entry.destination == null &&
-                                widget.context.capabilities.studentServiceLinks ==
+                                widget
+                                        .context
+                                        .capabilities
+                                        .studentServiceLinks ==
                                     null
                             ? null
                             : const Icon(CupertinoIcons.chevron_right),
                         onTap:
                             entry.destination == null &&
-                                widget.context.capabilities.studentServiceLinks ==
+                                widget
+                                        .context
+                                        .capabilities
+                                        .studentServiceLinks ==
                                     null
                             ? null
                             : () => open(entry),

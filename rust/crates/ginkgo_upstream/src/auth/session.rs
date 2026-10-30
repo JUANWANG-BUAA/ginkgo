@@ -162,7 +162,13 @@ impl<T: HttpTransport> Session<T> {
         T: Sync,
     {
         let isolated = Session::new(AnonymousTransport(&self.transport));
-        isolated.set_route(preference);
+        // Public pages are validated by same-host HTTPS checks the WebVPN
+        // hostname can never satisfy, so a switched session route must not
+        // condemn them; Automatic already resolves to direct here.
+        isolated.set_route(match preference {
+            RouteMode::WebVpn => RouteMode::Direct,
+            other => other,
+        });
         isolated.send_following_redirects(request).await
     }
 
@@ -221,11 +227,7 @@ impl<T: HttpTransport> Session<T> {
         }
 
         let request_url = request.url.clone();
-        let response = self
-            .transport
-            .send(request)
-            .await
-            .map_err(|_| AppError::unavailable())?;
+        let response = self.transport.send(request).await.map_err(AppError::from)?;
         let jar = if campus_or_gateway {
             &self.webvpn_jar
         } else {
@@ -388,5 +390,55 @@ mod anonymous_request_tests {
             assert_eq!(request.header_value("cookie"), None);
             assert_eq!(request.header_value("authorization"), None);
         }
+    }
+}
+
+#[cfg(test)]
+mod network_failure_classification_tests {
+    use super::*;
+    use crate::foundation::http::TransportError;
+    use crate::test_support::MockTransport;
+    use crate::ErrorCode;
+
+    const CAREER_URL: &str =
+        "https://career.buaa.edu.cn/f/recruitmentFair/ajax_calendar_list?time=2026-10";
+
+    #[tokio::test]
+    async fn an_unreached_server_is_not_reported_as_a_school_outage() {
+        let session = Session::new(MockTransport::with_results(vec![
+            Err(TransportError::Unreachable),
+            Err(TransportError::Unreachable),
+            // A third attempt would mean the bounded fallback replayed.
+            Ok(HttpResponse::new(200, CAREER_URL, "public")),
+        ]));
+
+        let error = session
+            .send_anonymous(HttpRequest::get(CAREER_URL), RouteMode::Automatic)
+            .await
+            .unwrap_err();
+
+        assert_eq!(error.code, ErrorCode::NetworkUnreachable);
+        // A school that silently drops off-campus packets fails the connect
+        // phase too, so the single WebVPN reroute must survive this error:
+        // skipping it would strand every off-campus reader.
+        assert_eq!(session.transport().request_count(), 2);
+    }
+
+    #[tokio::test]
+    async fn a_broken_transport_still_reports_the_school_side_as_unavailable() {
+        let session = Session::new(MockTransport::with_results(vec![
+            Err(TransportError::Unavailable),
+            Err(TransportError::Unavailable),
+            Ok(HttpResponse::new(200, CAREER_URL, "public")),
+        ]));
+
+        let error = session
+            .send_anonymous(HttpRequest::get(CAREER_URL), RouteMode::Direct)
+            .await
+            .unwrap_err();
+
+        assert_eq!(error.code, ErrorCode::ServiceUnavailable);
+        // An explicit direct route never reroutes, so the failure is immediate.
+        assert_eq!(session.transport().request_count(), 1);
     }
 }

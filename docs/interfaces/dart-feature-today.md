@@ -95,9 +95,9 @@
   <sub>class · features/today/today_page_actions.dart:11</sub>
     - `bool get opening => …` — True while a linked page is being opened.  <sub>:15</sub>
     - `Future<void> openTasks( BuildContext context, { required MirrorService service, required String? storageRoot, required String? taskId, required bool Function() isCurrent, required Future<void> Function() reload, required void Function(String message) onFailure, }) async {…}`  <sub>:17</sub>
-    - `Future<void> openHomework( BuildContext context, { required MirrorService service, required String? storageRoot, required HomeworkItem item, required bool Function() isCurrent, required Future<void> Function() reload, required void Function(String message) onFailure, }) async {…}`  <sub>:51</sub>
+    - `Future<void> openHomework( BuildContext context, { required MirrorService service, required String? storageRoot, required HomeworkItem item, required bool Function() isCurrent, required Future<void> Function() reload, required void Function(String message) onFailure, }) async {…}`  <sub>:50</sub>
 - `Future<bool> showTodayAccountDialog( BuildContext context, { required String? accountName, required bool demo, }) async {…}` — Ask what to do with the current account. Returns true when the user asked
-  <sub>function · features/today/today_page_actions.dart:86</sub>
+  <sub>function · features/today/today_page_actions.dart:85</sub>
 
 ## features/today/today_page_header.dart
 

@@ -2,9 +2,10 @@
 //
 // The page layer must NOT import this file: it re-exports the native and demo
 // adapters, which would put `src/rust` in every page's dependency graph. Pages
-// take `package:ginkgo_mirror/application/mirror_service.dart` for types, and
-// only a page that can be built without an injected service may fall back to
-// `package:ginkgo_mirror/infrastructure/service_factory.dart`.
+// take `package:ginkgo_mirror/application/mirror_service.dart` for types and
+// receive their gateway from the shell; a page never composes an adapter
+// itself, because a fallback locator would give the page its own adapter
+// instance and therefore its own account binding.
 export 'package:ginkgo_mirror/application/mirror_service.dart';
 export 'package:ginkgo_mirror/infrastructure/native_mirror_service.dart';
 export 'package:ginkgo_mirror/infrastructure/demo_mirror_service.dart';

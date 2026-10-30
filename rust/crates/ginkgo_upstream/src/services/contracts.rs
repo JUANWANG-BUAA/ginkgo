@@ -6,7 +6,7 @@ use crate::{
     foundation::school_time,
     AppError, ErrorCode,
 };
-use chrono::NaiveDate;
+use chrono::{DateTime, NaiveDate};
 use serde::{de::DeserializeOwned, Deserialize};
 use serde_json::{json, Value};
 
@@ -224,6 +224,66 @@ pub fn execute_contract(contract: &str, version: u32, input: Value) -> Result<Va
             }
             let input: BodyInput = decode(input)?;
             json!({"courses": grades::parse_courses(input.body)?})
+        }
+        // Shared rule tables. The domain rules are the authority; the Dart
+        // consumer asserts the same table, so neither language can drift away
+        // from the other without a failing test.
+        "rules.homework_deadline" => {
+            #[derive(Deserialize)]
+            struct DeadlineCase {
+                #[serde(rename = "dueAt")]
+                due_at: Option<String>,
+                now: String,
+            }
+            #[derive(Deserialize)]
+            struct DeadlineInput {
+                cases: Vec<DeadlineCase>,
+            }
+            let input: DeadlineInput = decode(input)?;
+            let mut results = Vec::with_capacity(input.cases.len());
+            for case in input.cases {
+                let now = DateTime::parse_from_rfc3339(&case.now)
+                    .map_err(|_| AppError::invalid())?
+                    .with_timezone(&chrono_tz::Asia::Shanghai);
+                let status = ginkgo_domain::features::homework::classify_deadline(
+                    case.due_at.as_deref(),
+                    now,
+                );
+                results.push(json!({
+                    "status": status,
+                    "overdue": status
+                        == ginkgo_domain::features::homework::HomeworkDeadlineStatus::Overdue,
+                }));
+            }
+            json!({"results": results})
+        }
+        "rules.checkin_window" => {
+            #[derive(Deserialize)]
+            struct WindowCase {
+                date: String,
+                #[serde(rename = "beginsAt")]
+                begins_at: String,
+                #[serde(rename = "endsAt")]
+                ends_at: String,
+                now: String,
+            }
+            #[derive(Deserialize)]
+            struct WindowInput {
+                cases: Vec<WindowCase>,
+            }
+            let input: WindowInput = decode(input)?;
+            let mut results = Vec::with_capacity(input.cases.len());
+            for case in input.cases {
+                results.push(json!({
+                    "open": ginkgo_domain::features::checkin::sign_in_window(
+                        &case.date,
+                        &case.begins_at,
+                        &case.ends_at,
+                        &case.now,
+                    )
+                }));
+            }
+            json!({"results": results})
         }
         "grades.term_parts" => {
             #[derive(Deserialize)]

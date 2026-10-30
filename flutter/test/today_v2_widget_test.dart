@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,6 +16,8 @@ import 'package:ginkgo_mirror/features/today/today_homework_section.dart';
 import 'package:ginkgo_mirror/features/today/today_page.dart';
 import 'package:ginkgo_mirror/features/today/today_tasks_section.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
+
+import 'local_tasks_read_fixture.dart';
 
 final clock = DateTime.utc(2026, 10, 22, 9);
 const emptyCourses = TodayResponse(date: '2026-10-22', courses: []);
@@ -43,8 +44,10 @@ Map<String, Object> task(
   String due = '',
   bool completed = false,
 }) => {'id': id, 'title': '事项$id', 'due': due, 'completed': completed};
-ReadOnlyResponse tasksPayload(List<Map<String, Object>> tasks) =>
-    ReadOnlyResponse(stale: false, payload: jsonEncode(tasks));
+LocalTaskRecord record(String id, {String due = '', bool completed = false}) =>
+    LocalTaskRecord(id: id, title: '事项$id', due: due, completed: completed);
+LocalTasksRead tasksPayload(List<Map<String, dynamic>> tasks) =>
+    tasksRead(tasks);
 
 /// This fake owns only Today capabilities. Any eager unrelated module call fails.
 class TodayFake extends Fake implements MirrorService {
@@ -53,10 +56,10 @@ class TodayFake extends Fake implements MirrorService {
   final details = <String>[];
   final courseRequests = <Completer<TodayResponse>>[];
   final homeworkRequests = <Completer<HomeworkResponse>>[];
-  final taskRequests = <Completer<ReadOnlyResponse>>[];
+  final taskRequests = <Completer<LocalTasksRead>>[];
   bool holdCourses = false, holdHomework = false, holdTasks = false;
   HomeworkResponse assignments = emptyHomework;
-  ReadOnlyResponse local = tasksPayload([]);
+  LocalTasksRead local = tasksPayload([]);
   @override
   bool get isDemo => true;
   @override
@@ -78,7 +81,7 @@ class TodayFake extends Fake implements MirrorService {
   }
 
   @override
-  Future<ReadOnlyResponse> editTasks({
+  Future<LocalTasksRead> editTasks({
     required String root,
     required String action,
     String? id,
@@ -90,7 +93,7 @@ class TodayFake extends Fake implements MirrorService {
     roots.add(root);
     taskReads++;
     if (!holdTasks) return Future.value(local);
-    final c = Completer<ReadOnlyResponse>();
+    final c = Completer<LocalTasksRead>();
     taskRequests.add(c);
     return c.future;
   }
@@ -397,7 +400,8 @@ void main() {
       expect(find.text('正在检查学校作业…'), findsOneWidget);
       expect(fake.roots, ['/synthetic/tasks']);
       await clear(tester);
-      final bad = TodayFake()..local = const ReadOnlyResponse(stale: false);
+      final bad = TodayFake()
+        ..local = const LocalTasksRead(failure: FailureCode.changedResponse);
       await tester.pumpWidget(host(page(bad)));
       await tester.pumpAndSettle();
       expect(find.text('当前没有未完成待办'), findsNothing);
@@ -412,9 +416,9 @@ void main() {
       size(tester);
       final section = RefreshSection<TodayTasksSnapshot>()
         ..value = TodayTasksSnapshot([
-          LocalTaskRecord.fromJson(task('date', due: '2026-10-22')),
-          LocalTaskRecord.fromJson(task('none')),
-          LocalTaskRecord.fromJson(task('done', completed: true)),
+          record('date', due: '2026-10-22'),
+          record('none'),
+          record('done', completed: true),
         ], clock);
       String? opened;
       await tester.pumpWidget(

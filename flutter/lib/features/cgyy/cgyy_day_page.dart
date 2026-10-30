@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
+import 'package:ginkgo_mirror/application/cgyy_commands.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
@@ -97,12 +98,10 @@ class _CgyyDayPageState extends State<CgyyDayPage> {
       setState(() {
         busy = false;
         if (result.failure != null) error = failureMessage(result.failure);
-        if (result.payload != null) {
-          if (kind == 'orders') {
-            orders = cgyyOrders(result.payload!);
-          } else {
-            day = cgyyDay(result.payload!);
-          }
+        if (kind == 'orders') {
+          orders = result.orders ?? const [];
+        } else if (result.day != null) {
+          day = result.day!;
         }
       });
     } catch (_) {
@@ -178,6 +177,7 @@ class _CgyyDayPageState extends State<CgyyDayPage> {
             demo: widget.demo,
             loader: widget.loader,
             service: widget.service,
+            bookingGateway: widget.bookingGateway,
           ),
         ),
       );
@@ -207,13 +207,10 @@ class _CgyyDayPageState extends State<CgyyDayPage> {
         destructive: true,
       );
       if (!confirmed || !mounted) return;
-      final response = await bookingGateway!.executeCgyy({
-        'action': 'cancel',
-        'order_id': order.id,
-      });
-      message = response.failure == null && response.payload != null
-          ? cgyyActionResult(response.payload!).message
-          : '取消结果待核实，请核对最新记录，勿重复提交';
+      final result = await bookingGateway!.executeCgyy(
+        CgyyCancelCommand(order.id),
+      );
+      message = result.message;
       if (mounted) await load(force: true);
     } catch (_) {
       message = '取消结果待核实，请核对最新记录，勿重复提交';

@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
+import 'package:ginkgo_mirror/widgets/release_notes_view.dart';
 import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/platform/android_update_controller.dart';
@@ -199,22 +200,7 @@ class _SoftwareUpdatePageState extends State<SoftwareUpdatePage> {
               ),
             ),
             if (result!.notes?.trim().isNotEmpty ?? false)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    result!.notes!,
-                    style: TextStyle(
-                      fontSize: AppleDesign.calloutSize,
-                      height: 1.5,
-                      color: CupertinoColors.secondaryLabel.resolveFrom(
-                        context,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              ReleaseNotesView(source: result!.notes!),
           ],
         ),
       if (result?.available == true && result?.download != null)

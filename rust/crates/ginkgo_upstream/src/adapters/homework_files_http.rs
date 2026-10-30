@@ -1,7 +1,7 @@
 //! SPOC file protocol. No retry or redirect replay for mutations.
 use super::homework_http::{self, SpocAuth, SPOC_BASE};
 use crate::{
-    auth::session::Session,
+    auth::{cas, session::Session},
     foundation::http::{HttpRequest, HttpResponse, HttpTransport},
     AppError, ErrorCode,
 };
@@ -17,7 +17,7 @@ fn headers(request: HttpRequest, auth: &SpocAuth) -> HttpRequest {
 }
 fn decode(response: HttpResponse) -> Result<Value, AppError> {
     if matches!(response.status, 401 | 403) || response.body.trim_start().starts_with('<') {
-        return Err(AppError::session_expired());
+        return Err(cas::module_refusal(&response.final_url, &response.body));
     }
     if response.status / 100 != 2 {
         return Err(AppError::unavailable());
@@ -26,7 +26,7 @@ fn decode(response: HttpResponse) -> Result<Value, AppError> {
     // Only explicit numeric authentication codes; never infer logout from ordinary
     // business rejection text or conflate every HTTP-200 error with auth expiry.
     if matches!(value.get("code").and_then(Value::as_i64), Some(401 | 403)) {
-        return Err(AppError::session_expired());
+        return Err(AppError::module_auth_required());
     }
     Ok(value)
 }

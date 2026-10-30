@@ -1,13 +1,19 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 
 /// A presentation result, including a usable stale value when refresh failed.
 class SectionResult<T> {
-  const SectionResult({this.value, this.error});
+  const SectionResult({this.value, this.error, this.failure});
   final T? value;
   final String? error;
+
+  /// The typed code behind [error]. A page must not reverse-engineer localized
+  /// copy to tell an offline device from a school outage; both read as "failed"
+  /// but only one is fixed by waiting.
+  final FailureCode? failure;
 }
 
 /// Independent section refreshes preserve content and join overlapping reads.
@@ -25,6 +31,9 @@ class RefreshSection<T> extends ChangeNotifier {
 
   T? value;
   String? error;
+
+  /// Typed code behind [error]; `null` for a local exception or a stall.
+  FailureCode? failure;
   bool loading = false;
   bool _disposed = false;
   Future<void>? _task;
@@ -101,6 +110,7 @@ class RefreshSection<T> extends ChangeNotifier {
     _isStalled = false;
     loading = true;
     error = null;
+    failure = null;
     notifyListeners();
     // The read itself is not cancelled (a native command cannot be); only the
     // caller stops waiting and its late result is discarded via the epoch.
@@ -119,6 +129,7 @@ class RefreshSection<T> extends ChangeNotifier {
       if (_disposed || epoch != _generation) return;
       if (result.value != null) value = result.value;
       error = result.error;
+      failure = result.failure;
     } catch (_) {
       if (_disposed || epoch != _generation) return;
       DiagnosticLog.shared.record(null);

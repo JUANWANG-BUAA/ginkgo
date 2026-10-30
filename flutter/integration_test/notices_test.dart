@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:ginkgo_mirror/features/notices/notices_page.dart';
 import 'package:ginkgo_mirror/main.dart';
+import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
 
 import 'support.dart';
@@ -13,7 +14,7 @@ void main() {
   testWidgets('notices opens sanitized summary and offers original source', (
     tester,
   ) async {
-    await tester.pumpWidget(ginkgoApp(home: const NoticesPage(demo: true)));
+    await tester.pumpWidget(ginkgoApp(home: const NoticesPage(service: DemoMirrorService())));
     await settle(tester);
     await tester.tap(find.text('合成校园通知'));
     await settle(tester);

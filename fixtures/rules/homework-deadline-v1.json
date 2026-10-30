@@ -1,0 +1,43 @@
+{
+  "contract": "rules.homework_deadline",
+  "version": 1,
+  "source": "synthetic",
+  "input": {
+    "cases": [
+      { "dueAt": null, "now": "2026-10-20T04:00:00Z" },
+      { "dueAt": "", "now": "2026-10-20T04:00:00Z" },
+      { "dueAt": "   ", "now": "2026-10-20T04:00:00Z" },
+      { "dueAt": "2026-10-20", "now": "2026-10-20T04:00:00Z" },
+      { "dueAt": "2026-10-20", "now": "2026-10-20T15:59:59Z" },
+      { "dueAt": "2026-10-20", "now": "2026-10-20T16:00:00Z" },
+      { "dueAt": "2026-10-20 23:59:00", "now": "2026-10-20T15:58:59Z" },
+      { "dueAt": "2026-10-20 23:59:00", "now": "2026-10-20T16:00:00Z" },
+      { "dueAt": "2026-10-20T00:00:00+08:00", "now": "2026-10-19T15:59:59Z" },
+      { "dueAt": "2026-10-20T00:00:00+08:00", "now": "2026-10-19T16:00:00Z" },
+      { "dueAt": "2026-10-20T08:00:00Z", "now": "2026-10-20T07:59:59Z" },
+      { "dueAt": "2026-10-20T08:00:00Z", "now": "2026-10-20T08:00:00Z" },
+      { "dueAt": "2026-02-30", "now": "2026-10-20T04:00:00Z" },
+      { "dueAt": "2026-10-20 25:00", "now": "2026-10-20T04:00:00Z" },
+      { "dueAt": "not-a-date", "now": "2026-10-20T04:00:00Z" }
+    ]
+  },
+  "expected": {
+    "results": [
+      { "status": "undated", "overdue": false },
+      { "status": "undated", "overdue": false },
+      { "status": "undated", "overdue": false },
+      { "status": "active", "overdue": false },
+      { "status": "active", "overdue": false },
+      { "status": "overdue", "overdue": true },
+      { "status": "active", "overdue": false },
+      { "status": "overdue", "overdue": true },
+      { "status": "active", "overdue": false },
+      { "status": "overdue", "overdue": true },
+      { "status": "active", "overdue": false },
+      { "status": "overdue", "overdue": true },
+      { "status": "invalid", "overdue": false },
+      { "status": "invalid", "overdue": false },
+      { "status": "invalid", "overdue": false }
+    ]
+  }
+}

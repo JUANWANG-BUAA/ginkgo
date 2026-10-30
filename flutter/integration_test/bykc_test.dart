@@ -4,6 +4,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_page.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_detail_page.dart';
 import 'package:ginkgo_mirror/main.dart';
+import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
 
 import 'support.dart';
@@ -13,7 +14,7 @@ void main() {
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
   setUpAll(() async => RustLib.init());
   testWidgets('BYKC catalog searches synthetic display data', (tester) async {
-    await tester.pumpWidget(ginkgoApp(home: const BykcPage(demo: true)));
+    await tester.pumpWidget(ginkgoApp(home: const BykcPage(demo: true, service: DemoMirrorService())));
     await settle(tester);
     expect(find.text('合成博雅课程'), findsOneWidget);
     await tester.tap(find.text('合成博雅课程'));

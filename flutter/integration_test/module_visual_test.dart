@@ -18,7 +18,7 @@ import 'package:ginkgo_mirror/features/settings/settings_page.dart';
 import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 import 'package:ginkgo_mirror/workspace/workspace_tab_transition.dart';
 import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
-import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/library_books.dart';
 
 import 'support.dart' show settle;
 
@@ -28,14 +28,39 @@ class PublicBooks implements LibraryGateway {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
   @override
-  Future<ReadOnlyResponse> libraryBooks({
+  Future<BookPageRead> libraryBooks({
     required String query,
     int page = 1,
     String sort = 'relevance',
     bool descending = true,
-  }) async => const ReadOnlyResponse(
-    stale: false,
-    payload: '{"total":2,"actualTotal":2,"page":1,"pageSize":20,"hasMore":false,"items":[{"bibId":"SYNTHETIC1","title":"合成示例：计算机系统导论与实践","author":"示例作者","publisher":"示例出版社","year":"2026","callno":"TP3/1","isbn":"","doc_type":"图书"},{"bibId":"SYNTHETIC2","title":"合成示例：设计与日常生活","author":"示例作者","publisher":"示例出版社","year":"2025","callno":"J0/2","isbn":"","doc_type":"图书"}]}',
+  }) async => const BookPageRead(
+    data: BookPage(
+      page: 1,
+      pageSize: 20,
+      total: 2,
+      actualTotal: 2,
+      hasMore: false,
+      items: [
+        BookHit(
+          bibId: 'SYNTHETIC1',
+          title: '合成示例：计算机系统导论与实践',
+          author: '示例作者',
+          publisher: '示例出版社',
+          year: '2026',
+          callno: 'TP3/1',
+          isbn: '',
+        ),
+        BookHit(
+          bibId: 'SYNTHETIC2',
+          title: '合成示例：设计与日常生活',
+          author: '示例作者',
+          publisher: '示例出版社',
+          year: '2025',
+          callno: 'J0/2',
+          isbn: '',
+        ),
+      ],
+    ),
   );
 }
 

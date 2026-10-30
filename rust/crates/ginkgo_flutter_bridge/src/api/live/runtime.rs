@@ -14,7 +14,8 @@ pub(super) static CHECKIN_ACCESS: tokio::sync::RwLock<()> = tokio::sync::RwLock:
 pub(super) static LIBRARY_ACCESS: tokio::sync::RwLock<()> = tokio::sync::RwLock::const_new(());
 pub(super) static CGYY_ACCESS: tokio::sync::RwLock<()> = tokio::sync::RwLock::const_new(());
 
-pub(super) static SERVICE: OnceLock<Result<LiveService, AppError>> = OnceLock::new();
+pub(super) static SERVICE: OnceLock<LiveService> = OnceLock::new();
+static SERVICE_INIT: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
 /// The session gate is a process-wide static, so the tests that take it
 /// must not overlap: one test's hold would look like another's queue.
@@ -200,10 +201,7 @@ where
 }
 
 pub(super) fn service() -> Result<&'static LiveService, AppError> {
-    SERVICE
-        .get_or_init(ginkgo_runtime::create_service)
-        .as_ref()
-        .map_err(Clone::clone)
+    ginkgo_runtime::get_or_retry(&SERVICE, &SERVICE_INIT, ginkgo_runtime::create_service)
 }
 
 #[cfg(test)]
