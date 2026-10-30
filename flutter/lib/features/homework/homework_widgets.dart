@@ -17,66 +17,6 @@ String homeworkFilterLabel(int value) => switch (value) {
 };
 
 /// 顶部三项统计（待完成 / 已提交 / 已截止）。
-class HomeworkSummaryMetrics extends StatelessWidget {
-  const HomeworkSummaryMetrics({
-    super.key,
-    required this.pending,
-    required this.submitted,
-    required this.overdue,
-  });
-
-  final int pending;
-  final int submitted;
-  final int overdue;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(16),
-    child: LayoutBuilder(
-      builder: (context, constraints) => Wrap(
-        spacing: 20,
-        runSpacing: 16,
-        children: [
-          for (final metric in [
-            (label: '待完成', count: pending),
-            (label: '已提交', count: submitted),
-            (label: '已截止', count: overdue),
-          ])
-            SizedBox(
-              key: ValueKey('homework-summary-${metric.label}'),
-              width: MediaQuery.textScalerOf(context).scale(14) > 20
-                  ? constraints.maxWidth
-                  : (constraints.maxWidth - 40) / 3,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${metric.count}',
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    metric.label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: CupertinoColors.secondaryLabel.resolveFrom(
-                        context,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    ),
-  );
-}
-
-/// 状态快捷筛选按钮；再次点击同一项即回到「全部」。
 class HomeworkQuickFilter extends StatelessWidget {
   const HomeworkQuickFilter({
     super.key,

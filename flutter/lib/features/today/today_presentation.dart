@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 
 /// Course fields the school left out stay readable: a missing place never
 /// renders as an empty line, and the focus card and the course list always
@@ -133,7 +132,17 @@ class TodaySectionHeader extends StatelessWidget {
                   letterSpacing: -0.2,
                 ),
               ),
-              if (badge != null) GinkgoBadge(label: badge!, compact: true),
+              // A count is a number, not a status: it stays in the
+              // secondary label colour and never uses a status colour.
+              if (badge != null)
+                Text(
+                  badge!,
+                  style: TextStyle(
+                    fontSize: GinkgoTypography.footnote.fontSize,
+                    fontWeight: FontWeight.w600,
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                  ),
+                ),
             ],
           ),
           ?action,

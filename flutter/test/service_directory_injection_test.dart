@@ -104,7 +104,9 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
       await tester.ensureVisible(find.text(entry.$1));
+      await tester.pumpAndSettle();
       await tester.tap(find.text(entry.$1));
       await tester.pumpAndSettle();
       expect(find.byType(entry.$2), findsOneWidget);

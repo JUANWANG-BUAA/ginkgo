@@ -24,6 +24,8 @@
 - [widgets/release_notes_view.dart](#widgetsreleasenotesviewdart) (11)
 - [widgets/reminder_badge.dart](#widgetsreminderbadgedart) (1)
 - [widgets/resource_meter.dart](#widgetsresourcemeterdart) (1)
+- [widgets/status_chip.dart](#widgetsstatuschipdart) (3)
+- [widgets/summary_strip.dart](#widgetssummarystripdart) (4)
 
 ## widgets/academic_widgets.dart
 
@@ -74,13 +76,13 @@
 
 - `class AppleRefreshPageHeader extends StatelessWidget`
   <sub>class · widgets/apple_page_chrome.dart:7</sub>
-    - `const AppleRefreshPageHeader({ super.key, required this.title, required this.subtitle, required this.icon, this.section = '空间资源', this.refreshLabel, this.busy = false, this.onRefresh, });`  <sub>:8</sub>
-    - `final Future<void> Function()? onRefresh;`  <sub>:25</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:28</sub>
+    - `const AppleRefreshPageHeader({ super.key, required this.title, required this.subtitle, required this.icon, this.section = '空间资源', this.refreshLabel, this.busy = false, this.onRefresh, this.refreshKey, });`  <sub>:8</sub>
+    - `final Future<void> Function()? onRefresh;`  <sub>:26</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:33</sub>
 - `class AppleStatusSection extends StatelessWidget`
-  <sub>class · widgets/apple_page_chrome.dart:46</sub>
-    - `const AppleStatusSection({ super.key, required this.title, required this.description, this.action, this.onAction, this.error = false, this.animateSize = true, });`  <sub>:47</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:65</sub>
+  <sub>class · widgets/apple_page_chrome.dart:52</sub>
+    - `const AppleStatusSection({ super.key, required this.title, required this.description, this.action, this.onAction, this.error = false, this.animateSize = true, });`  <sub>:53</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:71</sub>
 
 ## widgets/apple_surfaces.dart
 
@@ -241,3 +243,32 @@
   <sub>class · widgets/resource_meter.dart:7</sub>
     - `const ResourceMeter({ super.key, required this.label, required this.available, required this.total, required this.unit, this.detail, this.onTap, });`  <sub>:8</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:23</sub>
+
+## widgets/status_chip.dart
+
+- `enum StatusTone { neutral, accent, success, pending, danger, uncertain }` — The tone of a value or a status. Color only reinforces a word that is
+  <sub>enum · widgets/status_chip.dart:8</sub>
+- `Color statusToneColor(BuildContext context, StatusTone tone) {…}`
+  <sub>function · widgets/status_chip.dart:10</sub>
+- `class StatusChip extends StatelessWidget` — A status is always three things: a word, an icon and a color. The word
+  <sub>class · widgets/status_chip.dart:32</sub>
+    - `const StatusChip({ super.key, required this.label, required this.icon, this.tone = StatusTone.neutral, this.compact = false, });`  <sub>:33</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:67</sub>
+
+## widgets/summary_strip.dart
+
+- `class SummaryItem` — One label/value pair. The value answers the page's question; the label
+  <sub>class · widgets/summary_strip.dart:8</sub>
+    - `const SummaryItem( this.label, this.value, { this.icon, this.tone, this.key, });`  <sub>:9</sub>
+- `class SummaryStrip extends StatelessWidget` — A quiet summary surface: label on the left, value aligned right.
+  <sub>class · widgets/summary_strip.dart:46</sub>
+    - `const SummaryStrip({super.key, required this.items, this.note});`  <sub>:47</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:55</sub>
+- `class SummaryLine extends StatelessWidget` — A single label/value line for the top of a section.
+  <sub>class · widgets/summary_strip.dart:217</sub>
+    - `const SummaryLine( this.label, this.value, { super.key, this.icon, this.tone = StatusTone.neutral, });`  <sub>:218</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:232</sub>
+- `class MetricValue extends StatelessWidget` — A right aligned number that acts as the visual anchor of one row.
+  <sub>class · widgets/summary_strip.dart:273</sub>
+    - `const MetricValue( this.value, { super.key, this.prominent = false, this.tone = StatusTone.neutral, this.suffix, });`  <sub>:274</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:288</sub>

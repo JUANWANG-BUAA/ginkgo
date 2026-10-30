@@ -62,8 +62,7 @@ List<ServiceDescriptor> searchableServices(
           'library-loans' => ServiceArea.books,
           'library' ||
           'cgyy' ||
-          'classroom' ||
-          'reservations' => ServiceArea.spaces,
+          'classroom' => ServiceArea.spaces,
           'campus-card' || 'shuttle' || 'tasks' => ServiceArea.campus,
           'notices' ||
           'career-events' ||

@@ -276,6 +276,37 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
     );
   }
 
+  /// The navigation bar refreshes the tab the user is looking at. It is
+  /// disabled while that read is in flight, so a second tap can never queue
+  /// another request behind the first one.
+  bool get _currentTabBusy => switch (tab) {
+    LearningCourseTab.announcements => announcements.loading,
+    LearningCourseTab.resources => resources.loading,
+    LearningCourseTab.assessments => assessments.loading,
+  };
+
+  void _refreshCurrentTab() {
+    if (_currentTabBusy) return;
+    switch (tab) {
+      case LearningCourseTab.announcements:
+        _announcements(force: true);
+      case LearningCourseTab.resources:
+        _resources(force: true);
+      case LearningCourseTab.assessments:
+        _assessments(force: true);
+    }
+  }
+
+  /// Unknown fields collapse into one line instead of repeating "未知".
+  String _assessmentSummary(CourseAssessment item) {
+    final parts = <String>[
+      if (item.startsAt != null) '开始 ${item.startsAt}',
+      if (item.dueAt != null) '截止 ${item.dueAt}',
+      if (item.score != null) '成绩 ${item.score}',
+    ];
+    return parts.isEmpty ? '该测验暂无可用信息' : parts.join(' · ');
+  }
+
   Future<void> _showHealth() async {
     final learningContext = ports.context;
     if (learningContext == null) return;
@@ -365,8 +396,23 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
       navigationBar: CupertinoNavigationBar(
         middle: const Text('课程详情'),
         previousPageTitle: '学习',
-        trailing: hasContext
-            ? CupertinoButton(
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CupertinoButton(
+              key: const Key('learning-refresh'),
+              padding: EdgeInsets.zero,
+              minimumSize: const Size(48, 48),
+              onPressed: _currentTabBusy ? null : _refreshCurrentTab,
+              child: _currentTabBusy
+                  ? const CupertinoActivityIndicator(radius: 9)
+                  : const Icon(
+                      CupertinoIcons.refresh,
+                      semanticLabel: '刷新当前页',
+                    ),
+            ),
+            if (hasContext)
+              CupertinoButton(
                 padding: EdgeInsets.zero,
                 minimumSize: const Size(48, 48),
                 onPressed: _showHealth,
@@ -374,8 +420,9 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
                   CupertinoIcons.info_circle,
                   semanticLabel: '学习接口状态',
                 ),
-              )
-            : null,
+              ),
+          ],
+        ),
       ),
       child: SafeArea(
         child: ListView(
@@ -508,9 +555,7 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
                     for (final item in read.data)
                       AppleListTile(
                         title: Text(item.title),
-                        subtitle: Text(
-                          '开始：${item.startsAt ?? '未知'}\n截止：${item.dueAt ?? '未知'}\n成绩：${item.score ?? '未知'}',
-                        ),
+                        subtitle: Text(_assessmentSummary(item)),
                       ),
                   ],
                 ],

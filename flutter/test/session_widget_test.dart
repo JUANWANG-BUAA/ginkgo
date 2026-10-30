@@ -547,9 +547,16 @@ void main() {
         ),
       ),
     );
-    await tester.tap(find.text('预约'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(CupertinoTabBar),
+        matching: find.text('更多'),
+      ),
+    );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('空教室'));
+    await tester.ensureVisible(find.text('空教室').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('空教室').first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('查询空教室'));
     await tester.pumpAndSettle();

@@ -58,8 +58,8 @@
     - `Widget build(BuildContext context) => …`  <sub>:166</sub>
 - `class CgyyBookingActionsSection extends StatelessWidget` — The actions of the booking form. Only one write path is offered and the
   <sub>class · features/cgyy/cgyy_booking_form.dart:178</sub>
-    - `const CgyyBookingActionsSection({ super.key, required this.busy, required this.loading, required this.review, required this.enabled, required this.onSubmit, required this.onRefresh, required this.onLeave, });`  <sub>:179</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:193</sub>
+    - `const CgyyBookingActionsSection({ super.key, required this.busy, required this.loading, required this.review, required this.enabled, required this.onSubmit, required this.onLeave, });`  <sub>:179</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:192</sub>
 
 ## features/cgyy/cgyy_booking_page.dart
 

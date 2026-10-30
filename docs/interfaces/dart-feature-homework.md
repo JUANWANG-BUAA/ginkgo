@@ -82,23 +82,19 @@
 
 - `String homeworkFilterLabel(int value) => …` — 作业状态筛选文案。取值与 [HomeworkPage] 的筛选器一一对应。
   <sub>function · features/homework/homework_widgets.dart:11</sub>
-- `class HomeworkSummaryMetrics extends StatelessWidget` — 顶部三项统计（待完成 / 已提交 / 已截止）。
+- `class HomeworkQuickFilter extends StatelessWidget` — 顶部三项统计（待完成 / 已提交 / 已截止）。
   <sub>class · features/homework/homework_widgets.dart:20</sub>
-    - `const HomeworkSummaryMetrics({ super.key, required this.pending, required this.submitted, required this.overdue, });`  <sub>:21</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:33</sub>
-- `class HomeworkQuickFilter extends StatelessWidget` — 状态快捷筛选按钮；再次点击同一项即回到「全部」。
-  <sub>class · features/homework/homework_widgets.dart:80</sub>
-    - `const HomeworkQuickFilter({ super.key, required this.value, required this.label, required this.tint, required this.selected, required this.onPressed, });`  <sub>:81</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:97</sub>
+    - `const HomeworkQuickFilter({ super.key, required this.value, required this.label, required this.tint, required this.selected, required this.onPressed, });`  <sub>:21</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:37</sub>
 - `class HomeworkStatusBadge extends StatelessWidget` — 作业状态徽标。已提交用成功色，已截止用危险色，待确认保留不确定色。
-  <sub>class · features/homework/homework_widgets.dart:110</sub>
-    - `const HomeworkStatusBadge({ super.key, required this.status, required this.dueAt, required this.clock, });`  <sub>:111</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:123</sub>
+  <sub>class · features/homework/homework_widgets.dart:50</sub>
+    - `const HomeworkStatusBadge({ super.key, required this.status, required this.dueAt, required this.clock, });`  <sub>:51</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:63</sub>
 - `class HomeworkDeadlineText extends StatelessWidget` — 单条作业的截止时间与倒计时描述。
-  <sub>class · features/homework/homework_widgets.dart:159</sub>
-    - `const HomeworkDeadlineText({ super.key, required this.item, required this.clock, });`  <sub>:160</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:170</sub>
+  <sub>class · features/homework/homework_widgets.dart:99</sub>
+    - `const HomeworkDeadlineText({ super.key, required this.item, required this.clock, });`  <sub>:100</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:110</sub>
 - `class HomeworkItemTile extends StatelessWidget` — 作业列表项：标题、截止信息、课程与教师。
-  <sub>class · features/homework/homework_widgets.dart:211</sub>
-    - `const HomeworkItemTile({ super.key, required this.item, required this.clock, required this.onTap, });`  <sub>:212</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:224</sub>
+  <sub>class · features/homework/homework_widgets.dart:151</sub>
+    - `const HomeworkItemTile({ super.key, required this.item, required this.clock, required this.onTap, });`  <sub>:152</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:164</sub>

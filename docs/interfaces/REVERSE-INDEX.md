@@ -104,7 +104,7 @@
 | `features/homework/homework_files_widgets.dart` | homeworkSubmitMethodLabel → dart-feature-homework.md<br>homeworkAttachmentKindLabel → dart-feature-homework.md<br>homeworkCapabilityLabel → dart-feature-homework.md<br>homeworkCapabilityStateLabel → dart-feature-homework.md<br>HomeworkSubmitSummary → dart-feature-homework.md<br>HomeworkAttachmentList → dart-feature-homework.md<br>HomeworkCapabilityNotes → dart-feature-homework.md<br>HomeworkSubmitActions → dart-feature-homework.md<br>HomeworkPendingSubmissionNotice → dart-feature-homework.md<br>HomeworkFeedbackNote → dart-feature-homework.md<br>HomeworkBlockedNote → dart-feature-homework.md |
 | `features/homework/homework_page.dart` | HomeworkPage → dart-feature-homework.md |
 | `features/homework/homework_projection.dart` | classifyHomeworkDeadline → dart-feature-homework.md<br>isHomeworkOverdue → dart-feature-homework.md<br>homeworkRelativeDeadline → dart-feature-homework.md<br>homeworkCompactDeadline → dart-feature-homework.md<br>homeworkDeadlineTint → dart-feature-homework.md |
-| `features/homework/homework_widgets.dart` | homeworkFilterLabel → dart-feature-homework.md<br>HomeworkSummaryMetrics → dart-feature-homework.md<br>HomeworkQuickFilter → dart-feature-homework.md<br>HomeworkStatusBadge → dart-feature-homework.md<br>HomeworkDeadlineText → dart-feature-homework.md<br>HomeworkItemTile → dart-feature-homework.md |
+| `features/homework/homework_widgets.dart` | homeworkFilterLabel → dart-feature-homework.md<br>HomeworkQuickFilter → dart-feature-homework.md<br>HomeworkStatusBadge → dart-feature-homework.md<br>HomeworkDeadlineText → dart-feature-homework.md<br>HomeworkItemTile → dart-feature-homework.md |
 | `features/learning/learning_announcement_page.dart` | LearningAnnouncementPage → dart-feature-learning.md<br>LearningAnnouncementPageState → dart-feature-learning.md |
 | `features/learning/learning_course_page.dart` | LearningCourseTab → dart-feature-learning.md<br>LearningCoursePage → dart-feature-learning.md |
 | `features/learning/learning_page.dart` | LearningPage → dart-feature-learning.md |
@@ -126,7 +126,6 @@
 | `features/library/library_widgets.dart` | LibrarySectionStatus → dart-feature-library.md<br>LibraryDisclosureToggle → dart-feature-library.md<br>LibraryNoteText → dart-feature-library.md<br>libraryActionLabel → dart-feature-library.md<br>libraryActionIcon → dart-feature-library.md<br>libraryActionTint → dart-feature-library.md |
 | `features/notices/notices_page.dart` | NoticesPage → dart-feature-notices.md |
 | `features/reservations/reservation_widgets.dart` | ReservationActionButton → dart-feature-reservations.md |
-| `features/reservations/reservations_page.dart` | ReservationsPage → dart-feature-reservations.md |
 | `features/schedule/course_range_page.dart` | CourseRangePage → dart-feature-schedule.md |
 | `features/schedule/schedule_controls.dart` | ScheduleControls → dart-feature-schedule.md |
 | `features/schedule/schedule_course_detail.dart` | ScheduleCourseDetailPage → dart-feature-schedule.md |
@@ -150,11 +149,13 @@
 | `features/tasks/tasks_page.dart` | TasksPage → dart-feature-tasks.md |
 | `features/tasks/tasks_widgets.dart` | TaskRowCard → dart-feature-tasks.md<br>TasksHeaderActions → dart-feature-tasks.md<br>TasksPageHeader → dart-feature-tasks.md |
 | `features/today/today_action_row.dart` | TodayActionRow → dart-feature-today.md |
+| `features/today/today_checkin_section.dart` | TodayCheckInSection → dart-feature-today.md |
 | `features/today/today_course_focus.dart` | TodayCourseWindow → dart-feature-today.md<br>TodayCourseFocus → dart-feature-today.md |
 | `features/today/today_course_list.dart` | TodayCourseRow → dart-feature-today.md<br>TodayCourseEmpty → dart-feature-today.md<br>TodayCourseEmptyBadge → dart-feature-today.md |
 | `features/today/today_course_section.dart` | TodayCoursePlaceholder → dart-feature-today.md<br>TodayCourseSection → dart-feature-today.md |
 | `features/today/today_exam_section.dart` | TodayExamSection → dart-feature-today.md |
 | `features/today/today_homework_section.dart` | todayVisibleHomework → dart-feature-today.md<br>TodayHomeworkSection → dart-feature-today.md |
+| `features/today/today_notice_section.dart` | TodayNoticeSection → dart-feature-today.md |
 | `features/today/today_page.dart` | TodayPage → dart-feature-today.md |
 | `features/today/today_page_actions.dart` | TodayNavigator → dart-feature-today.md<br>showTodayAccountDialog → dart-feature-today.md |
 | `features/today/today_page_header.dart` | TodayPageHeader → dart-feature-today.md |
@@ -413,10 +414,13 @@
 | `widgets/release_notes_view.dart` | NotesBlock → dart-widgets.md<br>NotesHeading → dart-widgets.md<br>NotesBullet → dart-widgets.md<br>NotesParagraph → dart-widgets.md<br>NotesSpan → dart-widgets.md<br>NotesText → dart-widgets.md<br>NotesLink → dart-widgets.md<br>openableReleaseLink → dart-widgets.md<br>parseNotesInline → dart-widgets.md<br>parseReleaseNotes → dart-widgets.md<br>ReleaseNotesView → dart-widgets.md |
 | `widgets/reminder_badge.dart` | ReminderBadge → dart-widgets.md |
 | `widgets/resource_meter.dart` | ResourceMeter → dart-widgets.md |
+| `widgets/status_chip.dart` | StatusTone → dart-widgets.md<br>statusToneColor → dart-widgets.md<br>StatusChip → dart-widgets.md |
+| `widgets/summary_strip.dart` | SummaryItem → dart-widgets.md<br>SummaryStrip → dart-widgets.md<br>SummaryLine → dart-widgets.md<br>MetricValue → dart-widgets.md |
 | `workspace/desktop_workspace_shell.dart` | DesktopWorkspaceShell → dart-workspace.md |
 | `workspace/desktop_workspace_sidebar.dart` | workspaceBrandIdentity → dart-workspace.md<br>workspaceSidebarItem → dart-workspace.md<br>workspaceSidebarFooter → dart-workspace.md |
 | `workspace/mobile_workspace_shell.dart` | MobileWorkspaceShell → dart-workspace.md |
-| `workspace/service_directory.dart` | ServiceDirectory → dart-workspace.md |
+| `workspace/more_page.dart` | MorePage → dart-workspace.md |
+| `workspace/service_directory.dart` | buildDirectoryContext → dart-workspace.md<br>ServiceDirectory → dart-workspace.md |
 | `workspace/service_search_page.dart` | ServiceArea → dart-workspace.md<br>ServiceDescriptor → dart-workspace.md<br>searchableServices → dart-workspace.md<br>ServiceSearchPage → dart-workspace.md |
 | `workspace/workspace_back_guard.dart` | WorkspaceBackController → dart-workspace.md<br>WorkspaceBackHint → dart-workspace.md<br>guardWorkspaceBack → dart-workspace.md |
 | `workspace/workspace_catalog.dart` | destinationById → dart-workspace.md<br>sidebarDestinations → dart-workspace.md |

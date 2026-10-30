@@ -10,6 +10,7 @@ class TodayActionRow extends StatelessWidget {
     this.subtitle,
     this.status,
     this.statusColor,
+    this.trailing,
     this.onTap,
     this.emphasized = false,
     this.summary = false,
@@ -18,6 +19,9 @@ class TodayActionRow extends StatelessWidget {
   final String title;
   final String? subtitle, status;
   final Color? statusColor;
+
+  /// An optional right hand anchor: a status chip or a metric.
+  final Widget? trailing;
   final VoidCallback? onTap;
   final bool emphasized;
 
@@ -93,6 +97,10 @@ class TodayActionRow extends StatelessWidget {
                 ],
               ),
             ),
+            if (trailing != null) ...[
+              const SizedBox(width: 12),
+              trailing!,
+            ],
             if (onTap != null) ...[
               const SizedBox(width: 12),
               const ExcludeSemantics(child: CupertinoListTileChevron()),

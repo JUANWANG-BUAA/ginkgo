@@ -916,7 +916,10 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(service.requests, isEmpty);
-      await tester.tap(find.text('校车时刻表'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('校车时刻表').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('校车时刻表').first);
       await tester.pump();
       expect(service.requests, hasLength(1));
       service.requests.single.complete(_timetable());

@@ -135,7 +135,13 @@ void main() {
       service.assignments.last.complete(assignments);
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('today-course-0-算法设计与分析')), findsOneWidget);
-      await tester.tap(find.text('重试'));
+      // The retry belongs to the failed course section.
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('today-courses')),
+          matching: find.text('重试'),
+        ),
+      );
       await tester.pump();
       expect(service.courses.length, 3);
       expect(service.assignments.length, 2);

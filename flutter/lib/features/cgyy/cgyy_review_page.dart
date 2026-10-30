@@ -109,10 +109,14 @@ class _CgyyReviewPageState extends State<CgyyReviewPage> {
         child: CustomScrollView(
           key: const Key('cgyy-review-scroll'),
           slivers: [
-            const AppleRefreshPageHeader(
+            AppleRefreshPageHeader(
               title: '核对上次操作',
               subtitle: '选择场馆并查看可预约空间',
               icon: CupertinoIcons.person_3,
+              refreshLabel: '重新读取最新记录',
+              refreshKey: const Key('cgyy-review-refresh'),
+              busy: loading,
+              onRefresh: refresh,
             ),
             SliverList.list(
               children: [
@@ -158,12 +162,6 @@ class _CgyyReviewPageState extends State<CgyyReviewPage> {
                   ),
                 AppleSection(
                   children: [
-                    CupertinoButton(
-                      key: const Key('cgyy-review-refresh'),
-                      minimumSize: const Size(48, 48),
-                      onPressed: loading || acknowledging ? null : refresh,
-                      child: const Text('重新读取最新记录'),
-                    ),
                     if (orders != null)
                       AppleListTile(
                         title: const Text('我已看到最新记录并确认上次操作结果'),

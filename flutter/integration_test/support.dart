@@ -97,39 +97,24 @@ Future<void> tap(
   await settle(tester);
 }
 
-/// Open a secondary service from the resource hub or workspace directory.
+/// Open a secondary service from the "更多" surface.
+///
+/// The tab bar owns 今天 / 课表 / 作业 / 图书馆; every other feature is one
+/// row in the "更多" list.
 Future<void> tapMore(WidgetTester tester, String label) async {
-  if (label == '课程签到') {
-    await tapTab(tester, '签到');
+  if (label == '图书馆') {
+    await tapTab(tester, '图书馆');
     return;
   }
-  if (label == '空教室' || label == '图书馆' || label == '研讨室') {
-    await tapTab(tester, '预约');
-    await tester.tap(
-      find
-          .text(
-            label == '图书馆'
-                ? '图书馆座位'
-                : label == '研讨室'
-                ? '研讨室与场馆'
-                : label,
-          )
-          .first,
-    );
-  } else {
-    await tapTab(tester, '工作台');
-    await show(tester, find.text(label).first, scrollKey: 'today-scroll');
-    await tester.tap(find.text(label).first);
-  }
+  await tapTab(tester, '更多');
+  final finder = find.text(label).first;
+  await show(tester, finder, scrollKey: 'more-scroll');
+  await tester.tap(finder);
   await settle(tester);
 }
 
 /// Tap a bottom-tab label without invoking the page-scroll helper.
 Future<void> tapTab(WidgetTester tester, String label) async {
-  if (label == '图书馆') {
-    await tapMore(tester, label);
-    return;
-  }
   await tester.tap(find.text(label).first);
   await settle(tester);
 }

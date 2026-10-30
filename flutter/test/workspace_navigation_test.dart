@@ -93,13 +93,18 @@ void main() {
       await tester.pumpAndSettle();
       expect(backSignals.last, isTrue);
       backSignals.clear();
-      await tester.tap(find.text('预约').last);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CupertinoTabBar),
+          matching: find.text('更多'),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(backSignals, everyElement(isTrue));
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
       expect(exits, 0);
-      expect(find.text('查看完整课表'), findsOneWidget);
+      expect(find.text('更多'), findsWidgets);
       expect(backSignals.last, isTrue);
     },
     variant: TargetPlatformVariant.only(TargetPlatform.android),

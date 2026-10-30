@@ -14,6 +14,7 @@ class AppleRefreshPageHeader extends StatelessWidget {
     this.refreshLabel,
     this.busy = false,
     this.onRefresh,
+    this.refreshKey,
   });
 
   final String title;
@@ -23,6 +24,10 @@ class AppleRefreshPageHeader extends StatelessWidget {
   final String? refreshLabel;
   final bool busy;
   final Future<void> Function()? onRefresh;
+
+  /// A stable identity for the refresh action, used by tests and by pages
+  /// that address the action directly.
+  final Key? refreshKey;
 
   @override
   Widget build(BuildContext context) => ApplePageHeader(
@@ -34,6 +39,7 @@ class AppleRefreshPageHeader extends StatelessWidget {
     trailing: refreshLabel == null
         ? null
         : AppleGlassButton(
+            key: refreshKey,
             label: refreshLabel!,
             onPressed: busy || onRefresh == null ? null : () => onRefresh!(),
             child: busy

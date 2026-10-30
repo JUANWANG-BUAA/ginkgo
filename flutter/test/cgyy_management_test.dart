@@ -8,7 +8,7 @@ import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_review_page.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
-import 'package:ginkgo_mirror/features/reservations/reservations_page.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 
@@ -308,17 +308,15 @@ void main() {
     },
   );
 
-  testWidgets('reservation hub preserves the injected booking capability', (
+  testWidgets('seminar page preserves the injected booking capability', (
     tester,
   ) async {
     final service = ManagementService();
     await tester.pumpWidget(
       ginkgoApp(
-        home: ReservationsPage(service: service, bookingGateway: service),
+        home: CgyyPage(service: service, bookingGateway: service),
       ),
     );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('研讨室与场馆'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('cgyy-site-1')));
     await tester.pumpAndSettle();
@@ -328,7 +326,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  test('workspace reservation destination resolves the booking capability', () {
+  test('workspace seminar destination resolves the booking capability', () {
     final service = ManagementService();
     final context = WorkspaceContext(
       service: service,
@@ -338,9 +336,9 @@ void main() {
       openSettings: () {},
     );
 
-    final page = destinationById('reservations')!.build(context);
-    expect(page, isA<ReservationsPage>());
-    expect((page as ReservationsPage).bookingGateway, same(service));
+    final page = destinationById('cgyy')!.build(context);
+    expect(page, isA<CgyyPage>());
+    expect((page as CgyyPage).bookingGateway, same(service));
   });
 
   for (final brightness in Brightness.values) {

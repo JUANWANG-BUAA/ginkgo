@@ -332,21 +332,21 @@ void main() {
           const ValueKey('homework-summary-待完成'),
         );
         expect(
-          find.descendant(of: pendingSummary, matching: find.text('4')),
+          find.descendant(of: pendingSummary, matching: find.text('4 项')),
           findsOneWidget,
         );
         final submittedSummary = find.byKey(
           const ValueKey('homework-summary-已提交'),
         );
         expect(
-          find.descendant(of: submittedSummary, matching: find.text('1')),
+          find.descendant(of: submittedSummary, matching: find.text('1 项')),
           findsOneWidget,
         );
         final overdueSummary = find.byKey(
           const ValueKey('homework-summary-已截止'),
         );
         expect(
-          find.descendant(of: overdueSummary, matching: find.text('2')),
+          find.descendant(of: overdueSummary, matching: find.text('2 项')),
           findsOneWidget,
         );
 

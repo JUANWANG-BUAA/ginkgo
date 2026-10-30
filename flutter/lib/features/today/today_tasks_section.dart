@@ -73,7 +73,9 @@ class TodayTasksSection extends StatelessWidget {
       footer: Text(
         data == null
             ? '仅保存于本机 · 不代表学校作业提交状态'
-            : '本机读取：${data.loadedAt.month}月${data.loadedAt.day}日 ${data.loadedAt.hour.toString().padLeft(2, '0')}:${data.loadedAt.minute.toString().padLeft(2, '0')}\n本地完成不代表学校作业已提交${completed.isNotEmpty ? ' · 已完成 ${completed.length} 项（已收起）' : ''}',
+            : '本机读取 ${data.loadedAt.month}月${data.loadedAt.day}日 '
+                  '${data.loadedAt.hour.toString().padLeft(2, '0')}:${data.loadedAt.minute.toString().padLeft(2, '0')}'
+                  ' · 本地完成不代表学校作业已提交',
       ),
       children: [
         if (section.loading || section.error != null)

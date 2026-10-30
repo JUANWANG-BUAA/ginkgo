@@ -76,10 +76,10 @@
     - `const LearningReadStatus({ super.key, required this.title, required this.section, required this.supported, required this.onRefresh, });`  <sub>:113</sub>
     - `Widget build(BuildContext context) => …`  <sub>:125</sub>
 - `class LearningText extends StatelessWidget`
-  <sub>class · features/learning/learning_widgets.dart:156</sub>
-    - `const LearningText( this.text, { super.key, this.heading = false, this.warning = false, });`  <sub>:157</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:166</sub>
+  <sub>class · features/learning/learning_widgets.dart:146</sub>
+    - `const LearningText( this.text, { super.key, this.heading = false, this.warning = false, });`  <sub>:147</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:156</sub>
 - `bool presentText(String? value) => …`
-  <sub>function · features/learning/learning_widgets.dart:182</sub>
+  <sub>function · features/learning/learning_widgets.dart:172</sub>
 - `Uri? httpsUri(String source) {…}`
-  <sub>function · features/learning/learning_widgets.dart:183</sub>
+  <sub>function · features/learning/learning_widgets.dart:173</sub>

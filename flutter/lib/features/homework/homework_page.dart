@@ -297,13 +297,31 @@ class _HomeworkPageState extends State<HomeworkPage> {
         ),
       ),
     SliverToBoxAdapter(
-      child: AppleSection(
-        header: Text(data.termName.isEmpty ? '本学期作业' : data.termName),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          HomeworkSummaryMetrics(
-            pending: pending,
-            submitted: submitted,
-            overdue: overdue,
+          SummaryStrip(
+            items: [
+              SummaryItem(
+                '待完成',
+                '$pending 项',
+                icon: CupertinoIcons.doc_text,
+                key: const ValueKey('homework-summary-待完成'),
+              ),
+              SummaryItem(
+                '已提交',
+                '$submitted 项',
+                icon: CupertinoIcons.checkmark_circle,
+                key: const ValueKey('homework-summary-已提交'),
+              ),
+              SummaryItem(
+                '已截止',
+                '$overdue 项',
+                icon: CupertinoIcons.exclamationmark_circle,
+                key: const ValueKey('homework-summary-已截止'),
+              ),
+            ],
+            note: '学校状态与个人待办独立 · 截止时间按北京时间显示',
           ),
         ],
       ),

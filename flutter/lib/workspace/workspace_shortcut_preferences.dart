@@ -17,7 +17,7 @@ class WorkspaceShortcutPreferences extends ChangeNotifier {
     this.write,
   });
 
-  static const defaultIds = ['checkin', 'schedule', 'homework', 'reservations'];
+  static const defaultIds = ['checkin', 'schedule', 'homework', 'library'];
   static const maxItems = 4;
   final String? accountId;
   final bool demo;

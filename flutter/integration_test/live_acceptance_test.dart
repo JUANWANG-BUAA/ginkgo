@@ -757,9 +757,9 @@ void main() {
         await tester.pumpWidget(const GinkgoApp(service: service));
         await settle(tester);
         await capture('workspace');
-        for (final tab in ['签到', '课表', '作业', '预约']) {
+        for (final tab in ['今天', '课表', '作业', '图书馆', '更多']) {
           await tapTab(tester, tab);
-          await capture('tab-${['签到', '课表', '作业', '预约'].indexOf(tab)}');
+          await capture('tab-${['今天', '课表', '作业', '图书馆', '更多'].indexOf(tab)}');
         }
         await page(
           'library-dark-large',

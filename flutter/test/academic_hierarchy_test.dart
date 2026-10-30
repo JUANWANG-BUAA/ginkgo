@@ -268,7 +268,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('加权平均'), findsOneWidget);
       expect(find.text('平均绩点'), findsOneWidget);
-      expect(find.text('—'), findsNWidgets(2));
+      expect(find.text('未提供'), findsNWidgets(2));
       final scrollable = find
           .descendant(
             of: find.byKey(const Key('grades-scroll')),

@@ -1,21 +1,45 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/design/apple_design.dart';
-import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/features/bykc/bykc_page.dart';
-import 'package:ginkgo_mirror/features/graduate/graduate_page.dart';
-import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
-import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
-import 'package:ginkgo_mirror/features/notices/notices_page.dart';
-import 'package:ginkgo_mirror/features/grades/grades_page.dart';
-import 'package:ginkgo_mirror/application/mirror_service.dart';
-import 'package:ginkgo_mirror/application/service_capabilities.dart';
-import 'package:ginkgo_mirror/features/settings/settings_page.dart';
-import 'package:ginkgo_mirror/workspace/service_search_page.dart';
-import 'package:ginkgo_mirror/workspace/workspace_types.dart';
 import 'package:ginkgo_mirror/application/contracts.dart' show RouteChoice;
 import 'package:ginkgo_mirror/application/platform_actions.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/shared/reminders.dart';
+import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
+import 'package:ginkgo_mirror/workspace/service_search_page.dart';
+import 'package:ginkgo_mirror/workspace/workspace_types.dart';
 
+/// Builds the context every feature row is opened with. The rows never
+/// construct a page by hand: they go through the catalog so a feature keeps
+/// one factory, one title and one icon everywhere.
+WorkspaceContext buildDirectoryContext({
+  required MirrorService service,
+  required PlatformActions platformActions,
+  required List<WorkspaceDestination> destinations,
+  required Future<void> Function() onSignOut,
+  String? accountName,
+  String? accountId,
+  RouteChoice? route,
+  required void Function(String id) openDestination,
+}) => WorkspaceContext(
+  service: service,
+  platformActions: platformActions,
+  mobile: true,
+  accountName: accountName,
+  accountId: accountId,
+  route: route,
+  onSignOut: onSignOut,
+  openFeature: openDestination,
+  openSettings: () => openDestination('settings'),
+);
+
+/// The feature list of the "更多" surface.
+///
+/// Every feature appears exactly once: the tab bar owns the five primary
+/// destinations, this list owns everything else. The grouping mirrors the
+/// shared Apple "More" list so the same feature reads the same way on both
+/// platforms.
 class ServiceDirectory extends StatelessWidget {
   const ServiceDirectory({
     super.key,
@@ -27,6 +51,7 @@ class ServiceDirectory extends StatelessWidget {
     this.accountId,
     this.route,
   });
+
   final MirrorService service;
   final PlatformActions platformActions;
   final List<WorkspaceDestination> destinations;
@@ -41,12 +66,14 @@ class ServiceDirectory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       AppleSection(
         children: [
           AppleListTile(
             leading: const Icon(CupertinoIcons.search),
             title: const Text('全部服务 / 搜索服务'),
+            subtitle: const Text('按名称或别名查找，含学校官网入口'),
             trailing: const Icon(CupertinoIcons.chevron_right),
             onTap: () => _push(
               context,
@@ -59,96 +86,72 @@ class ServiceDirectory extends StatelessWidget {
         ],
       ),
       AppleSection(
-        header: const Text('个人与校园'),
+        header: const Text('工作台'),
         children: [
-          _row(
+          _destination(
             context,
-            '校园通知',
-            CupertinoIcons.news_solid,
+            'checkin',
             GinkgoColors.resourceBlue,
-            NoticesPage(service: service),
+            badge: ReminderScope.of(context)?.unread('checkin') ?? 0,
           ),
-          _row(
+          _destination(
             context,
-            '待办',
-            CupertinoIcons.list_bullet,
+            'tasks',
             GinkgoColors.accent,
-            TasksPage(fileActions: platformActions,service: service),
+            badge: ReminderScope.of(context)?.unread('tasks') ?? 0,
           ),
-          _destination(context, 'campus-card', GinkgoColors.accent),
-          _destination(context, 'shuttle', GinkgoColors.resourceTeal),
         ],
       ),
       AppleSection(
         header: const Text('学业'),
         children: [
-          _row(
-            context,
-            '成绩',
-            CupertinoIcons.chart_bar_alt_fill,
-            GinkgoColors.resourcePurple,
-            GradesPage(service: service),
-          ),
+          _destination(context, 'grades', GinkgoColors.resourcePurple),
+          _destination(context, 'bykc', GinkgoColors.resourceTeal),
+          _destination(context, 'graduate', GinkgoColors.accent),
           _destination(context, 'learning', GinkgoColors.resourceBlue),
-          _row(
-            context,
-            '博雅',
-            CupertinoIcons.book_solid,
-            GinkgoColors.resourceTeal,
-            BykcPage(demo: service.isDemo, service: service),
-          ),
-          _row(
-            context,
-            '研究生教务',
-            CupertinoIcons.briefcase_fill,
-            GinkgoColors.accent,
-            GraduatePage(
-              service: service,
-              creditMapGateway: ServiceCapabilities.resolve(service)
-                  .graduateCreditMap,
-            ),
-          ),
+        ],
+      ),
+      AppleSection(
+        header: const Text('空间资源'),
+        children: [
+          _destination(context, 'cgyy', GinkgoColors.resourcePurple),
+          _destination(context, 'classroom', GinkgoColors.resourceTeal),
         ],
       ),
       AppleSection(
         header: const Text('图书与借阅'),
+        children: [_destination(context, 'library-loans', GinkgoColors.resourceTeal)],
+      ),
+      AppleSection(
+        header: const Text('校园'),
         children: [
-          _destination(context, 'library-loans', GinkgoColors.resourceTeal),
+          _destination(context, 'campus-card', GinkgoColors.accent),
+          _destination(context, 'notices', GinkgoColors.resourceBlue),
+          _destination(context, 'career-events', GinkgoColors.resourcePurple),
+          _destination(context, 'campus-activities', GinkgoColors.resourceTeal),
+          _destination(context, 'shuttle', GinkgoColors.resourceBlue),
         ],
       ),
       AppleSection(
         children: [
-          _row(
-            context,
-            '设置',
-            CupertinoIcons.gear_alt_fill,
-            GinkgoColors.statusInactive,
-            SettingsPage(
-              service: service,
-              maintenance: platformActions.maintenance,
-              onSignOut: onSignOut,
-              accountName: accountName,
-              accountId: accountId,
-              route: route,
-            ),
-          ),
+          _destination(context, 'settings', GinkgoColors.statusInactive),
         ],
       ),
-      const SizedBox(height: 32),
+      const SizedBox(height: GinkgoSpacing.xxl),
     ],
   );
 
-  WorkspaceContext _featureContext(BuildContext context) => WorkspaceContext(
-    service: service,
-    platformActions: platformActions,
-    mobile: true,
-    accountName: accountName,
-    accountId: accountId,
-    route: route,
-    onSignOut: onSignOut,
-    openFeature: (id) => _pushDestination(context, id),
-    openSettings: () => _pushDestination(context, 'settings'),
-  );
+  WorkspaceContext _featureContext(BuildContext context) =>
+      buildDirectoryContext(
+        service: service,
+        platformActions: platformActions,
+        destinations: destinations,
+        onSignOut: onSignOut,
+        accountName: accountName,
+        accountId: accountId,
+        route: route,
+        openDestination: (id) => _pushDestination(context, id),
+      );
 
   WorkspaceDestination? _destinationById(String id) {
     for (final destination in destinations) {
@@ -164,33 +167,41 @@ class ServiceDirectory extends StatelessWidget {
     }
   }
 
-  // Reuse catalog metadata and factories, including the injected account context.
-  Widget _destination(BuildContext context, String id, Color tint) {
-    final destination = _destinationById(id)!;
-    return _row(
-      context,
-      destination.title,
-      destination.icon,
-      tint,
-      destination.build(_featureContext(context)),
+  /// Reuse the catalog metadata and factories, including the injected
+  /// account context. A row never builds a second, parallel page.
+  Widget _destination(
+    BuildContext context,
+    String id,
+    Color tint, {
+    int badge = 0,
+  }) {
+    final destination = _destinationById(id);
+    if (destination == null) return const SizedBox.shrink();
+    return AppleListTile(
+      key: ValueKey('directory-$id'),
+      leading: GinkgoIconTile(
+        icon: destination.icon,
+        size: 34,
+        iconSize: 18,
+        color: tint,
+      ),
+      leadingSize: 34,
+      title: Text(destination.title),
+      trailing: badge > 0
+          ? Text(
+              '$badge',
+              style: TextStyle(
+                fontSize: GinkgoTypography.callout.fontSize,
+                fontWeight: FontWeight.w600,
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              ),
+            )
+          : const Icon(
+              CupertinoIcons.chevron_right,
+              size: 16,
+              color: CupertinoColors.tertiaryLabel,
+            ),
+      onTap: () => _pushDestination(context, id),
     );
   }
-
-  Widget _row(
-    BuildContext context,
-    String title,
-    IconData icon,
-    Color tint,
-    Widget page,
-  ) => AppleListTile(
-    leading: GinkgoIconTile(icon: icon, size: 34, iconSize: 18, color: tint),
-    leadingSize: 34,
-    title: Text(title),
-    trailing: const Icon(
-      CupertinoIcons.chevron_right,
-      size: 16,
-      color: CupertinoColors.tertiaryLabel,
-    ),
-    onTap: () => _push(context, page),
-  );
 }

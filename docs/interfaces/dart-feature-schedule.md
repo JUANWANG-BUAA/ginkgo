@@ -99,13 +99,13 @@
     - `const ScheduleCourseBrowser({ super.key, required this.snapshot, required this.courses, required this.days, required this.weeks, required this.mode, required this.search, required this.selectedDay, required this.onSelectedDay, required this.onSearchChanged, required this.onCourseTap, });`  <sub>:14</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:39</sub>
 - `class ScheduleSemesterWeeks extends StatelessWidget` — The teaching weeks of the term.
-  <sub>class · features/schedule/schedule_views.dart:129</sub>
-    - `const ScheduleSemesterWeeks({ super.key, required this.weeks, required this.onSelected, });`  <sub>:130</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:139</sub>
+  <sub>class · features/schedule/schedule_views.dart:122</sub>
+    - `const ScheduleSemesterWeeks({ super.key, required this.weeks, required this.onSelected, });`  <sub>:123</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:132</sub>
 - `class ScheduleExamList extends StatelessWidget` — The exam schedule of the term.
-  <sub>class · features/schedule/schedule_views.dart:171</sub>
-    - `const ScheduleExamList({super.key, required this.exams});`  <sub>:172</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:176</sub>
+  <sub>class · features/schedule/schedule_views.dart:164</sub>
+    - `const ScheduleExamList({super.key, required this.exams});`  <sub>:165</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:169</sub>
 
 ## features/schedule/schedule_week_strip.dart
 

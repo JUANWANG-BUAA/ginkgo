@@ -2,30 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
-import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/application/platform_actions.dart';
+import 'package:ginkgo_mirror/infrastructure/demo_mirror_service.dart';
 import 'package:ginkgo_mirror/features/reservations/reservation_widgets.dart';
-import 'package:ginkgo_mirror/features/reservations/reservations_page.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
+import 'package:ginkgo_mirror/features/classroom/classroom_page.dart';
+import 'package:ginkgo_mirror/workspace/service_directory.dart';
+import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 import 'package:ginkgo_mirror/widgets/resource_meter.dart';
-
-class RecordingReservationsPage extends ReservationsPage {
-  const RecordingReservationsPage({super.key, required this.opened})
-    : super(service: const DemoMirrorService());
-  final List<Widget> opened;
-
-  // Verify the real hub buttons without instantiating their Rust-backed pages.
-  @override
-  void open(BuildContext context, Widget page) {
-    opened.add(page);
-    Navigator.of(context).push(
-      CupertinoPageRoute<void>(
-        builder: (_) => const CupertinoPageScaffold(
-          navigationBar: CupertinoNavigationBar(middle: Text('合成目标页')),
-          child: SafeArea(child: Center(child: Text('路由已打开'))),
-        ),
-      ),
-    );
-  }
-}
 
 void main() {
   testWidgets('resource snapshots preserve unknown, zero and excess values', (
@@ -235,13 +219,12 @@ void main() {
   );
 
   testWidgets(
-    'reservation hub wraps at 320px dark large type and opens every entry',
+    'the more surface wraps at 320px dark large type and opens every entry',
     (tester) async {
       tester.view.physicalSize = const Size(320, 1000);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      final opened = <Widget>[];
       await tester.pumpWidget(
         ginkgoApp(
           brightness: Brightness.dark,
@@ -251,30 +234,37 @@ void main() {
                 textScaler: const TextScaler.linear(1.8),
                 disableAnimations: true,
               ),
-              child: RecordingReservationsPage(opened: opened),
+              child: CupertinoPageScaffold(
+                child: ListView(
+                  children: [
+                    ServiceDirectory(
+                      platformActions: const PlatformActions(),
+                      service: const DemoMirrorService(),
+                      destinations: workspaceDestinations,
+                      onSignOut: () async {},
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
       );
       await tester.pumpAndSettle();
-      for (final title in ['图书馆座位', '研讨室与场馆', '空教室']) {
-        await tester.scrollUntilVisible(
-          find.text(title),
-          180,
-          scrollable: find.byType(Scrollable).first,
-        );
-        await tester.tap(find.text(title));
+      for (final entry in <String, Type>{
+        '研讨室': CgyyPage,
+        '空教室': ClassroomPage,
+      }.entries) {
         await tester.pumpAndSettle();
-        expect(find.text('路由已打开'), findsOneWidget);
+        await tester.ensureVisible(find.text(entry.key));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(entry.key));
+        await tester.pumpAndSettle();
+        expect(find.byType(entry.value), findsOneWidget);
         expect(tester.takeException(), isNull);
         await tester.pageBack();
         await tester.pumpAndSettle();
       }
-      expect(opened.map((widget) => widget.runtimeType.toString()), [
-        'LibraryPage',
-        'CgyyPage',
-        'ClassroomPage',
-      ]);
       expect(tester.takeException(), isNull);
     },
   );

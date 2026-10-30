@@ -1,5 +1,43 @@
 # Ginkgo — UI 设计准则
 
+## Flutter 侧交互语言基准（2026-10-31）
+
+冻结的 Apple 实现是 Flutter 侧的**交互语法权威原文**，不是历史参考：
+
+| 来源 | 作用 |
+| --- | --- |
+| `BUAA-Assistant-iOS/Sources/IOSMainView.swift` | 一级导航（今天 / 课表 / 作业 / 图书馆 / 更多）与侧栏分组 |
+| `BUAA-Assistant-iOS/Sources/Native/IOSGradeView.swift` 等 | 页面结构：汇总行 → 列表行 → footer 口径 |
+| `BUAA-Assistant/Core/UI/PageComponents.swift` | 共享组件：`AcademicMetricStrip`、`StatusNotice`、`PageEmptyState` |
+| `BUAA-Assistant/Core/UI/StatusPresentation.swift` | 状态词表：文案 + 颜色 + 图标三件套 |
+
+Flutter 侧可以有自己的实现形式，但**语义必须一一对应**；偏离要登记在下方偏离表里，没登记的偏离视为回潮。
+
+### 不可退让的六条
+
+1. **系统控件优先**：刷新用导航栏 trailing 按钮 + 下拉刷新；选择用 `Menu` / `ActionSheet` / `Picker`；空态用统一空态组件；加载用系统指示器。卡片内不再出现刷新、重新读取、查询余额这类主动作。
+2. **一级导航固定五个**：今天 / 课表 / 作业 / 图书馆 / 更多。其余功能只在「更多」页出现一次，任何功能不得再藏在今天页底部。
+3. **一屏一问**：工作台只回答“今天该做什么”，功能页只回答“这个领域现在什么情况”，服务目录只回答“有哪些功能”。三者不重叠。
+4. **每页一条汇总**：页面必须有一条 label:value 汇总（`SummaryStrip` / `SummaryLine` / `AcademicMetricGrid` / `ResourceMeter`），先说状态再列条目。
+5. **状态三件套**：状态 = 文案 + 颜色 + 图标，缺一不可；计数用普通数字，不用状态色。
+6. **口径一行**：数据来源与更新时间只占一行 footer；解释性长文进详情页，不进列表页。
+
+### 偏离登记
+
+| 偏离 | 理由 | 状态 |
+| --- | --- | --- |
+| Flutter 无 `ContentUnavailableView`，用统一 `AppleEmptyState` | 平台差异 | 已登记 |
+| Flutter 无 SwiftUI `LabeledContent`，用 `SummaryStrip` / `SummaryLine` 对齐 | 平台差异 | 已登记 |
+| 侧栏分组为 工作台 / 学业 / 空间资源 / 校园（iOS 为 工作台 / 学习 / 校园） | Flutter 新增功能较多 | 已登记 |
+| 玻璃刷新按钮保留在 sliver 大标题导航栏 | 既有视觉语言 | 已登记 |
+| 内联导航栏按钮触控高度 44pt | 系统导航栏高度 | 已登记 |
+
+### 门禁
+
+- `scripts/check-ui-language.py`：刷新动作、状态图标、一级标签数量、说明区长度、汇总层缺失。计数只许减、不许增。
+- `scripts/check-design-tokens.py`：硬编码字号 / 间距 / 圆角预算。
+- 改动任一功能页后重跑 `bash scripts/check-android-module-visual.sh <emulator>`，浅色 / 深色 / 大字号 / 320% 四种状态都要复拍。
+
 ## 当前 Android / Flutter 工作树补充（2026-10-26）
 
 当前唯一开发目标是 Android；以下历史 macOS 章节仅作信息层级参考，不要求改动冻结的 Apple 应用。

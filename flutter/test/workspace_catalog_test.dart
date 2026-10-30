@@ -63,9 +63,9 @@ void main() {
     expect(footerDestinations.map((destination) => destination.id), [
       'settings',
     ]);
-    final reservations = destinationById('reservations')!;
-    expect(reservations.sidebar, isFalse);
-    expect(reservations.mobileTab, 4);
+    final more = destinationById('more')!;
+    expect(more.sidebar, isFalse);
+    expect(more.mobileTab, 4);
     expect(
       sidebarDestinations(WorkspaceSection.academics)
           .any((destination) => destination.id == 'graduate-credit-map'),
@@ -74,9 +74,9 @@ void main() {
     // Every destination either shows in the sidebar or a mobile tab, so no
     // feature can be registered without a way to reach it.
     for (final destination in workspaceDestinations) {
-      // These are reached through the mobile service directory or graduate page.
-      if (destination.id == 'graduate-credit-map' ||
-          destination.id == 'shuttle') {
+      // These are reached through the graduate page or the mobile service
+      // directory rather than a tab or a sidebar row.
+      if (destination.id == 'graduate-credit-map') {
         continue;
       }
       expect(

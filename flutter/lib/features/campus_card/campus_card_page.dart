@@ -5,7 +5,6 @@ import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
 class CampusCardPage extends StatefulWidget {
   const CampusCardPage({super.key, this.gateway});
@@ -107,7 +106,25 @@ class _CampusCardPageState extends State<CampusCardPage>
       backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
         context,
       ),
-      navigationBar: const CupertinoNavigationBar(middle: Text('校园卡')),
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('校园卡'),
+        // The read action lives in the navigation bar, next to the page it
+        // refreshes. It is disabled while a read is in flight.
+        trailing: widget.gateway == null
+            ? null
+            : CupertinoButton(
+                key: const Key('campus-card-read'),
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(48, 48),
+                onPressed: _busy ? null : _read,
+                child: _busy
+                    ? const CupertinoActivityIndicator(radius: 9)
+                    : const Icon(
+                        CupertinoIcons.refresh,
+                        semanticLabel: '查询余额',
+                      ),
+              ),
+      ),
       child: SafeArea(
         child: ListView(
           children: [
@@ -124,14 +141,7 @@ class _CampusCardPageState extends State<CampusCardPage>
                   const Padding(
                     padding: GinkgoSpacing.edgeInsetsCard,
                     child: Text('当前服务未提供校园卡余额查询能力。'),
-                  )
-                else
-                  CupertinoButton(
-                    key: const Key('campus-card-read'),
-                    onPressed: _busy ? null : _read,
-                    child: Text(data == null ? '查询余额' : '刷新余额'),
                   ),
-                if (_busy) const Center(child: GinkgoActivity(size: 24)),
                 if (failure != null)
                   Padding(
                     padding: GinkgoSpacing.edgeInsetsCard,
@@ -161,7 +171,14 @@ class _CampusCardPageState extends State<CampusCardPage>
                         child: Text(
                           _showBalance ? _amount : '¥ ••••',
                           key: const Key('campus-card-balance'),
-                          style: GinkgoTypography.title,
+                          // The balance is the page's subject: it is the one
+                          // number that deserves the largest type.
+                          style: const TextStyle(
+                            fontSize: 34,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.8,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                          ),
                         ),
                       ),
                     ),

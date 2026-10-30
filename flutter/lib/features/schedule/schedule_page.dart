@@ -270,9 +270,6 @@ class _SchedulePageState extends State<SchedulePage> {
 
   List<Widget> _content(ScheduleResponse snapshot) => [
     ScheduleSection(
-      footer: snapshot.fetchedAt == null && widget.service.isDemo
-          ? const Text('离线合成样例')
-          : Text('更新于 ${schoolTimestampLabel(snapshot.fetchedAt)}'),
       children: [
         ScheduleControls(
           snapshot: snapshot,
@@ -284,6 +281,23 @@ class _SchedulePageState extends State<SchedulePage> {
           onSelectWeek: selectWeek,
         ),
       ],
+    ),
+    SummaryStrip(
+      items: [
+        SummaryItem(
+          '本周课程',
+          '${filtered.length} 节',
+          icon: CupertinoIcons.calendar,
+        ),
+        SummaryItem(
+          '近期考试',
+          '${snapshot.exams.length} 场',
+          icon: CupertinoIcons.exclamationmark_triangle,
+        ),
+      ],
+      note: snapshot.fetchedAt == null && widget.service.isDemo
+          ? '离线合成样例'
+          : '更新于 ${schoolTimestampLabel(snapshot.fetchedAt)}',
     ),
     _viewModeSwitch(snapshot),
     if (viewMode == ScheduleViewMode.weekGrid ||

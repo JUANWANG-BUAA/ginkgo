@@ -38,7 +38,7 @@ void main() {
       );
       expect(gateway.calls, 0);
 
-      await tester.tap(find.text('查询余额'));
+      await tester.tap(find.byKey(const Key('campus-card-read')));
       await tester.pump();
       expect(gateway.calls, 1);
       gateway.responses.single.complete(success());
@@ -64,14 +64,14 @@ void main() {
       await tester.pumpWidget(
         ginkgoApp(home: CampusCardPage(gateway: gateway)),
       );
-      await tester.tap(find.text('查询余额'));
+      await tester.tap(find.byKey(const Key('campus-card-read')));
       await tester.pump();
       gateway.responses[0].complete(success());
       await tester.pumpAndSettle();
       await tester.tap(find.text('显示'));
       await tester.pump();
 
-      await tester.tap(find.text('刷新余额'));
+      await tester.tap(find.byKey(const Key('campus-card-read')));
       await tester.pump();
       gateway.responses[1].complete(
         const CampusCardBalanceResponse(
@@ -91,7 +91,7 @@ void main() {
   ) async {
     final gateway = _FakeGateway();
     await tester.pumpWidget(ginkgoApp(home: CampusCardPage(gateway: gateway)));
-    await tester.tap(find.text('查询余额'));
+    await tester.tap(find.byKey(const Key('campus-card-read')));
     await tester.pump();
     gateway.responses.single.complete(success());
     await tester.pumpAndSettle();
@@ -103,7 +103,7 @@ void main() {
     await tester.pump();
     expect(find.text('¥ 123.45'), findsNothing);
     expect(find.text('¥ ••••'), findsNothing);
-    expect(find.text('查询余额'), findsOneWidget);
+    expect(find.byKey(const Key('campus-card-read')), findsOneWidget);
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pump();
@@ -116,7 +116,7 @@ void main() {
     final first = _FakeGateway();
     final second = _FakeGateway();
     await tester.pumpWidget(ginkgoApp(home: CampusCardPage(gateway: first)));
-    await tester.tap(find.text('查询余额'));
+    await tester.tap(find.byKey(const Key('campus-card-read')));
     await tester.pump();
 
     await tester.pumpWidget(ginkgoApp(home: CampusCardPage(gateway: second)));

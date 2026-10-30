@@ -162,7 +162,7 @@ void main() {
         final originalDilation = timeDilation;
         try {
           timeDilation = 10;
-          for (final label in ['课表', '工作台']) {
+          for (final label in ['课表', '今天']) {
             await tester.tap(
               find.descendant(
                 of: find.byType(CupertinoTabBar),

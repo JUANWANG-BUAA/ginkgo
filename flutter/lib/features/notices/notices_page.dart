@@ -91,16 +91,6 @@ class _NoticesPageState extends State<NoticesPage> {
         CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
         SliverList.list(
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-              child: Text(
-                '北航新闻网 · 最新 5 条通知',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: CupertinoColors.secondaryLabel,
-                ),
-              ),
-            ),
             if (error != null)
               AppleStatusSection(
                 title: error!,
@@ -122,6 +112,7 @@ class _NoticesPageState extends State<NoticesPage> {
               ),
             if (notices != null && notices!.isNotEmpty)
               AppleSection(
+                header: const Text('北航新闻网 · 最新 5 条'),
                 children: [
                   for (final notice in notices!)
                     AppleListTile(

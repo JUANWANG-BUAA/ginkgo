@@ -19,6 +19,7 @@ import 'package:ginkgo_mirror/src/rust/api/live.dart'
     show GradeTermsResponse, RouteChoice, SessionResponse, SessionState;
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 import 'package:ginkgo_mirror/application/library_stats.dart';
+import 'package:ginkgo_mirror/application/notices.dart';
 
 const empty = ClassroomResponse(
   buildings: [],
@@ -271,6 +272,12 @@ class ControlledService extends Fake implements MirrorService {
     return const LocalTasksRead(data: []);
   }
 
+  /// Public notices are a workbench source; the fake answers with an empty
+  /// but successful read so no section reports a failure.
+  @override
+  Future<NoticesRead> notices({bool forceRefresh = false}) async =>
+      const NoticesRead(data: []);
+
   String? requestedScheduleTerm;
   final requests = <Completer<ClassroomResponse>>[];
   final checkinRequests = <Completer<CheckInResponse>>[];
@@ -429,24 +436,14 @@ class ControlledService extends Fake implements MirrorService {
       homeworkFixture;
 }
 
+/// Open a feature from the "更多" surface, the way a user reaches every
+/// feature that is not a primary tab.
 Future<void> openMore(WidgetTester tester, String label) async {
-  await tester.tap(find.text(label == '空教室' ? '预约' : '工作台').first);
+  await tester.tap(find.text('更多').first);
   await tester.pumpAndSettle();
-  if (label != '空教室') {
-    await tester.scrollUntilVisible(
-      find.text(label),
-      250,
-      scrollable: find
-          .descendant(
-            of: find.byKey(const Key('today-scroll')),
-            matching: find.byType(Scrollable),
-          )
-          .first,
-    );
-    await tester.ensureVisible(find.text(label));
-    await tester.pumpAndSettle();
-  }
-  await tester.tap(find.text(label));
+  await tester.ensureVisible(find.text(label).first);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(label).first);
   await tester.pumpAndSettle();
 }
 
@@ -462,6 +459,18 @@ Future<void> start(WidgetTester tester, ControlledService service) async {
   await tester.pump();
 }
 
+
+/// Complete every pending sign-in read.
+///
+/// The workbench keeps its own sign-in section, so the app may hold more than
+/// one outstanding request. The page under test is asserted by its own
+/// scroll area, never by a global text match.
+void completeCheckin(ControlledService service, CheckInResponse response) {
+  for (final request in service.checkinRequests) {
+    if (!request.isCompleted) request.complete(response);
+  }
+}
+
 Future<void> openCheckin(WidgetTester tester, ControlledService service) async {
   tester.view.physicalSize = const Size(430, 1200);
   tester.view.devicePixelRatio = 1;
@@ -469,7 +478,11 @@ Future<void> openCheckin(WidgetTester tester, ControlledService service) async {
   addTearDown(tester.view.resetDevicePixelRatio);
   await tester.pumpWidget(GinkgoApp(service: service));
   await tester.pumpAndSettle();
-  await tester.tap(find.text('签到'));
+  await tester.tap(find.text('更多').first);
+  await tester.pumpAndSettle();
+  await tester.ensureVisible(find.text('课程签到').first);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('课程签到').first);
   // The page starts loading immediately; a repeating spinner would make
   // pumpAndSettle time out, so drive the route transition explicitly.
   await tester.pump();
@@ -555,7 +568,11 @@ void main() {
       expect(find.text('网络路线'), findsOneWidget);
       await tester.pageBack();
       await tester.pumpAndSettle();
-      await tester.tap(find.text('签到').last);
+      await tester.tap(find.text('更多').last);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('课程签到').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('课程签到').first);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.byKey(const Key('checkin-scroll')), findsOneWidget);
@@ -662,12 +679,12 @@ void main() {
     tester.platformDispatcher.textScaleFactorTestValue = 1.8;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     await tester.pumpAndSettle();
-    final context = tester.element(find.text('工作台').first);
+    final context = tester.element(find.text('今天').first);
     expect(CupertinoTheme.brightnessOf(context), Brightness.dark);
     tester.platformDispatcher.accessibilityFeaturesTestValue =
         const FakeAccessibilityFeatures(disableAnimations: true);
     addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
-    for (final title in ['课表', '作业', '预约']) {
+    for (final title in ['课表', '作业', '更多']) {
       await tester.tap(find.text(title).last);
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: title);
@@ -792,7 +809,7 @@ void main() {
       expect(
         find.descendant(
           of: find.byKey(ValueKey('homework-summary-$label')),
-          matching: find.text('1'),
+          matching: find.text('1 项'),
         ),
         findsOneWidget,
       );
@@ -843,9 +860,13 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(GinkgoApp(service: service));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('预约'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('图书馆座位'));
+    // The library is a primary tab; the former resource hub is gone.
+    await tester.tap(
+      find.descendant(
+        of: find.byType(CupertinoTabBar),
+        matching: find.text('图书馆'),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('当前预约'), findsOneWidget);
@@ -868,9 +889,13 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(GinkgoApp(service: service));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('预约'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('图书馆座位'));
+    // The library is a primary tab; the former resource hub is gone.
+    await tester.tap(
+      find.descendant(
+        of: find.byType(CupertinoTabBar),
+        matching: find.text('图书馆'),
+      ),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('library-venue-v1')));
@@ -909,9 +934,12 @@ void main() {
       final service = ControlledService();
       await tester.pumpWidget(GinkgoApp(service: service));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('预约'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('图书馆座位'));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CupertinoTabBar),
+          matching: find.text('图书馆'),
+        ),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('library-history')));
       await tester.pump();
@@ -988,9 +1016,13 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(GinkgoApp(service: service));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('预约'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('图书馆座位'));
+    // The library is a primary tab; the former resource hub is gone.
+    await tester.tap(
+      find.descendant(
+        of: find.byType(CupertinoTabBar),
+        matching: find.text('图书馆'),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('当前没有进行中的预约'), findsOneWidget);
@@ -1025,7 +1057,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      service.checkinRequests[1].complete(
+      service.checkinRequests[2].complete(
         CheckInResponse(
           date: first,
           courses: [],
@@ -1047,7 +1079,13 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('正在保留 $selected 的结果'), findsOneWidget);
+      expect(
+      find.descendant(
+        of: find.byKey(const Key('checkin-scroll')),
+        matching: find.text('正在保留 $selected 的结果'),
+      ),
+      findsOneWidget,
+    );
       expect(find.text('当天 3 节课'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
@@ -1058,7 +1096,7 @@ void main() {
   ) async {
     final service = ControlledService();
     await openCheckin(tester, service);
-    service.checkinRequests.single.complete(checkInFixture);
+    completeCheckin(service, checkInFixture);
     await tester.pumpAndSettle();
 
     expect(find.text('2026年10月20日 · 周二'), findsOneWidget);
@@ -1068,9 +1106,21 @@ void main() {
     expect(find.text('08:00–09:35 · 主楼A101 · 张老师'), findsOneWidget);
     expect(find.textContaining('2026-10-20 08:00:00'), findsNothing);
     expect(find.text('高等数学'), findsOneWidget);
-    expect(find.text('未签到'), findsOneWidget);
-    expect(find.text('已签到'), findsOneWidget);
-    expect(find.text('待确认'), findsOneWidget);
+    // The workbench keeps its own sign-in section behind this page, so the
+    // status words are asserted inside the sign-in page only.
+    final checkinPage = find.byKey(const Key('checkin-scroll'));
+    expect(
+      find.descendant(of: checkinPage, matching: find.text('未签到')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: checkinPage, matching: find.text('已签到')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: checkinPage, matching: find.text('待确认')),
+      findsOneWidget,
+    );
     expect(find.textContaining('合并 2 条'), findsWidgets);
     expect(find.textContaining('记录不一致'), findsWidgets);
     expect(find.textContaining('演示模式不会提交签到'), findsOneWidget);
@@ -1082,7 +1132,7 @@ void main() {
   ) async {
     final service = ControlledService();
     await openCheckin(tester, service);
-    service.checkinRequests.single.complete(emptyCheckIn);
+    completeCheckin(service, emptyCheckIn);
     await tester.pumpAndSettle();
 
     expect(find.text('今天没有课程'), findsWidgets);
@@ -1095,7 +1145,8 @@ void main() {
   ) async {
     final service = ControlledService();
     await openCheckin(tester, service);
-    service.checkinRequests.single.complete(
+    completeCheckin(
+      service,
       const CheckInResponse(
         date: '2026-10-20',
         courses: [],
@@ -1106,7 +1157,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('数据格式无法识别，请重试'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('checkin-scroll')),
+        matching: find.text('数据格式无法识别，请重试'),
+      ),
+      findsOneWidget,
+    );
     await tester.ensureVisible(find.text('重试'));
     await tester.tap(find.text('重试'));
     await tester.pump();
@@ -1121,7 +1178,7 @@ void main() {
   ) async {
     final service = ControlledService();
     await openCheckin(tester, service);
-    service.checkinRequests.single.complete(checkInFixture);
+    completeCheckin(service, checkInFixture);
     await tester.pumpAndSettle();
 
     await tester.tap(find.byIcon(CupertinoIcons.refresh));
@@ -1140,7 +1197,13 @@ void main() {
 
     expect(find.textContaining('正在显示上次结果'), findsOneWidget);
     expect(find.text('高等数学'), findsOneWidget);
-    expect(find.text('待确认'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('checkin-scroll')),
+        matching: find.text('待确认'),
+      ),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 }
