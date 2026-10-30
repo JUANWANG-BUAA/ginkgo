@@ -231,7 +231,10 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     icon: CupertinoIcons.square_stack_3d_up,
     mobileTab: 4,
     sidebar: false,
-    build: (context) => ReservationsPage(service: context.service),
+    build: (context) => ReservationsPage(
+      service: context.service,
+      bookingGateway: context.capabilities.cgyyBooking,
+    ),
   ),
   WorkspaceDestination(
     id: 'settings',

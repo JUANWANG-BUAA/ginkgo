@@ -16,6 +16,6 @@
 
 - `class ReservationsPage extends StatelessWidget` — Resource hub does not start all service logins in the background.
   <sub>class · features/reservations/reservations_page.dart:11</sub>
-    - `const ReservationsPage({super.key, required this.service});`  <sub>:12</sub>
-    - `void open(BuildContext context, Widget page) => …`  <sub>:15</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:20</sub>
+    - `const ReservationsPage({ super.key, required this.service, this.bookingGateway, });`  <sub>:12</sub>
+    - `void open(BuildContext context, Widget page) => …`  <sub>:20</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:25</sub>

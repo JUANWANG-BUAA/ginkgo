@@ -47,8 +47,8 @@ class CollectionToolbar extends StatelessWidget {
                 Flexible(
                   child: Text(
                     window.count == 0
-                        ? '0 $unit'
-                        : '${window.start + 1}–${window.end} / ${window.count} $unit',
+                        ? '共 0 $unit'
+                        : '本页 ${window.start + 1}–${window.end} · 共 ${window.count} $unit',
                     key: const Key('collection-range'),
                     style: TextStyle(
                       fontSize: 13,

@@ -85,7 +85,7 @@
 | `features/checkin/checkin_page.dart` | CheckInPage → dart-feature-checkin.md |
 | `features/checkin/checkin_widgets.dart` | CheckinCourseRow → dart-feature-checkin.md<br>CheckinStatusSummary → dart-feature-checkin.md |
 | `features/classroom/classroom_detail.dart` | ClassroomDetail → dart-feature-classroom.md |
-| `features/classroom/classroom_models.dart` | ClassroomRoomRow → dart-feature-classroom.md<br>ClassroomFilters → dart-feature-classroom.md |
+| `features/classroom/classroom_models.dart` | ClassroomRoomRow → dart-feature-classroom.md<br>classroomSectionRanges → dart-feature-classroom.md<br>ClassroomFilters → dart-feature-classroom.md |
 | `features/classroom/classroom_page.dart` | ClassroomPage → dart-feature-classroom.md |
 | `features/classroom/classroom_results.dart` | ClassroomResultList → dart-feature-classroom.md<br>ClassroomEmptyResults → dart-feature-classroom.md |
 | `features/classroom/classroom_sections.dart` | ClassroomScopeSection → dart-feature-classroom.md<br>ClassroomFilterSection → dart-feature-classroom.md<br>ClassroomResultSummarySection → dart-feature-classroom.md<br>ClassroomFooterNote → dart-feature-classroom.md<br>showClassroomDatePicker → dart-feature-classroom.md |

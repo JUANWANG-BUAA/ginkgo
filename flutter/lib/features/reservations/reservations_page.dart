@@ -9,8 +9,13 @@ import 'package:ginkgo_mirror/application/mirror_service.dart';
 
 /// Resource hub does not start all service logins in the background.
 class ReservationsPage extends StatelessWidget {
-  const ReservationsPage({super.key, required this.service});
+  const ReservationsPage({
+    super.key,
+    required this.service,
+    this.bookingGateway,
+  });
   final MirrorService service;
+  final CgyyBookingGateway? bookingGateway;
 
   void open(BuildContext context, Widget page) =>
       Navigator.of(context)
@@ -58,7 +63,11 @@ class ReservationsPage extends StatelessWidget {
                       '查询时段、手动验证预约与管理订单',
                       CupertinoIcons.person_3_fill,
                       AppleDesign.resourcePurple,
-                      CgyyPage(demo: service.isDemo, service: service),
+                      CgyyPage(
+                        demo: service.isDemo,
+                        service: service,
+                        bookingGateway: bookingGateway,
+                      ),
                     ),
                   ],
                 ),

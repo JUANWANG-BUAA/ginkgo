@@ -16,10 +16,12 @@
 
 - `typedef ClassroomRoomRow = ({String building, ClassroomRow room});` — One matched room together with the building it belongs to.
   <sub>typedef · features/classroom/classroom_models.dart:4</sub>
+- `String classroomSectionRanges(List<int> sections) {…}`
+  <sub>function · features/classroom/classroom_models.dart:6</sub>
 - `class ClassroomFilters` — Filter and sort selection of one classroom query. The page owns the
-  <sub>class · features/classroom/classroom_models.dart:8</sub>
-    - `bool get isActive => …` — Whether the current selection narrows the published result.  <sub>:21</sub>
-    - `void reset() {…}`  <sub>:27</sub>
+  <sub>class · features/classroom/classroom_models.dart:25</sub>
+    - `bool get isActive => …` — Whether the current selection narrows the published result.  <sub>:38</sub>
+    - `void reset() {…}`  <sub>:44</sub>
 
 ## features/classroom/classroom_page.dart
 
@@ -83,23 +85,23 @@
 ## features/classroom/classroom_widgets.dart
 
 - `class ClassroomResultsHeader extends StatelessWidget` — Pinned controls above the classroom results: search, building filter,
-  <sub>class · features/classroom/classroom_widgets.dart:11</sub>
-    - `const ClassroomResultsHeader({ super.key, required this.search, required this.buildings, required this.window, required this.busy, required this.onSearch, required this.onClear, required this.onBuilding, required this.onFilters, required this.onPage, this.selectedBuilding, this.error, this.onRetry, });`  <sub>:12</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:38</sub>
+  <sub>class · features/classroom/classroom_widgets.dart:13</sub>
+    - `const ClassroomResultsHeader({ super.key, required this.search, required this.buildings, required this.window, required this.busy, required this.onSearch, required this.onClear, required this.onBuilding, required this.onFilters, required this.onPage, this.selectedBuilding, this.error, this.onRetry, });`  <sub>:14</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:40</sub>
 - `class ClassroomResultTile extends StatelessWidget` — One room in the result list. The building name is only rendered as a
-  <sub>class · features/classroom/classroom_widgets.dart:128</sub>
-    - `const ClassroomResultTile({ super.key, required this.room, required this.building, required this.heading, required this.onTap, });`  <sub>:129</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:142</sub>
+  <sub>class · features/classroom/classroom_widgets.dart:130</sub>
+    - `const ClassroomResultTile({ super.key, required this.room, required this.building, required this.heading, required this.onTap, });`  <sub>:131</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:144</sub>
 - `class ClassroomSectionStates extends StatelessWidget` — Availability of every section of one room. The grid mirrors what the
-  <sub>class · features/classroom/classroom_widgets.dart:193</sub>
-    - `const ClassroomSectionStates({super.key, required this.states});`  <sub>:194</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:198</sub>
+  <sub>class · features/classroom/classroom_widgets.dart:210</sub>
+    - `const ClassroomSectionStates({super.key, required this.states});`  <sub>:211</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:215</sub>
 - `class ClassroomShortcutButton extends StatelessWidget` — Shortcut to today or tomorrow. Disabled until the school date is known.
-  <sub>class · features/classroom/classroom_widgets.dart:271</sub>
-    - `const ClassroomShortcutButton({ super.key, required this.title, required this.value, required this.onSelected, this.enabled = true, });`  <sub>:272</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:285</sub>
+  <sub>class · features/classroom/classroom_widgets.dart:288</sub>
+    - `const ClassroomShortcutButton({ super.key, required this.title, required this.value, required this.onSelected, this.enabled = true, });`  <sub>:289</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:302</sub>
 - `class ClassroomFilterPicker<T> extends StatelessWidget` — One filter row backed by a picker sheet. The page applies the value and
-  <sub>class · features/classroom/classroom_widgets.dart:297</sub>
-    - `const ClassroomFilterPicker({ super.key, required this.title, required this.value, required this.values, required this.label, required this.onSelected, });`  <sub>:298</sub>
-    - `final String Function(T) label;`  <sub>:309</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:313</sub>
+  <sub>class · features/classroom/classroom_widgets.dart:314</sub>
+    - `const ClassroomFilterPicker({ super.key, required this.title, required this.value, required this.values, required this.label, required this.onSelected, });`  <sub>:315</sub>
+    - `final String Function(T) label;`  <sub>:326</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:330</sub>

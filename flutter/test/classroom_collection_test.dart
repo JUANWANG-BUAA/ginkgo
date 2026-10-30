@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/features/classroom/classroom_models.dart';
 import 'package:ginkgo_mirror/features/classroom/classroom_page.dart';
 import 'package:ginkgo_mirror/features/classroom/classroom_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
@@ -60,7 +61,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('查询空教室'));
       await tester.pumpAndSettle();
-      expect(find.text('1–50 / 600 间教室'), findsOneWidget);
+      expect(find.text('本页 1–50 · 共 600 间教室'), findsOneWidget);
+      expect(find.text('空闲 1–2 节'), findsWidgets);
       expect(
         tester
             .getRect(find.byKey(const ValueKey('classroom-room-教学楼 A-room-0')))
@@ -72,7 +74,7 @@ void main() {
       expect(find.byType(ClassroomResultTile).evaluate().length, lessThan(30));
       await tester.tap(find.byKey(const Key('collection-next-page')));
       await tester.pumpAndSettle();
-      expect(find.text('51–100 / 600 间教室'), findsOneWidget);
+      expect(find.text('本页 51–100 · 共 600 间教室'), findsOneWidget);
       final scrollable = find
           .descendant(
             of: find.byKey(const Key('classroom-scroll')),
@@ -94,24 +96,67 @@ void main() {
       service.delayed = Completer<ClassroomResponse>();
       await tester.tap(find.bySemanticsLabel('刷新空教室').first);
       await tester.pump();
-      expect(find.text('51–100 / 600 间教室'), findsOneWidget);
+      expect(find.text('本页 51–100 · 共 600 间教室'), findsOneWidget);
       service.delayed!.complete(service.result);
       await tester.pumpAndSettle();
       // The current page and viewed item survive refresh. Exact pixel anchoring
       // under sliver relayout remains a documented follow-up.
       expect(tester.getRect(anchorRow).top, greaterThanOrEqualTo(0));
       expect(tester.getRect(anchorRow).bottom, lessThan(1100));
-      expect(find.text('51–100 / 600 间教室'), findsOneWidget);
+      expect(find.text('本页 51–100 · 共 600 间教室'), findsOneWidget);
       await tester.tap(find.byKey(const Key('classroom-building-picker')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('教学楼 B').last);
       await tester.pumpAndSettle();
-      expect(find.text('1–50 / 300 间教室'), findsOneWidget);
+      expect(find.text('本页 1–50 · 共 300 间教室'), findsOneWidget);
       expect(service.reads, 2);
       expect(find.text('教室 300'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
+
+  test('section ranges collapse consecutive, duplicate and unsorted values', () {
+    expect(classroomSectionRanges(const []), '');
+    expect(classroomSectionRanges(const [1]), '1');
+    expect(classroomSectionRanges(const [12, 5, 1, 6, 2, 7, 5]), '1–2、5–7、12');
+  });
+
+  testWidgets('availability ranges reflow at 320dp with large type', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 500);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await tester.pumpWidget(
+      ginkgoApp(
+        brightness: Brightness.dark,
+        home: CupertinoPageScaffold(
+          child: SafeArea(
+            child: ClassroomResultTile(
+              room: ClassroomRow(
+                id: 'room-ranges',
+                name: '合成教室',
+                floor: '1',
+                sections: Int32List.fromList(const [1, 2, 5, 6, 7, 12]),
+                longestRun: 3,
+                sectionStates: const [],
+              ),
+              building: '合成楼',
+              heading: false,
+              onTap: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('空闲 1–2、5–7、12 节'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('search coalesces rapid typing before issuing the query', (
     tester,

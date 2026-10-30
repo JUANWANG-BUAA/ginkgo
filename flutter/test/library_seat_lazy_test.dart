@@ -86,7 +86,7 @@ void main() {
       );
       await tester.tap(find.byKey(const Key('collection-next-page')));
       await tester.pumpAndSettle();
-      expect(find.text('51–100 / 600 个座位'), findsOneWidget);
+      expect(find.text('本页 51–100 · 共 600 个座位'), findsOneWidget);
       expect(
         tester.getRect(find.byKey(const Key('library-seat-lazy-50'))).top,
         greaterThanOrEqualTo(

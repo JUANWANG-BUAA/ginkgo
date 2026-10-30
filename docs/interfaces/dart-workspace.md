@@ -92,9 +92,9 @@
 ## workspace/workspace_catalog.dart
 
 - `WorkspaceDestination? destinationById(String id) {…}` — 按 id 查找；壳层与今日快捷入口只使用字符串标识。
-  <sub>function · workspace/workspace_catalog.dart:253</sub>
+  <sub>function · workspace/workspace_catalog.dart:256</sub>
 - `List<WorkspaceDestination> sidebarDestinations(WorkspaceSection section) => …` — 某个侧栏分组内的条目，顺序即登记顺序。
-  <sub>function · workspace/workspace_catalog.dart:271</sub>
+  <sub>function · workspace/workspace_catalog.dart:274</sub>
 
 ## workspace/workspace_shell.dart
 

@@ -46,7 +46,7 @@ void main() {
       );
       await tester.tap(find.text('第 12 页'));
       await tester.pumpAndSettle();
-      expect(find.text('551–600 / 600 个座位'), findsOneWidget);
+      expect(find.text('本页 551–600 · 共 600 个座位'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

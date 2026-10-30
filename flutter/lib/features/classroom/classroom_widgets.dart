@@ -5,6 +5,8 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/collection_toolbar.dart';
 
+import 'classroom_models.dart';
+
 /// Pinned controls above the classroom results: search, building filter,
 /// local pagination and the stale-result notice. Pagination is presentation
 /// only and never triggers an upstream write.
@@ -176,8 +178,23 @@ class ClassroomResultTile extends StatelessWidget {
               room.name,
               style: const TextStyle(fontWeight: FontWeight.w500),
             ),
-            subtitle: Text(
-              '${room.sections.length} 节空闲 · 最长连续 ${room.longestRun} 节',
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  room.sections.isEmpty
+                      ? '学校未标空闲节次'
+                      : '空闲 ${classroomSectionRanges(room.sections)} 节',
+                  style: TextStyle(
+                    color: room.sections.isEmpty
+                        ? CupertinoColors.secondaryLabel.resolveFrom(context)
+                        : CupertinoColors.systemGreen.resolveFrom(context),
+                  ),
+                ),
+                Text(
+                  '${room.sections.length} 节空闲 · 最长连续 ${room.longestRun} 节',
+                ),
+              ],
             ),
             trailing: const CupertinoListTileChevron(),
             onTap: onTap,

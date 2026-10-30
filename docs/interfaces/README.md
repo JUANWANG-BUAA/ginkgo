@@ -35,7 +35,7 @@
 | [Flutter 功能域：career](dart-feature-career.md) | `dart-feature-career.md` | 1 |
 | [Flutter 功能域：cgyy](dart-feature-cgyy.md) | `dart-feature-cgyy.md` | 51 |
 | [Flutter 功能域：checkin](dart-feature-checkin.md) | `dart-feature-checkin.md` | 4 |
-| [Flutter 功能域：classroom](dart-feature-classroom.md) | `dart-feature-classroom.md` | 20 |
+| [Flutter 功能域：classroom](dart-feature-classroom.md) | `dart-feature-classroom.md` | 21 |
 | [Flutter 功能域：grades](dart-feature-grades.md) | `dart-feature-grades.md` | 1 |
 | [Flutter 功能域：graduate](dart-feature-graduate.md) | `dart-feature-graduate.md` | 23 |
 | [Flutter 功能域：homework](dart-feature-homework.md) | `dart-feature-homework.md` | 25 |
