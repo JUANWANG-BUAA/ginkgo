@@ -63,6 +63,7 @@ class _CgyyDayPageState extends State<CgyyDayPage> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.service != widget.service ||
         oldWidget.loader != widget.loader ||
+        oldWidget.bookingGateway != widget.bookingGateway ||
         oldWidget.demo != widget.demo ||
         oldWidget.site?.id != widget.site?.id) {
       request++;

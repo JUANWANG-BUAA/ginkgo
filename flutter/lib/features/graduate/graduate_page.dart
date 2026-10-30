@@ -15,7 +15,6 @@ import 'package:ginkgo_mirror/application/graduate.dart';
 
 import 'graduate_sections.dart';
 
-
 export 'graduate_widgets.dart' show GraduateCreditProgress;
 
 typedef GraduateLoader = Future<GraduateRead> Function({
@@ -82,7 +81,8 @@ class _GraduatePageState extends State<GraduatePage> {
       view = widget.initialView;
     }
     if (oldWidget.service != widget.service ||
-        oldWidget.loader != widget.loader) {
+        oldWidget.loader != widget.loader ||
+        oldWidget.creditMapGateway != widget.creditMapGateway) {
       generation++;
       status = _AcademicPart();
       report = _AcademicPart();
@@ -233,144 +233,32 @@ class _GraduatePageState extends State<GraduatePage> {
     onRefresh: busy ? null : () => load(force: true),
     child: SafeArea(
       child: CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
-        context,
-      ),
-      child: LongPageScroll(
-        controller: scrollController,
-        child: CustomScrollView(
-          key: const Key('graduate-scroll'),
+        backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
+          context,
+        ),
+        child: LongPageScroll(
           controller: scrollController,
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          slivers: [
-            ApplePageHeader(
-              largeTitle: const Text('研究生教务'),
-              previousPageTitle: '工作台',
-              border: null,
-              section: '学业',
-              subtitle: '学籍、培养方案与研究生学业查询',
-              icon: CupertinoIcons.briefcase_fill,
-              trailing: AppleGlassButton(
-                label: '刷新研究生教务',
-                onPressed: busy ? null : () => load(force: true),
-                child: busy
-                    ? const GinkgoActivity()
-                    : const Icon(CupertinoIcons.refresh),
-              ),
-            ),
-            CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
-            SliverLayoutBuilder(
-              builder: (context, constraints) => SliverPadding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: ((constraints.crossAxisExtent - 900) / 2).clamp(
-                    0,
-                    double.infinity,
-                  ),
-                ),
-                sliver: SliverList.list(
-                  children: [
-                    GraduateViewSwitcher(view: view, onChanged: selectView),
-                    if (view != GraduateView.profile)
-                      GraduatePartNotices(
-                        title: '培养方案执行报告',
-                        loading: report.loading,
-                        hasSections: report.sections != null,
-                        error: report.error,
-                        notice: report.notice,
-                        onRetry: () => _loadPart(report, force: true),
-                      ),
-                    if (view == GraduateView.profile)
-                      GraduateProfileView(
-                        sections: status.sections,
-                        loading: status.loading,
-                        hasSections: status.sections != null,
-                        error: status.error,
-                        notice: status.notice,
-                        onRetry: () => _loadPart(status, force: true),
-                      ),
-                    if (view == GraduateView.credits) ...[
-                      GraduatePartNotices(
-                        title: '学籍信息',
-                        loading: status.loading,
-                        hasSections: status.sections != null,
-                        error: status.error,
-                        notice: status.notice,
-                        onRetry: () => _loadPart(status, force: true),
-                      ),
-                      if (status.sections
-                              ?.expand((section) => section.rows)
-                              .firstOrNull
-                          case final row?)
-                        AppleSection(
-                          children: [
-                            AppleListTile(
-                              title: const Text('学籍信息'),
-                              subtitle: Text(row.detail),
-                              trailing: const CupertinoListTileChevron(),
-                              onTap: () => selectView(GraduateView.profile),
-                            ),
-                          ],
-                        ),
-                      if (report.sections != null)
-                        SectionReveal(
-                          key: const Key('graduate-report-content'),
-                          child: GraduateOverview(
-                            sections: report.sections!,
-                            expandedSections: expandedReportSections,
-                            onExpanded: (title, expanded) => setState(() {
-                              if (expanded) {
-                                expandedReportSections.add(title);
-                              } else {
-                                expandedReportSections.remove(title);
-                              }
-                            }),
-                            onOpenCategory: _openCategory,
-                            reportDataExpanded: reportDataExpanded,
-                            onReportDataExpanded: (value) =>
-                                reportDataExpanded = value,
-                          ),
-                        ),
-                      if (widget.creditMapGateway != null) ...[
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(24, 20, 24, 4),
-                          child: Text(
-                            '详细学分地图',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        ...GraduateCreditMapView(
-                          report: creditMap,
-                          supported: true,
-                        ).children(context),
-                      ],
-                    ],
-                    if (view == GraduateView.courses && report.sections != null)
-                      GraduateCourseControls(
-                        search: search,
-                        category: category,
-                        categories: categories,
-                        filter: courseFilter,
-                        resultCount: visibleCourses.length,
-                        hasCourses: courses.isNotEmpty,
-                        onSearchChanged: (_) => setState(filterCourses),
-                        onCategoryChanged: (value) => setState(() {
-                          category = value;
-                          filterCourses();
-                        }),
-                        onFilterChanged: (value) => setState(() {
-                          courseFilter = value;
-                          filterCourses();
-                        }),
-                        onClearFilters: _clearFilters,
-                      ),
-                  ],
+          child: CustomScrollView(
+            key: const Key('graduate-scroll'),
+            controller: scrollController,
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            slivers: [
+              ApplePageHeader(
+                largeTitle: const Text('研究生教务'),
+                previousPageTitle: '工作台',
+                border: null,
+                section: '学业',
+                subtitle: '学籍、培养方案与研究生学业查询',
+                icon: CupertinoIcons.briefcase_fill,
+                trailing: AppleGlassButton(
+                  label: '刷新研究生教务',
+                  onPressed: busy ? null : () => load(force: true),
+                  child: busy
+                      ? const GinkgoActivity()
+                      : const Icon(CupertinoIcons.refresh),
                 ),
               ),
-            ),
-            if (view == GraduateView.courses && report.sections != null)
+              CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
               SliverLayoutBuilder(
                 builder: (context, constraints) => SliverPadding(
                   padding: EdgeInsets.symmetric(
@@ -379,18 +267,129 @@ class _GraduatePageState extends State<GraduatePage> {
                       double.infinity,
                     ),
                   ),
-                  sliver: SliverList.builder(
-                    itemCount: visibleCourses.length,
-                    itemBuilder: (context, index) =>
-                        GraduateCourseCard(entry: visibleCourses[index]),
+                  sliver: SliverList.list(
+                    children: [
+                      GraduateViewSwitcher(view: view, onChanged: selectView),
+                      if (view != GraduateView.profile)
+                        GraduatePartNotices(
+                          title: '培养方案执行报告',
+                          loading: report.loading,
+                          hasSections: report.sections != null,
+                          error: report.error,
+                          notice: report.notice,
+                          onRetry: () => _loadPart(report, force: true),
+                        ),
+                      if (view == GraduateView.profile)
+                        GraduateProfileView(
+                          sections: status.sections,
+                          loading: status.loading,
+                          hasSections: status.sections != null,
+                          error: status.error,
+                          notice: status.notice,
+                          onRetry: () => _loadPart(status, force: true),
+                        ),
+                      if (view == GraduateView.credits) ...[
+                        GraduatePartNotices(
+                          title: '学籍信息',
+                          loading: status.loading,
+                          hasSections: status.sections != null,
+                          error: status.error,
+                          notice: status.notice,
+                          onRetry: () => _loadPart(status, force: true),
+                        ),
+                        if (status.sections
+                                ?.expand((section) => section.rows)
+                                .firstOrNull
+                            case final row?)
+                          AppleSection(
+                            children: [
+                              AppleListTile(
+                                title: const Text('学籍信息'),
+                                subtitle: Text(row.detail),
+                                trailing: const CupertinoListTileChevron(),
+                                onTap: () => selectView(GraduateView.profile),
+                              ),
+                            ],
+                          ),
+                        if (report.sections != null)
+                          SectionReveal(
+                            key: const Key('graduate-report-content'),
+                            child: GraduateOverview(
+                              sections: report.sections!,
+                              expandedSections: expandedReportSections,
+                              onExpanded: (title, expanded) => setState(() {
+                                if (expanded) {
+                                  expandedReportSections.add(title);
+                                } else {
+                                  expandedReportSections.remove(title);
+                                }
+                              }),
+                              onOpenCategory: _openCategory,
+                              reportDataExpanded: reportDataExpanded,
+                              onReportDataExpanded: (value) =>
+                                  reportDataExpanded = value,
+                            ),
+                          ),
+                        if (widget.creditMapGateway != null) ...[
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(24, 20, 24, 4),
+                            child: Text(
+                              '详细学分地图',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          ...GraduateCreditMapView(
+                            report: creditMap,
+                            supported: true,
+                          ).children(context),
+                        ],
+                      ],
+                      if (view == GraduateView.courses &&
+                          report.sections != null)
+                        GraduateCourseControls(
+                          search: search,
+                          category: category,
+                          categories: categories,
+                          filter: courseFilter,
+                          resultCount: visibleCourses.length,
+                          hasCourses: courses.isNotEmpty,
+                          onSearchChanged: (_) => setState(filterCourses),
+                          onCategoryChanged: (value) => setState(() {
+                            category = value;
+                            filterCourses();
+                          }),
+                          onFilterChanged: (value) => setState(() {
+                            courseFilter = value;
+                            filterCourses();
+                          }),
+                          onClearFilters: _clearFilters,
+                        ),
+                    ],
                   ),
                 ),
               ),
-            const SliverToBoxAdapter(child: SizedBox(height: 32)),
-          ],
+              if (view == GraduateView.courses && report.sections != null)
+                SliverLayoutBuilder(
+                  builder: (context, constraints) => SliverPadding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: ((constraints.crossAxisExtent - 900) / 2)
+                          .clamp(0, double.infinity),
+                    ),
+                    sliver: SliverList.builder(
+                      itemCount: visibleCourses.length,
+                      itemBuilder: (context, index) =>
+                          GraduateCourseCard(entry: visibleCourses[index]),
+                    ),
+                  ),
+                ),
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+            ],
+          ),
         ),
       ),
-    )
     ),
   );
 }

@@ -45,6 +45,7 @@ class TaskFake implements LocalTaskGateway, AcademicGateway {
   Completer<LocalTasksRead>? pendingLoad;
   Completer<LocalTasksRead>? pendingSave;
   Completer<HomeworkDetailResponse>? pendingDetail;
+  Completer<HomeworkResponse>? pendingHomework;
   @override
   bool get isDemo => true;
   @override
@@ -86,6 +87,7 @@ class TaskFake implements LocalTaskGateway, AcademicGateway {
 
   @override
   Future<HomeworkResponse> homework({bool forceRefresh = false}) async =>
+      pendingHomework?.future ??
       HomeworkResponse(
         termName: '合成学期',
         termCode: 'synthetic',
@@ -147,7 +149,8 @@ void main() {
     final fake = TaskFake();
     await tester.pumpWidget(
       ginkgoApp(
-        home: HomeworkDetailPage(fileActions: platformActions,
+        home: HomeworkDetailPage(
+          fileActions: platformActions,
           item: assignment,
           service: fake,
           storageRoot: '/synthetic/tasks',

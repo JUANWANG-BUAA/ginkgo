@@ -55,11 +55,11 @@
 ## features/graduate/graduate_page.dart
 
 - `typedef GraduateLoader = Future<GraduateRead> Function(`
-  <sub>typedef · features/graduate/graduate_page.dart:21</sub>
+  <sub>typedef · features/graduate/graduate_page.dart:20</sub>
 - `class GraduatePage extends StatefulWidget`
-  <sub>class · features/graduate/graduate_page.dart:26</sub>
-    - `const GraduatePage({ super.key, this.loader, this.service, this.creditMapGateway, this.initialView = GraduateView.credits, });`  <sub>:27</sub>
-    - `State<GraduatePage> createState() => …`  <sub>:41</sub>
+  <sub>class · features/graduate/graduate_page.dart:25</sub>
+    - `const GraduatePage({ super.key, this.loader, this.service, this.creditMapGateway, this.initialView = GraduateView.credits, });`  <sub>:26</sub>
+    - `State<GraduatePage> createState() => …`  <sub>:40</sub>
 
 ## features/graduate/graduate_sections.dart
 

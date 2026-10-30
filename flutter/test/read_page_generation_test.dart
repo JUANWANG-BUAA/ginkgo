@@ -6,7 +6,9 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/query_snapshots.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_page.dart';
+import 'package:ginkgo_mirror/application/cgyy_commands.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_day_page.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_day_view.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
 import 'package:ginkgo_mirror/features/grades/grades_page.dart';
 import 'package:ginkgo_mirror/features/learning/learning_snapshots_page.dart';
@@ -55,6 +57,31 @@ class CheckInReads extends Fake implements CheckInGateway {
   @override
   Future<CheckInResponse> checkin({bool forceRefresh = false}) {
     final read = Completer<CheckInResponse>();
+    reads.add(read);
+    return read.future;
+  }
+}
+
+class BookingReads extends Fake implements CgyyBookingGateway, CgyyGateway {
+  final reads = <Completer<CgyyActionResult>>[];
+
+  @override
+  bool get isDemo => false;
+
+  @override
+  Future<CgyyLoadRead> cgyy({
+    required String kind,
+    required int siteId,
+    required String date,
+    required bool forceRefresh,
+  }) async => const CgyyLoadRead(
+    day: CgyyDay(date: '2026-10-20', spaces: []),
+  );
+
+  @override
+  Future<CgyyActionResult> executeCgyy(CgyyCommand command) {
+    expect(command, isA<CgyyStatusCommand>());
+    final read = Completer<CgyyActionResult>();
     reads.add(read);
     return read.future;
   }
@@ -227,6 +254,46 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('新服务空间'), findsOneWidget);
+  });
+
+  testWidgets('CGYY booking replacement discards the old write status', (
+    tester,
+  ) async {
+    const site = CgyySite(id: 3, name: '合成研讨室', venue: '合成场馆', campus: '学院路');
+    final reader = BookingReads();
+    final first = BookingReads();
+    final second = BookingReads();
+    Widget page(BookingReads gateway) => CupertinoApp(
+      home: CgyyDayPage(
+        demo: false,
+        site: site,
+        service: reader,
+        bookingGateway: gateway,
+      ),
+    );
+    await tester.pumpWidget(page(first));
+    await tester.pump();
+    await tester.pumpWidget(page(second));
+    await tester.pump();
+
+    first.reads.single.complete(CgyyActionResult.of(state: 'ready'));
+    await tester.pump();
+    expect(
+      tester
+          .widget<CgyyBookingEntrySection>(find.byType(CgyyBookingEntrySection))
+          .enabled,
+      isFalse,
+    );
+    expect(second.reads, hasLength(1));
+
+    second.reads.single.complete(CgyyActionResult.of(state: 'ready'));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<CgyyBookingEntrySection>(find.byType(CgyyBookingEntrySection))
+          .enabled,
+      isTrue,
+    );
   });
 
   testWidgets('snapshot gateway replacement discards the old status', (

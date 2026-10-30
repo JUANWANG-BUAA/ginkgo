@@ -31,6 +31,7 @@ import 'package:ginkgo_mirror/features/today/today_page.dart';
 import 'package:ginkgo_mirror/features/schedule/schedule_page.dart';
 
 import 'support.dart';
+
 import 'package:ginkgo_mirror/infrastructure/native_mirror_service.dart';
 import 'package:ginkgo_mirror/application/library_stats.dart';
 
@@ -165,10 +166,9 @@ void main() {
         'records': r.data?.courses?.length,
         'hasTerm': r.data?.term != null,
       };
-      Map<String, dynamic> bykcStatisticsSummary(live.BykcStatisticsResponse r) => {
-        'failure': r.failure?.name,
-        'entries': r.data?.entries.length,
-      };
+      Map<String, dynamic> bykcStatisticsSummary(
+        live.BykcStatisticsResponse r,
+      ) => {'failure': r.failure?.name, 'entries': r.data?.entries.length};
       Map<String, dynamic> graduateSummary(live.GraduateResponse result) => {
         'failure': result.failure?.name,
         'sections': result.data?.sections.length,
@@ -588,7 +588,10 @@ void main() {
 
         // Real-data pages, including independent tabs and navigation, are rendered
         // on the Android engine. Images go only to the private temporary server.
-        await page('today', TodayPage(service: service, fileActions: platformActions));
+        await page(
+          'today',
+          TodayPage(service: service, fileActions: platformActions),
+        );
         await page('schedule', const SchedulePage(service: service));
         await page('grades', const GradesPage(service: service));
         await page('checkin', const CheckInPage(service: service));
@@ -596,14 +599,19 @@ void main() {
           'checkin-history',
           const CheckInPage(service: service, history: true),
         );
-        await page('homework', HomeworkPage(service: service, fileActions: platformActions));
+        await page(
+          'homework',
+          HomeworkPage(service: service, fileActions: platformActions),
+        );
         if (homework?.items.isNotEmpty == true) {
           // The page collapses confirmed teaching-assistant courses by
           // default, so the first read item may have no rendered row; pick the
           // first item the list actually shows instead of aborting the phase.
           final item = homework!.items.firstWhere(
-            (candidate) =>
-                find.byKey(Key('homework-${candidate.id}')).evaluate().isNotEmpty,
+            (candidate) => find
+                .byKey(Key('homework-${candidate.id}'))
+                .evaluate()
+                .isNotEmpty,
             orElse: () => homework.items.first,
           );
           final row = find.byKey(Key('homework-${item.id}'));
@@ -678,21 +686,31 @@ void main() {
         await tap(tester, '查询空教室', scrollKey: 'classroom-scroll');
         await capture('classroom-results');
         await page('notices', const NoticesPage(service: service));
-        await page('cgyy', const CgyyPage());
+        await page(
+          'cgyy',
+          const CgyyPage(service: service, bookingGateway: service),
+        );
         final siteRows = find.text('我的预约记录');
         if (siteRows.evaluate().isNotEmpty) {
           await tester.tap(siteRows);
           await ready('cgyy-orders');
           await capture('cgyy-orders');
         }
-        await page('tasks', const TasksPage(fileActions: platformActions,service: service));
+        await page(
+          'tasks',
+          const TasksPage(fileActions: platformActions, service: service),
+        );
         final taskDirectory = await tester.runAsync(
           () => Directory.systemTemp.createTemp('ginkgo-acceptance-tasks'),
         );
         try {
           await page(
             'tasks-empty',
-            TasksPage(fileActions: platformActions,service: service, storageRoot: taskDirectory!.path),
+            TasksPage(
+              fileActions: platformActions,
+              service: service,
+              storageRoot: taskDirectory!.path,
+            ),
           );
           await tester.tap(find.bySemanticsLabel('新增待办'));
           await settle(tester, frames: 5);
@@ -729,7 +747,11 @@ void main() {
         }
         await page(
           'settings',
-          SettingsPage(maintenance: platformActions.maintenance,service: service, onSignOut: () async {}),
+          SettingsPage(
+            maintenance: platformActions.maintenance,
+            service: service,
+            onSignOut: () async {},
+          ),
         );
         // Complete end-to-end shell acceptance without exposing an account name.
         await tester.pumpWidget(const GinkgoApp(service: service));

@@ -40,7 +40,7 @@ class _TasksPageState extends State<TasksPage> {
   String? error;
   bool busy = false, readable = false, locating = false;
   String busyLabel = '正在读取待办…';
-  int generation = 0;
+  int generation = 0, sourceGeneration = 0;
   final targetKey = GlobalKey();
   bool located = false;
   bool completedExpanded = false;
@@ -55,9 +55,14 @@ class _TasksPageState extends State<TasksPage> {
   @override
   void didUpdateWidget(covariant TasksPage oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.academicService != widget.academicService) {
+      sourceGeneration++;
+      locating = false;
+    }
     if (oldWidget.service != widget.service ||
         oldWidget.storageRoot != widget.storageRoot) {
       generation++;
+      sourceGeneration++;
       tasks = [];
       busy = false;
       readable = false;
@@ -251,7 +256,7 @@ class _TasksPageState extends State<TasksPage> {
 
   Future<void> source(LocalTaskRecord task) async {
     if (locating) return;
-    final epoch = generation;
+    final epoch = sourceGeneration;
     // The local task port never carries school data; the academic read must
     // arrive through its own typed port.
     final academic = widget.academicService;
@@ -262,7 +267,7 @@ class _TasksPageState extends State<TasksPage> {
     setState(() => locating = true);
     try {
       final result = await academic.homework();
-      if (!mounted || epoch != generation) return;
+      if (!mounted || epoch != sourceGeneration) return;
       if (result.failure != null) {
         await sourceUnavailable();
         return;
@@ -288,9 +293,11 @@ class _TasksPageState extends State<TasksPage> {
         ),
       );
     } catch (_) {
-      if (mounted && epoch == generation) await sourceUnavailable();
+      if (mounted && epoch == sourceGeneration) await sourceUnavailable();
     } finally {
-      if (mounted && epoch == generation) setState(() => locating = false);
+      if (mounted && epoch == sourceGeneration) {
+        setState(() => locating = false);
+      }
     }
   }
 
@@ -340,117 +347,120 @@ class _TasksPageState extends State<TasksPage> {
     ),
     child: SafeArea(
       child: CustomScrollView(
-      key: const Key('tasks-scroll'),
-      slivers: [
-        pageHeader(),
-        SliverToBoxAdapter(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(32, 16, 32, 4),
-                child: Text(
-                  '个人待办仅保存在本机。完成不代表已向学校提交作业。',
-                  style: GinkgoTypography.footnote.copyWith(
-                    color: AppleDesign.statusInactive.resolveFrom(context),
-                    height: 1.4,
-                  ),
-                ),
-              ),
-              if (busy && tasks.isEmpty) GinkgoLoadingView(label: busyLabel),
-              if (busy && tasks.isNotEmpty)
+        key: const Key('tasks-scroll'),
+        slivers: [
+          pageHeader(),
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
                 Padding(
-                  key: const Key('tasks-refreshing'),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Center(
-                    child: Semantics(
-                      label: busyLabel,
-                      child: const GinkgoActivity(size: 17),
+                  padding: const EdgeInsets.fromLTRB(32, 16, 32, 4),
+                  child: Text(
+                    '个人待办仅保存在本机。完成不代表已向学校提交作业。',
+                    style: GinkgoTypography.footnote.copyWith(
+                      color: AppleDesign.statusInactive.resolveFrom(context),
+                      height: 1.4,
                     ),
                   ),
                 ),
-              if (error != null)
-                AppleSection(
-                  children: [
-                    AppleEmptyState(
-                      title: error!,
-                      description: '保留上次可读结果，不自动重试写入。',
-                      error: true,
-                      action: '重试',
-                      onAction: load,
-                    ),
-                  ],
-                ),
-              if (!busy && readable && tasks.isEmpty)
-                const AppleSection(
-                  children: [
-                    AppleEmptyState(title: '暂无待办', description: '点击右上角添加本机待办。'),
-                  ],
-                ),
-              if (readable &&
-                  widget.initialTaskId != null &&
-                  !tasks.any((t) => t.id == widget.initialTaskId))
-                const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Text('该待办已不在当前账号的本机列表中。'),
-                ),
-              for (final noDue in [false, true])
-                if (tasks.any((t) => !t.completed && t.due.isEmpty == noDue))
-                  AppleSection(
-                    header: Text(noDue ? '无截止时间' : '待完成 · 有截止'),
-                    children: [
-                      for (final task in tasks.where(
-                        (t) => !t.completed && t.due.isEmpty == noDue,
-                      ))
-                        row(task),
-                    ],
-                  ),
-              if (tasks.any((t) => t.completed))
-                AppleSection(
-                  key: const Key('tasks-completed-section'),
-                  // Keep target geometry stable when opening a located task.
-                  animateSize: false,
-                  children: [
-                    Semantics(
-                      expanded: completedExpanded,
-                      child: CupertinoButton(
-                        key: const Key('tasks-completed-toggle'),
-                        minimumSize: const Size(48, 48),
-                        padding: const EdgeInsets.all(16),
-                        onPressed: () => setState(
-                          () => completedExpanded = !completedExpanded,
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                '已完成（${tasks.where((t) => t.completed).length}）',
-                                style: GinkgoTypography.headline.copyWith(
-                                  color: CupertinoColors.secondaryLabel
-                                      .resolveFrom(context),
-                                ),
-                              ),
-                            ),
-                            Icon(
-                              completedExpanded
-                                  ? CupertinoIcons.chevron_up
-                                  : CupertinoIcons.chevron_down,
-                              size: 18,
-                            ),
-                          ],
-                        ),
+                if (busy && tasks.isEmpty) GinkgoLoadingView(label: busyLabel),
+                if (busy && tasks.isNotEmpty)
+                  Padding(
+                    key: const Key('tasks-refreshing'),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Center(
+                      child: Semantics(
+                        label: busyLabel,
+                        child: const GinkgoActivity(size: 17),
                       ),
                     ),
-                    if (completedExpanded)
-                      for (final task in tasks.where((t) => t.completed))
-                        row(task),
-                  ],
-                ),
-              const SizedBox(height: 96),
-            ],
+                  ),
+                if (error != null)
+                  AppleSection(
+                    children: [
+                      AppleEmptyState(
+                        title: error!,
+                        description: '保留上次可读结果，不自动重试写入。',
+                        error: true,
+                        action: '重试',
+                        onAction: load,
+                      ),
+                    ],
+                  ),
+                if (!busy && readable && tasks.isEmpty)
+                  const AppleSection(
+                    children: [
+                      AppleEmptyState(
+                        title: '暂无待办',
+                        description: '点击右上角添加本机待办。',
+                      ),
+                    ],
+                  ),
+                if (readable &&
+                    widget.initialTaskId != null &&
+                    !tasks.any((t) => t.id == widget.initialTaskId))
+                  const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text('该待办已不在当前账号的本机列表中。'),
+                  ),
+                for (final noDue in [false, true])
+                  if (tasks.any((t) => !t.completed && t.due.isEmpty == noDue))
+                    AppleSection(
+                      header: Text(noDue ? '无截止时间' : '待完成 · 有截止'),
+                      children: [
+                        for (final task in tasks.where(
+                          (t) => !t.completed && t.due.isEmpty == noDue,
+                        ))
+                          row(task),
+                      ],
+                    ),
+                if (tasks.any((t) => t.completed))
+                  AppleSection(
+                    key: const Key('tasks-completed-section'),
+                    // Keep target geometry stable when opening a located task.
+                    animateSize: false,
+                    children: [
+                      Semantics(
+                        expanded: completedExpanded,
+                        child: CupertinoButton(
+                          key: const Key('tasks-completed-toggle'),
+                          minimumSize: const Size(48, 48),
+                          padding: const EdgeInsets.all(16),
+                          onPressed: () => setState(
+                            () => completedExpanded = !completedExpanded,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  '已完成（${tasks.where((t) => t.completed).length}）',
+                                  style: GinkgoTypography.headline.copyWith(
+                                    color: CupertinoColors.secondaryLabel
+                                        .resolveFrom(context),
+                                  ),
+                                ),
+                              ),
+                              Icon(
+                                completedExpanded
+                                    ? CupertinoIcons.chevron_up
+                                    : CupertinoIcons.chevron_down,
+                                size: 18,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (completedExpanded)
+                        for (final task in tasks.where((t) => t.completed))
+                          row(task),
+                    ],
+                  ),
+                const SizedBox(height: 96),
+              ],
+            ),
           ),
-        ),
-      ],
-    )
+        ],
+      ),
     ),
   );
 }

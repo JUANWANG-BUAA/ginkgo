@@ -32,13 +32,21 @@ void main() {
     expect(find.byKey(const Key('schedule-day-strip')), findsOneWidget);
     expect(tester.takeException(), isNull);
 
-    await tester.pumpWidget(ginkgoApp(home: GraduatePage(service: service)));
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: GraduatePage(service: service, creditMapGateway: service),
+      ),
+    );
     await settle(tester);
     expect(find.text('详细学分地图'), findsOneWidget);
     expect(find.byType(GraduateCreditMapNodeCard), findsWidgets);
     expect(tester.takeException(), isNull);
 
-    await tester.pumpWidget(ginkgoApp(home: LearningPage(service: service, fileActions: platformActions)));
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: LearningPage(service: service, fileActions: platformActions),
+      ),
+    );
     await settle(tester);
     await tester.tap(find.text('学习服务演示课程'));
     await settle(tester);

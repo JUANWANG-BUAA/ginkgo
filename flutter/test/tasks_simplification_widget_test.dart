@@ -2,16 +2,19 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/task_storage_scope.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/features/tasks/task_editor.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
+import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/application/local_tasks_read.dart';
 
 import 'local_tasks_read_fixture.dart';
 
-import 'task_link_widget_test.dart' show TaskFake, record, press, phone;
+import 'task_link_widget_test.dart'
+    show TaskFake, assignment, record, press, phone;
 import 'task_visual_test.dart' show visualApp, narrowPhone, expectTouchTarget;
 import 'platform_actions_fake.dart';
 
@@ -25,7 +28,7 @@ void main() {
       ginkgoApp(
         home: TaskStorageScope(
           resolve: () async => '/injected/tasks',
-          child: TasksPage(fileActions: platformActions,service: fake),
+          child: TasksPage(fileActions: platformActions, service: fake),
         ),
       ),
     );
@@ -43,7 +46,7 @@ void main() {
         ginkgoApp(
           home: TaskStorageScope(
             resolve: () async => throw StateError('storage unavailable'),
-            child: TasksPage(fileActions: platformActions,service: fake),
+            child: TasksPage(fileActions: platformActions, service: fake),
           ),
         ),
       );
@@ -65,7 +68,11 @@ void main() {
       ]);
     await tester.pumpWidget(
       ginkgoApp(
-        home: TasksPage(fileActions: platformActions,service: fake, storageRoot: '/synthetic'),
+        home: TasksPage(
+          fileActions: platformActions,
+          service: fake,
+          storageRoot: '/synthetic',
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -93,7 +100,11 @@ void main() {
       final fake = TaskFake()..rows.add(record('one', title: '合成待办'));
       await tester.pumpWidget(
         ginkgoApp(
-          home: TasksPage(fileActions: platformActions,service: fake, storageRoot: '/synthetic'),
+          home: TasksPage(
+            fileActions: platformActions,
+            service: fake,
+            storageRoot: '/synthetic',
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -137,7 +148,11 @@ void main() {
       final fake = TaskFake()..rows.add(record('one'));
       await tester.pumpWidget(
         ginkgoApp(
-          home: TasksPage(fileActions: platformActions,service: fake, storageRoot: '/synthetic'),
+          home: TasksPage(
+            fileActions: platformActions,
+            service: fake,
+            storageRoot: '/synthetic',
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -184,7 +199,8 @@ void main() {
       ginkgoApp(
         home: ValueListenableBuilder<TaskFake>(
           valueListenable: current,
-          builder: (_, gateway, _) => TasksPage(fileActions: platformActions,
+          builder: (_, gateway, _) => TasksPage(
+            fileActions: platformActions,
             service: gateway,
             storageRoot: gateway == old ? '/old' : '/next',
           ),
@@ -200,6 +216,77 @@ void main() {
     expect(old.calls, ['load']);
     expect(next.calls, ['load']);
     expect(find.text('新账号合成待办'), findsOneWidget);
+  });
+
+  testWidgets('academic replacement does not cancel a local task read', (
+    tester,
+  ) async {
+    phone(tester);
+    final local = TaskFake()
+      ..rows.add(record('linked', title: '本机待办仍应显示'))
+      ..pendingLoad = Completer<LocalTasksRead>();
+    final first = TaskFake();
+    final second = TaskFake();
+    Widget page(TaskFake academic) => ginkgoApp(
+      home: TasksPage(
+        fileActions: platformActions,
+        service: local,
+        academicService: academic,
+        storageRoot: '/synthetic',
+      ),
+    );
+    await tester.pumpWidget(page(first));
+    await tester.pump();
+    await tester.pumpWidget(page(second));
+
+    local.pendingLoad!.complete(tasksRead(local.rows));
+    await tester.pumpAndSettle();
+    expect(find.text('本机待办仍应显示'), findsOneWidget);
+    expect(find.byKey(const Key('tasks-refreshing')), findsNothing);
+  });
+
+  testWidgets('academic replacement discards a pending source lookup', (
+    tester,
+  ) async {
+    phone(tester);
+    final local = TaskFake()..rows.add(record('linked', source: 'spoc:123'));
+    final first = TaskFake()..pendingHomework = Completer();
+    final second = TaskFake()..pendingHomework = Completer();
+    Widget page(TaskFake academic) => ginkgoApp(
+      home: TasksPage(
+        fileActions: platformActions,
+        service: local,
+        academicService: academic,
+        storageRoot: '/synthetic',
+      ),
+    );
+    await tester.pumpWidget(page(first));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('task-source-linked')));
+    await tester.pump();
+
+    await tester.pumpWidget(page(second));
+    first.pendingHomework!.complete(
+      const HomeworkResponse(
+        termName: '旧学期',
+        termCode: 'old',
+        items: [assignment],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(HomeworkDetailPage), findsNothing);
+
+    await tester.tap(find.byKey(const Key('task-source-linked')));
+    await tester.pump();
+    second.pendingHomework!.complete(
+      const HomeworkResponse(
+        termName: '新学期',
+        termCode: 'new',
+        items: [assignment],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(HomeworkDetailPage), findsOneWidget);
   });
 
   testWidgets('phone header returns from located task with 48dp target at 2x', (
@@ -218,7 +305,8 @@ void main() {
                   builder: (_) => MediaQuery(
                     data: MediaQuery.of(context)
                         .copyWith(textScaler: const TextScaler.linear(2)),
-                    child: TasksPage(fileActions: platformActions,
+                    child: TasksPage(
+                      fileActions: platformActions,
                       service: fake,
                       storageRoot: '/synthetic',
                       initialTaskId: 'target',
@@ -293,7 +381,8 @@ void main() {
             record('target', title: '已完成的长标题定位目标', completed: true),
           ]);
         Widget page(String? id) => visualApp(
-          TasksPage(fileActions: platformActions,
+          TasksPage(
+            fileActions: platformActions,
             service: fake,
             storageRoot: '/synthetic',
             initialTaskId: id,
