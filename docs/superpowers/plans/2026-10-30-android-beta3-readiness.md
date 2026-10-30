@@ -122,7 +122,7 @@ Expected: 两个目标测试文件通过。
 Run: `cd flutter && flutter build apk --debug --target-platform android-arm64 --target lib/main.dart`
 Expected: 正常 main APK 构建成功；设备测试后若安装，则安装此正常入口包而非测试驱动包。
 
-- [ ] **Step 3: 真实账号只读验收（待本人凭据）**
+- [x] **Step 3: 真实账号只读验收**
 
 使用 `GINKGO_LIVE_ACCEPTANCE` 的既有临时回环通道，不把凭据写入命令行、文件或日志。验证小写研究生学号登录及核心只读页面；不触发任何学校写确认。若凭据或设备不可用，记录未验收，不伪造通过。
 
