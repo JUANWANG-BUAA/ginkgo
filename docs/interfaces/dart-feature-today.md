@@ -67,13 +67,13 @@
 ## features/today/today_course_section.dart
 
 - `class TodayCoursePlaceholder extends StatelessWidget` — Shown until the first course payload lands. The section keeps the same
-  <sub>class · features/today/today_course_section.dart:16</sub>
-    - `const TodayCoursePlaceholder({ super.key, required this.loading, required this.error, required this.onRetry, });`  <sub>:17</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:29</sub>
+  <sub>class · features/today/today_course_section.dart:15</sub>
+    - `const TodayCoursePlaceholder({ super.key, required this.loading, required this.error, required this.onRetry, });`  <sub>:16</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:28</sub>
 - `class TodayCourseSection extends StatelessWidget` — The loaded "today's courses" section: heading, focus card, the expandable
-  <sub>class · features/today/today_course_section.dart:45</sub>
-    - `const TodayCourseSection({ super.key, required this.data, required this.now, required this.loading, required this.error, required this.expanded, required this.onToggleExpanded, required this.onRetry, this.onOpenSchedule, this.demo = false, });`  <sub>:46</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:72</sub>
+  <sub>class · features/today/today_course_section.dart:44</sub>
+    - `const TodayCourseSection({ super.key, required this.data, required this.now, required this.loading, required this.error, required this.expanded, required this.onToggleExpanded, required this.onRetry, this.onOpenSchedule, this.demo = false, });`  <sub>:45</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:71</sub>
 
 ## features/today/today_exam_section.dart
 
@@ -138,8 +138,8 @@
     - `Widget build(BuildContext context) => …`  <sub>:43</sub>
 - `class TodaySectionHeader extends StatelessWidget` — A structured section header with theme icon, bold title, count capsule badge,
   <sub>class · features/today/today_presentation.dart:70</sub>
-    - `const TodaySectionHeader({ super.key, required this.title, this.icon, this.badge, this.actionLabel, this.onAction, });`  <sub>:71</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:87</sub>
+    - `const TodaySectionHeader({ super.key, required this.title, this.icon, this.badge, this.actionLabel, this.actionKey, this.onAction, });`  <sub>:71</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:89</sub>
 
 ## features/today/today_tasks_section.dart
 

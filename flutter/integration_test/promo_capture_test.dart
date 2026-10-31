@@ -91,8 +91,12 @@ void main() {
 
     await openTab('图书馆');
     await settle(tester, frames: 24);
-    await tester.tap(find.text('选择座位'));
-    await settle(tester, frames: 24);
     await capture('android-library');
+    final venues = find.text('选择场馆');
+    if (venues.evaluate().isNotEmpty) {
+      await tester.tap(venues.first);
+      await settle(tester, frames: 24);
+      await capture('android-library-venues');
+    }
   });
 }

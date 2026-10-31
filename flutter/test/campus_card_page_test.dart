@@ -37,6 +37,9 @@ void main() {
         ginkgoApp(home: CampusCardPage(gateway: gateway)),
       );
       expect(gateway.calls, 0);
+      expect(find.text('尚未查询'), findsOneWidget);
+      expect(find.text('查询后在此显示'), findsOneWidget);
+      expect(find.text('尚未查询余额'), findsNothing);
 
       await tester.tap(find.byKey(const Key('campus-card-read')));
       await tester.pump();

@@ -69,6 +69,45 @@ void main() {
     },
   );
 
+  testWidgets('login validation is announced as a status at large type', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 760);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(1.8)),
+          child: LoginPage(
+            service: FakeService(
+              restoreResponse: signedOut,
+              loginResponse: signedIn,
+            ),
+            onSignedIn: (_) {},
+            onDemo: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final submit = find.byKey(const Key('login-submit'));
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
+    await tester.pumpAndSettle();
+    final status = find.byKey(const Key('login-error'));
+    await tester.ensureVisible(status);
+
+    expect(status, findsOneWidget);
+    expect(
+      find.byIcon(CupertinoIcons.exclamationmark_triangle),
+      findsOneWidget,
+    );
+    expect(find.text('请输入学号和密码'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'remember-password starts off so nothing reaches the vault unasked',
     (tester) async {
@@ -116,6 +155,7 @@ void main() {
         tester.widget<GinkgoActivity>(find.byType(GinkgoActivity)).size,
         17,
       );
+      expect(find.byKey(const Key('login-busy-status')), findsOneWidget);
       expect(find.byType(CupertinoActivityIndicator), findsNothing);
       expect(
         find.ancestor(

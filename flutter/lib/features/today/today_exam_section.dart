@@ -113,7 +113,7 @@ class _TodayExamSectionState extends State<TodayExamSection> {
             key: Key('today-exam-${exam.id}'),
             title: exam.courseName,
             subtitle:
-                '考试${exams.error == null ? '' : ' · 旧数据'} · ${exam.examDate ?? '日期待确认'} ${exam.startTime ?? '时间待确认'} · ${exam.examPlace ?? '地点待确认'}\n同步 ${schoolTimestampLabel(data.fetchedAt)}',
+                '${exams.error == null ? '' : '旧数据 · '}${exam.examDate ?? '日期待确认'} ${exam.startTime ?? '时间待确认'} · ${exam.examPlace ?? '地点待确认'}\n同步 ${schoolTimestampLabel(data.fetchedAt)}',
             onTap: widget.onOpen == null
                 ? null
                 : () => widget.onOpen!('schedule'),

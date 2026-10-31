@@ -106,24 +106,30 @@ class _LibraryHistoryPageState extends State<LibraryHistoryPage> {
             if (data == null && busy)
               const GinkgoLoadingView(label: '正在读取预约记录…'),
             if (data case final result?) ...[
-              AppleSection(
-                footer: Text(
-                  widget.service.isDemo ? '离线合成样例' : '学校预约记录，包含进行中及已结束记录；此页只读。',
-                ),
-                children: [
-                  AppleListTile(
-                    title: Text('第 ${result.page} 页'),
-                    subtitle: Text(
-                      [
-                        '${result.bookings.length} 条记录',
-                        if (result.total != null) '共 ${result.total} 条',
-                        if (result.fetchedAt != null)
-                          '更新于 ${result.fetchedAt!.replaceFirst('T', ' ')}',
-                        if (result.stale) '上次结果',
-                      ].join(' · '),
-                    ),
+              SummaryStrip(
+                items: [
+                  SummaryItem(
+                    '本页记录',
+                    '${result.bookings.length} 条',
+                    icon: CupertinoIcons.clock,
+                  ),
+                  SummaryItem(
+                    '记录总数',
+                    result.total == null ? '未提供' : '${result.total} 条',
+                    icon: CupertinoIcons.list_bullet,
+                  ),
+                  SummaryItem(
+                    '当前页',
+                    '第 ${result.page} 页',
+                    icon: CupertinoIcons.doc_text,
                   ),
                 ],
+                note: [
+                  widget.service.isDemo ? '离线合成样例' : '学校预约记录，此页只读',
+                  if (result.fetchedAt != null)
+                    '更新于 ${result.fetchedAt!.replaceFirst('T', ' ')}',
+                  if (result.stale) '上次结果',
+                ].join(' · '),
               ),
               AppleContentTransition(
                 identity: result,

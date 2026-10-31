@@ -10,6 +10,7 @@ class AppleRefreshPageHeader extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.icon,
+    this.leading,
     this.section = '空间资源',
     this.refreshLabel,
     this.busy = false,
@@ -20,6 +21,7 @@ class AppleRefreshPageHeader extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
+  final Widget? leading;
   final String section;
   final String? refreshLabel;
   final bool busy;
@@ -32,6 +34,7 @@ class AppleRefreshPageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ApplePageHeader(
     largeTitle: Text(title),
+    leading: leading,
     section: section,
     subtitle: subtitle,
     icon: icon,

@@ -6,9 +6,9 @@ import 'package:ginkgo_mirror/application/cgyy_commands.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
+import 'package:ginkgo_mirror/features/cgyy/cgyy_order_detail_page.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_review_page.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
-import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 
@@ -167,6 +167,26 @@ void main() {
       expect(withStatus(checkStatus: 123).statusLabel, contains('待确认'));
     },
   );
+
+  testWidgets('order detail shows a compact, readable reservation period', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final service = ManagementService();
+    await tester.pumpWidget(
+      ginkgoApp(home: CgyyOrderDetailPage(orderId: 42, service: service)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('待辅导员审批'), findsOneWidget);
+    expect(find.textContaining('2030年12月31日 · 周二'), findsOneWidget);
+    expect(find.textContaining('14:00–15:00'), findsOneWidget);
+    expect(find.textContaining('2030-12-31 14:00:00'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'shared unknown state disables cancel and requires visible fresh review',

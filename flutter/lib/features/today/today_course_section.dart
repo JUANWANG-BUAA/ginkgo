@@ -4,7 +4,6 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
-import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
 import 'today_course_focus.dart';
@@ -83,9 +82,11 @@ class TodayCourseSection extends StatelessWidget {
           TodaySectionHeader(
             icon: CupertinoIcons.calendar_today,
             title: '今日课程',
-            badge: isToday && courses.isNotEmpty
+            badge: courses.isEmpty
+                ? null
+                : isToday
                 ? '今天 ${courses.length} 节课'
-                : null,
+                : '${courses.length} 节课',
             actionLabel: onOpenSchedule == null ? null : '完整课表',
             onAction: onOpenSchedule,
           ),
@@ -135,11 +136,7 @@ class TodayCourseSection extends StatelessWidget {
               onPressed: onToggleExpanded,
               child: Row(
                 children: [
-                  Expanded(
-                    child: Text(
-                      expanded ? '收起今日课程' : '展开今日课程（${courses.length}）',
-                    ),
-                  ),
+                  Expanded(child: Text(expanded ? '收起今日课程' : '展开今日课程')),
                   Icon(
                     expanded
                         ? CupertinoIcons.chevron_up
@@ -162,23 +159,6 @@ class TodayCourseSection extends StatelessWidget {
                     )?.status(now) ??
                     '时间待确认',
               ),
-          if (onOpenSchedule != null)
-            AppleListTile(
-              title: Text(
-                '查看完整课表',
-                style: TextStyle(
-                  color: CupertinoTheme.of(context).primaryColor,
-                ),
-              ),
-              additionalInfo: Text(
-                '共 ${courses.length} 门课',
-                style: TextStyle(
-                  color: AppleDesign.statusInactive.resolveFrom(context),
-                ),
-              ),
-              trailing: const CupertinoListTileChevron(),
-              onTap: onOpenSchedule,
-            ),
         ],
       ],
     );

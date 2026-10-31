@@ -120,6 +120,16 @@ class _LibrarySlotPageState extends State<LibrarySlotPage> {
             if (slots == null && error == null)
               const GinkgoLoadingView(label: '正在读取时段…'),
             if (slots != null)
+              SummaryStrip(
+                items: [
+                  SummaryItem(
+                    '可订时段',
+                    '${slots!.length} 个',
+                    icon: CupertinoIcons.clock,
+                  ),
+                ],
+              ),
+            if (slots != null)
               AppleSection(
                 header: const Text('时段'),
                 children: [

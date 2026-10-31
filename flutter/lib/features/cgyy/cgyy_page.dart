@@ -109,97 +109,108 @@ class _CgyyPageState extends State<CgyyPage> {
     ),
     child: SafeArea(
       child: CustomScrollView(
-      key: const Key('cgyy-scroll'),
-      slivers: [
-        ApplePageHeader(
-          largeTitle: const Text('研讨室'),
-          section: '空间资源',
-          subtitle: '选择场馆并查看可预约空间',
-          icon: CupertinoIcons.person_3,
-          border: null,
-          trailing: AppleGlassButton(
-            label: '刷新场馆',
-            onPressed: busy ? null : () => load(force: true),
-            child: busy
-                ? const GinkgoActivity(size: 17)
-                : const Icon(CupertinoIcons.refresh),
-          ),
-        ),
-        CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
-        SliverList.list(
-          children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(24, 12, 24, 0),
-              child: Text(
-                '预约研讨室',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: CupertinoColors.secondaryLabel,
-                ),
-              ),
+        key: const Key('cgyy-scroll'),
+        slivers: [
+          ApplePageHeader(
+            largeTitle: const Text('研讨室'),
+            section: '空间资源',
+            subtitle: '选择场馆并查看可预约空间',
+            icon: CupertinoIcons.person_3,
+            border: null,
+            trailing: AppleGlassButton(
+              label: '刷新场馆',
+              onPressed: busy ? null : () => load(force: true),
+              child: busy
+                  ? const GinkgoActivity(size: 17)
+                  : const Icon(CupertinoIcons.refresh),
             ),
-            AppleSection(
-              children: [
-                CgyyInteractiveRow(
-                  onTap: () => open(),
-                  child: CgyyTileContent(
-                    icon: CupertinoIcons.calendar_badge_plus,
-                    tint: CupertinoColors.systemIndigo,
-                    title: '我的预约记录',
-                    detail: '最近最多 20 条',
-                    chevron: true,
+          ),
+          CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
+          SliverList.list(
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(24, 12, 24, 0),
+                child: Text(
+                  '预约研讨室',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: CupertinoColors.secondaryLabel,
                   ),
                 ),
-                CgyyInteractiveRow(
-                  onTap: () => Navigator.of(context).push(
-                    CupertinoPageRoute<void>(
-                      builder: (_) => CgyyLockCodePage(
-                        loader: widget.loader,
-                        service: widget.service,
+              ),
+              if (section.value != null)
+                SummaryStrip(
+                  items: [
+                    SummaryItem(
+                      '可用场馆',
+                      '${section.value!.length} 个',
+                      icon: CupertinoIcons.map,
+                    ),
+                  ],
+                  note: '研讨室指教学楼 CGYY；图书馆另提供座位预约。',
+                ),
+              AppleSection(
+                children: [
+                  CgyyInteractiveRow(
+                    onTap: () => open(),
+                    child: CgyyTileContent(
+                      icon: CupertinoIcons.calendar_badge_plus,
+                      tint: CupertinoColors.systemIndigo,
+                      title: '我的预约记录',
+                      detail: '最近最多 20 条',
+                      chevron: true,
+                    ),
+                  ),
+                  CgyyInteractiveRow(
+                    onTap: () => Navigator.of(context).push(
+                      CupertinoPageRoute<void>(
+                        builder: (_) => CgyyLockCodePage(
+                          loader: widget.loader,
+                          service: widget.service,
+                        ),
                       ),
                     ),
-                  ),
-                  child: CgyyTileContent(
-                    icon: CupertinoIcons.lock_open,
-                    tint: CupertinoColors.systemTeal,
-                    title: '门锁密码',
-                    detail: '查看当前可开门密码与有效期',
-                    chevron: true,
-                  ),
-                ),
-              ],
-            ),
-            if (error != null)
-              AppleStatusSection(
-                title: error!,
-                description: sites == null ? '请稍后重试。' : '正在显示上次场馆。',
-                onAction: () => load(force: true),
-                error: true,
-              ),
-            if (sites == null && busy)
-              const GinkgoLoadingView(label: '正在读取研讨室…'),
-            if (sites?.isEmpty == true)
-              const AppleStatusSection(
-                title: '暂无公开场馆',
-                description: '学校暂未提供公开场馆。',
-              ),
-            if (sites != null && sites!.isNotEmpty)
-              AppleSection(
-                header: const Text('公开场馆'),
-                children: [
-                  for (final site in sites!)
-                    CgyyInteractiveRow(
-                      key: ValueKey('cgyy-site-${site.id}'),
-                      onTap: () => open(site: site),
-                      child: cgyySiteContent(site, chevron: true),
+                    child: CgyyTileContent(
+                      icon: CupertinoIcons.lock_open,
+                      tint: CupertinoColors.systemTeal,
+                      title: '门锁密码',
+                      detail: '查看当前可开门密码与有效期',
+                      chevron: true,
                     ),
+                  ),
                 ],
               ),
-            const SizedBox(height: 96),
-          ],
-        ),
-      ],
-    )
+              if (error != null)
+                AppleStatusSection(
+                  title: error!,
+                  description: sites == null ? '请稍后重试。' : '正在显示上次场馆。',
+                  onAction: () => load(force: true),
+                  error: true,
+                ),
+              if (sites == null && busy)
+                const GinkgoLoadingView(label: '正在读取研讨室…'),
+              if (sites?.isEmpty == true)
+                const AppleStatusSection(
+                  title: '暂无公开场馆',
+                  description: '学校暂未提供公开场馆。',
+                ),
+              if (sites != null && sites!.isNotEmpty)
+                AppleSection(
+                  header: const Text('公开场馆'),
+                  children: [
+                    for (final site in sites!)
+                      CgyyInteractiveRow(
+                        key: ValueKey('cgyy-site-${site.id}'),
+                        onTap: () => open(site: site),
+                        child: cgyySiteContent(site, chevron: true),
+                      ),
+                  ],
+                ),
+              const SizedBox(height: 96),
+            ],
+          ),
+        ],
+      ),
     ),
   );
 }

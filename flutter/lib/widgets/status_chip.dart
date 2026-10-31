@@ -67,6 +67,7 @@ class StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = statusToneColor(context, tone);
     final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+    final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.6;
     return Semantics(
       label: label,
       excludeSemantics: true,
@@ -81,14 +82,20 @@ class StatusChip extends StatelessWidget {
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: largeText
+              ? CrossAxisAlignment.start
+              : CrossAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: MediaQuery.textScalerOf(context)
-                  .scale(12)
-                  .clamp(12, 20),
-              color: color,
-              applyTextScaling: false,
+            Padding(
+              padding: largeText
+                  ? GinkgoSpacing.edgeInsetsStatusGlyphAlignment
+                  : EdgeInsets.zero,
+              child: Icon(
+                icon,
+                size: MediaQuery.textScalerOf(context).scale(12).clamp(12, 20),
+                color: color,
+                applyTextScaling: false,
+              ),
             ),
             const SizedBox(width: GinkgoSpacing.xs),
             Flexible(

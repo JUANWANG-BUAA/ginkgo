@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import '../application/contracts.dart' show RouteChoice;
 import '../application/platform_actions.dart';
 
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/shared/course_visibility.dart';
 import 'package:ginkgo_mirror/widgets/diagnostic_hints.dart';
 import 'package:ginkgo_mirror/app/ginkgo_app.dart';
@@ -34,6 +35,7 @@ class GinkgoApp extends StatelessWidget {
     required this.service,
     this.platformActions = const PlatformActions(),
     this.brightness,
+    this.preferences,
     this.startupUpdate,
     this.accountName,
     this.accountId,
@@ -46,6 +48,7 @@ class GinkgoApp extends StatelessWidget {
   /// implementations; a test that does not need them keeps them empty.
   final PlatformActions platformActions;
   final Brightness? brightness;
+  final AppPreferences? preferences;
   final StartupUpdateController? startupUpdate;
   final String? accountName;
   final String? accountId;
@@ -54,6 +57,7 @@ class GinkgoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ginkgoApp(
     brightness: brightness,
+    preferences: preferences,
     startupUpdate: startupUpdate,
     home: CourseVisibilityScope(
       key: ValueKey(service.isDemo ? 'demo' : accountId ?? 'account'),

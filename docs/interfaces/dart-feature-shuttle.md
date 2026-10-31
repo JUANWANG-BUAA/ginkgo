@@ -8,9 +8,9 @@
 ## features/shuttle/shuttle_page.dart
 
 - `class ShuttlePage extends StatefulWidget` — Official shuttle timetable. Only the published page is shown: the app does
-  <sub>class · features/shuttle/shuttle_page.dart:17</sub>
-    - `const ShuttlePage({super.key, required this.service, this.now});`  <sub>:18</sub>
-    - `State<ShuttlePage> createState() => …`  <sub>:25</sub>
+  <sub>class · features/shuttle/shuttle_page.dart:18</sub>
+    - `const ShuttlePage({super.key, required this.service, this.now});`  <sub>:19</sub>
+    - `State<ShuttlePage> createState() => …`  <sub>:26</sub>
 
 ## features/shuttle/shuttle_widgets.dart
 
@@ -21,22 +21,22 @@
     - `const ShuttlePlanSection({ super.key, required this.runs, required this.clock, });`  <sub>:18</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:28</sub>
 - `class ShuttlePlanNext extends StatelessWidget` — The next departure, shown large because it is the one to catch.
-  <sub>class · features/shuttle/shuttle_widgets.dart:72</sub>
-    - `const ShuttlePlanNext({super.key, required this.run});`  <sub>:73</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:78</sub>
+  <sub>class · features/shuttle/shuttle_widgets.dart:70</sub>
+    - `const ShuttlePlanNext({super.key, required this.run});`  <sub>:71</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:76</sub>
 - `class ShuttlePlanFollowing extends StatelessWidget` — A departure after the next one.
-  <sub>class · features/shuttle/shuttle_widgets.dart:126</sub>
-    - `const ShuttlePlanFollowing({ super.key, required this.run, required this.index, });`  <sub>:127</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:137</sub>
+  <sub>class · features/shuttle/shuttle_widgets.dart:124</sub>
+    - `const ShuttlePlanFollowing({ super.key, required this.run, required this.index, });`  <sub>:125</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:135</sub>
 - `class ShuttleTableSection extends StatelessWidget` — One dated section of a published table: both directions and their runs.
-  <sub>class · features/shuttle/shuttle_widgets.dart:190</sub>
-    - `const ShuttleTableSection({ super.key, required this.section, required this.leftName, required this.rightName, required this.nowMinute, });`  <sub>:191</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:204</sub>
+  <sub>class · features/shuttle/shuttle_widgets.dart:188</sub>
+    - `const ShuttleTableSection({ super.key, required this.section, required this.leftName, required this.rightName, required this.nowMinute, });`  <sub>:189</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:202</sub>
 - `class ShuttleDirectionRuns extends StatelessWidget` — One direction of a published table and the runs printed under it.
-  <sub>class · features/shuttle/shuttle_widgets.dart:257</sub>
-    - `const ShuttleDirectionRuns({ super.key, required this.name, required this.runs, required this.nowMinute, });`  <sub>:258</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:270</sub>
+  <sub>class · features/shuttle/shuttle_widgets.dart:255</sub>
+    - `const ShuttleDirectionRuns({ super.key, required this.name, required this.runs, required this.nowMinute, });`  <sub>:256</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:268</sub>
 - `class ShuttleRunChip extends StatelessWidget` — One published run. Departed runs fall back to a quiet fill so the
-  <sub>class · features/shuttle/shuttle_widgets.dart:295</sub>
-    - `const ShuttleRunChip({super.key, required this.run, required this.departed});`  <sub>:296</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:302</sub>
+  <sub>class · features/shuttle/shuttle_widgets.dart:293</sub>
+    - `const ShuttleRunChip({super.key, required this.run, required this.departed});`  <sub>:294</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:300</sub>

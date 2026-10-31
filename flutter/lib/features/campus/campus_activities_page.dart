@@ -38,37 +38,49 @@ class CampusActivitiesPage extends StatelessWidget {
     queryBuilder: (context, page, busy, select) => AppleSection(
       header: const Text('页码'),
       children: [
-        CupertinoListTile(
+        AppleListTile(
           title: Text('第 $page 页'),
           subtitle: const Text('列表页顺序按学校官网分页'),
           trailing: CupertinoButton(
             onPressed: busy ? null : () => select(page == 1 ? 2 : 1),
-            child: SafeArea(
-              child: Text(page == 1 ? '第 2 页' : '第 1 页')
-            ),
+            minimumSize: const Size(48, 48),
+            child: Text(page == 1 ? '第 2 页' : '第 1 页'),
           ),
         ),
       ],
     ),
-    contentBuilder: (context, data) => AppleSection(
-      header: Text('${data.activities.length} 条公开安排'),
-      footer: Text(
-        '来源：学校官网 · 同步 ${schoolTimestampLabel(data.fetchedAt)}\n发布日期与活动时间可能不同；详情以原文为准。',
-      ),
+    contentBuilder: (context, data) => Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final activity in data.activities)
-          AppleListTile(
-            key: Key('campus-activity-${activity.id}'),
-            title: Text(activity.title),
-            subtitle: Text(
-              '${activity.category.isEmpty ? '类型未提供' : activity.category} · '
-              '${activity.activityTime.isEmpty ? '时间未提供' : activity.activityTime}\n'
-              '${activity.place.isEmpty ? '地点未提供' : activity.place}\n'
-              '发布 ${activity.publishedAt.isEmpty ? '未提供' : activity.publishedAt}',
+        SummaryStrip(
+          items: [
+            SummaryItem(
+              '公开安排',
+              '${data.activities.length} 条',
+              icon: CupertinoIcons.music_note,
             ),
-            trailing: const Icon(CupertinoIcons.chevron_right),
-            onTap: () => _openActivity(context, activity),
-          ),
+          ],
+          note: '来源：学校官网 · 同步 ${schoolTimestampLabel(data.fetchedAt)}',
+        ),
+        AppleSection(
+          header: const Text('活动'),
+          footer: const Text('发布日期与活动时间可能不同；详情以原文为准。'),
+          children: [
+            for (final activity in data.activities)
+              AppleListTile(
+                key: Key('campus-activity-${activity.id}'),
+                title: Text(activity.title),
+                subtitle: Text(
+                  '${activity.category.isEmpty ? '类型未提供' : activity.category} · '
+                  '${activity.activityTime.isEmpty ? '时间未提供' : activity.activityTime}\n'
+                  '${activity.place.isEmpty ? '地点未提供' : activity.place}\n'
+                  '发布 ${activity.publishedAt.isEmpty ? '未提供' : activity.publishedAt}',
+                ),
+                trailing: const Icon(CupertinoIcons.chevron_right),
+                onTap: () => _openActivity(context, activity),
+              ),
+          ],
+        ),
       ],
     ),
   );

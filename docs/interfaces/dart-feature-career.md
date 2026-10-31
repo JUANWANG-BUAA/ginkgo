@@ -10,4 +10,4 @@
 - `class CareerEventsPage extends StatelessWidget`
   <sub>class · features/career/career_events_page.dart:12</sub>
     - `const CareerEventsPage({super.key, required this.service});`  <sub>:13</sub>
-    - `Widget build( BuildContext context, ) => …`  <sub>:17</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:17</sub>

@@ -23,14 +23,12 @@ class BykcDetailPage extends StatelessWidget {
       ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 5),
-        child: SafeArea(
-          child: Text(
+        child: Text(
           value,
           style: TextStyle(
             fontSize: AppleDesign.bodyCondensedSize,
             color: CupertinoColors.label.resolveFrom(context),
           ),
-        )
         ),
       ),
     );
@@ -91,15 +89,31 @@ class BykcDetailPage extends StatelessWidget {
                   ],
                 ),
               ),
-              AppleSection(
-                header: const Text('上课安排'),
-                children: [
-                  field('开始时间', schoolTimestampLabel(details?.start)),
-                  field('结束时间', schoolTimestampLabel(details?.end)),
-                  field('上课地点', course.position ?? '上游未提供'),
+              SummaryStrip(
+                items: [
+                  SummaryItem(
+                    '开始时间',
+                    schoolTimestampLabel(details?.start),
+                    icon: CupertinoIcons.clock,
+                  ),
+                  SummaryItem(
+                    '结束时间',
+                    schoolTimestampLabel(details?.end),
+                    icon: CupertinoIcons.clock,
+                  ),
+                  SummaryItem(
+                    '上课地点',
+                    course.position ?? '上游未提供',
+                    icon: CupertinoIcons.location,
+                  ),
                   if (details != null && details.campuses.isNotEmpty)
-                    field('校区', details.campuses.join('、')),
+                    SummaryItem(
+                      '校区',
+                      details.campuses.join('、'),
+                      icon: CupertinoIcons.map,
+                    ),
                 ],
+                note: '课程信息按学校原文展示，未提供的字段写明未提供。',
               ),
               if (chosenRecord != null)
                 AppleSection(

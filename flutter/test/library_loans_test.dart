@@ -33,7 +33,8 @@ Widget app(LibraryLoansGateway gateway, {bool enabled = true}) => CupertinoApp(
   ),
 );
 Future<void> read(WidgetTester tester, {bool refresh = false}) async {
-  final button = find.text(refresh ? '刷新本人借阅' : '读取本人借阅');
+  // The read action lives in the navigation bar.
+  final button = find.byKey(const Key('library-loans-read'));
   await tester.ensureVisible(button);
   await tester.tap(button);
   await tester.pumpAndSettle();
@@ -73,6 +74,8 @@ void main() {
     await tester.pumpWidget(app(gateway));
     await tester.pumpAndSettle();
     expect(gateway.calls, isEmpty);
+    expect(find.text('尚未读取借阅记录'), findsOneWidget);
+    expect(find.textContaining('点按右上角读取'), findsOneWidget);
     expect(find.textContaining('暂无当前借阅'), findsNothing);
     await read(tester);
     expect(find.text('合成书名'), findsOneWidget);
@@ -104,6 +107,7 @@ void main() {
       await read(tester, refresh: true);
       expect(find.text('合成书名'), findsOneWidget);
       expect(find.textContaining('数据结构发生变化'), findsOneWidget);
+      expect(find.text('尚未读取借阅记录'), findsNothing);
       expect(find.textContaining('暂无当前借阅'), findsNothing);
       gateway.result = const LibraryLoansRead(
         failure: FailureCode.sessionExpired,
@@ -129,7 +133,7 @@ void main() {
     (tester) async {
       final gateway = Loans()..delayed = Completer<LibraryLoansRead>();
       await tester.pumpWidget(app(gateway));
-      await tester.tap(find.text('读取本人借阅'));
+      await tester.tap(find.byKey(const Key('library-loans-read')));
       await tester.pump();
       await tester.pumpWidget(app(gateway, enabled: false));
       gateway.delayed!.complete(const LibraryLoansRead(data: page));
@@ -143,7 +147,7 @@ void main() {
   testWidgets('gateway change rejects late account response', (tester) async {
     final first = Loans()..delayed = Completer<LibraryLoansRead>();
     await tester.pumpWidget(app(first));
-    await tester.tap(find.text('读取本人借阅'));
+    await tester.tap(find.byKey(const Key('library-loans-read')));
     await tester.pump();
     await tester.pumpWidget(app(Loans()));
     first.delayed!.complete(const LibraryLoansRead(data: page));

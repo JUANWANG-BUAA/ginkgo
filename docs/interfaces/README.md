@@ -20,11 +20,11 @@
 | [组装（ginkgo_runtime）](rust-runtime.md) | `rust-runtime.md` | 8 |
 | [桥接（ginkgo_flutter_bridge）](rust-bridge.md) | `rust-bridge.md` | 375 |
 | [Dart 应用接口（flutter/lib/application）](dart-application.md) | `dart-application.md` | 161 |
-| [Dart 基础设施（flutter/lib/infrastructure）](dart-infrastructure.md) | `dart-infrastructure.md` | 47 |
+| [Dart 基础设施（flutter/lib/infrastructure）](dart-infrastructure.md) | `dart-infrastructure.md` | 48 |
 | [跨域共享状态（flutter/lib/shared）](dart-shared.md) | `dart-shared.md` | 29 |
 | [平台集成（flutter/lib/platform）](dart-platform.md) | `dart-platform.md` | 12 |
-| [共享呈现组件（flutter/lib/widgets）](dart-widgets.md) | `dart-widgets.md` | 51 |
-| [设计系统（flutter/lib/design）](dart-design.md) | `dart-design.md` | 8 |
+| [共享呈现组件（flutter/lib/widgets）](dart-widgets.md) | `dart-widgets.md` | 52 |
+| [设计系统（flutter/lib/design）](dart-design.md) | `dart-design.md` | 9 |
 | [应用外壳组件（flutter/lib/app）](dart-app.md) | `dart-app.md` | 4 |
 | [工作区壳层（flutter/lib/workspace）](dart-workspace.md) | `dart-workspace.md` | 29 |
 | [Flutter 功能域：academic](dart-feature-academic.md) | `dart-feature-academic.md` | 1 |

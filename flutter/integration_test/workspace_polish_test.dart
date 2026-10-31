@@ -7,7 +7,7 @@ import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 import 'package:ginkgo_mirror/features/today/today_page.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
-import 'package:ginkgo_mirror/workspace/workspace_shortcuts.dart';
+import 'package:ginkgo_mirror/workspace/more_page.dart';
 
 import 'ios_visual_refinement_test.dart' show VisualService;
 import 'support.dart' show platformActions, settle, show;
@@ -32,15 +32,6 @@ void main() {
     (tester) async {
       final service = VisualService();
       final settings = AppPreferences(writer: (_) async {});
-      final choices = [
-        for (final destination in workspaceDestinations)
-          if (destination.id != 'today' && destination.id != 'settings')
-            WorkspaceShortcut(
-              id: destination.id,
-              title: destination.title,
-              icon: destination.icon,
-            ),
-      ];
       for (final brightness in Brightness.values) {
         await settings.update(
           appearance: brightness == Brightness.dark
@@ -61,17 +52,30 @@ void main() {
               now: () => DateTime.utc(2026, 10, 22, 1, 40),
               onOpenSettings: () {},
               onOpenFeature: (_) {},
-              shortcutChoices: choices,
             ),
           ),
         );
         await settle(tester, frames: 20);
         expect(find.text('算法设计与分析'), findsNothing);
         await capture(tester, 'polish-today-${brightness.name}');
+        // The pinned shortcuts live on the "更多" surface now.
+        await tester.pumpWidget(
+          ginkgoApp(
+            preferences: settings,
+            home: MorePage(
+              service: service,
+              platformActions: platformActions,
+              destinations: workspaceDestinations,
+              accountId: 'synthetic-demo',
+              onSignOut: () async {},
+            ),
+          ),
+        );
+        await settle(tester, frames: 20);
         await show(
           tester,
           find.byKey(const Key('shortcuts-edit')),
-          scrollKey: 'today-scroll',
+          scrollKey: 'more-scroll',
         );
         await capture(tester, 'polish-shortcuts-${brightness.name}');
         await tester.tap(find.byKey(const Key('shortcuts-edit')));
@@ -79,7 +83,7 @@ void main() {
         await show(
           tester,
           find.byKey(const ValueKey('shortcut-choice-checkin')),
-          scrollKey: 'today-scroll',
+          scrollKey: 'more-scroll',
         );
         await capture(tester, 'polish-shortcuts-edit-${brightness.name}');
         await tester.pumpWidget(const SizedBox());

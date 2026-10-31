@@ -34,12 +34,12 @@ WorkspaceContext buildDirectoryContext({
   openSettings: () => openDestination('settings'),
 );
 
-/// The feature list of the "更多" surface.
+/// The grouped feature list of the "更多" surface.
 ///
-/// Every feature appears exactly once: the tab bar owns the five primary
-/// destinations, this list owns everything else. The grouping mirrors the
-/// shared Apple "More" list so the same feature reads the same way on both
-/// platforms.
+/// The tab bar owns the five primary destinations. The caller may promote
+/// pinned destinations above this list; those IDs are omitted here so they
+/// retain exactly one navigable row on the surface. Grouping mirrors the
+/// shared Apple "More" list.
 class ServiceDirectory extends StatelessWidget {
   const ServiceDirectory({
     super.key,
@@ -47,6 +47,7 @@ class ServiceDirectory extends StatelessWidget {
     required this.platformActions,
     required this.destinations,
     required this.onSignOut,
+    this.excludedDestinationIds = const {},
     this.accountName,
     this.accountId,
     this.route,
@@ -56,6 +57,7 @@ class ServiceDirectory extends StatelessWidget {
   final PlatformActions platformActions;
   final List<WorkspaceDestination> destinations;
   final Future<void> Function() onSignOut;
+  final Set<String> excludedDestinationIds;
   final String? accountName;
   final String? accountId;
   final RouteChoice? route;
@@ -85,8 +87,10 @@ class ServiceDirectory extends StatelessWidget {
           ),
         ],
       ),
-      AppleSection(
-        header: const Text('工作台'),
+      _section(
+        context,
+        header: '工作台',
+        destinationIds: const ['checkin', 'tasks'],
         children: [
           _destination(
             context,
@@ -102,8 +106,10 @@ class ServiceDirectory extends StatelessWidget {
           ),
         ],
       ),
-      AppleSection(
-        header: const Text('学业'),
+      _section(
+        context,
+        header: '学业',
+        destinationIds: const ['grades', 'bykc', 'graduate', 'learning'],
         children: [
           _destination(context, 'grades', GinkgoColors.resourcePurple),
           _destination(context, 'bykc', GinkgoColors.resourceTeal),
@@ -111,19 +117,33 @@ class ServiceDirectory extends StatelessWidget {
           _destination(context, 'learning', GinkgoColors.resourceBlue),
         ],
       ),
-      AppleSection(
-        header: const Text('空间资源'),
+      _section(
+        context,
+        header: '空间资源',
+        destinationIds: const ['cgyy', 'classroom'],
         children: [
           _destination(context, 'cgyy', GinkgoColors.resourcePurple),
           _destination(context, 'classroom', GinkgoColors.resourceTeal),
         ],
       ),
-      AppleSection(
-        header: const Text('图书与借阅'),
-        children: [_destination(context, 'library-loans', GinkgoColors.resourceTeal)],
+      _section(
+        context,
+        header: '图书与借阅',
+        destinationIds: const ['library-loans'],
+        children: [
+          _destination(context, 'library-loans', GinkgoColors.resourceTeal),
+        ],
       ),
-      AppleSection(
-        header: const Text('校园'),
+      _section(
+        context,
+        header: '校园',
+        destinationIds: const [
+          'campus-card',
+          'notices',
+          'career-events',
+          'campus-activities',
+          'shuttle',
+        ],
         children: [
           _destination(context, 'campus-card', GinkgoColors.accent),
           _destination(context, 'notices', GinkgoColors.resourceBlue),
@@ -132,7 +152,9 @@ class ServiceDirectory extends StatelessWidget {
           _destination(context, 'shuttle', GinkgoColors.resourceBlue),
         ],
       ),
-      AppleSection(
+      _section(
+        context,
+        destinationIds: const ['settings'],
         children: [
           _destination(context, 'settings', GinkgoColors.statusInactive),
         ],
@@ -140,6 +162,23 @@ class ServiceDirectory extends StatelessWidget {
       const SizedBox(height: GinkgoSpacing.xxl),
     ],
   );
+
+  Widget _section(
+    BuildContext context, {
+    String? header,
+    required List<String> destinationIds,
+    required List<Widget> children,
+  }) {
+    final hasVisibleDestination = destinationIds.any(
+      (id) =>
+          !excludedDestinationIds.contains(id) && _destinationById(id) != null,
+    );
+    if (!hasVisibleDestination) return const SizedBox.shrink();
+    return AppleSection(
+      header: header == null ? null : Text(header),
+      children: children,
+    );
+  }
 
   WorkspaceContext _featureContext(BuildContext context) =>
       buildDirectoryContext(
@@ -176,7 +215,9 @@ class ServiceDirectory extends StatelessWidget {
     int badge = 0,
   }) {
     final destination = _destinationById(id);
-    if (destination == null) return const SizedBox.shrink();
+    if (destination == null || excludedDestinationIds.contains(id)) {
+      return const SizedBox.shrink();
+    }
     return AppleListTile(
       key: ValueKey('directory-$id'),
       leading: GinkgoIconTile(

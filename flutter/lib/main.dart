@@ -5,6 +5,7 @@ import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/application/contracts.dart'
     show SessionResponse, SessionState;
+import 'package:ginkgo_mirror/infrastructure/display_preferences_file_store.dart';
 import 'package:ginkgo_mirror/infrastructure/mirror_runtime.dart';
 import 'package:ginkgo_mirror/features/auth/login_page.dart';
 import 'package:ginkgo_mirror/infrastructure/native_auth_challenge.dart';
@@ -30,11 +31,17 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // The school rules live in the domain; the app uses them through the bridge.
   schoolRules = const NativeSchoolRules();
-  await AppPreferences.shared.restore();
+  final preferenceStore = DisplayPreferencesFileStore();
+  final preferences = AppPreferences(
+    writer: preferenceStore.write,
+    reader: preferenceStore.read,
+  );
+  await preferences.restore();
   try {
     await initializeMirrorRuntime();
     runApp(
       GinkgoRoot(
+        preferences: preferences,
         loadUpdateGate: UpdateGate.fetch,
         startupUpdates: const NativeMaintenanceService(),
       ),
@@ -74,12 +81,14 @@ class GinkgoRoot extends StatefulWidget {
     super.key,
     this.liveService = const NativeMirrorService(),
     this.demoService = const DemoMirrorService(),
+    this.preferences,
     this.loadUpdateGate,
     this.startupUpdates,
     this.challengeGateway,
   });
   final MirrorService liveService;
   final MirrorService demoService;
+  final AppPreferences? preferences;
   final AuthChallengeGateway? challengeGateway;
 
   /// Null preserves explicitly offline/test compositions. Production checks once.
@@ -94,6 +103,9 @@ class GinkgoRoot extends StatefulWidget {
 enum _Stage { restoring, signedOut, signedIn, demo }
 
 class _GinkgoRootState extends State<GinkgoRoot> {
+  AppPreferences get _preferences =>
+      widget.preferences ?? AppPreferences.shared;
+
   _Stage stage = _Stage.restoring;
   SessionResponse? session;
   String? message;
@@ -155,7 +167,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
     // An explicit sign-out persists until the next successful sign-in: the
     // user chose to leave, so a later start shows the login page instead of
     // auto-restoring a saved session.
-    if (AppPreferences.shared.explicitSignOut) {
+    if (_preferences.explicitSignOut) {
       setState(() {
         stage = _Stage.signedOut;
         message = null;
@@ -200,7 +212,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
     await widget.liveService.signOut();
     // Recorded before the state change: even if a vault deletion once failed,
     // the next start must show the login page, never auto-restore.
-    final saved = AppPreferences.shared.setExplicitSignOut(true);
+    final saved = _preferences.setExplicitSignOut(true);
     if (mounted) {
       setState(() {
         session = null;
@@ -212,7 +224,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
   }
 
   void signedIn(SessionResponse response) {
-    AppPreferences.shared.setExplicitSignOut(false);
+    _preferences.setExplicitSignOut(false);
     setState(() {
       session = response;
       stage = _Stage.signedIn;
@@ -226,6 +238,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
     final gate = blockingGate;
     if (gate != null) {
       return ginkgoApp(
+        preferences: _preferences,
         home: UpdateRequiredPage(
           gate: gate,
           installedVersion: installedVersion,
@@ -237,17 +250,22 @@ class _GinkgoRootState extends State<GinkgoRoot> {
     // startup surface is available: a stale build must not reach the workspace
     // — or school writes — before the gate has decided.
     if (widget.loadUpdateGate != null && !gateResolved) {
-      return ginkgoApp(home: const StartupPage());
+      return ginkgoApp(preferences: _preferences, home: const StartupPage());
     }
     return switch (stage) {
-      _Stage.restoring => ginkgoApp(home: const StartupPage()),
+      _Stage.restoring => ginkgoApp(
+        preferences: _preferences,
+        home: const StartupPage(),
+      ),
       _Stage.demo => GinkgoApp(
+        preferences: _preferences,
         service: widget.demoService,
         platformActions: _platformActions,
         startupUpdate: startupUpdate,
         onSignOut: () async => setState(() => stage = _Stage.signedOut),
       ),
       _Stage.signedOut => ginkgoApp(
+        preferences: _preferences,
         startupUpdate: startupUpdate,
         home: LoginPage(
           service: widget.liveService,
@@ -267,6 +285,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
         ),
       ),
       _Stage.signedIn => GinkgoApp(
+        preferences: _preferences,
         platformActions: _platformActions,
         service: widget.liveService is NativeMirrorService
             ? NativeMirrorService(expectedAccount: session?.account)

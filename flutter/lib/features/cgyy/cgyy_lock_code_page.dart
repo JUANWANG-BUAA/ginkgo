@@ -86,20 +86,28 @@ class _CgyyLockCodePageState extends State<CgyyLockCodePage> {
         children: [
           if (busy) const GinkgoLoadingView(label: '正在读取门锁密码…'),
           if (error != null)
-            const AppleStatusSection(
+            AppleStatusSection(
               title: '门锁密码读取失败',
               description: '请检查学校会话和网络后重试；读取失败不代表没有预约。',
+              action: '重试',
+              onAction: busy ? null : () => load(force: true),
               error: true,
             ),
-          if (error != null)
-            AppleSection(
-              children: [
-                CupertinoButton(
-                  minimumSize: const Size(48, 48),
-                  onPressed: busy ? null : () => load(force: true),
-                  child: const Text('重试'),
+          if (code != null)
+            SummaryStrip(
+              items: [
+                SummaryItem(
+                  '有效期',
+                  code?.dueDate ?? '未确认',
+                  icon: CupertinoIcons.clock,
+                ),
+                SummaryItem(
+                  '场地',
+                  code?.spaceName ?? code?.siteName ?? '未确认',
+                  icon: CupertinoIcons.location,
                 ),
               ],
+              note: '门锁密码属于敏感信息，请勿截图或转发。',
             ),
           if (code case final current?) ...[
             if (current.hasPassword)
@@ -120,11 +128,6 @@ class _CgyyLockCodePageState extends State<CgyyLockCodePage> {
                       ),
                     ),
                   ),
-                  if (current.dueDate != null)
-                    AppleListTile(
-                      title: const Text('有效期至'),
-                      subtitle: Text(current.dueDate!),
-                    ),
                 ],
               )
             else

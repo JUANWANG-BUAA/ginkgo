@@ -63,9 +63,7 @@ class GraduateCreditMapView extends StatelessWidget {
       if (report.loading)
         const Padding(
           padding: EdgeInsets.all(20),
-          child: SafeArea(
-            child: GinkgoActivity(size: 24)
-          ),
+          child: GinkgoActivity(size: 24),
         ),
       if (report.error case final error?)
         GraduateCreditMapNotice(

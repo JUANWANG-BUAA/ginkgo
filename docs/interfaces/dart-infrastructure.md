@@ -14,6 +14,7 @@ native/demo 适配器、运行时与持久化实现。
 - [infrastructure/demo_learning.dart](#infrastructuredemolearningdart) (1)
 - [infrastructure/demo_library_loans.dart](#infrastructuredemolibraryloansdart) (1)
 - [infrastructure/demo_mirror_service.dart](#infrastructuredemomirrorservicedart) (1)
+- [infrastructure/display_preferences_file_store.dart](#infrastructuredisplaypreferencesfilestoredart) (1)
 - [infrastructure/graduate_credit_map_payload.dart](#infrastructuregraduatecreditmappayloaddart) (1)
 - [infrastructure/graduate_decode.dart](#infrastructuregraduatedecodedart) (1)
 - [infrastructure/homework_file_io.dart](#infrastructurehomeworkfileiodart) (6)
@@ -89,6 +90,14 @@ native/demo 适配器、运行时与持久化实现。
 
 - `final class DemoMirrorService`
   <sub>class · infrastructure/demo_mirror_service.dart:35</sub>
+
+## infrastructure/display_preferences_file_store.dart
+
+- `class DisplayPreferencesFileStore` — Persists the app-wide display and session-flow preferences.
+  <sub>class · infrastructure/display_preferences_file_store.dart:9</sub>
+    - `final Future<Directory> Function() _supportDirectory;`  <sub>:13</sub>
+    - `Future<void> write(Map<String, Object> value) async {…}`  <sub>:20</sub>
+    - `Future<Map<String, Object?>?> read() async {…}`  <sub>:28</sub>
 
 ## infrastructure/graduate_credit_map_payload.dart
 

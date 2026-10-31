@@ -1,6 +1,6 @@
 # Rust + Flutter 镜像实施现状
 
-更新：2026-10-29。功能与本地接口统一索引见 [功能和接口协议](FEATURES-AND-PROTOCOLS.md)，全代码接口总览与逐层清单见 [接口索引](INTERFACE-INDEX.md)。本页描述工作树；公开 APK 的内容以对应发布记录为准。模块差距只维护在 [功能对照](MIRROR-PARITY.md)，未完成事项只维护在 [待办](MIRROR-TODO.md)，过程与历次测试见 [历史证据索引](archive/mirror/README.md)。
+更新：2026-10-31。功能与本地接口统一索引见 [功能和接口协议](FEATURES-AND-PROTOCOLS.md)，全代码接口总览与逐层清单见 [接口索引](INTERFACE-INDEX.md)。本页描述工作树；公开 APK 的内容以对应发布记录为准。模块差距只维护在 [功能对照](MIRROR-PARITY.md)，未完成事项只维护在 [待办](MIRROR-TODO.md)，过程与历次测试见 [历史证据索引](archive/mirror/README.md)。
 
 ## 产品与验收边界
 
@@ -12,9 +12,9 @@
 
 既往真实账号只读检查已覆盖已接入模块，但最近一次集成登录失败；两次结果分别保留于 [验收记录](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md) 与 [认证异常诊断](_audit/2026-10-21-auth-redirect-incident.md)。不能把早先通过推广为当前所有网络均可用，也不能将工作树改动当作已经发布。
 
-手机一级入口为工作台、签到、课表、作业、预约；桌面使用分组侧栏与独立目的地栈。`main.dart` 已按可用宽度 760px 选择手机或桌面布局。Android 保险库使用 Keystore；Windows Credential Manager 合成往返已通过，macOS 镜像保险库分支仍待验收。
+手机一级入口为 **今天 / 课表 / 作业 / 图书馆 / 更多**；桌面使用分组侧栏与独立目的地栈。`main.dart` 已按可用宽度 760px 选择手机或桌面布局。「更多」承载其余服务，常用服务置顶后从原分组动态移除，避免同一页面出现重复导航项。Android 保险库使用 Keystore；Windows Credential Manager 合成往返已通过，macOS 镜像保险库分支仍待验收。
 
-Alpha.4 起，手机端使用 iOS 式大标题、分组卡片和触控尺寸；宽度达到 760px 后切换为 macOS 式“分区 / 标题 / 说明 / 操作”固定页头、较小圆角和桌面侧栏。Windows 首发包复用同一界面规则，在宽屏显示分组侧栏、窄窗口切换底部导航。系统返回一次先离开非工作台主页面，详情只退一层；工作台第一次返回只显示退出提示。显示与阅读、通知与后台、账号与隐私、UBAA 致谢和分享入口均已进入设置；未接入的后台提醒或品牌自启动能力在页面中明确说明。
+Alpha.4 起，手机端使用 iOS 式大标题、分组列表和触控尺寸；宽度达到 760px 后切换为 macOS 式“分区 / 标题 / 说明 / 操作”固定页头、较小圆角和桌面侧栏。Windows 首发包复用同一界面规则，在宽屏显示分组侧栏、窄窗口切换底部导航。系统返回一次先离开非工作台主页面，详情只退一层；工作台第一次返回只显示退出提示。显示与阅读、通知与后台、账号与隐私、UBAA 致谢和分享入口均已进入设置；未接入的后台提醒或品牌自启动能力在页面中明确说明。
 
 2026-10-22 源码新增渐进加载样板：工作台的今日课程与个人课程作业分别读取、完成即显示，局部失败可单独重试；研究生教务保留学籍与执行报告的独立加载。两页参考原生 `IOSTodayView`、`IOSGraduateAcademicView` 的分组与局部状态，并沿用桌面的紧凑圆角及固定页头。加载使用主题色银杏叶轻微呼吸，首次内容出现时淡入；刷新时保留已有结果，不逐字输出课程或成绩。减少动态效果或所在标签页关闭 ticker 时停止呼吸动画；桌面支持 `Ctrl+R` / `⌘R` 刷新当前页。这些改动已进入 Android Alpha.5 公开包。
 
@@ -25,6 +25,16 @@ Alpha.4 起，手机端使用 iOS 式大标题、分组卡片和触控尺寸；�
 Android 更新检查仍读取 GitHub Releases，但 Alpha.4 起可在应用内下载官方 APK（Alpha.5 保留），支持暂停、断点续传、GitHub 发布与 API 两个官方入口、SHA-256、包名、版本和签名证书校验。安装始终交由 Android 系统确认。没有自控国内 CDN 时，直接下载速度仍取决于 GitHub 连通性；页面保留手动发布入口。
 
 2026-10-26 接续修复共享状态徽标：窄屏大字允许完整状态换行，不再以省略号隐藏限定语；徽标与图标底座的显式动态颜色按当前深浅主题解析。图标底座尺寸不变，字形随系统字号适度放大并限制在底座的 75% 以内；显式大图标同样有界，父级图标主题不会重复缩放。新增截断/语义/动态色及缩放边界回归，设备证据见 [集成记录](_audit/2026-10-26-module-integration.md)。物理设备和完整 TalkBack 验收未完成；改动随 Alpha.9 公开。
+
+## Flutter 交互语言复原与视觉闭环（2026-10-31 工作树）
+
+Flutter 导航、页面汇总、状态三件套和系统选择交互已按冻结的 Apple 语义复原；「更多」中的账号置顶服务会从目录原位置移除，测试验证编辑后仍只有一个导航入口。深浅色、正常/大字号、3.2×徽标及滚动末尾已在隔离 API 37 Android 模拟器完成截图→修正→复拍，最终 76 张本机合成截图与设备集成测试通过。追加视觉克制批次已将移动分组圆角收至 16dp、减淡图标底座并将分区图标改为次级色；完整截图与验证边界见 [2026-10-31 交互语言记录](_audit/2026-10-31-ui-ios-language-restore.md#视觉克制补充)。这不代表物理设备、真实账号、学校写操作或 Windows 主机验收，也不代表已发布。
+
+全页面持续优化首轮（2026-10-31）：登录表单的验证/认证错误由纯文字改为共享 `SectionFeedback`，增加图标与 live-region 朗读；提交中品牌进度标记也明确朗读“正在登录”。`login_layout_widget_test.dart` 覆盖空凭据反馈、320dp/1.8×大字号与进行中状态。在 API 37 `emulator-5554` 上安装正常入口 Debug APK，以空凭据触发错误并查看图标/文案，确认未发起学校登录；随后进入离线演示并留在今天页，当前截图 `/tmp/ginkgo-login-error-final.png` 和 `/tmp/ginkgo-style-demo.png` 未入库。全路由审查仍在进行，后续按 `MIRROR-TODO.md` 的持续 Goal 分批闭环；模拟器不代表真机或 TalkBack 验收。
+
+## Flutter 偏好存储边界（2026-10-31 工作树）
+
+`shared/app_preferences.dart` 仅持有外观与显式退出状态，通过读写回调对接存储；文件路径解析、JSON 编解码和原子替换由 `infrastructure/display_preferences_file_store.dart` 负责，正常入口在 `main.dart` 创建并注入同一个偏好实例。`display-preferences-v1.json` 的文件名与字段保持不变。架构门禁禁止共享状态新增文件/平台 API 依赖，并固定追踪 `course_visibility` 文件存储和 `school_links` 系统链接两项待迁移例外。临时目录读写往返、根会话注入、边界自测和 Flutter 定向测试通过。正常入口 Debug APK 已装到 API 37 `emulator-5554`；通过模拟器触控浏览今天、课表、作业、图书馆、更多（含目录滚动）与外观设置，切换深色并强制重启确认偏好恢复，之后还原跟随系统并留在今天页。复启检查期间关闭 Wi-Fi/数据，完成后恢复；全程使用离线演示，未登录真实账号或执行学校写入。当前截图 `/tmp/ginkgo-style-demo.png` 未入库；这些证据不替代物理设备 / TalkBack 验收，本变化未发布。
 
 ## 工作台状态修正（2026-10-28 工作树）
 
@@ -78,7 +88,7 @@ Android 更新检查仍读取 GitHub Releases，但 Alpha.4 起可在应用内�
 | 设计系统 | [design tokens](../flutter/lib/design/tokens/)、[widgets](../flutter/lib/widgets/) | token 层（颜色/布局/动效/圆角/间距/字体）+ 按职责拆分的组件模块（surfaces/controls/navigation）；`apple_widgets.dart` 仅作 barrel 转发 |
 | 功能域 | [features/](../flutter/lib/features/) | 一个域一个目录：页面、域内组件（`<domain>_widgets.dart`）、模型与控制器同居；新增功能落在此处 |
 | 功能组件 | `today_course_section`、`homework_widgets`、`homework_files_widgets`、`graduate_sections`、`library_cards`、`shuttle_widgets`、`checkin_widgets`、`schedule_widgets`、`cgyy_widgets`、`cgyy_day_view`、`bykc_course_tile` | 大页面抽出的行级/区块组件与整页拆分（如 CGYY 日查询/订单页独立于 hub）；widget API 只收发类型值，不出现 `Map<String, dynamic>`（同由架构脚本强制） |
-| 跨域共享 | [shared/](../flutter/lib/shared/)、[platform/](../flutter/lib/platform/)、[workspace/](../flutter/lib/workspace/) | 多域共用的时间/偏好/提醒状态、平台与系统集成、壳层与功能登记表 |
+| 跨域共享 | [shared/](../flutter/lib/shared/)、[platform/](../flutter/lib/platform/)、[workspace/](../flutter/lib/workspace/) | 多域共用的时间/偏好/提醒状态、平台与系统集成、壳层与功能登记表；本机文件读写由 infrastructure 适配器实现并注入 |
 | 组合入口 | `lib/main.dart`、`lib/mirror_service.dart`、`lib/startup_page.dart` | `lib/` 根只放入口；其余文件必须归入上表目录，由架构脚本强制 |
 | 共享契约 | [fixtures](../fixtures/README.md) | 两种语言独立消费同一输入与期望领域投影；覆盖范围须明确 |
 

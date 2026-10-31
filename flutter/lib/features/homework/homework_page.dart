@@ -55,6 +55,14 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
   DateTime get _clock => widget.now ?? todaySchoolNow(DateTime.now());
 
+  String _filterLabel(int value) => switch (value) {
+    1 => '待完成 $pending',
+    2 => '已提交 $submitted',
+    3 => '已截止 $overdue',
+    4 => '待确认 $unknown',
+    _ => '全部',
+  };
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -188,57 +196,57 @@ class _HomeworkPageState extends State<HomeworkPage> {
     ),
     child: SafeArea(
       child: CustomScrollView(
-      key: const Key('homework-scroll'),
-      slivers: [
-        ApplePageHeader(
-          largeTitle: const Text('作业'),
-          section: '学业',
-          subtitle: '区分个人作业状态与助教课程',
-          icon: CupertinoIcons.doc_text,
-          border: null,
-          trailing: AppleGlassButton(
-            label: '刷新作业',
-            onPressed: busy ? null : () => load(force: true),
-            child: busy
-                ? const GinkgoActivity(size: 17)
-                : const Icon(CupertinoIcons.refresh, size: 24),
+        key: const Key('homework-scroll'),
+        slivers: [
+          ApplePageHeader(
+            largeTitle: const Text('作业'),
+            section: '学业',
+            subtitle: '区分个人作业状态与助教课程',
+            icon: CupertinoIcons.doc_text,
+            border: null,
+            trailing: AppleGlassButton(
+              label: '刷新作业',
+              onPressed: busy ? null : () => load(force: true),
+              child: busy
+                  ? const GinkgoActivity(size: 17)
+                  : const Icon(CupertinoIcons.refresh, size: 24),
+            ),
           ),
-        ),
-        CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
-        if (notice != null)
-          SliverToBoxAdapter(
-            child: AppleSection(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    notice!,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppleDesign.statusPending.resolveFrom(context),
+          CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
+          if (notice != null)
+            SliverToBoxAdapter(
+              child: AppleSection(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      notice!,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppleDesign.statusPending.resolveFrom(context),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        if (error != null)
-          SliverToBoxAdapter(
-            child: AppleEmptyState(
-              title: error!,
-              description: '请检查网络后重试。',
-              error: true,
-              action: '重试',
-              onAction: () => load(force: true),
-            ),
-          )
-        else if (data == null)
-          const SliverToBoxAdapter(child: GinkgoLoadingView(label: '正在读取作业…'))
-        else
-          ..._content(data!),
-        const SliverToBoxAdapter(child: SizedBox(height: 96)),
-      ],
-    )
+          if (error != null)
+            SliverToBoxAdapter(
+              child: AppleEmptyState(
+                title: error!,
+                description: '请检查网络后重试。',
+                error: true,
+                action: '重试',
+                onAction: () => load(force: true),
+              ),
+            )
+          else if (data == null)
+            const SliverToBoxAdapter(child: GinkgoLoadingView(label: '正在读取作业…'))
+          else
+            ..._content(data!),
+          const SliverToBoxAdapter(child: SizedBox(height: 96)),
+        ],
+      ),
     ),
   );
 
@@ -297,36 +305,19 @@ class _HomeworkPageState extends State<HomeworkPage> {
         ),
       ),
     SliverToBoxAdapter(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SummaryStrip(
-            items: [
-              SummaryItem(
-                '待完成',
-                '$pending 项',
-                icon: CupertinoIcons.doc_text,
-                key: const ValueKey('homework-summary-待完成'),
-              ),
-              SummaryItem(
-                '已提交',
-                '$submitted 项',
-                icon: CupertinoIcons.checkmark_circle,
-                key: const ValueKey('homework-summary-已提交'),
-              ),
-              SummaryItem(
-                '已截止',
-                '$overdue 项',
-                icon: CupertinoIcons.exclamationmark_circle,
-                key: const ValueKey('homework-summary-已截止'),
-              ),
-            ],
-            note: '学校状态与个人待办独立 · 截止时间按北京时间显示',
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+        child: Text(
+          '学校状态与个人待办独立 · 截止时间按北京时间显示',
+          style: TextStyle(
+            fontSize: 13,
+            color: CupertinoColors.secondaryLabel.resolveFrom(context),
           ),
-        ],
+        ),
       ),
     ),
     SliverToBoxAdapter(
+      key: const Key('homework-status-summary'),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
         child: MediaQuery.textScalerOf(context).scale(14) > 20
@@ -334,7 +325,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                 title: '作业状态',
                 value: filter,
                 values: const [0, 1, 2, 3, 4],
-                label: homeworkFilterLabel,
+                label: _filterLabel,
                 onSelected: (value) => setState(() {
                   filter = value;
                   prepare();
@@ -346,18 +337,24 @@ class _HomeworkPageState extends State<HomeworkPage> {
                   filter = value ?? 0;
                   prepare();
                 }),
-                children: const {
-                  0: Padding(
+                children: {
+                  0: const Padding(
                     padding: EdgeInsets.symmetric(vertical: 6),
                     child: Text('全部'),
                   ),
                   1: Padding(
                     padding: EdgeInsets.symmetric(vertical: 6),
-                    child: Text('待完成', key: Key('homework-filter-pending')),
+                    child: Text(
+                      '待完成 $pending',
+                      key: const Key('homework-filter-pending'),
+                    ),
                   ),
                   2: Padding(
                     padding: EdgeInsets.symmetric(vertical: 6),
-                    child: Text('已提交', key: Key('homework-filter-submitted')),
+                    child: Text(
+                      '已提交 $submitted',
+                      key: const Key('homework-filter-submitted'),
+                    ),
                   ),
                 },
               ),
@@ -385,23 +382,20 @@ class _HomeworkPageState extends State<HomeworkPage> {
           runSpacing: 8,
           children: [
             HomeworkQuickFilter(
-              value: 1,
-              label: '待完成 $pending',
-              tint: AppleDesign.statusPending,
-              selected: filter == 1,
-              onPressed: () => _toggleFilter(1),
-            ),
-            HomeworkQuickFilter(
               value: 3,
               label: '已截止 $overdue',
-              tint: AppleDesign.statusDanger,
+              tint: overdue == 0
+                  ? CupertinoColors.secondaryLabel
+                  : AppleDesign.statusDanger,
               selected: filter == 3,
               onPressed: () => _toggleFilter(3),
             ),
             HomeworkQuickFilter(
               value: 4,
               label: '待确认 $unknown',
-              tint: AppleDesign.statusUncertain,
+              tint: unknown == 0
+                  ? CupertinoColors.secondaryLabel
+                  : AppleDesign.statusUncertain,
               selected: filter == 4,
               onPressed: () => _toggleFilter(4),
             ),

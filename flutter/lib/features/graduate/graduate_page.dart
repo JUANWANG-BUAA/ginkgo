@@ -231,11 +231,11 @@ class _GraduatePageState extends State<GraduatePage> {
   @override
   Widget build(BuildContext context) => PageRefreshShortcut(
     onRefresh: busy ? null : () => load(force: true),
-    child: SafeArea(
-      child: CupertinoPageScaffold(
-        backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
-          context,
-        ),
+    child: CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
+        context,
+      ),
+      child: SafeArea(
         child: LongPageScroll(
           controller: scrollController,
           child: CustomScrollView(

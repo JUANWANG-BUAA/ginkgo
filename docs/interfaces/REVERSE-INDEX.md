@@ -53,6 +53,7 @@
 | `design/tokens/colors.dart` | GinkgoColors → dart-design.md |
 | `design/tokens/layout.dart` | GinkgoLayout → dart-design.md |
 | `design/tokens/motion.dart` | GinkgoMotion → dart-design.md |
+| `design/tokens/opacity.dart` | GinkgoOpacity → dart-design.md |
 | `design/tokens/radii.dart` | GinkgoRadii → dart-design.md |
 | `design/tokens/spacing.dart` | GinkgoSpacing → dart-design.md |
 | `design/tokens/typography.dart` | GinkgoTypography → dart-design.md |
@@ -168,6 +169,7 @@
 | `infrastructure/demo_learning.dart` | DemoLearning → dart-infrastructure.md |
 | `infrastructure/demo_library_loans.dart` | DemoLibraryLoans → dart-infrastructure.md |
 | `infrastructure/demo_mirror_service.dart` | DemoMirrorService → dart-infrastructure.md |
+| `infrastructure/display_preferences_file_store.dart` | DisplayPreferencesFileStore → dart-infrastructure.md |
 | `infrastructure/graduate_credit_map_payload.dart` | decodeGraduateCreditMapRead → dart-infrastructure.md |
 | `infrastructure/graduate_decode.dart` | decodeGraduate → dart-infrastructure.md |
 | `infrastructure/homework_file_io.dart` | pickHomeworkFile → dart-infrastructure.md<br>saveAndOpenSchoolFile → dart-infrastructure.md<br>SchoolFileSaveService → dart-infrastructure.md<br>SchoolFileDestinationPicker → dart-infrastructure.md<br>SchoolFileDestination → dart-infrastructure.md<br>safeSchoolFileName → dart-infrastructure.md |
@@ -415,7 +417,7 @@
 | `widgets/reminder_badge.dart` | ReminderBadge → dart-widgets.md |
 | `widgets/resource_meter.dart` | ResourceMeter → dart-widgets.md |
 | `widgets/status_chip.dart` | StatusTone → dart-widgets.md<br>statusToneColor → dart-widgets.md<br>StatusChip → dart-widgets.md |
-| `widgets/summary_strip.dart` | SummaryItem → dart-widgets.md<br>SummaryStrip → dart-widgets.md<br>SummaryLine → dart-widgets.md<br>MetricValue → dart-widgets.md |
+| `widgets/summary_strip.dart` | SummaryItem → dart-widgets.md<br>SummaryStrip → dart-widgets.md<br>summaryValueColor → dart-widgets.md<br>SummaryLine → dart-widgets.md<br>MetricValue → dart-widgets.md |
 | `workspace/desktop_workspace_shell.dart` | DesktopWorkspaceShell → dart-workspace.md |
 | `workspace/desktop_workspace_sidebar.dart` | workspaceBrandIdentity → dart-workspace.md<br>workspaceSidebarItem → dart-workspace.md<br>workspaceSidebarFooter → dart-workspace.md |
 | `workspace/mobile_workspace_shell.dart` | MobileWorkspaceShell → dart-workspace.md |

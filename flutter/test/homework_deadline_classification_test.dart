@@ -301,7 +301,7 @@ void main() {
     );
 
     testWidgets(
-      'HomeworkPage separates 待完成 and 已截止 with no overlap and matches summary counts',
+      'HomeworkPage separates statuses and shows counts on quick filters',
       (tester) async {
         tester.view.physicalSize = const Size(430, 1600);
         tester.view.devicePixelRatio = 1;
@@ -318,37 +318,22 @@ void main() {
 
         await tester.pumpWidget(
           ginkgoApp(
-            home: HomeworkPage(fileActions: platformActions,service: gateway, now: beijingNow),
+            home: HomeworkPage(
+              fileActions: platformActions,
+              service: gateway,
+              now: beijingNow,
+            ),
           ),
         );
         await tester.pumpAndSettle();
 
-        // Check summary metric counts:
-        // pending = 4 (active-soon, active-date, undated, invalid-due)
-        // submitted = 1 (submitted-1)
-        // overdue = 2 (overdue-1, overdue-date)
-        // unknown = 1
-        final pendingSummary = find.byKey(
-          const ValueKey('homework-summary-待完成'),
-        );
-        expect(
-          find.descendant(of: pendingSummary, matching: find.text('4 项')),
-          findsOneWidget,
-        );
-        final submittedSummary = find.byKey(
-          const ValueKey('homework-summary-已提交'),
-        );
-        expect(
-          find.descendant(of: submittedSummary, matching: find.text('1 项')),
-          findsOneWidget,
-        );
-        final overdueSummary = find.byKey(
-          const ValueKey('homework-summary-已截止'),
-        );
-        expect(
-          find.descendant(of: overdueSummary, matching: find.text('2 项')),
-          findsOneWidget,
-        );
+        // Counts live on the filters that use them, rather than in a second
+        // stacked summary card above those same controls.
+        expect(find.text('待完成 4'), findsOneWidget);
+        expect(find.text('已提交 1'), findsOneWidget);
+        expect(find.text('已截止 2'), findsOneWidget);
+        expect(find.text('待确认 1'), findsOneWidget);
+        expect(find.text('学校状态与个人待办独立 · 截止时间按北京时间显示'), findsOneWidget);
 
         // Filter 0 (全部): all 8 items are visible
         expect(find.text('8 项作业'), findsOneWidget);
@@ -400,13 +385,25 @@ void main() {
       );
       await tester.pumpWidget(
         ginkgoApp(
-          home: HomeworkPage(fileActions: platformActions,service: gateway, now: beijingNow),
+          home: HomeworkPage(
+            fileActions: platformActions,
+            service: gateway,
+            now: beijingNow,
+          ),
         ),
       );
       await tester.pumpAndSettle();
 
       expect(find.textContaining('作业结果不完整'), findsOneWidget);
       expect(find.textContaining('课程身份未能全部核对'), findsOneWidget);
+      final overdueFilter = find.text('已截止 0');
+      expect(overdueFilter, findsOneWidget);
+      expect(
+        tester.widget<Text>(overdueFilter).style!.color,
+        CupertinoColors.secondaryLabel.resolveFrom(
+          tester.element(overdueFilter),
+        ),
+      );
     });
   });
 }

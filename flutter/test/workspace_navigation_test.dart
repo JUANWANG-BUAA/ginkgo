@@ -133,7 +133,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
-    expect(find.text('查看完整课表'), findsOneWidget);
+    expect(find.text('完整课表'), findsOneWidget);
     expect(find.text('再返回一次退出 Ginkgo'), findsNothing);
     expect(exits, 0);
     await tester.binding.handlePopRoute();
@@ -248,12 +248,12 @@ void main() {
       lessThan(tester.getRect(find.text('课程签到')).top + position.pixels),
     );
     await tester.scrollUntilVisible(
-      find.text('查看完整课表'),
+      find.text('完整课表'),
       -180,
       scrollable: scroller,
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('查看完整课表'));
+    await tester.tap(find.text('完整课表'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('schedule-search')), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -308,7 +308,7 @@ void main() {
                 textScaler: const TextScaler.linear(1.8),
                 disableAnimations: true,
               ),
-              child: TodayPage(fileActions: platformActions,service: service),
+              child: TodayPage(fileActions: platformActions, service: service),
             ),
           ),
         ),

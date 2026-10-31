@@ -14,75 +14,91 @@ class CareerEventsPage extends StatelessWidget {
   final CareerEventsGateway? service;
 
   @override
-  Widget build(
-    BuildContext context,
-  ) => PublicInformationPage<CareerEvents, String>(
-    service: service,
-    initialQuery: _schoolMonth(DateTime.now()),
-    read: (month, force) async {
-      final result = await service!.careerEvents(
-        month: month,
-        forceRefresh: force,
-      );
-      return SectionResult(
-        value: result.data,
-        error: result.failure == null ? null : failureMessage(result.failure),
-        failure: result.failure,
-      );
-    },
-    scrollKey: const Key('career-events-scroll'),
-    title: '就业活动',
-    subtitle: '学校就业网公开的宣讲与双选安排',
-    icon: CupertinoIcons.briefcase,
-    refreshLabel: '刷新就业活动',
-    loadingLabel: '正在读取就业活动…',
-    unsupportedTitle: '当前服务不支持就业活动',
-    queryBuilder: (context, month, busy, select) => AppleSection(
-      header: const Text('月份'),
-      children: [
-        CupertinoListTile(
-          title: Text(month),
-          subtitle: const Text('按学校就业网日历月份查询'),
-          trailing: CupertinoButton(
-            onPressed: busy
+  Widget build(BuildContext context) =>
+      PublicInformationPage<CareerEvents, String>(
+        service: service,
+        initialQuery: _schoolMonth(DateTime.now()),
+        read: (month, force) async {
+          final result = await service!.careerEvents(
+            month: month,
+            forceRefresh: force,
+          );
+          return SectionResult(
+            value: result.data,
+            error: result.failure == null
                 ? null
-                : () async {
-                    final value = await _pickMonth(context, month);
-                    if (value != null && context.mounted) select(value);
-                  },
-            child: const Text('选择'),
-          ),
-        ),
-      ],
-    ),
-    contentBuilder: (context, data) {
-      if (data.events.isEmpty) {
-        return const AppleStatusSection(
-          title: '本月没有活动',
-          description: '这是就业网成功返回的空结果；可查询其他月份。',
-        );
-      }
-      return AppleSection(
-        header: Text('${data.events.length} 条安排'),
-        footer: Text('来源：学校就业网 · 同步 ${schoolTimestampLabel(data.fetchedAt)}'),
-        children: [
-          for (final event in data.events)
+                : failureMessage(result.failure),
+            failure: result.failure,
+          );
+        },
+        scrollKey: const Key('career-events-scroll'),
+        title: '就业活动',
+        subtitle: '学校就业网公开的宣讲与双选安排',
+        icon: CupertinoIcons.briefcase,
+        refreshLabel: '刷新就业活动',
+        loadingLabel: '正在读取就业活动…',
+        unsupportedTitle: '当前服务不支持就业活动',
+        queryBuilder: (context, month, busy, select) => AppleSection(
+          header: const Text('月份'),
+          children: [
             AppleListTile(
-              key: Key('career-event-${event.id}'),
-              title: Text(event.title),
-              subtitle: Text(
-                '${event.beginsAt}–${event.endsAt}\n'
-                '${event.campus.isEmpty ? '校区未提供' : event.campus} · '
-                '${event.place.isEmpty ? '地点未提供' : event.place}\n'
-                '${event.fairType.isEmpty ? '类型未提供' : event.fairType}',
+              title: Text(month),
+              subtitle: const Text('按学校就业网日历月份查询'),
+              trailing: CupertinoButton(
+                onPressed: busy
+                    ? null
+                    : () async {
+                        final value = await _pickMonth(context, month);
+                        if (value != null && context.mounted) select(value);
+                      },
+                minimumSize: const Size(48, 48),
+                child: const Text('选择'),
               ),
-              trailing: const Icon(CupertinoIcons.chevron_right),
-              onTap: () => _openEvent(context, event),
             ),
-        ],
+          ],
+        ),
+        contentBuilder: (context, data) {
+          if (data.events.isEmpty) {
+            return const AppleStatusSection(
+              title: '本月没有活动',
+              description: '这是就业网成功返回的空结果；可查询其他月份。',
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SummaryStrip(
+                items: [
+                  SummaryItem(
+                    '本月安排',
+                    '${data.events.length} 条',
+                    icon: CupertinoIcons.briefcase,
+                  ),
+                ],
+                note: '来源：学校就业网 · 同步 ${schoolTimestampLabel(data.fetchedAt)}',
+              ),
+              AppleSection(
+                header: const Text('安排'),
+                children: [
+                  for (final event in data.events)
+                    AppleListTile(
+                      key: Key('career-event-${event.id}'),
+                      title: Text(event.title),
+                      subtitle: Text(
+                        '${event.beginsAt}–${event.endsAt}\n'
+                        '${event.campus.isEmpty ? '校区未提供' : event.campus} · '
+                        '${event.place.isEmpty ? '地点未提供' : event.place}\n'
+                        '${event.fairType.isEmpty ? '类型未提供' : event.fairType}',
+                      ),
+                      trailing: const Icon(CupertinoIcons.chevron_right),
+                      onTap: () => _openEvent(context, event),
+                    ),
+                ],
+              ),
+            ],
+          );
+        },
       );
-    },
-  );
 }
 
 String _schoolMonth(DateTime instant) {
@@ -107,33 +123,33 @@ Future<String?> _pickMonth(BuildContext context, String month) async {
       color: CupertinoColors.systemBackground.resolveFrom(context),
       child: SafeArea(
         child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CupertinoButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('取消'),
-              ),
-              CupertinoButton(
-                onPressed: () => Navigator.pop(context, selected),
-                child: const Text('确认'),
-              ),
-            ],
-          ),
-          Expanded(
-            child: CupertinoDatePicker(
-              key: const Key('career-month-picker'),
-              mode: CupertinoDatePickerMode.monthYear,
-              initialDateTime: selected,
-              minimumYear: 2020,
-              maximumYear: 2035,
-              onDateTimeChanged: (value) =>
-                  selected = DateTime(value.year, value.month),
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CupertinoButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('取消'),
+                ),
+                CupertinoButton(
+                  onPressed: () => Navigator.pop(context, selected),
+                  child: const Text('确认'),
+                ),
+              ],
             ),
-          ),
-        ],
-      )
+            Expanded(
+              child: CupertinoDatePicker(
+                key: const Key('career-month-picker'),
+                mode: CupertinoDatePickerMode.monthYear,
+                initialDateTime: selected,
+                minimumYear: 2020,
+                maximumYear: 2035,
+                onDateTimeChanged: (value) =>
+                    selected = DateTime(value.year, value.month),
+              ),
+            ),
+          ],
+        ),
       ),
     ),
   );

@@ -141,7 +141,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('0 条公开安排'), findsOneWidget);
+      expect(find.text('0 条'), findsOneWidget);
     },
   );
 }

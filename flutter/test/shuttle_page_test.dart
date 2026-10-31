@@ -10,6 +10,7 @@ import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/workspace/service_directory.dart';
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 import 'package:ginkgo_mirror/features/shuttle/shuttle_page.dart';
+
 import 'platform_actions_fake.dart';
 
 // Only this read capability is implemented. Unexpected calls fail rather than
@@ -671,8 +672,8 @@ void main() {
       expect(calls.single.arguments['useWebView'], isFalse);
       expect(calls.single.arguments['useSafariVC'], isFalse);
       expect(service.requests, hasLength(1));
-      expect(find.text('前往官方认证并查看余票'), findsOneWidget);
-      expect(find.textContaining('应用内尚未接通实时余票会话'), findsOneWidget);
+      expect(find.text('前往官方页面核对余票'), findsOneWidget);
+      expect(find.textContaining('应用内不读取实时数据'), findsOneWidget);
     },
   );
 
@@ -904,7 +905,8 @@ void main() {
           CupertinoPageScaffold(
             child: ListView(
               children: [
-                ServiceDirectory(platformActions: platformActions,
+                ServiceDirectory(
+                  platformActions: platformActions,
                   service: service,
                   destinations: workspaceDestinations,
                   onSignOut: () async {},

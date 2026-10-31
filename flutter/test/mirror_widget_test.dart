@@ -459,7 +459,6 @@ Future<void> start(WidgetTester tester, ControlledService service) async {
   await tester.pump();
 }
 
-
 /// Complete every pending sign-in read.
 ///
 /// The workbench keeps its own sign-in section, so the app may hold more than
@@ -805,15 +804,8 @@ void main() {
     await tester.tap(find.text('作业'));
     await tester.pumpAndSettle();
 
-    for (final label in ['待完成', '已提交']) {
-      expect(
-        find.descendant(
-          of: find.byKey(ValueKey('homework-summary-$label')),
-          matching: find.text('1 项'),
-        ),
-        findsOneWidget,
-      );
-    }
+    expect(find.text('待完成 1'), findsOneWidget);
+    expect(find.text('已提交 1'), findsOneWidget);
     expect(find.text('作业一'), findsOneWidget);
     expect(find.text('作业二'), findsOneWidget);
 
@@ -1080,12 +1072,12 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(
-      find.descendant(
-        of: find.byKey(const Key('checkin-scroll')),
-        matching: find.text('正在保留 $selected 的结果'),
-      ),
-      findsOneWidget,
-    );
+        find.descendant(
+          of: find.byKey(const Key('checkin-scroll')),
+          matching: find.text('正在保留 $selected 的结果'),
+        ),
+        findsOneWidget,
+      );
       expect(find.text('当天 3 节课'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },

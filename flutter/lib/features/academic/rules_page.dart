@@ -66,18 +66,27 @@ class _RulesPageState extends State<RulesPage> {
               ),
               sliver: SliverList.list(
                 children: [
+                  SummaryStrip(
+                    items: [
+                      SummaryItem(
+                        '学校日期',
+                        rules.localDate,
+                        icon: CupertinoIcons.calendar,
+                      ),
+                      SummaryItem(
+                        '时区',
+                        rules.timeZone,
+                        icon: CupertinoIcons.clock,
+                      ),
+                    ],
+                    note: '规则示例来自共享领域规则，不是学校实时数据。',
+                  ),
                   AppleSection(
-                    header: const Text('学校日期'),
+                    header: const Text('日期换算'),
                     children: [
                       const AppleListTile(
                         title: Text('样例时刻'),
                         subtitle: Text('2026-10-18T16:30:00Z'),
-                      ),
-                      AppleListTile(
-                        title: const Text('学校日期'),
-                        subtitle: Text(
-                          '${rules.localDate} · ${rules.timeZone}',
-                        ),
                       ),
                       AppleListTile(
                         title: const Text('距午夜'),

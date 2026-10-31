@@ -383,7 +383,7 @@ class _HomeworkFilesPanelState extends State<HomeworkFilesPanel> {
             child: GinkgoActivity(size: 24),
           ),
         CupertinoListTile(
-          title: const Text('文件与提交状态'),
+          title: const Text('文件与提交状态', maxLines: 2),
           trailing: CupertinoButton(
             onPressed: busy ? null : load,
             child: Text(d == null ? '重试' : '刷新'),

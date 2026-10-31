@@ -25,7 +25,7 @@
 - [widgets/reminder_badge.dart](#widgetsreminderbadgedart) (1)
 - [widgets/resource_meter.dart](#widgetsresourcemeterdart) (1)
 - [widgets/status_chip.dart](#widgetsstatuschipdart) (3)
-- [widgets/summary_strip.dart](#widgetssummarystripdart) (4)
+- [widgets/summary_strip.dart](#widgetssummarystripdart) (5)
 
 ## widgets/academic_widgets.dart
 
@@ -51,15 +51,15 @@
 ## widgets/apple_controls.dart
 
 - `class AppleGlassButton extends StatefulWidget`
-  <sub>class · widgets/apple_controls.dart:147</sub>
-    - `const AppleGlassButton({ super.key, required this.child, required this.onPressed, required this.label, });`  <sub>:148</sub>
-    - `State<AppleGlassButton> createState() => …`  <sub>:158</sub>
+  <sub>class · widgets/apple_controls.dart:157</sub>
+    - `const AppleGlassButton({ super.key, required this.child, required this.onPressed, required this.label, });`  <sub>:158</sub>
+    - `State<AppleGlassButton> createState() => …`  <sub>:168</sub>
 - `class ApplePickerTile<T> extends StatelessWidget`
-  <sub>class · widgets/apple_controls.dart:260</sub>
-    - `const ApplePickerTile({ super.key, required this.title, required this.value, required this.values, required this.label, required this.onSelected, this.enabled = true, });`  <sub>:261</sub>
-    - `final String Function(T) label;`  <sub>:273</sub>
-    - `final void Function(T) onSelected;`  <sub>:274</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:277</sub>
+  <sub>class · widgets/apple_controls.dart:270</sub>
+    - `const ApplePickerTile({ super.key, required this.title, required this.value, required this.values, required this.label, required this.onSelected, this.enabled = true, });`  <sub>:271</sub>
+    - `final String Function(T) label;`  <sub>:283</sub>
+    - `final void Function(T) onSelected;`  <sub>:284</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:287</sub>
 
 ## widgets/apple_navigation.dart
 
@@ -76,32 +76,32 @@
 
 - `class AppleRefreshPageHeader extends StatelessWidget`
   <sub>class · widgets/apple_page_chrome.dart:7</sub>
-    - `const AppleRefreshPageHeader({ super.key, required this.title, required this.subtitle, required this.icon, this.section = '空间资源', this.refreshLabel, this.busy = false, this.onRefresh, this.refreshKey, });`  <sub>:8</sub>
-    - `final Future<void> Function()? onRefresh;`  <sub>:26</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:33</sub>
+    - `const AppleRefreshPageHeader({ super.key, required this.title, required this.subtitle, required this.icon, this.leading, this.section = '空间资源', this.refreshLabel, this.busy = false, this.onRefresh, this.refreshKey, });`  <sub>:8</sub>
+    - `final Future<void> Function()? onRefresh;`  <sub>:28</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:35</sub>
 - `class AppleStatusSection extends StatelessWidget`
-  <sub>class · widgets/apple_page_chrome.dart:52</sub>
-    - `const AppleStatusSection({ super.key, required this.title, required this.description, this.action, this.onAction, this.error = false, this.animateSize = true, });`  <sub>:53</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:71</sub>
+  <sub>class · widgets/apple_page_chrome.dart:55</sub>
+    - `const AppleStatusSection({ super.key, required this.title, required this.description, this.action, this.onAction, this.error = false, this.animateSize = true, });`  <sub>:56</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:74</sub>
 
 ## widgets/apple_surfaces.dart
 
 - `class ApplePageHeader extends StatelessWidget` — Phone pages keep the native collapsing title. Wide windows use the same
   <sub>class · widgets/apple_surfaces.dart:9</sub>
-    - `const ApplePageHeader({ super.key, required this.largeTitle, this.trailing, this.previousPageTitle, this.border, this.section, this.subtitle, this.icon, });`  <sub>:10</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:32</sub>
+    - `const ApplePageHeader({ super.key, required this.largeTitle, this.trailing, this.leading, this.previousPageTitle, this.border, this.section, this.subtitle, this.icon, });`  <sub>:10</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:34</sub>
 - `class AppleEmptyState extends StatelessWidget`
-  <sub>class · widgets/apple_surfaces.dart:130</sub>
-    - `const AppleEmptyState({ super.key, required this.title, required this.description, this.action, this.onAction, this.error = false, this.icon, });`  <sub>:131</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:146</sub>
+  <sub>class · widgets/apple_surfaces.dart:137</sub>
+    - `const AppleEmptyState({ super.key, required this.title, required this.description, this.action, this.onAction, this.error = false, this.icon, });`  <sub>:138</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:153</sub>
 - `class AppleSection extends StatelessWidget` — Modern inset groups use a continuous corner, a quiet content surface and
-  <sub>class · widgets/apple_surfaces.dart:182</sub>
-    - `const AppleSection({ super.key, required this.children, this.header, this.footer, this.animateSize = true, });`  <sub>:183</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:194</sub>
+  <sub>class · widgets/apple_surfaces.dart:189</sub>
+    - `const AppleSection({ super.key, required this.children, this.header, this.footer, this.animateSize = true, });`  <sub>:190</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:201</sub>
 - `class AppleListTile extends StatelessWidget`
-  <sub>class · widgets/apple_surfaces.dart:287</sub>
-    - `const AppleListTile({ super.key, required this.title, this.subtitle, this.additionalInfo, this.leading, this.trailing, this.onTap, this.minimumHeight = AppleDesign.rowHeight, this.leadingSize = 30, });`  <sub>:288</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:305</sub>
+  <sub>class · widgets/apple_surfaces.dart:294</sub>
+    - `const AppleListTile({ super.key, required this.title, this.subtitle, this.additionalInfo, this.leading, this.trailing, this.onTap, this.minimumHeight = AppleDesign.rowHeight, this.leadingSize = 30, });`  <sub>:295</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:312</sub>
 
 ## widgets/collection_toolbar.dart
 
@@ -147,9 +147,9 @@
     - `const GinkgoIconTile({ super.key, required this.icon, this.size = 44, this.iconSize, this.selected = false, this.color, this.semanticLabel, });`  <sub>:8</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:26</sub>
 - `class GinkgoBadge extends StatelessWidget` — A compact tinted label. The text always carries the meaning; color is only
-  <sub>class · widgets/ginkgo_visuals.dart:62</sub>
-    - `const GinkgoBadge({ super.key, required this.label, this.icon, this.color, this.compact = false, });`  <sub>:63</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:77</sub>
+  <sub>class · widgets/ginkgo_visuals.dart:68</sub>
+    - `const GinkgoBadge({ super.key, required this.label, this.icon, this.color, this.compact = false, });`  <sub>:69</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:83</sub>
 
 ## widgets/loading_widgets.dart
 
@@ -259,16 +259,18 @@
 
 - `class SummaryItem` — One label/value pair. The value answers the page's question; the label
   <sub>class · widgets/summary_strip.dart:8</sub>
-    - `const SummaryItem( this.label, this.value, { this.icon, this.tone, this.key, });`  <sub>:9</sub>
+    - `const SummaryItem(this.label, this.value, {this.icon, this.tone, this.key});`  <sub>:9</sub>
 - `class SummaryStrip extends StatelessWidget` — A quiet summary surface: label on the left, value aligned right.
-  <sub>class · widgets/summary_strip.dart:46</sub>
-    - `const SummaryStrip({super.key, required this.items, this.note});`  <sub>:47</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:55</sub>
+  <sub>class · widgets/summary_strip.dart:40</sub>
+    - `const SummaryStrip({super.key, required this.items, this.note});`  <sub>:41</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:49</sub>
+- `Color summaryValueColor(BuildContext context, StatusTone tone) {…}` — The colour of a summary value.
+  <sub>function · widgets/summary_strip.dart:336</sub>
 - `class SummaryLine extends StatelessWidget` — A single label/value line for the top of a section.
-  <sub>class · widgets/summary_strip.dart:217</sub>
-    - `const SummaryLine( this.label, this.value, { super.key, this.icon, this.tone = StatusTone.neutral, });`  <sub>:218</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:232</sub>
+  <sub>class · widgets/summary_strip.dart:348</sub>
+    - `const SummaryLine( this.label, this.value, { super.key, this.icon, this.tone = StatusTone.neutral, });`  <sub>:349</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:363</sub>
 - `class MetricValue extends StatelessWidget` — A right aligned number that acts as the visual anchor of one row.
-  <sub>class · widgets/summary_strip.dart:273</sub>
-    - `const MetricValue( this.value, { super.key, this.prominent = false, this.tone = StatusTone.neutral, this.suffix, });`  <sub>:274</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:288</sub>
+  <sub>class · widgets/summary_strip.dart:490</sub>
+    - `const MetricValue( this.value, { super.key, this.prominent = false, this.tone = StatusTone.neutral, this.suffix, });`  <sub>:491</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:505</sub>

@@ -117,7 +117,25 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
       backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
         context,
       ),
-      navigationBar: const CupertinoNavigationBar(middle: Text('本人借阅')),
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('本人借阅'),
+        // The read action belongs to the navigation bar, next to the record
+        // list it reloads.
+        trailing: widget.gateway == null
+            ? null
+            : CupertinoButton(
+                key: const Key('library-loans-read'),
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(48, 48),
+                onPressed: _busy ? null : () => _read(data?.page ?? 1),
+                child: _busy
+                    ? const CupertinoActivityIndicator(radius: 9)
+                    : const Icon(
+                        CupertinoIcons.refresh,
+                        semanticLabel: '读取本人借阅',
+                      ),
+              ),
+      ),
       child: SafeArea(
         child: ListView(
           children: [
@@ -148,12 +166,17 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
                     padding: EdgeInsets.all(16),
                     child: Text('当前服务未提供本人借阅读取能力。'),
                   )
-                else
-                  CupertinoButton(
-                    onPressed: _busy ? null : () => _read(data?.page ?? 1),
-                    child: Text(data == null ? '读取本人借阅' : '刷新本人借阅'),
+                else if (_busy)
+                  const GinkgoActivity(size: 24),
+                if (widget.gateway != null &&
+                    data == null &&
+                    _failure == null &&
+                    !_busy)
+                  const AppleEmptyState(
+                    title: '尚未读取借阅记录',
+                    description: '点按右上角读取当前账号记录；离开栏目或进入后台后清除。',
+                    icon: CupertinoIcons.book,
                   ),
-                if (_busy) const GinkgoActivity(size: 24),
                 if (widget.officialGateway != null)
                   CupertinoButton(
                     onPressed: _openOfficial,
@@ -167,9 +190,24 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
                     ),
                   ),
                 if (data != null) ...[
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text('第 ${data.page} 页 · 学校返回共 ${data.total} 条'),
+                  SummaryStrip(
+                    items: [
+                      SummaryItem(
+                        '当前借阅',
+                        '${data.items.length} 条',
+                        icon: CupertinoIcons.bookmark,
+                      ),
+                      SummaryItem(
+                        '学校总数',
+                        '${data.total} 条',
+                        icon: CupertinoIcons.list_bullet,
+                      ),
+                      SummaryItem(
+                        '当前页',
+                        '第 ${data.page} 页',
+                        icon: CupertinoIcons.doc_text,
+                      ),
+                    ],
                   ),
                   if (data.items.isEmpty)
                     const Padding(

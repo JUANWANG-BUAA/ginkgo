@@ -82,7 +82,7 @@
 
 - `String homeworkFilterLabel(int value) => …` — 作业状态筛选文案。取值与 [HomeworkPage] 的筛选器一一对应。
   <sub>function · features/homework/homework_widgets.dart:11</sub>
-- `class HomeworkQuickFilter extends StatelessWidget` — 顶部三项统计（待完成 / 已提交 / 已截止）。
+- `class HomeworkQuickFilter extends StatelessWidget` — 状态快捷筛选按钮；再次点击同一项即回到「全部」。
   <sub>class · features/homework/homework_widgets.dart:20</sub>
     - `const HomeworkQuickFilter({ super.key, required this.value, required this.label, required this.tint, required this.selected, required this.onPressed, });`  <sub>:21</sub>
     - `Widget build(BuildContext context) => …`  <sub>:37</sub>

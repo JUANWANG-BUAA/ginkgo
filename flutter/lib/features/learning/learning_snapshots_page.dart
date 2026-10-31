@@ -82,6 +82,35 @@ class _LearningSnapshotsPageState extends State<LearningSnapshotsPage> {
     subtitle: '可选的本机保存，不增加学校查询',
     icon: CupertinoIcons.lock_shield,
     children: [
+      SummaryStrip(
+        items: [
+          SummaryItem(
+            '本机保存',
+            status == null
+                ? '正在确认'
+                : !status!.supported
+                ? '平台未接入'
+                : status!.enabled
+                ? '已开启'
+                : '已关闭',
+            icon: status == null
+                ? CupertinoIcons.clock
+                : !status!.supported
+                ? CupertinoIcons.question_circle
+                : status!.enabled
+                ? CupertinoIcons.checkmark_seal
+                : CupertinoIcons.lock_shield,
+            tone: status == null
+                ? StatusTone.pending
+                : !status!.supported
+                ? StatusTone.uncertain
+                : status!.enabled
+                ? StatusTone.success
+                : StatusTone.neutral,
+          ),
+        ],
+        note: '默认关闭；不增加学校查询，不保存账号密码。',
+      ),
       AppleSection(
         header: const Text('本机加密存储'),
         children: [

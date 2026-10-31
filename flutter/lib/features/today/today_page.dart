@@ -307,113 +307,113 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) => PageRefreshShortcut(
     onRefresh: busy ? null : () => load(force: true),
-    child: SafeArea(
-      child: CupertinoPageScaffold(
+    child: CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
         context,
       ),
-      child: CustomScrollView(
-        key: const Key('today-scroll'),
-        slivers: [
-          TodayPageHeader(
-            title: '今天',
-            busy: busy,
-            demo: widget.service.isDemo,
-            onRefresh: () => load(force: true),
-            onOpenSettings: widget.onOpenSettings,
-            onAccountAction: widget.onAccountAction == null
-                ? null
-                : accountAction,
-          ),
-          CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
-          SliverLayoutBuilder(
-            builder: (context, constraints) => SliverPadding(
-              padding: EdgeInsets.symmetric(
-                horizontal: ((constraints.crossAxisExtent - 820) / 2).clamp(
-                  0,
-                  double.infinity,
+      child: SafeArea(
+        child: CustomScrollView(
+          key: const Key('today-scroll'),
+          slivers: [
+            TodayPageHeader(
+              title: '今天',
+              busy: busy,
+              demo: widget.service.isDemo,
+              onRefresh: () => load(force: true),
+              onOpenSettings: widget.onOpenSettings,
+              onAccountAction: widget.onAccountAction == null
+                  ? null
+                  : accountAction,
+            ),
+            CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
+            SliverLayoutBuilder(
+              builder: (context, constraints) => SliverPadding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: ((constraints.crossAxisExtent - 820) / 2).clamp(
+                    0,
+                    double.infinity,
+                  ),
                 ),
-              ),
-              sliver: SliverList.list(
-                children: [
-                  if (data == null)
-                    TodayCoursePlaceholder(
-                      loading: courses.loading,
-                      error: error,
-                      onRetry: () => _loadCourses(force: true),
-                    )
-                  else
-                    SectionReveal(
-                      key: const Key('today-course-content'),
-                      child: TodayCourseSection(
-                        data: data!,
-                        now: _now,
+                sliver: SliverList.list(
+                  children: [
+                    if (data == null)
+                      TodayCoursePlaceholder(
                         loading: courses.loading,
                         error: error,
-                        expanded: _coursesExpanded,
-                        onToggleExpanded: () => setState(
-                          () => _coursesExpanded = !_coursesExpanded,
-                        ),
                         onRetry: () => _loadCourses(force: true),
-                        onOpenSchedule: widget.onOpenFeature == null
-                            ? null
-                            : () => widget.onOpenFeature!('schedule'),
-                        demo: widget.service.isDemo,
+                      )
+                    else
+                      SectionReveal(
+                        key: const Key('today-course-content'),
+                        child: TodayCourseSection(
+                          data: data!,
+                          now: _now,
+                          loading: courses.loading,
+                          error: error,
+                          expanded: _coursesExpanded,
+                          onToggleExpanded: () => setState(
+                            () => _coursesExpanded = !_coursesExpanded,
+                          ),
+                          onRetry: () => _loadCourses(force: true),
+                          onOpenSchedule: widget.onOpenFeature == null
+                              ? null
+                              : () => widget.onOpenFeature!('schedule'),
+                          demo: widget.service.isDemo,
+                        ),
                       ),
+                    TodayExamSection(
+                      key: ValueKey((
+                        widget.accountId,
+                        widget.accountName,
+                        widget.storageRoot,
+                      )),
+                      service: widget.service,
+                      now: _now,
+                      refreshToken: examRefreshToken,
+                      onOpen: widget.onOpenFeature,
                     ),
-                  TodayExamSection(
-                    key: ValueKey((
-                      widget.accountId,
-                      widget.accountName,
-                      widget.storageRoot,
-                    )),
-                    service: widget.service,
-                    now: _now,
-                    refreshToken: examRefreshToken,
-                    onOpen: widget.onOpenFeature,
-                  ),
-                  TodayCheckInSection(
-                    section: checkin,
-                    onRetry: () => _loadCheckin(force: true),
-                    onOpen: widget.onOpenFeature == null
-                        ? () {}
-                        : () => widget.onOpenFeature!('checkin'),
-                  ),
-                  TodayHomeworkSection(
-                    section: homework,
-                    now: _now,
-                    onOpenItem: _openHomework,
-                    onRetry: () => _loadHomework(force: true),
-                    onOpen: widget.onOpenFeature == null
-                        ? null
-                        : () => widget.onOpenFeature!('homework'),
-                  ),
-                  TodayTasksSection(
-                    section: tasks,
-                    now: _now,
-                    visibleHomeworkIds: todayVisibleHomework(
-                      homework.value,
-                      CourseVisibilityScope.of(context),
-                      _now,
-                    ).map((item) => item.id).toSet(),
-                    onRetry: _loadTasks,
-                    onOpen: _openTasks,
-                  ),
-                  TodayNoticeSection(
-                    section: notices,
-                    onRetry: () => _loadNotices(force: true),
-                    onOpen: widget.onOpenFeature == null
-                        ? () {}
-                        : () => widget.onOpenFeature!('notices'),
-                  ),
-                  const SizedBox(height: 96),
-                ],
+                    TodayCheckInSection(
+                      section: checkin,
+                      onRetry: () => _loadCheckin(force: true),
+                      onOpen: widget.onOpenFeature == null
+                          ? () {}
+                          : () => widget.onOpenFeature!('checkin'),
+                    ),
+                    TodayHomeworkSection(
+                      section: homework,
+                      now: _now,
+                      onOpenItem: _openHomework,
+                      onRetry: () => _loadHomework(force: true),
+                      onOpen: widget.onOpenFeature == null
+                          ? null
+                          : () => widget.onOpenFeature!('homework'),
+                    ),
+                    TodayTasksSection(
+                      section: tasks,
+                      now: _now,
+                      visibleHomeworkIds: todayVisibleHomework(
+                        homework.value,
+                        CourseVisibilityScope.of(context),
+                        _now,
+                      ).map((item) => item.id).toSet(),
+                      onRetry: _loadTasks,
+                      onOpen: _openTasks,
+                    ),
+                    TodayNoticeSection(
+                      section: notices,
+                      onRetry: () => _loadNotices(force: true),
+                      onOpen: widget.onOpenFeature == null
+                          ? () {}
+                          : () => widget.onOpenFeature!('notices'),
+                    ),
+                    const SizedBox(height: 96),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    )
     ),
   );
 }

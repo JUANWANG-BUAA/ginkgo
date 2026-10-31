@@ -16,7 +16,7 @@ String homeworkFilterLabel(int value) => switch (value) {
   _ => '全部',
 };
 
-/// 顶部三项统计（待完成 / 已提交 / 已截止）。
+/// 状态快捷筛选按钮；再次点击同一项即回到「全部」。
 class HomeworkQuickFilter extends StatelessWidget {
   const HomeworkQuickFilter({
     super.key,

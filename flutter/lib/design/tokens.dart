@@ -4,3 +4,4 @@ export 'package:ginkgo_mirror/design/tokens/spacing.dart';
 export 'package:ginkgo_mirror/design/tokens/radii.dart';
 export 'package:ginkgo_mirror/design/tokens/layout.dart';
 export 'package:ginkgo_mirror/design/tokens/motion.dart';
+export 'package:ginkgo_mirror/design/tokens/opacity.dart';

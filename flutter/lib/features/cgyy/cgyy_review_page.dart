@@ -145,6 +145,17 @@ class _CgyyReviewPageState extends State<CgyyReviewPage> {
                     ],
                   ),
                 if (orders != null)
+                  SummaryStrip(
+                    items: [
+                      SummaryItem(
+                        '最近记录',
+                        '${orders!.length} 条',
+                        icon: CupertinoIcons.doc_text,
+                      ),
+                    ],
+                    note: '最近记录不是全部历史；空列表也不证明未落单。',
+                  ),
+                if (orders != null)
                   AppleSection(
                     header: const Text('最新预约记录'),
                     children: [

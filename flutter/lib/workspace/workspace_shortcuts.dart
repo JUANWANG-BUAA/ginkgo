@@ -27,6 +27,7 @@ class WorkspaceShortcuts extends StatefulWidget {
     required this.demo,
     required this.choices,
     required this.onOpen,
+    this.onSelectedIdsChanged,
     this.storageRoot,
   });
 
@@ -34,6 +35,7 @@ class WorkspaceShortcuts extends StatefulWidget {
   final bool demo;
   final List<WorkspaceShortcut> choices;
   final ValueChanged<String> onOpen;
+  final ValueChanged<Set<String>>? onSelectedIdsChanged;
   final String? storageRoot;
 
   @override
@@ -69,8 +71,13 @@ class _WorkspaceShortcutsState extends State<WorkspaceShortcuts>
     _preferences.dispose();
   }
 
+  Set<String> get _visibleSelectedIds =>
+      (_preferences.ids ?? _defaults).where(_choices.containsKey).toSet();
+
   void _changed() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    setState(() {});
+    widget.onSelectedIdsChanged?.call(_visibleSelectedIds);
   }
 
   @override
@@ -198,18 +205,17 @@ class _WorkspaceShortcutsState extends State<WorkspaceShortcuts>
     return TodayVisualSection(
       key: const Key('workspace-shortcuts'),
       header: TodaySectionHeader(
+        actionKey: const ValueKey('shortcuts-edit'),
         icon: CupertinoIcons.square_grid_2x2_fill,
         title: '常用服务',
         badge: draft != null ? '编辑中' : null,
-        actionLabel: draft == null && editable ? '编辑' : null,
+        actionLabel: draft == null ? '编辑' : null,
         onAction: editable
             ? () => setState(() => _draft = List.of(selected))
             : null,
       ),
       footer: Text(
-        _preferences.memoryOnly
-            ? '当前仅临时记忆，不写入本机偏好。'
-            : '仅保存在本机当前账号，不影响学校数据或个人待办。',
+        _preferences.memoryOnly ? '演示模式仅本次有效，不保存常用项。' : '仅保存在本机当前账号。',
       ),
       children: [
         if (_preferences.loading) _message('正在读取常用服务偏好…'),
@@ -245,11 +251,6 @@ class _WorkspaceShortcutsState extends State<WorkspaceShortcuts>
           ),
           if (selected.any((id) => !choices.containsKey(id)))
             _message('部分已选服务暂不可用，原偏好已保留。'),
-          _button(
-            '编辑',
-            'shortcuts-edit',
-            editable ? () => setState(() => _draft = List.of(selected)) : null,
-          ),
         ] else ...[
           _message('已选 ${draft.length}/4 项 · 最多选择 4 项，也可全部取消。'),
           for (final id in {...choices.keys, ...draft})

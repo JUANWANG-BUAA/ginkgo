@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/notices.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/workspace/service_directory.dart';
+import 'package:ginkgo_mirror/workspace/more_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_mirror_service.dart';
 import 'package:ginkgo_mirror/features/learning/learning_page.dart';
@@ -42,7 +43,8 @@ void main() {
     await tester.pumpWidget(
       ginkgoApp(
         home: CupertinoPageScaffold(
-          child: ServiceDirectory(platformActions: platformActions,
+          child: ServiceDirectory(
+            platformActions: platformActions,
             service: service,
             destinations: workspaceDestinations,
             onSignOut: () async {},
@@ -55,6 +57,76 @@ void main() {
     expect(service.reads, 1);
     expect(find.text('来自注入服务的通知'), findsOneWidget);
   });
+  testWidgets('More shows each pinned service as one navigable row', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: MorePage(
+          service: const DemoMirrorService(),
+          platformActions: platformActions,
+          destinations: workspaceDestinations,
+          onSignOut: () async {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final editButton = find.byKey(const Key('shortcuts-edit'));
+    expect(editButton, findsOneWidget);
+    expect(tester.getSize(editButton).height, greaterThanOrEqualTo(48));
+    expect(find.byKey(const ValueKey('shortcut-open-checkin')), findsOneWidget);
+    expect(find.byKey(const ValueKey('directory-checkin')), findsNothing);
+    expect(find.byKey(const ValueKey('directory-grades')), findsOneWidget);
+    expect(find.text('课程签到'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('shortcuts-edit')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('shortcut-choice-checkin')),
+    );
+    await tester.tap(find.byKey(const ValueKey('shortcut-choice-checkin')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('shortcut-choice-grades')),
+    );
+    await tester.tap(find.byKey(const ValueKey('shortcut-choice-grades')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('shortcuts-save')));
+    await tester.tap(find.byKey(const Key('shortcuts-save')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('shortcut-open-checkin')), findsNothing);
+    expect(find.byKey(const ValueKey('directory-checkin')), findsOneWidget);
+    expect(find.byKey(const ValueKey('shortcut-open-grades')), findsOneWidget);
+    expect(find.byKey(const ValueKey('directory-grades')), findsNothing);
+    expect(find.text('成绩'), findsOneWidget);
+  });
+
+  testWidgets('workspace More tab renders the grouped feature rows', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(const GinkgoApp(service: DemoMirrorService()));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(CupertinoTabBar),
+        matching: find.text('更多'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('directory-grades')), findsOneWidget);
+    expect(find.byKey(const ValueKey('directory-checkin')), findsNothing);
+    expect(find.byKey(const ValueKey('shortcut-open-checkin')), findsOneWidget);
+  });
+
   testWidgets('mobile directory has one graduate destination', (tester) async {
     tester.view.physicalSize = const Size(430, 1200);
     tester.view.devicePixelRatio = 1;
@@ -63,7 +135,8 @@ void main() {
     await tester.pumpWidget(
       ginkgoApp(
         home: CupertinoPageScaffold(
-          child: ServiceDirectory(platformActions: platformActions,
+          child: ServiceDirectory(
+            platformActions: platformActions,
             service: const DemoMirrorService(),
             destinations: workspaceDestinations,
             onSignOut: () async {},
@@ -92,7 +165,8 @@ void main() {
             child: CupertinoPageScaffold(
               child: ListView(
                 children: [
-                  ServiceDirectory(platformActions: platformActions,
+                  ServiceDirectory(
+                    platformActions: platformActions,
                     service: const DemoMirrorService(),
                     destinations: workspaceDestinations,
                     accountId: 'synthetic-account',
@@ -118,7 +192,7 @@ void main() {
       }
       if (entry.$2 == LibraryLoansPage) {
         expect(find.text('合成借阅示例'), findsNothing);
-        await tester.tap(find.text('读取本人借阅'));
+        await tester.tap(find.byKey(const Key('library-loans-read')));
         await tester.pumpAndSettle();
         expect(find.text('合成借阅示例'), findsOneWidget);
       }

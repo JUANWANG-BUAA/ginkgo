@@ -229,6 +229,23 @@ class _LibrarySeatPageState extends State<LibrarySeatPage> {
           ),
           resultsAnchor.sliver,
           if (seats != null)
+            SliverToBoxAdapter(
+              child: SummaryStrip(
+                items: [
+                  SummaryItem(
+                    '本页座位',
+                    '${visible.length} 个',
+                    icon: CupertinoIcons.square_grid_2x2,
+                  ),
+                  SummaryItem(
+                    '可用座位',
+                    '${visible.where((seat) => seat.available).length} 个',
+                    icon: CupertinoIcons.checkmark_circle,
+                  ),
+                ],
+              ),
+            ),
+          if (seats != null)
             PinnedHeaderSliver(
               child: CollectionQuerySurface(
                 child: Column(

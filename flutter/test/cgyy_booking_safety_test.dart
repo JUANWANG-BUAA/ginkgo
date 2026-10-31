@@ -130,7 +130,7 @@ Future<void> open(
   if (gateway.optionsWait == null) await tester.pumpAndSettle();
 }
 
-Finder bookingBack() => find.byType(CupertinoNavigationBarBackButton);
+Finder bookingBack() => find.byKey(const Key('cgyy-booking-back'));
 
 Future<void> fill(WidgetTester tester) async {
   await reach(tester, find.text('时段 1'));

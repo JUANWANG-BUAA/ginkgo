@@ -49,22 +49,22 @@
 
 ## workspace/more_page.dart
 
-- `class MorePage extends StatelessWidget` — The "更多" surface: the five primary destinations live in the tab bar,
+- `class MorePage extends StatefulWidget` — The "更多" surface: the five primary destinations live in the tab bar,
   <sub>class · workspace/more_page.dart:17</sub>
     - `const MorePage({ super.key, required this.service, required this.platformActions, required this.destinations, required this.onSignOut, this.accountName, this.accountId, this.route, });`  <sub>:18</sub>
     - `final Future<void> Function() onSignOut;`  <sub>:32</sub>
     - `static const tabIds = {…}` — Destinations that already own a tab do not repeat in the list.  <sub>:38</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:72</sub>
+    - `State<MorePage> createState() => …`  <sub>:41</sub>
 
 ## workspace/service_directory.dart
 
 - `WorkspaceContext buildDirectoryContext({ required MirrorService service, required PlatformActions platformActions, required List<WorkspaceDestination> destinations, required Future<void> Function() onSignOut, String? accountName, String? accountId, RouteChoice? route, required void Function(String id) openDestination, }) => …` — Builds the context every feature row is opened with. The rows never
   <sub>function · workspace/service_directory.dart:16</sub>
-- `class ServiceDirectory extends StatelessWidget` — The feature list of the "更多" surface.
+- `class ServiceDirectory extends StatelessWidget` — The grouped feature list of the "更多" surface.
   <sub>class · workspace/service_directory.dart:43</sub>
-    - `const ServiceDirectory({ super.key, required this.service, required this.platformActions, required this.destinations, required this.onSignOut, this.accountName, this.accountId, this.route, });`  <sub>:44</sub>
-    - `final Future<void> Function() onSignOut;`  <sub>:58</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:68</sub>
+    - `const ServiceDirectory({ super.key, required this.service, required this.platformActions, required this.destinations, required this.onSignOut, this.excludedDestinationIds = const {}, this.accountName, this.accountId, this.route, });`  <sub>:44</sub>
+    - `final Future<void> Function() onSignOut;`  <sub>:59</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:70</sub>
 
 ## workspace/service_search_page.dart
 
@@ -111,10 +111,10 @@
 ## workspace/workspace_shell.dart
 
 - `class GinkgoApp extends StatelessWidget` — 工作区外壳：只负责会话切换、移动/桌面布局与功能登记表的消费，
-  <sub>class · workspace/workspace_shell.dart:31</sub>
-    - `const GinkgoApp({ super.key, required this.service, this.platformActions = const PlatformActions(), this.brightness, this.startupUpdate, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:32</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:53</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:55</sub>
+  <sub>class · workspace/workspace_shell.dart:32</sub>
+    - `const GinkgoApp({ super.key, required this.service, this.platformActions = const PlatformActions(), this.brightness, this.preferences, this.startupUpdate, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:33</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:56</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:58</sub>
 
 ## workspace/workspace_shell_controller.dart
 
@@ -162,8 +162,8 @@
     - `const WorkspaceShortcut({ required this.id, required this.title, required this.icon, });`  <sub>:10</sub>
 - `class WorkspaceShortcuts extends StatefulWidget` — Local-only pinned entry points. The caller owns navigation and supplies
   <sub>class · workspace/workspace_shortcuts.dart:23</sub>
-    - `const WorkspaceShortcuts({ super.key, required this.accountId, required this.demo, required this.choices, required this.onOpen, this.storageRoot, });`  <sub>:24</sub>
-    - `State<WorkspaceShortcuts> createState() => …`  <sub>:40</sub>
+    - `const WorkspaceShortcuts({ super.key, required this.accountId, required this.demo, required this.choices, required this.onOpen, this.onSelectedIdsChanged, this.storageRoot, });`  <sub>:24</sub>
+    - `State<WorkspaceShortcuts> createState() => …`  <sub>:42</sub>
 
 ## workspace/workspace_tab_transition.dart
 

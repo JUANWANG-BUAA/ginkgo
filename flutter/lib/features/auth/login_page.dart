@@ -356,15 +356,12 @@ class _LoginPageState extends State<LoginPage> {
                     if (error != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 14),
-                        child: Semantics(
-                          liveRegion: true,
-                          child: Text(
-                            error!,
-                            style: const TextStyle(
-                              color: CupertinoColors.systemRed,
-                              fontSize: 14,
-                            ),
-                          ),
+                        child: SectionFeedback(
+                          key: const Key('login-error'),
+                          loading: false,
+                          label: '登录状态',
+                          hasData: false,
+                          error: error,
                         ),
                       ),
                     const SizedBox(height: 24),
@@ -379,18 +376,23 @@ class _LoginPageState extends State<LoginPage> {
                           ? null
                           : submit,
                       child: busy
-                          ? ColorFiltered(
-                              // The filled button keeps the brand leaf legible
-                              // on its accent fill.
-                              colorFilter: ColorFilter.mode(
-                                CupertinoDynamicColor.resolve(
-                                  CupertinoTheme.of(context)
-                                      .primaryContrastingColor,
-                                  context,
+                          ? Semantics(
+                              key: const Key('login-busy-status'),
+                              liveRegion: true,
+                              label: '正在登录',
+                              child: ColorFiltered(
+                                // The filled button keeps the brand leaf legible
+                                // on its accent fill.
+                                colorFilter: ColorFilter.mode(
+                                  CupertinoDynamicColor.resolve(
+                                    CupertinoTheme.of(context)
+                                        .primaryContrastingColor,
+                                    context,
+                                  ),
+                                  BlendMode.srcIn,
                                 ),
-                                BlendMode.srcIn,
+                                child: const GinkgoActivity(size: 17),
                               ),
-                              child: const GinkgoActivity(size: 17),
                             )
                           : const Text(
                               '登录',

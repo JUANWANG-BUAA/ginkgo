@@ -64,9 +64,9 @@
 ## features/cgyy/cgyy_booking_page.dart
 
 - `class CgyyBookingPage extends StatefulWidget` — Mirrors IOSCgyyView's grouped native form and explicit confirmation flow.
-  <sub>class · features/cgyy/cgyy_booking_page.dart:15</sub>
-    - `const CgyyBookingPage({ super.key, required this.gateway, required this.siteId, required this.siteName, required this.date, });`  <sub>:16</sub>
-    - `State<CgyyBookingPage> createState() => …`  <sub>:27</sub>
+  <sub>class · features/cgyy/cgyy_booking_page.dart:16</sub>
+    - `const CgyyBookingPage({ super.key, required this.gateway, required this.siteId, required this.siteName, required this.date, });`  <sub>:17</sub>
+    - `State<CgyyBookingPage> createState() => …`  <sub>:28</sub>
 
 ## features/cgyy/cgyy_booking_slots.dart
 
@@ -202,9 +202,9 @@
 ## features/cgyy/cgyy_order_detail_page.dart
 
 - `class CgyyOrderDetailPage extends StatefulWidget`
-  <sub>class · features/cgyy/cgyy_order_detail_page.dart:10</sub>
-    - `const CgyyOrderDetailPage({ super.key, required this.orderId, this.demo = false, this.loader, this.service, });`  <sub>:11</sub>
-    - `State<CgyyOrderDetailPage> createState() => …`  <sub>:25</sub>
+  <sub>class · features/cgyy/cgyy_order_detail_page.dart:11</sub>
+    - `const CgyyOrderDetailPage({ super.key, required this.orderId, this.demo = false, this.loader, this.service, });`  <sub>:12</sub>
+    - `State<CgyyOrderDetailPage> createState() => …`  <sub>:26</sub>
 
 ## features/cgyy/cgyy_page.dart
 

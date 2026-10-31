@@ -233,7 +233,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(service.searches.single, ('合成', 1));
     expect(find.text('合成书名'), findsOneWidget);
-    expect(find.textContaining('共 30 条'), findsOneWidget);
+    expect(find.textContaining('30 条'), findsWidgets);
     expect(find.textContaining('甲 · 乙'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('library-book-0-B1')));
@@ -266,9 +266,15 @@ void main() {
     );
     await search(tester);
     expect(find.text('合成紧凑书目'), findsOneWidget);
+    // The search and sort tools stay compact; the summary strip sits
+    // between them and the first result, and is the only added height.
+    expect(
+      tester.getTopLeft(find.byKey(const Key('library-books-search-box'))).dy,
+      lessThan(320),
+    );
     expect(
       tester.getTopLeft(find.byKey(const Key('library-book-0-B1'))).dy,
-      lessThan(320),
+      lessThan(460),
     );
     expect(
       find.descendant(

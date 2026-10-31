@@ -65,7 +65,7 @@ class ScheduleControls extends StatelessWidget {
         minimumSize: const Size(48, 64),
         alignment: Alignment.centerLeft,
         onPressed: () async {
-          final value = await choose<int>(
+          final value = await chooseWheel<int>(
             anchor,
             '选择周次',
             snapshot.weeks.map((week) => week.number).toList(),

@@ -39,12 +39,14 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('collection-page-picker')));
       await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.text('第 12 页'),
-        200,
-        scrollable: find.byType(Scrollable).last,
+      // The page list uses the system picker wheel; drag it to the wanted
+      // page before choosing it.
+      await tester.drag(
+        find.byType(CupertinoPicker),
+        const Offset(0, -11 * 44),
       );
-      await tester.tap(find.text('第 12 页'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('确定'));
       await tester.pumpAndSettle();
       expect(find.text('本页 551–600 · 共 600 个座位'), findsOneWidget);
       expect(tester.takeException(), isNull);

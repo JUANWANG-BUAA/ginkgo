@@ -74,6 +74,7 @@ class TodaySectionHeader extends StatelessWidget {
     this.icon,
     this.badge,
     this.actionLabel,
+    this.actionKey,
     this.onAction,
   });
 
@@ -81,16 +82,18 @@ class TodaySectionHeader extends StatelessWidget {
   final IconData? icon;
   final String? badge;
   final String? actionLabel;
+  final Key? actionKey;
   final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
     final accent = CupertinoTheme.of(context).primaryColor;
 
-    final action = (actionLabel != null && onAction != null)
+    final action = actionLabel != null
         ? CupertinoButton(
+            key: actionKey,
             padding: EdgeInsets.zero,
-            minimumSize: const Size(36, 28),
+            minimumSize: const Size(48, 48),
             onPressed: onAction,
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -122,7 +125,12 @@ class TodaySectionHeader extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             spacing: 6,
             children: [
-              if (icon != null) Icon(icon, size: 16, color: accent),
+              if (icon != null)
+                Icon(
+                  icon,
+                  size: 16,
+                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                ),
               Text(
                 title,
                 style: TextStyle(
