@@ -49,3 +49,5 @@
 - [Android Release workflow](https://github.com/JUANWANG-BUAA/ginkgo/actions/runs/41224215855) 在 Materialize external signing configuration 因仓库未配置四个 Android 签名 secrets 而 fail closed，构建与上传步骤未运行；公开资产使用上述本机同证书候选，没有降低签名要求。
 - [GitHub Beta prerelease](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.4) 已公开，`draft=false`、`prerelease=true`。APK 和 `checksums.txt` 均为 uploaded；API 返回 APK 大小 43,841,645 字节及 SHA-256 `4a29b4a808f5f95ff32f7131946bd2995c03ce774e34aca85572153e6075d178`，与本地一致。
 - GitHub 直连回下载速度过慢，改用项目既有第三方备用入口完整取回 APK 和校验文件；APK 与本地候选逐字节 `cmp` 一致，校验文件一致，`shasum -a 256 -c checksums.txt` 通过。慢速重复下载已停止。
+- 功能分支合入 `main` 的合并提交为 `133c322abb8485d8d2cb741aac497d925fb416bc`，已推送。GitHub Pages [部署](https://github.com/JUANWANG-BUAA/ginkgo/actions/runs/41225640955) 成功，线上 HTML 已显示 `0.1.0-beta.4`，APK 与校验文件链接指向新标签。
+- 真实凭据通道、临时真实截图和专用 AVD 已清理；公开 APK 不含账号或个人数据。项目主页只使用离线演示合成素材。
