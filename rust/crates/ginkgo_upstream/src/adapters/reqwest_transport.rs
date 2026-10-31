@@ -9,17 +9,28 @@ use tokio::runtime::{Builder, Runtime};
 
 const USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15";
 
-/// The public catalogue host answers with an **incomplete chain**: it sends only
-/// `CN=*.lib.buaa.edu.cn` and omits the issuing intermediate, which macOS and
+/// Both public library hosts answer with an **incomplete chain**: they send only
+/// `CN=*.lib.buaa.edu.cn` and omit the issuing intermediate, which macOS and
 /// browsers repair through AIA but a strict rustls client cannot (API §6.1).
 ///
-/// The documented GlobalSign intermediate is therefore added **only to that
-/// host's own client**. No other origin is verified against it, the built-in
+/// The documented GlobalSign intermediate is therefore added **only to these
+/// hosts' own client**. No other origin is verified against it, the built-in
 /// trust store is untouched, and deleting this constant plus the certificate
 /// asset reverts the behaviour completely.
-const INCOMPLETE_CHAIN_HOST: &str = "space.lib.buaa.edu.cn";
+const INCOMPLETE_CHAIN_HOSTS: [&str; 2] = ["space.lib.buaa.edu.cn", "lib.buaa.edu.cn"];
 const INCOMPLETE_CHAIN_INTERMEDIATE: &[u8] =
     include_bytes!("../../../../certs/globalsign_gcc_r3_dv_tls_ca_2020.pem");
+
+fn requires_incomplete_chain_anchor(url: &str) -> bool {
+    url::Url::parse(url)
+        .ok()
+        .and_then(|parsed| parsed.host_str().map(str::to_owned))
+        .is_some_and(|host| {
+            INCOMPLETE_CHAIN_HOSTS
+                .iter()
+                .any(|candidate| host.eq_ignore_ascii_case(candidate))
+        })
+}
 
 fn builder() -> reqwest::ClientBuilder {
     Client::builder()
@@ -32,7 +43,7 @@ fn builder() -> reqwest::ClientBuilder {
 
 pub struct ReqwestTransport {
     client: Client,
-    /// Only used for [`INCOMPLETE_CHAIN_HOST`]; every other host uses `client`.
+    /// Only used for [`INCOMPLETE_CHAIN_HOSTS`]; every other host uses `client`.
     scoped_client: Option<Client>,
     runtime: Runtime,
 }
@@ -57,10 +68,7 @@ impl ReqwestTransport {
 
     /// Extra trust never leaks: an unrelated host always gets the default client.
     fn client_for(&self, url: &str) -> Client {
-        let is_scoped = url::Url::parse(url)
-            .ok()
-            .and_then(|parsed| parsed.host_str().map(str::to_owned))
-            .is_some_and(|host| host.eq_ignore_ascii_case(INCOMPLETE_CHAIN_HOST));
+        let is_scoped = requires_incomplete_chain_anchor(url);
         match (is_scoped, self.scoped_client.as_ref()) {
             (true, Some(scoped)) => scoped.clone(),
             _ => self.client.clone(),
@@ -216,5 +224,25 @@ mod homework_file_transport_tests {
         assert!(response.body.is_empty());
         let observed = server.join().unwrap();
         assert!(observed.ends_with(&[0, 255, 13, 10]));
+    }
+}
+
+#[cfg(test)]
+mod incomplete_chain_tests {
+    #[test]
+    fn only_the_two_library_hosts_use_the_scoped_intermediate() {
+        for url in [
+            "https://space.lib.buaa.edu.cn/mspace/reader/lendList",
+            "https://lib.buaa.edu.cn/engine2/buaa/more/1082575",
+        ] {
+            assert!(super::requires_incomplete_chain_anchor(url), "{url}");
+        }
+        for url in [
+            "https://sso.buaa.edu.cn/login",
+            "https://lib.buaa.edu.cn.evil.example/",
+            "https://space.lib.buaa.edu.cn.evil.example/",
+        ] {
+            assert!(!super::requires_incomplete_chain_anchor(url), "{url}");
+        }
     }
 }

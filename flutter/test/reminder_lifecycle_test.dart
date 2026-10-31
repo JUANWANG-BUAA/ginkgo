@@ -126,6 +126,33 @@ Future<void> _unmount(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('expired activation cannot release a newer refresh gate', (
+    tester,
+  ) async {
+    final first = Completer<CheckInResponse>();
+    final second = Completer<CheckInResponse>();
+    final service = _Service()..pendingCheckin = first;
+    final c = _Controller(service);
+    await _mount(tester, service, c);
+    c.restored.complete();
+    await tester.pump();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(const Duration(minutes: 5, seconds: 1));
+    service.pendingCheckin = second;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(service.checkinReads, 2);
+    first.complete(_checkin);
+    await tester.pump();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(service.checkinReads, 2);
+    await _unmount(tester);
+    second.complete(_checkin);
+    await tester.pump();
+  });
+
   testWidgets(
     'late old refresh cannot release the replacement activation gate',
     (tester) async {
@@ -276,14 +303,17 @@ void main() {
           tester.state(find.byType(ReminderScope)) as WidgetsBindingObserver;
       observer.didChangeAppLifecycleState(AppLifecycleState.resumed);
       expect(c.refreshes, [false]);
+      expect(c.reschedules, 1);
       service.pendingCheckin!.complete(_checkin);
       await tester.pump();
+      await tester.pump();
+      expect(c.refreshes, [false, true]);
       final reconciles = c.reconciles;
       await tester.pump(const Duration(seconds: 15));
       expect(c.reconciles, reconciles + 1);
       await tester.pump(const Duration(seconds: 105));
-      expect(service.checkinReads, 2);
-      expect(service.homeworkReads, 1);
+      expect(service.checkinReads, 3);
+      expect(service.homeworkReads, 2);
       await _unmount(tester);
     },
   );

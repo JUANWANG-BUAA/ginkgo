@@ -346,6 +346,14 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
                           demo: widget.service.isDemo,
                         ),
                       ),
+                    TodayCheckInSection(
+                      section: checkin,
+                      now: _now,
+                      onRetry: () => _loadCheckin(force: true),
+                      onOpen: widget.onOpenFeature == null
+                          ? () {}
+                          : () => widget.onOpenFeature!('checkin'),
+                    ),
                     TodayExamSection(
                       key: ValueKey((
                         widget.accountId,
@@ -356,13 +364,6 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
                       now: _now,
                       refreshToken: examRefreshToken,
                       onOpen: widget.onOpenFeature,
-                    ),
-                    TodayCheckInSection(
-                      section: checkin,
-                      onRetry: () => _loadCheckin(force: true),
-                      onOpen: widget.onOpenFeature == null
-                          ? () {}
-                          : () => widget.onOpenFeature!('checkin'),
                     ),
                     TodayHomeworkSection(
                       section: homework,

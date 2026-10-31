@@ -172,6 +172,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
             self.clear_identity();
         }
         self.session.set_route(self.preference().into());
+        // A manual password submission may itself need the gateway. After it
+        // succeeds, later automatic fallback is limited by credential access.
+        self.session.set_automatic_fallback(true);
         let credentials = Credentials {
             username: account.to_owned(),
             password: password.to_owned(),
@@ -225,6 +228,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                     }
                     false
                 };
+                self.session
+                    .set_automatic_fallback(remembered || self.session.webvpn_cookie_present());
                 self.clear_caches();
                 self.set_authenticated(canonical_account, profile.clone());
                 Ok(SessionOutcome::SignedIn {

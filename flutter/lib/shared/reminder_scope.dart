@@ -45,7 +45,9 @@ class _ReminderScopeState extends State<ReminderScope>
   Timer? poll, tick, restoreWatchdog;
   AppLifecycleState? _lifecycle;
   bool _ready = false, _closed = false;
+  bool _resumePending = false;
   int _generation = 0;
+  int _activationSerial = 0;
   Completer<void>? _restoring;
 
   /// One activation at a time, and never forever: a read that does not settle
@@ -128,7 +130,15 @@ class _ReminderScopeState extends State<ReminderScope>
     final generation = _generation;
     final gate = _activation;
     if (!_foreground || !_ready || current == null) return;
-    if (!gate.enter()) return;
+    if (!gate.enter()) {
+      if (!initial) {
+        _resumePending = true;
+        unawaited(current.reschedule());
+      }
+      return;
+    }
+    if (!initial) _resumePending = false;
+    final serial = ++_activationSerial;
     try {
       final refresh = current.refresh(includeHomework: !initial);
       if (!initial) unawaited(current.reschedule());
@@ -137,9 +147,17 @@ class _ReminderScopeState extends State<ReminderScope>
       if (_foreground) _start();
       await refresh;
     } finally {
-      gate.leave();
-      // A restore/read may finish after the app leaves the foreground.
-      if (_foreground && generation == _generation) _start();
+      if (serial == _activationSerial && generation == _generation) {
+        gate.leave();
+        // A restore/read may finish after the app leaves the foreground.
+        if (_foreground) {
+          _start();
+          if (_resumePending) {
+            _resumePending = false;
+            unawaited(_activate());
+          }
+        }
+      }
     }
   }
 
@@ -161,6 +179,8 @@ class _ReminderScopeState extends State<ReminderScope>
 
   void _retireController() {
     _generation++;
+    _activationSerial++;
+    _resumePending = false;
     _ready = false;
     _cancelTimers();
     restoreWatchdog?.cancel();

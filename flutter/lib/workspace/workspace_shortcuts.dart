@@ -229,7 +229,8 @@ class _WorkspaceShortcutsState extends State<WorkspaceShortcuts>
           LayoutBuilder(
             builder: (context, constraints) {
               final columns =
-                  constraints.maxWidth >= 300 &&
+                  visible.length > 1 &&
+                      constraints.maxWidth >= 300 &&
                       MediaQuery.textScalerOf(context).scale(17) <= 20
                   ? 2
                   : 1;

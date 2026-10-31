@@ -259,3 +259,31 @@ bash scripts/check-android-module-visual.sh emulator-5554
 - 为补足模块视觉矩阵里借阅成功态占主的不足，另运行 `GINKGO_VISUAL_ONLY=today,schedule,homework,library,library-loans bash scripts/check-android-all-pages-visual.sh emulator-5554 artifacts/local/ui-review/batch-definal/core-routes`，通过并重建正常 `main.dart` ARM64 Debug APK。
 - 新增 20 张本机 ignored 合成截图，覆盖 Today、课表、作业、图书馆根页及借阅首次读取的浅/深色和大字状态。复看图书馆任务并列层级、借阅首次读取按钮，以及大字下隐私摘要、课表范围控制和作业卡片；文本可换行，关键动作仍可见。图片位于 `artifacts/local/ui-review/batch-definal/core-routes/`，不进入仓库。
 - 最终文档复核通过：`generate-interface-index.py --check`（40 个索引文件）、`check-api-doc.py`、`check-ui-language.py`、`check-design-tokens.py` 和 `git diff --check`。此前同一工作树代码的 `check-mirror.sh` 全量门禁通过，Flutter 673 项测试通过；这次补拍仅生成忽略目录截图并重建 Debug APK，没有继续改应用代码。
+
+### 提交后首轮设备验收
+
+- 基线 `fe52e1d`，Android API 37 隔离模拟器 `emulator-5554`，合成数据。`flutter test integration_test/today_test.dart -d emulator-5554` 通过，覆盖今天页经真实 Flutter/Rust bridge 展示课程与考试。
+- `workspace_polish_test.dart` 使用 `flutter drive --driver=test_driver/integration_test.dart --target=integration_test/workspace_polish_test.dart -d emulator-5554` 验收时发现用例未初始化 `schoolRules`，构建今天页抛出 `LateInitializationError`。已在该测试的 `setUpAll` 初始化 Rust 与 `NativeSchoolRules`，重跑通过，生成 12 张浅/深色工作台、快捷入口编辑、任务和外观截图于 `flutter/build/visual/`。首次误用 `flutter test` 的截图用例未完成，已中止，不计为产品失败或通过。
+- 结束后正常 `main.dart` ARM64 Debug APK 构建通过。上述设备自动化不代表所有动态状态、实体设备读屏、Windows、真实账号或学校写入验收；剩余范围见 `MIRROR-TODO.md`。
+
+### 提醒与签到补充验收
+
+- 隔离 Android API 37 模拟器运行 `flutter test integration_test/reminders_booking_test.dart -d emulator-5554`。首次发现签到窗口外按钮仍可点击，已在控件层禁用并保留提交时复核。首次通知未显示；重跑期间通过系统包权限状态确认 `POST_NOTIFICATIONS` 为未授予，给隔离模拟器的测试包授予后，签到时间窗口、合成通知送达、重复排程与取消均通过。未自动触发学校写操作。
+- Android 排程持久化的 `commit()` 结果现被检查：计划保存失败向 Flutter 返回排程失败；已送达记录保存失败时不继续投递通知并记录本机警告。未对系统存储故障进行设备故障注入，权限拒绝后的恢复及厂商后台行为仍需验证。
+- 完整 `check-mirror.sh` 在签到页面修改前通过；随后设备集成测试和正常 `main.dart` ARM64 Debug APK 构建通过。旧日期/过期签到快照现在在今天页顶部明确提示并可刷新，旧空记录不会表述为今天没有签到；该行为有 widget 合成回归。
+- 签到分区固定置于考试前。后续 `check-mirror.sh` 全部通过；`GINKGO_VISUAL_ONLY=today bash scripts/check-android-all-pages-visual.sh emulator-5554 artifacts/local/ui-review/goal-today-order` 在浅/深色及大字号通过并重建正常入口 APK。复看常规浅色与深色大字画面：合成课程、待签到及两场考试同屏场景中，签到入口先于考试；大字需滚动。三场考试、真实账号和实际读屏不由该截图证明。
+- 补充权限恢复：隔离 API 37 模拟器运行 `flutter test integration_test/reminder_permission_recovery_test.dart -d emulator-5554 --dart-define=GINKGO_TEST_PERMISSION_RECOVERY=true`，初始通知权限未授予时合成计划保留且无可见通知、无已送达记录；按用例标记授予该测试包通知权限，再重排同一计划后通知显示，最后清空计划。测试通过；等待期间无法证明未授权时系统闹钟已实际触发。该专用用例默认跳过，供隔离模拟器人工协调权限时使用。
+- 生命周期合成回归覆盖：刷新未结束时切后台再恢复，立即要求重排并在旧刷新结束后补一次刷新；门禁超时后新刷新进行中，旧刷新迟到不能释放新门禁。实际系统设置页往返、真实账号和实体设备仍需独立验收。
+- 作业助教范围：主状态筛选提前，助教开关及“筛选计数仅包含个人课程”紧邻展示。`flutter test integration_test/homework_scope_test.dart -d emulator-5554` 通过合成的待完成与已截止组合、助教范围、搜索空态和清除筛选；使用 `flutter drive --driver=test_driver/integration_test.dart --target=integration_test/homework_scope_test.dart -d emulator-5554 --dart-define=GINKGO_HOMEWORK_CAPTURE=true` 复拍带课程范围容器的常规字号首屏，主筛选与第一条作业可见。截图位于忽略目录 `flutter/build/visual/homework-assistant-scope.png`；不代表物理设备或读屏验收。
+- 作业提醒去重：相同 ID 的状态或截止时间相互矛盾时跳过该作业；合法截止时间经学校时区解析后表示同一时刻的记录合并，顺序不影响结果。领域测试与 API 37 模拟器上的 `flutter test integration_test/reminder_planning_test.dart -d emulator-5554` 经真实 Flutter/Rust bridge 的合成回归覆盖矛盾、重复及等价时间写法；日期不精确或无法解析仍不排程。
+- 合成账号通知隔离：隔离 API 37 模拟器运行 `flutter test integration_test/reminder_account_switch_test.dart -d emulator-5554 --dart-define=GINKGO_TEST_REMINDER_ACCOUNT_SWITCH=true`，测试包授予通知权限。两个合成控制器共享串行平台并使用相同事项 ID：旧账号提醒送达、停止后可见通知清零，再由新账号独立送达并清理；两账号摘要不同。并发清理/替换顺序由 `serial_reminder_platform_test.dart` 合成单元测试覆盖；此设备用例不涉及真实登录、学校数据或实际账号切换界面，默认跳过。
+- Android 提醒广播与计划替换统一进入进程级串行队列，避免广播读写与账号清理同时操作同一份计划；广播使用 `goAsync()` 并在结束时释放系统处理句柄。扩展的上述设备用例在旧账号提醒到期前连续排入清理和新账号计划，跨过旧提醒预定时间后确认无旧通知、新提醒随后送达。该合成设备测试未对进程崩溃或真实账户切换做故障注入。
+- 通知类别单独关闭时，设置页现在区分应用权限与“校园事项提醒”类别状态；接收器不把被关闭类别的计划记为已送达。隔离 API 37 模拟器执行 `flutter test integration_test/reminder_channel_recovery_test.dart -d emulator-5554 --dart-define=GINKGO_TEST_REMINDER_CHANNEL=true`：授予测试包通知权限，实际在系统设置中关闭该类别，观察无可见或新增已送达记录；开启类别并重排后通知显示。用例通过并清理合成计划。因系统闹钟为非精确定时，关闭期间是否实际触发不能由本次等待证明；专用用例默认跳过。
+
+### 授权真实账号只读复验
+
+- 账号本人明确提供凭据并要求测试。使用新建的专用 Android API 37 ARM64 模拟器执行 `flutter test integration_test/live_acceptance_test.dart -d emulator-5554 --dart-define=GINKGO_LIVE_ACCEPTANCE=true`，只进行学校读取；未提交签到、作业、预约、取消或其他学校写操作。凭据经一次性 loopback 通道进入真实登录表单，未写入仓库、构建参数或测试报告；未勾选记住密码。
+- 真实登录表单在约 2.0 秒后返回 `signedIn=true`，但第一项 Today 强制读取在约 9.1 秒后返回 `sessionExpired`，随后课表、成绩、签到、作业、博雅、研究生和图书馆受保护读取均返回同一错误；三个校区的空教室返回 `changedResponse`。公共校园通知读取 5 条成功，研讨室场馆、日期和订单读取成功且场馆页显示 7 个场馆；图书馆公开统计返回 `serviceUnavailable`。这次结果不能解释为账号密码错误，也不能据既往成功推断当前链路可用。
+- 页面阶段实际渲染并复核 Today、课表、成绩、签到、作业、博雅、研究生、图书馆、空教室、通知、研讨室及本机待办等 21 个加载完成状态。受保护页面显示失败原因与重试，公开通知、研讨室和本机待办空态的布局完整；课表/作业的 `sessionExpired` 主文案下仍显示“请检查网络后重试”，容易误导排查，后续应使辅助动作与认证错误一致。真实非空课表/作业/成绩和对应大字号页面未获得验收证据。
+- 管线随后在本机待办新增阶段中断：`live_acceptance_test.dart` 仍点击“保存”，而当前新增编辑器按钮为“确认添加”，因此设置、完整工作壳及后续大字号阶段未执行，最终无失败断言也未运行。这是验收脚本语义债，与上述真实认证失败分开记录。`finally` 已确认显式登出、会话不可恢复。
+- 结束后关闭 loopback，测试包已不存在，含真实页面截图的权限受限临时目录和专用 AVD 均已删除；只保留不含账号、姓名、响应正文或截图的本机聚合报告。正常 `main.dart` ARM64 Debug APK 重建通过。物理设备、TalkBack、Windows、真实非空数据及任何学校写入仍未验收。

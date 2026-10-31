@@ -70,6 +70,19 @@ class _ReminderPlatform implements ReminderPlatform {
 }
 
 void main() {
+  testWidgets('disabled reminder channel is explained separately', (
+    tester,
+  ) async {
+    final service = TestSystemSettings()..permission = 'channelBlocked';
+    await tester.pumpWidget(
+      ginkgoApp(home: SystemPreferencesPage(service: service)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('校园事项提醒类别已关闭，请到系统设置开启'), findsOneWidget);
+    expect(find.text('请求通知权限'), findsNothing);
+    expect(find.text('打开系统通知设置'), findsOneWidget);
+  });
+
   testWidgets('failed reminder restore disables switches and offers retry', (
     tester,
   ) async {

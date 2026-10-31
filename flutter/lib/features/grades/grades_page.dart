@@ -148,7 +148,7 @@ class _GradesPageState extends State<GradesPage> {
                       AppleEmptyState(
                         title: error!,
                         description: data == null
-                            ? '请检查网络后重试。'
+                            ? '请根据上方提示处理后重试。'
                             : '正在保留${_termName(data!.termId)}的成绩。',
                         error: true,
                         action: '重试',
@@ -201,8 +201,8 @@ class _GradesPageState extends State<GradesPage> {
         SummaryItem('总学分', _credit(data.summary.creditTotal)),
       ],
       note: widget.service.isDemo
-          ? '离线合成样例 · 只统计百分制且有有效学分的课程'
-          : '只统计百分制且有有效学分的课程 · 更新于 ${schoolTimestampLabel(data.fetchedAt)}',
+          ? '离线合成样例 · 统计百分制或计分方式未标明的有效数字成绩'
+          : '统计百分制或计分方式未标明的有效数字成绩 · 更新于 ${schoolTimestampLabel(data.fetchedAt)}',
     ),
     if (data.courses.isEmpty)
       AppleSection(

@@ -294,6 +294,31 @@ async fn sign_in_without_remember_removes_an_old_entry() {
 }
 
 #[tokio::test]
+async fn unremembered_login_does_not_fallback_to_an_unauthenticated_gateway() {
+    let (service, transport) =
+        build_service(login_chain("sy2501001", "fixture"), MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, false)
+        .await
+        .expect("signed in");
+
+    let error = service
+        .session
+        .send_with_fallback(HttpRequest::get(
+            "https://iclass.buaa.edu.cn:8346/campus/read",
+        ))
+        .await
+        .expect_err("direct read failure");
+
+    assert_eq!(error.code, ErrorCode::ServiceUnavailable);
+    let requests = transport.requests();
+    assert_eq!(requests.len(), 6, "login plus one direct business read");
+    assert!(requests
+        .iter()
+        .all(|request| !request.url.contains("d.buaa.edu.cn")));
+}
+
+#[tokio::test]
 async fn wrong_password_is_typed_and_not_persisted() {
     let transport = MockTransport::with_responses(vec![
         HttpResponse::new(200, LOGIN_URL, FORM_PAGE),

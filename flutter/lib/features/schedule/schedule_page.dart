@@ -254,7 +254,7 @@ class _SchedulePageState extends State<SchedulePage> {
                 if (data == null && error != null)
                   AppleStatusSection(
                     title: error!,
-                    description: '请检查网络后重试。',
+                    description: '请根据上方提示处理后重试。',
                     error: true,
                     action: '重试',
                     onAction: () => load(force: true),

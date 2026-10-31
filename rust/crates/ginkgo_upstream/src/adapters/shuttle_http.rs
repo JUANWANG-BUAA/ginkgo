@@ -257,8 +257,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn transport_failure_keeps_the_existing_safe_get_fallback_bounded() {
-        let gateway_url = webvpn::wrap(SOURCE_URL).unwrap();
+    async fn transport_failure_never_replays_anonymous_public_read() {
         for preference in [RouteMode::Direct, RouteMode::WebVpn, RouteMode::Automatic] {
             let shared = Session::new(ScriptedTransport::new(vec![
                 Err(TransportError::Unavailable),
@@ -269,16 +268,8 @@ mod tests {
             let error = load(&shared, preference).await.unwrap_err();
             assert_eq!(error.code, ErrorCode::ServiceUnavailable);
             let requests = shared.transport().requests();
-            let expected_attempts = if preference == RouteMode::Automatic {
-                2
-            } else {
-                1
-            };
-            assert_eq!(requests.len(), expected_attempts, "route {preference:?}");
+            assert_eq!(requests.len(), 1, "route {preference:?}");
             assert_eq!(requests[0].url, SOURCE_URL);
-            if preference == RouteMode::Automatic {
-                assert_eq!(requests[1].url, gateway_url);
-            }
             for request in &requests {
                 assert_eq!(request.method, HttpMethod::Get);
                 assert_eq!(request.body, None);

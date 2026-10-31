@@ -1,13 +1,13 @@
 # Rust + Flutter 镜像实施现状
 
-更新：2026-10-31。功能与本地接口统一索引见 [功能和接口协议](FEATURES-AND-PROTOCOLS.md)，全代码接口总览与逐层清单见 [接口索引](INTERFACE-INDEX.md)。本页描述工作树；公开 APK 的内容以对应发布记录为准。模块差距只维护在 [功能对照](MIRROR-PARITY.md)，未完成事项只维护在 [待办](MIRROR-TODO.md)，过程与历次测试见 [历史证据索引](archive/mirror/README.md)。
+更新：2026-11-01。功能与本地接口统一索引见 [功能和接口协议](FEATURES-AND-PROTOCOLS.md)，全代码接口总览与逐层清单见 [接口索引](INTERFACE-INDEX.md)。本页描述工作树；公开 APK 的内容以对应发布记录为准。模块差距只维护在 [功能对照](MIRROR-PARITY.md)，未完成事项只维护在 [待办](MIRROR-TODO.md)，过程与历次测试见 [历史证据索引](archive/mirror/README.md)。
 
 ## 产品与验收边界
 
 | 平台 | 当前状态 | 证据与限制 |
 | --- | --- | --- |
 | macOS / iOS | 独立 SwiftUI 应用，共享 Swift 客户端、模型与工作区编排 | Apple 测试见 [TESTING](TESTING.md)；模拟器通过不代表真机、签名分发或真实写入通过 |
-| Android | Rust + Flutter；公开包 Beta.3（build 13，2026-10-30） | [Beta.3 发布与验收记录](_audit/2026-10-30-android-beta3-readiness.md)；核心真实只读与视觉闭环通过，Release 覆盖升级、物理设备和学校写入未验收 |
+| Android | Rust + Flutter；公开包 Beta.4（build 14，2026-11-01） | [Beta.4 发布与验收记录](_audit/2026-11-01-android-beta4-readiness.md)；完整镜像门禁、真实核心只读和签名候选通过，最终 live 全页面管线受登录状态波动与脚本维护影响仍有未覆盖步骤，物理设备和学校写入未验收 |
 | Windows | Rust + Flutter；公开包 Alpha.6（build 7），Windows 10 / 11 x64 单文件安装器 + 便携 ZIP | [首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)、[主机验证](archive/mirror/WINDOWS-2026-10-21.md)；系统保险库、宽屏侧栏、窄屏底部导航、键盘与返回栈基础通过；安装器未签名，物理 x64 / 干净系统运行依赖 / 真实学校业务仍未验收 |
 
 既往真实账号只读检查已覆盖已接入模块，但最近一次集成登录失败；两次结果分别保留于 [验收记录](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md) 与 [认证异常诊断](_audit/2026-10-21-auth-redirect-incident.md)。不能把早先通过推广为当前所有网络均可用，也不能将工作树改动当作已经发布。
@@ -25,6 +25,12 @@ Alpha.4 起，手机端使用 iOS 式大标题、分组列表和触控尺寸；�
 Android 更新检查仍读取 GitHub Releases，但 Alpha.4 起可在应用内下载官方 APK（Alpha.5 保留），支持暂停、断点续传、GitHub 发布与 API 两个官方入口、SHA-256、包名、版本和签名证书校验。安装始终交由 Android 系统确认。没有自控国内 CDN 时，直接下载速度仍取决于 GitHub 连通性；页面保留手动发布入口。
 
 2026-10-26 接续修复共享状态徽标：窄屏大字允许完整状态换行，不再以省略号隐藏限定语；徽标与图标底座的显式动态颜色按当前深浅主题解析。图标底座尺寸不变，字形随系统字号适度放大并限制在底座的 75% 以内；显式大图标同样有界，父级图标主题不会重复缩放。新增截断/语义/动态色及缩放边界回归，设备证据见 [集成记录](_audit/2026-10-26-module-integration.md)。物理设备和完整 TalkBack 验收未完成；改动随 Alpha.9 公开。
+
+## Beta.4 会话、提醒与发布可靠性（2026-11-01）
+
+手动登录仍允许认证链按需回退 WebVPN；登录成功后，只有实际保存凭据或已有网关 Cookie 时才允许后续业务自动回退，未记住密码时不再把网关未认证响应误报为全局会话失效。匿名公开读取始终直连且不携带或接收 Cookie，不在 Automatic 下错误回退网关。`space.lib.buaa.edu.cn` 与 `lib.buaa.edu.cn` 共用既有按主机作用域的 GlobalSign 中间证书，其他主机的 TLS 校验不变。相关协议修订见 [API](API.md) 第 89/90 条；TLS 变化在正式发布前仍需人工安全审查。
+
+提醒排程增加进程内串行队列、存储失败保护、权限与通知类别恢复；类别关闭时不误记已送达，设置页提供明确开启路径。作业筛选、助教范围、截止状态、签到关联、提醒去重和前后台恢复均有合成或设备回归。完整镜像门禁通过，真实核心只读在自动路线与临时保存凭据的恢复路线下均取得结果；公开统计返回两个校区。最终全页面 live 管线仍有登录状态波动和脚本维护边界，详见 [Beta.4 审计](_audit/2026-11-01-android-beta4-readiness.md)。
 
 ## Flutter 交互语言复原与视觉闭环（2026-10-31 工作树）
 
@@ -113,7 +119,7 @@ Flutter 导航、页面汇总、状态三件套和系统选择交互已按冻结
 
 ## 当前源码与发布基线
 
-Android Beta.3（`0.1.0-beta.3+13`）已公开；[发布与验收记录](_audit/2026-10-30-android-beta3-readiness.md) 包含全量本地门禁、签名、核心真实只读与视觉闭环、公开 APK/校验文件回下载和验收限制。Beta.1 的历史发布与覆盖升级证据见 [Beta.1 记录](_audit/2026-10-27-android-beta1-preparation.md)。`docs/update-gate.json` 的 `minBuild` 仍为 5，未随本次发布提高。
+Android Beta.4（`0.1.0-beta.4+14`）已公开；[发布与验收记录](_audit/2026-11-01-android-beta4-readiness.md) 包含全量本地门禁、签名、核心真实只读与视觉证据、公开 APK/校验文件回下载和验收限制。Beta.3 的历史发布见 [Beta.3 记录](_audit/2026-10-30-android-beta3-readiness.md)，Beta.1 的覆盖升级证据见 [Beta.1 记录](_audit/2026-10-27-android-beta1-preparation.md)。`docs/update-gate.json` 的 `minBuild` 仍为 5，未随本次发布提高。
 
 ## Android Beta.2 严重问题与工程收口（2026-10-29，已发布）
 

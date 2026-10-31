@@ -330,9 +330,9 @@ void main() {
 
         // Counts live on the filters that use them, rather than in a second
         // stacked summary card above those same controls.
-        expect(find.text('待完成 4'), findsOneWidget);
+        expect(find.text('待完成 6'), findsOneWidget);
         expect(find.text('已提交 1'), findsOneWidget);
-        expect(find.text('已截止 2'), findsOneWidget);
+        expect(find.text('已截止 3'), findsOneWidget);
         expect(find.text('待确认 1'), findsOneWidget);
         expect(find.textContaining('学校状态与个人待办独立'), findsOneWidget);
         expect(find.textContaining('截止按北京时间'), findsOneWidget);
@@ -343,25 +343,27 @@ void main() {
         // Switch to filter 1 (待完成)
         await tester.tap(find.byKey(const Key('homework-filter-pending')));
         await tester.pumpAndSettle();
-        expect(find.text('4 项作业'), findsOneWidget);
+        expect(find.text('6 项作业'), findsOneWidget);
         expect(find.text('活跃作业1'), findsOneWidget);
         expect(find.text('活跃作业2'), findsOneWidget);
         expect(find.text('无截止作业'), findsOneWidget);
         expect(find.text('非法日期作业'), findsOneWidget);
-        // Overdue and submitted must be excluded from 待完成
-        expect(find.text('已截止作业1'), findsNothing);
-        expect(find.text('已截止作业2'), findsNothing);
+        // Overdue pending work remains pending; deadline is independent.
+        expect(find.text('已截止作业1'), findsOneWidget);
+        expect(find.text('已截止作业2'), findsOneWidget);
         expect(find.text('已提交作业'), findsNothing);
 
         // Switch to filter 3 (已截止) via quickFilter pill
-        await tester.tap(find.text('已截止 2'));
+        await tester.tap(find.text('已截止 3'));
         await tester.pumpAndSettle();
         expect(find.text('2 项作业'), findsOneWidget);
         expect(find.text('已截止作业1'), findsOneWidget);
         expect(find.text('已截止作业2'), findsOneWidget);
         expect(find.text('活跃作业1'), findsNothing);
 
-        // Switch to filter 2 (已提交)
+        // Clear both dimensions before selecting submitted work.
+        await tester.tap(find.text('清除筛选'));
+        await tester.pumpAndSettle();
         await tester.tap(find.byKey(const Key('homework-filter-submitted')));
         await tester.pumpAndSettle();
         expect(find.text('1 项作业'), findsOneWidget);

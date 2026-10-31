@@ -348,7 +348,7 @@ class _CheckInPageState extends State<CheckInPage> {
                 children: [
                   AppleEmptyState(
                     title: error!,
-                    description: '请检查网络后重试；已确认的旧状态会保留。',
+                    description: '请根据上方提示处理后重试；已确认的旧状态会保留。',
                     error: true,
                     action: '重试',
                     onAction: () => load(force: true),

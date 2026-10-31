@@ -8,6 +8,9 @@ import 'package:ginkgo_mirror/features/today/today_page.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 import 'package:ginkgo_mirror/workspace/more_page.dart';
+import 'package:ginkgo_mirror/application/school_rules.dart';
+import 'package:ginkgo_mirror/infrastructure/native_school_rules.dart';
+import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
 
 import 'ios_visual_refinement_test.dart' show VisualService;
 import 'support.dart' show platformActions, settle, show;
@@ -15,6 +18,10 @@ import 'support.dart' show platformActions, settle, show;
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
+  setUpAll(() async {
+    await RustLib.init();
+    schoolRules = const NativeSchoolRules();
+  });
   var converted = false;
   Future<void> capture(WidgetTester tester, String name) async {
     await settle(tester, frames: 5);

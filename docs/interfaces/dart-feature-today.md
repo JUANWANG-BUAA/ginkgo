@@ -31,11 +31,11 @@
 ## features/today/today_checkin_section.dart
 
 - `class TodayCheckInSection extends StatelessWidget` — The sign-in state of today's courses.
-  <sub>class · features/today/today_checkin_section.dart:16</sub>
-    - `const TodayCheckInSection({ super.key, required this.section, required this.onRetry, required this.onOpen, });`  <sub>:17</sub>
-    - `static List<CheckInCourse> pendingCourses(CheckInResponse? data) {…}`  <sub>:28</sub>
-    - `static StatusChip chip(CheckInStatus status) => …`  <sub>:40</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:47</sub>
+  <sub>class · features/today/today_checkin_section.dart:17</sub>
+    - `const TodayCheckInSection({ super.key, required this.section, required this.now, required this.onRetry, required this.onOpen, });`  <sub>:18</sub>
+    - `static List<CheckInCourse> pendingCourses(CheckInResponse? data) {…}`  <sub>:31</sub>
+    - `static StatusChip chip(CheckInStatus status) => …`  <sub>:43</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:50</sub>
 
 ## features/today/today_course_focus.dart
 

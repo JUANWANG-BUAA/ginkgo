@@ -9,6 +9,8 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
+import 'package:ginkgo_mirror/application/school_rules.dart'
+    show HomeworkDeadlineStatus;
 import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/platform_actions.dart';
@@ -46,7 +48,9 @@ class _HomeworkPageState extends State<HomeworkPage> {
       : null;
   bool get busy => section.loading;
   late int filter;
+  int deadlineFilter = 0; // 0: all, 1: active, 2: overdue, 3: unknown
   int pending = 0, submitted = 0, overdue = 0, unknown = 0;
+  int overduePending = 0;
   String search = '';
   final searchController = TextEditingController();
   List<HomeworkItem> visible = [];
@@ -54,6 +58,12 @@ class _HomeworkPageState extends State<HomeworkPage> {
   CourseVisibility? range;
 
   DateTime get _clock => widget.now ?? todaySchoolNow(DateTime.now());
+
+  bool get _allPersonalSubmitted {
+    final items = personalHomeworkItems(data?.items ?? [], range);
+    return items.isNotEmpty &&
+        items.every((item) => item.status == HomeworkStatus.submitted);
+  }
 
   String _filterLabel(int value) => switch (value) {
     1 => '待完成 $pending',
@@ -75,16 +85,15 @@ class _HomeworkPageState extends State<HomeworkPage> {
     final personal = personalHomeworkItems(all, range);
     final clock = _clock;
     pending = personal
-        .where(
-          (item) =>
-              item.status == HomeworkStatus.pending &&
-              !isHomeworkOverdue(item.dueAt, clock),
-        )
+        .where((item) => item.status == HomeworkStatus.pending)
         .length;
     submitted = personal
         .where((item) => item.status == HomeworkStatus.submitted)
         .length;
     overdue = personal
+        .where((item) => isHomeworkOverdue(item.dueAt, clock))
+        .length;
+    overduePending = personal
         .where(
           (item) =>
               item.status == HomeworkStatus.pending &&
@@ -106,15 +115,21 @@ class _HomeworkPageState extends State<HomeworkPage> {
             .where(
               (item) =>
                   filter == 0 ||
-                  (filter == 1 &&
-                      item.status == HomeworkStatus.pending &&
-                      !isHomeworkOverdue(item.dueAt, clock)) ||
+                  (filter == 1 && item.status == HomeworkStatus.pending) ||
                   (filter == 2 && item.status == HomeworkStatus.submitted) ||
-                  (filter == 3 &&
-                      item.status == HomeworkStatus.pending &&
-                      isHomeworkOverdue(item.dueAt, clock)) ||
                   (filter == 4 && item.status == HomeworkStatus.unknown),
             )
+            .where((item) {
+              if (deadlineFilter == 0) return true;
+              final status = classifyHomeworkDeadline(item.dueAt, clock);
+              return switch (deadlineFilter) {
+                1 => status == HomeworkDeadlineStatus.active,
+                2 => status == HomeworkDeadlineStatus.overdue,
+                _ =>
+                  status == HomeworkDeadlineStatus.undated ||
+                      status == HomeworkDeadlineStatus.invalid,
+              };
+            })
             .where(
               (item) =>
                   query.isEmpty ||
@@ -130,7 +145,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
   @override
   void initState() {
     super.initState();
-    filter = widget.initialFilter;
+    filter = widget.initialFilter == 3 ? 1 : widget.initialFilter;
+    deadlineFilter = widget.initialFilter == 3 ? 2 : 0;
     section = RefreshSection<HomeworkResponse>()
       ..addListener(() {
         if (mounted) setState(prepare);
@@ -235,7 +251,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
             SliverToBoxAdapter(
               child: AppleEmptyState(
                 title: error!,
-                description: '请检查网络后重试。',
+                description: '请根据上方提示处理后重试。',
                 error: true,
                 action: '重试',
                 onAction: () => load(force: true),
@@ -315,24 +331,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
           ),
         ),
       ),
-    if (data.items.any((item) => item.courseRole == 'assistant'))
-      SliverToBoxAdapter(
-        child: AppleSection(
-          footer: const Text('学校课程归属已确认的助教课程默认收起，不计入个人待完成统计；归属未知的课程会保留。'),
-          children: [
-            AppleListTile(
-              title: const Text('包含助教课程'),
-              trailing: CupertinoSwitch(
-                value: includeTeaching,
-                onChanged: (value) => setState(() {
-                  includeTeaching = value;
-                  prepare();
-                }),
-              ),
-            ),
-          ],
-        ),
-      ),
     SliverToBoxAdapter(
       key: const Key('homework-status-summary'),
       child: Padding(
@@ -341,7 +339,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
             ? ApplePickerTile<int>(
                 title: '作业状态',
                 value: filter,
-                values: const [0, 1, 2, 3, 4],
+                values: const [0, 1, 2, 4],
                 label: _filterLabel,
                 onSelected: (value) => setState(() {
                   filter = value;
@@ -391,6 +389,36 @@ class _HomeworkPageState extends State<HomeworkPage> {
         ),
       ),
     ),
+    if (data.items.any((item) => item.courseRole == 'assistant'))
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsetsDirectional.only(
+            start: GinkgoSpacing.xl,
+            top: GinkgoSpacing.sm,
+            end: GinkgoSpacing.xl,
+          ),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  '包含助教课程\n筛选计数仅包含个人课程',
+                  style: TextStyle(color: CupertinoColors.secondaryLabel),
+                ),
+              ),
+              Semantics(
+                label: '包含助教课程',
+                child: CupertinoSwitch(
+                  value: includeTeaching,
+                  onChanged: (value) => setState(() {
+                    includeTeaching = value;
+                    prepare();
+                  }),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -399,13 +427,27 @@ class _HomeworkPageState extends State<HomeworkPage> {
           runSpacing: 8,
           children: [
             HomeworkQuickFilter(
+              value: 1,
+              label: '未截止',
+              tint: CupertinoColors.secondaryLabel,
+              selected: deadlineFilter == 1,
+              onPressed: () => _toggleDeadline(1),
+            ),
+            HomeworkQuickFilter(
               value: 3,
               label: '已截止 $overdue',
-              tint: overdue == 0
+              tint: overduePending == 0
                   ? CupertinoColors.secondaryLabel
                   : AppleDesign.statusDanger,
-              selected: filter == 3,
-              onPressed: () => _toggleFilter(3),
+              selected: deadlineFilter == 2,
+              onPressed: () => _toggleDeadline(2),
+            ),
+            HomeworkQuickFilter(
+              value: 5,
+              label: '时间未确认',
+              tint: CupertinoColors.secondaryLabel,
+              selected: deadlineFilter == 3,
+              onPressed: () => _toggleDeadline(3),
             ),
             HomeworkQuickFilter(
               value: 4,
@@ -416,6 +458,18 @@ class _HomeworkPageState extends State<HomeworkPage> {
               selected: filter == 4,
               onPressed: () => _toggleFilter(4),
             ),
+            if (filter != 0 || deadlineFilter != 0 || search.isNotEmpty)
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: () => setState(() {
+                  filter = 0;
+                  deadlineFilter = 0;
+                  search = '';
+                  searchController.clear();
+                  prepare();
+                }),
+                child: const Text('清除筛选'),
+              ),
           ],
         ),
       ),
@@ -435,8 +489,24 @@ class _HomeworkPageState extends State<HomeworkPage> {
     if (visible.isEmpty)
       SliverToBoxAdapter(
         child: AppleEmptyState(
-          title: search.trim().isEmpty ? '没有符合条件的作业' : '没有匹配的作业',
-          description: '切换筛选或修改关键词。',
+          title: data.rolesComplete == false
+              ? '作业来源尚未完整读取'
+              : !includeTeaching &&
+                    filter == 1 &&
+                    deadlineFilter == 0 &&
+                    search.trim().isEmpty &&
+                    _allPersonalSubmitted
+              ? '作业已全部提交'
+              : search.trim().isNotEmpty
+              ? '没有匹配的作业'
+              : (filter != 0 || deadlineFilter != 0 || search.trim().isNotEmpty)
+              ? '没有符合筛选条件的作业'
+              : '暂无作业',
+          description: data.rolesComplete == false
+              ? '部分课程的作业可能尚未显示，请检查课程范围并重试。'
+              : (filter != 0 || deadlineFilter != 0 || search.trim().isNotEmpty)
+              ? '清除筛选或修改关键词后查看其他作业。'
+              : '当前课程范围内没有作业。',
         ),
       )
     else
@@ -506,6 +576,11 @@ class _HomeworkPageState extends State<HomeworkPage> {
   /// 快捷筛选再次点击同一项即回到「全部」。
   void _toggleFilter(int value) => setState(() {
     filter = filter == value ? 0 : value;
+    prepare();
+  });
+
+  void _toggleDeadline(int value) => setState(() {
+    deadlineFilter = deadlineFilter == value ? 0 : value;
     prepare();
   });
 }

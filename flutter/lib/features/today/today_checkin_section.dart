@@ -4,6 +4,7 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
+import 'package:ginkgo_mirror/shared/today_time.dart';
 
 import 'today_action_row.dart';
 import 'today_presentation.dart';
@@ -17,11 +18,13 @@ class TodayCheckInSection extends StatelessWidget {
   const TodayCheckInSection({
     super.key,
     required this.section,
+    required this.now,
     required this.onRetry,
     required this.onOpen,
   });
 
   final RefreshSection<CheckInResponse> section;
+  final DateTime now;
   final VoidCallback onRetry;
   final VoidCallback onOpen;
 
@@ -77,7 +80,13 @@ class TodayCheckInSection extends StatelessWidget {
     final signed = data.courses
         .where((course) => course.status == CheckInStatus.signed)
         .length;
-    if (courses.isEmpty && section.error == null && !section.loading) {
+    final date = todayDate(data.date);
+    final today = DateTime.utc(now.year, now.month, now.day);
+    final needsRefresh = data.stale || date == null || date != today;
+    if (courses.isEmpty &&
+        section.error == null &&
+        !section.loading &&
+        !needsRefresh) {
       return const SizedBox.shrink();
     }
     return TodayVisualSection(
@@ -90,6 +99,13 @@ class TodayCheckInSection extends StatelessWidget {
       ),
       footer: Text('签到状态来自学校系统 · ${data.date}'),
       children: [
+        if (needsRefresh)
+          TodayActionRow(
+            title: '签到日期待更新',
+            subtitle:
+                '当前数据日期：${data.date.isEmpty ? '未提供' : data.date}，请刷新后确认今天的签到。',
+            onTap: onRetry,
+          ),
         if (section.error != null)
           SectionFeedback(
             loading: section.loading,
@@ -101,9 +117,11 @@ class TodayCheckInSection extends StatelessWidget {
         if (courses.isEmpty)
           TodayActionRow(
             title: data.courses.isEmpty
-                ? '今天没有可签到的课程'
+                ? (needsRefresh ? '该日期没有签到记录' : '今天没有可签到的课程')
                 : '已确认 $signed/${data.courses.length} 场签到',
-            subtitle: data.courses.isEmpty ? '课程开始后才会出现签到入口。' : '没有待签到的场次。',
+            subtitle: data.courses.isEmpty
+                ? (needsRefresh ? '查看签到列表以核对日期。' : '课程开始后才会出现签到入口。')
+                : '没有待签到的场次。',
             onTap: onOpen,
           )
         else

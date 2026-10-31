@@ -22,6 +22,7 @@ pub enum RouteMode {
 pub struct Session<T: HttpTransport> {
     transport: T,
     route: StdMutex<RouteMode>,
+    automatic_fallback: StdMutex<bool>,
     direct_jar: Mutex<CookieJar>,
     webvpn_jar: Mutex<CookieJar>,
 }
@@ -52,6 +53,7 @@ impl<T: HttpTransport> Session<T> {
         Self {
             transport,
             route: StdMutex::new(RouteMode::Automatic),
+            automatic_fallback: StdMutex::new(true),
             direct_jar: Mutex::new(CookieJar::new()),
             webvpn_jar: Mutex::new(CookieJar::new()),
         }
@@ -71,9 +73,16 @@ impl<T: HttpTransport> Session<T> {
         *lock_value(&self.route) = mode;
     }
 
+    pub(crate) fn set_automatic_fallback(&self, enabled: bool) {
+        *lock_value(&self.automatic_fallback) = enabled;
+    }
+
     /// Automatic mode remembers the first confirmed access-policy block and
     /// switches to WebVPN for the rest of the session, matching the Apple app.
     pub fn activate_automatic_webvpn_fallback(&self) -> bool {
+        if !*lock_value(&self.automatic_fallback) {
+            return false;
+        }
         let mut route = lock_value(&self.route);
         if *route != RouteMode::Automatic {
             return false;
@@ -151,24 +160,18 @@ impl<T: HttpTransport> Session<T> {
     }
 
     /// Make an anonymous request without exposing or modifying the signed-in
-    /// session. GET redirects remain bounded and may use the supplied route;
-    /// non-GET requests are sent once, matching `send_following_redirects`.
+    /// session. Public origins always use direct HTTPS; an authenticated
+    /// WebVPN route cannot satisfy their same-host response validation.
     pub async fn send_anonymous(
         &self,
         request: HttpRequest,
-        preference: RouteMode,
+        _preference: RouteMode,
     ) -> Result<HttpResponse, AppError>
     where
         T: Sync,
     {
         let isolated = Session::new(AnonymousTransport(&self.transport));
-        // Public pages are validated by same-host HTTPS checks the WebVPN
-        // hostname can never satisfy, so a switched session route must not
-        // condemn them; Automatic already resolves to direct here.
-        isolated.set_route(match preference {
-            RouteMode::WebVpn => RouteMode::Direct,
-            other => other,
-        });
+        isolated.set_route(RouteMode::Direct);
         isolated.send_following_redirects(request).await
     }
 
@@ -391,6 +394,21 @@ mod anonymous_request_tests {
             assert_eq!(request.header_value("authorization"), None);
         }
     }
+
+    #[tokio::test]
+    async fn anonymous_automatic_read_never_falls_back_to_gateway() {
+        let transport = crate::test_support::MockTransport::default();
+        let session = Session::new(transport.clone());
+        let error = session
+            .send_anonymous(HttpRequest::get(CAREER_URL), RouteMode::Automatic)
+            .await
+            .expect_err("the direct public read must keep its original failure");
+
+        assert_eq!(error.code, crate::ErrorCode::ServiceUnavailable);
+        let requests = transport.requests();
+        assert_eq!(requests.len(), 1, "anonymous reads must not try WebVPN");
+        assert_eq!(requests[0].url, CAREER_URL);
+    }
 }
 
 #[cfg(test)]
@@ -404,11 +422,9 @@ mod network_failure_classification_tests {
         "https://career.buaa.edu.cn/f/recruitmentFair/ajax_calendar_list?time=2026-10";
 
     #[tokio::test]
-    async fn an_unreached_server_is_not_reported_as_a_school_outage() {
+    async fn an_unreached_public_server_keeps_the_network_error_without_gateway() {
         let session = Session::new(MockTransport::with_results(vec![
             Err(TransportError::Unreachable),
-            Err(TransportError::Unreachable),
-            // A third attempt would mean the bounded fallback replayed.
             Ok(HttpResponse::new(200, CAREER_URL, "public")),
         ]));
 
@@ -418,10 +434,7 @@ mod network_failure_classification_tests {
             .unwrap_err();
 
         assert_eq!(error.code, ErrorCode::NetworkUnreachable);
-        // A school that silently drops off-campus packets fails the connect
-        // phase too, so the single WebVPN reroute must survive this error:
-        // skipping it would strand every off-campus reader.
-        assert_eq!(session.transport().request_count(), 2);
+        assert_eq!(session.transport().request_count(), 1);
     }
 
     #[tokio::test]

@@ -180,6 +180,37 @@ Future<void> clear(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('old empty check-in snapshot stays visible and can refresh', (
+    tester,
+  ) async {
+    size(tester);
+    var retries = 0;
+    final section = RefreshSection<CheckInResponse>()
+      ..value = const CheckInResponse(
+        date: '2026-10-20',
+        courses: [],
+        fromCache: true,
+        stale: true,
+      );
+    await tester.pumpWidget(
+      host(
+        TodayCheckInSection(
+          section: section,
+          now: clock,
+          onRetry: () => retries++,
+          onOpen: () {},
+        ),
+      ),
+    );
+    expect(find.text('签到日期待更新'), findsOneWidget);
+    expect(find.textContaining('2026-10-20'), findsWidgets);
+    expect(find.text('今天没有可签到的课程'), findsNothing);
+    await tester.tap(find.text('签到日期待更新'));
+    expect(retries, 1);
+    await clear(tester);
+    section.dispose();
+  });
+
   testWidgets('confirmed empty dashboard sections collapse, errors remain', (
     tester,
   ) async {
@@ -193,14 +224,24 @@ void main() {
       );
     await tester.pumpWidget(
       host(
-        TodayCheckInSection(section: checkins, onRetry: () {}, onOpen: () {}),
+        TodayCheckInSection(
+          section: checkins,
+          now: clock,
+          onRetry: () {},
+          onOpen: () {},
+        ),
       ),
     );
     expect(find.byKey(const Key('today-checkin')), findsNothing);
     checkins.error = '合成签到读取失败';
     await tester.pumpWidget(
       host(
-        TodayCheckInSection(section: checkins, onRetry: () {}, onOpen: () {}),
+        TodayCheckInSection(
+          section: checkins,
+          now: clock,
+          onRetry: () {},
+          onOpen: () {},
+        ),
       ),
     );
     expect(find.text('合成签到读取失败'), findsOneWidget);
