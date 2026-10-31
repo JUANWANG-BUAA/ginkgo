@@ -259,15 +259,30 @@ class _CgyyDayPageState extends State<CgyyDayPage> {
                     : () => Navigator.of(context).pop(),
                 child: const Icon(CupertinoIcons.back, semanticLabel: '返回研讨室'),
               ),
-        trailing: AppleGlassButton(
+        trailing: AppleToolbarButton(
           label: '刷新查询',
+          busy: busy || actionBusy,
           onPressed: busy || actionBusy ? null : () => load(force: true),
-          child: const Icon(CupertinoIcons.refresh),
+          child: busy || actionBusy
+              ? const GinkgoActivity(size: 17)
+              : const Icon(CupertinoIcons.refresh),
         ),
       ),
       child: SafeArea(
         child: ListView(
           children: [
+            if (widget.site != null)
+              SummaryStrip(
+                items: [
+                  SummaryItem('查询日期', date, icon: CupertinoIcons.calendar),
+                  SummaryItem(
+                    '场馆',
+                    widget.site!.name,
+                    icon: CupertinoIcons.location,
+                  ),
+                ],
+                note: '时段为学校公布的空闲情况，最终以审批结果为准。',
+              ),
             if (bookingGateway != null && (!guardKnown || reviewRequired))
               CgyyWriteGuardSection(
                 guardKnown: guardKnown,

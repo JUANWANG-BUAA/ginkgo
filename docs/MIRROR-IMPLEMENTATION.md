@@ -1,20 +1,20 @@
 # Rust + Flutter 镜像实施现状
 
-更新：2026-10-29。功能与本地接口统一索引见 [功能和接口协议](FEATURES-AND-PROTOCOLS.md)，全代码接口总览与逐层清单见 [接口索引](INTERFACE-INDEX.md)。本页描述工作树；公开 APK 的内容以对应发布记录为准。模块差距只维护在 [功能对照](MIRROR-PARITY.md)，未完成事项只维护在 [待办](MIRROR-TODO.md)，过程与历次测试见 [历史证据索引](archive/mirror/README.md)。
+更新：2026-11-01。功能与本地接口统一索引见 [功能和接口协议](FEATURES-AND-PROTOCOLS.md)，全代码接口总览与逐层清单见 [接口索引](INTERFACE-INDEX.md)。本页描述工作树；公开 APK 的内容以对应发布记录为准。模块差距只维护在 [功能对照](MIRROR-PARITY.md)，未完成事项只维护在 [待办](MIRROR-TODO.md)，过程与历次测试见 [历史证据索引](archive/mirror/README.md)。
 
 ## 产品与验收边界
 
 | 平台 | 当前状态 | 证据与限制 |
 | --- | --- | --- |
 | macOS / iOS | 独立 SwiftUI 应用，共享 Swift 客户端、模型与工作区编排 | Apple 测试见 [TESTING](TESTING.md)；模拟器通过不代表真机、签名分发或真实写入通过 |
-| Android | Rust + Flutter；公开包 Beta.3（build 13，2026-10-30） | [Beta.3 发布与验收记录](_audit/2026-10-30-android-beta3-readiness.md)；核心真实只读与视觉闭环通过，Release 覆盖升级、物理设备和学校写入未验收 |
+| Android | Rust + Flutter；公开包 Beta.4（build 14，2026-11-01） | [Beta.4 发布与验收记录](_audit/2026-11-01-android-beta4-readiness.md)；完整镜像门禁、真实核心只读和签名候选通过，最终 live 全页面管线受登录状态波动与脚本维护影响仍有未覆盖步骤，物理设备和学校写入未验收 |
 | Windows | Rust + Flutter；公开包 Alpha.6（build 7），Windows 10 / 11 x64 单文件安装器 + 便携 ZIP | [首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)、[主机验证](archive/mirror/WINDOWS-2026-10-21.md)；系统保险库、宽屏侧栏、窄屏底部导航、键盘与返回栈基础通过；安装器未签名，物理 x64 / 干净系统运行依赖 / 真实学校业务仍未验收 |
 
 既往真实账号只读检查已覆盖已接入模块，但最近一次集成登录失败；两次结果分别保留于 [验收记录](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md) 与 [认证异常诊断](_audit/2026-10-21-auth-redirect-incident.md)。不能把早先通过推广为当前所有网络均可用，也不能将工作树改动当作已经发布。
 
-手机一级入口为工作台、签到、课表、作业、预约；桌面使用分组侧栏与独立目的地栈。`main.dart` 已按可用宽度 760px 选择手机或桌面布局。Android 保险库使用 Keystore；Windows Credential Manager 合成往返已通过，macOS 镜像保险库分支仍待验收。
+手机一级入口为 **今天 / 课表 / 作业 / 图书馆 / 更多**；桌面使用分组侧栏与独立目的地栈。`main.dart` 已按可用宽度 760px 选择手机或桌面布局。「更多」承载其余服务，常用服务置顶后从原分组动态移除，避免同一页面出现重复导航项。Android 保险库使用 Keystore；Windows Credential Manager 合成往返已通过，macOS 镜像保险库分支仍待验收。
 
-Alpha.4 起，手机端使用 iOS 式大标题、分组卡片和触控尺寸；宽度达到 760px 后切换为 macOS 式“分区 / 标题 / 说明 / 操作”固定页头、较小圆角和桌面侧栏。Windows 首发包复用同一界面规则，在宽屏显示分组侧栏、窄窗口切换底部导航。系统返回一次先离开非工作台主页面，详情只退一层；工作台第一次返回只显示退出提示。显示与阅读、通知与后台、账号与隐私、UBAA 致谢和分享入口均已进入设置；未接入的后台提醒或品牌自启动能力在页面中明确说明。
+Alpha.4 起，手机端使用 iOS 式大标题、分组列表和触控尺寸；宽度达到 760px 后切换为 macOS 式“分区 / 标题 / 说明 / 操作”固定页头、较小圆角和桌面侧栏。Windows 首发包复用同一界面规则，在宽屏显示分组侧栏、窄窗口切换底部导航。系统返回一次先离开非工作台主页面，详情只退一层；工作台第一次返回只显示退出提示。显示与阅读、通知与后台、账号与隐私、UBAA 致谢和分享入口均已进入设置；未接入的后台提醒或品牌自启动能力在页面中明确说明。
 
 2026-10-22 源码新增渐进加载样板：工作台的今日课程与个人课程作业分别读取、完成即显示，局部失败可单独重试；研究生教务保留学籍与执行报告的独立加载。两页参考原生 `IOSTodayView`、`IOSGraduateAcademicView` 的分组与局部状态，并沿用桌面的紧凑圆角及固定页头。加载使用主题色银杏叶轻微呼吸，首次内容出现时淡入；刷新时保留已有结果，不逐字输出课程或成绩。减少动态效果或所在标签页关闭 ticker 时停止呼吸动画；桌面支持 `Ctrl+R` / `⌘R` 刷新当前页。这些改动已进入 Android Alpha.5 公开包。
 
@@ -26,17 +26,41 @@ Android 更新检查仍读取 GitHub Releases，但 Alpha.4 起可在应用内�
 
 2026-10-26 接续修复共享状态徽标：窄屏大字允许完整状态换行，不再以省略号隐藏限定语；徽标与图标底座的显式动态颜色按当前深浅主题解析。图标底座尺寸不变，字形随系统字号适度放大并限制在底座的 75% 以内；显式大图标同样有界，父级图标主题不会重复缩放。新增截断/语义/动态色及缩放边界回归，设备证据见 [集成记录](_audit/2026-10-26-module-integration.md)。物理设备和完整 TalkBack 验收未完成；改动随 Alpha.9 公开。
 
+## Beta.4 会话、提醒与发布可靠性（2026-11-01）
+
+手动登录仍允许认证链按需回退 WebVPN；登录成功后，只有实际保存凭据或已有网关 Cookie 时才允许后续业务自动回退，未记住密码时不再把网关未认证响应误报为全局会话失效。匿名公开读取始终直连且不携带或接收 Cookie，不在 Automatic 下错误回退网关。`space.lib.buaa.edu.cn` 与 `lib.buaa.edu.cn` 共用既有按主机作用域的 GlobalSign 中间证书，其他主机的 TLS 校验不变。相关协议修订见 [API](API.md) 第 89/90 条；TLS 变化在正式发布前仍需人工安全审查。
+
+提醒排程增加进程内串行队列、存储失败保护、权限与通知类别恢复；类别关闭时不误记已送达，设置页提供明确开启路径。作业筛选、助教范围、截止状态、签到关联、提醒去重和前后台恢复均有合成或设备回归。完整镜像门禁通过，真实核心只读在自动路线与临时保存凭据的恢复路线下均取得结果；公开统计返回两个校区。最终全页面 live 管线仍有登录状态波动和脚本维护边界，详见 [Beta.4 审计](_audit/2026-11-01-android-beta4-readiness.md)。
+
+## Flutter 交互语言复原与视觉闭环（2026-10-31 工作树）
+
+Flutter 导航、页面汇总、状态三件套和系统选择交互已按冻结的 Apple 语义复原；「更多」中的账号置顶服务会从目录原位置移除，测试验证编辑后仍只有一个导航入口。深浅色、正常/大字号、3.2×徽标及滚动末尾已在隔离 API 37 Android 模拟器完成截图→修正→复拍，最终 76 张本机合成截图与设备集成测试通过。追加视觉克制批次已将移动分组圆角收至 16dp、减淡图标底座并将分区图标改为次级色；完整截图与验证边界见 [2026-10-31 交互语言记录](_audit/2026-10-31-ui-ios-language-restore.md#视觉克制补充)。这不代表物理设备、真实账号、学校写操作或 Windows 主机验收，也不代表已发布。
+
+## 学生核心任务 UI A–E（2026-10-31 工作树）
+
+按 [学生核心任务设计](STUDENT-CORE-UX-DESIGN-2026-10-31.md) 修订 Flutter 页面，不改冻结的 SwiftUI 应用及学校协议：图书馆把预约、查书与本人借阅并列，场馆列表改为进入后按需读取；借阅首次读取放在内容区，读取成功后才显示工具栏刷新；预约区分当前、历史与待核实。作业首屏压缩课程范围和重复元信息。
+
+更多页将账号/设置固定在上部并提供本地内联服务搜索，目录置顶去重且保留原分组顺序。今天页的待办、作业、签到、通知和考试分区按确认空/加载/失败/旧缓存/部分成功分别显示，确认空隐藏，异常状态保留并可操作，长列表只显示有限预览。课表详情不能可靠关联签到时说明原因并直达签到列表，不按课程名猜测关联。
+
+共享控件使用轻量 Cupertino 工具按钮（无玻璃模糊和阴影，忙状态可读，触控区不小于 48dp）；离散选择使用系统操作表，有序选择可显式选择滚轮；摘要长值在窄屏和大字号下换行。Flutter widget/integration 回归覆盖行为与状态，生成接口索引已同步到新搜索文件路径。模拟器、测试和未覆盖平台证据见 [逐页视觉审计](_audit/2026-10-31-ui-ios-language-restore.md)。首页兴趣配置需要独立定义存储/账号隔离契约，当前仍是设计外的后续扩展；不把它写成已实现能力。
+
+全页面持续优化首轮（2026-10-31）：登录表单的验证/认证错误由纯文字改为共享 `SectionFeedback`，增加图标与 live-region 朗读；提交中品牌进度标记也明确朗读“正在登录”。`login_layout_widget_test.dart` 覆盖空凭据反馈、320dp/1.8×大字号与进行中状态。在 API 37 `emulator-5554` 上安装正常入口 Debug APK，以空凭据触发错误并查看图标/文案，确认未发起学校登录；随后进入离线演示并留在今天页，当前截图 `/tmp/ginkgo-login-error-final.png` 和 `/tmp/ginkgo-style-demo.png` 未入库。全路由审查仍在进行，后续按 `MIRROR-TODO.md` 的持续 Goal 分批闭环；模拟器不代表真机或 TalkBack 验收。
+
+## Flutter 偏好存储边界（2026-10-31 工作树）
+
+`shared/app_preferences.dart` 仅持有外观与显式退出状态，通过读写回调对接存储；文件路径解析、JSON 编解码和原子替换由 `infrastructure/display_preferences_file_store.dart` 负责，正常入口在 `main.dart` 创建并注入同一个偏好实例。`display-preferences-v1.json` 的文件名与字段保持不变。架构门禁禁止共享状态新增文件/平台 API 依赖，并固定追踪 `course_visibility` 文件存储和 `school_links` 系统链接两项待迁移例外。临时目录读写往返、根会话注入、边界自测和 Flutter 定向测试通过。正常入口 Debug APK 已装到 API 37 `emulator-5554`；通过模拟器触控浏览今天、课表、作业、图书馆、更多（含目录滚动）与外观设置，切换深色并强制重启确认偏好恢复，之后还原跟随系统并留在今天页。复启检查期间关闭 Wi-Fi/数据，完成后恢复；全程使用离线演示，未登录真实账号或执行学校写入。当前截图 `/tmp/ginkgo-style-demo.png` 未入库；这些证据不替代物理设备 / TalkBack 验收，本变化未发布。
+
 ## 工作台状态修正（2026-10-28 工作树）
 
 学校作业与历史关联本机待办仅在作业确实显示于工作台时去重；作业失败、过滤或未进入展示行时关联待办仍可见。空课表的日期不是学校今天时提示日期待更新，不再显示“今天没有课程”。作业区域展示学期及 Rust 原成功同步时间；演示和无快照时显示未确认，失败回退保留原时间。作业列表成功但课程身份辅助查询失败时，工作台和完整作业页均明确显示“作业结果不完整 / 课程身份未能全部核对”，即使列表为空也不将范围冒充已确认。日期仅今天统一显示“今天截止”，日期仅与精确时间的 24 小时内紧迫色一致；跨午夜、未知及非法日期有合成回归。
 
-近期时间线已移除，不再重复课程、作业、待办或签到。考试使用独立 `TodayExamSection`，仅在有未早于学校今天的考试时显示，加载、失败和成功为空均不占位；刷新与账号/服务替换继续隔离旧响应。多来源作业部分成功契约与设备验收仍见 [待办](MIRROR-TODO.md)。
+近期时间线已移除，不再重复课程、作业、待办或签到。考试使用独立 `TodayExamSection`：成功确认无有效考试时隐藏，首次加载失败显示重试，有旧值时保留记录并说明更新失败和原成功时间；刷新与账号/服务替换继续隔离旧响应。Today 分区的压缩与空/失败/部分成功规则见上方「学生核心任务 UI A–E」一节。多来源作业部分成功契约与真实账号/设备验收仍见 [待办](MIRROR-TODO.md)。
 
 2026-10-28 本地完整镜像门禁通过；Android ARM64 模拟器上 `integration_test/today_test.dart` 以演示数据验证课程和考试条件显示，正常入口 Debug APK 另行构建。这些证据不包含物理设备、真实账号或学校写入。
 
 ## 学生服务搜索（2026-10-28 工作树）
 
-移动工作台保留原有 iOS 分组列表，并提供“全部服务 / 搜索服务”二级页；搜索名称、领域、说明及本地别名，不发起学校请求、不检索个人记录。原生目的地复用工作区登记表，校车也登记为目的地；打印、住宿、就业、学术活动和网络指南标记“前往官网”，地址由 Rust upstream 提供，经 runtime / bridge / 应用接口传递，未知 ID 拒绝。返回搜索页保留查询，找不到时显示空态；研究生旧学分图别名不重复出现，物理设备、官网跳转及更多入口仍见 [待办](MIRROR-TODO.md)。
+移动工作台保留原有 iOS 分组行，搜索已内联到「更多」页；搜索名称、领域、说明及本地别名，不发起学校请求、不检索个人记录。原生目的地复用工作区登记表，校车也登记为目的地；打印、住宿、就业、学术活动和网络指南标记“前往官网”，地址由 Rust upstream 提供，经 runtime / bridge / 应用接口传递，未知 ID 拒绝。置顶服务不再重复列在分组目录；研究生旧学分图别名不重复出现。更多入口和设备/读屏验收仍见 [待办](MIRROR-TODO.md)。
 
 ## 就业活动只读（2026-10-28 工作树）
 
@@ -78,7 +102,7 @@ Android 更新检查仍读取 GitHub Releases，但 Alpha.4 起可在应用内�
 | 设计系统 | [design tokens](../flutter/lib/design/tokens/)、[widgets](../flutter/lib/widgets/) | token 层（颜色/布局/动效/圆角/间距/字体）+ 按职责拆分的组件模块（surfaces/controls/navigation）；`apple_widgets.dart` 仅作 barrel 转发 |
 | 功能域 | [features/](../flutter/lib/features/) | 一个域一个目录：页面、域内组件（`<domain>_widgets.dart`）、模型与控制器同居；新增功能落在此处 |
 | 功能组件 | `today_course_section`、`homework_widgets`、`homework_files_widgets`、`graduate_sections`、`library_cards`、`shuttle_widgets`、`checkin_widgets`、`schedule_widgets`、`cgyy_widgets`、`cgyy_day_view`、`bykc_course_tile` | 大页面抽出的行级/区块组件与整页拆分（如 CGYY 日查询/订单页独立于 hub）；widget API 只收发类型值，不出现 `Map<String, dynamic>`（同由架构脚本强制） |
-| 跨域共享 | [shared/](../flutter/lib/shared/)、[platform/](../flutter/lib/platform/)、[workspace/](../flutter/lib/workspace/) | 多域共用的时间/偏好/提醒状态、平台与系统集成、壳层与功能登记表 |
+| 跨域共享 | [shared/](../flutter/lib/shared/)、[platform/](../flutter/lib/platform/)、[workspace/](../flutter/lib/workspace/) | 多域共用的时间/偏好/提醒状态、平台与系统集成、壳层与功能登记表；本机文件读写由 infrastructure 适配器实现并注入 |
 | 组合入口 | `lib/main.dart`、`lib/mirror_service.dart`、`lib/startup_page.dart` | `lib/` 根只放入口；其余文件必须归入上表目录，由架构脚本强制 |
 | 共享契约 | [fixtures](../fixtures/README.md) | 两种语言独立消费同一输入与期望领域投影；覆盖范围须明确 |
 
@@ -95,7 +119,7 @@ Android 更新检查仍读取 GitHub Releases，但 Alpha.4 起可在应用内�
 
 ## 当前源码与发布基线
 
-Android Beta.3（`0.1.0-beta.3+13`）已公开；[发布与验收记录](_audit/2026-10-30-android-beta3-readiness.md) 包含全量本地门禁、签名、核心真实只读与视觉闭环、公开 APK/校验文件回下载和验收限制。Beta.1 的历史发布与覆盖升级证据见 [Beta.1 记录](_audit/2026-10-27-android-beta1-preparation.md)。`docs/update-gate.json` 的 `minBuild` 仍为 5，未随本次发布提高。
+Android Beta.4（`0.1.0-beta.4+14`）已公开；[发布与验收记录](_audit/2026-11-01-android-beta4-readiness.md) 包含全量本地门禁、签名、核心真实只读与视觉证据、公开 APK/校验文件回下载和验收限制。Beta.3 的历史发布见 [Beta.3 记录](_audit/2026-10-30-android-beta3-readiness.md)，Beta.1 的覆盖升级证据见 [Beta.1 记录](_audit/2026-10-27-android-beta1-preparation.md)。`docs/update-gate.json` 的 `minBuild` 仍为 5，未随本次发布提高。
 
 ## Android Beta.2 严重问题与工程收口（2026-10-29，已发布）
 

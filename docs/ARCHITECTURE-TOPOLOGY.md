@@ -175,7 +175,7 @@ Dart 目录聚合图会把同一目录里的多个文件压成一个节点，因
 | `workspace/` | 导航壳：标签/侧栏、目的地登记、跨断点状态提升、聚合入口页 | 学校协议、本机持久化 |
 | `features/<域>/` | 单域页面、域内组件、域内模型解码（`*_models.dart`） | 直接 import `src/rust`、自建服务实例 |
 | `application/` | 页面契约：gateway 接口、值类型、呈现状态机（`refresh_section`、`busy_gate`）、失败文案 | 平台插件、文件 IO、具体 adapter |
-| `shared/` | 跨域**纯**能力：日期时间、业务规则、共享偏好 | import `features/`、`infrastructure/` |
+| `shared/` | 跨域状态模型与纯规则：日期时间、业务规则、共享偏好 | import `features/`、`infrastructure/`；自行访问文件或系统平台 API（待迁移例外见 [待办](MIRROR-TODO.md)） |
 | `widgets/` · `design/` | 无业务语义的组件与设计 token | 应用状态、持久化、网络 |
 | `infrastructure/` | 真实/演示 adapter、FRB 调用、本机存储、平台通道 | 页面语义、导航 |
 | `platform/` | 平台端口与系统交互（通知、更新、系统设置） | 页面组件、学校协议 |
@@ -188,13 +188,13 @@ app → workspace → features → application → (shared, design, widgets)
                         infrastructure（只被组合根与 workspace 装配）
 ```
 
-该图是目标依赖方向，不是当前全量现状：`features/` 仍有独立页面服务工厂、文件动作和设置维护服务的 infrastructure 引用，待按 [镜像待办](MIRROR-TODO.md) 逐项改为端口注入。
+该图是目标依赖方向，不是当前全量现状：页面层不再自行组装学校服务；`AppPreferences` 仅持有显示状态与读写端口，文件实现由 `infrastructure/display_preferences_file_store.dart` 提供并在 `main.dart` 注入。`shared/course_visibility.dart` 的文件读写与 `shared/school_links.dart` 的系统链接调用仍是明确登记的历史例外，待按 [镜像待办](MIRROR-TODO.md) 迁移。
 
 三条硬规则：
 
 1. **`features/` 不 import `src/rust`**。页面只消费 `application/contracts.dart` 导出的类型。
 2. **`shared/` 不 import `features/`**。发现需要时，说明那段规则是跨域共享的，应上移到 `shared/`（2026-10-28 的 `course_visibility` / `homework_visibility` 即此例）。
-3. **目标：页面不自建服务**。主要服务由 `WorkspaceContext.service` 注入；目前四个独立页面仍通过 `mirrorServiceFor()` 兜底，属于待清理例外。
+3. **页面不自建服务**。主要服务由 `WorkspaceContext.service` 注入；2026-10-30 已移除页面服务工厂兜底，架构门禁禁止 `features/` 与非组合根 `workspace/` 直接依赖 `infrastructure/`。
 
 ### 4.3.3 命名口径
 

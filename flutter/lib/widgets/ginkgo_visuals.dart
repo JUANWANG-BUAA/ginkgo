@@ -29,7 +29,13 @@ class GinkgoIconTile extends StatelessWidget {
       color ?? CupertinoTheme.of(context).primaryColor,
       context,
     );
-    final alpha = dark ? (selected ? 0.28 : 0.16) : (selected ? 0.16 : 0.10);
+    final alpha = dark
+        ? (selected
+              ? GinkgoOpacity.selectedIconTileDark
+              : GinkgoOpacity.iconTileDark)
+        : (selected
+              ? GinkgoOpacity.selectedIconTileLight
+              : GinkgoOpacity.iconTileLight);
     final baseIconSize = (iconSize ?? size / 2).clamp(0.0, size * 0.75);
     final scaledIconSize = MediaQuery.textScalerOf(context)
         .scale(baseIconSize)
@@ -91,13 +97,24 @@ class GinkgoBadge extends StatelessWidget {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        // At accessibility sizes the label wraps over several lines; the
+        // glyph then belongs to the first line instead of floating in the
+        // middle of the block.
+        crossAxisAlignment: MediaQuery.textScalerOf(context).scale(1) > 1.6
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.center,
         children: [
           if (icon != null) ...[
-            Icon(
-              icon,
-              size: MediaQuery.textScalerOf(context).scale(12).clamp(12, 20),
-              color: accent,
-              applyTextScaling: false,
+            Padding(
+              padding: MediaQuery.textScalerOf(context).scale(1) > 1.6
+                  ? GinkgoSpacing.edgeInsetsStatusGlyphAlignment
+                  : EdgeInsets.zero,
+              child: Icon(
+                icon,
+                size: MediaQuery.textScalerOf(context).scale(12).clamp(12, 20),
+                color: accent,
+                applyTextScaling: false,
+              ),
             ),
             const SizedBox(width: GinkgoSpacing.xs),
           ],

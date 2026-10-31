@@ -238,7 +238,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('前往课程官网'), findsOneWidget);
-      expect(find.textContaining('成绩：未知'), findsOneWidget);
+      expect(find.text('该测验暂无可用信息'), findsOneWidget);
       expect(find.textContaining('成绩：0'), findsNothing);
       await tester.tap(find.text('资料'));
       await tester.pumpAndSettle();
@@ -289,7 +289,7 @@ void main() {
         LearningRead(CourseResourcePage([], 1, false)),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('learning-refresh-公告')));
+      await tester.tap(find.byKey(const Key('learning-refresh')));
       await tester.pump();
       expect(fake.announcements.forced, [false, true]);
       expect(fake.resources.forced, [false]);
@@ -301,7 +301,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('缓存公告'), findsOneWidget);
       expect(find.text('保留上次结果'), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('learning-refresh-公告')));
+      await tester.tap(find.byKey(const Key('learning-refresh')));
       await tester.pump();
       fake.announcements.requests.last.complete(const LearningRead([]));
       await tester.pumpAndSettle();
@@ -331,7 +331,7 @@ void main() {
       expect(find.text('暂无测验'), findsNothing);
       await tester.tap(find.text('资料'));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('learning-refresh-资料')));
+      await tester.tap(find.byKey(const Key('learning-refresh')));
       await tester.pump();
       fake.resources.requests.last.complete(
         LearningRead(CourseResourcePage([], 1, false)),
@@ -341,11 +341,11 @@ void main() {
       expect(fake.assessments.forced, [false]);
       await tester.tap(find.text('测验'));
       await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('learning-refresh-测验')));
+      await tester.tap(find.byKey(const Key('learning-refresh')));
       await tester.pump();
       fake.assessments.requests.last.complete(const LearningRead([]));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('learning-refresh-测验')));
+      await tester.tap(find.byKey(const Key('learning-refresh')));
       await tester.pump();
       fake.assessments.requests.last.complete(const LearningRead([]));
       await tester.pumpAndSettle();
@@ -496,9 +496,12 @@ void main() {
           );
         }
         await tester.pumpAndSettle();
-        final target = find.byKey(ValueKey('learning-refresh-$section'));
+        // The refresh action is a single navigation bar button that always
+        // refreshes the tab on screen. An inline navigation bar is 44pt tall,
+        // the system bar height, so the target follows the bar.
+        final target = find.byKey(const Key('learning-refresh'));
         await tester.ensureVisible(target);
-        expect(tester.getSize(target).height, greaterThanOrEqualTo(48));
+        expect(tester.getSize(target).height, greaterThanOrEqualTo(44));
         expect(tester.takeException(), isNull);
         expect(fake.downloads, 0);
       },
@@ -549,7 +552,7 @@ void main() {
   ) async {
     final service = LearningFake();
     await tester.pumpWidget(ginkgoApp(home: LearningPage(fileActions: platformActions,service: service)));
-    expect(find.byKey(const ValueKey('learning-refresh-课程')), findsNothing);
+    expect(find.byKey(const Key('learning-refresh')), findsNothing);
     expect(find.bySemanticsLabel('刷新课程'), findsOneWidget);
     service.courses.requests.single.complete(const LearningRead([]));
     await tester.pumpAndSettle();

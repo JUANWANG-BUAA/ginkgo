@@ -118,5 +118,17 @@ abstract final class GinkgoTypography {
     color: GinkgoColors.tertiaryLabel,
   );
 
+  /// Keeps Cupertino tab labels on the app's bundled typefaces while retaining
+  /// the compact system size used by the iOS tab bar.
+  static const tabLabel = TextStyle(
+    inherit: false,
+    fontFamily: font,
+    fontFamilyFallback: fallback,
+    fontSize: 10,
+    fontWeight: FontWeight.w500,
+    letterSpacing: -0.24,
+    color: GinkgoColors.tertiaryLabel,
+  );
+
   static const tabularDigits = [FontFeature.tabularFigures()];
 }

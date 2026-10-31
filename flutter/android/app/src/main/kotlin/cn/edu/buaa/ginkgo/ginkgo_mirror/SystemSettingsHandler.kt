@@ -22,7 +22,10 @@ class SystemSettingsHandler(private val activity: Activity) : MethodChannel.Meth
             activity.getSystemService(NotificationManager::class.java).areNotificationsEnabled()
         if (enabled && (Build.VERSION.SDK_INT < 33 ||
                 activity.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)) {
-            return "granted"
+            val channelBlocked = Build.VERSION.SDK_INT >= 26 &&
+                activity.getSystemService(NotificationManager::class.java)
+                    .getNotificationChannel(REMINDER_CHANNEL_ID)?.importance == NotificationManager.IMPORTANCE_NONE
+            return if (channelBlocked) "channelBlocked" else "granted"
         }
         return if (Build.VERSION.SDK_INT >= 33 &&
             !preferences.getBoolean("notification-requested", false)) "notRequested" else "denied"
@@ -32,7 +35,7 @@ class SystemSettingsHandler(private val activity: Activity) : MethodChannel.Meth
         when (call.method) {
             "notificationPermission" -> result.success(notificationPermission())
             "requestNotifications" -> {
-                if (Build.VERSION.SDK_INT < 33 || notificationPermission() == "granted") {
+                if (Build.VERSION.SDK_INT < 33 || notificationPermission() in listOf("granted", "channelBlocked")) {
                     result.success(notificationPermission())
                 } else if (permissionResult != null) {
                     result.error("busy", "权限请求正在进行", null)

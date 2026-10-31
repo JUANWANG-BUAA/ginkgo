@@ -272,6 +272,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                     identity.cgyy_booking = None;
                     identity.cgyy_token = None;
                 }
+                self.session.set_automatic_fallback(true);
                 self.school_generation.fetch_add(1, Ordering::Release);
                 Ok(())
             }

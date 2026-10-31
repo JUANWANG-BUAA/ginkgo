@@ -1,5 +1,7 @@
 # 学生工作台与信息降噪设计
 
+> 接续设计：[学生核心任务与信息交互设计（2026-10-31）](STUDENT-CORE-UX-DESIGN-2026-10-31.md) 已合并改版前反馈与当前 UI 复核。本文保留历史背景；当前导航以源码为准，下一轮明确修订及冲突处理见接续设计第 3 节，未完成状态仍只在 MIRROR-TODO 维护。
+
 日期：2026-10-28。本文是产品设计，不表示功能已经实现或真实验收。未完成事项只在 [MIRROR-TODO.md](MIRROR-TODO.md) 维护；已有能力以 [MIRROR-IMPLEMENTATION.md](MIRROR-IMPLEMENTATION.md) 和源码为准。协议事实以 [API.md](API.md) 为准，候选公开来源及历史证据见 [DATA-SOURCES.md](DATA-SOURCES.md)。
 
 ## 1. 问题与目标

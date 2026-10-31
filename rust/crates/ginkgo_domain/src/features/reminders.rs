@@ -176,7 +176,7 @@ fn task_plan(input: &TaskReminderInput, now: DateTime<Utc>) -> Option<LocalRemin
 }
 
 /// A check-in session that may still need a reminder.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CheckInReminderInput {
     pub id: String,
     /// The queried school day, not the phone's current day.
@@ -193,7 +193,7 @@ pub struct CheckInReminderInput {
 }
 
 /// A school assignment that may still need a deadline reminder.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct HomeworkReminderInput {
     pub id: String,
     /// The school deadline string. An unparsable deadline plans nothing.
@@ -210,8 +210,8 @@ pub struct HomeworkReminderInput {
 /// Discovering inside the last 24 hours yields only the 24-hour plan, never a
 /// second historical stage.
 ///
-/// Duplicate sessions collapse by id, and identical plans coalesce. Both rules
-/// live here, in the domain, so the Dart side only presents the outcome.
+/// Equivalent records collapse by id. Conflicting records for one id are
+/// skipped rather than scheduling a reminder from an arbitrary version.
 pub fn plan_checkin_homework_reminders(
     checkin: &[CheckInReminderInput],
     homework: &[HomeworkReminderInput],
@@ -227,16 +227,44 @@ pub fn plan_checkin_homework_reminders(
     };
     let mut result = ReminderPlanningResult::default();
     let mut plans = BTreeMap::<String, Option<LocalReminderPlan>>::new();
-    let mut seen = std::collections::BTreeSet::new();
+    let mut sessions = BTreeMap::<&str, Option<&CheckInReminderInput>>::new();
     for input in checkin {
-        // The same session can appear twice when the school repeats it.
-        if !seen.insert(input.id.clone()) {
-            continue;
+        match sessions.entry(input.id.as_str()) {
+            std::collections::btree_map::Entry::Vacant(entry) => {
+                entry.insert(Some(input));
+            }
+            std::collections::btree_map::Entry::Occupied(mut entry) => {
+                if entry.get().is_some_and(|existing| existing != input) {
+                    entry.insert(None);
+                }
+            }
         }
-        insert(&mut plans, checkin_plan(input, now), &mut result.skipped);
     }
+    for input in sessions.values() {
+        insert(
+            &mut plans,
+            input.and_then(|item| checkin_plan(item, now)),
+            &mut result.skipped,
+        );
+    }
+    let mut assignments = BTreeMap::<&str, Option<&HomeworkReminderInput>>::new();
     for input in homework {
-        let candidates = homework_plans(input, now);
+        match assignments.entry(input.id.as_str()) {
+            std::collections::btree_map::Entry::Vacant(entry) => {
+                entry.insert(Some(input));
+            }
+            std::collections::btree_map::Entry::Occupied(mut entry) => {
+                if entry
+                    .get()
+                    .is_some_and(|existing| !equivalent_homework(existing, input))
+                {
+                    entry.insert(None);
+                }
+            }
+        }
+    }
+    for input in assignments.values() {
+        let candidates = input.map_or_else(Vec::new, |item| homework_plans(item, now));
         if candidates.is_empty() {
             result.skipped = result.skipped.saturating_add(1);
             continue;
@@ -254,6 +282,19 @@ pub fn plan_checkin_homework_reminders(
     result
 }
 
+fn equivalent_homework(a: &HomeworkReminderInput, b: &HomeworkReminderInput) -> bool {
+    if a.pending != b.pending {
+        return false;
+    }
+    if a.due_at == b.due_at {
+        return true;
+    }
+    let parse = |raw: &str| super::super::foundation::school_time::school_instant(None, raw);
+    parse(&a.due_at)
+        .zip(parse(&b.due_at))
+        .is_some_and(|(left, right)| left == right)
+}
+
 fn checkin_plan(input: &CheckInReminderInput, now: DateTime<Utc>) -> Option<LocalReminderPlan> {
     if !valid_id(&input.id) || !input.not_signed || input.conflicting {
         return None;
@@ -269,7 +310,7 @@ fn checkin_plan(input: &CheckInReminderInput, now: DateTime<Utc>) -> Option<Loca
         super::super::foundation::school_time::school_instant(Some(&input.date), &input.begins_at)?;
     let end =
         super::super::foundation::school_time::school_instant(Some(&input.date), &input.ends_at)?;
-    if end <= start || start <= now {
+    if end <= start || end <= now {
         return None;
     }
     // The session belongs to the queried day; a stale day never reminds.
@@ -443,6 +484,18 @@ mod tests {
         assert_eq!(result.plans[0].expires_millis, now() + 70 * 60_000);
     }
     #[test]
+    fn an_active_session_remains_eligible_until_its_end() {
+        let started = now() + 10 * 60_000;
+        let result = plan_checkin_homework_reminders(&[checkin()], &[], started);
+        assert_eq!(result.plans.len(), 1);
+        assert_eq!(result.plans[0].at_millis, now());
+        assert!(
+            plan_checkin_homework_reminders(&[checkin()], &[], now() + 70 * 60_000)
+                .plans
+                .is_empty()
+        );
+    }
+    #[test]
     fn signed_conflicting_or_merged_sessions_never_remind() {
         let mut signed = checkin();
         signed.not_signed = false;
@@ -472,6 +525,20 @@ mod tests {
         assert_eq!(result.plans.len(), 1);
     }
     #[test]
+    fn contradictory_duplicate_sessions_never_remind_regardless_of_order() {
+        let pending = checkin();
+        let mut signed = pending.clone();
+        signed.not_signed = false;
+        for values in [
+            [pending.clone(), signed.clone()],
+            [signed.clone(), pending.clone()],
+        ] {
+            let result = plan_checkin_homework_reminders(&values, &[], now());
+            assert!(result.plans.is_empty());
+            assert_eq!(result.skipped, 1);
+        }
+    }
+    #[test]
     fn a_pending_assignment_reminds_at_48_and_24_hours_but_only_once_when_close() {
         let far = homework("2026-10-30T08:00:00+08:00");
         let result = plan_checkin_homework_reminders(&[], &[far], now());
@@ -485,15 +552,55 @@ mod tests {
         assert!(result.plans[0].key.ends_with(":24"));
     }
     #[test]
+    fn conflicting_assignment_records_are_skipped_in_either_order() {
+        let pending = homework("2026-10-30T08:00:00+08:00");
+        let mut submitted = pending.clone();
+        submitted.pending = false;
+        let mut changed_deadline = pending.clone();
+        changed_deadline.due_at = "2026-10-31T08:00:00+08:00".into();
+        for other in [submitted, changed_deadline] {
+            for values in [
+                [pending.clone(), other.clone()],
+                [other.clone(), pending.clone()],
+            ] {
+                let result = plan_checkin_homework_reminders(&[], &values, now());
+                assert!(result.plans.is_empty());
+                assert_eq!(result.skipped, 1);
+            }
+        }
+        let identical = plan_checkin_homework_reminders(&[], &[pending.clone(), pending], now());
+        assert_eq!(identical.plans.len(), 2);
+        assert_eq!(identical.skipped, 0);
+    }
+    #[test]
+    fn equivalent_deadline_instants_coalesce_across_supported_formats() {
+        let local = homework("2026-10-30 08:00:00");
+        let utc = homework("2026-10-30T00:00:00Z");
+        let offset = homework("2026-10-30T08:00:00+08:00");
+        let expected = plan_checkin_homework_reminders(&[], std::slice::from_ref(&local), now());
+        for values in [
+            [local.clone(), utc.clone(), offset.clone()],
+            [offset.clone(), utc.clone(), local.clone()],
+        ] {
+            let result = plan_checkin_homework_reminders(&[], &values, now());
+            assert_eq!(result, expected);
+            assert_eq!(result.plans.len(), 2);
+            assert_eq!(result.skipped, 0);
+        }
+    }
+    #[test]
     fn a_submitted_unparsable_or_passed_assignment_never_reminds() {
         let mut submitted = homework("2026-10-30T08:00:00+08:00");
         submitted.pending = false;
-        let values = [
+        let mut values = [
             submitted,
             homework("2026-10-30"),
             homework("not-a-date"),
             homework("2026-10-26T07:50:00+08:00"),
         ];
+        for (index, value) in values.iter_mut().enumerate() {
+            value.id = format!("synthetic-{index}");
+        }
         let result = plan_checkin_homework_reminders(&[], &values, now());
         assert!(result.plans.is_empty());
         assert_eq!(result.skipped, 4);

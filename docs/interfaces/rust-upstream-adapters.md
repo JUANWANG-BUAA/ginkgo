@@ -318,9 +318,9 @@
 ## reqwest_transport
 
 - `pub struct ReqwestTransport`
-  <sub>struct · rust/crates/ginkgo_upstream/src/adapters/reqwest_transport.rs:33</sub>
+  <sub>struct · rust/crates/ginkgo_upstream/src/adapters/reqwest_transport.rs:44</sub>
 - `pub fn new() -> Result<Self, TransportError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/reqwest_transport.rs:41</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/reqwest_transport.rs:52</sub>
 
 ## schedule_http
 

@@ -330,7 +330,9 @@ void main() {
       expect(tester.takeException(), isNull);
       tester.state<ScrollableState>(scrollable).position.jumpTo(0);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('课程'));
+      await tester.tap(find.text('查看'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('课程').last);
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         find.text('完成状态'),

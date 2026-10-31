@@ -176,6 +176,22 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
                       ),
                   ],
                 ),
+                if (items != null)
+                  SummaryStrip(
+                    items: [
+                      SummaryItem(
+                        '本页书目',
+                        '${items.length} 条',
+                        icon: CupertinoIcons.book,
+                      ),
+                      SummaryItem(
+                        '命中总数',
+                        total == null ? '未提供' : '$total 条',
+                        icon: CupertinoIcons.doc_text,
+                      ),
+                    ],
+                    note: '数量与可借状态来自学校目录，可能会变化。',
+                  ),
                 if (error != null)
                   AppleStatusSection(
                     title: error!,
@@ -193,12 +209,8 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
                   ),
                 if (items != null && items.isNotEmpty)
                   AppleSection(
-                    header: Text(
-                      total == null
-                          ? '检索结果'
-                          : '共 $total 条（本页 ${items.length} 条）',
-                    ),
-                    footer: const Text('数量与可借状态来自学校目录，可能会变化。打开单条书目查看复本与馆藏地。'),
+                    header: const Text('书目'),
+                    footer: const Text('打开单条书目查看复本与馆藏地。'),
                     children: [
                       for (final (index, hit) in items.indexed)
                         LibraryBookCard(

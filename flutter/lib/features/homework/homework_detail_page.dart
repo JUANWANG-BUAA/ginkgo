@@ -114,8 +114,9 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
     navigationBar: CupertinoNavigationBar(
       middle: const Text('作业详情'),
       previousPageTitle: '作业',
-      trailing: AppleGlassButton(
+      trailing: AppleToolbarButton(
         label: '刷新作业详情',
+        busy: busy,
         onPressed: busy ? null : () => load(force: true),
         child: busy
             ? const GinkgoActivity(size: 17)
@@ -264,7 +265,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
               children: [
                 AppleEmptyState(
                   title: error!,
-                  description: data == null ? '请检查网络后重试。' : '正在保留上次详情。',
+                  description: data == null ? '请根据上方提示处理后重试。' : '正在保留上次详情。',
                   error: true,
                   action: '重试',
                   onAction: () => load(force: true),

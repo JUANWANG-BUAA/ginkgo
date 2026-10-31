@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:ginkgo_mirror/application/platform_actions.dart';
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/infrastructure/homework_file_io.dart';
 import 'package:ginkgo_mirror/infrastructure/learning_file_actions.dart';
 import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
@@ -16,9 +17,11 @@ import 'package:ginkgo_mirror/features/graduate/graduate_credit_map_page.dart';
 import 'package:ginkgo_mirror/features/homework/homework_files_panel.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_homework_files.dart';
 import 'package:ginkgo_mirror/features/library/library_loans_page.dart';
+import 'package:ginkgo_mirror/features/grades/grades_page.dart';
 import 'package:ginkgo_mirror/features/library/library_books_page.dart';
 import 'package:ginkgo_mirror/features/shuttle/shuttle_page.dart';
 import 'package:ginkgo_mirror/features/settings/settings_page.dart';
+import 'package:ginkgo_mirror/widgets/apple_controls.dart';
 import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 import 'package:ginkgo_mirror/workspace/workspace_tab_transition.dart';
 import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
@@ -162,7 +165,7 @@ void main() {
         final originalDilation = timeDilation;
         try {
           timeDilation = 10;
-          for (final label in ['课表', '工作台']) {
+          for (final label in ['课表', '今天']) {
             await tester.tap(
               find.descendant(
                 of: find.byType(CupertinoTabBar),
@@ -250,6 +253,8 @@ void main() {
       await capture('course-$mode');
       await show(GraduateCreditMapPage(service: demo), dark);
       await capture('credit-$mode');
+      await show(GradesPage(service: demo), dark);
+      await capture('grades-$mode');
       await show(
         CupertinoPageScaffold(
           navigationBar: const CupertinoNavigationBar(middle: Text('合成作业详情')),
@@ -272,7 +277,8 @@ void main() {
       );
       await capture('homework-files-$mode');
       await show(LibraryLoansPage(gateway: demo), dark);
-      await tester.tap(find.text('读取本人借阅'));
+      await tester.tap(find.byKey(const Key('library-loans-first-read')));
+      await settle(tester);
       await capture('loans-$mode');
       await show(LibraryBooksPage(service: PublicBooks()), dark);
       await capture('books-$mode');
@@ -296,6 +302,98 @@ void main() {
         dark,
       );
       await capture('settings-$mode');
+      await show(
+        CupertinoPageScaffold(
+          navigationBar: const CupertinoNavigationBar(middle: Text('系统选择控件')),
+          child: SafeArea(
+            child: ListView(
+              children: [
+                ApplePickerTile<String>(
+                  title: '选择校区',
+                  value: '学院路',
+                  values: const ['学院路', '沙河', '杭州'],
+                  label: (value) => value,
+                  onSelected: (_) {},
+                ),
+                ApplePickerTile<int>(
+                  title: '选择周次',
+                  value: 3,
+                  values: List.generate(16, (index) => index + 1),
+                  label: (value) => '第 $value 周',
+                  onSelected: (_) {},
+                ),
+              ],
+            ),
+          ),
+        ),
+        dark,
+      );
+      await tester.tap(find.text('选择校区'));
+      await settle(tester, frames: 20);
+      await capture('selector-short-$mode');
+      await tester.tap(find.text('取消'));
+      await settle(tester, frames: 20);
+      await tester.tap(find.text('选择周次'));
+      await settle(tester, frames: 20);
+      await capture('selector-long-$mode');
+      await tester.tap(find.text('取消'));
+      await settle(tester, frames: 20);
+    }
+
+    // These focused passes deliberately bypass the page routes above. Do not
+    // let their scale/mode overwrite the shell screenshots used by the full
+    // visual pass (the 3.2x primitive pass would otherwise be mislabeled 1x).
+    if (primitivesOnly || tabsOnly) return;
+
+    // Capture the five-tab shell, its directory and a representative detail
+    // page from the real app. Include the scale in the filename so the large
+    // type pass cannot overwrite the normal-size evidence.
+    final shellPreferences = AppPreferences(writer: (_) async {});
+    await shellPreferences.update(textSize: scalePercent / 100);
+    for (final dark in [false, true]) {
+      final mode = '${dark ? 'dark' : 'light'}${largeType ? '-large' : ''}';
+      await tester.pumpWidget(
+        GinkgoApp(
+          key: UniqueKey(),
+          service: demo,
+          brightness: dark ? Brightness.dark : Brightness.light,
+          preferences: shellPreferences,
+        ),
+      );
+      await settle(tester, frames: 40);
+      await capture('shell-today-$mode');
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CupertinoTabBar),
+          matching: find.text('更多'),
+        ),
+      );
+      await settle(tester, frames: 40);
+      await capture('shell-more-$mode');
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CupertinoTabBar),
+          matching: find.text('图书馆'),
+        ),
+      );
+      await settle(tester, frames: 40);
+      await capture('shell-library-$mode');
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CupertinoTabBar),
+          matching: find.text('课表'),
+        ),
+      );
+      await settle(tester, frames: 40);
+      await capture('shell-schedule-$mode');
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CupertinoTabBar),
+          matching: find.text('作业'),
+        ),
+      );
+      await settle(tester, frames: 40);
+      await capture('shell-homework-$mode');
     }
   });
 }

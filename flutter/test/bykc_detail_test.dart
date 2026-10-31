@@ -52,7 +52,8 @@ void main() {
         200,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('上课安排'), findsOneWidget);
+      // The class schedule is the page's summary layer now.
+      expect(find.text('开始时间'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('考核结果'),
         200,

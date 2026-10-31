@@ -127,18 +127,8 @@ class LearningReadStatus<T> extends StatelessWidget {
     children: [
       if (!supported) LearningText('当前服务暂不支持$title'),
       if (supported) ...[
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: CupertinoButton(
-              key: ValueKey('learning-refresh-$title'),
-              minimumSize: const Size(48, 48),
-              onPressed: section.loading ? null : onRefresh,
-              child: Text('刷新$title'),
-            ),
-          ),
-        ),
+        // The refresh action lives in the navigation bar. A section only
+        // offers the inline retry that appears when a read actually failed.
         SectionFeedback(
           loading: section.loading,
           label: '正在读取$title…',

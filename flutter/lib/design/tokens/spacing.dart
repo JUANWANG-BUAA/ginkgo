@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 /// 4pt / 8pt spatial layout scale matching Apple Human Interface Guidelines.
 abstract final class GinkgoSpacing {
+  static const double sm = 8.0;
   static const double md = 12.0;
   static const double base = 16.0;
   static const double xl = 24.0;
@@ -27,17 +28,40 @@ abstract final class GinkgoSpacing {
     horizontal: 8,
     vertical: 5,
   );
+  static const edgeInsetsPickerAction = EdgeInsets.symmetric(horizontal: 12);
+  static const edgeInsetsPickerCompactAction = EdgeInsets.symmetric(
+    horizontal: 8,
+  );
+  static const edgeInsetsPickerTitle = EdgeInsets.only(top: 6);
+  static const edgeInsetsSectionStart = EdgeInsets.only(top: 20);
+  static const edgeInsetsStatusGlyphAlignment = EdgeInsets.only(top: 2);
+  static const edgeInsetsBalanceHero = EdgeInsets.symmetric(
+    horizontal: pageInset,
+    vertical: 20,
+  );
   static const edgeInsetsFact = EdgeInsets.symmetric(
     horizontal: 16,
     vertical: 13,
   );
 
+  static EdgeInsets summaryStart({
+    required bool single,
+    required bool desktop,
+  }) => EdgeInsets.only(top: single ? 14 : (desktop ? 18 : 20));
+
   static const double xs = 4.0;
   static const double compact = 5.0;
   static const double small = 6.0;
+  static const double hairline = 0.5;
+  static const double opticalIconInset = 1.0;
   static const double factLabelWidth = 124.0;
   static const double metricColumnWidth = 108.0;
   static const double metricGridSpacing = 18.0;
+  static const double bottomScrollClearance = 96.0;
+
+  static const EdgeInsets edgeInsetsNavigationBack = EdgeInsets.symmetric(
+    horizontal: 2,
+  );
 
   static EdgeInsets badgeInsets({
     required bool compact,

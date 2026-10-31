@@ -8,13 +8,15 @@
 ## 目录
 
 - [features/today/today_action_row.dart](#featurestodaytodayactionrowdart) (1)
+- [features/today/today_checkin_section.dart](#featurestodaytodaycheckinsectiondart) (1)
 - [features/today/today_course_focus.dart](#featurestodaytodaycoursefocusdart) (2)
 - [features/today/today_course_list.dart](#featurestodaytodaycourselistdart) (3)
 - [features/today/today_course_section.dart](#featurestodaytodaycoursesectiondart) (2)
 - [features/today/today_exam_section.dart](#featurestodaytodayexamsectiondart) (1)
 - [features/today/today_homework_section.dart](#featurestodaytodayhomeworksectiondart) (2)
+- [features/today/today_notice_section.dart](#featurestodaytodaynoticesectiondart) (1)
 - [features/today/today_page.dart](#featurestodaytodaypagedart) (1)
-- [features/today/today_page_actions.dart](#featurestodaytodaypageactionsdart) (2)
+- [features/today/today_page_actions.dart](#featurestodaytodaypageactionsdart) (1)
 - [features/today/today_page_header.dart](#featurestodaytodaypageheaderdart) (1)
 - [features/today/today_presentation.dart](#featurestodaytodaypresentationdart) (4)
 - [features/today/today_tasks_section.dart](#featurestodaytodaytaskssectiondart) (2)
@@ -23,8 +25,17 @@
 
 - `class TodayActionRow extends StatelessWidget` — Dashboard action rows reflow naturally and retain a 48dp minimum target.
   <sub>class · features/today/today_action_row.dart:6</sub>
-    - `const TodayActionRow({ super.key, required this.title, this.subtitle, this.status, this.statusColor, this.onTap, this.emphasized = false, this.summary = false, this.caption = false, });`  <sub>:7</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:29</sub>
+    - `const TodayActionRow({ super.key, required this.title, this.subtitle, this.status, this.statusColor, this.trailing, this.onTap, this.emphasized = false, this.summary = false, this.caption = false, });`  <sub>:7</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:33</sub>
+
+## features/today/today_checkin_section.dart
+
+- `class TodayCheckInSection extends StatelessWidget` — The sign-in state of today's courses.
+  <sub>class · features/today/today_checkin_section.dart:17</sub>
+    - `const TodayCheckInSection({ super.key, required this.section, required this.now, required this.onRetry, required this.onOpen, });`  <sub>:18</sub>
+    - `static List<CheckInCourse> pendingCourses(CheckInResponse? data) {…}`  <sub>:31</sub>
+    - `static StatusChip chip(CheckInStatus status) => …`  <sub>:43</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:50</sub>
 
 ## features/today/today_course_focus.dart
 
@@ -56,20 +67,20 @@
 ## features/today/today_course_section.dart
 
 - `class TodayCoursePlaceholder extends StatelessWidget` — Shown until the first course payload lands. The section keeps the same
-  <sub>class · features/today/today_course_section.dart:16</sub>
-    - `const TodayCoursePlaceholder({ super.key, required this.loading, required this.error, required this.onRetry, });`  <sub>:17</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:29</sub>
+  <sub>class · features/today/today_course_section.dart:15</sub>
+    - `const TodayCoursePlaceholder({ super.key, required this.loading, required this.error, required this.onRetry, });`  <sub>:16</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:28</sub>
 - `class TodayCourseSection extends StatelessWidget` — The loaded "today's courses" section: heading, focus card, the expandable
-  <sub>class · features/today/today_course_section.dart:45</sub>
-    - `const TodayCourseSection({ super.key, required this.data, required this.now, required this.loading, required this.error, required this.expanded, required this.onToggleExpanded, required this.onRetry, this.onOpenSchedule, this.demo = false, });`  <sub>:46</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:72</sub>
+  <sub>class · features/today/today_course_section.dart:44</sub>
+    - `const TodayCourseSection({ super.key, required this.data, required this.now, required this.loading, required this.error, required this.expanded, required this.onToggleExpanded, required this.onRetry, this.onOpenSchedule, this.demo = false, });`  <sub>:45</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:71</sub>
 
 ## features/today/today_exam_section.dart
 
 - `class TodayExamSection extends StatefulWidget`
-  <sub>class · features/today/today_exam_section.dart:12</sub>
-    - `const TodayExamSection({ super.key, required this.service, required this.now, this.refreshToken = 0, this.onOpen, });`  <sub>:13</sub>
-    - `State<TodayExamSection> createState() => …`  <sub>:27</sub>
+  <sub>class · features/today/today_exam_section.dart:13</sub>
+    - `const TodayExamSection({ super.key, required this.service, required this.now, this.refreshToken = 0, this.onOpen, });`  <sub>:14</sub>
+    - `State<TodayExamSection> createState() => …`  <sub>:28</sub>
 
 ## features/today/today_homework_section.dart
 
@@ -80,14 +91,20 @@
     - `const TodayHomeworkSection({ super.key, required this.section, required this.onRetry, this.onOpen, this.onOpenItem, this.now, });`  <sub>:37</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:54</sub>
 
+## features/today/today_notice_section.dart
+
+- `class TodayNoticeSection extends StatelessWidget` — The latest school notices. A publication date is never a personal
+  <sub>class · features/today/today_notice_section.dart:12</sub>
+    - `const TodayNoticeSection({ super.key, required this.section, required this.onRetry, required this.onOpen, });`  <sub>:13</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:25</sub>
+
 ## features/today/today_page.dart
 
 - `class TodayPage extends StatefulWidget`
-  <sub>class · features/today/today_page.dart:25</sub>
-    - `const TodayPage({ super.key, required this.service, required this.fileActions, this.accountName, this.accountId, this.storageRoot, this.now, this.onAccountAction, this.directory, this.onOpenFeature, this.onOpenSettings, this.shortcutChoices = const [], });`  <sub>:26</sub>
-    - `final DateTime Function()? now;` — An instant, converted to Beijing wall time for presentation.  <sub>:55</sub>
-    - `final Future<void> Function()? onAccountAction;`  <sub>:56</sub>
-    - `State<TodayPage> createState() => …`  <sub>:58</sub>
+  <sub>class · features/today/today_page.dart:27</sub>
+    - `const TodayPage({ super.key, required this.service, required this.fileActions, this.accountName, this.accountId, this.storageRoot, this.now, this.onOpenFeature, });`  <sub>:28</sub>
+    - `final DateTime Function()? now;` — An instant, converted to Beijing wall time for presentation.  <sub>:50</sub>
+    - `State<TodayPage> createState() => …`  <sub>:52</sub>
 
 ## features/today/today_page_actions.dart
 
@@ -96,32 +113,30 @@
     - `bool get opening => …` — True while a linked page is being opened.  <sub>:16</sub>
     - `Future<void> openTasks( BuildContext context, { required MirrorService service, required PlatformActions fileActions, required String? storageRoot, required String? taskId, required bool Function() isCurrent, required Future<void> Function() reload, required void Function(String message) onFailure, }) async {…}`  <sub>:18</sub>
     - `Future<void> openHomework( BuildContext context, { required MirrorService service, required PlatformActions fileActions, required String? storageRoot, required HomeworkItem item, required bool Function() isCurrent, required Future<void> Function() reload, required void Function(String message) onFailure, }) async {…}`  <sub>:53</sub>
-- `Future<bool> showTodayAccountDialog( BuildContext context, { required String? accountName, required bool demo, }) async {…}` — Ask what to do with the current account. Returns true when the user asked
-  <sub>function · features/today/today_page_actions.dart:90</sub>
 
 ## features/today/today_page_header.dart
 
-- `class TodayPageHeader extends StatelessWidget` — The today header carries the account / settings shortcut and the refresh
-  <sub>class · features/today/today_page_header.dart:9</sub>
-    - `const TodayPageHeader({ super.key, required this.title, required this.busy, required this.onRefresh, this.onOpenSettings, this.onAccountAction, this.demo = false, });`  <sub>:10</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:28</sub>
+- `class TodayPageHeader extends StatelessWidget` — The today header carries the page refresh action; account settings live in
+  <sub>class · features/today/today_page_header.dart:8</sub>
+    - `const TodayPageHeader({ super.key, required this.title, required this.busy, required this.onRefresh, });`  <sub>:9</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:21</sub>
 
 ## features/today/today_presentation.dart
 
 - `String todayCoursePlaceLabel(String? place) {…}` — Course fields the school left out stay readable: a missing place never
-  <sub>function · features/today/today_presentation.dart:10</sub>
+  <sub>function · features/today/today_presentation.dart:9</sub>
 - `class TodayVisualDivider extends StatelessWidget` — A quiet inset rule for rows nested inside a reveal animation.
-  <sub>class · features/today/today_presentation.dart:16</sub>
-    - `const TodayVisualDivider({super.key});`  <sub>:17</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:20</sub>
+  <sub>class · features/today/today_presentation.dart:15</sub>
+    - `const TodayVisualDivider({super.key});`  <sub>:16</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:19</sub>
 - `class TodayVisualSection extends StatelessWidget` — Today-only typography and spacing; the shared section keeps its behavior.
-  <sub>class · features/today/today_presentation.dart:32</sub>
-    - `const TodayVisualSection({ super.key, required this.children, this.header, this.footer, });`  <sub>:33</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:44</sub>
+  <sub>class · features/today/today_presentation.dart:31</sub>
+    - `const TodayVisualSection({ super.key, required this.children, this.header, this.footer, });`  <sub>:32</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:43</sub>
 - `class TodaySectionHeader extends StatelessWidget` — A structured section header with theme icon, bold title, count capsule badge,
-  <sub>class · features/today/today_presentation.dart:71</sub>
-    - `const TodaySectionHeader({ super.key, required this.title, this.icon, this.badge, this.actionLabel, this.onAction, });`  <sub>:72</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:88</sub>
+  <sub>class · features/today/today_presentation.dart:70</sub>
+    - `const TodaySectionHeader({ super.key, required this.title, this.icon, this.badge, this.actionLabel, this.actionKey, this.onAction, });`  <sub>:71</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:89</sub>
 
 ## features/today/today_tasks_section.dart
 

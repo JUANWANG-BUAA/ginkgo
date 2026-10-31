@@ -34,6 +34,17 @@ class RefreshService extends ControlledService {
     gradeCalls.add(pending);
     return pending.future;
   }
+
+  /// The workbench also reads the sign-in state. Answer it immediately so a
+  /// pending request never keeps a spinner on screen.
+  @override
+  Future<CheckInResponse> checkin({bool forceRefresh = false}) async =>
+      const CheckInResponse(
+        date: '2026-10-20',
+        courses: [],
+        fromCache: false,
+        stale: false,
+      );
 }
 
 void main() {

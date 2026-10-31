@@ -21,9 +21,9 @@ const choices = [
   ),
   WorkspaceShortcut(id: 'homework', title: '学校作业', icon: CupertinoIcons.book),
   WorkspaceShortcut(
-    id: 'reservations',
-    title: '空间预约',
-    icon: CupertinoIcons.building_2_fill,
+    id: 'library',
+    title: '图书馆',
+    icon: CupertinoIcons.book,
   ),
   WorkspaceShortcut(
     id: 'extra',

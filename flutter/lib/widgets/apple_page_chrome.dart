@@ -10,31 +10,41 @@ class AppleRefreshPageHeader extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.icon,
+    this.leading,
     this.section = '空间资源',
     this.refreshLabel,
     this.busy = false,
     this.onRefresh,
+    this.refreshKey,
   });
 
   final String title;
   final String subtitle;
   final IconData icon;
+  final Widget? leading;
   final String section;
   final String? refreshLabel;
   final bool busy;
   final Future<void> Function()? onRefresh;
 
+  /// A stable identity for the refresh action, used by tests and by pages
+  /// that address the action directly.
+  final Key? refreshKey;
+
   @override
   Widget build(BuildContext context) => ApplePageHeader(
     largeTitle: Text(title),
+    leading: leading,
     section: section,
     subtitle: subtitle,
     icon: icon,
     border: null,
     trailing: refreshLabel == null
         ? null
-        : AppleGlassButton(
+        : AppleToolbarButton(
+            key: refreshKey,
             label: refreshLabel!,
+            busy: busy,
             onPressed: busy || onRefresh == null ? null : () => onRefresh!(),
             child: busy
                 ? const GinkgoActivity(size: 17)

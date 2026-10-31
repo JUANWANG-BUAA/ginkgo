@@ -74,7 +74,7 @@ class CollectionToolbar extends StatelessWidget {
                         onPressed: busy
                             ? null
                             : () async {
-                                final value = await choose<int>(
+                                final value = await chooseWheel<int>(
                                   anchor,
                                   '跳转到页',
                                   List.generate(

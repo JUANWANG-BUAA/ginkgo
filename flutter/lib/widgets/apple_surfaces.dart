@@ -11,6 +11,7 @@ class ApplePageHeader extends StatelessWidget {
     super.key,
     required this.largeTitle,
     this.trailing,
+    this.leading,
     this.previousPageTitle,
     this.border,
     this.section,
@@ -19,6 +20,7 @@ class ApplePageHeader extends StatelessWidget {
   });
   final Widget largeTitle;
   final Widget? trailing;
+  final Widget? leading;
   final String? previousPageTitle;
   final Border? border;
 
@@ -33,6 +35,8 @@ class ApplePageHeader extends StatelessWidget {
     if (!AppleDesign.desktop(context)) {
       return CupertinoSliverNavigationBar(
         largeTitle: largeTitle,
+        leading: leading,
+        automaticallyImplyLeading: leading == null,
         previousPageTitle: previousPageTitle,
         border: border,
         trailing: trailing,
@@ -54,7 +58,10 @@ class ApplePageHeader extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                if (canPop) ...[
+                if (leading != null) ...[
+                  leading!,
+                  const SizedBox(width: GinkgoSpacing.sm),
+                ] else if (canPop) ...[
                   CupertinoButton(
                     key: const Key('desktop-page-back'),
                     padding: const EdgeInsets.all(8),
@@ -65,7 +72,7 @@ class ApplePageHeader extends StatelessWidget {
                       child: const Icon(CupertinoIcons.chevron_left, size: 20),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: GinkgoSpacing.sm),
                 ],
                 if (resolvedIcon != null) ...[
                   GinkgoIconTile(
@@ -144,7 +151,7 @@ class AppleEmptyState extends StatelessWidget {
   final IconData? icon;
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 16),
+    padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
     child: Column(
       children: [
         Icon(
@@ -192,7 +199,7 @@ class AppleSection extends StatelessWidget {
   final bool animateSize;
   @override
   Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.only(top: AppleDesign.desktop(context) ? 20 : 24),
+    padding: GinkgoSpacing.edgeInsetsSectionStart,
     // The section is a semantic boundary with explicit children. Without it
     // Flutter folds every row, header and footer of the section into one
     // node whose label is their concatenated text and whose bounds cover the
@@ -206,7 +213,7 @@ class AppleSection extends StatelessWidget {
         children: [
           if (header != null)
             Padding(
-              padding: const EdgeInsets.fromLTRB(32, 0, 32, 10),
+              padding: const EdgeInsets.fromLTRB(32, 0, 32, 8),
               child: Semantics(
                 header: true,
                 child: DefaultTextStyle.merge(
@@ -268,7 +275,7 @@ class AppleSection extends StatelessWidget {
           ),
           if (footer != null)
             Padding(
-              padding: const EdgeInsets.fromLTRB(32, 8, 32, 0),
+              padding: const EdgeInsets.fromLTRB(32, 6, 32, 0),
               child: DefaultTextStyle.merge(
                 style: TextStyle(
                   fontSize: 13,

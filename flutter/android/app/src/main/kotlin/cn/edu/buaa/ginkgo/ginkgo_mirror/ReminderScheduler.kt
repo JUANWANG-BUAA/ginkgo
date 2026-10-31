@@ -15,6 +15,14 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.Executors
 
+internal const val REMINDER_CHANNEL_ID = "campus-reminders-v1"
+
+// The receiver and every scheduler instance share one process-wide order.
+// A queued cancellation cannot race a broadcast's read/mark/notify sequence.
+private object ReminderQueue {
+    val worker = Executors.newSingleThreadExecutor()
+}
+
 /**
  * Local generic reminders only. Never reads the network or performs check-in.
  *
@@ -24,7 +32,6 @@ import java.util.concurrent.Executors
  * main thread would stall the UI on every reschedule.
  */
 class ReminderScheduler(private val context: Context) : MethodChannel.MethodCallHandler {
-    private val worker = Executors.newSingleThreadExecutor()
     private val main = android.os.Handler(android.os.Looper.getMainLooper())
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -33,12 +40,12 @@ class ReminderScheduler(private val context: Context) : MethodChannel.MethodCall
             val manager = context.getSystemService(NotificationManager::class.java)
             result.success(mapOf("plans" to JSONArray(prefs.getString("plans", "[]")).length(),
                 "delivered" to JSONObject(prefs.getString("delivered", "{}")).length(),
-                "visible" to manager.activeNotifications.count { Build.VERSION.SDK_INT < 26 || it.notification.channelId == "campus-reminders-v1" }))
+                "visible" to manager.activeNotifications.count { Build.VERSION.SDK_INT < 26 || it.notification.channelId == REMINDER_CHANNEL_ID }))
             return
         }
         if (call.method != "replace") { result.notImplemented(); return }
         val arguments = call.arguments
-        worker.execute {
+        ReminderQueue.worker.execute {
             val outcome = try {
                 replace(arguments)
                 null
@@ -76,13 +83,17 @@ class ReminderScheduler(private val context: Context) : MethodChannel.MethodCall
             if (key !in keys) notifications.cancel(key, 0)
         }
         // Persist first; a stale/cancelled broadcast must never deliver a reminder.
-        prefs.edit().putString("plans", next.toString()).commit()
+        check(prefs.edit().putString("plans", next.toString()).commit()) {
+            "Could not persist reminder plans"
+        }
         val delivered = JSONObject(prefs.getString("delivered", "{}"))
         val iterator = delivered.keys()
         val expired = mutableListOf<String>()
         while (iterator.hasNext()) { val key = iterator.next(); if (delivered.optLong(key) <= System.currentTimeMillis()) expired.add(key) }
         expired.forEach { delivered.remove(it) }
-        prefs.edit().putString("delivered", delivered.toString()).commit()
+        check(prefs.edit().putString("delivered", delivered.toString()).commit()) {
+            "Could not persist delivered reminders"
+        }
         for (i in 0 until next.length()) {
             val plan = next.getJSONObject(i)
             val key = plan.getString("key")
@@ -95,7 +106,7 @@ class ReminderScheduler(private val context: Context) : MethodChannel.MethodCall
     }
 
     fun dispose() {
-        worker.shutdown()
+        // The process-wide queue also serves broadcasts and later activities.
     }
     companion object {
         fun pending(context: Context, key: String): PendingIntent = PendingIntent.getBroadcast(
@@ -109,43 +120,51 @@ class ReminderScheduler(private val context: Context) : MethodChannel.MethodCall
 class ReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val key = intent.getStringExtra("key") ?: return
-        try {
-            val prefs = context.getSharedPreferences("local-reminders", 0)
-            val plans = JSONArray(prefs.getString("plans", "[]"))
-            val plan = (0 until plans.length()).map { plans.getJSONObject(it) }.firstOrNull { it.optString("key") == key } ?: return
-            val now = System.currentTimeMillis()
-            if (plan.getLong("at") > now || plan.getLong("expires") <= now) return
-            val delivered = JSONObject(prefs.getString("delivered", "{}"))
-            if (delivered.has(key)) return
-            val manager = context.getSystemService(NotificationManager::class.java)
-            if (!manager.areNotificationsEnabled()) return
-            val group = plan.getString("group")
-            val channel = "campus-reminders-v1"
-            if (Build.VERSION.SDK_INT >= 26) manager.createNotificationChannel(
-                NotificationChannel(channel, "校园事项提醒", NotificationManager.IMPORTANCE_DEFAULT))
-            val open = PendingIntent.getActivity(context, 0,
-                Intent(context, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                }, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, channel) else Notification.Builder(context)
-            val notification = builder.setSmallIcon(R.drawable.ic_reminder)
-                .setContentTitle(when (group) {
-                    "checkin" -> "签到已开放"
-                    "course" -> "课程即将开始"
-                    "task" -> "待办临近截止"
-                    else -> "作业临近截止"
-                })
-                .setContentText(when (group) {
-                    "checkin" -> "课程签到窗口已开放，请进入 Ginkgo 核对并手动签到。"
-                    "course" -> "有课程即将开始，请进入 Ginkgo 查看时间与地点。"
-                    "task" -> "有未完成待办进入截止提醒期，请进入 Ginkgo 查看。"
-                    else -> "有未完成作业进入截止提醒期，请进入 Ginkgo 查看。"
-                })
-                .setVisibility(Notification.VISIBILITY_PRIVATE).setContentIntent(open).setAutoCancel(true).build()
-            // Mark before posting: repeated broadcasts/rescheduling must not notify twice.
-            delivered.put(key, plan.getLong("expires"))
-            prefs.edit().putString("delivered", delivered.toString()).commit()
-            manager.notify(key, 0, notification)
-        } catch (_: Exception) { android.util.Log.w("Ginkgo", "local reminder delivery failed") }
+        val pendingResult = goAsync()
+        ReminderQueue.worker.execute {
+            try {
+                val prefs = context.getSharedPreferences("local-reminders", 0)
+                val plans = JSONArray(prefs.getString("plans", "[]"))
+                val plan = (0 until plans.length()).map { plans.getJSONObject(it) }.firstOrNull { it.optString("key") == key } ?: return@execute
+                val now = System.currentTimeMillis()
+                if (plan.getLong("at") > now || plan.getLong("expires") <= now) return@execute
+                val delivered = JSONObject(prefs.getString("delivered", "{}"))
+                if (delivered.has(key)) return@execute
+                val manager = context.getSystemService(NotificationManager::class.java)
+                if (!manager.areNotificationsEnabled()) return@execute
+                val group = plan.getString("group")
+                val channel = REMINDER_CHANNEL_ID
+                if (Build.VERSION.SDK_INT >= 26) manager.createNotificationChannel(
+                    NotificationChannel(channel, "校园事项提醒", NotificationManager.IMPORTANCE_DEFAULT))
+                if (Build.VERSION.SDK_INT >= 26 &&
+                    manager.getNotificationChannel(channel)?.importance == NotificationManager.IMPORTANCE_NONE) return@execute
+                val open = PendingIntent.getActivity(context, 0,
+                    Intent(context, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    }, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, channel) else Notification.Builder(context)
+                val notification = builder.setSmallIcon(R.drawable.ic_reminder)
+                    .setContentTitle(when (group) {
+                        "checkin" -> "签到已开放"
+                        "course" -> "课程即将开始"
+                        "task" -> "待办临近截止"
+                        else -> "作业临近截止"
+                    })
+                    .setContentText(when (group) {
+                        "checkin" -> "课程签到窗口已开放，请进入 Ginkgo 核对并手动签到。"
+                        "course" -> "有课程即将开始，请进入 Ginkgo 查看时间与地点。"
+                        "task" -> "有未完成待办进入截止提醒期，请进入 Ginkgo 查看。"
+                        else -> "有未完成作业进入截止提醒期，请进入 Ginkgo 查看。"
+                    })
+                    .setVisibility(Notification.VISIBILITY_PRIVATE).setContentIntent(open).setAutoCancel(true).build()
+                // Mark before posting: repeated broadcasts/rescheduling must not notify twice.
+                delivered.put(key, plan.getLong("expires"))
+                check(prefs.edit().putString("delivered", delivered.toString()).commit()) {
+                    "Could not persist delivered reminder"
+                }
+                manager.notify(key, 0, notification)
+            } catch (_: Exception) { android.util.Log.w("Ginkgo", "local reminder delivery failed") }
+            finally { pendingResult.finish() }
+        }
     }
 }

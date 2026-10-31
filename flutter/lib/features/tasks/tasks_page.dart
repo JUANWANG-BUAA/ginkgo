@@ -387,6 +387,22 @@ class _TasksPageState extends State<TasksPage> {
                       ),
                     ],
                   ),
+                if (readable)
+                  SummaryStrip(
+                    items: [
+                      SummaryItem(
+                        '未完成',
+                        '${tasks.where((task) => !task.completed).length} 项',
+                        icon: CupertinoIcons.list_bullet,
+                      ),
+                      SummaryItem(
+                        '已完成',
+                        '${tasks.where((task) => task.completed).length} 项',
+                        icon: CupertinoIcons.checkmark_circle,
+                      ),
+                    ],
+                    note: '仅保存在本机当前账号，不写入学校系统。',
+                  ),
                 if (!busy && readable && tasks.isEmpty)
                   const AppleSection(
                     children: [

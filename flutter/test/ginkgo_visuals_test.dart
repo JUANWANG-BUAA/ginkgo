@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ginkgo_mirror/features/today/today_presentation.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 
@@ -41,7 +42,7 @@ void main() {
         );
         expect(
           resolved.a,
-          closeTo(brightness == Brightness.dark ? 0.28 : 0.16, 0.001),
+          closeTo(brightness == Brightness.dark ? 0.22 : 0.12, 0.001),
         );
         expect(
           tester.getSemantics(find.byType(GinkgoIconTile)).label,
@@ -52,27 +53,186 @@ void main() {
     },
   );
 
-  testWidgets('unselected icon tile is subtler than the selected one', (
+  testWidgets('unselected icon tile uses a quiet tint in both appearances', (
+    tester,
+  ) async {
+    for (final brightness in Brightness.values) {
+      await tester.pumpWidget(
+        CupertinoApp(
+          theme: CupertinoThemeData(brightness: brightness),
+          home: const Center(
+            child: GinkgoIconTile(icon: CupertinoIcons.calendar),
+          ),
+        ),
+      );
+      final container = tester.widget<Container>(
+        find.descendant(
+          of: find.byType(GinkgoIconTile),
+          matching: find.byType(Container),
+        ),
+      );
+      final decoration = container.decoration! as BoxDecoration;
+      final context = tester.element(find.byType(GinkgoIconTile));
+      expect(
+        CupertinoDynamicColor.resolve(decoration.color!, context).a,
+        closeTo(brightness == Brightness.dark ? 0.12 : 0.06, 0.001),
+      );
+      expect(tester.getSize(find.byType(GinkgoIconTile)), const Size(44, 44));
+    }
+  });
+
+  testWidgets('mobile grouped sections use restrained inset corners', (
     tester,
   ) async {
     await tester.pumpWidget(
       const CupertinoApp(
-        home: Center(child: GinkgoIconTile(icon: CupertinoIcons.calendar)),
+        home: MediaQuery(
+          data: MediaQueryData(size: Size(390, 844)),
+          child: CupertinoPageScaffold(
+            child: AppleSection(children: [SizedBox(height: 48)]),
+          ),
+        ),
       ),
     );
-    final container = tester.widget<Container>(
-      find.descendant(
-        of: find.byType(GinkgoIconTile),
-        matching: find.byType(Container),
+    final clip = tester.widget<ClipRSuperellipse>(
+      find.byType(ClipRSuperellipse),
+    );
+    expect((clip.borderRadius as BorderRadius).topLeft.x, 16);
+  });
+
+  testWidgets('section header icons use secondary color, not accent', (
+    tester,
+  ) async {
+    const icon = CupertinoIcons.square_grid_2x2_fill;
+    await tester.pumpWidget(
+      const CupertinoApp(
+        theme: CupertinoThemeData(primaryColor: Color(0xff189840)),
+        home: CupertinoPageScaffold(
+          child: Center(
+            child: TodaySectionHeader(icon: icon, title: '常用服务'),
+          ),
+        ),
       ),
     );
-    final decoration = container.decoration! as BoxDecoration;
-    final context = tester.element(find.byType(GinkgoIconTile));
+    final context = tester.element(find.byType(TodaySectionHeader));
     expect(
-      CupertinoDynamicColor.resolve(decoration.color!, context).a,
-      closeTo(0.10, 0.001),
+      tester.widget<Icon>(find.byIcon(icon)).color,
+      CupertinoColors.secondaryLabel.resolveFrom(context),
     );
-    expect(tester.getSize(find.byType(GinkgoIconTile)), const Size(44, 44));
+  });
+
+  testWidgets('summary source note wraps at large type', (tester) async {
+    const note = '来源：学校官网 · 同步 10月28日 10:00';
+    await tester.pumpWidget(
+      const CupertinoApp(
+        home: MediaQuery(
+          data: MediaQueryData(
+            size: Size(320, 700),
+            textScaler: TextScaler.linear(1.6),
+          ),
+          child: CupertinoPageScaffold(
+            child: SummaryStrip(
+              items: [SummaryItem('公开安排', '12 条')],
+              note: note,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final noteText = tester.widget<Text>(find.text(note));
+    expect(noteText.maxLines, isNull);
+    expect(noteText.overflow, isNull);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('summary values wrap at narrow width and 3.2x text', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    const value = '状态需要核对，部分记录暂不可用';
+    await tester.pumpWidget(
+      const CupertinoApp(
+        home: MediaQuery(
+          data: MediaQueryData(
+            size: Size(320, 844),
+            textScaler: TextScaler.linear(3.2),
+          ),
+          child: CupertinoPageScaffold(
+            child: SummaryStrip(items: [SummaryItem('课程签到及课堂安排', value)]),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.text(value)).height, greaterThan(50));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('summary metrics use two columns at regular phone size', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      const CupertinoApp(
+        home: CupertinoPageScaffold(
+          child: SummaryStrip(
+            items: [
+              SummaryItem('A', '1', key: ValueKey('summary-a')),
+              SummaryItem('B', '2', key: ValueKey('summary-b')),
+              SummaryItem('C', '3', key: ValueKey('summary-c')),
+              SummaryItem('D', '4', key: ValueKey('summary-d')),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final a = tester.getTopLeft(find.text('A'));
+    final b = tester.getTopLeft(find.text('B'));
+    final c = tester.getTopLeft(find.text('C'));
+    final d = tester.getTopLeft(find.text('D'));
+    expect(b.dx, greaterThan(a.dx));
+    expect(b.dy, closeTo(a.dy, 0.1));
+    expect(c.dy, greaterThan(a.dy));
+    expect(d.dy, closeTo(c.dy, 0.1));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('summary metrics return to full-width rows at large type', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      const CupertinoApp(
+        home: MediaQuery(
+          data: MediaQueryData(
+            size: Size(320, 844),
+            textScaler: TextScaler.linear(1.6),
+          ),
+          child: CupertinoPageScaffold(
+            child: SummaryStrip(
+              items: [SummaryItem('A', '1'), SummaryItem('B', '2')],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final a = tester.getTopLeft(find.text('A'));
+    final b = tester.getTopLeft(find.text('B'));
+    expect(b.dx, closeTo(a.dx, 0.1));
+    expect(b.dy, greaterThan(a.dy));
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('icon tile honors explicit size, icon size and tint', (

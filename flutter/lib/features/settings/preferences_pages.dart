@@ -176,6 +176,7 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
             subtitle: Text(switch (permission) {
               'loading' => '读取中…',
               'granted' => '已允许',
+              'channelBlocked' => '校园事项提醒类别已关闭，请到系统设置开启',
               'notRequested' => '尚未请求',
               'denied' => '未允许，请到系统设置开启',
               'unsupported' => '请在系统通知设置中查看',

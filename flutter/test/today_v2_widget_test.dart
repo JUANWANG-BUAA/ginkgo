@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/local_tasks.dart';
+import 'package:ginkgo_mirror/application/notices.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
@@ -12,7 +13,9 @@ import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
 import 'package:ginkgo_mirror/features/today/today_action_row.dart';
 import 'package:ginkgo_mirror/features/today/today_course_focus.dart';
 import 'package:ginkgo_mirror/features/today/today_course_section.dart';
+import 'package:ginkgo_mirror/features/today/today_checkin_section.dart';
 import 'package:ginkgo_mirror/features/today/today_homework_section.dart';
+import 'package:ginkgo_mirror/features/today/today_notice_section.dart';
 import 'package:ginkgo_mirror/features/today/today_page.dart';
 import 'package:ginkgo_mirror/features/today/today_tasks_section.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
@@ -156,7 +159,8 @@ Widget host(
     child: child,
   ),
 );
-Widget page(TodayFake service, {String account = 'a'}) => TodayPage(fileActions: platformActions,
+Widget page(TodayFake service, {String account = 'a'}) => TodayPage(
+  fileActions: platformActions,
   service: service,
   storageRoot: '/synthetic/tasks',
   accountName: '同名用户',
@@ -176,6 +180,130 @@ Future<void> clear(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('old empty check-in snapshot stays visible and can refresh', (
+    tester,
+  ) async {
+    size(tester);
+    var retries = 0;
+    final section = RefreshSection<CheckInResponse>()
+      ..value = const CheckInResponse(
+        date: '2026-10-20',
+        courses: [],
+        fromCache: true,
+        stale: true,
+      );
+    await tester.pumpWidget(
+      host(
+        TodayCheckInSection(
+          section: section,
+          now: clock,
+          onRetry: () => retries++,
+          onOpen: () {},
+        ),
+      ),
+    );
+    expect(find.text('签到日期待更新'), findsOneWidget);
+    expect(find.textContaining('2026-10-20'), findsWidgets);
+    expect(find.text('今天没有可签到的课程'), findsNothing);
+    await tester.tap(find.text('签到日期待更新'));
+    expect(retries, 1);
+    await clear(tester);
+    section.dispose();
+  });
+
+  testWidgets('confirmed empty dashboard sections collapse, errors remain', (
+    tester,
+  ) async {
+    size(tester);
+    final checkins = RefreshSection<CheckInResponse>()
+      ..value = const CheckInResponse(
+        date: '2026-10-22',
+        courses: [],
+        fromCache: false,
+        stale: false,
+      );
+    await tester.pumpWidget(
+      host(
+        TodayCheckInSection(
+          section: checkins,
+          now: clock,
+          onRetry: () {},
+          onOpen: () {},
+        ),
+      ),
+    );
+    expect(find.byKey(const Key('today-checkin')), findsNothing);
+    checkins.error = '合成签到读取失败';
+    await tester.pumpWidget(
+      host(
+        TodayCheckInSection(
+          section: checkins,
+          now: clock,
+          onRetry: () {},
+          onOpen: () {},
+        ),
+      ),
+    );
+    expect(find.text('合成签到读取失败'), findsOneWidget);
+    checkins.dispose();
+
+    final notices = RefreshSection<NoticesRead>()
+      ..value = const NoticesRead(data: []);
+    await tester.pumpWidget(
+      host(TodayNoticeSection(section: notices, onRetry: () {}, onOpen: () {})),
+    );
+    expect(find.byKey(const Key('today-notices')), findsNothing);
+    notices.error = '合成通知读取失败';
+    await tester.pumpWidget(
+      host(TodayNoticeSection(section: notices, onRetry: () {}, onOpen: () {})),
+    );
+    expect(find.text('合成通知读取失败'), findsOneWidget);
+    notices.dispose();
+
+    final tasks = RefreshSection<TodayTasksSnapshot>()
+      ..value = TodayTasksSnapshot([], clock);
+    await tester.pumpWidget(
+      host(
+        TodayTasksSection(
+          section: tasks,
+          now: clock,
+          onRetry: () {},
+          onOpen: (_) {},
+        ),
+      ),
+    );
+    expect(find.byKey(const Key('today-tasks')), findsNothing);
+    tasks.error = '合成本机待办读取失败';
+    await tester.pumpWidget(
+      host(
+        TodayTasksSection(
+          section: tasks,
+          now: clock,
+          onRetry: () {},
+          onOpen: (_) {},
+        ),
+      ),
+    );
+    expect(find.text('合成本机待办读取失败'), findsOneWidget);
+    tasks.dispose();
+  });
+
+  testWidgets('confirmed complete homework can collapse', (tester) async {
+    size(tester);
+    final homework = RefreshSection<HomeworkResponse>()
+      ..value = const HomeworkResponse(
+        termName: '合成学期',
+        termCode: 'synthetic',
+        items: [],
+        rolesComplete: true,
+      );
+    await tester.pumpWidget(
+      host(TodayHomeworkSection(section: homework, onRetry: () {}, now: clock)),
+    );
+    expect(find.byKey(const Key('today-homework')), findsNothing);
+    homework.dispose();
+  });
+
   test('school clocks validate ranges, midnight and date-only deadlines', () {
     expect(todaySchoolNow(DateTime.utc(2026, 10, 21, 17)).day, 22);
     expect(todayDate('2026-02-30'), isNull);
@@ -437,7 +565,7 @@ void main() {
       expect(find.text('无截止时间'), findsOneWidget);
       expect(
         tester.getTopLeft(find.text('事项none')).dy,
-        greaterThan(tester.getTopLeft(find.text('未设截止 / 时间待确认')).dy),
+        greaterThan(tester.getTopLeft(find.text('事项date')).dy),
       );
       await tester.tap(find.byKey(const Key('today-task-date')));
       expect(opened, 'date');

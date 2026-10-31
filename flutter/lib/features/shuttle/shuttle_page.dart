@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show SelectableText;
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/shared/school_links.dart';
 
 import 'package:ginkgo_mirror/shared/today_time.dart';
@@ -182,6 +183,7 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
     final clock = widget.now ?? todaySchoolNow(DateTime.now());
     final nowMinute = clock.hour * 60 + clock.minute;
     final tables = timetable?.tables ?? const <ShuttleTable>[];
+    final hasLiveSource = timetable?.liveSource.isNotEmpty == true;
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
         context,
@@ -195,9 +197,10 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
             subtitle: '计划班次与实时余票，分开核对',
             icon: CupertinoIcons.bus,
             border: null,
-            trailing: AppleGlassButton(
+            trailing: AppleToolbarButton(
               key: const Key('shuttle-refresh'),
               label: '刷新校车时刻表',
+              busy: busy,
               onPressed: busy ? null : load,
               child: busy
                   ? const GinkgoActivity(size: 17)
@@ -207,22 +210,52 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
           SliverToBoxAdapter(
             child: Column(
               children: [
+                SummaryStrip(
+                  items: [
+                    SummaryItem(
+                      '今日班次',
+                      timetable == null
+                          ? '未读取'
+                          : '${timetable!.todayRuns(clock).length} 班',
+                      icon: timetable == null
+                          ? CupertinoIcons.question_circle
+                          : CupertinoIcons.bus,
+                      tone: timetable == null
+                          ? StatusTone.uncertain
+                          : StatusTone.neutral,
+                    ),
+                    SummaryItem(
+                      '时刻表分区',
+                      timetable == null ? '未读取' : '${tables.length} 个',
+                      icon: timetable == null
+                          ? CupertinoIcons.question_circle
+                          : CupertinoIcons.list_bullet,
+                      tone: timetable == null
+                          ? StatusTone.uncertain
+                          : StatusTone.neutral,
+                    ),
+                  ],
+                  note: '来源：学校公布的时刻表。',
+                ),
                 AppleSection(
                   header: const Text('实时余票'),
-                  footer: const Text(
-                    '应用内尚未接通实时余票会话。可在官方页面完成学校认证后核对，时刻表容量不是余票。',
-                  ),
                   children: [
                     AppleListTile(
                       key: const Key('shuttle-live-official'),
                       leading: Icon(
-                        CupertinoIcons.ticket,
-                        color: CupertinoTheme.of(context).primaryColor,
+                        CupertinoIcons.question_circle,
+                        color: AppleDesign.statusUncertain.resolveFrom(context),
                       ),
-                      title: const Text('前往官方认证并查看余票'),
-                      subtitle: const Text('在外部浏览器打开智慧校车登录入口'),
-                      trailing: const CupertinoListTileChevron(),
-                      onTap: timetable?.liveSource.isNotEmpty == true
+                      title: Text(hasLiveSource ? '前往官方页面核对余票' : '应用内暂未接入实时余票'),
+                      subtitle: Text(
+                        hasLiveSource
+                            ? '需完成学校认证；应用内不读取实时数据'
+                            : '暂无可跳转入口，请查看公开时刻表',
+                      ),
+                      trailing: hasLiveSource
+                          ? const CupertinoListTileChevron()
+                          : null,
+                      onTap: hasLiveSource
                           ? () => openOfficial(live: true)
                           : null,
                     ),
@@ -234,7 +267,7 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
                     clock: clock,
                   ),
                 AppleSection(
-                  footer: const Text('公开计划仅供参考，临时调整以学校通知为准。应用不代理购票。'),
+                  footer: const Text('应用不代理购票。'),
                   children: [
                     AppleListTile(
                       key: const Key('shuttle-official'),

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ginkgo_mirror/design/tokens.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/collection_toolbar.dart';
 import 'package:ginkgo_mirror/features/library/library_page.dart';
@@ -53,6 +54,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('library-find-seats')));
+      await tester.pumpAndSettle();
       for (final key in [
         'library-venue-v1',
         'library-area-a1',
@@ -82,7 +85,7 @@ void main() {
       );
       expect(
         first.borderRadius,
-        const BorderRadius.vertical(top: Radius.circular(26)),
+        BorderRadius.vertical(top: Radius.circular(GinkgoRadii.group)),
       );
       await tester.tap(find.byKey(const Key('collection-next-page')));
       await tester.pumpAndSettle();
@@ -114,7 +117,7 @@ void main() {
       final single = tester.widget<ClipRRect>(
         find.byKey(const Key('library-seat-group-lazy-599')),
       );
-      expect(single.borderRadius, BorderRadius.circular(26));
+      expect(single.borderRadius, BorderRadius.circular(GinkgoRadii.group));
       final occupied = find.text('已占用');
       expect(
         tester.widget<Text>(occupied).style!.color,

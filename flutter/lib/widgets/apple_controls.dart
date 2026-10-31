@@ -1,13 +1,12 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_surfaces.dart';
 
-/// Anchored glass menu used by picker tiles. Returns the selected value, or
-/// null when dismissed; positioning keeps every option above the phone tab
-/// bar and inside the safe area.
+/// Presents a discrete choice with the system action sheet.
+///
+/// The sheet owns scrolling and dismissal. Ordered, long choices opt into
+/// [chooseWheel] at the call site based on their meaning, never item count.
 Future<T?> choose<T>(
   BuildContext context,
   String title,
@@ -15,161 +14,165 @@ Future<T?> choose<T>(
   String Function(T) label, {
   T? selected,
 }) {
-  final box = context.findRenderObject() as RenderBox;
-  final rect = box.localToGlobal(Offset.zero) & box.size;
-  final screen = MediaQuery.sizeOf(context);
-  final safe = MediaQuery.paddingOf(context);
-  final width = (screen.width - 32).clamp(200.0, 280.0);
-  final rowHeight = (MediaQuery.textScalerOf(context).scale(17) * 1.5 + 20)
-      .clamp(48.0, 100.0);
-  final height = (values.length * rowHeight + 12).clamp(
-    60.0,
-    screen.height * 0.55,
-  );
-  final left = (rect.right - width).clamp(16.0, screen.width - width - 16);
-  // The phone shell keeps a CupertinoTabBar below the page; menus must stay
-  // above it or their lower options become untappable.
-  final bottomInset = safe.bottom + (screen.width < 760 ? 64.0 : 0.0);
-  final maxTop = (screen.height - bottomInset - height - 12).clamp(
-    safe.top + 12,
-    screen.height,
-  );
-  final top =
-      (rect.bottom + height < screen.height - bottomInset - 16
-              ? rect.bottom
-              : rect.top - height)
-          .clamp(safe.top + 12, maxTop);
-  return showGeneralDialog<T>(
+  if (values.isEmpty) return Future<T?>.value();
+  return showCupertinoModalPopup<T>(
     context: context,
-    barrierDismissible: true,
-    barrierLabel: '取消',
-    barrierColor: CupertinoColors.black.withValues(alpha: 0.08),
-    transitionDuration: AppleDesign.duration(context, 180),
-    pageBuilder: (context, animation, secondary) => Stack(
-      children: [
-        Positioned(
-          left: left,
-          top: top,
-          width: width,
-          height: height,
-          child: Semantics(
-            label: title,
-            scopesRoute: true,
-            explicitChildNodes: true,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xff000000).withValues(alpha: 0.16),
-                    blurRadius: 30,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: ClipRSuperellipse(
-                borderRadius: BorderRadius.circular(18),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: MediaQuery.highContrastOf(context) ? 0 : 20,
-                    sigmaY: MediaQuery.highContrastOf(context) ? 0 : 20,
-                  ),
-                  child: ColoredBox(
-                    color: CupertinoColors.secondarySystemGroupedBackground
-                        .resolveFrom(context)
-                        .withValues(alpha: 0.96),
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      itemCount: values.length,
-                      itemBuilder: (context, index) {
-                        final value = values[index];
-                        final isSelected = value == selected;
-                        return Semantics(
-                          // TalkBack must announce the current choice instead
-                          // of an unlabelled check mark decoration.
-                          selected: isSelected,
-                          child: CupertinoButton(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
-                            ),
-                            onPressed: () => Navigator.pop(context, value),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 18,
-                                  child: isSelected
-                                      ? Icon(
-                                          CupertinoIcons.check_mark,
-                                          size: 16,
-                                          color: CupertinoTheme.of(context)
-                                              .primaryColor,
-                                        )
-                                      : null,
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    label(value),
-                                    style: AppleDesign.body.copyWith(
-                                      color: CupertinoColors.label.resolveFrom(
-                                        context,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ),
+    builder: (sheetContext) => CupertinoActionSheet(
+      title: Text(title),
+      actions: [
+        for (final value in values)
+          CupertinoActionSheetAction(
+            isDefaultAction: value == selected,
+            onPressed: () => Navigator.pop(sheetContext, value),
+            child: Text(label(value)),
           ),
-        ),
       ],
-    ),
-    transitionBuilder: (context, animation, secondary, child) => FadeTransition(
-      opacity: animation,
-      child: ScaleTransition(
-        scale: Tween(begin: 0.98, end: 1.0).animate(
-          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-        ),
-        child: child,
+      cancelButton: CupertinoActionSheetAction(
+        onPressed: () => Navigator.pop(sheetContext),
+        child: const Text('取消'),
       ),
     ),
   );
 }
 
-class AppleGlassButton extends StatefulWidget {
-  const AppleGlassButton({
+/// Presents a long ordered list with the system picker wheel.
+///
+/// A semester week list or a result page list does not fit an action sheet;
+/// the wheel is the native control for a long ordered choice.
+Future<T?> chooseWheel<T>(
+  BuildContext context,
+  String title,
+  List<T> values,
+  String Function(T) label, {
+  T? selected,
+}) {
+  if (values.isEmpty) return Future<T?>.value();
+  final found = selected == null ? -1 : values.indexOf(selected);
+  var index = found < 0 ? 0 : found;
+  return showCupertinoModalPopup<T>(
+    context: context,
+    builder: (sheetContext) {
+      final textScale = MediaQuery.textScalerOf(sheetContext).scale(1);
+      final itemExtent = (44 * textScale.clamp(1.0, 1.8))
+          .clamp(44.0, 80.0)
+          .toDouble();
+      return Container(
+        height: (MediaQuery.sizeOf(sheetContext).height * 0.55)
+            .clamp(300.0, 440.0)
+            .toDouble(),
+        color: CupertinoColors.systemBackground.resolveFrom(sheetContext),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              if (MediaQuery.textScalerOf(sheetContext).scale(1) > 1.4) ...[
+                Padding(
+                  padding: GinkgoSpacing.edgeInsetsPickerTitle,
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: GinkgoTypography.headline.fontSize,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Row(
+                  children: [
+                    CupertinoButton(
+                      padding: GinkgoSpacing.edgeInsetsPickerCompactAction,
+                      minimumSize: const Size(48, 48),
+                      onPressed: () => Navigator.pop(sheetContext),
+                      child: const Text('取消'),
+                    ),
+                    const Spacer(),
+                    CupertinoButton(
+                      padding: GinkgoSpacing.edgeInsetsPickerCompactAction,
+                      minimumSize: const Size(48, 48),
+                      onPressed: () =>
+                          Navigator.pop(sheetContext, values[index]),
+                      child: const Text('确定'),
+                    ),
+                  ],
+                ),
+              ] else
+                Row(
+                  children: [
+                    CupertinoButton(
+                      padding: GinkgoSpacing.edgeInsetsPickerAction,
+                      minimumSize: const Size(48, 48),
+                      onPressed: () => Navigator.pop(sheetContext),
+                      child: const Text('取消'),
+                    ),
+                    Expanded(
+                      child: Text(
+                        title,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: GinkgoTypography.headline.fontSize,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    CupertinoButton(
+                      padding: GinkgoSpacing.edgeInsetsPickerAction,
+                      minimumSize: const Size(48, 48),
+                      onPressed: () =>
+                          Navigator.pop(sheetContext, values[index]),
+                      child: const Text('确定'),
+                    ),
+                  ],
+                ),
+              Expanded(
+                child: CupertinoPicker(
+                  scrollController: FixedExtentScrollController(
+                    initialItem: index,
+                  ),
+                  itemExtent: itemExtent,
+                  useMagnifier: true,
+                  magnification: 1.1,
+                  onSelectedItemChanged: (value) => index = value,
+                  children: [
+                    for (final value in values)
+                      Center(child: Text(label(value))),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class AppleToolbarButton extends StatelessWidget {
+  const AppleToolbarButton({
     super.key,
     required this.child,
     required this.onPressed,
     required this.label,
+    this.busy = false,
   });
   final Widget child;
   final VoidCallback? onPressed;
   final String label;
-  @override
-  State<AppleGlassButton> createState() => _AppleGlassButtonState();
-}
-
-class _AppleGlassButtonState extends State<AppleGlassButton> {
-  bool pressed = false;
+  final bool busy;
   @override
   Widget build(BuildContext context) {
     if (AppleDesign.desktop(context)) {
       return Semantics(
-        label: widget.label,
+        container: true,
+        label: label,
+        value: busy ? '正在更新' : null,
         button: true,
+        enabled: onPressed != null,
+        onTap: onPressed,
+        excludeSemantics: true,
         child: CupertinoButton(
           padding: const EdgeInsets.all(8),
           minimumSize: const Size(48, 48),
-          onPressed: widget.onPressed,
+          onPressed: onPressed,
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: CupertinoColors.secondarySystemGroupedBackground
@@ -188,7 +191,7 @@ class _AppleGlassButtonState extends State<AppleGlassButton> {
               child: Center(
                 child: IconTheme.merge(
                   data: const IconThemeData(size: 19),
-                  child: widget.child,
+                  child: child,
                 ),
               ),
             ),
@@ -196,58 +199,30 @@ class _AppleGlassButtonState extends State<AppleGlassButton> {
         ),
       );
     }
-    final opaque =
-        MediaQuery.highContrastOf(context) ||
-        MediaQuery.disableAnimationsOf(context);
-    final surface = CupertinoColors.secondarySystemGroupedBackground
-        .resolveFrom(context);
     return Semantics(
-      label: widget.label,
+      container: true,
+      label: label,
+      value: busy ? '正在更新' : null,
       button: true,
-      child: Listener(
-        onPointerDown: widget.onPressed == null
-            ? null
-            : (_) => setState(() => pressed = true),
-        onPointerUp: (_) => setState(() => pressed = false),
-        onPointerCancel: (_) => setState(() => pressed = false),
-        child: AnimatedScale(
-          scale: pressed && !MediaQuery.disableAnimationsOf(context) ? 0.94 : 1,
-          duration: AppleDesign.duration(context, pressed ? 90 : 260),
-          curve: pressed ? Curves.easeOut : Curves.easeOutBack,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xff000000).withValues(alpha: 0.06),
-                  blurRadius: 12,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: ClipOval(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: opaque ? 0 : 16,
-                  sigmaY: opaque ? 0 : 16,
-                ),
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: surface.withValues(alpha: opaque ? 1 : 0.72),
-                    border: Border.all(
-                      color: CupertinoColors.white.withValues(alpha: 0.5),
-                      width: 0.7,
-                    ),
-                  ),
-                  child: CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: widget.onPressed,
-                    child: widget.child,
-                  ),
-                ),
+      enabled: onPressed != null,
+      onTap: onPressed,
+      excludeSemantics: true,
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        minimumSize: const Size(48, 48),
+        onPressed: onPressed,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
+          ),
+          child: SizedBox(
+            width: 48,
+            height: 48,
+            child: Center(
+              child: IconTheme.merge(
+                data: const IconThemeData(size: 20),
+                child: child,
               ),
             ),
           ),
@@ -266,6 +241,7 @@ class ApplePickerTile<T> extends StatelessWidget {
     required this.label,
     required this.onSelected,
     this.enabled = true,
+    this.useWheel = false,
   });
   final String title;
   final T value;
@@ -273,6 +249,7 @@ class ApplePickerTile<T> extends StatelessWidget {
   final String Function(T) label;
   final void Function(T) onSelected;
   final bool enabled;
+  final bool useWheel;
   @override
   Widget build(BuildContext context) => Builder(
     builder: (anchorContext) => AppleListTile(
@@ -295,13 +272,21 @@ class ApplePickerTile<T> extends StatelessWidget {
       onTap: !enabled
           ? null
           : () async {
-              final selected = await choose(
-                anchorContext,
-                title,
-                values,
-                label,
-                selected: value,
-              );
+              final selected = useWheel
+                  ? await chooseWheel(
+                      anchorContext,
+                      title,
+                      values,
+                      label,
+                      selected: value,
+                    )
+                  : await choose(
+                      anchorContext,
+                      title,
+                      values,
+                      label,
+                      selected: value,
+                    );
               if (selected != null && context.mounted) {
                 onSelected(selected);
               }

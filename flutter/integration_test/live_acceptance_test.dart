@@ -36,6 +36,8 @@ import 'package:ginkgo_mirror/infrastructure/native_mirror_service.dart';
 import 'package:ginkgo_mirror/application/library_stats.dart';
 
 const enabled = bool.fromEnvironment('GINKGO_LIVE_ACCEPTANCE');
+const forceDirect = bool.fromEnvironment('GINKGO_LIVE_DIRECT');
+const rememberForRecovery = bool.fromEnvironment('GINKGO_LIVE_REMEMBER');
 const endpoint = String.fromEnvironment(
   'GINKGO_LIVE_ENDPOINT',
   defaultValue: 'http://127.0.0.1:18764',
@@ -48,6 +50,9 @@ void main() {
     'authorized real-account interface, visual and latency audit',
     (tester) async {
       await RustLib.init();
+      if (forceDirect) {
+        await live.setRoute(route: live.RouteChoice.direct);
+      }
       const service = NativeMirrorService();
       // The harness channel is deliberately loopback-only and does not change
       // the application's production HTTPS or Android network policy.
@@ -282,6 +287,9 @@ void main() {
           find.byKey(const Key('login-password')),
           credentials['password'] as String,
         );
+        if (rememberForRecovery) {
+          await tester.tap(find.byType(CupertinoSwitch));
+        }
         credentials.clear();
         await tester.tap(find.byKey(const Key('login-submit')));
         final loginWait = Stopwatch()..start();
@@ -638,8 +646,11 @@ void main() {
         await capture('graduate-profile');
         await page('library', const LibraryPage(service: service));
         if (visualVenue != null && visualArea != null && visualSlot != null) {
+          await tester.tap(find.byKey(const Key('library-find-seats')));
+          await ready('library-venues');
+          await capture('library-venues');
           final venueRow = find.byKey(Key('library-venue-${visualVenue.id}'));
-          await show(tester, venueRow, scrollKey: 'library-scroll');
+          await show(tester, venueRow, scrollKey: 'library-venues-scroll');
           await tester.tap(venueRow);
           await ready('library-areas');
           await capture('library-areas');
@@ -712,30 +723,38 @@ void main() {
               storageRoot: taskDirectory!.path,
             ),
           );
-          await tester.tap(find.bySemanticsLabel('新增待办'));
-          await settle(tester, frames: 5);
+          Finder taskControl(String prefix) => find.byWidgetPredicate(
+            (widget) =>
+                widget.key is ValueKey<String> &&
+                (widget.key! as ValueKey<String>).value.startsWith(prefix),
+          );
+          Future<void> tapTask(Finder finder) async {
+            await tester.ensureVisible(finder);
+            await tester.tap(finder);
+            await settle(tester);
+          }
+
+          await tapTask(find.bySemanticsLabel('新增待办'));
           await tester.enterText(
             find.byKey(const Key('task-title')),
             '设备验收临时待办',
           );
-          await tester.tap(find.text('保存'));
-          await ready('tasks-created');
+          await tapTask(find.byKey(const Key('task-save')));
           expect(find.text('设备验收临时待办'), findsOneWidget);
-          await tester.tap(find.text('设备验收临时待办'));
-          await settle(tester, frames: 5);
+          await tapTask(taskControl('task-more-'));
+          await tapTask(taskControl('task-edit-'));
           await tester.enterText(
             find.byKey(const Key('task-title')),
             '设备验收临时待办已编辑',
           );
-          await tester.tap(find.text('保存'));
-          await ready('tasks-edited');
-          await tester.tap(find.byIcon(CupertinoIcons.circle));
-          await ready('tasks-completed');
+          await tapTask(find.byKey(const Key('task-save')));
+          await tapTask(taskControl('task-toggle-'));
+          expect(find.text('已完成（1）'), findsOneWidget);
           await capture('tasks-completed');
-          await tester.tap(find.byIcon(CupertinoIcons.trash));
-          await settle(tester, frames: 5);
-          await tester.tap(find.text('删除'));
-          await ready('tasks-deleted');
+          await tapTask(find.byKey(const Key('tasks-completed-toggle')));
+          await tapTask(taskControl('task-more-'));
+          await tapTask(taskControl('task-delete-'));
+          await tapTask(find.widgetWithText(CupertinoDialogAction, '删除'));
           expect(find.text('暂无待办'), findsOneWidget);
         } finally {
           await tester.pumpWidget(ginkgoApp(home: const SizedBox.shrink()));
@@ -757,9 +776,9 @@ void main() {
         await tester.pumpWidget(const GinkgoApp(service: service));
         await settle(tester);
         await capture('workspace');
-        for (final tab in ['签到', '课表', '作业', '预约']) {
+        for (final tab in ['今天', '课表', '作业', '图书馆', '更多']) {
           await tapTab(tester, tab);
-          await capture('tab-${['签到', '课表', '作业', '预约'].indexOf(tab)}');
+          await capture('tab-${['今天', '课表', '作业', '图书馆', '更多'].indexOf(tab)}');
         }
         await page(
           'library-dark-large',

@@ -204,7 +204,7 @@ void main() {
 
     await tester.tap(_refreshIcon);
     await tester.pump();
-    expectSmallLeaf(tester, find.byType(AppleGlassButton));
+    expectSmallLeaf(tester, find.byType(AppleToolbarButton));
     expectSmallLeaf(tester, find.byKey(const Key('checkin-refreshing')));
     service.checkinRequests.last.complete(checkInFixture);
     await tester.pumpAndSettle();
@@ -241,7 +241,7 @@ void main() {
 
       await tester.tap(find.bySemanticsLabel('刷新空教室').first);
       await tester.pump();
-      expectSmallLeaf(tester, find.byType(AppleGlassButton));
+      expectSmallLeaf(tester, find.byType(AppleToolbarButton));
       expectSmallLeaf(tester, find.byKey(const Key('classroom-refreshing')));
       service.requests.last.complete(_rooms);
       await tester.pumpAndSettle();
@@ -347,7 +347,7 @@ void main() {
 
     await tester.tap(find.bySemanticsLabel('刷新校车时刻表').first);
     await tester.pump();
-    expectSmallLeaf(tester, find.byType(AppleGlassButton));
+    expectSmallLeaf(tester, find.byType(AppleToolbarButton));
     expect(plan, findsOneWidget);
     service.shuttleRequests.last.complete(_timetable());
     await tester.pumpAndSettle();
@@ -362,7 +362,11 @@ void main() {
       final service = PendingPageService();
       await tester.pumpWidget(
         ginkgoApp(
-          home: TasksPage(fileActions: platformActions,service: service, storageRoot: '/synthetic'),
+          home: TasksPage(
+            fileActions: platformActions,
+            service: service,
+            storageRoot: '/synthetic',
+          ),
         ),
       );
       expectBrandedLoading(tester, '正在读取待办…');

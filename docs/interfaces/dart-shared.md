@@ -22,31 +22,31 @@
 ## shared/app_preferences.dart
 
 - `enum AppAppearance`
-  <sub>enum · shared/app_preferences.dart:9</sub>
-    - `const AppAppearance(this.label, this.brightness);`  <sub>:14</sub>
+  <sub>enum · shared/app_preferences.dart:5</sub>
+    - `const AppAppearance(this.label, this.brightness);`  <sub>:10</sub>
 - `enum AppAccent`
-  <sub>enum · shared/app_preferences.dart:21</sub>
-    - `const AppAccent(this.label, this.color);`  <sub>:48</sub>
+  <sub>enum · shared/app_preferences.dart:17</sub>
+    - `const AppAccent(this.label, this.color);`  <sub>:44</sub>
 - `typedef PreferencesWriter = Future<void> Function(Map<String, Object> value);`
-  <sub>typedef · shared/app_preferences.dart:53</sub>
-- `typedef PreferencesReader = Future<Map<String, dynamic>?> Function();`
-  <sub>typedef · shared/app_preferences.dart:54</sub>
+  <sub>typedef · shared/app_preferences.dart:49</sub>
+- `typedef PreferencesReader = Future<Map<String, Object?>?> Function();`
+  <sub>typedef · shared/app_preferences.dart:50</sub>
 - `class AppPreferences extends ChangeNotifier` — Device-wide display choices and the session-flow marker only. Credentials
-  <sub>class · shared/app_preferences.dart:59</sub>
-    - `static final shared = AppPreferences();`  <sub>:63</sub>
-    - `AppAppearance appearance = AppAppearance.system;`  <sub>:67</sub>
-    - `AppAccent accent = AppAccent.green;`  <sub>:68</sub>
-    - `bool compactLists = false;`  <sub>:69</sub>
-    - `bool reduceMotion = false;`  <sub>:70</sub>
-    - `double textSize = 1;`  <sub>:71</sub>
-    - `bool explicitSignOut = false;` — Set by an explicit sign-out and cleared by the next successful sign-in.  <sub>:76</sub>
-    - `Future<void> restore() async {…}`  <sub>:98</sub>
-    - `Future<void> update({ AppAppearance? appearance, AppAccent? accent, bool? compactLists, bool? reduceMotion, double? textSize, }) {…}`  <sub>:145</sub>
-    - `Future<void> setExplicitSignOut(bool value) {…}` — Records or clears the explicit sign-out marker with the same serialized  <sub>:162</sub>
+  <sub>class · shared/app_preferences.dart:55</sub>
+    - `static final shared = AppPreferences();`  <sub>:61</sub>
+    - `AppAppearance appearance = AppAppearance.system;`  <sub>:65</sub>
+    - `AppAccent accent = AppAccent.green;`  <sub>:66</sub>
+    - `bool compactLists = false;`  <sub>:67</sub>
+    - `bool reduceMotion = false;`  <sub>:68</sub>
+    - `double textSize = 1;`  <sub>:69</sub>
+    - `bool explicitSignOut = false;` — Set by an explicit sign-out and cleared by the next successful sign-in.  <sub>:74</sub>
+    - `Future<void> restore() async {…}`  <sub>:81</sub>
+    - `Future<void> update({ AppAppearance? appearance, AppAccent? accent, bool? compactLists, bool? reduceMotion, double? textSize, }) {…}`  <sub>:128</sub>
+    - `Future<void> setExplicitSignOut(bool value) {…}` — Records or clears the explicit sign-out marker with the same serialized  <sub>:145</sub>
 - `class AppPreferencesScope extends InheritedNotifier<AppPreferences>`
-  <sub>class · shared/app_preferences.dart:170</sub>
-    - `const AppPreferencesScope({ super.key, required AppPreferences preferences, required super.child, }) : super(notifier: preferences);`  <sub>:171</sub>
-    - `static AppPreferences of(BuildContext context) => …`  <sub>:177</sub>
+  <sub>class · shared/app_preferences.dart:153</sub>
+    - `const AppPreferencesScope({ super.key, required AppPreferences preferences, required super.child, }) : super(notifier: preferences);`  <sub>:154</sub>
+    - `static AppPreferences of(BuildContext context) => …`  <sub>:160</sub>
 
 ## shared/checkin_sessions.dart
 

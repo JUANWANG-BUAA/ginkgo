@@ -65,13 +65,13 @@
     - `const SystemPreferencesPage({ super.key, this.service = const NativeSystemSettingsService(), });`  <sub>:94</sub>
     - `State<SystemPreferencesPage> createState() => …`  <sub>:100</sub>
 - `class PrivacyPage extends StatelessWidget`
-  <sub>class · features/settings/preferences_pages.dart:287</sub>
-    - `const PrivacyPage({super.key});`  <sub>:288</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:290</sub>
+  <sub>class · features/settings/preferences_pages.dart:288</sub>
+    - `const PrivacyPage({super.key});`  <sub>:289</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:291</sub>
 - `class AboutPage extends StatefulWidget`
-  <sub>class · features/settings/preferences_pages.dart:334</sub>
-    - `const AboutPage({ super.key, this.system = const NativeSystemSettingsService(), });`  <sub>:335</sub>
-    - `State<AboutPage> createState() => …`  <sub>:341</sub>
+  <sub>class · features/settings/preferences_pages.dart:335</sub>
+    - `const AboutPage({ super.key, this.system = const NativeSystemSettingsService(), });`  <sub>:336</sub>
+    - `State<AboutPage> createState() => …`  <sub>:342</sub>
 
 ## features/settings/settings_page.dart
 

@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 
 /// Course fields the school left out stay readable: a missing place never
 /// renders as an empty line, and the focus card and the course list always
@@ -75,6 +74,7 @@ class TodaySectionHeader extends StatelessWidget {
     this.icon,
     this.badge,
     this.actionLabel,
+    this.actionKey,
     this.onAction,
   });
 
@@ -82,16 +82,18 @@ class TodaySectionHeader extends StatelessWidget {
   final IconData? icon;
   final String? badge;
   final String? actionLabel;
+  final Key? actionKey;
   final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
     final accent = CupertinoTheme.of(context).primaryColor;
 
-    final action = (actionLabel != null && onAction != null)
+    final action = actionLabel != null
         ? CupertinoButton(
+            key: actionKey,
             padding: EdgeInsets.zero,
-            minimumSize: const Size(36, 28),
+            minimumSize: const Size(48, 48),
             onPressed: onAction,
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -111,34 +113,46 @@ class TodaySectionHeader extends StatelessWidget {
           )
         : null;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Wrap(
-        alignment: WrapAlignment.spaceBetween,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 8,
-        runSpacing: 4,
-        children: [
-          Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 6,
-            children: [
-              if (icon != null) Icon(icon, size: 16, color: accent),
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 8,
+      runSpacing: 4,
+      children: [
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 6,
+          children: [
+            if (icon != null)
+              Icon(
+                icon,
+                size: 16,
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              ),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: CupertinoColors.label.resolveFrom(context),
+                letterSpacing: -0.2,
+              ),
+            ),
+            // A count is a number, not a status: it stays in the
+            // secondary label colour and never uses a status colour.
+            if (badge != null)
               Text(
-                title,
+                badge!,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: GinkgoTypography.footnote.fontSize,
                   fontWeight: FontWeight.w600,
-                  color: CupertinoColors.label.resolveFrom(context),
-                  letterSpacing: -0.2,
+                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
                 ),
               ),
-              if (badge != null) GinkgoBadge(label: badge!, compact: true),
-            ],
-          ),
-          ?action,
-        ],
-      ),
+          ],
+        ),
+        ?action,
+      ],
     );
   }
 }

@@ -11,6 +11,8 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 90 | 图书馆公开页 TLS 补链作用域（工作树） | 只有 `space.lib.buaa.edu.cn` 使用随仓库附带的 GlobalSign 中间证书，`lib.buaa.edu.cn` 公开统计仍因缺链被归为网络不可达 | 两个同属 `*.lib.buaa.edu.cn` 且均只下发叶子证书的主机共用同一按主机作用域的中间证书；其他主机仍使用默认信任库，不降低 TLS 校验、不改变 Cookie 规则 | `openssl s_client` 缺链证据；`reqwest_transport` 主机白名单回归与真实公开统计复验 |
+| 89 | 自动 WebVPN 回退与匿名公开读取（工作树） | 未保存密码的会话在直连失败后仍切入无法认证的 WebVPN；匿名公开读取在 Automatic 下也会错误回退网关 | 手动登录链仍可按需回退；登录后只有实际保存凭据或已有 WebVPN Cookie 时才允许业务自动回退，否则保留原网络错误。匿名公开读取始终直连且不携带/接收 Cookie，不使用网关。端点、TLS 和写操作不变 | `Session` 匿名路由与未记住密码合成回归；2026-10-31/11-01 授权真实只读对照 |
 | 88 | §7.1 模块级认证失败与全局会话失效的分离（工作树） | SPOC 拒绝自己的 token、返回自身登录页或信封 401/403 一律按全局会话失效处理，页面提示“学校会话已失效，请重新登录”，并触发一次全局静默重登 | 判定分层：CAS 登录页仍属全局会话失效；模块自己的拒绝（401/403、非 CAS 的 HTML、SPOC 信封 401/403）归为模块级认证要求，不触发全局静默重登，界面提示该服务需要重新验证身份且其他功能不受影响。端点、参数与成功码均未变化 | [无障碍与认证范围记录](_audit/2026-10-30-accessibility-and-auth-scope.md#f1模块级认证反弹与全局会话失效的分离)；`auth::cas::module_refusal` 与 upstream 合成回归；学校跳转链仍需真实凭据取证 |
 | 87 | 匿名公开读取与就业活动协议（工作树） | 部分公开只读适配器复用已登录会话的 Cookie 容器；就业月历协议只在修订摘要中出现 | 已迁移的 Android 公开只读适配器不发送、不接收 Cookie / Authorization / Proxy-Authorization，也不改变学校会话路线；就业月历的 URL、参数、字段、结构变化与证据边界完整登记于 §6G | [匿名公开入口复核](_audit/2026-10-28-student-services-public.md)；`Session::send_anonymous` 合成回归与公开适配器回归；未使用真实账号 |
 | 86 | 工作台呈现与异步边界（工作树） | 聚合时间线重复信息；目录视觉重构破坏原 iOS 分组；服务替换可写入旧响应；CGYY fsync 阻塞 worker | 删除时间线，考试有内容才显示；恢复原 iOS 目录与二级搜索；服务替换丢弃迟到响应；CGYY 与待办阻塞写进入 `spawn_blocking` | [最终交互规则](UI-DESIGN.md#最终交互规则2026-10-28)；考试/目录/服务替换 widget 回归、bridge 与 CGYY 合成写回归 |
@@ -146,7 +148,7 @@
 
 ### 0.1 Android 匿名公开读取的会话边界（2026-10-29）
 
-Rust 的 `Session::send_anonymous` 为已迁移的 Android 公开只读适配器创建临时会话：不发送 `Cookie`、`Authorization` 或 `Proxy-Authorization`，不接收/保存响应 `Set-Cookie`，且不会修改已登录学校会话的 Cookie 或路由。该通道用于就业月历、学术文化、校园通知、校车时刻表、公开书目/馆藏、图书馆人数和 GitHub 更新检查；需要登录的本人数据仍使用各自的认证会话。本条描述当前 Rust/Flutter 工作树，不外推到冻结的 Apple 客户端。协议章节说明各端点和证据，完整跨层签名见 [接口索引](INTERFACE-INDEX.md)。
+Rust 的 `Session::send_anonymous` 为已迁移的 Android 公开只读适配器创建临时直连会话：不发送 `Cookie`、`Authorization` 或 `Proxy-Authorization`，不接收/保存响应 `Set-Cookie`，且不会修改已登录学校会话的 Cookie 或路由。公开读取在 Automatic 下也不会回退 WebVPN，因为网关主机无法满足公开源的同源 HTTPS 校验。该通道用于就业月历、学术文化、校园通知、校车时刻表、公开书目/馆藏、图书馆人数和 GitHub 更新检查；需要登录的本人数据仍使用各自的认证会话。本条描述当前 Rust/Flutter 工作树，不外推到冻结的 Apple 客户端。协议章节说明各端点和证据，完整跨层签名见 [接口索引](INTERFACE-INDEX.md)。
 
 ## 1. 统一认证（SSO + UC）✅
 
@@ -721,6 +723,8 @@ Rust/Flutter镜像采用借用共享transport的独立Session，复制用户原�
 > **2026-10-23 实机发现与处置：`space.lib.buaa.edu.cn` 证书链不完整**。该主机只下发叶子证书 `CN=*.lib.buaa.edu.cn`，缺少中间证书 `GlobalSign GCC R3 DV TLS CA 2020`（`openssl s_client` 返回 `Verify return code: 21`）。macOS／浏览器靠系统验证器的 AIA 补链才能成功，rustls 不做 AIA，因此本项目直连曾报 `serviceUnavailable`。
 >
 > 处置：**不放宽全局 TLS、不改系统信任库、不绕 WebVPN**，改为**按主机作用域**加载该中间证书——`rust/certs/globalsign_gcc_r3_dv_tls_ca_2020.pem`（来自叶子证书 AIA 地址，`CN=GlobalSign GCC R3 DV TLS CA 2020`，签发者 GlobalSign Root CA - R3，`CA:TRUE, pathlen:0`，2029-03-18 到期）只加到 `space.lib.buaa.edu.cn` 专用 client；其他主机仍用默认信任库。回滚＝删除该文件与 `reqwest_transport.rs` 中的常量即可。2026-10-23 实机复验：检索返回真实 9 条结果、馆藏返回真实复本与“可借”状态。
+>
+> **2026-11-01 补充**：公开统计主机 `lib.buaa.edu.cn` 实测同样只下发同一叶子证书并缺少同一中间证书。该主机现在与 `space.lib.buaa.edu.cn` 共用上述按主机作用域的补链 client；白名单外的相似域名和其他学校主机不能使用该证书。
 
 > **2026-10-23 Android 只读接入（search 与 holdings）**：`POST /opac/search` 与 `GET /opac/bibs/{bibId}/holdings` 已进入 Rust 适配层，使用 `Session::send_anonymous` 无 Cookie 通道；请求不带登录态，响应 `Set-Cookie` 不保存，跨重定向也不共享公开 Cookie。`code !== 0` 归为业务拒绝而不是空列表；`data.holdings` 的 JSON 字符串在 Rust 内二次解码，限制 512 KiB／深度 8／500 条。页面只做检索与复本展示，不提供续借、预约、委托或任何写操作，也不读取本人借阅。字段缺失保留空值，`callno` 兼收数组与字符串，馆藏状态只保留学校原文。**真实服务的完整字段、状态码映射与分页边界仍未验收。**
 

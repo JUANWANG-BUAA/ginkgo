@@ -5,6 +5,7 @@ import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 
 class GradesPage extends StatefulWidget {
   const GradesPage({super.key, required this.service});
@@ -108,8 +109,9 @@ class _GradesPageState extends State<GradesPage> {
           subtitle: '查看课程成绩、学分与加权统计',
           icon: CupertinoIcons.chart_bar_alt_fill,
           border: null,
-          trailing: AppleGlassButton(
+          trailing: AppleToolbarButton(
             label: '刷新成绩',
+            busy: busy,
             onPressed: busy ? null : () => load(force: true),
             child: busy
                 ? const GinkgoActivity(size: 17)
@@ -146,7 +148,7 @@ class _GradesPageState extends State<GradesPage> {
                       AppleEmptyState(
                         title: error!,
                         description: data == null
-                            ? '请检查网络后重试。'
+                            ? '请根据上方提示处理后重试。'
                             : '正在保留${_termName(data!.termId)}的成绩。',
                         error: true,
                         action: '重试',
@@ -187,10 +189,20 @@ class _GradesPageState extends State<GradesPage> {
           ),
         ],
       ),
-    AppleSection(
-      header: Text(_termName(data.termId)),
-      footer: const Text('加权平均与绩点只统计百分制、且有有效学分的课程；绩点按当前项目公式估算。'),
-      children: [_summary(data.summary)],
+    SummaryStrip(
+      items: [
+        SummaryItem(
+          '已发布',
+          '${data.summary.courseCount} 门',
+          icon: CupertinoIcons.checkmark_seal,
+        ),
+        SummaryItem('加权平均', data.summary.weightedAverage?.toStringAsFixed(1)),
+        SummaryItem('平均绩点', data.summary.gradePointAverage?.toStringAsFixed(2)),
+        SummaryItem('总学分', _credit(data.summary.creditTotal)),
+      ],
+      note: widget.service.isDemo
+          ? '离线合成样例 · 统计百分制或计分方式未标明的有效数字成绩'
+          : '统计百分制或计分方式未标明的有效数字成绩 · 更新于 ${schoolTimestampLabel(data.fetchedAt)}',
     ),
     if (data.courses.isEmpty)
       AppleSection(
@@ -204,7 +216,7 @@ class _GradesPageState extends State<GradesPage> {
       )
     else
       AppleSection(
-        header: Text('${data.summary.courseCount} 门课程'),
+        header: const Text('课程成绩'),
         children: [
           for (final course in data.courses)
             _GradeCourseRow(
@@ -214,43 +226,12 @@ class _GradesPageState extends State<GradesPage> {
             ),
         ],
       ),
-    Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-      child: Text(
-        widget.service.isDemo
-            ? '离线合成样例 · 成绩与学期均为演示数据'
-            : '成绩保留学校原始记录，点击课程查看计分方式与详细信息。',
-        style: TextStyle(
-          fontSize: 13,
-          height: 1.4,
-          color: CupertinoColors.secondaryLabel.resolveFrom(context),
-        ),
-      ),
-    ),
   ];
 
   String _termName(String id) {
     final term = terms.where((term) => term.id == id).firstOrNull;
     return term?.name ?? id;
   }
-
-  Widget _summary(GradeSummary summary) => Padding(
-    padding: const EdgeInsets.all(18),
-    child: AcademicMetricGrid(
-      children: [
-        AcademicMetric(
-          label: '加权平均',
-          value: summary.weightedAverage?.toStringAsFixed(1) ?? '—',
-          prominent: true,
-        ),
-        AcademicMetric(
-          label: '平均绩点',
-          value: summary.gradePointAverage?.toStringAsFixed(2) ?? '—',
-        ),
-        AcademicMetric(label: '总学分', value: _credit(summary.creditTotal)),
-      ],
-    ),
-  );
 }
 
 class _GradeCourseRow extends StatelessWidget {
@@ -413,4 +394,4 @@ class _GradeCourseDetails extends StatelessWidget {
   );
 }
 
-String _credit(double value) => academicNumber(value);
+String _credit(double? value) => value == null ? '未提供' : academicNumber(value);

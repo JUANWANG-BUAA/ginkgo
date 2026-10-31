@@ -80,8 +80,9 @@ class _NoticesPageState extends State<NoticesPage> {
           subtitle: '查看通知与校内资讯',
           icon: CupertinoIcons.news_solid,
           border: null,
-          trailing: AppleGlassButton(
+          trailing: AppleToolbarButton(
             label: '刷新校园通知',
+            busy: busy,
             onPressed: busy ? null : () => load(force: true),
             child: busy
                 ? const GinkgoActivity(size: 17)
@@ -91,16 +92,6 @@ class _NoticesPageState extends State<NoticesPage> {
         CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
         SliverList.list(
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-              child: Text(
-                '北航新闻网 · 最新 5 条通知',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: CupertinoColors.secondaryLabel,
-                ),
-              ),
-            ),
             if (error != null)
               AppleStatusSection(
                 title: error!,
@@ -121,7 +112,19 @@ class _NoticesPageState extends State<NoticesPage> {
                 description: '学校通知列表当前为空；可下拉刷新或稍后再看。',
               ),
             if (notices != null && notices!.isNotEmpty)
+              SummaryStrip(
+                items: [
+                  SummaryItem(
+                    '本页通知',
+                    '${notices!.length} 条',
+                    icon: CupertinoIcons.news_solid,
+                  ),
+                ],
+                note: '北航新闻网 · 发布日期不是个人截止时间。',
+              ),
+            if (notices != null && notices!.isNotEmpty)
               AppleSection(
+                header: const Text('通知列表'),
                 children: [
                   for (final notice in notices!)
                     AppleListTile(

@@ -63,9 +63,7 @@ class GraduateCreditMapView extends StatelessWidget {
       if (report.loading)
         const Padding(
           padding: EdgeInsets.all(20),
-          child: SafeArea(
-            child: GinkgoActivity(size: 24)
-          ),
+          child: GinkgoActivity(size: 24),
         ),
       if (report.error case final error?)
         GraduateCreditMapNotice(
@@ -161,12 +159,15 @@ class _GraduateCreditMapPageState extends State<GraduateCreditMapPage> {
             section: '研究生教务',
             subtitle: '学校执行报告的要求、已获与待考核，不等于毕业资格认定',
             icon: CupertinoIcons.chart_bar,
-            trailing: AppleGlassButton(
+            trailing: AppleToolbarButton(
               label: '刷新学分地图',
+              busy: report.loading,
               onPressed: supported && !report.loading
                   ? () => _load(force: true)
                   : null,
-              child: const Icon(CupertinoIcons.refresh),
+              child: report.loading
+                  ? const GinkgoActivity(size: 17)
+                  : const Icon(CupertinoIcons.refresh),
             ),
           ),
           SliverList.list(

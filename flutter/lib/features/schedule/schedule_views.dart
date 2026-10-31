@@ -89,13 +89,6 @@ class ScheduleCourseBrowser extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: Text(
-                    '${visibleCourses.length} 项课程${largeText && mode == ScheduleViewMode.weekGrid ? ' · 大字号使用每日清单' : ''}',
-                    style: scheduleSecondary(context),
-                  ),
-                ),
                 if (grid)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),

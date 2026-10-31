@@ -202,135 +202,138 @@ class _ClassroomPageState extends State<ClassroomPage> {
     ),
     child: SafeArea(
       child: LongPageScroll(
-      controller: scrollController,
-      child: CustomScrollView(
         controller: scrollController,
-        key: const Key('classroom-scroll'),
-        slivers: [
-          ApplePageHeader(
-            largeTitle: const Text('空教室'),
-            section: '空间资源',
-            subtitle: '按校区、日期与节次查询空闲教室',
-            icon: CupertinoIcons.building_2_fill,
-            border: null,
-            trailing: AppleGlassButton(
-              label: '刷新空教室',
-              onPressed: busy || initializing ? null : () => query(force: true),
-              child: busy
-                  ? const GinkgoActivity(size: 17)
-                  : const Icon(CupertinoIcons.refresh, size: 24),
+        child: CustomScrollView(
+          controller: scrollController,
+          key: const Key('classroom-scroll'),
+          slivers: [
+            ApplePageHeader(
+              largeTitle: const Text('空教室'),
+              section: '空间资源',
+              subtitle: '按校区、日期与节次查询空闲教室',
+              icon: CupertinoIcons.building_2_fill,
+              border: null,
+              trailing: AppleToolbarButton(
+                label: '刷新空教室',
+                busy: busy || initializing,
+                onPressed: busy || initializing
+                    ? null
+                    : () => query(force: true),
+                child: busy || initializing
+                    ? const GinkgoActivity(size: 17)
+                    : const Icon(CupertinoIcons.refresh, size: 24),
+              ),
             ),
-          ),
-          CupertinoSliverRefreshControl(onRefresh: () => query(force: true)),
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                ClassroomScopeSection(
-                  campus: campus,
-                  date: date,
-                  today: today,
-                  tomorrow: tomorrow,
-                  busy: busy,
-                  initializing: initializing,
-                  isDemo: widget.service.isDemo,
-                  onCampusChanged: (value) => changeScope(newCampus: value),
-                  onDateChanged: (value) {
-                    if (date != value) {
-                      changeScope(newDate: value);
-                    }
-                  },
-                  onShortcutDate: (value) {
-                    if (date != value) {
-                      changeScope(newDate: value);
-                    }
-                  },
-                  onQuery: () => query(),
-                ),
-                ClassroomFilterSection(
-                  filters: filters,
-                  expanded: filtersExpanded,
-                  hasFilters: hasFilters,
-                  queried: queried,
-                  roomCount: response?.roomCount ?? 0,
-                  onToggle: () =>
-                      setState(() => filtersExpanded = !filtersExpanded),
-                  onChanged: filterChanged,
-                ),
-                if (notice != null && response == null)
-                  ClassroomNoticeTile(notice: notice!),
-                if (error != null && response == null)
-                  ClassroomMessageState(
-                    title: error!,
-                    description: '请调整条件或重新查询。',
-                    error: true,
-                    action: '重试',
-                    onAction: () => query(),
-                  ),
-                if (response == null && (busy || initializing))
-                  ClassroomLoadingState(initializing: initializing)
-                else if (busy)
-                  const ClassroomRefreshingState()
-                else if (!queried && error == null)
-                  const ClassroomMessageState(
-                    title: '选择范围后查询',
-                    description: '查询结果来自学校当天公布的空闲安排，不会占用或预订教室。',
-                  )
-                else if (response case final result? when queried)
-                  ClassroomResultSummarySection(
-                    result: result,
+            CupertinoSliverRefreshControl(onRefresh: () => query(force: true)),
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  ClassroomScopeSection(
+                    campus: campus,
+                    date: date,
+                    today: today,
+                    tomorrow: tomorrow,
+                    busy: busy,
+                    initializing: initializing,
                     isDemo: widget.service.isDemo,
-                    hasFilters: hasFilters,
-                    onClearFilters: resetFilters,
+                    onCampusChanged: (value) => changeScope(newCampus: value),
+                    onDateChanged: (value) {
+                      if (date != value) {
+                        changeScope(newDate: value);
+                      }
+                    },
+                    onShortcutDate: (value) {
+                      if (date != value) {
+                        changeScope(newDate: value);
+                      }
+                    },
+                    onQuery: () => query(),
                   ),
-              ],
-            ),
-          ),
-          resultsAnchor.sliver,
-          if (response != null)
-            PinnedHeaderSliver(
-              child: ClassroomResultsHeader(
-                search: search,
-                buildings: response!.buildings,
-                window: window,
-                busy: busy,
-                error: error ?? notice,
-                onRetry: () => query(force: true),
-                selectedBuilding: selectedBuilding,
-                onSearch: searchChanged,
-                onClear: () {
-                  searchDebounce?.cancel();
-                  search.clear();
-                  filterChanged();
-                },
-                onBuilding: (value) {
-                  setState(() {
-                    selectedBuilding = value;
-                    prepare(reset: true);
-                  });
-                  resultsAnchor.reveal(scrollController);
-                },
-                onFilters: () {
-                  setState(() => filtersExpanded = true);
-                  scrollController.jumpTo(0);
-                },
-                onPage: selectPage,
+                  ClassroomFilterSection(
+                    filters: filters,
+                    expanded: filtersExpanded,
+                    hasFilters: hasFilters,
+                    queried: queried,
+                    roomCount: response?.roomCount ?? 0,
+                    onToggle: () =>
+                        setState(() => filtersExpanded = !filtersExpanded),
+                    onChanged: filterChanged,
+                  ),
+                  if (notice != null && response == null)
+                    ClassroomNoticeTile(notice: notice!),
+                  if (error != null && response == null)
+                    ClassroomMessageState(
+                      title: error!,
+                      description: '请调整条件或重新查询。',
+                      error: true,
+                      action: '重试',
+                      onAction: () => query(),
+                    ),
+                  if (response == null && (busy || initializing))
+                    ClassroomLoadingState(initializing: initializing)
+                  else if (busy)
+                    const ClassroomRefreshingState()
+                  else if (!queried && error == null)
+                    const ClassroomMessageState(
+                      title: '选择范围后查询',
+                      description: '查询结果来自学校当天公布的空闲安排，不会占用或预订教室。',
+                    )
+                  else if (response case final result? when queried)
+                    ClassroomResultSummarySection(
+                      result: result,
+                      isDemo: widget.service.isDemo,
+                      hasFilters: hasFilters,
+                      onClearFilters: resetFilters,
+                    ),
+                ],
               ),
             ),
-          if (response != null && rows.isEmpty) const ClassroomEmptyResults(),
-          ClassroomResultList(rows: rows, window: window),
-          SliverToBoxAdapter(
-            child: ClassroomFooterNote(
-              isDemo: widget.service.isDemo,
-              onOpenRules: () => Navigator.of(context).push(
-                CupertinoPageRoute<void>(
-                  builder: (_) => RulesPage(service: widget.service),
+            resultsAnchor.sliver,
+            if (response != null)
+              PinnedHeaderSliver(
+                child: ClassroomResultsHeader(
+                  search: search,
+                  buildings: response!.buildings,
+                  window: window,
+                  busy: busy,
+                  error: error ?? notice,
+                  onRetry: () => query(force: true),
+                  selectedBuilding: selectedBuilding,
+                  onSearch: searchChanged,
+                  onClear: () {
+                    searchDebounce?.cancel();
+                    search.clear();
+                    filterChanged();
+                  },
+                  onBuilding: (value) {
+                    setState(() {
+                      selectedBuilding = value;
+                      prepare(reset: true);
+                    });
+                    resultsAnchor.reveal(scrollController);
+                  },
+                  onFilters: () {
+                    setState(() => filtersExpanded = true);
+                    scrollController.jumpTo(0);
+                  },
+                  onPage: selectPage,
+                ),
+              ),
+            if (response != null && rows.isEmpty) const ClassroomEmptyResults(),
+            ClassroomResultList(rows: rows, window: window),
+            SliverToBoxAdapter(
+              child: ClassroomFooterNote(
+                isDemo: widget.service.isDemo,
+                onOpenRules: () => Navigator.of(context).push(
+                  CupertinoPageRoute<void>(
+                    builder: (_) => RulesPage(service: widget.service),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    )
     ),
   );
 }

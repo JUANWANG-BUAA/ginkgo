@@ -20,6 +20,7 @@ class LearningPage extends StatefulWidget {
   });
   final Object service;
   final String? accountId;
+
   /// The platform actions bound by the composition root.
   final PlatformActions fileActions;
   @override
@@ -91,87 +92,103 @@ class _LearningPageState extends State<LearningPage> {
       ),
       child: SafeArea(
         child: CustomScrollView(
-        key: const Key('learning-scroll'),
-        slivers: [
-          ApplePageHeader(
-            largeTitle: const Text('SPOC 学习'),
-            section: '学业',
-            subtitle: '只读查看课程公告、资料与测验信息',
-            icon: CupertinoIcons.book_circle,
-            trailing: AppleGlassButton(
-              label: '刷新课程',
-              onPressed:
-                  LearningPorts.resolve(widget.service).courses != null &&
-                      !courses.loading
-                  ? () => _load(force: true)
-                  : null,
-              child: const Icon(CupertinoIcons.refresh),
+          key: const Key('learning-scroll'),
+          slivers: [
+            ApplePageHeader(
+              largeTitle: const Text('SPOC 学习'),
+              section: '学业',
+              subtitle: '只读查看课程公告、资料与测验信息',
+              icon: CupertinoIcons.book_circle,
+              trailing: AppleToolbarButton(
+                label: '刷新课程',
+                busy: courses.loading,
+                onPressed:
+                    LearningPorts.resolve(widget.service).courses != null &&
+                        !courses.loading
+                    ? () => _load(force: true)
+                    : null,
+                child: courses.loading
+                    ? const GinkgoActivity(size: 17)
+                    : const Icon(CupertinoIcons.refresh),
+              ),
             ),
-          ),
-          if (courses.value?.data.isNotEmpty == true)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: CupertinoSearchTextField(
-                  key: ValueKey('learning-search-$epoch'),
-                  placeholder: '搜索已加载课程、教师或学期',
-                  onChanged: (v) => setState(() => query = v.trim()),
+            if (courses.value?.data.isNotEmpty == true)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: CupertinoSearchTextField(
+                    key: ValueKey('learning-search-$epoch'),
+                    placeholder: '搜索已加载课程、教师或学期',
+                    onChanged: (v) => setState(() => query = v.trim()),
+                  ),
                 ),
               ),
-            ),
-          if (widget.service is! LearningCourseGateway)
-            const SliverToBoxAdapter(child: LearningText('当前服务暂不支持课程'))
-          else
-            SliverToBoxAdapter(
-              child: SectionFeedback(
-                loading: courses.loading,
-                label: '正在读取课程…',
-                hasData: courses.value != null,
-                error: courses.error,
-                onRetry: () => _load(force: true),
+            if (widget.service is! LearningCourseGateway)
+              const SliverToBoxAdapter(child: LearningText('当前服务暂不支持课程'))
+            else
+              SliverToBoxAdapter(
+                child: SectionFeedback(
+                  loading: courses.loading,
+                  label: '正在读取课程…',
+                  hasData: courses.value != null,
+                  error: courses.error,
+                  onRetry: () => _load(force: true),
+                ),
               ),
-            ),
-          if (courses.value != null && rows.isEmpty)
-            SliverToBoxAdapter(
-              child: LearningText(query.isEmpty ? '暂无课程' : '没有匹配的已加载课程'),
-            ),
-          SliverList.builder(
-            itemCount: rows.length,
-            itemBuilder: (context, i) {
-              final course = rows[i], e = epoch;
-              return AppleSection(
-                children: [
-                  AppleListTile(
-                    key: ValueKey('learning-course-${course.id}'),
-                    title: Text(course.name),
-                    subtitle: Text(
-                      [
-                        if (presentText(course.teacher)) course.teacher!,
-                        if (presentText(course.term)) course.term!,
-                      ].join(' · '),
+            if (courses.value != null && rows.isEmpty)
+              SliverToBoxAdapter(
+                child: LearningText(query.isEmpty ? '暂无课程' : '没有匹配的已加载课程'),
+              ),
+            if (courses.value != null)
+              SliverToBoxAdapter(
+                child: SummaryStrip(
+                  items: [
+                    SummaryItem(
+                      query.isEmpty ? '已加载课程' : '匹配课程',
+                      '${rows.length} 门',
+                      icon: CupertinoIcons.book_circle,
                     ),
-                    trailing: const Icon(
-                      CupertinoIcons.chevron_right,
-                      size: 16,
-                    ),
-                    onTap: () => Navigator.of(context).push(
-                      CupertinoPageRoute<void>(
-                        builder: (_) => LearningCoursePage(
-                          course: course,
-                          service: widget.service,
-                          accountId: widget.accountId,
-                          saveFile: widget.fileActions.learningFileSaver,
-                          isOwnerCurrent: () => mounted && e == epoch,
+                  ],
+                  note: '课程来自 SPOC 站点；本机不缓存账号密码。',
+                ),
+              ),
+            SliverList.builder(
+              itemCount: rows.length,
+              itemBuilder: (context, i) {
+                final course = rows[i], e = epoch;
+                return AppleSection(
+                  children: [
+                    AppleListTile(
+                      key: ValueKey('learning-course-${course.id}'),
+                      title: Text(course.name),
+                      subtitle: Text(
+                        [
+                          if (presentText(course.teacher)) course.teacher!,
+                          if (presentText(course.term)) course.term!,
+                        ].join(' · '),
+                      ),
+                      trailing: const Icon(
+                        CupertinoIcons.chevron_right,
+                        size: 16,
+                      ),
+                      onTap: () => Navigator.of(context).push(
+                        CupertinoPageRoute<void>(
+                          builder: (_) => LearningCoursePage(
+                            course: course,
+                            service: widget.service,
+                            accountId: widget.accountId,
+                            saveFile: widget.fileActions.learningFileSaver,
+                            isOwnerCurrent: () => mounted && e == epoch,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
-      )
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

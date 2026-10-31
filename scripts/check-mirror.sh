@@ -6,6 +6,7 @@ python3 scripts/check-mirror-architecture.py
 python3 scripts/check-mirror-architecture-test.py
 python3 scripts/generate-interface-index-test.py
 python3 scripts/check-design-tokens.py
+python3 scripts/check-ui-language.py
 python3 scripts/generate-interface-index.py --check
 python3 scripts/check-api-doc-test.py
 python3 scripts/check-api-doc.py

@@ -412,7 +412,7 @@ void main() {
       await tester.tap(find.byKey(const Key('homework-spoc:a')));
       await tester.pumpAndSettle();
       final detailNavigator = Navigator.of(tester.element(find.text('作业详情')));
-      await tapTab(tester, '预约');
+      await tapTab(tester, '更多');
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 30));
       await tapTab(tester, '作业');
@@ -422,7 +422,7 @@ void main() {
         Navigator.of(tester.element(find.text('作业详情'))),
         same(detailNavigator),
       );
-      expect(displacement(tester, 3), -pageWidth);
+      expect(displacement(tester, 2), -pageWidth);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
       expect(find.text('作业详情'), findsNothing);
@@ -442,7 +442,7 @@ void main() {
         '合成筛选',
       );
       // Root back during entry goes to workspace, rather than exiting.
-      await tapTab(tester, '预约');
+      await tapTab(tester, '更多');
       await tester.pump();
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
@@ -479,7 +479,7 @@ void main() {
       final x = horizontalState.position.pixels;
       final verticalState = tester.state<ScrollableState>(
         find
-            .descendant(of: transition(2), matching: find.byType(Scrollable))
+            .descendant(of: transition(1), matching: find.byType(Scrollable))
             .first,
       );
       verticalState.position.jumpTo(120);
@@ -490,9 +490,9 @@ void main() {
             .widget<WorkspaceTabScaffold>(find.byType(WorkspaceTabScaffold))
             .controller
             .index,
-        2,
+        1,
       );
-      await tapTab(tester, '预约');
+      await tapTab(tester, '更多');
       await tester.pump();
       await tapTab(tester, '课表');
       await tester.pumpAndSettle();
@@ -533,7 +533,6 @@ void main() {
       for (final entry in <String, Type>{
         'tasks': TasksPage,
         'grades': GradesPage,
-        'library': LibraryPage,
       }.entries) {
         await tester.binding.handlePopRoute();
         await tester.pumpAndSettle();
@@ -546,9 +545,9 @@ void main() {
           same(rootNavigator),
         );
         expect(find.text('再返回一次退出 Ginkgo'), findsNothing);
-        await tapTab(tester, '预约');
+        await tapTab(tester, '更多');
         await tester.pump();
-        await tapTab(tester, '工作台');
+        await tapTab(tester, '今天');
         await tester.pump();
         expect(find.byType(entry.value), findsOneWidget);
         await tester.binding.handlePopRoute();
@@ -557,6 +556,13 @@ void main() {
         expect(find.text('再返回一次退出 Ginkgo'), findsNothing);
         expect(exits, 0);
       }
+      // A primary destination switches tabs instead of pushing a second copy
+      // of the page on top of the current stack.
+      open('library');
+      await tester.pumpAndSettle();
+      expect(find.byType(LibraryPage), findsOneWidget);
+      expect(find.text('再返回一次退出 Ginkgo'), findsNothing);
+
       open('not-a-destination');
       await tester.pump();
       expect(rootNavigator.canPop(), isFalse);

@@ -5,6 +5,18 @@
 > 手工总览与分层说明见 [INTERFACE-INDEX.md](../INTERFACE-INDEX.md)。
 token 层与视觉常量。
 
+## 目录
+
+- [design/apple_design.dart](#designappledesigndart) (1)
+- [design/ginkgo_theme.dart](#designginkgothemedart) (1)
+- [design/tokens/colors.dart](#designtokenscolorsdart) (1)
+- [design/tokens/layout.dart](#designtokenslayoutdart) (1)
+- [design/tokens/motion.dart](#designtokensmotiondart) (1)
+- [design/tokens/opacity.dart](#designtokensopacitydart) (1)
+- [design/tokens/radii.dart](#designtokensradiidart) (1)
+- [design/tokens/spacing.dart](#designtokensspacingdart) (1)
+- [design/tokens/typography.dart](#designtokenstypographydart) (1)
+
 ## design/apple_design.dart
 
 - `abstract final class AppleDesign` — Product values measured against the repository's iOS 27 reference capture.
@@ -86,6 +98,15 @@ token 层与视觉常量。
     - `static const normal = Duration(milliseconds: 180);`  <sub>:5</sub>
     - `static Duration duration(BuildContext context, int milliseconds) => …`  <sub>:7</sub>
 
+## design/tokens/opacity.dart
+
+- `abstract final class GinkgoOpacity` — Restrained tint levels for quiet navigation and selected controls.
+  <sub>class · design/tokens/opacity.dart:2</sub>
+    - `static const double iconTileLight = 0.06;`  <sub>:3</sub>
+    - `static const double iconTileDark = 0.12;`  <sub>:4</sub>
+    - `static const double selectedIconTileLight = 0.12;`  <sub>:5</sub>
+    - `static const double selectedIconTileDark = 0.22;`  <sub>:6</sub>
+
 ## design/tokens/radii.dart
 
 - `abstract final class GinkgoRadii` — Corner radius tokens using continuous Apple superellipse curves.
@@ -95,32 +116,44 @@ token 层与视觉常量。
     - `static const double compact = 10.0;`  <sub>:7</sub>
     - `static const double panel = 12.0;`  <sub>:8</sub>
     - `static const double dialog = 18.0;`  <sub>:9</sub>
-    - `static const double group = 26.0;`  <sub>:10</sub>
-    - `static final borderRadiusDialog = BorderRadius.circular(dialog);`  <sub>:12</sub>
+    - `static const double group = 16.0;` — Inset list groups stay softly rounded without making each section read as  <sub>:13</sub>
+    - `static final borderRadiusDialog = BorderRadius.circular(dialog);`  <sub>:15</sub>
 
 ## design/tokens/spacing.dart
 
 - `abstract final class GinkgoSpacing` — 4pt / 8pt spatial layout scale matching Apple Human Interface Guidelines.
   <sub>class · design/tokens/spacing.dart:4</sub>
-    - `static const double md = 12.0;`  <sub>:5</sub>
-    - `static const double base = 16.0;`  <sub>:6</sub>
-    - `static const double xl = 24.0;`  <sub>:7</sub>
-    - `static const double xxl = 32.0;`  <sub>:8</sub>
-    - `static const pageInset = 16.0;`  <sub>:11</sub>
-    - `static const desktopPageInset = 24.0;`  <sub>:12</sub>
-    - `static const edgeInsetsPage = EdgeInsets.symmetric(horizontal: pageInset);`  <sub>:14</sub>
-    - `static const edgeInsetsDesktopPage = EdgeInsets.fromLTRB( desktopPageInset, 22, desktopPageInset, 6, );`  <sub>:15</sub>
-    - `static const edgeInsetsCard = EdgeInsets.all(base);`  <sub>:21</sub>
-    - `static const edgeInsetsListTile = EdgeInsets.symmetric( horizontal: base, vertical: 10, );`  <sub>:22</sub>
-    - `static const edgeInsetsBadge = EdgeInsets.symmetric( horizontal: 8, vertical: 5, );`  <sub>:26</sub>
-    - `static const edgeInsetsFact = EdgeInsets.symmetric( horizontal: 16, vertical: 13, );`  <sub>:30</sub>
-    - `static const double xs = 4.0;`  <sub>:35</sub>
-    - `static const double compact = 5.0;`  <sub>:36</sub>
-    - `static const double small = 6.0;`  <sub>:37</sub>
-    - `static const double factLabelWidth = 124.0;`  <sub>:38</sub>
-    - `static const double metricColumnWidth = 108.0;`  <sub>:39</sub>
-    - `static const double metricGridSpacing = 18.0;`  <sub>:40</sub>
-    - `static EdgeInsets badgeInsets({ required bool compact, required bool largeText, }) => …`  <sub>:42</sub>
+    - `static const double sm = 8.0;`  <sub>:5</sub>
+    - `static const double md = 12.0;`  <sub>:6</sub>
+    - `static const double base = 16.0;`  <sub>:7</sub>
+    - `static const double xl = 24.0;`  <sub>:8</sub>
+    - `static const double xxl = 32.0;`  <sub>:9</sub>
+    - `static const pageInset = 16.0;`  <sub>:12</sub>
+    - `static const desktopPageInset = 24.0;`  <sub>:13</sub>
+    - `static const edgeInsetsPage = EdgeInsets.symmetric(horizontal: pageInset);`  <sub>:15</sub>
+    - `static const edgeInsetsDesktopPage = EdgeInsets.fromLTRB( desktopPageInset, 22, desktopPageInset, 6, );`  <sub>:16</sub>
+    - `static const edgeInsetsCard = EdgeInsets.all(base);`  <sub>:22</sub>
+    - `static const edgeInsetsListTile = EdgeInsets.symmetric( horizontal: base, vertical: 10, );`  <sub>:23</sub>
+    - `static const edgeInsetsBadge = EdgeInsets.symmetric( horizontal: 8, vertical: 5, );`  <sub>:27</sub>
+    - `static const edgeInsetsPickerAction = EdgeInsets.symmetric(horizontal: 12);`  <sub>:31</sub>
+    - `static const edgeInsetsPickerCompactAction = EdgeInsets.symmetric( horizontal: 8, );`  <sub>:32</sub>
+    - `static const edgeInsetsPickerTitle = EdgeInsets.only(top: 6);`  <sub>:35</sub>
+    - `static const edgeInsetsSectionStart = EdgeInsets.only(top: 20);`  <sub>:36</sub>
+    - `static const edgeInsetsStatusGlyphAlignment = EdgeInsets.only(top: 2);`  <sub>:37</sub>
+    - `static const edgeInsetsBalanceHero = EdgeInsets.symmetric( horizontal: pageInset, vertical: 20, );`  <sub>:38</sub>
+    - `static const edgeInsetsFact = EdgeInsets.symmetric( horizontal: 16, vertical: 13, );`  <sub>:42</sub>
+    - `static EdgeInsets summaryStart({ required bool single, required bool desktop, }) => …`  <sub>:47</sub>
+    - `static const double xs = 4.0;`  <sub>:52</sub>
+    - `static const double compact = 5.0;`  <sub>:53</sub>
+    - `static const double small = 6.0;`  <sub>:54</sub>
+    - `static const double hairline = 0.5;`  <sub>:55</sub>
+    - `static const double opticalIconInset = 1.0;`  <sub>:56</sub>
+    - `static const double factLabelWidth = 124.0;`  <sub>:57</sub>
+    - `static const double metricColumnWidth = 108.0;`  <sub>:58</sub>
+    - `static const double metricGridSpacing = 18.0;`  <sub>:59</sub>
+    - `static const double bottomScrollClearance = 96.0;`  <sub>:60</sub>
+    - `static const EdgeInsets edgeInsetsNavigationBack = EdgeInsets.symmetric( horizontal: 2, );`  <sub>:62</sub>
+    - `static EdgeInsets badgeInsets({ required bool compact, required bool largeText, }) => …`  <sub>:66</sub>
 
 ## design/tokens/typography.dart
 
@@ -143,4 +176,5 @@ token 层与视觉常量。
     - `static const footnote = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 13, letterSpacing: -0.08, color: GinkgoColors.secondaryLabel, );`  <sub>:94</sub>
     - `static const caption = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 12, letterSpacing: 0.0, color: GinkgoColors.secondaryLabel, );`  <sub>:103</sub>
     - `static const caption2 = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 11, letterSpacing: 0.06, color: GinkgoColors.tertiaryLabel, );`  <sub>:112</sub>
-    - `static const tabularDigits = [FontFeature.tabularFigures()];`  <sub>:121</sub>
+    - `static const tabLabel = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: -0.24, color: GinkgoColors.tertiaryLabel, );` — Keeps Cupertino tab labels on the app's bundled typefaces while retaining  <sub>:123</sub>
+    - `static const tabularDigits = [FontFeature.tabularFigures()];`  <sub>:133</sub>

@@ -26,14 +26,51 @@ class BoundaryTests(unittest.TestCase):
             file.write_text("import 'package:ginkgo_mirror/application/reminder_store.dart';")
             self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
 
-    def test_application_cannot_import_platform_storage_plugin(self):
+    def test_application_cannot_import_platform_storage_or_file_io(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             file = root / 'flutter/lib/application/example.dart'
             file.parent.mkdir(parents=True)
-            file.write_text("import 'package:path_provider/path_provider.dart';\n")
-            self.assertTrue(BOUNDARY.dart_boundary_violations(root))
+            for directive in [
+                "import 'package:path_provider/path_provider.dart';\n",
+                "import 'dart:io';\n",
+            ]:
+                file.write_text(directive)
+                self.assertEqual(len(BOUNDARY.dart_boundary_violations(root)), 1)
             file.write_text('abstract class TaskStorageRoot {}\n')
+            self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
+
+    def test_shared_state_cannot_import_platform_apis_outside_reviewed_exceptions(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            lib = root / 'flutter/lib'
+            file = lib / 'shared/app_preferences.dart'
+            file.parent.mkdir(parents=True)
+            for directive in [
+                "import 'dart:io';\n",
+                "import 'package:path_provider/path_provider.dart';\n",
+                "import 'package:url_launcher/url_launcher.dart';\n",
+            ]:
+                file.write_text(directive)
+                self.assertEqual(len(BOUNDARY.dart_boundary_violations(root)), 1)
+
+            self.assertEqual(
+                BOUNDARY.SHARED_PLATFORM_IMPORT_EXCEPTIONS,
+                {
+                    'shared/course_visibility.dart': {
+                        'dart:io',
+                        'package:path_provider/path_provider.dart',
+                    },
+                    'shared/school_links.dart': {
+                        'package:url_launcher/url_launcher.dart',
+                    },
+                },
+            )
+            file.unlink()
+            for path, imports in BOUNDARY.SHARED_PLATFORM_IMPORT_EXCEPTIONS.items():
+                legacy = lib / path
+                legacy.parent.mkdir(parents=True, exist_ok=True)
+                legacy.write_text(''.join(f"import '{item}';\n" for item in imports))
             self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
 
     def test_core_cannot_reintroduce_upstream_even_as_a_test_dependency(self):
@@ -192,11 +229,11 @@ class BoundaryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             lib = root / 'flutter/lib'
-            codec = lib / 'shared/app_preferences.dart'
+            codec = lib / 'shared/course_visibility.dart'
             codec.parent.mkdir(parents=True)
             codec.write_text('final value = jsonDecode(text);\n')
             self.assertEqual(BOUNDARY.payload_decode_violations(root), [])
-            moved = lib / 'shared/renamed_preferences.dart'
+            moved = lib / 'shared/renamed_course_visibility.dart'
             moved.write_text('final value = jsonDecode(text);\n')
             self.assertEqual(len(BOUNDARY.payload_decode_violations(root)), 1)
 
@@ -205,7 +242,7 @@ class BoundaryTests(unittest.TestCase):
             root = Path(temporary)
             lib = root / 'flutter/lib'
             models = lib / 'features/bykc/bykc_models.dart'
-            codec = lib / 'shared/app_preferences.dart'
+            codec = lib / 'shared/course_visibility.dart'
             models.parent.mkdir(parents=True)
             codec.parent.mkdir(parents=True)
             models.write_text('final value = jsonDecode(payload);\n')

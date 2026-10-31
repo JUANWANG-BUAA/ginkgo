@@ -309,6 +309,36 @@ void main() {
     expect(find.byKey(const Key('today-scroll')), findsNothing);
   });
 
+  testWidgets('root uses injected preferences for session state and theme', (
+    tester,
+  ) async {
+    final preferences = AppPreferences(writer: (_) async {});
+    addTearDown(preferences.dispose);
+    await preferences.update(accent: AppAccent.blue);
+    await preferences.setExplicitSignOut(true);
+
+    await phone(
+      tester,
+      GinkgoRoot(
+        preferences: preferences,
+        liveService: FakeService(
+          restoreResponse: signedIn,
+          loginResponse: signedIn,
+        ),
+      ),
+    );
+
+    expect(find.text('统一身份认证'), findsOneWidget);
+    final context = tester.element(find.text('统一身份认证'));
+    expect(
+      CupertinoDynamicColor.resolve(
+        CupertinoTheme.of(context).primaryColor,
+        context,
+      ),
+      CupertinoDynamicColor.resolve(AppAccent.blue.color, context),
+    );
+  });
+
   testWidgets('signing in again clears the explicit sign-out marker', (
     tester,
   ) async {
@@ -406,7 +436,9 @@ void main() {
     );
     expect(find.byKey(const Key('today-scroll')), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('workspace-settings')));
+    await tester.tap(find.text('更多'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('more-account-settings')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('退出登录'));
     await tester.pumpAndSettle();
@@ -547,9 +579,16 @@ void main() {
         ),
       ),
     );
-    await tester.tap(find.text('预约'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(CupertinoTabBar),
+        matching: find.text('更多'),
+      ),
+    );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('空教室'));
+    await tester.ensureVisible(find.text('空教室').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('空教室').first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('查询空教室'));
     await tester.pumpAndSettle();

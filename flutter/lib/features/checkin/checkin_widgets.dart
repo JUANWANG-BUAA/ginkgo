@@ -125,7 +125,9 @@ class CheckinCourseRow extends StatelessWidget {
                     horizontal: 18,
                     vertical: 8,
                   ),
-                  onPressed: submitting != null ? null : onSubmit,
+                  onPressed: submitting != null || !windowOpen
+                      ? null
+                      : onSubmit,
                   child: isSubmitting
                       ? const GinkgoActivity(size: 17)
                       : Text(

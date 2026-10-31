@@ -23,12 +23,15 @@ class GraduateViewSwitcher extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-    child: LayoutBuilder(
-      builder: (context, constraints) => SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minWidth: constraints.maxWidth),
-          child: CupertinoSlidingSegmentedControl<GraduateView>(
+    child: MediaQuery.textScalerOf(context).scale(14) > 20
+        ? ApplePickerTile<GraduateView>(
+            title: '查看',
+            value: view,
+            values: GraduateView.values,
+            label: _label,
+            onSelected: onChanged,
+          )
+        : CupertinoSlidingSegmentedControl<GraduateView>(
             groupValue: view,
             children: const {
               GraduateView.credits: Padding(
@@ -48,10 +51,13 @@ class GraduateViewSwitcher extends StatelessWidget {
               if (value != null) onChanged(value);
             },
           ),
-        ),
-      ),
-    ),
   );
+
+  String _label(GraduateView view) => switch (view) {
+    GraduateView.credits => '学分地图',
+    GraduateView.courses => '课程',
+    GraduateView.profile => '学籍',
+  };
 }
 
 /// Loading, error and notice lines for one academic part. The student record

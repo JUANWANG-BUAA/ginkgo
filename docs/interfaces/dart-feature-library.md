@@ -19,6 +19,7 @@
 - [features/library/library_seat_page.dart](#featureslibrarylibraryseatpagedart) (1)
 - [features/library/library_slot_page.dart](#featureslibrarylibraryslotpagedart) (1)
 - [features/library/library_stats_page.dart](#featureslibrarylibrarystatspagedart) (1)
+- [features/library/library_venue_selection_page.dart](#featureslibrarylibraryvenueselectionpagedart) (1)
 - [features/library/library_widgets.dart](#featureslibrarylibrarywidgetsdart) (6)
 
 ## features/library/library_area_page.dart
@@ -116,8 +117,8 @@
 
 - `class LibraryPage extends StatefulWidget` — Library hierarchy and explicit, single-attempt booking actions.
   <sub>class · features/library/library_page.dart:20</sub>
-    - `const LibraryPage({super.key, required this.service});`  <sub>:21</sub>
-    - `State<LibraryPage> createState() => …`  <sub>:24</sub>
+    - `const LibraryPage({super.key, required this.service, this.onOpenLoans});`  <sub>:21</sub>
+    - `State<LibraryPage> createState() => …`  <sub>:25</sub>
 
 ## features/library/library_seat_page.dart
 
@@ -141,6 +142,13 @@
   <sub>class · features/library/library_stats_page.dart:14</sub>
     - `const LibraryStatsPage({super.key, required this.service});`  <sub>:15</sub>
     - `State<LibraryStatsPage> createState() => …`  <sub>:18</sub>
+
+## features/library/library_venue_selection_page.dart
+
+- `class LibraryVenueSelectionPage extends StatefulWidget` — Focused venue selection route reached from the library's seat-booking task.
+  <sub>class · features/library/library_venue_selection_page.dart:14</sub>
+    - `const LibraryVenueSelectionPage({ super.key, required this.controller, required this.onOpenStats, required this.onSelectVenue, });`  <sub>:15</sub>
+    - `State<LibraryVenueSelectionPage> createState() => …`  <sub>:27</sub>
 
 ## features/library/library_widgets.dart
 

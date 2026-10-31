@@ -57,7 +57,10 @@ void main() {
       ) as Map;
       await tester.pumpWidget(ginkgoApp(home: LibraryPage(service: service)));
       await tester.pumpAndSettle();
-      expect(find.textContaining('学校会话已失效'), findsNWidgets(2));
+      expect(find.textContaining('学校会话已失效'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('library-find-seats')));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('学校会话已失效'), findsOneWidget);
       await tester.tap(find.byKey(const Key('library-public-stats')));
       await tester.pump();
       service.requests.single.complete(

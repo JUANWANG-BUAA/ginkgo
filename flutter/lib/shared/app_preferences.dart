@@ -1,8 +1,4 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
-import 'package:path_provider/path_provider.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 
@@ -51,15 +47,17 @@ enum AppAccent {
 }
 
 typedef PreferencesWriter = Future<void> Function(Map<String, Object> value);
-typedef PreferencesReader = Future<Map<String, dynamic>?> Function();
+typedef PreferencesReader = Future<Map<String, Object?>?> Function();
 
 /// Device-wide display choices and the session-flow marker only. Credentials
 /// and school data never enter this file. Serial writes prevent a slower old
 /// choice overwriting a newer one.
 class AppPreferences extends ChangeNotifier {
+  /// Defaults to transient state for tests and isolated compositions. The
+  /// production entry point injects the platform-backed file store.
   AppPreferences({PreferencesWriter? writer, PreferencesReader? reader})
-    : _writer = writer ?? _write,
-      _reader = reader ?? _read;
+    : _writer = writer ?? _discardWrite,
+      _reader = reader ?? _emptyRead;
   static final shared = AppPreferences();
   final PreferencesWriter _writer;
   final PreferencesReader _reader;
@@ -76,24 +74,9 @@ class AppPreferences extends ChangeNotifier {
   bool explicitSignOut = false;
   String? saveError;
 
-  static Future<File> _file() async {
-    final root = await getApplicationSupportDirectory();
-    return File('${root.path}/display-preferences-v1.json');
-  }
+  static Future<void> _discardWrite(Map<String, Object> _) async {}
 
-  static Future<void> _write(Map<String, Object> value) async {
-    final file = await _file();
-    await file.parent.create(recursive: true);
-    final temporary = File('${file.path}.tmp');
-    await temporary.writeAsString(jsonEncode(value), flush: true);
-    await temporary.rename(file.path);
-  }
-
-  static Future<Map<String, dynamic>?> _read() async {
-    final file = await _file();
-    if (!await file.exists()) return null;
-    return jsonDecode(await file.readAsString()) as Map<String, dynamic>;
-  }
+  static Future<Map<String, Object?>?> _emptyRead() async => null;
 
   Future<void> restore() async {
     try {

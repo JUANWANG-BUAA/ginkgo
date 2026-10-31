@@ -77,13 +77,10 @@ void main() {
     await openTab('作业');
     await capture('android-homework');
 
-    await openTab('签到');
-    await capture('android-checkin');
+    await openTab('更多');
+    await capture('android-more');
 
-    await openTab('预约');
-    await capture('android-reservations');
-
-    await tester.tap(find.text('查看时段'));
+    await tester.tap(find.text('研讨室').first);
     await settle(tester, frames: 24);
     await capture('android-cgyy');
     final back = find.byType(CupertinoNavigationBarBackButton);
@@ -92,8 +89,14 @@ void main() {
       await settle(tester, frames: 20);
     }
 
-    await tester.tap(find.text('选择座位'));
+    await openTab('图书馆');
     await settle(tester, frames: 24);
     await capture('android-library');
+    final venues = find.text('选择场馆');
+    if (venues.evaluate().isNotEmpty) {
+      await tester.tap(venues.first);
+      await settle(tester, frames: 24);
+      await capture('android-library-venues');
+    }
   });
 }

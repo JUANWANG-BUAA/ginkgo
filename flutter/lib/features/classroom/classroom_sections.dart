@@ -220,42 +220,42 @@ class ClassroomResultSummarySection extends StatelessWidget {
   final VoidCallback onClearFilters;
 
   @override
-  Widget build(BuildContext context) => AppleSection(
-    animateSize: false,
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      if (result.fetchedAt != null)
-        AppleListTile(
-          title: const Text('查询时间'),
-          additionalInfo: Text(
-            result.fetchedAt!.substring(0, 16).replaceFirst('T', ' '),
-            style: const TextStyle(fontSize: 14),
-          ),
-        ),
-      AppleListTile(
-        title: const Text('结果'),
-        additionalInfo: Semantics(
-          liveRegion: true,
-          child: Text(
+      SummaryStrip(
+        items: [
+          SummaryItem(
+            '查询结果',
             '${result.roomCount} 间 · ${result.buildingCount} 栋',
+            icon: CupertinoIcons.building_2_fill,
             key: const Key('classroom-summary'),
           ),
-        ),
-      ),
-      AppleListTile(
-        title: const Text('数据来源'),
-        additionalInfo: Text(
-          isDemo
-              ? (result.fromCache ? '本机样例缓存' : '合成样例')
-              : (result.fromCache ? '本机缓存' : '学校实时数据'),
-        ),
+          SummaryItem(
+            '数据来源',
+            isDemo
+                ? (result.fromCache ? '本机样例缓存' : '合成样例')
+                : (result.fromCache ? '本机缓存' : '学校实时数据'),
+          ),
+          if (result.fetchedAt != null)
+            SummaryItem(
+              '查询时间',
+              result.fetchedAt!.substring(0, 16).replaceFirst('T', ' '),
+            ),
+        ],
       ),
       if (hasFilters)
-        AppleListTile(
-          title: Text(
-            '清除筛选',
-            style: TextStyle(color: CupertinoTheme.of(context).primaryColor),
-          ),
-          onTap: onClearFilters,
+        AppleSection(
+          animateSize: false,
+          children: [
+            AppleListTile(
+              title: Text(
+                '清除筛选',
+                style: TextStyle(color: CupertinoTheme.of(context).primaryColor),
+              ),
+              onTap: onClearFilters,
+            ),
+          ],
         ),
     ],
   );

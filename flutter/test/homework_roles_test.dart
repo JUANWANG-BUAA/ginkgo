@@ -50,21 +50,24 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
-        ginkgoApp(home: HomeworkPage(fileActions: platformActions,service: CourseRoleService())),
+        ginkgoApp(
+          home: HomeworkPage(
+            fileActions: platformActions,
+            service: CourseRoleService(),
+          ),
+        ),
       );
       await tester.pumpAndSettle();
-      final summary = find.byKey(const ValueKey('homework-summary-待完成'));
-      expect(
-        find.descendant(of: summary, matching: find.text('2')),
-        findsOneWidget,
-      );
+      expect(find.text('待完成 2'), findsOneWidget);
       expect(find.text('2 项作业'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.byKey(const Key('homework-filter-pending'))).dy,
+        lessThan(tester.getTopLeft(find.byType(CupertinoSwitch)).dy),
+      );
+      expect(find.textContaining('筛选计数仅包含个人课程'), findsOneWidget);
       await tester.tap(find.byType(CupertinoSwitch));
       await tester.pumpAndSettle();
-      expect(
-        find.descendant(of: summary, matching: find.text('2')),
-        findsOneWidget,
-      );
+      expect(find.text('待完成 2'), findsOneWidget);
       expect(find.text('3 项作业'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.byKey(const Key('homework-assistant')),

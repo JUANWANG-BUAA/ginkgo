@@ -27,6 +27,6 @@
     - `const CheckinCourseRow({ super.key, required this.course, required this.windowOpen, required this.canSubmit, required this.submitting, required this.awaitingVerification, required this.onSubmit, });`  <sub>:12</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:32</sub>
 - `class CheckinStatusSummary extends StatelessWidget` — Day totals: count tile, proportional status meter and readable legend.
-  <sub>class · features/checkin/checkin_widgets.dart:149</sub>
-    - `const CheckinStatusSummary({ super.key, required this.dateLabel, required this.scopeLabel, required this.signed, required this.notSigned, required this.unknown, required this.fetchedAt, });`  <sub>:150</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:166</sub>
+  <sub>class · features/checkin/checkin_widgets.dart:151</sub>
+    - `const CheckinStatusSummary({ super.key, required this.dateLabel, required this.scopeLabel, required this.signed, required this.notSigned, required this.unknown, required this.fetchedAt, });`  <sub>:152</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:168</sub>

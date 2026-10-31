@@ -9,6 +9,7 @@ import 'today_v2_widget_test.dart' show TodayFake, host, size;
 
 class ExamFake extends TodayFake {
   final requests = <Completer<ScheduleResponse>>[];
+  bool fail = false;
 
   @override
   Future<ScheduleResponse> schedule({
@@ -16,6 +17,7 @@ class ExamFake extends TodayFake {
     int? week,
     bool forceRefresh = false,
   }) {
+    if (fail) return Future.error(StateError('synthetic exam failure'));
     final completer = Completer<ScheduleResponse>();
     requests.add(completer);
     return completer.future;
@@ -64,7 +66,8 @@ void main() {
         ),
       ),
     );
-    expect(find.text('近期考试'), findsNothing);
+    expect(find.text('近期考试'), findsOneWidget);
+    expect(find.text('正在核对考试安排…'), findsOneWidget);
 
     fake.requests.single.complete(exams);
     await tester.pumpAndSettle();
@@ -77,7 +80,9 @@ void main() {
     expect(opened, 'schedule');
   });
 
-  testWidgets('empty and failed exam reads leave no card', (tester) async {
+  testWidgets('confirmed empty is hidden and a failed read stays visible', (
+    tester,
+  ) async {
     size(tester);
     final fake = ExamFake();
     await tester.pumpWidget(
@@ -87,6 +92,17 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('近期考试'), findsNothing);
     expect(find.byKey(const Key('today-exams')), findsNothing);
+
+    final failed = ExamFake()..fail = true;
+    await tester.pumpWidget(
+      host(
+        TodayExamSection(service: failed, now: DateTime.utc(2026, 10, 22, 9)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('近期考试'), findsOneWidget);
+    expect(find.text('考试安排暂不可用'), findsOneWidget);
+    expect(find.text('课表'), findsOneWidget);
   });
 
   testWidgets('gateway replacement discards late exams', (tester) async {
@@ -102,7 +118,8 @@ void main() {
     expect(second.requests, hasLength(1));
     first.requests.single.complete(exams);
     await tester.pump();
-    expect(find.text('近期考试'), findsNothing);
+    expect(find.text('近期考试'), findsOneWidget);
+    expect(find.text('考试A'), findsNothing);
     second.requests.single.complete(noExams);
     await tester.pumpAndSettle();
     expect(find.text('近期考试'), findsNothing);

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/cgyy_commands.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/design/tokens/spacing.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
 import 'cgyy_booking_form.dart';
@@ -277,10 +278,31 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
         child: CustomScrollView(
           key: const Key('cgyy-booking-form'),
           slivers: [
-            const AppleRefreshPageHeader(
+            AppleRefreshPageHeader(
               title: '预约研讨室',
               subtitle: '选择场馆并查看可预约空间',
               icon: CupertinoIcons.person_3,
+              leading: CupertinoButton(
+                key: const Key('cgyy-booking-back'),
+                minimumSize: const Size(48, 48),
+                padding: GinkgoSpacing.edgeInsetsNavigationBack,
+                onPressed: busy || leaving ? null : () => leave(),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(CupertinoIcons.back, size: 22),
+                    SizedBox(width: GinkgoSpacing.xs),
+                    Text('研讨室'),
+                  ],
+                ),
+              ),
+              // The refresh action belongs to the navigation bar, next to the
+              // slots it reloads.
+              refreshLabel: '刷新空闲时段',
+              // The slot read merges with a running one, and the write path
+              // already refuses new work while a submission is in flight.
+              busy: false,
+              onRefresh: load,
             ),
             SliverList.list(
               children: [
@@ -326,7 +348,6 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
                   review: review,
                   enabled: options != null,
                   onSubmit: prepare,
-                  onRefresh: load,
                   onLeave: leave,
                 ),
                 const SizedBox(height: 32),

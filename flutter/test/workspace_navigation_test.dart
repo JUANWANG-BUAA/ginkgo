@@ -93,13 +93,18 @@ void main() {
       await tester.pumpAndSettle();
       expect(backSignals.last, isTrue);
       backSignals.clear();
-      await tester.tap(find.text('预约').last);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CupertinoTabBar),
+          matching: find.text('更多'),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(backSignals, everyElement(isTrue));
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
       expect(exits, 0);
-      expect(find.text('查看完整课表'), findsOneWidget);
+      expect(find.text('更多'), findsWidgets);
       expect(backSignals.last, isTrue);
     },
     variant: TargetPlatformVariant.only(TargetPlatform.android),
@@ -128,7 +133,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
-    expect(find.text('查看完整课表'), findsOneWidget);
+    expect(find.text('完整课表'), findsOneWidget);
     expect(find.text('再返回一次退出 Ginkgo'), findsNothing);
     expect(exits, 0);
     await tester.binding.handlePopRoute();
@@ -183,6 +188,8 @@ void main() {
     expect(service.libraryReads, 0);
     await tester.tap(find.text('图书馆'));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('library-find-seats')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('library-venue-v1')));
     await tester.pumpAndSettle();
     expect(find.text('区域'), findsOneWidget);
@@ -204,7 +211,8 @@ void main() {
     // Selecting the visible destination again returns to its root.
     await tester.tap(find.text('图书馆'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('library-venue-v1')), findsOneWidget);
+    expect(find.byKey(const Key('library-find-seats')), findsOneWidget);
+    expect(find.byKey(const Key('library-venue-v1')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -243,12 +251,12 @@ void main() {
       lessThan(tester.getRect(find.text('课程签到')).top + position.pixels),
     );
     await tester.scrollUntilVisible(
-      find.text('查看完整课表'),
+      find.text('完整课表'),
       -180,
       scrollable: scroller,
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('查看完整课表'));
+    await tester.tap(find.text('完整课表'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('schedule-search')), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -303,7 +311,7 @@ void main() {
                 textScaler: const TextScaler.linear(1.8),
                 disableAnimations: true,
               ),
-              child: TodayPage(fileActions: platformActions,service: service),
+              child: TodayPage(fileActions: platformActions, service: service),
             ),
           ),
         ),

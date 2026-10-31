@@ -1,18 +1,18 @@
 # 功能和接口协议
 
-更新：2026-10-30。本文是 **Android 当前源码的功能入口与本地应用契约索引**，用于长期维护，不是发布公告或验收报告。Android 使用 Flutter + Rust；Windows 复用该栈，Apple 保持独立 SwiftUI。当前公开版本为 Android Beta.3（build 13），包与限制见 [Beta.3 发布与验收记录](_audit/2026-10-30-android-beta3-readiness.md)，不能由源码覆盖推断真实学校业务已验收。
+更新：2026-11-01。本文是 **Android 当前源码的功能入口与本地应用契约索引**，用于长期维护，不是发布公告或验收报告。Android 使用 Flutter + Rust；Windows 复用该栈，Apple 保持独立 SwiftUI。当前公开版本为 Android Beta.4（build 14），包与限制见 [Beta.4 发布与验收记录](_audit/2026-11-01-android-beta4-readiness.md)，不能由源码覆盖推断真实学校业务已验收。
 
 ## 1. 文档职责与事实来源
 
 - **学校上游协议事实以 [API.md](API.md) 为单一来源**：URL、参数、认证、成功码、证据等级及修订记录都在那里维护。本文只链接对应章节，不重新复制端点清单；静态源码线索、合成测试、真实只读和真实写入不是同一种证据。
 - 需要具体签名（Rust 端口、FFI 命令、Dart gateway、UI 组件）时查 [接口索引](INTERFACE-INDEX.md)：它给出分层总览、能力总表与模块 IO 契约，逐文件全量清单在 [interfaces/](interfaces/README.md)，由 `scripts/generate-interface-index.py` 从源码生成。
 - 本文维护“用户能做什么、从哪里进入、是否写学校系统、哪些数据留在本机”以及 Flutter↔Rust 本地契约；本地 `action`、`state` 和字段名不是学校 HTTP 协议。系统间成功码不得统一，也不得把未知状态解释为成功或空数据。
-- 产品方向见 [ANDROID-DEVELOPMENT](ANDROID-DEVELOPMENT.md)，实现状态见 [MIRROR-IMPLEMENTATION](MIRROR-IMPLEMENTATION.md)，平台差距见 [MIRROR-PARITY](MIRROR-PARITY.md)，未完成工作**只维护于 [MIRROR-TODO](MIRROR-TODO.md)**；本文不另建任务表。当前公开发布与升级边界见 [Beta.3 记录](_audit/2026-10-30-android-beta3-readiness.md)，历史操作规程见 [发包准备](_audit/2026-10-22-android-release-preparation.md)。
+- 产品方向见 [ANDROID-DEVELOPMENT](ANDROID-DEVELOPMENT.md)，实现状态见 [MIRROR-IMPLEMENTATION](MIRROR-IMPLEMENTATION.md)，平台差距见 [MIRROR-PARITY](MIRROR-PARITY.md)，未完成工作**只维护于 [MIRROR-TODO](MIRROR-TODO.md)**；本文不另建任务表。当前公开发布与升级边界见 [Beta.4 记录](_audit/2026-11-01-android-beta4-readiness.md)，历史操作规程见 [发包准备](_audit/2026-10-22-android-release-preparation.md)。
 - API 中保留了带日期的历史实现记录，可能描述旧版“未接入”；判断当前 Android 是否有入口应核对下列源码，不能把历史只读限制误当现状，也不能反过来因入口存在而提高上游证据等级。
 
 ## 2. Android 功能覆盖
 
-手机一级标签为 **工作台、签到、课表、作业、预约**。工作台下方服务目录承载其他入口，常用服务可按账号选择 0–4 项；“预约”聚合图书馆、CGYY 和空教室，不在打开聚合页时同时登录全部系统。宽屏侧栏来自同一[功能登记表](../flutter/lib/workspace/workspace_catalog.dart)。
+手机一级标签为 **今天、课表、作业、图书馆、更多**。“更多”承载签到、成绩、博雅、研究生教务、研讨室、空教室及其他服务，常用服务可按账号选择 0–4 项；图书馆与研讨室按需进入各自系统，不在打开目录时同时登录全部系统。宽屏侧栏来自同一[功能登记表](../flutter/lib/workspace/workspace_catalog.dart)。
 
 “只读”按业务副作用分类：认证或查询可能使用 POST，不等于预约/签到写入。“本机写入”不修改学校记录。以下均表示源码链路覆盖，不是当前网络可用性或真实账号验收承诺。
 

@@ -33,7 +33,10 @@ Widget app(LibraryLoansGateway gateway, {bool enabled = true}) => CupertinoApp(
   ),
 );
 Future<void> read(WidgetTester tester, {bool refresh = false}) async {
-  final button = find.text(refresh ? '刷新本人借阅' : '读取本人借阅');
+  final toolbarButton = find.byKey(const Key('library-loans-read'));
+  final button = toolbarButton.evaluate().isEmpty
+      ? find.byKey(const Key('library-loans-first-read'))
+      : toolbarButton;
   await tester.ensureVisible(button);
   await tester.tap(button);
   await tester.pumpAndSettle();
@@ -73,8 +76,12 @@ void main() {
     await tester.pumpWidget(app(gateway));
     await tester.pumpAndSettle();
     expect(gateway.calls, isEmpty);
+    expect(find.text('尚未读取借阅记录'), findsOneWidget);
+    expect(find.byKey(const Key('library-loans-first-read')), findsOneWidget);
+    expect(find.byKey(const Key('library-loans-read')), findsNothing);
     expect(find.textContaining('暂无当前借阅'), findsNothing);
-    await read(tester);
+    await tester.tap(find.byKey(const Key('library-loans-first-read')));
+    await tester.pumpAndSettle();
     expect(find.text('合成书名'), findsOneWidget);
     expect(gateway.calls, [1]);
     gateway.result = const LibraryLoansRead(
@@ -104,6 +111,7 @@ void main() {
       await read(tester, refresh: true);
       expect(find.text('合成书名'), findsOneWidget);
       expect(find.textContaining('数据结构发生变化'), findsOneWidget);
+      expect(find.text('尚未读取借阅记录'), findsNothing);
       expect(find.textContaining('暂无当前借阅'), findsNothing);
       gateway.result = const LibraryLoansRead(
         failure: FailureCode.sessionExpired,
@@ -124,12 +132,30 @@ void main() {
     expect(find.text('合成书名'), findsNothing);
     expect(find.textContaining('暂无当前借阅（本次查询已确认）'), findsOneWidget);
   });
+
+  testWidgets('a failed first read offers an inline retry', (tester) async {
+    final gateway = Loans()
+      ..result = const LibraryLoansRead(
+        failure: FailureCode.serviceUnavailable,
+      );
+    await tester.pumpWidget(app(gateway));
+    await tester.tap(find.byKey(const Key('library-loans-first-read')));
+    await tester.pumpAndSettle();
+    expect(find.text('暂时无法读取借阅记录'), findsOneWidget);
+    final retry = find.text('重试');
+    expect(retry, findsOneWidget);
+    gateway.result = const LibraryLoansRead(data: page);
+    await tester.tap(retry);
+    await tester.pumpAndSettle();
+    expect(gateway.calls, [1, 1]);
+    expect(find.text('合成书名'), findsOneWidget);
+  });
   testWidgets(
     'hidden page drops data and late read without automatically reloading',
     (tester) async {
       final gateway = Loans()..delayed = Completer<LibraryLoansRead>();
       await tester.pumpWidget(app(gateway));
-      await tester.tap(find.text('读取本人借阅'));
+      await tester.tap(find.byKey(const Key('library-loans-first-read')));
       await tester.pump();
       await tester.pumpWidget(app(gateway, enabled: false));
       gateway.delayed!.complete(const LibraryLoansRead(data: page));
@@ -143,7 +169,7 @@ void main() {
   testWidgets('gateway change rejects late account response', (tester) async {
     final first = Loans()..delayed = Completer<LibraryLoansRead>();
     await tester.pumpWidget(app(first));
-    await tester.tap(find.text('读取本人借阅'));
+    await tester.tap(find.byKey(const Key('library-loans-first-read')));
     await tester.pump();
     await tester.pumpWidget(app(Loans()));
     first.delayed!.complete(const LibraryLoansRead(data: page));

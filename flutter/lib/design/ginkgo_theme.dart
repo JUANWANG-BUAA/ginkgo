@@ -24,6 +24,7 @@ CupertinoThemeData ginkgoTheme([
   primaryContrastingColor: _accentForeground(accent),
   textTheme: CupertinoTextThemeData(
     textStyle: GinkgoTypography.body,
+    tabLabelTextStyle: GinkgoTypography.tabLabel,
     navTitleTextStyle: const TextStyle(
       inherit: false,
       fontFamily: GinkgoTypography.font,

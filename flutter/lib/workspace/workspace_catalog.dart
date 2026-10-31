@@ -15,14 +15,12 @@ import 'package:ginkgo_mirror/features/homework/homework_page.dart';
 import 'package:ginkgo_mirror/features/library/library_page.dart';
 import 'package:ginkgo_mirror/features/learning/learning_page.dart';
 import 'package:ginkgo_mirror/features/notices/notices_page.dart';
-import 'package:ginkgo_mirror/features/reservations/reservations_page.dart';
 import 'package:ginkgo_mirror/features/schedule/schedule_page.dart';
 import 'package:ginkgo_mirror/features/shuttle/shuttle_page.dart';
-import 'package:ginkgo_mirror/workspace/service_directory.dart';
+import 'package:ginkgo_mirror/workspace/more_page.dart';
 import 'package:ginkgo_mirror/features/settings/settings_page.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
 import 'package:ginkgo_mirror/features/today/today_page.dart';
-import 'package:ginkgo_mirror/workspace/workspace_shortcuts.dart';
 
 import 'package:ginkgo_mirror/workspace/workspace_types.dart';
 
@@ -34,41 +32,16 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
   WorkspaceDestination(
     id: 'today',
     title: '今天',
-    mobileLabel: '工作台',
+    mobileLabel: '今天',
     icon: CupertinoIcons.sun_max,
     section: WorkspaceSection.workbench,
     mobileTab: 0,
-    build: (context) => TodayPage(fileActions: context.platformActions,
+    build: (context) => TodayPage(
+      fileActions: context.platformActions,
       service: context.service,
       accountName: context.accountName,
       accountId: context.accountId,
-      onAccountAction: context.onSignOut,
-      onOpenSettings: context.openSettings,
       onOpenFeature: context.openFeature,
-      shortcutChoices: [
-        for (final destination in workspaceDestinations)
-          if (destination.id != 'today' && destination.id != 'settings')
-            WorkspaceShortcut(
-              id: destination.id,
-              title: switch (destination.id) {
-                'schedule' => '查看课表',
-                'reservations' => '空间预约',
-                _ => destination.title,
-              },
-              icon: destination.icon,
-            ),
-      ],
-      directory: context.mobile
-          ? ServiceDirectory(
-              service: context.service,
-              platformActions: context.platformActions,
-              destinations: workspaceDestinations,
-              accountName: context.accountName,
-              accountId: context.accountId,
-              route: context.route,
-              onSignOut: context.onSignOut ?? () async {},
-            )
-          : null,
     ),
   ),
   WorkspaceDestination(
@@ -76,16 +49,16 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     title: '待办',
     icon: CupertinoIcons.list_bullet,
     section: WorkspaceSection.workbench,
-    build: (context) =>
-        TasksPage(fileActions: context.platformActions,service: context.service),
+    build: (context) => TasksPage(
+      fileActions: context.platformActions,
+      service: context.service,
+    ),
   ),
   WorkspaceDestination(
     id: 'checkin',
     title: '课程签到',
-    mobileLabel: '签到',
     icon: CupertinoIcons.checkmark_seal,
     section: WorkspaceSection.workbench,
-    mobileTab: 1,
     build: (context) => CheckInPage(service: context.service),
   ),
   WorkspaceDestination(
@@ -93,8 +66,11 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     title: '课表',
     icon: CupertinoIcons.calendar,
     section: WorkspaceSection.academics,
-    mobileTab: 2,
-    build: (context) => SchedulePage(service: context.service),
+    mobileTab: 1,
+    build: (context) => SchedulePage(
+      service: context.service,
+      onOpenCheckIn: () => context.openFeature('checkin'),
+    ),
   ),
   WorkspaceDestination(
     id: 'grades',
@@ -109,16 +85,22 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     mobileLabel: '作业',
     icon: CupertinoIcons.doc_text,
     section: WorkspaceSection.academics,
-    mobileTab: 3,
-    build: (context) => HomeworkPage(fileActions: context.platformActions,service: context.service),
+    mobileTab: 2,
+    build: (context) => HomeworkPage(
+      fileActions: context.platformActions,
+      service: context.service,
+    ),
   ),
   WorkspaceDestination(
     id: 'learning',
     title: 'SPOC 学习',
     icon: CupertinoIcons.book_circle,
     section: WorkspaceSection.academics,
-    build: (context) =>
-        LearningPage(fileActions: context.platformActions,service: context.service, accountId: context.accountId),
+    build: (context) => LearningPage(
+      fileActions: context.platformActions,
+      service: context.service,
+      accountId: context.accountId,
+    ),
   ),
   WorkspaceDestination(
     id: 'bykc',
@@ -165,7 +147,11 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     title: '图书馆',
     icon: CupertinoIcons.book,
     section: WorkspaceSection.spaces,
-    build: (context) => LibraryPage(service: context.service),
+    build: (context) => LibraryPage(
+      service: context.service,
+      onOpenLoans: () => context.openFeature('library-loans'),
+    ),
+    mobileTab: 3,
   ),
   WorkspaceDestination(
     id: 'cgyy',
@@ -198,8 +184,7 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     title: '校园通知',
     icon: CupertinoIcons.news_solid,
     section: WorkspaceSection.campus,
-    build: (context) =>
-        NoticesPage(service: context.service),
+    build: (context) => NoticesPage(service: context.service),
   ),
   WorkspaceDestination(
     id: 'career-events',
@@ -222,18 +207,24 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     title: '校车时刻表',
     icon: CupertinoIcons.bus,
     section: WorkspaceSection.campus,
-    sidebar: false,
     build: (context) => ShuttlePage(service: context.service),
   ),
   WorkspaceDestination(
-    id: 'reservations',
-    title: '预约',
-    icon: CupertinoIcons.square_stack_3d_up,
+    id: 'more',
+    title: '更多',
+    icon: CupertinoIcons.ellipsis_circle_fill,
+    mobileLabel: '更多',
     mobileTab: 4,
     sidebar: false,
-    build: (context) => ReservationsPage(
+    build: (context) => MorePage(
       service: context.service,
-      bookingGateway: context.capabilities.cgyyBooking,
+      platformActions: context.platformActions,
+      destinations: workspaceDestinations,
+      accountName: context.accountName,
+      accountId: context.accountId,
+      openFeature: context.openFeature,
+      route: context.route,
+      onSignOut: context.onSignOut ?? () async {},
     ),
   ),
   WorkspaceDestination(
@@ -242,7 +233,8 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     icon: CupertinoIcons.gear_alt,
     sidebar: false,
     footer: true,
-    build: (context) => SettingsPage(maintenance: context.platformActions.maintenance,
+    build: (context) => SettingsPage(
+      maintenance: context.platformActions.maintenance,
       service: context.service,
       accountName: context.accountName,
       accountId: context.accountId,

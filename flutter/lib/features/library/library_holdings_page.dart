@@ -118,8 +118,18 @@ class _LibraryHoldingsPageState extends State<LibraryHoldingsPage> {
               description: '可能全部借出或尚未上架，请以学校页面为准。',
             ),
           if (rows != null && rows!.isNotEmpty)
+            SummaryStrip(
+              items: [
+                SummaryItem(
+                  '馆藏复本',
+                  '${rows!.length} 条',
+                  icon: CupertinoIcons.book,
+                ),
+              ],
+            ),
+          if (rows != null && rows!.isNotEmpty)
             AppleSection(
-              header: Text('复本 ${rows!.length} 条'),
+              header: const Text('复本'),
               footer: const Text('馆藏地、状态、索书号和册条码按学校目录原样展示；状态文字未转换为本地“可借”判断。'),
               children: _holdingTiles(),
             ),

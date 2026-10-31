@@ -105,6 +105,14 @@ void main() {
           await tester.pumpAndSettle();
           expect(gateway.commands.single['action'], 'options');
           expect(find.byType(ApplePageHeader), findsOneWidget);
+          expect(find.byKey(const Key('cgyy-booking-back')), findsOneWidget);
+          expect(
+            find.descendant(
+              of: find.byKey(const Key('cgyy-booking-back')),
+              matching: find.text('研讨室'),
+            ),
+            findsOneWidget,
+          );
           expect(find.byType(CupertinoTextFormFieldRow), findsWidgets);
           expect(find.byType(CupertinoSwitch), findsNWidgets(2));
           expect(tester.takeException(), isNull);

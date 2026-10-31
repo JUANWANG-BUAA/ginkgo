@@ -262,8 +262,9 @@ class _CheckInPageState extends State<CheckInPage> {
           subtitle: '查看课程签到状态与记录',
           icon: CupertinoIcons.checkmark_seal,
           border: null,
-          trailing: AppleGlassButton(
+          trailing: AppleToolbarButton(
             label: '刷新签到状态',
+            busy: busy,
             onPressed: busy || submitting != null
                 ? null
                 : () => load(force: true),
@@ -347,7 +348,7 @@ class _CheckInPageState extends State<CheckInPage> {
                 children: [
                   AppleEmptyState(
                     title: error!,
-                    description: '请检查网络后重试；已确认的旧状态会保留。',
+                    description: '请根据上方提示处理后重试；已确认的旧状态会保留。',
                     error: true,
                     action: '重试',
                     onAction: () => load(force: true),

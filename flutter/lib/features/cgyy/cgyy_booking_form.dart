@@ -183,11 +183,10 @@ class CgyyBookingActionsSection extends StatelessWidget {
     required this.review,
     required this.enabled,
     required this.onSubmit,
-    required this.onRefresh,
     required this.onLeave,
   });
   final bool busy, loading, review, enabled;
-  final VoidCallback onSubmit, onRefresh, onLeave;
+  final VoidCallback onSubmit, onLeave;
 
   @override
   Widget build(BuildContext context) => AppleSection(
@@ -197,11 +196,6 @@ class CgyyBookingActionsSection extends StatelessWidget {
         onPressed: busy || loading || review || !enabled ? null : onSubmit,
         child: const Text('确认信息并验证'),
       ),
-      if (!review)
-        CupertinoButton(
-          onPressed: busy || loading ? null : onRefresh,
-          child: const Text('刷新空闲时段'),
-        ),
       if (review)
         CupertinoButton(
           onPressed: busy ? null : onLeave,

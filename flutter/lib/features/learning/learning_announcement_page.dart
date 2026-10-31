@@ -106,6 +106,20 @@ class LearningAnnouncementPageState extends State<LearningAnnouncementPage> {
             onRetry: _load,
           ),
           if (detail.value case final value?) ...[
+            SummaryStrip(
+              items: [
+                SummaryItem(
+                  '附件',
+                  '${value.attachments.length} 个',
+                  icon: CupertinoIcons.paperclip,
+                ),
+                SummaryItem(
+                  '公告编号',
+                  value.id,
+                  icon: CupertinoIcons.tag,
+                ),
+              ],
+            ),
             LearningText(presentText(value.content) ? value.content! : '暂无正文'),
             if (value.attachments.isNotEmpty)
               AppleSection(

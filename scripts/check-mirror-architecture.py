@@ -59,7 +59,6 @@ def source_violations(root):
 # reminders, update gate), never school payloads. Located by path so a rename
 # cannot silently promote a codec into an unchecked layer.
 LOCAL_JSON_CODECS = {
-    'shared/app_preferences.dart',
     'shared/course_visibility.dart',
     'shared/reminder_controller.dart',
     'platform/update_gate.dart',
@@ -100,6 +99,24 @@ def payload_decode_violations(root):
     return errors
 
 
+# Shared state may depend on pure values and injected ports, not file or OS APIs.
+# Keep the two not-yet-migrated modules explicit so their exceptions cannot grow
+# unnoticed while the adapters are moved into infrastructure/platform.
+SHARED_PLATFORM_IMPORT_PREFIXES = (
+    'package:path_provider/',
+    'package:url_launcher/',
+    'package:shared_preferences/',
+    'package:flutter/services.dart',
+)
+SHARED_PLATFORM_IMPORT_EXCEPTIONS = {
+    'shared/course_visibility.dart': {
+        'dart:io',
+        'package:path_provider/path_provider.dart',
+    },
+    'shared/school_links.dart': {'package:url_launcher/url_launcher.dart'},
+}
+
+
 # The presentation layer never reaches into the adapter layer. A page that
 # composes its own adapter would read against a different account binding than
 # the workspace it belongs to, which is exactly the bug the removed
@@ -119,18 +136,37 @@ def dart_boundary_violations(root):
         relative = file.relative_to(lib)
         if relative.parts[0] in ('src', 'infrastructure'):
             continue
+        source = file.read_text()
         if relative.parts[0] == 'application' and re.search(
-            r"(?:import|export)\s+['\"]package:path_provider/", file.read_text()
+            r"(?:import|export)\s+['\"](?:package:path_provider/|dart:io['\"])",
+            source,
         ):
             errors.append(f'{relative}: platform storage belongs to infrastructure')
-        if relative.as_posix() in {'shared/reminder_controller.dart', 'shared/reminder_scope.dart'} and re.search(
+        if relative.as_posix() in {
+            'shared/reminder_controller.dart',
+            'shared/reminder_scope.dart',
+        } and re.search(
             r"(?:import|export)\s+['\"](?:package:ginkgo_mirror/infrastructure/|package:flutter/services\.dart|dart:io)",
-            file.read_text(),
+            source,
         ):
-            errors.append(f'{relative}: reminder adapters belong to composition/infrastructure')
-        if re.search(r"[\"'][^\"']*buaa\.edu\.cn", file.read_text()):
-            errors.append(f'{relative}: school destinations and domain policies belong to the provider')
-        for imported in re.findall(r"(?:import|export)\s+['\"]([^'\"]+)['\"]", file.read_text()):
+            errors.append(
+                f'{relative}: reminder adapters belong to composition/infrastructure'
+            )
+        if re.search(r"[\"'][^\"']*buaa\.edu\.cn", source):
+            errors.append(
+                f'{relative}: school destinations and domain policies belong to the provider'
+            )
+        for imported in re.findall(r"(?:import|export)\s+['\"]([^'\"]+)['\"]", source):
+            is_platform_import = imported == 'dart:io' or imported.startswith(
+                SHARED_PLATFORM_IMPORT_PREFIXES
+            )
+            if (
+                relative.parts[0] == 'shared'
+                and is_platform_import
+                and imported
+                not in SHARED_PLATFORM_IMPORT_EXCEPTIONS.get(relative.as_posix(), set())
+            ):
+                errors.append(f'{relative}: shared state must inject platform adapters')
             if (
                 relative.parts[0] in ('features', 'workspace')
                 and relative.as_posix()
@@ -144,15 +180,19 @@ def dart_boundary_violations(root):
                 if relative.as_posix() not in {'application/contracts.dart', 'application/failures.dart'}:
                     errors.append(f'{relative}: native dependency {imported}')
         if relative.as_posix() not in {'main.dart', 'mirror_service.dart'}:
-            if re.search(r'\b(?:NativeMirrorService|DemoMirrorService|RustLib)\b', file.read_text()):
+            if re.search(r'\b(?:NativeMirrorService|DemoMirrorService|RustLib)\b', source):
                 errors.append(f'{relative}: native construction belongs to composition/adapters')
         if relative.as_posix() in {'application/contracts.dart', 'application/failures.dart'}:
-            for directive in file.read_text().split(';'):
+            for directive in source.split(';'):
                 if 'export ' in directive and ' show ' not in re.sub(r'\s+', ' ', directive):
                     errors.append(f'{relative}: use explicit type-only exports')
                 elif 'export ' in directive:
                     exported = re.split(r'\bshow\b', directive, maxsplit=1)[1]
-                    if any(not value.strip()[0].isupper() for value in exported.split(',') if value.strip()):
+                    if any(
+                        not value.strip()[0].isupper()
+                        for value in exported.split(',')
+                        if value.strip()
+                    ):
                         errors.append(f'{relative}: must not export native commands')
     return errors
 

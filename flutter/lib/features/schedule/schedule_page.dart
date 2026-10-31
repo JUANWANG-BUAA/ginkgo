@@ -14,8 +14,9 @@ import 'schedule_views.dart';
 import 'schedule_widgets.dart';
 
 class SchedulePage extends StatefulWidget {
-  const SchedulePage({super.key, required this.service});
+  const SchedulePage({super.key, required this.service, this.onOpenCheckIn});
   final AcademicGateway service;
+  final VoidCallback? onOpenCheckIn;
   @override
   State<SchedulePage> createState() => _SchedulePageState();
 }
@@ -200,79 +201,77 @@ class _SchedulePageState extends State<SchedulePage> {
     ),
     child: SafeArea(
       child: LongPageScroll(
-      controller: scrollController,
-      child: CustomScrollView(
         controller: scrollController,
-        key: const Key('schedule-scroll'),
-        slivers: [
-          ApplePageHeader(
-            largeTitle: const Text('课表'),
-            section: '学业',
-            subtitle: '按学期与教学周查看课程和考试',
-            icon: CupertinoIcons.calendar,
-            border: null,
-            trailing: AppleGlassButton(
-              label: '刷新课表',
-              onPressed: busy ? null : () => load(force: true),
-              child: busy
-                  ? const GinkgoActivity(size: 17)
-                  : const Icon(CupertinoIcons.refresh, size: 24),
+        child: CustomScrollView(
+          controller: scrollController,
+          key: const Key('schedule-scroll'),
+          slivers: [
+            ApplePageHeader(
+              largeTitle: const Text('课表'),
+              section: '学业',
+              subtitle: '按学期与教学周查看课程和考试',
+              icon: CupertinoIcons.calendar,
+              border: null,
+              trailing: AppleToolbarButton(
+                label: '刷新课表',
+                busy: busy,
+                onPressed: busy ? null : () => load(force: true),
+                child: busy
+                    ? const GinkgoActivity(size: 17)
+                    : const Icon(CupertinoIcons.refresh, size: 24),
+              ),
             ),
-          ),
-          CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
-          SliverList.list(
-            children: [
-              if (data != null) ..._content(data!),
-              if (notice != null)
-                ScheduleSection(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            notice!,
-                            style: TextStyle(
-                              color: CupertinoColors.systemOrange.resolveFrom(
-                                context,
+            CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
+            SliverList.list(
+              children: [
+                if (data != null) ..._content(data!),
+                if (notice != null)
+                  ScheduleSection(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              notice!,
+                              style: TextStyle(
+                                color: CupertinoColors.systemOrange.resolveFrom(
+                                  context,
+                                ),
                               ),
                             ),
-                          ),
-                          CupertinoButton(
-                            padding: EdgeInsets.zero,
-                            onPressed: busy ? null : () => load(force: true),
-                            child: const Text('重试'),
-                          ),
-                        ],
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: busy ? null : () => load(force: true),
+                              child: const Text('重试'),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              if (data == null && error != null)
-                AppleStatusSection(
-                  title: error!,
-                  description: '请检查网络后重试。',
-                  error: true,
-                  action: '重试',
-                  onAction: () => load(force: true),
-                )
-              else if (data == null)
-                const ScheduleLoadingSection(),
-              const SizedBox(height: 96),
-            ],
-          ),
-        ],
+                    ],
+                  ),
+                if (data == null && error != null)
+                  AppleStatusSection(
+                    title: error!,
+                    description: '请根据上方提示处理后重试。',
+                    error: true,
+                    action: '重试',
+                    onAction: () => load(force: true),
+                  )
+                else if (data == null)
+                  const ScheduleLoadingSection(),
+                const SizedBox(height: 96),
+              ],
+            ),
+          ],
+        ),
       ),
-    )
     ),
   );
 
   List<Widget> _content(ScheduleResponse snapshot) => [
     ScheduleSection(
-      footer: snapshot.fetchedAt == null && widget.service.isDemo
-          ? const Text('离线合成样例')
-          : Text('更新于 ${schoolTimestampLabel(snapshot.fetchedAt)}'),
       children: [
         ScheduleControls(
           snapshot: snapshot,
@@ -284,6 +283,23 @@ class _SchedulePageState extends State<SchedulePage> {
           onSelectWeek: selectWeek,
         ),
       ],
+    ),
+    SummaryStrip(
+      items: [
+        SummaryItem(
+          '本周课程',
+          '${filtered.length} 节',
+          icon: CupertinoIcons.calendar,
+        ),
+        SummaryItem(
+          '近期考试',
+          '${snapshot.exams.length} 场',
+          icon: CupertinoIcons.exclamationmark_triangle,
+        ),
+      ],
+      note: snapshot.fetchedAt == null && widget.service.isDemo
+          ? '离线合成样例'
+          : '更新于 ${schoolTimestampLabel(snapshot.fetchedAt)}',
     ),
     _viewModeSwitch(snapshot),
     if (viewMode == ScheduleViewMode.weekGrid ||
@@ -356,6 +372,7 @@ class _SchedulePageState extends State<SchedulePage> {
           weekNumber: snapshot.weekNumber,
           week: week,
           dayTitle: scheduleDayTitle(course.day, week?.startDate),
+          onOpenCheckIn: widget.onOpenCheckIn,
         ),
       ),
     );

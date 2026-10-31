@@ -197,8 +197,7 @@ class _BykcPageState extends State<BykcPage> {
           final course = chosen ? record!.course : rows[index] as BykcCourse;
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SafeArea(
-              child: ClipRSuperellipse(
+            child: ClipRSuperellipse(
               borderRadius: BorderRadius.vertical(
                 top: Radius.circular(index == 0 ? 20 : 0),
                 bottom: Radius.circular(index == rows.length - 1 ? 20 : 0),
@@ -226,13 +225,20 @@ class _BykcPageState extends State<BykcPage> {
                   ],
                 ),
               ),
-            )
             ),
           );
         },
       );
 
   List<Widget> _catalog() => [
+    SliverToBoxAdapter(
+      child: SummaryStrip(
+        items: [
+          SummaryItem('课程库', '${visible.length} 门', icon: CupertinoIcons.book),
+          SummaryItem('当前类别', category, icon: CupertinoIcons.folder),
+        ],
+      ),
+    ),
     SliverToBoxAdapter(
       child: AppleSection(
         children: [
@@ -317,8 +323,9 @@ class _BykcPageState extends State<BykcPage> {
             icon: CupertinoIcons.book_solid,
             previousPageTitle: '工作台',
             border: null,
-            trailing: AppleGlassButton(
+            trailing: AppleToolbarButton(
               label: '刷新博雅',
+              busy: current.loading,
               onPressed: current.loading
                   ? null
                   : () => load(selection, force: true),

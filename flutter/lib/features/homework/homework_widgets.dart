@@ -16,66 +16,6 @@ String homeworkFilterLabel(int value) => switch (value) {
   _ => '全部',
 };
 
-/// 顶部三项统计（待完成 / 已提交 / 已截止）。
-class HomeworkSummaryMetrics extends StatelessWidget {
-  const HomeworkSummaryMetrics({
-    super.key,
-    required this.pending,
-    required this.submitted,
-    required this.overdue,
-  });
-
-  final int pending;
-  final int submitted;
-  final int overdue;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(16),
-    child: LayoutBuilder(
-      builder: (context, constraints) => Wrap(
-        spacing: 20,
-        runSpacing: 16,
-        children: [
-          for (final metric in [
-            (label: '待完成', count: pending),
-            (label: '已提交', count: submitted),
-            (label: '已截止', count: overdue),
-          ])
-            SizedBox(
-              key: ValueKey('homework-summary-${metric.label}'),
-              width: MediaQuery.textScalerOf(context).scale(14) > 20
-                  ? constraints.maxWidth
-                  : (constraints.maxWidth - 40) / 3,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${metric.count}',
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    metric.label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: CupertinoColors.secondaryLabel.resolveFrom(
-                        context,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    ),
-  );
-}
-
 /// 状态快捷筛选按钮；再次点击同一项即回到「全部」。
 class HomeworkQuickFilter extends StatelessWidget {
   const HomeworkQuickFilter({
@@ -179,10 +119,10 @@ class HomeworkDeadlineText extends StatelessWidget {
       children: [
         Text(
           item.dueAt == null
-              ? (item.status == HomeworkStatus.submitted ? '已提交' : '截止时间未确认')
-              : (item.status == HomeworkStatus.submitted
-                    ? '已提交 · 截止 ${schoolTimestampLabel(item.dueAt)}'
-                    : '截止 ${schoolTimestampLabel(item.dueAt)}'),
+              ? (item.status == HomeworkStatus.submitted
+                    ? '截止时间未提供'
+                    : '截止时间未确认')
+              : '截止 ${schoolTimestampLabel(item.dueAt)}',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -207,7 +147,7 @@ class HomeworkDeadlineText extends StatelessWidget {
   }
 }
 
-/// 作业列表项：标题、截止信息、课程与教师。
+/// 作业列表项：标题、截止信息与课程；教师信息位于详情页。
 class HomeworkItemTile extends StatelessWidget {
   const HomeworkItemTile({
     super.key,
@@ -260,16 +200,6 @@ class HomeworkItemTile extends StatelessWidget {
               color: CupertinoColors.secondaryLabel.resolveFrom(context),
             ),
           ),
-          if (item.teacherName?.trim().isNotEmpty == true) ...[
-            const SizedBox(height: 3),
-            Text(
-              '教师 · ${item.teacherName}',
-              style: TextStyle(
-                fontSize: 12,
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
-              ),
-            ),
-          ],
         ],
       ),
     ),

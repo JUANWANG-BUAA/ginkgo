@@ -41,7 +41,7 @@ class DesktopWorkspaceShell extends StatelessWidget {
     route: route,
     onSignOut: onSignOut,
     // 移动端专属的“预约”聚合页在桌面没有对应目的地，沿用旧行为落到图书馆。
-    openFeature: (id) => shell.select(id == 'reservations' ? 'library' : id),
+    openFeature: (id) => shell.select(id),
     openSettings: () => shell.select('settings'),
   );
 

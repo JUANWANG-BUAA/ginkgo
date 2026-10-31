@@ -84,32 +84,3 @@ class TodayNavigator {
     }
   }
 }
-
-/// Ask what to do with the current account. Returns true when the user asked
-/// to leave it; a demo account only returns to the sign-in screen.
-Future<bool> showTodayAccountDialog(
-  BuildContext context, {
-  required String? accountName,
-  required bool demo,
-}) async {
-  final action = await showCupertinoDialog<String>(
-    context: context,
-    builder: (context) => CupertinoAlertDialog(
-      title: Text(accountName ?? (demo ? '离线演示' : '账号')),
-      content: Text(demo ? '当前为离线合成样例，不连接学校账号。' : '当前已登录真实学校账号。'),
-      actions: [
-        CupertinoDialogAction(
-          isDefaultAction: true,
-          onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
-        ),
-        CupertinoDialogAction(
-          isDestructiveAction: true,
-          onPressed: () => Navigator.pop(context, 'exit'),
-          child: Text(demo ? '返回登录' : '退出登录'),
-        ),
-      ],
-    ),
-  );
-  return action == 'exit';
-}
