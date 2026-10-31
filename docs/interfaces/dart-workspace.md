@@ -12,7 +12,7 @@
 - [workspace/mobile_workspace_shell.dart](#workspacemobileworkspaceshelldart) (1)
 - [workspace/more_page.dart](#workspacemorepagedart) (1)
 - [workspace/service_directory.dart](#workspaceservicedirectorydart) (2)
-- [workspace/service_search_page.dart](#workspaceservicesearchpagedart) (4)
+- [workspace/service_search.dart](#workspaceservicesearchdart) (5)
 - [workspace/workspace_back_guard.dart](#workspaceworkspacebackguarddart) (3)
 - [workspace/workspace_catalog.dart](#workspaceworkspacecatalogdart) (2)
 - [workspace/workspace_shell.dart](#workspaceworkspaceshelldart) (1)
@@ -50,40 +50,42 @@
 ## workspace/more_page.dart
 
 - `class MorePage extends StatefulWidget` — The "更多" surface: the five primary destinations live in the tab bar,
-  <sub>class · workspace/more_page.dart:17</sub>
-    - `const MorePage({ super.key, required this.service, required this.platformActions, required this.destinations, required this.onSignOut, this.accountName, this.accountId, this.route, });`  <sub>:18</sub>
-    - `final Future<void> Function() onSignOut;`  <sub>:32</sub>
-    - `static const tabIds = {…}` — Destinations that already own a tab do not repeat in the list.  <sub>:38</sub>
-    - `State<MorePage> createState() => …`  <sub>:41</sub>
+  <sub>class · workspace/more_page.dart:18</sub>
+    - `const MorePage({ super.key, required this.service, required this.platformActions, required this.destinations, required this.onSignOut, required this.openFeature, this.accountName, this.accountId, this.route, });`  <sub>:19</sub>
+    - `final Future<void> Function() onSignOut;`  <sub>:34</sub>
+    - `static const tabIds = {…}` — Destinations that already own a tab do not repeat in the list.  <sub>:41</sub>
+    - `State<MorePage> createState() => …`  <sub>:44</sub>
 
 ## workspace/service_directory.dart
 
 - `WorkspaceContext buildDirectoryContext({ required MirrorService service, required PlatformActions platformActions, required List<WorkspaceDestination> destinations, required Future<void> Function() onSignOut, String? accountName, String? accountId, RouteChoice? route, required void Function(String id) openDestination, }) => …` — Builds the context every feature row is opened with. The rows never
-  <sub>function · workspace/service_directory.dart:16</sub>
+  <sub>function · workspace/service_directory.dart:15</sub>
 - `class ServiceDirectory extends StatelessWidget` — The grouped feature list of the "更多" surface.
-  <sub>class · workspace/service_directory.dart:43</sub>
-    - `const ServiceDirectory({ super.key, required this.service, required this.platformActions, required this.destinations, required this.onSignOut, this.excludedDestinationIds = const {}, this.accountName, this.accountId, this.route, });`  <sub>:44</sub>
-    - `final Future<void> Function() onSignOut;`  <sub>:59</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:70</sub>
+  <sub>class · workspace/service_directory.dart:42</sub>
+    - `const ServiceDirectory({ super.key, required this.service, required this.platformActions, required this.destinations, required this.onSignOut, this.excludedDestinationIds = const {}, this.accountName, this.accountId, this.route, });`  <sub>:43</sub>
+    - `final Future<void> Function() onSignOut;`  <sub>:58</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:69</sub>
 
-## workspace/service_search_page.dart
+## workspace/service_search.dart
 
 - `enum ServiceArea`
-  <sub>enum · workspace/service_search_page.dart:7</sub>
+  <sub>enum · workspace/service_search.dart:7</sub>
     - `const ServiceArea(this.label);`  <sub>:15</sub>
 - `class ServiceDescriptor` — Metadata refers to the existing navigation destination, not a second page factory.
-  <sub>class · workspace/service_search_page.dart:20</sub>
+  <sub>class · workspace/service_search.dart:20</sub>
     - `const ServiceDescriptor({ this.destination, this.officialId, this.officialTitle, required this.area, required this.aliases, required this.description, required this.sensitivity, required this.cachePolicy, });`  <sub>:21</sub>
     - `String get id => …`  <sub>:33</sub>
     - `String get title => …`  <sub>:34</sub>
     - `IconData get icon => …`  <sub>:35</sub>
     - `bool matches(String query) {…}`  <sub>:39</sub>
 - `List<ServiceDescriptor> searchableServices( List<WorkspaceDestination> destinations, ) => …` — Searches compile-time metadata; it does not request school or personal data.
-  <sub>function · workspace/service_search_page.dart:52</sub>
-- `class ServiceSearchPage extends StatefulWidget`
-  <sub>class · workspace/service_search_page.dart:147</sub>
-    - `const ServiceSearchPage({ super.key, required this.context, required this.destinations, });`  <sub>:148</sub>
-    - `State<ServiceSearchPage> createState() => …`  <sub>:156</sub>
+  <sub>function · workspace/service_search.dart:52</sub>
+- `Future<void> openServiceDescriptor( BuildContext context, WorkspaceContext workspace, ServiceDescriptor entry, ) async {…}`
+  <sub>function · workspace/service_search.dart:156</sub>
+- `class ServiceSearchContent extends StatelessWidget` — Shared service search field and grouped local results on the More page.
+  <sub>class · workspace/service_search.dart:177</sub>
+    - `const ServiceSearchContent({ super.key, required this.workspace, required this.destinations, required this.controller, required this.query, required this.onChanged, });`  <sub>:178</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:194</sub>
 
 ## workspace/workspace_back_guard.dart
 
@@ -104,9 +106,9 @@
 ## workspace/workspace_catalog.dart
 
 - `WorkspaceDestination? destinationById(String id) {…}` — 按 id 查找；壳层与今日快捷入口只使用字符串标识。
-  <sub>function · workspace/workspace_catalog.dart:234</sub>
+  <sub>function · workspace/workspace_catalog.dart:248</sub>
 - `List<WorkspaceDestination> sidebarDestinations(WorkspaceSection section) => …` — 某个侧栏分组内的条目，顺序即登记顺序。
-  <sub>function · workspace/workspace_catalog.dart:252</sub>
+  <sub>function · workspace/workspace_catalog.dart:266</sub>
 
 ## workspace/workspace_shell.dart
 

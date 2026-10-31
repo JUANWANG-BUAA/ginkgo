@@ -117,8 +117,9 @@ class _CgyyPageState extends State<CgyyPage> {
             subtitle: '选择场馆并查看可预约空间',
             icon: CupertinoIcons.person_3,
             border: null,
-            trailing: AppleGlassButton(
+            trailing: AppleToolbarButton(
               label: '刷新场馆',
+              busy: busy,
               onPressed: busy ? null : () => load(force: true),
               child: busy
                   ? const GinkgoActivity(size: 17)

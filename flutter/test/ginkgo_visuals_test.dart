@@ -146,6 +146,32 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('summary values wrap at narrow width and 3.2x text', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    const value = '状态需要核对，部分记录暂不可用';
+    await tester.pumpWidget(
+      const CupertinoApp(
+        home: MediaQuery(
+          data: MediaQueryData(
+            size: Size(320, 844),
+            textScaler: TextScaler.linear(3.2),
+          ),
+          child: CupertinoPageScaffold(
+            child: SummaryStrip(items: [SummaryItem('课程签到及课堂安排', value)]),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.text(value)).height, greaterThan(50));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('summary metrics use two columns at regular phone size', (
     tester,
   ) async {

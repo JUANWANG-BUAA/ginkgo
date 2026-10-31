@@ -113,49 +113,46 @@ class TodaySectionHeader extends StatelessWidget {
           )
         : null;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Wrap(
-        alignment: WrapAlignment.spaceBetween,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 8,
-        runSpacing: 4,
-        children: [
-          Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 6,
-            children: [
-              if (icon != null)
-                Icon(
-                  icon,
-                  size: 16,
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 8,
+      runSpacing: 4,
+      children: [
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 6,
+          children: [
+            if (icon != null)
+              Icon(
+                icon,
+                size: 16,
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              ),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: CupertinoColors.label.resolveFrom(context),
+                letterSpacing: -0.2,
+              ),
+            ),
+            // A count is a number, not a status: it stays in the
+            // secondary label colour and never uses a status colour.
+            if (badge != null)
+              Text(
+                badge!,
+                style: TextStyle(
+                  fontSize: GinkgoTypography.footnote.fontSize,
+                  fontWeight: FontWeight.w600,
                   color: CupertinoColors.secondaryLabel.resolveFrom(context),
                 ),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: CupertinoColors.label.resolveFrom(context),
-                  letterSpacing: -0.2,
-                ),
               ),
-              // A count is a number, not a status: it stays in the
-              // secondary label colour and never uses a status colour.
-              if (badge != null)
-                Text(
-                  badge!,
-                  style: TextStyle(
-                    fontSize: GinkgoTypography.footnote.fontSize,
-                    fontWeight: FontWeight.w600,
-                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                  ),
-                ),
-            ],
-          ),
-          ?action,
-        ],
-      ),
+          ],
+        ),
+        ?action,
+      ],
     );
   }
 }

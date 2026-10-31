@@ -124,6 +124,7 @@
 | `features/library/library_seat_page.dart` | LibrarySeatPage → dart-feature-library.md |
 | `features/library/library_slot_page.dart` | LibrarySlotPage → dart-feature-library.md |
 | `features/library/library_stats_page.dart` | LibraryStatsPage → dart-feature-library.md |
+| `features/library/library_venue_selection_page.dart` | LibraryVenueSelectionPage → dart-feature-library.md |
 | `features/library/library_widgets.dart` | LibrarySectionStatus → dart-feature-library.md<br>LibraryDisclosureToggle → dart-feature-library.md<br>LibraryNoteText → dart-feature-library.md<br>libraryActionLabel → dart-feature-library.md<br>libraryActionIcon → dart-feature-library.md<br>libraryActionTint → dart-feature-library.md |
 | `features/notices/notices_page.dart` | NoticesPage → dart-feature-notices.md |
 | `features/reservations/reservation_widgets.dart` | ReservationActionButton → dart-feature-reservations.md |
@@ -158,7 +159,7 @@
 | `features/today/today_homework_section.dart` | todayVisibleHomework → dart-feature-today.md<br>TodayHomeworkSection → dart-feature-today.md |
 | `features/today/today_notice_section.dart` | TodayNoticeSection → dart-feature-today.md |
 | `features/today/today_page.dart` | TodayPage → dart-feature-today.md |
-| `features/today/today_page_actions.dart` | TodayNavigator → dart-feature-today.md<br>showTodayAccountDialog → dart-feature-today.md |
+| `features/today/today_page_actions.dart` | TodayNavigator → dart-feature-today.md |
 | `features/today/today_page_header.dart` | TodayPageHeader → dart-feature-today.md |
 | `features/today/today_presentation.dart` | todayCoursePlaceLabel → dart-feature-today.md<br>TodayVisualDivider → dart-feature-today.md<br>TodayVisualSection → dart-feature-today.md<br>TodaySectionHeader → dart-feature-today.md |
 | `features/today/today_tasks_section.dart` | TodayTasksSnapshot → dart-feature-today.md<br>TodayTasksSection → dart-feature-today.md |
@@ -400,7 +401,7 @@
 | `shared/today_time.dart` | todaySchoolNow → dart-shared.md<br>todayDate → dart-shared.md<br>todayDue → dart-shared.md<br>todayCompareDue → dart-shared.md<br>todayDueLabel → dart-shared.md |
 | `startup_page.dart` | StartupPage → dart-app.md |
 | `widgets/academic_widgets.dart` | academicNumber → dart-widgets.md<br>AcademicBadge → dart-widgets.md<br>AcademicFactRow → dart-widgets.md<br>AcademicMetric → dart-widgets.md<br>AcademicMetricGrid → dart-widgets.md |
-| `widgets/apple_controls.dart` | AppleGlassButton → dart-widgets.md<br>ApplePickerTile → dart-widgets.md |
+| `widgets/apple_controls.dart` | AppleToolbarButton → dart-widgets.md<br>ApplePickerTile → dart-widgets.md |
 | `widgets/apple_navigation.dart` | AppleContentTransition → dart-widgets.md<br>AppleNavigationItem → dart-widgets.md |
 | `widgets/apple_page_chrome.dart` | AppleRefreshPageHeader → dart-widgets.md<br>AppleStatusSection → dart-widgets.md |
 | `widgets/apple_surfaces.dart` | ApplePageHeader → dart-widgets.md<br>AppleEmptyState → dart-widgets.md<br>AppleSection → dart-widgets.md<br>AppleListTile → dart-widgets.md |
@@ -423,7 +424,7 @@
 | `workspace/mobile_workspace_shell.dart` | MobileWorkspaceShell → dart-workspace.md |
 | `workspace/more_page.dart` | MorePage → dart-workspace.md |
 | `workspace/service_directory.dart` | buildDirectoryContext → dart-workspace.md<br>ServiceDirectory → dart-workspace.md |
-| `workspace/service_search_page.dart` | ServiceArea → dart-workspace.md<br>ServiceDescriptor → dart-workspace.md<br>searchableServices → dart-workspace.md<br>ServiceSearchPage → dart-workspace.md |
+| `workspace/service_search.dart` | ServiceArea → dart-workspace.md<br>ServiceDescriptor → dart-workspace.md<br>searchableServices → dart-workspace.md<br>openServiceDescriptor → dart-workspace.md<br>ServiceSearchContent → dart-workspace.md |
 | `workspace/workspace_back_guard.dart` | WorkspaceBackController → dart-workspace.md<br>WorkspaceBackHint → dart-workspace.md<br>guardWorkspaceBack → dart-workspace.md |
 | `workspace/workspace_catalog.dart` | destinationById → dart-workspace.md<br>sidebarDestinations → dart-workspace.md |
 | `workspace/workspace_shell.dart` | GinkgoApp → dart-workspace.md |

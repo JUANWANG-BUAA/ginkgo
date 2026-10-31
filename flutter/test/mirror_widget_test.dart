@@ -545,7 +545,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(GinkgoApp(service: ControlledService()));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('课表'));
+    await tester.tap(find.byKey(const Key('desktop-sidebar-schedule')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('schedule-search')), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -559,8 +559,15 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(GinkgoApp(service: ControlledService()));
       await tester.pumpAndSettle();
-      expect(find.byIcon(CupertinoIcons.gear_alt), findsOneWidget);
-      final entry = find.byKey(const Key('workspace-settings'));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CupertinoTabBar),
+          matching: find.text('更多'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('more-account-settings')), findsOneWidget);
+      final entry = find.byKey(const Key('more-account-settings'));
       expect(tester.getRect(entry).top, lessThan(300));
       await tester.tap(entry);
       await tester.pumpAndSettle();
@@ -701,7 +708,12 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(GinkgoApp(service: service));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('课表'));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CupertinoTabBar),
+          matching: find.text('课表'),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(find.text('更新于 10月21日 11:10'), findsOneWidget);
       expect(find.textContaining('03:10:33.396'), findsNothing);
@@ -737,7 +749,12 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(GinkgoApp(service: ControlledService()));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('课表'));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CupertinoTabBar),
+          matching: find.text('课表'),
+        ),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('每日清单'));
       await tester.pumpAndSettle();
@@ -808,6 +825,10 @@ void main() {
     expect(find.text('已提交 1'), findsOneWidget);
     expect(find.text('作业一'), findsOneWidget);
     expect(find.text('作业二'), findsOneWidget);
+    expect(find.text('教师 · 张三'), findsNothing);
+    expect(find.text('已提交 · 截止'), findsNothing);
+    expect(find.text('截止时间未提供'), findsOneWidget);
+    expect(find.text('已提交'), findsOneWidget);
 
     await tester.enterText(find.byKey(const Key('homework-search')), '张三');
     await tester.pumpAndSettle();
@@ -864,10 +885,83 @@ void main() {
     expect(find.text('当前预约'), findsOneWidget);
     expect(find.text('学院路馆 · A区 · 12号'), findsOneWidget);
     expect(find.text('使用中'), findsOneWidget);
+    expect(find.byKey(const Key('library-find-seats')), findsOneWidget);
+    expect(find.byKey(const Key('library-books')), findsOneWidget);
+    expect(find.byKey(const Key('library-loans-entry')), findsOneWidget);
+    expect(find.text('选择场馆'), findsNothing);
+    await tester.tap(find.byKey(const Key('library-find-seats')));
+    await tester.pumpAndSettle();
     expect(find.text('选择场馆'), findsOneWidget);
     expect(find.text('12'), findsOneWidget);
     expect(find.text('座可用 · 共 30 座'), findsOneWidget);
     expect(find.byKey(const Key('library-public-stats')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('library separates ended and unrecognized booking states', (
+    tester,
+  ) async {
+    final service = ControlledService()
+      ..libraryBookingsResult = const LibraryBookingsResponse(
+        bookings: [
+          LibraryBooking(
+            id: 'current',
+            title: '当前合成预约',
+            areaName: 'A区',
+            seatNumber: '12',
+            day: '2026-10-31',
+            startTime: '08:00',
+            endTime: '12:00',
+            statusName: '使用中',
+          ),
+          LibraryBooking(
+            id: 'ended',
+            title: '已取消合成预约',
+            areaName: 'B区',
+            seatNumber: '03',
+            day: '2026-10-30',
+            startTime: '08:00',
+            endTime: '12:00',
+            statusName: '已取消',
+          ),
+          LibraryBooking(
+            id: 'unknown',
+            title: '未知状态合成预约',
+            areaName: 'C区',
+            seatNumber: '08',
+            day: '2026-11-01',
+            startTime: '08:00',
+            endTime: '12:00',
+            statusName: '尚未结束（状态待核实）',
+            actions: ['cancel'],
+          ),
+        ],
+        fromCache: false,
+        stale: false,
+      );
+    tester.view.physicalSize = const Size(430, 1300);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(GinkgoApp(service: service));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(CupertinoTabBar),
+        matching: find.text('图书馆'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('library-booking-current')), findsOneWidget);
+    expect(find.byKey(const Key('library-booking-ended')), findsNothing);
+    expect(find.byKey(const Key('library-booking-unknown')), findsOneWidget);
+    expect(find.text('待核实状态'), findsOneWidget);
+    expect(
+      find.byKey(const Key('library-action-unknown-cancel')),
+      findsOneWidget,
+    );
+    expect(find.text('已取消合成预约'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -890,6 +984,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.tap(find.byKey(const Key('library-find-seats')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('library-venue-v1')));
     await tester.pumpAndSettle();
     expect(find.text('区域'), findsOneWidget);
@@ -1018,6 +1114,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('当前没有进行中的预约'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('library-find-seats')));
+    await tester.pumpAndSettle();
     expect(find.text('暂无可用场馆'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

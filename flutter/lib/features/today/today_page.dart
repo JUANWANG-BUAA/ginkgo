@@ -33,16 +33,13 @@ class TodayPage extends StatefulWidget {
     this.accountId,
     this.storageRoot,
     this.now,
-    this.onAccountAction,
     this.onOpenFeature,
-    this.onOpenSettings,
   });
   final MirrorService service;
 
   /// The platform actions bound by the composition root.
   final PlatformActions fileActions;
   final ValueChanged<String>? onOpenFeature;
-  final VoidCallback? onOpenSettings;
   final String? accountName;
   final String? accountId;
 
@@ -51,7 +48,6 @@ class TodayPage extends StatefulWidget {
 
   /// An instant, converted to Beijing wall time for presentation.
   final DateTime Function()? now;
-  final Future<void> Function()? onAccountAction;
   @override
   State<TodayPage> createState() => _TodayPageState();
 }
@@ -95,7 +91,12 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   late RefreshSection<NoticesRead> notices;
   TodayResponse? get data => courses.value;
   String? get error => courses.error;
-  bool get busy => courses.loading || homework.loading || tasks.loading;
+  bool get busy =>
+      courses.loading ||
+      homework.loading ||
+      tasks.loading ||
+      checkin.loading ||
+      notices.loading;
 
   @override
   void initState() {
@@ -293,17 +294,6 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     );
   }
 
-  Future<void> accountAction() async {
-    final leave = await showTodayAccountDialog(
-      context,
-      accountName: widget.accountName,
-      demo: widget.service.isDemo,
-    );
-    if (leave && mounted) {
-      await widget.onAccountAction!();
-    }
-  }
-
   @override
   Widget build(BuildContext context) => PageRefreshShortcut(
     onRefresh: busy ? null : () => load(force: true),
@@ -318,12 +308,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
             TodayPageHeader(
               title: '今天',
               busy: busy,
-              demo: widget.service.isDemo,
               onRefresh: () => load(force: true),
-              onOpenSettings: widget.onOpenSettings,
-              onAccountAction: widget.onAccountAction == null
-                  ? null
-                  : accountAction,
             ),
             CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
             SliverLayoutBuilder(

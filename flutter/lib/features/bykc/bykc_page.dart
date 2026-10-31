@@ -323,8 +323,9 @@ class _BykcPageState extends State<BykcPage> {
             icon: CupertinoIcons.book_solid,
             previousPageTitle: '工作台',
             border: null,
-            trailing: AppleGlassButton(
+            trailing: AppleToolbarButton(
               label: '刷新博雅',
+              busy: current.loading,
               onPressed: current.loading
                   ? null
                   : () => load(selection, force: true),

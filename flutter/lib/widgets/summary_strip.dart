@@ -422,8 +422,7 @@ class _SummaryPair extends StatelessWidget {
     final valueWidget = Text(
       value,
       textAlign: TextAlign.end,
-      maxLines: 1,
-      softWrap: false,
+      softWrap: true,
       style: valueStyle,
     );
     final labelWidget = Row(
@@ -468,7 +467,15 @@ class _SummaryPair extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: GinkgoSpacing.xs),
-              Align(alignment: Alignment.centerLeft, child: valueWidget),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  textAlign: TextAlign.start,
+                  softWrap: true,
+                  style: valueStyle,
+                ),
+              ),
             ],
           );
         }

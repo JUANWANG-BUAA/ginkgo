@@ -151,8 +151,9 @@ token 层与视觉常量。
     - `static const double factLabelWidth = 124.0;`  <sub>:57</sub>
     - `static const double metricColumnWidth = 108.0;`  <sub>:58</sub>
     - `static const double metricGridSpacing = 18.0;`  <sub>:59</sub>
-    - `static const EdgeInsets edgeInsetsNavigationBack = EdgeInsets.symmetric( horizontal: 2, );`  <sub>:61</sub>
-    - `static EdgeInsets badgeInsets({ required bool compact, required bool largeText, }) => …`  <sub>:65</sub>
+    - `static const double bottomScrollClearance = 96.0;`  <sub>:60</sub>
+    - `static const EdgeInsets edgeInsetsNavigationBack = EdgeInsets.symmetric( horizontal: 2, );`  <sub>:62</sub>
+    - `static EdgeInsets badgeInsets({ required bool compact, required bool largeText, }) => …`  <sub>:66</sub>
 
 ## design/tokens/typography.dart
 

@@ -119,10 +119,10 @@ class HomeworkDeadlineText extends StatelessWidget {
       children: [
         Text(
           item.dueAt == null
-              ? (item.status == HomeworkStatus.submitted ? '已提交' : '截止时间未确认')
-              : (item.status == HomeworkStatus.submitted
-                    ? '已提交 · 截止 ${schoolTimestampLabel(item.dueAt)}'
-                    : '截止 ${schoolTimestampLabel(item.dueAt)}'),
+              ? (item.status == HomeworkStatus.submitted
+                    ? '截止时间未提供'
+                    : '截止时间未确认')
+              : '截止 ${schoolTimestampLabel(item.dueAt)}',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -147,7 +147,7 @@ class HomeworkDeadlineText extends StatelessWidget {
   }
 }
 
-/// 作业列表项：标题、截止信息、课程与教师。
+/// 作业列表项：标题、截止信息与课程；教师信息位于详情页。
 class HomeworkItemTile extends StatelessWidget {
   const HomeworkItemTile({
     super.key,
@@ -200,16 +200,6 @@ class HomeworkItemTile extends StatelessWidget {
               color: CupertinoColors.secondaryLabel.resolveFrom(context),
             ),
           ),
-          if (item.teacherName?.trim().isNotEmpty == true) ...[
-            const SizedBox(height: 3),
-            Text(
-              '教师 · ${item.teacherName}',
-              style: TextStyle(
-                fontSize: 12,
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
-              ),
-            ),
-          ],
         ],
       ),
     ),

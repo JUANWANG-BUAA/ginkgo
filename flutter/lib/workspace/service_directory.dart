@@ -7,7 +7,6 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
-import 'package:ginkgo_mirror/workspace/service_search_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_types.dart';
 
 /// Builds the context every feature row is opened with. The rows never
@@ -70,23 +69,6 @@ class ServiceDirectory extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      AppleSection(
-        children: [
-          AppleListTile(
-            leading: const Icon(CupertinoIcons.search),
-            title: const Text('全部服务 / 搜索服务'),
-            subtitle: const Text('按名称或别名查找，含学校官网入口'),
-            trailing: const Icon(CupertinoIcons.chevron_right),
-            onTap: () => _push(
-              context,
-              ServiceSearchPage(
-                context: _featureContext(context),
-                destinations: destinations,
-              ),
-            ),
-          ),
-        ],
-      ),
       _section(
         context,
         header: '工作台',
@@ -150,13 +132,6 @@ class ServiceDirectory extends StatelessWidget {
           _destination(context, 'career-events', GinkgoColors.resourcePurple),
           _destination(context, 'campus-activities', GinkgoColors.resourceTeal),
           _destination(context, 'shuttle', GinkgoColors.resourceBlue),
-        ],
-      ),
-      _section(
-        context,
-        destinationIds: const ['settings'],
-        children: [
-          _destination(context, 'settings', GinkgoColors.statusInactive),
         ],
       ),
       const SizedBox(height: GinkgoSpacing.xxl),

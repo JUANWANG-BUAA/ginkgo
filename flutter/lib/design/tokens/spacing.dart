@@ -57,6 +57,7 @@ abstract final class GinkgoSpacing {
   static const double factLabelWidth = 124.0;
   static const double metricColumnWidth = 108.0;
   static const double metricGridSpacing = 18.0;
+  static const double bottomScrollClearance = 96.0;
 
   static const EdgeInsets edgeInsetsNavigationBack = EdgeInsets.symmetric(
     horizontal: 2,

@@ -50,16 +50,16 @@
 
 ## widgets/apple_controls.dart
 
-- `class AppleGlassButton extends StatefulWidget`
-  <sub>class · widgets/apple_controls.dart:157</sub>
-    - `const AppleGlassButton({ super.key, required this.child, required this.onPressed, required this.label, });`  <sub>:158</sub>
-    - `State<AppleGlassButton> createState() => …`  <sub>:168</sub>
+- `class AppleToolbarButton extends StatelessWidget`
+  <sub>class · widgets/apple_controls.dart:149</sub>
+    - `const AppleToolbarButton({ super.key, required this.child, required this.onPressed, required this.label, this.busy = false, });`  <sub>:150</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:162</sub>
 - `class ApplePickerTile<T> extends StatelessWidget`
-  <sub>class · widgets/apple_controls.dart:270</sub>
-    - `const ApplePickerTile({ super.key, required this.title, required this.value, required this.values, required this.label, required this.onSelected, this.enabled = true, });`  <sub>:271</sub>
-    - `final String Function(T) label;`  <sub>:283</sub>
-    - `final void Function(T) onSelected;`  <sub>:284</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:287</sub>
+  <sub>class · widgets/apple_controls.dart:235</sub>
+    - `const ApplePickerTile({ super.key, required this.title, required this.value, required this.values, required this.label, required this.onSelected, this.enabled = true, this.useWheel = false, });`  <sub>:236</sub>
+    - `final String Function(T) label;`  <sub>:249</sub>
+    - `final void Function(T) onSelected;`  <sub>:250</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:254</sub>
 
 ## widgets/apple_navigation.dart
 
@@ -80,9 +80,9 @@
     - `final Future<void> Function()? onRefresh;`  <sub>:28</sub>
     - `Widget build(BuildContext context) => …`  <sub>:35</sub>
 - `class AppleStatusSection extends StatelessWidget`
-  <sub>class · widgets/apple_page_chrome.dart:55</sub>
-    - `const AppleStatusSection({ super.key, required this.title, required this.description, this.action, this.onAction, this.error = false, this.animateSize = true, });`  <sub>:56</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:74</sub>
+  <sub>class · widgets/apple_page_chrome.dart:56</sub>
+    - `const AppleStatusSection({ super.key, required this.title, required this.description, this.action, this.onAction, this.error = false, this.animateSize = true, });`  <sub>:57</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:75</sub>
 
 ## widgets/apple_surfaces.dart
 
@@ -271,6 +271,6 @@
     - `const SummaryLine( this.label, this.value, { super.key, this.icon, this.tone = StatusTone.neutral, });`  <sub>:349</sub>
     - `Widget build(BuildContext context) => …`  <sub>:363</sub>
 - `class MetricValue extends StatelessWidget` — A right aligned number that acts as the visual anchor of one row.
-  <sub>class · widgets/summary_strip.dart:490</sub>
-    - `const MetricValue( this.value, { super.key, this.prominent = false, this.tone = StatusTone.neutral, this.suffix, });`  <sub>:491</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:505</sub>
+  <sub>class · widgets/summary_strip.dart:497</sub>
+    - `const MetricValue( this.value, { super.key, this.prominent = false, this.tone = StatusTone.neutral, this.suffix, });`  <sub>:498</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:512</sub>

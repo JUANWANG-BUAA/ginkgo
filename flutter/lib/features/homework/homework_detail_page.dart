@@ -114,8 +114,9 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
     navigationBar: CupertinoNavigationBar(
       middle: const Text('作业详情'),
       previousPageTitle: '作业',
-      trailing: AppleGlassButton(
+      trailing: AppleToolbarButton(
         label: '刷新作业详情',
+        busy: busy,
         onPressed: busy ? null : () => load(force: true),
         child: busy
             ? const GinkgoActivity(size: 17)

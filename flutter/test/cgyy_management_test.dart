@@ -292,7 +292,8 @@ void main() {
       final cancel = find.byKey(const Key('cgyy-cancel-42'));
       await visible(tester, cancel);
       await tester.tap(cancel);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
       expect(find.byType(CupertinoAlertDialog), findsOneWidget);
       expect(
         find.descendant(

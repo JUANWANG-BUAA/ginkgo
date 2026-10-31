@@ -197,9 +197,10 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
             subtitle: '计划班次与实时余票，分开核对',
             icon: CupertinoIcons.bus,
             border: null,
-            trailing: AppleGlassButton(
+            trailing: AppleToolbarButton(
               key: const Key('shuttle-refresh'),
               label: '刷新校车时刻表',
+              busy: busy,
               onPressed: busy ? null : load,
               child: busy
                   ? const GinkgoActivity(size: 17)

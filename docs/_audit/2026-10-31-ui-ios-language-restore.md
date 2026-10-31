@@ -229,3 +229,33 @@ bash scripts/check-android-module-visual.sh emulator-5554
 - 隔离模拟器为 Android API 37 `emulator-5554`，复核后尺寸/密度为 1080×2400 / 420dpi。全页矩阵 216 张，覆盖 54 个画面在浅/深色、普通/大字号下的表现；每种状态 53/54 个内容哈希唯一，唯一重复是共享相同初始学分视图的研究生页与学分图页。五个标签的 20 张 shell 图哈希全部不同。
 - Today 最终去重后再次以 `GINKGO_VISUAL_ONLY=today` 复拍浅/深色和普通/大字号四态，并逐张检查；正常入口安装最新 Debug APK 后重新走离线演示，Today 与本人借阅均在导航稳定后截图，没有前一页面残影。
 - 离线演示中实际导航 Today → Homework → More → 本人借阅；没有使用真实账号、学校网络或学校写操作。Android 模拟器结果不替代 iPhone/物理设备、VoiceOver/TalkBack、Windows 主机及真实账号验收。
+
+### 学生核心任务 A 批实现（2026-10-31）
+
+- 需求范围：设计文档 `LIB-02/04`、`HW-01/03` 与 `AC-01/03/04/07/11`。本人借阅未读时在内容区显示“读取借阅记录”，仅有成功结果后才显示工具栏“刷新本人借阅”；无值失败可在本页重试，旧结果刷新失败会保留数据。隐私边界集中成一条摘要，详细说明保留在展开项。
+- 图书馆预约按明确状态拆成当前、历史和待核实。结束状态按已知完整文案匹配；当前只接受“使用中/进行中”。未知文案即使含有“结束”字样或有 domain 计算的动作，也不据此判成历史/当前，保留在“待核实状态”。测试覆盖取消记录隐藏、未知状态保留和动作状态不代替预约状态。
+- 作业页将课程范围入口从独立大卡缩为 48dp 最小触控行；列表减少教师重复信息，详情仍保留教师字段；提交状态不再在截止时间行重复。学校状态与个人待办及北京时间说明并入单行来源脚注。
+- 复核环境为隔离 Android API 37 `emulator-5554`，仅合成数据。`GINKGO_VISUAL_ONLY=library,library-loans,homework` 页面脚本通过；最终截图位于本机 ignored 目录 `artifacts/local/ui-review/batch-a-final/`，复看图书馆、本人借阅、作业的浅色/深色及大字号画面。测试脚本结束后重建正常 `main.dart` Debug APK。
+- `bash scripts/check-mirror.sh` 通过：架构与文档/设计门禁、Rust 检查、FRB 零漂移、Flutter analyze，以及 664 项 Flutter 测试通过；收尾 `git diff --check` 通过。截图仅用于本机视觉复核，未纳入仓库。
+- 未验证范围：真实账号及非空本人借阅、学校网络和写操作、物理设备/实际 TalkBack、Windows 主机。模拟器合成验证不能替代上述验收。
+
+### 学生核心任务 A–E 实现（2026-10-31）
+
+- 范围：`STUDENT-CORE-UX-DESIGN-2026-10-31.md` 的 A–E。本次只改 Android/Windows 共用 Flutter 表现层和测试文档；Rust 协议、学校请求、冻结的 SwiftUI 应用没有改动。
+- A / 图书馆与作业：图书馆主入口将找座、找书、本人借阅并列；场馆列表改为进入选择页后按需读取；本人借阅首读在内容区显示“读取借阅记录”，成功结果才出现工具栏刷新。预约当前/历史/待核实分类保留未知值，不从动作能力推断预约状态。作业首屏减少课程配置和重复元数据。
+- B / 导航发现：更多页直接输入本地服务搜索，固定显示账号与设置；常用服务置顶从原目录去重。搜索仅针对本机服务登记，不扫描个人数据或学校内容。
+- C / 今天：作业、待办、签到、通知、考试分区区分确认空与失败/部分成功/旧数据；确认空收起，失败仍能看见并可重试。列表有数量预算和“另有”入口，避免摘要和内容重复统计。无可靠课程/签到映射时，课程详情明确说明并提供独立签到列表入口。
+- 今天的作业在普通待办之外仍显示紧凑“状态待确认/已截止”提示，避免折叠掉逾期行动项；考试首次读取失败可重试，成功确认空时才隐藏。
+- D / 共享组件：`AppleGlassButton` 全部迁移为 `AppleToolbarButton`，清除玻璃模糊/阴影样式，保留 Cupertino 工具栏语义、48dp 触控和忙状态读屏标签。离散项目始终使用操作表，滚轮只用于明确的有序选择；摘要长值在 320dp/大字号下换行。源码索引已重新生成，包含搜索文件改名。
+- 视觉闭环：`bash scripts/check-android-module-visual.sh emulator-5554 artifacts/local/ui-review/batch-definal/visual` 最终通过，输出目录 72 张本机 ignored 合成截图；覆盖 shell 的 Today / Schedule / Homework / Library / More，借阅、馆藏搜索结果、作业详情、课程等模块，深浅色/大字以及 320dp/3.2×控件。复看 Today、More、借阅、搜索结果、大字作业详情与 3.2×状态控件。测试结束重建正常 `main.dart` Debug APK。合成场景不访问真实账号、不执行学校写操作。
+- 视觉脚本首次运行暴露旧测试仍点击已移除的 `library-loans-read` 首读入口；更新为点击 `library-loans-first-read` 并等待读取后复拍，重跑通过。这是测试脚本的语义债，不是产品运行时故障。
+- 另以 GUI 查看 API 37 模拟器 Today 和 More 实际渲染；QEMU 控件映射不稳定，未用坐标盲试键盘输入。借阅和其他模块的交互/状态由设备 integration 与 Flutter widget 测试覆盖；此处不把截图声明成完整手动流程验收。
+- `bash scripts/check-mirror.sh` 通过：Rust 格式、Clippy、测试与契约 fixture，FRB 零漂移，Flutter Analyze、673 项 Flutter 测试，以及 UI 语言、设计 token、接口索引和 API 文档门禁全部通过。首次全量运行发现三处测试契约/调度债务并已修复：Today 计数断言旧文案、More 设置测试点旧导航 key、CGYY 对持续动画使用 `pumpAndSettle`。
+- 新场馆选择页的 96dp 底部滚动留白使用共享 `GinkgoSpacing.bottomScrollClearance`，未增加设计 token 门禁预算；Dart 接口索引重新生成 40 份并同步手工总览。
+- 未覆盖：实体手机、实际 TalkBack、Windows 主机编译/交互、真实账号/非空借阅、任何学校写操作。自定义首页兴趣配置明确留在设计扩展之外，需先形成偏好默认值、跳过/恢复、账号隔离与迁移契约；现有账号级常用服务排序没有被改作首页开关。
+
+### 核心路由首次状态补拍
+
+- 为补足模块视觉矩阵里借阅成功态占主的不足，另运行 `GINKGO_VISUAL_ONLY=today,schedule,homework,library,library-loans bash scripts/check-android-all-pages-visual.sh emulator-5554 artifacts/local/ui-review/batch-definal/core-routes`，通过并重建正常 `main.dart` ARM64 Debug APK。
+- 新增 20 张本机 ignored 合成截图，覆盖 Today、课表、作业、图书馆根页及借阅首次读取的浅/深色和大字状态。复看图书馆任务并列层级、借阅首次读取按钮，以及大字下隐私摘要、课表范围控制和作业卡片；文本可换行，关键动作仍可见。图片位于 `artifacts/local/ui-review/batch-definal/core-routes/`，不进入仓库。
+- 最终文档复核通过：`generate-interface-index.py --check`（40 个索引文件）、`check-api-doc.py`、`check-ui-language.py`、`check-design-tokens.py` 和 `git diff --check`。此前同一工作树代码的 `check-mirror.sh` 全量门禁通过，Flutter 673 项测试通过；这次补拍仅生成忽略目录截图并重建 Debug APK，没有继续改应用代码。

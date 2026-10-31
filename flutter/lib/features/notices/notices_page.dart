@@ -80,8 +80,9 @@ class _NoticesPageState extends State<NoticesPage> {
           subtitle: '查看通知与校内资讯',
           icon: CupertinoIcons.news_solid,
           border: null,
-          trailing: AppleGlassButton(
+          trailing: AppleToolbarButton(
             label: '刷新校园通知',
+            busy: busy,
             onPressed: busy ? null : () => load(force: true),
             child: busy
                 ? const GinkgoActivity(size: 17)

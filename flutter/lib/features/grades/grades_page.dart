@@ -109,8 +109,9 @@ class _GradesPageState extends State<GradesPage> {
           subtitle: '查看课程成绩、学分与加权统计',
           icon: CupertinoIcons.chart_bar_alt_fill,
           border: null,
-          trailing: AppleGlassButton(
+          trailing: AppleToolbarButton(
             label: '刷新成绩',
+            busy: busy,
             onPressed: busy ? null : () => load(force: true),
             child: busy
                 ? const GinkgoActivity(size: 17)
@@ -195,14 +196,8 @@ class _GradesPageState extends State<GradesPage> {
           '${data.summary.courseCount} 门',
           icon: CupertinoIcons.checkmark_seal,
         ),
-        SummaryItem(
-          '加权平均',
-          data.summary.weightedAverage?.toStringAsFixed(1),
-        ),
-        SummaryItem(
-          '平均绩点',
-          data.summary.gradePointAverage?.toStringAsFixed(2),
-        ),
+        SummaryItem('加权平均', data.summary.weightedAverage?.toStringAsFixed(1)),
+        SummaryItem('平均绩点', data.summary.gradePointAverage?.toStringAsFixed(2)),
         SummaryItem('总学分', _credit(data.summary.creditTotal)),
       ],
       note: widget.service.isDemo
@@ -237,7 +232,6 @@ class _GradesPageState extends State<GradesPage> {
     final term = terms.where((term) => term.id == id).firstOrNull;
     return term?.name ?? id;
   }
-
 }
 
 class _GradeCourseRow extends StatelessWidget {

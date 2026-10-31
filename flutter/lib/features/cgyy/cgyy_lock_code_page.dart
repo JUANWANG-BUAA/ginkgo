@@ -75,10 +75,13 @@ class _CgyyLockCodePageState extends State<CgyyLockCodePage> {
     navigationBar: CupertinoNavigationBar(
       middle: const Text('门锁密码'),
       previousPageTitle: '研讨室',
-      trailing: AppleGlassButton(
+      trailing: AppleToolbarButton(
         label: '刷新门锁密码',
+        busy: busy,
         onPressed: busy ? null : () => load(force: true),
-        child: const Icon(CupertinoIcons.refresh),
+        child: busy
+            ? const GinkgoActivity(size: 17)
+            : const Icon(CupertinoIcons.refresh),
       ),
     ),
     child: SafeArea(

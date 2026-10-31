@@ -203,6 +203,8 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(ginkgoApp(home: LibraryPage(service: service)));
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('library-find-seats')));
+      await tester.pumpAndSettle();
       for (final key in [
         'library-venue-v1',
         'library-area-a1',
@@ -236,10 +238,9 @@ void main() {
       final navigator = tester.state<NavigatorState>(
         find.byType(Navigator).first,
       );
-      for (var i = 0; i < 3; i++) {
-        navigator.pop();
-        await tester.pumpAndSettle();
-      }
+      navigator.popUntil((route) => route.isFirst);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('library-scroll')), findsOneWidget);
       expect(find.text('当前没有进行中的预约'), findsNothing);
       expect(
         find.text(libraryBookingsFixture.bookings.single.title),

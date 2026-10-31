@@ -16,7 +16,7 @@
 - [features/today/today_homework_section.dart](#featurestodaytodayhomeworksectiondart) (2)
 - [features/today/today_notice_section.dart](#featurestodaytodaynoticesectiondart) (1)
 - [features/today/today_page.dart](#featurestodaytodaypagedart) (1)
-- [features/today/today_page_actions.dart](#featurestodaytodaypageactionsdart) (2)
+- [features/today/today_page_actions.dart](#featurestodaytodaypageactionsdart) (1)
 - [features/today/today_page_header.dart](#featurestodaytodaypageheaderdart) (1)
 - [features/today/today_presentation.dart](#featurestodaytodaypresentationdart) (4)
 - [features/today/today_tasks_section.dart](#featurestodaytodaytaskssectiondart) (2)
@@ -78,9 +78,9 @@
 ## features/today/today_exam_section.dart
 
 - `class TodayExamSection extends StatefulWidget`
-  <sub>class · features/today/today_exam_section.dart:12</sub>
-    - `const TodayExamSection({ super.key, required this.service, required this.now, this.refreshToken = 0, this.onOpen, });`  <sub>:13</sub>
-    - `State<TodayExamSection> createState() => …`  <sub>:27</sub>
+  <sub>class · features/today/today_exam_section.dart:13</sub>
+    - `const TodayExamSection({ super.key, required this.service, required this.now, this.refreshToken = 0, this.onOpen, });`  <sub>:14</sub>
+    - `State<TodayExamSection> createState() => …`  <sub>:28</sub>
 
 ## features/today/today_homework_section.dart
 
@@ -94,18 +94,17 @@
 ## features/today/today_notice_section.dart
 
 - `class TodayNoticeSection extends StatelessWidget` — The latest school notices. A publication date is never a personal
-  <sub>class · features/today/today_notice_section.dart:13</sub>
-    - `const TodayNoticeSection({ super.key, required this.section, required this.onRetry, required this.onOpen, });`  <sub>:14</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:26</sub>
+  <sub>class · features/today/today_notice_section.dart:12</sub>
+    - `const TodayNoticeSection({ super.key, required this.section, required this.onRetry, required this.onOpen, });`  <sub>:13</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:25</sub>
 
 ## features/today/today_page.dart
 
 - `class TodayPage extends StatefulWidget`
   <sub>class · features/today/today_page.dart:27</sub>
-    - `const TodayPage({ super.key, required this.service, required this.fileActions, this.accountName, this.accountId, this.storageRoot, this.now, this.onAccountAction, this.onOpenFeature, this.onOpenSettings, });`  <sub>:28</sub>
-    - `final DateTime Function()? now;` — An instant, converted to Beijing wall time for presentation.  <sub>:53</sub>
-    - `final Future<void> Function()? onAccountAction;`  <sub>:54</sub>
-    - `State<TodayPage> createState() => …`  <sub>:56</sub>
+    - `const TodayPage({ super.key, required this.service, required this.fileActions, this.accountName, this.accountId, this.storageRoot, this.now, this.onOpenFeature, });`  <sub>:28</sub>
+    - `final DateTime Function()? now;` — An instant, converted to Beijing wall time for presentation.  <sub>:50</sub>
+    - `State<TodayPage> createState() => …`  <sub>:52</sub>
 
 ## features/today/today_page_actions.dart
 
@@ -114,15 +113,13 @@
     - `bool get opening => …` — True while a linked page is being opened.  <sub>:16</sub>
     - `Future<void> openTasks( BuildContext context, { required MirrorService service, required PlatformActions fileActions, required String? storageRoot, required String? taskId, required bool Function() isCurrent, required Future<void> Function() reload, required void Function(String message) onFailure, }) async {…}`  <sub>:18</sub>
     - `Future<void> openHomework( BuildContext context, { required MirrorService service, required PlatformActions fileActions, required String? storageRoot, required HomeworkItem item, required bool Function() isCurrent, required Future<void> Function() reload, required void Function(String message) onFailure, }) async {…}`  <sub>:53</sub>
-- `Future<bool> showTodayAccountDialog( BuildContext context, { required String? accountName, required bool demo, }) async {…}` — Ask what to do with the current account. Returns true when the user asked
-  <sub>function · features/today/today_page_actions.dart:90</sub>
 
 ## features/today/today_page_header.dart
 
-- `class TodayPageHeader extends StatelessWidget` — The today header carries the account / settings shortcut and the refresh
-  <sub>class · features/today/today_page_header.dart:9</sub>
-    - `const TodayPageHeader({ super.key, required this.title, required this.busy, required this.onRefresh, this.onOpenSettings, this.onAccountAction, this.demo = false, });`  <sub>:10</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:28</sub>
+- `class TodayPageHeader extends StatelessWidget` — The today header carries the page refresh action; account settings live in
+  <sub>class · features/today/today_page_header.dart:8</sub>
+    - `const TodayPageHeader({ super.key, required this.title, required this.busy, required this.onRefresh, });`  <sub>:9</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:21</sub>
 
 ## features/today/today_presentation.dart
 

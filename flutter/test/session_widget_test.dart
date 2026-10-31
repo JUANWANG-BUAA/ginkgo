@@ -436,7 +436,9 @@ void main() {
     );
     expect(find.byKey(const Key('today-scroll')), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('workspace-settings')));
+    await tester.tap(find.text('更多'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('more-account-settings')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('退出登录'));
     await tester.pumpAndSettle();

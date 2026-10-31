@@ -250,8 +250,9 @@ class _GraduatePageState extends State<GraduatePage> {
                 section: '学业',
                 subtitle: '学籍、培养方案与研究生学业查询',
                 icon: CupertinoIcons.briefcase_fill,
-                trailing: AppleGlassButton(
+                trailing: AppleToolbarButton(
                   label: '刷新研究生教务',
+                  busy: busy,
                   onPressed: busy ? null : () => load(force: true),
                   child: busy
                       ? const GinkgoActivity()

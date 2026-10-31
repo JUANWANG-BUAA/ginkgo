@@ -119,20 +119,20 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
       ),
       navigationBar: CupertinoNavigationBar(
         middle: const Text('本人借阅'),
-        // The read action belongs to the navigation bar, next to the record
-        // list it reloads.
-        trailing: widget.gateway == null
+        // Keep refresh available after a successful read. The first read is
+        // also offered in the empty state so it is discoverable in context.
+        trailing: widget.gateway == null || data == null
             ? null
             : CupertinoButton(
                 key: const Key('library-loans-read'),
                 padding: EdgeInsets.zero,
                 minimumSize: const Size(48, 48),
-                onPressed: _busy ? null : () => _read(data?.page ?? 1),
+                onPressed: _busy ? null : () => _read(data.page),
                 child: _busy
                     ? const CupertinoActivityIndicator(radius: 9)
                     : const Icon(
                         CupertinoIcons.refresh,
-                        semanticLabel: '读取本人借阅',
+                        semanticLabel: '刷新本人借阅',
                       ),
               ),
       ),
@@ -141,12 +141,11 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
           children: [
             AppleSection(
               header: const Text('当前借阅'),
-              footer: const Text('仅临时查看，不保存到磁盘；不提供续借或到期提醒。'),
               children: [
                 AppleListTile(
                   leading: const Icon(CupertinoIcons.lock_shield),
                   title: const Text('仅在本页临时查看'),
-                  subtitle: const Text('离开栏目或进入后台后清除'),
+                  subtitle: const Text('不保存到磁盘；离开本页或进入后台后清除'),
                   trailing: CupertinoButton(
                     padding: EdgeInsets.zero,
                     onPressed: () =>
@@ -157,9 +156,7 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
                 if (_showPrivacy)
                   const Padding(
                     padding: EdgeInsets.all(16),
-                    child: Text(
-                      '点击后读取当前账号记录，不保存到磁盘，不提供续借、归还或到期通知。App 认证与非空记录仍待实网验收。',
-                    ),
+                    child: Text('读取当前账号记录。本页不提供续借或到期提醒；认证及非空记录需要实际账号验证。'),
                   ),
                 if (widget.gateway == null)
                   const Padding(
@@ -171,23 +168,39 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
                 if (widget.gateway != null &&
                     data == null &&
                     _failure == null &&
-                    !_busy)
+                    !_busy) ...[
                   const AppleEmptyState(
                     title: '尚未读取借阅记录',
-                    description: '点按右上角读取当前账号记录；离开栏目或进入后台后清除。',
+                    description: '按需读取当前账号记录。',
                     icon: CupertinoIcons.book,
                   ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: CupertinoButton.filled(
+                      key: const Key('library-loans-first-read'),
+                      minimumSize: const Size(48, 48),
+                      onPressed: () => _read(1),
+                      child: const Text('读取借阅记录'),
+                    ),
+                  ),
+                ],
                 if (widget.officialGateway != null)
                   CupertinoButton(
                     onPressed: _openOfficial,
                     child: const Text('打开图书馆官网'),
                   ),
-                if (_failure != null)
+                if (_failure != null && data == null)
+                  AppleEmptyState(
+                    title: '暂时无法读取借阅记录',
+                    description: _error,
+                    error: true,
+                    action: '重试',
+                    onAction: () => _read(1),
+                  ),
+                if (_failure != null && data != null)
                   Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Text(
-                      '$_error${data == null ? '' : ' 保留本页上次结果（非最新）。'}',
-                    ),
+                    child: Text('$_error 保留本页上次结果（非最新）。'),
                   ),
                 if (data != null) ...[
                   SummaryStrip(

@@ -263,10 +263,11 @@ void main() {
         );
 
         // 4 pending non-overdue items: active-soon, active-date, undated, invalid-due
-        expect(find.text('4 项作业待处理'), findsOneWidget);
-        // Overdue count is 2 (overdue-1, overdue-date)
-        // Unknown count is 1
-        expect(find.text('1 项状态待确认 · 已截止 2 项'), findsOneWidget);
+        expect(find.text('4 项待处理'), findsOneWidget);
+        // Overdue count is surfaced even while other pending work is listed.
+        // Unknown status is surfaced in the same compact review row.
+        expect(find.textContaining('1 项状态待确认'), findsOneWidget);
+        expect(find.textContaining('已截止 2 项'), findsOneWidget);
 
         // Active items must be displayed
         expect(find.text('活跃作业1'), findsOneWidget);
@@ -333,7 +334,8 @@ void main() {
         expect(find.text('已提交 1'), findsOneWidget);
         expect(find.text('已截止 2'), findsOneWidget);
         expect(find.text('待确认 1'), findsOneWidget);
-        expect(find.text('学校状态与个人待办独立 · 截止时间按北京时间显示'), findsOneWidget);
+        expect(find.textContaining('学校状态与个人待办独立'), findsOneWidget);
+        expect(find.textContaining('截止按北京时间'), findsOneWidget);
 
         // Filter 0 (全部): all 8 items are visible
         expect(find.text('8 项作业'), findsOneWidget);

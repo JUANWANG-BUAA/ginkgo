@@ -99,14 +99,17 @@ class _LearningPageState extends State<LearningPage> {
               section: '学业',
               subtitle: '只读查看课程公告、资料与测验信息',
               icon: CupertinoIcons.book_circle,
-              trailing: AppleGlassButton(
+              trailing: AppleToolbarButton(
                 label: '刷新课程',
+                busy: courses.loading,
                 onPressed:
                     LearningPorts.resolve(widget.service).courses != null &&
                         !courses.loading
                     ? () => _load(force: true)
                     : null,
-                child: const Icon(CupertinoIcons.refresh),
+                child: courses.loading
+                    ? const GinkgoActivity(size: 17)
+                    : const Icon(CupertinoIcons.refresh),
               ),
             ),
             if (courses.value?.data.isNotEmpty == true)

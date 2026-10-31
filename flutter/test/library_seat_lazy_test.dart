@@ -54,6 +54,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('library-find-seats')));
+      await tester.pumpAndSettle();
       for (final key in [
         'library-venue-v1',
         'library-area-a1',

@@ -89,4 +89,29 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(ScheduleGrid), findsOneWidget);
   });
+
+  testWidgets('course detail explains unavailable check-in association', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 1100);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    var openedCheckIn = false;
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: SchedulePage(
+          service: DayScheduleService(),
+          onOpenCheckIn: () => openedCheckIn = true,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('算法设计与分析'));
+    await tester.pumpAndSettle();
+    expect(find.text('尚未关联签到记录'), findsOneWidget);
+    expect(find.textContaining('当前无法可靠关联'), findsOneWidget);
+    await tester.tap(find.text('打开签到列表'));
+    expect(openedCheckIn, isTrue);
+  });
 }

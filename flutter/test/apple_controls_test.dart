@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/widgets/apple_controls.dart';
 
@@ -30,7 +31,34 @@ void main() {
     expect(selected, '乙');
   });
 
-  testWidgets('long choices use the native picker wheel', (tester) async {
+  testWidgets('long discrete choices remain a scrollable system sheet', (
+    tester,
+  ) async {
+    final values = List.generate(12, (index) => '类别 $index');
+    await tester.pumpWidget(
+      CupertinoApp(
+        home: CupertinoPageScaffold(
+          child: ApplePickerTile<String>(
+            title: '选择类别',
+            value: values.first,
+            values: values,
+            label: (value) => value,
+            onSelected: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('选择类别'));
+    await tester.pumpAndSettle();
+    expect(find.byType(CupertinoActionSheet), findsOneWidget);
+    expect(find.byType(CupertinoPicker), findsNothing);
+    expect(find.text('类别 11'), findsOneWidget);
+  });
+
+  testWidgets('long ordered choices opt into the native picker wheel', (
+    tester,
+  ) async {
     final values = List.generate(12, (index) => '第 $index 项');
     var selected = values.first;
     await tester.pumpWidget(
@@ -43,6 +71,7 @@ void main() {
               values: values,
               label: (value) => value,
               onSelected: (value) => setState(() => selected = value),
+              useWheel: true,
             ),
           ),
         ),
@@ -59,4 +88,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(selected, '第 3 项');
   });
+
+  testWidgets('toolbar action exposes one labeled 48 point button target', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(
+      const CupertinoApp(
+        home: Center(
+          child: AppleToolbarButton(
+            label: '刷新校历',
+            onPressed: _noop,
+            child: Icon(CupertinoIcons.refresh),
+          ),
+        ),
+      ),
+    );
+
+    final target = tester.getSize(find.byType(AppleToolbarButton));
+    expect(target.width, greaterThanOrEqualTo(48));
+    expect(target.height, greaterThanOrEqualTo(48));
+    final data = tester
+        .getSemantics(find.byType(AppleToolbarButton))
+        .getSemanticsData();
+    expect(data.label, '刷新校历');
+    expect(data.hasAction(SemanticsAction.tap), isTrue);
+    expect(data.flagsCollection.isButton, isTrue);
+    semantics.dispose();
+  });
 }
+
+void _noop() {}

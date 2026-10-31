@@ -87,7 +87,11 @@ void main() {
     final service = ProgressiveService();
     await tester.pumpWidget(
       ginkgoApp(
-        home: TodayPage(fileActions: platformActions,storageRoot: '/synthetic/tasks', service: service),
+        home: TodayPage(
+          fileActions: platformActions,
+          storageRoot: '/synthetic/tasks',
+          service: service,
+        ),
       ),
     );
     expect(DiagnosticLog.shared.entries, isEmpty);
@@ -105,17 +109,21 @@ void main() {
       final service = ProgressiveService();
       await tester.pumpWidget(
         ginkgoApp(
-          home: TodayPage(fileActions: platformActions,storageRoot: '/synthetic/tasks', service: service),
+          home: TodayPage(
+            fileActions: platformActions,
+            storageRoot: '/synthetic/tasks',
+            service: service,
+          ),
         ),
       );
       expect(service.courses.length, 1);
       expect(service.assignments.length, 1);
       service.assignments.single.complete(assignments);
       await tester.pump();
-      expect(find.text('1 项作业待处理'), findsOneWidget);
+      expect(find.text('1 项待处理'), findsOneWidget);
       expect(find.text('合成作业'), findsOneWidget);
       expect(find.text('助教作业'), findsNothing);
-      expect(find.text('1 项状态待确认，请进入作业核对'), findsOneWidget);
+      expect(find.textContaining('1 项状态待确认'), findsOneWidget);
       expect(find.text('正在读取今天课程…'), findsOneWidget);
       service.courses.single.complete(todayFixture);
       await tester.pumpAndSettle();
@@ -160,7 +168,8 @@ void main() {
     final current = ProgressiveService();
     await tester.pumpWidget(
       ginkgoApp(
-        home: TodayPage(fileActions: platformActions,
+        home: TodayPage(
+          fileActions: platformActions,
           storageRoot: '/synthetic/tasks',
           service: old,
           now: () => DateTime.utc(2026, 10, 22),
@@ -169,7 +178,8 @@ void main() {
     );
     await tester.pumpWidget(
       ginkgoApp(
-        home: TodayPage(fileActions: platformActions,
+        home: TodayPage(
+          fileActions: platformActions,
           storageRoot: '/synthetic/tasks',
           service: current,
           now: () => DateTime.utc(2026, 10, 22),
@@ -189,7 +199,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('今天没有课程'), findsOneWidget);
-    expect(find.text('当前没有待处理作业'), findsOneWidget);
+    expect(find.text('作业范围待确认'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -198,7 +208,11 @@ void main() {
     final service = ProgressiveService();
     await tester.pumpWidget(
       ginkgoApp(
-        home: TodayPage(fileActions: platformActions,storageRoot: '/synthetic/tasks', service: service),
+        home: TodayPage(
+          fileActions: platformActions,
+          storageRoot: '/synthetic/tasks',
+          service: service,
+        ),
       ),
     );
     service.courses.single.complete(todayFixture);
@@ -256,7 +270,11 @@ void main() {
               disableAnimations: true,
               platformBrightness: Brightness.dark,
             ),
-            child: TodayPage(fileActions: platformActions,storageRoot: '/synthetic/tasks', service: service),
+            child: TodayPage(
+              fileActions: platformActions,
+              storageRoot: '/synthetic/tasks',
+              service: service,
+            ),
           ),
         ),
       );

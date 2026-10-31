@@ -52,64 +52,64 @@ void main() {
       final service = ProgressiveLibraryService();
       await tester.pumpWidget(ginkgoApp(home: LibraryPage(service: service)));
       await tester.pump();
-      expect(service.venues.length, 1);
+      // The library root reads personal bookings only; venue availability is
+      // loaded lazily after the user chooses the seat-booking task.
+      expect(service.venues, isEmpty);
       expect(service.bookings.length, 1);
       expect(find.text('当前没有进行中的预约'), findsNothing);
       expect(find.text('暂无可用场馆'), findsNothing);
-      service.venues.single.complete(venueSnapshot);
-      await tester.pump();
-      expect(find.text('测试馆'), findsOneWidget);
-      expect(find.byKey(const Key('library-bookings-status')), findsOneWidget);
-      expect(find.byKey(const Key('library-venues-status')), findsNothing);
       service.bookings.single.complete(emptyBookings);
+      await tester.pumpAndSettle();
+      expect(find.text('当前没有进行中的预约'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('library-find-seats')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(service.venues.length, 1);
+      service.venues.single.complete(venueSnapshot);
+      await tester.pumpAndSettle();
+      expect(find.text('测试馆'), findsOneWidget);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.drag(
+        find.byKey(const Key('library-scroll')),
+        const Offset(0, -600),
+      );
       await tester.pumpAndSettle();
       expect(find.text('当前没有进行中的预约'), findsOneWidget);
 
       // A forced refresh is never merged away: while a read is in flight it is
       // remembered and re-runs once that read settles.
-      await tester.tap(find.bySemanticsLabel('刷新图书馆').first);
+      await tester.tap(find.bySemanticsLabel('刷新预约').first);
       await tester.pump();
-      expect(find.text('测试馆'), findsOneWidget);
       expect(find.text('当前没有进行中的预约'), findsOneWidget);
       final refresh = tester.widget<CupertinoSliverRefreshControl>(
         find.byType(CupertinoSliverRefreshControl, skipOffstage: false),
       );
       final joined = refresh.onRefresh!();
-      expect(service.venues.length, 2);
+      expect(service.venues.length, 1);
       expect(service.bookings.length, 2);
 
-      // The first pass fails on bookings only: the old row stays and its
-      // remembered forced run re-issues that section alone; venues is still
-      // in flight, so its own catch-up has not been queued yet.
+      // The first pass fails: the old row stays and its remembered forced run
+      // re-issues the booking section alone.
       service.bookings.last.completeError(
         StateError('synthetic transport error'),
       );
       await tester.pump();
       expect(find.text('当前没有进行中的预约'), findsOneWidget);
       expect(service.bookings.length, 3);
-      expect(service.venues.length, 2);
 
-      service.venues.last.complete(venueSnapshot);
-      await tester.pump();
-      expect(service.venues.length, 3);
-      service.venues.last.complete(venueSnapshot);
       service.bookings.last.complete(emptyBookings);
       await tester.pumpAndSettle();
       await joined;
-      expect(find.text('测试馆'), findsOneWidget);
       expect(find.text('当前没有进行中的预约'), findsOneWidget);
 
-      // Only the failed section is retried: venues keeps its fresh snapshot.
-      await tester.tap(find.bySemanticsLabel('刷新图书馆').first);
+      await tester.tap(find.bySemanticsLabel('刷新预约').first);
       await tester.pump();
-      expect(service.venues.length, 4);
       expect(service.bookings.length, 4);
-      service.venues.last.complete(venueSnapshot);
       service.bookings.last.completeError(
         StateError('synthetic transport error'),
       );
       await tester.pumpAndSettle();
-      expect(find.text('测试馆'), findsOneWidget);
       expect(find.text('当前没有进行中的预约'), findsOneWidget);
       final retry = find.descendant(
         of: find.byKey(const Key('library-bookings-status')),
@@ -119,46 +119,26 @@ void main() {
       await tester.tap(retry);
       await tester.pump();
       expect(service.bookings.length, 5);
-      expect(service.venues.length, 4);
       service.bookings.last.complete(emptyBookings);
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('library-bookings-status')), findsNothing);
-
-      // An authoritative cached empty snapshot replaces an older nonempty one.
-      await tester.tap(find.bySemanticsLabel('刷新图书馆').first);
-      await tester.pump();
-      expect(service.venues.length, 5);
-      expect(service.bookings.length, 6);
-      service.venues.last.complete(
-        const LibraryVenuesResponse(
-          venues: [],
-          fromCache: true,
-          stale: true,
-          failure: FailureCode.serviceUnavailable,
-        ),
-      );
-      service.bookings.last.complete(emptyBookings);
-      await tester.pumpAndSettle();
-      expect(find.text('暂无可用场馆'), findsOneWidget);
-      expect(find.text('测试馆'), findsNothing);
-      expect(find.text('保留上次结果'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
 
-  testWidgets(
-    'booking result is visible before venues, and disposal ignores late results',
-    (tester) async {
-      final service = ProgressiveLibraryService();
-      await tester.pumpWidget(ginkgoApp(home: LibraryPage(service: service)));
-      service.bookings.single.complete(emptyBookings);
-      await tester.pump();
-      expect(find.text('当前没有进行中的预约'), findsOneWidget);
-      expect(find.text('暂无可用场馆'), findsNothing);
-      await tester.pumpWidget(const SizedBox());
-      service.venues.single.complete(venueSnapshot);
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
-    },
-  );
+  testWidgets('disposed venue selection ignores late results', (tester) async {
+    final service = ProgressiveLibraryService();
+    await tester.pumpWidget(ginkgoApp(home: LibraryPage(service: service)));
+    await tester.pumpAndSettle();
+    service.bookings.single.complete(emptyBookings);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('library-find-seats')));
+    await tester.pumpAndSettle();
+    expect(service.venues, hasLength(1));
+    expect(find.text('暂无可用场馆'), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    service.venues.single.complete(venueSnapshot);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
 }

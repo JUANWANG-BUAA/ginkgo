@@ -26,7 +26,7 @@
 | [共享呈现组件（flutter/lib/widgets）](dart-widgets.md) | `dart-widgets.md` | 52 |
 | [设计系统（flutter/lib/design）](dart-design.md) | `dart-design.md` | 9 |
 | [应用外壳组件（flutter/lib/app）](dart-app.md) | `dart-app.md` | 4 |
-| [工作区壳层（flutter/lib/workspace）](dart-workspace.md) | `dart-workspace.md` | 29 |
+| [工作区壳层（flutter/lib/workspace）](dart-workspace.md) | `dart-workspace.md` | 30 |
 | [Flutter 功能域：academic](dart-feature-academic.md) | `dart-feature-academic.md` | 1 |
 | [Flutter 功能域：auth](dart-feature-auth.md) | `dart-feature-auth.md` | 1 |
 | [Flutter 功能域：bykc](dart-feature-bykc.md) | `dart-feature-bykc.md` | 10 |
@@ -40,14 +40,14 @@
 | [Flutter 功能域：graduate](dart-feature-graduate.md) | `dart-feature-graduate.md` | 23 |
 | [Flutter 功能域：homework](dart-feature-homework.md) | `dart-feature-homework.md` | 24 |
 | [Flutter 功能域：learning](dart-feature-learning.md) | `dart-feature-learning.md` | 13 |
-| [Flutter 功能域：library](dart-feature-library.md) | `dart-feature-library.md` | 25 |
+| [Flutter 功能域：library](dart-feature-library.md) | `dart-feature-library.md` | 26 |
 | [Flutter 功能域：notices](dart-feature-notices.md) | `dart-feature-notices.md` | 1 |
 | [Flutter 功能域：reservations](dart-feature-reservations.md) | `dart-feature-reservations.md` | 1 |
 | [Flutter 功能域：schedule](dart-feature-schedule.md) | `dart-feature-schedule.md` | 26 |
 | [Flutter 功能域：settings](dart-feature-settings.md) | `dart-feature-settings.md` | 16 |
 | [Flutter 功能域：shuttle](dart-feature-shuttle.md) | `dart-feature-shuttle.md` | 8 |
 | [Flutter 功能域：tasks](dart-feature-tasks.md) | `dart-feature-tasks.md` | 6 |
-| [Flutter 功能域：today](dart-feature-today.md) | `dart-feature-today.md` | 23 |
+| [Flutter 功能域：today](dart-feature-today.md) | `dart-feature-today.md` | 22 |
 
 ## 快速导航
 

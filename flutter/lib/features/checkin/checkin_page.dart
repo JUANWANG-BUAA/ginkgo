@@ -262,8 +262,9 @@ class _CheckInPageState extends State<CheckInPage> {
           subtitle: '查看课程签到状态与记录',
           icon: CupertinoIcons.checkmark_seal,
           border: null,
-          trailing: AppleGlassButton(
+          trailing: AppleToolbarButton(
             label: '刷新签到状态',
+            busy: busy,
             onPressed: busy || submitting != null
                 ? null
                 : () => load(force: true),

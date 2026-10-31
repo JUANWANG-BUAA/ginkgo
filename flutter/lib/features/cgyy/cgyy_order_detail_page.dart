@@ -75,10 +75,13 @@ class _CgyyOrderDetailPageState extends State<CgyyOrderDetailPage> {
     navigationBar: CupertinoNavigationBar(
       middle: const Text('预约详情'),
       previousPageTitle: '我的预约',
-      trailing: AppleGlassButton(
+      trailing: AppleToolbarButton(
         label: '刷新预约详情',
+        busy: busy,
         onPressed: busy ? null : () => load(force: true),
-        child: const Icon(CupertinoIcons.refresh),
+        child: busy
+            ? const GinkgoActivity(size: 17)
+            : const Icon(CupertinoIcons.refresh),
       ),
     ),
     child: SafeArea(

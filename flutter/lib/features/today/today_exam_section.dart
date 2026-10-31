@@ -5,6 +5,7 @@ import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
+import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
 import 'today_action_row.dart';
 import 'today_presentation.dart';
@@ -80,7 +81,31 @@ class _TodayExamSectionState extends State<TodayExamSection> {
   @override
   Widget build(BuildContext context) {
     final data = exams.value;
-    if (data == null) return const SizedBox.shrink();
+    if (data == null) {
+      if (!exams.loading && exams.error == null) {
+        return const SizedBox.shrink();
+      }
+      return TodayVisualSection(
+        key: const Key('today-exams'),
+        header: TodaySectionHeader(
+          title: '近期考试',
+          icon: CupertinoIcons.calendar,
+          actionLabel: exams.error == null ? null : '课表',
+          onAction: widget.onOpen == null
+              ? null
+              : () => widget.onOpen!('schedule'),
+        ),
+        children: [
+          SectionFeedback(
+            loading: exams.loading,
+            label: '正在核对考试安排…',
+            hasData: false,
+            error: exams.error,
+            onRetry: () => _load(force: true),
+          ),
+        ],
+      );
+    }
     final today = DateTime.utc(
       widget.now.year,
       widget.now.month,
@@ -100,23 +125,48 @@ class _TodayExamSectionState extends State<TodayExamSection> {
           );
           return timeOrder != 0 ? timeOrder : left.id.compareTo(right.id);
         });
-    if (upcoming.isEmpty) return const SizedBox.shrink();
+    if (upcoming.isEmpty && exams.error == null) {
+      return const SizedBox.shrink();
+    }
     return TodayVisualSection(
       key: const Key('today-exams'),
-      header: const TodaySectionHeader(
+      header: TodaySectionHeader(
         title: '近期考试',
         icon: CupertinoIcons.calendar,
+        actionLabel: '课表',
+        onAction: widget.onOpen == null
+            ? null
+            : () => widget.onOpen!('schedule'),
       ),
+      footer: data.fetchedAt == null
+          ? const Text('学校考试安排')
+          : Text('考试同步：${schoolTimestampLabel(data.fetchedAt)}'),
       children: [
-        for (final exam in upcoming)
+        for (final exam in upcoming.take(3))
           TodayActionRow(
             key: Key('today-exam-${exam.id}'),
             title: exam.courseName,
             subtitle:
-                '${exams.error == null ? '' : '旧数据 · '}${exam.examDate ?? '日期待确认'} ${exam.startTime ?? '时间待确认'} · ${exam.examPlace ?? '地点待确认'}\n同步 ${schoolTimestampLabel(data.fetchedAt)}',
+                '${exams.error == null ? '' : '旧数据 · '}${exam.examDate ?? '日期待确认'} ${exam.startTime ?? '时间待确认'} · ${exam.examPlace ?? '地点待确认'}',
             onTap: widget.onOpen == null
                 ? null
                 : () => widget.onOpen!('schedule'),
+          ),
+        if (upcoming.length > 3)
+          TodayActionRow(
+            summary: true,
+            title: '另有 ${upcoming.length - 3} 场考试',
+            onTap: widget.onOpen == null
+                ? null
+                : () => widget.onOpen!('schedule'),
+          ),
+        if (exams.error != null)
+          SectionFeedback(
+            loading: exams.loading,
+            label: '正在更新考试安排…',
+            hasData: true,
+            error: exams.error,
+            onRetry: () => _load(force: true),
           ),
       ],
     );

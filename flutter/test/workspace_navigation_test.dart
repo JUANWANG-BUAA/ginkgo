@@ -188,6 +188,8 @@ void main() {
     expect(service.libraryReads, 0);
     await tester.tap(find.text('图书馆'));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('library-find-seats')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('library-venue-v1')));
     await tester.pumpAndSettle();
     expect(find.text('区域'), findsOneWidget);
@@ -209,7 +211,8 @@ void main() {
     // Selecting the visible destination again returns to its root.
     await tester.tap(find.text('图书馆'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('library-venue-v1')), findsOneWidget);
+    expect(find.byKey(const Key('library-find-seats')), findsOneWidget);
+    expect(find.byKey(const Key('library-venue-v1')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

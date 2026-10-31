@@ -1,6 +1,6 @@
 # Ginkgo 接口索引
 
-更新：2026-10-29。本文是 **Android（Flutter + Rust）全链路接口的单一索引**：按层次列出每个接口的标识、功能、输入、输出、副作用与源码位置，用于快速定位「某个能力从界面一路走到学校协议」的完整路径。
+更新：2026-10-31。本文是 **Android（Flutter + Rust）全链路接口的单一索引**：按层次列出每个接口的标识、功能、输入、输出、副作用与源码位置，用于快速定位「某个能力从界面一路走到学校协议」的完整路径。
 
 本文只做索引与契约说明，不重复上游协议事实。URL、参数、成功码、证据等级以 [API.md](API.md) 为唯一来源；用户能做什么、读写边界与本机数据见 [FEATURES-AND-PROTOCOLS.md](FEATURES-AND-PROTOCOLS.md)；分层职责见 [MIRROR-ARCHITECTURE.md](MIRROR-ARCHITECTURE.md)。
 
@@ -438,6 +438,8 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 - 不发起网络请求，不读写平台存储。
 - 状态色用 `AppleDesign.status*`，且颜色之外必须同时有文字。
 - 触控目标不小于 48dp；大字号下允许换行而不是截断。
+- `AppleToolbarButton` 是共享导航栏动作：忙状态进入读屏语义，页面首次读取、刷新与重试使用准确标签。
+- 选择器按任务类型选择 Cupertino 操作表或有序滚轮，不按选项数量切换；摘要数值在窄屏/大字号下可换行。
 
 ### 7A.3 状态与刷新契约
 
@@ -454,6 +456,8 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 ### 7A.4 导航与登记
 
 `workspace/workspace_catalog.dart` 的 `WorkspaceDestination` 是**壳层与功能页之间唯一的登记点**：移动标签、桌面侧栏、今日快捷入口与返回逻辑都由 `workspaceDestinations` 派生。新增页面必须在这里登记，否则不可达；这是编译期静态表，不是运行时插件系统。
+
+移动端固定五个主标签；`MorePage` 内提供本地服务搜索和账号/设置入口。服务搜索消费现有 `WorkspaceDestination`，不另建搜索路由、不复制目录数据，也不检索个人记录。
 
 ### 7A.5 命令与能力的命名约定
 

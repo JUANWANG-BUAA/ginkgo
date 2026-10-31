@@ -82,6 +82,14 @@ class TodayHomeworkSection extends StatelessWidget {
     final unknownRole =
         data?.rolesComplete != true ||
         personal.any((item) => item.courseRole == null);
+    if (data != null &&
+        data.rolesComplete == true &&
+        section.error == null &&
+        pending.isEmpty &&
+        overdue.isEmpty &&
+        unknown.isEmpty) {
+      return const SizedBox.shrink();
+    }
     return TodayVisualSection(
       key: const Key('today-homework'),
       header: TodaySectionHeader(
@@ -109,28 +117,50 @@ class TodayHomeworkSection extends StatelessWidget {
           SectionReveal(
             child: Column(
               children: [
-                TodayActionRow(
-                  summary: true,
-                  title: data.rolesComplete == false
-                      ? '作业结果不完整'
-                      : pending.isNotEmpty
-                      ? '${pending.length} 项作业待处理'
-                      : section.error != null || unknown.isNotEmpty
-                      ? '作业状态尚未确认'
-                      : overdue.isNotEmpty
-                      ? '没有待处理作业（已截止 ${overdue.length} 项）'
-                      : '当前没有待处理作业',
-                  subtitle: data.rolesComplete == false
-                      ? '课程身份未能全部核对，请进入作业复核'
-                      : unknown.isNotEmpty
-                      ? (overdue.isNotEmpty
-                            ? '${unknown.length} 项状态待确认 · 已截止 ${overdue.length} 项'
-                            : '${unknown.length} 项状态待确认，请进入作业核对')
-                      : overdue.isNotEmpty
-                      ? '已截止 ${overdue.length} 项 · 查看'
-                      : null,
-                  onTap: onOpen,
-                ),
+                if (pending.isEmpty)
+                  TodayActionRow(
+                    summary: true,
+                    title: data.rolesComplete == false
+                        ? '作业结果不完整'
+                        : section.error != null || unknown.isNotEmpty
+                        ? '作业状态尚未确认'
+                        : data.rolesComplete != true
+                        ? '作业范围待确认'
+                        : overdue.isEmpty
+                        ? '没有待处理作业'
+                        : '没有未截止作业',
+                    subtitle: data.rolesComplete == false
+                        ? '课程身份未能全部核对，请进入作业复核'
+                        : section.error != null
+                        ? '学校作业未能更新，请重试核对。'
+                        : unknown.isNotEmpty
+                        ? '${unknown.length} 项状态待确认，请进入作业核对'
+                        : data.rolesComplete != true
+                        ? '尚未确认课程身份范围，请进入作业复核'
+                        : overdue.isNotEmpty
+                        ? '已截止 ${overdue.length} 项 · 进入作业查看'
+                        : '打开作业查看完整结果',
+                    onTap: onOpen,
+                  ),
+                if (pending.isNotEmpty &&
+                    (overdue.isNotEmpty ||
+                        data.rolesComplete != true ||
+                        unknown.isNotEmpty))
+                  TodayActionRow(
+                    summary: true,
+                    title: data.rolesComplete == false
+                        ? '作业结果不完整'
+                        : unknown.isNotEmpty
+                        ? '作业状态尚未确认'
+                        : '有已截止作业',
+                    subtitle: [
+                      if (unknown.isNotEmpty) '${unknown.length} 项状态待确认',
+                      if (data.rolesComplete != true) '课程身份范围未全部核对',
+                      if (overdue.isNotEmpty) '已截止 ${overdue.length} 项',
+                      '进入作业复核',
+                    ].join(' · '),
+                    onTap: onOpen,
+                  ),
                 for (final item in todayVisibleHomework(
                   data,
                   CourseVisibilityScope.of(context),
@@ -151,6 +181,12 @@ class TodayHomeworkSection extends StatelessWidget {
                         : () => onOpenItem!(item),
                   ),
                 ],
+                if (pending.length > 3)
+                  TodayActionRow(
+                    summary: true,
+                    title: '另有 ${pending.length - 3} 项待处理',
+                    onTap: onOpen,
+                  ),
               ],
             ),
           ),

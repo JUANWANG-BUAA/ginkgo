@@ -17,12 +17,14 @@ class ScheduleCourseDetailPage extends StatelessWidget {
     required this.weekNumber,
     required this.week,
     required this.dayTitle,
+    this.onOpenCheckIn,
   });
   final ScheduleCourse course;
   final String termName;
   final int weekNumber;
   final ScheduleWeek? week;
   final String dayTitle;
+  final VoidCallback? onOpenCheckIn;
 
   @override
   Widget build(BuildContext context) => CupertinoPageScaffold(
@@ -73,6 +75,23 @@ class ScheduleCourseDetailPage extends StatelessWidget {
                       '${shortDate(week!.startDate)}–${shortDate(week!.endDate)}',
                 ),
               ScheduleDetailLine(label: '上课日期', value: dayTitle),
+            ],
+          ),
+          ScheduleSection(
+            title: '课程签到',
+            footer: const Text(
+              '课表与签到来自不同学校服务，当前无法可靠关联到具体场次。',
+            ),
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('尚未关联签到记录'),
+              ),
+              if (onOpenCheckIn != null)
+                ScheduleChevronRow(
+                  onTap: onOpenCheckIn!,
+                  child: const Text('打开签到列表'),
+                ),
             ],
           ),
           const SizedBox(height: 96),

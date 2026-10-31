@@ -184,7 +184,12 @@ Future<void> pump(
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
-  await tester.pumpWidget(ginkgoApp(home: page));
+  await tester.pumpWidget(
+    KeyedSubtree(
+      key: ValueKey<Type>(page.runtimeType),
+      child: ginkgoApp(home: page),
+    ),
+  );
   await tester.pump();
 }
 
@@ -203,20 +208,11 @@ void main() {
   testWidgets('library first load uses one branded loading view', (
     tester,
   ) async {
-    final service = VisualLibrary()
-      ..holdVenues = true
-      ..holdBookings = true;
+    final service = VisualLibrary()..holdBookings = true;
     await pump(tester, LibraryPage(service: service));
-    expect(find.text('正在读取图书馆…'), findsOneWidget);
+    expect(find.text('正在读取预约…'), findsOneWidget);
     expect(find.byType(GinkgoLoadingView), findsOneWidget);
-    service.venuesPending.complete(service.venuesResult);
-    await tester.pump();
-    // The remaining section reports inline with a small leaf, not a spinner.
-    final activity = find.descendant(
-      of: find.byKey(const Key('library-bookings-status')),
-      matching: find.byType(GinkgoActivity),
-    );
-    expect(tester.widget<GinkgoActivity>(activity).size, 17);
+    expect(service.venuesPending.isCompleted, isFalse);
     service.bookingsPending.complete(
       const LibraryBookingsResponse(
         bookings: [],
@@ -225,7 +221,24 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('正在读取图书馆…'), findsNothing);
+    expect(find.text('正在读取预约…'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('venue selection loads only after the seat task is opened', (
+    tester,
+  ) async {
+    final service = VisualLibrary()..holdVenues = true;
+    await pump(tester, LibraryPage(service: service));
+    expect(service.venuesPending.isCompleted, isFalse);
+    await tester.tap(find.byKey(const Key('library-find-seats')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(service.venuesPending.isCompleted, isFalse);
+    expect(find.text('正在加载…'), findsOneWidget);
+    service.venuesPending.complete(service.venuesResult);
+    await tester.pumpAndSettle();
+    expect(find.text('合成馆'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -248,6 +261,8 @@ void main() {
       LibraryPage(service: service),
       size: const Size(430, 1400),
     );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('library-find-seats')));
     await tester.pumpAndSettle();
 
     // Ample: a thin, faint bar in the resource color.
@@ -310,11 +325,23 @@ void main() {
     await pump(tester, LibraryPage(service: service));
     await tester.pumpAndSettle();
     expect(headerText('空间资源'), findsOneWidget);
-    expect(headerText('选择场馆、区域与可预约时段'), findsOneWidget);
+    expect(headerText('预约座位、查找书目与管理本人借阅'), findsOneWidget);
     expect(
       find.descendant(
         of: find.byKey(const Key('desktop-page-heading')),
         matching: find.byIcon(CupertinoIcons.book),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const Key('library-find-seats')));
+    await tester.pumpAndSettle();
+    expect(headerText('预约座位'), findsOneWidget);
+    expect(headerText('先选择场馆，再查看开放区域与可预约时段'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('desktop-page-heading')),
+        matching: find.byIcon(CupertinoIcons.rectangle_grid_2x2),
       ),
       findsOneWidget,
     );
@@ -429,7 +456,7 @@ void main() {
       tester
           .widget<GinkgoActivity>(
             find.descendant(
-              of: find.byType(AppleGlassButton),
+              of: find.byType(AppleToolbarButton),
               matching: find.byType(GinkgoActivity),
             ),
           )

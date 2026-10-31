@@ -94,7 +94,7 @@
   <sub>class · features/homework/homework_widgets.dart:99</sub>
     - `const HomeworkDeadlineText({ super.key, required this.item, required this.clock, });`  <sub>:100</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:110</sub>
-- `class HomeworkItemTile extends StatelessWidget` — 作业列表项：标题、截止信息、课程与教师。
+- `class HomeworkItemTile extends StatelessWidget` — 作业列表项：标题、截止信息与课程；教师信息位于详情页。
   <sub>class · features/homework/homework_widgets.dart:151</sub>
     - `const HomeworkItemTile({ super.key, required this.item, required this.clock, required this.onTap, });`  <sub>:152</sub>
     - `Widget build(BuildContext context) => …`  <sub>:164</sub>

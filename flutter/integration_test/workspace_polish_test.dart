@@ -12,7 +12,6 @@ import 'package:ginkgo_mirror/workspace/more_page.dart';
 import 'ios_visual_refinement_test.dart' show VisualService;
 import 'support.dart' show platformActions, settle, show;
 
-
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
@@ -45,12 +44,12 @@ void main() {
         await tester.pumpWidget(
           ginkgoApp(
             preferences: settings,
-            home: TodayPage(fileActions: platformActions,
+            home: TodayPage(
+              fileActions: platformActions,
               service: service,
               storageRoot: '/synthetic-visual-only',
               accountId: 'synthetic-demo',
               now: () => DateTime.utc(2026, 10, 22, 1, 40),
-              onOpenSettings: () {},
               onOpenFeature: (_) {},
             ),
           ),
@@ -68,6 +67,7 @@ void main() {
               destinations: workspaceDestinations,
               accountId: 'synthetic-demo',
               onSignOut: () async {},
+              openFeature: (_) {},
             ),
           ),
         );
@@ -90,7 +90,8 @@ void main() {
         await tester.pumpWidget(
           ginkgoApp(
             preferences: settings,
-            home: TasksPage(fileActions: platformActions,
+            home: TasksPage(
+              fileActions: platformActions,
               service: service,
               academicService: service,
               storageRoot: '/synthetic-visual-only',

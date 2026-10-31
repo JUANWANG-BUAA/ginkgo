@@ -41,9 +41,10 @@ class AppleRefreshPageHeader extends StatelessWidget {
     border: null,
     trailing: refreshLabel == null
         ? null
-        : AppleGlassButton(
+        : AppleToolbarButton(
             key: refreshKey,
             label: refreshLabel!,
+            busy: busy,
             onPressed: busy || onRefresh == null ? null : () => onRefresh!(),
             child: busy
                 ? const GinkgoActivity(size: 17)

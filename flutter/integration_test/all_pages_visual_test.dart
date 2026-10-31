@@ -571,6 +571,17 @@ void main() {
           );
           await settle(tester, frames: 40);
         }
+        if (route.id == 'library-loans') {
+          expect(
+            find.byKey(const Key('library-loans-read')),
+            findsNothing,
+            reason: 'the first read is offered in the page content',
+          );
+          expect(
+            find.byKey(const Key('library-loans-first-read')),
+            findsOneWidget,
+          );
+        }
         await capture('${route.id}-$mode${largeText ? '-large' : ''}');
       }
     }

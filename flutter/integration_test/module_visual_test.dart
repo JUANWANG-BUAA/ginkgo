@@ -277,7 +277,8 @@ void main() {
       );
       await capture('homework-files-$mode');
       await show(LibraryLoansPage(gateway: demo), dark);
-      await tester.tap(find.byKey(const Key('library-loans-read')));
+      await tester.tap(find.byKey(const Key('library-loans-first-read')));
+      await settle(tester);
       await capture('loans-$mode');
       await show(LibraryBooksPage(service: PublicBooks()), dark);
       await capture('books-$mode');

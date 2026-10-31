@@ -40,8 +40,8 @@
 
 - `class ScheduleCourseDetailPage extends StatelessWidget` — The pushed course detail page.
   <sub>class · features/schedule/schedule_course_detail.dart:12</sub>
-    - `const ScheduleCourseDetailPage({ super.key, required this.course, required this.termName, required this.weekNumber, required this.week, required this.dayTitle, });`  <sub>:13</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:28</sub>
+    - `const ScheduleCourseDetailPage({ super.key, required this.course, required this.termName, required this.weekNumber, required this.week, required this.dayTitle, this.onOpenCheckIn, });`  <sub>:13</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:30</sub>
 
 ## features/schedule/schedule_day_strip.dart
 
@@ -74,8 +74,8 @@
 
 - `class SchedulePage extends StatefulWidget`
   <sub>class · features/schedule/schedule_page.dart:16</sub>
-    - `const SchedulePage({super.key, required this.service});`  <sub>:17</sub>
-    - `State<SchedulePage> createState() => …`  <sub>:20</sub>
+    - `const SchedulePage({super.key, required this.service, this.onOpenCheckIn});`  <sub>:17</sub>
+    - `State<SchedulePage> createState() => …`  <sub>:21</sub>
 
 ## features/schedule/schedule_style.dart
 

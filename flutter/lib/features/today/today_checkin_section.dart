@@ -47,6 +47,15 @@ class TodayCheckInSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final data = section.value;
     final courses = pendingCourses(data);
+    final pendingCount =
+        data?.courses
+            .where(
+              (course) =>
+                  course.status == CheckInStatus.notSigned ||
+                  course.status == CheckInStatus.unknown,
+            )
+            .length ??
+        0;
     if (data == null) {
       return TodayVisualSection(
         key: const Key('today-checkin'),
@@ -68,6 +77,9 @@ class TodayCheckInSection extends StatelessWidget {
     final signed = data.courses
         .where((course) => course.status == CheckInStatus.signed)
         .length;
+    if (courses.isEmpty && section.error == null && !section.loading) {
+      return const SizedBox.shrink();
+    }
     return TodayVisualSection(
       key: const Key('today-checkin'),
       header: TodaySectionHeader(
@@ -76,11 +88,8 @@ class TodayCheckInSection extends StatelessWidget {
         actionLabel: '全部',
         onAction: onOpen,
       ),
-      footer: Text(
-        '签到状态来自学校系统 · ${data.date}',
-      ),
+      footer: Text('签到状态来自学校系统 · ${data.date}'),
       children: [
-        SummaryLine('已确认签到', '$signed / ${data.courses.length}'),
         if (section.error != null)
           SectionFeedback(
             loading: section.loading,
@@ -94,9 +103,7 @@ class TodayCheckInSection extends StatelessWidget {
             title: data.courses.isEmpty
                 ? '今天没有可签到的课程'
                 : '已确认 $signed/${data.courses.length} 场签到',
-            subtitle: data.courses.isEmpty
-                ? '课程开始后才会出现签到入口。'
-                : '没有待签到的场次。',
+            subtitle: data.courses.isEmpty ? '课程开始后才会出现签到入口。' : '没有待签到的场次。',
             onTap: onOpen,
           )
         else
@@ -111,6 +118,12 @@ class TodayCheckInSection extends StatelessWidget {
               trailing: chip(course.status),
               onTap: onOpen,
             ),
+        if (pendingCount > courses.length)
+          TodayActionRow(
+            summary: true,
+            title: '另有 ${pendingCount - courses.length} 场待确认',
+            onTap: onOpen,
+          ),
       ],
     );
   }

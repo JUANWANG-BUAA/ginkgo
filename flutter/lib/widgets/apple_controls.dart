@@ -1,17 +1,12 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_surfaces.dart';
 
-/// Presents the options with the system action sheet.
+/// Presents a discrete choice with the system action sheet.
 ///
-/// A short list — a term, a campus, a slot — uses the system sheet: the
-/// options scroll with the page, the current choice is announced, and the
-/// dismissal is the system one. The previous hand drawn glass overlay is
-/// gone; the sheet needs no anchor, no safe area maths and no tab bar
-/// avoidance.
+/// The sheet owns scrolling and dismissal. Ordered, long choices opt into
+/// [chooseWheel] at the call site based on their meaning, never item count.
 Future<T?> choose<T>(
   BuildContext context,
   String title,
@@ -20,9 +15,6 @@ Future<T?> choose<T>(
   T? selected,
 }) {
   if (values.isEmpty) return Future<T?>.value();
-  if (values.length > 8) {
-    return chooseWheel<T>(context, title, values, label, selected: selected);
-  }
   return showCupertinoModalPopup<T>(
     context: context,
     builder: (sheetContext) => CupertinoActionSheet(
@@ -154,32 +146,33 @@ Future<T?> chooseWheel<T>(
   );
 }
 
-class AppleGlassButton extends StatefulWidget {
-  const AppleGlassButton({
+class AppleToolbarButton extends StatelessWidget {
+  const AppleToolbarButton({
     super.key,
     required this.child,
     required this.onPressed,
     required this.label,
+    this.busy = false,
   });
   final Widget child;
   final VoidCallback? onPressed;
   final String label;
-  @override
-  State<AppleGlassButton> createState() => _AppleGlassButtonState();
-}
-
-class _AppleGlassButtonState extends State<AppleGlassButton> {
-  bool pressed = false;
+  final bool busy;
   @override
   Widget build(BuildContext context) {
     if (AppleDesign.desktop(context)) {
       return Semantics(
-        label: widget.label,
+        container: true,
+        label: label,
+        value: busy ? '正在更新' : null,
         button: true,
+        enabled: onPressed != null,
+        onTap: onPressed,
+        excludeSemantics: true,
         child: CupertinoButton(
           padding: const EdgeInsets.all(8),
           minimumSize: const Size(48, 48),
-          onPressed: widget.onPressed,
+          onPressed: onPressed,
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: CupertinoColors.secondarySystemGroupedBackground
@@ -198,7 +191,7 @@ class _AppleGlassButtonState extends State<AppleGlassButton> {
               child: Center(
                 child: IconTheme.merge(
                   data: const IconThemeData(size: 19),
-                  child: widget.child,
+                  child: child,
                 ),
               ),
             ),
@@ -206,58 +199,30 @@ class _AppleGlassButtonState extends State<AppleGlassButton> {
         ),
       );
     }
-    final opaque =
-        MediaQuery.highContrastOf(context) ||
-        MediaQuery.disableAnimationsOf(context);
-    final surface = CupertinoColors.secondarySystemGroupedBackground
-        .resolveFrom(context);
     return Semantics(
-      label: widget.label,
+      container: true,
+      label: label,
+      value: busy ? '正在更新' : null,
       button: true,
-      child: Listener(
-        onPointerDown: widget.onPressed == null
-            ? null
-            : (_) => setState(() => pressed = true),
-        onPointerUp: (_) => setState(() => pressed = false),
-        onPointerCancel: (_) => setState(() => pressed = false),
-        child: AnimatedScale(
-          scale: pressed && !MediaQuery.disableAnimationsOf(context) ? 0.94 : 1,
-          duration: AppleDesign.duration(context, pressed ? 90 : 260),
-          curve: pressed ? Curves.easeOut : Curves.easeOutBack,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xff000000).withValues(alpha: 0.06),
-                  blurRadius: 12,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: ClipOval(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: opaque ? 0 : 16,
-                  sigmaY: opaque ? 0 : 16,
-                ),
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: surface.withValues(alpha: opaque ? 1 : 0.72),
-                    border: Border.all(
-                      color: CupertinoColors.white.withValues(alpha: 0.5),
-                      width: 0.7,
-                    ),
-                  ),
-                  child: CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: widget.onPressed,
-                    child: widget.child,
-                  ),
-                ),
+      enabled: onPressed != null,
+      onTap: onPressed,
+      excludeSemantics: true,
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        minimumSize: const Size(48, 48),
+        onPressed: onPressed,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
+          ),
+          child: SizedBox(
+            width: 48,
+            height: 48,
+            child: Center(
+              child: IconTheme.merge(
+                data: const IconThemeData(size: 20),
+                child: child,
               ),
             ),
           ),
@@ -276,6 +241,7 @@ class ApplePickerTile<T> extends StatelessWidget {
     required this.label,
     required this.onSelected,
     this.enabled = true,
+    this.useWheel = false,
   });
   final String title;
   final T value;
@@ -283,6 +249,7 @@ class ApplePickerTile<T> extends StatelessWidget {
   final String Function(T) label;
   final void Function(T) onSelected;
   final bool enabled;
+  final bool useWheel;
   @override
   Widget build(BuildContext context) => Builder(
     builder: (anchorContext) => AppleListTile(
@@ -305,13 +272,21 @@ class ApplePickerTile<T> extends StatelessWidget {
       onTap: !enabled
           ? null
           : () async {
-              final selected = await choose(
-                anchorContext,
-                title,
-                values,
-                label,
-                selected: value,
-              );
+              final selected = useWheel
+                  ? await chooseWheel(
+                      anchorContext,
+                      title,
+                      values,
+                      label,
+                      selected: value,
+                    )
+                  : await choose(
+                      anchorContext,
+                      title,
+                      values,
+                      label,
+                      selected: value,
+                    );
               if (selected != null && context.mounted) {
                 onSelected(selected);
               }

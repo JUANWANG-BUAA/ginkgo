@@ -36,12 +36,11 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     icon: CupertinoIcons.sun_max,
     section: WorkspaceSection.workbench,
     mobileTab: 0,
-    build: (context) => TodayPage(fileActions: context.platformActions,
+    build: (context) => TodayPage(
+      fileActions: context.platformActions,
       service: context.service,
       accountName: context.accountName,
       accountId: context.accountId,
-      onAccountAction: context.onSignOut,
-      onOpenSettings: context.openSettings,
       onOpenFeature: context.openFeature,
     ),
   ),
@@ -50,8 +49,10 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     title: '待办',
     icon: CupertinoIcons.list_bullet,
     section: WorkspaceSection.workbench,
-    build: (context) =>
-        TasksPage(fileActions: context.platformActions,service: context.service),
+    build: (context) => TasksPage(
+      fileActions: context.platformActions,
+      service: context.service,
+    ),
   ),
   WorkspaceDestination(
     id: 'checkin',
@@ -66,7 +67,10 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     icon: CupertinoIcons.calendar,
     section: WorkspaceSection.academics,
     mobileTab: 1,
-    build: (context) => SchedulePage(service: context.service),
+    build: (context) => SchedulePage(
+      service: context.service,
+      onOpenCheckIn: () => context.openFeature('checkin'),
+    ),
   ),
   WorkspaceDestination(
     id: 'grades',
@@ -82,15 +86,21 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     icon: CupertinoIcons.doc_text,
     section: WorkspaceSection.academics,
     mobileTab: 2,
-    build: (context) => HomeworkPage(fileActions: context.platformActions,service: context.service),
+    build: (context) => HomeworkPage(
+      fileActions: context.platformActions,
+      service: context.service,
+    ),
   ),
   WorkspaceDestination(
     id: 'learning',
     title: 'SPOC 学习',
     icon: CupertinoIcons.book_circle,
     section: WorkspaceSection.academics,
-    build: (context) =>
-        LearningPage(fileActions: context.platformActions,service: context.service, accountId: context.accountId),
+    build: (context) => LearningPage(
+      fileActions: context.platformActions,
+      service: context.service,
+      accountId: context.accountId,
+    ),
   ),
   WorkspaceDestination(
     id: 'bykc',
@@ -137,7 +147,10 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     title: '图书馆',
     icon: CupertinoIcons.book,
     section: WorkspaceSection.spaces,
-    build: (context) => LibraryPage(service: context.service),
+    build: (context) => LibraryPage(
+      service: context.service,
+      onOpenLoans: () => context.openFeature('library-loans'),
+    ),
     mobileTab: 3,
   ),
   WorkspaceDestination(
@@ -171,8 +184,7 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     title: '校园通知',
     icon: CupertinoIcons.news_solid,
     section: WorkspaceSection.campus,
-    build: (context) =>
-        NoticesPage(service: context.service),
+    build: (context) => NoticesPage(service: context.service),
   ),
   WorkspaceDestination(
     id: 'career-events',
@@ -210,6 +222,7 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
       destinations: workspaceDestinations,
       accountName: context.accountName,
       accountId: context.accountId,
+      openFeature: context.openFeature,
       route: context.route,
       onSignOut: context.onSignOut ?? () async {},
     ),
@@ -220,7 +233,8 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     icon: CupertinoIcons.gear_alt,
     sidebar: false,
     footer: true,
-    build: (context) => SettingsPage(maintenance: context.platformActions.maintenance,
+    build: (context) => SettingsPage(
+      maintenance: context.platformActions.maintenance,
       service: context.service,
       accountName: context.accountName,
       accountId: context.accountId,

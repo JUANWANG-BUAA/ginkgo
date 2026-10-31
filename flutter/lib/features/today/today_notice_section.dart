@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/notices.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
-import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
 import 'today_action_row.dart';
@@ -27,6 +26,9 @@ class TodayNoticeSection extends StatelessWidget {
     final data = section.value;
     final notices = data?.data ?? const <Notice>[];
     if (data == null) {
+      if (!section.loading && section.error == null) {
+        return const SizedBox.shrink();
+      }
       return TodayVisualSection(
         key: const Key('today-notices'),
         header: const TodaySectionHeader(
@@ -44,6 +46,9 @@ class TodayNoticeSection extends StatelessWidget {
         ],
       );
     }
+    if (notices.isEmpty && section.error == null && !section.loading) {
+      return const SizedBox.shrink();
+    }
     return TodayVisualSection(
       key: const Key('today-notices'),
       header: TodaySectionHeader(
@@ -54,7 +59,6 @@ class TodayNoticeSection extends StatelessWidget {
       ),
       footer: const Text('通知来自学校公告，发布时间不是个人截止时间。'),
       children: [
-        SummaryLine('最新通知', '${notices.length} 条'),
         if (section.error != null)
           SectionFeedback(
             loading: section.loading,
@@ -73,6 +77,12 @@ class TodayNoticeSection extends StatelessWidget {
               subtitle: notice.publishedAt,
               onTap: onOpen,
             ),
+        if (notices.length > 3)
+          TodayActionRow(
+            summary: true,
+            title: '另有 ${notices.length - 3} 条通知',
+            onTap: onOpen,
+          ),
       ],
     );
   }

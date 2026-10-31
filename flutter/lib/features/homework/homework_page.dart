@@ -204,8 +204,9 @@ class _HomeworkPageState extends State<HomeworkPage> {
             subtitle: '区分个人作业状态与助教课程',
             icon: CupertinoIcons.doc_text,
             border: null,
-            trailing: AppleGlassButton(
+            trailing: AppleToolbarButton(
               label: '刷新作业',
+              busy: busy,
               onPressed: busy ? null : () => load(force: true),
               child: busy
                   ? const GinkgoActivity(size: 17)
@@ -264,26 +265,54 @@ class _HomeworkPageState extends State<HomeworkPage> {
       ),
     if (range != null && data.items.isNotEmpty)
       SliverToBoxAdapter(
-        child: AppleSection(
-          children: [
-            AppleListTile(
-              title: const Text('我的课程范围'),
-              subtitle: const Text('管理学生课程与助教 / 教师课程'),
-              trailing: const CupertinoListTileChevron(),
-              onTap: () => Navigator.of(context).push(
-                CupertinoPageRoute<void>(
-                  builder: (_) => CourseRangePage(
-                    preferences: range!,
-                    system: 'spoc',
-                    courses: {
-                      for (final item in data.items)
-                        item.courseId ?? item.id: item.courseName,
-                    },
-                  ),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.only(
+            start: GinkgoSpacing.pageInset,
+            top: GinkgoSpacing.xs,
+            end: GinkgoSpacing.pageInset,
+          ),
+          child: CupertinoButton(
+            key: const Key('homework-course-range'),
+            padding: const EdgeInsets.symmetric(
+              horizontal: GinkgoSpacing.sm,
+              vertical: GinkgoSpacing.xs,
+            ),
+            minimumSize: const Size(48, 48),
+            alignment: Alignment.centerLeft,
+            onPressed: () => Navigator.of(context).push(
+              CupertinoPageRoute<void>(
+                builder: (_) => CourseRangePage(
+                  preferences: range!,
+                  system: 'spoc',
+                  courses: {
+                    for (final item in data.items)
+                      item.courseId ?? item.id: item.courseName,
+                  },
                 ),
               ),
             ),
-          ],
+            child: Row(
+              children: [
+                Icon(
+                  CupertinoIcons.slider_horizontal_3,
+                  size: 18,
+                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '管理课程范围',
+                    style: TextStyle(
+                      color: CupertinoColors.secondaryLabel.resolveFrom(
+                        context,
+                      ),
+                    ),
+                  ),
+                ),
+                const CupertinoListTileChevron(),
+              ],
+            ),
+          ),
         ),
       ),
     if (data.items.any((item) => item.courseRole == 'assistant'))
@@ -304,18 +333,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
           ],
         ),
       ),
-    SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-        child: Text(
-          '学校状态与个人待办独立 · 截止时间按北京时间显示',
-          style: TextStyle(
-            fontSize: 13,
-            color: CupertinoColors.secondaryLabel.resolveFrom(context),
-          ),
-        ),
-      ),
-    ),
     SliverToBoxAdapter(
       key: const Key('homework-status-summary'),
       child: Padding(
@@ -474,7 +491,9 @@ class _HomeworkPageState extends State<HomeworkPage> {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
         child: Text(
-          widget.service.isDemo ? '演示数据 · 截止时间为北京时间' : '来源：SPOC · 截止时间为北京时间',
+          widget.service.isDemo
+              ? '演示数据 · 学校状态与个人待办独立 · 截止按北京时间'
+              : '来源：SPOC · 学校状态与个人待办独立 · 截止按北京时间',
           style: TextStyle(
             fontSize: 12,
             color: CupertinoColors.secondaryLabel.resolveFrom(context),

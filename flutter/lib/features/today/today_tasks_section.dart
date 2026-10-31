@@ -60,6 +60,15 @@ class TodayTasksSection extends StatelessWidget {
     final undated = pending
         .where((task) => todayDue(task.due) == null)
         .toList();
+    final visible = [...dated, ...undated].take(3).toList(growable: false);
+    if (data != null &&
+        pending.isEmpty &&
+        linked.isEmpty &&
+        completed.isEmpty &&
+        section.error == null &&
+        !section.loading) {
+      return const SizedBox.shrink();
+    }
 
     return TodayVisualSection(
       key: const Key('today-tasks'),
@@ -87,26 +96,30 @@ class TodayTasksSection extends StatelessWidget {
             onRetry: onRetry,
           ),
         if (data != null) ...[
-          TodayActionRow(
-            key: const Key('today-open-tasks'),
-            summary: true,
-            title: pending.isEmpty
-                ? (section.error != null ? '待办状态尚未确认' : '当前没有未完成待办')
-                : '${pending.length} 项个人待办',
-            subtitle: section.error != null
-                ? '显示上次读取结果，请重试确认。'
-                : '打开待办，继续安排自己的事项',
-            onTap: () => onOpen(null),
-          ),
-          if (dated.isNotEmpty) ...[
-            _row(context, dated.first, isPriority: true),
-            for (final task in dated.skip(1).take(2)) _row(context, task),
-          ],
-          if (undated.isNotEmpty) ...[
-            const TodayActionRow(title: '未设截止 / 时间待确认', caption: true),
-            for (final (index, task) in undated.take(2).indexed)
-              _row(context, task, isPriority: dated.isEmpty && index == 0),
-          ],
+          if (pending.isEmpty)
+            TodayActionRow(
+              key: const Key('today-open-tasks'),
+              summary: true,
+              title: section.error != null ? '待办状态尚未确认' : '当前没有未完成待办',
+              subtitle: section.error != null
+                  ? '显示上次读取结果，请重试确认。'
+                  : '打开待办，查看已完成事项',
+              onTap: () => onOpen(null),
+            ),
+          if (pending.isNotEmpty && section.error != null)
+            const TodayActionRow(
+              summary: true,
+              title: '保留上次读取的待办',
+              subtitle: '显示上次读取结果，请重试确认。',
+            ),
+          for (final (index, task) in visible.indexed)
+            _row(context, task, isPriority: index == 0),
+          if (pending.length > visible.length)
+            TodayActionRow(
+              summary: true,
+              title: '另有 ${pending.length - visible.length} 项未完成',
+              onTap: () => onOpen(null),
+            ),
           if (linked.isNotEmpty)
             TodayActionRow(
               key: const Key('today-tasks-linked-note'),
