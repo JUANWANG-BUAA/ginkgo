@@ -51,3 +51,5 @@
 - GitHub 直连回下载速度过慢，改用项目既有第三方备用入口完整取回 APK 和校验文件；APK 与本地候选逐字节 `cmp` 一致，校验文件一致，`shasum -a 256 -c checksums.txt` 通过。慢速重复下载已停止。
 - 功能分支合入 `main` 的合并提交为 `133c322abb8485d8d2cb741aac497d925fb416bc`，已推送。GitHub Pages [部署](https://github.com/JUANWANG-BUAA/ginkgo/actions/runs/41225640955) 成功，线上 HTML 已显示 `0.1.0-beta.4`，APK 与校验文件链接指向新标签。
 - 真实凭据通道、临时真实截图和专用 AVD 已清理；公开 APK 不含账号或个人数据。项目主页只使用离线演示合成素材。
+- [Rust Flutter mirror CI](https://github.com/JUANWANG-BUAA/ginkgo/actions/runs/41225641746) 的 contracts、bindings、Android 与 Windows 全部通过；[macOS CI](https://github.com/JUANWANG-BUAA/ginkgo/actions/runs/41225641777) 通过。
+- [iOS workflow](https://github.com/JUANWANG-BUAA/ginkgo/actions/runs/41225847916) 首次在 `GinkgoSmokeUITests.testLoginScreenSupportsBasicInput()` 失败；未修改冻结 Apple 源码，重跑同一失败 job 后通过。该结果表明输入时序可能波动，不把一次重跑写成永久消除此类环境问题。
