@@ -42,3 +42,10 @@
 - 包名 `cn.edu.buaa.ginkgo.ginkgo_mirror`，`versionName=0.1.0-beta.4`、`versionCode=14`，仅 `arm64-v8a`，非 debuggable；生产 `GeneratedPluginRegistrant.java` 不含 `integration_test`。`zipalign -c -P 16 -v 4` 与 `apksigner verify` 通过。
 - 签名证书 SHA-256 `451748b957b44d5a28ebcc967cc2aeec7e7bea6a13d9edcb021c9fd8dc7fb245`，与既有 Android 发布证书一致。
 - 在隔离 API 37 模拟器覆盖安装该 Release 后，正常入口实际启动到 Ginkgo 登录页，不是 integration_test 等待页；未进行 Beta.3 → Beta.4 数据保留专项验收。
+
+## 标签、公开资产与回下载
+
+- 源码提交 `94ef91b9cefca5cfd52fbfe9e2227f8103474d0b` 与候选证据提交 `d9239139b51eda0b754873cb7df470c47a4399a2` 已推送；annotated tag `android-v0.1.0-beta.4` 指向后者。
+- [Android Release workflow](https://github.com/JUANWANG-BUAA/ginkgo/actions/runs/41224215855) 在 Materialize external signing configuration 因仓库未配置四个 Android 签名 secrets 而 fail closed，构建与上传步骤未运行；公开资产使用上述本机同证书候选，没有降低签名要求。
+- [GitHub Beta prerelease](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.4) 已公开，`draft=false`、`prerelease=true`。APK 和 `checksums.txt` 均为 uploaded；API 返回 APK 大小 43,841,645 字节及 SHA-256 `4a29b4a808f5f95ff32f7131946bd2995c03ce774e34aca85572153e6075d178`，与本地一致。
+- GitHub 直连回下载速度过慢，改用项目既有第三方备用入口完整取回 APK 和校验文件；APK 与本地候选逐字节 `cmp` 一致，校验文件一致，`shasum -a 256 -c checksums.txt` 通过。慢速重复下载已停止。
