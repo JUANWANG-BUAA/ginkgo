@@ -34,3 +34,11 @@
 物理 Android 设备、实际 TalkBack、Windows 主机、Release 覆盖升级、真实学校写入及完整 live 末段仍未完成。真实账号测试产生的临时截图、测试包和专用模拟器在验收后清理；仓库不保存密码、Cookie、票据、原始响应或未脱敏个人信息。
 
 发布资产、签名、tag、工作流和公开回下载结果见下方追加记录。
+
+## 本地 Release 候选
+
+- `flutter build apk --release --target-platform android-arm64 --target lib/main.dart --pub` 使用本机既有外部签名配置成功，未回退 Debug 签名。
+- 候选 `artifacts/local/android-beta4/Ginkgo-0.1.0-beta.4-android-arm64.apk`：43,841,645 字节，SHA-256 `4a29b4a808f5f95ff32f7131946bd2995c03ce774e34aca85572153e6075d178`。
+- 包名 `cn.edu.buaa.ginkgo.ginkgo_mirror`，`versionName=0.1.0-beta.4`、`versionCode=14`，仅 `arm64-v8a`，非 debuggable；生产 `GeneratedPluginRegistrant.java` 不含 `integration_test`。`zipalign -c -P 16 -v 4` 与 `apksigner verify` 通过。
+- 签名证书 SHA-256 `451748b957b44d5a28ebcc967cc2aeec7e7bea6a13d9edcb021c9fd8dc7fb245`，与既有 Android 发布证书一致。
+- 在隔离 API 37 模拟器覆盖安装该 Release 后，正常入口实际启动到 Ginkgo 登录页，不是 integration_test 等待页；未进行 Beta.3 → Beta.4 数据保留专项验收。
