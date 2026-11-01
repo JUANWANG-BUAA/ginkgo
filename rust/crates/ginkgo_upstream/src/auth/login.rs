@@ -118,9 +118,6 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
             current_url = LOGIN_URL.to_string();
             continue;
         }
-        if let Some(message) = cas::extract_error_text(&response.body) {
-            return Err(AppError::with_detail(ErrorCode::PreLoginTip, message));
-        }
         if let Some(execution) = cas::extract_execution(&response.body) {
             // The school re-renders this page when it wants a captcha. Treating
             // it as a wrong password hides the only path the user has.
@@ -136,6 +133,12 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
                 }));
             }
             return Err(AppError::new(ErrorCode::InvalidCredentials));
+        }
+        // A tip with no answerable page is a dead end; report it after the
+        // captcha branch so a wrong answer can be retried instead of ending
+        // the sign-in.
+        if let Some(message) = cas::extract_error_text(&response.body) {
+            return Err(AppError::with_detail(ErrorCode::PreLoginTip, message));
         }
         return Ok(None);
     }

@@ -11,7 +11,7 @@
 - [challenge](#challenge) (1)
 - [iclass](#iclass) (1)
 - [login](#login) (3)
-- [mod](#mod) (12)
+- [mod](#mod) (13)
 - [android_vault](#androidvault) (2)
 - [keyring_vault](#keyringvault) (2)
 - [mod](#mod) (2)
@@ -68,7 +68,7 @@
 - `pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>( session: &Session<T>, mut response: HttpResponse, mut current_url: String, ) -> Result<Option<LoginPage>, AppError> {…}` — Follow up to ten redirects, classifying each hop before requesting the
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:60</sub>
 - `pub(crate) fn validate_login_action(action: &str) -> Result<(), AppError> {…}` — The password POST target must be the documented CAS endpoint over HTTPS on
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:148</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:151</sub>
 
 ## mod
 
@@ -99,10 +99,12 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:82</sub>
 - `pub async fn complete_login<T: HttpTransport>( session: &Session<T>, credentials: &Credentials, page: LoginPage, ) -> Result<LoginResult, AppError> {…}` — Finish a login from an already fetched page. Keeping the page lets a
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:93</sub>
+- `pub(crate) fn directory_unavailable(error: &AppError) -> bool {…}` — The directory answers 5xx / nothing / something unparseable when it is
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:221</sub>
 - `pub async fn login_with_store<T: HttpTransport, C: CredentialSource + ?Sized>( session: &Session<T>, store: &C, account: &str, ) -> Result<LoginResult, AppError> {…}` — Load credentials from the platform vault, then log in. This is the only
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:203</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:230</sub>
 - `pub async fn establish_webvpn_session<T: HttpTransport>( session: &Session<T>, credentials: &Credentials, ) -> Result<(), AppError> {…}` — Explicitly establish a WebVPN session before routed campus traffic. The
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:214</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:241</sub>
 
 ## android_vault
 

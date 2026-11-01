@@ -266,6 +266,23 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                 // than rebinding the profile of a different login.
                 Ok(_) => self.clear_identity(),
                 Err(error) if error.code == ErrorCode::SessionExpired => {}
+                // The directory being unreachable says nothing about the
+                // school session: keep the saved identity instead of forcing
+                // the user back to the login page.
+                Err(error) if auth::directory_unavailable(&error) => {
+                    let profile = self
+                        .identity
+                        .lock()
+                        .authenticated
+                        .as_ref()
+                        .map(|user| user.profile.clone());
+                    if let Some(profile) = profile {
+                        return Ok(SessionOutcome::SignedIn {
+                            profile,
+                            remembered: true,
+                        });
+                    }
+                }
                 Err(error) => return Err(error),
             }
         }

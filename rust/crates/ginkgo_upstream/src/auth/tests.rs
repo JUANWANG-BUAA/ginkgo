@@ -295,7 +295,7 @@ async fn wrong_credentials_return_a_typed_error() {
 }
 
 #[tokio::test]
-async fn uc_server_error_is_transient_and_keeps_cookies() {
+async fn uc_server_error_does_not_fail_a_valid_login() {
     let transport = MockTransport::with_responses(vec![
         login_page(),
         HttpResponse::new(302, LOGIN_URL, "")
@@ -310,13 +310,16 @@ async fn uc_server_error_is_transient_and_keeps_cookies() {
         HttpResponse::new(500, UC_STATUS_URL, "temporary"),
     ]);
     let session = Session::new(transport);
-    assert_eq!(
-        login(&session, &credentials())
-            .await
-            .expect_err("temporary")
-            .code,
-        ErrorCode::ServiceUnavailable
-    );
+    match login(&session, &credentials())
+        .await
+        .expect("the ticket is valid")
+    {
+        LoginResult::SignedIn(user) => {
+            assert_eq!(user.school_id, "sy2501001");
+            assert!(user.name.is_empty(), "the directory had nothing to say");
+        }
+        LoginResult::CaptchaRequired { .. } => panic!("no challenge here"),
+    }
     assert!(session.direct_cookie_present());
 }
 

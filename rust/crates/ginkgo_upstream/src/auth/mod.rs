@@ -95,6 +95,10 @@ pub async fn complete_login<T: HttpTransport>(
     credentials: &Credentials,
     page: LoginPage,
 ) -> Result<LoginResult, AppError> {
+    // Only a session this call created by posting the credentials may fall
+    // back to the submitted account when the directory is unavailable: a
+    // pre-existing cookie session was never proven to belong to that account.
+    let submitted_credentials = matches!(page, LoginPage::Form { .. });
     if credentials.username.trim().is_empty() || credentials.password.is_empty() {
         return Err(AppError::invalid());
     }
@@ -179,23 +183,46 @@ pub async fn complete_login<T: HttpTransport>(
             }
         }
     }
-    activate_uc(session).await?;
-    let user = validate_session(session).await?;
-    // The published identity must belong to the submitted account. A
-    // pre-existing cookie session for another login (for example an
-    // ExistingSession hop after a failed restore) must never be bound to the
-    // entered username, so the foreign cookies are dropped here.
-    if !user
-        .school_id
-        .eq_ignore_ascii_case(credentials.username.trim())
-    {
-        session.clear_cookies();
-        return Err(AppError::with_detail(
-            ErrorCode::SessionExpired,
-            "identity_mismatch",
-        ));
+    let submitted = credentials.username.trim().to_owned();
+    // UC is a directory lookup, not the login itself. Off campus it can be
+    // unreachable while the CAS ticket is perfectly valid, so an unavailable
+    // directory degrades to the submitted account instead of failing sign-in.
+    // A real identity mismatch still aborts.
+    match activate_uc(session).await {
+        Ok(()) => match validate_session(session).await {
+            Ok(user) => {
+                // The published identity must belong to the submitted
+                // account. A pre-existing cookie session for another login
+                // (for example an ExistingSession hop after a failed restore)
+                // must never be bound to the entered username.
+                if !user.school_id.eq_ignore_ascii_case(&submitted) {
+                    session.clear_cookies();
+                    return Err(AppError::with_detail(
+                        ErrorCode::SessionExpired,
+                        "identity_mismatch",
+                    ));
+                }
+                return Ok(LoginResult::SignedIn(user));
+            }
+            Err(error) if directory_unavailable(&error) && submitted_credentials => {}
+            Err(error) => return Err(error),
+        },
+        Err(error) if directory_unavailable(&error) && submitted_credentials => {}
+        Err(error) => return Err(error),
     }
-    Ok(LoginResult::SignedIn(user))
+    Ok(LoginResult::SignedIn(UserProfile {
+        school_id: submitted,
+        name: String::new(),
+    }))
+}
+
+/// The directory answers 5xx / nothing / something unparseable when it is
+/// simply not reachable from this network. That is not a login verdict.
+pub(crate) fn directory_unavailable(error: &AppError) -> bool {
+    matches!(
+        error.code,
+        ErrorCode::ServiceUnavailable | ErrorCode::NetworkUnreachable | ErrorCode::ChangedResponse
+    )
 }
 
 /// Load credentials from the platform vault, then log in. This is the only

@@ -169,8 +169,13 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         busy = false;
         needCaptcha = response.state == SessionState.captchaRequired;
+        // The school's own reason ("验证码错误", "账号已锁定") is more useful
+        // than a generic line and is already stripped of markup upstream.
+        final detail = response.failureDetail?.trim();
         error = needCaptcha
             ? '学校本次登录要求验证码，请输入验证码后继续'
+            : detail != null && detail.isNotEmpty
+            ? detail
             : response.failure == null
             ? '登录未完成，请重试'
             : failureMessage(response.failure);
@@ -440,7 +445,7 @@ class _LoginPageState extends State<LoginPage> {
               image: true,
               child: Image.memory(
                 current.image,
-                height: 44,
+                height: 72,
                 alignment: Alignment.centerLeft,
                 fit: BoxFit.contain,
                 errorBuilder: (_, _, _) => Text(
