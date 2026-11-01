@@ -19,7 +19,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('预约研讨室'), findsOneWidget);
+    // The page title already names it; the stray caption was removed.
+    expect(find.text('可用场馆'), findsOneWidget);
     expect(find.text('我的预约记录'), findsOneWidget);
     expect(find.text('门锁密码'), findsOneWidget);
     await tester.tap(find.text('门锁密码'));

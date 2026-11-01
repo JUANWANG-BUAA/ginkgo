@@ -129,16 +129,6 @@ class _CgyyPageState extends State<CgyyPage> {
           CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
           SliverList.list(
             children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(24, 12, 24, 0),
-                child: Text(
-                  '预约研讨室',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: CupertinoColors.secondaryLabel,
-                  ),
-                ),
-              ),
               if (section.value != null)
                 SummaryStrip(
                   items: [
