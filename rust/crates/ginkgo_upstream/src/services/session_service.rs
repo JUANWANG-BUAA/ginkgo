@@ -275,7 +275,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 self.school_generation.fetch_add(1, Ordering::Release);
                 Ok(())
             }
-            Ok(LoginResult::CaptchaRequired(_)) => Err(AppError::new(ErrorCode::CaptchaRequired)),
+            Ok(LoginResult::CaptchaRequired { .. }) => {
+                Err(AppError::new(ErrorCode::CaptchaRequired))
+            }
             Err(error) => Err(error),
         };
         self.record_automatic_login_result(&result);

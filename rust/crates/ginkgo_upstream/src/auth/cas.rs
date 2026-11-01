@@ -66,8 +66,11 @@ pub fn captcha_image_url(id: &str) -> String {
 
 /// Only the documented local image/text form is understood. Other challenge
 /// interaction protocols must not be guessed from a free-form type string.
+/// The `type` string is informational: every advertised challenge is served
+/// by the same image endpoint and answered with the same two text fields
+/// (API §1.3). A whitelist of one value refused challenges the school serves.
 pub fn text_captcha_supported(challenge: &CaptchaChallenge) -> bool {
-    challenge.captcha_type == "local"
+    !challenge.id.is_empty()
 }
 
 pub fn extract_tip_text(html: &str) -> Option<String> {

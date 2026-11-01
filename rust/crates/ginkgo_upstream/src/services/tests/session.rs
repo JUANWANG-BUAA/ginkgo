@@ -692,6 +692,13 @@ async fn failed_gateway_recovery_is_shared_with_school_recovery() {
         .all(|request| request.url.starts_with("https://d.buaa.edu.cn/")));
 }
 
+fn captcha_image() -> HttpResponse {
+    HttpResponse {
+        bytes: Some(vec![0xff, 0xd8, 0xff, 0x00, 0xff, 0xd9]),
+        ..HttpResponse::new(200, "https://sso.buaa.edu.cn/captcha", "")
+    }
+}
+
 fn local_challenge_page(id: &str, kind: &str) -> HttpResponse {
     HttpResponse::new(
         200,
@@ -704,9 +711,9 @@ fn local_challenge_page(id: &str, kind: &str) -> HttpResponse {
 }
 
 #[tokio::test]
-async fn login_challenge_unknown_type_cannot_submit_and_old_id_cannot_refresh() {
+async fn a_challenge_of_any_type_exposes_its_image_and_old_ids_cannot_refresh() {
     let (service, transport) = build_service(
-        vec![local_challenge_page("cap", "slider")],
+        vec![local_challenge_page("cap", "char"), captcha_image()],
         MemoryVault::default(),
     );
     service
@@ -714,19 +721,12 @@ async fn login_challenge_unknown_type_cannot_submit_and_old_id_cannot_refresh() 
         .await
         .unwrap();
     let challenge = service.login_challenge(Some("cap"), false).await.unwrap();
-    assert!(!challenge.text_supported);
-    assert!(challenge.image.is_empty());
+    assert!(challenge.text_supported, "the type string is only a label");
+    assert!(!challenge.image.is_empty());
     assert!(service.login_challenge(Some("wrong"), true).await.is_err());
-    assert!(matches!(
-        service
-            .sign_in("synthetic", "password", Some("1234"), false)
-            .await
-            .unwrap(),
-        SessionOutcome::CaptchaRequired(_)
-    ));
     service.set_route(RoutePreference::WebVpn);
     assert!(service.login_challenge(Some("cap"), false).await.is_err());
-    assert_eq!(transport.request_count(), 1);
+    assert_eq!(transport.request_count(), 2);
 }
 
 #[tokio::test]
@@ -753,6 +753,7 @@ async fn login_challenge_refresh_replaces_pending_and_old_answer_image_is_reject
         vec![
             local_challenge_page("cap-1", "slider"),
             local_challenge_page("cap-2", "slider"),
+            captcha_image(),
         ],
         MemoryVault::default(),
     );
@@ -764,7 +765,7 @@ async fn login_challenge_refresh_replaces_pending_and_old_answer_image_is_reject
     let next = service.login_challenge(Some("cap-1"), true).await.unwrap();
     assert_eq!(next.challenge_id, "cap-2");
     assert!(service.login_challenge(Some("cap-1"), false).await.is_err());
-    assert_eq!(transport.request_count(), 2);
+    assert_eq!(transport.request_count(), 3);
     assert!(transport
         .requests()
         .iter()

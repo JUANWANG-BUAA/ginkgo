@@ -194,15 +194,16 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                 auth::fetch_login_page(&self.session).await?
             }
         };
-        let retry_page = page.clone();
         match auth::complete_login(&self.session, &credentials, page).await {
-            Ok(LoginResult::CaptchaRequired(challenge)) => {
+            Ok(LoginResult::CaptchaRequired { challenge, page }) => {
                 let mut identity = self.identity.lock();
                 if identity.generation != generation {
                     return Err(AppError::session_expired());
                 }
+                // Keep the page the school just re-rendered: its `execution`
+                // token is the one the answer must be submitted with.
                 identity.pending_login = Some(PendingLogin {
-                    page: retry_page,
+                    page,
                     account: account.to_owned(),
                     generation,
                     created: Instant::now(),
@@ -289,7 +290,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                         remembered: true,
                     });
                 }
-                Ok(LoginResult::CaptchaRequired(challenge)) => {
+                Ok(LoginResult::CaptchaRequired { challenge, page }) => {
                     let mut identity = self.identity.lock();
                     let generation = identity.generation;
                     identity.pending_login = Some(PendingLogin {

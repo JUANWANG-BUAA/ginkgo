@@ -208,11 +208,11 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/native_auth_challenge.dart
 
 - `class NativeAuthChallengeGateway implements AuthChallengeGateway`
-  <sub>class · infrastructure/native_auth_challenge.dart:6</sub>
-    - `const NativeAuthChallengeGateway();`  <sub>:7</sub>
-    - `Future<LoginChallenge> loginChallenge({ String? expectedId, bool refresh = false, }) async {…}`  <sub>:10</sub>
+  <sub>class · infrastructure/native_auth_challenge.dart:8</sub>
+    - `const NativeAuthChallengeGateway();`  <sub>:9</sub>
+    - `Future<LoginChallenge> loginChallenge({ String? expectedId, bool refresh = false, }) async {…}`  <sub>:12</sub>
 - `LoginChallenge decodeLoginChallenge(live.LoginChallengeResponse response) {…}`
-  <sub>function · infrastructure/native_auth_challenge.dart:21</sub>
+  <sub>function · infrastructure/native_auth_challenge.dart:23</sub>
 
 ## infrastructure/native_campus_activities.dart
 

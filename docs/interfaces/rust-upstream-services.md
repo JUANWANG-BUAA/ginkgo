@@ -367,11 +367,11 @@
 - `pub(crate) async fn silent_login(&self) -> Result<(), AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:245</sub>
 - `pub(crate) async fn ensure_webvpn_session(&self) -> Result<(), AppError> {…}` — Establish the WebVPN gateway's own CAS session after an automatic route
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:289</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:291</sub>
 - `pub(crate) fn clear_caches(&self) {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:335</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:337</sub>
 - `pub(crate) fn is_library_login_error(error: &AppError) -> bool {…}` — booking.lib answers 200 with its own login-expired message; that only means
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:361</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:363</sub>
 
 ## snapshots
 
