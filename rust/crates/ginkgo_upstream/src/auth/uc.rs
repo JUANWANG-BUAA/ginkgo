@@ -9,7 +9,7 @@ use serde::Deserialize;
 pub async fn activate_uc<T: HttpTransport>(session: &Session<T>) -> Result<(), AppError> {
     let mut url = UC_ACTIVATION_URL.to_string();
     for hop in 0..=10 {
-        let response = session.send_with_fallback(HttpRequest::get(&url)).await?;
+        let response = session.send_auth(HttpRequest::get(&url)).await?;
         if (300..400).contains(&response.status) {
             if hop == 10 {
                 return Err(AppError::new(ErrorCode::RedirectLimit));
@@ -37,7 +37,7 @@ pub async fn validate_session<T: HttpTransport>(
     let request = HttpRequest::get(UC_STATUS_URL)
         .header("Accept", "application/json, text/javascript, */*; q=0.01")
         .header("X-Requested-With", "XMLHttpRequest");
-    let response = session.send_with_fallback(request).await?;
+    let response = session.send_auth(request).await?;
     if response.status == 483
         || ((400..500).contains(&response.status) && cas::is_access_policy_denied(&response.body))
     {

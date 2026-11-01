@@ -1,6 +1,6 @@
 use super::{cas, login::fetch_login_page, session::Session, vault::MemoryVault, *};
 use crate::{
-    foundation::http::{HttpMethod, HttpResponse},
+    foundation::http::{HttpMethod, HttpResponse, TransportError},
     test_support::MockTransport,
     ErrorCode,
 };
@@ -528,4 +528,22 @@ async fn webvpn_maps_origin_and_referer_with_the_request() {
                 .as_str()
         )
     );
+}
+
+/// A silent direct failure is not a block signal. Rerouting it would submit
+/// the password a second time — exactly what the school answers with a
+/// captcha. Only 483 / access-policy pages may switch the route (API §0.3).
+#[tokio::test]
+async fn a_silent_network_failure_never_becomes_a_second_login() {
+    let transport = MockTransport::with_results(vec![
+        Err(TransportError::Unreachable),
+        Ok(HttpResponse::new(200, "https://d.buaa.edu.cn/login", "")),
+    ]);
+    let session = Session::new(transport);
+    let error = fetch_login_page(&session)
+        .await
+        .expect_err("the network error must surface as itself");
+    assert_eq!(error.code, ErrorCode::NetworkUnreachable);
+    assert_eq!(session.transport().request_count(), 1, "no gateway retry");
+    assert_eq!(session.route(), super::session::RouteMode::Automatic);
 }

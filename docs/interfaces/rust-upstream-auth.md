@@ -16,7 +16,7 @@
 - [keyring_vault](#keyringvault) (2)
 - [mod](#mod) (2)
 - [redirect](#redirect) (1)
-- [session](#session) (17)
+- [session](#session) (18)
 - [uc](#uc) (3)
 - [vault](#vault) (5)
 
@@ -100,9 +100,9 @@
 - `pub async fn complete_login<T: HttpTransport>( session: &Session<T>, credentials: &Credentials, page: LoginPage, ) -> Result<LoginResult, AppError> {…}` — Finish a login from an already fetched page. Keeping the page lets a
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:93</sub>
 - `pub async fn login_with_store<T: HttpTransport, C: CredentialSource + ?Sized>( session: &Session<T>, store: &C, account: &str, ) -> Result<LoginResult, AppError> {…}` — Load credentials from the platform vault, then log in. This is the only
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:205</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:203</sub>
 - `pub async fn establish_webvpn_session<T: HttpTransport>( session: &Session<T>, credentials: &Credentials, ) -> Result<(), AppError> {…}` — Explicitly establish a WebVPN session before routed campus traffic. The
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:216</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:214</sub>
 
 ## android_vault
 
@@ -166,6 +166,8 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:156</sub>
 - `pub async fn send_with_fallback(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {…}` — Send once, then retry a safe GET once through WebVPN when automatic
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:171</sub>
+- `pub async fn send_auth(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {…}` — The authentication chain's own send. A silent network failure is
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:197</sub>
 
 ## uc
 

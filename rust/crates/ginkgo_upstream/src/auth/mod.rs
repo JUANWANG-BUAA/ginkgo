@@ -100,9 +100,7 @@ pub async fn complete_login<T: HttpTransport>(
     }
     match page {
         LoginPage::ExistingSession { location } => {
-            let response = session
-                .send_with_fallback(HttpRequest::get(&location))
-                .await?;
+            let response = session.send_auth(HttpRequest::get(&location)).await?;
             if let Some(page) =
                 login::follow_redirects_and_check_error(session, response, location).await?
             {

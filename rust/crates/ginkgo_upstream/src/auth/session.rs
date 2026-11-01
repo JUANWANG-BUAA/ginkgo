@@ -190,6 +190,28 @@ impl<T: HttpTransport> Session<T> {
         self.send_routed(request, RouteMode::WebVpn).await
     }
 
+    /// The authentication chain's own send. A silent network failure is
+    /// reported as itself: rerouting it submits the password a second time,
+    /// and repeated submissions are what the school answers with a captcha.
+    /// Only the two documented block signals switch the route (API §0.3).
+    pub async fn send_auth(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {
+        let attempted_route = self.route();
+        let response = self.send_routed(request.clone(), attempted_route).await;
+        let blocked = matches!(
+            &response,
+            Ok(response)
+                if response.status == 483 || cas::is_access_policy_denied(&response.body)
+        );
+        if !blocked || request.method != HttpMethod::Get || attempted_route != RouteMode::Automatic
+        {
+            return response;
+        }
+        if !self.activate_automatic_webvpn_fallback() {
+            return response;
+        }
+        self.send_routed(request, RouteMode::WebVpn).await
+    }
+
     async fn send_routed(
         &self,
         mut request: HttpRequest,

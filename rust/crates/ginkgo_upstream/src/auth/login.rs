@@ -14,7 +14,7 @@ pub async fn fetch_login_page<T: HttpTransport>(
 ) -> Result<LoginPage, AppError> {
     let mut url = LOGIN_URL.to_string();
     for hop in 0..=8 {
-        let response = session.send_with_fallback(HttpRequest::get(&url)).await?;
+        let response = session.send_auth(HttpRequest::get(&url)).await?;
         if response.status == 401 {
             return Err(AppError::new(ErrorCode::InvalidCredentials));
         }

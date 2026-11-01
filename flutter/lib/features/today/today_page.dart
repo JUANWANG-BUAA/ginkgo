@@ -330,7 +330,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
                       children: [
                         TodayActionRow(
                           title: '查看今天的签到状态',
-                          subtitle: '进入签到页按需读取，首页不触发学校认证',
+                          subtitle: '进入签到页查看，首页不读取学校数据',
                           onTap: widget.onOpenFeature == null
                               ? null
                               : () => widget.onOpenFeature!('checkin'),

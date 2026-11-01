@@ -133,6 +133,7 @@ class _TodayExamSectionState extends State<TodayExamSection> {
       header: TodaySectionHeader(
         title: '近期考试',
         icon: CupertinoIcons.calendar,
+        badge: '${upcoming.length} 场',
         actionLabel: '课表',
         onAction: widget.onOpen == null
             ? null
