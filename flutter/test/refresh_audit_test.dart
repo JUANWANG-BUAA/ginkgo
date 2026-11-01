@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/main.dart';
 
 import 'platform_actions_fake.dart';
+
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/features/grades/grades_page.dart';
 import 'package:ginkgo_mirror/features/today/today_page.dart';
@@ -53,7 +54,11 @@ void main() {
     'today failure keeps actual courses and repeated refresh is coalesced',
     (tester) async {
       final service = RefreshService();
-      await tester.pumpWidget(ginkgoApp(home: TodayPage(fileActions: platformActions,service: service)));
+      await tester.pumpWidget(
+        ginkgoApp(
+          home: TodayPage(fileActions: platformActions, service: service),
+        ),
+      );
       service.todayCalls.single.complete(todayFixture);
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('today-toggle-courses')));

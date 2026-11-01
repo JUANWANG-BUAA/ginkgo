@@ -13,6 +13,7 @@ import 'package:ginkgo_mirror/shared/reminders.dart';
 
 import 'reminder_planner_fake.dart';
 import 'reminder_rule_double.dart';
+
 import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 
 CheckInCourse course({
@@ -73,18 +74,22 @@ class _DelayedReminderStore implements ReminderStore {
 /// tests cannot load it, so they plan through the double that the shared table
 /// pins against the domain implementation.
 List<ReminderPlan> planCheckin(CheckInResponse response, DateTime now) =>
-    const ReminderRuleDouble().plan(
-      checkin: checkinReminderSeeds(response.date, response.courses),
-      homework: const [],
-      now: now,
-    ).plans;
+    const ReminderRuleDouble()
+        .plan(
+          checkin: checkinReminderSeeds(response.date, response.courses),
+          homework: const [],
+          now: now,
+        )
+        .plans;
 
 List<ReminderPlan> planHomework(List<HomeworkItem> items, DateTime now) =>
-    const ReminderRuleDouble().plan(
-      checkin: const [],
-      homework: homeworkReminderSeeds(items),
-      now: now,
-    ).plans;
+    const ReminderRuleDouble()
+        .plan(
+          checkin: const [],
+          homework: homeworkReminderSeeds(items),
+          now: now,
+        )
+        .plans;
 
 void main() {
   test(
@@ -351,7 +356,9 @@ void main() {
       '2026-10-22T00:00:00.000Z',
     ]);
     expect(
-      planHomework([assignment()], DateTime.parse('2026-10-22T01:00:00Z')).length,
+      planHomework([
+        assignment(),
+      ], DateTime.parse('2026-10-22T01:00:00Z')).length,
       1,
     );
     expect(

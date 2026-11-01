@@ -169,7 +169,10 @@ void main() {
     await tester.pumpWidget(
       ginkgoApp(
         home: LoginPage(
-          service: FakeService(restoreResponse: signedOut, loginResponse: captcha),
+          service: FakeService(
+            restoreResponse: signedOut,
+            loginResponse: captcha,
+          ),
           onSignedIn: (_) {},
           onDemo: () {},
           initialCaptcha: true,

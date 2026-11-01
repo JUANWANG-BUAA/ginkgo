@@ -56,7 +56,8 @@ void main() {
           );
         await tester.pumpWidget(
           visualApp(
-            TasksPage(fileActions: platformActions,
+            TasksPage(
+              fileActions: platformActions,
               service: fake,
               storageRoot: '/synthetic/visual',
               initialTaskId: 'visual',
@@ -186,7 +187,8 @@ void main() {
           final fake = TaskFake();
           await tester.pumpWidget(
             visualApp(
-              HomeworkDetailPage(fileActions: platformActions,
+              HomeworkDetailPage(
+                fileActions: platformActions,
                 item: assignment,
                 service: fake,
                 storageRoot: '/synthetic/visual',

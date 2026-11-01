@@ -25,7 +25,11 @@ void main() {
       await tester.pumpWidget(
         ginkgoApp(
           home: QueryCacheScope(
-            child: SettingsPage(maintenance: platformActions.maintenance,service: service, onSignOut: () async {}),
+            child: SettingsPage(
+              maintenance: platformActions.maintenance,
+              service: service,
+              onSignOut: () async {},
+            ),
           ),
         ),
       );

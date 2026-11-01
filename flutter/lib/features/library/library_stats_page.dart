@@ -106,63 +106,63 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
     ),
     child: SafeArea(
       child: CustomScrollView(
-      key: const Key('library-stats-scroll'),
-      slivers: [
-        AppleRefreshPageHeader(
-          title: '在馆与空间',
-          subtitle: '学院路 · 沙河在馆人数与空间余量',
-          icon: CupertinoIcons.person_2_fill,
-          refreshLabel: '刷新公共统计',
-          busy: busy,
-          onRefresh: () => load(force: true),
-        ),
-        CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
-        SliverList.list(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(32, 16, 32, 0),
-              child: Text(
-                widget.service.isDemo
-                    ? '离线合成样例 · 不代表当前人数'
-                    : updatedAt == null
-                    ? '图书馆官网公开信息'
-                    : '更新于 $updatedAt${fromCache ? ' · 缓存' : ''}',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+        key: const Key('library-stats-scroll'),
+        slivers: [
+          AppleRefreshPageHeader(
+            title: '在馆与空间',
+            subtitle: '学院路 · 沙河在馆人数与空间余量',
+            icon: CupertinoIcons.person_2_fill,
+            refreshLabel: '刷新公共统计',
+            busy: busy,
+            onRefresh: () => load(force: true),
+          ),
+          CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
+          SliverList.list(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(32, 16, 32, 0),
+                child: Text(
+                  widget.service.isDemo
+                      ? '离线合成样例 · 不代表当前人数'
+                      : updatedAt == null
+                      ? '图书馆官网公开信息'
+                      : '更新于 $updatedAt${fromCache ? ' · 缓存' : ''}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                  ),
                 ),
               ),
-            ),
-            if (error != null)
-              AppleStatusSection(
-                title: error!,
-                description: campuses == null
-                    ? '公开信息无需预约登录，请稍后重试。'
-                    : '刷新未成功，保留上次人数与实际更新时间。',
-                error: true,
-                action: '重试',
-                onAction: busy ? null : () => load(force: true),
-              ),
-            if (campuses == null && busy)
-              const GinkgoLoadingView(label: '正在读取在馆数据…'),
-            if (campuses case final items?)
-              for (final campus in items) _campus(campus),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(32, 20, 32, 32),
-              child: Text(
-                '人数与空间余量由图书馆官网提供，可能存在更新延迟。空闲不代表一定可预约，请以预约系统为准。',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                  height: 1.4,
+              if (error != null)
+                AppleStatusSection(
+                  title: error!,
+                  description: campuses == null
+                      ? '公开信息无需预约登录，请稍后重试。'
+                      : '刷新未成功，保留上次人数与实际更新时间。',
+                  error: true,
+                  action: '重试',
+                  onAction: busy ? null : () => load(force: true),
+                ),
+              if (campuses == null && busy)
+                const GinkgoLoadingView(label: '正在读取在馆数据…'),
+              if (campuses case final items?)
+                for (final campus in items) _campus(campus),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(32, 20, 32, 32),
+                child: Text(
+                  '人数与空间余量由图书馆官网提供，可能存在更新延迟。空闲不代表一定可预约，请以预约系统为准。',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                    height: 1.4,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 64),
-          ],
-        ),
-      ],
-    )
+              const SizedBox(height: 64),
+            ],
+          ),
+        ],
+      ),
     ),
   );
 

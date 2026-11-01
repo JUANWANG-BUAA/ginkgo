@@ -20,11 +20,7 @@ const choices = [
     icon: CupertinoIcons.calendar,
   ),
   WorkspaceShortcut(id: 'homework', title: '学校作业', icon: CupertinoIcons.book),
-  WorkspaceShortcut(
-    id: 'library',
-    title: '图书馆',
-    icon: CupertinoIcons.book,
-  ),
+  WorkspaceShortcut(id: 'library', title: '图书馆', icon: CupertinoIcons.book),
   WorkspaceShortcut(
     id: 'extra',
     title: '另一个很长很长的服务名称',

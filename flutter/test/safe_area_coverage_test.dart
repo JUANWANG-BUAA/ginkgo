@@ -36,22 +36,23 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('the maintenance scaffold keeps its slivers inside the safe area', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      ginkgoApp(home: const SoftwareUpdatePage(service: _StubMaintenance())),
-    );
-    await tester.pumpAndSettle();
-    expect(
-      find.ancestor(
-        of: find.byType(CustomScrollView),
-        matching: find.byType(SafeArea),
-      ),
-      findsOneWidget,
-    );
-    expect(tester.takeException(), isNull);
-  });
+  testWidgets(
+    'the maintenance scaffold keeps its slivers inside the safe area',
+    (tester) async {
+      await tester.pumpWidget(
+        ginkgoApp(home: const SoftwareUpdatePage(service: _StubMaintenance())),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.ancestor(
+          of: find.byType(CustomScrollView),
+          matching: find.byType(SafeArea),
+        ),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('the diagnostics page keeps its slivers inside the safe area', (
     tester,

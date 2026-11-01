@@ -26,7 +26,11 @@ void main() {
       final service = PendingClearService();
       await tester.pumpWidget(
         ginkgoApp(
-          home: SettingsPage(maintenance: platformActions.maintenance,service: service, onSignOut: () async {}),
+          home: SettingsPage(
+            maintenance: platformActions.maintenance,
+            service: service,
+            onSignOut: () async {},
+          ),
         ),
       );
       await tester.pumpAndSettle();

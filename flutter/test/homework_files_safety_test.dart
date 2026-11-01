@@ -46,10 +46,15 @@ void main() {
       await tester.pumpWidget(
         fixture.panel(
           files,
-          saver: (file, {required bool Function() isCurrent, bool openAfterSave = false}) async {
-            saved++;
-            return const FileSaveResult.saved();
-          },
+          saver:
+              (
+                file, {
+                required bool Function() isCurrent,
+                bool openAfterSave = false,
+              }) async {
+                saved++;
+                return const FileSaveResult.saved();
+              },
         ),
       );
       await tester.pumpAndSettle();

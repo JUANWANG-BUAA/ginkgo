@@ -314,10 +314,7 @@ class _HomeworkFilesPanelState extends State<HomeworkFilesPanel> {
     try {
       final file = await gateway.downloadHomeworkFile(id, attachment.id);
       if (!current(e)) return;
-      final result = await widget.saveFile(
-        file,
-        isCurrent: () => current(e),
-      );
+      final result = await widget.saveFile(file, isCurrent: () => current(e));
       if (!current(e)) return;
       setState(() {
         savedFile = result.status == FileSaveStatus.saved ? result : null;

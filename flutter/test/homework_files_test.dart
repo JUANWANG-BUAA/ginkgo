@@ -86,8 +86,11 @@ Widget panel(
             ),
         saveFile:
             saver ??
-            (file, {required bool Function() isCurrent, bool openAfterSave = false}) async =>
-                const FileSaveResult.saved(),
+            (
+              file, {
+              required bool Function() isCurrent,
+              bool openAfterSave = false,
+            }) async => const FileSaveResult.saved(),
       ),
     ),
   ),
@@ -178,10 +181,15 @@ void main() {
     await tester.pumpWidget(
       panel(
         files,
-        saver: (file, {required bool Function() isCurrent, bool openAfterSave = false}) async {
-          saved = file;
-          return const FileSaveResult.saved();
-        },
+        saver:
+            (
+              file, {
+              required bool Function() isCurrent,
+              bool openAfterSave = false,
+            }) async {
+              saved = file;
+              return const FileSaveResult.saved();
+            },
       ),
     );
     await tester.pumpAndSettle();

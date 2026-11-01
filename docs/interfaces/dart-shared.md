@@ -58,22 +58,22 @@
 ## shared/course_visibility.dart
 
 - `class CourseVisibility extends ChangeNotifier` — User classification, isolated by account and upstream system. SPOC and
-  <sub>class · shared/course_visibility.dart:11</sub>
-    - `final Future<void> Function(Set<String>)? save;`  <sub>:14</sub>
-    - `final Future<Set<String>> Function()? load;`  <sub>:15</sub>
-    - `bool ready = false;`  <sub>:17</sub>
-    - `bool loadFailed = false;` — A failed read locks editing until an explicit retry succeeds, so a  <sub>:21</sub>
-    - `void dispose() {…}`  <sub>:28</sub>
-    - `void notifyListeners() {…}`  <sub>:34</sub>
-    - `bool hidden(String system, String id) => …`  <sub>:47</sub>
-    - `Future<void> restore() => …`  <sub>:49</sub>
-    - `Future<void> retryRestore() {…}` — Explicit retry after a failed read. Re-opens the restore path and applies  <sub>:53</sub>
-    - `Future<void> setHidden(String system, String id, bool hidden) {…}`  <sub>:99</sub>
+  <sub>class · shared/course_visibility.dart:10</sub>
+    - `final Future<void> Function(Set<String>)? save;`  <sub>:13</sub>
+    - `final Future<Set<String>> Function()? load;`  <sub>:14</sub>
+    - `bool ready = false;`  <sub>:16</sub>
+    - `bool loadFailed = false;` — A failed read locks editing until an explicit retry succeeds, so a  <sub>:20</sub>
+    - `void dispose() {…}`  <sub>:27</sub>
+    - `void notifyListeners() {…}`  <sub>:33</sub>
+    - `bool hidden(String system, String id) => …`  <sub>:46</sub>
+    - `Future<void> restore() => …`  <sub>:48</sub>
+    - `Future<void> retryRestore() {…}` — Explicit retry after a failed read. Re-opens the restore path and applies  <sub>:52</sub>
+    - `Future<void> setHidden(String system, String id, bool hidden) {…}`  <sub>:98</sub>
 - `class CourseVisibilityScope extends StatefulWidget`
-  <sub>class · shared/course_visibility.dart:135</sub>
-    - `const CourseVisibilityScope({ super.key, required this.account, required this.child, });`  <sub>:136</sub>
-    - `static CourseVisibility? of(BuildContext context) => …`  <sub>:143</sub>
-    - `State<CourseVisibilityScope> createState() => …`  <sub>:147</sub>
+  <sub>class · shared/course_visibility.dart:134</sub>
+    - `const CourseVisibilityScope({ super.key, required this.account, required this.child, });`  <sub>:135</sub>
+    - `static CourseVisibility? of(BuildContext context) => …`  <sub>:142</sub>
+    - `State<CourseVisibilityScope> createState() => …`  <sub>:146</sub>
 
 ## shared/homework_visibility.dart
 

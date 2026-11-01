@@ -9,6 +9,7 @@ import 'package:ginkgo_mirror/app/ginkgo_app.dart';
 import 'package:ginkgo_mirror/features/learning/learning_course_page.dart';
 import 'package:ginkgo_mirror/features/learning/learning_page.dart';
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
+
 import 'platform_actions_fake.dart';
 
 const course = LearningCourse(
@@ -161,7 +162,11 @@ void main() {
       DiagnosticLog.shared.current = null;
     });
     final service = LearningFake();
-    await tester.pumpWidget(ginkgoApp(home: LearningPage(fileActions: platformActions,service: service)));
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: LearningPage(fileActions: platformActions, service: service),
+      ),
+    );
     expect(DiagnosticLog.shared.entries, isEmpty);
     service.courses.requests.single.complete(const LearningRead([course]));
     await tester.pumpAndSettle();
@@ -190,7 +195,11 @@ void main() {
     (tester) async {
       screen(tester);
       final fake = LearningFake();
-      await tester.pumpWidget(ginkgoApp(home: LearningPage(fileActions: platformActions,service: fake)));
+      await tester.pumpWidget(
+        ginkgoApp(
+          home: LearningPage(fileActions: platformActions, service: fake),
+        ),
+      );
       fake.courses.requests.single.complete(const LearningRead([course]));
       await tester.pumpAndSettle();
       await tester.tap(
@@ -396,12 +405,20 @@ void main() {
     final fake = LearningFake();
     await tester.pumpWidget(
       ginkgoApp(
-        home: LearningPage(fileActions: platformActions,service: fake, accountId: 'old'),
+        home: LearningPage(
+          fileActions: platformActions,
+          service: fake,
+          accountId: 'old',
+        ),
       ),
     );
     await tester.pumpWidget(
       ginkgoApp(
-        home: LearningPage(fileActions: platformActions,service: fake, accountId: 'new'),
+        home: LearningPage(
+          fileActions: platformActions,
+          service: fake,
+          accountId: 'new',
+        ),
       ),
     );
     fake.courses.requests.last.complete(const LearningRead([]));
@@ -416,11 +433,20 @@ void main() {
     'capability detection leaves old fakes usable and partial gateways independent',
     (tester) async {
       screen(tester);
-      await tester.pumpWidget(ginkgoApp(home: LearningPage(fileActions: platformActions,service: Object())));
+      await tester.pumpWidget(
+        ginkgoApp(
+          home: LearningPage(fileActions: platformActions, service: Object()),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(find.text('当前服务暂不支持课程'), findsOneWidget);
       await tester.pumpWidget(
-        ginkgoApp(home: LearningPage(fileActions: platformActions,service: CoursesOnly())),
+        ginkgoApp(
+          home: LearningPage(
+            fileActions: platformActions,
+            service: CoursesOnly(),
+          ),
+        ),
       );
       await tester.pumpAndSettle();
       await tester.tap(find.text(course.name));
@@ -551,7 +577,11 @@ void main() {
     tester,
   ) async {
     final service = LearningFake();
-    await tester.pumpWidget(ginkgoApp(home: LearningPage(fileActions: platformActions,service: service)));
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: LearningPage(fileActions: platformActions, service: service),
+      ),
+    );
     expect(find.byKey(const Key('learning-refresh')), findsNothing);
     expect(find.bySemanticsLabel('刷新课程'), findsOneWidget);
     service.courses.requests.single.complete(const LearningRead([]));

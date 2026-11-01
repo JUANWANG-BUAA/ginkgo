@@ -1006,6 +1006,34 @@ async fn a_captcha_on_the_failure_page_is_asked_for_instead_of_a_wrong_password(
     assert!(body.contains("captcha=7k2m"));
 }
 
+/// A rejected attempt can come back as "tip text + fresh captcha". Reporting
+/// the tip alone leaves the user with no way forward; the captcha is the part
+/// they can act on.
+#[tokio::test]
+async fn a_tip_on_a_captcha_page_still_offers_the_captcha() {
+    let retry_page = FORM_PAGE
+        .replace("abc+def/ghi=", "tip+exec/token=")
+        .replace(
+            "</form>",
+            "<div class=\"tip-text\">验证码错误</div>\
+             <script>config.captcha = { type: 'char', id: 'tip-cap' };</script></form>",
+        );
+    let responses = vec![
+        HttpResponse::new(200, LOGIN_URL, FORM_PAGE),
+        HttpResponse::new(200, LOGIN_URL, retry_page),
+        captcha_image(),
+    ];
+    let (service, _) = build_service(responses, MemoryVault::default());
+    let outcome = service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .unwrap();
+    assert!(
+        matches!(outcome, SessionOutcome::CaptchaRequired(_)),
+        "the answerable page wins over a dead-end tip"
+    );
+}
+
 #[tokio::test]
 async fn login_challenge_cross_account_answer_never_posts() {
     let (service, transport) = build_service(

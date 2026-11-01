@@ -91,7 +91,8 @@ void main() {
             ..local = tasksPayload([task('visual', due: '2026-10-22')]);
           await tester.pumpWidget(
             _host(
-              TodayPage(fileActions: platformActions,
+              TodayPage(
+                fileActions: platformActions,
                 service: service,
                 storageRoot: '/synthetic/tasks',
                 now: () => DateTime.utc(2026, 10, 22, 1),

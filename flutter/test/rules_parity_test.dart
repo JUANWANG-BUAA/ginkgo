@@ -88,13 +88,10 @@ void main() {
         ],
         now: now,
       );
-      expect(
-        result.plans.map((plan) => plan.key).toList(),
-        [
-          for (final plan in want['plans'] as List<dynamic>) plan['key'] as String,
-        ],
-        reason: 'case $index must plan the same reminders on both sides',
-      );
+      expect(result.plans.map((plan) => plan.key).toList(), [
+        for (final plan in want['plans'] as List<dynamic>)
+          plan['key'] as String,
+      ], reason: 'case $index must plan the same reminders on both sides');
       expect(
         result.skipped,
         want['skipped'],

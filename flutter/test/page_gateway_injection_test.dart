@@ -20,13 +20,14 @@ void main() {
     expect(find.text('合成博雅课程'), findsNothing);
   });
 
-  testWidgets('the graduate page without a gateway reports the missing gateway', (
-    tester,
-  ) async {
-    await tester.pumpWidget(ginkgoApp(home: const GraduatePage()));
-    await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull);
-    // Both graduate sections report it; neither reads anything.
-    expect(find.text('本地服务暂时不可用，请重试'), findsWidgets);
-  });
+  testWidgets(
+    'the graduate page without a gateway reports the missing gateway',
+    (tester) async {
+      await tester.pumpWidget(ginkgoApp(home: const GraduatePage()));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      // Both graduate sections report it; neither reads anything.
+      expect(find.text('本地服务暂时不可用，请重试'), findsWidgets);
+    },
+  );
 }

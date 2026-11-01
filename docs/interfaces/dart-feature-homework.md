@@ -68,15 +68,15 @@
 ## features/homework/homework_projection.dart
 
 - `HomeworkDeadlineStatus classifyHomeworkDeadline( String? dueAt, [ DateTime? beijingNow, ]) => …` — Classify a homework deadline against Beijing wall clock time.
-  <sub>function · features/homework/homework_projection.dart:19</sub>
+  <sub>function · features/homework/homework_projection.dart:17</sub>
 - `bool isHomeworkOverdue(String? dueAt, [DateTime? beijingNow]) => …` — Helper to test if a deadline is strictly classified as overdue.
-  <sub>function · features/homework/homework_projection.dart:28</sub>
+  <sub>function · features/homework/homework_projection.dart:26</sub>
 - `String? homeworkRelativeDeadline(String? dueAt, [DateTime? beijingNow]) {…}` — Returns an intuitive relative deadline countdown with 00:00 midnight warning.
-  <sub>function · features/homework/homework_projection.dart:39</sub>
+  <sub>function · features/homework/homework_projection.dart:37</sub>
 - `String homeworkCompactDeadline(String? dueAt, [DateTime? beijingNow]) {…}` — Produces a strict single-line, unambiguous deadline string (under 22 chars).
-  <sub>function · features/homework/homework_projection.dart:105</sub>
+  <sub>function · features/homework/homework_projection.dart:103</sub>
 - `CupertinoDynamicColor homeworkDeadlineTint( String? dueAt, [ DateTime? beijingNow, ]) {…}` — Color for the deadline status:
-  <sub>function · features/homework/homework_projection.dart:180</sub>
+  <sub>function · features/homework/homework_projection.dart:178</sub>
 
 ## features/homework/homework_widgets.dart
 

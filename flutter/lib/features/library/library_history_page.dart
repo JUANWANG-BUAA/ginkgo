@@ -78,121 +78,121 @@ class _LibraryHistoryPageState extends State<LibraryHistoryPage> {
     ),
     child: SafeArea(
       child: CustomScrollView(
-      key: const Key('library-history-scroll'),
-      slivers: [
-        AppleRefreshPageHeader(
-          title: '预约记录',
-          subtitle: '进行中及已结束记录 · 只读',
-          icon: CupertinoIcons.clock_fill,
-          refreshLabel: '刷新预约记录',
-          busy: busy,
-          onRefresh: () => load(requestedPage, force: true),
-        ),
-        CupertinoSliverRefreshControl(
-          onRefresh: () => load(requestedPage, force: true),
-        ),
-        SliverList.list(
-          children: [
-            if (error != null)
-              AppleStatusSection(
-                title: error!,
-                description: data == null
-                    ? '请重试。'
-                    : '保留上次读取的第 ${data!.page} 页；请求页码未覆盖旧结果。',
-                error: true,
-                action: '重试',
-                onAction: () => load(requestedPage, force: true),
-              ),
-            if (data == null && busy)
-              const GinkgoLoadingView(label: '正在读取预约记录…'),
-            if (data case final result?) ...[
-              SummaryStrip(
-                items: [
-                  SummaryItem(
-                    '本页记录',
-                    '${result.bookings.length} 条',
-                    icon: CupertinoIcons.clock,
-                  ),
-                  SummaryItem(
-                    '记录总数',
-                    result.total == null ? '未提供' : '${result.total} 条',
-                    icon: CupertinoIcons.list_bullet,
-                  ),
-                  SummaryItem(
-                    '当前页',
-                    '第 ${result.page} 页',
-                    icon: CupertinoIcons.doc_text,
-                  ),
-                ],
-                note: [
-                  widget.service.isDemo ? '离线合成样例' : '学校预约记录，此页只读',
-                  if (result.fetchedAt != null)
-                    '更新于 ${result.fetchedAt!.replaceFirst('T', ' ')}',
-                  if (result.stale) '上次结果',
-                ].join(' · '),
-              ),
-              AppleContentTransition(
-                identity: result,
-                child: AppleSection(
-                  children: [
-                    if (result.bookings.isEmpty)
-                      const AppleEmptyState(
-                        title: '本页没有预约记录',
-                        description: '学校返回空列表，可以返回上一页。',
-                      ),
-                    for (final booking in result.bookings)
-                      AppleListTile(
-                        key: Key('library-history-${booking.id}'),
-                        minimumHeight: 92,
-                        title: Text(
-                          booking.title.isEmpty ? '图书馆座位' : booking.title,
+        key: const Key('library-history-scroll'),
+        slivers: [
+          AppleRefreshPageHeader(
+            title: '预约记录',
+            subtitle: '进行中及已结束记录 · 只读',
+            icon: CupertinoIcons.clock_fill,
+            refreshLabel: '刷新预约记录',
+            busy: busy,
+            onRefresh: () => load(requestedPage, force: true),
+          ),
+          CupertinoSliverRefreshControl(
+            onRefresh: () => load(requestedPage, force: true),
+          ),
+          SliverList.list(
+            children: [
+              if (error != null)
+                AppleStatusSection(
+                  title: error!,
+                  description: data == null
+                      ? '请重试。'
+                      : '保留上次读取的第 ${data!.page} 页；请求页码未覆盖旧结果。',
+                  error: true,
+                  action: '重试',
+                  onAction: () => load(requestedPage, force: true),
+                ),
+              if (data == null && busy)
+                const GinkgoLoadingView(label: '正在读取预约记录…'),
+              if (data case final result?) ...[
+                SummaryStrip(
+                  items: [
+                    SummaryItem(
+                      '本页记录',
+                      '${result.bookings.length} 条',
+                      icon: CupertinoIcons.clock,
+                    ),
+                    SummaryItem(
+                      '记录总数',
+                      result.total == null ? '未提供' : '${result.total} 条',
+                      icon: CupertinoIcons.list_bullet,
+                    ),
+                    SummaryItem(
+                      '当前页',
+                      '第 ${result.page} 页',
+                      icon: CupertinoIcons.doc_text,
+                    ),
+                  ],
+                  note: [
+                    widget.service.isDemo ? '离线合成样例' : '学校预约记录，此页只读',
+                    if (result.fetchedAt != null)
+                      '更新于 ${result.fetchedAt!.replaceFirst('T', ' ')}',
+                    if (result.stale) '上次结果',
+                  ].join(' · '),
+                ),
+                AppleContentTransition(
+                  identity: result,
+                  child: AppleSection(
+                    children: [
+                      if (result.bookings.isEmpty)
+                        const AppleEmptyState(
+                          title: '本页没有预约记录',
+                          description: '学校返回空列表，可以返回上一页。',
                         ),
-                        subtitle: Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                [
-                                  booking.day,
-                                  if (booking.startTime.isNotEmpty)
-                                    '${clock(booking.startTime)}–${clock(booking.endTime)}',
-                                ].where((s) => s.isNotEmpty).join(' · '),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                booking.statusName.isEmpty
-                                    ? '状态未确认'
-                                    : booking.statusName,
-                                style: TextStyle(
-                                  color: CupertinoColors.secondaryLabel
-                                      .resolveFrom(context),
+                      for (final booking in result.bookings)
+                        AppleListTile(
+                          key: Key('library-history-${booking.id}'),
+                          minimumHeight: 92,
+                          title: Text(
+                            booking.title.isEmpty ? '图书馆座位' : booking.title,
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  [
+                                    booking.day,
+                                    if (booking.startTime.isNotEmpty)
+                                      '${clock(booking.startTime)}–${clock(booking.endTime)}',
+                                  ].where((s) => s.isNotEmpty).join(' · '),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 4),
+                                Text(
+                                  booking.statusName.isEmpty
+                                      ? '状态未确认'
+                                      : booking.statusName,
+                                  style: TextStyle(
+                                    color: CupertinoColors.secondaryLabel
+                                        .resolveFrom(context),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: LibraryPageButtons(
-                  canGoPrevious: !busy && result.page > 1,
-                  canGoNext: !busy && result.hasNext,
-                  previousKey: const Key('library-history-previous'),
-                  nextKey: const Key('library-history-next'),
-                  onPrevious: () => load(result.page - 1),
-                  onNext: () => load(result.page + 1),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: LibraryPageButtons(
+                    canGoPrevious: !busy && result.page > 1,
+                    canGoNext: !busy && result.hasNext,
+                    previousKey: const Key('library-history-previous'),
+                    nextKey: const Key('library-history-next'),
+                    onPrevious: () => load(result.page - 1),
+                    onNext: () => load(result.page + 1),
+                  ),
                 ),
-              ),
+              ],
+              const SizedBox(height: 96),
             ],
-            const SizedBox(height: 96),
-          ],
-        ),
-      ],
-    )
+          ),
+        ],
+      ),
     ),
   );
 }

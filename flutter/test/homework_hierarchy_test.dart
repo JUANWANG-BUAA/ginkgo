@@ -58,7 +58,11 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       final service = HomeworkHierarchyService();
-      await tester.pumpWidget(ginkgoApp(home: HomeworkPage(fileActions: platformActions,service: service)));
+      await tester.pumpWidget(
+        ginkgoApp(
+          home: HomeworkPage(fileActions: platformActions, service: service),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('homework-spoc:0')), findsOneWidget);
       expect(find.byKey(const Key('homework-spoc:499')), findsNothing);
@@ -118,7 +122,10 @@ void main() {
               textScaler: TextScaler.linear(1.8),
               disableAnimations: true,
             ),
-            child: HomeworkPage(fileActions: platformActions,service: HomeworkHierarchyService()),
+            child: HomeworkPage(
+              fileActions: platformActions,
+              service: HomeworkHierarchyService(),
+            ),
           ),
         ),
       );

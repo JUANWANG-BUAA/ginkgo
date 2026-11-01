@@ -115,11 +115,17 @@ void main() {
     },
   );
 
-  test('section ranges collapse consecutive, duplicate and unsorted values', () {
-    expect(classroomSectionRanges(const []), '');
-    expect(classroomSectionRanges(const [1]), '1');
-    expect(classroomSectionRanges(const [12, 5, 1, 6, 2, 7, 5]), '1–2、5–7、12');
-  });
+  test(
+    'section ranges collapse consecutive, duplicate and unsorted values',
+    () {
+      expect(classroomSectionRanges(const []), '');
+      expect(classroomSectionRanges(const [1]), '1');
+      expect(
+        classroomSectionRanges(const [12, 5, 1, 6, 2, 7, 5]),
+        '1–2、5–7、12',
+      );
+    },
+  );
 
   testWidgets('availability ranges reflow at 320dp with large type', (
     tester,

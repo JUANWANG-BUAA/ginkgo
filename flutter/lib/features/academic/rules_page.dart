@@ -27,97 +27,97 @@ class _RulesPageState extends State<RulesPage> {
     ),
     child: SafeArea(
       child: CustomScrollView(
-      key: const Key('rules-scroll'),
-      slivers: [
-        const ApplePageHeader(
-          largeTitle: Text('共享规则示例'),
-          previousPageTitle: '空教室',
-          border: null,
-          section: '学业',
-          subtitle: '学校日期与课表周次的只读示例',
-          icon: CupertinoIcons.doc_text,
-        ),
-        FutureBuilder<RuleExamples>(
-          future: future,
-          builder: (context, state) {
-            if (state.connectionState != ConnectionState.done) {
-              return const SliverFillRemaining(
-                hasScrollBody: false,
-                child: GinkgoLoadingView(label: '正在读取共享规则…'),
-              );
-            }
-            final rules = state.data;
-            if (rules == null || rules.failure != null) {
-              return SliverFillRemaining(
-                hasScrollBody: false,
-                child: AppleEmptyState(
-                  title: failureMessage(rules?.failure),
-                  description: '请重试',
-                  action: '重试',
-                  onAction: () =>
-                      setState(() => future = widget.service.rules()),
-                  error: true,
+        key: const Key('rules-scroll'),
+        slivers: [
+          const ApplePageHeader(
+            largeTitle: Text('共享规则示例'),
+            previousPageTitle: '空教室',
+            border: null,
+            section: '学业',
+            subtitle: '学校日期与课表周次的只读示例',
+            icon: CupertinoIcons.doc_text,
+          ),
+          FutureBuilder<RuleExamples>(
+            future: future,
+            builder: (context, state) {
+              if (state.connectionState != ConnectionState.done) {
+                return const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: GinkgoLoadingView(label: '正在读取共享规则…'),
+                );
+              }
+              final rules = state.data;
+              if (rules == null || rules.failure != null) {
+                return SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: AppleEmptyState(
+                    title: failureMessage(rules?.failure),
+                    description: '请重试',
+                    action: '重试',
+                    onAction: () =>
+                        setState(() => future = widget.service.rules()),
+                    error: true,
+                  ),
+                );
+              }
+              return SliverPadding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.paddingOf(context).bottom,
+                ),
+                sliver: SliverList.list(
+                  children: [
+                    SummaryStrip(
+                      items: [
+                        SummaryItem(
+                          '学校日期',
+                          rules.localDate,
+                          icon: CupertinoIcons.calendar,
+                        ),
+                        SummaryItem(
+                          '时区',
+                          rules.timeZone,
+                          icon: CupertinoIcons.clock,
+                        ),
+                      ],
+                      note: '规则示例来自共享领域规则，不是学校实时数据。',
+                    ),
+                    AppleSection(
+                      header: const Text('日期换算'),
+                      children: [
+                        const AppleListTile(
+                          title: Text('样例时刻'),
+                          subtitle: Text('2026-10-18T16:30:00Z'),
+                        ),
+                        AppleListTile(
+                          title: const Text('距午夜'),
+                          additionalInfo: Text(
+                            '${rules.minutesSinceMidnight} 分钟',
+                          ),
+                        ),
+                      ],
+                    ),
+                    AppleSection(
+                      header: const Text('课表周次保留'),
+                      children: [
+                        AppleListTile(
+                          title: const Text('已缓存周次'),
+                          additionalInfo: Text(rules.cachedWeeks.join('、')),
+                        ),
+                        AppleListTile(
+                          title: const Text('切换至'),
+                          additionalInfo: Text('第 ${rules.selectedWeek} 周'),
+                        ),
+                        for (final name in rules.courseNames)
+                          AppleListTile(title: Text(name)),
+                      ],
+                    ),
+                  ],
                 ),
               );
-            }
-            return SliverPadding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.paddingOf(context).bottom,
-              ),
-              sliver: SliverList.list(
-                children: [
-                  SummaryStrip(
-                    items: [
-                      SummaryItem(
-                        '学校日期',
-                        rules.localDate,
-                        icon: CupertinoIcons.calendar,
-                      ),
-                      SummaryItem(
-                        '时区',
-                        rules.timeZone,
-                        icon: CupertinoIcons.clock,
-                      ),
-                    ],
-                    note: '规则示例来自共享领域规则，不是学校实时数据。',
-                  ),
-                  AppleSection(
-                    header: const Text('日期换算'),
-                    children: [
-                      const AppleListTile(
-                        title: Text('样例时刻'),
-                        subtitle: Text('2026-10-18T16:30:00Z'),
-                      ),
-                      AppleListTile(
-                        title: const Text('距午夜'),
-                        additionalInfo: Text(
-                          '${rules.minutesSinceMidnight} 分钟',
-                        ),
-                      ),
-                    ],
-                  ),
-                  AppleSection(
-                    header: const Text('课表周次保留'),
-                    children: [
-                      AppleListTile(
-                        title: const Text('已缓存周次'),
-                        additionalInfo: Text(rules.cachedWeeks.join('、')),
-                      ),
-                      AppleListTile(
-                        title: const Text('切换至'),
-                        additionalInfo: Text('第 ${rules.selectedWeek} 周'),
-                      ),
-                      for (final name in rules.courseNames)
-                        AppleListTile(title: Text(name)),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ],
-    )
+            },
+          ),
+        ],
+      ),
     ),
   );
 }

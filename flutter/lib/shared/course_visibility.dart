@@ -5,7 +5,6 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:path_provider/path_provider.dart';
 
-
 /// User classification, isolated by account and upstream system. SPOC and
 /// iClass course IDs are never interchangeable. Store digests, not course names.
 class CourseVisibility extends ChangeNotifier {

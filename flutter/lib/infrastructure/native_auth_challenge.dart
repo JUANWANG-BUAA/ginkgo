@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../application/auth_challenge.dart';
 import '../src/rust/api/live/auth_challenge.dart' as live;
 
@@ -30,13 +32,7 @@ LoginChallenge decodeLoginChallenge(live.LoginChallengeResponse response) {
   }
   final image = response.image;
   if (response.textSupported &&
-      (image.length < 4 ||
-          image.length > 1024 * 1024 ||
-          image[0] != 255 ||
-          image[1] != 216 ||
-          image[2] != 255 ||
-          image[image.length - 2] != 255 ||
-          image.last != 217)) {
+      (image.length > 1024 * 1024 || !_isDisplayableImage(image))) {
     throw StateError('验证码图片无效，请刷新后重试');
   }
   return LoginChallenge(
@@ -45,4 +41,26 @@ LoginChallenge decodeLoginChallenge(live.LoginChallengeResponse response) {
     textSupported: response.textSupported,
     image: image,
   );
+}
+
+/// The bytes go straight to the image widget. The school serves JPEG and PNG
+/// from the same endpoint, so only the magic numbers are checked.
+bool _isDisplayableImage(Uint8List bytes) {
+  final jpeg =
+      bytes.length >= 4 &&
+      bytes[0] == 0xff &&
+      bytes[1] == 0xd8 &&
+      bytes[2] == 0xff &&
+      bytes[bytes.length - 2] == 0xff &&
+      bytes.last == 0xd9;
+  if (jpeg) return true;
+  return bytes.length >= 16 &&
+      bytes[0] == 0x89 &&
+      bytes[1] == 0x50 &&
+      bytes[2] == 0x4e &&
+      bytes[3] == 0x47 &&
+      bytes[bytes.length - 4] == 0xae &&
+      bytes[bytes.length - 3] == 0x42 &&
+      bytes[bytes.length - 2] == 0x60 &&
+      bytes[bytes.length - 1] == 0x82;
 }

@@ -145,12 +145,11 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
       if (col == null) return Future.value();
       return learningRefresh(
         announcements,
-        () =>
-            context.courseAnnouncementsIn(
-              widget.course.id,
-              col,
-              forceRefresh: force,
-            ),
+        () => context.courseAnnouncementsIn(
+          widget.course.id,
+          col,
+          forceRefresh: force,
+        ),
         force,
       );
     }
@@ -313,7 +312,9 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
     final e = epoch;
     String content;
     try {
-      final health = await learningContext.learningCapabilities(widget.course.id);
+      final health = await learningContext.learningCapabilities(
+        widget.course.id,
+      );
       const labels = {
         'unknown': '尚未验证',
         'available': '本会话读取成功',
@@ -406,10 +407,7 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
               onPressed: _currentTabBusy ? null : _refreshCurrentTab,
               child: _currentTabBusy
                   ? const CupertinoActivityIndicator(radius: 9)
-                  : const Icon(
-                      CupertinoIcons.refresh,
-                      semanticLabel: '刷新当前页',
-                    ),
+                  : const Icon(CupertinoIcons.refresh, semanticLabel: '刷新当前页'),
             ),
             if (hasContext)
               CupertinoButton(

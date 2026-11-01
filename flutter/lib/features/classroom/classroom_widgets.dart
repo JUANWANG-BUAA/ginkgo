@@ -191,9 +191,7 @@ class ClassroomResultTile extends StatelessWidget {
                         : CupertinoColors.systemGreen.resolveFrom(context),
                   ),
                 ),
-                Text(
-                  '${room.sections.length} 节空闲 · 最长连续 ${room.longestRun} 节',
-                ),
+                Text('${room.sections.length} 节空闲 · 最长连续 ${room.longestRun} 节'),
               ],
             ),
             trailing: const CupertinoListTileChevron(),

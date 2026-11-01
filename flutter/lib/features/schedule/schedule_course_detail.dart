@@ -79,9 +79,7 @@ class ScheduleCourseDetailPage extends StatelessWidget {
           ),
           ScheduleSection(
             title: '课程签到',
-            footer: const Text(
-              '课表与签到来自不同学校服务，当前无法可靠关联到具体场次。',
-            ),
+            footer: const Text('课表与签到来自不同学校服务，当前无法可靠关联到具体场次。'),
             children: [
               const Padding(
                 padding: EdgeInsets.all(16),

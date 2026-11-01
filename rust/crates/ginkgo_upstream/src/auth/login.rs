@@ -121,9 +121,6 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
             current_url = LOGIN_URL.to_string();
             continue;
         }
-        if let Some(message) = cas::extract_error_text(&response.body) {
-            return Err(AppError::with_detail(ErrorCode::PreLoginTip, message));
-        }
         if let Some(execution) = cas::extract_execution(&response.body) {
             // The school counts a rejected attempt, but it may also be asking
             // for a captcha on the very page it re-rendered. Treating that as a
@@ -140,6 +137,9 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
                 }));
             }
             return Err(AppError::new(ErrorCode::InvalidCredentials));
+        }
+        if let Some(message) = cas::extract_error_text(&response.body) {
+            return Err(AppError::with_detail(ErrorCode::PreLoginTip, message));
         }
         return Ok(None);
     }

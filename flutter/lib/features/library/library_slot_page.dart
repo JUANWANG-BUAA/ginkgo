@@ -94,81 +94,81 @@ class _LibrarySlotPageState extends State<LibrarySlotPage> {
     ),
     child: SafeArea(
       child: CustomScrollView(
-      key: const Key('library-slots-scroll'),
-      slivers: [
-        AppleRefreshPageHeader(
-          title: widget.area.name,
-          subtitle: '选择时段后查看空闲座位',
-          icon: CupertinoIcons.clock,
-          refreshLabel: '刷新列表',
-          busy: busy,
-          onRefresh: load,
-        ),
-        CupertinoSliverRefreshControl(onRefresh: load),
-        SliverList.list(
-          children: [
-            if (error != null)
-              AppleStatusSection(
-                title: error!,
-                description: slots == null
-                    ? '时段列表读取失败，请稍后重试。'
-                    : '保留上次时段列表，请刷新后确认状态。',
-                error: true,
-                action: '重试',
-                onAction: load,
-              ),
-            if (slots == null && error == null)
-              const GinkgoLoadingView(label: '正在读取时段…'),
-            if (slots != null)
-              SummaryStrip(
-                items: [
-                  SummaryItem(
-                    '可订时段',
-                    '${slots!.length} 个',
-                    icon: CupertinoIcons.clock,
-                  ),
-                ],
-              ),
-            if (slots != null)
-              AppleSection(
-                header: const Text('时段'),
-                children: [
-                  if (slots!.isEmpty)
-                    const AppleListTile(title: Text('今天没有可预约时段'))
-                  else
-                    for (final slot in slots!)
-                      AppleListTile(
-                        key: Key('library-slot-${slot.id}'),
-                        title: Text('${slot.start}–${slot.end}'),
-                        subtitle: Text(slot.day),
-                        trailing: const Icon(
-                          CupertinoIcons.chevron_right,
-                          size: 16,
-                          color: CupertinoColors.tertiaryLabel,
-                        ),
-                        onTap: busy || error != null
-                            ? null
-                            : () => Navigator.of(context).push(
-                                CupertinoPageRoute<void>(
-                                  builder: (_) => LibrarySeatPage(
-                                    service: widget.service,
-                                    area: widget.area,
-                                    slot: slot,
-                                    onReservationChanged:
-                                        widget.onReservationChanged,
-                                    onViewReservations:
-                                        widget.onViewReservations,
+        key: const Key('library-slots-scroll'),
+        slivers: [
+          AppleRefreshPageHeader(
+            title: widget.area.name,
+            subtitle: '选择时段后查看空闲座位',
+            icon: CupertinoIcons.clock,
+            refreshLabel: '刷新列表',
+            busy: busy,
+            onRefresh: load,
+          ),
+          CupertinoSliverRefreshControl(onRefresh: load),
+          SliverList.list(
+            children: [
+              if (error != null)
+                AppleStatusSection(
+                  title: error!,
+                  description: slots == null
+                      ? '时段列表读取失败，请稍后重试。'
+                      : '保留上次时段列表，请刷新后确认状态。',
+                  error: true,
+                  action: '重试',
+                  onAction: load,
+                ),
+              if (slots == null && error == null)
+                const GinkgoLoadingView(label: '正在读取时段…'),
+              if (slots != null)
+                SummaryStrip(
+                  items: [
+                    SummaryItem(
+                      '可订时段',
+                      '${slots!.length} 个',
+                      icon: CupertinoIcons.clock,
+                    ),
+                  ],
+                ),
+              if (slots != null)
+                AppleSection(
+                  header: const Text('时段'),
+                  children: [
+                    if (slots!.isEmpty)
+                      const AppleListTile(title: Text('今天没有可预约时段'))
+                    else
+                      for (final slot in slots!)
+                        AppleListTile(
+                          key: Key('library-slot-${slot.id}'),
+                          title: Text('${slot.start}–${slot.end}'),
+                          subtitle: Text(slot.day),
+                          trailing: const Icon(
+                            CupertinoIcons.chevron_right,
+                            size: 16,
+                            color: CupertinoColors.tertiaryLabel,
+                          ),
+                          onTap: busy || error != null
+                              ? null
+                              : () => Navigator.of(context).push(
+                                  CupertinoPageRoute<void>(
+                                    builder: (_) => LibrarySeatPage(
+                                      service: widget.service,
+                                      area: widget.area,
+                                      slot: slot,
+                                      onReservationChanged:
+                                          widget.onReservationChanged,
+                                      onViewReservations:
+                                          widget.onViewReservations,
+                                    ),
                                   ),
                                 ),
-                              ),
-                      ),
-                ],
-              ),
-            const SizedBox(height: 96),
-          ],
-        ),
-      ],
-    )
+                        ),
+                  ],
+                ),
+              const SizedBox(height: 96),
+            ],
+          ),
+        ],
+      ),
     ),
   );
 }

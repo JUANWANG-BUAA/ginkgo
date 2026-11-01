@@ -251,7 +251,9 @@ class ClassroomResultSummarySection extends StatelessWidget {
             AppleListTile(
               title: Text(
                 '清除筛选',
-                style: TextStyle(color: CupertinoTheme.of(context).primaryColor),
+                style: TextStyle(
+                  color: CupertinoTheme.of(context).primaryColor,
+                ),
               ),
               onTap: onClearFilters,
             ),

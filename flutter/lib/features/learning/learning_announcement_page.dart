@@ -113,11 +113,7 @@ class LearningAnnouncementPageState extends State<LearningAnnouncementPage> {
                   '${value.attachments.length} 个',
                   icon: CupertinoIcons.paperclip,
                 ),
-                SummaryItem(
-                  '公告编号',
-                  value.id,
-                  icon: CupertinoIcons.tag,
-                ),
+                SummaryItem('公告编号', value.id, icon: CupertinoIcons.tag),
               ],
             ),
             LearningText(presentText(value.content) ? value.content! : '暂无正文'),

@@ -7,8 +7,6 @@ export 'package:ginkgo_mirror/shared/homework_visibility.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 
-
-
 /// Classify a homework deadline against Beijing wall clock time.
 ///
 /// Follows the specification in docs/NEXT-STAGE-PLAN-2026-10-23.md:

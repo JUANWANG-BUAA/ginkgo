@@ -183,170 +183,172 @@ class _LibrarySeatPageState extends State<LibrarySeatPage> {
     ),
     child: SafeArea(
       child: LongPageScroll(
-      controller: scrollController,
-      child: CustomScrollView(
         controller: scrollController,
-        key: const Key('library-seats-scroll'),
-        slivers: [
-          AppleRefreshPageHeader(
-            title: '${widget.slot.start}–${widget.slot.end}',
-            subtitle: '${widget.area.name} · 选择空闲座位',
-            icon: CupertinoIcons.square_grid_2x2,
-            refreshLabel: '刷新列表',
-            busy: busy,
-            onRefresh: load,
-          ),
-          CupertinoSliverRefreshControl(onRefresh: load),
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                if (mutationNotice != null)
-                  AppleSection(
-                    animateSize: false,
-                    children: [
-                      AppleListTile(
-                        title: Text(mutationNotice!),
-                        trailing: CupertinoButton(
-                          onPressed: widget.onViewReservations,
-                          child: const Text('查看预约'),
-                        ),
-                      ),
-                    ],
-                  ),
-                if (error != null && seats == null)
-                  AppleStatusSection(
-                    title: error!,
-                    description: '座位列表读取失败，请稍后重试。',
-                    error: true,
-                    action: '重试',
-                    onAction: load,
-                    animateSize: false,
-                  ),
-                if (seats == null && error == null)
-                  const GinkgoLoadingView(label: '正在读取座位…'),
-              ],
+        child: CustomScrollView(
+          controller: scrollController,
+          key: const Key('library-seats-scroll'),
+          slivers: [
+            AppleRefreshPageHeader(
+              title: '${widget.slot.start}–${widget.slot.end}',
+              subtitle: '${widget.area.name} · 选择空闲座位',
+              icon: CupertinoIcons.square_grid_2x2,
+              refreshLabel: '刷新列表',
+              busy: busy,
+              onRefresh: load,
             ),
-          ),
-          resultsAnchor.sliver,
-          if (seats != null)
+            CupertinoSliverRefreshControl(onRefresh: load),
             SliverToBoxAdapter(
-              child: SummaryStrip(
-                items: [
-                  SummaryItem(
-                    '本页座位',
-                    '${visible.length} 个',
-                    icon: CupertinoIcons.square_grid_2x2,
-                  ),
-                  SummaryItem(
-                    '可用座位',
-                    '${visible.where((seat) => seat.available).length} 个',
-                    icon: CupertinoIcons.checkmark_circle,
-                  ),
+              child: Column(
+                children: [
+                  if (mutationNotice != null)
+                    AppleSection(
+                      animateSize: false,
+                      children: [
+                        AppleListTile(
+                          title: Text(mutationNotice!),
+                          trailing: CupertinoButton(
+                            onPressed: widget.onViewReservations,
+                            child: const Text('查看预约'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  if (error != null && seats == null)
+                    AppleStatusSection(
+                      title: error!,
+                      description: '座位列表读取失败，请稍后重试。',
+                      error: true,
+                      action: '重试',
+                      onAction: load,
+                      animateSize: false,
+                    ),
+                  if (seats == null && error == null)
+                    const GinkgoLoadingView(label: '正在读取座位…'),
                 ],
               ),
             ),
-          if (seats != null)
-            PinnedHeaderSliver(
-              child: CollectionQuerySurface(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                      child: Text(
-                        widget.area.name,
-                        style: const TextStyle(fontSize: 13),
-                      ),
+            resultsAnchor.sliver,
+            if (seats != null)
+              SliverToBoxAdapter(
+                child: SummaryStrip(
+                  items: [
+                    SummaryItem(
+                      '本页座位',
+                      '${visible.length} 个',
+                      icon: CupertinoIcons.square_grid_2x2,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                      child: LibraryFilterField(
-                        placeholder: '搜索座位编号',
-                        filterKey: const Key('library-seat-search'),
-                        onChanged: (value) => setState(() {
-                          search = value;
-                          prepare(reset: true);
-                          resultsAnchor.reveal(scrollController);
-                        }),
-                      ),
-                    ),
-                    AppleListTile(
-                      leading: const Icon(
-                        CupertinoIcons.line_horizontal_3_decrease_circle,
-                        size: 20,
-                      ),
-                      title: const Text('只看空闲座位'),
-                      trailing: CupertinoSwitch(
-                        value: availableOnly,
-                        onChanged: (value) => setState(() {
-                          availableOnly = value;
-                          prepare(reset: true);
-                          resultsAnchor.reveal(scrollController);
-                        }),
-                      ),
-                    ),
-
-                    CollectionToolbar(
-                      window: window,
-                      unit: '个座位',
-                      error: error,
-                      onRetry: load,
-                      busy: busy || submitting,
-                      onPageChanged: (page) {
-                        setState(() {
-                          window.select(page);
-                          prepare();
-                        });
-                        resultsAnchor.reveal(scrollController);
-                      },
+                    SummaryItem(
+                      '可用座位',
+                      '${visible.where((seat) => seat.available).length} 个',
+                      icon: CupertinoIcons.checkmark_circle,
                     ),
                   ],
                 ),
               ),
-            ),
-          if (seats != null && visible.isEmpty)
-            SliverToBoxAdapter(
-              child: AppleSection(
-                animateSize: false,
-                children: [
-                  AppleListTile(
-                    title: Text(seats!.isEmpty ? '该时段没有座位数据' : '没有符合条件的座位'),
-                  ),
-                ],
-              ),
-            ),
-          if (visible.isNotEmpty)
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppleDesign.pageInset,
-              ),
-              sliver: SliverList.builder(
-                itemCount: window.end - window.start,
-                findChildIndexCallback: (key) {
-                  if (key is! ValueKey<String>) return null;
-                  return visibleIndices[key.value];
-                },
-                itemBuilder: (context, index) =>
-                    _seatRow(visible[window.start + index], index),
-              ),
-            ),
-          if (seats != null)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(32, 10, 32, 0),
-                child: Text(
-                  '选择空闲座位后确认预约。',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+            if (seats != null)
+              PinnedHeaderSliver(
+                child: CollectionQuerySurface(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        child: Text(
+                          widget.area.name,
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                        child: LibraryFilterField(
+                          placeholder: '搜索座位编号',
+                          filterKey: const Key('library-seat-search'),
+                          onChanged: (value) => setState(() {
+                            search = value;
+                            prepare(reset: true);
+                            resultsAnchor.reveal(scrollController);
+                          }),
+                        ),
+                      ),
+                      AppleListTile(
+                        leading: const Icon(
+                          CupertinoIcons.line_horizontal_3_decrease_circle,
+                          size: 20,
+                        ),
+                        title: const Text('只看空闲座位'),
+                        trailing: CupertinoSwitch(
+                          value: availableOnly,
+                          onChanged: (value) => setState(() {
+                            availableOnly = value;
+                            prepare(reset: true);
+                            resultsAnchor.reveal(scrollController);
+                          }),
+                        ),
+                      ),
+
+                      CollectionToolbar(
+                        window: window,
+                        unit: '个座位',
+                        error: error,
+                        onRetry: load,
+                        busy: busy || submitting,
+                        onPageChanged: (page) {
+                          setState(() {
+                            window.select(page);
+                            prepare();
+                          });
+                          resultsAnchor.reveal(scrollController);
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          const SliverToBoxAdapter(child: SizedBox(height: 96)),
-        ],
+            if (seats != null && visible.isEmpty)
+              SliverToBoxAdapter(
+                child: AppleSection(
+                  animateSize: false,
+                  children: [
+                    AppleListTile(
+                      title: Text(seats!.isEmpty ? '该时段没有座位数据' : '没有符合条件的座位'),
+                    ),
+                  ],
+                ),
+              ),
+            if (visible.isNotEmpty)
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppleDesign.pageInset,
+                ),
+                sliver: SliverList.builder(
+                  itemCount: window.end - window.start,
+                  findChildIndexCallback: (key) {
+                    if (key is! ValueKey<String>) return null;
+                    return visibleIndices[key.value];
+                  },
+                  itemBuilder: (context, index) =>
+                      _seatRow(visible[window.start + index], index),
+                ),
+              ),
+            if (seats != null)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(32, 10, 32, 0),
+                  child: Text(
+                    '选择空闲座位后确认预约。',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: CupertinoColors.secondaryLabel.resolveFrom(
+                        context,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            const SliverToBoxAdapter(child: SizedBox(height: 96)),
+          ],
+        ),
       ),
-    )
     ),
   );
 

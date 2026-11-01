@@ -95,67 +95,67 @@ class _LibraryAreaPageState extends State<LibraryAreaPage> {
     ),
     child: SafeArea(
       child: CustomScrollView(
-      key: const Key('library-areas-scroll'),
-      slivers: [
-        AppleRefreshPageHeader(
-          title: widget.venue.name,
-          subtitle: '查看开放区域与座位余量',
-          icon: CupertinoIcons.rectangle_grid_2x2,
-          refreshLabel: '刷新列表',
-          busy: busy,
-          onRefresh: load,
-        ),
-        CupertinoSliverRefreshControl(onRefresh: load),
-        SliverList.list(
-          children: [
-            if (error != null)
-              AppleStatusSection(
-                title: error!,
-                description: areas == null
-                    ? '区域列表读取失败，请稍后重试。'
-                    : '保留上次区域列表，请刷新后确认状态。',
-                error: true,
-                action: '重试',
-                onAction: load,
-              ),
-            if (areas == null && error == null)
-              const GinkgoLoadingView(label: '正在读取区域…'),
-            if (areas != null)
-              AppleSection(
-                header: const Text('区域'),
-                children: [
-                  if (areas!.isEmpty)
-                    const AppleListTile(title: Text('暂无开放区域'))
-                  else
-                    for (final area in areas!)
-                      ResourceMeter(
-                        key: Key('library-area-${area.id}'),
-                        label: area.name,
-                        available: area.free,
-                        total: area.total,
-                        unit: '座',
-                        onTap: busy || error != null
-                            ? null
-                            : () => Navigator.of(context).push(
-                                CupertinoPageRoute<void>(
-                                  builder: (_) => LibrarySlotPage(
-                                    service: widget.service,
-                                    area: area,
-                                    onReservationChanged:
-                                        widget.onReservationChanged,
-                                    onViewReservations:
-                                        widget.onViewReservations,
+        key: const Key('library-areas-scroll'),
+        slivers: [
+          AppleRefreshPageHeader(
+            title: widget.venue.name,
+            subtitle: '查看开放区域与座位余量',
+            icon: CupertinoIcons.rectangle_grid_2x2,
+            refreshLabel: '刷新列表',
+            busy: busy,
+            onRefresh: load,
+          ),
+          CupertinoSliverRefreshControl(onRefresh: load),
+          SliverList.list(
+            children: [
+              if (error != null)
+                AppleStatusSection(
+                  title: error!,
+                  description: areas == null
+                      ? '区域列表读取失败，请稍后重试。'
+                      : '保留上次区域列表，请刷新后确认状态。',
+                  error: true,
+                  action: '重试',
+                  onAction: load,
+                ),
+              if (areas == null && error == null)
+                const GinkgoLoadingView(label: '正在读取区域…'),
+              if (areas != null)
+                AppleSection(
+                  header: const Text('区域'),
+                  children: [
+                    if (areas!.isEmpty)
+                      const AppleListTile(title: Text('暂无开放区域'))
+                    else
+                      for (final area in areas!)
+                        ResourceMeter(
+                          key: Key('library-area-${area.id}'),
+                          label: area.name,
+                          available: area.free,
+                          total: area.total,
+                          unit: '座',
+                          onTap: busy || error != null
+                              ? null
+                              : () => Navigator.of(context).push(
+                                  CupertinoPageRoute<void>(
+                                    builder: (_) => LibrarySlotPage(
+                                      service: widget.service,
+                                      area: area,
+                                      onReservationChanged:
+                                          widget.onReservationChanged,
+                                      onViewReservations:
+                                          widget.onViewReservations,
+                                    ),
                                   ),
                                 ),
-                              ),
-                      ),
-                ],
-              ),
-            const SizedBox(height: 96),
-          ],
-        ),
-      ],
-    )
+                        ),
+                  ],
+                ),
+              const SizedBox(height: 96),
+            ],
+          ),
+        ],
+      ),
     ),
   );
 }

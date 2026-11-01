@@ -55,7 +55,8 @@ class ReminderRuleDouble {
     // The session belongs to the queried day; a stale day never reminds.
     if (_beijingDate(start) != seed.date) return null;
     return ReminderPlan(
-      key: 'checkin:${seed.date}:${seed.id.length}:${seed.id}:'
+      key:
+          'checkin:${seed.date}:${seed.id.length}:${seed.id}:'
           '${start.millisecondsSinceEpoch}',
       group: 'checkin',
       at: start.subtract(const Duration(minutes: 10)),
@@ -71,12 +72,14 @@ class ReminderRuleDouble {
     for (final hours in [48, 24]) {
       // Inside the last 24 hours only the close-in plan is new; the 48-hour
       // stage would fire for a moment that has already passed.
-      if (hours == 48 && !now.isBefore(due.subtract(const Duration(hours: 24)))) {
+      if (hours == 48 &&
+          !now.isBefore(due.subtract(const Duration(hours: 24)))) {
         continue;
       }
       plans.add(
         ReminderPlan(
-          key: 'homework:${seed.id.length}:${seed.id}:'
+          key:
+              'homework:${seed.id.length}:${seed.id}:'
               '${due.millisecondsSinceEpoch}:$hours',
           group: 'homework',
           at: due.subtract(Duration(hours: hours)),
