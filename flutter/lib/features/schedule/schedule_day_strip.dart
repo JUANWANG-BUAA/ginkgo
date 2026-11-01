@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
+import 'package:ginkgo_mirror/design/apple_design.dart';
+
 import 'schedule_style.dart';
 
 class ScheduleDayStrip extends StatelessWidget {
@@ -27,14 +29,23 @@ class ScheduleDayStrip extends StatelessWidget {
       key: const Key('schedule-day-strip'),
       height: 68,
       child: fits
-          ? Row(
-              children: [
-                for (var index = 0; index < 7; index++)
-                  Expanded(child: _day(context, index, compact: true)),
-              ],
+          ? Padding(
+              // The selected pill must not touch the screen edge.
+              padding: const EdgeInsets.symmetric(
+                horizontal: GinkgoSpacing.pageInset,
+              ),
+              child: Row(
+                children: [
+                  for (var index = 0; index < 7; index++)
+                    Expanded(child: _day(context, index, compact: true)),
+                ],
+              ),
             )
           : ListView.builder(
               scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(
+                horizontal: GinkgoSpacing.pageInset,
+              ),
               itemCount: 7,
               itemBuilder: (context, index) =>
                   _day(context, index, compact: false),

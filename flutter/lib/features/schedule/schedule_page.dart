@@ -354,7 +354,13 @@ class _SchedulePageState extends State<SchedulePage> {
           onValueChanged: (value) =>
               setState(() => viewMode = value ?? ScheduleViewMode.weekGrid),
           children: {
-            for (final mode in modes) mode: Text(scheduleViewModeLabel(mode)),
+            // Four labels do not fit every phone width; let them shrink
+            // instead of clipping the last segment.
+            for (final mode in modes)
+              mode: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(scheduleViewModeLabel(mode)),
+              ),
           },
         ),
       ),
