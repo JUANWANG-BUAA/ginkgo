@@ -267,10 +267,10 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/native_school_rules.dart
 
 - `class NativeSchoolRules implements SchoolRules` — The domain rules through the bridge. Pure commands, no session or network.
-  <sub>class · infrastructure/native_school_rules.dart:6</sub>
-    - `const NativeSchoolRules();`  <sub>:7</sub>
-    - `HomeworkDeadlineStatus homeworkDeadline(String? dueAt, DateTime now) => …`  <sub>:10</sub>
-    - `bool checkinWindowOpen( String date, String beginsAt, String endsAt, DateTime now, ) => …`  <sub>:17</sub>
+  <sub>class · infrastructure/native_school_rules.dart:10</sub>
+    - `const NativeSchoolRules();`  <sub>:11</sub>
+    - `HomeworkDeadlineStatus homeworkDeadline(String? dueAt, DateTime now) => …`  <sub>:14</sub>
+    - `bool checkinWindowOpen( String date, String beginsAt, String endsAt, DateTime now, ) => …`  <sub>:21</sub>
 
 ## infrastructure/notices_decode.dart
 

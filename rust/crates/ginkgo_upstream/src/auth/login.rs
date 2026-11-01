@@ -78,9 +78,14 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
             }
             let location = response.header("location").ok_or_else(AppError::changed)?;
             let target = redirect::resolve_get(location, &current_url)?;
-            response = session
-                .send_with_fallback(HttpRequest::get(&target))
-                .await?;
+            // A ticket for a target service means the school already accepted
+            // the login. Following that service leaves CAS, fails on a network
+            // that cannot reach it, reroutes through the gateway and comes back
+            // to CAS unauthenticated — which is where the captcha comes from.
+            if !is_login_page_target(&target) {
+                return Ok(None);
+            }
+            response = session.send_auth(HttpRequest::get(&target)).await?;
             current_url = target;
             continue;
         }

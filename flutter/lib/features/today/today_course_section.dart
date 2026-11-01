@@ -105,7 +105,7 @@ class TodayCourseSection extends StatelessWidget {
         children: [
           if (data.fetchedAt != null)
             Text('课表同步：${_syncedAtLabel(data.fetchedAt!)}'),
-          Text(demo ? '离线演示 · 课程与日期为合成样例' : '课程来自教务课表，签到状态请进入课程签到核对。'),
+          if (demo) const Text('离线演示 · 合成样例'),
         ],
       ),
       children: [

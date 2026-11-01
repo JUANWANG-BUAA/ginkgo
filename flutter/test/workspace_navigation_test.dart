@@ -13,6 +13,15 @@ import 'session_widget_test.dart' show FakeService, signedOut;
 import 'platform_actions_fake.dart';
 
 class WorkspaceService extends ControlledService {
+  @override
+  Future<CheckInResponse> checkin({bool forceRefresh = false}) async =>
+      const CheckInResponse(
+        date: '2026-10-21',
+        courses: [],
+        fromCache: false,
+        stale: false,
+      );
+
   int scheduleReads = 0;
   int libraryReads = 0;
   TodayResponse result = const TodayResponse(

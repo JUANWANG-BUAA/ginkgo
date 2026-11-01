@@ -570,3 +570,38 @@ async fn library_writes_reject_an_account_switch_before_dispatch() {
     assert_eq!(action.state, MutationState::NotSubmitted);
     assert_eq!(transport.request_count(), before);
 }
+
+#[tokio::test]
+async fn the_gateway_is_opened_with_the_sign_in_password_when_nothing_is_stored() {
+    use crate::auth::session::RouteMode;
+
+    // Signed in with "remember password" off: the vault is empty, but the
+    // password typed a moment ago is still the right one for the gateway.
+    // Before this, the recovery bailed out with `session_expired` before it
+    // ever reached the school, so check-in and the library could not recover.
+    let responses = login_chain("sy2501001", "fixture");
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, false)
+        .await
+        .expect("signed in");
+    assert!(
+        service.session_credentials().is_some(),
+        "the sign-in credential stays in memory for the gateway"
+    );
+    let before = transport.request_count();
+    service.session.set_route(RouteMode::WebVpn);
+    let error = service
+        .ensure_webvpn_session()
+        .await
+        .expect_err("the scripted gateway has no answer");
+    assert_ne!(
+        error.code,
+        crate::ErrorCode::SessionExpired,
+        "the recovery must reach the gateway, not give up on a missing credential"
+    );
+    assert!(
+        transport.request_count() > before,
+        "the gateway login was actually attempted"
+    );
+}

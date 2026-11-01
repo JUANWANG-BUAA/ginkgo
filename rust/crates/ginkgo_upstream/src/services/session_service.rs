@@ -80,6 +80,10 @@ pub(crate) struct Identity {
     pub library_token: Option<String>,
     pub cgyy_token: Option<String>,
     pub cgyy_booking: Option<super::cgyy_booking_service::BookingContext>,
+    /// The credential this session was opened with, kept in memory only so a
+    /// gateway that needs its own CAS session can be authenticated without
+    /// asking the user to store the password. Cleared with the identity.
+    pub session_credentials: Option<crate::auth::Credentials>,
     pub generation: u64,
 }
 
@@ -207,6 +211,17 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         *lock_value(&self.route)
     }
 
+    /// Keep the credential this sign-in used so a gateway that needs its own
+    /// CAS session can be authenticated later without a stored password.
+    pub(crate) fn remember_session_credentials(&self, credentials: &crate::auth::Credentials) {
+        self.identity.lock().session_credentials = Some(credentials.clone());
+    }
+
+    /// The credential used to open this session, in memory only.
+    pub(crate) fn session_credentials(&self) -> Option<crate::auth::Credentials> {
+        self.identity.lock().session_credentials.clone()
+    }
+
     pub(crate) fn current_account(&self) -> Result<String, AppError> {
         self.identity
             .lock()
@@ -300,11 +315,17 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         }
         // Called after an explicit gateway challenge. A cookie may be only
         // the pre-login gateway session, not proof of authenticated access.
+        // Off campus the gateway needs its own CAS session; the password typed
+        // for this sign-in is still valid for it and never left memory, so
+        // requiring "remember password" here made check-in and the library
+        // fail for everyone who did not store it.
         let account = self.current_account()?;
-        let credentials = self
-            .vault
-            .load(&account)?
-            .ok_or_else(AppError::session_expired)?;
+        let credentials = match self.vault.load(&account) {
+            Ok(Some(credentials)) => credentials,
+            Ok(None) | Err(_) => self
+                .session_credentials()
+                .ok_or_else(AppError::session_expired)?,
+        };
         let result = auth::establish_webvpn_session(&self.session, &credentials).await;
         if result.is_err() {
             self.session.set_route(RouteMode::Automatic);

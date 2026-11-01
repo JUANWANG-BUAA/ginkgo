@@ -477,6 +477,12 @@ Future<void> openCheckin(WidgetTester tester, ControlledService service) async {
   addTearDown(tester.view.resetDevicePixelRatio);
   await tester.pumpWidget(GinkgoApp(service: service));
   await tester.pumpAndSettle();
+  // The workbench reads the day's check-in state itself. Answer that read so
+  // the module read below is the one these tests drive.
+  for (final pending in service.checkinRequests) {
+    if (!pending.isCompleted) pending.complete(checkInFixture);
+  }
+  await tester.pumpAndSettle();
   await tester.tap(find.text('更多').first);
   await tester.pumpAndSettle();
   await tester.ensureVisible(find.text('课程签到').first);
@@ -1148,7 +1154,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       // The older history-mode read must never replace the selected day.
-      service.checkinRequests[1].complete(
+      service.checkinRequests[service.checkinRequests.length - 2].complete(
         CheckInResponse(
           date: first,
           courses: [],

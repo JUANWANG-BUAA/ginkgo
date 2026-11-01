@@ -17,7 +17,7 @@
 - [shared/reminder_scope.dart](#sharedreminderscopedart) (1)
 - [shared/school_links.dart](#sharedschoollinksdart) (2)
 - [shared/school_timestamp.dart](#sharedschooltimestampdart) (6)
-- [shared/today_time.dart](#sharedtodaytimedart) (5)
+- [shared/today_time.dart](#sharedtodaytimedart) (6)
 
 ## shared/app_preferences.dart
 
@@ -161,11 +161,13 @@
 
 - `DateTime todaySchoolNow(DateTime instant) => …` — UTC-shaped Beijing wall time; independent of the device timezone.
   <sub>function · shared/today_time.dart:4</sub>
+- `int schoolWallClockMillis(DateTime value) {…}` — Absolute epoch milliseconds for a point the rules port was given.
+  <sub>function · shared/today_time.dart:16</sub>
 - `DateTime? todayDate(String value) {…}`
-  <sub>function · shared/today_time.dart:7</sub>
+  <sub>function · shared/today_time.dart:22</sub>
 - `DateTime? todayDue(String? value) {…}` — Presentation ordering and urgency only; never schedule an alarm from the
-  <sub>function · shared/today_time.dart:21</sub>
+  <sub>function · shared/today_time.dart:36</sub>
 - `int todayCompareDue(String? a, String? b) {…}`
-  <sub>function · shared/today_time.dart:32</sub>
+  <sub>function · shared/today_time.dart:47</sub>
 - `String todayDueLabel(String? value, DateTime now, {bool localTask = false}) {…}`
-  <sub>function · shared/today_time.dart:39</sub>
+  <sub>function · shared/today_time.dart:54</sub>

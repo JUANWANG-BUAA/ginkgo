@@ -15,12 +15,11 @@ import 'package:ginkgo_mirror/shared/today_time.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
-import 'today_action_row.dart';
+import 'today_checkin_section.dart';
 import 'today_course_section.dart';
 import 'today_homework_section.dart';
 import 'today_page_actions.dart';
 import 'today_page_header.dart';
-import 'today_presentation.dart';
 import 'today_tasks_section.dart';
 import 'today_exam_section.dart';
 import 'today_notice_section.dart';
@@ -89,10 +88,15 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   late RefreshSection<TodayResponse> courses;
   late RefreshSection<HomeworkResponse> homework;
   late RefreshSection<NoticesRead> notices;
+  late RefreshSection<CheckInResponse> checkin;
   TodayResponse? get data => courses.value;
   String? get error => courses.error;
   bool get busy =>
-      courses.loading || homework.loading || tasks.loading || notices.loading;
+      courses.loading ||
+      homework.loading ||
+      tasks.loading ||
+      notices.loading ||
+      checkin.loading;
 
   @override
   void initState() {
@@ -127,6 +131,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     courses = RefreshSection<TodayResponse>()..addListener(_changed);
     homework = RefreshSection<HomeworkResponse>()..addListener(_changed);
     notices = RefreshSection<NoticesRead>()..addListener(_changed);
+    checkin = RefreshSection<CheckInResponse>()..addListener(_changed);
     load();
   }
 
@@ -145,6 +150,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
       courses.dispose();
       homework.dispose();
       notices.dispose();
+      checkin.dispose();
       _createSection();
     }
   }
@@ -168,6 +174,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
       _loadHomework(force: force),
       _loadTasks(),
       _loadNotices(force: force),
+      _loadCheckIn(force: force),
     ]);
   }
 
@@ -182,6 +189,20 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
       );
     },
     fallbackError: '本地服务暂时不可用，请重试',
+    force: force,
+  );
+
+  Future<void> _loadCheckIn({bool force = false}) => checkin.refresh(
+    () async {
+      final result = await widget.service.checkin(forceRefresh: force);
+      return SectionResult(
+        value: result.failure == null || result.fetchedAt != null
+            ? result
+            : null,
+        error: result.failure == null ? null : failureMessage(result.failure),
+      );
+    },
+    fallbackError: '签到状态暂时无法读取',
     force: force,
   );
 
@@ -321,21 +342,11 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
                           demo: widget.service.isDemo,
                         ),
                       ),
-                    TodayVisualSection(
-                      key: const Key('today-checkin-entry'),
-                      header: const TodaySectionHeader(
-                        icon: CupertinoIcons.checkmark_seal,
-                        title: '课程签到',
-                      ),
-                      children: [
-                        TodayActionRow(
-                          title: '查看今天的签到状态',
-                          subtitle: '进入签到页查看，首页不读取学校数据',
-                          onTap: widget.onOpenFeature == null
-                              ? null
-                              : () => widget.onOpenFeature!('checkin'),
-                        ),
-                      ],
+                    TodayCheckInSection(
+                      section: checkin,
+                      now: _now,
+                      onRetry: () => _loadCheckIn(force: true),
+                      onOpen: () => widget.onOpenFeature?.call('checkin'),
                     ),
                     TodayExamSection(
                       key: ValueKey((

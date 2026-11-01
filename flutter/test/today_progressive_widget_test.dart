@@ -37,6 +37,15 @@ class ProgressiveService extends ControlledService {
   }
 
   @override
+  Future<CheckInResponse> checkin({bool forceRefresh = false}) async =>
+      const CheckInResponse(
+        date: '2026-10-22',
+        courses: [],
+        fromCache: false,
+        stale: false,
+      );
+
+  @override
   Future<HomeworkResponse> homework({bool forceRefresh = false}) {
     forceAssignments.add(forceRefresh);
     final request = Completer<HomeworkResponse>();
@@ -221,11 +230,11 @@ void main() {
     service.courses.single.complete(todayFixture);
     service.assignments.single.complete(assignments);
     await tester.pumpAndSettle();
-    expect(service.checkinRequests, isEmpty);
     for (final key in ['today-notices', 'today-tasks']) {
       expect(find.byKey(Key(key)), findsNothing);
     }
-    expect(find.byKey(const Key('today-checkin-entry')), findsOneWidget);
+    expect(find.byKey(const Key('today-checkin')), findsOneWidget);
+    expect(find.text('今天没有签到任务'), findsOneWidget);
 
     await tester.tap(find.bySemanticsLabel('刷新今天').first);
     await tester.pump();
@@ -235,7 +244,7 @@ void main() {
     service.courses.last.complete(todayFixture);
     service.assignments.last.complete(assignments);
     await tester.pumpAndSettle();
-    expect(service.checkinRequests, isEmpty);
+    expect(find.text('今天没有签到任务'), findsOneWidget);
   });
 
   testWidgets('desktop refresh shortcut reloads both sections', (tester) async {

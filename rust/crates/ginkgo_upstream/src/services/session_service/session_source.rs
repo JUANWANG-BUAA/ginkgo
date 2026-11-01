@@ -228,6 +228,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                 };
                 self.clear_caches();
                 self.set_authenticated(canonical_account, profile.clone());
+                // set_authenticated resets the record; re-seat the credential
+                // afterwards so the gateway can be opened in the same session.
+                self.remember_session_credentials(&credentials);
                 Ok(SessionOutcome::SignedIn {
                     profile,
                     remembered,

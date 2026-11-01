@@ -1,8 +1,12 @@
 import '../application/school_rules.dart';
 
+import '../shared/today_time.dart';
 import '../src/rust/api/rules.dart' as native;
 
 /// The domain rules through the bridge. Pure commands, no session or network.
+///
+/// The port speaks the Beijing wall clock; the bridge takes absolute instants.
+/// [schoolWallClockMillis] is the single place that converts between them.
 class NativeSchoolRules implements SchoolRules {
   const NativeSchoolRules();
 
@@ -10,7 +14,7 @@ class NativeSchoolRules implements SchoolRules {
   HomeworkDeadlineStatus homeworkDeadline(String? dueAt, DateTime now) =>
       native.classifyHomeworkDeadline(
         dueAt: dueAt,
-        nowMillis: now.toUtc().millisecondsSinceEpoch,
+        nowMillis: schoolWallClockMillis(now),
       );
 
   @override
@@ -23,6 +27,6 @@ class NativeSchoolRules implements SchoolRules {
     date: date,
     beginsAt: beginsAt,
     endsAt: endsAt,
-    nowMillis: now.toUtc().millisecondsSinceEpoch,
+    nowMillis: schoolWallClockMillis(now),
   );
 }

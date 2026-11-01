@@ -4,6 +4,21 @@ import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 DateTime todaySchoolNow(DateTime instant) =>
     instant.toUtc().add(const Duration(hours: 8));
 
+/// Absolute epoch milliseconds for a point the rules port was given.
+///
+/// The port carries the school wall clock, which the app stores as a
+/// UTC-shaped `DateTime` whose epoch therefore runs eight hours ahead of the
+/// real instant. A bridge command takes an instant, so that fiction is undone
+/// here; a caller that passes a real local clock is converted to the same wall
+/// clock first. Without this, every deadline and sign-in window is judged
+/// eight hours late and an assignment due in 40 minutes already reads as
+/// overdue.
+int schoolWallClockMillis(DateTime value) {
+  final wall = value.isUtc ? value : todaySchoolNow(value);
+  return wall.millisecondsSinceEpoch -
+      const Duration(hours: 8).inMilliseconds;
+}
+
 DateTime? todayDate(String value) {
   if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(value)) return null;
   final parsed = DateTime.tryParse(

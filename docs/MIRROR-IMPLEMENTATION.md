@@ -186,6 +186,7 @@ Alpha.9 在 Alpha.8 基础上带入连续左右翻页、SPOC 学习与资料保�
 - **认证与身份**：CAS 登录表单 action 白名单（https + `sso.buaa.edu.cn`，拒绝端口/userinfo，`fetch_login_page` 与 `complete_login` 双重校验）；`complete_login` 与 restore 首段校验 `account == profile.school_id`，`set_authenticated` 对不一致 fail closed 并清 Cookie；Android 保险库枚举失败不再折叠为空列表，显式退出在 Rust 侧重试删除并在 Dart 侧持久化标记（`display-preferences-v1.json` 新增 `explicitSignOut` 字段），阻止下次启动自动恢复。
 - **读路径与缓存**：`SnapshotCache` 增加全局单调请求票据，全部 12 处 await 后写入改为 `insert_if_current`，迟到旧响应不能覆盖新结果、clear 后旧代次票据全部失效。
 - **Dart 可感知修复**：课程范围读取失败锁定编辑直至显式重试；课表选择仅由成功响应确认；作业详情倒计时取最新详情状态、午夜提示改解析比较；APK 原生校验失败后清理文件并转入可重下载；更新门禁返回前仅显示启动页、`releasesUrl` 收窄官方发布域白名单；待办空态文案、通知确认空态、校车“下一班”按分钟重算。
+- **北京墙钟与绝对时刻的换算**（2026-11-01）：规则端口传入的是以 UTC 形状承载的北京时间，桥接命令 `classify_homework_deadline` / `checkin_sign_in_window` 取的却是绝对毫秒；`NativeSchoolRules` 直接把前者当后者，使截止与签到窗口整体晚判 8 小时——离截止 40 分钟的作业显示“已截止”。换算收口到 `schoolWallClockMillis`，同时接受墙钟和真实本地时钟两种入参，`flutter/test/school_wall_clock_test.dart` 覆盖；真实账号在模拟器上复验，`11月02日 00:00` 一条由“刚截止”恢复为“还剩 35 分钟 · 待完成”。
 - **刷新合流**：`RefreshSection.refresh` 与 `LibraryController` 增加强制刷新补跑，在途非强制读期间的 `force` 不再被合流吞掉。
 - **FFI 健壮性**：`ginkgo_upstream`/`ginkgo_core` 三处手写 `unreachable!()` 改为 `AppError::changed()`（FRB 生成文件内的同类不在手改范围）。
 - **UI 重做**：`ReservationActionButton` 去描边、48dp 最小高度、主题语义 tint、新增行内紧凑款（图书馆座位/预约操作/CGYY 日期共用）；查书目页改为结果卡片（题名/著录/索书号两级）、上一页/下一页 Wrap 分页器与 `AppleEmptyState` 空态/错误态；`ginkgoTheme` 补 `navActionTextStyle`，修复导航栏返回键回退系统蓝。

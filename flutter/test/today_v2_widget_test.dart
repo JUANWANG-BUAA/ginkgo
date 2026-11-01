@@ -191,18 +191,22 @@ Future<void> clear(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('the dashboard never triggers a check-in authentication read', (
-    tester,
-  ) async {
-    size(tester);
-    final service = TodayFake();
-    await tester.pumpWidget(host(page(service)));
-    await tester.pumpAndSettle();
-    expect(service.checkinReads, 0);
-    expect(find.byKey(const Key('today-checkin')), findsNothing);
-    expect(find.byKey(const Key('today-checkin-entry')), findsOneWidget);
-    expect(find.text('查看今天的签到状态'), findsOneWidget);
-  });
+  testWidgets(
+    'the dashboard reads check-in itself and never asks for a login',
+    (tester) async {
+      size(tester);
+      final service = TodayFake();
+      await tester.pumpWidget(host(page(service)));
+      await tester.pumpAndSettle();
+      // One normal read, so the workbench can state the day's check-in status
+      // instead of a placeholder. A refused read must surface as an error, not
+      // as a credential prompt: the fake only ever answers data.
+      expect(service.checkinReads, 1);
+      expect(find.byKey(const Key('today-checkin')), findsOneWidget);
+      expect(find.byKey(const Key('today-checkin-entry')), findsNothing);
+      expect(find.text('今天没有课程'), findsOneWidget);
+    },
+  );
 
   testWidgets('old empty check-in snapshot stays visible and can refresh', (
     tester,
@@ -256,7 +260,7 @@ void main() {
         ),
       ),
     );
-    expect(find.byKey(const Key('today-checkin')), findsNothing);
+    expect(find.text('今天没有签到任务'), findsOneWidget);
     checkins.error = '合成签到读取失败';
     await tester.pumpWidget(
       host(

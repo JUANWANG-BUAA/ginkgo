@@ -67,13 +67,18 @@ class TodayCheckInSection extends StatelessWidget {
           title: '课程签到',
         ),
         children: [
-          SectionFeedback(
-            loading: section.loading,
-            label: '正在读取签到状态…',
-            hasData: false,
-            error: section.error,
-            onRetry: onRetry,
-          ),
+          if (section.error != null)
+            // A passive section reports itself quietly: the school's own
+            // message belongs to the module, not to the workbench.
+            TodayActionRow(title: '签到状态暂时无法读取', onTap: onRetry)
+          else
+            SectionFeedback(
+              loading: section.loading,
+              label: '正在读取签到状态…',
+              hasData: false,
+              error: null,
+              onRetry: onRetry,
+            ),
         ],
       );
     }
@@ -83,8 +88,27 @@ class TodayCheckInSection extends StatelessWidget {
     final date = todayDate(data.date);
     final today = DateTime.utc(now.year, now.month, now.day);
     final needsRefresh = data.stale || date == null || date != today;
+    // A quiet day still keeps its row: the workbench has to say that nothing
+    // needs signing, otherwise an empty screen reads as "state unknown".
     if (courses.isEmpty && section.error == null && !needsRefresh) {
-      return const SizedBox.shrink();
+      return TodayVisualSection(
+        key: const Key('today-checkin'),
+        header: TodaySectionHeader(
+          icon: CupertinoIcons.checkmark_seal,
+          title: '课程签到',
+          actionLabel: '全部',
+          onAction: onOpen,
+        ),
+        children: [
+          TodayActionRow(
+            title: data.courses.isEmpty ? '今天没有签到任务' : '今天无需签到',
+            subtitle: data.courses.isEmpty
+                ? null
+                : '已确认 $signed/${data.courses.length} 场签到',
+            onTap: onOpen,
+          ),
+        ],
+      );
     }
     return TodayVisualSection(
       key: const Key('today-checkin'),
@@ -94,7 +118,6 @@ class TodayCheckInSection extends StatelessWidget {
         actionLabel: '全部',
         onAction: onOpen,
       ),
-      footer: Text('签到状态来自学校系统 · ${data.date}'),
       children: [
         if (needsRefresh)
           TodayActionRow(

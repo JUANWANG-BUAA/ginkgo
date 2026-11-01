@@ -101,7 +101,7 @@ class TodayHomeworkSection extends StatelessWidget {
       ),
       footer: Text(
         '${data?.termName.trim().isNotEmpty == true ? data!.termName : '学期未确认'} · '
-        '${unknownRole ? '课程身份未全部核对' : '已识别助教课程不在此显示'} · '
+        '${unknownRole ? '课程身份未全部核对 · ' : ''}'
         '作业同步：${data?.fetchedAt == null ? '未确认' : schoolTimestampLabel(data!.fetchedAt)}',
       ),
       children: [
