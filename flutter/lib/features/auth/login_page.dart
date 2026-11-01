@@ -304,42 +304,12 @@ class _LoginPageState extends State<LoginPage> {
                                 textInputAction: TextInputAction.done,
                                 onSubmitted: (_) => submit(),
                               ),
+                            if (needCaptcha) _challengeRow(),
                           ],
                         ),
                       ),
                     ),
-                    if (needCaptcha) ...[
-                      if (challengeBusy)
-                        const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Text('正在读取验证码…'),
-                        ),
-                      if (challenge case final current?
-                          when current.textSupported)
-                        Semantics(
-                          label: '登录验证码图片，请输入图片中的字符',
-                          image: true,
-                          child: Image.memory(
-                            current.image,
-                            height: 90,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, _, _) =>
-                                const Text('图片无法显示，请刷新验证'),
-                          ),
-                        ),
-                      if (challenge != null)
-                        CupertinoButton(
-                          key: const Key('login-captcha-refresh'),
-                          onPressed: busy || challengeBusy
-                              ? null
-                              : () => loadChallenge(
-                                  expectedId: challenge!.id,
-                                  refresh: true,
-                                ),
-                          child: const Text('刷新验证'),
-                        ),
-                    ],
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     Row(
                       children: [
                         const Expanded(
@@ -427,6 +397,88 @@ class _LoginPageState extends State<LoginPage> {
       ),
     ),
   );
+
+  /// The challenge image and its refresh action belong to the same card as
+  /// the fields they validate, so they keep one rhythm instead of floating on
+  /// the page background.
+  Widget _challengeRow() {
+    final current = challenge;
+    if (current == null || !current.textSupported) {
+      return Padding(
+        padding: GinkgoSpacing.edgeInsetsListTile,
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                challengeBusy ? '正在读取验证码…' : '验证方式暂不可用，请刷新',
+                style: TextStyle(
+                  fontSize: AppleDesign.bodyCondensedSize,
+                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                ),
+              ),
+            ),
+            CupertinoButton(
+              key: const Key('login-captcha-refresh'),
+              padding: EdgeInsets.zero,
+              onPressed: busy || challengeBusy
+                  ? null
+                  : () =>
+                        loadChallenge(expectedId: challenge?.id, refresh: true),
+              child: const Text('刷新'),
+            ),
+          ],
+        ),
+      );
+    }
+    return Padding(
+      padding: GinkgoSpacing.edgeInsetsListTile,
+      child: Row(
+        children: [
+          Expanded(
+            child: Semantics(
+              label: '登录验证码图片，请输入图片中的字符',
+              image: true,
+              child: Image.memory(
+                current.image,
+                height: 44,
+                alignment: Alignment.centerLeft,
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => Text(
+                  '图片无法显示，请刷新',
+                  style: TextStyle(
+                    fontSize: AppleDesign.bodyCondensedSize,
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          CupertinoButton(
+            key: const Key('login-captcha-refresh'),
+            padding: const EdgeInsets.only(left: 12),
+            onPressed: busy || challengeBusy
+                ? null
+                : () => loadChallenge(expectedId: current.id, refresh: true),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  CupertinoIcons.refresh,
+                  size: 18,
+                  color: CupertinoTheme.of(context).primaryColor,
+                ),
+                const SizedBox(width: GinkgoSpacing.xs),
+                Text(
+                  challengeBusy ? '读取中' : '刷新',
+                  style: const TextStyle(fontSize: 15),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _field({
     required Key key,
