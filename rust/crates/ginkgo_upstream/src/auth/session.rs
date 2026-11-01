@@ -22,7 +22,6 @@ pub enum RouteMode {
 pub struct Session<T: HttpTransport> {
     transport: T,
     route: StdMutex<RouteMode>,
-    automatic_fallback: StdMutex<bool>,
     direct_jar: Mutex<CookieJar>,
     webvpn_jar: Mutex<CookieJar>,
 }
@@ -53,7 +52,6 @@ impl<T: HttpTransport> Session<T> {
         Self {
             transport,
             route: StdMutex::new(RouteMode::Automatic),
-            automatic_fallback: StdMutex::new(true),
             direct_jar: Mutex::new(CookieJar::new()),
             webvpn_jar: Mutex::new(CookieJar::new()),
         }
@@ -73,16 +71,9 @@ impl<T: HttpTransport> Session<T> {
         *lock_value(&self.route) = mode;
     }
 
-    pub(crate) fn set_automatic_fallback(&self, enabled: bool) {
-        *lock_value(&self.automatic_fallback) = enabled;
-    }
-
     /// Automatic mode remembers the first confirmed access-policy block and
     /// switches to WebVPN for the rest of the session, matching the Apple app.
     pub fn activate_automatic_webvpn_fallback(&self) -> bool {
-        if !*lock_value(&self.automatic_fallback) {
-            return false;
-        }
         let mut route = lock_value(&self.route);
         if *route != RouteMode::Automatic {
             return false;

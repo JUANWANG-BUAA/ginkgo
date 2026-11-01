@@ -50,11 +50,11 @@
 ## workspace/more_page.dart
 
 - `class MorePage extends StatefulWidget` — The "更多" surface: the five primary destinations live in the tab bar,
-  <sub>class · workspace/more_page.dart:18</sub>
-    - `const MorePage({ super.key, required this.service, required this.platformActions, required this.destinations, required this.onSignOut, required this.openFeature, this.accountName, this.accountId, this.route, });`  <sub>:19</sub>
-    - `final Future<void> Function() onSignOut;`  <sub>:34</sub>
-    - `static const tabIds = {…}` — Destinations that already own a tab do not repeat in the list.  <sub>:41</sub>
-    - `State<MorePage> createState() => …`  <sub>:44</sub>
+  <sub>class · workspace/more_page.dart:19</sub>
+    - `const MorePage({ super.key, required this.service, required this.platformActions, required this.destinations, required this.onSignOut, required this.openFeature, this.accountName, this.accountId, this.route, });`  <sub>:20</sub>
+    - `final Future<void> Function() onSignOut;`  <sub>:35</sub>
+    - `static const tabIds = {…}` — Destinations that already own a tab do not repeat in the list.  <sub>:42</sub>
+    - `State<MorePage> createState() => …`  <sub>:45</sub>
 
 ## workspace/service_directory.dart
 

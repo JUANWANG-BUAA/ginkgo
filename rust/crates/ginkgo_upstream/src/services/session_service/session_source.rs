@@ -148,6 +148,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
         if changed {
             self.clear_identity();
         }
+        // Switching the route is an explicit user action: it may clear a
+        // blocked gateway authentication so the user can try once more.
+        *self.gateway_auth_blocked.lock() = None;
         self.session.set_route(preference.into());
     }
 
@@ -162,6 +165,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
         if account.is_empty() || password.is_empty() {
             return Err(AppError::invalid());
         }
+        // Signing in again is an explicit user action.
+        *self.gateway_auth_blocked.lock() = None;
         let switching_account = self
             .identity
             .lock()
@@ -172,9 +177,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
             self.clear_identity();
         }
         self.session.set_route(self.preference().into());
-        // A manual password submission may itself need the gateway. After it
-        // succeeds, later automatic fallback is limited by credential access.
-        self.session.set_automatic_fallback(true);
         let credentials = Credentials {
             username: account.to_owned(),
             password: password.to_owned(),
@@ -228,8 +230,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                     }
                     false
                 };
-                self.session
-                    .set_automatic_fallback(remembered || self.session.webvpn_cookie_present());
                 self.clear_caches();
                 self.set_authenticated(canonical_account, profile.clone());
                 Ok(SessionOutcome::SignedIn {

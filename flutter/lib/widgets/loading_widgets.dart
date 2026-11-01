@@ -166,15 +166,20 @@ class SectionFeedback extends StatelessWidget {
     required this.hasData,
     this.error,
     this.onRetry,
+    this.quietWhenRefreshing = false,
   });
   final bool loading, hasData;
   final String label;
   final String? error;
   final VoidCallback? onRetry;
+  final bool quietWhenRefreshing;
 
   @override
   Widget build(BuildContext context) {
-    if (!loading && error == null) return const SizedBox.shrink();
+    if ((!loading && error == null) ||
+        (loading && hasData && quietWhenRefreshing)) {
+      return const SizedBox.shrink();
+    }
     return Semantics(
       liveRegion: true,
       child: Padding(

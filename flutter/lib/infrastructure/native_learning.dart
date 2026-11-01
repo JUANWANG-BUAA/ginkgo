@@ -8,12 +8,12 @@ import '../src/rust/api/live.dart' as live;
 import 'package:ginkgo_mirror/infrastructure/learning_snapshot_store.dart';
 import 'package:ginkgo_mirror/infrastructure/native_command.dart';
 
-/// Projects typed bridge responses. A failure may accompany data only as a
-/// previous successful snapshot; a failure without data is a hard error.
-LearningRead<T> _read<T>({required FailureCode? failure, required T? data}) {
-  if (data == null) throw StateError('学习服务读取失败，请重试或前往官网');
-  return LearningRead(data, stale: failure != null, failure: failure);
-}
+/// A failed collection read has no fresh rows, but its typed failure remains
+/// distinguishable from a successful empty result.
+LearningRead<T> projectLearningRead<T>({
+  required FailureCode? failure,
+  required T data,
+}) => LearningRead(data, stale: failure != null, failure: failure);
 
 List<LearningCourse> _courses(live.LearningCoursesResponse r) =>
     List.unmodifiable(
@@ -48,7 +48,8 @@ CourseAnnouncementDetail _detail(live.CourseAnnouncementDetailResponse r) {
 }
 
 CourseResourcePage _resources(live.CourseResourcePageResponse r) {
-  final d = r.data!;
+  final d = r.data;
+  if (d == null) return CourseResourcePage([], 1, false);
   return CourseResourcePage(
     d.items.map((a) {
       if (a.folder && a.downloadable) {
@@ -142,7 +143,7 @@ mixin NativeLearning
       ),
       (r) => r.failure,
     );
-    return _read(failure: r.failure, data: r.data == null ? null : _courses(r));
+    return projectLearningRead(failure: r.failure, data: _courses(r));
   }
 
   @override
@@ -161,10 +162,7 @@ mixin NativeLearning
       ),
       (r) => r.failure,
     );
-    return _read(
-      failure: r.failure,
-      data: r.data == null ? null : _announcements(r),
-    );
+    return projectLearningRead(failure: r.failure, data: _announcements(r));
   }
 
   @override
@@ -201,10 +199,7 @@ mixin NativeLearning
       ),
       (r) => r.failure,
     );
-    return _read(
-      failure: r.failure,
-      data: r.data == null ? null : _resources(r),
-    );
+    return projectLearningRead(failure: r.failure, data: _resources(r));
   }
 
   @override
@@ -223,10 +218,7 @@ mixin NativeLearning
       ),
       (r) => r.failure,
     );
-    return _read(
-      failure: r.failure,
-      data: r.data == null ? null : _assessments(r),
-    );
+    return projectLearningRead(failure: r.failure, data: _assessments(r));
   }
 
   LearningDownload _download(live.HomeworkFileDownloadResponse r) {
@@ -286,7 +278,7 @@ mixin NativeLearning
       ),
       (r) => r.failure,
     );
-    return _read(failure: r.failure, data: r.data == null ? null : _columns(r));
+    return projectLearningRead(failure: r.failure, data: _columns(r));
   }
 
   @override
@@ -318,10 +310,7 @@ mixin NativeLearning
       ),
       (r) => r.failure,
     );
-    return _read(
-      failure: r.failure,
-      data: r.data == null ? null : _announcements(r),
-    );
+    return projectLearningRead(failure: r.failure, data: _announcements(r));
   }
 
   @override
@@ -358,10 +347,7 @@ mixin NativeLearning
       ),
       (r) => r.failure,
     );
-    return _read(
-      failure: r.failure,
-      data: r.data == null ? null : _assessments(r),
-    );
+    return projectLearningRead(failure: r.failure, data: _assessments(r));
   }
 
   @override
@@ -384,10 +370,7 @@ mixin NativeLearning
       ),
       (r) => r.failure,
     );
-    return _read(
-      failure: r.failure,
-      data: r.data == null ? null : _resources(r),
-    );
+    return projectLearningRead(failure: r.failure, data: _resources(r));
   }
 
   @override

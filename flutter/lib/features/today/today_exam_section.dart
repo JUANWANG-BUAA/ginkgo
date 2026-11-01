@@ -165,6 +165,7 @@ class _TodayExamSectionState extends State<TodayExamSection> {
             loading: exams.loading,
             label: '正在更新考试安排…',
             hasData: true,
+            quietWhenRefreshing: true,
             error: exams.error,
             onRetry: () => _load(force: true),
           ),

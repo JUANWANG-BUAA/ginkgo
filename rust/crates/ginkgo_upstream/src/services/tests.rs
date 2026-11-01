@@ -224,6 +224,9 @@ struct RecoveryFailureTransport {
     requests: std::sync::Arc<std::sync::Mutex<Vec<HttpRequest>>>,
     password_posts: std::sync::Arc<std::sync::atomic::AtomicUsize>,
     allow_login: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    /// Answer the password POST with 401, the school's explicit rejection,
+    /// instead of the transient CAS 500.
+    reject_credentials: std::sync::Arc<std::sync::atomic::AtomicBool>,
 }
 
 impl crate::foundation::http::HttpTransport for RecoveryFailureTransport {
@@ -251,6 +254,9 @@ impl crate::foundation::http::HttpTransport for RecoveryFailureTransport {
                     Some("pa+ss/word")
                 );
                 self.password_posts.fetch_add(1, Ordering::Relaxed);
+                if self.reject_credentials.load(Ordering::Relaxed) {
+                    return Ok(HttpResponse::new(401, &request.url, ""));
+                }
                 return Ok(if self.allow_login.load(Ordering::Relaxed) {
                     HttpResponse::new(302, &request.url, "")
                         .with_header(

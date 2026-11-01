@@ -328,7 +328,7 @@ class ReminderController extends ChangeNotifier {
         () async {
           final ticket = _planningTickets['course'] ?? 0;
           try {
-            final data = await service.schedule(forceRefresh: true);
+            final data = await service.schedule(forceRefresh: false);
             if (!_disposed && (_planningTickets['course'] ?? 0) == ticket) {
               await updateSchedule(data);
             }
@@ -356,7 +356,7 @@ class ReminderController extends ChangeNotifier {
         }(),
       () async {
         try {
-          final data = await service.checkin(forceRefresh: true);
+          final data = await service.checkin(forceRefresh: false);
           if (!_disposed && generation == _refreshGeneration) {
             updateCheckin(data);
             if (data.failure != null) {
@@ -372,7 +372,7 @@ class ReminderController extends ChangeNotifier {
       if (includeHomework)
         () async {
           try {
-            final data = await service.homework(forceRefresh: true);
+            final data = await service.homework(forceRefresh: false);
             if (!_disposed && generation == _refreshGeneration) {
               updateHomework(data);
               if (data.failure != null) {

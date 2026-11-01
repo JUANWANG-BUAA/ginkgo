@@ -65,8 +65,7 @@ class TodayTasksSection extends StatelessWidget {
         pending.isEmpty &&
         linked.isEmpty &&
         completed.isEmpty &&
-        section.error == null &&
-        !section.loading) {
+        section.error == null) {
       return const SizedBox.shrink();
     }
 
@@ -92,6 +91,7 @@ class TodayTasksSection extends StatelessWidget {
             loading: section.loading,
             label: data == null ? '正在读取个人待办…' : '正在更新个人待办…',
             hasData: data != null,
+            quietWhenRefreshing: true,
             error: section.error,
             onRetry: onRetry,
           ),

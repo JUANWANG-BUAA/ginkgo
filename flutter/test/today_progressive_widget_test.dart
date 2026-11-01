@@ -203,6 +203,41 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('empty sections stay hidden during a background refresh', (
+    tester,
+  ) async {
+    size(tester, const Size(430, 900));
+    final service = ProgressiveService();
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: TodayPage(
+          fileActions: platformActions,
+          storageRoot: '/synthetic/tasks',
+          service: service,
+          now: () => DateTime.utc(2026, 10, 22),
+        ),
+      ),
+    );
+    service.courses.single.complete(todayFixture);
+    service.assignments.single.complete(assignments);
+    await tester.pumpAndSettle();
+    expect(service.checkinRequests, isEmpty);
+    for (final key in ['today-notices', 'today-tasks']) {
+      expect(find.byKey(Key(key)), findsNothing);
+    }
+    expect(find.byKey(const Key('today-checkin-entry')), findsOneWidget);
+
+    await tester.tap(find.bySemanticsLabel('刷新今天').first);
+    await tester.pump();
+    for (final key in ['today-notices', 'today-tasks']) {
+      expect(find.byKey(Key(key)), findsNothing);
+    }
+    service.courses.last.complete(todayFixture);
+    service.assignments.last.complete(assignments);
+    await tester.pumpAndSettle();
+    expect(service.checkinRequests, isEmpty);
+  });
+
   testWidgets('desktop refresh shortcut reloads both sections', (tester) async {
     size(tester, const Size(1100, 1000));
     final service = ProgressiveService();

@@ -46,7 +46,7 @@ class TodayNoticeSection extends StatelessWidget {
         ],
       );
     }
-    if (notices.isEmpty && section.error == null && !section.loading) {
+    if (notices.isEmpty && section.error == null) {
       return const SizedBox.shrink();
     }
     return TodayVisualSection(
@@ -64,6 +64,7 @@ class TodayNoticeSection extends StatelessWidget {
             loading: section.loading,
             label: '正在更新校园通知…',
             hasData: true,
+            quietWhenRefreshing: true,
             error: section.error,
             onRetry: onRetry,
           ),

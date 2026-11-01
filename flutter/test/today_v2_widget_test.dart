@@ -55,7 +55,7 @@ LocalTasksRead tasksPayload(List<Map<String, dynamic>> tasks) =>
 
 /// This fake owns only Today capabilities. Any eager unrelated module call fails.
 class TodayFake extends Fake implements MirrorService {
-  int courseReads = 0, homeworkReads = 0, taskReads = 0;
+  int courseReads = 0, homeworkReads = 0, taskReads = 0, checkinReads = 0;
   final roots = <String>[];
   final details = <String>[];
   final courseRequests = <Completer<TodayResponse>>[];
@@ -82,6 +82,17 @@ class TodayFake extends Fake implements MirrorService {
     final c = Completer<HomeworkResponse>();
     homeworkRequests.add(c);
     return c.future;
+  }
+
+  @override
+  Future<CheckInResponse> checkin({bool forceRefresh = false}) async {
+    checkinReads++;
+    return const CheckInResponse(
+      date: '2026-10-22',
+      courses: [],
+      fromCache: true,
+      stale: false,
+    );
   }
 
   @override
@@ -180,6 +191,19 @@ Future<void> clear(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('the dashboard never triggers a check-in authentication read', (
+    tester,
+  ) async {
+    size(tester);
+    final service = TodayFake();
+    await tester.pumpWidget(host(page(service)));
+    await tester.pumpAndSettle();
+    expect(service.checkinReads, 0);
+    expect(find.byKey(const Key('today-checkin')), findsNothing);
+    expect(find.byKey(const Key('today-checkin-entry')), findsOneWidget);
+    expect(find.text('查看今天的签到状态'), findsOneWidget);
+  });
+
   testWidgets('old empty check-in snapshot stays visible and can refresh', (
     tester,
   ) async {

@@ -294,7 +294,7 @@ async fn sign_in_without_remember_removes_an_old_entry() {
 }
 
 #[tokio::test]
-async fn unremembered_login_does_not_fallback_to_an_unauthenticated_gateway() {
+async fn unremembered_login_keeps_the_documented_automatic_webvpn_fallback() {
     let (service, transport) =
         build_service(login_chain("sy2501001", "fixture"), MemoryVault::default());
     service
@@ -308,14 +308,15 @@ async fn unremembered_login_does_not_fallback_to_an_unauthenticated_gateway() {
             "https://iclass.buaa.edu.cn:8346/campus/read",
         ))
         .await
-        .expect_err("direct read failure");
+        .expect_err("the synthetic gateway is unreachable too");
 
     assert_eq!(error.code, ErrorCode::ServiceUnavailable);
     let requests = transport.requests();
-    assert_eq!(requests.len(), 6, "login plus one direct business read");
-    assert!(requests
+    assert_eq!(requests.len(), 7, "login, direct read, one WebVPN retry");
+    assert!(requests[..6]
         .iter()
         .all(|request| !request.url.contains("d.buaa.edu.cn")));
+    assert!(requests[6].url.contains("d.buaa.edu.cn"));
 }
 
 #[tokio::test]
@@ -600,7 +601,7 @@ async fn concurrent_expired_business_reads_share_a_failed_password_post() {
 }
 
 #[tokio::test]
-async fn automatic_school_and_gateway_recovery_share_failure_until_explicit_login() {
+async fn automatic_school_and_gateway_failures_cool_down_independently() {
     use std::sync::atomic::Ordering;
     let (service, transport) = recovery_failure_service();
     assert_eq!(
@@ -611,7 +612,7 @@ async fn automatic_school_and_gateway_recovery_share_failure_until_explicit_logi
         service
             .ensure_webvpn_session()
             .await
-            .expect_err("gateway shares failure")
+            .expect_err("gateway makes an independent attempt")
             .code,
         ErrorCode::ServiceUnavailable
     );
@@ -619,11 +620,11 @@ async fn automatic_school_and_gateway_recovery_share_failure_until_explicit_logi
         service
             .silent_login()
             .await
-            .expect_err("no automatic replay")
+            .expect_err("school uses its own cooldown")
             .code,
         ErrorCode::ServiceUnavailable
     );
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 1);
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 2);
 
     // Explicit user login bypasses the automatic cooldown, but a 500 remains a
     // failure. Once the server recovers, a successful manual login clears it.
@@ -631,7 +632,7 @@ async fn automatic_school_and_gateway_recovery_share_failure_until_explicit_logi
         .sign_in("sy2501001", "pa+ss/word", None, true)
         .await
         .is_err());
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 2);
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 3);
     transport.allow_login.store(true, Ordering::Relaxed);
     assert!(matches!(
         service
@@ -640,12 +641,12 @@ async fn automatic_school_and_gateway_recovery_share_failure_until_explicit_logi
             .expect("manual recovery"),
         SessionOutcome::SignedIn { .. }
     ));
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 3);
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 4);
     service
         .silent_login()
         .await
         .expect("manual success cleared prior failure");
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 4);
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 5);
 }
 
 #[tokio::test]
@@ -683,7 +684,106 @@ async fn automatic_login_failure_cooldown_expires_and_identity_changes_clear_it(
 }
 
 #[tokio::test]
-async fn failed_gateway_recovery_is_shared_with_school_recovery() {
+async fn a_failed_gateway_authentication_is_not_repeated_without_an_explicit_action() {
+    use std::{
+        sync::atomic::Ordering,
+        time::{Duration, Instant},
+    };
+    let (service, transport) = recovery_failure_service();
+    transport.reject_credentials.store(true, Ordering::Relaxed);
+    let first = service
+        .ensure_webvpn_session()
+        .await
+        .expect_err("the school rejects the password");
+    assert_eq!(first.code, ErrorCode::InvalidCredentials);
+    let posts = transport.password_posts.load(Ordering::Relaxed);
+    assert_eq!(posts, 1, "one gateway authentication attempt");
+    // Even after the short failure cooldown expires, the client must not
+    // submit the password again on its own: repeated submissions are what the
+    // school's risk control challenges.
+    *service.gateway_auth_blocked.lock() =
+        Some((Instant::now() - Duration::from_secs(61), first.clone()));
+    let second = service
+        .ensure_webvpn_session()
+        .await
+        .expect_err("the gateway stays blocked");
+    assert_eq!(second.code, first.code);
+    assert_eq!(
+        transport.password_posts.load(Ordering::Relaxed),
+        posts,
+        "the password must not be submitted again automatically"
+    );
+
+    transport.reject_credentials.store(false, Ordering::Relaxed);
+    transport.allow_login.store(true, Ordering::Relaxed);
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("explicit sign in");
+    assert!(
+        service.gateway_auth_blocked.lock().is_none(),
+        "an explicit user login clears the block"
+    );
+}
+
+#[tokio::test]
+async fn a_gateway_authentication_block_expires_so_a_later_attempt_can_succeed() {
+    use std::{sync::atomic::Ordering, time::Duration};
+    let (service, transport) = recovery_failure_service();
+    transport.reject_credentials.store(true, Ordering::Relaxed);
+    service
+        .ensure_webvpn_session()
+        .await
+        .expect_err("the school rejects the password");
+    let posts = transport.password_posts.load(Ordering::Relaxed);
+    // The block is a cooldown, not a permanent lock: once it expires the client
+    // may try the gateway again exactly once.
+    let blocked = service.gateway_auth_blocked.lock().clone();
+    let (at, error) = blocked.expect("the failure is remembered");
+    *service.gateway_auth_blocked.lock() = Some((at - Duration::from_secs(1801), error));
+    transport.reject_credentials.store(false, Ordering::Relaxed);
+    transport.allow_login.store(true, Ordering::Relaxed);
+    service
+        .ensure_webvpn_session()
+        .await
+        .expect("the gateway authenticates once the block expired");
+    assert_eq!(
+        transport.password_posts.load(Ordering::Relaxed),
+        posts + 1,
+        "exactly one new password submission after the block expired"
+    );
+}
+
+#[tokio::test]
+async fn a_transient_gateway_failure_keeps_only_the_short_cooldown() {
+    use std::{
+        sync::atomic::Ordering,
+        time::{Duration, Instant},
+    };
+    let (service, transport) = recovery_failure_service();
+    let error = service
+        .ensure_webvpn_session()
+        .await
+        .expect_err("gateway CAS 500");
+    assert_eq!(error.code, ErrorCode::ServiceUnavailable);
+    assert!(
+        service.gateway_auth_blocked.lock().is_none(),
+        "a transport failure is not an authentication rejection"
+    );
+    // A dropped connection or a 5xx must not lock the gateway for half an
+    // hour: after the short cooldown the next read may authenticate again and
+    // the library/check-in pages recover without a manual login.
+    *service.gateway_login_failure.lock() = Some((Instant::now() - Duration::from_secs(61), error));
+    transport.allow_login.store(true, Ordering::Relaxed);
+    service
+        .ensure_webvpn_session()
+        .await
+        .expect("the gateway authenticates after the short cooldown");
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 2);
+}
+
+#[tokio::test]
+async fn failed_gateway_recovery_does_not_block_school_recovery() {
     use std::sync::atomic::Ordering;
     let (service, transport) = recovery_failure_service();
     assert_eq!(
@@ -700,21 +800,26 @@ async fn failed_gateway_recovery_is_shared_with_school_recovery() {
     );
     let (school, gateway) = tokio::join!(service.silent_login(), service.ensure_webvpn_session());
     assert_eq!(
-        school.expect_err("school shares failure").code,
+        school
+            .expect_err("school makes an independent attempt")
+            .code,
         ErrorCode::ServiceUnavailable
     );
     assert_eq!(
-        gateway.expect_err("gateway shares failure").code,
+        gateway.expect_err("gateway uses its own cooldown").code,
         ErrorCode::ServiceUnavailable
     );
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 1);
-    assert!(transport
-        .requests
-        .lock()
-        .expect("requests")
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 2);
+    let requests = transport.requests.lock().expect("requests");
+    let posts = requests
         .iter()
         .filter(|request| request.method == HttpMethod::Post)
-        .all(|request| request.url.starts_with("https://d.buaa.edu.cn/")));
+        .collect::<Vec<_>>();
+    assert_eq!(posts.len(), 2);
+    assert!(posts.iter().any(|request| request.url == LOGIN_URL));
+    assert!(posts
+        .iter()
+        .any(|request| request.url.starts_with("https://d.buaa.edu.cn/")));
 }
 
 fn local_challenge_page(id: &str, kind: &str) -> HttpResponse {

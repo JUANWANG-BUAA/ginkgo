@@ -16,7 +16,7 @@
 - [keyring_vault](#keyringvault) (2)
 - [mod](#mod) (2)
 - [redirect](#redirect) (1)
-- [session](#session) (18)
+- [session](#session) (17)
 - [uc](#uc) (3)
 - [vault](#vault) (5)
 
@@ -137,37 +137,35 @@
 - `pub struct Session<T: HttpTransport>`
   <sub>struct · rust/crates/ginkgo_upstream/src/auth/session.rs:22</sub>
 - `pub fn new(transport: T) -> Self {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:52</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:51</sub>
 - `pub fn route(&self) -> RouteMode {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:62</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:60</sub>
 - `pub fn transport(&self) -> &T {…}` — Read-only access to the injected transport, used by tests and adapters
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:68</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:66</sub>
 - `pub fn set_route(&self, mode: RouteMode) {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:72</sub>
-- `pub(crate) fn set_automatic_fallback(&self, enabled: bool) {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:76</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:70</sub>
 - `pub fn activate_automatic_webvpn_fallback(&self) -> bool {…}` — Automatic mode remembers the first confirmed access-policy block and
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:82</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:76</sub>
 - `pub fn clear_cookies(&self) {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:94</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:85</sub>
 - `pub fn poison_events(&self) -> u64 {…}` — How often one of the cookie-jar locks was recovered from a poisoned
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:102</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:93</sub>
 - `pub fn webvpn_cookie_present(&self) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:106</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:97</sub>
 - `pub fn direct_cookie_present(&self) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:110</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:101</sub>
 - `pub async fn send_direct(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {…}` — CGYY is direct-only. Never mutate the shared route across an await.
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:115</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:106</sub>
 - `pub(crate) fn cgyy_sso_token(&self) -> Option<String> {…}` — Rust-only access for CGYY's documented SSO cookie; never bridged to Dart.
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:120</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:111</sub>
 - `pub async fn send(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:132</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:123</sub>
 - `pub async fn send_following_redirects( &self, request: HttpRequest, ) -> Result<HttpResponse, AppError> {…}` — Follow browser-style redirects for a safe GET. Business systems such as
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:140</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:131</sub>
 - `pub async fn send_anonymous( &self, request: HttpRequest, _preference: RouteMode, ) -> Result<HttpResponse, AppError>` — Make an anonymous request without exposing or modifying the signed-in
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:165</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:156</sub>
 - `pub async fn send_with_fallback(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {…}` — Send once, then retry a safe GET once through WebVPN when automatic
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:180</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session.rs:171</sub>
 
 ## uc
 

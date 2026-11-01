@@ -1147,7 +1147,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      service.checkinRequests[2].complete(
+      // The older history-mode read must never replace the selected day.
+      service.checkinRequests[1].complete(
         CheckInResponse(
           date: first,
           courses: [],

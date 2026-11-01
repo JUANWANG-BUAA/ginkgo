@@ -98,6 +98,26 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('background refresh keeps existing content geometry stable', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const CupertinoApp(
+        home: Center(
+          child: SectionFeedback(
+            loading: true,
+            label: '正在更新课程…',
+            hasData: true,
+            quietWhenRefreshing: true,
+          ),
+        ),
+      ),
+    );
+    expect(tester.getSize(find.byType(SectionFeedback)), Size.zero);
+    expect(find.text('正在更新课程…'), findsNothing);
+    expect(find.byType(GinkgoActivity), findsNothing);
+  });
+
   testWidgets('reduced motion leaves the leaf static and schedules no frames', (
     tester,
   ) async {

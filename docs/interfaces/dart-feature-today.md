@@ -101,10 +101,10 @@
 ## features/today/today_page.dart
 
 - `class TodayPage extends StatefulWidget`
-  <sub>class · features/today/today_page.dart:27</sub>
-    - `const TodayPage({ super.key, required this.service, required this.fileActions, this.accountName, this.accountId, this.storageRoot, this.now, this.onOpenFeature, });`  <sub>:28</sub>
-    - `final DateTime Function()? now;` — An instant, converted to Beijing wall time for presentation.  <sub>:50</sub>
-    - `State<TodayPage> createState() => …`  <sub>:52</sub>
+  <sub>class · features/today/today_page.dart:28</sub>
+    - `const TodayPage({ super.key, required this.service, required this.fileActions, this.accountName, this.accountId, this.storageRoot, this.now, this.onOpenFeature, });`  <sub>:29</sub>
+    - `final DateTime Function()? now;` — An instant, converted to Beijing wall time for presentation.  <sub>:51</sub>
+    - `State<TodayPage> createState() => …`  <sub>:53</sub>
 
 ## features/today/today_page_actions.dart
 

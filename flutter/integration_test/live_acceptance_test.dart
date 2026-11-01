@@ -6,24 +6,36 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:ginkgo_mirror/application/graduate.dart' show GraduateView;
+import 'package:ginkgo_mirror/features/academic/rules_page.dart';
 import 'package:ginkgo_mirror/features/bykc/bykc_page.dart';
+import 'package:ginkgo_mirror/features/campus/campus_activities_page.dart';
+import 'package:ginkgo_mirror/features/campus_card/campus_card_page.dart';
+import 'package:ginkgo_mirror/features/career/career_events_page.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_page.dart';
 import 'package:ginkgo_mirror/features/classroom/classroom_page.dart';
 import 'package:ginkgo_mirror/features/graduate/graduate_page.dart';
 import 'package:ginkgo_mirror/features/grades/grades_page.dart';
 import 'package:ginkgo_mirror/features/homework/homework_page.dart';
+import 'package:ginkgo_mirror/features/learning/learning_page.dart';
+import 'package:ginkgo_mirror/features/library/library_books_page.dart';
 import 'package:ginkgo_mirror/features/library/library_history_page.dart';
+import 'package:ginkgo_mirror/features/library/library_loans_page.dart';
 import 'package:ginkgo_mirror/features/library/library_page.dart';
 import 'package:ginkgo_mirror/features/library/library_stats_page.dart';
+import 'package:ginkgo_mirror/features/shuttle/shuttle_page.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/features/auth/login_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
+import 'package:ginkgo_mirror/infrastructure/native_auth_challenge.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/features/notices/notices_page.dart';
 import 'package:ginkgo_mirror/features/settings/settings_page.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart' as live;
+import 'package:ginkgo_mirror/src/rust/api/live/auth_challenge.dart'
+    as challenge;
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart' as dto;
 import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
@@ -37,6 +49,7 @@ import 'package:ginkgo_mirror/application/library_stats.dart';
 
 const enabled = bool.fromEnvironment('GINKGO_LIVE_ACCEPTANCE');
 const forceDirect = bool.fromEnvironment('GINKGO_LIVE_DIRECT');
+const forceWebVpn = bool.fromEnvironment('GINKGO_LIVE_WEBVPN');
 const rememberForRecovery = bool.fromEnvironment('GINKGO_LIVE_REMEMBER');
 const endpoint = String.fromEnvironment(
   'GINKGO_LIVE_ENDPOINT',
@@ -53,7 +66,11 @@ void main() {
       if (forceDirect) {
         await live.setRoute(route: live.RouteChoice.direct);
       }
+      if (forceWebVpn) {
+        await live.setRoute(route: live.RouteChoice.webVpn);
+      }
       const service = NativeMirrorService();
+      var accountService = const NativeMirrorService();
       // The harness channel is deliberately loopback-only and does not change
       // the application's production HTTPS or Android network policy.
       final channel = Uri.parse(endpoint);
@@ -275,6 +292,7 @@ void main() {
               service: service,
               onSignedIn: (value) => session = value,
               onDemo: () {},
+              challengeGateway: const NativeAuthChallengeGateway(),
             ),
           ),
         );
@@ -293,14 +311,42 @@ void main() {
         credentials.clear();
         await tester.tap(find.byKey(const Key('login-submit')));
         final loginWait = Stopwatch()..start();
+        var captchaAnswered = false;
         while (session == null &&
             loginWait.elapsed < const Duration(seconds: 90)) {
           if (find.text('继续使用').evaluate().isNotEmpty) {
             await tester.tap(find.text('继续使用'));
           }
           await tester.pump(const Duration(milliseconds: 100));
+          final captchaField = find.byKey(const Key('login-captcha'));
+          if (!captchaAnswered && captchaField.evaluate().isNotEmpty) {
+            captchaAnswered = true;
+            await capture('login-captcha-challenge');
+            String? answer;
+            final answerWait = Stopwatch()..start();
+            while (answer == null &&
+                answerWait.elapsed < const Duration(seconds: 75)) {
+              try {
+                final bytes = await tester.runAsync(
+                  () => exchange('GET', '/captcha-answer', []),
+                );
+                if (bytes != null) {
+                  final text = utf8.decode(bytes).trim();
+                  if (text.isNotEmpty) answer = text;
+                }
+              } catch (_) {
+                await tester.pump(const Duration(milliseconds: 200));
+              }
+            }
+            if (answer == null) {
+              throw StateError('Manual captcha answer was not supplied');
+            }
+            await tester.enterText(captchaField, answer);
+            await tester.tap(find.byKey(const Key('login-submit')));
+          }
           final submit = find.byKey(const Key('login-submit'));
           if (session == null &&
+              captchaField.evaluate().isEmpty &&
               find.text('继续使用').evaluate().isEmpty &&
               submit.evaluate().isNotEmpty &&
               tester.widget<CupertinoButton>(submit).onPressed != null) {
@@ -309,11 +355,54 @@ void main() {
             break;
           }
         }
+        String? loginError;
+        for (final element
+            in find
+                .descendant(
+                  of: find.byKey(const Key('login-error')),
+                  matching: find.byType(Text),
+                )
+                .evaluate()) {
+          final text = element.widget as Text;
+          if (text.data?.isNotEmpty == true) loginError = text.data;
+        }
+        if (session == null) await capture('login-result');
+        String? challengeFailure, challengeDecode, expectedRetryFailure;
+        if (session == null) {
+          try {
+            challengeFailure = await tester.runAsync<String?>(() async {
+              final response = await challenge.loadLoginChallenge(
+                expectedId: null,
+                refresh: false,
+              );
+              try {
+                decodeLoginChallenge(response);
+                challengeDecode = 'ok';
+              } catch (_) {
+                challengeDecode = 'invalid';
+              }
+              if (response.challengeId != null) {
+                final expected = await challenge.loadLoginChallenge(
+                  expectedId: response.challengeId,
+                  refresh: false,
+                );
+                expectedRetryFailure = expected.failure?.name ?? 'none';
+              }
+              return response.failure?.name;
+            });
+          } catch (_) {
+            challengeFailure = 'bridgeException';
+          }
+        }
         measurements.add({
           'name': 'login-form',
           'ms': loginWatch.elapsedMilliseconds,
           'signedIn': session?.state == live.SessionState.signedIn,
           'remembered': session?.remembered,
+          'error': loginError,
+          'challengeFailure': challengeFailure,
+          'challengeDecode': challengeDecode,
+          'expectedRetryFailure': expectedRetryFailure,
         });
         expect(
           session?.state,
@@ -323,6 +412,7 @@ void main() {
         // Remove password controllers immediately after successful login.
         await tester.pumpWidget(ginkgoApp(home: const SizedBox.shrink()));
         await settle(tester, frames: 2);
+        accountService = NativeMirrorService(expectedAccount: session!.account);
 
         final dates = await service.dates(
           DateTime.now().toUtc().toIso8601String(),
@@ -593,6 +683,94 @@ void main() {
           () => live.loadGraduatePart(report: true, forceRefresh: false),
           graduateSummary,
         );
+        await measure(
+          'graduate-credit-map',
+          () => accountService.graduateCreditMap(forceRefresh: true),
+          (r) => {'issue': r.issue?.kind.name, 'nodes': r.data?.nodes.length},
+        );
+        await measure(
+          'campus-card',
+          service.campusCardBalance,
+          (r) => {
+            'failure': r.failure?.name,
+            'hasBalance': r.balanceMinor != null,
+          },
+        );
+        await measure(
+          'career-events',
+          () => service.careerEvents(
+            month: today.substring(0, 7),
+            forceRefresh: true,
+          ),
+          (r) => {'failure': r.failure?.name, 'count': r.data?.events.length},
+        );
+        await measure(
+          'campus-activities',
+          () => service.campusActivities(page: 1, forceRefresh: true),
+          (r) => {
+            'failure': r.failure?.name,
+            'count': r.data?.activities.length,
+          },
+        );
+        await measure(
+          'shuttle',
+          service.shuttleTimetable,
+          (r) => {'failure': r.failure?.name, 'count': r.data?.tables.length},
+        );
+        final books = await measure(
+          'library-books',
+          () => service.libraryBooks(query: '数据结构', page: 1),
+          (r) => {'failure': r.failure?.name, 'count': r.data?.items.length},
+        );
+        if (books?.data?.items.isNotEmpty == true) {
+          await measure(
+            'library-holdings',
+            () => service.libraryHoldings(books!.data!.items.first.bibId),
+            (r) => {'failure': r.failure?.name, 'count': r.data?.length},
+          );
+        }
+        await measure(
+          'library-loans',
+          () => service.libraryLoans(),
+          (r) => {'failure': r.failure?.name, 'count': r.data?.items.length},
+        );
+        final learning = await measure(
+          'learning-courses',
+          () => accountService.learningCourses(forceRefresh: true),
+          (r) => {'failure': r.failure?.name, 'count': r.data.length},
+        );
+        if (learning?.data.isNotEmpty == true) {
+          final course = learning!.data.first.id;
+          final announcements = await measure(
+            'learning-announcements',
+            () =>
+                accountService.courseAnnouncements(course, forceRefresh: true),
+            (r) => {'failure': r.failure?.name, 'count': r.data.length},
+          );
+          if (announcements?.data.isNotEmpty == true) {
+            await measure(
+              'learning-announcement-detail',
+              () => accountService.courseAnnouncementDetail(
+                course,
+                announcements!.data.first.id,
+              ),
+              (r) => {
+                'hasContent': r.content != null,
+                'attachments': r.attachments.length,
+              },
+            );
+          }
+          await measure(
+            'learning-resources',
+            () => accountService.courseResources(course, forceRefresh: true),
+            (r) => {'failure': r.failure?.name, 'count': r.data.items.length},
+          );
+          await measure(
+            'learning-assessments',
+            () => accountService.courseAssessments(course, forceRefresh: true),
+            (r) => {'failure': r.failure?.name, 'count': r.data.length},
+          );
+        }
 
         // Real-data pages, including independent tabs and navigation, are rendered
         // on the Android engine. Images go only to the private temporary server.
@@ -644,6 +822,14 @@ void main() {
         await tester.tap(find.text('学籍'));
         await ready('graduate-profile');
         await capture('graduate-profile');
+        await page(
+          'graduate-credit-map',
+          GraduatePage(
+            service: service,
+            creditMapGateway: accountService,
+            initialView: GraduateView.credits,
+          ),
+        );
         await page('library', const LibraryPage(service: service));
         if (visualVenue != null && visualArea != null && visualSlot != null) {
           await tester.tap(find.byKey(const Key('library-find-seats')));
@@ -693,6 +879,50 @@ void main() {
           const LibraryHistoryPage(service: service),
         );
         await page('library-public', const LibraryStatsPage(service: service));
+        await page('library-books', LibraryBooksPage(service: service));
+        await tester.enterText(
+          find.byKey(const Key('library-books-query')),
+          '数据结构',
+        );
+        await tester.tap(find.byKey(const Key('library-books-submit')));
+        await ready('library-books-results');
+        await capture('library-books-results');
+        if (books?.data?.items.isNotEmpty == true) {
+          final hit = books!.data!.items.first;
+          await tester.tap(find.byKey(Key('library-book-0-${hit.bibId}')));
+          await ready('library-holdings');
+          await capture('library-holdings');
+        }
+        await page('library-loans', LibraryLoansPage(gateway: service));
+        await tester.tap(find.byKey(const Key('library-loans-first-read')));
+        await ready('library-loans-results');
+        await capture('library-loans-results');
+        await page(
+          'learning',
+          LearningPage(service: accountService, fileActions: platformActions),
+        );
+        if (learning?.data.isNotEmpty == true) {
+          await tester.tap(
+            find.byKey(ValueKey('learning-course-${learning!.data.first.id}')),
+          );
+          await ready('learning-course');
+          await capture('learning-course');
+          await tester.tap(find.text('公告'));
+          await ready('learning-announcements');
+          await capture('learning-announcements');
+          await tester.tap(find.text('测验'));
+          await ready('learning-assessments');
+          await capture('learning-assessments');
+        }
+        await page('rules', const RulesPage(service: service));
+        await page('campus-card', const CampusCardPage(gateway: service));
+        await tester.tap(find.byKey(const Key('campus-card-read')));
+        await ready('campus-card-results');
+        await capture('campus-card-results');
+        expect(find.text('¥ ••••'), findsOneWidget);
+        await page('career-events', CareerEventsPage(service: service));
+        await page('campus-activities', CampusActivitiesPage(service: service));
+        await page('shuttle', ShuttlePage(service: service));
         await page('classroom', const ClassroomPage(service: service));
         await tap(tester, '查询空教室', scrollKey: 'classroom-scroll');
         await capture('classroom-results');
@@ -729,7 +959,7 @@ void main() {
                 (widget.key! as ValueKey<String>).value.startsWith(prefix),
           );
           Future<void> tapTask(Finder finder) async {
-            await tester.ensureVisible(finder);
+            await show(tester, finder, scrollKey: 'tasks-scroll');
             await tester.tap(finder);
             await settle(tester);
           }

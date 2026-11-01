@@ -144,6 +144,7 @@ void main() {
       expect(find.text('尚需 30'), findsOneWidget);
       expect(find.text('合成学院'), findsOneWidget);
       // Retrying the failed report leaves the status request in flight.
+      await tester.ensureVisible(find.text('重试'));
       await tester.tap(find.text('重试'));
       await tester.pump();
       expect(requests[true]!.length, 3);

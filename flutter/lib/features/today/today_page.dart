@@ -15,13 +15,14 @@ import 'package:ginkgo_mirror/shared/today_time.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
+import 'today_action_row.dart';
 import 'today_course_section.dart';
 import 'today_homework_section.dart';
 import 'today_page_actions.dart';
 import 'today_page_header.dart';
+import 'today_presentation.dart';
 import 'today_tasks_section.dart';
 import 'today_exam_section.dart';
-import 'today_checkin_section.dart';
 import 'today_notice_section.dart';
 
 class TodayPage extends StatefulWidget {
@@ -87,16 +88,11 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   late RefreshSection<TodayTasksSnapshot> tasks;
   late RefreshSection<TodayResponse> courses;
   late RefreshSection<HomeworkResponse> homework;
-  late RefreshSection<CheckInResponse> checkin;
   late RefreshSection<NoticesRead> notices;
   TodayResponse? get data => courses.value;
   String? get error => courses.error;
   bool get busy =>
-      courses.loading ||
-      homework.loading ||
-      tasks.loading ||
-      checkin.loading ||
-      notices.loading;
+      courses.loading || homework.loading || tasks.loading || notices.loading;
 
   @override
   void initState() {
@@ -130,7 +126,6 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     tasks = RefreshSection<TodayTasksSnapshot>()..addListener(_changed);
     courses = RefreshSection<TodayResponse>()..addListener(_changed);
     homework = RefreshSection<HomeworkResponse>()..addListener(_changed);
-    checkin = RefreshSection<CheckInResponse>()..addListener(_changed);
     notices = RefreshSection<NoticesRead>()..addListener(_changed);
     load();
   }
@@ -149,7 +144,6 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
       tasks.dispose();
       courses.dispose();
       homework.dispose();
-      checkin.dispose();
       notices.dispose();
       _createSection();
     }
@@ -163,7 +157,6 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     tasks.dispose();
     courses.dispose();
     homework.dispose();
-    checkin.dispose();
     notices.dispose();
     super.dispose();
   }
@@ -174,7 +167,6 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
       _loadCourses(force: force),
       _loadHomework(force: force),
       _loadTasks(),
-      _loadCheckin(force: force),
       _loadNotices(force: force),
     ]);
   }
@@ -218,23 +210,6 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
 
   Future<String> _tasksRoot() async =>
       widget.storageRoot ?? await TaskStorageScope.read(context)();
-
-  Future<void> _loadCheckin({bool force = false}) {
-    final service = widget.service;
-    return checkin.refresh(
-      () async {
-        final result = await service.checkin(forceRefresh: force);
-        return SectionResult(
-          value: result.failure == null || result.fetchedAt != null
-              ? result
-              : null,
-          error: result.failure == null ? null : failureMessage(result.failure),
-        );
-      },
-      fallbackError: '签到状态暂不可用，请重试',
-      force: force,
-    );
-  }
 
   Future<void> _loadNotices({bool force = false}) {
     final service = widget.service;
@@ -346,13 +321,21 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
                           demo: widget.service.isDemo,
                         ),
                       ),
-                    TodayCheckInSection(
-                      section: checkin,
-                      now: _now,
-                      onRetry: () => _loadCheckin(force: true),
-                      onOpen: widget.onOpenFeature == null
-                          ? () {}
-                          : () => widget.onOpenFeature!('checkin'),
+                    TodayVisualSection(
+                      key: const Key('today-checkin-entry'),
+                      header: const TodaySectionHeader(
+                        icon: CupertinoIcons.checkmark_seal,
+                        title: '课程签到',
+                      ),
+                      children: [
+                        TodayActionRow(
+                          title: '查看今天的签到状态',
+                          subtitle: '进入签到页按需读取，首页不触发学校认证',
+                          onTap: widget.onOpenFeature == null
+                              ? null
+                              : () => widget.onOpenFeature!('checkin'),
+                        ),
+                      ],
                     ),
                     TodayExamSection(
                       key: ValueKey((

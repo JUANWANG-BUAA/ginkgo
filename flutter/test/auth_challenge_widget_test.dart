@@ -49,6 +49,16 @@ class LocalGateway implements AuthChallengeGateway {
   );
 }
 
+class _FailingGateway implements AuthChallengeGateway {
+  @override
+  Future<LoginChallenge> loginChallenge({
+    String? expectedId,
+    bool refresh = false,
+  }) async {
+    throw StateError('验证码图片无效，请刷新后重试');
+  }
+}
+
 class LocalService extends FakeService {
   LocalService() : super(restoreResponse: signedOut, loginResponse: captcha);
   final answers = <String?>[];
@@ -153,6 +163,25 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+  testWidgets('challenge failure preserves a safe actionable reason', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: LoginPage(
+          service: FakeService(restoreResponse: signedOut, loginResponse: captcha),
+          onSignedIn: (_) {},
+          onDemo: () {},
+          initialCaptcha: true,
+          challengeGateway: _FailingGateway(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('验证码图片无效，请刷新后重试'), findsOneWidget);
+    expect(find.text('验证码读取失败或已失效，请重新登录获取验证'), findsNothing);
+  });
+
   testWidgets(
     'WebVPN storage explanation does not require opting into password save',
     (tester) async {

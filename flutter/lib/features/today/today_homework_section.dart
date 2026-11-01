@@ -110,6 +110,7 @@ class TodayHomeworkSection extends StatelessWidget {
             loading: section.loading,
             label: data == null ? '正在检查学校作业…' : '正在更新学校作业…',
             hasData: data != null,
+            quietWhenRefreshing: true,
             error: section.error,
             onRetry: onRetry,
           ),

@@ -114,6 +114,7 @@ class TodayCourseSection extends StatelessWidget {
             loading: loading,
             label: '正在更新今天课程…',
             hasData: true,
+            quietWhenRefreshing: true,
             error: error,
             onRetry: onRetry,
           ),

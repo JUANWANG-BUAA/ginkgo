@@ -38,6 +38,9 @@ class Service implements MirrorService {
 class RefreshService implements MirrorService {
   int scheduleCalls = 0, taskCalls = 0;
   String? taskAction;
+  final scheduleForce = <bool>[];
+  final checkinForce = <bool>[];
+  final homeworkForce = <bool>[];
   Completer<ScheduleResponse>? pendingSchedule;
   @override
   bool get isDemo => false;
@@ -48,25 +51,32 @@ class RefreshService implements MirrorService {
     bool forceRefresh = false,
   }) async {
     scheduleCalls++;
+    scheduleForce.add(forceRefresh);
     return pendingSchedule?.future ?? scheduleResult();
   }
 
   ScheduleResponse scheduleResult() => scheduleData();
   @override
-  Future<CheckInResponse> checkin({bool forceRefresh = false}) async =>
-      const CheckInResponse(
-        date: '2026-10-26',
-        courses: [],
-        fromCache: false,
-        stale: false,
-      );
+  Future<CheckInResponse> checkin({bool forceRefresh = false}) async {
+    checkinForce.add(forceRefresh);
+    return const CheckInResponse(
+      date: '2026-10-26',
+      courses: [],
+      fromCache: false,
+      stale: false,
+    );
+  }
+
   @override
-  Future<HomeworkResponse> homework({bool forceRefresh = false}) async =>
-      const HomeworkResponse(
-        termName: 'synthetic',
-        termCode: 'synthetic',
-        items: [],
-      );
+  Future<HomeworkResponse> homework({bool forceRefresh = false}) async {
+    homeworkForce.add(forceRefresh);
+    return const HomeworkResponse(
+      termName: 'synthetic',
+      termCode: 'synthetic',
+      items: [],
+    );
+  }
+
   @override
   Future<LocalTasksRead> editTasks({
     required String root,
@@ -363,6 +373,26 @@ void main() {
       expect(controller.homeworkEnabled, true);
     },
   );
+  test('automatic reminder refresh reuses fresh page snapshots', () async {
+    final service = RefreshService();
+    final controller = ReminderController(
+      service: service,
+      account: 'synthetic',
+      visibility: null,
+      persist: false,
+      platform: RecordingPlatform(),
+      tasksRoot: () async => '/synthetic',
+      clock: () => now,
+    );
+    addTearDown(controller.dispose);
+    await controller.setEnabled('course', true);
+    await controller.refresh();
+
+    expect(service.scheduleForce, [false]);
+    expect(service.checkinForce, [false]);
+    expect(service.homeworkForce, [false]);
+  });
+
   test('refresh only reads opted-in groups and late read cannot revive a disabled plan', () async {
     final service = RefreshService();
     final planner = Planner();

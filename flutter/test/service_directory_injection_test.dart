@@ -128,6 +128,32 @@ void main() {
     expect(find.byKey(const ValueKey('shortcut-open-checkin')), findsOneWidget);
   });
 
+  testWidgets('last More service scrolls fully above the bottom tab bar', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(const GinkgoApp(service: DemoMirrorService()));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(CupertinoTabBar),
+        matching: find.text('更多'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final shuttle = find.byKey(const ValueKey('directory-shuttle'));
+    await tester.ensureVisible(shuttle);
+    await tester.pumpAndSettle();
+    final tabBar = find.byType(CupertinoTabBar);
+    expect(
+      tester.getRect(shuttle).bottom,
+      lessThanOrEqualTo(tester.getRect(tabBar).top),
+    );
+  });
+
   testWidgets('mobile directory has one graduate destination', (tester) async {
     tester.view.physicalSize = const Size(430, 1200);
     tester.view.devicePixelRatio = 1;

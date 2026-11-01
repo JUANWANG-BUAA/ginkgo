@@ -233,7 +233,7 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/native_learning.dart
 
 - `mixin NativeLearning`
-  <sub>mixin · infrastructure/native_learning.dart:122</sub>
+  <sub>mixin · infrastructure/native_learning.dart:123</sub>
 
 ## infrastructure/native_library_loans.dart
 

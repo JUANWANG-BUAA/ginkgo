@@ -163,16 +163,16 @@
     - `Widget build(BuildContext context) => …`  <sub>:120</sub>
 - `class SectionFeedback extends StatelessWidget` — Stable, inline status: stale content stays in place during refresh/failure.
   <sub>class · widgets/loading_widgets.dart:161</sub>
-    - `const SectionFeedback({ super.key, required this.loading, required this.label, required this.hasData, this.error, this.onRetry, });`  <sub>:162</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:176</sub>
+    - `const SectionFeedback({ super.key, required this.loading, required this.label, required this.hasData, this.error, this.onRetry, this.quietWhenRefreshing = false, });`  <sub>:162</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:178</sub>
 - `class SectionReveal extends StatelessWidget` — Fade only on first insertion; later refreshes keep layout and content steady.
-  <sub>class · widgets/loading_widgets.dart:223</sub>
-    - `const SectionReveal({super.key, required this.child});`  <sub>:224</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:228</sub>
+  <sub>class · widgets/loading_widgets.dart:228</sub>
+    - `const SectionReveal({super.key, required this.child});`  <sub>:229</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:233</sub>
 - `class PageRefreshShortcut extends StatelessWidget` — Desktop refresh lives in the focused page, including its search fields.
-  <sub>class · widgets/loading_widgets.dart:237</sub>
-    - `const PageRefreshShortcut({super.key, required this.child, this.onRefresh});`  <sub>:238</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:243</sub>
+  <sub>class · widgets/loading_widgets.dart:242</sub>
+    - `const PageRefreshShortcut({super.key, required this.child, this.onRefresh});`  <sub>:243</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:248</sub>
 
 ## widgets/long_page_scroll.dart
 

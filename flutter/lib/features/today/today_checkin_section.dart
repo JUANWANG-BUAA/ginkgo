@@ -83,10 +83,7 @@ class TodayCheckInSection extends StatelessWidget {
     final date = todayDate(data.date);
     final today = DateTime.utc(now.year, now.month, now.day);
     final needsRefresh = data.stale || date == null || date != today;
-    if (courses.isEmpty &&
-        section.error == null &&
-        !section.loading &&
-        !needsRefresh) {
+    if (courses.isEmpty && section.error == null && !needsRefresh) {
       return const SizedBox.shrink();
     }
     return TodayVisualSection(
@@ -111,6 +108,7 @@ class TodayCheckInSection extends StatelessWidget {
             loading: section.loading,
             label: '正在更新签到状态…',
             hasData: true,
+            quietWhenRefreshing: true,
             error: section.error,
             onRetry: onRetry,
           ),
