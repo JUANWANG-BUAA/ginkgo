@@ -226,7 +226,7 @@ async fn captcha_page_returns_a_challenge_without_submitting() {
     let session = Session::new(transport);
 
     match login(&session, &credentials()).await.expect("challenge") {
-        LoginResult::CaptchaRequired { challenge, .. } => {
+        LoginResult::CaptchaRequired(challenge) => {
             assert_eq!(challenge.id, "cap-1");
             assert!(challenge.image_url.contains("captchaId=cap-1"));
         }

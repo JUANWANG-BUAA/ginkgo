@@ -87,12 +87,6 @@ final class DemoMirrorService
       live.loadDemoCampusCardBalance();
 
   @override
-  Future<LoginChallenge?> gatewayChallenge() async => null;
-
-  @override
-  Future<bool> submitGatewayChallenge(String answer) async => false;
-
-  @override
   Future<CareerEventsRead> careerEvents({
     required String month,
     bool forceRefresh = false,

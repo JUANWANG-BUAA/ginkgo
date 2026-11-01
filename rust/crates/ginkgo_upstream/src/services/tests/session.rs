@@ -294,32 +294,6 @@ async fn sign_in_without_remember_removes_an_old_entry() {
 }
 
 #[tokio::test]
-async fn unremembered_login_keeps_the_documented_automatic_webvpn_fallback() {
-    let (service, transport) =
-        build_service(login_chain("sy2501001", "fixture"), MemoryVault::default());
-    service
-        .sign_in("sy2501001", "pa+ss/word", None, false)
-        .await
-        .expect("signed in");
-
-    let error = service
-        .session
-        .send_with_fallback(HttpRequest::get(
-            "https://iclass.buaa.edu.cn:8346/campus/read",
-        ))
-        .await
-        .expect_err("the synthetic gateway is unreachable too");
-
-    assert_eq!(error.code, ErrorCode::ServiceUnavailable);
-    let requests = transport.requests();
-    assert_eq!(requests.len(), 7, "login, direct read, one WebVPN retry");
-    assert!(requests[..6]
-        .iter()
-        .all(|request| !request.url.contains("d.buaa.edu.cn")));
-    assert!(requests[6].url.contains("d.buaa.edu.cn"));
-}
-
-#[tokio::test]
 async fn wrong_password_is_typed_and_not_persisted() {
     let transport = MockTransport::with_responses(vec![
         HttpResponse::new(200, LOGIN_URL, FORM_PAGE),
@@ -601,7 +575,7 @@ async fn concurrent_expired_business_reads_share_a_failed_password_post() {
 }
 
 #[tokio::test]
-async fn automatic_school_and_gateway_failures_cool_down_independently() {
+async fn automatic_school_and_gateway_recovery_share_failure_until_explicit_login() {
     use std::sync::atomic::Ordering;
     let (service, transport) = recovery_failure_service();
     assert_eq!(
@@ -612,7 +586,7 @@ async fn automatic_school_and_gateway_failures_cool_down_independently() {
         service
             .ensure_webvpn_session()
             .await
-            .expect_err("gateway makes an independent attempt")
+            .expect_err("gateway shares failure")
             .code,
         ErrorCode::ServiceUnavailable
     );
@@ -620,11 +594,11 @@ async fn automatic_school_and_gateway_failures_cool_down_independently() {
         service
             .silent_login()
             .await
-            .expect_err("school uses its own cooldown")
+            .expect_err("no automatic replay")
             .code,
         ErrorCode::ServiceUnavailable
     );
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 2);
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 1);
 
     // Explicit user login bypasses the automatic cooldown, but a 500 remains a
     // failure. Once the server recovers, a successful manual login clears it.
@@ -632,7 +606,7 @@ async fn automatic_school_and_gateway_failures_cool_down_independently() {
         .sign_in("sy2501001", "pa+ss/word", None, true)
         .await
         .is_err());
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 3);
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 2);
     transport.allow_login.store(true, Ordering::Relaxed);
     assert!(matches!(
         service
@@ -641,12 +615,12 @@ async fn automatic_school_and_gateway_failures_cool_down_independently() {
             .expect("manual recovery"),
         SessionOutcome::SignedIn { .. }
     ));
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 4);
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 3);
     service
         .silent_login()
         .await
         .expect("manual success cleared prior failure");
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 5);
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 4);
 }
 
 #[tokio::test]
@@ -684,160 +658,7 @@ async fn automatic_login_failure_cooldown_expires_and_identity_changes_clear_it(
 }
 
 #[tokio::test]
-async fn a_failed_gateway_authentication_is_not_repeated_without_an_explicit_action() {
-    use std::{
-        sync::atomic::Ordering,
-        time::{Duration, Instant},
-    };
-    let (service, transport) = recovery_failure_service();
-    transport.reject_credentials.store(true, Ordering::Relaxed);
-    let first = service
-        .ensure_webvpn_session()
-        .await
-        .expect_err("the school rejects the password");
-    assert_eq!(first.code, ErrorCode::InvalidCredentials);
-    let posts = transport.password_posts.load(Ordering::Relaxed);
-    assert_eq!(posts, 1, "one gateway authentication attempt");
-    // Even after the short failure cooldown expires, the client must not
-    // submit the password again on its own: repeated submissions are what the
-    // school's risk control challenges.
-    *service.gateway_auth_blocked.lock() =
-        Some((Instant::now() - Duration::from_secs(61), first.clone()));
-    let second = service
-        .ensure_webvpn_session()
-        .await
-        .expect_err("the gateway stays blocked");
-    assert_eq!(second.code, first.code);
-    assert_eq!(
-        transport.password_posts.load(Ordering::Relaxed),
-        posts,
-        "the password must not be submitted again automatically"
-    );
-
-    transport.reject_credentials.store(false, Ordering::Relaxed);
-    transport.allow_login.store(true, Ordering::Relaxed);
-    service
-        .sign_in("sy2501001", "pa+ss/word", None, true)
-        .await
-        .expect("explicit sign in");
-    assert!(
-        service.gateway_auth_blocked.lock().is_none(),
-        "an explicit user login clears the block"
-    );
-}
-
-#[tokio::test]
-async fn a_gateway_authentication_block_expires_so_a_later_attempt_can_succeed() {
-    use std::{sync::atomic::Ordering, time::Duration};
-    let (service, transport) = recovery_failure_service();
-    transport.reject_credentials.store(true, Ordering::Relaxed);
-    service
-        .ensure_webvpn_session()
-        .await
-        .expect_err("the school rejects the password");
-    let posts = transport.password_posts.load(Ordering::Relaxed);
-    // The block is a cooldown, not a permanent lock: once it expires the client
-    // may try the gateway again exactly once.
-    let blocked = service.gateway_auth_blocked.lock().clone();
-    let (at, error) = blocked.expect("the failure is remembered");
-    *service.gateway_auth_blocked.lock() = Some((at - Duration::from_secs(1801), error));
-    transport.reject_credentials.store(false, Ordering::Relaxed);
-    transport.allow_login.store(true, Ordering::Relaxed);
-    service
-        .ensure_webvpn_session()
-        .await
-        .expect("the gateway authenticates once the block expired");
-    assert_eq!(
-        transport.password_posts.load(Ordering::Relaxed),
-        posts + 1,
-        "exactly one new password submission after the block expired"
-    );
-}
-
-#[tokio::test]
-async fn a_transient_gateway_failure_keeps_only_the_short_cooldown() {
-    use std::{
-        sync::atomic::Ordering,
-        time::{Duration, Instant},
-    };
-    let (service, transport) = recovery_failure_service();
-    let error = service
-        .ensure_webvpn_session()
-        .await
-        .expect_err("gateway CAS 500");
-    assert_eq!(error.code, ErrorCode::ServiceUnavailable);
-    assert!(
-        service.gateway_auth_blocked.lock().is_none(),
-        "a transport failure is not an authentication rejection"
-    );
-    // A dropped connection or a 5xx must not lock the gateway for half an
-    // hour: after the short cooldown the next read may authenticate again and
-    // the library/check-in pages recover without a manual login.
-    *service.gateway_login_failure.lock() = Some((Instant::now() - Duration::from_secs(61), error));
-    transport.allow_login.store(true, Ordering::Relaxed);
-    service
-        .ensure_webvpn_session()
-        .await
-        .expect("the gateway authenticates after the short cooldown");
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 2);
-}
-
-#[tokio::test]
-async fn a_gateway_captcha_is_answered_once_and_then_the_gateway_is_open() {
-    let mut chain = login_chain("sy2501001", "fixture");
-    chain[0] = local_challenge_page("gw-cap", "char");
-    chain.insert(1, captcha_image());
-    let (service, transport) = build_service(chain, seeded("sy2501001"));
-    service.set_authenticated(
-        "sy2501001".into(),
-        UserProfile {
-            school_id: "sy2501001".into(),
-            name: "synthetic".into(),
-        },
-    );
-    let error = service
-        .ensure_webvpn_session()
-        .await
-        .expect_err("the gateway demands a captcha");
-    assert_eq!(error.code, ErrorCode::CaptchaRequired);
-    assert_eq!(
-        transport
-            .requests()
-            .into_iter()
-            .filter(|request| request.method == HttpMethod::Post)
-            .count(),
-        0,
-        "no password leaves the device before the user answers"
-    );
-
-    let challenge = service
-        .gateway_challenge()
-        .await
-        .unwrap()
-        .expect("the gateway challenge is kept");
-    assert_eq!(challenge.challenge_id, "gw-cap");
-    assert!(challenge.text_supported);
-    assert!(!challenge.image.is_empty());
-
-    service
-        .resume_gateway_login("1234")
-        .await
-        .expect("the answer opens the gateway");
-    let posts: Vec<_> = transport
-        .requests()
-        .into_iter()
-        .filter(|request| request.method == HttpMethod::Post)
-        .collect();
-    assert_eq!(posts.len(), 1, "exactly one answer submission");
-    let body = posts[0].body.clone().unwrap_or_default();
-    assert!(body.contains("captcha=1234"));
-    assert!(body.contains("captchaResponse=1234"));
-    assert!(service.gateway_challenge().await.unwrap().is_none());
-    assert!(service.gateway_auth_blocked.lock().is_none());
-}
-
-#[tokio::test]
-async fn failed_gateway_recovery_does_not_block_school_recovery() {
+async fn failed_gateway_recovery_is_shared_with_school_recovery() {
     use std::sync::atomic::Ordering;
     let (service, transport) = recovery_failure_service();
     assert_eq!(
@@ -854,26 +675,21 @@ async fn failed_gateway_recovery_does_not_block_school_recovery() {
     );
     let (school, gateway) = tokio::join!(service.silent_login(), service.ensure_webvpn_session());
     assert_eq!(
-        school
-            .expect_err("school makes an independent attempt")
-            .code,
+        school.expect_err("school shares failure").code,
         ErrorCode::ServiceUnavailable
     );
     assert_eq!(
-        gateway.expect_err("gateway uses its own cooldown").code,
+        gateway.expect_err("gateway shares failure").code,
         ErrorCode::ServiceUnavailable
     );
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 2);
-    let requests = transport.requests.lock().expect("requests");
-    let posts = requests
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 1);
+    assert!(transport
+        .requests
+        .lock()
+        .expect("requests")
         .iter()
         .filter(|request| request.method == HttpMethod::Post)
-        .collect::<Vec<_>>();
-    assert_eq!(posts.len(), 2);
-    assert!(posts.iter().any(|request| request.url == LOGIN_URL));
-    assert!(posts
-        .iter()
-        .any(|request| request.url.starts_with("https://d.buaa.edu.cn/")));
+        .all(|request| request.url.starts_with("https://d.buaa.edu.cn/")));
 }
 
 fn local_challenge_page(id: &str, kind: &str) -> HttpResponse {
@@ -887,20 +703,10 @@ fn local_challenge_page(id: &str, kind: &str) -> HttpResponse {
     )
 }
 
-fn captcha_image() -> HttpResponse {
-    HttpResponse {
-        bytes: Some(vec![0xff, 0xd8, 0xff, 0x00, 0xff, 0xd9]),
-        ..HttpResponse::new(200, "https://sso.buaa.edu.cn/captcha", "")
-    }
-}
-
-/// The `type` string is informational: the same image endpoint and the same
-/// two text fields answer every challenge the school advertises (API §1.3).
-/// A whitelist of one value refused challenges the school actually serves.
 #[tokio::test]
-async fn a_challenge_type_does_not_decide_whether_the_user_can_answer() {
+async fn login_challenge_unknown_type_cannot_submit_and_old_id_cannot_refresh() {
     let (service, transport) = build_service(
-        vec![local_challenge_page("cap", "char"), captcha_image()],
+        vec![local_challenge_page("cap", "slider")],
         MemoryVault::default(),
     );
     service
@@ -908,130 +714,19 @@ async fn a_challenge_type_does_not_decide_whether_the_user_can_answer() {
         .await
         .unwrap();
     let challenge = service.login_challenge(Some("cap"), false).await.unwrap();
-    assert!(challenge.text_supported);
-    assert!(!challenge.image.is_empty());
-    assert_eq!(challenge.challenge_type, "char");
+    assert!(!challenge.text_supported);
+    assert!(challenge.image.is_empty());
     assert!(service.login_challenge(Some("wrong"), true).await.is_err());
+    assert!(matches!(
+        service
+            .sign_in("synthetic", "password", Some("1234"), false)
+            .await
+            .unwrap(),
+        SessionOutcome::CaptchaRequired(_)
+    ));
     service.set_route(RoutePreference::WebVpn);
     assert!(service.login_challenge(Some("cap"), false).await.is_err());
-    assert_eq!(transport.request_count(), 2);
-}
-
-#[tokio::test]
-async fn an_answer_for_an_unlisted_type_is_submitted_once() {
-    let mut chain = login_chain("sy2501001", "fixture");
-    chain[0] = local_challenge_page("cap", "geetest");
-    chain.insert(1, captcha_image());
-    let (service, transport) = build_service(chain, MemoryVault::default());
-    let outcome = service
-        .sign_in("sy2501001", "pa+ss/word", None, true)
-        .await
-        .unwrap();
-    assert!(matches!(outcome, SessionOutcome::CaptchaRequired(_)));
-    let challenge = service.login_challenge(Some("cap"), false).await.unwrap();
-    assert!(challenge.text_supported);
-    let outcome = service
-        .sign_in("sy2501001", "pa+ss/word", Some("1234"), true)
-        .await
-        .unwrap();
-    assert!(matches!(outcome, SessionOutcome::SignedIn { .. }));
-    let posts: Vec<_> = transport
-        .requests()
-        .into_iter()
-        .filter(|request| request.method == HttpMethod::Post)
-        .collect();
-    assert_eq!(posts.len(), 1, "one password post carrying the answer");
-    let body = posts[0].body.clone().unwrap_or_default();
-    assert!(body.contains("captcha=1234"));
-    assert!(body.contains("captchaResponse=1234"));
-}
-
-/// CAS answers a rejected attempt by re-rendering the form, and that page can
-/// carry a captcha with a new `execution` token. Reporting it as a wrong
-/// password hides the only path the user has.
-#[tokio::test]
-async fn a_captcha_on_the_failure_page_is_asked_for_instead_of_a_wrong_password() {
-    let retry_page = FORM_PAGE
-        .replace("abc+def/ghi=", "fresh+exec/token=")
-        .replace(
-            "</form>",
-            "<script>config.captcha = { type: 'char', id: 'retry-cap' };</script></form>",
-        );
-    let responses = vec![
-        HttpResponse::new(200, LOGIN_URL, FORM_PAGE),
-        HttpResponse::new(200, LOGIN_URL, retry_page),
-        captcha_image(),
-        HttpResponse::new(302, LOGIN_URL, "")
-            .with_header("Location", "https://sso.buaa.edu.cn/login?ticket=ST-2")
-            .with_set_cookie("CASTGC=TGT-fixture; Path=/; Secure; HttpOnly"),
-        HttpResponse::new(
-            200,
-            "https://sso.buaa.edu.cn/login?ticket=ST-2",
-            "<html>ok</html>",
-        ),
-        HttpResponse::new(200, UC_ACTIVATION_URL, ""),
-        uc_ok("sy2501001", "fixture"),
-    ];
-    let (service, transport) = build_service(responses, MemoryVault::default());
-    let outcome = service
-        .sign_in("sy2501001", "pa+ss/word", None, true)
-        .await
-        .unwrap();
-    assert!(
-        matches!(outcome, SessionOutcome::CaptchaRequired(_)),
-        "the re-rendered page asks for a captcha"
-    );
-    let challenge = service
-        .login_challenge(Some("retry-cap"), false)
-        .await
-        .expect("the failure page is kept as the pending challenge");
-    assert_eq!(challenge.challenge_id, "retry-cap");
-
-    let outcome = service
-        .sign_in("sy2501001", "pa+ss/word", Some("7k2m"), true)
-        .await
-        .unwrap();
-    assert!(matches!(outcome, SessionOutcome::SignedIn { .. }));
-    let posts: Vec<_> = transport
-        .requests()
-        .into_iter()
-        .filter(|request| request.method == HttpMethod::Post)
-        .collect();
-    assert_eq!(posts.len(), 2, "one rejected attempt, one answered attempt");
-    let body = posts[1].body.clone().unwrap_or_default();
-    assert!(
-        body.contains("fresh%2Bexec%2Ftoken%3D"),
-        "the answer must reuse the token from the page the school just sent"
-    );
-    assert!(body.contains("captcha=7k2m"));
-}
-
-/// A rejected attempt can come back as "tip text + fresh captcha". Reporting
-/// the tip alone leaves the user with no way forward; the captcha is the part
-/// they can act on.
-#[tokio::test]
-async fn a_tip_on_a_captcha_page_still_offers_the_captcha() {
-    let retry_page = FORM_PAGE
-        .replace("abc+def/ghi=", "tip+exec/token=")
-        .replace(
-            "</form>",
-            "<div class=\"tip-text\">验证码错误</div>\
-             <script>config.captcha = { type: 'char', id: 'tip-cap' };</script></form>",
-        );
-    let responses = vec![
-        HttpResponse::new(200, LOGIN_URL, FORM_PAGE),
-        HttpResponse::new(200, LOGIN_URL, retry_page),
-        captcha_image(),
-    ];
-    let (service, _) = build_service(responses, MemoryVault::default());
-    let outcome = service
-        .sign_in("sy2501001", "pa+ss/word", None, true)
-        .await
-        .unwrap();
-    assert!(
-        matches!(outcome, SessionOutcome::CaptchaRequired(_)),
-        "the answerable page wins over a dead-end tip"
-    );
+    assert_eq!(transport.request_count(), 1);
 }
 
 #[tokio::test]
@@ -1058,7 +753,6 @@ async fn login_challenge_refresh_replaces_pending_and_old_answer_image_is_reject
         vec![
             local_challenge_page("cap-1", "slider"),
             local_challenge_page("cap-2", "slider"),
-            captcha_image(),
         ],
         MemoryVault::default(),
     );
@@ -1070,7 +764,7 @@ async fn login_challenge_refresh_replaces_pending_and_old_answer_image_is_reject
     let next = service.login_challenge(Some("cap-1"), true).await.unwrap();
     assert_eq!(next.challenge_id, "cap-2");
     assert!(service.login_challenge(Some("cap-1"), false).await.is_err());
-    assert_eq!(transport.request_count(), 3);
+    assert_eq!(transport.request_count(), 2);
     assert!(transport
         .requests()
         .iter()

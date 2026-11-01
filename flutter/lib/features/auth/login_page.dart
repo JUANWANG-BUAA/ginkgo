@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
@@ -8,7 +6,7 @@ import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/contracts.dart'
-    show FailureCode, SessionResponse, SessionState;
+    show SessionResponse, SessionState;
 import 'package:ginkgo_mirror/application/auth_challenge.dart';
 
 class LoginPage extends StatefulWidget {
@@ -45,15 +43,6 @@ class _LoginPageState extends State<LoginPage> {
   LoginChallenge? challenge;
   bool challengeBusy = false;
   int challengeEpoch = 0;
-  int rejectedLogins = 0;
-  int pauseRemaining = 0;
-  Timer? pauseTicker;
-
-  /// Repeated password submissions are what raises the school's risk score,
-  /// and a raised score rejects even a correct password. Once the school has
-  /// refused three logins in a row the form waits before trying again.
-  String get pauseMessage =>
-      '连续登录失败 $rejectedLogins 次，已暂停 $pauseRemaining 秒，避免继续触发学校风控；请核对密码或稍后再试';
 
   Future<void> loadChallenge({String? expectedId, bool refresh = false}) async {
     final gateway = widget.challengeGateway;
@@ -75,15 +64,13 @@ class _LoginPageState extends State<LoginPage> {
         challengeBusy = false;
         error = result.textSupported
             ? '请输入图片中的验证码后继续'
-            : '学校要求的验证方式（${result.kind}）暂不支持在应用内完成，请稍后重试';
+            : '学校要求的验证方式暂不支持，请前往学校统一认证完成验证后重新登录';
       });
-    } catch (exception) {
+    } catch (_) {
       if (!mounted || epoch != challengeEpoch) return;
       setState(() {
         challengeBusy = false;
-        error = exception is StateError
-            ? exception.message
-            : '验证码读取失败或已失效，请重新登录获取验证';
+        error = '验证码读取失败或已失效，请重新登录获取验证';
         needCaptcha = false;
       });
     }
@@ -117,48 +104,14 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
-    pauseTicker?.cancel();
     account.dispose();
     password.dispose();
     captcha.dispose();
     super.dispose();
   }
 
-  void recordRejectedLogin(FailureCode? failure) {
-    if (failure != FailureCode.invalidCredentials) return;
-    rejectedLogins += 1;
-    if (rejectedLogins < 3) return;
-    pauseRemaining = switch (rejectedLogins) {
-      3 => 60,
-      4 => 120,
-      _ => 300,
-    };
-    pauseTicker?.cancel();
-    pauseTicker = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      setState(() {
-        pauseRemaining -= 1;
-        if (pauseRemaining > 0) {
-          error = pauseMessage;
-          return;
-        }
-        pauseRemaining = 0;
-        timer.cancel();
-        pauseTicker = null;
-        error = '暂停结束，请核对密码后重试';
-      });
-    });
-  }
-
   Future<void> submit() async {
     if (busy || challengeBusy) return;
-    if (pauseRemaining > 0) {
-      setState(() => error = pauseMessage);
-      return;
-    }
     if (needCaptcha &&
         (challenge?.textSupported != true || captcha.text.trim().isEmpty)) {
       setState(
@@ -210,20 +163,13 @@ class _LoginPageState extends State<LoginPage> {
         captcha.clear();
         challengeEpoch++;
         challenge = null;
-        rejectedLogins = 0;
-        pauseRemaining = 0;
-        pauseTicker?.cancel();
-        pauseTicker = null;
         widget.onSignedIn(response);
         return;
       }
       setState(() {
         busy = false;
         needCaptcha = response.state == SessionState.captchaRequired;
-        recordRejectedLogin(response.failure);
-        error = pauseRemaining > 0
-            ? pauseMessage
-            : needCaptcha
+        error = needCaptcha
             ? '学校本次登录要求验证码，请输入验证码后继续'
             : response.failure == null
             ? '登录未完成，请重试'
@@ -426,7 +372,6 @@ class _LoginPageState extends State<LoginPage> {
                       onPressed:
                           busy ||
                               challengeBusy ||
-                              pauseRemaining > 0 ||
                               (needCaptcha && challenge?.textSupported != true)
                           ? null
                           : submit,

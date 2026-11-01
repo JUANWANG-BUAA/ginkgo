@@ -23,30 +23,9 @@ use std::{
     time::{Duration, Instant},
 };
 
-/// Failed automatic password authentication is tracked per recovery kind.
-/// User-triggered login does not consult this cooldown.
+/// Failed automatic password authentication is shared by both school and
+/// gateway recovery. User-triggered login does not consult this cooldown.
 const AUTOMATIC_LOGIN_FAILURE_TTL: Duration = Duration::from_secs(60);
-
-/// A rejected gateway authentication blocks further automatic password
-/// submissions for this long. The block expires so a later attempt can
-/// succeed once the school's risk control has cooled down; an explicit user
-/// login or route change clears it immediately. Transport failures are not
-/// rejections: they keep only [AUTOMATIC_LOGIN_FAILURE_TTL], so a flaky
-/// network never leaves the gateway unusable for half an hour.
-const GATEWAY_AUTH_BLOCK_TTL: Duration = Duration::from_secs(1800);
-
-/// Errors that mean the school itself refused this password or demanded a
-/// challenge. Repeating them is what raises the account's risk score, so only
-/// these earn the long block.
-fn is_gateway_authentication_rejection(error: &AppError) -> bool {
-    matches!(
-        error.code,
-        ErrorCode::InvalidCredentials
-            | ErrorCode::CaptchaRequired
-            | ErrorCode::PreLoginTip
-            | ErrorCode::AccessPolicyDenied
-    )
-}
 
 pub use ginkgo_domain::ports::RoutePreference;
 
@@ -97,10 +76,6 @@ impl PendingLogin {
 pub(crate) struct Identity {
     pub authenticated: Option<AuthenticatedIdentity>,
     pub pending_login: Option<PendingLogin>,
-    /// The gateway's own login page while the school demands a captcha for it.
-    /// Kept so an answer reuses the same `execution` token instead of asking
-    /// the school for a new challenge on every keystroke.
-    pub gateway_pending: Option<PendingLogin>,
     pub iclass: Option<IClassSession>,
     pub library_token: Option<String>,
     pub cgyy_token: Option<String>,
@@ -124,11 +99,6 @@ pub struct SchoolClient<T: HttpTransport, V: CredentialVault> {
     pub(crate) school_recovery_gate: tokio::sync::Mutex<()>,
     gateway_recovery_gate: tokio::sync::Mutex<()>,
     pub(crate) automatic_login_failure: Mutex<Option<(Instant, AppError)>>,
-    pub(crate) gateway_login_failure: Mutex<Option<(Instant, AppError)>>,
-    /// A failed gateway authentication blocks further automatic password
-    /// submissions for [GATEWAY_AUTH_BLOCK_TTL]; an explicit user action clears
-    /// it immediately.
-    pub(crate) gateway_auth_blocked: Mutex<Option<(Instant, AppError)>>,
     school_generation: AtomicU64,
     gateway_generation: AtomicU64,
     pub(crate) graduate_request_gate: tokio::sync::Mutex<()>,
@@ -159,8 +129,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             school_recovery_gate: tokio::sync::Mutex::new(()),
             gateway_recovery_gate: tokio::sync::Mutex::new(()),
             automatic_login_failure: Mutex::new(None),
-            gateway_login_failure: Mutex::new(None),
-            gateway_auth_blocked: Mutex::new(None),
             school_generation: AtomicU64::new(0),
             gateway_generation: AtomicU64::new(0),
             graduate_request_gate: tokio::sync::Mutex::new(()),
@@ -230,7 +198,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         self.identity.poison_count()
             + self.checkin_progress.poison_count()
             + self.automatic_login_failure.poison_count()
-            + self.gateway_login_failure.poison_count()
             + self.cgyy_safety.poison_count()
             + self.snapshots.poison_events()
             + self.session.poison_events()
@@ -308,9 +275,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 self.school_generation.fetch_add(1, Ordering::Release);
                 Ok(())
             }
-            Ok(LoginResult::CaptchaRequired { .. }) => {
-                Err(AppError::new(ErrorCode::CaptchaRequired))
-            }
+            Ok(LoginResult::CaptchaRequired(_)) => Err(AppError::new(ErrorCode::CaptchaRequired)),
             Err(error) => Err(error),
         };
         self.record_automatic_login_result(&result);
@@ -327,33 +292,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         if self.gateway_generation.load(Ordering::Acquire) != generation {
             return Ok(());
         }
-        // A failed gateway authentication is not retried on its own: the
-        // school counts repeated password submissions as risk. The block
-        // expires so a later attempt can succeed, and an explicit user action
-        // clears it immediately.
-        let mut block_expired = false;
-        {
-            let mut blocked = self.gateway_auth_blocked.lock();
-            match blocked.as_ref() {
-                Some((at, error)) if at.elapsed() < GATEWAY_AUTH_BLOCK_TTL => {
-                    let error = error.clone();
-                    drop(blocked);
-                    self.session.set_route(RouteMode::Automatic);
-                    return Err(error);
-                }
-                Some(_) => {
-                    *blocked = None;
-                    block_expired = true;
-                }
-                None => {}
-            }
-        }
-        if block_expired {
-            // The long block expired: the short failure cooldown must not keep
-            // the gateway unusable.
-            *self.gateway_login_failure.lock() = None;
-        }
-        if let Err(error) = self.check_gateway_login_failure() {
+        if let Err(error) = self.check_automatic_login_failure() {
             self.session.set_route(RouteMode::Automatic);
             return Err(error);
         }
@@ -364,36 +303,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             .vault
             .load(&account)?
             .ok_or_else(AppError::session_expired)?;
-        self.session.set_route(RouteMode::WebVpn);
-        let result = match auth::fetch_login_page(&self.session).await {
-            Ok(page) => {
-                match auth::complete_login(&self.session, &credentials, page.clone()).await {
-                    Ok(LoginResult::SignedIn(_)) if self.session.webvpn_cookie_present() => Ok(()),
-                    Ok(LoginResult::SignedIn(_)) => Err(AppError::session_expired()),
-                    Ok(LoginResult::CaptchaRequired { challenge, page }) => {
-                        // Keep the page the school just re-rendered: its
-                        // `execution` token is the one the answer must use.
-                        self.remember_gateway_pending(page, &account);
-                        Err(AppError::with_detail(
-                            ErrorCode::CaptchaRequired,
-                            challenge.id,
-                        ))
-                    }
-                    Err(error) => Err(error),
-                }
-            }
-            Err(error) => Err(error),
-        };
-        if let Err(error) = &result {
+        let result = auth::establish_webvpn_session(&self.session, &credentials).await;
+        if result.is_err() {
             self.session.set_route(RouteMode::Automatic);
-            if is_gateway_authentication_rejection(error) {
-                *self.gateway_auth_blocked.lock() = Some((Instant::now(), error.clone()));
-            }
         } else {
             self.gateway_generation.fetch_add(1, Ordering::Release);
-            *self.gateway_auth_blocked.lock() = None;
         }
-        self.record_gateway_login_result(&result);
+        self.record_automatic_login_result(&result);
         result
     }
 
@@ -412,36 +328,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             .map(|error| (Instant::now(), error.clone()));
     }
 
-    fn check_gateway_login_failure(&self) -> Result<(), AppError> {
-        let failure = self.gateway_login_failure.lock();
-        match failure.as_ref() {
-            Some((at, error)) if at.elapsed() < AUTOMATIC_LOGIN_FAILURE_TTL => Err(error.clone()),
-            _ => Ok(()),
-        }
-    }
-
-    fn record_gateway_login_result(&self, result: &Result<(), AppError>) {
-        *self.gateway_login_failure.lock() = result
-            .as_ref()
-            .err()
-            .map(|error| (Instant::now(), error.clone()));
-    }
-
-    pub(crate) fn remember_gateway_pending(&self, page: LoginPage, account: &str) {
-        let mut identity = self.identity.lock();
-        let generation = identity.generation;
-        identity.gateway_pending = Some(PendingLogin {
-            page,
-            account: account.to_owned(),
-            generation,
-            created: Instant::now(),
-        });
-    }
-
     fn clear_automatic_login_failure(&self) {
         *self.automatic_login_failure.lock() = None;
-        *self.gateway_login_failure.lock() = None;
-        *self.gateway_auth_blocked.lock() = None;
     }
 
     pub(crate) fn clear_caches(&self) {

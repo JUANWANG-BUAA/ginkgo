@@ -10,19 +10,6 @@ impl<U: SessionSource> Workspace<U> {
         self.upstream.login_challenge(expected_id, refresh).await
     }
 
-    /// The WebVPN gateway's own challenge: campus modules need that session,
-    /// and the school may demand a captcha for it after the user signed in.
-    pub async fn gateway_challenge(
-        &self,
-    ) -> Result<Option<ginkgo_domain::ports::LoginChallengeData>, AppError> {
-        self.upstream.gateway_challenge().await
-    }
-
-    /// Submit the user's answer once. Never retried automatically.
-    pub async fn resume_gateway_login(&self, answer: &str) -> Result<(), AppError> {
-        self.upstream.resume_gateway_login(answer).await
-    }
-
     pub fn status(&self) -> SessionStatus {
         self.upstream.status()
     }

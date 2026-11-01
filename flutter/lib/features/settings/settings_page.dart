@@ -7,7 +7,6 @@ import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/maintenance.dart';
-import 'package:ginkgo_mirror/features/settings/gateway_challenge_page.dart';
 import 'package:ginkgo_mirror/features/settings/maintenance_pages.dart';
 import 'package:ginkgo_mirror/features/settings/network_diagnostics_page.dart';
 import 'package:ginkgo_mirror/shared/query_cache_scope.dart';
@@ -263,18 +262,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     label: _routeLabel,
                     enabled: !busy,
                     onSelected: _changeRoute,
-                  ),
-                  AppleListTile(
-                    key: const Key('settings-gateway-challenge'),
-                    leading: const Icon(
-                      CupertinoIcons.checkmark_shield,
-                      color: AppleDesign.accent,
-                    ),
-                    title: const Text('WebVPN 验证'),
-                    subtitle: const Text('网关要求验证码时，在这里输入一次'),
-                    trailing: const CupertinoListTileChevron(),
-                    onTap: () =>
-                        _open(GatewayChallengePage(service: widget.service)),
                   ),
                 ],
               ),

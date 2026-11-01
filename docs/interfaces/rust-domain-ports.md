@@ -474,16 +474,14 @@
 - `pub trait SessionSource: Send + Sync`
   <sub>trait · rust/crates/ginkgo_domain/src/ports/session.rs:45</sub>
     - `fn login_challenge( &self, _expected_id: Option<&str>, _refresh: bool, ) -> Future<Result<LoginChallengeData, AppError>> {…}`  <sub>:46</sub>
-    - `fn gateway_challenge( &self, ) -> Future<Result<Option<LoginChallengeData>, AppError>>` — The gateway's own login challenge, when the school demanded a captcha  <sub>:56</sub>
-    - `fn resume_gateway_login( &self, _answer: &str, ) -> Future<Result<(), AppError>> {…}` — Answer that gateway challenge with the text the user typed. Only the  <sub>:65</sub>
-    - `fn status(&self) -> SessionStatus;`  <sub>:72</sub>
-    - `fn set_route(&self, preference: RoutePreference);`  <sub>:73</sub>
-    - `fn sign_in( &self, account: &str, password: &str, captcha: Option<&str>, remember: bool, ) -> Future<Result<SessionOutcome, AppError>>;`  <sub>:74</sub>
-    - `fn restore(&self) -> Future<Result<SessionOutcome, AppError>>;`  <sub>:81</sub>
-    - `fn sign_out(&self) -> Future<()>;` — Revoke the in-memory session: identity, cookies and snapshots.  <sub>:88</sub>
-    - `fn purge_credentials(&self) -> Future<()>;` — Remove every saved password. Local platform storage; may block.  <sub>:90</sub>
-    - `fn clear_snapshots(&self);`  <sub>:91</sub>
-    - `fn account(&self) -> Result<String, AppError>;`  <sub>:92</sub>
+    - `fn status(&self) -> SessionStatus;`  <sub>:54</sub>
+    - `fn set_route(&self, preference: RoutePreference);`  <sub>:55</sub>
+    - `fn sign_in( &self, account: &str, password: &str, captcha: Option<&str>, remember: bool, ) -> Future<Result<SessionOutcome, AppError>>;`  <sub>:56</sub>
+    - `fn restore(&self) -> Future<Result<SessionOutcome, AppError>>;`  <sub>:63</sub>
+    - `fn sign_out(&self) -> Future<()>;` — Revoke the in-memory session: identity, cookies and snapshots.  <sub>:70</sub>
+    - `fn purge_credentials(&self) -> Future<()>;` — Remove every saved password. Local platform storage; may block.  <sub>:72</sub>
+    - `fn clear_snapshots(&self);`  <sub>:73</sub>
+    - `fn account(&self) -> Result<String, AppError>;`  <sub>:74</sub>
 
 ## shuttle
 

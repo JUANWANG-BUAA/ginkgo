@@ -84,28 +84,6 @@ final staleClassrooms = ClassroomResponse(
   failure: FailureCode.serviceUnavailable,
 );
 
-const rejectedLogin = SessionResponse(
-  state: SessionState.signedOut,
-  remembered: false,
-  failure: FailureCode.invalidCredentials,
-);
-
-class RejectingService extends FakeService {
-  RejectingService()
-    : super(restoreResponse: signedOut, loginResponse: rejectedLogin);
-  int logins = 0;
-  @override
-  Future<SessionResponse> login({
-    required String account,
-    required String password,
-    String? captcha,
-    required bool remember,
-  }) async {
-    logins += 1;
-    return rejectedLogin;
-  }
-}
-
 class FakeService extends Fake implements MirrorService {
   @override
   Future<LocalTasksRead> editTasks({
@@ -543,49 +521,6 @@ void main() {
     expect(find.textContaining('验证码'), findsWidgets);
     expect(find.byKey(const Key('login-captcha')), findsOneWidget);
   });
-
-  testWidgets(
-    'repeated rejected logins pause before resubmitting the password',
-    (tester) async {
-      final service = RejectingService();
-      await phone(
-        tester,
-        GinkgoRoot(
-          liveService: service,
-          demoService: FakeService(
-            restoreResponse: signedOut,
-            loginResponse: signedIn,
-            demo: true,
-          ),
-        ),
-      );
-      await tester.enterText(
-        find.byKey(const Key('login-account')),
-        'sy2501001',
-      );
-      await tester.enterText(
-        find.byKey(const Key('login-password')),
-        'fixture-password',
-      );
-      for (var attempt = 0; attempt < 3; attempt++) {
-        await tester.tap(find.byKey(const Key('login-submit')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 50));
-      }
-      expect(service.logins, 3);
-      expect(find.textContaining('已暂停'), findsOneWidget);
-      // The school counts password submissions as risk, so the disabled button
-      // must not reach the service again while the pause lasts.
-      await tester.tap(find.byKey(const Key('login-submit')));
-      await tester.pump();
-      expect(service.logins, 3);
-      await tester.pump(const Duration(seconds: 61));
-      expect(find.textContaining('暂停结束'), findsOneWidget);
-      await tester.tap(find.byKey(const Key('login-submit')));
-      await tester.pump();
-      expect(service.logins, 4);
-    },
-  );
 
   testWidgets('restore captcha opens login with the captcha field', (
     tester,

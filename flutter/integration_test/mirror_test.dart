@@ -1,4 +1,3 @@
-import 'package:ginkgo_mirror/application/auth_challenge.dart';
 import 'package:ginkgo_mirror/application/checkin_progress.dart';
 import 'package:ginkgo_mirror/application/library_holdings.dart';
 import 'package:ginkgo_mirror/application/notices.dart';
@@ -33,11 +32,6 @@ import 'package:ginkgo_mirror/application/bykc.dart';
 const native = DemoMirrorService();
 
 class FailOnceNativeService implements MirrorService {
-  @override
-  Future<LoginChallenge?> gatewayChallenge() => native.gatewayChallenge();
-  @override
-  Future<bool> submitGatewayChallenge(String answer) =>
-      native.submitGatewayChallenge(answer);
   @override
   Future<CheckinProgressRead> checkinProgress() => native.checkinProgress();
   @override

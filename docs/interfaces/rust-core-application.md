@@ -26,7 +26,7 @@
 - [mod](#mod) (2)
 - [notices](#notices) (1)
 - [query_snapshots](#querysnapshots) (2)
-- [session](#session) (10)
+- [session](#session) (8)
 - [shuttle](#shuttle) (1)
 - [tasks_service](#tasksservice) (2)
 - [cgyy_pending_store](#cgyypendingstore) (6)
@@ -252,24 +252,20 @@
 
 - `pub async fn login_challenge( &self, expected_id: Option<&str>, refresh: bool, ) -> Result<ginkgo_domain::ports::LoginChallengeData, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:5</sub>
-- `pub async fn gateway_challenge( &self, ) -> Result<Option<ginkgo_domain::ports::LoginChallengeData>, AppError> {…}` — The WebVPN gateway's own challenge: campus modules need that session,
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:15</sub>
-- `pub async fn resume_gateway_login(&self, answer: &str) -> Result<(), AppError> {…}` — Submit the user's answer once. Never retried automatically.
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:22</sub>
 - `pub fn status(&self) -> SessionStatus {…}`
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:26</sub>
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:13</sub>
 - `pub fn set_route(&self, preference: RoutePreference) {…}`
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:29</sub>
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:16</sub>
 - `pub async fn sign_in( &self, account: &str, password: &str, captcha: Option<&str>, remember: bool, ) -> Result<SessionOutcome, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:32</sub>
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:19</sub>
 - `pub async fn restore(&self) -> Result<SessionOutcome, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:43</sub>
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:30</sub>
 - `pub async fn sign_out(&self) {…}`
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:46</sub>
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:33</sub>
 - `pub async fn purge_credentials(&self) {…}` — Second sign-out step: delete saved passwords. Deliberately separate so
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:51</sub>
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:38</sub>
 - `pub fn clear_snapshots(&self) {…}`
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:54</sub>
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:41</sub>
 
 ## shuttle
 

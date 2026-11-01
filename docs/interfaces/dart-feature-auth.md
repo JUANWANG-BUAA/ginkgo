@@ -8,6 +8,6 @@
 ## features/auth/login_page.dart
 
 - `class LoginPage extends StatefulWidget`
-  <sub>class · features/auth/login_page.dart:14</sub>
-    - `const LoginPage({ super.key, required this.service, required this.onSignedIn, required this.onDemo, this.initialMessage, this.initialCaptcha = false, this.challengeGateway, });`  <sub>:15</sub>
-    - `State<LoginPage> createState() => …`  <sub>:33</sub>
+  <sub>class · features/auth/login_page.dart:12</sub>
+    - `const LoginPage({ super.key, required this.service, required this.onSignedIn, required this.onDemo, this.initialMessage, this.initialCaptcha = false, this.challengeGateway, });`  <sub>:13</sub>
+    - `State<LoginPage> createState() => …`  <sub>:31</sub>

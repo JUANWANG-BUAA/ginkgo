@@ -51,24 +51,6 @@ pub trait SessionSource: Send + Sync {
         async { Err(AppError::invalid()) }
     }
 
-    /// The gateway's own login challenge, when the school demanded a captcha
-    /// for the WebVPN session that campus modules need.
-    fn gateway_challenge(
-        &self,
-    ) -> impl std::future::Future<Output = Result<Option<LoginChallengeData>, AppError>> + Send
-    {
-        async { Ok(None) }
-    }
-
-    /// Answer that gateway challenge with the text the user typed. Only the
-    /// user's explicit action reaches this; nothing retries it automatically.
-    fn resume_gateway_login(
-        &self,
-        _answer: &str,
-    ) -> impl std::future::Future<Output = Result<(), AppError>> + Send {
-        async { Err(AppError::invalid()) }
-    }
-
     fn status(&self) -> SessionStatus;
     fn set_route(&self, preference: RoutePreference);
     fn sign_in(

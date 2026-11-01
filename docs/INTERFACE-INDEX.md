@@ -260,9 +260,9 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ## 6. FFI 命令层
 
-`ginkgo_flutter_bridge` 导出 **91 个命令**，是 Dart 唯一可见的 Rust 面。Dart 侧只允许 [contracts.dart](../flutter/lib/application/contracts.dart) 以类型形式引用生成绑定，命令本身只能由 `NativeMirrorService` 调用。
+`ginkgo_flutter_bridge` 导出 **89 个命令**，是 Dart 唯一可见的 Rust 面。Dart 侧只允许 [contracts.dart](../flutter/lib/application/contracts.dart) 以类型形式引用生成绑定，命令本身只能由 `NativeMirrorService` 调用。
 
-命令计数口径：`flutter/lib/src/rust/api/**` 生成的 Dart 命令函数（`live` 77 + `live/auth_challenge` 3 + `mirror` 10 + `reminder_planning` 1）。改命令后该数字会变，改完请同步本行与 [§6.10](#610-返回形态与载荷契约)。
+命令计数口径：`flutter/lib/src/rust/api/**` 生成的 Dart 命令函数（`live` 77 + `live/auth_challenge` 1 + `mirror` 10 + `reminder_planning` 1）。改命令后该数字会变，改完请同步本行与 [§6.10](#610-返回形态与载荷契约)。
 
 ### 6.1 会话
 
@@ -318,11 +318,11 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ### 6.10 返回形态与载荷契约
 
-91 个命令按返回形态分为两类：
+89 个命令按返回形态分为两类：
 
 | 形态 | 数量 | 含义 | 解码位置 |
 | --- | --- | --- | --- |
-| 类型化 DTO | 91 | 命令直接返回结构体（`SessionResponse`、`ScheduleResponse`、`CheckInResponse`、`MutationResponse`、`CgyyLoadResponse` …） | Rust 端投影；Dart 只做 DTO → 呈现模型 |
+| 类型化 DTO | 89 | 命令直接返回结构体（`SessionResponse`、`ScheduleResponse`、`CheckInResponse`、`MutationResponse`、`CgyyLoadResponse` …） | Rust 端投影；Dart 只做 DTO → 呈现模型 |
 | `ReadOnlyResponse` 载荷 | 0 | —— | —— |
 
 使用载荷信封的 0 个命令：

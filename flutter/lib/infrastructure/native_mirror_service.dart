@@ -15,7 +15,6 @@ import '../application/notices.dart';
 import '../application/shuttle.dart';
 import '../application/mirror_service.dart';
 import '../src/rust/api/live.dart' as live;
-import '../src/rust/api/live/auth_challenge.dart' as auth;
 import '../src/rust/api/mirror.dart' as rust;
 
 import 'package:ginkgo_mirror/infrastructure/native_learning.dart';
@@ -68,33 +67,6 @@ final class NativeMirrorService
   @override
   Future<live.CampusCardBalanceResponse> campusCardBalance() =>
       boundedNativeRead(() => live.loadCampusCardBalance());
-
-  @override
-  Future<LoginChallenge?> gatewayChallenge() async {
-    final response = await boundedNativeRead(auth.loadGatewayChallenge);
-    if (response.failure != null) {
-      throw StateError('网关验证码暂时无法读取，请稍后重试');
-    }
-    final id = response.challengeId;
-    if (id == null || id.isEmpty) return null;
-    return LoginChallenge(
-      id: id,
-      kind: response.challengeType ?? '',
-      textSupported: response.textSupported,
-      image: response.image,
-    );
-  }
-
-  @override
-  Future<bool> submitGatewayChallenge(String answer) async {
-    final response = await boundedNativeRead(
-      () => auth.submitGatewayChallenge(answer: answer),
-    );
-    if (response.failure != null && !response.solved) {
-      throw StateError('验证码未通过，请重新输入');
-    }
-    return response.solved;
-  }
 
   String get _homeworkOwner {
     final owner = expectedAccount;

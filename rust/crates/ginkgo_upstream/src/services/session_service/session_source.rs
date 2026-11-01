@@ -2,14 +2,14 @@
 //!
 //! 认证与会话状态全部留在这里；Flutter 只见粗粒度结果。字段可见性不变。
 
-use super::{Identity, PendingLogin, RouteMode, SchoolClient};
+use super::{Identity, PendingLogin, SchoolClient};
 use crate::{
     auth::{self, CredentialVault, Credentials, LoginPage, LoginResult},
     foundation::{http::HttpTransport, mutex::lock_value},
     AppError, ErrorCode,
 };
 use ginkgo_domain::ports::*;
-use std::{sync::atomic::Ordering, time::Instant};
+use std::time::Instant;
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for SchoolClient<T, V> {
     async fn login_challenge(
@@ -98,17 +98,10 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                 created: if refresh { Instant::now() } else { created },
             });
         }
-        // A challenge whose advertised image is not an image at all cannot be
-        // answered by typing; anything the school actually serves as a picture
-        // is answerable, whatever its `type` string says.
-        let (image, text_supported) = if text_supported {
-            match auth::challenge::image(&self.session, &challenge.id).await {
-                Ok(image) => (image, true),
-                Err(error) if error.code == ErrorCode::ChangedResponse => (vec![], false),
-                Err(error) => return Err(error),
-            }
+        let image = if text_supported {
+            auth::challenge::image(&self.session, &challenge.id).await?
         } else {
-            (vec![], false)
+            vec![]
         };
         let identity = self.identity.lock();
         if identity.generation != generation
@@ -126,94 +119,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
             text_supported,
             image,
         })
-    }
-
-    async fn gateway_challenge(&self) -> Result<Option<LoginChallengeData>, AppError> {
-        let account = self.current_account()?;
-        let challenge = {
-            let identity = self.identity.lock();
-            let Some(pending) = identity.gateway_pending.as_ref() else {
-                return Ok(None);
-            };
-            if !pending.valid(&account, identity.generation) {
-                return Ok(None);
-            }
-            let LoginPage::Form {
-                captcha: Some(challenge),
-                ..
-            } = &pending.page
-            else {
-                return Ok(None);
-            };
-            challenge.clone()
-        };
-        // The image lives behind the same gateway the login page came from.
-        self.session.set_route(RouteMode::WebVpn);
-        let image = auth::challenge::image(&self.session, &challenge.id).await;
-        self.session.set_route(RouteMode::Automatic);
-        let image = match image {
-            Ok(image) => image,
-            Err(error) if error.code == ErrorCode::ChangedResponse => Vec::new(),
-            Err(error) => return Err(error),
-        };
-        Ok(Some(LoginChallengeData {
-            challenge_id: challenge.id,
-            challenge_type: challenge.captcha_type,
-            text_supported: !image.is_empty(),
-            image,
-        }))
-    }
-
-    async fn resume_gateway_login(&self, answer: &str) -> Result<(), AppError> {
-        let answer = answer.trim();
-        if answer.is_empty() {
-            return Err(AppError::invalid());
-        }
-        let account = self.current_account()?;
-        let page = {
-            let mut identity = self.identity.lock();
-            let Some(pending) = identity.gateway_pending.take() else {
-                return Err(AppError::session_expired());
-            };
-            if !pending.valid(&account, identity.generation) {
-                return Err(AppError::session_expired());
-            }
-            pending.page
-        };
-        let credentials = self
-            .vault
-            .load(&account)?
-            .ok_or_else(AppError::session_expired)?;
-        let credentials = Credentials {
-            captcha_text: Some(answer.to_owned()),
-            ..credentials
-        };
-        self.session.set_route(RouteMode::WebVpn);
-        let result = auth::complete_login(&self.session, &credentials, page.clone()).await;
-        match result {
-            Ok(LoginResult::SignedIn(_)) if self.session.webvpn_cookie_present() => {
-                self.gateway_generation.fetch_add(1, Ordering::Release);
-                *self.gateway_auth_blocked.lock() = None;
-                *self.gateway_login_failure.lock() = None;
-                Ok(())
-            }
-            Ok(LoginResult::SignedIn(_)) => {
-                self.session.set_route(RouteMode::Automatic);
-                Err(AppError::session_expired())
-            }
-            Ok(LoginResult::CaptchaRequired { challenge, page }) => {
-                self.remember_gateway_pending(page, &account);
-                self.session.set_route(RouteMode::Automatic);
-                Err(AppError::with_detail(
-                    ErrorCode::CaptchaRequired,
-                    challenge.id,
-                ))
-            }
-            Err(error) => {
-                self.session.set_route(RouteMode::Automatic);
-                Err(error)
-            }
-        }
     }
 
     fn status(&self) -> SessionStatus {
@@ -243,9 +148,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
         if changed {
             self.clear_identity();
         }
-        // Switching the route is an explicit user action: it may clear a
-        // blocked gateway authentication so the user can try once more.
-        *self.gateway_auth_blocked.lock() = None;
         self.session.set_route(preference.into());
     }
 
@@ -260,8 +162,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
         if account.is_empty() || password.is_empty() {
             return Err(AppError::invalid());
         }
-        // Signing in again is an explicit user action.
-        *self.gateway_auth_blocked.lock() = None;
         let switching_account = self
             .identity
             .lock()
@@ -294,16 +194,15 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                 auth::fetch_login_page(&self.session).await?
             }
         };
+        let retry_page = page.clone();
         match auth::complete_login(&self.session, &credentials, page).await {
-            Ok(LoginResult::CaptchaRequired { challenge, page }) => {
+            Ok(LoginResult::CaptchaRequired(challenge)) => {
                 let mut identity = self.identity.lock();
                 if identity.generation != generation {
                     return Err(AppError::session_expired());
                 }
-                // Keep the page the school just re-rendered: its `execution`
-                // token is the one the answer must be submitted with.
                 identity.pending_login = Some(PendingLogin {
-                    page,
+                    page: retry_page,
                     account: account.to_owned(),
                     generation,
                     created: Instant::now(),
@@ -390,7 +289,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                         remembered: true,
                     });
                 }
-                Ok(LoginResult::CaptchaRequired { challenge, page }) => {
+                Ok(LoginResult::CaptchaRequired(challenge)) => {
                     let mut identity = self.identity.lock();
                     let generation = identity.generation;
                     identity.pending_login = Some(PendingLogin {

@@ -30,23 +30,6 @@ void main() {
     );
     expect(challenge.textSupported, isFalse);
   });
-  test('a PNG challenge is answerable, not an invalid image', () {
-    final png = Uint8List.fromList([
-      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, //
-      0x49, 0x48, 0x44, 0x52, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
-    ]);
-    final challenge = decodeLoginChallenge(
-      LoginChallengeResponse(
-        challengeId: 'synthetic',
-        challengeType: 'char',
-        textSupported: true,
-        image: png,
-      ),
-    );
-    expect(challenge.textSupported, isTrue);
-    expect(challenge.image.length, png.length);
-  });
-
   test('malformed bytes cannot become usable challenge', () {
     expect(
       () => decodeLoginChallenge(

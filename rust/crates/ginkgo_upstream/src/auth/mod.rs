@@ -69,12 +69,7 @@ pub enum LoginPage {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LoginResult {
     SignedIn(UserProfile),
-    /// The school demands a captcha. `page` is the form it just re-rendered,
-    /// carrying the `execution` token the answer must be sent with.
-    CaptchaRequired {
-        challenge: cas::CaptchaChallenge,
-        page: LoginPage,
-    },
+    CaptchaRequired(cas::CaptchaChallenge),
 }
 
 /// Complete the documented CAS → UC chain. A captcha challenge is returned
@@ -103,21 +98,7 @@ pub async fn complete_login<T: HttpTransport>(
             let response = session
                 .send_with_fallback(HttpRequest::get(&location))
                 .await?;
-            if let Some(page) =
-                login::follow_redirects_and_check_error(session, response, location).await?
-            {
-                let LoginPage::Form {
-                    captcha: Some(challenge),
-                    ..
-                } = &page
-                else {
-                    return Err(AppError::changed());
-                };
-                return Ok(LoginResult::CaptchaRequired {
-                    challenge: challenge.clone(),
-                    page,
-                });
-            }
+            login::follow_redirects_and_check_error(session, response, location).await?;
         }
         LoginPage::Form {
             execution,
@@ -128,32 +109,16 @@ pub async fn complete_login<T: HttpTransport>(
             // Re-checked even for pages restored from a pending captcha: the
             // POST target is the last line of defense before credentials leave.
             login::validate_login_action(&action_url)?;
-            if let Some(challenge) = captcha.clone() {
+            if let Some(challenge) = captcha {
                 if !cas::text_captcha_supported(&challenge) {
-                    return Ok(LoginResult::CaptchaRequired {
-                        challenge,
-                        page: LoginPage::Form {
-                            execution: execution.clone(),
-                            captcha,
-                            action_url: action_url.clone(),
-                            html: html.clone(),
-                        },
-                    });
+                    return Ok(LoginResult::CaptchaRequired(challenge));
                 }
                 if credentials
                     .captcha_text
                     .as_deref()
                     .is_none_or(str::is_empty)
                 {
-                    return Ok(LoginResult::CaptchaRequired {
-                        challenge,
-                        page: LoginPage::Form {
-                            execution: execution.clone(),
-                            captcha,
-                            action_url: action_url.clone(),
-                            html: html.clone(),
-                        },
-                    });
+                    return Ok(LoginResult::CaptchaRequired(challenge));
                 }
             }
             let mut fields = cas::login_fields(
@@ -168,21 +133,7 @@ pub async fn complete_login<T: HttpTransport>(
             let response = session
                 .send(HttpRequest::post_form(action_url.clone(), body))
                 .await?;
-            if let Some(page) =
-                login::follow_redirects_and_check_error(session, response, action_url).await?
-            {
-                let LoginPage::Form {
-                    captcha: Some(challenge),
-                    ..
-                } = &page
-                else {
-                    return Err(AppError::changed());
-                };
-                return Ok(LoginResult::CaptchaRequired {
-                    challenge: challenge.clone(),
-                    page,
-                });
-            }
+            login::follow_redirects_and_check_error(session, response, action_url).await?;
         }
     }
     activate_uc(session).await?;
@@ -225,7 +176,7 @@ pub async fn establish_webvpn_session<T: HttpTransport>(
     match login(session, credentials).await? {
         LoginResult::SignedIn(_) if session.webvpn_cookie_present() => Ok(()),
         LoginResult::SignedIn(_) => Err(AppError::session_expired()),
-        LoginResult::CaptchaRequired { challenge, .. } => Err(AppError::with_detail(
+        LoginResult::CaptchaRequired(challenge) => Err(AppError::with_detail(
             crate::ErrorCode::CaptchaRequired,
             challenge.id,
         )),
