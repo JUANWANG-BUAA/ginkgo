@@ -374,9 +374,28 @@ final class DemoMirrorService
   Future<live.HomeworkDetailResponse> homeworkDetail(
     String assignmentId, {
     bool forceRefresh = false,
-  }) async => const live.HomeworkDetailResponse(
-    content: '合成作业说明：阅读教材并完成练习。',
-    status: '待完成',
-    stale: false,
-  );
+  }) async {
+    // Every demo assignment used to return the same hard-coded "待完成",
+    // which contradicted the list row that said 已提交.
+    final page = await rust.loadDemoHomework();
+    // The detail page strips the `spoc:` prefix before asking, so match both.
+    final item = page.items
+        .where(
+          (entry) =>
+              entry.id == assignmentId || entry.id == 'spoc:$assignmentId',
+        )
+        .firstOrNull;
+    return live.HomeworkDetailResponse(
+      content: '合成作业说明：阅读教材并完成练习。',
+      status: switch (item?.status) {
+        rust.HomeworkStatus.submitted => '已提交',
+        rust.HomeworkStatus.unknown => '待确认',
+        _ => '待完成',
+      },
+      publishedAt: item?.publishedAt,
+      dueAt: item?.dueAt,
+      score: item?.score,
+      stale: false,
+    );
+  }
 }
