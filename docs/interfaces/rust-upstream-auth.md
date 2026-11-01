@@ -65,10 +65,10 @@
 
 - `pub async fn fetch_login_page<T: HttpTransport>( session: &Session<T>, ) -> Result<LoginPage, AppError> {…}` — Fetch the CAS login page without automatic redirects.
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:12</sub>
-- `pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>( session: &Session<T>, mut response: HttpResponse, mut current_url: String, ) -> Result<(), AppError> {…}` — Follow up to ten redirects, classifying each hop before requesting the
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:60</sub>
+- `pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>( session: &Session<T>, mut response: HttpResponse, mut current_url: String, ) -> Result<Option<LoginPage>, AppError> {…}` — Follow up to ten redirects, classifying each hop before requesting the
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:63</sub>
 - `pub(crate) fn validate_login_action(action: &str) -> Result<(), AppError> {…}` — The password POST target must be the documented CAS endpoint over HTTPS on
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:135</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:152</sub>
 
 ## mod
 
@@ -96,13 +96,13 @@
 - `pub enum LoginResult`
   <sub>enum · rust/crates/ginkgo_upstream/src/auth/mod.rs:70</sub>
 - `pub async fn login<T: HttpTransport>( session: &Session<T>, credentials: &Credentials, ) -> Result<LoginResult, AppError> {…}` — Complete the documented CAS → UC chain. A captcha challenge is returned
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:77</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:82</sub>
 - `pub async fn complete_login<T: HttpTransport>( session: &Session<T>, credentials: &Credentials, page: LoginPage, ) -> Result<LoginResult, AppError> {…}` — Finish a login from an already fetched page. Keeping the page lets a
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:88</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:93</sub>
 - `pub async fn login_with_store<T: HttpTransport, C: CredentialSource + ?Sized>( session: &Session<T>, store: &C, account: &str, ) -> Result<LoginResult, AppError> {…}` — Load credentials from the platform vault, then log in. This is the only
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:160</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:209</sub>
 - `pub async fn establish_webvpn_session<T: HttpTransport>( session: &Session<T>, credentials: &Credentials, ) -> Result<(), AppError> {…}` — Explicitly establish a WebVPN session before routed campus traffic. The
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:171</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:220</sub>
 
 ## android_vault
 

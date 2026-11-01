@@ -308,7 +308,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 self.school_generation.fetch_add(1, Ordering::Release);
                 Ok(())
             }
-            Ok(LoginResult::CaptchaRequired(_)) => Err(AppError::new(ErrorCode::CaptchaRequired)),
+            Ok(LoginResult::CaptchaRequired { .. }) => {
+                Err(AppError::new(ErrorCode::CaptchaRequired))
+            }
             Err(error) => Err(error),
         };
         self.record_automatic_login_result(&result);
@@ -368,9 +370,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 match auth::complete_login(&self.session, &credentials, page.clone()).await {
                     Ok(LoginResult::SignedIn(_)) if self.session.webvpn_cookie_present() => Ok(()),
                     Ok(LoginResult::SignedIn(_)) => Err(AppError::session_expired()),
-                    Ok(LoginResult::CaptchaRequired(challenge)) => {
-                        // Keep the gateway page so the user can answer the
-                        // challenge instead of the gateway being unusable.
+                    Ok(LoginResult::CaptchaRequired { challenge, page }) => {
+                        // Keep the page the school just re-rendered: its
+                        // `execution` token is the one the answer must use.
                         self.remember_gateway_pending(page, &account);
                         Err(AppError::with_detail(
                             ErrorCode::CaptchaRequired,

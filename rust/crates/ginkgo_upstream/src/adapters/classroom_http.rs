@@ -62,7 +62,7 @@ pub async fn query_classrooms_with_recovery<T: HttpTransport, C: CredentialSourc
         Err(error) if error.code == ErrorCode::SessionExpired => {
             match auth::login_with_store(session, store, account).await? {
                 LoginResult::SignedIn(_) => {}
-                LoginResult::CaptchaRequired(_) => {
+                LoginResult::CaptchaRequired { .. } => {
                     return Err(AppError::new(ErrorCode::CaptchaRequired))
                 }
             }

@@ -946,6 +946,66 @@ async fn an_answer_for_an_unlisted_type_is_submitted_once() {
     assert!(body.contains("captchaResponse=1234"));
 }
 
+/// CAS answers a rejected attempt by re-rendering the form, and that page can
+/// carry a captcha with a new `execution` token. Reporting it as a wrong
+/// password hides the only path the user has.
+#[tokio::test]
+async fn a_captcha_on_the_failure_page_is_asked_for_instead_of_a_wrong_password() {
+    let retry_page = FORM_PAGE
+        .replace("abc+def/ghi=", "fresh+exec/token=")
+        .replace(
+            "</form>",
+            "<script>config.captcha = { type: 'char', id: 'retry-cap' };</script></form>",
+        );
+    let responses = vec![
+        HttpResponse::new(200, LOGIN_URL, FORM_PAGE),
+        HttpResponse::new(200, LOGIN_URL, retry_page),
+        captcha_image(),
+        HttpResponse::new(302, LOGIN_URL, "")
+            .with_header("Location", "https://sso.buaa.edu.cn/login?ticket=ST-2")
+            .with_set_cookie("CASTGC=TGT-fixture; Path=/; Secure; HttpOnly"),
+        HttpResponse::new(
+            200,
+            "https://sso.buaa.edu.cn/login?ticket=ST-2",
+            "<html>ok</html>",
+        ),
+        HttpResponse::new(200, UC_ACTIVATION_URL, ""),
+        uc_ok("sy2501001", "fixture"),
+    ];
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    let outcome = service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .unwrap();
+    assert!(
+        matches!(outcome, SessionOutcome::CaptchaRequired(_)),
+        "the re-rendered page asks for a captcha"
+    );
+    let challenge = service
+        .login_challenge(Some("retry-cap"), false)
+        .await
+        .expect("the failure page is kept as the pending challenge");
+    assert_eq!(challenge.challenge_id, "retry-cap");
+
+    let outcome = service
+        .sign_in("sy2501001", "pa+ss/word", Some("7k2m"), true)
+        .await
+        .unwrap();
+    assert!(matches!(outcome, SessionOutcome::SignedIn { .. }));
+    let posts: Vec<_> = transport
+        .requests()
+        .into_iter()
+        .filter(|request| request.method == HttpMethod::Post)
+        .collect();
+    assert_eq!(posts.len(), 2, "one rejected attempt, one answered attempt");
+    let body = posts[1].body.clone().unwrap_or_default();
+    assert!(
+        body.contains("fresh%2Bexec%2Ftoken%3D"),
+        "the answer must reuse the token from the page the school just sent"
+    );
+    assert!(body.contains("captcha=7k2m"));
+}
+
 #[tokio::test]
 async fn login_challenge_cross_account_answer_never_posts() {
     let (service, transport) = build_service(

@@ -57,11 +57,14 @@ pub async fn fetch_login_page<T: HttpTransport>(
 
 /// Follow up to ten redirects, classifying each hop before requesting the
 /// next one. Password-expiry pages are skipped exactly once.
+/// Returns the login page again when the school answered the attempt with a
+/// captcha challenge: CAS re-renders the form with a fresh `execution` token,
+/// and the answer must be submitted against that page, not the previous one.
 pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
     session: &Session<T>,
     mut response: HttpResponse,
     mut current_url: String,
-) -> Result<(), AppError> {
+) -> Result<Option<LoginPage>, AppError> {
     let mut skipped_expiry = false;
     for hop in 0..=10 {
         if let Some(message) = query_param(&current_url, "exception.message") {
@@ -121,10 +124,24 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
         if let Some(message) = cas::extract_error_text(&response.body) {
             return Err(AppError::with_detail(ErrorCode::PreLoginTip, message));
         }
-        if cas::extract_execution(&response.body).is_some() {
+        if let Some(execution) = cas::extract_execution(&response.body) {
+            // The school counts a rejected attempt, but it may also be asking
+            // for a captcha on the very page it re-rendered. Treating that as a
+            // wrong password hides the only path the user has.
+            if let Some(challenge) = cas::detect_captcha(&response.body) {
+                let action_url = cas::extract_login_form_action(&response.body)
+                    .and_then(|action| webvpn::resolve_redirect(&action, &current_url))
+                    .unwrap_or_else(|| current_url.clone());
+                return Ok(Some(LoginPage::Form {
+                    execution,
+                    captcha: Some(challenge),
+                    action_url,
+                    html: response.body,
+                }));
+            }
             return Err(AppError::new(ErrorCode::InvalidCredentials));
         }
-        return Ok(());
+        return Ok(None);
     }
     Err(AppError::new(ErrorCode::RedirectLimit))
 }
