@@ -30,24 +30,24 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:51</sub>
 - `pub fn captcha_image_url(id: &str) -> String {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:61</sub>
-- `pub fn text_captcha_supported(challenge: &CaptchaChallenge) -> bool {…}` — Only the documented local image/text form is understood. Other challenge
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:69</sub>
+- `pub fn text_captcha_supported(challenge: &CaptchaChallenge) -> bool {…}` — The type string is informational. `config.captcha` advertises the same
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:71</sub>
 - `pub fn extract_tip_text(html: &str) -> Option<String> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:73</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:75</sub>
 - `pub fn extract_error_text(html: &str) -> Option<String> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:79</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:81</sub>
 - `pub fn is_access_policy_denied(html: &str) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:86</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:88</sub>
 - `pub fn is_password_expiry_page(html: &str) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:91</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:93</sub>
 - `pub fn is_login_redirect(final_url: &str, body: &str) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:99</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:101</sub>
 - `pub fn module_refusal(final_url: &str, body: &str) -> AppError {…}` — Classify a module answer that is not the expected payload.
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:117</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:119</sub>
 - `pub fn login_fields( html: &str, username: &str, password: &str, captcha_text: Option<&str>, ) -> Vec<(String, String)> {…}` — Build the CAS form from the page's hidden inputs. The `+` and `/` in the
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:127</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:129</sub>
 - `pub fn form_urlencode(fields: &[(String, String)]) -> String {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:167</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:169</sub>
 
 ## challenge
 

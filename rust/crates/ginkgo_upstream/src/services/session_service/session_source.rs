@@ -98,10 +98,17 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                 created: if refresh { Instant::now() } else { created },
             });
         }
-        let image = if text_supported {
-            auth::challenge::image(&self.session, &challenge.id).await?
+        // A challenge whose advertised image is not an image at all cannot be
+        // answered by typing; anything the school actually serves as a picture
+        // is answerable, whatever its `type` string says.
+        let (image, text_supported) = if text_supported {
+            match auth::challenge::image(&self.session, &challenge.id).await {
+                Ok(image) => (image, true),
+                Err(error) if error.code == ErrorCode::ChangedResponse => (vec![], false),
+                Err(error) => return Err(error),
+            }
         } else {
-            vec![]
+            (vec![], false)
         };
         let identity = self.identity.lock();
         if identity.generation != generation

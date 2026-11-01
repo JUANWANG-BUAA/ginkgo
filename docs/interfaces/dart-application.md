@@ -220,7 +220,7 @@
 - `String failureMessage(FailureCode? code) {…}` — Maps typed Rust domain failure codes to human-readable Chinese error messages.
   <sub>function · application/failure_message.dart:5</sub>
 - `String failureAdvice({required bool hasStaleValue, FailureCode? failure}) {…}` — The advice line shown under a failed read.
-  <sub>function · application/failure_message.dart:35</sub>
+  <sub>function · application/failure_message.dart:34</sub>
 
 ## application/file_actions.dart
 

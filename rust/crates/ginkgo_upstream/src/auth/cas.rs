@@ -64,10 +64,12 @@ pub fn captcha_image_url(id: &str) -> String {
     url.into()
 }
 
-/// Only the documented local image/text form is understood. Other challenge
-/// interaction protocols must not be guessed from a free-form type string.
+/// The type string is informational. `config.captcha` advertises the same
+/// `/captcha?captchaId=` image and the same two text fields for every value
+/// (API §1.3); gating on a specific string refused challenges the school does
+/// serve, and the reference implementation never checks it either.
 pub fn text_captcha_supported(challenge: &CaptchaChallenge) -> bool {
-    challenge.captcha_type == "local"
+    !challenge.id.is_empty()
 }
 
 pub fn extract_tip_text(html: &str) -> Option<String> {

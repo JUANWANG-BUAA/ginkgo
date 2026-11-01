@@ -833,10 +833,20 @@ fn local_challenge_page(id: &str, kind: &str) -> HttpResponse {
     )
 }
 
+fn captcha_image() -> HttpResponse {
+    HttpResponse {
+        bytes: Some(vec![0xff, 0xd8, 0xff, 0x00, 0xff, 0xd9]),
+        ..HttpResponse::new(200, "https://sso.buaa.edu.cn/captcha", "")
+    }
+}
+
+/// The `type` string is informational: the same image endpoint and the same
+/// two text fields answer every challenge the school advertises (API §1.3).
+/// A whitelist of one value refused challenges the school actually serves.
 #[tokio::test]
-async fn login_challenge_unknown_type_cannot_submit_and_old_id_cannot_refresh() {
+async fn a_challenge_type_does_not_decide_whether_the_user_can_answer() {
     let (service, transport) = build_service(
-        vec![local_challenge_page("cap", "slider")],
+        vec![local_challenge_page("cap", "char"), captcha_image()],
         MemoryVault::default(),
     );
     service
@@ -844,19 +854,42 @@ async fn login_challenge_unknown_type_cannot_submit_and_old_id_cannot_refresh() 
         .await
         .unwrap();
     let challenge = service.login_challenge(Some("cap"), false).await.unwrap();
-    assert!(!challenge.text_supported);
-    assert!(challenge.image.is_empty());
+    assert!(challenge.text_supported);
+    assert!(!challenge.image.is_empty());
+    assert_eq!(challenge.challenge_type, "char");
     assert!(service.login_challenge(Some("wrong"), true).await.is_err());
-    assert!(matches!(
-        service
-            .sign_in("synthetic", "password", Some("1234"), false)
-            .await
-            .unwrap(),
-        SessionOutcome::CaptchaRequired(_)
-    ));
     service.set_route(RoutePreference::WebVpn);
     assert!(service.login_challenge(Some("cap"), false).await.is_err());
-    assert_eq!(transport.request_count(), 1);
+    assert_eq!(transport.request_count(), 2);
+}
+
+#[tokio::test]
+async fn an_answer_for_an_unlisted_type_is_submitted_once() {
+    let mut chain = login_chain("sy2501001", "fixture");
+    chain[0] = local_challenge_page("cap", "geetest");
+    chain.insert(1, captcha_image());
+    let (service, transport) = build_service(chain, MemoryVault::default());
+    let outcome = service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .unwrap();
+    assert!(matches!(outcome, SessionOutcome::CaptchaRequired(_)));
+    let challenge = service.login_challenge(Some("cap"), false).await.unwrap();
+    assert!(challenge.text_supported);
+    let outcome = service
+        .sign_in("sy2501001", "pa+ss/word", Some("1234"), true)
+        .await
+        .unwrap();
+    assert!(matches!(outcome, SessionOutcome::SignedIn { .. }));
+    let posts: Vec<_> = transport
+        .requests()
+        .into_iter()
+        .filter(|request| request.method == HttpMethod::Post)
+        .collect();
+    assert_eq!(posts.len(), 1, "one password post carrying the answer");
+    let body = posts[0].body.clone().unwrap_or_default();
+    assert!(body.contains("captcha=1234"));
+    assert!(body.contains("captchaResponse=1234"));
 }
 
 #[tokio::test]
@@ -883,6 +916,7 @@ async fn login_challenge_refresh_replaces_pending_and_old_answer_image_is_reject
         vec![
             local_challenge_page("cap-1", "slider"),
             local_challenge_page("cap-2", "slider"),
+            captcha_image(),
         ],
         MemoryVault::default(),
     );
@@ -894,7 +928,7 @@ async fn login_challenge_refresh_replaces_pending_and_old_answer_image_is_reject
     let next = service.login_challenge(Some("cap-1"), true).await.unwrap();
     assert_eq!(next.challenge_id, "cap-2");
     assert!(service.login_challenge(Some("cap-1"), false).await.is_err());
-    assert_eq!(transport.request_count(), 2);
+    assert_eq!(transport.request_count(), 3);
     assert!(transport
         .requests()
         .iter()
