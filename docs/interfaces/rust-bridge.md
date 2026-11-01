@@ -8,7 +8,7 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 ## 目录
 
 - [academic](#academic) (5)
-- [auth_challenge](#authchallenge) (2)
+- [auth_challenge](#authchallenge) (6)
 - [bykc](#bykc) (6)
 - [checkin](#checkin) (3)
 - [classroom](#classroom) (1)
@@ -52,6 +52,21 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
     - `failure: Option<FailureCode>`  <sub>:9</sub>
 - `pub async fn load_login_challenge( expected_id: Option<String>, refresh: bool, ) -> LoginChallengeResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/auth_challenge.rs:12</sub>
+- `pub struct GatewayChallengeResponse`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live/auth_challenge.rs:40</sub>
+    - `challenge_id: Option<String>`  <sub>:41</sub>
+    - `challenge_type: Option<String>`  <sub>:42</sub>
+    - `text_supported: bool`  <sub>:43</sub>
+    - `image: Vec<u8>`  <sub>:44</sub>
+    - `failure: Option<FailureCode>`  <sub>:45</sub>
+- `pub async fn load_gateway_challenge() -> GatewayChallengeResponse {…}` — The WebVPN gateway's pending challenge. `challenge_id: None` with no
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/auth_challenge.rs:50</sub>
+- `pub struct GatewaySubmitResponse`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live/auth_challenge.rs:80</sub>
+    - `solved: bool`  <sub>:81</sub>
+    - `failure: Option<FailureCode>`  <sub>:82</sub>
+- `pub async fn submit_gateway_challenge(answer: String) -> GatewaySubmitResponse {…}` — Submit the user's answer once. Nothing retries it; a rejected answer keeps
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/auth_challenge.rs:87</sub>
 
 ## bykc
 

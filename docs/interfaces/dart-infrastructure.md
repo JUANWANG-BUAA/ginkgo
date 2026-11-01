@@ -188,17 +188,17 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/maintenance_service.dart
 
 - `class NativeMaintenanceService implements MaintenanceService`
-  <sub>class · infrastructure/maintenance_service.dart:17</sub>
-    - `const NativeMaintenanceService();`  <sub>:18</sub>
-    - `static const repository = 'https://github.com/JUANWANG-BUAA/ginkgo';`  <sub>:19</sub>
-    - `bool get supportsUpdates => …`  <sub>:21</sub>
-    - `Future<InstalledVersion> version() async {…}`  <sub>:23</sub>
-    - `Future<UpdateResult> checkUpdate(String current) async {…}`  <sub>:29</sub>
-    - `Future<bool> openReleases(String? page) async {…}`  <sub>:56</sub>
-    - `Future<bool> checkBridge() async {…}`  <sub>:72</sub>
-    - `Future<bool> checkStorage() async {…}`  <sub>:78</sub>
-    - `Future<bool> checkPublicService(MirrorService service) async {…}`  <sub>:98</sub>
-    - `Future<bool> checkVault() => …`  <sub>:107</sub>
+  <sub>class · infrastructure/maintenance_service.dart:16</sub>
+    - `const NativeMaintenanceService();`  <sub>:17</sub>
+    - `static const repository = 'https://github.com/JUANWANG-BUAA/ginkgo';`  <sub>:18</sub>
+    - `bool get supportsUpdates => …`  <sub>:20</sub>
+    - `Future<InstalledVersion> version() async {…}`  <sub>:22</sub>
+    - `Future<UpdateResult> checkUpdate(String current) async {…}`  <sub>:28</sub>
+    - `Future<bool> openReleases(String? page) async {…}`  <sub>:55</sub>
+    - `Future<bool> checkBridge() async {…}`  <sub>:71</sub>
+    - `Future<bool> checkStorage() async {…}`  <sub>:77</sub>
+    - `Future<bool> checkPublicService(MirrorService service) async {…}`  <sub>:97</sub>
+    - `Future<bool> checkVault() => …`  <sub>:106</sub>
 
 ## infrastructure/mirror_runtime.dart
 
@@ -247,14 +247,14 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/native_mirror_service.dart
 
 - `final class NativeMirrorService`
-  <sub>class · infrastructure/native_mirror_service.dart:44</sub>
+  <sub>class · infrastructure/native_mirror_service.dart:45</sub>
 
 ## infrastructure/native_reminder_planning.dart
 
 - `mixin NativeReminderPlanning implements ReminderPlanningGateway` — Pure Rust command; does not initialize the network runtime.
-  <sub>mixin · infrastructure/native_reminder_planning.dart:7</sub>
-    - `Future<ExtendedReminderPlans> planReminders({ required List<CourseReminderSeed> courses, required List<TaskReminderSeed> tasks, required int nowMillis, }) async {…}`  <sub>:9</sub>
-    - `ExtendedReminderPlans planCheckinHomeworkReminders({ required List<CheckInReminderSeed> checkin, required List<HomeworkReminderSeed> homework, required int nowMillis, }) {…}`  <sub>:57</sub>
+  <sub>mixin · infrastructure/native_reminder_planning.dart:6</sub>
+    - `Future<ExtendedReminderPlans> planReminders({ required List<CourseReminderSeed> courses, required List<TaskReminderSeed> tasks, required int nowMillis, }) async {…}`  <sub>:8</sub>
+    - `ExtendedReminderPlans planCheckinHomeworkReminders({ required List<CheckInReminderSeed> checkin, required List<HomeworkReminderSeed> homework, required int nowMillis, }) {…}`  <sub>:56</sub>
 
 ## infrastructure/native_reminder_platform.dart
 

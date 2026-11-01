@@ -70,7 +70,9 @@ class ServiceCapabilities {
     libraryLoansOfficial: service is LibraryLoansOfficialGateway
         ? service as LibraryLoansOfficialGateway
         : null,
-    campusCard: service is CampusCardGateway ? service as CampusCardGateway : null,
+    campusCard: service is CampusCardGateway
+        ? service as CampusCardGateway
+        : null,
     reminderPlanning: service is ReminderPlanningGateway
         ? service as ReminderPlanningGateway
         : null,

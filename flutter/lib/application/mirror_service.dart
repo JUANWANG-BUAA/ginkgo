@@ -17,9 +17,21 @@ import 'package:ginkgo_mirror/application/bykc.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
 
 /// Page-facing capabilities. Tests and alternative adapters need no native runtime.
+/// The WebVPN gateway's own login challenge, kept apart from the root login:
+/// campus modules need the gateway session, and the school may demand a
+/// captcha for it after the user is already signed in.
+abstract interface class GatewayAuthGateway {
+  /// `null` when the gateway is not asking for anything.
+  Future<LoginChallenge?> gatewayChallenge();
+
+  /// Submit the user's answer once; returns whether the gateway opened.
+  Future<bool> submitGatewayChallenge(String answer);
+}
+
 abstract interface class MirrorService
     implements
         SessionGateway,
+        GatewayAuthGateway,
         AcademicGateway,
         CheckInGateway,
         LibraryGateway,

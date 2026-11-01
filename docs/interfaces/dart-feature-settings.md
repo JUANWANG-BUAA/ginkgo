@@ -16,6 +16,13 @@
     - `const AccentCoursePreview({super.key, required this.accent});`  <sub>:131</sub>
     - `State<AccentCoursePreview> createState() => …`  <sub>:135</sub>
 
+## features/settings/gateway_challenge_page.dart
+
+- `class GatewayChallengePage extends StatefulWidget` — The WebVPN gateway keeps its own login, separate from the school session.
+  <sub>class · features/settings/gateway_challenge_page.dart:13</sub>
+    - `const GatewayChallengePage({super.key, required this.service});`  <sub>:14</sub>
+    - `State<GatewayChallengePage> createState() => …`  <sub>:19</sub>
+
 ## features/settings/maintenance_pages.dart
 
 - `class MaintenanceScaffold extends StatelessWidget`
@@ -76,7 +83,7 @@
 ## features/settings/settings_page.dart
 
 - `class SettingsPage extends StatefulWidget`
-  <sub>class · features/settings/settings_page.dart:20</sub>
-    - `const SettingsPage({ super.key, required this.service, required this.onSignOut, this.accountName, this.accountId, this.route, required this.maintenance, });`  <sub>:21</sub>
-    - `final Future<void> Function() onSignOut;`  <sub>:35</sub>
-    - `State<SettingsPage> createState() => …`  <sub>:40</sub>
+  <sub>class · features/settings/settings_page.dart:21</sub>
+    - `const SettingsPage({ super.key, required this.service, required this.onSignOut, this.accountName, this.accountId, this.route, required this.maintenance, });`  <sub>:22</sub>
+    - `final Future<void> Function() onSignOut;`  <sub>:37</sub>
+    - `State<SettingsPage> createState() => …`  <sub>:42</sub>

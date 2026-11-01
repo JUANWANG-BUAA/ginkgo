@@ -16,6 +16,72 @@ Future<LoginChallengeResponse> loadLoginChallenge({
   refresh: refresh,
 );
 
+/// The WebVPN gateway's pending challenge. `challenge_id: None` with no
+/// failure means the gateway is not asking for anything right now.
+Future<GatewayChallengeResponse> loadGatewayChallenge() =>
+    RustLib.instance.api.crateApiLiveAuthChallengeLoadGatewayChallenge();
+
+/// Submit the user's answer once. Nothing retries it; a rejected answer keeps
+/// the challenge so the user can look at a fresh image.
+Future<GatewaySubmitResponse> submitGatewayChallenge({
+  required String answer,
+}) => RustLib.instance.api.crateApiLiveAuthChallengeSubmitGatewayChallenge(
+  answer: answer,
+);
+
+class GatewayChallengeResponse {
+  final String? challengeId;
+  final String? challengeType;
+  final bool textSupported;
+  final Uint8List image;
+  final FailureCode? failure;
+
+  const GatewayChallengeResponse({
+    this.challengeId,
+    this.challengeType,
+    required this.textSupported,
+    required this.image,
+    this.failure,
+  });
+
+  @override
+  int get hashCode =>
+      challengeId.hashCode ^
+      challengeType.hashCode ^
+      textSupported.hashCode ^
+      image.hashCode ^
+      failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GatewayChallengeResponse &&
+          runtimeType == other.runtimeType &&
+          challengeId == other.challengeId &&
+          challengeType == other.challengeType &&
+          textSupported == other.textSupported &&
+          image == other.image &&
+          failure == other.failure;
+}
+
+class GatewaySubmitResponse {
+  final bool solved;
+  final FailureCode? failure;
+
+  const GatewaySubmitResponse({required this.solved, this.failure});
+
+  @override
+  int get hashCode => solved.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GatewaySubmitResponse &&
+          runtimeType == other.runtimeType &&
+          solved == other.solved &&
+          failure == other.failure;
+}
+
 class LoginChallengeResponse {
   final String? challengeId;
   final String? challengeType;

@@ -1,3 +1,4 @@
+import 'package:ginkgo_mirror/application/auth_challenge.dart';
 import 'package:ginkgo_mirror/application/checkin_progress.dart';
 import 'package:ginkgo_mirror/application/library_holdings.dart';
 import 'package:ginkgo_mirror/application/notices.dart';
@@ -22,6 +23,7 @@ import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
 import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
 
 import 'support.dart';
+
 import 'package:ginkgo_mirror/application/local_tasks_read.dart';
 import 'package:ginkgo_mirror/application/library_stats.dart';
 import 'package:ginkgo_mirror/application/library_books.dart';
@@ -32,12 +34,15 @@ const native = DemoMirrorService();
 
 class FailOnceNativeService implements MirrorService {
   @override
+  Future<LoginChallenge?> gatewayChallenge() => native.gatewayChallenge();
+  @override
+  Future<bool> submitGatewayChallenge(String answer) =>
+      native.submitGatewayChallenge(answer);
+  @override
   Future<CheckinProgressRead> checkinProgress() => native.checkinProgress();
   @override
-  Future<BykcPartRead> bykcPart(
-    BykcPart part, {
-    bool forceRefresh = false,
-  }) => native.bykcPart(part, forceRefresh: forceRefresh);
+  Future<BykcPartRead> bykcPart(BykcPart part, {bool forceRefresh = false}) =>
+      native.bykcPart(part, forceRefresh: forceRefresh);
   @override
   Future<GraduateRead> graduatePart({
     required bool report,
@@ -202,8 +207,7 @@ class FailOnceNativeService implements MirrorService {
     descending: descending,
   );
   @override
-  Future<ShuttleTimetableRead> shuttleTimetable() =>
-      native.shuttleTimetable();
+  Future<ShuttleTimetableRead> shuttleTimetable() => native.shuttleTimetable();
   @override
   Future<BookHoldingsRead> libraryHoldings(String bibId) =>
       native.libraryHoldings(bibId);

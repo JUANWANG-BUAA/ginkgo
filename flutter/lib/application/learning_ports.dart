@@ -16,9 +16,7 @@ class LearningPorts {
   });
 
   factory LearningPorts.resolve(Object? service) => LearningPorts(
-    context: service is CourseLearningContextGateway
-        ? service
-        : null,
+    context: service is CourseLearningContextGateway ? service : null,
     announcements: service is CourseAnnouncementGateway ? service : null,
     resources: service is CourseResourceGateway ? service : null,
     assessments: service is CourseAssessmentGateway ? service : null,

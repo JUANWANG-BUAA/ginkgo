@@ -783,6 +783,60 @@ async fn a_transient_gateway_failure_keeps_only_the_short_cooldown() {
 }
 
 #[tokio::test]
+async fn a_gateway_captcha_is_answered_once_and_then_the_gateway_is_open() {
+    let mut chain = login_chain("sy2501001", "fixture");
+    chain[0] = local_challenge_page("gw-cap", "char");
+    chain.insert(1, captcha_image());
+    let (service, transport) = build_service(chain, seeded("sy2501001"));
+    service.set_authenticated(
+        "sy2501001".into(),
+        UserProfile {
+            school_id: "sy2501001".into(),
+            name: "synthetic".into(),
+        },
+    );
+    let error = service
+        .ensure_webvpn_session()
+        .await
+        .expect_err("the gateway demands a captcha");
+    assert_eq!(error.code, ErrorCode::CaptchaRequired);
+    assert_eq!(
+        transport
+            .requests()
+            .into_iter()
+            .filter(|request| request.method == HttpMethod::Post)
+            .count(),
+        0,
+        "no password leaves the device before the user answers"
+    );
+
+    let challenge = service
+        .gateway_challenge()
+        .await
+        .unwrap()
+        .expect("the gateway challenge is kept");
+    assert_eq!(challenge.challenge_id, "gw-cap");
+    assert!(challenge.text_supported);
+    assert!(!challenge.image.is_empty());
+
+    service
+        .resume_gateway_login("1234")
+        .await
+        .expect("the answer opens the gateway");
+    let posts: Vec<_> = transport
+        .requests()
+        .into_iter()
+        .filter(|request| request.method == HttpMethod::Post)
+        .collect();
+    assert_eq!(posts.len(), 1, "exactly one answer submission");
+    let body = posts[0].body.clone().unwrap_or_default();
+    assert!(body.contains("captcha=1234"));
+    assert!(body.contains("captchaResponse=1234"));
+    assert!(service.gateway_challenge().await.unwrap().is_none());
+    assert!(service.gateway_auth_blocked.lock().is_none());
+}
+
+#[tokio::test]
 async fn failed_gateway_recovery_does_not_block_school_recovery() {
     use std::sync::atomic::Ordering;
     let (service, transport) = recovery_failure_service();

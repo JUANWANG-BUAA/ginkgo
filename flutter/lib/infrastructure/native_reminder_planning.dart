@@ -1,6 +1,5 @@
 import '../application/reminder_planning.dart';
 
-
 import '../src/rust/api/reminder_planning.dart' as native;
 
 /// Pure Rust command; does not initialize the network runtime.

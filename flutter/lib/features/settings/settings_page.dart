@@ -7,6 +7,7 @@ import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/maintenance.dart';
+import 'package:ginkgo_mirror/features/settings/gateway_challenge_page.dart';
 import 'package:ginkgo_mirror/features/settings/maintenance_pages.dart';
 import 'package:ginkgo_mirror/features/settings/network_diagnostics_page.dart';
 import 'package:ginkgo_mirror/shared/query_cache_scope.dart';
@@ -28,6 +29,7 @@ class SettingsPage extends StatefulWidget {
     required this.maintenance,
   });
   final MirrorService service;
+
   /// The self-check and update capability. It is absent when the app was
   /// started without the platform binding, and the entries that need it are
   /// then hidden instead of failing.
@@ -170,214 +172,226 @@ class _SettingsPageState extends State<SettingsPage> {
     ),
     child: SafeArea(
       child: CustomScrollView(
-      key: const Key("settings-scroll"),
-      slivers: [
-        const ApplePageHeader(
-          largeTitle: Text('设置'),
-          border: null,
-          section: 'Ginkgo',
-          subtitle: '管理账号、显示偏好与系统设置',
-          icon: CupertinoIcons.gear_alt,
-        ),
-        SliverList.list(
-          children: [
-            AppleSection(
-              header: const Text('账号'),
-              footer: const Text('已记住的密码保存在系统安全存储中，退出登录会删除。'),
-              children: [
-                AppleListTile(
-                  leading: const Icon(
-                    CupertinoIcons.person_crop_circle_fill,
-                    color: AppleDesign.accent,
-                    size: 30,
-                  ),
-                  title: Text(
-                    widget.service.isDemo
-                        ? '离线演示'
-                        : widget.accountName ?? '当前账号',
-                  ),
-                  subtitle: Text(
-                    widget.service.isDemo
-                        ? '演示数据不会连接学校账号'
-                        : widget.accountId ?? '学校统一身份认证',
-                  ),
-                ),
-                AppleListTile(
-                  title: Text(
-                    widget.service.isDemo ? '返回登录' : '退出登录',
-                    style: const TextStyle(color: CupertinoColors.systemRed),
-                  ),
-                  onTap: busy ? null : _signOut,
-                ),
-              ],
-            ),
-            AppleSection(
-              header: const Text('偏好与系统'),
-              children: [
-                AppleListTile(
-                  leading: const Icon(
-                    CupertinoIcons.paintbrush,
-                    color: AppleDesign.resourcePurple,
-                  ),
-                  title: const Text('显示与阅读'),
-                  subtitle: Text(
-                    AppPreferencesScope.of(context).appearance.label,
-                  ),
-                  trailing: const CupertinoListTileChevron(),
-                  onTap: () => _open(const AppearancePage()),
-                ),
-                AppleListTile(
-                  leading: const Icon(
-                    CupertinoIcons.bell,
-                    color: AppleDesign.resourceBlue,
-                  ),
-                  title: const Text('通知与后台'),
-                  subtitle: const Text('通知权限、系统启动与电池管理'),
-                  trailing: const CupertinoListTileChevron(),
-                  onTap: () => _open(const SystemPreferencesPage()),
-                ),
-                AppleListTile(
-                  leading: const Icon(
-                    CupertinoIcons.lock_shield,
-                    color: AppleDesign.accent,
-                  ),
-                  title: const Text('账号与隐私'),
-                  subtitle: const Text('自动登录、本机数据与请求去向'),
-                  trailing: const CupertinoListTileChevron(),
-                  onTap: () => _open(const PrivacyPage()),
-                ),
-              ],
-            ),
-            AppleSection(
-              header: const Text('网络路线'),
-              footer: const Text(
-                '默认自动：直连优先，遇到学校访问策略时单次切换到 WebVPN。切换路线会要求重新登录。',
-              ),
-              children: [
-                ApplePickerTile<RouteChoice>(
-                  title: '路线',
-                  value: _route,
-                  values: RouteChoice.values,
-                  label: _routeLabel,
-                  enabled: !busy,
-                  onSelected: _changeRoute,
-                ),
-              ],
-            ),
-            AppleSection(
-              header: const Text('数据与存储'),
-              footer: const Text('查询结果 5 分钟内复用，刷新失败时保留旧结果。'),
-              children: [
-                if (!kReleaseMode && snapshotGateway != null)
-                  AppleListTile(
-                    leading: const Icon(CupertinoIcons.lock_shield),
-                    trailing: const CupertinoListTileChevron(),
-                    title: const Text('加密学习快照'),
-                    subtitle: const Text('默认关闭 · 仅限 Android 本机保存'),
-                    onTap: () => _open(
-                      LearningSnapshotsPage(gateway: snapshotGateway!),
-                    ),
-                  ),
-                AppleListTile(
-                  leading: const Icon(
-                    CupertinoIcons.trash,
-                    color: CupertinoColors.systemOrange,
-                  ),
-                  trailing: busy
-                      ? const GinkgoActivity(size: 16)
-                      : const CupertinoListTileChevron(),
-                  title: const Text('清除查询快照'),
-                  subtitle: const Text('清除已读取的学校数据，不影响个人待办'),
-                  onTap: busy ? null : _clearCache,
-                ),
-              ],
-            ),
-            if (notice != null)
+        key: const Key("settings-scroll"),
+        slivers: [
+          const ApplePageHeader(
+            largeTitle: Text('设置'),
+            border: null,
+            section: 'Ginkgo',
+            subtitle: '管理账号、显示偏好与系统设置',
+            icon: CupertinoIcons.gear_alt,
+          ),
+          SliverList.list(
+            children: [
               AppleSection(
+                header: const Text('账号'),
+                footer: const Text('已记住的密码保存在系统安全存储中，退出登录会删除。'),
                 children: [
                   AppleListTile(
                     leading: const Icon(
-                      CupertinoIcons.info_circle,
+                      CupertinoIcons.person_crop_circle_fill,
                       color: AppleDesign.accent,
-                      size: 20,
+                      size: 30,
                     ),
-                    title: Text(notice!),
+                    title: Text(
+                      widget.service.isDemo
+                          ? '离线演示'
+                          : widget.accountName ?? '当前账号',
+                    ),
+                    subtitle: Text(
+                      widget.service.isDemo
+                          ? '演示数据不会连接学校账号'
+                          : widget.accountId ?? '学校统一身份认证',
+                    ),
+                  ),
+                  AppleListTile(
+                    title: Text(
+                      widget.service.isDemo ? '返回登录' : '退出登录',
+                      style: const TextStyle(color: CupertinoColors.systemRed),
+                    ),
+                    onTap: busy ? null : _signOut,
                   ),
                 ],
               ),
-            AppleSection(
-              header: const Text('支持与更新'),
-              children: [
-                if (widget.maintenance != null)
+              AppleSection(
+                header: const Text('偏好与系统'),
+                children: [
                   AppleListTile(
-                  leading: const Icon(
-                    CupertinoIcons.checkmark_shield,
-                    color: AppleDesign.accent,
+                    leading: const Icon(
+                      CupertinoIcons.paintbrush,
+                      color: AppleDesign.resourcePurple,
+                    ),
+                    title: const Text('显示与阅读'),
+                    subtitle: Text(
+                      AppPreferencesScope.of(context).appearance.label,
+                    ),
+                    trailing: const CupertinoListTileChevron(),
+                    onTap: () => _open(const AppearancePage()),
                   ),
-                  title: const Text('运行自检'),
-                  subtitle: const Text('组件、存储与公开服务连通性'),
-                  trailing: const CupertinoListTileChevron(),
-                  onTap: busy
-                      ? null
-                      : () => _open(
-                          DiagnosticsPage(
-                            service: widget.maintenance!,
-                            mirror: widget.service,
+                  AppleListTile(
+                    leading: const Icon(
+                      CupertinoIcons.bell,
+                      color: AppleDesign.resourceBlue,
+                    ),
+                    title: const Text('通知与后台'),
+                    subtitle: const Text('通知权限、系统启动与电池管理'),
+                    trailing: const CupertinoListTileChevron(),
+                    onTap: () => _open(const SystemPreferencesPage()),
+                  ),
+                  AppleListTile(
+                    leading: const Icon(
+                      CupertinoIcons.lock_shield,
+                      color: AppleDesign.accent,
+                    ),
+                    title: const Text('账号与隐私'),
+                    subtitle: const Text('自动登录、本机数据与请求去向'),
+                    trailing: const CupertinoListTileChevron(),
+                    onTap: () => _open(const PrivacyPage()),
+                  ),
+                ],
+              ),
+              AppleSection(
+                header: const Text('网络路线'),
+                footer: const Text(
+                  '默认自动：直连优先，遇到学校访问策略时单次切换到 WebVPN。切换路线会要求重新登录。',
+                ),
+                children: [
+                  ApplePickerTile<RouteChoice>(
+                    title: '路线',
+                    value: _route,
+                    values: RouteChoice.values,
+                    label: _routeLabel,
+                    enabled: !busy,
+                    onSelected: _changeRoute,
+                  ),
+                  AppleListTile(
+                    key: const Key('settings-gateway-challenge'),
+                    leading: const Icon(
+                      CupertinoIcons.checkmark_shield,
+                      color: AppleDesign.accent,
+                    ),
+                    title: const Text('WebVPN 验证'),
+                    subtitle: const Text('网关要求验证码时，在这里输入一次'),
+                    trailing: const CupertinoListTileChevron(),
+                    onTap: () =>
+                        _open(GatewayChallengePage(service: widget.service)),
+                  ),
+                ],
+              ),
+              AppleSection(
+                header: const Text('数据与存储'),
+                footer: const Text('查询结果 5 分钟内复用，刷新失败时保留旧结果。'),
+                children: [
+                  if (!kReleaseMode && snapshotGateway != null)
+                    AppleListTile(
+                      leading: const Icon(CupertinoIcons.lock_shield),
+                      trailing: const CupertinoListTileChevron(),
+                      title: const Text('加密学习快照'),
+                      subtitle: const Text('默认关闭 · 仅限 Android 本机保存'),
+                      onTap: () => _open(
+                        LearningSnapshotsPage(gateway: snapshotGateway!),
+                      ),
+                    ),
+                  AppleListTile(
+                    leading: const Icon(
+                      CupertinoIcons.trash,
+                      color: CupertinoColors.systemOrange,
+                    ),
+                    trailing: busy
+                        ? const GinkgoActivity(size: 16)
+                        : const CupertinoListTileChevron(),
+                    title: const Text('清除查询快照'),
+                    subtitle: const Text('清除已读取的学校数据，不影响个人待办'),
+                    onTap: busy ? null : _clearCache,
+                  ),
+                ],
+              ),
+              if (notice != null)
+                AppleSection(
+                  children: [
+                    AppleListTile(
+                      leading: const Icon(
+                        CupertinoIcons.info_circle,
+                        color: AppleDesign.accent,
+                        size: 20,
+                      ),
+                      title: Text(notice!),
+                    ),
+                  ],
+                ),
+              AppleSection(
+                header: const Text('支持与更新'),
+                children: [
+                  if (widget.maintenance != null)
+                    AppleListTile(
+                      leading: const Icon(
+                        CupertinoIcons.checkmark_shield,
+                        color: AppleDesign.accent,
+                      ),
+                      title: const Text('运行自检'),
+                      subtitle: const Text('组件、存储与公开服务连通性'),
+                      trailing: const CupertinoListTileChevron(),
+                      onTap: busy
+                          ? null
+                          : () => _open(
+                              DiagnosticsPage(
+                                service: widget.maintenance!,
+                                mirror: widget.service,
+                              ),
+                            ),
+                    ),
+                  AppleListTile(
+                    leading: const Icon(
+                      CupertinoIcons.timer,
+                      color: AppleDesign.accent,
+                    ),
+                    title: const Text('学校接口耗时'),
+                    subtitle: const Text('比较当前账号的缓存与刷新等待'),
+                    trailing: const CupertinoListTileChevron(),
+                    onTap: busy
+                        ? null
+                        : () => _open(
+                            NetworkDiagnosticsPage(service: widget.service),
                           ),
-                        ),
-                ),
-                AppleListTile(
-                  leading: const Icon(
-                    CupertinoIcons.timer,
-                    color: AppleDesign.accent,
                   ),
-                  title: const Text('学校接口耗时'),
-                  subtitle: const Text('比较当前账号的缓存与刷新等待'),
-                  trailing: const CupertinoListTileChevron(),
-                  onTap: busy
-                      ? null
-                      : () => _open(
-                          NetworkDiagnosticsPage(service: widget.service),
-                        ),
-                ),
-                if (widget.maintenance != null)
+                  if (widget.maintenance != null)
+                    AppleListTile(
+                      leading: const Icon(
+                        CupertinoIcons.arrow_down_circle,
+                        color: AppleDesign.accent,
+                      ),
+                      title: const Text('软件更新'),
+                      subtitle: const Text('检查 Android 发布与更新说明'),
+                      trailing: const CupertinoListTileChevron(),
+                      onTap: busy
+                          ? null
+                          : () => _open(
+                              SoftwareUpdatePage(service: widget.maintenance!),
+                            ),
+                    ),
+                ],
+              ),
+              AppleSection(
+                header: const Text('关于 Ginkgo'),
+                footer: const Text('北航校园工作台 · 校园日常，从容有序'),
+                children: [
                   AppleListTile(
-                  leading: const Icon(
-                    CupertinoIcons.arrow_down_circle,
-                    color: AppleDesign.accent,
+                    title: const Text('版本'),
+                    subtitle: Text(versionLabel),
                   ),
-                  title: const Text('软件更新'),
-                  subtitle: const Text('检查 Android 发布与更新说明'),
-                  trailing: const CupertinoListTileChevron(),
-                  onTap: busy
-                      ? null
-                      : () => _open(
-                          SoftwareUpdatePage(service: widget.maintenance!),
-                        ),
-                ),
-              ],
-            ),
-            AppleSection(
-              header: const Text('关于 Ginkgo'),
-              footer: const Text('北航校园工作台 · 校园日常，从容有序'),
-              children: [
-                AppleListTile(
-                  title: const Text('版本'),
-                  subtitle: Text(versionLabel),
-                ),
-                AppleListTile(
-                  title: const Text('关于与致谢'),
-                  subtitle: const Text('UBAA、开源项目与分享 Ginkgo'),
-                  trailing: const CupertinoListTileChevron(),
-                  onTap: () => _open(const AboutPage()),
-                ),
-              ],
-            ),
-            const SizedBox(height: 96),
-          ],
-        ),
-      ],
-    )
+                  AppleListTile(
+                    title: const Text('关于与致谢'),
+                    subtitle: const Text('UBAA、开源项目与分享 Ginkgo'),
+                    trailing: const CupertinoListTileChevron(),
+                    onTap: () => _open(const AboutPage()),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 96),
+            ],
+          ),
+        ],
+      ),
     ),
   );
 }

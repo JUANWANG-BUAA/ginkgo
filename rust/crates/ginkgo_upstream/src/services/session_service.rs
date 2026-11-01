@@ -97,6 +97,10 @@ impl PendingLogin {
 pub(crate) struct Identity {
     pub authenticated: Option<AuthenticatedIdentity>,
     pub pending_login: Option<PendingLogin>,
+    /// The gateway's own login page while the school demands a captcha for it.
+    /// Kept so an answer reuses the same `execution` token instead of asking
+    /// the school for a new challenge on every keystroke.
+    pub gateway_pending: Option<PendingLogin>,
     pub iclass: Option<IClassSession>,
     pub library_token: Option<String>,
     pub cgyy_token: Option<String>,
@@ -358,7 +362,26 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             .vault
             .load(&account)?
             .ok_or_else(AppError::session_expired)?;
-        let result = auth::establish_webvpn_session(&self.session, &credentials).await;
+        self.session.set_route(RouteMode::WebVpn);
+        let result = match auth::fetch_login_page(&self.session).await {
+            Ok(page) => {
+                match auth::complete_login(&self.session, &credentials, page.clone()).await {
+                    Ok(LoginResult::SignedIn(_)) if self.session.webvpn_cookie_present() => Ok(()),
+                    Ok(LoginResult::SignedIn(_)) => Err(AppError::session_expired()),
+                    Ok(LoginResult::CaptchaRequired(challenge)) => {
+                        // Keep the gateway page so the user can answer the
+                        // challenge instead of the gateway being unusable.
+                        self.remember_gateway_pending(page, &account);
+                        Err(AppError::with_detail(
+                            ErrorCode::CaptchaRequired,
+                            challenge.id,
+                        ))
+                    }
+                    Err(error) => Err(error),
+                }
+            }
+            Err(error) => Err(error),
+        };
         if let Err(error) = &result {
             self.session.set_route(RouteMode::Automatic);
             if is_gateway_authentication_rejection(error) {
@@ -400,6 +423,17 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             .as_ref()
             .err()
             .map(|error| (Instant::now(), error.clone()));
+    }
+
+    pub(crate) fn remember_gateway_pending(&self, page: LoginPage, account: &str) {
+        let mut identity = self.identity.lock();
+        let generation = identity.generation;
+        identity.gateway_pending = Some(PendingLogin {
+            page,
+            account: account.to_owned(),
+            generation,
+            created: Instant::now(),
+        });
     }
 
     fn clear_automatic_login_failure(&self) {

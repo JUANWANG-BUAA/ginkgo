@@ -6,7 +6,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../mirror_service.dart';
 
-
 import '../application/maintenance.dart';
 
 import '../src/rust/api/live.dart' as live;
