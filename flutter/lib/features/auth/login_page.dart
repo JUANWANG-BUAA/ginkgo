@@ -75,7 +75,7 @@ class _LoginPageState extends State<LoginPage> {
         challengeBusy = false;
         error = result.textSupported
             ? '请输入图片中的验证码后继续'
-            : '学校要求的验证方式暂不支持，请前往学校统一认证完成验证后重新登录';
+            : '学校要求的验证方式（${result.kind}）暂不支持在应用内完成，请稍后重试';
       });
     } catch (exception) {
       if (!mounted || epoch != challengeEpoch) return;

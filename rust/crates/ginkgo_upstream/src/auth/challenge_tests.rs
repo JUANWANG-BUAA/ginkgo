@@ -57,3 +57,20 @@ async fn redirects_html_and_oversized_bytes_fail_without_following() {
         assert_eq!(transport.requests.lock().unwrap().len(), 1);
     }
 }
+
+#[tokio::test]
+async fn a_png_challenge_is_still_answerable() {
+    let mut response = HttpResponse::new(200, "https://sso.buaa.edu.cn/captcha", "");
+    response.bytes = Some(vec![
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44,
+        0x52, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
+    ]);
+    let transport = Transport {
+        response,
+        requests: Default::default(),
+    };
+    assert_eq!(
+        image(&Session::new(transport), "cap").await.unwrap().len(),
+        24
+    );
+}

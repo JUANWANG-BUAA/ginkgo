@@ -135,7 +135,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.textContaining('验证方式暂不支持'), findsOneWidget);
+      expect(find.textContaining('暂不支持在应用内完成'), findsOneWidget);
       expect(find.byKey(const Key('login-captcha')), findsNothing);
       expect(
         tester
