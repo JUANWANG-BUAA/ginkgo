@@ -132,3 +132,16 @@
 关键字段兼容：旧文件缺失 routeMode 或 explicitSignOut 时保留既有默认兼容；字段存在却类型/取值非法时视为读取失败，避免静默假定自动路线或未退出。该校验先于状态赋值，不改写原文件；其他显示字段的默认策略不变。
 
 验证：11 条新增回归在 `21a77a3` 旧实现上全部失败，修复后通过；另加真实临时 v1 文件的旧版显示字段兼容测试，读取不改写原文件。按前述锁定缓存依赖方式执行完整 `check-mirror.sh`，所有检查退出 0（Rust、严格 Clippy、架构/文档/协议锁、Flutter 分析与 728 条测试、FRB 零漂移），未省略检查，不计作在线依赖获取成功。日志 `/tmp/ginkgo-preferences-old-complete.log`、`/tmp/ginkgo-preferences-full-gate.log`。正常 main 入口 ARM64 Debug APK 构建成功（`/tmp/ginkgo-preferences-main-apk.log`），未安装设备验收、未重新使用真实账号、未发包。发布证据仍 blocked，存储/认证敏感边界保持合并前人工审查。
+
+
+## 认证重定向中的显式错误
+
+匿名主机 GET 的脱敏文本结构观察：CAS 最终 HTTP 200、一个 form 标记、存在 execution 字段标识、未见 config.captcha 字面标识；WebVPN 入口最终 HTTP 200、一个 form 标记、存在 execution 与 config.captcha 字面标识。未解析配置值，不据此确认可作答挑战。仅保留结构布尔值/计数，不保留 HTML、Cookie、execution、重定向参数或图片；无真实凭据、无密码 POST。这不是 Android 链路、真实登录或验证码提交验收。
+
+源代码检查发现，CAS 提交后遇非登录目标便结束跟随，只在已请求 URL 上检查 exception.message；UC 激活跳转也未检查该错误。合成链复现显式拒绝被忽略，并在随后 UC mock 返回有效身份时发布 SignedIn。当前修复由认证 GET 目标解析统一前置检查错误参数，正常 CAS 链也复用同一判定；不跟随错误目标、不继续激活/身份验证，不自动再发密码。参数只解码一次，重复空项不遮蔽后续非空错误，空错误参数仍允许正常 ticket 跳转。
+
+该修复落实 API §1.6 的既有错误标记，不新增学校协议断言；不能据此断定上次 WebVPN 实测就是此原因。敏感认证变更保持合并前人工审查，真实成功验收仍未完成。
+
+同批继续补齐 UC 激活 HTTP 200 正文的已知非空错误区域检查；新合成回归在修复前同样可绕过明确错误并返回 SignedIn，修复后立即返回认证提示且不查询 UC 状态。错误正文只走现有内存提示，不新增原始响应或个人信息日志。
+
+验证：5 条新回归在 `bc28b81` 的旧实现上全部失败，修复后 upstream 全部通过。最终 `check-mirror.sh` 按前述锁定缓存依赖方式执行，原有检查均保留并退出 0：Rust fmt/严格 Clippy/分层与 workspace、架构/文档/协议锁、Flutter 分析与 728 条测试、FRB 零漂移；不计作在线依赖获取或学校真实登录验收。日志 `/tmp/ginkgo-redirect-error-old-final.log`、`/tmp/ginkgo-redirect-error-complete-gate.log`。正常 main 入口 ARM64 Debug APK 构建成功（`/tmp/ginkgo-redirect-error-main-apk.log`），未安装设备验收、未再次提交真实密码、未发包。发布门禁仍 blocked。

@@ -67,11 +67,7 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
 ) -> Result<Option<LoginPage>, AppError> {
     let mut skipped_expiry = false;
     for hop in 0..=10 {
-        if let Some(message) = query_param(&current_url, "exception.message") {
-            if !message.is_empty() {
-                return Err(AppError::with_detail(ErrorCode::PreLoginTip, message));
-            }
-        }
+        redirect::reject_reported_error(&current_url)?;
         if response.status == 401 {
             return Err(if cas::is_access_policy_denied(&response.body) {
                 AppError::new(ErrorCode::AccessPolicyDenied)
@@ -228,12 +224,4 @@ fn is_login_page_target(url: &str) -> bool {
         return login_path;
     }
     host == "sso.buaa.edu.cn" && login_path
-}
-
-fn query_param(url: &str, name: &str) -> Option<String> {
-    url::Url::parse(url)
-        .ok()?
-        .query_pairs()
-        .find(|(key, _)| key == name)
-        .map(|(_, value)| value.into_owned())
 }

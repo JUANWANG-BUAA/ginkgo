@@ -31,8 +31,8 @@
         "AUTH-05",
         "AUTH-06"
       ],
-      "source_sha256": "6a23df671f793a0a1cae0b5bd503f51200d2cb4e6827986a5a5c66924d7557a9",
-      "document_sha256": "44aac94c1b8d06c3b72c0c03101d0d016a6815f44888c7ec5056f1c3e92f9df5"
+      "source_sha256": "02b02839ccdde32bac52f0ea643ffa012bb402bcab8a3347ce176c7b1b1b6a1e",
+      "document_sha256": "160b0b51d2f6a8f3b3dd62b1b69987abc8ef2e2ef49922599f419b4b9e776b3d"
     },
     {
       "id": "school-protocols",
@@ -57,7 +57,7 @@
         "WRITE-02"
       ],
       "source_sha256": "609d87eb492bb1aa0e1b669e2f572362fece6405f1ad9629cd0cddaa7d0f90f2",
-      "document_sha256": "c48b116807b80f3e24882817131719588ed0238624ea277e72b81dbaf254e18d"
+      "document_sha256": "feb63e6544ace0fb51f85be6df93ee15d7692a6562e79f77868b41994a6f9bd6"
     },
     {
       "id": "client-contracts",

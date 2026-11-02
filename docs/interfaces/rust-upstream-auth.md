@@ -15,7 +15,7 @@
 - [android_vault](#androidvault) (2)
 - [keyring_vault](#keyringvault) (2)
 - [mod](#mod) (2)
-- [redirect](#redirect) (1)
+- [redirect](#redirect) (2)
 - [session](#session) (27)
 - [uc](#uc) (3)
 - [vault](#vault) (5)
@@ -68,7 +68,7 @@
 - `pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>( session: &Session<T>, mut response: HttpResponse, mut current_url: String, mut credential_response: bool, ) -> Result<Option<LoginPage>, AppError> {…}` — Follow up to ten redirects, classifying each hop before requesting the
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:62</sub>
 - `pub(crate) fn validate_login_action(action: &str) -> Result<(), AppError> {…}` — The password POST target must be the documented CAS endpoint over HTTPS on
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:198</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:194</sub>
 
 ## mod
 
@@ -135,6 +135,8 @@
 
 - `pub(crate) fn resolve_get(location: &str, base: &str) -> Result<String, AppError> {…}` — UC has been observed returning this exact legacy CAS login endpoint over
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/redirect.rs:8</sub>
+- `pub(crate) fn reject_reported_error(target: &str) -> Result<(), AppError> {…}` — A reported authentication error is not a successful service redirect.
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/redirect.rs:36</sub>
 
 ## session
 
@@ -206,9 +208,9 @@
 - `pub async fn activate_uc<T: HttpTransport>(session: &Session<T>) -> Result<(), AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/uc.rs:9</sub>
 - `pub async fn validate_session<T: HttpTransport>( session: &Session<T>, ) -> Result<UserProfile, AppError> {…}` — UC status is the only proof that the login chain produced a usable
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/uc.rs:34</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/uc.rs:37</sub>
 - `pub fn parse_uc_status(body: &str) -> Result<UserProfile, AppError> {…}` — Parse the UC status body. Structure changes are errors, never an implicit
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/uc.rs:54</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/uc.rs:57</sub>
 
 ## vault
 

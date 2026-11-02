@@ -24,6 +24,9 @@ pub async fn activate_uc<T: HttpTransport>(session: &Session<T>) -> Result<(), A
         if response.status != 200 {
             return Err(AppError::new(ErrorCode::ServiceUnavailable));
         }
+        if let Some(message) = cas::extract_error_text(&response.body) {
+            return Err(AppError::with_detail(ErrorCode::PreLoginTip, message));
+        }
         return Ok(());
     }
     Err(AppError::new(ErrorCode::RedirectLimit))

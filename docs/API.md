@@ -6,7 +6,7 @@
 
 | 不变量 | 强制约束 | 可执行证据入口 |
 | --- | --- | --- |
-| AUTH-01 | CAS 跳转、Cookie 存在或 HTTP 200 不单独证明身份；成功必须经过 UC 身份确认且匹配输入账号。新登录/冷恢复不以目录失败构造成功身份 | `auth/tests.rs`、`services/tests/session.rs` |
+| AUTH-01 | CAS 跳转、Cookie 存在或 HTTP 200 不单独证明身份；成功必须经过 UC 身份确认且匹配输入账号。新登录/冷恢复不以目录失败构造成功身份；显式认证错误不得被后续 UC 身份验证覆盖 | `auth/tests.rs`、`services/tests/session.rs` |
 | AUTH-02 | 用户路线偏好、实际路线、学校身份、网关身份和业务 token 分开；安全 GET 可有界回退，密码 POST 不由传输层重放；显式路线失败不能冒充切换成功 | `auth/session.rs`、`auth/tests.rs`、`auth_route_stability_test.dart` |
 | AUTH-03 | 验证码绑定账号/认证代次/ID/execution；答错使用学校新表单，旧答案失效。过期或刷新失败可显式 GET 恢复；未知提交不重发 | `session_service/gateway.rs`、`gateway_challenge_test.dart` |
 | AUTH-04 | 未选记住不持久化密码；Android Cookie 仅进独立 Keystore 密文；24 小时固定期限不因恢复/轮换延长；退出/新登录/切路线撤销 | `services/tests/session.rs`、`auth/session.rs`；设备证据待补 |
@@ -29,6 +29,7 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 102 | 认证错误重定向与 UC 激活 | 只检查已请求的当前 URL；提交后跳向非登录目标时提前结束 CAS 链，UC 激活也可忽略错误查询/正文继续验证 | HTTPS/已证实的安全 GET 目标解析后，先检查非空 exception.message 再跟随或判定服务跳转；UC 激活复用并检查已知错误正文。重复参数取首个非空原因、只解码一次；空参数不误伤正常 ticket | §1.6 既有 LCA:670-673 规则与 `auth/redirect.rs`、`auth/tests.rs` 合成回归；不证明之前实网失败包含该参数 |
 | 101 | Android 密码到期确认的目标上下文 | 固定 POST 无查询参数的 LOGIN_URL，忽略提示页 action 并丢弃原 service 上下文 | 提示页声明 action 时解析其相对/绝对目标，并沿用 CAS HTTPS origin/默认端口/无 userinfo 校验；缺少或空 action 保留当前登录地址。只发一次确认且只携带新 execution 和 ignoreAndContinue，不重发密码；确认后新验证码保留新表单 | §1.5 的既有确认事件与客户端表单策略；`auth/expiry_tests.rs` 直连/WebVPN、重复参数、非法目标、重复提示、传输失败、新验证码合成回归；真实到期页面尚未验收 |
 | 100 | Android 认证失败的证据与凭据保护 | 登录表单重显、GET/跳转 401 统一提示密码错误，恢复可误删保存凭据；不明认证提示一分钟后可能后台再试密码 | 原因不明的表单或凭据 POST 401 返回需人工处理提示，不判密码错误；GET/跳转/过期确认 401 归入口/服务问题。仅明确凭据拒绝文案保留凭据错误分类；有新验证码先返回新挑战。需人工处理提示也采用长冷却，未知失败不删除保存凭据或发布身份 | §1.6 的 UBAA 历史推断与当前客户端策略分列；`auth/tests.rs`、`services/tests/session.rs`、`session_service/gateway.rs` 合成回归；不证明上次实网失败原因，不新增学校端点/字段 |
 | 99 | 协议/本地契约与发布证据约束 | 文档可与实现漂移，本地门禁/旧视觉记录容易被外推为当前可发布 | 以 AUTH/DATA/WRITE 和 FFI/UI 不变量区分学校事实与客户端行为；协议锁绑定源码、文档与回归。下一次 Android 发包前按候选绑定的真实使用证据验收，缺项拒绝签名发布流程 | `scripts/check-contracts.py` 及 10 项反向/正向回归；[发布契约](ANDROID-RELEASE-CONTRACT.md)；本项不改变学校端点/字段/成功码 |
@@ -287,6 +288,8 @@ Android 当前客户端策略（2026-11-02）：上述固定 `/login` 是 UBAA �
 - 学校与网关分别对 `InvalidCredentials` / `PreLoginTip` 采用 30 分钟后台冷却，传输/服务错误为 60 秒；较长冷却避免未明确原因的失败反复触发后台密码尝试，不构成学校限流规则。人工新登录仍由用户触发。
 
 这些规则只提高失败表述和凭据保护的准确性，不证明 2026-11-02 WebVPN 实测的具体失败原因；该次上游响应正文与请求级阶段证据缺失。
+
+重定向错误必须在请求目标前检查：解析 HTTPS 目标（含 WebVPN 解包，以及已取证的 CAS HTTP→HTTPS GET 升级）后，若存在非空 `exception.message`，立即返回 `PreLoginTip`，不能将该跳转当作成功 service/ticket，也不能继续到 UC 以有效身份覆盖显式认证错误。UC 激活的 GET 重定向采用相同规则；其 HTTP 200 正文如含 §1.6 已知错误区域的非空文本，也须先返回认证提示，不能继续用 UC 状态覆盖该错误。查询参数只解码一次，重复项选择首个非空原因；仅空值不构成错误。此处落实 LCA:670-673 的既有错误标记，不新增学校端点或成功码；上次真实 WebVPN 失败是否走过该路径仍无证据。
 
 ### 1.7 激活 UC 会话
 

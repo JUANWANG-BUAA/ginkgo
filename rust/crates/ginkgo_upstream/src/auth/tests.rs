@@ -708,3 +708,81 @@ async fn credential_post_401_preserves_policy_or_captcha_refusal_instead_of_blam
         assert_eq!(transport.request_count(), 2);
     }
 }
+
+#[tokio::test]
+async fn reported_redirect_error_stops_before_uc_even_if_identity_would_validate() {
+    let target = "https://uc.buaa.edu.cn/error?exception.message=fixture%2Bfailure%252Bdetail";
+    let transport = MockTransport::with_responses(vec![
+        login_page(),
+        HttpResponse::new(302, LOGIN_URL, "").with_header("Location", target),
+        HttpResponse::new(200, UC_ACTIVATION_URL, ""),
+        uc_ok(),
+    ]);
+    let error = login(&Session::new(transport.clone()), &credentials())
+        .await
+        .expect_err("reported error must not publish identity");
+    assert_eq!(error.code, ErrorCode::PreLoginTip);
+    assert_eq!(error.detail.as_deref(), Some("fixture+failure%2Bdetail"));
+    assert_eq!(transport.request_count(), 2);
+}
+
+#[tokio::test]
+async fn initial_redirect_error_is_reported_without_password_or_target_request() {
+    let transport = MockTransport::with_responses(vec![HttpResponse::new(302, LOGIN_URL, "")
+        .with_header(
+            "Location",
+            "https://uc.buaa.edu.cn/error?exception.message=fixture-refusal",
+        )]);
+    let error = login(&Session::new(transport.clone()), &credentials())
+        .await
+        .unwrap_err();
+    assert_eq!(error.code, ErrorCode::PreLoginTip);
+    assert_eq!(error.detail.as_deref(), Some("fixture-refusal"));
+    assert_eq!(transport.request_count(), 1);
+    assert!(transport
+        .requests()
+        .iter()
+        .all(|r| r.method == HttpMethod::Get));
+}
+
+#[tokio::test]
+async fn uc_activation_redirect_error_stops_before_followup_and_status_request() {
+    let transport = MockTransport::with_responses(vec![
+        login_page(),
+        HttpResponse::new(302, LOGIN_URL, "")
+            .with_header("Location", "https://uc.buaa.edu.cn/cb?ticket=ST-synthetic"),
+        HttpResponse::new(302, UC_ACTIVATION_URL, "").with_header(
+            "Location",
+            "https://uc.buaa.edu.cn/error?exception.message=fixture-activation-refusal",
+        ),
+        HttpResponse::new(200, "https://uc.buaa.edu.cn/error", ""),
+        uc_ok(),
+    ]);
+    let error = login(&Session::new(transport.clone()), &credentials())
+        .await
+        .expect_err("activation refusal must not be ignored");
+    assert_eq!(error.code, ErrorCode::PreLoginTip);
+    assert_eq!(error.detail.as_deref(), Some("fixture-activation-refusal"));
+    assert_eq!(transport.request_count(), 3);
+}
+
+#[tokio::test]
+async fn uc_activation_error_body_stops_before_status_even_if_identity_would_validate() {
+    let transport = MockTransport::with_responses(vec![
+        login_page(),
+        HttpResponse::new(302, LOGIN_URL, "")
+            .with_header("Location", "https://uc.buaa.edu.cn/cb?ticket=ST-synthetic"),
+        HttpResponse::new(
+            200,
+            UC_ACTIVATION_URL,
+            "<div id=\"errorDiv\">fixture activation refusal</div>",
+        ),
+        uc_ok(),
+    ]);
+    let error = login(&Session::new(transport.clone()), &credentials())
+        .await
+        .expect_err("explicit activation error must not publish identity");
+    assert_eq!(error.code, ErrorCode::PreLoginTip);
+    assert_eq!(error.detail.as_deref(), Some("fixture activation refusal"));
+    assert_eq!(transport.request_count(), 3);
+}
