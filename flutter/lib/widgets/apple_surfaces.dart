@@ -316,21 +316,54 @@ class AppleListTile extends StatelessWidget {
     container: true,
     child: ConstrainedBox(
       constraints: BoxConstraints(minHeight: minimumHeight),
-      child: CupertinoListTile(
-        title: _wrapText(title),
-        subtitle: subtitle == null ? null : _wrapText(subtitle!),
-        additionalInfo: additionalInfo,
-        leading: leading,
-        trailing: trailing == null
-            ? null
-            : Semantics(container: true, child: trailing),
-        onTap: onTap,
-        padding: EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: AppPreferencesScope.of(context).compactLists ? 6 : 10,
-        ),
-        leadingToTitle: 12,
-        leadingSize: leadingSize,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Reserve full text width on narrow screens and at large system text
+          // sizes instead of squeezing the subtitle beside unbounded metadata.
+          final stackInfo =
+              additionalInfo != null &&
+              constraints.maxWidth /
+                      (MediaQuery.textScalerOf(context).scale(17) / 17) <
+                  360;
+          return CupertinoListTile(
+            title: _wrapText(title),
+            subtitle: stackInfo
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (subtitle != null) _wrapText(subtitle!),
+                      if (subtitle != null)
+                        const SizedBox(height: GinkgoSpacing.xs),
+                      DefaultTextStyle(
+                        style: CupertinoTheme.of(context).textTheme.textStyle
+                            .copyWith(
+                              color: CupertinoColors.secondaryLabel.resolveFrom(
+                                context,
+                              ),
+                            ),
+                        softWrap: true,
+                        overflow: TextOverflow.visible,
+                        child: additionalInfo!,
+                      ),
+                    ],
+                  )
+                : subtitle == null
+                ? null
+                : _wrapText(subtitle!),
+            additionalInfo: stackInfo ? null : additionalInfo,
+            leading: leading,
+            trailing: trailing == null
+                ? null
+                : Semantics(container: true, child: trailing),
+            onTap: onTap,
+            padding: EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: AppPreferencesScope.of(context).compactLists ? 6 : 10,
+            ),
+            leadingToTitle: 12,
+            leadingSize: leadingSize,
+          );
+        },
       ),
     ),
   );

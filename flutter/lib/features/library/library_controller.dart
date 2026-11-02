@@ -29,6 +29,10 @@ class LibraryController extends ChangeNotifier {
   Future<void>? _bookingForcedRun, _venueForcedRun;
   bool _disposed = false;
   int _generation = 0;
+  int _bookingRevision = 0;
+
+  /// Every booking read invalidates confirmations from its previous snapshot.
+  int get bookingRevision => _bookingRevision;
   final Map<String, Timer> _stalls = {};
   bool get busy => loadingBookings || loadingVenues;
 
@@ -174,6 +178,7 @@ class LibraryController extends ChangeNotifier {
   );
 
   Future<void> _fetchBookings(bool force) async {
+    _bookingRevision++;
     final epoch = _generation;
     loadingBookings = true;
     bookingError = null;
@@ -216,7 +221,7 @@ class LibraryController extends ChangeNotifier {
   /// The page has already obtained explicit confirmation for this action.
   Future<void> perform(LibraryBooking booking, String action) async {
     final key = '${booking.id}/$action';
-    if (submitting || uncertainActions.contains(key)) return;
+    if (_disposed || submitting || uncertainActions.contains(key)) return;
     submitting = true;
     uncertainActions.add(key);
     _publish();

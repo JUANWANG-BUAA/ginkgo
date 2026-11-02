@@ -77,6 +77,7 @@
 - Android 设备检查：窄屏、大字号、深浅色、TalkBack、系统返回和权限拒绝；真实结果与合成演示分别记录。
 - Rust/Flutter 基线：仓库根执行 `bash scripts/check-mirror.sh`；该脚本包含依赖解析，不宣称纯离线。若桥接变化，另做生成差异检查。
 - 产物检查：在 flutter/ 执行 `flutter build apk --debug --target-platform android-arm64 --target lib/main.dart`；不能把 integration_test 生成的 APK 当正常启动包。
+- 真实登录专项：`live_acceptance_test.dart` 同时启用 `GINKGO_LIVE_ACCEPTANCE=true`、`GINKGO_LIVE_WEBVPN=true`、`GINKGO_LIVE_AUTH_ONLY=true` 可只验证 WebVPN 登录并退出清理，不遍历业务模块；凭据仍由一次性 loopback 通道提供，不写 dart-define。失败会保留失败状态，不自动再发密码。
 - 真实网络/学校写往返不由 widget 测试或 APK 构建代替；真实写入只在用户逐次人工授权下验收。
 - 记录改动、自动化结果、设备观察及尚未覆盖的边界；不在设定文档提前写“已完成”。
 

@@ -60,14 +60,15 @@
   <sub>class · features/library/library_controller.dart:11</sub>
     - `bool loadingBookings = false, loadingVenues = false, submitting = false;`  <sub>:26</sub>
     - `final Set<String> uncertainActions = {…}`  <sub>:27</sub>
-    - `bool get busy => …`  <sub>:33</sub>
-    - `void invalidate() => …` — Drops every in-flight read at its next await: call when the account or  <sub>:38</sub>
-    - `Future<void> load({bool force = false}) => …`  <sub>:44</sub>
-    - `Future<void> loadVenues({bool force = false}) => …`  <sub>:99</sub>
-    - `Future<void> loadBookings({bool force = false}) => …`  <sub>:167</sub>
-    - `Future<void> reservationChanged() async {…}` — A pre-write read must finish before the forced read can be published.  <sub>:207</sub>
-    - `Future<void> perform(LibraryBooking booking, String action) async {…}` — The page has already obtained explicit confirmation for this action.  <sub>:217</sub>
-    - `void dispose() {…}`  <sub>:254</sub>
+    - `int get bookingRevision => …` — Every booking read invalidates confirmations from its previous snapshot.  <sub>:35</sub>
+    - `bool get busy => …`  <sub>:37</sub>
+    - `void invalidate() => …` — Drops every in-flight read at its next await: call when the account or  <sub>:42</sub>
+    - `Future<void> load({bool force = false}) => …`  <sub>:48</sub>
+    - `Future<void> loadVenues({bool force = false}) => …`  <sub>:103</sub>
+    - `Future<void> loadBookings({bool force = false}) => …`  <sub>:171</sub>
+    - `Future<void> reservationChanged() async {…}` — A pre-write read must finish before the forced read can be published.  <sub>:212</sub>
+    - `Future<void> perform(LibraryBooking booking, String action) async {…}` — The page has already obtained explicit confirmation for this action.  <sub>:222</sub>
+    - `void dispose() {…}`  <sub>:259</sub>
 
 ## features/library/library_controls.dart
 

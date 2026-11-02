@@ -11,6 +11,7 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_loading.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
+import 'package:ginkgo_mirror/widgets/mutation_dialog.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
@@ -217,30 +218,22 @@ class _CheckInPageState extends State<CheckInPage> {
     final serial = requestSerial;
     final service = widget.service;
     confirming = true;
-    final confirmed = await showCupertinoDialog<bool>(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('确认签到？'),
-        content: Text(
-          '${course.courseName}\n${data?.date ?? dateString(schoolToday)}\n'
-          '${schoolTimeRange(course.beginsAt, course.endsAt)}\n'
-          '${course.classroomName ?? ""}',
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('确认签到'),
-          ),
-        ],
-      ),
-    );
-    if (generation == contextGeneration) confirming = false;
-    if (confirmed != true ||
+    bool confirmed;
+    try {
+      confirmed = await confirmMutation(
+        context,
+        title: '确认签到？',
+        detail:
+            '${course.courseName}\n${data?.date ?? dateString(schoolToday)}\n'
+            '${schoolTimeRange(course.beginsAt, course.endsAt)}\n'
+            '${course.classroomName ?? ""}',
+        action: '确认签到',
+        cancelLabel: '取消',
+      );
+    } finally {
+      if (generation == contextGeneration) confirming = false;
+    }
+    if (!confirmed ||
         !mounted ||
         generation != contextGeneration ||
         serial != requestSerial ||

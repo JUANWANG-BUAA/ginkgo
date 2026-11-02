@@ -84,3 +84,18 @@
 修复将确认与服务/查询代次绑定，座位捕获区域、完整时段及原回查回调，签到确认后重查时间；上下文变化撤销旧确认，旧结果不更新新页面。座位回查使用异常收尾释放忙状态，未知写入继续禁止重发；签到失败或旧快照保留数据但禁用提交。`library_seat_mutation_context_test.dart` 和 `checkin_mutation_context_test.dart` 覆盖上述边界。学校协议、FFI 签名和写入次数策略未改变；只执行合成 fake 写入，未重试真实账号或进行学校写操作。
 
 验证：两份新增文件共 10 条回归在 `38e160d` 的旧实现上全部失败，在修复实现上全部通过；关联图书馆测试也通过。完整 `bash scripts/check-mirror.sh` 最终退出 0，含 Rust fmt/严格 Clippy/分层与 workspace 测试、文档及协议锁、Flutter 分析与 708 条测试、FRB 重新生成零漂移。临时本机日志为 `/tmp/ginkgo-mutation-old-final.log`、`/tmp/ginkgo-mutation-final.log`、`/tmp/ginkgo-mutation-full-gate-final.log`；日志不构成设备或真实学校验收。本批未构建或发布新的 APK；发布验收仍 blocked。
+
+
+## 预约确认收尾与大字号列表布局
+
+进一步复现三个缺口：预约列表刷新后旧确认仍有效（包括返回同一快照实例）；已销毁控制器可发起新写入；确认按钮快速重复触发可关闭下层页面。三条新增回归在修复前均失败，修复后通过。现在预约读取代次绑定确认，销毁后拒绝新操作，同时保留已开始操作的原回查；共享确认框检查自身路由是否仍为当前路由，签到也复用该保护。
+
+已查看历史 `all-pages/checkin-light-large.png` 并用当前组件复现布局不足：320dp/1x、430dp/2x、800dp/3.2x 的附加核对信息仍位于副标题旁，三条新布局测试失败。共享 `AppleListTile` 根据实际可用宽度与 17sp 文本缩放，将附加信息移至副标题下方；普通宽度/字号保留同行布局，行点击与尾部操作仍独立。未限制用户系统字号。
+
+本机 Flutter widget 渲染使用同一中文字体 STHeiti、430×650、2x 字号、同一合成签到统计数据，对比亮暗模式。已人工查看前后图：核对时间移至统计文字后方，统计不再被挤成断行。产物位于忽略目录 `artifacts/local/ui-review/confirmation-layout/{before,after}-{light,dark}.png`，仅为组件渲染；不是 Android 设备截图、全页面首屏验收或真实账号数据。临时渲染测试已删除，稳定几何与操作测试入库。
+
+补充操作一致性：刷新中或刷新失败保留旧预约时，原按钮仍可点击而新提交保护会直接返回。新增回归先复现按钮未禁用，再同步禁用这些状态的按钮；成功刷新恢复按钮，旧数据与错误重试出口保留。该问题不应以静默拦截冒充可用反馈。
+
+本批最终检查：在线 `check-mirror.sh` 在 Flutter pub get 连接等待超过数分钟后，为优先执行用户新授权的登录实测而主动中断（退出 143），不得计作通过。随后用 Bash 临时命令包装仅将 Flutter/Dart 的依赖获取改为 `pub get --offline`，且分析/测试使用已解析依赖；不修改仓库门禁脚本或减少任何检查。相同 `bash scripts/check-mirror.sh` 的所有检查完成、退出 0：Rust fmt/严格 Clippy/分层与 workspace 测试、架构/文档/协议锁、Flutter 分析与 716 条测试、FRB 重新生成零漂移；这是锁定缓存依赖下的完整检查，不代表在线依赖获取成功。日志 `/tmp/ginkgo-confirm-layout-offline-deps-gate.log`。三条操作/控制器回归、三条布局回归和一条按钮状态回归分别在修复前失败，普通布局/独立操作及关联回归通过。
+
+用户后续要求的 WebVPN 登录实测未通过，详见[单独记录](2026-11-02-webvpn-live-acceptance.md#用户再次授权的-webvpn-登录复核)。测试后的正常 main 入口 Android ARM64 Debug 已重新构建并安装成功（`/tmp/ginkgo-confirm-layout-main-apk.log`）；本批没有发布、没有提升更新门禁，设备视觉和真实业务仍未验收。

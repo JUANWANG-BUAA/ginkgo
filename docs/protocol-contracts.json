@@ -31,7 +31,7 @@
         "AUTH-06"
       ],
       "source_sha256": "255be6160f8d8059000069e66d1eebae943b4bc7d64e2ca1d1771260ca308d83",
-      "document_sha256": "8f36d9d3d6d4e8b8d40c53efe62c8651bf2c74ed31f22c737f9b14ccab036e86"
+      "document_sha256": "db41da3e4cf80b9d4ab19fe83afe2bfb9d71b576de2fb26b48607a26f30b0504"
     },
     {
       "id": "school-protocols",
@@ -56,7 +56,7 @@
         "WRITE-02"
       ],
       "source_sha256": "4cc675f0c1b707095eb5f9414840aa213a06e10078cfada22543d502a4c6aba2",
-      "document_sha256": "c7c5b8c874932a629e4de20a0b19f9168bb2f72d5c19c64ac0c7979c424c7e6a"
+      "document_sha256": "eff2db6e77413da2f7abf10af53e9a425c8e465bc9eca7fe137fce75543b2972"
     },
     {
       "id": "client-contracts",
@@ -70,7 +70,11 @@
         "flutter/lib/shared/app_preferences.dart",
         "flutter/lib/main.dart",
         "flutter/lib/features/library/library_seat_page.dart",
-        "flutter/lib/features/checkin/checkin_page.dart"
+        "flutter/lib/features/checkin/checkin_page.dart",
+        "flutter/lib/features/library/library_controller.dart",
+        "flutter/lib/features/library/library_page.dart",
+        "flutter/lib/widgets/mutation_dialog.dart",
+        "flutter/lib/widgets/apple_surfaces.dart"
       ],
       "documents": [
         "docs/INTERFACE-INDEX.md",
@@ -83,15 +87,19 @@
         "flutter/test/gateway_challenge_test.dart",
         "flutter/test/login_route_test.dart",
         "flutter/test/library_seat_mutation_context_test.dart",
-        "flutter/test/checkin_mutation_context_test.dart"
+        "flutter/test/checkin_mutation_context_test.dart",
+        "flutter/test/mutation_dialog_test.dart",
+        "flutter/test/library_service_replacement_test.dart",
+        "flutter/test/library_controller_test.dart",
+        "flutter/test/apple_list_tile_layout_test.dart"
       ],
       "invariants": [
         "FFI-01",
         "UI-01",
         "DATA-01"
       ],
-      "source_sha256": "5bc447617d46710b83a7a4d197a8f6f32f72db4637a6fa4cd97bf71fe221e42f",
-      "document_sha256": "7b313cd56fd3485d3644e30b91e30eb646361f41cd5353a424eb285fbc38bc72"
+      "source_sha256": "85e14425905614972a1dbcb744d50ddc241bba4c1be2d34f7796b8c29c2914e2",
+      "document_sha256": "8693511c20622a553ddfd75dcfacf7c1e674262a445a79ec38b9133921a9130f"
     }
   ]
 }

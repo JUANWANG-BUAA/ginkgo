@@ -15,6 +15,7 @@
 - **FFI-01**：学校原始 JSON、Cookie、token、execution 不跨 FFI；页面依赖类型化 gateway，失败先检查 failure，不从 signedOut/空列表推导成功。生成命令清单以接口索引和生成门禁为准。
 - **UI-01**：用户主操作必须有反馈、忙状态、错误和恢复出口；验证码刷新不隐式再发密码，路线切换失败不保存错误偏好；不能因改版丢失既有详情/操作闭环。
 - 座位预约与签到确认绑定服务实例和查询代次；确认后重查可提交状态，签到重查时间窗口。上下文切换丢弃旧结果；已发起操作回查原持有者，回查失败不能变成自动重发。该客户端约束的合成证据见 `library_seat_mutation_context_test.dart` 与 `checkin_mutation_context_test.dart`，不替代学校写入验收。
+- 预约操作确认随预约读取代次失效，即使新快照内容相同也须重新确认；销毁的控制器不能发起新写入；预约读取中、失败或旧快照状态禁用操作按钮，成功刷新后恢复。共享确认框只关闭自身一次。共享列表在窄屏/大字号下将附加信息放到副标题之后，不缩小系统字号；回归见 `mutation_dialog_test.dart`、`library_service_replacement_test.dart`、`library_controller_test.dart`、`apple_list_tile_layout_test.dart`。
 - 学校规则 AUTH-01–06、DATA-01、WRITE-01–02 见 [API 当前约束](API.md#当前约束与证据等级2026-11-02)。协议变更同步修订表和回归后才刷新 [协议锁](protocol-contracts.json)。
 - 下一次发布按 [Android 强制验收契约](ANDROID-RELEASE-CONTRACT.md) 与候选绑定的证据检查；“源码覆盖”不等于真实业务通过。
 

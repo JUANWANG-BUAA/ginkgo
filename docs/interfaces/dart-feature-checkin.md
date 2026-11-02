@@ -15,10 +15,10 @@
 ## features/checkin/checkin_page.dart
 
 - `class CheckInPage extends StatefulWidget` — Confirmed per-course submission with a subsequent status read.
-  <sub>class · features/checkin/checkin_page.dart:22</sub>
-    - `const CheckInPage({ super.key, required this.service, this.history = false, this.clock, });`  <sub>:23</sub>
-    - `final DateTime Function()? clock;`  <sub>:31</sub>
-    - `State<CheckInPage> createState() => …`  <sub>:33</sub>
+  <sub>class · features/checkin/checkin_page.dart:23</sub>
+    - `const CheckInPage({ super.key, required this.service, this.history = false, this.clock, });`  <sub>:24</sub>
+    - `final DateTime Function()? clock;`  <sub>:32</sub>
+    - `State<CheckInPage> createState() => …`  <sub>:34</sub>
 
 ## features/checkin/checkin_widgets.dart
 

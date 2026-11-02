@@ -183,7 +183,7 @@
 
 ## widgets/mutation_dialog.dart
 
-- `Future<bool> confirmMutation( BuildContext context, { required String title, required String detail, required String action, bool destructive = false, }) async => …`
+- `Future<bool> confirmMutation( BuildContext context, { required String title, required String detail, required String action, bool destructive = false, String cancelLabel = '返回', }) async => …`
   <sub>function · widgets/mutation_dialog.dart:3</sub>
 
 ## widgets/public_information_page.dart

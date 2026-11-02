@@ -27,6 +27,7 @@ class LibraryPage extends StatefulWidget {
 
 class _LibraryPageState extends State<LibraryPage> {
   late LibraryController controller;
+  bool confirming = false;
 
   @override
   void initState() {
@@ -60,19 +61,44 @@ class _LibraryPageState extends State<LibraryPage> {
 
   Future<void> perform(LibraryBooking booking, String action) async {
     final current = controller;
-    if (current.submitting) return;
+    if (confirming ||
+        current.submitting ||
+        current.loadingBookings ||
+        current.bookingError != null ||
+        current.bookings?.stale == true) {
+      return;
+    }
+    final revision = current.bookingRevision;
     final label = libraryActionLabel(action);
     final key = '${booking.id}/$action';
     if (current.uncertainActions.contains(key)) return;
-    final confirmed = await confirmMutation(
-      context,
-      title: '确认$label？',
-      detail:
-          '${booking.title}\n${booking.day} ${booking.startTime}–${booking.endTime}',
-      action: label,
-      destructive: action == 'cancel' || action == 'checkout',
-    );
-    if (confirmed && mounted && identical(controller, current)) {
+    confirming = true;
+    bool confirmed;
+    try {
+      confirmed = await confirmMutation(
+        context,
+        title: '确认$label？',
+        detail:
+            '${booking.title}\n${booking.day} ${booking.startTime}–${booking.endTime}',
+        action: label,
+        destructive: action == 'cancel' || action == 'checkout',
+      );
+    } finally {
+      confirming = false;
+    }
+    if (confirmed &&
+        mounted &&
+        identical(controller, current) &&
+        revision == current.bookingRevision &&
+        !current.loadingBookings &&
+        current.bookingError == null &&
+        current.bookings?.stale != true &&
+        (current.bookings?.bookings.any(
+              (value) =>
+                  value.id == booking.id &&
+                  (value.actions?.contains(action) ?? false),
+            ) ??
+            false)) {
       await current.perform(booking, action);
     }
   }
@@ -314,6 +340,9 @@ class _LibraryPageState extends State<LibraryPage> {
                       tint: libraryActionTint(action),
                       onPressed:
                           controller.submitting ||
+                              controller.loadingBookings ||
+                              controller.bookingError != null ||
+                              controller.bookings?.stale == true ||
                               controller.uncertainActions.contains(
                                 '${booking.id}/$action',
                               )
