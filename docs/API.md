@@ -29,6 +29,7 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 101 | Android 密码到期确认的目标上下文 | 固定 POST 无查询参数的 LOGIN_URL，忽略提示页 action 并丢弃原 service 上下文 | 提示页声明 action 时解析其相对/绝对目标，并沿用 CAS HTTPS origin/默认端口/无 userinfo 校验；缺少或空 action 保留当前登录地址。只发一次确认且只携带新 execution 和 ignoreAndContinue，不重发密码；确认后新验证码保留新表单 | §1.5 的既有确认事件与客户端表单策略；`auth/expiry_tests.rs` 直连/WebVPN、重复参数、非法目标、重复提示、传输失败、新验证码合成回归；真实到期页面尚未验收 |
 | 100 | Android 认证失败的证据与凭据保护 | 登录表单重显、GET/跳转 401 统一提示密码错误，恢复可误删保存凭据；不明认证提示一分钟后可能后台再试密码 | 原因不明的表单或凭据 POST 401 返回需人工处理提示，不判密码错误；GET/跳转/过期确认 401 归入口/服务问题。仅明确凭据拒绝文案保留凭据错误分类；有新验证码先返回新挑战。需人工处理提示也采用长冷却，未知失败不删除保存凭据或发布身份 | §1.6 的 UBAA 历史推断与当前客户端策略分列；`auth/tests.rs`、`services/tests/session.rs`、`session_service/gateway.rs` 合成回归；不证明上次实网失败原因，不新增学校端点/字段 |
 | 99 | 协议/本地契约与发布证据约束 | 文档可与实现漂移，本地门禁/旧视觉记录容易被外推为当前可发布 | 以 AUTH/DATA/WRITE 和 FFI/UI 不变量区分学校事实与客户端行为；协议锁绑定源码、文档与回归。下一次 Android 发包前按候选绑定的真实使用证据验收，缺项拒绝签名发布流程 | `scripts/check-contracts.py` 及 10 项反向/正向回归；[发布契约](ANDROID-RELEASE-CONTRACT.md)；本项不改变学校端点/字段/成功码 |
 | 98 | Android 验证码过期与刷新失败恢复 | 登录/网关挑战满五分钟后连刷新也被拒绝；刷新网络失败后页面丢失挑战 ID | 旧答案仍不可提交，但同账号、同代次、匹配旧 ID 的显式刷新可只发登录页 GET 取得新 execution；刷新失败保留不可作答的旧上下文供再次 GET，不自动重新提交密码或答案 | `session_source.rs::login_challenge`、`gateway.rs::read_gateway_challenge` 与过期/503 合成回归；当前学校真实挑战未验收 |
@@ -264,6 +265,8 @@ execution=<新execution>&_eventId=ignoreAndContinue
 ```
 
 （LCA:903-907）。此跳过只做一次，再次遇到同样页面视为登录失败。
+
+Android 当前客户端策略（2026-11-02）：上述固定 `/login` 是 UBAA 参考请求形状；当前实现优先使用提示页 form action，HTML 实体解码后相对当前逻辑登录地址解析。目标必须通过既有 CAS HTTPS origin、默认端口、无 URL userinfo 校验；不对 POST 目标做 HTTP→HTTPS 自动升级。action 缺失或为空时保留当前登录地址，避免丢失 `service`、重复 query 或 percent-encode 内容。确认正文仍只有新 `execution` 与 `_eventId=ignoreAndContinue`，不把用户名、密码、旧验证码加入确认请求；传输失败不自动重放。确认后出现新验证码时返回新页面的 ID、execution 和 action，等待用户继续。以上是有合成回归的客户端行为，不是新增学校字段，也不代表当前真实密码到期页已取证或验收。
 
 ### 1.6 手动跟随重定向与错误检测
 

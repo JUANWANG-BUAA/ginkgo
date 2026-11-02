@@ -130,15 +130,24 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
             }
             skipped_expiry = true;
             let execution = cas::extract_execution(&response.body).ok_or_else(AppError::changed)?;
+            let action_url = match cas::extract_login_form_action(&response.body) {
+                Some(action) if !action.is_empty() => {
+                    webvpn::resolve_redirect(&action, &current_url).ok_or_else(AppError::changed)?
+                }
+                _ => current_url.clone(),
+            };
+            // This request carries a new execution token, even though it must
+            // never carry the password. Keep the same CAS target validation.
+            validate_login_action(&action_url)?;
             let body = cas::form_urlencode(&[
                 ("execution".into(), execution),
                 ("_eventId".into(), "ignoreAndContinue".into()),
             ]);
             credential_response = false;
             response = session
-                .send(HttpRequest::post_form(LOGIN_URL, body))
+                .send(HttpRequest::post_form(action_url.clone(), body))
                 .await?;
-            current_url = LOGIN_URL.to_string();
+            current_url = action_url;
             continue;
         }
         if let Some(execution) = cas::extract_execution(&response.body) {

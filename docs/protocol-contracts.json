@@ -20,7 +20,8 @@
       "evidence": [
         "rust/crates/ginkgo_upstream/src/auth/tests.rs",
         "rust/crates/ginkgo_upstream/src/services/session_service/gateway.rs",
-        "rust/crates/ginkgo_upstream/src/services/tests/session.rs"
+        "rust/crates/ginkgo_upstream/src/services/tests/session.rs",
+        "rust/crates/ginkgo_upstream/src/auth/expiry_tests.rs"
       ],
       "invariants": [
         "AUTH-01",
@@ -30,8 +31,8 @@
         "AUTH-05",
         "AUTH-06"
       ],
-      "source_sha256": "de4109caee5fd2da62ba7b07bc874a50120f69f6bf6e63764b1f0270d8c85f44",
-      "document_sha256": "62a296192d9610f1a95a6a1de5c40e2792ea56d098508707c718bf07ec2dae5e"
+      "source_sha256": "6a23df671f793a0a1cae0b5bd503f51200d2cb4e6827986a5a5c66924d7557a9",
+      "document_sha256": "4bb5892f0a265867d6b7197d744f32d077c50ebc21e4a36bcc92e3a980dfcbd5"
     },
     {
       "id": "school-protocols",
@@ -56,7 +57,7 @@
         "WRITE-02"
       ],
       "source_sha256": "609d87eb492bb1aa0e1b669e2f572362fece6405f1ad9629cd0cddaa7d0f90f2",
-      "document_sha256": "0e0bcecc777ab7cc660d96a1ca1337a69751733d04bfdad010f3acea9732b963"
+      "document_sha256": "297e38dd6aa181799fde96d5395cd8e18f2ee47a2fdbdf4c0dcebfd7d8572716"
     },
     {
       "id": "client-contracts",

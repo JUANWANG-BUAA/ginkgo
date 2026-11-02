@@ -110,3 +110,12 @@
 实网验收脚本只记录登录错误是否出现，不再把任意 UI 错误正文写进聚合报告，避免上游提示带账号信息。没有新增原始 HTML/请求日志，也未再次使用真实账号。本批无法定位上次 WebVPN 实测的具体失败原因，保留真实验收缺口。
 
 验证：最终回归放回 `709bead` 的旧认证/冷却实现后，upstream 416 项中有 8 项失败；恢复修复后全部通过。最终 `check-mirror.sh` 使用与上一批相同的临时 Bash 依赖包装：仅 pub get 走锁定缓存、分析/测试使用已解析依赖，未修改门禁脚本或减少检查。完整检查退出 0，含 Rust fmt/严格 Clippy、分层/workspace 测试、架构/文档/协议锁、Flutter 分析及 716 条测试、FRB 零漂移；不计作在线依赖获取成功。日志 `/tmp/ginkgo-auth-classification-old-verified.log`、`/tmp/ginkgo-auth-classification-full-gate.log`。正常 main 入口 ARM64 Debug APK 构建成功，日志 `/tmp/ginkgo-auth-classification-main-apk.log`；未安装到真实设备、未再登录真实账号、未发布。
+
+
+## 密码到期确认上下文
+
+继续检查未验收的密码到期分支，确认原代码把确认 POST 固定发送到不含查询参数的 `LOGIN_URL`；无论提示页声明什么 action，都丢弃 service 与当前上下文。当前修复按提示页 action 解析目标，缺失/空值保留当前逻辑登录地址，并复用 CAS HTTPS origin、端口和 userinfo 校验。无效或不安全 action 在确认 POST 前终止；旧实现并未把 token 发给外站，而是忽略 action 后仍向固定 CAS 发请求，不应将该缺口夸大成已证实的凭据外泄。
+
+确认正文仍为新 execution 与 ignoreAndContinue，不收集密码或旧验证码；重复到期提示不再次确认，传输异常不重放。新增 `auth/expiry_tests.rs` 覆盖直连/WebVPN 路由、action/query、无 action、非法目标、重复提示、确认失败和后续新验证码。测试均为合成，无真实登录、无真实密码到期操作；真实页面形态（包括多表单）与设备完整流程仍待验收。
+
+验证：6 条新增用例在 `5977a8e` 的旧分支实现上有 4 条失败（2 条既有边界保护通过），修复后全部通过。`check-mirror.sh` 按前两批方式仅离线解析锁定缓存依赖、分析/测试不再获取依赖，所有检查原样执行且退出 0：Rust fmt/严格 Clippy/分层与 workspace、文档/架构/协议锁、Flutter 分析与 716 条测试、FRB 零漂移。此结果不证明在线依赖获取或学校实网验收。日志 `/tmp/ginkgo-expiry-old-verified.log`、`/tmp/ginkgo-expiry-full-gate.log`。正常 main 入口 Android ARM64 Debug 构建成功（`/tmp/ginkgo-expiry-main-apk.log`），未安装验收、未发包；发布门禁继续阻断。
