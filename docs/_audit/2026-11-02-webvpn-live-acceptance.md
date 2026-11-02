@@ -61,3 +61,49 @@
 此次明确排除“当前宿主完全无法打开 WebVPN”，并把本次失败定位到凭据 POST 阶段；此前 Android 耗时约 68 秒的失败仍缺少同等级请求关联证据，不能视为完全同因。后续诊断必须先准备不泄露个人信息的提示分类/人工复核方式，再决定是否需要一次新尝试；当前不继续重复密码请求。
 
 测试结束清空内存 Cookie；未写平台保险库，未读取受保护业务、未执行学校写入。临时诊断源文件及验证码图片已删除；保留的匿名报告无 Cookie、execution、完整跳转参数或凭据。下一次发包仍阻断。
+
+
+## 用户要求持续推进后的 UBAA 逐项对照
+
+参考固定提交仍为 `155e8b56ae76348e67c70414e3a9ab7fa54f2dda`，本轮只读副本 `/tmp/ginkgo-webvpn-ubaa-review`，没有运行 UBAA App 或向其统计/中转服务发送凭据。源码可见一条实现链，不是“该账号今天在同一网络用 UBAA WebVPN 成功”的实验证据。
+
+| 环节 | 固定 UBAA 实现 | Ginkgo / 本轮结论 |
+| --- | --- | --- |
+| 模式与入口 | `ConnectionRuntime.availableModes` 当前本地平台只开放 DIRECT/WEBVPN；`LocalConnectionAuth::loginUrl` 在 WEBVPN 下代理 CAS /login，不先打开网关首页 | 相同入口策略；遗留 SERVER_RELAY 后端虽仍存在，不能将其 `/api/v1/auth/*` 当学校接口，亦不能假定用户成功依靠中转 |
+| 网关编码 | `LocalWebVpnSupport`：公开 AES-CFB 主机编码、保留 query/fragment/端口 | 本项目同类路由；当前登录页与图片均返回 200，不因“官方入口带 service”就贸然切换路线 |
+| 验证码表单 | `buildCaptchaLoginParameters` 固定 username/password/captcha/captchaResponse/execution/_eventId/submit/type 八字段 | 本次用同一实际页面、替换合成用户名/密码/答案后，对两种构造结果的字段/值多重集合比较为 true；忽略字段顺序，不比较 HTTP/TLS 全链，也不证明真实凭据或验证码正确 |
+| 验证码上下文 | UBAA 提交前再次 GET 页面，可沿用传入 execution；新客户端共享路线 CookieStore | Ginkgo 保留当前挑战原表单和 execution，通过同一 Session 取图/POST；不照搬额外 GET，避免潜在刷新挑战 |
+| Cookie | `PersistentLocalCookieStorage` 按 ConnectionMode 保存，按 domain/path/secure 发送；不同 Ktor client 共享存储 | Ginkgo 按路线隔离 jar，同一 Session 图片与 POST 均携带 Cookie；这里只证明存在，尚未证明网关内部接受每项 Cookie；不照搬较宽松 domain/path 匹配或明文持久化 |
+| 拒绝解析 | `findLoginError` 识别 div#errorDiv、div/p/span.errors 和 tip-text；401 也会失败 | 发现 Ginkgo 缺 p.errors 且空占位可遮蔽后续错误，已补回归并修正；不将“返回 UC 有效身份”覆盖明确拒绝 |
+| 成功证明 | `activateUcLogin` 后 `validateLocalConnectionSession` 要求 UC code=0 和 user | 本项目还要求有效身份匹配输入账号；本次 401 前已停止，未到此环节 |
+| 成功后 CGYY | WEBVPN 登录成功后尝试建立额外直连 SSO | 不可能解释当前 WebVPN 首次登录 POST 的 401；不为排查而自动再发一次密码 |
+| 网络栈 | Android 使用 Ktor OkHttp；本地客户端无此处显式 Safari UA 配置 | Ginkgo 为 Reqwest/rustls，配置 Safari UA。属于仍未做控制实验的变量，不据此更换 TLS 或伪称已确认风控 |
+
+源码定位：[LocalConnectionAuth.kt](https://github.com/BUAASubnet/UBAA/blob/155e8b56ae76348e67c70414e3a9ab7fa54f2dda/shared/src/commonMain/kotlin/cn/edu/ubaa/api/local/LocalConnectionAuth.kt)、[LocalWebVpnSupport.kt](https://github.com/BUAASubnet/UBAA/blob/155e8b56ae76348e67c70414e3a9ab7fa54f2dda/shared/src/commonMain/kotlin/cn/edu/ubaa/api/local/LocalWebVpnSupport.kt)、[ConnectionRuntime.kt](https://github.com/BUAASubnet/UBAA/blob/155e8b56ae76348e67c70414e3a9ab7fa54f2dda/shared/src/commonMain/kotlin/cn/edu/ubaa/api/ConnectionRuntime.kt)。
+
+### 本轮唯一一次新密码提交
+
+使用新增显式宿主认证诊断工具，当前库认证实现为 `07727dd`，仅诊断 wrapper 在工作树新增；学校账号沿用用户授权，凭据经隐藏终端输入/匿名管道传递，未写文件/命令行参数/环境变量/平台保险库。只人工填写一次图片答案，无自动重试，无业务模块查询或学校写操作。
+
+| 阶段 | 状态 / 时间 | 固定元数据 |
+| --- | --- | --- |
+| WebVPN CAS 登录页 GET | 200 / 2798ms | execution=true，captcha=true，Set-Cookie 数量 3 |
+| UBAA 表单比较 | true | 与上述八字段/值多重集合一致，使用合成凭据替代实际值 |
+| 验证码图片 GET | 200 / 740ms | Cookie 存在，无 Set-Cookie，图片魔数通过 |
+| 登录 POST | 401 / 1176ms | Cookie 存在，无 Set-Cookie；execution=false，captcha=false，error_present=true |
+| 登录结果 | PreLoginTip | 未发布身份，未到 UC；内存 Cookie 已清空 |
+
+此次诊断初版只有中文关键词，非空提示未命中，错误原文未保留，故不能确定其语言或具体原因；与上一轮含新表单的 401 结构也不同，不能当作同一拒绝。该诊断盲点已补中英固定标签及 `unclassified_tip` 标记、隐私回归；标签未命中保持未知，不继续用真实密码试探。不能宣称字段对齐补丁、p.errors 修复或换 UA 能解决此次实网拒绝。下一步有效证据仍是经过隐私处理的具体学校提示/同环境 UBAA WebVPN 成功对照；不以更多相同失败尝试替代它。
+
+### 复跑方式与数据边界
+
+先构建非生产 example：
+
+```sh
+cargo build --manifest-path rust/Cargo.toml -p ginkgo_upstream --example auth_stage_probe --features network --locked
+GINKGO_MANUAL_LIVE_NETWORK=1 rust/target/debug/examples/auth_stage_probe --webvpn
+```
+
+以上默认仅 GET，不接收真实凭据、不发密码。真实认证须明确加 `--submit`，标准输入为匿名管道中的三行（账号、密码、验证码答案），禁止将值写入脚本、命令行、环境或普通文件；调用方应通过隐藏交互读取。验证码图片仅显式 `--captcha-file <绝对路径>` 时以 create_new 临时写入（Unix 0600），正常结束/180 秒超时删除；强制终止时维护者须清理。此次临时图片已删除，保留报告仅白名单元数据 `/tmp/ginkgo-stage-current-metadata.jsonl`。工具默认 Direct；必须传 `--webvpn` 才是本表路线，不使用自动回退。主 App 不调用该工具。
+
+诊断只输出固定阶段、HTTP 状态、耗时、错误关键词标签、Cookie 数量/存在及表单布尔值，拒绝正文、URL/参数、Cookie、execution 和身份不进入输出。标签不用于产品凭据错误分类。三个合成测试覆盖隐私哨兵、大小写英文与未知提示、八字段比较对额外隐藏字段/类型漂移的识别。未完成物理设备、Android 关联阶段或真实成功登录；发布继续 blocked。

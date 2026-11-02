@@ -20,7 +20,7 @@ static TIP: LazyLock<Regex> = LazyLock::new(|| {
 });
 static ERROR: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
-        r#"(?is)<(?:div|span)[^>]*(?:id=["']errorDiv["']|class=["'][^"']*\berrors\b[^"']*["'])[^>]*>([\s\S]*?)</(?:div|span)>"#,
+        r#"(?is)<(?:div|span|p)[^>]*(?:id=["']errorDiv["']|class=["'][^"']*\berrors\b[^"']*["'])[^>]*>([\s\S]*?)</(?:div|span|p)>"#,
     )
     .expect("error regex")
 });
@@ -74,16 +74,11 @@ pub fn text_captcha_supported(challenge: &CaptchaChallenge) -> bool {
 }
 
 pub fn extract_tip_text(html: &str) -> Option<String> {
-    first_group(&TIP, html, 1)
-        .map(|text| plain_text(&text))
-        .filter(|text| !text.is_empty())
+    first_nonempty_text(&TIP, html)
 }
 
 pub fn extract_error_text(html: &str) -> Option<String> {
-    first_group(&ERROR, html, 1)
-        .map(|text| plain_text(&text))
-        .filter(|text| !text.is_empty())
-        .or_else(|| extract_tip_text(html))
+    first_nonempty_text(&ERROR, html).or_else(|| extract_tip_text(html))
 }
 
 pub fn is_access_policy_denied(html: &str) -> bool {
@@ -199,6 +194,13 @@ fn first_group(regex: &Regex, text: &str, group: usize) -> Option<String> {
         .captures(text)
         .and_then(|captures| captures.get(group))
         .map(|value| value.as_str().to_string())
+}
+
+fn first_nonempty_text(regex: &Regex, html: &str) -> Option<String> {
+    regex
+        .captures_iter(html)
+        .filter_map(|capture| capture.get(1).map(|text| plain_text(text.as_str())))
+        .find(|text| !text.is_empty())
 }
 
 fn plain_text(fragment: &str) -> String {
@@ -329,5 +331,20 @@ mod tests {
           <input type="hidden" name="_eventId" value="ignoreAndContinue" /></form>"#;
         assert!(is_password_expiry_page(expiry));
         assert!(!is_password_expiry_page("<p>密码过期</p>"));
+    }
+}
+
+#[cfg(test)]
+mod error_selection_regressions {
+    use super::*;
+    #[test]
+    fn error_selection_skips_empty_placeholders_and_supports_ubaa_paragraph_shape() {
+        for body in [
+            r#"<div id="errorDiv"></div><span class="errors">合成拒绝</span>"#,
+            r#"<p class="errors">合成拒绝</p>"#,
+            r#"<div class="tip-text"> </div><div class="tip-text">合成拒绝</div>"#,
+        ] {
+            assert_eq!(extract_error_text(body).as_deref(), Some("合成拒绝"));
+        }
     }
 }

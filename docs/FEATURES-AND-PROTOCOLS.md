@@ -21,6 +21,8 @@
 - 学校规则 AUTH-01–06、DATA-01、WRITE-01–02 见 [API 当前约束](API.md#当前约束与证据等级2026-11-02)。协议变更同步修订表和回归后才刷新 [协议锁](protocol-contracts.json)。
 - 下一次发布按 [Android 强制验收契约](ANDROID-RELEASE-CONTRACT.md) 与候选绑定的证据检查；“源码覆盖”不等于真实业务通过。
 
+认证调试使用非生产的 `rust/crates/ginkgo_upstream/examples/auth_stage_probe.rs`，由 `network` feature 编译，默认只读匿名入口/验证码；真实提交另需 `--submit` 与私有 stdin 管道，单次提交后结束。输出白名单与临时图片边界见 [隐私](PRIVACY.md)，复跑及 UBAA 对照证据见 [本次实测](_audit/2026-11-02-webvpn-live-acceptance.md)。该工具不参与 App 初始化，不证明真实 Android 登录成功；错误关键词标签未命中必须保留“未知拒绝”结论。
+
 ## 2. Android 功能覆盖
 
 手机一级标签为 **今天、课表、作业、图书馆、更多**。“更多”承载签到、成绩、博雅、研究生教务、研讨室、空教室及其他服务，常用服务可按账号选择 0–4 项；图书馆与研讨室按需进入各自系统，不在打开目录时同时登录全部系统。宽屏侧栏来自同一[功能登记表](../flutter/lib/workspace/workspace_catalog.dart)。

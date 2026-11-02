@@ -46,3 +46,7 @@ required-features = ["network"]
 [[example]]
 name = "learning_probe"
 required-features = ["network"]
+
+[[example]]
+name = "auth_stage_probe"
+required-features = ["network"]

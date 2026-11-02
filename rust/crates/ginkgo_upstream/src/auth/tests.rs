@@ -892,3 +892,27 @@ async fn unauthenticated_navigation_or_incomplete_401_form_never_becomes_a_captc
     assert_eq!(error.code, ErrorCode::PreLoginTip);
     assert_eq!(transport.request_count(), 2);
 }
+
+#[tokio::test]
+async fn cas_paragraph_error_cannot_be_overridden_by_valid_uc_identity() {
+    let transport = MockTransport::with_responses(vec![
+        login_page(),
+        HttpResponse::new(
+            200,
+            LOGIN_URL,
+            r#"<p class="errors">合成账号状态需要人工处理</p>"#,
+        ),
+        HttpResponse::new(200, UC_ACTIVATION_URL, "activated"),
+        uc_ok(),
+    ]);
+    let error = login(&Session::new(transport.clone()), &credentials())
+        .await
+        .expect_err("explicit paragraph refusal");
+    assert_eq!(error.code, ErrorCode::PreLoginTip);
+    assert_eq!(error.detail.as_deref(), Some("合成账号状态需要人工处理"));
+    assert_eq!(
+        transport.request_count(),
+        2,
+        "must not activate UC after explicit refusal"
+    );
+}

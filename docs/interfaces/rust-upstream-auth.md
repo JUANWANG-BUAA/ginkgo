@@ -35,19 +35,19 @@
 - `pub fn extract_tip_text(html: &str) -> Option<String> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:76</sub>
 - `pub fn extract_error_text(html: &str) -> Option<String> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:82</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:80</sub>
 - `pub fn is_access_policy_denied(html: &str) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:89</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:84</sub>
 - `pub fn is_password_expiry_page(html: &str) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:94</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:89</sub>
 - `pub fn is_login_redirect(final_url: &str, body: &str) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:102</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:97</sub>
 - `pub fn module_refusal(final_url: &str, body: &str) -> AppError {…}` — Classify a module answer that is not the expected payload.
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:120</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:115</sub>
 - `pub fn login_fields( html: &str, username: &str, password: &str, captcha_text: Option<&str>, ) -> Vec<(String, String)> {…}` — Build the CAS form from the page's hidden inputs. The `+` and `/` in the
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:130</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:125</sub>
 - `pub fn form_urlencode(fields: &[(String, String)]) -> String {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:170</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:165</sub>
 
 ## challenge
 

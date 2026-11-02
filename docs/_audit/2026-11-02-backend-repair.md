@@ -180,3 +180,14 @@
 验证：锁定缓存依赖下完整 `bash scripts/check-mirror.sh` 退出 0，保留全部原检查，含 Rust fmt/严格 Clippy/分层与 workspace、文档/接口索引/协议锁、FRB 零漂移、Flutter 分析与 745 条测试；不计作在线依赖获取或真实认证成功。upstream 独立 431、workspace 特性合并 433 条单测通过。日志 `/tmp/ginkgo-401-captcha-full-gate.log`；新增用例旧实现失败日志 `/tmp/ginkgo-401-captcha-before.log`。`check-contracts.py --release` 按预期退出 1，保持发布阻断。
 
 正常 `lib/main.dart` 入口 Android ARM64 Debug APK 重建成功（`/tmp/ginkgo-401-captcha-main-apk.log`），未安装设备验收、未发布。本轮没有 Android 设备登录成功或物理设备证据；仅宿主 Rust 的真实认证阶段测试与合成回归。
+
+
+## UBAA 错误 DOM 对照与可复跑认证诊断
+
+对照固定 UBAA `155e8b56` 的 `findLoginError`，补齐 p.errors，并在已知错误/提示节点中跳过空占位。两项新回归在旧实现均失败：一种漏掉非空提示，另一种在 CAS 明确段落拒绝后仍被后续有效 UC mock 覆盖为 SignedIn。修复后停止于明确提示，不继续 UC，不新发密码。只扫描已知区域，不将所有段落当错误；未新增学校端点或重试策略。
+
+新增 `network` feature 下的非生产 `auth_stage_probe` example（默认匿名，`--submit` 才读取私有管道并单次提交）。输出固定元数据/关键词而非原始正文；可选临时验证码图片采用 create_new，Unix 0600，正常结束/超时清理。诊断端口、图片与隐私策略须合并前人工审查；不进入 App 启动路径、不访问平台保险库。专门测试覆盖输出隐私、英文/未知提示和 UBAA 字段对照。
+
+按用户持续推进要求只做一次新真实提交，实际页面在替换合成凭据后与 UBAA 八字段/值多重集合一致，仍在 POST 得到 401，未到 UC。诊断初版关键词没有命中非空提示，已补盲点但不重复尝试；真实原因仍未确认。精确耗时、结构、对照和边界见 [实测记录](2026-11-02-webvpn-live-acceptance.md)。不能以本次解析修复冒充真实认证已恢复。
+
+验证：两项新解析回归在旧实现均失败（`/tmp/ginkgo-error-shape-old.log`）；修复后 upstream 独立测试通过（`/tmp/ginkgo-error-shape-fixed.log`）。诊断 example 的三项隐私/分类/字段对照测试通过（`/tmp/ginkgo-stage-probe-tests-complete.log`），未启用网络时正常拒绝；最终版本显式匿名 WebVPN 冒烟成功，仅 GET，并输出 anonymous_only 后清空内存 Cookie（`/tmp/ginkgo-probe-anonymous-final.jsonl`）。锁定缓存依赖下完整 `check-mirror.sh` 退出 0，原检查未减少，含严格 Clippy、Rust 分层/workspace、文档/协议锁/接口索引、FRB 零漂移、Flutter 分析与 745 条测试（`/tmp/ginkgo-ubaa-error-complete-gate.log`）。正常 main 入口 Android ARM64 Debug 构建成功（`/tmp/ginkgo-ubaa-error-main-apk.log`），未安装设备验收、未发布；发布门禁按预期退出 1。上述不计作在线依赖获取、Windows 编译或真实登录成功。
