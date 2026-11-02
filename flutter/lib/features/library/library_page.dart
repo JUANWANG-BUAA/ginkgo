@@ -26,11 +26,15 @@ class LibraryPage extends StatefulWidget {
 }
 
 class _LibraryPageState extends State<LibraryPage> {
-  late final LibraryController controller;
+  late LibraryController controller;
 
   @override
   void initState() {
     super.initState();
+    _attach();
+  }
+
+  void _attach() {
     controller = LibraryController(widget.service)..addListener(_changed);
     controller.loadBookings();
   }
@@ -38,7 +42,11 @@ class _LibraryPageState extends State<LibraryPage> {
   @override
   void didUpdateWidget(LibraryPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.service != widget.service) controller.invalidate();
+    if (oldWidget.service != widget.service) {
+      controller.removeListener(_changed);
+      controller.dispose();
+      _attach();
+    }
   }
 
   void _changed() => setState(() {});
@@ -51,10 +59,11 @@ class _LibraryPageState extends State<LibraryPage> {
   }
 
   Future<void> perform(LibraryBooking booking, String action) async {
-    if (controller.submitting) return;
+    final current = controller;
+    if (current.submitting) return;
     final label = libraryActionLabel(action);
     final key = '${booking.id}/$action';
-    if (controller.uncertainActions.contains(key)) return;
+    if (current.uncertainActions.contains(key)) return;
     final confirmed = await confirmMutation(
       context,
       title: '确认$label？',
@@ -63,7 +72,9 @@ class _LibraryPageState extends State<LibraryPage> {
       action: label,
       destructive: action == 'cancel' || action == 'checkout',
     );
-    if (confirmed && mounted) await controller.perform(booking, action);
+    if (confirmed && mounted && identical(controller, current)) {
+      await current.perform(booking, action);
+    }
   }
 
   void _push(Widget page) {

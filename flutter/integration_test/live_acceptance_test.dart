@@ -28,6 +28,7 @@ import 'package:ginkgo_mirror/features/shuttle/shuttle_page.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/features/auth/login_page.dart';
 import 'package:ginkgo_mirror/main.dart';
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
 import 'package:ginkgo_mirror/infrastructure/native_auth_challenge.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
@@ -63,12 +64,17 @@ void main() {
     'authorized real-account interface, visual and latency audit',
     (tester) async {
       await RustLib.init();
-      if (forceDirect) {
-        await live.setRoute(route: live.RouteChoice.direct);
+      final preferences = AppPreferences();
+      Future<void> selectRoute(live.RouteChoice choice) async {
+        final response = await live.setRoute(route: choice);
+        if (response.failure != null) {
+          throw StateError('Route change failed: ${response.failure!.name}');
+        }
+        await preferences.setRouteMode(choice.name);
       }
-      if (forceWebVpn) {
-        await live.setRoute(route: live.RouteChoice.webVpn);
-      }
+
+      if (forceDirect) await selectRoute(live.RouteChoice.direct);
+      if (forceWebVpn) await selectRoute(live.RouteChoice.webVpn);
       const service = NativeMirrorService();
       var accountService = const NativeMirrorService();
       // The harness channel is deliberately loopback-only and does not change
@@ -288,6 +294,7 @@ void main() {
         final loginWatch = Stopwatch()..start();
         await tester.pumpWidget(
           ginkgoApp(
+            preferences: preferences,
             home: LoginPage(
               service: service,
               onSignedIn: (value) => session = value,
