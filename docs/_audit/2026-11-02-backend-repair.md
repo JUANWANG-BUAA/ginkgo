@@ -167,3 +167,16 @@
 新增 gateway_challenge_generation_test.dart；全部为合成 gateway 与图片，不使用真实账号或验证码，不执行学校写入。页面销毁、320dp 大字号、刷新失败保留 GET 恢复入口等既有回归继续保留，真实网关验证与设备账号/路线切换仍待验收。
 
 验证：6 条新代次回归在 `52d94ed` 旧页面实现上全部失败，修复后与既有网关用例共 12 条通过。按前述锁定缓存依赖方式执行完整 `check-mirror.sh`，原有检查均保留并退出 0，含 Rust/严格 Clippy、架构/文档/协议锁、Flutter 分析与 745 条测试、FRB 零漂移；不计作在线依赖获取或学校真实登录验收。日志 `/tmp/ginkgo-gateway-generation-old-verified.log`、`/tmp/ginkgo-gateway-generation-full-gate.log`。正常 main 入口 ARM64 Debug 构建成功（`/tmp/ginkgo-gateway-generation-main-apk.log`）；未再次使用真实账号、未安装设备验收、未发包，发布证据仍 blocked。
+
+
+## WebVPN 登录 POST 的 401 与新验证码交互
+
+追加实测定位见 [认证阶段记录](2026-11-02-webvpn-live-acceptance.md)：宿主 Rust 经 WebVPN 的登录页和验证码 GET 成功，单次密码 POST 返回 401，含 execution、验证码和非空提示，未到 UC。具体提示未保留，仅知不含“验证码”、不匹配有限明确凭据拒绝原文；不能据此声称本次实网原因已修复。
+
+源码另确认 401 分支无条件早于新挑战解析，导致本可由用户继续作答的完整验证码表单也被结束。现仅凭据 POST 401 且无非空提示或明确验证码提示时，检查新 execution/验证码和安全 CAS action 后返回新挑战。策略拒绝、明确凭据拒绝、其他账号提示继续返回原错误；入口/导航/密码到期确认 401 不开放这一分支。只返回交互，不自动再次发密码，不发布身份。该修复不会把本次 `other_tip` 实测伪装成验证码通过。
+
+新增四项回归覆盖直连/WebVPN、新 execution/ID/action、单次 POST、策略/凭据/未知提示优先级、不安全 action、入口 401 和不完整表单。旧实现在两项新增回归失败，其他拒绝保护保持通过。学校新验证码提交成功仍未验收；真实拒绝提示与 Android 关联阶段仍待补。
+
+验证：锁定缓存依赖下完整 `bash scripts/check-mirror.sh` 退出 0，保留全部原检查，含 Rust fmt/严格 Clippy/分层与 workspace、文档/接口索引/协议锁、FRB 零漂移、Flutter 分析与 745 条测试；不计作在线依赖获取或真实认证成功。upstream 独立 431、workspace 特性合并 433 条单测通过。日志 `/tmp/ginkgo-401-captcha-full-gate.log`；新增用例旧实现失败日志 `/tmp/ginkgo-401-captcha-before.log`。`check-contracts.py --release` 按预期退出 1，保持发布阻断。
+
+正常 `lib/main.dart` 入口 Android ARM64 Debug APK 重建成功（`/tmp/ginkgo-401-captcha-main-apk.log`），未安装设备验收、未发布。本轮没有 Android 设备登录成功或物理设备证据；仅宿主 Rust 的真实认证阶段测试与合成回归。

@@ -72,7 +72,31 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
             return Err(if cas::is_access_policy_denied(&response.body) {
                 AppError::new(ErrorCode::AccessPolicyDenied)
             } else if credential_response {
-                if cas::extract_error_text(&response.body).is_some() {
+                let message = cas::extract_error_text(&response.body);
+                // A 401 may still carry a fresh, answerable captcha form.
+                // Only captcha refusals or an absent reason permit interaction;
+                // unrelated account/policy errors must remain explicit failures.
+                if message
+                    .as_deref()
+                    .is_none_or(|text| text.contains("验证码"))
+                {
+                    if let (Some(execution), Some(challenge)) = (
+                        cas::extract_execution(&response.body),
+                        cas::detect_captcha(&response.body),
+                    ) {
+                        let action_url = cas::extract_login_form_action(&response.body)
+                            .and_then(|action| webvpn::resolve_redirect(&action, &current_url))
+                            .unwrap_or_else(|| current_url.clone());
+                        validate_login_action(&action_url)?;
+                        return Ok(Some(LoginPage::Form {
+                            execution,
+                            captcha: Some(challenge),
+                            action_url,
+                            html: response.body,
+                        }));
+                    }
+                }
+                if message.is_some() {
                     login_page_error(&response.body)
                 } else {
                     AppError::with_detail(

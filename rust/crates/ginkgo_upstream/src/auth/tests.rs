@@ -786,3 +786,109 @@ async fn uc_activation_error_body_stops_before_status_even_if_identity_would_val
     assert_eq!(error.detail.as_deref(), Some("fixture activation refusal"));
     assert_eq!(transport.request_count(), 3);
 }
+
+#[tokio::test]
+async fn credential_401_with_answerable_captcha_keeps_new_form_without_reposting() {
+    for route in [RouteMode::Direct, RouteMode::WebVpn] {
+        for tip in ["", "<div id=\"errorDiv\">验证码错误，请重新输入</div>"] {
+            let body = format!(
+                r#"<form action="/login?service=synthetic"><input type="hidden" name="execution" value="fresh-execution"></form><script>config.captcha = {{type: 'image', id: 'fresh-captcha'}};</script>{tip}"#
+            );
+            let wire = if route == RouteMode::WebVpn {
+                crate::foundation::webvpn::wrap(LOGIN_URL).unwrap()
+            } else {
+                LOGIN_URL.to_string()
+            };
+            let transport = MockTransport::with_responses(vec![
+                login_page(),
+                HttpResponse::new(401, wire, body),
+            ]);
+            let session = Session::new(transport.clone());
+            session.set_route(route);
+            let result = login(&session, &credentials())
+                .await
+                .expect("new answerable challenge");
+            let LoginResult::CaptchaRequired { challenge, page } = result else {
+                panic!("must not publish identity")
+            };
+            assert_eq!(challenge.id, "fresh-captcha");
+            let LoginPage::Form {
+                execution,
+                action_url,
+                ..
+            } = page
+            else {
+                panic!("new form")
+            };
+            assert_eq!(execution, "fresh-execution");
+            assert_eq!(
+                action_url,
+                "https://sso.buaa.edu.cn/login?service=synthetic"
+            );
+            assert_eq!(transport.request_count(), 2);
+            assert_eq!(
+                transport
+                    .requests()
+                    .iter()
+                    .filter(|r| r.method == HttpMethod::Post)
+                    .count(),
+                1
+            );
+        }
+    }
+}
+
+#[tokio::test]
+async fn credential_401_captcha_does_not_hide_policy_or_other_explicit_refusals() {
+    for (tip, expected) in [
+        ("访问策略禁止", ErrorCode::AccessPolicyDenied),
+        ("账号或密码错误", ErrorCode::InvalidCredentials),
+        ("请在学校网页处理账号状态", ErrorCode::PreLoginTip),
+    ] {
+        let body = format!(
+            r#"<input name="execution" value="fresh"><script>config.captcha = {{type: 'image', id: 'fresh'}};</script><div id="errorDiv">{tip}</div>"#
+        );
+        let transport = MockTransport::with_responses(vec![
+            login_page(),
+            HttpResponse::new(401, LOGIN_URL, body),
+        ]);
+        let error = login(&Session::new(transport.clone()), &credentials())
+            .await
+            .unwrap_err();
+        assert_eq!(error.code, expected);
+        assert_eq!(transport.request_count(), 2);
+    }
+}
+
+#[tokio::test]
+async fn credential_401_captcha_rejects_unsafe_action_without_following_it() {
+    let body = r#"<form action="https://untrusted.example/login"><input name="execution" value="fresh"></form><script>config.captcha = {type: 'image', id: 'fresh'};</script>"#;
+    let transport =
+        MockTransport::with_responses(vec![login_page(), HttpResponse::new(401, LOGIN_URL, body)]);
+    let error = login(&Session::new(transport.clone()), &credentials())
+        .await
+        .unwrap_err();
+    assert_eq!(error.code, ErrorCode::ChangedResponse);
+    assert_eq!(transport.request_count(), 2);
+}
+
+#[tokio::test]
+async fn unauthenticated_navigation_or_incomplete_401_form_never_becomes_a_captcha_retry() {
+    let form = r#"<input name="execution" value="fresh"><script>config.captcha = {type: 'image', id: 'fresh'};</script>"#;
+    let transport = MockTransport::with_responses(vec![HttpResponse::new(401, LOGIN_URL, form)]);
+    let error = fetch_login_page(&Session::new(transport.clone()))
+        .await
+        .unwrap_err();
+    assert_eq!(error.code, ErrorCode::ServiceUnavailable);
+    assert_eq!(transport.request_count(), 1);
+    let incomplete = r#"<script>config.captcha = {type: 'image', id: 'fresh'};</script>"#;
+    let transport = MockTransport::with_responses(vec![
+        login_page(),
+        HttpResponse::new(401, LOGIN_URL, incomplete),
+    ]);
+    let error = login(&Session::new(transport.clone()), &credentials())
+        .await
+        .unwrap_err();
+    assert_eq!(error.code, ErrorCode::PreLoginTip);
+    assert_eq!(transport.request_count(), 2);
+}
