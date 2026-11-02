@@ -145,3 +145,14 @@
 同批继续补齐 UC 激活 HTTP 200 正文的已知非空错误区域检查；新合成回归在修复前同样可绕过明确错误并返回 SignedIn，修复后立即返回认证提示且不查询 UC 状态。错误正文只走现有内存提示，不新增原始响应或个人信息日志。
 
 验证：5 条新回归在 `bc28b81` 的旧实现上全部失败，修复后 upstream 全部通过。最终 `check-mirror.sh` 按前述锁定缓存依赖方式执行，原有检查均保留并退出 0：Rust fmt/严格 Clippy/分层与 workspace、架构/文档/协议锁、Flutter 分析与 728 条测试、FRB 零漂移；不计作在线依赖获取或学校真实登录验收。日志 `/tmp/ginkgo-redirect-error-old-final.log`、`/tmp/ginkgo-redirect-error-complete-gate.log`。正常 main 入口 ARM64 Debug APK 构建成功（`/tmp/ginkgo-redirect-error-main-apk.log`），未安装设备验收、未再次提交真实密码、未发包。发布门禁仍 blocked。
+
+
+## 呈现读取期限与独立分区
+
+图书馆原超时回调递增整个控制器代次，导致另一个分区仍在有效时间内的响应被丢弃；旧请求 finally 还会按字符串键清除新请求的计时器。超时只停止 loading，却不结束原 Future，刷新控件、显式排队强刷和写后回查仍可能永远等待。通用 RefreshSection 同样没有在超时时收敛调用方 Future。失效旧队列的完成还可能清除新强刷槽，旧写失败可在新上下文发布提示。
+
+引入共用 ReadDeadline，仅截断呈现读取等待并消费迟到原生结果；不取消原生请求，不用于写提交。图书馆分区各自拥有读取期限，超时不改变账号/控制器代次；完成只清理自身对象。上下文失效结束旧普通等待、释放槽并清旧显示，新强刷槽按身份清理。通用 RefreshSection 复用期限与槽身份规则。普通读取销毁后结束等待；已提交操作继续按原持有者队列回查，已销毁页面不接收通知。不确定写仍禁止重发，读取超时后释放页面忙状态但保留待核实保护。
+
+当前只执行合成读写 Fake，未使用真实账号、未执行学校写入；Rust 请求生命周期、业务 TTL 与学校协议未变。设备弱网、原生命令长时间等待及返回导航仍待验收。
+
+验证：11 条新回归在 `ca2d116` 旧实现上全部失败，修复后通过；关联分区、层级刷新、服务替换和既有写后回查测试通过。按前述锁定缓存依赖方式运行完整 `check-mirror.sh`，检查未减少，最终退出 0：Rust/严格 Clippy、架构/文档/协议锁、Flutter 分析与 739 条测试、FRB 零漂移。该结果不计作在线依赖获取或设备弱网验收。日志 `/tmp/ginkgo-read-deadline-old-final.log`、`/tmp/ginkgo-read-deadline-complete-gate.log`。正常 main 入口 ARM64 Debug 构建成功（`/tmp/ginkgo-read-deadline-main-apk.log`）；未使用真实账号、未执行学校写入、未发布，发布证据仍 blocked。

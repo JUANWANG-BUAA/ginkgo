@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart' show failureMessage;
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/read_deadline.dart';
 
 /// One library page owns its read snapshots and post-write readback queue.
 /// Disposing the page suppresses notifications, never replays a write.
@@ -33,13 +34,27 @@ class LibraryController extends ChangeNotifier {
 
   /// Every booking read invalidates confirmations from its previous snapshot.
   int get bookingRevision => _bookingRevision;
-  final Map<String, Timer> _stalls = {};
+  final Map<String, ReadDeadline<Object?>> _deadlines = {};
   bool get busy => loadingBookings || loadingVenues;
 
   /// Drops every in-flight read at its next await: call when the account or
   /// service behind [service] changes, so a late response from the previous
   /// context never lands. Follow with load(force: true).
-  void invalidate() => _generation++;
+  void invalidate() {
+    _generation++;
+    _bookingRevision++;
+    for (final read in _deadlines.values) {
+      read.discard();
+    }
+    _deadlines.clear();
+    _bookingTask = _venueTask = null;
+    _bookingForcedRun = _venueForcedRun = null;
+    bookings = null;
+    venues = null;
+    bookingError = venueError = mutationNotice = null;
+    loadingBookings = loadingVenues = false;
+    _publish();
+  }
 
   void _publish() {
     if (!_disposed) notifyListeners();
@@ -59,6 +74,7 @@ class LibraryController extends ChangeNotifier {
     void Function(Future<void>?) setForcedRun,
     Future<void> Function(bool) fetch,
   ) {
+    if (_disposed && !submitting) return Future.value();
     final inFlight = slot();
     if (inFlight == null) {
       setForcedRun(null);
@@ -72,7 +88,14 @@ class LibraryController extends ChangeNotifier {
     if (!force) return inFlight;
     final pending = forcedRun();
     if (pending != null) return pending;
-    final chained = _chainForced(inFlight, fetch, slot, setSlot, setForcedRun);
+    final chained = _chainForced(
+      inFlight,
+      fetch,
+      slot,
+      setSlot,
+      forcedRun,
+      setForcedRun,
+    );
     setForcedRun(chained);
     return chained;
   }
@@ -82,6 +105,7 @@ class LibraryController extends ChangeNotifier {
     Future<void> Function(bool) fetch,
     Future<void>? Function() slot,
     void Function(Future<void>?) setSlot,
+    Future<void>? Function() forcedRun,
     void Function(Future<void>?) setForcedRun,
   ) {
     final epoch = _generation;
@@ -96,7 +120,9 @@ class LibraryController extends ChangeNotifier {
           setSlot(task);
           await task;
         })
-        .whenComplete(() => setForcedRun(null));
+        .whenComplete(() {
+          if (identical(forcedRun(), run)) setForcedRun(null);
+        });
     return run;
   }
 
@@ -114,13 +140,11 @@ class LibraryController extends ChangeNotifier {
     loadingVenues = true;
     venueError = null;
     _publish();
-    // A read that never settles must not keep the venue section loading.
-    _armStall('venues', epoch, () => loadingVenues = false, () {
-      _venueTask = null;
-      _venueForcedRun = null;
-    });
     try {
-      final result = await service.libraryVenues(forceRefresh: force);
+      final result = await _read(
+        'venues',
+        () => service.libraryVenues(forceRefresh: force),
+      );
       if (_generation != epoch) return;
       if (result.failure == null || result.stale) venues = result;
       venueError = result.failure == null
@@ -130,7 +154,6 @@ class LibraryController extends ChangeNotifier {
       if (_generation != epoch) return;
       venueError = failureMessage(null);
     } finally {
-      _clearStall('venues');
       if (epoch == _generation) {
         loadingVenues = false;
         _publish();
@@ -138,34 +161,17 @@ class LibraryController extends ChangeNotifier {
     }
   }
 
-  /// Stop waiting for one section once [stallDeadline] passes. The abandoned
-  /// read is discarded through the generation, exactly like [invalidate].
-  void _armStall(
-    String key,
-    int epoch,
-    void Function() stopLoading,
-    void Function() resetSlot,
-  ) {
-    _clearStall(key);
-    _stalls[key] = Timer(stallDeadline, () {
-      if (_disposed || epoch != _generation) return;
-      _generation++;
-      stopLoading();
-      // The abandoned read can never clear its own slot, so free it here;
-      // otherwise every later refresh would queue behind it forever.
-      resetSlot();
-      if (key == 'venues') {
-        venueError = failureMessage(null);
-      } else {
-        bookingError = failureMessage(null);
-      }
-      _stalls.remove(key);
-      _publish();
-    });
-  }
-
-  void _clearStall(String key) {
-    _stalls.remove(key)?.cancel();
+  Future<T> _read<T>(String key, Future<T> Function() read) async {
+    final deadline = ReadDeadline<T>(Future<T>.sync(read), stallDeadline);
+    _deadlines[key]?.discard();
+    _deadlines[key] = deadline;
+    if (_disposed) deadline.stopTimer();
+    try {
+      return await deadline.result;
+    } finally {
+      deadline.stopTimer();
+      if (identical(_deadlines[key], deadline)) _deadlines.remove(key);
+    }
   }
 
   Future<void> loadBookings({bool force = false}) => _enqueue(
@@ -183,13 +189,11 @@ class LibraryController extends ChangeNotifier {
     loadingBookings = true;
     bookingError = null;
     _publish();
-    // A read that never settles must not keep the booking section loading.
-    _armStall('bookings', epoch, () => loadingBookings = false, () {
-      _bookingTask = null;
-      _bookingForcedRun = null;
-    });
     try {
-      final result = await service.libraryBookings(forceRefresh: force);
+      final result = await _read(
+        'bookings',
+        () => service.libraryBookings(forceRefresh: force),
+      );
       if (_generation != epoch) return;
       if (result.failure == null || result.stale) bookings = result;
       bookingError = result.failure == null
@@ -199,7 +203,6 @@ class LibraryController extends ChangeNotifier {
       if (_generation != epoch) return;
       bookingError = failureMessage(null);
     } finally {
-      _clearStall('bookings');
       if (epoch == _generation) {
         loadingBookings = false;
         _publish();
@@ -248,6 +251,11 @@ class LibraryController extends ChangeNotifier {
     } catch (_) {
       // The school may have received the request. Leave this action blocked.
     }
+    if (_generation != epoch) {
+      submitting = false;
+      _publish();
+      return;
+    }
     mutationNotice = message;
     _publish();
     await reservationChanged();
@@ -258,10 +266,14 @@ class LibraryController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
-    for (final stall in _stalls.values) {
-      stall.cancel();
+    for (final read in _deadlines.values) {
+      if (submitting) {
+        read.stopTimer();
+      } else {
+        read.discard();
+      }
     }
-    _stalls.clear();
+    _deadlines.clear();
     super.dispose();
   }
 }

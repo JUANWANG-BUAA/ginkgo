@@ -75,6 +75,8 @@ Flutter 页面
 
 `AppPreferences.readFailed` 与 `writeError` 区分读取和写入故障，`retrySave` 仅重写当前本机设置；启动恢复在读取失败时停止，登录页 `onRetryPreferences` 仅触发用户选择的重读流程。该契约见 PREF-01，具体签名在生成索引中维护。
 
+`ReadDeadline` 只约束呈现读取等待，不能取消原生请求或判定写入结果；`RefreshSection` 和图书馆分区复用它，以读取 Future/代次隔离迟到完成。具体边界见 READ-01。
+
 ### 1.2 接口的四个问题
 
 每个接口都应能回答这四个问题；回答不了就说明设计还没收口。

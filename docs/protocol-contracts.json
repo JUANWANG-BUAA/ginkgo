@@ -32,7 +32,7 @@
         "AUTH-06"
       ],
       "source_sha256": "02b02839ccdde32bac52f0ea643ffa012bb402bcab8a3347ce176c7b1b1b6a1e",
-      "document_sha256": "160b0b51d2f6a8f3b3dd62b1b69987abc8ef2e2ef49922599f419b4b9e776b3d"
+      "document_sha256": "9735212bee33bde1dd7ddefea44008c1e35c1bfec1f4f51323cf14edcbdf39aa"
     },
     {
       "id": "school-protocols",
@@ -57,7 +57,7 @@
         "WRITE-02"
       ],
       "source_sha256": "609d87eb492bb1aa0e1b669e2f572362fece6405f1ad9629cd0cddaa7d0f90f2",
-      "document_sha256": "feb63e6544ace0fb51f85be6df93ee15d7692a6562e79f77868b41994a6f9bd6"
+      "document_sha256": "e919cc648341b1a6fd903237902f599838ee2fbba9dff0d56286f6ab17ec5e51"
     },
     {
       "id": "client-contracts",
@@ -95,16 +95,19 @@
         "flutter/test/library_controller_test.dart",
         "flutter/test/apple_list_tile_layout_test.dart",
         "flutter/test/preferences_consistency_test.dart",
-        "flutter/test/display_preferences_file_store_test.dart"
+        "flutter/test/display_preferences_file_store_test.dart",
+        "flutter/test/library_read_deadline_test.dart",
+        "flutter/test/refresh_section_test.dart"
       ],
       "invariants": [
         "FFI-01",
         "UI-01",
         "DATA-01",
-        "PREF-01"
+        "PREF-01",
+        "READ-01"
       ],
-      "source_sha256": "f8543522baf90626ab146ef4be33da0d4818f1c3971e3b27536aaec8e8630c57",
-      "document_sha256": "533b985ef18fabc20d1be686c46510609abe9c9588fe5d635b3a263c9b2afff3"
+      "source_sha256": "0fe8e62bf1f9577505efb6dc8383cbbf7e46a0165bf0af4ac53fc58755c6c7ea",
+      "document_sha256": "a7f3f581a8c7e090074f6afbc81e36a6c38bded6f61efcc06e96a7c74abe31c7"
     }
   ]
 }

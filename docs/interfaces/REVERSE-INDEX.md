@@ -41,6 +41,7 @@
 | `application/notices.dart` | Notice → dart-application.md<br>NoticesRead → dart-application.md |
 | `application/platform_actions.dart` | PlatformActions → dart-application.md |
 | `application/query_snapshots.dart` | LearningSnapshotStatus → dart-application.md<br>LearningSnapshotGateway → dart-application.md |
+| `application/read_deadline.dart` | ReadDeadline → dart-application.md |
 | `application/refresh_section.dart` | SectionResult → dart-application.md<br>RefreshSection → dart-application.md |
 | `application/reminder_planning.dart` | ReminderPlan → dart-application.md<br>ReminderPlanningGateway → dart-application.md<br>CourseReminderSeed → dart-application.md<br>TaskReminderSeed → dart-application.md<br>ExtendedReminderPlans → dart-application.md<br>courseReminderSeeds → dart-application.md<br>taskReminderSeeds → dart-application.md<br>checkinReminderSeeds → dart-application.md<br>homeworkReminderSeeds → dart-application.md<br>CheckInReminderSeed → dart-application.md<br>HomeworkReminderSeed → dart-application.md |
 | `application/reminder_platform.dart` | ReminderPlatform → dart-application.md |
