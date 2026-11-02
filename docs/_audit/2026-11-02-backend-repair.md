@@ -75,3 +75,12 @@
 ## 图书馆服务替换收尾复核
 
 `LibraryPage` 在服务替换时重建控制器，清除旧快照，并阻止旧确认弹窗提交到新服务。`library_service_replacement_test.dart` 两条回归在提交 `4529cfb` 的旧页面实现上均失败，在修复实现上通过；覆盖旧响应迟到、新服务读取和确认撤销。完整 `bash scripts/check-mirror.sh` 通过（日志 `/tmp/ginkgo-closeout-gate.log`，临时本机证据）：包含 Rust、Flutter 分析与测试、协议/文档检查和 FRB 零漂移。校外验收脚本的强制路线检查及失败记录同步落地，未据此解除发布阻断；没有在本次收尾复核中重试真实凭据或执行学校写操作。设备、真实账号及其余确认上下文验收继续见唯一 TODO。
+
+
+## 座位预约与签到确认上下文修复
+
+本批代码检查及合成回归确认：确认弹窗期间更换服务、刷新查询或改变同 ID 时段的日期，旧确认仍可向当前服务发起写入；签到弹窗也未重查时间窗口。旧提交完成后可能将提示和回查作用于替换后的页面；座位回查回调抛错会留下忙状态。
+
+修复将确认与服务/查询代次绑定，座位捕获区域、完整时段及原回查回调，签到确认后重查时间；上下文变化撤销旧确认，旧结果不更新新页面。座位回查使用异常收尾释放忙状态，未知写入继续禁止重发；签到失败或旧快照保留数据但禁用提交。`library_seat_mutation_context_test.dart` 和 `checkin_mutation_context_test.dart` 覆盖上述边界。学校协议、FFI 签名和写入次数策略未改变；只执行合成 fake 写入，未重试真实账号或进行学校写操作。
+
+验证：两份新增文件共 10 条回归在 `38e160d` 的旧实现上全部失败，在修复实现上全部通过；关联图书馆测试也通过。完整 `bash scripts/check-mirror.sh` 最终退出 0，含 Rust fmt/严格 Clippy/分层与 workspace 测试、文档及协议锁、Flutter 分析与 708 条测试、FRB 重新生成零漂移。临时本机日志为 `/tmp/ginkgo-mutation-old-final.log`、`/tmp/ginkgo-mutation-final.log`、`/tmp/ginkgo-mutation-full-gate-final.log`；日志不构成设备或真实学校验收。本批未构建或发布新的 APK；发布验收仍 blocked。

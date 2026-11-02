@@ -31,7 +31,7 @@
         "AUTH-06"
       ],
       "source_sha256": "255be6160f8d8059000069e66d1eebae943b4bc7d64e2ca1d1771260ca308d83",
-      "document_sha256": "76723714235f70cb65df949cee240ff2749e36b9cde437e59a1a30dd2cbc547f"
+      "document_sha256": "8f36d9d3d6d4e8b8d40c53efe62c8651bf2c74ed31f22c737f9b14ccab036e86"
     },
     {
       "id": "school-protocols",
@@ -56,7 +56,7 @@
         "WRITE-02"
       ],
       "source_sha256": "4cc675f0c1b707095eb5f9414840aa213a06e10078cfada22543d502a4c6aba2",
-      "document_sha256": "011a31e0bb5dbb710a9b31f459aa1daa3e8d1c7000771e4ec203db5e3d63b086"
+      "document_sha256": "c7c5b8c874932a629e4de20a0b19f9168bb2f72d5c19c64ac0c7979c424c7e6a"
     },
     {
       "id": "client-contracts",
@@ -68,7 +68,9 @@
         "flutter/lib/features/settings/*.dart",
         "flutter/lib/infrastructure/native_auth_challenge.dart",
         "flutter/lib/shared/app_preferences.dart",
-        "flutter/lib/main.dart"
+        "flutter/lib/main.dart",
+        "flutter/lib/features/library/library_seat_page.dart",
+        "flutter/lib/features/checkin/checkin_page.dart"
       ],
       "documents": [
         "docs/INTERFACE-INDEX.md",
@@ -79,15 +81,17 @@
       "evidence": [
         "flutter/test/auth_route_stability_test.dart",
         "flutter/test/gateway_challenge_test.dart",
-        "flutter/test/login_route_test.dart"
+        "flutter/test/login_route_test.dart",
+        "flutter/test/library_seat_mutation_context_test.dart",
+        "flutter/test/checkin_mutation_context_test.dart"
       ],
       "invariants": [
         "FFI-01",
         "UI-01",
         "DATA-01"
       ],
-      "source_sha256": "414e4240a7d6f5bcfd301c2589c2a545872be81d99249dff2b773b68b0238f74",
-      "document_sha256": "e5c5dfbd874aae09f854010cb3f4f548d29f17e123d601b8090dfc3ce61fb30a"
+      "source_sha256": "5bc447617d46710b83a7a4d197a8f6f32f72db4637a6fa4cd97bf71fe221e42f",
+      "document_sha256": "7b313cd56fd3485d3644e30b91e30eb646361f41cd5353a424eb285fbc38bc72"
     }
   ]
 }

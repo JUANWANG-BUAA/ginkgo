@@ -53,6 +53,8 @@ class _LibrarySeatPageState extends State<LibrarySeatPage> {
   List<LibrarySeat> visible = [];
   Map<String, int> visibleIndices = {};
 
+  int contextGeneration = 0;
+  bool confirming = false;
   bool submitting = false;
   bool awaitingVerification = false;
   String? mutationNotice;
@@ -74,42 +76,79 @@ class _LibrarySeatPageState extends State<LibrarySeatPage> {
   }
 
   Future<void> reserve(LibrarySeat seat) async {
-    if (submitting || awaitingVerification) return;
-    final confirmed = await confirmMutation(
-      context,
-      title: '确认预约？',
-      detail:
-          '${widget.area.name} · ${seat.name}\n${widget.slot.day} ${widget.slot.start}–${widget.slot.end}',
-      action: '确认预约',
-    );
-    if (!confirmed || !mounted || submitting) return;
+    if (confirming ||
+        submitting ||
+        awaitingVerification ||
+        busy ||
+        error != null) {
+      return;
+    }
+    final generation = contextGeneration;
+    final serial = requestSerial;
+    final service = widget.service;
+    final area = widget.area;
+    final slot = widget.slot;
+    final readback = widget.onReservationChanged;
+    confirming = true;
+    bool confirmed;
+    try {
+      confirmed = await confirmMutation(
+        context,
+        title: '确认预约？',
+        detail:
+            '${area.name} · ${seat.name}\n${slot.day} ${slot.start}–${slot.end}',
+        action: '确认预约',
+      );
+    } finally {
+      if (generation == contextGeneration) confirming = false;
+    }
+    if (!confirmed ||
+        !mounted ||
+        generation != contextGeneration ||
+        serial != requestSerial ||
+        busy ||
+        error != null ||
+        submitting ||
+        awaitingVerification ||
+        !(seats?.any((value) => value.id == seat.id && value.available) ??
+            false)) {
+      return;
+    }
     setState(() {
       submitting = true;
       awaitingVerification = true;
     });
     var message = '预约结果待核实，请查看当前预约，勿重复提交';
     try {
-      final result = await widget.service.reserveLibrarySeat(
-        areaId: widget.area.id,
+      final result = await service.reserveLibrarySeat(
+        areaId: area.id,
         seatId: seat.id,
-        slot: widget.slot,
+        slot: slot,
       );
       message = result.message;
-      if (result.state == 'notSubmitted' || result.state == 'rejected') {
+      if (mounted &&
+          generation == contextGeneration &&
+          (result.state == 'notSubmitted' || result.state == 'rejected')) {
         awaitingVerification = false;
       }
     } catch (_) {
-      /* Unknown result is never a retry prompt. */
+      // Unknown result is never a retry prompt.
     }
-    if (mounted) setState(() => mutationNotice = message);
-    // Publish the readback to the original page even if this route was popped
-    // during submission. Seat availability must not delay the booking result.
-    await Future.wait([widget.onReservationChanged(), if (mounted) load()]);
-    if (mounted) {
-      setState(() {
-        submitting = false;
-        mutationNotice = message;
-      });
+    final current = mounted && generation == contextGeneration;
+    if (current) setState(() => mutationNotice = message);
+    // A submitted write always reads back through its captured owner, even
+    // after navigation. It must never refresh a replacement account's page.
+    try {
+      await Future.wait([Future<void>.sync(readback), if (current) load()]);
+    } catch (_) {
+      message = '$message；预约记录核实失败，请查看当前预约，勿重复提交';
+    } finally {
+      if (mounted && generation == contextGeneration) {
+        setState(() {
+          submitting = false;
+          mutationNotice = message;
+        });
+      }
     }
   }
 
@@ -124,7 +163,15 @@ class _LibrarySeatPageState extends State<LibrarySeatPage> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.service != widget.service ||
         oldWidget.area.id != widget.area.id ||
-        oldWidget.slot.id != widget.slot.id) {
+        oldWidget.slot.id != widget.slot.id ||
+        oldWidget.slot.day != widget.slot.day ||
+        oldWidget.slot.start != widget.slot.start ||
+        oldWidget.slot.end != widget.slot.end) {
+      contextGeneration++;
+      confirming = false;
+      submitting = false;
+      awaitingVerification = false;
+      mutationNotice = null;
       requestSerial++;
       _loadTask = null;
       seats = null;
