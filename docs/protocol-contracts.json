@@ -32,7 +32,7 @@
         "AUTH-06"
       ],
       "source_sha256": "02b02839ccdde32bac52f0ea643ffa012bb402bcab8a3347ce176c7b1b1b6a1e",
-      "document_sha256": "9735212bee33bde1dd7ddefea44008c1e35c1bfec1f4f51323cf14edcbdf39aa"
+      "document_sha256": "b2d9f49a9400ba699d794d1008894b85b8d9df53ed282b158d7fe06809618813"
     },
     {
       "id": "school-protocols",
@@ -57,7 +57,7 @@
         "WRITE-02"
       ],
       "source_sha256": "609d87eb492bb1aa0e1b669e2f572362fece6405f1ad9629cd0cddaa7d0f90f2",
-      "document_sha256": "e919cc648341b1a6fd903237902f599838ee2fbba9dff0d56286f6ab17ec5e51"
+      "document_sha256": "261394d236083569e26080fc4f70a6ad25ea446041faa73c99ad72f17501ad56"
     },
     {
       "id": "client-contracts",
@@ -97,7 +97,8 @@
         "flutter/test/preferences_consistency_test.dart",
         "flutter/test/display_preferences_file_store_test.dart",
         "flutter/test/library_read_deadline_test.dart",
-        "flutter/test/refresh_section_test.dart"
+        "flutter/test/refresh_section_test.dart",
+        "flutter/test/gateway_challenge_generation_test.dart"
       ],
       "invariants": [
         "FFI-01",
@@ -106,8 +107,8 @@
         "PREF-01",
         "READ-01"
       ],
-      "source_sha256": "0fe8e62bf1f9577505efb6dc8383cbbf7e46a0165bf0af4ac53fc58755c6c7ea",
-      "document_sha256": "a7f3f581a8c7e090074f6afbc81e36a6c38bded6f61efcc06e96a7c74abe31c7"
+      "source_sha256": "dfa870f459a00f27cdfbb381005f762c1c003876b9c14fb1e69eec6f59f7b740",
+      "document_sha256": "491bd1f5bd0cd2c33938d44fe193388b4fe9f1e89d22bf873b67e3bd6f99b025"
     }
   ]
 }

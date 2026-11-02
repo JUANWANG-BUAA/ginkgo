@@ -21,6 +21,9 @@ class _GatewayChallengePageState extends State<GatewayChallengePage> {
   bool busy = false;
   String? error;
   String? notice;
+  int generation = 0;
+
+  bool isCurrent(int epoch) => mounted && epoch == generation;
 
   @override
   void initState() {
@@ -29,7 +32,20 @@ class _GatewayChallengePageState extends State<GatewayChallengePage> {
   }
 
   @override
+  void didUpdateWidget(GatewayChallengePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (identical(oldWidget.gateway, widget.gateway)) return;
+    generation++;
+    busy = false;
+    challenge = null;
+    error = notice = null;
+    answer.clear();
+    load();
+  }
+
+  @override
   void dispose() {
+    generation++;
     answer.dispose();
     super.dispose();
   }
@@ -45,6 +61,8 @@ class _GatewayChallengePageState extends State<GatewayChallengePage> {
 
   Future<void> load({bool refresh = false}) async {
     if (busy) return;
+    final epoch = generation;
+    final gateway = widget.gateway;
     final previous = challenge;
     final id = previous?.id;
     setState(() {
@@ -55,24 +73,24 @@ class _GatewayChallengePageState extends State<GatewayChallengePage> {
     });
     answer.clear();
     try {
-      final next = await widget.gateway.gatewayChallenge(
+      final next = await gateway.gatewayChallenge(
         expectedId: id,
         refresh: refresh,
       );
-      if (!mounted) return;
+      if (!isCurrent(epoch)) return;
       setState(() {
         challenge = next;
         if (next == null) notice = '当前没有待处理验证码；这不代表网关会话已经有效。请返回原页面重试读取。';
       });
     } catch (failure) {
-      if (mounted) {
+      if (isCurrent(epoch)) {
         setState(() {
           challenge = previous;
           error = message(failure);
         });
       }
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (isCurrent(epoch)) setState(() => busy = false);
     }
   }
 
@@ -83,6 +101,8 @@ class _GatewayChallengePageState extends State<GatewayChallengePage> {
       setState(() => error = '请输入验证码');
       return;
     }
+    final epoch = generation;
+    final gateway = widget.gateway;
     final text = answer.text.trim();
     answer.clear();
     setState(() {
@@ -92,23 +112,23 @@ class _GatewayChallengePageState extends State<GatewayChallengePage> {
       notice = null;
     });
     try {
-      await widget.gateway.answerGatewayChallenge(
+      await gateway.answerGatewayChallenge(
         expectedId: current.id,
         answer: text,
       );
-      if (mounted) setState(() => notice = '网关验证通过，请返回原页面重新读取。');
+      if (isCurrent(epoch)) setState(() => notice = '网关验证通过，请返回原页面重新读取。');
     } catch (failure) {
-      if (!mounted) return;
+      if (!isCurrent(epoch)) return;
       setState(() => error = message(failure));
       // A failed answer may return a new execution; fetch it without re-posting.
       try {
-        final next = await widget.gateway.gatewayChallenge();
-        if (mounted) setState(() => challenge = next);
+        final next = await gateway.gatewayChallenge();
+        if (isCurrent(epoch)) setState(() => challenge = next);
       } catch (_) {
         /* Keep the submission failure and offer an explicit read. */
       }
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (isCurrent(epoch)) setState(() => busy = false);
     }
   }
 

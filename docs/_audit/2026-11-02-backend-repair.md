@@ -156,3 +156,14 @@
 当前只执行合成读写 Fake，未使用真实账号、未执行学校写入；Rust 请求生命周期、业务 TTL 与学校协议未变。设备弱网、原生命令长时间等待及返回导航仍待验收。
 
 验证：11 条新回归在 `ca2d116` 旧实现上全部失败，修复后通过；关联分区、层级刷新、服务替换和既有写后回查测试通过。按前述锁定缓存依赖方式运行完整 `check-mirror.sh`，检查未减少，最终退出 0：Rust/严格 Clippy、架构/文档/协议锁、Flutter 分析与 739 条测试、FRB 零漂移。该结果不计作在线依赖获取或设备弱网验收。日志 `/tmp/ginkgo-read-deadline-old-final.log`、`/tmp/ginkgo-read-deadline-complete-gate.log`。正常 main 入口 ARM64 Debug 构建成功（`/tmp/ginkgo-read-deadline-main-apk.log`）；未使用真实账号、未执行学校写入、未发布，发布证据仍 blocked。
+
+
+## 网关验证码页的实例与代次隔离
+
+原 GatewayChallengePage 未处理 gateway 替换，旧挑战和已输入答案可留在新实例页面，旧读取/作答完成也只检查 mounted。合成复现旧挑战覆盖新挑战、旧作答成功在新页面显示“验证通过”、旧作答失败后转而补读新 gateway，以及旧 finally 清掉新读取的忙状态。该证据只证明 Flutter 状态串用，不能据此声称 Rust 账号绑定已被绕过。
+
+当前在实例替换时清空挑战/答案/提示，递增页面代次并重新读取；读取、提交、失败后的只读补读都捕获原实例和代次，每个完成分支及 finally 均校验当前代次。旧提交保持单次，不自动重发；旧失败不请求新实例。Rust 的账号/代次/挑战 ID 保护未修改。
+
+新增 gateway_challenge_generation_test.dart；全部为合成 gateway 与图片，不使用真实账号或验证码，不执行学校写入。页面销毁、320dp 大字号、刷新失败保留 GET 恢复入口等既有回归继续保留，真实网关验证与设备账号/路线切换仍待验收。
+
+验证：6 条新代次回归在 `52d94ed` 旧页面实现上全部失败，修复后与既有网关用例共 12 条通过。按前述锁定缓存依赖方式执行完整 `check-mirror.sh`，原有检查均保留并退出 0，含 Rust/严格 Clippy、架构/文档/协议锁、Flutter 分析与 745 条测试、FRB 零漂移；不计作在线依赖获取或学校真实登录验收。日志 `/tmp/ginkgo-gateway-generation-old-verified.log`、`/tmp/ginkgo-gateway-generation-full-gate.log`。正常 main 入口 ARM64 Debug 构建成功（`/tmp/ginkgo-gateway-generation-main-apk.log`）；未再次使用真实账号、未安装设备验收、未发包，发布证据仍 blocked。
