@@ -83,7 +83,13 @@ class AppearancePage extends StatelessWidget {
         ),
         if (preferences.saveError != null)
           AppleSection(
-            children: [AppleListTile(title: Text(preferences.saveError!))],
+            children: [
+              AppleListTile(title: Text(preferences.saveError!)),
+              AppleListTile(
+                title: const Text('重试保存'),
+                onTap: preferences.retrySave,
+              ),
+            ],
           ),
       ],
     );

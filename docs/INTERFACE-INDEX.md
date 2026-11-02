@@ -73,6 +73,8 @@ Flutter 页面
 
 `LibraryController.bookingRevision` 表示预约读取代次，用于撤销过期确认；`confirmMutation` 统一单次关闭保护，并允许调用方保留取消文案。具体签名由下方生成索引约束。
 
+`AppPreferences.readFailed` 与 `writeError` 区分读取和写入故障，`retrySave` 仅重写当前本机设置；启动恢复在读取失败时停止，登录页 `onRetryPreferences` 仅触发用户选择的重读流程。该契约见 PREF-01，具体签名在生成索引中维护。
+
 ### 1.2 接口的四个问题
 
 每个接口都应能回答这四个问题；回答不了就说明设计还没收口。

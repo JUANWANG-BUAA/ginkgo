@@ -5,6 +5,26 @@ import 'package:ginkgo_mirror/infrastructure/display_preferences_file_store.dart
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
 
 void main() {
+  test('legacy display-only preferences keep default route and signout compatibility', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'ginkgo-legacy-preferences-',
+    );
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/display-preferences-v1.json');
+    const original = '{"appearance":"dark"}';
+    await file.writeAsString(original);
+    final store = DisplayPreferencesFileStore(
+      supportDirectory: () async => directory,
+    );
+    final preferences = AppPreferences(reader: store.read, writer: store.write);
+    addTearDown(preferences.dispose);
+    await preferences.restore();
+    expect(preferences.saveError, isNull);
+    expect(preferences.appearance, AppAppearance.dark);
+    expect(preferences.routeMode, 'automatic');
+    expect(preferences.explicitSignOut, false);
+    expect(await file.readAsString(), original);
+  });
   test(
     'display preferences persist through the injected file adapter',
     () async {

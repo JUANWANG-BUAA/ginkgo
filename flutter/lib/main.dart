@@ -163,7 +163,23 @@ class _GinkgoRootState extends State<GinkgoRoot> {
     });
   }
 
+  Future<void> retryPreferences() async {
+    if (!mounted || stage == _Stage.restoring) return;
+    setState(() => stage = _Stage.restoring);
+    await _preferences.restore();
+    if (mounted) await restore();
+  }
+
   Future<void> restore() async {
+    if (_preferences.readFailed) {
+      setState(() {
+        stage = _Stage.signedOut;
+        session = null;
+        captchaRequired = false;
+        message = '未能读取本机设置，已停止自动恢复。请重新读取设置，或选择路线后手动登录。';
+      });
+      return;
+    }
     // The route chosen on the login page must apply before the session is
     // restored or the first sign-in runs, otherwise a later start silently
     // logs in on a different path than the one the user picked.
@@ -299,6 +315,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
           service: widget.liveService,
           initialMessage: message,
           initialCaptcha: captchaRequired,
+          onRetryPreferences: _preferences.readFailed ? retryPreferences : null,
           challengeGateway:
               widget.challengeGateway ??
               (widget.liveService is NativeMirrorService

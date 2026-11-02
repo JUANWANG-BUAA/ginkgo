@@ -13,20 +13,28 @@
 ## features/auth/login_feedback.dart
 
 - `class LoginFeedback extends StatelessWidget`
-  <sub>class · features/auth/login_feedback.dart:6</sub>
-    - `const LoginFeedback({super.key, required this.message});`  <sub>:7</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:11</sub>
+  <sub>class · features/auth/login_feedback.dart:8</sub>
+    - `const LoginFeedback({super.key, required this.message});`  <sub>:9</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:13</sub>
 - `class LoginNetworkNote extends StatelessWidget`
-  <sub>class · features/auth/login_feedback.dart:38</sub>
-    - `const LoginNetworkNote({super.key});`  <sub>:39</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:41</sub>
+  <sub>class · features/auth/login_feedback.dart:40</sub>
+    - `const LoginNetworkNote({super.key});`  <sub>:41</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:43</sub>
+- `class LoginPreferencesRecovery extends StatelessWidget`
+  <sub>class · features/auth/login_feedback.dart:53</sub>
+    - `const LoginPreferencesRecovery({super.key, required this.onRetry});`  <sub>:54</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:58</sub>
+- `class LoginPreferencesSaveFailure extends StatelessWidget`
+  <sub>class · features/auth/login_feedback.dart:65</sub>
+    - `const LoginPreferencesSaveFailure({super.key, required this.enabled});`  <sub>:66</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:70</sub>
 
 ## features/auth/login_page.dart
 
 - `class LoginPage extends StatefulWidget`
   <sub>class · features/auth/login_page.dart:19</sub>
-    - `const LoginPage({ super.key, required this.service, required this.onSignedIn, required this.onDemo, this.initialMessage, this.initialCaptcha = false, this.challengeGateway, });`  <sub>:20</sub>
-    - `State<LoginPage> createState() => …`  <sub>:38</sub>
+    - `const LoginPage({ super.key, required this.service, required this.onSignedIn, required this.onDemo, this.initialMessage, this.initialCaptcha = false, this.onRetryPreferences, this.challengeGateway, });`  <sub>:20</sub>
+    - `State<LoginPage> createState() => …`  <sub>:40</sub>
 
 ## features/auth/login_retry_pause.dart
 

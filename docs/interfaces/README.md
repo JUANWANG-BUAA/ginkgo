@@ -28,7 +28,7 @@
 | [应用外壳组件（flutter/lib/app）](dart-app.md) | `dart-app.md` | 4 |
 | [工作区壳层（flutter/lib/workspace）](dart-workspace.md) | `dart-workspace.md` | 30 |
 | [Flutter 功能域：academic](dart-feature-academic.md) | `dart-feature-academic.md` | 1 |
-| [Flutter 功能域：auth](dart-feature-auth.md) | `dart-feature-auth.md` | 6 |
+| [Flutter 功能域：auth](dart-feature-auth.md) | `dart-feature-auth.md` | 8 |
 | [Flutter 功能域：bykc](dart-feature-bykc.md) | `dart-feature-bykc.md` | 10 |
 | [Flutter 功能域：campus](dart-feature-campus.md) | `dart-feature-campus.md` | 1 |
 | [Flutter 功能域：campus_card](dart-feature-campus_card.md) | `dart-feature-campus_card.md` | 1 |

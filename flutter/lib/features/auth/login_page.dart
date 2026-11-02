@@ -24,6 +24,7 @@ class LoginPage extends StatefulWidget {
     required this.onDemo,
     this.initialMessage,
     this.initialCaptcha = false,
+    this.onRetryPreferences,
     this.challengeGateway,
   });
 
@@ -32,6 +33,7 @@ class LoginPage extends StatefulWidget {
   final VoidCallback onDemo;
   final String? initialMessage;
   final bool initialCaptcha;
+  final VoidCallback? onRetryPreferences;
   final AuthChallengeGateway? challengeGateway;
 
   @override
@@ -153,9 +155,6 @@ class _LoginPageState extends State<LoginPage> {
         error = null;
       });
       await preferences.setRouteMode(route.name);
-      if (mounted && preferences.saveError != null) {
-        setState(() => error = preferences.saveError);
-      }
     } catch (_) {
       if (mounted) setState(() => error = '网络路线切换失败，请重试');
     } finally {
@@ -408,6 +407,15 @@ class _LoginPageState extends State<LoginPage> {
                       LoginFeedback(
                         key: const Key('login-error'),
                         message: error!,
+                      ),
+                    LoginPreferencesSaveFailure(
+                      enabled: !busy && !challengeBusy,
+                    ),
+                    if (widget.onRetryPreferences != null)
+                      LoginPreferencesRecovery(
+                        onRetry: busy || challengeBusy
+                            ? null
+                            : widget.onRetryPreferences,
                       ),
                     const SizedBox(height: 24),
                     CupertinoButton.filled(

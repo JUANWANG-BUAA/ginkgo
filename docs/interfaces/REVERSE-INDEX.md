@@ -60,7 +60,7 @@
 | `design/tokens/typography.dart` | GinkgoTypography → dart-design.md |
 | `features/academic/rules_page.dart` | RulesPage → dart-feature-academic.md |
 | `features/auth/login_credential_field.dart` | loginCredentialField → dart-feature-auth.md |
-| `features/auth/login_feedback.dart` | LoginFeedback → dart-feature-auth.md<br>LoginNetworkNote → dart-feature-auth.md |
+| `features/auth/login_feedback.dart` | LoginFeedback → dart-feature-auth.md<br>LoginNetworkNote → dart-feature-auth.md<br>LoginPreferencesRecovery → dart-feature-auth.md<br>LoginPreferencesSaveFailure → dart-feature-auth.md |
 | `features/auth/login_page.dart` | LoginPage → dart-feature-auth.md |
 | `features/auth/login_retry_pause.dart` | LoginRetryPause → dart-feature-auth.md |
 | `features/auth/login_route_selector.dart` | LoginRouteSelector → dart-feature-auth.md |

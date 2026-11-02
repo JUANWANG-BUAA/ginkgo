@@ -119,3 +119,16 @@
 确认正文仍为新 execution 与 ignoreAndContinue，不收集密码或旧验证码；重复到期提示不再次确认，传输异常不重放。新增 `auth/expiry_tests.rs` 覆盖直连/WebVPN 路由、action/query、无 action、非法目标、重复提示、确认失败和后续新验证码。测试均为合成，无真实登录、无真实密码到期操作；真实页面形态（包括多表单）与设备完整流程仍待验收。
 
 验证：6 条新增用例在 `5977a8e` 的旧分支实现上有 4 条失败（2 条既有边界保护通过），修复后全部通过。`check-mirror.sh` 按前两批方式仅离线解析锁定缓存依赖、分析/测试不再获取依赖，所有检查原样执行且退出 0：Rust fmt/严格 Clippy/分层与 workspace、文档/架构/协议锁、Flutter 分析与 716 条测试、FRB 零漂移。此结果不证明在线依赖获取或学校实网验收。日志 `/tmp/ginkgo-expiry-old-verified.log`、`/tmp/ginkgo-expiry-full-gate.log`。正常 main 入口 Android ARM64 Debug 构建成功（`/tmp/ginkgo-expiry-main-apk.log`），未安装验收、未发包；发布门禁继续阻断。
+
+
+## 设置持久化与启动恢复
+
+复核当前设置路径，发现保存队列延迟读取当前快照，快速连续操作时会把早期意图替换为后来的值；旧保存失败也可在后续成功后残留错误。异步失败在 AppPreferences 销毁后仍 notify，可能使保存 Future 再次抛异常。偏好读取失败被当成默认配置继续启动，无法确认用户原先是否主动退出，仍调用 setRoute/restoreSession。退出标记写入的迟到失败及登录路线保存失败缺乏持续可重试反馈。
+
+现在每次保存捕获快照、串行执行，并仅由最新结果发布写错误；已排队写入在销毁后继续完成而不通知。readFailed 明确阻止自动路线初始化/恢复，登录页提供显式重读，成功后按原保存路线与退出标记决定是否恢复。writeError 单独向登录页呈现并允许重试保存，外观页也可重试；不会重新发学校认证。退出标记保存失败文案不再误称“恢复功能可能仍会显示登录页”。v1 格式、私有目录及临时文件替换适配器未改变；没有密码或 Cookie 进入普通偏好。
+
+新增 PREF-01 客户端约束与 `preferences_consistency_test.dart`，保存错误只按最新结果展示；合成 Fake 记录路线/恢复调用数与本机写入快照。未使用真实账号，未执行学校写入，仍需设备存储故障和完整冷启动验收。
+
+关键字段兼容：旧文件缺失 routeMode 或 explicitSignOut 时保留既有默认兼容；字段存在却类型/取值非法时视为读取失败，避免静默假定自动路线或未退出。该校验先于状态赋值，不改写原文件；其他显示字段的默认策略不变。
+
+验证：11 条新增回归在 `21a77a3` 旧实现上全部失败，修复后通过；另加真实临时 v1 文件的旧版显示字段兼容测试，读取不改写原文件。按前述锁定缓存依赖方式执行完整 `check-mirror.sh`，所有检查退出 0（Rust、严格 Clippy、架构/文档/协议锁、Flutter 分析与 728 条测试、FRB 零漂移），未省略检查，不计作在线依赖获取成功。日志 `/tmp/ginkgo-preferences-old-complete.log`、`/tmp/ginkgo-preferences-full-gate.log`。正常 main 入口 ARM64 Debug APK 构建成功（`/tmp/ginkgo-preferences-main-apk.log`），未安装设备验收、未重新使用真实账号、未发包。发布证据仍 blocked，存储/认证敏感边界保持合并前人工审查。

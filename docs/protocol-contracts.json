@@ -32,7 +32,7 @@
         "AUTH-06"
       ],
       "source_sha256": "6a23df671f793a0a1cae0b5bd503f51200d2cb4e6827986a5a5c66924d7557a9",
-      "document_sha256": "4bb5892f0a265867d6b7197d744f32d077c50ebc21e4a36bcc92e3a980dfcbd5"
+      "document_sha256": "44aac94c1b8d06c3b72c0c03101d0d016a6815f44888c7ec5056f1c3e92f9df5"
     },
     {
       "id": "school-protocols",
@@ -57,7 +57,7 @@
         "WRITE-02"
       ],
       "source_sha256": "609d87eb492bb1aa0e1b669e2f572362fece6405f1ad9629cd0cddaa7d0f90f2",
-      "document_sha256": "297e38dd6aa181799fde96d5395cd8e18f2ee47a2fdbdf4c0dcebfd7d8572716"
+      "document_sha256": "c48b116807b80f3e24882817131719588ed0238624ea277e72b81dbaf254e18d"
     },
     {
       "id": "client-contracts",
@@ -75,7 +75,8 @@
         "flutter/lib/features/library/library_controller.dart",
         "flutter/lib/features/library/library_page.dart",
         "flutter/lib/widgets/mutation_dialog.dart",
-        "flutter/lib/widgets/apple_surfaces.dart"
+        "flutter/lib/widgets/apple_surfaces.dart",
+        "flutter/lib/infrastructure/display_preferences_file_store.dart"
       ],
       "documents": [
         "docs/INTERFACE-INDEX.md",
@@ -92,15 +93,18 @@
         "flutter/test/mutation_dialog_test.dart",
         "flutter/test/library_service_replacement_test.dart",
         "flutter/test/library_controller_test.dart",
-        "flutter/test/apple_list_tile_layout_test.dart"
+        "flutter/test/apple_list_tile_layout_test.dart",
+        "flutter/test/preferences_consistency_test.dart",
+        "flutter/test/display_preferences_file_store_test.dart"
       ],
       "invariants": [
         "FFI-01",
         "UI-01",
-        "DATA-01"
+        "DATA-01",
+        "PREF-01"
       ],
-      "source_sha256": "85e14425905614972a1dbcb744d50ddc241bba4c1be2d34f7796b8c29c2914e2",
-      "document_sha256": "8693511c20622a553ddfd75dcfacf7c1e674262a445a79ec38b9133921a9130f"
+      "source_sha256": "f8543522baf90626ab146ef4be33da0d4818f1c3971e3b27536aaec8e8630c57",
+      "document_sha256": "533b985ef18fabc20d1be686c46510609abe9c9588fe5d635b3a263c9b2afff3"
     }
   ]
 }
