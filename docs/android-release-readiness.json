@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "status": "blocked",
+  "version": "0.1.0-beta.7+17",
+  "source_sha256": null,
+  "contract_sha256": null,
+  "reviewer": null,
+  "reviewed_at": null,
+  "open_p0": null,
+  "open_p1": null,
+  "reason": "User reports pre-repair Beta unusable. Current fixes have local regression evidence only; real login last failed, captcha/device/upgrade/write acceptance incomplete.",
+  "cases": {}
+}

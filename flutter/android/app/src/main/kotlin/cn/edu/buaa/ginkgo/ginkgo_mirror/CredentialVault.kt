@@ -26,6 +26,10 @@ object CredentialVault {
     private const val TAG = "GinkgoVault"
     private const val PREFS = "ginkgo_secure_credentials"
     private const val KEY_ALIAS = "ginkgo_credentials_aes_v1"
+    private const val SESSION_PREFS = "ginkgo_secure_session"
+    private const val SESSION_KEY_ALIAS = "ginkgo_session_aes_v1"
+    private const val SESSION_SLOT = "active"
+    private val SESSION_AAD = "ginkgo-session-v1".toByteArray(Charsets.UTF_8)
     private const val TRANSFORMATION = "AES/GCM/NoPadding"
     private const val PROVIDER = "AndroidKeyStore"
     private const val IV_BYTES = 12
@@ -38,6 +42,7 @@ object CredentialVault {
         appContext = context.applicationContext
         try {
             key()
+            sessionKey()
         } catch (t: Throwable) {
             Log.e(TAG, "Android Keystore initialization failed")
         }
@@ -106,17 +111,84 @@ object CredentialVault {
         false
     }
 
+    /** Store Rust's opaque, versioned cookie snapshot with its own Keystore key. */
+    @JvmStatic
+    fun saveSession(payload: String): Boolean = try {
+        val context = appContext ?: return false
+        if (payload.isEmpty() || payload.length > 262_144) return false
+        val cipher = Cipher.getInstance(TRANSFORMATION)
+        cipher.init(Cipher.ENCRYPT_MODE, sessionKey())
+        cipher.updateAAD(SESSION_AAD)
+        val iv = cipher.iv
+        if (iv.size != IV_BYTES) return false
+        val blob = Base64.encodeToString(
+            iv + cipher.doFinal(payload.toByteArray(Charsets.UTF_8)),
+            Base64.NO_WRAP,
+        )
+        sessionPrefs(context).edit().putString(SESSION_SLOT, blob).commit()
+    } catch (t: Throwable) {
+        Log.e(TAG, "session save failed")
+        false
+    }
+
+    @JvmStatic
+    fun loadSession(): String? = try {
+        val context = appContext ?: return null
+        val blob = sessionPrefs(context).getString(SESSION_SLOT, null) ?: return null
+        val bytes = Base64.decode(blob, Base64.NO_WRAP)
+        if (bytes.size <= IV_BYTES) return null
+        val cipher = Cipher.getInstance(TRANSFORMATION)
+        cipher.init(
+            Cipher.DECRYPT_MODE,
+            sessionKey(),
+            GCMParameterSpec(TAG_BITS, bytes.copyOfRange(0, IV_BYTES)),
+        )
+        cipher.updateAAD(SESSION_AAD)
+        String(cipher.doFinal(bytes.copyOfRange(IV_BYTES, bytes.size)), Charsets.UTF_8)
+    } catch (t: Throwable) {
+        Log.e(TAG, "session load failed")
+        null
+    }
+
+    @JvmStatic
+    fun deleteSession(): Boolean = try {
+        val context = appContext ?: return false
+        sessionPrefs(context).edit().remove(SESSION_SLOT).commit()
+    } catch (t: Throwable) {
+        Log.e(TAG, "session delete failed")
+        false
+    }
+
+    @JvmStatic
+    fun hasSession(): Boolean = try {
+        val context = appContext ?: return false
+        sessionPrefs(context).contains(SESSION_SLOT)
+    } catch (t: Throwable) {
+        Log.e(TAG, "session check failed")
+        false
+    }
+
     private fun prefs(context: Context): SharedPreferences =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
+    private fun sessionPrefs(context: Context): SharedPreferences =
+        context.getSharedPreferences(SESSION_PREFS, Context.MODE_PRIVATE)
+
     @Synchronized
     private fun key(): SecretKey {
+        return loadOrCreateKey(KEY_ALIAS)
+    }
+
+    @Synchronized
+    private fun sessionKey(): SecretKey = loadOrCreateKey(SESSION_KEY_ALIAS)
+
+    private fun loadOrCreateKey(alias: String): SecretKey {
         val store = KeyStore.getInstance(PROVIDER).apply { load(null) }
-        (store.getKey(KEY_ALIAS, null) as? SecretKey)?.let { return it }
+        (store.getKey(alias, null) as? SecretKey)?.let { return it }
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, PROVIDER)
         generator.init(
             KeyGenParameterSpec.Builder(
-                KEY_ALIAS,
+                alias,
                 KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
             )
                 .setBlockModes(KeyProperties.BLOCK_MODE_GCM)

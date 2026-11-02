@@ -1,4 +1,5 @@
 use super::*;
+use crate::auth::CredentialVault;
 
 #[tokio::test]
 async fn an_expired_library_token_is_rebuilt_once_and_the_read_recovers() {
@@ -184,6 +185,8 @@ async fn library_auth_failure_preserves_the_previous_snapshot() {
         .sign_in("sy2501001", "pa+ss/word", None, false)
         .await
         .unwrap();
+    // No reusable memory credential (for example, a restored identity).
+    service.identity.lock().session_credentials = None;
     let first = service.load_library_venues(false).await.unwrap();
     service.identity.lock().library_token = None;
     let stale = service.load_library_venues(true).await.unwrap();
@@ -603,5 +606,38 @@ async fn the_gateway_is_opened_with_the_sign_in_password_when_nothing_is_stored(
     assert!(
         transport.request_count() > before,
         "the gateway login was actually attempted"
+    );
+}
+
+#[tokio::test]
+async fn library_school_expiry_recovers_with_current_unsaved_credentials() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(HttpResponse::new(
+        200,
+        crate::adapters::library_http::LOGIN_START,
+        FORM_PAGE,
+    ));
+    responses.extend(login_chain("sy2501001", "fixture"));
+    responses.extend([
+        library_login_redirect(),
+        library_token_response(),
+        library_body("space/pcTopFor"),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, false)
+        .await
+        .unwrap();
+    let result = service.load_library_venues(true).await.unwrap();
+    assert!(result.failure.is_none());
+    assert!(!result.venues.is_empty());
+    assert!(service.vault.accounts().unwrap().is_empty());
+    assert_eq!(
+        transport
+            .requests()
+            .iter()
+            .filter(|r| r.method == HttpMethod::Post && r.url == LOGIN_URL)
+            .count(),
+        2
     );
 }

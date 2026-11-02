@@ -50,7 +50,8 @@ pub fn create_service() -> Result<AppService, AppError> {
 }
 
 pub fn has_saved_accounts() -> Result<bool, AppError> {
-    Ok(!platform_vault()?.accounts()?.is_empty())
+    let vault = platform_vault()?;
+    Ok(vault.has_session()? || !vault.accounts()?.is_empty())
 }
 
 pub fn verify_credential_storage(account: &str, secret: &str) -> bool {

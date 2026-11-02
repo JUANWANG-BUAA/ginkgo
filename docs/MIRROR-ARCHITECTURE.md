@@ -77,7 +77,7 @@ FFI 的 `SESSION_ACCESS` 用于应用命令级排他，保证切账号、切路�
 
 提醒偏好文件按账号序列化读写，包括同账号控制器替换时已经提交的写入；读取完成前禁止修改，读取失败或损坏时保留文件并提供重试。队列仅协调当前进程，不能据此推断跨进程或设备级持久化验收。
 
-FFI API 只处理应用参数与 DTO 映射。演示中的学校响应构造、fixture 选择和解析也已移入 upstream，通过 runtime 的演示入口访问。全部 89 个命令返回类型化 DTO，通用 `ReadOnlyResponse` 已删除，学校原始信封不得跨桥。CGYY 的 Dart 写调用使用 `application/cgyy_commands.dart` 的 sealed command；native 仅在附加账号与存储元数据后生成既有 JSON 契约，页面不组装裸 Map。
+FFI API 只处理应用参数与 DTO 映射。演示中的学校响应构造、fixture 选择和解析也已移入 upstream，通过 runtime 的演示入口访问。全部 91 个命令返回类型化 DTO，通用 `ReadOnlyResponse` 已删除，学校原始信封不得跨桥。CGYY 的 Dart 写调用使用 `application/cgyy_commands.dart` 的 sealed command；native 仅在附加账号与存储元数据后生成既有 JSON 契约，页面不组装裸 Map。
 
 Flutter 中的学校网址常量和新闻域名白名单已收回上游；作业详情通过可空 `sourceUrl` 元数据提供官网入口，通知链接由上游验证后返回。页面只做通用 HTTPS URI 检查，功能导航继续传递同一个注入服务。作业详情 DTO 新增了可空字段，Rust/Dart 绑定需要同步使用；现有页面构造调用无需提供该可选字段。
 
@@ -138,3 +138,8 @@ Rust 的核心合成测试验证接口可替换、旧数据/失败一起返回�
 保留上一轮的固定正则 `LazyLock` 复用、空教室名称排序键预计算、公共结果映射、快照回退抽取及无引用页面清理。本轮进一步移除跨层兼容导出、重复上游接口转发和 FFI 中的协议样例解析。
 
 本轮目标是限制学校变化的传播范围。拆 crate 不代表最终包体下降；未给出未经设备测量的内存、启动时间或端到端提速比例。最新验证证据见 [TESTING.md](TESTING.md)。
+
+
+## 协议与发布的强制约束
+
+学校事实以 API 的 AUTH/DATA/WRITE 不变量为准，本地 FFI/UI 契约以 FEATURES-AND-PROTOCOLS 为准。[协议锁](protocol-contracts.json) 将源码、文档与回归证据绑定，完整门禁与 CI 检查漂移；刷新摘要不等于验收。下一次 Android 发包必须满足 [强制验收契约](ANDROID-RELEASE-CONTRACT.md)，当前真实登录/验证码/设备证据不足，发布记录保持 blocked。

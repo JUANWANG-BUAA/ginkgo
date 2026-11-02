@@ -389,6 +389,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FailureCode dco_decode_failure_code(dynamic raw);
 
   @protected
+  GatewayVerificationResponse dco_decode_gateway_verification_response(
+    dynamic raw,
+  );
+
+  @protected
   GradeCourse dco_decode_grade_course(dynamic raw);
 
   @protected
@@ -1556,6 +1561,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   FailureCode sse_decode_failure_code(SseDeserializer deserializer);
+
+  @protected
+  GatewayVerificationResponse sse_decode_gateway_verification_response(
+    SseDeserializer deserializer,
+  );
 
   @protected
   GradeCourse sse_decode_grade_course(SseDeserializer deserializer);
@@ -3067,6 +3077,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_failure_code(FailureCode self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_gateway_verification_response(
+    GatewayVerificationResponse self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_grade_course(GradeCourse self, SseSerializer serializer);

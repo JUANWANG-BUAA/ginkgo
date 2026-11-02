@@ -6,7 +6,14 @@ import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/contracts.dart'
-    show SessionResponse, SessionState;
+    show RouteChoice, SessionResponse, SessionState;
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
+
+import 'login_route_selector.dart';
+import 'login_credential_field.dart';
+import 'login_feedback.dart';
+import 'login_retry_pause.dart';
+
 import 'package:ginkgo_mirror/application/auth_challenge.dart';
 
 class LoginPage extends StatefulWidget {
@@ -35,6 +42,10 @@ class _LoginPageState extends State<LoginPage> {
   final account = TextEditingController();
   final password = TextEditingController();
   final captcha = TextEditingController();
+  late final LoginRetryPause retryPause = LoginRetryPause(() {
+    if (mounted) setState(() => error = retryPause.message);
+  });
+
   bool remember = false;
   bool busy = false;
   bool showPassword = false;
@@ -47,6 +58,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> loadChallenge({String? expectedId, bool refresh = false}) async {
     final gateway = widget.challengeGateway;
     final epoch = ++challengeEpoch;
+    final previous = challenge;
     captcha.clear();
     setState(() {
       challengeBusy = true;
@@ -70,8 +82,11 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted || epoch != challengeEpoch) return;
       setState(() {
         challengeBusy = false;
-        error = '验证码读取失败或已失效，请重新登录获取验证';
-        needCaptcha = false;
+        error = previous == null
+            ? '验证码读取失败或已失效，请重新登录获取验证'
+            : '验证码刷新失败，请重试刷新；旧答案不会用于新的挑战';
+        challenge = previous;
+        needCaptcha = previous != null;
       });
     }
   }
@@ -102,8 +117,55 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  RouteChoice _route = RouteChoice.automatic;
+  bool _routeApplied = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_routeApplied) return;
+    _routeApplied = true;
+    final stored = AppPreferencesScope.of(context).routeMode;
+    _route = switch (stored) {
+      'direct' => RouteChoice.direct,
+      'webVpn' => RouteChoice.webVpn,
+      _ => RouteChoice.automatic,
+    };
+  }
+
+  Future<void> _changeRoute(RouteChoice route) async {
+    if (busy || challengeBusy || route == _route) return;
+    final preferences = AppPreferencesScope.of(context);
+    setState(() => busy = true);
+    try {
+      final response = await widget.service.setRoute(route);
+      if (!mounted) return;
+      if (response.failure != null) {
+        setState(() => error = failureMessage(response.failure));
+        return;
+      }
+      challengeEpoch++;
+      captcha.clear();
+      setState(() {
+        _route = route;
+        needCaptcha = false;
+        challenge = null;
+        error = null;
+      });
+      await preferences.setRouteMode(route.name);
+      if (mounted && preferences.saveError != null) {
+        setState(() => error = preferences.saveError);
+      }
+    } catch (_) {
+      if (mounted) setState(() => error = '网络路线切换失败，请重试');
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
   @override
   void dispose() {
+    retryPause.dispose();
     account.dispose();
     password.dispose();
     captcha.dispose();
@@ -111,7 +173,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> submit() async {
-    if (busy || challengeBusy) return;
+    if (busy || challengeBusy || retryPause.remaining > 0) return;
     if (needCaptcha &&
         (challenge?.textSupported != true || captcha.text.trim().isEmpty)) {
       setState(
@@ -181,6 +243,7 @@ class _LoginPageState extends State<LoginPage> {
             : failureMessage(response.failure);
         captcha.clear();
         challenge = null;
+        if (retryPause.record(response.failure)) error = retryPause.message;
       });
       if (needCaptcha) await loadChallenge(expectedId: response.captchaId);
     } catch (_) {
@@ -273,6 +336,12 @@ class _LoginPageState extends State<LoginPage> {
                             .resolveFrom(context),
                         child: Column(
                           children: [
+                            LoginRouteSelector(
+                              route: _route,
+                              onChanged: busy || challengeBusy
+                                  ? null
+                                  : _changeRoute,
+                            ),
                             _field(
                               key: const Key('login-account'),
                               controller: account,
@@ -310,6 +379,13 @@ class _LoginPageState extends State<LoginPage> {
                                 onSubmitted: (_) => submit(),
                               ),
                             if (needCaptcha) _challengeRow(),
+                            Container(
+                              height: .5,
+                              margin: const EdgeInsets.only(left: 48),
+                              color: CupertinoColors.separator.resolveFrom(
+                                context,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -329,15 +405,9 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                     if (error != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 14),
-                        child: SectionFeedback(
-                          key: const Key('login-error'),
-                          loading: false,
-                          label: '登录状态',
-                          hasData: false,
-                          error: error,
-                        ),
+                      LoginFeedback(
+                        key: const Key('login-error'),
+                        message: error!,
                       ),
                     const SizedBox(height: 24),
                     CupertinoButton.filled(
@@ -346,6 +416,7 @@ class _LoginPageState extends State<LoginPage> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       onPressed:
                           busy ||
+                              retryPause.remaining > 0 ||
                               challengeBusy ||
                               (needCaptcha && challenge?.textSupported != true)
                           ? null
@@ -376,10 +447,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      '记住的密码保存在本机系统安全存储，退出登录时删除。'
-                      '校外使用部分服务时，WebVPN 网关可能需要再次认证；'
-                      '保存密码可用于重建网关会话，不代表密码会交给项目服务器。'
-                      '不保存也可登录，但可能需要手动重新认证。验证码不会保存。',
+                      '密码仅发送至学校认证系统；勾选记住密码后才保存到本机安全存储。',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
@@ -388,10 +456,15 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: GinkgoSpacing.sm),
+                    const LoginNetworkNote(),
                     CupertinoButton(
                       onPressed: busy ? null : widget.onDemo,
-                      child: const Text('先看看离线演示'),
+                      minimumSize: const Size(48, 48),
+                      child: const Text(
+                        '先看看离线演示',
+                        style: TextStyle(fontSize: 13),
+                      ),
                     ),
                   ],
                 ),
@@ -494,44 +567,19 @@ class _LoginPageState extends State<LoginPage> {
     TextInputAction? textInputAction,
     Iterable<String>? autofillHints,
     ValueChanged<String>? onSubmitted,
-  }) => Semantics(
-    textField: true,
+  }) => loginCredentialField(
+    context: context,
+    busy: busy,
+    challengeBusy: challengeBusy,
+    showPassword: showPassword,
+    togglePassword: () => setState(() => showPassword = !showPassword),
+    key: key,
+    controller: controller,
+    placeholder: placeholder,
     label: label,
-    child: CupertinoTextField(
-      key: key,
-      controller: controller,
-      placeholder: placeholder,
-      enabled: !busy && !challengeBusy,
-      obscureText: obscure && !showPassword,
-      prefix: Padding(
-        padding: const EdgeInsets.only(left: 16),
-        child: Icon(
-          obscure ? CupertinoIcons.lock : CupertinoIcons.person,
-          size: 20,
-          color: CupertinoColors.secondaryLabel.resolveFrom(context),
-        ),
-      ),
-      suffix: !obscure
-          ? null
-          : CupertinoButton(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              onPressed: busy
-                  ? null
-                  : () => setState(() => showPassword = !showPassword),
-              child: Icon(
-                showPassword ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
-                size: 20,
-                semanticLabel: showPassword ? '隐藏密码' : '显示密码',
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
-              ),
-            ),
-      enableSuggestions: !obscure,
-      autocorrect: false,
-      textInputAction: textInputAction,
-      autofillHints: autofillHints,
-      onSubmitted: onSubmitted,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
-      decoration: const BoxDecoration(),
-    ),
+    obscure: obscure,
+    textInputAction: textInputAction,
+    autofillHints: autofillHints,
+    onSubmitted: onSubmitted,
   );
 }

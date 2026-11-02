@@ -425,6 +425,8 @@ async fn schedule_expired_session_without_saved_password_keeps_snapshot() {
         .sign_in("sy2501001", "fixture-password", None, false)
         .await
         .expect("login");
+    // No reusable memory credential (for example, a restored identity).
+    service.identity.lock().session_credentials = None;
     let first = service
         .load_schedule(&ScheduleQueryInput {
             term_id: None,

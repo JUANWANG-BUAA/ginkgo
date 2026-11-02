@@ -474,14 +474,17 @@
 - `pub trait SessionSource: Send + Sync`
   <sub>trait · rust/crates/ginkgo_domain/src/ports/session.rs:45</sub>
     - `fn login_challenge( &self, _expected_id: Option<&str>, _refresh: bool, ) -> Future<Result<LoginChallengeData, AppError>> {…}`  <sub>:46</sub>
-    - `fn status(&self) -> SessionStatus;`  <sub>:54</sub>
-    - `fn set_route(&self, preference: RoutePreference);`  <sub>:55</sub>
-    - `fn sign_in( &self, account: &str, password: &str, captcha: Option<&str>, remember: bool, ) -> Future<Result<SessionOutcome, AppError>>;`  <sub>:56</sub>
-    - `fn restore(&self) -> Future<Result<SessionOutcome, AppError>>;`  <sub>:63</sub>
-    - `fn sign_out(&self) -> Future<()>;` — Revoke the in-memory session: identity, cookies and snapshots.  <sub>:70</sub>
-    - `fn purge_credentials(&self) -> Future<()>;` — Remove every saved password. Local platform storage; may block.  <sub>:72</sub>
-    - `fn clear_snapshots(&self);`  <sub>:73</sub>
-    - `fn account(&self) -> Result<String, AppError>;`  <sub>:74</sub>
+    - `fn gateway_challenge( &self, _expected_id: Option<&str>, _refresh: bool, ) -> Future<Result<Option<LoginChallengeData>, AppError>>`  <sub>:54</sub>
+    - `fn resume_gateway_login( &self, _expected_id: &str, _answer: &str, ) -> Future<Result<(), AppError>> {…}`  <sub>:62</sub>
+    - `fn status(&self) -> SessionStatus;`  <sub>:70</sub>
+    - `fn set_route(&self, preference: RoutePreference);`  <sub>:71</sub>
+    - `fn apply_route_change( &self, preference: RoutePreference, ) -> Future<Result<(), AppError>> {…}`  <sub>:72</sub>
+    - `fn sign_in( &self, account: &str, password: &str, captcha: Option<&str>, remember: bool, ) -> Future<Result<SessionOutcome, AppError>>;`  <sub>:81</sub>
+    - `fn restore(&self) -> Future<Result<SessionOutcome, AppError>>;`  <sub>:88</sub>
+    - `fn sign_out(&self) -> Future<()>;` — Revoke the in-memory session: identity, cookies and snapshots.  <sub>:95</sub>
+    - `fn purge_credentials(&self) -> Future<()>;` — Remove every saved password. Local platform storage; may block.  <sub>:97</sub>
+    - `fn clear_snapshots(&self);`  <sub>:98</sub>
+    - `fn account(&self) -> Result<String, AppError>;`  <sub>:99</sub>
 
 ## shuttle
 

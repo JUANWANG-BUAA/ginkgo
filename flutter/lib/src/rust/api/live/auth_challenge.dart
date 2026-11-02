@@ -8,6 +8,8 @@ import '../mirror.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These functions are ignored because they are not marked as `pub`: `gateway_owner`
+
 Future<LoginChallengeResponse> loadLoginChallenge({
   String? expectedId,
   required bool refresh,
@@ -15,6 +17,46 @@ Future<LoginChallengeResponse> loadLoginChallenge({
   expectedId: expectedId,
   refresh: refresh,
 );
+
+/// Empty challenge fields with no failure mean there is no pending challenge.
+Future<LoginChallengeResponse> loadGatewayChallenge({
+  required String expectedAccount,
+  String? expectedId,
+  required bool refresh,
+}) => RustLib.instance.api.crateApiLiveAuthChallengeLoadGatewayChallenge(
+  expectedAccount: expectedAccount,
+  expectedId: expectedId,
+  refresh: refresh,
+);
+
+/// One explicit answer, bound to the current challenge; never retried here.
+Future<GatewayVerificationResponse> resumeGatewayLogin({
+  required String expectedAccount,
+  required String expectedId,
+  required String answer,
+}) => RustLib.instance.api.crateApiLiveAuthChallengeResumeGatewayLogin(
+  expectedAccount: expectedAccount,
+  expectedId: expectedId,
+  answer: answer,
+);
+
+class GatewayVerificationResponse {
+  final bool verified;
+  final FailureCode? failure;
+
+  const GatewayVerificationResponse({required this.verified, this.failure});
+
+  @override
+  int get hashCode => verified.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GatewayVerificationResponse &&
+          runtimeType == other.runtimeType &&
+          verified == other.verified &&
+          failure == other.failure;
+}
 
 class LoginChallengeResponse {
   final String? challengeId;

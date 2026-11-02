@@ -4,7 +4,7 @@
 > 修改接口后运行 `python3 scripts/generate-interface-index.py` 重新生成；
 > 手工总览与分层说明见 [INTERFACE-INDEX.md](../INTERFACE-INDEX.md)。
 
-按目录分组统计：31 个分组节点（其中 29 个有出向依赖）、136 条跨组依赖。箭头方向为「依赖方 → 被依赖方」。
+按目录分组统计：31 个分组节点（其中 29 个有出向依赖）、137 条跨组依赖。箭头方向为「依赖方 → 被依赖方」。
 
 ## 依赖图
 
@@ -53,6 +53,7 @@ flowchart LR
   n_features_academic --> n_widgets
   n_features_auth --> n_application
   n_features_auth --> n_design
+  n_features_auth --> n_shared
   n_features_auth --> n_widgets
   n_features_bykc --> n_application
   n_features_bykc --> n_design

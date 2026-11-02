@@ -10,6 +10,8 @@ python3 scripts/check-ui-language.py
 python3 scripts/generate-interface-index.py --check
 python3 scripts/check-api-doc-test.py
 python3 scripts/check-api-doc.py
+python3 scripts/check-contracts-test.py
+python3 scripts/check-contracts.py
 cargo fmt --manifest-path rust/Cargo.toml --all --check
 cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets --all-features --locked -- -D warnings
 cargo test --manifest-path rust/Cargo.toml -p ginkgo_core --no-default-features --locked

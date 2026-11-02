@@ -74,6 +74,10 @@ class AppPreferences extends ChangeNotifier {
   bool explicitSignOut = false;
   String? saveError;
 
+  /// Chosen network route, kept so the login page and the next start use the
+  /// same path instead of silently falling back to automatic.
+  String routeMode = 'automatic';
+
   static Future<void> _discardWrite(Map<String, Object> _) async {}
 
   static Future<Map<String, Object?>?> _emptyRead() async => null;
@@ -97,6 +101,9 @@ class AppPreferences extends ChangeNotifier {
           ? size.toDouble()
           : 1;
       explicitSignOut = value['explicitSignOut'] == true;
+      routeMode = value['routeMode'] is String
+          ? value['routeMode'] as String
+          : 'automatic';
       notifyListeners();
     } catch (_) {
       saveError = '未能读取外观偏好，已使用默认设置';
@@ -111,6 +118,7 @@ class AppPreferences extends ChangeNotifier {
     'reduceMotion': reduceMotion,
     'textSize': textSize,
     'explicitSignOut': explicitSignOut,
+    'routeMode': routeMode,
   };
 
   Future<void> _scheduleSave(String failureMessage) {
@@ -138,6 +146,12 @@ class AppPreferences extends ChangeNotifier {
     this.reduceMotion = reduceMotion ?? this.reduceMotion;
     this.textSize = textSize ?? this.textSize;
     return _scheduleSave('外观已应用，本机保存失败，请稍后重试');
+  }
+
+  /// Persists the network route chosen on the login page.
+  Future<void> setRouteMode(String value) {
+    routeMode = value;
+    return _scheduleSave('网络路线已选择，本机保存失败，请稍后重试');
   }
 
   /// Records or clears the explicit sign-out marker with the same serialized

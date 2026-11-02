@@ -16,6 +16,13 @@
     - `const AccentCoursePreview({super.key, required this.accent});`  <sub>:131</sub>
     - `State<AccentCoursePreview> createState() => …`  <sub>:135</sub>
 
+## features/settings/gateway_challenge_page.dart
+
+- `class GatewayChallengePage extends StatefulWidget`
+  <sub>class · features/settings/gateway_challenge_page.dart:11</sub>
+    - `const GatewayChallengePage({super.key, required this.gateway});`  <sub>:12</sub>
+    - `State<GatewayChallengePage> createState() => …`  <sub>:15</sub>
+
 ## features/settings/maintenance_pages.dart
 
 - `class MaintenanceScaffold extends StatelessWidget`
@@ -76,7 +83,7 @@
 ## features/settings/settings_page.dart
 
 - `class SettingsPage extends StatefulWidget`
-  <sub>class · features/settings/settings_page.dart:20</sub>
-    - `const SettingsPage({ super.key, required this.service, required this.onSignOut, this.accountName, this.accountId, this.route, required this.maintenance, });`  <sub>:21</sub>
-    - `final Future<void> Function() onSignOut;`  <sub>:36</sub>
-    - `State<SettingsPage> createState() => …`  <sub>:41</sub>
+  <sub>class · features/settings/settings_page.dart:22</sub>
+    - `const SettingsPage({ super.key, required this.service, required this.onSignOut, this.accountName, this.accountId, this.route, required this.maintenance, });`  <sub>:23</sub>
+    - `final Future<void> Function() onSignOut;`  <sub>:38</sub>
+    - `State<SettingsPage> createState() => …`  <sub>:43</sub>

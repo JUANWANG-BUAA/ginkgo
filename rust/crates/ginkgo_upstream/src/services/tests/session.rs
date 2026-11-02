@@ -243,6 +243,148 @@ async fn sign_in_returns_profile_and_stores_sanitized_credentials() {
 }
 
 #[tokio::test]
+async fn encrypted_session_snapshot_restores_cookies_without_saved_password() {
+    let vault = MemoryVault::default();
+    let (signed_in, _) = build_service(login_chain("sy2501001", "fixture"), vault.clone());
+    signed_in
+        .sign_in("sy2501001", "pa+ss/word", None, false)
+        .await
+        .expect("sign in without saving password");
+    assert!(vault.names().is_empty());
+    assert!(vault.has_session().expect("session record exists"));
+
+    // A new service models a cold process start: only the secure session
+    // snapshot survives, and UC validates its account before publication.
+    let (restored, transport) = build_service(vec![uc_ok("sy2501001", "fixture")], vault.clone());
+    let outcome = restored.restore().await.expect("restore persisted session");
+    assert!(matches!(outcome, SessionOutcome::SignedIn { .. }));
+    assert_eq!(restored.status().account.as_deref(), Some("sy2501001"));
+    assert_eq!(
+        transport.request_count(),
+        1,
+        "restoration validates, but does not log in"
+    );
+    let mut direct = restored.session.cookie_snapshot().direct;
+    assert_eq!(
+        direct
+            .header_for(LOGIN_URL, crate::foundation::cookie::CookieJar::now_ms())
+            .as_deref(),
+        Some("CASTGC=TGT-fixture")
+    );
+    assert_eq!(
+        vault
+            .load_session()
+            .expect("updated snapshot")
+            .unwrap()
+            .profile_name,
+        "fixture"
+    );
+}
+
+#[tokio::test]
+async fn authenticated_set_cookie_updates_the_persisted_snapshot() {
+    let vault = MemoryVault::default();
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(
+        HttpResponse::new(200, "https://sso.buaa.edu.cn/session/refresh", "ok")
+            .with_set_cookie("CASTGC=TGT-rotated; Path=/; Secure; HttpOnly"),
+    );
+    let (service, _) = build_service(responses, vault.clone());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, false)
+        .await
+        .expect("sign in");
+    service
+        .session
+        .send(HttpRequest::get("https://sso.buaa.edu.cn/session/refresh"))
+        .await
+        .expect("authenticated read rotates CAS cookie");
+
+    let snapshot = vault.load_session().expect("snapshot persisted").unwrap();
+    let mut direct = snapshot.cookies.direct;
+    assert_eq!(
+        direct.header_for(
+            "https://sso.buaa.edu.cn/login",
+            crate::foundation::cookie::CookieJar::now_ms()
+        ),
+        Some("CASTGC=TGT-rotated".into())
+    );
+}
+
+#[tokio::test]
+async fn expired_session_snapshot_is_deleted_without_network_or_password_fallback() {
+    let vault = MemoryVault::default();
+    let (signed_in, _) = build_service(login_chain("sy2501001", "fixture"), vault.clone());
+    signed_in
+        .sign_in("sy2501001", "pa+ss/word", None, false)
+        .await
+        .expect("sign in");
+    let mut snapshot = vault.load_session().expect("load").unwrap();
+    snapshot.saved_at_ms -= PersistedSession::MAX_AGE_MS + 1;
+    vault.save_session(&snapshot).expect("age snapshot");
+
+    let (restored, transport) = build_service(vec![], vault.clone());
+    assert!(matches!(
+        restored
+            .restore()
+            .await
+            .expect("expired record is a signed-out state"),
+        SessionOutcome::SignedOut
+    ));
+    assert_eq!(transport.request_count(), 0);
+    assert!(!vault.has_session().expect("expired record removed"));
+}
+
+#[tokio::test]
+async fn an_explicit_route_change_removes_the_old_persisted_session() {
+    let vault = MemoryVault::default();
+    let (service, _) = build_service(login_chain("sy2501001", "fixture"), vault.clone());
+    service
+        .apply_route_change(RoutePreference::Automatic)
+        .await
+        .expect("initial route setup");
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, false)
+        .await
+        .expect("sign in");
+    assert!(vault.has_session().expect("persisted session"));
+
+    service
+        .apply_route_change(RoutePreference::Direct)
+        .await
+        .expect("route change");
+    assert!(!vault.has_session().expect("old route session removed"));
+    assert!(!service.status().signed_in());
+}
+
+#[tokio::test]
+async fn a_persisted_cookie_for_another_account_is_never_published() {
+    let vault = MemoryVault::default();
+    let (signed_in, _) = build_service(login_chain("sy2501001", "fixture"), vault.clone());
+    signed_in
+        .sign_in("sy2501001", "pa+ss/word", None, false)
+        .await
+        .expect("sign in");
+    let mut snapshot = vault.load_session().expect("load").unwrap();
+    snapshot.account = "sy2501002".into();
+    vault
+        .save_session(&snapshot)
+        .expect("rewrite fixture account");
+
+    let (restored, transport) = build_service(vec![uc_ok("sy2501001", "fixture")], vault.clone());
+    assert!(matches!(
+        restored
+            .restore()
+            .await
+            .expect("foreign session is rejected"),
+        SessionOutcome::SignedOut
+    ));
+    assert!(!restored.status().signed_in());
+    assert!(!vault.has_session().expect("foreign snapshot removed"));
+    assert_eq!(transport.request_count(), 1);
+}
+
+#[tokio::test]
 async fn sign_in_accepts_an_ascii_case_only_school_id_difference() {
     let (service, transport) =
         build_service(login_chain("SY2501001", "fixture"), MemoryVault::default());
@@ -373,7 +515,8 @@ async fn sign_out_clears_identity_credentials_and_snapshots() {
     let mut responses = login_chain("sy2501001", "fixture");
     responses.push(HttpResponse::new(200, "activation", ""));
     responses.push(HttpResponse::new(200, "search", classroom_body()));
-    let (service, transport) = build_service(responses, MemoryVault::default());
+    let vault = MemoryVault::default();
+    let (service, transport) = build_service(responses, vault.clone());
     service
         .sign_in("sy2501001", "pa+ss/word", None, true)
         .await
@@ -399,6 +542,9 @@ async fn sign_out_clears_identity_credentials_and_snapshots() {
     );
     // The saved password is purged by the separate, gate-free second step.
     service.purge_credentials().await;
+    assert!(!vault
+        .has_session()
+        .expect("sign out removed cookie session"));
     assert!(service.vault.names().is_empty());
     // Purging twice is harmless and never resurrects an account.
     service.purge_credentials().await;
@@ -575,7 +721,7 @@ async fn concurrent_expired_business_reads_share_a_failed_password_post() {
 }
 
 #[tokio::test]
-async fn automatic_school_and_gateway_recovery_share_failure_until_explicit_login() {
+async fn school_and_gateway_failures_have_independent_cooldowns() {
     use std::sync::atomic::Ordering;
     let (service, transport) = recovery_failure_service();
     assert_eq!(
@@ -586,7 +732,7 @@ async fn automatic_school_and_gateway_recovery_share_failure_until_explicit_logi
         service
             .ensure_webvpn_session()
             .await
-            .expect_err("gateway shares failure")
+            .expect_err("gateway attempts its own recovery")
             .code,
         ErrorCode::ServiceUnavailable
     );
@@ -598,7 +744,7 @@ async fn automatic_school_and_gateway_recovery_share_failure_until_explicit_logi
             .code,
         ErrorCode::ServiceUnavailable
     );
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 1);
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 2);
 
     // Explicit user login bypasses the automatic cooldown, but a 500 remains a
     // failure. Once the server recovers, a successful manual login clears it.
@@ -606,7 +752,7 @@ async fn automatic_school_and_gateway_recovery_share_failure_until_explicit_logi
         .sign_in("sy2501001", "pa+ss/word", None, true)
         .await
         .is_err());
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 2);
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 3);
     transport.allow_login.store(true, Ordering::Relaxed);
     assert!(matches!(
         service
@@ -615,12 +761,12 @@ async fn automatic_school_and_gateway_recovery_share_failure_until_explicit_logi
             .expect("manual recovery"),
         SessionOutcome::SignedIn { .. }
     ));
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 3);
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 4);
     service
         .silent_login()
         .await
         .expect("manual success cleared prior failure");
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 4);
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 5);
 }
 
 #[tokio::test]
@@ -658,7 +804,7 @@ async fn automatic_login_failure_cooldown_expires_and_identity_changes_clear_it(
 }
 
 #[tokio::test]
-async fn failed_gateway_recovery_is_shared_with_school_recovery() {
+async fn failed_gateway_does_not_suppress_school_recovery() {
     use std::sync::atomic::Ordering;
     let (service, transport) = recovery_failure_service();
     assert_eq!(
@@ -675,21 +821,21 @@ async fn failed_gateway_recovery_is_shared_with_school_recovery() {
     );
     let (school, gateway) = tokio::join!(service.silent_login(), service.ensure_webvpn_session());
     assert_eq!(
-        school.expect_err("school shares failure").code,
+        school.expect_err("school attempts independently").code,
         ErrorCode::ServiceUnavailable
     );
     assert_eq!(
         gateway.expect_err("gateway shares failure").code,
         ErrorCode::ServiceUnavailable
     );
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 1);
-    assert!(transport
-        .requests
-        .lock()
-        .expect("requests")
+    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 2);
+    let requests = transport.requests.lock().expect("requests");
+    assert!(requests
         .iter()
-        .filter(|request| request.method == HttpMethod::Post)
-        .all(|request| request.url.starts_with("https://d.buaa.edu.cn/")));
+        .any(|r| r.method == HttpMethod::Post && r.url.starts_with("https://sso.buaa.edu.cn/")));
+    assert!(requests
+        .iter()
+        .any(|r| r.method == HttpMethod::Post && r.url.starts_with("https://d.buaa.edu.cn/")));
 }
 
 fn captcha_image() -> HttpResponse {
@@ -770,4 +916,86 @@ async fn login_challenge_refresh_replaces_pending_and_old_answer_image_is_reject
         .requests()
         .iter()
         .all(|request| request.method == HttpMethod::Get));
+}
+
+#[tokio::test]
+async fn in_memory_credentials_take_priority_and_never_reuse_captcha() {
+    let (service, _) = recovery_failure_service();
+    service.remember_session_credentials(&Credentials {
+        username: "sy2501001".into(),
+        password: "new-synthetic-secret".into(),
+        captcha_text: Some("old-answer".into()),
+    });
+    let credentials = service.recovery_credentials("sy2501001").unwrap();
+    assert_eq!(credentials.password, "new-synthetic-secret");
+    assert!(credentials.captcha_text.is_none());
+    assert!(service.recovery_credentials("another-account").is_err());
+}
+
+#[tokio::test]
+async fn explicit_webvpn_preference_survives_gateway_failure() {
+    let (service, _) = recovery_failure_service();
+    *crate::foundation::mutex::lock_value(&service.route) = RoutePreference::WebVpn;
+    assert!(service.ensure_webvpn_session().await.is_err());
+    assert_eq!(
+        service.session.route(),
+        crate::auth::session::RouteMode::WebVpn
+    );
+}
+
+#[tokio::test]
+async fn restored_snapshot_preserves_original_deadline_and_password_choice() {
+    let vault = MemoryVault::default();
+    let (signed_in, _) = build_service(login_chain("sy2501001", "fixture"), vault.clone());
+    signed_in
+        .sign_in("sy2501001", "synthetic", None, false)
+        .await
+        .unwrap();
+    let mut record = vault.load_session().unwrap().unwrap();
+    record.saved_at_ms -= 23 * 60 * 60 * 1000;
+    let original = record.saved_at_ms;
+    vault.save_session(&record).unwrap();
+    let (restored, transport) = build_service(
+        vec![
+            uc_ok("sy2501001", "fixture"),
+            HttpResponse::new(200, LOGIN_URL, "ok")
+                .with_set_cookie("CASTGC=rotated; Path=/; Secure"),
+        ],
+        vault.clone(),
+    );
+    let outcome = restored.restore().await.unwrap();
+    assert!(matches!(
+        outcome,
+        SessionOutcome::SignedIn {
+            remembered: false,
+            ..
+        }
+    ));
+    assert!(vault.names().is_empty());
+    assert_eq!(vault.load_session().unwrap().unwrap().saved_at_ms, original);
+    restored
+        .session
+        .send(HttpRequest::get(LOGIN_URL))
+        .await
+        .unwrap();
+    assert_eq!(transport.request_count(), 2);
+    assert_eq!(vault.load_session().unwrap().unwrap().saved_at_ms, original);
+}
+
+#[tokio::test]
+async fn cold_snapshot_directory_failure_preserves_record_without_publishing_identity() {
+    let vault = MemoryVault::default();
+    let (signed_in, _) = build_service(login_chain("sy2501001", "fixture"), vault.clone());
+    signed_in
+        .sign_in("sy2501001", "synthetic", None, false)
+        .await
+        .unwrap();
+    let (restored, transport) = build_service(
+        vec![HttpResponse::new(503, UC_STATUS_URL, "temporary")],
+        vault.clone(),
+    );
+    assert!(restored.restore().await.is_err());
+    assert!(!restored.status().signed_in());
+    assert!(vault.has_session().unwrap());
+    assert_eq!(transport.request_count(), 1);
 }

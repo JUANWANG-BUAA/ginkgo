@@ -296,32 +296,35 @@ async fn wrong_credentials_return_a_typed_error() {
 }
 
 #[tokio::test]
-async fn uc_server_error_does_not_fail_a_valid_login() {
+async fn uc_server_error_does_not_publish_an_unverified_identity() {
     let transport = MockTransport::with_responses(vec![
         login_page(),
         HttpResponse::new(302, LOGIN_URL, "")
-            .with_header("Location", "https://sso.buaa.edu.cn/login?ticket=ST-2")
+            .with_header("Location", "https://uc.buaa.edu.cn/?ticket=ST-synthetic")
             .with_set_cookie("CASTGC=TGT-fixture; Path=/; Secure"),
-        HttpResponse::new(
-            200,
-            "https://sso.buaa.edu.cn/login?ticket=ST-2",
-            "<html>ok</html>",
-        ),
         HttpResponse::new(200, UC_ACTIVATION_URL, ""),
         HttpResponse::new(500, UC_STATUS_URL, "temporary"),
     ]);
     let session = Session::new(transport);
-    match login(&session, &credentials())
-        .await
-        .expect("the ticket is valid")
-    {
-        LoginResult::SignedIn(user) => {
-            assert_eq!(user.school_id, "sy2501001");
-            assert!(user.name.is_empty(), "the directory had nothing to say");
-        }
-        LoginResult::CaptchaRequired { .. } => panic!("no challenge here"),
-    }
+    assert_eq!(
+        login(&session, &credentials()).await.unwrap_err().code,
+        ErrorCode::ServiceUnavailable
+    );
     assert!(session.direct_cookie_present());
+}
+
+#[tokio::test]
+async fn unexpected_login_page_and_broken_directory_never_sign_in() {
+    let session = Session::new(MockTransport::with_responses(vec![
+        login_page(),
+        HttpResponse::new(200, LOGIN_URL, "<html>unknown school page</html>"),
+        HttpResponse::new(200, UC_ACTIVATION_URL, ""),
+        HttpResponse::new(200, UC_STATUS_URL, "<html>maintenance</html>"),
+    ]));
+    assert_eq!(
+        login(&session, &credentials()).await.unwrap_err().code,
+        ErrorCode::ChangedResponse
+    );
 }
 
 #[tokio::test]
@@ -534,20 +537,39 @@ async fn webvpn_maps_origin_and_referer_with_the_request() {
     );
 }
 
-/// A silent direct failure is not a block signal. Rerouting it would submit
-/// the password a second time — exactly what the school answers with a
-/// captcha. Only 483 / access-policy pages may switch the route (API §0.3).
+/// A safe direct read that cannot reach the campus is what opens the
+/// gateway. Retrying it there also establishes the gateway session that later
+/// module reads need — without it, automatic mode met an unauthenticated
+/// gateway and answered with its login page. The password itself is still
+/// submitted exactly once: only GETs are replayed.
 #[tokio::test]
-async fn a_silent_network_failure_never_becomes_a_second_login() {
+async fn a_silent_network_failure_opens_the_gateway_without_a_second_password() {
     let transport = MockTransport::with_results(vec![
         Err(TransportError::Unreachable),
         Ok(HttpResponse::new(200, "https://d.buaa.edu.cn/login", "")),
     ]);
-    let session = Session::new(transport);
-    let error = fetch_login_page(&session)
-        .await
-        .expect_err("the network error must surface as itself");
-    assert_eq!(error.code, ErrorCode::NetworkUnreachable);
-    assert_eq!(session.transport().request_count(), 1, "no gateway retry");
-    assert_eq!(session.route(), super::session::RouteMode::Automatic);
+    let session = Session::new(transport.clone());
+    let _ = fetch_login_page(&session).await;
+    assert_eq!(
+        session.transport().request_count(),
+        2,
+        "the safe read is retried once through the gateway"
+    );
+    assert_eq!(session.route(), super::session::RouteMode::WebVpn);
+    assert!(
+        session.transport().requests()[1]
+            .url
+            .starts_with("https://d.buaa.edu.cn/https/"),
+        "the retry goes through the gateway"
+    );
+    assert_eq!(
+        session
+            .transport()
+            .requests()
+            .iter()
+            .filter(|request| request.method == HttpMethod::Post)
+            .count(),
+        0,
+        "no password is submitted by a read"
+    );
 }

@@ -110,7 +110,7 @@
 - `pub async fn course_schedule<T: HttpTransport>( session: &Session<T>, iclass: &IClassSession, date: &str, ) -> Result<Vec<CheckInCourse>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:80</sub>
 - `pub async fn sign_in<T: HttpTransport>( session: &Session<T>, iclass: &IClassSession, course_id: &str, ) -> crate::codecs::mutation::MutationOutcome {…}` — CheckInClient.performSignIn / API.md §7.2. Timestamp is a safe read;
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:146</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:152</sub>
 
 ## classroom_http
 

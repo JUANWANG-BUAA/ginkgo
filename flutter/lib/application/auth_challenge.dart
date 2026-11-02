@@ -22,3 +22,15 @@ abstract interface class AuthChallengeGateway {
     bool refresh = false,
   });
 }
+
+/// Gateway verification is independent of the main school login form.
+abstract interface class GatewayVerificationGateway {
+  Future<LoginChallenge?> gatewayChallenge({
+    String? expectedId,
+    bool refresh = false,
+  });
+  Future<void> answerGatewayChallenge({
+    required String expectedId,
+    required String answer,
+  });
+}

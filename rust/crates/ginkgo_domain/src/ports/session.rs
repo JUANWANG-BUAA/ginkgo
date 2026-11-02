@@ -51,8 +51,33 @@ pub trait SessionSource: Send + Sync {
         async { Err(AppError::invalid()) }
     }
 
+    fn gateway_challenge(
+        &self,
+        _expected_id: Option<&str>,
+        _refresh: bool,
+    ) -> impl std::future::Future<Output = Result<Option<LoginChallengeData>, AppError>> + Send
+    {
+        async { Err(AppError::invalid()) }
+    }
+    fn resume_gateway_login(
+        &self,
+        _expected_id: &str,
+        _answer: &str,
+    ) -> impl std::future::Future<Output = Result<(), AppError>> + Send {
+        async { Err(AppError::invalid()) }
+    }
+
     fn status(&self) -> SessionStatus;
     fn set_route(&self, preference: RoutePreference);
+    fn apply_route_change(
+        &self,
+        preference: RoutePreference,
+    ) -> impl std::future::Future<Output = Result<(), AppError>> + Send {
+        async move {
+            self.set_route(preference);
+            Ok(())
+        }
+    }
     fn sign_in(
         &self,
         account: &str,

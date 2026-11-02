@@ -40,13 +40,15 @@
     - `bool reduceMotion = false;`  <sub>:68</sub>
     - `double textSize = 1;`  <sub>:69</sub>
     - `bool explicitSignOut = false;` — Set by an explicit sign-out and cleared by the next successful sign-in.  <sub>:74</sub>
-    - `Future<void> restore() async {…}`  <sub>:81</sub>
-    - `Future<void> update({ AppAppearance? appearance, AppAccent? accent, bool? compactLists, bool? reduceMotion, double? textSize, }) {…}`  <sub>:128</sub>
-    - `Future<void> setExplicitSignOut(bool value) {…}` — Records or clears the explicit sign-out marker with the same serialized  <sub>:145</sub>
+    - `String routeMode = 'automatic';` — Chosen network route, kept so the login page and the next start use the  <sub>:79</sub>
+    - `Future<void> restore() async {…}`  <sub>:85</sub>
+    - `Future<void> update({ AppAppearance? appearance, AppAccent? accent, bool? compactLists, bool? reduceMotion, double? textSize, }) {…}`  <sub>:136</sub>
+    - `Future<void> setRouteMode(String value) {…}` — Persists the network route chosen on the login page.  <sub>:152</sub>
+    - `Future<void> setExplicitSignOut(bool value) {…}` — Records or clears the explicit sign-out marker with the same serialized  <sub>:159</sub>
 - `class AppPreferencesScope extends InheritedNotifier<AppPreferences>`
-  <sub>class · shared/app_preferences.dart:153</sub>
-    - `const AppPreferencesScope({ super.key, required AppPreferences preferences, required super.child, }) : super(notifier: preferences);`  <sub>:154</sub>
-    - `static AppPreferences of(BuildContext context) => …`  <sub>:160</sub>
+  <sub>class · shared/app_preferences.dart:167</sub>
+    - `const AppPreferencesScope({ super.key, required AppPreferences preferences, required super.child, }) : super(notifier: preferences);`  <sub>:168</sub>
+    - `static AppPreferences of(BuildContext context) => …`  <sub>:174</sub>
 
 ## shared/checkin_sessions.dart
 

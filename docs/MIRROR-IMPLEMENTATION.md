@@ -1,6 +1,10 @@
 # Rust + Flutter 镜像实施现状
 
-更新：2026-11-01。功能与本地接口统一索引见 [功能和接口协议](FEATURES-AND-PROTOCOLS.md)，全代码接口总览与逐层清单见 [接口索引](INTERFACE-INDEX.md)。本页描述工作树；公开 APK 的内容以对应发布记录为准。模块差距只维护在 [功能对照](MIRROR-PARITY.md)，未完成事项只维护在 [待办](MIRROR-TODO.md)，过程与历次测试见 [历史证据索引](archive/mirror/README.md)。
+更新：2026-11-02。功能与本地接口统一索引见 [功能和接口协议](FEATURES-AND-PROTOCOLS.md)，全代码接口总览与逐层清单见 [接口索引](INTERFACE-INDEX.md)。本页描述工作树；公开 APK 的内容以对应发布记录为准。模块差距只维护在 [功能对照](MIRROR-PARITY.md)，未完成事项只维护在 [待办](MIRROR-TODO.md)，过程与历次测试见 [历史证据索引](archive/mirror/README.md)。
+
+2026-11-02 工作树正在修复认证与路线回归，状态与验证见 [修复记录](_audit/2026-11-02-backend-repair.md)。登录页提供自动/直连/WebVPN 选择；设置页经独立能力端口提供网关验证码读取/刷新/单次作答，要求账号与挑战 ID 匹配；Android 会话 Cookie 使用独立 Keystore 密钥加密并在冷启动后向 UC 验证再恢复；固定 24 小时期限不因读取或 Cookie 轮换延长，UC 暂不可用不发布缓存身份。登录与网关验证码过期/刷新失败可显式 GET 更新，旧答案不可重发；路线操作检查类型化失败，密码明确拒绝有本地退避。未发布、未完成 Android 设备、真实账号验收及敏感存储人工审查。
+
+协议与客户端契约已加入 [源码/文档锁](protocol-contracts.json)，完整门禁和 CI 检查漂移。下一次发包必须满足 [强制验收契约](ANDROID-RELEASE-CONTRACT.md)；当前发布状态为 blocked，不能用本页“已实现”解除真实账号/设备/本人写入验收要求。
 
 ## 产品与验收边界
 
@@ -98,7 +102,7 @@ Flutter 导航、页面汇总、状态三件套和系统选择交互已按冻结
 | 应用 | [application](../rust/crates/ginkgo_core/src/application/) | 只依赖 domain 业务端口的应用命令、投影和本地待办 |
 | 组装 | [runtime](../rust/crates/ginkgo_runtime/src/) | 连接 core 与真实学校/平台实现 |
 | 桥接 | [bridge API](../rust/crates/ginkgo_flutter_bridge/src/api/) | 类型映射与粗粒度命令；生命周期 RwLock 排斥身份变更和进行中的读取 |
-| 呈现投影 | `lib/features/*/*_models.dart` | Rust payload JSON 的唯一解码点：按 domain 结构映射为类型值（cgyy、shuttle、bykc、library_books、library_stats、notices、graduate、checkin 遥测）；页面与共享组件不调用 `jsonDecode`，该边界由 `check-mirror-architecture.py` 强制 |
+| 呈现投影 | `lib/features/*/*_models.dart` | 消费类型化 DTO 的纯呈现转换；学校原始 JSON 不跨 FFI，页面、模型与共享组件不解析学校响应。早期 payload JSON 逃生舱已删除，该边界由架构/API 门禁检查 |
 | 设计系统 | [design tokens](../flutter/lib/design/tokens/)、[widgets](../flutter/lib/widgets/) | token 层（颜色/布局/动效/圆角/间距/字体）+ 按职责拆分的组件模块（surfaces/controls/navigation）；`apple_widgets.dart` 仅作 barrel 转发 |
 | 功能域 | [features/](../flutter/lib/features/) | 一个域一个目录：页面、域内组件（`<domain>_widgets.dart`）、模型与控制器同居；新增功能落在此处 |
 | 功能组件 | `today_course_section`、`homework_widgets`、`homework_files_widgets`、`graduate_sections`、`library_cards`、`shuttle_widgets`、`checkin_widgets`、`schedule_widgets`、`cgyy_widgets`、`cgyy_day_view`、`bykc_course_tile` | 大页面抽出的行级/区块组件与整页拆分（如 CGYY 日查询/订单页独立于 hub）；widget API 只收发类型值，不出现 `Map<String, dynamic>`（同由架构脚本强制） |

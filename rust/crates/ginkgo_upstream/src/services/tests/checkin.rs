@@ -259,7 +259,7 @@ async fn checkin_expired_school_session_recovers_once() {
     responses.push(checkin_entry_response("fixture-login"));
     responses.push(checkin_app_login_response());
     responses.push(checkin_schedule_response(checkin_day_body()));
-    responses.push(HttpResponse::new(401, "iclass", ""));
+    responses.push(HttpResponse::new(200, LOGIN_URL, FORM_PAGE));
     responses.extend(login_chain("sy2501001", "fixture"));
     responses.push(checkin_entry_response("fixture-login"));
     responses.push(checkin_app_login_response());
@@ -502,4 +502,35 @@ async fn out_of_window_checkin_never_requests_a_signature_or_posts() {
         .requests()
         .iter()
         .all(|r| !r.url.contains("stu_scan_sign") && !r.url.contains("get_timestamp")));
+}
+
+#[tokio::test]
+async fn checkin_business_401_rebuilds_module_without_password_login() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend([
+        checkin_entry_response("fixture-login"),
+        checkin_app_login_response(),
+        checkin_schedule_response(checkin_day_body()),
+        HttpResponse::new(401, crate::adapters::checkin_http::COURSE_SCHEDULE_URL, ""),
+        checkin_entry_response("fixture-login"),
+        checkin_app_login_response(),
+        checkin_schedule_response(checkin_day_body()),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, false)
+        .await
+        .unwrap();
+    service.load_checkin(true).await.unwrap();
+    let recovered = service.load_checkin(true).await.unwrap();
+    assert!(recovered.failure.is_none());
+    assert!(!recovered.courses.is_empty());
+    assert_eq!(
+        transport
+            .requests()
+            .iter()
+            .filter(|r| r.method == HttpMethod::Post && r.url == LOGIN_URL)
+            .count(),
+        1
+    );
 }

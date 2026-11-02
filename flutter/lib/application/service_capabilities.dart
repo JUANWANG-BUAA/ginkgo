@@ -1,3 +1,4 @@
+import 'package:ginkgo_mirror/application/auth_challenge.dart';
 import 'package:ginkgo_mirror/application/campus_activities.dart';
 import 'package:ginkgo_mirror/application/graduate_credit_map.dart';
 import 'package:ginkgo_mirror/application/learning.dart';
@@ -15,6 +16,7 @@ import 'package:ginkgo_mirror/application/reminder_planning.dart';
 class ServiceCapabilities {
   const ServiceCapabilities({
     this.academic,
+    this.gatewayVerification,
     this.careerEvents,
     this.campusActivities,
     this.courseAnnouncement,
@@ -34,6 +36,9 @@ class ServiceCapabilities {
 
   factory ServiceCapabilities.of(MirrorService service) => ServiceCapabilities(
     academic: service,
+    gatewayVerification: service is GatewayVerificationGateway
+        ? service as GatewayVerificationGateway
+        : null,
     careerEvents: service is CareerEventsGateway
         ? service as CareerEventsGateway
         : null,
@@ -87,6 +92,7 @@ class ServiceCapabilities {
       ServiceCapabilities.of(service);
 
   final AcademicGateway? academic;
+  final GatewayVerificationGateway? gatewayVerification;
   final CareerEventsGateway? careerEvents;
   final CampusActivitiesGateway? campusActivities;
   final CourseAnnouncementGateway? courseAnnouncement;

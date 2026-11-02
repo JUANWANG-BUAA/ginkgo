@@ -20,6 +20,6 @@
 - `pub fn has_saved_accounts() -> Result<bool, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:52</sub>
 - `pub fn verify_credential_storage(account: &str, secret: &str) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:56</sub>
+  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:57</sub>
 - `pub async fn check_update( current: &str, ) -> Result<ginkgo_core::features::updates::UpdateSummary, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:62</sub>
+  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:63</sub>

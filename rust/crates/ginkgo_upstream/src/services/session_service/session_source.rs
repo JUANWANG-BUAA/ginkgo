@@ -9,7 +9,7 @@ use crate::{
     AppError, ErrorCode,
 };
 use ginkgo_domain::ports::*;
-use std::time::Instant;
+use std::{sync::atomic::Ordering, time::Instant};
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for SchoolClient<T, V> {
     async fn login_challenge(
@@ -19,12 +19,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
     ) -> Result<LoginChallengeData, AppError> {
         let (page, account, generation, created) = {
             let mut identity = self.identity.lock();
+            let generation = identity.generation;
             let pending = identity
                 .pending_login
-                .as_ref()
+                .as_mut()
                 .ok_or_else(AppError::session_expired)?;
-            if !pending.valid(&pending.account, identity.generation) {
-                identity.pending_login = None;
+            if !pending.belongs_to(&pending.account, generation)
+                || (!refresh && !pending.valid(&pending.account, generation))
+            {
                 return Err(AppError::session_expired());
             }
             let LoginPage::Form {
@@ -38,6 +40,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                 || (refresh && expected_id.is_none())
             {
                 return Err(AppError::session_expired());
+            }
+            if refresh {
+                pending.created = Instant::now() - std::time::Duration::from_secs(301);
             }
             (
                 pending.page.clone(),
@@ -63,10 +68,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
         let page = if refresh {
             match auth::fetch_login_page(&self.session).await {
                 Ok(page) => page,
-                Err(error) => {
-                    clear_original_pending();
-                    return Err(error);
-                }
+                // Retain only an expired GET recovery handle on failure.
+                Err(error) => return Err(error),
             }
         } else {
             page
@@ -81,13 +84,19 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
         };
         let challenge = challenge.clone();
         let text_supported = auth::cas::text_captcha_supported(&challenge);
+        let image = if text_supported {
+            auth::challenge::image(&self.session, &challenge.id).await?
+        } else {
+            vec![]
+        };
         {
             let mut identity = self.identity.lock();
             if identity.generation != generation
-                || identity
-                    .pending_login
-                    .as_ref()
-                    .is_none_or(|pending| !pending.valid(&account, generation))
+                || identity.pending_login.as_ref().is_none_or(|pending| {
+                    !pending.belongs_to(&account, generation)
+                        || pending.created != created
+                        || (!refresh && !pending.valid(&account, generation))
+                })
             {
                 return Err(AppError::session_expired());
             }
@@ -98,11 +107,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                 created: if refresh { Instant::now() } else { created },
             });
         }
-        let image = if text_supported {
-            auth::challenge::image(&self.session, &challenge.id).await?
-        } else {
-            vec![]
-        };
         let identity = self.identity.lock();
         if identity.generation != generation
             || identity.pending_login.as_ref().is_none_or(|pending| {
@@ -119,6 +123,18 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
             text_supported,
             image,
         })
+    }
+
+    async fn gateway_challenge(
+        &self,
+        expected_id: Option<&str>,
+        refresh: bool,
+    ) -> Result<Option<LoginChallengeData>, AppError> {
+        self.read_gateway_challenge(expected_id, refresh).await
+    }
+
+    async fn resume_gateway_login(&self, expected_id: &str, answer: &str) -> Result<(), AppError> {
+        self.answer_gateway_challenge(expected_id, answer).await
     }
 
     fn status(&self) -> SessionStatus {
@@ -148,7 +164,20 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
         if changed {
             self.clear_identity();
         }
+        self.route_initialized.store(true, Ordering::Release);
         self.session.set_route(preference.into());
+    }
+
+    async fn apply_route_change(&self, preference: RoutePreference) -> Result<(), AppError> {
+        let changed = self.preference() != preference;
+        if changed && self.route_initialized.load(Ordering::Acquire) {
+            // A user-selected route change invalidates the old persisted jars
+            // before changing the live preference. If secure deletion fails,
+            // keep the old route active and surface the storage error.
+            self.delete_persisted_session().await?;
+        }
+        self.set_route(preference);
+        Ok(())
     }
 
     async fn sign_in(
@@ -162,6 +191,10 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
         if account.is_empty() || password.is_empty() {
             return Err(AppError::invalid());
         }
+        // A manual login begins a new session lifetime. Revoke the previously
+        // persisted cookie snapshot before attempting a different login so an
+        // interrupted/failed attempt cannot silently restore the old account.
+        self.delete_persisted_session().await?;
         let switching_account = self
             .identity
             .lock()
@@ -184,13 +217,21 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
             let mut identity = self.identity.lock();
             (identity.pending_login.take(), identity.generation)
         };
-        let page = match pending.filter(|page| page.valid(account, generation)) {
-            Some(pending) => pending.page,
-            None => {
-                // A stale answer must never be submitted against a newly fetched page.
-                if credentials.captcha_text.is_some() {
+        let mut credentials = credentials;
+        // A challenge that merely timed out still belongs to this sign-in:
+        // drop the answer and hand back the new captcha instead of ending the
+        // attempt with "school session expired". A challenge that belongs to
+        // another account or an older session is never replaced silently.
+        let timed_out = pending.as_ref().is_some_and(|page| {
+            page.belongs_to(account, generation) && !page.valid(account, generation)
+        });
+        let page = match pending {
+            Some(page) if page.valid(account, generation) => page.page,
+            _ => {
+                if credentials.captcha_text.is_some() && !timed_out {
                     return Err(AppError::session_expired());
                 }
+                credentials.captcha_text = None;
                 auth::fetch_login_page(&self.session).await?
             }
         };
@@ -231,6 +272,10 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                 // set_authenticated resets the record; re-seat the credential
                 // afterwards so the gateway can be opened in the same session.
                 self.remember_session_credentials(&credentials);
+                // Session persistence is independent from the optional saved
+                // password. A Keystore failure does not turn a valid login
+                // into a failed school authentication.
+                let _ = self.persist_active_session().await;
                 Ok(SessionOutcome::SignedIn {
                     profile,
                     remembered,
@@ -247,6 +292,44 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
     /// a saved account is only re-logged-in when that confirmation fails.
     async fn restore(&self) -> Result<SessionOutcome, AppError> {
         self.session.set_route(self.preference().into());
+        match self.load_persisted_session().await {
+            Ok(Some(saved)) => {
+                if !saved.is_usable_for(
+                    self.preference().into(),
+                    crate::foundation::cookie::CookieJar::now_ms(),
+                ) {
+                    let _ = self.delete_persisted_session().await;
+                } else {
+                    let account = saved.account.clone();
+                    self.session.restore_cookies(saved.cookies);
+                    match auth::validate_session(&self.session).await {
+                        Ok(profile) if profile.school_id.eq_ignore_ascii_case(&account) => {
+                            self.clear_caches();
+                            let remembered = self.vault.load(&account)?.is_some();
+                            self.set_authenticated(account, profile.clone());
+                            self.identity.lock().persisted_started_at_ms = saved.saved_at_ms;
+                            let _ = self.persist_active_session().await;
+                            return Ok(SessionOutcome::SignedIn {
+                                profile,
+                                remembered,
+                            });
+                        }
+                        Ok(_) => {
+                            self.clear_identity();
+                            let _ = self.delete_persisted_session().await;
+                            return Ok(SessionOutcome::SignedOut);
+                        }
+                        Err(error) if error.code == ErrorCode::SessionExpired => {
+                            self.clear_identity();
+                            let _ = self.delete_persisted_session().await;
+                        }
+                        Err(error) => return Err(error),
+                    }
+                }
+            }
+            Ok(None) => {}
+            Err(_) => {}
+        }
         let account = self
             .identity
             .lock()
@@ -261,7 +344,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                     self.update_profile(&account, profile.clone())?;
                     return Ok(SessionOutcome::SignedIn {
                         profile,
-                        remembered: true,
+                        remembered: self.vault.load(&account)?.is_some(),
                     });
                 }
                 // The cookie jar no longer belongs to the published account.
@@ -282,7 +365,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                     if let Some(profile) = profile {
                         return Ok(SessionOutcome::SignedIn {
                             profile,
-                            remembered: true,
+                            remembered: self.vault.load(&account)?.is_some(),
                         });
                     }
                 }
@@ -304,7 +387,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                 Ok(LoginResult::SignedIn(profile)) => {
                     self.clear_automatic_login_failure();
                     self.clear_caches();
-                    self.set_authenticated(credentials.username, profile.clone());
+                    self.set_authenticated(credentials.username.clone(), profile.clone());
+                    self.remember_session_credentials(&credentials);
+                    let _ = self.persist_active_session().await;
                     return Ok(SessionOutcome::SignedIn {
                         profile,
                         remembered: true,
@@ -355,6 +440,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
     /// followed by a blocking `SharedPreferences.commit()`, so it runs on a
     /// blocking thread and never under the caller's session gate.
     async fn purge_credentials(&self) {
+        if self.delete_persisted_session().await.is_err() {
+            let _ = self.delete_persisted_session().await;
+        }
         // An enumeration failure defaults to knowing only the signed-in
         // account; Android vault no longer reports that failure as an empty
         // list. Explicit logout must still remove saved accounts so nothing

@@ -115,8 +115,14 @@ fn app_login_url(login_name: &str) -> Result<String, AppError> {
 /// Shared HTTP classification for the two JSON endpoints. Structure problems
 /// stay ChangedResponse; a school login page means the school session expired.
 fn classify_json(response: &HttpResponse) -> Result<(), AppError> {
-    if response.status == 401 || cas::is_login_redirect(&response.final_url, &response.body) {
+    if cas::is_login_redirect(&response.final_url, &response.body) {
         return Err(AppError::session_expired());
+    }
+    if response.status == 401 {
+        return Err(AppError::with_detail(
+            ErrorCode::SessionExpired,
+            "iclass_session",
+        ));
     }
     if is_gateway_login(response) {
         return Err(AppError::with_detail(

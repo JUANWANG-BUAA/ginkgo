@@ -100,3 +100,8 @@ Rust Android 目标随选定设备确定；当前 ARM64 模拟器使用 `aarch64
 座位与空教室采用公共 `CollectionWindow` / `CollectionToolbar`，固定查询区、每页 50 条、直接跳页及局部状态；结果列表按需构建，同一查询刷新保持当前页。课表固定节次轴并提供周次/星期直达入口；长页滚动入口见 `long_page_scroll.dart`。后续大数据功能的接入规则及热更新限制见 [交互与更新边界](../docs/MIRROR-INTERACTION.md)。
 
 工作区导航由 `workspace_catalog.dart` 统一登记：新增功能在表里登记 id、标题、图标、分组与页面构建器，移动端标签、桌面侧栏与今日快捷入口自动派生；`main.dart` 只保留启动与登录状态机，`workspace_shell.dart` 负责两种布局。登记是编译期静态表，不支持运行时插件加载。
+
+
+## 下一次 Android 发布前置条件
+
+当前处于认证与使用回归修复期。执行 [Android 强制验收契约](../docs/ANDROID-RELEASE-CONTRACT.md)：`python3 scripts/check-contracts.py` 校验协议文档漂移，`--release` 校验当前候选的完整分层证据，缺项拒绝发包。Debug/集成测试和旧版报告不替代本次真实账号、验证码、设备冷恢复和操作闭环验收；待办只维护在 MIRROR-TODO。

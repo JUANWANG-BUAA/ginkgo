@@ -10,11 +10,31 @@ impl<U: SessionSource> Workspace<U> {
         self.upstream.login_challenge(expected_id, refresh).await
     }
 
+    pub async fn gateway_challenge(
+        &self,
+        expected_id: Option<&str>,
+        refresh: bool,
+    ) -> Result<Option<ginkgo_domain::ports::LoginChallengeData>, AppError> {
+        self.upstream.gateway_challenge(expected_id, refresh).await
+    }
+    pub async fn resume_gateway_login(
+        &self,
+        expected_id: &str,
+        answer: &str,
+    ) -> Result<(), AppError> {
+        self.upstream
+            .resume_gateway_login(expected_id, answer)
+            .await
+    }
+
     pub fn status(&self) -> SessionStatus {
         self.upstream.status()
     }
     pub fn set_route(&self, preference: RoutePreference) {
         self.upstream.set_route(preference)
+    }
+    pub async fn apply_route_change(&self, preference: RoutePreference) -> Result<(), AppError> {
+        self.upstream.apply_route_change(preference).await
     }
     pub async fn sign_in(
         &self,

@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-11-02",
+  "review_note": "Beta.3/UBAA comparison and current working-tree authentication repair; synthetic evidence is not live acceptance.",
+  "groups": [
+    {
+      "id": "authentication",
+      "inputs": [
+        "rust/crates/ginkgo_upstream/src/auth/**/*.rs",
+        "rust/crates/ginkgo_upstream/src/foundation/*.rs",
+        "rust/crates/ginkgo_upstream/src/services/session_service.rs",
+        "rust/crates/ginkgo_upstream/src/services/session_service/*.rs",
+        "rust/crates/ginkgo_upstream/src/services/tests/session.rs"
+      ],
+      "documents": [
+        "docs/API.md",
+        "docs/PRIVACY.md",
+        "docs/FEATURES-AND-PROTOCOLS.md"
+      ],
+      "evidence": [
+        "rust/crates/ginkgo_upstream/src/auth/tests.rs",
+        "rust/crates/ginkgo_upstream/src/services/session_service/gateway.rs",
+        "rust/crates/ginkgo_upstream/src/services/tests/session.rs"
+      ],
+      "invariants": [
+        "AUTH-01",
+        "AUTH-02",
+        "AUTH-03",
+        "AUTH-04",
+        "AUTH-05",
+        "AUTH-06"
+      ],
+      "source_sha256": "255be6160f8d8059000069e66d1eebae943b4bc7d64e2ca1d1771260ca308d83",
+      "document_sha256": "76723714235f70cb65df949cee240ff2749e36b9cde437e59a1a30dd2cbc547f"
+    },
+    {
+      "id": "school-protocols",
+      "inputs": [
+        "rust/crates/ginkgo_upstream/src/adapters/*.rs",
+        "rust/crates/ginkgo_upstream/src/codecs/**/*.rs",
+        "rust/crates/ginkgo_upstream/src/services/**/*.rs",
+        "fixtures/**/*.json"
+      ],
+      "documents": [
+        "docs/API.md",
+        "docs/FEATURES-AND-PROTOCOLS.md"
+      ],
+      "evidence": [
+        "rust/crates/ginkgo_upstream/tests/contracts.rs",
+        "rust/crates/ginkgo_upstream/src/services/tests/library.rs",
+        "rust/crates/ginkgo_upstream/src/services/tests/checkin.rs"
+      ],
+      "invariants": [
+        "DATA-01",
+        "WRITE-01",
+        "WRITE-02"
+      ],
+      "source_sha256": "4cc675f0c1b707095eb5f9414840aa213a06e10078cfada22543d502a4c6aba2",
+      "document_sha256": "011a31e0bb5dbb710a9b31f459aa1daa3e8d1c7000771e4ec203db5e3d63b086"
+    },
+    {
+      "id": "client-contracts",
+      "inputs": [
+        "rust/crates/ginkgo_domain/src/ports/*.rs",
+        "rust/crates/ginkgo_flutter_bridge/src/api/**/*.rs",
+        "flutter/lib/application/**/*.dart",
+        "flutter/lib/features/auth/*.dart",
+        "flutter/lib/features/settings/*.dart",
+        "flutter/lib/infrastructure/native_auth_challenge.dart",
+        "flutter/lib/shared/app_preferences.dart",
+        "flutter/lib/main.dart"
+      ],
+      "documents": [
+        "docs/INTERFACE-INDEX.md",
+        "docs/FEATURES-AND-PROTOCOLS.md",
+        "docs/MIRROR-ARCHITECTURE.md",
+        "docs/ARCHITECTURE-TOPOLOGY.md"
+      ],
+      "evidence": [
+        "flutter/test/auth_route_stability_test.dart",
+        "flutter/test/gateway_challenge_test.dart",
+        "flutter/test/login_route_test.dart"
+      ],
+      "invariants": [
+        "FFI-01",
+        "UI-01",
+        "DATA-01"
+      ],
+      "source_sha256": "414e4240a7d6f5bcfd301c2589c2a545872be81d99249dff2b773b68b0238f74",
+      "document_sha256": "e5c5dfbd874aae09f854010cb3f4f548d29f17e123d601b8090dfc3ce61fb30a"
+    }
+  ]
+}

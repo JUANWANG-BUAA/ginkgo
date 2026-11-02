@@ -1,3 +1,5 @@
+import 'package:ginkgo_mirror/application/gateway_verification_failure.dart';
+
 import 'dart:typed_data';
 
 import '../application/auth_challenge.dart';
@@ -63,4 +65,49 @@ bool _isDisplayableImage(Uint8List bytes) {
       bytes[bytes.length - 3] == 0x42 &&
       bytes[bytes.length - 2] == 0x60 &&
       bytes[bytes.length - 1] == 0x82;
+}
+
+mixin NativeGatewayVerification implements GatewayVerificationGateway {
+  String? get expectedAccount;
+  String get _gatewayOwner {
+    final owner = expectedAccount;
+    if (owner == null || owner.isEmpty) throw StateError('账号已变化，请重新打开验证页面');
+    return owner;
+  }
+
+  @override
+  Future<LoginChallenge?> gatewayChallenge({
+    String? expectedId,
+    bool refresh = false,
+  }) async {
+    final response = await boundedNativeRead(
+      () => live.loadGatewayChallenge(
+        expectedAccount: _gatewayOwner,
+        expectedId: expectedId,
+        refresh: refresh,
+      ),
+    );
+    if (response.failure != null) {
+      throw GatewayVerificationException(response.failure);
+    }
+    if (response.challengeId == null) return null;
+    return decodeLoginChallenge(response);
+  }
+
+  @override
+  Future<void> answerGatewayChallenge({
+    required String expectedId,
+    required String answer,
+  }) async {
+    final response = await boundedNativeWrite(
+      () => live.resumeGatewayLogin(
+        expectedAccount: _gatewayOwner,
+        expectedId: expectedId,
+        answer: answer,
+      ),
+    );
+    if (!response.verified || response.failure != null) {
+      throw GatewayVerificationException(response.failure);
+    }
+  }
 }

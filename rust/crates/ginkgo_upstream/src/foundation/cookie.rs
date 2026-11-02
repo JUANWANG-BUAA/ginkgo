@@ -3,10 +3,12 @@
 //! CAS login depends on `CASTGC` and UC cookies staying inside Rust; the UI
 //! never sees or forwards them. This jar implements the RFC 6265 subset the
 //! campus hosts need: domain/path/secure matching, `Max-Age` and `Expires`.
+use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 use url::Url;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Cookie {
     pub name: String,
     pub value: String,
@@ -45,7 +47,8 @@ impl Cookie {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CookieJar {
     cookies: Vec<Cookie>,
     sequence: u64,
@@ -211,6 +214,36 @@ impl CookieJar {
 
     pub fn clear(&mut self) {
         self.cookies.clear();
+    }
+
+    /// Reject malformed or unexpectedly large jars before restoring them from
+    /// an encrypted platform store.
+    pub(crate) fn is_sane(&self) -> bool {
+        self.cookies.len() <= 512
+            && self.cookies.iter().all(|cookie| {
+                !cookie.name.is_empty()
+                    && cookie.name.len() <= 256
+                    && cookie.name.bytes().all(|byte| {
+                        byte.is_ascii_alphanumeric() || b"!#$%&'*+-.^_`|~".contains(&byte)
+                    })
+                    && !cookie.value.is_empty()
+                    && cookie.value.len() <= 4096
+                    && !cookie
+                        .value
+                        .bytes()
+                        .any(|byte| byte <= 0x20 || byte >= 0x7f)
+                    && !cookie.domain.is_empty()
+                    && cookie.domain.len() <= 253
+                    && cookie.domain == cookie.domain.to_ascii_lowercase()
+                    && cookie
+                        .domain
+                        .bytes()
+                        .all(|byte| byte.is_ascii_alphanumeric() || byte == b'.' || byte == b'-')
+                    && cookie.path.starts_with('/')
+                    && cookie.path.len() <= 1024
+                    && !cookie.path.bytes().any(|byte| byte <= 0x20 || byte >= 0x7f)
+                    && cookie.sequence < self.sequence
+            })
     }
 }
 

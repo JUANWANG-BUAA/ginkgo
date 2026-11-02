@@ -1,8 +1,8 @@
 # Ginkgo 接口索引
 
-更新：2026-10-31。本文是 **Android（Flutter + Rust）全链路接口的单一索引**：按层次列出每个接口的标识、功能、输入、输出、副作用与源码位置，用于快速定位「某个能力从界面一路走到学校协议」的完整路径。
+更新：2026-11-02。本文是 **Android（Flutter + Rust）全链路接口的单一索引**：按层次列出每个接口的标识、功能、输入、输出、副作用与源码位置，用于快速定位「某个能力从界面一路走到学校协议」的完整路径。
 
-本文只做索引与契约说明，不重复上游协议事实。URL、参数、成功码、证据等级以 [API.md](API.md) 为唯一来源；用户能做什么、读写边界与本机数据见 [FEATURES-AND-PROTOCOLS.md](FEATURES-AND-PROTOCOLS.md)；分层职责见 [MIRROR-ARCHITECTURE.md](MIRROR-ARCHITECTURE.md)。
+当前变更必须同步 [协议锁](protocol-contracts.json)，发布另受 [强制验收契约](ANDROID-RELEASE-CONTRACT.md) 约束。本文只做索引与契约说明，不重复上游协议事实。URL、参数、成功码、证据等级以 [API.md](API.md) 为唯一来源；用户能做什么、读写边界与本机数据见 [FEATURES-AND-PROTOCOLS.md](FEATURES-AND-PROTOCOLS.md)；分层职责见 [MIRROR-ARCHITECTURE.md](MIRROR-ARCHITECTURE.md)。
 
 ## 1. 怎么读这份文档
 
@@ -260,7 +260,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ## 6. FFI 命令层
 
-`ginkgo_flutter_bridge` 导出 **89 个命令**，是 Dart 唯一可见的 Rust 面。Dart 侧只允许 [contracts.dart](../flutter/lib/application/contracts.dart) 以类型形式引用生成绑定，命令本身只能由 `NativeMirrorService` 调用。
+`ginkgo_flutter_bridge` 导出 **91 个命令**，是 Dart 唯一可见的 Rust 面。Dart 侧只允许 [contracts.dart](../flutter/lib/application/contracts.dart) 以类型形式引用生成绑定，命令本身只能由 `NativeMirrorService` 调用。
 
 命令计数口径：`flutter/lib/src/rust/api/**` 生成的 Dart 命令函数（`live` 77 + `live/auth_challenge` 1 + `mirror` 10 + `reminder_planning` 1）。改命令后该数字会变，改完请同步本行与 [§6.10](#610-返回形态与载荷契约)。
 
@@ -272,6 +272,8 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | `restore_session` | — | `SessionResponse` | 可能触发保存凭据的自动登录 |
 | `login` | `account`、`password`、`captcha?`、`remember` | `SessionResponse` | 可能写平台保险库 |
 | `load_login_challenge` | `expectedId?`、`refresh` | 挑战 DTO | 重新拉取登录页 |
+| `load_gateway_challenge` | `expectedAccount`、`expectedId?`、`refresh` | 挑战 DTO（可空） | 读取或刷新独立网关挑战 |
+| `resume_gateway_login` | `expectedAccount`、`expectedId`、`answer` | 验证结果 DTO | 用户单次作答 |
 | `sign_out` | — | `SessionResponse` | 清理会话与保存凭据 |
 | `set_route` | `route` | `SessionResponse` | 重建 Cookie 罐 |
 | `clear_cache` | — | `bool` | 清查询快照，不动凭据与本机待办 |
@@ -318,11 +320,11 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ### 6.10 返回形态与载荷契约
 
-89 个命令按返回形态分为两类：
+91 个命令按返回形态分为两类：
 
 | 形态 | 数量 | 含义 | 解码位置 |
 | --- | --- | --- | --- |
-| 类型化 DTO | 89 | 命令直接返回结构体（`SessionResponse`、`ScheduleResponse`、`CheckInResponse`、`MutationResponse`、`CgyyLoadResponse` …） | Rust 端投影；Dart 只做 DTO → 呈现模型 |
+| 类型化 DTO | 91 | 命令直接返回结构体（`SessionResponse`、`ScheduleResponse`、`CheckInResponse`、`MutationResponse`、`CgyyLoadResponse` …） | Rust 端投影；Dart 只做 DTO → 呈现模型 |
 | `ReadOnlyResponse` 载荷 | 0 | —— | —— |
 
 使用载荷信封的 0 个命令：
@@ -485,7 +487,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 | 模块 | 输入 | 输出 | 失败态 | 本机副作用 |
 | --- | --- | --- | --- | --- |
-| `session` | 账号、密码、验证码、记住开关、路线 | `SessionResponse{state, account, name, route, failure}` | `invalid_credentials`、`captcha_required`、`pre_login_tip`、`credential_store` | 平台保险库写入（仅勾选记住时）；Cookie 在 Rust 内存 |
+| `session` | 账号、密码、验证码、记住开关、路线 | `SessionResponse{state, account, name, route, failure}` | `invalid_credentials`、`captcha_required`、`pre_login_tip`、`credential_store` | 密码仅勾选记住时写保险库；Android 两路线 Cookie 另存独立 Keystore 密文，固定期限/UC 校验后恢复；其他镜像进程内 Cookie |
 | `auth-challenge` | `expectedId`、`refresh` | `LoginChallenge{challengeId, challengeType, textSupported, image}` | `session_expired`、`invalid_request` | 无；图像只在内存 |
 | `today` | `forceRefresh` | `TodayResponse{date, courses[], fetchedAt, fromCache, stale}` | 读失败保留旧值 | 进程快照（TTL 300s） |
 | `schedule` | `termId?`、`week?`、`forceRefresh` | `ScheduleResponse{terms[], weeks[], termId, weekNumber, courses[], exams[]}` | 读失败保留旧值 | 进程快照 |

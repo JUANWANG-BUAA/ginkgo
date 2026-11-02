@@ -26,7 +26,7 @@
 | 数据 | 存放位置 | 生命周期与说明 |
 |------|----------|----------------|
 | 学号、密码 | Android Keystore + 私有 SharedPreferences；Windows Credential Manager；macOS Keychain | 仅在用户勾选「记住密码」后写入；Android 使用 AES-GCM，密钥不出 Android Keystore，账号名以 SHA-256 摘要作为偏好键；验证码答案不持久化；关闭开关或登出即删除 |
-| 会话 Cookie（CASTGC 等） | Rust 进程内存 | 不落盘；进程重启后通过平台保险库静默重登；直连与 WebVPN Cookie 分离 |
+| 会话 Cookie（CASTGC 等） | Rust 进程内存；Android另存独立 Android Keystore AES-GCM 密文 | Android 冷启动时读取同一认证生命周期起点 24 小时内的会话快照（Cookie 轮换与恢复不重置期限），先按保存路线装载隔离的直连/WebVPN Cookie，再向 UC 验证账号后发布会话，UC 暂不可用时保留密文供重试但不发布缓存身份；登录成功与后续认证响应的 `Set-Cookie` 会更新快照。快照与“记住密码”分开，退出、开始新的手动登录或更改路线时删除。专用 Keystore 密钥不离开设备，密文不进入 Android 备份；Windows/macOS 镜像仍只在进程内保存 Cookie。验证码答案、业务 token 和匿名浏览器 Cookie 不进入快照 |
 | 匿名公开读取会话 | Rust 临时直连会话 | 就业、学术文化、通知、校车、公开书目/馆藏、图书馆人数和版本检查不发送学校 Cookie/认证头，不保存响应 `Set-Cookie`，不改变账号会话路线，也不在 Automatic 下回退 WebVPN |
 | 空教室、课表、今天、成绩、作业、博雅、研究生、签到、预约等查询快照 | Rust 进程内存 | 5 分钟 TTL、容量上限；登出、账号切换、路由变化即清空；不读取 Apple 缓存文件，不写磁盘 |
 | 可选 SPOC 学习快照（工作树，默认关闭） | Android noBackupFilesDir，独立 Keystore AES-GCM 密文 | 用户显式确认后仅保存课程/栏目/公告列表/资料目录/测验元数据；原成功时间五分钟内、同账号已认证且网络暂不可用时可采用旧值，不持久化文件字节/Cookie/token；关闭、退出或清查询缓存撤销并清除；不涉及个人待办。接线与设备回归见 [记录](_audit/2026-10-26-module-integration.md)，敏感存储仍需人工审查 |
