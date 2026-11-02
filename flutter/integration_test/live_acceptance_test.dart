@@ -407,7 +407,9 @@ void main() {
           'ms': loginWatch.elapsedMilliseconds,
           'signedIn': session?.state == live.SessionState.signedIn,
           'remembered': session?.remembered,
-          'error': loginError,
+          // The UI can contain account-specific upstream text. Reports only
+          // record its presence; temporary screenshots stay outside the repo.
+          'errorShown': loginError?.isNotEmpty == true,
           'challengeFailure': challengeFailure,
           'challengeDecode': challengeDecode,
           'expectedRetryFailure': expectedRetryFailure,

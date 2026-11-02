@@ -65,10 +65,10 @@
 
 - `pub async fn fetch_login_page<T: HttpTransport>( session: &Session<T>, ) -> Result<LoginPage, AppError> {…}` — Fetch the CAS login page without automatic redirects.
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:12</sub>
-- `pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>( session: &Session<T>, mut response: HttpResponse, mut current_url: String, ) -> Result<Option<LoginPage>, AppError> {…}` — Follow up to ten redirects, classifying each hop before requesting the
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:60</sub>
+- `pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>( session: &Session<T>, mut response: HttpResponse, mut current_url: String, mut credential_response: bool, ) -> Result<Option<LoginPage>, AppError> {…}` — Follow up to ten redirects, classifying each hop before requesting the
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:62</sub>
 - `pub(crate) fn validate_login_action(action: &str) -> Result<(), AppError> {…}` — The password POST target must be the documented CAS endpoint over HTTPS on
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:156</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:189</sub>
 
 ## mod
 

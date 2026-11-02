@@ -320,85 +320,85 @@
 ## session_service
 
 - `pub(crate) struct AuthenticatedIdentity` — Published together so readers never observe an account without its profile.
-  <sub>struct · rust/crates/ginkgo_upstream/src/services/session_service.rs:53</sub>
-    - `account: String`  <sub>:54</sub>
-    - `profile: UserProfile`  <sub>:55</sub>
+  <sub>struct · rust/crates/ginkgo_upstream/src/services/session_service.rs:54</sub>
+    - `account: String`  <sub>:55</sub>
+    - `profile: UserProfile`  <sub>:56</sub>
 - `pub(crate) struct AccountOwner`
-  <sub>struct · rust/crates/ginkgo_upstream/src/services/session_service.rs:59</sub>
-    - `account: String`  <sub>:60</sub>
-    - `generation: u64`  <sub>:61</sub>
+  <sub>struct · rust/crates/ginkgo_upstream/src/services/session_service.rs:60</sub>
+    - `account: String`  <sub>:61</sub>
+    - `generation: u64`  <sub>:62</sub>
 - `pub(crate) struct PendingLogin`
-  <sub>struct · rust/crates/ginkgo_upstream/src/services/session_service.rs:64</sub>
+  <sub>struct · rust/crates/ginkgo_upstream/src/services/session_service.rs:65</sub>
 - `pub(crate) fn belongs_to(&self, account: &str, generation: u64) -> bool {…}` — Same sign-in attempt, regardless of age. A challenge that belongs to
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:74</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:75</sub>
 - `pub(crate) struct Identity` — All account-scoped authentication state has one lifetime and one reset.
-  <sub>struct · rust/crates/ginkgo_upstream/src/services/session_service.rs:88</sub>
-    - `authenticated: Option<AuthenticatedIdentity>`  <sub>:89</sub>
-    - `pending_login: Option<PendingLogin>`  <sub>:90</sub>
-    - `gateway_pending: Option<PendingLogin>`  <sub>:91</sub>
-    - `iclass: Option<IClassSession>`  <sub>:92</sub>
-    - `library_token: Option<String>`  <sub>:93</sub>
-    - `cgyy_token: Option<String>`  <sub>:94</sub>
-    - `cgyy_booking: Option<super::cgyy_booking_service::BookingContext>`  <sub>:95</sub>
-    - `session_credentials: Option<crate::auth::Credentials>` — The credential this session was opened with, kept in memory only so a  <sub>:99</sub>
-    - `generation: u64`  <sub>:100</sub>
-    - `persisted_started_at_ms: i64` — Fixed start of this authenticated lifetime; cookie rotation cannot extend it.  <sub>:102</sub>
+  <sub>struct · rust/crates/ginkgo_upstream/src/services/session_service.rs:89</sub>
+    - `authenticated: Option<AuthenticatedIdentity>`  <sub>:90</sub>
+    - `pending_login: Option<PendingLogin>`  <sub>:91</sub>
+    - `gateway_pending: Option<PendingLogin>`  <sub>:92</sub>
+    - `iclass: Option<IClassSession>`  <sub>:93</sub>
+    - `library_token: Option<String>`  <sub>:94</sub>
+    - `cgyy_token: Option<String>`  <sub>:95</sub>
+    - `cgyy_booking: Option<super::cgyy_booking_service::BookingContext>`  <sub>:96</sub>
+    - `session_credentials: Option<crate::auth::Credentials>` — The credential this session was opened with, kept in memory only so a  <sub>:100</sub>
+    - `generation: u64`  <sub>:101</sub>
+    - `persisted_started_at_ms: i64` — Fixed start of this authenticated lifetime; cookie rotation cannot extend it.  <sub>:103</sub>
 - `pub struct SchoolClient<T: HttpTransport, V: CredentialVault>`
-  <sub>struct · rust/crates/ginkgo_upstream/src/services/session_service.rs:105</sub>
-    - `session: Session<T>`  <sub>:106</sub>
-    - `learning_gate: tokio::sync::Mutex<()>`  <sub>:107</sub>
-    - `homework_files: Mutex<super::homework_submission_service::HomeworkFiles>`  <sub>:108</sub>
-    - `homework_file_gate: tokio::sync::Mutex<()>`  <sub>:109</sub>
-    - `vault: Arc<V>`  <sub>:110</sub>
-    - `identity: Arc<Mutex<Identity>>`  <sub>:111</sub>
-    - `route: Arc<StdMutex<RoutePreference>>`  <sub>:112</sub>
-    - `snapshots: ReadSnapshots`  <sub>:114</sub>
-    - `bykc_access: tokio::sync::Mutex<()>`  <sub>:115</sub>
-    - `checkin_progress: Mutex<super::checkin_service::CheckInProgress>`  <sub>:118</sub>
-    - `school_recovery_gate: tokio::sync::Mutex<()>`  <sub>:119</sub>
-    - `automatic_login_failure: Mutex<Option<(Instant, AppError)>>`  <sub>:121</sub>
-    - `graduate_request_gate: tokio::sync::Mutex<()>`  <sub>:125</sub>
-    - `library_login_gate: tokio::sync::Mutex<()>`  <sub>:126</sub>
-    - `cgyy_mutation_gate: tokio::sync::Mutex<()>`  <sub>:130</sub>
-    - `forgotten_account: Mutex<Option<String>>` — Account revoked by the last sign-out, handed from the fast revocation  <sub>:133</sub>
+  <sub>struct · rust/crates/ginkgo_upstream/src/services/session_service.rs:106</sub>
+    - `session: Session<T>`  <sub>:107</sub>
+    - `learning_gate: tokio::sync::Mutex<()>`  <sub>:108</sub>
+    - `homework_files: Mutex<super::homework_submission_service::HomeworkFiles>`  <sub>:109</sub>
+    - `homework_file_gate: tokio::sync::Mutex<()>`  <sub>:110</sub>
+    - `vault: Arc<V>`  <sub>:111</sub>
+    - `identity: Arc<Mutex<Identity>>`  <sub>:112</sub>
+    - `route: Arc<StdMutex<RoutePreference>>`  <sub>:113</sub>
+    - `snapshots: ReadSnapshots`  <sub>:115</sub>
+    - `bykc_access: tokio::sync::Mutex<()>`  <sub>:116</sub>
+    - `checkin_progress: Mutex<super::checkin_service::CheckInProgress>`  <sub>:119</sub>
+    - `school_recovery_gate: tokio::sync::Mutex<()>`  <sub>:120</sub>
+    - `automatic_login_failure: Mutex<Option<(Instant, AppError)>>`  <sub>:122</sub>
+    - `graduate_request_gate: tokio::sync::Mutex<()>`  <sub>:126</sub>
+    - `library_login_gate: tokio::sync::Mutex<()>`  <sub>:127</sub>
+    - `cgyy_mutation_gate: tokio::sync::Mutex<()>`  <sub>:131</sub>
+    - `forgotten_account: Mutex<Option<String>>` — Account revoked by the last sign-out, handed from the fast revocation  <sub>:134</sub>
 - `pub fn new(session: Session<T>, vault: V) -> Self {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:137</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:138</sub>
 - `pub(crate) fn checkin_day_gate(&self, date: &str) -> std::sync::Arc<tokio::sync::Mutex<()>> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:193</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:194</sub>
 - `pub(crate) fn set_authenticated(&self, account: String, profile: UserProfile) {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:201</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:202</sub>
 - `pub fn verify_vault_round_trip(&self, account: &str, secret: &str) -> bool {…}` — Diagnostic used by device acceptance: write, read back and remove one
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:238</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:239</sub>
 - `pub fn lock_poison_events(&self) -> u64 {…}` — How often one of this client's in-memory locks was recovered from a
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:249</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:250</sub>
 - `pub(crate) fn preference(&self) -> RoutePreference {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:259</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:260</sub>
 - `pub(crate) fn remember_session_credentials(&self, credentials: &crate::auth::Credentials) {…}` — Keep the credential this sign-in used so a gateway that needs its own
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:265</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:266</sub>
 - `pub(crate) fn session_credentials(&self) -> Option<crate::auth::Credentials> {…}` — The credential used to open this session, in memory only.
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:272</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:273</sub>
 - `pub(crate) async fn persist_active_session(&self) -> Result<(), AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:276</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:277</sub>
 - `pub(crate) async fn load_persisted_session( &self, ) -> Result<Option<PersistedSession>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:302</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:303</sub>
 - `pub(crate) async fn delete_persisted_session(&self) -> Result<(), AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:311</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:312</sub>
 - `pub(crate) fn current_account(&self) -> Result<String, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:322</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:323</sub>
 - `pub(crate) fn account_owner(&self) -> Result<AccountOwner, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:331</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:332</sub>
 - `pub(crate) fn check_account_owner(&self, owner: &AccountOwner) -> Result<(), AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:344</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:345</sub>
 - `pub(crate) async fn silent_login(&self) -> Result<(), AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:357</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:358</sub>
 - `pub(crate) async fn ensure_webvpn_session(&self) -> Result<(), AppError> {…}` — Establish the WebVPN gateway's own CAS session after an automatic route
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:403</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:404</sub>
 - `pub(crate) fn recovery_credentials( &self, account: &str, ) -> Result<crate::auth::Credentials, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:444</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:445</sub>
 - `pub(crate) fn clear_caches(&self) {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:481</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:482</sub>
 - `pub(crate) fn is_library_login_error(error: &AppError) -> bool {…}` — booking.lib answers 200 with its own login-expired message; that only means
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:507</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/session_service.rs:508</sub>
 
 ## snapshots
 

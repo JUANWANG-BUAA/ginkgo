@@ -418,25 +418,31 @@ mod tests {
     #[tokio::test]
     async fn credential_rejection_uses_long_cooldown_but_service_failure_does_not() {
         let (service, transport) = service(vec![]);
-        for code in [ErrorCode::InvalidCredentials, ErrorCode::ServiceUnavailable] {
+        for code in [
+            ErrorCode::InvalidCredentials,
+            ErrorCode::PreLoginTip,
+            ErrorCode::ServiceUnavailable,
+        ] {
             *service.automatic_login_failure.lock() = Some((
                 Instant::now() - Duration::from_secs(61),
                 AppError::new(code.clone()),
             ));
             assert_eq!(
                 service.check_automatic_login_failure().is_err(),
-                code == ErrorCode::InvalidCredentials
+                matches!(code, ErrorCode::InvalidCredentials | ErrorCode::PreLoginTip)
             );
         }
-        *service.gateway_login_failure.lock() = Some((
-            Instant::now() - Duration::from_secs(61),
-            AppError::new(ErrorCode::InvalidCredentials),
-        ));
-        assert_eq!(
-            service.ensure_webvpn_session().await.unwrap_err().code,
-            ErrorCode::InvalidCredentials
-        );
-        assert_eq!(transport.request_count(), 0);
+        for code in [ErrorCode::InvalidCredentials, ErrorCode::PreLoginTip] {
+            *service.gateway_login_failure.lock() = Some((
+                Instant::now() - Duration::from_secs(61),
+                AppError::new(code.clone()),
+            ));
+            assert_eq!(
+                service.ensure_webvpn_session().await.unwrap_err().code,
+                code
+            );
+            assert_eq!(transport.request_count(), 0);
+        }
         *service.gateway_login_failure.lock() = Some((
             Instant::now() - Duration::from_secs(1801),
             AppError::new(ErrorCode::InvalidCredentials),

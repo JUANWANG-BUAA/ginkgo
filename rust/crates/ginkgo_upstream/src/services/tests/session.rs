@@ -439,7 +439,7 @@ async fn sign_in_without_remember_removes_an_old_entry() {
 async fn wrong_password_is_typed_and_not_persisted() {
     let transport = MockTransport::with_responses(vec![
         HttpResponse::new(200, LOGIN_URL, FORM_PAGE),
-        HttpResponse::new(200, LOGIN_URL, FORM_PAGE),
+        HttpResponse::new(401, LOGIN_URL, "<div id=\"errorDiv\">账号或密码错误</div>"),
     ]);
     let service = SchoolClient::new(
         crate::auth::session::Session::new(transport),
@@ -495,11 +495,33 @@ async fn restore_without_a_saved_account_is_a_clean_signed_out_state() {
 }
 
 #[tokio::test]
+async fn unexplained_form_during_restore_does_not_delete_saved_credentials_or_publish_identity() {
+    for response in [
+        HttpResponse::new(200, LOGIN_URL, FORM_PAGE),
+        HttpResponse::new(401, LOGIN_URL, ""),
+    ] {
+        let (service, transport) = build_service(
+            vec![HttpResponse::new(200, LOGIN_URL, FORM_PAGE), response],
+            seeded("sy2501001"),
+        );
+        let before = service.vault.names();
+        let error = service
+            .restore()
+            .await
+            .expect_err("unconfirmed authentication");
+        assert_eq!(error.code, ErrorCode::PreLoginTip);
+        assert_eq!(service.vault.names(), before);
+        assert!(service.status().account.is_none());
+        assert_eq!(transport.request_count(), 2);
+    }
+}
+
+#[tokio::test]
 async fn restore_deletes_an_entry_that_no_longer_authenticates() {
     let (service, _) = build_service(
         vec![
             HttpResponse::new(200, LOGIN_URL, FORM_PAGE),
-            HttpResponse::new(200, LOGIN_URL, FORM_PAGE),
+            HttpResponse::new(401, LOGIN_URL, "<div id=\"errorDiv\">账号或密码错误</div>"),
         ],
         seeded("sy2501001"),
     );

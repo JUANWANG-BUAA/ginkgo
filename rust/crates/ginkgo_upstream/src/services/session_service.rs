@@ -24,11 +24,12 @@ use std::{
 };
 
 /// School and gateway keep separate failures. Explicit credential rejection
-/// must not cause a background password attempt every minute; transient
+/// or a login tip requiring user attention must not cause a background
+/// password attempt every minute; transient
 /// transport/service failures retain a shorter retry window.
 fn automatic_login_failure_ttl(code: &ErrorCode) -> Duration {
     match code {
-        ErrorCode::InvalidCredentials => Duration::from_secs(30 * 60),
+        ErrorCode::InvalidCredentials | ErrorCode::PreLoginTip => Duration::from_secs(30 * 60),
         _ => Duration::from_secs(60),
     }
 }

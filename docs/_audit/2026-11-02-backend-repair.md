@@ -99,3 +99,14 @@
 本批最终检查：在线 `check-mirror.sh` 在 Flutter pub get 连接等待超过数分钟后，为优先执行用户新授权的登录实测而主动中断（退出 143），不得计作通过。随后用 Bash 临时命令包装仅将 Flutter/Dart 的依赖获取改为 `pub get --offline`，且分析/测试使用已解析依赖；不修改仓库门禁脚本或减少任何检查。相同 `bash scripts/check-mirror.sh` 的所有检查完成、退出 0：Rust fmt/严格 Clippy/分层与 workspace 测试、架构/文档/协议锁、Flutter 分析与 716 条测试、FRB 重新生成零漂移；这是锁定缓存依赖下的完整检查，不代表在线依赖获取成功。日志 `/tmp/ginkgo-confirm-layout-offline-deps-gate.log`。三条操作/控制器回归、三条布局回归和一条按钮状态回归分别在修复前失败，普通布局/独立操作及关联回归通过。
 
 用户后续要求的 WebVPN 登录实测未通过，详见[单独记录](2026-11-02-webvpn-live-acceptance.md#用户再次授权的-webvpn-登录复核)。测试后的正常 main 入口 Android ARM64 Debug 已重新构建并安装成功（`/tmp/ginkgo-confirm-layout-main-apk.log`）；本批没有发布、没有提升更新门禁，设备视觉和真实业务仍未验收。
+
+
+## 认证失败分类与凭据误删保护
+
+以 `709bead` 为对照，旧实现将普通登录表单重显、入口/导航 401、无说明的认证提交 401 都分类为凭据错误。保存密码恢复时，该错误会触发删除凭据；根因未明时这既误导用户，也破坏持久化体验。此前合成“wrong password”测试只返回普通登录表单，不能证明密码错误。该断言已改为明确错误提示样本，保留真正凭据拒绝时的删除及不保存规则，另补未知失败保留凭据但不发布身份的回归。
+
+当前策略见 [API §1.6](../API.md#16-手动跟随重定向与错误检测)：有可作答验证码仍先返回挑战；只有提取的明确凭据拒绝文案进入 InvalidCredentials。未知表单或无说明的认证 POST 401 返回需人工处理提示；入口/导航/过期确认 401 为服务问题，策略禁止与验证码错误保留自身含义。未知结果不自动重发密码、不发布身份；PreLoginTip 和明确凭据拒绝同属 30 分钟后台冷却，网络/服务错误仍 60 秒，学校与网关分别保护。该策略不新增学校字段或成功码。
+
+实网验收脚本只记录登录错误是否出现，不再把任意 UI 错误正文写进聚合报告，避免上游提示带账号信息。没有新增原始 HTML/请求日志，也未再次使用真实账号。本批无法定位上次 WebVPN 实测的具体失败原因，保留真实验收缺口。
+
+验证：最终回归放回 `709bead` 的旧认证/冷却实现后，upstream 416 项中有 8 项失败；恢复修复后全部通过。最终 `check-mirror.sh` 使用与上一批相同的临时 Bash 依赖包装：仅 pub get 走锁定缓存、分析/测试使用已解析依赖，未修改门禁脚本或减少检查。完整检查退出 0，含 Rust fmt/严格 Clippy、分层/workspace 测试、架构/文档/协议锁、Flutter 分析及 716 条测试、FRB 零漂移；不计作在线依赖获取成功。日志 `/tmp/ginkgo-auth-classification-old-verified.log`、`/tmp/ginkgo-auth-classification-full-gate.log`。正常 main 入口 ARM64 Debug APK 构建成功，日志 `/tmp/ginkgo-auth-classification-main-apk.log`；未安装到真实设备、未再登录真实账号、未发布。

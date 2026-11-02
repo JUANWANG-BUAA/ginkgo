@@ -118,7 +118,7 @@ pub async fn complete_login<T: HttpTransport>(
         LoginPage::ExistingSession { location } => {
             let response = session.send_auth(HttpRequest::get(&location)).await?;
             if let Some(page) =
-                login::follow_redirects_and_check_error(session, response, location).await?
+                login::follow_redirects_and_check_error(session, response, location, false).await?
             {
                 let LoginPage::Form {
                     captcha: Some(challenge),
@@ -179,7 +179,7 @@ pub async fn complete_login<T: HttpTransport>(
                 .send(HttpRequest::post_form(action_url.clone(), body))
                 .await?;
             if let Some(page) =
-                login::follow_redirects_and_check_error(session, response, action_url).await?
+                login::follow_redirects_and_check_error(session, response, action_url, true).await?
             {
                 let LoginPage::Form {
                     captcha: Some(challenge),

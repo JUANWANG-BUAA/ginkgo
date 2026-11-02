@@ -280,19 +280,103 @@ async fn successful_login_keeps_castgc_inside_rust_and_returns_profile() {
 }
 
 #[tokio::test]
-async fn wrong_credentials_return_a_typed_error() {
-    let transport = MockTransport::with_responses(vec![
-        login_page(),
-        HttpResponse::new(200, LOGIN_URL, FORM_PAGE),
-    ]);
-    let session = Session::new(transport);
+async fn unexplained_login_form_is_not_proof_of_wrong_credentials() {
+    let transport = MockTransport::with_responses(vec![login_page(), login_page()]);
+    let error = login(&Session::new(transport.clone()), &credentials())
+        .await
+        .expect_err("identity is not established");
+    assert_eq!(error.code, ErrorCode::PreLoginTip);
+    assert!(error
+        .detail
+        .as_deref()
+        .is_some_and(|text| text.contains("未提供明确原因")));
+    assert_eq!(transport.request_count(), 2);
     assert_eq!(
-        login(&session, &credentials())
-            .await
-            .expect_err("wrong")
-            .code,
-        ErrorCode::InvalidCredentials
+        transport
+            .requests()
+            .iter()
+            .filter(|r| r.method == HttpMethod::Post)
+            .count(),
+        1
     );
+}
+
+#[tokio::test]
+async fn login_form_preserves_explicit_school_message_without_guessing_credentials() {
+    let body = format!("{FORM_PAGE}<div id=\"errorDiv\">认证流程暂不可用，请稍后重试</div>");
+    let transport =
+        MockTransport::with_responses(vec![login_page(), HttpResponse::new(200, LOGIN_URL, body)]);
+    let error = login(&Session::new(transport.clone()), &credentials())
+        .await
+        .unwrap_err();
+    assert_eq!(error.code, ErrorCode::PreLoginTip);
+    assert_eq!(
+        error.detail.as_deref(),
+        Some("认证流程暂不可用，请稍后重试")
+    );
+    assert_eq!(transport.request_count(), 2);
+}
+
+#[tokio::test]
+async fn explicit_credential_rejection_keeps_its_typed_error() {
+    for message in ["账号或密码错误", "用户名或密码错误"] {
+        let body = format!("{FORM_PAGE}<div id=\"errorDiv\">{message}</div>");
+        let transport = MockTransport::with_responses(vec![
+            login_page(),
+            HttpResponse::new(200, LOGIN_URL, body),
+        ]);
+        let error = login(&Session::new(transport.clone()), &credentials())
+            .await
+            .unwrap_err();
+        assert_eq!(error.code, ErrorCode::InvalidCredentials);
+        assert_eq!(transport.request_count(), 2);
+    }
+}
+
+#[tokio::test]
+async fn unauthorized_navigation_is_not_a_password_rejection() {
+    for responses in [
+        vec![HttpResponse::new(401, LOGIN_URL, "")],
+        vec![
+            login_page(),
+            HttpResponse::new(302, LOGIN_URL, "").with_header("Location", "/login?next=fixture"),
+            HttpResponse::new(401, LOGIN_URL, ""),
+        ],
+        vec![
+            HttpResponse::new(302, LOGIN_URL, "")
+                .with_header("Location", "https://uc.buaa.edu.cn/fixture"),
+            HttpResponse::new(401, "https://uc.buaa.edu.cn/fixture", ""),
+        ],
+    ] {
+        let transport = MockTransport::with_responses(responses);
+        let error = login(&Session::new(transport.clone()), &credentials())
+            .await
+            .unwrap_err();
+        assert_eq!(error.code, ErrorCode::ServiceUnavailable);
+        assert!(
+            transport
+                .requests()
+                .iter()
+                .filter(|r| r.method == HttpMethod::Post)
+                .count()
+                <= 1
+        );
+    }
+}
+
+#[tokio::test]
+async fn unauthorized_credential_post_reports_unknown_authentication_refusal() {
+    let transport =
+        MockTransport::with_responses(vec![login_page(), HttpResponse::new(401, LOGIN_URL, "")]);
+    let error = login(&Session::new(transport.clone()), &credentials())
+        .await
+        .unwrap_err();
+    assert_eq!(error.code, ErrorCode::PreLoginTip);
+    assert!(error
+        .detail
+        .as_deref()
+        .is_some_and(|text| text.contains("未提供明确原因")));
+    assert_eq!(transport.request_count(), 2);
 }
 
 #[tokio::test]
@@ -572,4 +656,55 @@ async fn a_silent_network_failure_opens_the_gateway_without_a_second_password() 
         0,
         "no password is submitted by a read"
     );
+}
+
+#[tokio::test]
+async fn password_expiry_acknowledgement_401_is_not_a_password_rejection() {
+    let expiry = FORM_PAGE.replace(
+        "</form>",
+        "<button name=\"_eventId\" value=\"ignoreAndContinue\">继续使用</button></form>",
+    );
+    let transport = MockTransport::with_responses(vec![
+        login_page(),
+        HttpResponse::new(200, LOGIN_URL, expiry),
+        HttpResponse::new(401, LOGIN_URL, ""),
+    ]);
+    let error = login(&Session::new(transport.clone()), &credentials())
+        .await
+        .unwrap_err();
+    assert_eq!(error.code, ErrorCode::ServiceUnavailable);
+    let posts: Vec<_> = transport
+        .requests()
+        .into_iter()
+        .filter(|r| r.method == HttpMethod::Post)
+        .collect();
+    assert_eq!(posts.len(), 2);
+    assert!(!posts[1].body.as_deref().unwrap().contains("password="));
+}
+
+#[tokio::test]
+async fn credential_post_401_preserves_policy_or_captcha_refusal_instead_of_blaming_password() {
+    for (body, expected) in [
+        (
+            "<div id=\"errorDiv\">验证码错误</div>",
+            ErrorCode::PreLoginTip,
+        ),
+        (
+            "<div id=\"errorDiv\">访问策略禁止</div>",
+            ErrorCode::AccessPolicyDenied,
+        ),
+    ] {
+        let transport = MockTransport::with_responses(vec![
+            login_page(),
+            HttpResponse::new(401, LOGIN_URL, body),
+        ]);
+        let error = login(&Session::new(transport.clone()), &credentials())
+            .await
+            .unwrap_err();
+        assert_eq!(error.code, expected);
+        if expected == ErrorCode::PreLoginTip {
+            assert_eq!(error.detail.as_deref(), Some("验证码错误"));
+        }
+        assert_eq!(transport.request_count(), 2);
+    }
 }

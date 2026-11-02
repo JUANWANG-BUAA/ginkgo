@@ -16,7 +16,7 @@ pub async fn fetch_login_page<T: HttpTransport>(
     for hop in 0..=8 {
         let response = session.send_auth(HttpRequest::get(&url)).await?;
         if response.status == 401 {
-            return Err(AppError::new(ErrorCode::InvalidCredentials));
+            return Err(status_error(&response));
         }
         if response.status == 483 {
             return Err(AppError::new(ErrorCode::AccessPolicyDenied));
@@ -56,11 +56,14 @@ pub async fn fetch_login_page<T: HttpTransport>(
 }
 
 /// Follow up to ten redirects, classifying each hop before requesting the
-/// next one. Password-expiry pages are skipped exactly once.
+/// next one. HTTP 401 does not alone prove a wrong password. Credential
+/// submissions need user attention; navigation failures remain service errors.
+/// Password-expiry pages are skipped exactly once.
 pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
     session: &Session<T>,
     mut response: HttpResponse,
     mut current_url: String,
+    mut credential_response: bool,
 ) -> Result<Option<LoginPage>, AppError> {
     let mut skipped_expiry = false;
     for hop in 0..=10 {
@@ -70,7 +73,20 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
             }
         }
         if response.status == 401 {
-            return Err(AppError::new(ErrorCode::InvalidCredentials));
+            return Err(if cas::is_access_policy_denied(&response.body) {
+                AppError::new(ErrorCode::AccessPolicyDenied)
+            } else if credential_response {
+                if cas::extract_error_text(&response.body).is_some() {
+                    login_page_error(&response.body)
+                } else {
+                    AppError::with_detail(
+                        ErrorCode::PreLoginTip,
+                        "认证提交未完成，学校未提供明确原因。请核对验证码或在学校登录页确认状态。",
+                    )
+                }
+            } else {
+                status_error(&response)
+            });
         }
         if (300..400).contains(&response.status) {
             if hop == 10 {
@@ -85,6 +101,7 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
             if !is_login_page_target(&target) {
                 return Ok(None);
             }
+            credential_response = false;
             response = session.send_auth(HttpRequest::get(&target)).await?;
             current_url = target;
             continue;
@@ -117,6 +134,7 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
                 ("execution".into(), execution),
                 ("_eventId".into(), "ignoreAndContinue".into()),
             ]);
+            credential_response = false;
             response = session
                 .send(HttpRequest::post_form(LOGIN_URL, body))
                 .await?;
@@ -137,7 +155,7 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
                     html: response.body,
                 }));
             }
-            return Err(AppError::new(ErrorCode::InvalidCredentials));
+            return Err(login_page_error(&response.body));
         }
         // A tip with no answerable page is a dead end; report it after the
         // captcha branch so a wrong answer can be retried instead of ending
@@ -148,6 +166,21 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
         return Ok(None);
     }
     Err(AppError::new(ErrorCode::RedirectLimit))
+}
+
+/// A normal login form can reappear for several reasons. Its presence alone
+/// does not establish that the school rejected the password.
+fn login_page_error(html: &str) -> AppError {
+    match cas::extract_error_text(html) {
+        Some(message) if matches!(message.as_str(), "账号或密码错误" | "用户名或密码错误") => {
+            AppError::new(ErrorCode::InvalidCredentials)
+        }
+        Some(message) => AppError::with_detail(ErrorCode::PreLoginTip, message),
+        None => AppError::with_detail(
+            ErrorCode::PreLoginTip,
+            "认证未完成：学校重新显示登录页，未提供明确原因。请核对验证码或在学校登录页确认状态。",
+        ),
+    }
 }
 
 /// The password POST target must be the documented CAS endpoint over HTTPS on

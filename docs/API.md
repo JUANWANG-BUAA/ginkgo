@@ -10,7 +10,7 @@
 | AUTH-02 | 用户路线偏好、实际路线、学校身份、网关身份和业务 token 分开；安全 GET 可有界回退，密码 POST 不由传输层重放；显式路线失败不能冒充切换成功 | `auth/session.rs`、`auth/tests.rs`、`auth_route_stability_test.dart` |
 | AUTH-03 | 验证码绑定账号/认证代次/ID/execution；答错使用学校新表单，旧答案失效。过期或刷新失败可显式 GET 恢复；未知提交不重发 | `session_service/gateway.rs`、`gateway_challenge_test.dart` |
 | AUTH-04 | 未选记住不持久化密码；Android Cookie 仅进独立 Keystore 密文；24 小时固定期限不因恢复/轮换延长；退出/新登录/切路线撤销 | `services/tests/session.rs`、`auth/session.rs`；设备证据待补 |
-| AUTH-05 | 学校与网关恢复分别冷却；明确凭据拒绝 30 分钟、暂时错误 60 秒；网关挑战即使过期也阻止后台重新认证 | `session_service/gateway.rs`、`services/tests/session.rs` |
+| AUTH-05 | 学校与网关恢复分别冷却；明确凭据拒绝及需人工处理的认证提示 30 分钟、传输/服务暂时错误 60 秒；网关挑战即使过期也阻止后台重新认证 | `session_service/gateway.rs`、`services/tests/session.rs` |
 | AUTH-06 | 公开读取不携带/导入认证 Cookie 或认证头，不改变账号实际路线；当前 Android 始终匿名直连 | `services/tests/campus.rs`、公开适配器回归 |
 | DATA-01 | 成功空覆盖旧快照；失败保留旧成功时间，不延长 TTL；账号/查询变化拒绝迟到响应 | 各域 services 与 Flutter 状态机回归 |
 | WRITE-01 | 写操作本人明确确认，单次提交后回查；超时/不明不自动重发；本机待办不等于学校已提交 | 各写服务回归；真实写入须本人验收 |
@@ -29,6 +29,7 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 100 | Android 认证失败的证据与凭据保护 | 登录表单重显、GET/跳转 401 统一提示密码错误，恢复可误删保存凭据；不明认证提示一分钟后可能后台再试密码 | 原因不明的表单或凭据 POST 401 返回需人工处理提示，不判密码错误；GET/跳转/过期确认 401 归入口/服务问题。仅明确凭据拒绝文案保留凭据错误分类；有新验证码先返回新挑战。需人工处理提示也采用长冷却，未知失败不删除保存凭据或发布身份 | §1.6 的 UBAA 历史推断与当前客户端策略分列；`auth/tests.rs`、`services/tests/session.rs`、`session_service/gateway.rs` 合成回归；不证明上次实网失败原因，不新增学校端点/字段 |
 | 99 | 协议/本地契约与发布证据约束 | 文档可与实现漂移，本地门禁/旧视觉记录容易被外推为当前可发布 | 以 AUTH/DATA/WRITE 和 FFI/UI 不变量区分学校事实与客户端行为；协议锁绑定源码、文档与回归。下一次 Android 发包前按候选绑定的真实使用证据验收，缺项拒绝签名发布流程 | `scripts/check-contracts.py` 及 10 项反向/正向回归；[发布契约](ANDROID-RELEASE-CONTRACT.md)；本项不改变学校端点/字段/成功码 |
 | 98 | Android 验证码过期与刷新失败恢复 | 登录/网关挑战满五分钟后连刷新也被拒绝；刷新网络失败后页面丢失挑战 ID | 旧答案仍不可提交，但同账号、同代次、匹配旧 ID 的显式刷新可只发登录页 GET 取得新 execution；刷新失败保留不可作答的旧上下文供再次 GET，不自动重新提交密码或答案 | `session_source.rs::login_challenge`、`gateway.rs::read_gateway_challenge` 与过期/503 合成回归；当前学校真实挑战未验收 |
 | 97 | Android 加密会话期限与恢复证明 | 快照重写刷新时间；UC 暂不可用时直接发布缓存身份；无保存密码也返回 remembered=true | 保持同一认证生命周期最初时间，Cookie 轮换和冷启动不延长 24 小时上限；冷启动 UC 校验失败保留密文但不发布身份；remembered 仅反映密码是否存在，不代表 Cookie 快照 | `PersistedSession`、`Identity::persisted_started_at_ms`、`SessionSource::restore` 与固定期限/503/不保存密码回归；Keystore 设备验收仍待完成 |
@@ -271,8 +272,18 @@ execution=<新execution>&_eventId=ignoreAndContinue
 | 特征 | 判定 | 对照 |
 |------|------|------|
 | 最终 URL 含 `exception.message=` | 其后内容即上游错误消息 | LCA:670-673 |
-| HTTP 401，或页面重新出现 `execution` 输入框 | 账号或密码错误 | LCA:674-681 |
+| HTTP 401，或页面重新出现 `execution` 输入框 | UBAA 历史实现将其推断为账号或密码错误；这是参考实现的分类，不证明学校明确拒绝密码，Android 当前策略见下文 | LCA:674-681 |
 | `div#errorDiv`、`.errors`、`tip-text` 有内容 | 其文本即错误消息 | LCA:843-869 |
+
+**Android 当前分类（客户端策略，2026-11-02）**：
+
+- 重显表单含可识别的新验证码时优先返回新挑战，旧答案不重放。
+- 提取到的明确文案恰为“账号或密码错误”或“用户名或密码错误”时才分类为 `InvalidCredentials`；该有限文本映射是保守客户端策略，非学校文案完备清单。其他非空提示以 `PreLoginTip` 供用户查看。
+- 普通表单重显而无错误原因，或凭据 POST 收到无说明的 401，返回 `PreLoginTip`，明确提示认证未完成、原因未明；不发布身份，不断言密码错误，不因该结果删除已保存凭据。
+- 获取入口、已有会话导航、后续 GET 或密码过期确认 POST 的 401 不证明密码拒绝，返回服务异常；已有访问策略禁止正文优先保留其分类。密码本身不自动重发。
+- 学校与网关分别对 `InvalidCredentials` / `PreLoginTip` 采用 30 分钟后台冷却，传输/服务错误为 60 秒；较长冷却避免未明确原因的失败反复触发后台密码尝试，不构成学校限流规则。人工新登录仍由用户触发。
+
+这些规则只提高失败表述和凭据保护的准确性，不证明 2026-11-02 WebVPN 实测的具体失败原因；该次上游响应正文与请求级阶段证据缺失。
 
 ### 1.7 激活 UC 会话
 
