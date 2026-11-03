@@ -3,7 +3,7 @@
 //! The transport is injected so request sequencing, auth-page detection, and
 //! parser failures can be tested before the real cookie session is migrated.
 use crate::{
-    auth::{self, session::Session, CredentialSource, LoginResult},
+    auth::{self, cas, session::Session, CredentialSource, LoginResult},
     codecs::classroom::{self, Room},
     foundation::http::{HttpRequest, HttpResponse, HttpTransport},
     AppError, ErrorCode,
@@ -26,9 +26,10 @@ pub async fn query_classrooms<T: HttpTransport>(
         return Err(AppError::invalid());
     }
 
-    session
+    let activation = session
         .send_following_redirects(HttpRequest::get(ACTIVATION_URL))
         .await?;
+    validate_read_response(&activation)?;
 
     let request = HttpRequest::get(format!(
         "{CLASSROOM_BASE}?xqid={campus}&floorid=&date={date}"
@@ -38,12 +39,7 @@ pub async fn query_classrooms<T: HttpTransport>(
     .header("Referer", CLASSROOM_REFERER);
     let response = session.send_following_redirects(request).await?;
 
-    if is_login_response(&response) {
-        return Err(AppError::session_expired());
-    }
-    if !(200..300).contains(&response.status) {
-        return Err(AppError::unavailable());
-    }
+    validate_read_response(&response)?;
     let value = serde_json::from_str(&response.body).map_err(|_| AppError::changed())?;
     classroom::parse_upstream_response(value)
 }
@@ -70,6 +66,19 @@ pub async fn query_classrooms_with_recovery<T: HttpTransport, C: CredentialSourc
         }
         other => other,
     }
+}
+
+fn validate_read_response(response: &HttpResponse) -> Result<(), AppError> {
+    if response.status == 483 || cas::is_access_policy_denied(&response.body) {
+        return Err(AppError::new(ErrorCode::AccessPolicyDenied));
+    }
+    if is_login_response(response) {
+        return Err(AppError::session_expired());
+    }
+    if !(200..300).contains(&response.status) {
+        return Err(AppError::unavailable());
+    }
+    Ok(())
 }
 
 fn is_login_response(response: &HttpResponse) -> bool {
@@ -113,7 +122,7 @@ mod tests {
         let body =
             serde_json::to_string(&fixture("upstream-normal-v1.json").input).expect("json fixture");
         let transport = MockTransport::with_responses(vec![
-            HttpResponse::new(200, ACTIVATION_URL, ""),
+            HttpResponse::new(200, CLASSROOM_REFERER, ""),
             response(body),
         ]);
         let session = Session::new(transport);
@@ -138,7 +147,7 @@ mod tests {
         let body =
             serde_json::to_string(&fixture("upstream-empty-v1.json").input).expect("json fixture");
         let transport = MockTransport::with_responses(vec![
-            HttpResponse::new(200, ACTIVATION_URL, ""),
+            HttpResponse::new(200, CLASSROOM_REFERER, ""),
             response(body),
         ]);
         let session = Session::new(transport);
@@ -151,7 +160,7 @@ mod tests {
     #[tokio::test]
     async fn login_page_requires_a_new_session() {
         let transport = MockTransport::with_responses(vec![
-            HttpResponse::new(200, ACTIVATION_URL, ""),
+            HttpResponse::new(200, CLASSROOM_REFERER, ""),
             HttpResponse::new(
                 200,
                 "https://sso.buaa.edu.cn/login",
@@ -173,7 +182,7 @@ mod tests {
         let body =
             serde_json::to_string(&fixture("upstream-error-v1.json").input).expect("json fixture");
         let transport = MockTransport::with_responses(vec![
-            HttpResponse::new(200, ACTIVATION_URL, ""),
+            HttpResponse::new(200, CLASSROOM_REFERER, ""),
             response(body),
         ]);
         let session = Session::new(transport);
@@ -240,7 +249,7 @@ mod tests {
           <input type="text" name="username" /><input type="password" name="password" />
         </form>"#;
         let transport = MockTransport::with_responses(vec![
-            HttpResponse::new(200, ACTIVATION_URL, ""),
+            HttpResponse::new(200, CLASSROOM_REFERER, ""),
             HttpResponse::new(
                 200,
                 CLASSROOM_BASE,
@@ -260,7 +269,7 @@ mod tests {
                 auth::UC_STATUS_URL,
                 r#"{"code":0,"data":{"schoolid":"sy2501001","name":"fixture"}}"#,
             ),
-            HttpResponse::new(200, ACTIVATION_URL, ""),
+            HttpResponse::new(200, CLASSROOM_REFERER, ""),
             response(body),
         ]);
         let session = Session::new(transport);
@@ -291,7 +300,7 @@ mod tests {
     #[tokio::test]
     async fn missing_stored_credentials_stop_recovery() {
         let transport = MockTransport::with_responses(vec![
-            HttpResponse::new(200, ACTIVATION_URL, ""),
+            HttpResponse::new(200, CLASSROOM_REFERER, ""),
             HttpResponse::new(200, CLASSROOM_BASE, r#"<html>统一身份认证</html>"#),
         ]);
         let session = Session::new(transport);
@@ -302,5 +311,51 @@ mod tests {
                 .code,
             ErrorCode::SessionExpired
         );
+    }
+    #[tokio::test]
+    async fn failed_activation_stops_before_the_classroom_query() {
+        for (activation, expected) in [
+            (
+                HttpResponse::new(503, CLASSROOM_REFERER, "unavailable"),
+                ErrorCode::ServiceUnavailable,
+            ),
+            (
+                HttpResponse::new(
+                    200,
+                    "https://sso.buaa.edu.cn/login",
+                    r#"<input name="execution" value="synthetic">"#,
+                ),
+                ErrorCode::SessionExpired,
+            ),
+            (
+                HttpResponse::new(483, CLASSROOM_REFERER, "访问策略禁止"),
+                ErrorCode::AccessPolicyDenied,
+            ),
+        ] {
+            let body = serde_json::to_string(&fixture("upstream-empty-v1.json").input).unwrap();
+            let transport = MockTransport::with_responses(vec![activation, response(body)]);
+            let session = Session::new(transport.clone());
+            session.set_route(crate::auth::session::RouteMode::Direct);
+            let error = query_classrooms(&session, 1, "2026-11-03")
+                .await
+                .expect_err("failed activation must stop");
+            assert_eq!(error.code, expected);
+            assert_eq!(transport.request_count(), 1);
+        }
+    }
+
+    #[tokio::test]
+    async fn classroom_access_policy_is_not_mistaken_for_expired_credentials() {
+        let transport = MockTransport::with_responses(vec![
+            HttpResponse::new(200, CLASSROOM_REFERER, "activated"),
+            HttpResponse::new(403, CLASSROOM_BASE, "访问策略禁止"),
+        ]);
+        let session = Session::new(transport.clone());
+        session.set_route(crate::auth::session::RouteMode::Direct);
+        let error = query_classrooms(&session, 1, "2026-11-03")
+            .await
+            .unwrap_err();
+        assert_eq!(error.code, ErrorCode::AccessPolicyDenied);
+        assert_eq!(transport.request_count(), 2);
     }
 }

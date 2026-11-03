@@ -10,6 +10,7 @@ python3 scripts/check-ui-language.py
 python3 scripts/generate-interface-index.py --check
 python3 scripts/check-api-doc-test.py
 python3 scripts/check-api-doc.py
+node --test scripts/check-landing-test.cjs
 python3 scripts/check-contracts-test.py
 python3 scripts/check-contracts.py
 cargo fmt --manifest-path rust/Cargo.toml --all --check

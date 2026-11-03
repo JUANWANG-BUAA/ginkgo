@@ -29,6 +29,7 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 105 | 空教室激活失败与策略拒绝 | 激活响应被忽略，仍查询业务；策略禁止可能被当会话过期 | 激活/查询均先判访问策略、登录页及非成功 HTTP；失败不继续业务查询，策略拒绝不冒充会话过期触发学校恢复 | §6A 既有端点不变；`classroom_http` 两项旧实现失败回归；[本轮复核](_audit/2026-11-03-protocol-and-release-review.md)。客户端失败策略修正，非真实登录/写入验收 |
 | 104 | CAS 明确错误区域的完整读取 | 仅识别 div/span，首个空节点遮蔽后面的非空提示；p.errors 可被忽略并继续 UC | 与固定 UBAA 的 findLoginError 对照补 p.errors，并在已知错误/提示节点中跳过空占位。明确拒绝仍先于 UC 身份验证 | UBAA `155e8b56` `LocalConnectionAuth.kt::findLoginError`；`auth/cas.rs`、`auth/tests.rs` 两项旧实现失败回归；不证明本次真实 401 的具体提示或根因 |
 | 103 | Android 凭据提交 401 的可作答挑战 | 401 在解析新验证码前直接结束，用户无法继续作答 | 仅凭据 POST 的 401、无错误原因或明确验证码提示，且同时有新 execution/验证码时返回新挑战；校验 CAS action，不自动重发。策略/凭据及其他明确拒绝保持错误 | 本次经 WebVPN 实测见 401＋CAS 表单/验证码/非空提示；具体提示未保留，不能宣称该补丁修复本次实网拒绝；`auth/tests.rs` 合成回归；[阶段诊断](_audit/2026-11-02-webvpn-live-acceptance.md) |
 | 102 | 认证错误重定向与 UC 激活 | 只检查已请求的当前 URL；提交后跳向非登录目标时提前结束 CAS 链，UC 激活也可忽略错误查询/正文继续验证 | HTTPS/已证实的安全 GET 目标解析后，先检查非空 exception.message 再跟随或判定服务跳转；UC 激活复用并检查已知错误正文。重复参数取首个非空原因、只解码一次；空参数不误伤正常 ticket | §1.6 既有 LCA:670-673 规则与 `auth/redirect.rs`、`auth/tests.rs` 合成回归；不证明之前实网失败包含该参数 |
@@ -829,6 +830,8 @@ OPAC 非零业务码仍为业务拒绝，不推测具体含义。
 1. GET SSO service：`https://app.buaa.edu.cn/a_buaa/api/cas/index?redirect=https%3A%2F%2Fapp.buaa.edu.cn%2Fsite%2FclassRoomQuery%2Findex&from=wap&login_from=`，SSO 查询包含 `noAutoRedirect=1`。使用共享 Cookie 激活业务会话。
 2. GET `https://app.buaa.edu.cn/buaafreeclass/wap/default/search1?xqid=1&floorid=&date=yyyy-MM-dd`。注意路径为 **buaafreeclass**；旧 BACKLOG 少了一个 a。校区 `1=学院路 / 2=沙河 / 3=杭州`。Ajax 头与 Referer `https://app.buaa.edu.cn/site/classRoomQuery/index`。
 3. 响应 `{e:0,m:"",d:{list:{楼栋:[{id,floorid,name,kxsds}]}}}`，`kxsds` 为逗号分隔空闲节次。非零 e、HTML 登录页、结构缺失均报错，不当作无空教室。
+
+Android 客户端失败策略（2026-11-03）：空教室的 CAS 激活及业务查询均检查响应，激活失败不继续查询；明确 483/访问策略禁止保留为 AccessPolicyDenied，不当作凭据过期触发恢复。查询字段、端点、成功码不变；合成回归不证明当前账号真实查询成功。
 
 ## 6B. 教学楼研讨室（CGYY，前端/UBAA 协议移植，真实写操作未验收）⚠️
 

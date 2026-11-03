@@ -3,14 +3,14 @@
 > **手机上的北航校园工作台**：今天的课、待交的作业、能签到的课、能坐的图书馆座位。
 > Flutter + Rust，学校请求在进程内直连学校系统或北航 WebVPN，不经过项目自建中转服务器；个人待办按账号保存在本机。
 
-[![下载 Android 版](https://img.shields.io/badge/下载-Android%20版-2f7d4a?style=flat-square)](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.4)
+[![下载 Android 版](https://img.shields.io/badge/下载-Android%20版-2f7d4a?style=flat-square)](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.6)
 [![项目主页](https://img.shields.io/badge/项目主页-juanwang--buaa.github.io%2Fginkgo-2f7d4a?style=flat-square)](https://juanwang-buaa.github.io/ginkgo/)
 [![许可](https://img.shields.io/badge/许可-MIT-2f7d4a?style=flat-square)](LICENSE)
 
 **Android 是本项目当前唯一的主推平台**：Flutter + Rust 同一套工程，手机底部标签导航、平板与宽屏自动展开为侧栏。Windows 与它共用这份工程，只保证可编译；macOS / iOS 的原生应用已冻结，保留源码与归档文档。
 
-- 最新公开版本：**Android 0.1.0-beta.4**（`0.1.0-beta.4+14`）· [下载 ARM64 APK](https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.4/Ginkgo-0.1.0-beta.4-android-arm64.apk) · [发布与验收记录](docs/_audit/2026-11-01-android-beta4-readiness.md)
-- 当前源码版本：`0.1.0-beta.4+14`（GitHub Beta prerelease 已公开）
+- 最新公开版本：**Android 0.1.0-beta.6**（`0.1.0-beta.6+16`）· [下载 ARM64 APK](https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.6/Ginkgo-0.1.0-beta.6-android-arm64.apk) · [当前复核与验收边界](docs/_audit/2026-11-03-protocol-and-release-review.md)
+- 当前源码候选：`0.1.0-beta.7+17`（尚未公开；当前验收与发布状态见复核记录）
 - Beta 试用反馈：[提交 Android 问题](https://github.com/JUANWANG-BUAA/ginkgo/issues/new?template=android-beta.md)（请勿附密码、Cookie、真实学号或未打码截图）
 - 长期维护入口：[功能与接口协议总览](docs/FEATURES-AND-PROTOCOLS.md) · [接口索引](docs/INTERFACE-INDEX.md) · [学校协议事实](docs/API.md)
 
@@ -46,13 +46,13 @@
 | 今天 | 工作台 | 读取当天课程、签到状态、作业摘要与个人待办 |
 | 课表与考试 | 课表标签 | 周课表 / 每日清单 / 学期与周次 / 课程搜索 / 考试 |
 | 作业 | 作业标签 | SPOC 列表与详情只读；个人文件提交需逐次确认，结果不明只回查 |
-| 签到 | 签到标签 | 读取当天与历史状态；签到需逐课确认后单次提交 |
-| 图书馆 | 预约 → 图书馆座位 | 馆 → 区 → 时段 → 座位；选座与入座状态需逐次确认 |
-| 研讨室 | 预约 → 研讨室与场馆 | 时段查询、我的预约、门锁密码；预约需手动验证码并确认 |
-| 空教室 | 预约 → 空教室 | 校区、日期、节次与楼栋查询 |
-| 博雅 | 工作台 → 博雅 | 课程目录、已选与完成统计（只读） |
-| 研究生教务 | 工作台 → 研究生教务 | 学籍、执行报告与学分地图（只读） |
-| SPOC 学习 | 工作台 → SPOC 学习 | 课程、公告、资料与测验只读 |
+| 签到 | 更多 → 课程签到 / 工作台入口 | 读取当天与历史状态；签到需逐课确认后单次提交 |
+| 图书馆 | 图书馆 → 预约座位 | 馆 → 区 → 时段 → 座位；选座与入座状态需逐次确认 |
+| 研讨室 | 更多 → 研讨室 | 时段查询、我的预约、门锁密码；预约需手动验证码并确认 |
+| 空教室 | 更多 → 空教室 | 校区、日期、节次与楼栋查询 |
+| 博雅 | 更多 → 博雅 | 课程目录、已选与完成统计（只读） |
+| 研究生教务 | 更多 → 研究生教务 | 学籍、执行报告与学分地图（只读） |
+| SPOC 学习 | 更多 → SPOC 学习 | 课程、公告、资料与测验只读 |
 | 公开查书 | 图书馆 → 查书目与馆藏 | 公开目录检索与馆藏（匿名只读） |
 | 本人借阅 | 服务目录 → 本人借阅 | 独立只读入口，不复用选座会话，不落盘 |
 | 校车时刻表 | 服务目录 → 校车时刻表 | 官方公开时刻表（不含实时余票与购票） |
@@ -83,7 +83,7 @@ flutter build apk --debug --target-platform android-arm64 --target lib/main.dart
 
 | 平台 | 状态 | 说明 |
 | --- | --- | --- |
-| **Android** | **主推 · 持续开发** | 公开版本 0.1.0-beta.4（build 14，GitHub prerelease）。真实学校写入、物理设备与读屏验收仍在进行 |
+| **Android** | **主推 · 持续开发** | 公开版本 0.1.0-beta.6（build 16，GitHub prerelease）。真实学校写入、物理设备与读屏验收仍在进行 |
 | Windows | 共用工程 · 不再排期 | 与 Android 共用同一 Flutter 工程，只保证可编译；公开版本 0.1.0-alpha.6（安装器未签名） |
 | macOS | 已冻结 | 独立 Swift/SwiftUI 应用，功能面最完整；保留源码与归档文档，见 [平台对照](docs/MIRROR-PARITY.md) |
 | iOS | 已冻结 | 独立原生壳，复用 macOS 校园服务；保留源码与构建说明，见 [docs/IOS.md](docs/IOS.md) |

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "reviewed_on": "2026-11-02",
+  "reviewed_on": "2026-11-03",
   "review_note": "Beta.3/UBAA comparison and current working-tree authentication repair; synthetic evidence is not live acceptance.",
   "groups": [
     {
@@ -10,7 +10,8 @@
         "rust/crates/ginkgo_upstream/src/foundation/*.rs",
         "rust/crates/ginkgo_upstream/src/services/session_service.rs",
         "rust/crates/ginkgo_upstream/src/services/session_service/*.rs",
-        "rust/crates/ginkgo_upstream/src/services/tests/session.rs"
+        "rust/crates/ginkgo_upstream/src/services/tests/session.rs",
+        "rust/crates/ginkgo_upstream/examples/auth_stage_probe.rs"
       ],
       "documents": [
         "docs/API.md",
@@ -31,8 +32,8 @@
         "AUTH-05",
         "AUTH-06"
       ],
-      "source_sha256": "17491ddb425d13acb5dfd79e06607ab74af17b52d15b59c11836800aac7a42ac",
-      "document_sha256": "901cfd98983e47d6658452673daeba11f7984d24a861dbbd3102586c4c1db368"
+      "source_sha256": "f9f7bd3e2a76d579f1a8784bf887f540a589b86675c7d498e20b5706396ea0a5",
+      "document_sha256": "9e95e56c8e32dba56a604c6eaed16334d30a7c86dad7b304023b51adf42c981d"
     },
     {
       "id": "school-protocols",
@@ -40,7 +41,8 @@
         "rust/crates/ginkgo_upstream/src/adapters/*.rs",
         "rust/crates/ginkgo_upstream/src/codecs/**/*.rs",
         "rust/crates/ginkgo_upstream/src/services/**/*.rs",
-        "fixtures/**/*.json"
+        "fixtures/**/*.json",
+        "rust/crates/ginkgo_upstream/examples/public_protocol_probe.rs"
       ],
       "documents": [
         "docs/API.md",
@@ -56,8 +58,8 @@
         "WRITE-01",
         "WRITE-02"
       ],
-      "source_sha256": "609d87eb492bb1aa0e1b669e2f572362fece6405f1ad9629cd0cddaa7d0f90f2",
-      "document_sha256": "db5bcd4ae01dce0642d5c5f7bcf5caadffbb56f79a7107ca9f1e8a83b8cdf2ce"
+      "source_sha256": "4da77c0c0ab2de5250cf179a3a295c251c549162da17468d07b72a217804790d",
+      "document_sha256": "52ef1f02df9d1aff4b97e73028b7bf003d13b0ab548d766609f1204b5a7b1a75"
     },
     {
       "id": "client-contracts",
@@ -76,7 +78,8 @@
         "flutter/lib/features/library/library_page.dart",
         "flutter/lib/widgets/mutation_dialog.dart",
         "flutter/lib/widgets/apple_surfaces.dart",
-        "flutter/lib/infrastructure/display_preferences_file_store.dart"
+        "flutter/lib/infrastructure/display_preferences_file_store.dart",
+        "flutter/lib/features/grades/grades_page.dart"
       ],
       "documents": [
         "docs/INTERFACE-INDEX.md",
@@ -98,7 +101,9 @@
         "flutter/test/display_preferences_file_store_test.dart",
         "flutter/test/library_read_deadline_test.dart",
         "flutter/test/refresh_section_test.dart",
-        "flutter/test/gateway_challenge_generation_test.dart"
+        "flutter/test/gateway_challenge_generation_test.dart",
+        "flutter/test/grades_term_recovery_test.dart",
+        "flutter/test/login_placeholder_contrast_test.dart"
       ],
       "invariants": [
         "FFI-01",
@@ -107,8 +112,8 @@
         "PREF-01",
         "READ-01"
       ],
-      "source_sha256": "dfa870f459a00f27cdfbb381005f762c1c003876b9c14fb1e69eec6f59f7b740",
-      "document_sha256": "2d0dc1640fbd055c91472f30b57a635ff0ae3d61c7046eef9aafc35ebf439f9f"
+      "source_sha256": "9bcd29183e0ae537f24aab7a2e25730767fddedd02aa5ef6a271295a9e45e0f7",
+      "document_sha256": "e542d18fe069b9689e3a64d58bf1b84b1c0b83fbe3c0b930e21f2ca425e286eb"
     }
   ]
 }

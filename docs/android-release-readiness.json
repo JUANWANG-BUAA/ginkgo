@@ -2,12 +2,58 @@
   "schema_version": 1,
   "status": "blocked",
   "version": "0.1.0-beta.7+17",
-  "source_sha256": null,
-  "contract_sha256": null,
+  "source_sha256": "281c29828870096b28b8befebda017b30305cff50bcddf1434d4a78296f3823d",
+  "contract_sha256": "b5481b6e366689975c92152cb3365d132891a3bbe7f206055586ef774ed56bfe",
   "reviewer": null,
   "reviewed_at": null,
   "open_p0": null,
   "open_p1": null,
-  "reason": "User reports pre-repair Beta unusable. Current fixes have local regression evidence only; real login last failed, captcha/device/upgrade/write acceptance incomplete.",
-  "cases": {}
+  "reason": "Final signed Beta.7 candidate is bound to the current source and contract. Local gates and scoped emulator evidence passed; real login is paused at the user's request, and physical-device acceptance, school writes, maintainer security review, Windows CI and remaining feature cases are incomplete. P0/P1 counts and maintainer review are not asserted.",
+  "cases": {
+    "baseline": {
+      "status": "passed",
+      "level": "local",
+      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "section": "EVIDENCE baseline",
+      "date": "2026-11-03",
+      "environment": "macOS; locked cached dependencies; repository full gate",
+      "result": "Full local gate exited 0, including 749 Flutter tests and Rust, docs, API, FRB and Node checks."
+    },
+    "production-entrypoint": {
+      "status": "passed",
+      "level": "emulator",
+      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "section": "EVIDENCE production-entrypoint",
+      "date": "2026-11-03",
+      "environment": "Android API 37 ARM64 isolated emulator-5580; final signed Release APK",
+      "result": "Normal MainActivity installed and cold-started successfully."
+    },
+    "feature:tasks": {
+      "status": "passed",
+      "level": "emulator",
+      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "section": "EVIDENCE feature:tasks",
+      "date": "2026-11-03",
+      "environment": "Android API 37 ARM64 isolated emulator-5580; Beta.6 to final signed Beta.7 overwrite",
+      "result": "Synthetic offline-demo local task survived signed overwrite install and remained visible."
+    },
+    "feature:more": {
+      "status": "passed",
+      "level": "emulator",
+      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "section": "EVIDENCE feature:more",
+      "date": "2026-11-03",
+      "environment": "Android API 37 ARM64 isolated emulator-5580; final signed Beta.7",
+      "result": "More page and its settings entry rendered and were navigable."
+    },
+    "feature:settings": {
+      "status": "passed",
+      "level": "emulator",
+      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "section": "EVIDENCE feature:settings",
+      "date": "2026-11-03",
+      "environment": "Android API 37 ARM64 isolated emulator-5580; Beta.6 to final signed Beta.7 overwrite",
+      "result": "Appearance choices could be changed; the Beta.6 dark preference survived upgrade and returned to the login screen."
+    }
+  }
 }

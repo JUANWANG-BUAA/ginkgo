@@ -21,6 +21,11 @@ Widget loginCredentialField({
     key: key,
     controller: controller,
     placeholder: placeholder,
+    placeholderStyle: TextStyle(
+      color: CupertinoColors.secondaryLabel
+          .resolveFrom(context)
+          .withValues(alpha: 0.8),
+    ),
     enabled: !busy && !challengeBusy,
     obscureText: obscure && !showPassword,
     prefix: Padding(

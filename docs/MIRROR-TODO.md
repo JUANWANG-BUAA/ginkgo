@@ -4,6 +4,8 @@
 
 > **当前唯一开发目标是 Android（Flutter + Rust）。macOS / iOS 暂时冻结**，不做功能开发、不做跨端对齐、不为其排期；只在影响 Android 构建、共享 fixture 或存在安全问题时被动修。Windows 与 Android 共用同一 Flutter 工程，不做功能开发但必须保持可编译。范围决策见 [多平台路线](MULTI-PLATFORM-STRATEGY.md#当前开发范围2026-10-24-决策)。
 
+2026-11-03 用户要求全协议验证、前后端优化后发包；真实账号登录按其指令暂停，疑似风控尚未确认。源码/合成/匿名实网/设备证据分开，不把暂停写成通过。本轮范围与记录见 [协议及候选复核](_audit/2026-11-03-protocol-and-release-review.md)，不另建 TODO 清单。
+
 ## 下一次 Android 发包：阻断（2026-11-02）
 
 用户明确反馈修复前 Beta 实际不可用；下一次发包必须先达到 [强制验收契约](ANDROID-RELEASE-CONTRACT.md)，稳定性与既有功能/操作完整性优先于扩展。仅通过合成测试、编译或静态视觉不能解除阻断。机器状态见 [发布验收记录](android-release-readiness.json)，不能把本文历史已完成标记视作当前候选验收。
@@ -55,7 +57,7 @@
 
 当前主线为 **Android / Flutter + Rust**。以工作树为准，不将历史设计或已发布内容重复排成新开发任务。
 
-- 已发布基线：Android Beta.4（build 14）；Windows Alpha.6（build 7）。证据见 [Beta.4 发布与验收记录](_audit/2026-11-01-android-beta4-readiness.md)。
+- 已发布基线：Android Beta.6（build 16）；Windows Alpha.6（build 7）。Beta.6 的公开元数据与当前 Beta.7 候选边界见 [本轮复核](_audit/2026-11-03-protocol-and-release-review.md)，Beta.4 审计只保留历史证据。
 - Beta.3（build 13）已公开：本地完整门禁、签名 Release APK、核心真实只读与视觉闭环、公开回下载摘要通过；Android Release workflow 因仓库未配置 Android 签名 secrets 而按 fail-closed 规则停止。独立 Release 模拟器未能启动，故本版 Release 覆盖升级、待办保留、物理设备和读屏未验收；详细边界见 [Beta.3 审计](_audit/2026-10-30-android-beta3-readiness.md)。
 - Beta.2（build 12）已公开：本地完整门禁、签名 Release APK 和公开回下载摘要通过；干净 Android 37 模拟器未能启动，故该版 Release 覆盖升级、待办保留、物理设备和读屏未验收；详细边界见 [Beta.2 审计](_audit/2026-10-29-android-beta2-release.md)。
 - Beta.1（build 11）已公开：全量门禁（当次 532 项 Flutter 测试）、签名构建与产物校验通过，模拟器签名包覆盖升级（Alpha.9→Beta.1，本机待办保留）通过，公开资产回下载摘要一致。**未验收**：物理设备（TalkBack、预测返回、大字号/深浅色、帧率）、真实学校认证与写入、借阅非空分页、校车余票和非空协议样本。
@@ -71,7 +73,7 @@
 
 ### Beta.3 后端回归与 Android 会话恢复（2026-11-02）
 
-- [ ] Android Keystore 会话快照已接入 Rust 登录、冷启动恢复、显式退出与路线切换，正常入口 Debug APK 已构建；仍需在可用 Android 设备或模拟器验证 Keystore/JNI 写读与冷启动恢复，并按 `docs/COLLABORATION.md` 做敏感存储人工审查后再关闭。本机隔离 AVD 启动后持续 `adb offline`，当前没有 Android 运行时验收；不要将记住密码和 Cookie 快照混为同一设置。
+- [ ] Android Keystore 会话快照已接入 Rust 登录、冷启动恢复、显式退出与路线切换，正常入口 Debug APK 已构建；仍需在可用 Android 设备或模拟器验证 Keystore/JNI 写读与冷启动恢复，并按 `docs/COLLABORATION.md` 做敏感存储人工审查后再关闭。2026-11-03 隔离 AVD 已可用，合成凭据 Keystore 两次写读删及学习快照设备测试通过；真实会话 Cookie 的在线冷恢复仍未验收，不把这几项混为同一证据。
 
 ### 工作台 P0 强化（2026-10-28）
 

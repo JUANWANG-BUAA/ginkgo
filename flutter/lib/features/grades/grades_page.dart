@@ -129,6 +129,13 @@ class _GradesPageState extends State<GradesPage> {
             ),
             sliver: SliverList.list(
               children: [
+                if (terms.length > 1) _termPicker(),
+                if (busy && data != null && selectedTerm != data!.termId)
+                  AppleStatusSection(
+                    title: '正在切换学期',
+                    description:
+                        '正在读取${_termName(selectedTerm ?? '')}，当前显示${_termName(data!.termId)}的成绩。',
+                  ),
                 if (notice != null)
                   AppleSection(
                     children: [
@@ -169,26 +176,26 @@ class _GradesPageState extends State<GradesPage> {
     ),
   );
 
-  List<Widget> _content(GradeResponse data) => [
-    if (terms.length > 1)
-      AppleSection(
-        children: [
-          ApplePickerTile<String>(
-            title: '学期',
-            value: selectedTerm ?? data.termId,
-            values: terms.map((term) => term.id).toList(),
-            label: (id) {
-              final term = terms.where((term) => term.id == id).firstOrNull;
-              return term?.name ?? id;
-            },
-            onSelected: (id) {
-              if (id == selectedTerm) return;
-              setState(() => selectedTerm = id);
-              load(force: true);
-            },
-          ),
-        ],
+  Widget _termPicker() => AppleSection(
+    children: [
+      ApplePickerTile<String>(
+        title: '学期',
+        value: selectedTerm ?? terms.first.id,
+        values: terms.map((term) => term.id).toList(),
+        label: (id) {
+          final term = terms.where((term) => term.id == id).firstOrNull;
+          return term?.name ?? id;
+        },
+        onSelected: (id) {
+          if (id == selectedTerm) return;
+          setState(() => selectedTerm = id);
+          load(force: true);
+        },
       ),
+    ],
+  );
+
+  List<Widget> _content(GradeResponse data) => [
     SummaryStrip(
       items: [
         SummaryItem(

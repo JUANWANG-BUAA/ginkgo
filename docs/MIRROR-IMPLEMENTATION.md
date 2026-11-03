@@ -1,5 +1,7 @@
 # Rust + Flutter 镜像实施现状
 
+2026-11-03 工作树补空教室激活失败与策略分类，成绩首读失败仍可切学期、切换等待明确旧数据归属。公开六组真实匿名查询已解析成功，受保护账号与本人写入继续未验收；[当前复核](_audit/2026-11-03-protocol-and-release-review.md)。
+
 更新：2026-11-02。功能与本地接口统一索引见 [功能和接口协议](FEATURES-AND-PROTOCOLS.md)，全代码接口总览与逐层清单见 [接口索引](INTERFACE-INDEX.md)。本页描述工作树；公开 APK 的内容以对应发布记录为准。模块差距只维护在 [功能对照](MIRROR-PARITY.md)，未完成事项只维护在 [待办](MIRROR-TODO.md)，过程与历次测试见 [历史证据索引](archive/mirror/README.md)。
 
 2026-11-02 工作树正在修复认证与路线回归，状态与验证见 [修复记录](_audit/2026-11-02-backend-repair.md)。登录页提供自动/直连/WebVPN 选择；设置页经独立能力端口提供网关验证码读取/刷新/单次作答，要求账号与挑战 ID 匹配；Android 会话 Cookie 使用独立 Keystore 密钥加密并在冷启动后向 UC 验证再恢复；固定 24 小时期限不因读取或 Cookie 轮换延长，UC 暂不可用不发布缓存身份。登录与网关验证码过期/刷新失败可显式 GET 更新，旧答案不可重发；路线操作检查类型化失败，密码明确拒绝有本地退避。未发布、未完成 Android 设备、真实账号验收及敏感存储人工审查。
@@ -29,7 +31,7 @@ CAS 错误解析按固定 UBAA 对照补齐 `p.errors`，已知错误/提示区�
 | 平台 | 当前状态 | 证据与限制 |
 | --- | --- | --- |
 | macOS / iOS | 独立 SwiftUI 应用，共享 Swift 客户端、模型与工作区编排 | Apple 测试见 [TESTING](TESTING.md)；模拟器通过不代表真机、签名分发或真实写入通过 |
-| Android | Rust + Flutter；公开包 Beta.4（build 14，2026-11-01） | [Beta.4 发布与验收记录](_audit/2026-11-01-android-beta4-readiness.md)；完整镜像门禁、真实核心只读和签名候选通过，最终 live 全页面管线受登录状态波动与脚本维护影响仍有未覆盖步骤，物理设备和学校写入未验收 |
+| Android | Rust + Flutter；公开包 Beta.6（build 16）；工作树 Beta.7 未发布 | [当前复核](_audit/2026-11-03-protocol-and-release-review.md)；以下 Beta.4 历史记录的完整镜像门禁、真实核心只读和签名候选通过，最终 live 全页面管线受登录状态波动与脚本维护影响仍有未覆盖步骤，物理设备和学校写入未验收 |
 | Windows | Rust + Flutter；公开包 Alpha.6（build 7），Windows 10 / 11 x64 单文件安装器 + 便携 ZIP | [首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)、[主机验证](archive/mirror/WINDOWS-2026-10-21.md)；系统保险库、宽屏侧栏、窄屏底部导航、键盘与返回栈基础通过；安装器未签名，物理 x64 / 干净系统运行依赖 / 真实学校业务仍未验收 |
 
 既往真实账号只读检查已覆盖已接入模块，但最近一次集成登录失败；两次结果分别保留于 [验收记录](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md) 与 [认证异常诊断](_audit/2026-10-21-auth-redirect-incident.md)。不能把早先通过推广为当前所有网络均可用，也不能将工作树改动当作已经发布。
