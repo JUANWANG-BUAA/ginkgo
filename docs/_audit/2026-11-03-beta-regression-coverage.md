@@ -77,7 +77,7 @@
 
 `bash scripts/check-mirror.sh` 最终退出 0，日志 `/tmp/ginkgo-beta-final-mirror.log`。严格 Clippy、Rust 分层及 workspace 测试、架构/协议/接口文档门禁、八项验证器反例、22 个已编译错误变体检出、Flutter analyze、789 项 Flutter 测试和 FRB 重新生成零漂移均通过。宿主真实 Rust bridge 的演示详情和墙钟测试实际执行，未跳过。第一次门禁的课表动作表测试同步失败已修正，最终整套重跑通过；生成器写入中途的一次 `git diff --check` 曾看到未格式化中间文件，等待生成完成后的独立检查通过，未手工修改生成物。
 
-旧 network-candidate APK 早于本轮新增修复，不能冒充本轮产物。build 17 的中间候选见 [产物记录](2026-11-03-comprehensive-candidate-artifact.json)；随后将实现版本递增为 Beta.8/build 18 并发布，最终 APK 与门禁例外记录见 [Beta.8 发布记录](android-beta8-publication.md)。两个包均未用于登录或学校请求。
+旧 network-candidate APK 早于本轮新增修复，不能冒充本轮产物。build 17 的中间候选见 [产物记录](2026-11-03-comprehensive-candidate-artifact.json)；随后将实现版本递增为 Beta.8/build 18 并发布，最终 APK 与门禁例外记录见 [Beta.8 发布记录](2026-11-03-beta8-publication.md)。两个包均未用于登录或学校请求。
 
 ## 仍不能作出的结论
 
