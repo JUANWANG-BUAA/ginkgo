@@ -57,7 +57,7 @@
 
 当前主线为 **Android / Flutter + Rust**。以工作树为准，不将历史设计或已发布内容重复排成新开发任务。
 
-- 已发布基线：Android Beta.6（build 16）；Windows Alpha.6（build 7）。Beta.6 的公开元数据与当前 Beta.7 候选边界见 [本轮复核](_audit/2026-11-03-protocol-and-release-review.md)，Beta.4 审计只保留历史证据。
+- 已发布基线：Android Beta.7（build 17）；Windows Alpha.6（build 7）。Beta.7 发布时验收状态仍 blocked，未完成范围见 [本轮复核](_audit/2026-11-03-protocol-and-release-review.md)，Beta.4 审计只保留历史证据。
 - Beta.3（build 13）已公开：本地完整门禁、签名 Release APK、核心真实只读与视觉闭环、公开回下载摘要通过；Android Release workflow 因仓库未配置 Android 签名 secrets 而按 fail-closed 规则停止。独立 Release 模拟器未能启动，故本版 Release 覆盖升级、待办保留、物理设备和读屏未验收；详细边界见 [Beta.3 审计](_audit/2026-10-30-android-beta3-readiness.md)。
 - Beta.2（build 12）已公开：本地完整门禁、签名 Release APK 和公开回下载摘要通过；干净 Android 37 模拟器未能启动，故该版 Release 覆盖升级、待办保留、物理设备和读屏未验收；详细边界见 [Beta.2 审计](_audit/2026-10-29-android-beta2-release.md)。
 - Beta.1（build 11）已公开：全量门禁（当次 532 项 Flutter 测试）、签名构建与产物校验通过，模拟器签名包覆盖升级（Alpha.9→Beta.1，本机待办保留）通过，公开资产回下载摘要一致。**未验收**：物理设备（TalkBack、预测返回、大字号/深浅色、帧率）、真实学校认证与写入、借阅非空分页、校车余票和非空协议样本。

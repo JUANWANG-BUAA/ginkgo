@@ -61,7 +61,7 @@
 
 ## 6. 公开基线校正与 Git 连接
 
-GitHub Release API/CLI 确认最新公开版为 [Android Beta.6](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.6)，发布于 2026-11-01T16:41:41Z，发布说明版本 `0.1.0-beta.6+16`。APK 资产 `Ginkgo-0.1.0-beta.6-android-arm64.apk`、大小 43848469、GitHub digest `f99c2ef3d8a10230b540d6764d9d6f6c53229fbcd53879e9104eeb8aba11dc2b`；同时提供同名 `.apk.sha256`。本轮修正 README、Flutter README、AGENTS、实现/TODO 入口与网站静态回退的过时 Beta.2/Beta.4 最新版声明，历史发布报告不追改。Beta.7 当前仍是未发布候选，不改写 Beta.6 历史说明。
+发布前的 GitHub Release API/CLI 检查确认当时最新公开版为 [Android Beta.6](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.6)，发布于 2026-11-01T16:41:41Z，版本 `0.1.0-beta.6+16`。APK 大小 43,848,469 字节，GitHub digest `f99c2ef3d8a10230b540d6764d9d6f6c53229fbcd53879e9104eeb8aba11dc2b`，并提供同名 `.apk.sha256`。本轮最初将 README、Flutter README、AGENTS、实现/TODO 入口与网站静态回退修正到 Beta.6；Beta.7 后续公开情况见 §9。历史 Beta.6 发布报告不追改。
 
 本机 Git 配置把 GitHub URL 重写到 gh-proxy.com，该路径返回 403；以单次命令最长前缀 insteadOf 覆盖可直连 GitHub，确认 main 仍为 `5215a1bc96461f168ee228d32bd02e36cfc210df`。不修改全局 Git/代理配置、不经第三方镜像推送凭据。
 
@@ -76,9 +76,9 @@ Release 实际操作发现登录占位提示在暗/亮背景上对比不足。�
 
 ## 8. 最终候选、截图与证据绑定
 
-最终候选源码摘要 `source_sha256=281c29828870096b28b8befebda017b30305cff50bcddf1434d4a78296f3823d`；协议契约摘要 `contract_sha256=b5481b6e366689975c92152cb3365d132891a3bbe7f206055586ef774ed56bfe`。`python3 scripts/check-contracts.py --candidate`、`python3 scripts/generate-interface-index.py --check` 与 `git diff --check` 均通过；协议锁与源码/文档摘要匹配，但这些门禁不是人工协议事实审查。
+签名 APK 构建时的候选源码摘要 `source_sha256=281c29828870096b28b8befebda017b30305cff50bcddf1434d4a78296f3823d`；协议契约摘要 `contract_sha256=b5481b6e366689975c92152cb3365d132891a3bbe7f206055586ef774ed56bfe`。公开发布后的文档同步只调整版本回退与验收说明；为消除网站测试名称中的 Beta.6 过时说法，本轮还将静态校验测试标题改为通用描述，不改 APK 的运行时代码。该标题变更后的当前候选源码摘要为 `source_sha256=fc8535f0215d4e21a72b9182e727f712e4a35fa74e74cc102bf6290841a69a7b`，协议契约摘要不变。`python3 scripts/check-contracts.py --candidate`、`python3 scripts/generate-interface-index.py --check` 与 `git diff --check` 均通过；协议锁与源码/文档摘要匹配，但这些门禁不是人工协议事实审查。
 
-最终签名候选以正常 `lib/main.dart` 和 `--pub` 构建，版本 `0.1.0-beta.7+17`，包名 `cn.edu.buaa.ginkgo.ginkgo_mirror`，大小 44,117,349 字节，SHA-256 `812de3c0288609efe5b4cac66b650fe85413c44741adfe123e60d6c313e60f50`。APK 签名验证通过，证书 SHA-256 `451748b957b44d5a28ebcc967cc2aeec7e7bea6a13d9edcb021c9fd8dc7fb245` 与公开 Beta.6 一致；16 KB `zipalign` 检查通过，包仅含 `arm64-v8a`，未发现 `debuggable` 标记或 `integration_test`，正常入口启动成功。最终本地包和 basename-only `checksums.txt` 位于 `/tmp/ginkgo-beta7-candidate/`，尚未发布。
+最终 APK 以正常 `lib/main.dart` 和 `--pub` 构建，版本 `0.1.0-beta.7+17`，包名 `cn.edu.buaa.ginkgo.ginkgo_mirror`，大小 44,117,349 字节，SHA-256 `812de3c0288609efe5b4cac66b650fe85413c44741adfe123e60d6c313e60f50`。APK 签名验证通过，证书 SHA-256 `451748b957b44d5a28ebcc967cc2aeec7e7bea6a13d9edcb021c9fd8dc7fb245` 与公开 Beta.6 一致；16 KB `zipalign` 检查通过，包仅含 `arm64-v8a`，未发现 `debuggable` 标记或 `integration_test`，正常入口启动成功。最终本地包和 basename-only `checksums.txt` 位于 `/tmp/ginkgo-beta7-candidate/`；该包随后公开发布，见 §9。
 
 重新从已校验的公开 Beta.6 安装开始，在隔离 `emulator-5580`（Android API 37 / ARM64）保存深色外观和一条合成离线演示本机待办，再以 `adb install -r` 覆盖安装上述最终签名 Beta.7。系统安装、主 Activity 冷启动成功；最终登录页保留深色偏好，重新进入离线演示后待办仍存在。随后切换浅色并返回登录，最终候选的暗/亮登录页均重新捕获。待办属于演示数据，只证明本次隔离 AVD 的本机演示存储，不代表真实账号数据；模拟器升级不能代替物理设备升级验收。
 
@@ -122,4 +122,12 @@ PR #2 提交 `4372972470e1aa74c3529df1113f35bd4d6615a4` 的 GitHub mirror Window
 
 上述通过项仅按 readiness 对应的 `local` / `emulator` / `remote-ci` 等级记录；账号只读、验证码/网关真实闭环、其余受保护功能、物理设备、学校写入与维护者人审仍未通过。readiness 保持 `blocked`。
 
-最后执行 `python3 scripts/check-contracts.py --release`，按契约预期退出 1。它确认候选源码/契约摘要匹配；Windows 远端 CI 已通过，但真实账号与路线只读、完整验证码/会话闭环、物理设备设置/性能/通知/升级、学校本人写入、维护者安全审查及其余真实功能验收仍缺证据；P0/P1 未经维护者归零，reviewer 也未填写。不得删减必验项或把本轮模拟器/匿名公共读取提升为错误证据等级。
+最后执行 `python3 scripts/check-contracts.py --release`，按契约预期退出 1。它确认候选源码/契约摘要匹配；Windows 远端 CI 已通过，但真实账号与路线只读、完整验证码/会话闭环、物理设备设置/性能/通知/升级、学校本人写入、维护者安全审查及其余真实功能验收仍缺证据；P0/P1 未经维护者归零，reviewer 也未填写。该状态未被更改。用户随后明确要求在不处理这些阻断的情况下直接发布；执行与结果记于 §9。不得把模拟器/匿名公共读取提升为真实账号、本人写操作或人工审查证据。
+
+## 9. 用户指令下的公开发布
+
+用户在本轮收到“当前仅为草稿、没有公开版本”说明后，明确要求直接发布。PR #2 已合并至 main（merge commit `21f2957e079760dba14376de3551c0b6352d6b0d`），并以该提交为目标创建 [Android Beta.7 prerelease](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.7)，发布时间 `2026-11-03T00:41:28Z`。资产为 APK、APK 同名 `.sha256` 与 basename-only `checksums.txt`。GitHub API 报告 APK 大小 44,117,349 字节、digest `sha256:812de3c0288609efe5b4cac66b650fe85413c44741adfe123e60d6c313e60f50`。
+
+发布后用 GitHub CLI 重新下载 Release 的 APK 和校验文件，`shasum -c checksums.txt` 成功，下载文件与本地候选 `cmp` 完全相同。随后在公开宣传页刷新确认标题、当前版本、下载 APK、第三方备用 APK、Release 链接和校验链接均解析到 Beta.7。本次同步已将静态 HTML 回退也更新为 Beta.7；主分支文档提交后再次检查 Pages。
+
+Beta.7 的 Android tag workflow `41554644048` 在 `Require candidate-bound Android acceptance before signing` 步骤失败，后续签名/构建步骤跳过；原因是 readiness 仍为 `blocked`。公开资产通过 `gh release create` 手动上传，属于用户明确指令下绕过自动发包门禁，不代表门禁通过。readiness 保持 `blocked`，物理设备、真实账号/验证码、学校本人写入、维护者审查和 P0/P1 清零均仍未完成；后续版本不得据此放宽验收条件。

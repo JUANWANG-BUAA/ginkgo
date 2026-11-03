@@ -2,13 +2,13 @@
   "schema_version": 1,
   "status": "blocked",
   "version": "0.1.0-beta.7+17",
-  "source_sha256": "281c29828870096b28b8befebda017b30305cff50bcddf1434d4a78296f3823d",
+  "source_sha256": "fc8535f0215d4e21a72b9182e727f712e4a35fa74e74cc102bf6290841a69a7b",
   "contract_sha256": "b5481b6e366689975c92152cb3365d132891a3bbe7f206055586ef774ed56bfe",
   "reviewer": null,
   "reviewed_at": null,
   "open_p0": null,
   "open_p1": null,
-  "reason": "Final signed Beta.7 candidate is bound to the current source and contract. Local gates, scoped emulator evidence and Windows remote CI passed; real login is paused at the user's request, and physical-device acceptance, school writes, maintainer security review and remaining feature cases are incomplete. P0/P1 counts and maintainer review are not asserted.",
+  "reason": "Beta.7 was publicly released on 2026-11-03 at the user's explicit direction while readiness was blocked. The signed artifact is bound to the current source and contract; local gates, scoped emulator evidence and Windows remote CI passed. Real login remains paused at the user's request; physical-device acceptance, school writes, maintainer security review and remaining feature cases are incomplete. P0/P1 counts and maintainer review are not asserted; this release does not pass the gate for future releases.",
   "cases": {
     "baseline": {
       "status": "passed",

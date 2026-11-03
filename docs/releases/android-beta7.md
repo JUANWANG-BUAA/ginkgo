@@ -1,11 +1,21 @@
-# Ginkgo Android Beta.7（候选，尚未公开）
+# Ginkgo Android Beta.7
 
-- 登录前可选择自动、直连或 WebVPN，验证码刷新与失效恢复更清楚。
-- 改进会话恢复与设置保存，保存失败可重试，主动退出后不自动恢复登录。
-- 修复图书馆刷新等待、空教室失败处理和成绩学期切换问题。
-- 改善深浅色、大字号及登录输入提示的可读性。
-- 下载页兼容新版校验文件，避免下载链接停留在旧版。
+版本：`0.1.0-beta.7+17`（versionCode 17）
 
-候选版本 `0.1.0-beta.7+17`。真实账号测试按用户要求暂停；账号受保护业务、学校写入及物理设备尚未完成当前候选验收，不能宣传为全功能已恢复。正式发布仍受仓库验收门禁约束。
+发布：2026-11-03 · GitHub prerelease
 
-构建、协议、截图、升级与远端检查证据见 [本轮复核](../_audit/2026-11-03-protocol-and-release-review.md)，未完成事项只见 [MIRROR-TODO](../MIRROR-TODO.md)。
+Release：[android-v0.1.0-beta.7](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.7)
+
+- 登录前可选择自动、直连或 WebVPN，验证码与失败恢复提示更清晰。
+- 改进会话恢复和设置保存，减少登录状态与本机偏好丢失。
+- 修复空教室激活失败处理及成绩读取失败后的学期切换。
+- 优化深浅色、大字号下的页面呈现和登录输入可读性。
+- 修正下载页版本与校验文件选择，避免继续显示旧版链接。
+
+APK：`Ginkgo-0.1.0-beta.7-android-arm64.apk`（44,117,349 字节，ARM64）
+
+SHA-256：`812de3c0288609efe5b4cac66b650fe85413c44741adfe123e60d6c313e60f50`
+
+校验文件：[APK sidecar](https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.7/Ginkgo-0.1.0-beta.7-android-arm64.apk.sha256) · [checksums.txt](https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.7/checksums.txt)
+
+**验收说明：** 本版未完成真实账号/验证码在线闭环、物理设备验收及学校本人写操作；发布不代表这些功能已通过验收。readiness 仍为 `blocked`，发布与证据边界见[本轮复核](../_audit/2026-11-03-protocol-and-release-review.md)。

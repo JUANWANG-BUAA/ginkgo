@@ -53,7 +53,7 @@ test('API failure keeps static links without inventing a version', async () => {
   const state = await run([], true);
   assert.equal(state.has('[data-download-apk]'), false);
 });
-test('static Android fallback points to the APK sidecar that Beta.6 actually publishes', () => {
+test('static Android fallback points to the selected APK sidecar', () => {
   const html = fs.readFileSync(path.join(root, 'docs/index.html'), 'utf8');
   const apk = html.match(/data-download-apk href="([^"]+)"/)[1];
   const checksum = html.match(/data-android-checksums href="([^"]+)"/)[1];

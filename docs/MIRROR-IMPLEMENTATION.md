@@ -31,7 +31,7 @@ CAS 错误解析按固定 UBAA 对照补齐 `p.errors`，已知错误/提示区�
 | 平台 | 当前状态 | 证据与限制 |
 | --- | --- | --- |
 | macOS / iOS | 独立 SwiftUI 应用，共享 Swift 客户端、模型与工作区编排 | Apple 测试见 [TESTING](TESTING.md)；模拟器通过不代表真机、签名分发或真实写入通过 |
-| Android | Rust + Flutter；公开包 Beta.6（build 16）；工作树 Beta.7 未发布 | [当前复核](_audit/2026-11-03-protocol-and-release-review.md)；以下 Beta.4 历史记录的完整镜像门禁、真实核心只读和签名候选通过，最终 live 全页面管线受登录状态波动与脚本维护影响仍有未覆盖步骤，物理设备和学校写入未验收 |
+| Android | Rust + Flutter；公开包 Beta.7（build 17）；本轮 readiness 仍 blocked | [当前复核](_audit/2026-11-03-protocol-and-release-review.md)；Beta.7 已按用户直接要求公开，真实账号/验证码、物理设备和学校写入验收仍未完成；以下 Beta.4 历史记录只代表当时证据 |
 | Windows | Rust + Flutter；公开包 Alpha.6（build 7），Windows 10 / 11 x64 单文件安装器 + 便携 ZIP | [首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)、[主机验证](archive/mirror/WINDOWS-2026-10-21.md)；系统保险库、宽屏侧栏、窄屏底部导航、键盘与返回栈基础通过；安装器未签名，物理 x64 / 干净系统运行依赖 / 真实学校业务仍未验收 |
 
 既往真实账号只读检查已覆盖已接入模块，但最近一次集成登录失败；两次结果分别保留于 [验收记录](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md) 与 [认证异常诊断](_audit/2026-10-21-auth-redirect-incident.md)。不能把早先通过推广为当前所有网络均可用，也不能将工作树改动当作已经发布。
