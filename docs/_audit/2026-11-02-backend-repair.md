@@ -144,6 +144,8 @@
 
 同批继续补齐 UC 激活 HTTP 200 正文的已知非空错误区域检查；新合成回归在修复前同样可绕过明确错误并返回 SignedIn，修复后立即返回认证提示且不查询 UC 状态。错误正文只走现有内存提示，不新增原始响应或个人信息日志。
 
+2026-11-03 源码复核更正：上段为当时策略和运行记录，不作为当前正确性结论。Beta.3、冻结 Swift 与固定 UBAA 均不将 UC 激活 HTTP 200 导航正文交给 CAS 文本解析器；该额外条件会把模板占位误作拒绝，现已撤销，仍保留显式错误跳转和后续 UC 身份验证。恢复完整票据跟随后，原测试的第三个响应实际处于 CAS 回调而非 UC 激活，不能证明其名称所称的覆盖。对应测试源码已重新划清调用边界，本轮按用户要求未运行；详见[源码对照](2026-11-03-webvpn-captcha-source-comparison.md)。
+
 验证：5 条新回归在 `bc28b81` 的旧实现上全部失败，修复后 upstream 全部通过。最终 `check-mirror.sh` 按前述锁定缓存依赖方式执行，原有检查均保留并退出 0：Rust fmt/严格 Clippy/分层与 workspace、架构/文档/协议锁、Flutter 分析与 728 条测试、FRB 零漂移；不计作在线依赖获取或学校真实登录验收。日志 `/tmp/ginkgo-redirect-error-old-final.log`、`/tmp/ginkgo-redirect-error-complete-gate.log`。正常 main 入口 ARM64 Debug APK 构建成功（`/tmp/ginkgo-redirect-error-main-apk.log`），未安装设备验收、未再次提交真实密码、未发包。发布门禁仍 blocked。
 
 

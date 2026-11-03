@@ -184,14 +184,9 @@ impl CookieJar {
             .iter()
             .filter(|cookie| cookie.matches(&parsed, now_ms))
             .collect();
-        matched.sort_by(|left, right| {
-            right
-                .path
-                .len()
-                .cmp(&left.path.len())
-                .then(left.created_at_ms.cmp(&right.created_at_ms))
-                .then(left.sequence.cmp(&right.sequence))
-        });
+        // UBAA preserves storage insertion order, including after rotation.
+        // Sorting by path can reverse duplicate names in an auth request.
+        matched.sort_by_key(|cookie| cookie.sequence);
         if matched.is_empty() {
             return None;
         }
@@ -352,6 +347,36 @@ mod tests {
             NOON + 100_000,
         );
         assert!(jar.is_empty());
+    }
+
+    #[test]
+    fn ubaa_cookie_order_follows_insertion_and_rotation_not_path_length() {
+        let mut jar = CookieJar::new();
+        jar.store(
+            "https://sso.buaa.edu.cn/login",
+            "SESSION=root; Path=/",
+            NOON,
+        );
+        jar.store(
+            "https://sso.buaa.edu.cn/login",
+            "SESSION=login; Path=/login",
+            NOON + 1,
+        );
+        assert_eq!(
+            jar.header_for("https://sso.buaa.edu.cn/login", NOON + 2)
+                .as_deref(),
+            Some("SESSION=root; SESSION=login")
+        );
+        jar.store(
+            "https://sso.buaa.edu.cn/login",
+            "SESSION=rotated; Path=/",
+            NOON + 3,
+        );
+        assert_eq!(
+            jar.header_for("https://sso.buaa.edu.cn/login", NOON + 4)
+                .as_deref(),
+            Some("SESSION=login; SESSION=rotated")
+        );
     }
 
     #[test]

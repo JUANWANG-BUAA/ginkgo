@@ -14,7 +14,7 @@
 | [应用编排（ginkgo_core）](rust-core-application.md) | `rust-core-application.md` | 92 |
 | [上游适配器（ginkgo_upstream::adapters）](rust-upstream-adapters.md) | `rust-upstream-adapters.md` | 125 |
 | [上游解析（ginkgo_upstream::codecs）](rust-upstream-codecs.md) | `rust-upstream-codecs.md` | 75 |
-| [认证与会话（ginkgo_upstream::auth）](rust-upstream-auth.md) | `rust-upstream-auth.md` | 89 |
+| [认证与会话（ginkgo_upstream::auth）](rust-upstream-auth.md) | `rust-upstream-auth.md` | 91 |
 | [上游服务（ginkgo_upstream::services）](rust-upstream-services.md) | `rust-upstream-services.md` | 120 |
 | [上游基础能力（ginkgo_upstream）](rust-upstream-foundation.md) | `rust-upstream-foundation.md` | 52 |
 | [组装（ginkgo_runtime）](rust-runtime.md) | `rust-runtime.md` | 8 |

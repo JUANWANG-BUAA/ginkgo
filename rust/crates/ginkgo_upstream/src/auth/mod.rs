@@ -77,9 +77,7 @@ pub enum LoginPage {
         action_url: String,
         html: String,
     },
-    ExistingSession {
-        location: String,
-    },
+    ExistingSession,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -100,13 +98,35 @@ pub async fn login<T: HttpTransport>(
     credentials: &Credentials,
 ) -> Result<LoginResult, AppError> {
     let page = fetch_login_page(session).await?;
-    complete_login(session, credentials, page).await
+    finish_login(session, credentials, page).await
 }
 
-/// Finish a login from an already fetched page. Keeping the page lets a
-/// captcha answer reuse the same execution token instead of invalidating it by
-/// fetching a new challenge.
+/// Resume a prepared login. UBAA fetches the login endpoint again before a
+/// captcha POST, while preferring the execution supplied with the answer.
 pub async fn complete_login<T: HttpTransport>(
+    session: &Session<T>,
+    credentials: &Credentials,
+    page: LoginPage,
+) -> Result<LoginResult, AppError> {
+    if credentials.username.trim().is_empty() || credentials.password.is_empty() {
+        return Err(AppError::invalid());
+    }
+    let answer = credentials
+        .captcha_text
+        .as_deref()
+        .filter(|text| !text.trim().is_empty());
+    let page = if let (LoginPage::Form { execution, .. }, Some(_)) = (&page, answer) {
+        // The extra GET shares the challenge's route and cookie jar. It must
+        // not replace an explicitly supplied execution with the new page's.
+        session.pin_route();
+        login::fetch_login_page_with_execution(session, Some(execution)).await?
+    } else {
+        page
+    };
+    finish_login(session, credentials, page).await
+}
+
+async fn finish_login<T: HttpTransport>(
     session: &Session<T>,
     credentials: &Credentials,
     page: LoginPage,
@@ -118,33 +138,17 @@ pub async fn complete_login<T: HttpTransport>(
     // the page. Do not select a different cookie jar halfway through login.
     session.pin_route();
     match page {
-        LoginPage::ExistingSession { location } => {
-            let response = session.send_auth(HttpRequest::get(&location)).await?;
-            if let Some(page) =
-                login::follow_redirects_and_check_error(session, response, location, false).await?
-            {
-                let LoginPage::Form {
-                    captcha: Some(challenge),
-                    ..
-                } = &page
-                else {
-                    return Err(AppError::changed());
-                };
-                return Ok(LoginResult::CaptchaRequired {
-                    challenge: challenge.clone(),
-                    page,
-                });
-            }
-        }
+        // UBAA ignores the initial Location and activates UC directly. This
+        // branch is not the redirect chain produced by a password submission.
+        LoginPage::ExistingSession => {}
         LoginPage::Form {
             execution,
             captcha,
-            action_url,
+            action_url: _,
             html,
         } => {
-            // Re-checked even for pages restored from a pending captcha: the
-            // POST target is the last line of defense before credentials leave.
-            login::validate_login_action(&action_url)?;
+            // UBAA posts to its fixed loginUrl(), never the page's form action.
+            let action_url = LOGIN_URL.to_owned();
             if let Some(challenge) = captcha {
                 let fresh = LoginPage::Form {
                     execution: execution.clone(),
@@ -161,7 +165,7 @@ pub async fn complete_login<T: HttpTransport>(
                 if credentials
                     .captcha_text
                     .as_deref()
-                    .is_none_or(str::is_empty)
+                    .is_none_or(|text| text.trim().is_empty())
                 {
                     return Ok(LoginResult::CaptchaRequired {
                         challenge,
@@ -195,21 +199,7 @@ pub async fn complete_login<T: HttpTransport>(
                         ),
                 )
                 .await?;
-            if let Some(page) =
-                login::follow_redirects_and_check_error(session, response, action_url, true).await?
-            {
-                let LoginPage::Form {
-                    captcha: Some(challenge),
-                    ..
-                } = &page
-                else {
-                    return Err(AppError::changed());
-                };
-                return Ok(LoginResult::CaptchaRequired {
-                    challenge: challenge.clone(),
-                    page,
-                });
-            }
+            login::follow_redirects_and_check_error(session, response, action_url).await?;
         }
     }
     // A completed redirect is not sufficient identity proof. Keep transient

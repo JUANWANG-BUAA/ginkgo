@@ -87,9 +87,10 @@ pub fn is_access_policy_denied(html: &str) -> bool {
 }
 
 pub fn is_password_expiry_page(html: &str) -> bool {
-    extract_execution(html).is_some()
-        && (html.contains("continueForm")
-            || html.contains("ignoreAndContinue")
+    let ascii_lower = html.to_ascii_lowercase();
+    extract_execution(html).is_some_and(|value| !value.trim().is_empty())
+        && (ascii_lower.contains("continueform")
+            || ascii_lower.contains("ignoreandcontinue")
             || html.contains("账号存在安全风险")
             || html.contains("密码过期"))
 }

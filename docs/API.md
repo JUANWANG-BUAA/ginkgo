@@ -6,7 +6,7 @@
 
 | 不变量 | 强制约束 | 可执行证据入口 |
 | --- | --- | --- |
-| AUTH-01 | CAS 跳转、Cookie 存在或 HTTP 200 不单独证明身份；成功必须经过 UC 身份确认且匹配输入账号。新登录/冷恢复不以目录失败构造成功身份；显式认证错误不得被后续 UC 身份验证覆盖 | `auth/tests.rs`、`services/tests/session.rs` |
+| AUTH-01 | CAS 跳转、Cookie 存在或 HTTP 200 不单独证明身份；成功必须经过 UC 身份确认且匹配输入账号。新登录/冷恢复不以目录失败构造成功身份；CAS 提交链最终的明确错误不得被后续 UC 身份验证覆盖，UC 导航不套用 CAS 错误解析 | `auth/tests.rs`、`services/tests/session.rs` |
 | AUTH-02 | 用户路线偏好、实际路线、学校身份、网关身份和业务 token 分开；取得 CAS 表单后固定认证路线；自动模式的安全业务 GET 仅在目标 WebVPN UC 验证同一账号后提交路线迁移，失败保留原身份且不额外自动提交密码；密码 POST 不由传输层重放；显式路线失败不能冒充切换成功 | `auth/session.rs`、`services/tests/session_protocol.rs`、`services/tests/automatic_route.rs`；合成请求转录，真实路线仍未验收 |
 | AUTH-03 | 验证码绑定账号/认证代次/路线/ID/execution；答错使用学校新表单，旧答案失效。过期或刷新失败可显式 GET 恢复；未知提交不重发 | `session_service/gateway.rs`、`services/tests/session_protocol.rs`；合成回归不代表真实验证码验收 |
 | AUTH-04 | 未选记住不持久化密码；Android Cookie 仅进独立 Keystore 密文；24 小时固定期限不因恢复/轮换延长；退出/新登录/切路线撤销 | `services/tests/session.rs`、`auth/session.rs`；设备证据待补 |
@@ -29,6 +29,9 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 116 | 继续移除自定认证控制流 | 初始 3xx 额外消费 Location；CAS 提交链终态非 200 直接返回服务异常；UC 导航提前按 CAS 错误查询中止；Cookie 按路径长度重排 | 初始 3xx 直接激活 UC；提交链先消费跳转、确认一次到期提示，再检查最终错误/401/参考表单标记，其他状态继续 UC；UC 导航不解析 CAS 错误查询；Cookie 按插入/轮换次序发送。撤销提交响应自动转新验证码挑战的自定分支 | 固定 UBAA `e8a397fc` 的 `login`、`followRedirectsAndCheckError`、`activateUcLogin`、`PersistentLocalCookieStorage`；[源码对照](_audit/2026-11-03-webvpn-captcha-source-comparison.md)。保留有界 HTTPS 导航、Cookie 安全作用域和 UC 身份匹配；未更改原独立捕获或伪造真实结果 |
+| 115 | 用户指定统一按 UBAA 认证主链实现 | 验证码直接复用旧页提交，密码 POST 跟随页面 action，到期确认保留 action/query，UC 落地页非 200 直接中止 | 验证码作答前同路线 GET `/login`，优先保留传入 execution；密码固定 POST `/login`；到期确认使用当前请求 URL 去 query；UC 导航完成后查询 status，不以落地页状态/正文替代身份。撤销临时 Safari 回退，保持参考的 `ktor-client`/Keep-Alive | 固定 UBAA `e8a397fc` 的 `LocalAuthServiceBackend.login`、`followRedirectsAndCheckError`、`activateUcLogin`；[源码对照](_audit/2026-11-03-webvpn-captcha-source-comparison.md)。仅源码修订，测试未运行，独立捕获与验收状态未改；安全差异单列，不宣称引擎或全部行为逐字一致 |
+| 114 | UC 激活导航与 CAS 错误解析的职责 | `21f2957e` 将 UC 激活 HTTP 200 正文套用 CAS 错误解析器，非空模板提示也会阻止后续身份验证 | 撤销该额外正文失败条件；后续按修订 115 对齐 UBAA，仍须 status 的有效身份且账号匹配，不将落地页当认证证据 | Beta.3 `32b6a1d6`、冻结 Swift `CasClient.activateUc`、固定 UBAA `e8a397fc` 的 `activateUcLogin` 均无该正文条件；[源码对照](_audit/2026-11-03-webvpn-captcha-source-comparison.md)。对应测试只修改源码、未运行；没有现场响应证明本次触发 |
 | 113 | BYKC 明文信封兼容边界 | Rust 假定所有 200 响应均为 AES/Base64 密文，固定参考所接受的明文 JSON 信封返回 ChangedResponse | 保留密文解密，同时接受合法明文对象或 JSON 字符串包装的对象；仍严格验证 status 与 data，业务拒绝不当成功，结构不完整不当空结果；不重试请求 | 固定 UBAA `LocalBykcApi.kt::doCallApiRaw` 对解密失败保留 encodedPayload，再由 decodeData 校验；原 Bykc backend 合成响应及 `accepts_reference_plaintext_envelopes_without_hiding_failures` 修复前真实失败、修复后通过。[本轮复核](_audit/2026-11-03-beta-regression-coverage.md)。不是本轮实网取证或掉线归因 |
 | 112 | 扩展完整认证、成绩与空教室实际请求对照 | 认证只比阶段；成绩/空教室未比较原 Ktor 工厂追加的头；手动重定向丢失协商头 | 固定参考实际捕获认证方法/URL/头/表单/Cookie，补 CAS/UC JSON Accept 与表单 UTF-8 字符集、成绩完整 Accept/字符集、空教室 UA/Accept；安全 GET 跳转只保留 User-Agent/Accept/Accept-Language，不转发认证与来源头。空教室 WebVPN 绝对回调仍保持当前认证路线；不复制参考成功后的额外直连密码事务 | UBAA `e8a397fc` 原工厂、LocalGradeApi、LocalClassroomApi 的实际合成请求；[覆盖复核](_audit/2026-11-03-beta-regression-coverage.md)。原八业务场景未改预期，新增独立 Kotlin golden；参考全测试存在五项时钟相关失败，未改称通过；不证明学校接受或真实故障根因 |
 | 111 | 网络引擎、Cookie 与自动选路继续收敛 | 请求模型对齐未覆盖实际引擎默认头；Domain 不匹配退为主机 Cookie；Max-Age 从请求发出时计时；登录固定直连后业务不可达不能复用已有效的网关会话 | 对齐固定 UBAA Android OkHttp 在 JVM 本机执行的默认头和超时配置；拒绝不匹配 Domain，响应到达后计算 Max-Age；自动模式先在隔离 Cookie 副本验证目标 UC 同一账号，再迁移实际路线并保存。目标未认证不补交密码；切换后重建 iClass 业务认证，不跨路线重放旧 sessionId/loginName；保留更严格的 Cookie 路径边界 | 原客户端工厂 + 原 Cookie 存储 + CIO/Android OkHttp 两种实际引擎，本机 socket 差分；Cookie 过期与 Domain 修复前实际失败；[本轮证据](_audit/2026-11-03-network-transport-and-routing.md)。属于客户端行为与参考执行结果，不冒充学校现场原因或全协议一致 |
@@ -40,7 +43,7 @@
 | 105 | 空教室激活失败与策略拒绝 | 激活响应被忽略，仍查询业务；策略禁止可能被当会话过期 | 激活/查询均先判访问策略、登录页及非成功 HTTP；失败不继续业务查询，策略拒绝不冒充会话过期触发学校恢复 | §6A 既有端点不变；`classroom_http` 两项旧实现失败回归；[本轮复核](_audit/2026-11-03-protocol-and-release-review.md)。客户端失败策略修正，非真实登录/写入验收 |
 | 104 | CAS 明确错误区域的完整读取 | 仅识别 div/span，首个空节点遮蔽后面的非空提示；p.errors 可被忽略并继续 UC | 与固定 UBAA 的 findLoginError 对照补 p.errors，并在已知错误/提示节点中跳过空占位。明确拒绝仍先于 UC 身份验证 | UBAA `155e8b56` `LocalConnectionAuth.kt::findLoginError`；`auth/cas.rs`、`auth/tests.rs` 两项旧实现失败回归；不证明本次真实 401 的具体提示或根因 |
 | 103 | Android 凭据提交 401 的可作答挑战 | 401 在解析新验证码前直接结束，用户无法继续作答 | 仅凭据 POST 的 401、无错误原因或明确验证码提示，且同时有新 execution/验证码时返回新挑战；校验 CAS action，不自动重发。策略/凭据及其他明确拒绝保持错误 | 本次经 WebVPN 实测见 401＋CAS 表单/验证码/非空提示；具体提示未保留，不能宣称该补丁修复本次实网拒绝；`auth/tests.rs` 合成回归；[阶段诊断](_audit/2026-11-02-webvpn-live-acceptance.md) |
-| 102 | 认证错误重定向与 UC 激活 | 只检查已请求的当前 URL；提交后跳向非登录目标时提前结束 CAS 链，UC 激活也可忽略错误查询/正文继续验证 | HTTPS/已证实的安全 GET 目标解析后，先检查非空 exception.message 再跟随或判定服务跳转；UC 激活复用并检查已知错误正文。重复参数取首个非空原因、只解码一次；空参数不误伤正常 ticket | §1.6 既有 LCA:670-673 规则与 `auth/redirect.rs`、`auth/tests.rs` 合成回归；不证明之前实网失败包含该参数 |
+| 102 | 认证错误重定向与 UC 激活 | 只检查已请求的当前 URL；提交后跳向非登录目标时提前结束 CAS 链，UC 激活也可忽略错误查询继续验证 | HTTPS/已证实的安全 GET 目标解析后，先检查非空 exception.message 再跟随或判定服务跳转；UC 激活复用此跳转规则。重复参数取首个非空原因、只解码一次；空参数不误伤正常 ticket。原先附加的 UC HTTP 200 正文 CAS 解析已按修订 114 撤销 | §1.6 既有 LCA:670-673 规则与 `auth/redirect.rs`、`auth/tests.rs` 合成回归；不证明之前实网失败包含该参数；修订 114 尚未执行回归 |
 | 101 | Android 密码到期确认的目标上下文 | 固定 POST 无查询参数的 LOGIN_URL，忽略提示页 action 并丢弃原 service 上下文 | 提示页声明 action 时解析其相对/绝对目标，并沿用 CAS HTTPS origin/默认端口/无 userinfo 校验；缺少或空 action 保留当前登录地址。只发一次确认且只携带新 execution 和 ignoreAndContinue，不重发密码；确认后新验证码保留新表单 | §1.5 的既有确认事件与客户端表单策略；`auth/expiry_tests.rs` 直连/WebVPN、重复参数、非法目标、重复提示、传输失败、新验证码合成回归；真实到期页面尚未验收 |
 | 100 | Android 认证失败的证据与凭据保护 | 登录表单重显、GET/跳转 401 统一提示密码错误，恢复可误删保存凭据；不明认证提示一分钟后可能后台再试密码 | 原因不明的表单或凭据 POST 401 返回需人工处理提示，不判密码错误；GET/跳转/过期确认 401 归入口/服务问题。仅明确凭据拒绝文案保留凭据错误分类；有新验证码先返回新挑战。需人工处理提示也采用长冷却，未知失败不删除保存凭据或发布身份 | §1.6 的 UBAA 历史推断与当前客户端策略分列；`auth/tests.rs`、`services/tests/session.rs`、`session_service/gateway.rs` 合成回归；不证明上次实网失败原因，不新增学校端点/字段 |
 | 99 | 协议/本地契约与发布证据约束 | 文档可与实现漂移，本地门禁/旧视觉记录容易被外推为当前可发布 | 以 AUTH/DATA/WRITE 和 FFI/UI 不变量区分学校事实与客户端行为；协议锁绑定源码、文档与回归。下一次 Android 发包前按候选绑定的真实使用证据验收，缺项拒绝签名发布流程 | `scripts/check-contracts.py` 及 10 项反向/正向回归；[发布契约](ANDROID-RELEASE-CONTRACT.md)；本项不改变学校端点/字段/成功码 |
@@ -190,9 +193,11 @@ Rust 的 `Session::send_anonymous` 为已迁移的 Android 公开只读适配器
 
 ### 0.2 Android HTTP 适配器的参考边界（2026-11-03）
 
-固定 UBAA `e8a397fcb35a68147eee65a94c66ffb84e2f09fe` 的 Android `ApiClient.android.kt::getDefaultEngine` 使用 OkHttp，JVM 使用 CIO。通过原 `buildLocalUpstreamClient` 与原 `PersistentLocalCookieStorage` 在 JVM 上执行两种真实引擎的本机 HTTP 请求：Android OkHttp 默认发送 `User-Agent: ktor-client`、`Accept-Encoding: gzip` 和 `Connection: Keep-Alive`；CIO 的压缩/连接头不同。Rust 按 Android OkHttp 对齐这组默认值，模块显式 User-Agent 仍优先。原工厂的连接/请求/读取超时分别为 10/30/30 秒，Rust 同步这组配置；禁用 reqwest 隐式重试，取消读取会终止其 HTTP 任务。此为固定源码配置与本机执行证据，不是学校要求这些默认头的实网证明。
+固定 UBAA `e8a397fcb35a68147eee65a94c66ffb84e2f09fe` 的 Android `ApiClient.android.kt::getDefaultEngine` 使用 OkHttp，JVM 使用 CIO。先前通过原 `buildLocalUpstreamClient` 与原 `PersistentLocalCookieStorage` 在 JVM 上执行两种真实引擎的本机 HTTP 请求：Android OkHttp 默认发送 `User-Agent: ktor-client`、`Accept-Encoding: gzip` 和 `Connection: Keep-Alive`；CIO 的压缩/连接头不同。这是引擎默认值的证据，不是学校协议要求。当前按用户指定统一参考 UBAA，保持这组默认值，模块显式 User-Agent 仍优先；临时 Safari 回退已撤销，未修改原捕获或放宽比较策略。保留原工厂的连接/请求/读取超时 10/30/30 秒；禁用 reqwest 隐式重试，取消读取会终止其 HTTP 任务。
 
-CookieJar 拒绝请求主机不匹配的 Domain；Max-Age 从响应到达计算，网络等待不预先消耗有效期；调用方提供的任意大小写 Cookie 头都移除后按会话注入。UBAA 固定版本的 Cookie 路径采用前缀匹配，会把 `/cookies` 的 Cookie 发到 `/cookies-other`；Rust 保留路径段边界隔离，这一有意差异在请求 golden 和差分结果中明确列出，不能写成全字段零差异。证据见[网络对照](_audit/2026-11-03-network-transport-and-routing.md)。本机 HTTP 不覆盖 Android 系统 TLS、Keystore/JNI 或真实学校响应。
+CookieJar 拒绝请求主机不匹配的 Domain；Max-Age 从响应到达计算，网络等待不预先消耗有效期；调用方提供的任意大小写 Cookie 头都移除后按会话注入。发送顺序按固定 UBAA 的插入顺序，替换的同名/域/路径 Cookie 排到新插入位置，不按路径长度重排。UBAA 固定版本的 Cookie 路径采用前缀匹配，会把 `/cookies` 的 Cookie 发到 `/cookies-other`；Rust 保留路径段边界与 host-only 隔离，不复制宽松作用域。证据见[网络对照](_audit/2026-11-03-network-transport-and-routing.md)。本机 HTTP 不覆盖 Android 系统 TLS、Keystore/JNI 或真实学校响应。
+
+2026-11-03 Beta.8 发布后源码复核：Beta.3 与 Beta.8 的 reqwest 功能和依赖锁相同，均未启用 `http2`。此前为追齐 OkHttp 增加 HTTP/2 的猜测性工作树修改已撤回，不能用未变化的依赖配置解释本次回归。当前按修订 114/115 对齐 UBAA 的认证主链；按用户要求不执行测试、构建或学校请求，未验证、未发布，尚未锁定现场唯一触发点。原 UBAA 捕获不改；新验证码顺序、固定目标、到期确认和 UC 落地页策略通过测试源码显式记录，不用历史结果代替当前结果。先前 HTTP/1.1 loopback 和无验证码 WebVPN 对照不能覆盖该现场，详见[源码对照及证据缺口](_audit/2026-11-03-webvpn-captcha-source-comparison.md)。
 
 ## 1. 统一认证（SSO + UC）✅
 
@@ -240,7 +245,7 @@ GET https://sso.buaa.edu.cn/login
 
 ### 1.3 验证码（旧版文档缺失，本节补全）
 
-> Android 工作树（2026-11-02）：网关独立验证码经 `load_gateway_challenge` / `resume_gateway_login` 接入设置页。读取不主动触发密码登录；刷新要求当前挑战 ID，作答单次提交并验证账号/代次/ID。没有待处理挑战不等于网关已认证。错误答案保留学校重新渲染的 execution；结果不明消耗原挑战，不重发。学校协议仍使用本节既有图片和表单链路，未新增验证码端点。
+> Android 工作树：网关独立验证码经 `load_gateway_challenge` / `resume_gateway_login` 接入设置页。读取不主动触发密码登录；刷新要求当前挑战 ID，作答单次提交并验证账号/代次/ID。没有待处理挑战不等于网关已认证。2026-11-03 按修订 116 撤销“提交响应自动转新挑战”的自定分支；失败消耗原挑战，不自动重发密码。学校协议仍使用本节既有图片和表单链路，未新增验证码端点。
 
 北航 SSO 在风控触发时要求验证码。**这是登录模块的硬需求，不是可选项。**
 
@@ -254,12 +259,16 @@ GET https://sso.buaa.edu.cn/login
 4. 若已检测到需要验证码但用户未输入，直接返回「需要验证码验证」错误并附上图片，不发起登录请求（LCA:484-493）。
 5. **`type` 只是标签，不参与判断。** 所有取值共用第 2、3 步的图片端点与两个文本字段，参考实现也从不按 `type` 分支。客户端不得把 `type` 当作白名单：只有取到的内容不是图片时，才判定该挑战无法用文本作答。真实页面出现过的 `type` 取值尚无脱敏记录，`local` 仅见于本仓库合成 fixture，不能当作唯一合法值。
 
+Android 当前源码（2026-11-03，用户指定按固定 UBAA 对齐）：取得答案后，先在原路线与 CookieJar 下重新 GET `/login`，再提交一次密码。`execution` 优先使用随答案传入的原值，新 GET 返回的 execution 不覆盖它；传入值为空时才使用新页令牌。新 GET 的响应 Cookie 必须先导入该会话。若 GET 返回已有会话跳转，不再提交密码，也不消费该 Location，直接激活并验证 UC；若 GET 失败，不发送密码。此顺序来自固定 `e8a397fc::LocalAuthServiceBackend.login`，不再沿用 Swift 的“作答直接提交旧页面”策略。无 execution 的 200 页面仍按参考构造空值，不自行增加取页失败条件。
+
 ### 1.4 提交登录
 
 ```http
 POST https://sso.buaa.edu.cn/login
 Content-Type: application/x-www-form-urlencoded
 ```
+
+Android 密码 POST 固定使用这个逻辑 URL，再按当前实际路线包装 WebVPN，与固定 UBAA 的 `post(loginUrl())` 一致；不使用页面 form action 及其中的 service/query，也不会向页面指定的其他主机提交凭据。冻结 Swift 仍保留其原页面 action 策略，本轮不修改。
 
 表单字段（LCA `buildCasLoginParameters`，909-933 行）：
 
@@ -281,13 +290,13 @@ Content-Type: application/x-www-form-urlencoded
 提交后可能落在「密码过期 / 账号存在安全风险」提示页，页面特征：含 `continueForm`、`ignoreAndContinue` 字样或「密码过期」文案（LCA:894-899）。处理：重新提取该页 `execution`，POST：
 
 ```http
-POST https://sso.buaa.edu.cn/login
+POST <当前请求 URL，移除 query>
 execution=<新execution>&_eventId=ignoreAndContinue
 ```
 
 （LCA:903-907）。此跳过只做一次，再次遇到同样页面视为登录失败。
 
-Android 当前客户端策略（2026-11-02）：上述固定 `/login` 是 UBAA 参考请求形状；当前实现优先使用提示页 form action，HTML 实体解码后相对当前逻辑登录地址解析。目标必须通过既有 CAS HTTPS origin、默认端口、无 URL userinfo 校验；不对 POST 目标做 HTTP→HTTPS 自动升级。action 缺失或为空时保留当前登录地址，避免丢失 `service`、重复 query 或 percent-encode 内容。确认正文仍只有新 `execution` 与 `_eventId=ignoreAndContinue`，不把用户名、密码、旧验证码加入确认请求；传输失败不自动重放。确认后出现新验证码时返回新页面的 ID、execution 和 action，等待用户继续。以上是有合成回归的客户端行为，不是新增学校字段，也不代表当前真实密码到期页已取证或验收。
+Android 当前源码（2026-11-03）：按固定 UBAA `stripQuery(currentResponse.call.request.url)`，使用提示页所在的当前请求 URL 并移除 query，不读取 form action；原先“保留 action/service/query”的自定策略已撤销。目标仍须通过 CAS HTTPS origin、默认端口、无 URL userinfo 校验；不对 POST 做 HTTP→HTTPS 自动升级。确认正文仍只有新 `execution` 与 `_eventId=ignoreAndContinue`，不附用户名、密码、旧验证码，传输失败不自动重放。到期标记的英文匹配与参考一样忽略大小写；确认后的响应回到 §1.6 的同一错误流程，不自动转为新挑战。
 
 ### 1.6 手动跟随重定向与错误检测
 
@@ -301,19 +310,18 @@ Android 当前客户端策略（2026-11-02）：上述固定 `/login` 是 UBAA �
 | HTTP 401，或页面重新出现 `execution` 输入框 | UBAA 历史实现将其推断为账号或密码错误；这是参考实现的分类，不证明学校明确拒绝密码，Android 当前策略见下文 | LCA:674-681 |
 | `div#errorDiv`、`.errors`、`tip-text` 有内容 | 其文本即错误消息 | LCA:843-869 |
 
-**Android 当前分类（客户端策略，2026-11-02）**：
+**Android 当前提交链（2026-11-03，修订 116）**：
 
-- HTTP 200 重显表单含可识别的新验证码时优先返回新挑战，旧答案不重放。凭据 POST 返回 401 时，只有无非空错误提示或提示明确涉及验证码、并同时具备新 execution 和验证码，才返回新挑战；action 仍须通过 CAS HTTPS 目标校验。策略禁止、明确凭据拒绝及其他非空提示继续返回错误，不被验证码表单遮蔽。
-- 提取到的明确文案恰为“账号或密码错误”或“用户名或密码错误”时才分类为 `InvalidCredentials`；该有限文本映射是保守客户端策略，非学校文案完备清单。其他非空提示以 `PreLoginTip` 供用户查看。
-- 普通表单重显而无错误原因，或凭据 POST 收到无说明且无完整可作答挑战的 401，返回 `PreLoginTip`，明确提示认证未完成、原因未明；不发布身份，不断言密码错误，不因该结果删除已保存凭据。
-- 获取入口、已有会话导航、后续 GET 或密码过期确认 POST 的 401 不证明密码拒绝，返回服务异常；已有访问策略禁止正文优先保留其分类。密码本身不自动重发。
-- 学校与网关分别对 `InvalidCredentials` / `PreLoginTip` 采用 30 分钟后台冷却，传输/服务错误为 60 秒；较长冷却避免未明确原因的失败反复触发后台密码尝试，不构成学校限流规则。人工新登录仍由用户触发。
+- 与固定 UBAA 一样，先消费全部 Location；3xx 缺 Location 则结束跳转阶段，不新增结构错误。随后优先处理一次密码到期确认，再检查最终 URL 错误、非空错误区域、HTTP 401 和参考的字面 `input name="execution"` 标记。
+- 不再仅因终态 204、403、483、5xx 等状态提前中止。没有明确错误时继续 UC 激活与 status，未获有效身份仍失败，不凭这些状态构造登录成功。
+- 401 或有明确错误的验证码响应按提交失败返回，不自动转换为新的预加载挑战，也不重发密码。下一次登录仍从 GET 登录页开始。
+- 失败的 UI 类型保留保守映射：明确凭据文案才是 `InvalidCredentials`，明确访问策略是 `AccessPolicyDenied`，其余为 `PreLoginTip`；无明确原因不删除保存密码。学校/网关后台冷却与不自动重发保持不变。
 
-这些规则提高失败分类和验证码交互的完整性，不证明 WebVPN 真实登录成功。早前失败缺少请求级证据；追加宿主 Rust 核心实测已定位到登录 POST 返回 401，尚未进入 UC，具体提示未保留，原因仍未确定，见 [验收记录](_audit/2026-11-02-webvpn-live-acceptance.md)。
+先前真实请求停于 POST 401 的证据仍保留于[验收记录](_audit/2026-11-02-webvpn-live-acceptance.md)，不因此声称本次现场响应已知。
 
 错误区域读取须支持 UBAA 已识别的 `div#errorDiv`、`div.errors`、`p.errors`、`span.errors` 和 `div.tip-text`。同一类别有多个节点时跳过空占位，使用首个非空文本；只扫描已知错误区域，不把普通页面段落当作错误。`p.errors` 的明确拒绝不能因未命中解析而继续 UC 并发布身份。证据为固定 UBAA `155e8b56` 的 `findLoginError` 与本地合成先红后绿回归；不声称所有上游 DOM 已覆盖。
 
-重定向错误必须在请求目标前检查：解析 HTTPS 目标（含 WebVPN 解包，以及已取证的 CAS HTTP→HTTPS GET 升级）后，若存在非空 `exception.message`，立即返回 `PreLoginTip`，不能将该跳转当作成功 service/ticket，也不能继续到 UC 以有效身份覆盖显式认证错误。UC 激活的 GET 重定向采用相同规则；其 HTTP 200 正文如含 §1.6 已知错误区域的非空文本，也须先返回认证提示，不能继续用 UC 状态覆盖该错误。查询参数只解码一次，重复项选择首个非空原因；仅空值不构成错误。此处落实 LCA:670-673 的既有错误标记，不新增学校端点或成功码；上次真实 WebVPN 失败是否走过该路径仍无证据。
+CAS 的 `exception.message` 判断按 UBAA 放到提交跳转链结束后、到期确认之后；不再提前拒绝尚未请求的目标。最终明确错误仍返回 `PreLoginTip`，不继续 UC。UC 激活属于导航，不扫描 CAS 的错误查询或正文，身份交给独立 status；初始 GET 的 3xx Location 也不作 CAS 提交错误解释。HTTPS 导航与已取证的精确 CAS HTTP→HTTPS GET 升级不变，其他明文目标仍拒绝；查询文本仍只解码一次且重复项取首个非空值，作为保留的净化策略，不宣称错误文本逐字一致。
 
 ### 1.7 激活 UC 会话
 
@@ -324,6 +332,8 @@ GET https://uc.buaa.edu.cn/api/login?target=https%3A%2F%2Fuc.buaa.edu.cn%2F%23%2
 ```
 
 （LCA:753-756）
+
+Android 当前源码按 UBAA `activateUcLogin` 只完成此导航和重定向，不要求最终落地页 HTTP 200，也不扫描其 HTML 或 CAS 错误查询；无 Location 的 3xx 作为导航终态。随后必须执行 §1.8。传输错误、有界跳转超限和不安全目标仍失败。UC status 的非 200、未知响应、无效身份和账号不符不能被导航结果覆盖。
 
 ### 1.8 会话验证（登录成功的唯一判据）
 

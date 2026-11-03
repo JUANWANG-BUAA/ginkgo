@@ -39,6 +39,127 @@ fn with_cookie(request: HttpRequest, cookie: Option<&str>) -> HttpRequest {
     }
 }
 
+// These transcripts encode the pinned Kotlin branches directly. They are
+// source-derived expectations, not a new independently captured Kotlin run.
+#[tokio::test]
+async fn session_protocol_ubaa_initial_redirect_goes_straight_to_uc_even_without_location() {
+    for route in [RouteMode::Direct, RouteMode::WebVpn] {
+        for location in [
+            None,
+            Some("/login"),
+            Some("https://uc.buaa.edu.cn/error?exception.message=unused"),
+        ] {
+            let response = HttpResponse::new(302, wire(LOGIN_URL, route), "")
+                .with_set_cookie("CASTGC=synthetic; Path=/; Secure");
+            let response = match location {
+                Some(location) => response.with_header("Location", location),
+                None => response,
+            };
+            let cookie = (route == RouteMode::WebVpn).then_some("CASTGC=synthetic");
+            let transport = TranscriptTransport::new(vec![
+                (
+                    HttpRequest::get(wire(LOGIN_URL, route)).header("Accept", "application/json"),
+                    Ok(response),
+                ),
+                (
+                    with_cookie(
+                        HttpRequest::get(wire(UC_ACTIVATION_URL, route))
+                            .header("Accept", "application/json"),
+                        cookie,
+                    ),
+                    Ok(HttpResponse::new(
+                        200,
+                        wire(UC_ACTIVATION_URL, route),
+                        "landing",
+                    )),
+                ),
+                (
+                    status_request(route, cookie),
+                    Ok(uc_ok("sy2501001", "fixture")),
+                ),
+            ]);
+            let service =
+                SchoolClient::new(Session::new(transport.clone()), MemoryVault::default());
+            service.set_route(if route == RouteMode::WebVpn {
+                RoutePreference::WebVpn
+            } else {
+                RoutePreference::Direct
+            });
+            assert!(matches!(
+                service
+                    .sign_in("sy2501001", "pa+ss/word", None, false)
+                    .await
+                    .unwrap(),
+                SessionOutcome::SignedIn { .. }
+            ));
+            transport.assert_finished();
+        }
+    }
+}
+
+#[tokio::test]
+async fn session_protocol_ubaa_cas_terminal_status_does_not_preempt_uc_identity() {
+    for route in [RouteMode::Direct, RouteMode::WebVpn] {
+        for status in [200, 204, 302, 403, 404, 483, 500, 503] {
+            for valid in [false, true] {
+                let cookie = (route == RouteMode::WebVpn).then_some("CASTGC=synthetic");
+                let identity = if valid {
+                    uc_ok("sy2501001", "fixture")
+                } else {
+                    uc_expired()
+                };
+                let transport = TranscriptTransport::new(vec![
+                    (
+                        HttpRequest::get(wire(LOGIN_URL, route))
+                            .header("Accept", "application/json"),
+                        Ok(HttpResponse::new(200, wire(LOGIN_URL, route), FORM_PAGE)),
+                    ),
+                    (
+                        HttpRequest::post_form(wire(LOGIN_URL, route), FORM)
+                            .header("Accept", "application/json")
+                            .header(
+                                "Content-Type",
+                                "application/x-www-form-urlencoded; charset=UTF-8",
+                            ),
+                        Ok(HttpResponse::new(status, wire(LOGIN_URL, route), "landing")
+                            .with_set_cookie("CASTGC=synthetic; Path=/; Secure")),
+                    ),
+                    (
+                        with_cookie(
+                            HttpRequest::get(wire(UC_ACTIVATION_URL, route))
+                                .header("Accept", "application/json"),
+                            cookie,
+                        ),
+                        Ok(HttpResponse::new(
+                            200,
+                            wire(UC_ACTIVATION_URL, route),
+                            "activated",
+                        )),
+                    ),
+                    (status_request(route, cookie), Ok(identity)),
+                ]);
+                let service =
+                    SchoolClient::new(Session::new(transport.clone()), MemoryVault::default());
+                service.set_route(if route == RouteMode::WebVpn {
+                    RoutePreference::WebVpn
+                } else {
+                    RoutePreference::Direct
+                });
+                let result = service
+                    .sign_in("sy2501001", "pa+ss/word", None, false)
+                    .await;
+                if valid {
+                    assert!(matches!(result.unwrap(), SessionOutcome::SignedIn { .. }));
+                } else {
+                    assert_eq!(result.unwrap_err().code, ErrorCode::SessionExpired);
+                    assert!(!service.status().signed_in());
+                }
+                transport.assert_finished();
+            }
+        }
+    }
+}
+
 type Step = (HttpRequest, Result<HttpResponse, TransportError>);
 
 pub(super) fn login_steps(route: RouteMode, status: HttpResponse) -> Vec<Step> {
@@ -403,7 +524,7 @@ async fn session_protocol_business_network_failure_preserves_cookie_route_and_id
 }
 
 #[tokio::test]
-async fn session_protocol_captcha_uses_original_execution_cookie_and_route_once() {
+async fn session_protocol_captcha_refetches_like_ubaa_and_posts_original_execution_once() {
     let route = RouteMode::WebVpn;
     let captcha_page = FORM_PAGE.to_owned()
         + "<script>config.captcha = { type: 'char', id: 'cap-synthetic' };</script>";
@@ -415,8 +536,21 @@ async fn session_protocol_captcha_uses_original_execution_cookie_and_route_once(
         ),
         (
             HttpRequest::get(wire(LOGIN_URL, route)).header("Accept", "application/json"),
-            Ok(HttpResponse::new(200, wire(LOGIN_URL, route), captcha_page)
-                .with_set_cookie("wengine_vpn_ticket=synthetic; Path=/; Secure")),
+            Ok(
+                HttpResponse::new(200, wire(LOGIN_URL, route), &captcha_page)
+                    .with_set_cookie("wengine_vpn_ticket=synthetic; Path=/; Secure"),
+            ),
+        ),
+        (
+            HttpRequest::get(wire(LOGIN_URL, route))
+                .header("Accept", "application/json")
+                .header("Cookie", "wengine_vpn_ticket=synthetic"),
+            Ok(HttpResponse::new(
+                200,
+                wire(LOGIN_URL, route),
+                captcha_page.replace("abc+def/ghi=", "new-execution"),
+            )
+            .with_set_cookie("renewed=synthetic; Path=/; Secure")),
         ),
         (
             HttpRequest::post_form(wire(LOGIN_URL, route), body)
@@ -425,7 +559,7 @@ async fn session_protocol_captcha_uses_original_execution_cookie_and_route_once(
                     "Content-Type",
                     "application/x-www-form-urlencoded; charset=UTF-8",
                 )
-                .header("Cookie", "wengine_vpn_ticket=synthetic"),
+                .header("Cookie", "wengine_vpn_ticket=synthetic; renewed=synthetic"),
             Err(TransportError::Unavailable),
         ),
     ]);
@@ -448,6 +582,62 @@ async fn session_protocol_captcha_uses_original_execution_cookie_and_route_once(
     assert_eq!(service.session.route(), route);
     assert!(!service.status().signed_in());
     transport.assert_finished();
+}
+
+#[tokio::test]
+async fn session_protocol_ubaa_captcha_get_post_callback_and_uc_success() {
+    for route in [RouteMode::Direct, RouteMode::WebVpn] {
+        let captcha_page = FORM_PAGE.to_owned()
+            + "<script>config.captcha = { type: 'char', id: 'cap-synthetic' };</script>";
+        let mut steps = login_steps(route, uc_ok("sy2501001", "fixture"));
+        let mut first = HttpResponse::new(200, wire(LOGIN_URL, route), captcha_page);
+        let cookie = if route == RouteMode::WebVpn {
+            first = first.with_set_cookie("wengine_vpn_ticket=synthetic; Path=/; Secure");
+            Some("wengine_vpn_ticket=synthetic")
+        } else {
+            None
+        };
+        steps[0].1 = Ok(first);
+        steps[1].0.body = Some("username=sy2501001&password=pa%2Bss%2Fword&captcha=1234&captchaResponse=1234&execution=abc%2Bdef%2Fghi%3D&_eventId=submit&submit=%E7%99%BB%E5%BD%95&type=username_password".into());
+        steps.insert(
+            1,
+            (
+                with_cookie(
+                    HttpRequest::get(wire(LOGIN_URL, route)).header("Accept", "application/json"),
+                    cookie,
+                ),
+                Ok(HttpResponse::new(
+                    200,
+                    wire(LOGIN_URL, route),
+                    FORM_PAGE.replace("abc+def/ghi=", "new-execution"),
+                )),
+            ),
+        );
+        let transport = TranscriptTransport::new(steps);
+        let service = SchoolClient::new(Session::new(transport.clone()), MemoryVault::default());
+        service.set_route(if route == RouteMode::WebVpn {
+            RoutePreference::WebVpn
+        } else {
+            RoutePreference::Direct
+        });
+        assert!(matches!(
+            service
+                .sign_in("sy2501001", "pa+ss/word", None, false)
+                .await
+                .unwrap(),
+            SessionOutcome::CaptchaRequired(_)
+        ));
+        let result = service
+            .sign_in("sy2501001", "pa+ss/word", Some("1234"), false)
+            .await
+            .unwrap();
+        let SessionOutcome::SignedIn { profile, .. } = result else {
+            panic!("a complete UC identity is required");
+        };
+        assert_eq!(profile.school_id, "sy2501001");
+        assert_eq!(service.session.route(), route);
+        transport.assert_finished();
+    }
 }
 
 #[tokio::test]
