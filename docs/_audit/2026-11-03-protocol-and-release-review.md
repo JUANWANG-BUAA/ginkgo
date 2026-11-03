@@ -92,6 +92,14 @@ Release 实际操作发现登录占位提示在暗/亮背景上对比不足。�
 
 完整锁定缓存依赖门禁 `/tmp/ginkgo-beta7-final-baseline.log` 退出 0：Rust 严格 Clippy、Rust 测试、Flutter 分析与 749 条 Flutter 测试、Node 网站回归、文档/API/架构/协议检查及 FRB 零漂移均通过。此结果不证明依赖在线解析、远端 CI、真机或学校业务验收。
 
+### EVIDENCE auth:directory-failure-never-fakes-login
+
+本地 Rust 认证回归 `unexpected_login_page_and_broken_directory_never_sign_in`、`uc_server_error_does_not_publish_an_unverified_identity` 与 `uc_activation_error_body_stops_before_status_even_if_identity_would_validate` 在完整门禁中通过。合成 UC 目录/激活故障只返回错误，不发布已登录身份；不证明真实学校目录可达。
+
+### EVIDENCE auth:single-submit-and-unknown-result
+
+本地 Rust 回归 `credential_401_with_answerable_captcha_keeps_new_form_without_reposting` 和 `expired_answer_and_unknown_submission_are_never_replayed` 在完整门禁中通过。断言单次密码 POST、未知结果后再次请求不重发；只证明合成传输行为。
+
 ### EVIDENCE production-entrypoint
 
 最终签名 Release APK 安装于隔离 Android API 37 ARM64 AVD，`MainActivity` 冷启动成功（Android 报告 1,304 ms Activity 启动时间；仅此 AVD 单次启动值，不作为流畅度/性能验收）。正常 main 入口、包版本和签名静态检查见本节，不代表物理设备启动验收。
@@ -108,6 +116,10 @@ Release 实际操作发现登录占位提示在暗/亮背景上对比不足。�
 
 最终签名 Beta.7 设置页可打开，深浅色选项可修改并返回登录页；Beta.6 的深色偏好经本次覆盖安装仍生效。本次没有重启后逐项验收所有系统、通知、提醒或账号设置。
 
-上述 case 均只可填入 readiness 对应的 `local` / `emulator` 证据；其余账号只读、验证码/网关、全部功能、物理设备、学校写入、维护者人审和 Windows 远端 CI 仍未通过。readiness 保持 `blocked`。
+### EVIDENCE windows:shared-build-and-tests
 
-最后执行 `python3 scripts/check-contracts.py --release`，按契约预期退出 1。它确认候选源码/契约摘要匹配，但仍拒绝 release：账号与路线真实只读、全部验证码/会话闭环、物理设备设置/性能/通知/升级、学校本人写入、维护者安全审查、Windows 远端 CI 以及其余真实功能验收缺证据；P0/P1 未经维护者归零，reviewer 也未填写。不得删减必验项或把本轮模拟器/匿名公共读取提升为错误证据等级。
+PR #2 提交 `4372972470e1aa74c3529df1113f35bd4d6615a4` 的 GitHub mirror Windows job 完成并通过 Flutter Windows Debug 构建与 Windows 专属检查；CI workflow 对该提交的 contracts、Android、bindings、Windows jobs 均成功。同期主 CI 与 iOS workflow 也通过。该远端结果针对提交 `4372972`；若后续代码改变，必须检查新提交 CI。
+
+上述通过项仅按 readiness 对应的 `local` / `emulator` / `remote-ci` 等级记录；账号只读、验证码/网关真实闭环、其余受保护功能、物理设备、学校写入与维护者人审仍未通过。readiness 保持 `blocked`。
+
+最后执行 `python3 scripts/check-contracts.py --release`，按契约预期退出 1。它确认候选源码/契约摘要匹配；Windows 远端 CI 已通过，但真实账号与路线只读、完整验证码/会话闭环、物理设备设置/性能/通知/升级、学校本人写入、维护者安全审查及其余真实功能验收仍缺证据；P0/P1 未经维护者归零，reviewer 也未填写。不得删减必验项或把本轮模拟器/匿名公共读取提升为错误证据等级。
