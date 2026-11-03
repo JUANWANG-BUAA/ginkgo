@@ -499,7 +499,7 @@ mod tests {
 
     #[tokio::test]
     async fn expired_answer_and_unknown_submission_are_never_replayed() {
-        let (service, transport) = service(vec![page("cap-1")], true);
+        let (service, transport) = service(vec![page("cap-1"), page("pre-submit")], true);
         service.ensure_webvpn_session().await.unwrap_err();
         service
             .identity
@@ -517,7 +517,7 @@ mod tests {
             .as_mut()
             .unwrap()
             .created = Instant::now();
-        // No response supplied: the password POST has an unknown result.
+        // The preparatory GET succeeds, then the password POST has no response.
         assert!(service.resume_gateway_login("cap-1", "1234").await.is_err());
         let calls = transport.request_count();
         assert!(service.resume_gateway_login("cap-1", "1234").await.is_err());
@@ -532,11 +532,50 @@ mod tests {
         );
     }
     #[tokio::test]
-    async fn wrong_answer_uses_new_execution_and_success_preserves_school_identity() {
+    async fn wrong_answer_is_a_ubaa_refusal_and_cannot_replay_the_consumed_challenge() {
         let (service, transport) = service(
             vec![
                 page("cap-1"),
-                page("cap-2"),
+                page("pre-submit"),
+                HttpResponse::new(
+                    401,
+                    auth::LOGIN_URL,
+                    "<div id=\"errorDiv\">验证码错误</div>",
+                ),
+            ],
+            true,
+        );
+        service.ensure_webvpn_session().await.unwrap_err();
+        let error = service
+            .resume_gateway_login("cap-1", "wrong")
+            .await
+            .unwrap_err();
+        assert_eq!(error.code, ErrorCode::PreLoginTip);
+        assert_eq!(error.detail.as_deref(), Some("验证码错误"));
+        let count = transport.request_count();
+        assert!(service
+            .resume_gateway_login("cap-1", "wrong")
+            .await
+            .is_err());
+        assert_eq!(transport.request_count(), count);
+        assert_eq!(service.current_account().unwrap(), "sy2501001");
+        assert!(service.identity.lock().gateway_pending.is_none());
+        assert_eq!(
+            transport
+                .requests()
+                .iter()
+                .filter(|r| r.method == HttpMethod::Post)
+                .count(),
+            1
+        );
+    }
+
+    #[tokio::test]
+    async fn correct_answer_uses_supplied_execution_and_preserves_school_identity() {
+        let (service, transport) = service(
+            vec![
+                page("cap-1"),
+                page("pre-submit"),
                 HttpResponse::new(302, auth::LOGIN_URL, "")
                     .with_header("Location", "https://uc.buaa.edu.cn/?ticket=ST-synthetic"),
                 HttpResponse::new(
@@ -554,20 +593,8 @@ mod tests {
             true,
         );
         service.ensure_webvpn_session().await.unwrap_err();
-        assert_eq!(
-            service
-                .resume_gateway_login("cap-1", "wrong")
-                .await
-                .unwrap_err()
-                .code,
-            ErrorCode::CaptchaRequired
-        );
-        assert!(service
-            .resume_gateway_login("cap-1", "wrong")
-            .await
-            .is_err());
         service
-            .resume_gateway_login("cap-2", "correct")
+            .resume_gateway_login("cap-1", "correct")
             .await
             .unwrap();
         assert_eq!(service.current_account().unwrap(), "sy2501001");
@@ -582,9 +609,8 @@ mod tests {
             .iter()
             .filter(|r| r.method == HttpMethod::Post)
             .collect();
-        assert_eq!(posts.len(), 2);
+        assert_eq!(posts.len(), 1);
         assert!(posts[0].body.as_ref().unwrap().contains("execution-cap-1"));
-        assert!(posts[1].body.as_ref().unwrap().contains("execution-cap-2"));
         assert!(service.gateway_login_failure.lock().is_none());
     }
 }

@@ -14,19 +14,13 @@ pub async fn activate_uc<T: HttpTransport>(session: &Session<T>) -> Result<(), A
             if hop == 10 {
                 return Err(AppError::new(ErrorCode::RedirectLimit));
             }
-            let location = response.header("location").ok_or_else(AppError::changed)?;
-            url = redirect::resolve_get(location, &url)?;
-            continue;
+            if let Some(location) = response.header("location") {
+                url = redirect::resolve_navigation_get(location, &url)?;
+                continue;
+            }
         }
-        if response.status == 483 || cas::is_access_policy_denied(&response.body) {
-            return Err(AppError::new(ErrorCode::AccessPolicyDenied));
-        }
-        if response.status != 200 {
-            return Err(AppError::new(ErrorCode::ServiceUnavailable));
-        }
-        if let Some(message) = cas::extract_error_text(&response.body) {
-            return Err(AppError::with_detail(ErrorCode::PreLoginTip, message));
-        }
+        // UBAA does not use the landing page's status or HTML as identity
+        // evidence. The caller must still validate the separate UC status.
         return Ok(());
     }
     Err(AppError::new(ErrorCode::RedirectLimit))

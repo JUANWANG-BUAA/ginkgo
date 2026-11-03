@@ -163,11 +163,6 @@ async fn an_existing_session_for_another_account_is_never_published_under_the_en
         HttpResponse::new(302, LOGIN_URL, "")
             .with_header("Location", "https://uc.buaa.edu.cn/api/login?target=x")
             .with_set_cookie("CASTGC=TGT-foreign; Path=/; Secure; HttpOnly"),
-        HttpResponse::new(
-            200,
-            "https://uc.buaa.edu.cn/api/login?target=x",
-            "<html>home</html>",
-        ),
         HttpResponse::new(200, UC_ACTIVATION_URL, ""),
         uc_ok("sy2501000", "someone else"),
     ]);
@@ -194,11 +189,6 @@ async fn restore_never_rebinds_a_foreign_cookie_session_to_a_saved_account() {
         HttpResponse::new(302, LOGIN_URL, "")
             .with_header("Location", "https://uc.buaa.edu.cn/api/login?target=x")
             .with_set_cookie("CASTGC=TGT-foreign; Path=/; Secure; HttpOnly"),
-        HttpResponse::new(
-            200,
-            "https://uc.buaa.edu.cn/api/login?target=x",
-            "<html>home</html>",
-        ),
         HttpResponse::new(200, UC_ACTIVATION_URL, ""),
         uc_ok("sy2501000", "someone else"),
     ]);
@@ -497,7 +487,7 @@ async fn restore_without_a_saved_account_is_a_clean_signed_out_state() {
 #[tokio::test]
 async fn unexplained_form_during_restore_does_not_delete_saved_credentials_or_publish_identity() {
     for response in [
-        HttpResponse::new(200, LOGIN_URL, FORM_PAGE),
+        HttpResponse::new(200, LOGIN_URL, "<input name=\"execution\" value=\"again\">"),
         HttpResponse::new(401, LOGIN_URL, ""),
     ] {
         let (service, transport) = build_service(
@@ -599,13 +589,18 @@ fn session_outcomes_are_constructible_for_the_bridge() {
 }
 
 #[tokio::test]
-async fn captcha_answer_reuses_the_original_login_page() {
+async fn captcha_answer_refetches_like_ubaa_but_keeps_the_supplied_execution() {
     let captcha_page = FORM_PAGE.replace(
         "</form>",
         "<script>config.captcha = { type: 'local', id: 'cap-1' };</script></form>",
     );
     let transport = MockTransport::with_responses(vec![
         HttpResponse::new(200, LOGIN_URL, captcha_page),
+        HttpResponse::new(
+            200,
+            LOGIN_URL,
+            FORM_PAGE.replace("abc+def/ghi=", "new-execution-must-not-replace-answer"),
+        ),
         HttpResponse::new(302, LOGIN_URL, "")
             .with_header("Location", "https://sso.buaa.edu.cn/login?ticket=ST-1")
             .with_set_cookie("CASTGC=TGT-fixture; Path=/; Secure; HttpOnly"),
@@ -643,10 +638,15 @@ async fn captcha_answer_reuses_the_original_login_page() {
     }
     let requests = transport.requests();
     assert_eq!(requests[0].method, HttpMethod::Get);
-    assert_eq!(requests[1].method, HttpMethod::Post);
-    let body = requests[1].body.as_deref().expect("login body");
+    assert_eq!(requests.len(), 6);
+    assert_eq!(requests[1].method, HttpMethod::Get);
+    assert_eq!(requests[1].url, LOGIN_URL);
+    assert_eq!(requests[2].method, HttpMethod::Post);
+    assert_eq!(requests[2].url, LOGIN_URL);
+    let body = requests[2].body.as_deref().expect("login body");
     assert!(body.contains("captcha=1234"));
     assert!(body.contains("execution=abc%2Bdef%2Fghi%3D"));
+    assert!(!body.contains("new-execution-must-not-replace-answer"));
     let saved = service
         .vault
         .load("sy2501001")

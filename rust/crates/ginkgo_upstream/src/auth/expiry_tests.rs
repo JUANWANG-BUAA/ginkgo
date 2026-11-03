@@ -11,7 +11,8 @@ use crate::{
     ErrorCode,
 };
 
-const CONTEXT: &str = "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fd.buaa.edu.cn%2Fcb%3Fx%3Da%252Bb&dup=1&dup=2";
+const CONTEXT: &str = "https://sso.buaa.edu.cn/password-policy/continue?service=https%3A%2F%2Fd.buaa.edu.cn%2Fcb%3Fx%3Da%252Bb&dup=1&dup=2";
+const EXPIRY_TARGET: &str = "https://sso.buaa.edu.cn/password-policy/continue";
 
 fn form(action: &str) -> String {
     format!(
@@ -49,15 +50,16 @@ fn routed(url: &str, route: RouteMode) -> String {
 }
 
 #[tokio::test]
-async fn expiry_acknowledges_the_form_action_including_service_and_duplicate_query() {
+async fn expiry_acknowledges_current_url_without_query_like_ubaa() {
     for route in [RouteMode::Direct, RouteMode::WebVpn] {
         let action = CONTEXT
             .replacen("https://sso.buaa.edu.cn", "", 1)
             .replace('&', "&amp;");
         let transport = MockTransport::with_responses(vec![
             HttpResponse::new(200, LOGIN_URL, form("/login")),
-            HttpResponse::new(200, LOGIN_URL, expiry(Some(&action))),
-            HttpResponse::new(302, CONTEXT, "")
+            HttpResponse::new(302, LOGIN_URL, "").with_header("Location", CONTEXT),
+            HttpResponse::new(200, CONTEXT, expiry(Some(&action))),
+            HttpResponse::new(302, EXPIRY_TARGET, "")
                 .with_header("Location", "https://uc.buaa.edu.cn/cb?ticket=ST-synthetic"),
             HttpResponse::new(
                 200,
@@ -74,9 +76,11 @@ async fn expiry_acknowledges_the_form_action_including_service_and_duplicate_que
             LoginResult::SignedIn(_)
         ));
         let requests = transport.requests();
+        assert_eq!(requests[1].url, routed(LOGIN_URL, route));
         assert_eq!(requests[2].url, routed(CONTEXT, route));
+        assert_eq!(requests[3].url, routed(EXPIRY_TARGET, route));
         assert_eq!(
-            requests[2].body.as_deref(),
+            requests[3].body.as_deref(),
             Some("execution=renewed%2Bexecution%2Fvalue&_eventId=ignoreAndContinue")
         );
         assert_eq!(
@@ -93,13 +97,14 @@ async fn expiry_acknowledges_the_form_action_including_service_and_duplicate_que
 }
 
 #[tokio::test]
-async fn expiry_without_action_keeps_the_current_login_context() {
+async fn expiry_without_action_still_uses_current_url_without_query() {
     for route in [RouteMode::Direct, RouteMode::WebVpn] {
         for action in [None, Some(""), Some("   ")] {
             let transport = MockTransport::with_responses(vec![
                 HttpResponse::new(200, LOGIN_URL, form(CONTEXT)),
+                HttpResponse::new(302, LOGIN_URL, "").with_header("Location", CONTEXT),
                 HttpResponse::new(200, CONTEXT, expiry(action)),
-                HttpResponse::new(302, CONTEXT, "")
+                HttpResponse::new(302, EXPIRY_TARGET, "")
                     .with_header("Location", "https://uc.buaa.edu.cn/cb?ticket=ST-synthetic"),
                 HttpResponse::new(
                     200,
@@ -115,13 +120,15 @@ async fn expiry_without_action_keeps_the_current_login_context() {
                 super::login(&session, &credentials()).await.unwrap(),
                 LoginResult::SignedIn(_)
             ));
-            assert_eq!(transport.requests()[2].url, routed(CONTEXT, route));
+            let requests = transport.requests();
+            assert_eq!(requests[1].url, routed(LOGIN_URL, route));
+            assert_eq!(requests[3].url, routed(EXPIRY_TARGET, route));
         }
     }
 }
 
 #[tokio::test]
-async fn expiry_action_outside_the_validated_cas_origin_never_receives_execution() {
+async fn expiry_ignores_foreign_form_actions_instead_of_sending_execution_to_them() {
     for action in [
         "http://sso.buaa.edu.cn/login",
         "https://evil.example/login",
@@ -133,12 +140,19 @@ async fn expiry_action_outside_the_validated_cas_origin_never_receives_execution
         let transport = MockTransport::with_responses(vec![
             HttpResponse::new(200, LOGIN_URL, form("/login")),
             HttpResponse::new(200, LOGIN_URL, expiry(Some(action))),
+            HttpResponse::new(401, LOGIN_URL, "synthetic refusal"),
         ]);
         let error = super::login(&Session::new(transport.clone()), &credentials())
             .await
             .unwrap_err();
-        assert_eq!(error.code, ErrorCode::ChangedResponse, "{action}");
-        assert_eq!(transport.request_count(), 2, "no expiry POST to {action}");
+        assert_eq!(error.code, ErrorCode::PreLoginTip, "{action}");
+        let requests = transport.requests();
+        assert_eq!(requests.len(), 3, "exactly one expiry POST");
+        assert_eq!(requests[2].url, LOGIN_URL, "no expiry POST to {action}");
+        assert_eq!(
+            requests[2].body.as_deref(),
+            Some("execution=renewed%2Bexecution%2Fvalue&_eventId=ignoreAndContinue")
+        );
     }
 }
 
@@ -147,7 +161,7 @@ async fn a_second_expiry_page_does_not_repeat_the_acknowledgement() {
     let transport = MockTransport::with_responses(vec![
         HttpResponse::new(200, LOGIN_URL, form("/login")),
         HttpResponse::new(200, LOGIN_URL, expiry(Some(CONTEXT))),
-        HttpResponse::new(200, CONTEXT, expiry(Some(CONTEXT))),
+        HttpResponse::new(200, LOGIN_URL, expiry(Some(CONTEXT))),
     ]);
     let error = super::login(&Session::new(transport.clone()), &credentials())
         .await
@@ -181,37 +195,25 @@ async fn expiry_acknowledgement_transport_failure_is_not_replayed() {
 }
 
 #[tokio::test]
-async fn captcha_after_expiry_keeps_its_new_form_and_does_not_resubmit_password() {
+async fn captcha_refusal_after_expiry_is_not_resubmitted_or_promoted_to_a_preload_challenge() {
     for route in [RouteMode::Direct, RouteMode::WebVpn] {
         let captcha = format!(
-            "{}<script>config.captcha = {{ type: 'char', id: 'new-challenge' }};</script>",
+            "{}<script>config.captcha = {{ type: 'char', id: 'new-challenge' }};</script><div id=\"errorDiv\">验证码错误</div>",
             form(CONTEXT).replace("value=\"initial\"", "value=\"captcha-execution\"")
         );
         let transport = MockTransport::with_responses(vec![
             HttpResponse::new(200, LOGIN_URL, form("/login")),
             HttpResponse::new(200, LOGIN_URL, expiry(Some(CONTEXT))),
-            HttpResponse::new(200, CONTEXT, captcha),
+            HttpResponse::new(200, LOGIN_URL, captcha),
         ]);
         let session = Session::new(transport.clone());
         session.set_route(route);
-        let result = super::login(&session, &credentials()).await.unwrap();
-        let LoginResult::CaptchaRequired { challenge, page } = result else {
-            panic!("expected a fresh challenge, not a published identity");
-        };
-        assert_eq!(challenge.id, "new-challenge");
-        let super::LoginPage::Form {
-            execution,
-            action_url,
-            ..
-        } = page
-        else {
-            panic!("expected the challenge form");
-        };
-        assert_eq!(execution, "captcha-execution");
-        assert_eq!(action_url, CONTEXT);
+        let error = super::login(&session, &credentials()).await.unwrap_err();
+        assert_eq!(error.code, ErrorCode::PreLoginTip);
+        assert_eq!(error.detail.as_deref(), Some("验证码错误"));
         let requests = transport.requests();
         assert_eq!(requests.len(), 3);
-        assert_eq!(requests[2].url, routed(CONTEXT, route));
+        assert_eq!(requests[2].url, routed(LOGIN_URL, route));
         assert_eq!(
             requests
                 .iter()

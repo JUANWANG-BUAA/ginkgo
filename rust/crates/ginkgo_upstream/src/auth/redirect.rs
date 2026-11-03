@@ -6,10 +6,17 @@ use crate::{foundation::webvpn, AppError, ErrorCode};
 /// next GET, retaining the raw query, order, duplicate keys and escape bytes.
 /// Every other insecure target fails before a request or cookie is sent.
 pub(crate) fn resolve_get(location: &str, base: &str) -> Result<String, AppError> {
+    let target = resolve_navigation_get(location, base)?;
+    reject_reported_error(&target)?;
+    Ok(target)
+}
+
+/// Navigation itself does not classify CAS error queries. UBAA checks them
+/// only on the completed CAS submission chain, not during UC activation.
+pub(crate) fn resolve_navigation_get(location: &str, base: &str) -> Result<String, AppError> {
     let target = webvpn::resolve_redirect(location, base).ok_or_else(AppError::changed)?;
     let parsed = url::Url::parse(&target).map_err(|_| AppError::changed())?;
     if parsed.scheme() == "https" {
-        reject_reported_error(&target)?;
         return Ok(target);
     }
     let legacy = target
@@ -22,7 +29,6 @@ pub(crate) fn resolve_get(location: &str, base: &str) -> Result<String, AppError
     if parsed.scheme() == "http" && legacy && parsed.path() == "/login" {
         let (_, rest) = target.split_once(':').ok_or_else(AppError::changed)?;
         let secure = format!("https:{rest}");
-        reject_reported_error(&secure)?;
         return Ok(secure);
     }
     Err(AppError::with_detail(

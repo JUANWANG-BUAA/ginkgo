@@ -221,13 +221,14 @@ fn library_body(path: &str) -> HttpResponse {
     )
 }
 
-/// Offline auth service: expired business reads, then a configurable CAS 500.
+/// Offline auth service: expired reads, then CAS 500 and failed UC validation.
 /// Yield before every response so both business readers can enter recovery.
 #[derive(Clone, Default)]
 struct RecoveryFailureTransport {
     requests: std::sync::Arc<std::sync::Mutex<Vec<HttpRequest>>>,
     password_posts: std::sync::Arc<std::sync::atomic::AtomicUsize>,
     allow_login: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    failed_login_status: std::sync::Arc<std::sync::atomic::AtomicBool>,
 }
 
 impl crate::foundation::http::HttpTransport for RecoveryFailureTransport {
@@ -263,12 +264,16 @@ impl crate::foundation::http::HttpTransport for RecoveryFailureTransport {
                         )
                         .with_set_cookie("CASTGC=TGT-synthetic; Path=/; Secure; HttpOnly")
                 } else {
+                    self.failed_login_status.store(true, Ordering::Relaxed);
                     HttpResponse::new(500, &request.url, "synthetic authentication failure")
                 });
             }
             return Ok(HttpResponse::new(200, &request.url, FORM_PAGE));
         }
         if upstream == UC_STATUS_URL {
+            if self.failed_login_status.swap(false, Ordering::Relaxed) {
+                return Ok(HttpResponse::new(503, &request.url, "synthetic UC failure"));
+            }
             return Ok(HttpResponse::new(
                 200,
                 &request.url,

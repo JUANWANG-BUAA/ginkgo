@@ -79,7 +79,7 @@ async fn uc_activation_known_http_cas_redirect_uses_https_secure_cookie_and_one_
 }
 
 #[tokio::test]
-async fn login_form_actions_outside_the_documented_cas_target_never_receive_credentials() {
+async fn login_form_actions_cannot_change_the_fixed_ubaa_password_target() {
     for action in [
         "http://sso.buaa.edu.cn/login",
         "https://sso.buaa.edu.cn.evil.example/login",
@@ -89,19 +89,24 @@ async fn login_form_actions_outside_the_documented_cas_target_never_receive_cred
         "ftp://sso.buaa.edu.cn/login",
     ] {
         let body = FORM_PAGE.replace(r#"action="/login""#, &format!(r#"action="{action}""#));
-        let transport =
-            MockTransport::with_responses(vec![HttpResponse::new(200, LOGIN_URL, body)]);
+        let transport = MockTransport::with_responses(vec![
+            HttpResponse::new(200, LOGIN_URL, body),
+            HttpResponse::new(401, LOGIN_URL, "<div id=\"errorDiv\">fixture refusal</div>"),
+        ]);
         let session = Session::new(transport.clone());
         let error = login(&session, &credentials())
             .await
-            .expect_err("drifted form action must fail before any credential POST");
-        assert_eq!(error.code, ErrorCode::ChangedResponse, "action {action}");
+            .expect_err("the fixed CAS endpoint rejected the request");
+        assert_eq!(error.code, ErrorCode::PreLoginTip, "action {action}");
         assert_eq!(
             transport.request_count(),
-            1,
-            "action {action} must not receive a password request"
+            2,
+            "exactly one password POST to the fixed CAS endpoint"
         );
-        assert_eq!(transport.requests()[0].method, HttpMethod::Get);
+        let requests = transport.requests();
+        assert_eq!(requests[0].method, HttpMethod::Get);
+        assert_eq!(requests[1].method, HttpMethod::Post);
+        assert_eq!(requests[1].url, LOGIN_URL);
     }
 }
 
@@ -116,7 +121,7 @@ async fn unknown_http_redirects_fail_before_following_in_auth_and_generic_get_ch
         "http://user@sso.buaa.edu.cn/login",
         "http://sso.buaa.edu.cn.evil.example/login",
     ] {
-        for flow in 0..3 {
+        for flow in 0..2 {
             let transport = MockTransport::with_responses(vec![
                 HttpResponse::new(302, LOGIN_URL, "").with_header("Location", location),
                 HttpResponse::new(200, location, FORM_PAGE),
@@ -126,9 +131,6 @@ async fn unknown_http_redirects_fail_before_following_in_auth_and_generic_get_ch
                 0 => activate_uc(&session)
                     .await
                     .expect_err("unknown insecure UC hop"),
-                1 => fetch_login_page(&session)
-                    .await
-                    .expect_err("unknown insecure CAS hop"),
                 _ => session
                     .send_following_redirects(crate::foundation::http::HttpRequest::get(LOGIN_URL))
                     .await
@@ -145,7 +147,7 @@ async fn unknown_http_redirects_fail_before_following_in_auth_and_generic_get_ch
 }
 
 #[tokio::test]
-async fn generic_get_and_cas_entry_upgrade_only_the_known_http_location() {
+async fn generic_get_upgrades_known_http_location_but_cas_preload_does_not_follow_it() {
     let legacy =
         "http://sso.buaa.edu.cn/login?service=https%3A%2F%2Fexample.test%2Fcb%3Fx%3D%252B%252F";
     let secure = legacy.replacen("http:", "https:", 1);
@@ -158,15 +160,16 @@ async fn generic_get_and_cas_entry_upgrade_only_the_known_http_location() {
         if flow == 0 {
             assert!(matches!(
                 fetch_login_page(&session).await.unwrap(),
-                LoginPage::Form { .. }
+                LoginPage::ExistingSession
             ));
+            assert_eq!(transport.request_count(), 1);
         } else {
             session
                 .send_following_redirects(crate::foundation::http::HttpRequest::get(LOGIN_URL))
                 .await
                 .unwrap();
+            assert_eq!(transport.requests()[1].url, secure);
         }
-        assert_eq!(transport.requests()[1].url, secure);
         assert!(transport
             .requests()
             .iter()
@@ -175,13 +178,13 @@ async fn generic_get_and_cas_entry_upgrade_only_the_known_http_location() {
 }
 
 #[tokio::test]
-async fn secure_cookie_rule_is_unchanged_and_form_post_actions_are_not_rewritten() {
+async fn secure_cookie_rule_is_unchanged_and_password_post_uses_fixed_login_url() {
     let form_action = "https://sso.buaa.edu.cn/login?service=unchanged%2B";
     let body = FORM_PAGE.replace(r#"action="/login""#, &format!(r#"action="{form_action}""#));
     let transport = MockTransport::with_responses(vec![
         HttpResponse::new(200, LOGIN_URL, body)
             .with_set_cookie("CASTGC=TGT-synthetic; Path=/; Secure; HttpOnly"),
-        HttpResponse::new(500, form_action, "synthetic"),
+        HttpResponse::new(401, LOGIN_URL, "<div id=\"errorDiv\">fixture refusal</div>"),
     ]);
     let session = Session::new(transport.clone());
     assert_eq!(
@@ -189,14 +192,14 @@ async fn secure_cookie_rule_is_unchanged_and_form_post_actions_are_not_rewritten
             .await
             .expect_err("upstream rejected")
             .code,
-        ErrorCode::ServiceUnavailable
+        ErrorCode::PreLoginTip
     );
     let requests = transport.requests();
     assert_eq!(requests.len(), 2);
     assert_eq!(requests[1].method, HttpMethod::Post);
     assert_eq!(
-        requests[1].url, form_action,
-        "form POST targets and encoded query values are unchanged"
+        requests[1].url, LOGIN_URL,
+        "UBAA ignores the page action and its query for the password POST"
     );
     assert_eq!(
         requests[1].header_value("Cookie"),
@@ -282,7 +285,10 @@ async fn successful_login_keeps_castgc_inside_rust_and_returns_profile() {
 
 #[tokio::test]
 async fn unexplained_login_form_is_not_proof_of_wrong_credentials() {
-    let transport = MockTransport::with_responses(vec![login_page(), login_page()]);
+    let transport = MockTransport::with_responses(vec![
+        login_page(),
+        HttpResponse::new(200, LOGIN_URL, "<input name=\"execution\" value=\"again\">"),
+    ]);
     let error = login(&Session::new(transport.clone()), &credentials())
         .await
         .expect_err("identity is not established");
@@ -336,24 +342,35 @@ async fn explicit_credential_rejection_keeps_its_typed_error() {
 
 #[tokio::test]
 async fn unauthorized_navigation_is_not_a_password_rejection() {
-    for responses in [
-        vec![HttpResponse::new(401, LOGIN_URL, "")],
-        vec![
-            login_page(),
-            HttpResponse::new(302, LOGIN_URL, "").with_header("Location", "/login?next=fixture"),
-            HttpResponse::new(401, LOGIN_URL, ""),
-        ],
-        vec![
-            HttpResponse::new(302, LOGIN_URL, "")
-                .with_header("Location", "https://uc.buaa.edu.cn/fixture"),
-            HttpResponse::new(401, "https://uc.buaa.edu.cn/fixture", ""),
-        ],
+    for (responses, expected) in [
+        (
+            vec![HttpResponse::new(401, LOGIN_URL, "")],
+            ErrorCode::ServiceUnavailable,
+        ),
+        (
+            vec![
+                login_page(),
+                HttpResponse::new(302, LOGIN_URL, "")
+                    .with_header("Location", "/login?next=fixture"),
+                HttpResponse::new(401, LOGIN_URL, ""),
+            ],
+            ErrorCode::PreLoginTip,
+        ),
+        (
+            vec![
+                HttpResponse::new(302, LOGIN_URL, "")
+                    .with_header("Location", "https://uc.buaa.edu.cn/fixture"),
+                HttpResponse::new(200, UC_ACTIVATION_URL, ""),
+                HttpResponse::new(401, UC_STATUS_URL, ""),
+            ],
+            ErrorCode::ServiceUnavailable,
+        ),
     ] {
         let transport = MockTransport::with_responses(responses);
         let error = login(&Session::new(transport.clone()), &credentials())
             .await
             .unwrap_err();
-        assert_eq!(error.code, ErrorCode::ServiceUnavailable);
+        assert_eq!(error.code, expected);
         assert!(
             transport
                 .requests()
@@ -387,6 +404,11 @@ async fn uc_server_error_does_not_publish_an_unverified_identity() {
         HttpResponse::new(302, LOGIN_URL, "")
             .with_header("Location", "https://uc.buaa.edu.cn/?ticket=ST-synthetic")
             .with_set_cookie("CASTGC=TGT-fixture; Path=/; Secure"),
+        HttpResponse::new(
+            200,
+            "https://uc.buaa.edu.cn/?ticket=ST-synthetic",
+            "service",
+        ),
         HttpResponse::new(200, UC_ACTIVATION_URL, ""),
         HttpResponse::new(500, UC_STATUS_URL, "temporary"),
     ]);
@@ -673,7 +695,7 @@ async fn password_expiry_acknowledgement_401_is_not_a_password_rejection() {
     let error = login(&Session::new(transport.clone()), &credentials())
         .await
         .unwrap_err();
-    assert_eq!(error.code, ErrorCode::ServiceUnavailable);
+    assert_eq!(error.code, ErrorCode::PreLoginTip);
     let posts: Vec<_> = transport
         .requests()
         .into_iter()
@@ -711,35 +733,39 @@ async fn credential_post_401_preserves_policy_or_captcha_refusal_instead_of_blam
 }
 
 #[tokio::test]
-async fn reported_redirect_error_stops_before_uc_even_if_identity_would_validate() {
+async fn final_cas_redirect_error_is_reported_after_consuming_its_target_before_uc() {
     let target = "https://uc.buaa.edu.cn/error?exception.message=fixture%2Bfailure%252Bdetail";
     let transport = MockTransport::with_responses(vec![
         login_page(),
         HttpResponse::new(302, LOGIN_URL, "").with_header("Location", target),
-        HttpResponse::new(200, UC_ACTIVATION_URL, ""),
-        uc_ok(),
+        HttpResponse::new(200, target, ""),
     ]);
     let error = login(&Session::new(transport.clone()), &credentials())
         .await
         .expect_err("reported error must not publish identity");
     assert_eq!(error.code, ErrorCode::PreLoginTip);
     assert_eq!(error.detail.as_deref(), Some("fixture+failure%2Bdetail"));
-    assert_eq!(transport.request_count(), 2);
+    assert_eq!(transport.request_count(), 3);
+    assert_eq!(transport.requests()[2].url, target);
 }
 
 #[tokio::test]
-async fn initial_redirect_error_is_reported_without_password_or_target_request() {
-    let transport = MockTransport::with_responses(vec![HttpResponse::new(302, LOGIN_URL, "")
-        .with_header(
+async fn initial_redirect_activates_uc_without_inspecting_the_unused_location() {
+    let transport = MockTransport::with_responses(vec![
+        HttpResponse::new(302, LOGIN_URL, "").with_header(
             "Location",
             "https://uc.buaa.edu.cn/error?exception.message=fixture-refusal",
-        )]);
-    let error = login(&Session::new(transport.clone()), &credentials())
+        ),
+        HttpResponse::new(200, UC_ACTIVATION_URL, ""),
+        uc_ok(),
+    ]);
+    let result = login(&Session::new(transport.clone()), &credentials())
         .await
-        .unwrap_err();
-    assert_eq!(error.code, ErrorCode::PreLoginTip);
-    assert_eq!(error.detail.as_deref(), Some("fixture-refusal"));
-    assert_eq!(transport.request_count(), 1);
+        .unwrap();
+    assert!(matches!(result, LoginResult::SignedIn(_)));
+    assert_eq!(transport.request_count(), 3);
+    assert_eq!(transport.requests()[1].url, UC_ACTIVATION_URL);
+    assert_eq!(transport.requests()[2].url, UC_STATUS_URL);
     assert!(transport
         .requests()
         .iter()
@@ -747,11 +773,16 @@ async fn initial_redirect_error_is_reported_without_password_or_target_request()
 }
 
 #[tokio::test]
-async fn uc_activation_redirect_error_stops_before_followup_and_status_request() {
+async fn uc_activation_redirect_queries_do_not_replace_the_uc_status_check() {
     let transport = MockTransport::with_responses(vec![
         login_page(),
         HttpResponse::new(302, LOGIN_URL, "")
             .with_header("Location", "https://uc.buaa.edu.cn/cb?ticket=ST-synthetic"),
+        HttpResponse::new(
+            200,
+            "https://uc.buaa.edu.cn/cb?ticket=ST-synthetic",
+            "service",
+        ),
         HttpResponse::new(302, UC_ACTIVATION_URL, "").with_header(
             "Location",
             "https://uc.buaa.edu.cn/error?exception.message=fixture-activation-refusal",
@@ -759,37 +790,88 @@ async fn uc_activation_redirect_error_stops_before_followup_and_status_request()
         HttpResponse::new(200, "https://uc.buaa.edu.cn/error", ""),
         uc_ok(),
     ]);
-    let error = login(&Session::new(transport.clone()), &credentials())
+    let result = login(&Session::new(transport.clone()), &credentials())
         .await
-        .expect_err("activation refusal must not be ignored");
-    assert_eq!(error.code, ErrorCode::PreLoginTip);
-    assert_eq!(error.detail.as_deref(), Some("fixture-activation-refusal"));
-    assert_eq!(transport.request_count(), 3);
+        .expect("UC status is valid");
+    assert!(matches!(result, LoginResult::SignedIn(_)));
+    let requests = transport.requests();
+    assert_eq!(requests.len(), 6);
+    assert_eq!(requests[3].url, UC_ACTIVATION_URL);
+    assert!(requests[4]
+        .url
+        .contains("exception.message=fixture-activation-refusal"));
+    assert_eq!(requests[5].url, UC_STATUS_URL);
 }
 
 #[tokio::test]
-async fn uc_activation_error_body_stops_before_status_even_if_identity_would_validate() {
-    let transport = MockTransport::with_responses(vec![
-        login_page(),
-        HttpResponse::new(302, LOGIN_URL, "")
-            .with_header("Location", "https://uc.buaa.edu.cn/cb?ticket=ST-synthetic"),
-        HttpResponse::new(
-            200,
-            UC_ACTIVATION_URL,
-            "<div id=\"errorDiv\">fixture activation refusal</div>",
-        ),
-        uc_ok(),
-    ]);
-    let error = login(&Session::new(transport.clone()), &credentials())
-        .await
-        .expect_err("explicit activation error must not publish identity");
-    assert_eq!(error.code, ErrorCode::PreLoginTip);
-    assert_eq!(error.detail.as_deref(), Some("fixture activation refusal"));
-    assert_eq!(transport.request_count(), 3);
+async fn uc_activation_html_does_not_replace_status_identity_validation() {
+    for body in [
+        "<div id=\"errorDiv\">fixture activation message</div>",
+        "<div id=\"errorDiv\" style=\"display:none\">fixture activation message</div>",
+        "<div class=\"tip-text\" hidden>fixture activation message</div>",
+    ] {
+        for valid in [true, false] {
+            let status = if valid {
+                uc_ok()
+            } else {
+                HttpResponse::new(200, UC_STATUS_URL, r#"{"code":10600,"data":null}"#)
+            };
+            let transport = MockTransport::with_responses(vec![
+                HttpResponse::new(200, UC_ACTIVATION_URL, body),
+                status,
+            ]);
+            let session = Session::new(transport.clone());
+            activate_uc(&session)
+                .await
+                .expect("UC navigation HTML is not a CAS refusal");
+            let result = validate_session(&session).await;
+            if valid {
+                assert_eq!(result.unwrap().school_id, "sy2501001");
+            } else {
+                assert_eq!(result.unwrap_err().code, ErrorCode::SessionExpired);
+            }
+            let requests = transport.requests();
+            assert_eq!(requests.len(), 2);
+            assert_eq!(requests[0].url, UC_ACTIVATION_URL);
+            assert_eq!(requests[1].url, UC_STATUS_URL);
+            assert!(requests.iter().all(|r| r.method == HttpMethod::Get));
+        }
+    }
 }
 
 #[tokio::test]
-async fn credential_401_with_answerable_captcha_keeps_new_form_without_reposting() {
+async fn uc_activation_landing_status_does_not_replace_the_ubaa_status_check() {
+    for status in [204, 401, 403, 404, 483, 500, 503] {
+        for valid in [true, false] {
+            let identity = if valid {
+                uc_ok()
+            } else {
+                HttpResponse::new(200, UC_STATUS_URL, r#"{"code":10600,"data":null}"#)
+            };
+            let transport = MockTransport::with_responses(vec![
+                HttpResponse::new(status, UC_ACTIVATION_URL, "synthetic landing page"),
+                identity,
+            ]);
+            let session = Session::new(transport.clone());
+            session.set_route(RouteMode::Direct);
+            activate_uc(&session).await.unwrap();
+            let result = validate_session(&session).await;
+            if valid {
+                assert_eq!(result.unwrap().school_id, "sy2501001");
+            } else {
+                assert_eq!(result.unwrap_err().code, ErrorCode::SessionExpired);
+            }
+            let requests = transport.requests();
+            assert_eq!(requests.len(), 2);
+            assert_eq!(requests[0].url, UC_ACTIVATION_URL);
+            assert_eq!(requests[1].url, UC_STATUS_URL);
+            assert!(requests.iter().all(|r| r.method == HttpMethod::Get));
+        }
+    }
+}
+
+#[tokio::test]
+async fn credential_401_with_captcha_is_a_refusal_like_ubaa_without_reposting() {
     for route in [RouteMode::Direct, RouteMode::WebVpn] {
         for tip in ["", "<div id=\"errorDiv\">验证码错误，请重新输入</div>"] {
             let body = format!(
@@ -806,26 +888,13 @@ async fn credential_401_with_answerable_captcha_keeps_new_form_without_reposting
             ]);
             let session = Session::new(transport.clone());
             session.set_route(route);
-            let result = login(&session, &credentials())
+            let error = login(&session, &credentials())
                 .await
-                .expect("new answerable challenge");
-            let LoginResult::CaptchaRequired { challenge, page } = result else {
-                panic!("must not publish identity")
-            };
-            assert_eq!(challenge.id, "fresh-captcha");
-            let LoginPage::Form {
-                execution,
-                action_url,
-                ..
-            } = page
-            else {
-                panic!("new form")
-            };
-            assert_eq!(execution, "fresh-execution");
-            assert_eq!(
-                action_url,
-                "https://sso.buaa.edu.cn/login?service=synthetic"
-            );
+                .expect_err("UBAA reports a failed submission, not a preload challenge");
+            assert_eq!(error.code, ErrorCode::PreLoginTip);
+            if !tip.is_empty() {
+                assert_eq!(error.detail.as_deref(), Some("验证码错误，请重新输入"));
+            }
             assert_eq!(transport.request_count(), 2);
             assert_eq!(
                 transport
@@ -862,14 +931,14 @@ async fn credential_401_captcha_does_not_hide_policy_or_other_explicit_refusals(
 }
 
 #[tokio::test]
-async fn credential_401_captcha_rejects_unsafe_action_without_following_it() {
+async fn credential_401_captcha_refuses_without_following_its_unsafe_action() {
     let body = r#"<form action="https://untrusted.example/login"><input name="execution" value="fresh"></form><script>config.captcha = {type: 'image', id: 'fresh'};</script>"#;
     let transport =
         MockTransport::with_responses(vec![login_page(), HttpResponse::new(401, LOGIN_URL, body)]);
     let error = login(&Session::new(transport.clone()), &credentials())
         .await
         .unwrap_err();
-    assert_eq!(error.code, ErrorCode::ChangedResponse);
+    assert_eq!(error.code, ErrorCode::PreLoginTip);
     assert_eq!(transport.request_count(), 2);
 }
 

@@ -67,10 +67,21 @@ fn cookie(route: RouteMode, rotated: bool, module: Option<&str>) -> Option<Strin
     let base = (route == RouteMode::WebVpn)
         .then(|| format!("wengine_vpn_ticket=synthetic; CASTGC=TGT-synthetic; UC={uc}"));
     match (base, module) {
-        // RFC 6265 sends the longer module path before the root cookies.
-        (Some(base), Some(module)) => Some(format!("{module}; {base}")),
+        // UBAA preserves insertion order; newly issued module cookies come last.
+        (Some(base), Some(module)) => Some(format!("{base}; {module}")),
         (base, None) => base,
         (None, Some(module)) => Some(module.into()),
+    }
+}
+
+fn existing_module_cookie(route: RouteMode, module: &str) -> Option<String> {
+    if route == RouteMode::WebVpn {
+        // The previous module read issued this cookie before rotating UC.
+        Some(format!(
+            "wengine_vpn_ticket=synthetic; CASTGC=TGT-synthetic; {module}; UC=rotated"
+        ))
+    } else {
+        Some(module.into())
     }
 }
 
@@ -103,7 +114,11 @@ fn reads(route: RouteMode, restored: bool) -> Vec<Step> {
             attach(
                 HttpRequest::get(wire(schedule::PORTAL_URL, route))
                     .header("Accept", "application/json"),
-                cookie(route, restored, restored.then_some("BYXT=synthetic")),
+                if restored {
+                    existing_module_cookie(route, "BYXT=synthetic")
+                } else {
+                    cookie(route, false, None)
+                },
             ),
             Ok(
                 HttpResponse::new(200, wire(schedule::PORTAL_URL, route), r#"{"user":"ok"}"#)
@@ -186,7 +201,7 @@ fn reads(route: RouteMode, restored: bool) -> Vec<Step> {
             Ok(HttpResponse::new(302, wire(checkin::ENTRY_URL, route), "").with_header("Location", "/?loginName=fixture-login")),
         ),
         (
-            attach(HttpRequest::get(wire(&app_url, route)).header("Accept", "application/json"), cookie(route, restored, restored.then_some("ICLASS=synthetic"))),
+            attach(HttpRequest::get(wire(&app_url, route)).header("Accept", "application/json"), if restored { existing_module_cookie(route, "ICLASS=synthetic") } else { cookie(route, false, None) }),
             Ok(HttpResponse::new(200, wire(checkin::APP_LOGIN_URL, route), r#"{"STATUS":0,"result":{"id":"user-1","sessionId":"session-1"}}"#)
                 .with_set_cookie(module_cookie(route, "https://iclass.buaa.edu.cn:8347", "/app/", "ICLASS=synthetic"))),
         ),
@@ -199,7 +214,7 @@ fn reads(route: RouteMode, restored: bool) -> Vec<Step> {
             Ok(HttpResponse::new(302, wire(library::LOGIN_START, route), "").with_header("Location", "https://booking.lib.buaa.edu.cn/v4/login/cas?cas=cas-1")),
         ),
         (
-            attach(library_request(library::LOGIN_USER, route, None, Some(r#"{"cas":"cas-1"}"#)), cookie(route, restored, restored.then_some("LIB=synthetic"))),
+            attach(library_request(library::LOGIN_USER, route, None, Some(r#"{"cas":"cas-1"}"#)), if restored { existing_module_cookie(route, "LIB=synthetic") } else { cookie(route, false, None) }),
             Ok(HttpResponse::new(200, wire(library::LOGIN_USER, route), r#"{"code":0,"data":{"member":{"token":"jwt-1","name":"示例用户"}}}"#)
                 .with_set_cookie(module_cookie(route, "https://booking.lib.buaa.edu.cn", "/v4/", "LIB=synthetic"))),
         ),

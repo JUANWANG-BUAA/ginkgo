@@ -10,12 +10,12 @@
 - [cas](#cas) (14)
 - [challenge](#challenge) (1)
 - [iclass](#iclass) (1)
-- [login](#login) (3)
+- [login](#login) (4)
 - [mod](#mod) (13)
 - [android_vault](#androidvault) (2)
 - [keyring_vault](#keyringvault) (2)
 - [mod](#mod) (2)
-- [redirect](#redirect) (2)
+- [redirect](#redirect) (3)
 - [automatic_route](#automaticroute) (9)
 - [session](#session) (30)
 - [uc](#uc) (5)
@@ -42,15 +42,15 @@
 - `pub fn is_password_expiry_page(html: &str) -> bool {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:89</sub>
 - `pub fn is_login_redirect(final_url: &str, body: &str) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:97</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:98</sub>
 - `pub fn module_refusal(final_url: &str, body: &str) -> AppError {…}` — Classify a module answer that is not the expected payload.
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:115</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:116</sub>
 - `pub fn login_fields( html: &str, username: &str, password: &str, captcha_text: Option<&str>, ) -> Vec<(String, String)> {…}` — Follow UBAA's normal-form input selection and eight-field captcha branch.
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:125</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:126</sub>
 - `pub(crate) fn captcha_login_fields( username: &str, password: &str, execution: &str, captcha: &str, ) -> Vec<(String, String)> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:197</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:198</sub>
 - `pub fn form_urlencode(fields: &[(String, String)]) -> String {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:218</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/cas.rs:219</sub>
 
 ## challenge
 
@@ -67,11 +67,13 @@
 ## login
 
 - `pub async fn fetch_login_page<T: HttpTransport>( session: &Session<T>, ) -> Result<LoginPage, AppError> {…}` — Fetch the CAS login page without automatic redirects.
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:12</sub>
-- `pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>( session: &Session<T>, mut response: HttpResponse, mut current_url: String, mut credential_response: bool, ) -> Result<Option<LoginPage>, AppError> {…}` — Follow up to ten redirects, classifying each hop before requesting the
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:62</sub>
-- `pub(crate) fn validate_login_action(action: &str) -> Result<(), AppError> {…}` — The password POST target must be the documented CAS endpoint over HTTPS on
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:221</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:9</sub>
+- `pub(super) async fn fetch_login_page_with_execution<T: HttpTransport>( session: &Session<T>, supplied_execution: Option<&str>, ) -> Result<LoginPage, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:15</sub>
+- `pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>( session: &Session<T>, mut response: HttpResponse, mut current_url: String, ) -> Result<(), AppError> {…}` — Consume the submitted CAS chain before UC activation. Match UBAA's order:
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:45</sub>
+- `pub(crate) fn validate_login_action(action: &str) -> Result<(), AppError> {…}` — Password-expiry execution tokens may only return to CAS over HTTPS on the
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/login.rs:127</sub>
 
 ## mod
 
@@ -101,17 +103,17 @@
 - `pub enum LoginPage`
   <sub>enum · rust/crates/ginkgo_upstream/src/auth/mod.rs:73</sub>
 - `pub enum LoginResult`
-  <sub>enum · rust/crates/ginkgo_upstream/src/auth/mod.rs:86</sub>
+  <sub>enum · rust/crates/ginkgo_upstream/src/auth/mod.rs:84</sub>
 - `pub async fn login<T: HttpTransport>( session: &Session<T>, credentials: &Credentials, ) -> Result<LoginResult, AppError> {…}` — Complete the documented CAS → UC chain. A captcha challenge is returned
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:98</sub>
-- `pub async fn complete_login<T: HttpTransport>( session: &Session<T>, credentials: &Credentials, page: LoginPage, ) -> Result<LoginResult, AppError> {…}` — Finish a login from an already fetched page. Keeping the page lets a
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:109</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:96</sub>
+- `pub async fn complete_login<T: HttpTransport>( session: &Session<T>, credentials: &Credentials, page: LoginPage, ) -> Result<LoginResult, AppError> {…}` — Resume a prepared login. UBAA fetches the login endpoint again before a
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:106</sub>
 - `pub(crate) fn directory_unavailable(error: &AppError) -> bool {…}` — Transient reachability failures may preserve an already verified identity.
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:234</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:224</sub>
 - `pub async fn login_with_store<T: HttpTransport, C: CredentialSource + ?Sized>( session: &Session<T>, store: &C, account: &str, ) -> Result<LoginResult, AppError> {…}` — Load credentials from the platform vault, then log in. This is the only
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:243</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:233</sub>
 - `pub async fn establish_webvpn_session<T: HttpTransport>( session: &Session<T>, credentials: &Credentials, ) -> Result<(), AppError> {…}` — Explicitly establish a WebVPN session before routed campus traffic. The
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:254</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/mod.rs:244</sub>
 
 ## android_vault
 
@@ -138,8 +140,10 @@
 
 - `pub(crate) fn resolve_get(location: &str, base: &str) -> Result<String, AppError> {…}` — UC has been observed returning this exact legacy CAS login endpoint over
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/redirect.rs:8</sub>
+- `pub(crate) fn resolve_navigation_get(location: &str, base: &str) -> Result<String, AppError> {…}` — Navigation itself does not classify CAS error queries. UBAA checks them
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/redirect.rs:16</sub>
 - `pub(crate) fn reject_reported_error(target: &str) -> Result<(), AppError> {…}` — A reported authentication error is not a successful service redirect.
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/redirect.rs:36</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/redirect.rs:42</sub>
 
 ## automatic_route
 
@@ -240,13 +244,13 @@
 - `pub async fn activate_uc<T: HttpTransport>(session: &Session<T>) -> Result<(), AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/uc.rs:9</sub>
 - `pub async fn validate_session<T: HttpTransport>( session: &Session<T>, ) -> Result<UserProfile, AppError> {…}` — UC status is the only proof that the login chain produced a usable
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/uc.rs:37</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/uc.rs:31</sub>
 - `pub(super) fn status_request() -> HttpRequest {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/uc.rs:43</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/uc.rs:37</sub>
 - `pub(super) fn validate_response(response: HttpResponse) -> Result<UserProfile, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/uc.rs:52</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/uc.rs:46</sub>
 - `pub fn parse_uc_status(body: &str) -> Result<UserProfile, AppError> {…}` — Parse the UC status body. Structure changes are errors, never an implicit
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/uc.rs:66</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/uc.rs:60</sub>
 
 ## vault
 
