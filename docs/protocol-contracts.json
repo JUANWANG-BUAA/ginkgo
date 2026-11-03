@@ -43,7 +43,7 @@
         "AUTH-05",
         "AUTH-06"
       ],
-      "source_sha256": "5d8a2cc4022ae7a0bae6570ca336f7952e2d5474ad4bd2fe670a677268de9d78",
+      "source_sha256": "190f21e7f62da8ac57fd827327ba0866ef313508964e558a30f56a42cd79092e",
       "document_sha256": "ecc34a8b9912e4e005a1e6bb5dab76832923051f09ce8295e0891cad7e028084"
     },
     {
@@ -81,7 +81,7 @@
         "WRITE-01",
         "WRITE-02"
       ],
-      "source_sha256": "0a0565f41b5282e08150eaa617b4bc085a5e8608f2de2d41f61168cdcbff2b41",
+      "source_sha256": "4636919966b29eefe72de16ac6eacbdf7d773e52ccd1adfb50585fd4b0af6d45",
       "document_sha256": "f4707c24d7a433be5b44a6018b6e12e46e6fee4ec51c9a1e81a65353cd1b733e"
     },
     {

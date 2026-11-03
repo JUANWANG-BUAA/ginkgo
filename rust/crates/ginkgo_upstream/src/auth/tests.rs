@@ -853,6 +853,7 @@ async fn uc_activation_landing_status_does_not_replace_the_ubaa_status_check() {
                 identity,
             ]);
             let session = Session::new(transport.clone());
+            session.set_route(RouteMode::Direct);
             activate_uc(&session).await.unwrap();
             let result = validate_session(&session).await;
             if valid {
