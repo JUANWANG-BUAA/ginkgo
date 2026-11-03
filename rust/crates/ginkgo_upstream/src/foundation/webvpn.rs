@@ -36,10 +36,23 @@ pub fn wrap(upstream: &str) -> Result<String, WebVpnError> {
         (scheme, None) => scheme.to_string(),
     };
     let encoded_host = encrypt_host(host)?;
-    let mut wrapped = format!(
-        "https://{GATEWAY_HOST}/{protocol}/{encoded_host}{}",
+    // URL normalizes a missing path to '/', while Ktor preserves the empty
+    // path used by UBAA's library Origin and Referer. Retain that distinction.
+    let explicit_path = upstream
+        .split_once("://")
+        .map(|(_, tail)| {
+            tail.split(['?', '#'])
+                .next()
+                .unwrap_or_default()
+                .contains('/')
+        })
+        .unwrap_or(false);
+    let path = if url.path() == "/" && !explicit_path {
+        ""
+    } else {
         url.path()
-    );
+    };
+    let mut wrapped = format!("https://{GATEWAY_HOST}/{protocol}/{encoded_host}{path}");
     if let Some(query) = url.query() {
         wrapped.push('?');
         wrapped.push_str(query);
@@ -206,6 +219,19 @@ mod tests {
             "https://d.buaa.edu.cn/http/77726476706e69737468656265737421f9b94389263126557a1dc7af96/web/#/login?type=0&token=fixture-token"
         );
         assert_eq!(unwrap(&wrapped), upstream);
+    }
+
+    #[test]
+    fn preserves_empty_origin_path_separately_from_explicit_root_slash() {
+        let origin = "https://booking.lib.buaa.edu.cn";
+        let encoded = "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5";
+        assert_eq!(wrap(origin).unwrap(), encoded);
+        assert_eq!(wrap(&format!("{origin}/")).unwrap(), format!("{encoded}/"));
+        assert_eq!(
+            wrap(&format!("{origin}?a=1")).unwrap(),
+            format!("{encoded}?a=1")
+        );
+        assert_eq!(unwrap(encoded), origin);
     }
 
     #[test]

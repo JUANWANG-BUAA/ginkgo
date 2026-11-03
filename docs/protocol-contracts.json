@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "reviewed_on": "2026-11-03",
-  "review_note": "Beta.3/UBAA comparison and current working-tree authentication repair; synthetic evidence is not live acceptance.",
+  "review_note": "Fixed UBAA source with JVM CIO and Android OkHttp-on-JVM real loopback captures, eight business read scenarios including nonempty checkin fields, and verified cookie-only automatic route migration. Explicit stricter Cookie path policy retained; no real credentials, school/device requests or release acceptance. Hashes record freshness only.",
   "groups": [
     {
       "id": "authentication",
@@ -11,7 +11,14 @@
         "rust/crates/ginkgo_upstream/src/services/session_service.rs",
         "rust/crates/ginkgo_upstream/src/services/session_service/*.rs",
         "rust/crates/ginkgo_upstream/src/services/tests/session.rs",
-        "rust/crates/ginkgo_upstream/examples/auth_stage_probe.rs"
+        "rust/crates/ginkgo_upstream/src/services/tests/session_protocol.rs",
+        "rust/crates/ginkgo_upstream/src/test_support.rs",
+        "rust/crates/ginkgo_upstream/tests/data/ubaa-cas.json",
+        "scripts/check-ubaa-cas-parity.py",
+        "scripts/check-session-regressions.py",
+        "rust/crates/ginkgo_upstream/examples/auth_stage_probe.rs",
+        "rust/crates/ginkgo_upstream/src/services/tests/session_lifecycle.rs",
+        "rust/crates/ginkgo_upstream/src/services/tests/automatic_route.rs"
       ],
       "documents": [
         "docs/API.md",
@@ -22,7 +29,11 @@
         "rust/crates/ginkgo_upstream/src/auth/tests.rs",
         "rust/crates/ginkgo_upstream/src/services/session_service/gateway.rs",
         "rust/crates/ginkgo_upstream/src/services/tests/session.rs",
-        "rust/crates/ginkgo_upstream/src/auth/expiry_tests.rs"
+        "rust/crates/ginkgo_upstream/src/services/tests/session_protocol.rs",
+        "rust/crates/ginkgo_upstream/tests/data/ubaa-cas.json",
+        "rust/crates/ginkgo_upstream/src/auth/expiry_tests.rs",
+        "rust/crates/ginkgo_upstream/src/services/tests/session_lifecycle.rs",
+        "rust/crates/ginkgo_upstream/src/services/tests/automatic_route.rs"
       ],
       "invariants": [
         "AUTH-01",
@@ -32,17 +43,24 @@
         "AUTH-05",
         "AUTH-06"
       ],
-      "source_sha256": "f9f7bd3e2a76d579f1a8784bf887f540a589b86675c7d498e20b5706396ea0a5",
-      "document_sha256": "9e95e56c8e32dba56a604c6eaed16334d30a7c86dad7b304023b51adf42c981d"
+      "source_sha256": "e17a561373715c863c39c2f7fde4da1a36c52144ef2a587f6175de0f86438660",
+      "document_sha256": "2845e2a9f97b591ea068a7c0e1d21f4b9b06680ac92832269f4f0f0d2ba214dc"
     },
     {
       "id": "school-protocols",
       "inputs": [
-        "rust/crates/ginkgo_upstream/src/adapters/*.rs",
+        "rust/crates/ginkgo_upstream/src/adapters/**/*.rs",
         "rust/crates/ginkgo_upstream/src/codecs/**/*.rs",
         "rust/crates/ginkgo_upstream/src/services/**/*.rs",
+        "rust/crates/ginkgo_upstream/tests/data/ubaa-business-*.json",
+        "scripts/check-ubaa-reference.py",
+        "scripts/ubaa-reference/**/*.kt",
+        "scripts/ubaa-reference/*.kts",
         "fixtures/**/*.json",
-        "rust/crates/ginkgo_upstream/examples/public_protocol_probe.rs"
+        "rust/crates/ginkgo_upstream/examples/public_protocol_probe.rs",
+        "rust/crates/ginkgo_upstream/tests/transport_loopback.rs",
+        "rust/crates/ginkgo_upstream/tests/data/http-loopback-cases.json",
+        "rust/crates/ginkgo_upstream/tests/data/ubaa-transport-wire.json"
       ],
       "documents": [
         "docs/API.md",
@@ -51,15 +69,20 @@
       "evidence": [
         "rust/crates/ginkgo_upstream/tests/contracts.rs",
         "rust/crates/ginkgo_upstream/src/services/tests/library.rs",
-        "rust/crates/ginkgo_upstream/src/services/tests/checkin.rs"
+        "rust/crates/ginkgo_upstream/src/services/tests/checkin.rs",
+        "rust/crates/ginkgo_upstream/src/services/tests/reference_business_wire.rs",
+        "rust/crates/ginkgo_upstream/tests/data/ubaa-business-wire.json",
+        "rust/crates/ginkgo_upstream/tests/transport_loopback.rs",
+        "rust/crates/ginkgo_upstream/tests/data/http-loopback-cases.json",
+        "rust/crates/ginkgo_upstream/tests/data/ubaa-transport-wire.json"
       ],
       "invariants": [
         "DATA-01",
         "WRITE-01",
         "WRITE-02"
       ],
-      "source_sha256": "4da77c0c0ab2de5250cf179a3a295c251c549162da17468d07b72a217804790d",
-      "document_sha256": "52ef1f02df9d1aff4b97e73028b7bf003d13b0ab548d766609f1204b5a7b1a75"
+      "source_sha256": "2c7e14a784c815ca42447007877d7e459942915637d5865ca780ebcb31930df0",
+      "document_sha256": "3b9157f94e8ef8e81f1341f8e9cabec31bbc15cc76b7f182d13ff3b103e1257a"
     },
     {
       "id": "client-contracts",
@@ -79,7 +102,9 @@
         "flutter/lib/widgets/mutation_dialog.dart",
         "flutter/lib/widgets/apple_surfaces.dart",
         "flutter/lib/infrastructure/display_preferences_file_store.dart",
-        "flutter/lib/features/grades/grades_page.dart"
+        "flutter/lib/features/grades/grades_page.dart",
+        "flutter/lib/features/classroom/classroom_page.dart",
+        "flutter/lib/features/learning/learning_snapshots_page.dart"
       ],
       "documents": [
         "docs/INTERFACE-INDEX.md",
@@ -103,7 +128,8 @@
         "flutter/test/refresh_section_test.dart",
         "flutter/test/gateway_challenge_generation_test.dart",
         "flutter/test/grades_term_recovery_test.dart",
-        "flutter/test/login_placeholder_contrast_test.dart"
+        "flutter/test/login_placeholder_contrast_test.dart",
+        "flutter/test/non_auth_lifecycle_regression_test.dart"
       ],
       "invariants": [
         "FFI-01",
@@ -112,8 +138,8 @@
         "PREF-01",
         "READ-01"
       ],
-      "source_sha256": "9bcd29183e0ae537f24aab7a2e25730767fddedd02aa5ef6a271295a9e45e0f7",
-      "document_sha256": "e542d18fe069b9689e3a64d58bf1b84b1c0b83fbe3c0b930e21f2ca425e286eb"
+      "source_sha256": "8fc0f9f273f8c5507a08b9b7fef6fc0fe8f08aea2c725d74fc4dbbdb679c6693",
+      "document_sha256": "4caba01a813eaf7b2fc0b19124ddda689c49a5a5ade2529f9d699e9f63532383"
     }
   ]
 }

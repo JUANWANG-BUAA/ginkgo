@@ -1,0 +1,42 @@
+{
+  "built_on": "2026-11-03",
+  "source": "local working tree, unpublished at build time",
+  "apk_path": "/Users/juanwang/code/BUAA-Assistant/flutter/build/beta8-release/Ginkgo-0.1.0-beta.8-android-arm64.apk",
+  "bytes": 44257197,
+  "sha256": "fb0019cf647183273e65f475fb3f04d2a5457fbac268cd92b0e550808f33ad20",
+  "package": "cn.edu.buaa.ginkgo.ginkgo_mirror",
+  "version_name": "0.1.0-beta.8",
+  "version_code": 18,
+  "abi": "arm64-v8a",
+  "entrypoint": "lib/main.dart",
+  "debuggable": false,
+  "certificate_sha256": "451748b957b44d5a28ebcc967cc2aeec7e7bea6a13d9edcb021c9fd8dc7fb245",
+  "certificate_matches_beta7": true,
+  "zipalign_16k": true,
+  "integration_test_in_registrant": false,
+  "native_libraries_sha256": {
+    "lib/arm64-v8a/libapp.so": "2c72b589edff2da4e754c1d9c0f1f6e91dfcc30156855dc21f0cc32ba1ff2d58",
+    "lib/arm64-v8a/libflutter.so": "2d3bdc3833ba4497ab07f2cd8ea878c9e94f24936510a895b260d317e6c57fdd",
+    "lib/arm64-v8a/libginkgo_flutter_bridge.so": "3bb06c181c6db4b00e8cd8265992b117757cf72fab82658f93a21081c829ec88"
+  },
+  "packaged_core_matches_stripped_build": true,
+  "source_sha256": "78e4f59a6f7365df6b46764bd42f45ca75fe4cca56656cd405f6c4766b801f25",
+  "contract_sha256": "6a39707e6b5ea096fe8e2fdb998e3600528d87e940392a77a05e814206b22621",
+  "git_head_at_build": "6692ce424be7e478d78a0030d35b20e585e099da",
+  "installed_or_started": false,
+  "school_requests": false,
+  "publication_readiness": "blocked",
+  "local_full_gate_exit_code": 0,
+  "flutter_unit_tests_passed": 789,
+  "mutation_cases_detected": 22,
+  "pinned_reference_tests": 209,
+  "pinned_reference_passed": false,
+  "pinned_reference_known_date_failures": 5,
+  "limitations": [
+    "real account tests paused",
+    "physical device acceptance pending",
+    "Windows CI for this release pending",
+    "manual security review pending",
+    "root login retry pause resets on process restart"
+  ]
+}

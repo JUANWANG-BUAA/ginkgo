@@ -260,6 +260,7 @@ async fn checkin_expired_school_session_recovers_once() {
     responses.push(checkin_app_login_response());
     responses.push(checkin_schedule_response(checkin_day_body()));
     responses.push(HttpResponse::new(200, LOGIN_URL, FORM_PAGE));
+    responses.push(super::uc_expired());
     responses.extend(login_chain("sy2501001", "fixture"));
     responses.push(checkin_entry_response("fixture-login"));
     responses.push(checkin_app_login_response());
@@ -285,59 +286,12 @@ async fn checkin_expired_school_session_recovers_once() {
 }
 
 #[tokio::test]
-async fn checkin_webvpn_fallback_establishes_the_gateway_session_once() {
-    use crate::foundation::webvpn;
-    let entry_wrapped = webvpn::wrap(crate::adapters::checkin_http::ENTRY_URL).expect("entry");
-    let login_wrapped =
-        webvpn::wrap(crate::adapters::checkin_http::APP_LOGIN_URL).expect("app login");
-    let mut results: Vec<Result<HttpResponse, TransportError>> =
-        login_chain("sy2501001", "fixture")
-            .into_iter()
-            .map(Ok)
-            .collect();
-    // Direct iclass is unreachable, then the gateway asks for its own login.
+async fn direct_checkin_network_failure_never_switches_route_or_posts_password() {
+    let mut results: Vec<_> = login_chain("sy2501001", "fixture")
+        .into_iter()
+        .map(Ok)
+        .collect();
     results.push(Err(TransportError::Unavailable));
-    results.push(Ok(HttpResponse::new(
-        200,
-        "https://d.buaa.edu.cn/login",
-        "<html>gateway login</html>",
-    )
-    .with_set_cookie("gateway-preauth=fixture; Path=/; Secure")));
-    // WebVPN CAS login chain (routed through the gateway).
-    results.push(Ok(HttpResponse::new(
-        200,
-        crate::auth::LOGIN_URL,
-        FORM_PAGE,
-    )));
-    results.push(Ok(HttpResponse::new(302, crate::auth::LOGIN_URL, "")
-        .with_header("Location", "https://sso.buaa.edu.cn/login?ticket=ST-1")
-        .with_set_cookie("CASTGC=TGT-fixture; Path=/; Secure; HttpOnly")));
-    results.push(Ok(HttpResponse::new(
-        200,
-        "https://sso.buaa.edu.cn/login?ticket=ST-1",
-        "<html>ok</html>",
-    )));
-    results.push(Ok(HttpResponse::new(
-        200,
-        crate::auth::UC_ACTIVATION_URL,
-        "",
-    )));
-    results.push(Ok(uc_ok("sy2501001", "fixture")));
-    results.push(Ok(HttpResponse::new(302, &entry_wrapped, "").with_header(
-        "Location",
-        "https://iclass.buaa.edu.cn:8346/?loginName=fixture-login",
-    )));
-    results.push(Ok(HttpResponse::new(
-        200,
-        &login_wrapped,
-        r#"{"STATUS":0,"result":{"id":"1001","sessionId":"fixture-session"}}"#,
-    )));
-    results.push(Ok(HttpResponse::new(
-        200,
-        &login_wrapped,
-        checkin_day_body(),
-    )));
-
     let transport = MockTransport::with_results(results);
     let service = SchoolClient::new(
         crate::auth::session::Session::new(transport.clone()),
@@ -346,34 +300,22 @@ async fn checkin_webvpn_fallback_establishes_the_gateway_session_once() {
     service
         .sign_in("sy2501001", "pa+ss/word", None, true)
         .await
-        .expect("signed in");
-
-    let outcome = service.load_checkin(false).await.expect("webvpn checkin");
-    assert_eq!(outcome.courses.len(), 2);
-    assert!(outcome.failure.is_none());
+        .unwrap();
+    let before = transport.request_count();
+    assert_eq!(
+        service.load_checkin(false).await.unwrap_err().code,
+        ErrorCode::ServiceUnavailable
+    );
     assert_eq!(
         service.session.route(),
-        crate::auth::session::RouteMode::WebVpn
+        crate::auth::session::RouteMode::Direct
     );
-    // After the fallback, every iclass request goes through the gateway: the
-    // failed attempt is retried once there, then the rebuilt session and the
-    // app endpoints (port 8347) are all routed.
+    assert_eq!(service.current_account().unwrap(), "sy2501001");
     let requests = transport.requests();
-    let entry_routed = requests
+    assert_eq!(requests.len() - before, 1);
+    assert!(requests[before..]
         .iter()
-        .filter(|request| request.url.starts_with("https://d.buaa.edu.cn/https-8346/"))
-        .count();
-    let app_routed = requests
-        .iter()
-        .filter(|request| request.url.starts_with("https://d.buaa.edu.cn/https-8347/"))
-        .count();
-    assert_eq!(entry_routed, 2);
-    assert_eq!(app_routed, 2);
-    // The gateway CAS session was established through the gateway itself.
-    assert!(requests.iter().any(
-        |request| request.url.starts_with("https://d.buaa.edu.cn/https/")
-            && request.method == HttpMethod::Post
-    ));
+        .all(|r| r.method == HttpMethod::Get && !r.url.contains("d.buaa.edu.cn")));
 }
 
 #[tokio::test]

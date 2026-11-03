@@ -59,6 +59,11 @@ async fn expiry_acknowledges_the_form_action_including_service_and_duplicate_que
             HttpResponse::new(200, LOGIN_URL, expiry(Some(&action))),
             HttpResponse::new(302, CONTEXT, "")
                 .with_header("Location", "https://uc.buaa.edu.cn/cb?ticket=ST-synthetic"),
+            HttpResponse::new(
+                200,
+                "https://uc.buaa.edu.cn/cb?ticket=ST-synthetic",
+                "service",
+            ),
             HttpResponse::new(200, UC_ACTIVATION_URL, ""),
             uc_ok(),
         ]);
@@ -96,6 +101,11 @@ async fn expiry_without_action_keeps_the_current_login_context() {
                 HttpResponse::new(200, CONTEXT, expiry(action)),
                 HttpResponse::new(302, CONTEXT, "")
                     .with_header("Location", "https://uc.buaa.edu.cn/cb?ticket=ST-synthetic"),
+                HttpResponse::new(
+                    200,
+                    "https://uc.buaa.edu.cn/cb?ticket=ST-synthetic",
+                    "service",
+                ),
                 HttpResponse::new(200, UC_ACTIVATION_URL, ""),
                 uc_ok(),
             ]);

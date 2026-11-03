@@ -1,0 +1,1206 @@
+{
+  "reference_commit": "e8a397fcb35a68147eee65a94c66ffb84e2f09fe",
+  "source": "synthetic",
+  "response_sha256": "f7cd758298e3d1beddc8505d05a243284759ac0c98c279821a6a0629b32a126e",
+  "comparison_scope": "Six synthetic read scenarios; Ktor prepared request versus Ginkgo HttpRequest model, not network bytes or Android engines",
+  "normalization": [
+    "header names lowercased",
+    "query pairs sorted and decoded preserving duplicates",
+    "form pairs sorted and decoded preserving duplicates",
+    "JSON objects compared by value",
+    "cookie pairs sorted"
+  ],
+  "ginkgo_head": "6692ce424be7e478d78a0030d35b20e585e099da",
+  "ginkgo_rust_source_sha256": "daeefdd064191ce218204b933479a63b08acebcaae6a9cd41ad0e14646252dd8",
+  "reference_tests": 1,
+  "transport": {
+    "ubaa": {
+      "source": "synthetic",
+      "engine": "CIO",
+      "requests": [
+        {
+          "id": "form-encoding",
+          "request": {
+            "method": "POST",
+            "target": "/form?duplicate=1&duplicate=2&plus=a%2Bb",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "content-length": "113",
+              "accept": "application/json",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded"
+            },
+            "body_base64": "ZXhlY3V0aW9uPWFiYyUyQmRlZiUyRmdoaSUzRCZ1c2VybmFtZT1zeTI1MDEwMDEmcGFzc3dvcmQ9cGElMkJzcyUyRndvcmQmcmVwZWF0PTEmcmVwZWF0PTImbmFtZT0lRTYlOUQlOEUlRTYlOTYlODc="
+          }
+        },
+        {
+          "id": "cookie-seed",
+          "request": {
+            "method": "GET",
+            "target": "/cookies/seed",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "accept": "application/json",
+              "user-agent": "ktor-client"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "cookie-path",
+          "request": {
+            "method": "GET",
+            "target": "/cookies/echo",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "accept": "application/json",
+              "cookie": "root=old; scope=path",
+              "user-agent": "ktor-client"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "cookie-boundary",
+          "request": {
+            "method": "GET",
+            "target": "/cookies-other/echo",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "accept": "application/json",
+              "cookie": "root=old; scope=path",
+              "user-agent": "ktor-client"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "cookie-rotate",
+          "request": {
+            "method": "GET",
+            "target": "/cookies/rotate",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "accept": "application/json",
+              "cookie": "root=old; scope=path",
+              "user-agent": "ktor-client"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "cookie-after-rotate",
+          "request": {
+            "method": "GET",
+            "target": "/cookies/after",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-get-302",
+          "request": {
+            "method": "GET",
+            "target": "/redirect/302/get",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-post-302",
+          "request": {
+            "method": "POST",
+            "target": "/redirect/302/post",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "content-length": "13",
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded"
+            },
+            "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+          }
+        },
+        {
+          "id": "manual-get-303",
+          "request": {
+            "method": "GET",
+            "target": "/redirect/303/get",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-post-303",
+          "request": {
+            "method": "POST",
+            "target": "/redirect/303/post",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "content-length": "13",
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded"
+            },
+            "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+          }
+        },
+        {
+          "id": "manual-get-307",
+          "request": {
+            "method": "GET",
+            "target": "/redirect/307/get",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-post-307",
+          "request": {
+            "method": "POST",
+            "target": "/redirect/307/post",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "content-length": "13",
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded"
+            },
+            "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+          }
+        },
+        {
+          "id": "manual-get-308",
+          "request": {
+            "method": "GET",
+            "target": "/redirect/308/get",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-post-308",
+          "request": {
+            "method": "POST",
+            "target": "/redirect/308/post",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "content-length": "13",
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded"
+            },
+            "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+          }
+        },
+        {
+          "id": "utf8-body",
+          "request": {
+            "method": "GET",
+            "target": "/utf8",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "binary-body",
+          "request": {
+            "method": "GET",
+            "target": "/binary",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "explicit-user-agent",
+          "request": {
+            "method": "GET",
+            "target": "/agent",
+            "version": "HTTP/1.1",
+            "headers": {
+              "host": "127.0.0.1:56080",
+              "accept": "application/json",
+              "user-agent": "synthetic-reference/1.0",
+              "cookie": "root=new"
+            },
+            "body_base64": ""
+          }
+        }
+      ],
+      "results": [
+        {
+          "id": "form-encoding",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "cookie-seed",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": [
+            "root=old; Path=/; HttpOnly",
+            "scope=path; Path=/cookies",
+            "gone=old; Max-Age=0; Path=/",
+            "secret=tls-only; Secure; Path=/",
+            "bad=wrong-domain; Domain=other.invalid; Path=/"
+          ]
+        },
+        {
+          "id": "cookie-path",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "cookie-boundary",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "cookie-rotate",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": [
+            "root=new; Path=/; HttpOnly",
+            "scope=deleted; Max-Age=0; Path=/cookies",
+            "expired=old; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"
+          ]
+        },
+        {
+          "id": "cookie-after-rotate",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "manual-get-302",
+          "status": 302,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-post-302",
+          "status": 302,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-get-303",
+          "status": 303,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-post-303",
+          "status": 303,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-get-307",
+          "status": 307,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-post-307",
+          "status": 307,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-get-308",
+          "status": 308,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-post-308",
+          "status": 308,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "utf8-body",
+          "status": 200,
+          "body_base64": "5L2g5aW977yM5Zu+5Lmm6aaG",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "binary-body",
+          "status": 200,
+          "body_base64": "AP8NCg==",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "explicit-user-agent",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        }
+      ]
+    },
+    "rust": {
+      "engine": "reqwest",
+      "requests": [
+        {
+          "id": "form-encoding",
+          "request": {
+            "body_base64": "ZXhlY3V0aW9uPWFiYyUyQmRlZiUyRmdoaSUzRCZ1c2VybmFtZT1zeTI1MDEwMDEmcGFzc3dvcmQ9cGElMkJzcyUyRndvcmQmcmVwZWF0PTEmcmVwZWF0PTImbmFtZT0lRTYlOUQlOEUlRTYlOTYlODc=",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "content-length": "113",
+              "content-type": "application/x-www-form-urlencoded",
+              "host": "127.0.0.1:56098",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+            },
+            "method": "POST",
+            "target": "/form?duplicate=1&duplicate=2&plus=a%2Bb",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-seed",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "host": "127.0.0.1:56098",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+            },
+            "method": "GET",
+            "target": "/cookies/seed",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-path",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "cookie": "scope=path; root=old; bad=wrong-domain",
+              "host": "127.0.0.1:56098",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+            },
+            "method": "GET",
+            "target": "/cookies/echo",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-boundary",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "cookie": "root=old; bad=wrong-domain",
+              "host": "127.0.0.1:56098",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+            },
+            "method": "GET",
+            "target": "/cookies-other/echo",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-rotate",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "cookie": "scope=path; root=old; bad=wrong-domain",
+              "host": "127.0.0.1:56098",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+            },
+            "method": "GET",
+            "target": "/cookies/rotate",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-after-rotate",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "cookie": "bad=wrong-domain; root=new",
+              "host": "127.0.0.1:56098",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+            },
+            "method": "GET",
+            "target": "/cookies/after",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-get-302",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "cookie": "bad=wrong-domain; root=new",
+              "host": "127.0.0.1:56098",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+            },
+            "method": "GET",
+            "target": "/redirect/302/get",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-post-302",
+          "request": {
+            "body_base64": "c2luZ2xlPXN1Ym1pdA==",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "content-length": "13",
+              "content-type": "application/x-www-form-urlencoded",
+              "cookie": "bad=wrong-domain; root=new",
+              "host": "127.0.0.1:56098",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+            },
+            "method": "POST",
+            "target": "/redirect/302/post",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-get-303",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "cookie": "bad=wrong-domain; root=new",
+              "host": "127.0.0.1:56098",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+            },
+            "method": "GET",
+            "target": "/redirect/303/get",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-post-303",
+          "request": {
+            "body_base64": "c2luZ2xlPXN1Ym1pdA==",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "content-length": "13",
+              "content-type": "application/x-www-form-urlencoded",
+              "cookie": "bad=wrong-domain; root=new",
+              "host": "127.0.0.1:56098",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+            },
+            "method": "POST",
+            "target": "/redirect/303/post",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-get-307",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "cookie": "bad=wrong-domain; root=new",
+              "host": "127.0.0.1:56098",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+            },
+            "method": "GET",
+            "target": "/redirect/307/get",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-post-307",
+          "request": {
+            "body_base64": "c2luZ2xlPXN1Ym1pdA==",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "content-length": "13",
+              "content-type": "application/x-www-form-urlencoded",
+              "cookie": "bad=wrong-domain; root=new",
+              "host": "127.0.0.1:56098",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+            },
+            "method": "POST",
+            "target": "/redirect/307/post",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-get-308",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "cookie": "bad=wrong-domain; root=new",
+              "host": "127.0.0.1:56098",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+            },
+            "method": "GET",
+            "target": "/redirect/308/get",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-post-308",
+          "request": {
+            "body_base64": "c2luZ2xlPXN1Ym1pdA==",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "content-length": "13",
+              "content-type": "application/x-www-form-urlencoded",
+              "cookie": "bad=wrong-domain; root=new",
+              "host": "127.0.0.1:56098",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+            },
+            "method": "POST",
+            "target": "/redirect/308/post",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "utf8-body",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "cookie": "bad=wrong-domain; root=new",
+              "host": "127.0.0.1:56098",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+            },
+            "method": "GET",
+            "target": "/utf8",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "binary-body",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "cookie": "bad=wrong-domain; root=new",
+              "host": "127.0.0.1:56098",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+            },
+            "method": "GET",
+            "target": "/binary",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "explicit-user-agent",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "cookie": "bad=wrong-domain; root=new",
+              "host": "127.0.0.1:56098",
+              "user-agent": "synthetic-reference/1.0"
+            },
+            "method": "GET",
+            "target": "/agent",
+            "version": "HTTP/1.1"
+          }
+        }
+      ],
+      "results": [
+        {
+          "body_base64": "b2s=",
+          "id": "form-encoding",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-seed",
+          "location": null,
+          "set_cookies": [
+            "root=old; Path=/; HttpOnly",
+            "scope=path; Path=/cookies",
+            "gone=old; Max-Age=0; Path=/",
+            "secret=tls-only; Secure; Path=/",
+            "bad=wrong-domain; Domain=other.invalid; Path=/"
+          ],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-path",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-boundary",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-rotate",
+          "location": null,
+          "set_cookies": [
+            "root=new; Path=/; HttpOnly",
+            "scope=deleted; Max-Age=0; Path=/cookies",
+            "expired=old; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"
+          ],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-after-rotate",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-get-302",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 302
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-post-302",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 302
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-get-303",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 303
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-post-303",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 303
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-get-307",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 307
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-post-307",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 307
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-get-308",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 308
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-post-308",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 308
+        },
+        {
+          "body_base64": "5L2g5aW977yM5Zu+5Lmm6aaG",
+          "id": "utf8-body",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "AP8NCg==",
+          "id": "binary-body",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "explicit-user-agent",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        }
+      ],
+      "source": "synthetic"
+    },
+    "differences": [
+      {
+        "case": "form-encoding",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "form-encoding",
+        "field": "headers.user-agent",
+        "ubaa": "ktor-client",
+        "rust": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+      },
+      {
+        "case": "cookie-seed",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "cookie-seed",
+        "field": "headers.user-agent",
+        "ubaa": "ktor-client",
+        "rust": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+      },
+      {
+        "case": "cookie-path",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "cookie-path",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=old",
+          "scope=path"
+        ],
+        "rust": [
+          "bad=wrong-domain",
+          "root=old",
+          "scope=path"
+        ]
+      },
+      {
+        "case": "cookie-path",
+        "field": "headers.user-agent",
+        "ubaa": "ktor-client",
+        "rust": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+      },
+      {
+        "case": "cookie-boundary",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "cookie-boundary",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=old",
+          "scope=path"
+        ],
+        "rust": [
+          "bad=wrong-domain",
+          "root=old"
+        ]
+      },
+      {
+        "case": "cookie-boundary",
+        "field": "headers.user-agent",
+        "ubaa": "ktor-client",
+        "rust": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+      },
+      {
+        "case": "cookie-rotate",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "cookie-rotate",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=old",
+          "scope=path"
+        ],
+        "rust": [
+          "bad=wrong-domain",
+          "root=old",
+          "scope=path"
+        ]
+      },
+      {
+        "case": "cookie-rotate",
+        "field": "headers.user-agent",
+        "ubaa": "ktor-client",
+        "rust": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+      },
+      {
+        "case": "cookie-after-rotate",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "cookie-after-rotate",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=new"
+        ],
+        "rust": [
+          "bad=wrong-domain",
+          "root=new"
+        ]
+      },
+      {
+        "case": "cookie-after-rotate",
+        "field": "headers.user-agent",
+        "ubaa": "ktor-client",
+        "rust": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+      },
+      {
+        "case": "manual-get-302",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "manual-get-302",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=new"
+        ],
+        "rust": [
+          "bad=wrong-domain",
+          "root=new"
+        ]
+      },
+      {
+        "case": "manual-get-302",
+        "field": "headers.user-agent",
+        "ubaa": "ktor-client",
+        "rust": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+      },
+      {
+        "case": "manual-post-302",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "manual-post-302",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=new"
+        ],
+        "rust": [
+          "bad=wrong-domain",
+          "root=new"
+        ]
+      },
+      {
+        "case": "manual-post-302",
+        "field": "headers.user-agent",
+        "ubaa": "ktor-client",
+        "rust": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+      },
+      {
+        "case": "manual-get-303",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "manual-get-303",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=new"
+        ],
+        "rust": [
+          "bad=wrong-domain",
+          "root=new"
+        ]
+      },
+      {
+        "case": "manual-get-303",
+        "field": "headers.user-agent",
+        "ubaa": "ktor-client",
+        "rust": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+      },
+      {
+        "case": "manual-post-303",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "manual-post-303",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=new"
+        ],
+        "rust": [
+          "bad=wrong-domain",
+          "root=new"
+        ]
+      },
+      {
+        "case": "manual-post-303",
+        "field": "headers.user-agent",
+        "ubaa": "ktor-client",
+        "rust": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+      },
+      {
+        "case": "manual-get-307",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "manual-get-307",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=new"
+        ],
+        "rust": [
+          "bad=wrong-domain",
+          "root=new"
+        ]
+      },
+      {
+        "case": "manual-get-307",
+        "field": "headers.user-agent",
+        "ubaa": "ktor-client",
+        "rust": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+      },
+      {
+        "case": "manual-post-307",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "manual-post-307",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=new"
+        ],
+        "rust": [
+          "bad=wrong-domain",
+          "root=new"
+        ]
+      },
+      {
+        "case": "manual-post-307",
+        "field": "headers.user-agent",
+        "ubaa": "ktor-client",
+        "rust": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+      },
+      {
+        "case": "manual-get-308",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "manual-get-308",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=new"
+        ],
+        "rust": [
+          "bad=wrong-domain",
+          "root=new"
+        ]
+      },
+      {
+        "case": "manual-get-308",
+        "field": "headers.user-agent",
+        "ubaa": "ktor-client",
+        "rust": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+      },
+      {
+        "case": "manual-post-308",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "manual-post-308",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=new"
+        ],
+        "rust": [
+          "bad=wrong-domain",
+          "root=new"
+        ]
+      },
+      {
+        "case": "manual-post-308",
+        "field": "headers.user-agent",
+        "ubaa": "ktor-client",
+        "rust": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+      },
+      {
+        "case": "utf8-body",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "utf8-body",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=new"
+        ],
+        "rust": [
+          "bad=wrong-domain",
+          "root=new"
+        ]
+      },
+      {
+        "case": "utf8-body",
+        "field": "headers.user-agent",
+        "ubaa": "ktor-client",
+        "rust": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+      },
+      {
+        "case": "binary-body",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "binary-body",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=new"
+        ],
+        "rust": [
+          "bad=wrong-domain",
+          "root=new"
+        ]
+      },
+      {
+        "case": "binary-body",
+        "field": "headers.user-agent",
+        "ubaa": "ktor-client",
+        "rust": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+      },
+      {
+        "case": "explicit-user-agent",
+        "field": "headers.accept-encoding",
+        "ubaa": null,
+        "rust": "gzip"
+      },
+      {
+        "case": "explicit-user-agent",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=new"
+        ],
+        "rust": [
+          "bad=wrong-domain",
+          "root=new"
+        ]
+      }
+    ],
+    "rust_regression_passed": false
+  }
+}

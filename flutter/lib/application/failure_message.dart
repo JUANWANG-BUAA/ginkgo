@@ -11,7 +11,7 @@ String failureMessage(FailureCode? code) {
     FailureCode.changedResponse => '数据格式无法识别，请重试',
     FailureCode.unsupportedContract => '数据版本暂不支持，请更新应用',
     FailureCode.sessionExpired => '学校会话已失效，请重新登录',
-    FailureCode.moduleAuthRequired => '该服务要求重新验证身份，其他功能不受影响；请稍后重试',
+    FailureCode.moduleAuthRequired => '该服务的认证尚未就绪，其他功能不受影响；请重试或检查账号设置中的连接路线',
     FailureCode.serviceUnavailable => '学校服务暂时不可用，请稍后重试',
     FailureCode.networkUnreachable => '无法连接网络，请检查手机网络或校园网后重试',
     FailureCode.captchaRequired => '学校要求验证码，请重新登录并完成验证',

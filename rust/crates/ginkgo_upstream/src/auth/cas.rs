@@ -120,46 +120,99 @@ pub fn module_refusal(final_url: &str, body: &str) -> AppError {
     }
 }
 
-/// Build the CAS form from the page's hidden inputs. The `+` and `/` in the
-/// execution token must be percent-encoded when the body is written.
+/// Follow UBAA's normal-form input selection and eight-field captcha branch.
+/// The `+` and `/` in execution/password values are encoded by form_urlencode.
 pub fn login_fields(
     html: &str,
     username: &str,
     password: &str,
     captcha_text: Option<&str>,
 ) -> Vec<(String, String)> {
+    if let Some(captcha) = captcha_text.filter(|text| !text.trim().is_empty()) {
+        return captcha_login_fields(
+            username,
+            password,
+            &extract_execution(html).unwrap_or_default(),
+            captcha,
+        );
+    }
     let mut fields: Vec<(String, String)> = Vec::new();
+    let mut present = std::collections::BTreeSet::new();
     for tag in INPUT_TAG.find_iter(html).map(|item| item.as_str()) {
         let attributes = parse_attributes(tag);
-        let Some(name) = attributes.get("name").filter(|name| !name.is_empty()) else {
+        let Some(name) = attributes
+            .get("name")
+            .map(|name| name.trim())
+            .filter(|name| !name.is_empty())
+        else {
             continue;
         };
+        if matches!(name, "username" | "password") {
+            continue;
+        }
         let input_type = attributes
             .get("type")
-            .map(|value| value.to_ascii_lowercase())
+            .map(|value| value.trim().to_ascii_lowercase())
             .unwrap_or_else(|| "text".to_string());
-        if input_type == "hidden" || (input_type == "checkbox" && CHECKED.is_match(tag)) {
-            let value = attributes
-                .get("value")
-                .map(|value| decode_entities(value))
-                .unwrap_or_default();
-            fields.push((name.clone(), value));
+        if matches!(input_type.as_str(), "submit" | "button" | "image") {
+            continue;
+        }
+        present.insert(name.to_owned());
+        let value = attributes
+            .get("value")
+            .map(|value| decode_entities(value))
+            .unwrap_or_default();
+        if input_type == "checkbox" {
+            if CHECKED.is_match(tag) {
+                fields.push((
+                    name.to_owned(),
+                    if value.trim().is_empty() {
+                        "on".into()
+                    } else {
+                        value
+                    },
+                ));
+            }
+        } else if input_type == "hidden" || !value.trim().is_empty() {
+            fields.push((name.to_owned(), value));
         }
     }
-    set_field(&mut fields, "username", username);
-    set_field(&mut fields, "password", password);
-    set_field(&mut fields, "submit", "登录");
-    if !fields.iter().any(|(name, _)| name == "_eventId") {
+    fields.extend([
+        ("username".into(), username.into()),
+        ("password".into(), password.into()),
+        ("submit".into(), "登录".into()),
+    ]);
+    if !present.contains("_eventId") {
         fields.push(("_eventId".into(), "submit".into()));
     }
-    if !fields.iter().any(|(name, _)| name == "type") {
+    if !present.contains("execution") {
+        fields.push(("execution".into(), String::new()));
+    }
+    if !present.contains("type") {
         fields.push(("type".into(), "username_password".into()));
     }
-    if let Some(captcha) = captcha_text.filter(|text| !text.is_empty()) {
-        set_field(&mut fields, "captcha", captcha);
-        set_field(&mut fields, "captchaResponse", captcha);
-    }
     fields
+}
+
+pub(crate) fn captcha_login_fields(
+    username: &str,
+    password: &str,
+    execution: &str,
+    captcha: &str,
+) -> Vec<(String, String)> {
+    [
+        ("username", username),
+        ("password", password),
+        ("captcha", captcha),
+        ("captchaResponse", captcha),
+        ("execution", execution),
+        ("_eventId", "submit"),
+        ("submit", "登录"),
+        ("type", "username_password"),
+    ]
+    .into_iter()
+    .map(|(key, value)| (key.to_owned(), value.to_owned()))
+    .collect()
 }
 
 pub fn form_urlencode(fields: &[(String, String)]) -> String {
@@ -168,11 +221,6 @@ pub fn form_urlencode(fields: &[(String, String)]) -> String {
         .map(|(name, value)| format!("{}={}", encode_component(name), encode_component(value)))
         .collect::<Vec<_>>()
         .join("&")
-}
-
-fn set_field(fields: &mut Vec<(String, String)>, name: &str, value: &str) {
-    fields.retain(|(existing, _)| existing != name);
-    fields.push((name.to_string(), value.to_string()));
 }
 
 fn parse_attributes(tag: &str) -> std::collections::BTreeMap<String, String> {
@@ -293,11 +341,10 @@ mod tests {
 
     #[test]
     fn builds_fields_and_encodes_plus_and_slash() {
-        let fields = login_fields(LOGIN_PAGE, "sy2501001", "pa+ss/word", Some("1234"));
+        let fields = login_fields(LOGIN_PAGE, "sy2501001", "pa+ss/word", None);
         assert!(fields.contains(&("lt".into(), "LT-fixture".into())));
         assert!(fields.contains(&("remember".into(), "true".into())));
         assert!(fields.contains(&("username".into(), "sy2501001".into())));
-        assert!(fields.contains(&("captchaResponse".into(), "1234".into())));
         assert!(fields.contains(&("_eventId".into(), "submit".into())));
         assert!(fields.contains(&("type".into(), "username_password".into())));
 
@@ -345,6 +392,50 @@ mod error_selection_regressions {
             r#"<div class="tip-text"> </div><div class="tip-text">合成拒绝</div>"#,
         ] {
             assert_eq!(extract_error_text(body).as_deref(), Some("合成拒绝"));
+        }
+    }
+}
+
+#[cfg(test)]
+mod reference_vectors {
+    use super::*;
+
+    #[derive(serde::Deserialize)]
+    struct Vector {
+        id: String,
+        html: String,
+        captcha: Option<String>,
+        fields: Vec<(String, String)>,
+    }
+
+    #[derive(serde::Deserialize)]
+    struct Vectors {
+        cases: Vec<Vector>,
+    }
+
+    // Expected values are checked independently by executing the pinned UBAA
+    // Kotlin parser with scripts/check-ubaa-cas-parity.py, never generated here.
+    #[test]
+    fn ubaa_cas_oracle_matches_field_multisets_and_encoding() {
+        let vectors: Vectors =
+            serde_json::from_str(include_str!("../../tests/data/ubaa-cas.json")).unwrap();
+        for vector in vectors.cases {
+            let mut actual = login_fields(
+                &vector.html,
+                "sy2501001",
+                "pa+ss/word",
+                vector.captcha.as_deref(),
+            );
+            let body = form_urlencode(&actual);
+            let mut decoded: Vec<_> = url::form_urlencoded::parse(body.as_bytes())
+                .into_owned()
+                .collect();
+            decoded.sort();
+            actual.sort();
+            let mut expected = vector.fields;
+            expected.sort();
+            assert_eq!(actual, expected, "UBAA field multiset: {}", vector.id);
+            assert_eq!(decoded, expected, "wire encoding: {}", vector.id);
         }
     }
 }

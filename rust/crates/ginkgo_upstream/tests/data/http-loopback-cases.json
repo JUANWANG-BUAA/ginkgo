@@ -1,0 +1,341 @@
+{
+  "source": "synthetic",
+  "cases": [
+    {
+      "id": "form-encoding",
+      "path": "/form?duplicate=1&duplicate=2&plus=a%2Bb",
+      "method": "POST",
+      "body": "execution=abc%2Bdef%2Fghi%3D&username=sy2501001&password=pa%2Bss%2Fword&repeat=1&repeat=2&name=%E6%9D%8E%E6%96%87",
+      "headers": {
+        "Accept": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      "response": {
+        "status": 200,
+        "body": "ok",
+        "headers": []
+      },
+      "binary": false
+    },
+    {
+      "id": "cookie-seed",
+      "path": "/cookies/seed",
+      "method": "GET",
+      "body": "",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "response": {
+        "status": 200,
+        "body": "ok",
+        "headers": [
+          [
+            "Set-Cookie",
+            "root=old; Path=/; HttpOnly"
+          ],
+          [
+            "Set-Cookie",
+            "scope=path; Path=/cookies"
+          ],
+          [
+            "Set-Cookie",
+            "gone=old; Max-Age=0; Path=/"
+          ],
+          [
+            "Set-Cookie",
+            "secret=tls-only; Secure; Path=/"
+          ],
+          [
+            "Set-Cookie",
+            "bad=wrong-domain; Domain=other.invalid; Path=/"
+          ]
+        ]
+      },
+      "binary": false
+    },
+    {
+      "id": "cookie-path",
+      "path": "/cookies/echo",
+      "method": "GET",
+      "body": "",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "response": {
+        "status": 200,
+        "body": "ok",
+        "headers": []
+      },
+      "binary": false
+    },
+    {
+      "id": "cookie-boundary",
+      "path": "/cookies-other/echo",
+      "method": "GET",
+      "body": "",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "response": {
+        "status": 200,
+        "body": "ok",
+        "headers": []
+      },
+      "binary": false
+    },
+    {
+      "id": "cookie-rotate",
+      "path": "/cookies/rotate",
+      "method": "GET",
+      "body": "",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "response": {
+        "status": 200,
+        "body": "ok",
+        "headers": [
+          [
+            "Set-Cookie",
+            "root=new; Path=/; HttpOnly"
+          ],
+          [
+            "Set-Cookie",
+            "scope=deleted; Max-Age=0; Path=/cookies"
+          ],
+          [
+            "Set-Cookie",
+            "expired=old; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"
+          ]
+        ]
+      },
+      "binary": false
+    },
+    {
+      "id": "cookie-after-rotate",
+      "path": "/cookies/after",
+      "method": "GET",
+      "body": "",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "response": {
+        "status": 200,
+        "body": "ok",
+        "headers": []
+      },
+      "binary": false
+    },
+    {
+      "id": "manual-get-302",
+      "path": "/redirect/302/get",
+      "method": "GET",
+      "body": "",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "response": {
+        "status": 302,
+        "body": "ok",
+        "headers": [
+          [
+            "Location",
+            "/must-not-follow"
+          ]
+        ]
+      },
+      "binary": false
+    },
+    {
+      "id": "manual-post-302",
+      "path": "/redirect/302/post",
+      "method": "POST",
+      "body": "single=submit",
+      "headers": {
+        "Accept": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      "response": {
+        "status": 302,
+        "body": "ok",
+        "headers": [
+          [
+            "Location",
+            "/must-not-follow"
+          ]
+        ]
+      },
+      "binary": false
+    },
+    {
+      "id": "manual-get-303",
+      "path": "/redirect/303/get",
+      "method": "GET",
+      "body": "",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "response": {
+        "status": 303,
+        "body": "ok",
+        "headers": [
+          [
+            "Location",
+            "/must-not-follow"
+          ]
+        ]
+      },
+      "binary": false
+    },
+    {
+      "id": "manual-post-303",
+      "path": "/redirect/303/post",
+      "method": "POST",
+      "body": "single=submit",
+      "headers": {
+        "Accept": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      "response": {
+        "status": 303,
+        "body": "ok",
+        "headers": [
+          [
+            "Location",
+            "/must-not-follow"
+          ]
+        ]
+      },
+      "binary": false
+    },
+    {
+      "id": "manual-get-307",
+      "path": "/redirect/307/get",
+      "method": "GET",
+      "body": "",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "response": {
+        "status": 307,
+        "body": "ok",
+        "headers": [
+          [
+            "Location",
+            "/must-not-follow"
+          ]
+        ]
+      },
+      "binary": false
+    },
+    {
+      "id": "manual-post-307",
+      "path": "/redirect/307/post",
+      "method": "POST",
+      "body": "single=submit",
+      "headers": {
+        "Accept": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      "response": {
+        "status": 307,
+        "body": "ok",
+        "headers": [
+          [
+            "Location",
+            "/must-not-follow"
+          ]
+        ]
+      },
+      "binary": false
+    },
+    {
+      "id": "manual-get-308",
+      "path": "/redirect/308/get",
+      "method": "GET",
+      "body": "",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "response": {
+        "status": 308,
+        "body": "ok",
+        "headers": [
+          [
+            "Location",
+            "/must-not-follow"
+          ]
+        ]
+      },
+      "binary": false
+    },
+    {
+      "id": "manual-post-308",
+      "path": "/redirect/308/post",
+      "method": "POST",
+      "body": "single=submit",
+      "headers": {
+        "Accept": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      "response": {
+        "status": 308,
+        "body": "ok",
+        "headers": [
+          [
+            "Location",
+            "/must-not-follow"
+          ]
+        ]
+      },
+      "binary": false
+    },
+    {
+      "id": "utf8-body",
+      "path": "/utf8",
+      "method": "GET",
+      "body": "",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "response": {
+        "status": 200,
+        "body": "你好，图书馆",
+        "headers": []
+      },
+      "binary": false
+    },
+    {
+      "id": "binary-body",
+      "path": "/binary",
+      "method": "GET",
+      "body": "",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "response": {
+        "status": 200,
+        "body": "",
+        "headers": [],
+        "base64": "AP8NCg=="
+      },
+      "binary": true
+    },
+    {
+      "id": "explicit-user-agent",
+      "path": "/agent",
+      "method": "GET",
+      "body": "",
+      "headers": {
+        "Accept": "application/json",
+        "User-Agent": "synthetic-reference/1.0"
+      },
+      "response": {
+        "status": 200,
+        "body": "ok",
+        "headers": []
+      },
+      "binary": false
+    }
+  ]
+}

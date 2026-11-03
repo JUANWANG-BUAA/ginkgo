@@ -419,6 +419,8 @@ async fn schedule_expired_session_without_saved_password_keeps_snapshot() {
         HttpResponse::new(200, "courses", schedule_body("courses-normal-v1.json")),
         HttpResponse::new(200, "exams", schedule_body("exams-normal-v1.json")),
         HttpResponse::new(200, LOGIN_URL, FORM_PAGE),
+        HttpResponse::new(200, LOGIN_URL, FORM_PAGE),
+        super::uc_expired(),
     ]);
     let (service, transport) = build_service(responses, MemoryVault::default());
     service
@@ -450,7 +452,7 @@ async fn schedule_expired_session_without_saved_password_keeps_snapshot() {
     );
     assert_eq!(stale.fetched_at, first.fetched_at);
     assert_eq!(stale.data.courses, first.data.courses);
-    assert_eq!(transport.request_count(), 11);
+    assert_eq!(transport.request_count(), 13);
 }
 
 /// The await-time account recheck: a schedule read parked mid-flight must

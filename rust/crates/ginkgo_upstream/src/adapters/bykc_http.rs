@@ -81,6 +81,11 @@ async fn request<T: HttpTransport>(
     }
     let text = serde_json::from_str::<String>(&response.body)
         .unwrap_or_else(|_| response.body.trim().to_owned());
+    if let Ok(envelope) = serde_json::from_str::<Value>(&text) {
+        if envelope.is_object() {
+            return decode_envelope(&envelope);
+        }
+    }
     let mut decrypted = STANDARD.decode(text).map_err(|_| AppError::changed())?;
     if decrypted.is_empty() || decrypted.len() % 16 != 0 {
         return Err(AppError::changed());
@@ -208,6 +213,36 @@ pub async fn load_statistics<T: HttpTransport>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{foundation::http::HttpResponse, test_support::MockTransport};
+
+    #[tokio::test]
+    async fn accepts_reference_plaintext_envelopes_without_hiding_failures() {
+        for (body, expected) in [
+            (r#"{"status":"0","data":{"id":1}}"#, None),
+            (r#""{\"status\":\"0\",\"data\":{\"id\":1}}""#, None),
+            (
+                r#"{"status":"1","data":{}}"#,
+                Some(ErrorCode::BusinessRejected),
+            ),
+            (r#"{"data":{}}"#, Some(ErrorCode::ChangedResponse)),
+        ] {
+            let transport = MockTransport::with_responses(vec![HttpResponse::new(
+                200,
+                "https://bykc.buaa.edu.cn/sscv/getAllConfig",
+                body,
+            )]);
+            let session = Session::new(transport);
+            let result = request(&session, "synthetic-token", "getAllConfig", json!({})).await;
+            assert_eq!(
+                result.as_ref().err().map(|error| error.code.clone()),
+                expected
+            );
+            if expected.is_none() {
+                assert_eq!(result.unwrap(), json!({"id":1}));
+            }
+            assert_eq!(session.transport().request_count(), 1);
+        }
+    }
     #[test]
     fn protocol_public_key_and_ecb_roundtrip_are_valid() {
         let der = STANDARD.decode(PUBLIC_KEY).expect("public key base64");

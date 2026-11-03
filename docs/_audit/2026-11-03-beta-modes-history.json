@@ -1,0 +1,33 @@
+{
+  "source": "synthetic",
+  "cases": [
+    {
+      "id": "B5-four-modes",
+      "test_file": "schedule_modes_regression_test.dart",
+      "observations": [
+        {
+          "commit": "34a6d61f555729850cf27cf87892656891517c42",
+          "role": "faulty",
+          "test_sha256": "ebf1d0e1e03cf099b581bbd328c1b604f7616587bb6bddde49d3d1abb7e2f3b0",
+          "tests": {
+            "four schedule modes stay operable at 320.0 dp / 1.4": "error"
+          }
+        },
+        {
+          "commit": "37501493d7b655c0e5120655dff6cb614e50ad37",
+          "role": "fixed",
+          "test_sha256": "ebf1d0e1e03cf099b581bbd328c1b604f7616587bb6bddde49d3d1abb7e2f3b0",
+          "tests": {
+            "four schedule modes stay operable at 320.0 dp / 1.4": "success"
+          }
+        },
+        {
+          "role": "working-tree",
+          "tests": {
+            "four schedule modes stay operable at 320.0 dp / 1.4": "success"
+          }
+        }
+      ]
+    }
+  ]
+}

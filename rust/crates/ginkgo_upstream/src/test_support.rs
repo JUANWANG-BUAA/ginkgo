@@ -58,3 +58,59 @@ impl HttpTransport for MockTransport {
             .unwrap_or(Err(TransportError::Unavailable))
     }
 }
+
+type TranscriptStep = (HttpRequest, Result<HttpResponse, TransportError>);
+
+/// A protocol transcript: wrong requests fail before they can consume the
+/// next response. Every header/body in these transcripts is synthetic.
+#[derive(Clone)]
+pub struct TranscriptTransport {
+    steps: Arc<Mutex<VecDeque<TranscriptStep>>>,
+    requests: Arc<Mutex<Vec<HttpRequest>>>,
+}
+
+impl TranscriptTransport {
+    pub fn new(steps: Vec<TranscriptStep>) -> Self {
+        Self {
+            steps: Arc::new(Mutex::new(steps.into())),
+            requests: Arc::default(),
+        }
+    }
+
+    pub fn assert_finished(&self) {
+        assert!(
+            self.steps.lock().unwrap().is_empty(),
+            "unconsumed protocol steps"
+        );
+    }
+
+    pub fn requests(&self) -> Vec<HttpRequest> {
+        self.requests.lock().unwrap().clone()
+    }
+}
+
+impl HttpTransport for TranscriptTransport {
+    async fn send(&self, request: HttpRequest) -> Result<HttpResponse, TransportError> {
+        let (expected, response) =
+            self.steps.lock().unwrap().pop_front().unwrap_or_else(|| {
+                panic!("unexpected request {:?} {}", request.method, request.url)
+            });
+        assert_eq!(
+            request.method, expected.method,
+            "method for {}",
+            expected.url
+        );
+        assert_eq!(request.url, expected.url, "request target");
+        assert_eq!(
+            request.headers, expected.headers,
+            "headers for {}",
+            expected.url
+        );
+        assert_eq!(request.body, expected.body, "form for {}", expected.url);
+        assert_eq!(request.binary_body, expected.binary_body);
+        assert_eq!(request.binary_response, expected.binary_response);
+        assert_eq!(request.response_limit, expected.response_limit);
+        self.requests.lock().unwrap().push(request);
+        response
+    }
+}

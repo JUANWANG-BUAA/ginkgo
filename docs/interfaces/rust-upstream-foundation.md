@@ -35,17 +35,17 @@ HTTP 传输、Cookie、路由与错误映射。
 - `pub fn store(&mut self, request_url: &str, header: &str, now_ms: i64) {…}` — Store one `Set-Cookie` header received for `request_url`.
   <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:70</sub>
 - `pub fn header_for(&mut self, url: &str, now_ms: i64) -> Option<String> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:175</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:179</sub>
 - `pub fn contains(&self, name: &str) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:203</sub>
-- `pub fn len(&self) -> usize {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:207</sub>
-- `pub fn is_empty(&self) -> bool {…}`
+- `pub fn len(&self) -> usize {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:211</sub>
-- `pub fn clear(&mut self) {…}`
+- `pub fn is_empty(&self) -> bool {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:215</sub>
+- `pub fn clear(&mut self) {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:219</sub>
 - `pub(crate) fn is_sane(&self) -> bool {…}` — Reject malformed or unexpectedly large jars before restoring them from
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:221</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:225</sub>
 
 ## http
 
@@ -122,11 +122,11 @@ HTTP 传输、Cookie、路由与错误映射。
 - `pub fn wrap(upstream: &str) -> Result<String, WebVpnError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/foundation/webvpn.rs:25</sub>
 - `pub fn unwrap(gateway: &str) -> String {…}` — Unwrap a gateway URL. Gateway-owned paths that cannot be decoded are kept
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/webvpn.rs:56</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/webvpn.rs:69</sub>
 - `pub fn resolve_redirect(location: &str, base: &str) -> Option<String> {…}` — Resolve a `Location` value that may be absolute, gateway-relative, or
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/webvpn.rs:103</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/webvpn.rs:116</sub>
 - `pub enum WebVpnError`
-  <sub>enum · rust/crates/ginkgo_upstream/src/foundation/webvpn.rs:192</sub>
+  <sub>enum · rust/crates/ginkgo_upstream/src/foundation/webvpn.rs:205</sub>
 
 ## test_support
 
@@ -140,3 +140,11 @@ HTTP 传输、Cookie、路由与错误映射。
   <sub>fn · rust/crates/ginkgo_upstream/src/test_support.rs:37</sub>
 - `pub fn request_count(&self) -> usize {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/test_support.rs:41</sub>
+- `pub struct TranscriptTransport` — A protocol transcript: wrong requests fail before they can consume the
+  <sub>struct · rust/crates/ginkgo_upstream/src/test_support.rs:67</sub>
+- `pub fn new(steps: Vec<TranscriptStep>) -> Self {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/test_support.rs:73</sub>
+- `pub fn assert_finished(&self) {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/test_support.rs:80</sub>
+- `pub fn requests(&self) -> Vec<HttpRequest> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/test_support.rs:87</sub>

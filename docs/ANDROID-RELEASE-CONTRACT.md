@@ -1,6 +1,6 @@
 # Android 下一次发布的强制验收契约
 
-生效：2026-11-02。用户明确反馈：本日修复前的 Beta 在实际使用中不可用。此前“本地门禁通过”“已做视觉验收”不能作为当前可发布证明。**Beta.7 于 2026-11-03 按用户直接指令在 readiness 仍为 `blocked` 时公开；这属于发布门禁例外，不代表契约验收通过。下一次发包仍须先完成本契约。** 历史发布记录保留其当时证据，不追改为当前已通过。
+生效：2026-11-02。用户明确反馈：本日修复前的 Beta 在实际使用中不可用。此前“本地门禁通过”“已做视觉验收”不能作为当前可发布证明。**Beta.7 与 Beta.8 分别于 2026-11-03 按用户直接指令在 readiness 仍为 `blocked` 时公开；两次均属发布门禁例外，不代表契约验收通过。** 历史发布记录保留其当时证据，不追改为当前已通过。
 
 ## 1. 可发布的含义
 
@@ -32,7 +32,7 @@ python3 scripts/check-contracts.py --candidate
 python3 scripts/check-contracts.py --release
 ```
 
-前两项进入完整门禁和 mirror CI；Android tag workflow 在准备签名之前执行 `--release`。发布记录 [android-release-readiness.json](android-release-readiness.json) 仍为 `blocked`。缺失、待验、失败、错误证据层级、P0/P1 未归零、候选摘要或版本不符均会使自动发包拒绝继续；不提供跳过参数。机器必验项由脚本固定规则和功能登记表共同计算，不能从 JSON 删掉失败项使其通过。Beta.7 的公开资产由维护者在该门禁失败后按用户指令手动上传；对应 Android release workflow 在签名前检查处失败，详见当日审计。
+前两项进入完整门禁和 mirror CI；Android tag workflow 在准备签名之前执行 `--release`。发布记录 [android-release-readiness.json](android-release-readiness.json) 仍为 `blocked`。缺失、待验、失败、错误证据层级、P0/P1 未归零、候选摘要或版本不符均会使自动发包拒绝继续；不提供跳过参数。机器必验项由脚本固定规则和功能登记表共同计算，不能从 JSON 删掉失败项使其通过。Beta.7 与 Beta.8 的公开资产均按用户明确要求在该门禁被阻断后手动上传；详见当日审计。
 
 每个验收项填入 `cases`：`status: passed`、要求的 `level`、仓库内脱敏 `report` 路径、报告内唯一 `section` 标识、ISO `date`、`environment`、具体 `result`。报告必须含当前候选源码完整摘要，明确构建/设备/网络/步骤/预期与实际结果，不能搬用旧报告。真实读、本人写、模拟器、物理设备、人审、Windows CI 分层记录。候选摘要包括未提交实现文件、脚本、workflow、锁文件与 fixture，不包含验收记录本身；加入证据不会导致摘要自引用。版本号来自 pubspec，不能作为发布证明。
 
@@ -40,6 +40,6 @@ python3 scripts/check-contracts.py --release
 
 ## 4. 当前阻断与唯一待办
 
-Beta.7 有锁定缓存依赖下的完整本地门禁、限定范围的模拟器升级/视觉证据、匿名公开协议探测和通过的 Windows 远端 CI；准确范围见[当日审计](_audit/2026-11-03-protocol-and-release-review.md)。最近一次真实登录未成功且失败正文未保留；真实验证码、全模块真实账号使用、物理设备冷恢复和本人学校写入未闭环。**readiness 保持 blocked；不得据 Beta.7 已公开而提高最低版本门禁或声称 P0/P1 归零。后续版本仍先完成本契约。** 自动 tag 发包门禁仍按设计在签名前阻断。
+Beta.7 有锁定缓存依赖下的完整本地门禁、限定范围的模拟器升级/视觉证据、匿名公开协议探测和通过的 Windows 远端 CI；Beta.8 有扩大的本地离线回归，两个版本准确范围见[当日审计](_audit/2026-11-03-protocol-and-release-review.md)。真实验证码、全模块真实账号使用、物理设备冷恢复和本人学校写入未闭环。**readiness 保持 blocked；不得据 Beta.7 或 Beta.8 已公开而提高最低版本门禁或声称 P0/P1 归零。后续版本仍先完成本契约。** 自动 tag 发包门禁仍按设计在签名前阻断。
 
 未完成任务只在 [MIRROR-TODO](MIRROR-TODO.md) 维护，本文定义恒定验收规则；脱敏证据按日期写入 `docs/_audit/`。用户明确授权过的读取不重复索取许可；新的真实密码尝试和学校写入仍按已约定边界执行。

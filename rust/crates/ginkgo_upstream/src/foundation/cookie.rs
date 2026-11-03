@@ -105,6 +105,10 @@ impl CookieJar {
                         && (host == candidate || host.ends_with(&format!(".{candidate}")))
                     {
                         domain_attribute = Some(candidate);
+                    } else if !candidate.is_empty() {
+                        // An invalid Domain rejects the cookie. Treating it
+                        // as host-only sends a foreign cookie back to origin.
+                        return;
                     }
                 }
                 "path" => {

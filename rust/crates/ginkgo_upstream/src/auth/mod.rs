@@ -114,6 +114,9 @@ pub async fn complete_login<T: HttpTransport>(
     if credentials.username.trim().is_empty() || credentials.password.is_empty() {
         return Err(AppError::invalid());
     }
+    // The form/execution and service tickets belong to the route that fetched
+    // the page. Do not select a different cookie jar halfway through login.
+    session.pin_route();
     match page {
         LoginPage::ExistingSession { location } => {
             let response = session.send_auth(HttpRequest::get(&location)).await?;
@@ -166,17 +169,31 @@ pub async fn complete_login<T: HttpTransport>(
                     });
                 }
             }
-            let mut fields = cas::login_fields(
-                &html,
-                &credentials.username,
-                &credentials.password,
-                credentials.captcha_text.as_deref(),
-            );
-            fields.retain(|(name, _)| name != "execution");
-            fields.push(("execution".into(), execution));
+            let fields = match credentials
+                .captcha_text
+                .as_deref()
+                .filter(|text| !text.trim().is_empty())
+            {
+                Some(answer) => cas::captcha_login_fields(
+                    &credentials.username,
+                    &credentials.password,
+                    &execution,
+                    answer,
+                ),
+                None => {
+                    cas::login_fields(&html, &credentials.username, &credentials.password, None)
+                }
+            };
             let body = cas::form_urlencode(&fields);
             let response = session
-                .send(HttpRequest::post_form(action_url.clone(), body))
+                .send(
+                    HttpRequest::post_form(action_url.clone(), body)
+                        .header("Accept", "application/json")
+                        .header(
+                            "Content-Type",
+                            "application/x-www-form-urlencoded; charset=UTF-8",
+                        ),
+                )
                 .await?;
             if let Some(page) =
                 login::follow_redirects_and_check_error(session, response, action_url, true).await?

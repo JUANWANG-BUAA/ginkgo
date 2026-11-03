@@ -37,13 +37,13 @@
 ## bykc_http
 
 - `pub fn decode_envelope(envelope: &Value) -> Result<Value, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/bykc_http.rs:104</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/bykc_http.rs:109</sub>
 - `pub async fn load<T: HttpTransport>(session: &Session<T>) -> Result<Catalog, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/bykc_http.rs:139</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/bykc_http.rs:144</sub>
 - `pub async fn load_chosen<T: HttpTransport>( session: &Session<T>, ) -> Result<ChosenCourses, AppError> {…}` — Native BykcClient.load, queryChosenCourse; EDUCATION-DATA-MAP §2.3.
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/bykc_http.rs:166</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/bykc_http.rs:171</sub>
 - `pub async fn load_statistics<T: HttpTransport>( session: &Session<T>, ) -> Result<LearningStatistics, AppError> {…}` — Native BykcClient.statistics; independent of catalog or chosen-course errors.
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/bykc_http.rs:200</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/bykc_http.rs:205</sub>
 
 ## campus_activities_http
 
@@ -106,20 +106,20 @@
 - `pub async fn resolve_login_name<T: HttpTransport>( session: &Session<T>, ) -> Result<String, AppError> {…}` — Follow the SSO entry manually (at most eight hops) and return only the
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:23</sub>
 - `pub async fn app_login<T: HttpTransport>( session: &Session<T>, login_name: &str, ) -> Result<IClassSession, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:68</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:70</sub>
 - `pub async fn course_schedule<T: HttpTransport>( session: &Session<T>, iclass: &IClassSession, date: &str, ) -> Result<Vec<CheckInCourse>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:80</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:81</sub>
 - `pub async fn sign_in<T: HttpTransport>( session: &Session<T>, iclass: &IClassSession, course_id: &str, ) -> crate::codecs::mutation::MutationOutcome {…}` — CheckInClient.performSignIn / API.md §7.2. Timestamp is a safe read;
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:152</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:153</sub>
 
 ## classroom_http
 
 - `pub const ACTIVATION_URL: &str = "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fapp.buaa.edu.cn%2Fa_buaa%2Fapi%2Fcas%2Findex%3Fredirect%3Dhttps%253A%252F%252Fapp.buaa.edu.cn%252Fsite%252FclassRoomQuery%252Findex%26from%3Dwap%26login_from%3D&noAutoRedirect=1";`
   <sub>const · rust/crates/ginkgo_upstream/src/adapters/classroom_http.rs:14</sub>
 - `pub async fn query_classrooms<T: HttpTransport>( session: &Session<T>, campus: i32, date: &str, ) -> Result<BTreeMap<String, Vec<Room>>, AppError> {…}` — Run the two documented classroom requests with the caller-owned session.
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/classroom_http.rs:20</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/classroom_http.rs:21</sub>
 - `pub async fn query_classrooms_with_recovery<T: HttpTransport, C: CredentialSource>( session: &Session<T>, store: &C, account: &str, campus: i32, date: &str, ) -> Result<BTreeMap<String, Vec<Room>>, AppError> {…}` — Retry a classroom read exactly once after a confirmed expired session.
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/classroom_http.rs:50</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/classroom_http.rs:59</sub>
 
 ## grades_http
 
@@ -274,23 +274,23 @@
 - `pub async fn login<T: HttpTransport>(session: &Session<T>) -> Result<String, AppError> {…}` — Walk the library CAS chain manually (API.md §5.1: at most eight hops, the
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:30</sub>
 - `pub async fn venues<T: HttpTransport>( session: &Session<T>, token: &str, day: &str, ) -> Result<Vec<LibraryVenue>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:84</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:86</sub>
 - `pub async fn areas<T: HttpTransport>( session: &Session<T>, token: &str, library_id: &str, day: &str, ) -> Result<Vec<LibraryArea>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:96</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:98</sub>
 - `pub async fn slots<T: HttpTransport>( session: &Session<T>, token: &str, area_id: &str, ) -> Result<Vec<LibrarySlot>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:121</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:123</sub>
 - `pub async fn seats<T: HttpTransport>( session: &Session<T>, token: &str, area_id: &str, slot: &LibrarySlot, ) -> Result<Vec<LibrarySeat>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:133</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:135</sub>
 - `pub async fn bookings<T: HttpTransport>( session: &Session<T>, token: &str, ) -> Result<Vec<LibraryBooking>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:160</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:162</sub>
 - `pub async fn history<T: HttpTransport>( session: &Session<T>, token: &str, page: i32, limit: i32, ) -> Result<library::LibraryHistoryPage, AppError> {…}` — Read-only history, same bearer token and envelope as current bookings.
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:169</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:171</sub>
 - `pub fn parse_envelope(response: &HttpResponse) -> Result<Value, AppError> {…}` — The envelope is shared by every business endpoint: HTTP auth, a login
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:217</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:228</sub>
 - `pub fn cas_token(raw: &str) -> Option<String> {…}` — API.md §5.1: the cas parameter may follow ?, & or # and must be
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:274</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:285</sub>
 - `pub async fn mutate<T: HttpTransport>( session: &Session<T>, token: &str, path: &str, body: &Value, ) -> crate::codecs::mutation::MutationOutcome {…}` — Single attempt: never route-fallback, replay on auth failure, or follow a redirect.
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:306</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_http.rs:317</sub>
 
 ## library_loans_http
 
@@ -318,9 +318,9 @@
 ## reqwest_transport
 
 - `pub struct ReqwestTransport`
-  <sub>struct · rust/crates/ginkgo_upstream/src/adapters/reqwest_transport.rs:44</sub>
+  <sub>struct · rust/crates/ginkgo_upstream/src/adapters/reqwest_transport.rs:58</sub>
 - `pub fn new() -> Result<Self, TransportError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/reqwest_transport.rs:52</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/reqwest_transport.rs:66</sub>
 
 ## schedule_http
 
@@ -337,19 +337,19 @@
 - `pub const TODAY_URL: &str = "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/teachingSchedule/detail.do";`
   <sub>const · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:18</sub>
 - `pub enum Portal`
-  <sub>enum · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:25</sub>
+  <sub>enum · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:26</sub>
 - `pub async fn detect_portal<T: HttpTransport>(session: &Session<T>) -> Result<Portal, AppError> {…}` — Probe the shared session once and classify the portal (API.md §2.1).
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:35</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:36</sub>
 - `pub async fn load_terms<T: HttpTransport>(session: &Session<T>) -> Result<Vec<Term>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:55</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:56</sub>
 - `pub async fn load_weeks<T: HttpTransport>( session: &Session<T>, term_id: &str, ) -> Result<Vec<Week>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:63</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:64</sub>
 - `pub async fn load_week_courses<T: HttpTransport>( session: &Session<T>, term_id: &str, week: i32, ) -> Result<Vec<CourseMeeting>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:80</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:81</sub>
 - `pub async fn load_exams<T: HttpTransport>( session: &Session<T>, term_id: &str, ) -> Result<Vec<Exam>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:105</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:106</sub>
 - `pub async fn load_today<T: HttpTransport>( session: &Session<T>, date: &str, ) -> Result<Vec<TodayCourse>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:125</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:126</sub>
 
 ## shuttle_http
 

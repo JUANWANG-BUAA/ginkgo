@@ -1,0 +1,384 @@
+{
+  "reference": {
+    "commit": "e8a397fcb35a68147eee65a94c66ffb84e2f09fe",
+    "path": "shared/src/commonMain/kotlin/cn/edu/ubaa/api/local/LocalConnectionAuth.kt",
+    "sha256": "99097ef2ee3f9677729bdadc8042e67d225075dfb503160e93f6c8dfd71f82c3",
+    "scope": "LocalCasParser field multiset only; minimal Parameters append collector and DTO shims; no Ktor or HTTP",
+    "related_sources": [
+      {
+        "path": "shared/src/commonMain/kotlin/cn/edu/ubaa/api/ConnectionRuntime.kt",
+        "sha256": "44752908f6edb03f89e3c19abad0de28ba01b3acf66096a134d4d4c7371eec9e"
+      },
+      {
+        "path": "shared/src/commonMain/kotlin/cn/edu/ubaa/api/local/LocalScheduleApi.kt",
+        "sha256": "1506b20a757f163d880cf27033aad1a97fa5dd921d2fa1dfb862222dbc419922"
+      },
+      {
+        "path": "shared/src/commonMain/kotlin/cn/edu/ubaa/api/local/LocalSigninApi.kt",
+        "sha256": "ec8acf1121fe6be185755ce73fd23b36bafe3fe35f8df55c2956e346ff34370b"
+      },
+      {
+        "path": "shared/src/commonMain/kotlin/cn/edu/ubaa/api/local/LocalLibBookApi.kt",
+        "sha256": "f5b88faec38df1e1734acac4e8728c2377b09cc1528233784332fe7d14f78073"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "id": "normal",
+      "html": "<input type=\"hidden\" name=\"execution\" value=\"abc+def/ghi=\" />",
+      "execution": "abc+def/ghi=",
+      "captcha": null,
+      "fields": [
+        [
+          "execution",
+          "abc+def/ghi="
+        ],
+        [
+          "username",
+          "sy2501001"
+        ],
+        [
+          "password",
+          "pa+ss/word"
+        ],
+        [
+          "submit",
+          "登录"
+        ],
+        [
+          "_eventId",
+          "submit"
+        ],
+        [
+          "type",
+          "username_password"
+        ]
+      ]
+    },
+    {
+      "id": "hidden-and-empty",
+      "html": "<input type=\"hidden\" name=\"execution\" value=\"abc+def/ghi=\" /><input type=\"hidden\" name=\"lt\" value=\"LT-synthetic\" /><input type=\"hidden\" name=\"empty\" value=\"\" />",
+      "execution": "abc+def/ghi=",
+      "captcha": null,
+      "fields": [
+        [
+          "execution",
+          "abc+def/ghi="
+        ],
+        [
+          "username",
+          "sy2501001"
+        ],
+        [
+          "password",
+          "pa+ss/word"
+        ],
+        [
+          "submit",
+          "登录"
+        ],
+        [
+          "_eventId",
+          "submit"
+        ],
+        [
+          "type",
+          "username_password"
+        ],
+        [
+          "lt",
+          "LT-synthetic"
+        ],
+        [
+          "empty",
+          ""
+        ]
+      ]
+    },
+    {
+      "id": "valued-text",
+      "html": "<input type=\"hidden\" name=\"execution\" value=\"abc+def/ghi=\" /><input type=\"text\" name=\"tenant\" value=\"campus\" />",
+      "execution": "abc+def/ghi=",
+      "captcha": null,
+      "fields": [
+        [
+          "execution",
+          "abc+def/ghi="
+        ],
+        [
+          "username",
+          "sy2501001"
+        ],
+        [
+          "password",
+          "pa+ss/word"
+        ],
+        [
+          "submit",
+          "登录"
+        ],
+        [
+          "_eventId",
+          "submit"
+        ],
+        [
+          "type",
+          "username_password"
+        ],
+        [
+          "tenant",
+          "campus"
+        ]
+      ]
+    },
+    {
+      "id": "checked-default",
+      "html": "<input type=\"hidden\" name=\"execution\" value=\"abc+def/ghi=\" /><input type=\"checkbox\" name=\"remember\" checked />",
+      "execution": "abc+def/ghi=",
+      "captcha": null,
+      "fields": [
+        [
+          "execution",
+          "abc+def/ghi="
+        ],
+        [
+          "username",
+          "sy2501001"
+        ],
+        [
+          "password",
+          "pa+ss/word"
+        ],
+        [
+          "submit",
+          "登录"
+        ],
+        [
+          "_eventId",
+          "submit"
+        ],
+        [
+          "type",
+          "username_password"
+        ],
+        [
+          "remember",
+          "on"
+        ]
+      ]
+    },
+    {
+      "id": "unchecked-and-button",
+      "html": "<input type=\"hidden\" name=\"execution\" value=\"abc+def/ghi=\" /><input type=\"checkbox\" name=\"remember\" value=\"yes\" /><input type=\"submit\" name=\"another\" value=\"ignore\" />",
+      "execution": "abc+def/ghi=",
+      "captcha": null,
+      "fields": [
+        [
+          "execution",
+          "abc+def/ghi="
+        ],
+        [
+          "username",
+          "sy2501001"
+        ],
+        [
+          "password",
+          "pa+ss/word"
+        ],
+        [
+          "submit",
+          "登录"
+        ],
+        [
+          "_eventId",
+          "submit"
+        ],
+        [
+          "type",
+          "username_password"
+        ]
+      ]
+    },
+    {
+      "id": "duplicate-fields",
+      "html": "<input type=\"hidden\" name=\"execution\" value=\"abc+def/ghi=\" /><input type=\"hidden\" name=\"scope\" value=\"a\" /><input type=\"hidden\" name=\"scope\" value=\"b\" />",
+      "execution": "abc+def/ghi=",
+      "captcha": null,
+      "fields": [
+        [
+          "execution",
+          "abc+def/ghi="
+        ],
+        [
+          "username",
+          "sy2501001"
+        ],
+        [
+          "password",
+          "pa+ss/word"
+        ],
+        [
+          "submit",
+          "登录"
+        ],
+        [
+          "_eventId",
+          "submit"
+        ],
+        [
+          "type",
+          "username_password"
+        ],
+        [
+          "scope",
+          "a"
+        ],
+        [
+          "scope",
+          "b"
+        ]
+      ]
+    },
+    {
+      "id": "blank-event-present",
+      "html": "<input type=\"hidden\" name=\"execution\" value=\"abc+def/ghi=\" /><input type=\"text\" name=\"_eventId\" value=\"\" />",
+      "execution": "abc+def/ghi=",
+      "captcha": null,
+      "fields": [
+        [
+          "execution",
+          "abc+def/ghi="
+        ],
+        [
+          "username",
+          "sy2501001"
+        ],
+        [
+          "password",
+          "pa+ss/word"
+        ],
+        [
+          "submit",
+          "登录"
+        ],
+        [
+          "type",
+          "username_password"
+        ]
+      ]
+    },
+    {
+      "id": "replace-prefilled-credentials",
+      "html": "<input type=\"hidden\" name=\"execution\" value=\"abc+def/ghi=\" /><input type=\"text\" name=\"username\" value=\"other\" /><input type=\"hidden\" name=\"password\" value=\"obsolete\" />",
+      "execution": "abc+def/ghi=",
+      "captcha": null,
+      "fields": [
+        [
+          "execution",
+          "abc+def/ghi="
+        ],
+        [
+          "username",
+          "sy2501001"
+        ],
+        [
+          "password",
+          "pa+ss/word"
+        ],
+        [
+          "submit",
+          "登录"
+        ],
+        [
+          "_eventId",
+          "submit"
+        ],
+        [
+          "type",
+          "username_password"
+        ]
+      ]
+    },
+    {
+      "id": "captcha",
+      "html": "<input type=\"hidden\" name=\"execution\" value=\"abc+def/ghi=\" />",
+      "execution": "abc+def/ghi=",
+      "captcha": "a+b/中",
+      "fields": [
+        [
+          "execution",
+          "abc+def/ghi="
+        ],
+        [
+          "username",
+          "sy2501001"
+        ],
+        [
+          "password",
+          "pa+ss/word"
+        ],
+        [
+          "submit",
+          "登录"
+        ],
+        [
+          "_eventId",
+          "submit"
+        ],
+        [
+          "type",
+          "username_password"
+        ],
+        [
+          "captcha",
+          "a+b/中"
+        ],
+        [
+          "captchaResponse",
+          "a+b/中"
+        ]
+      ]
+    },
+    {
+      "id": "captcha-ignores-html-extras",
+      "html": "<input type=\"hidden\" name=\"execution\" value=\"abc+def/ghi=\" /><input type=\"hidden\" name=\"lt\" value=\"obsolete\" /><input type=\"hidden\" name=\"_eventId\" value=\"wrong\" />",
+      "execution": "abc+def/ghi=",
+      "captcha": "a+b/中",
+      "fields": [
+        [
+          "execution",
+          "abc+def/ghi="
+        ],
+        [
+          "username",
+          "sy2501001"
+        ],
+        [
+          "password",
+          "pa+ss/word"
+        ],
+        [
+          "submit",
+          "登录"
+        ],
+        [
+          "_eventId",
+          "submit"
+        ],
+        [
+          "type",
+          "username_password"
+        ],
+        [
+          "captcha",
+          "a+b/中"
+        ],
+        [
+          "captchaResponse",
+          "a+b/中"
+        ]
+      ]
+    }
+  ]
+}

@@ -3,7 +3,10 @@
 //! The mirror keeps the Apple recovery rule: a confirmed expired session gets
 //! exactly one silent re-login and one retry; refresh failures keep the last
 //! snapshot instead of clearing the page.
-use super::{cache::now_shanghai, session_service::SchoolClient};
+use super::{
+    cache::now_shanghai,
+    session_service::{AccountOwner, SchoolClient},
+};
 use crate::{
     adapters::{
         grades_http, graduate_schedule_http,
@@ -38,12 +41,38 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         term_id: Option<&str>,
         week: Option<i32>,
     ) -> Result<ScheduleData, AppError> {
-        match schedule_http::detect_portal(&self.session).await? {
-            Portal::Undergraduate => self.fetch_undergraduate_schedule(term_id, week).await,
-            Portal::Graduate | Portal::Unconfirmed => {
-                self.fetch_graduate_schedule(term_id, week).await
+        let owner = self.account_owner()?;
+        let graduate = self.identity.lock().graduate_schedule;
+        if !graduate
+            && matches!(
+                schedule_http::detect_portal(&self.session).await,
+                Ok(Portal::Undergraduate)
+            )
+        {
+            if let Ok(data) = self.fetch_undergraduate_schedule(term_id, week).await {
+                self.check_account_owner(&owner)?;
+                return Ok(data);
             }
         }
+        // Match UBAA withScheduleAccess: a failed undergraduate probe/query
+        // must not block the documented GSMIS data source.
+        let data = self.fetch_graduate_schedule(term_id, week).await?;
+        self.remember_graduate_source(&owner)?;
+        Ok(data)
+    }
+
+    fn remember_graduate_source(&self, owner: &AccountOwner) -> Result<(), AppError> {
+        let mut identity = self.identity.lock();
+        if identity.generation != owner.generation
+            || !identity
+                .authenticated
+                .as_ref()
+                .is_some_and(|user| user.account == owner.account)
+        {
+            return Err(AppError::session_expired());
+        }
+        identity.graduate_schedule = true;
+        Ok(())
     }
 
     async fn fetch_undergraduate_schedule(
@@ -217,12 +246,22 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     }
 
     async fn fetch_terms(&self) -> Result<Vec<Term>, AppError> {
-        match schedule_http::detect_portal(&self.session).await? {
-            Portal::Undergraduate => schedule_http::load_terms(&self.session).await,
-            Portal::Graduate | Portal::Unconfirmed => {
-                graduate_schedule_http::load_terms(&self.session).await
+        let owner = self.account_owner()?;
+        let graduate = self.identity.lock().graduate_schedule;
+        if !graduate
+            && matches!(
+                schedule_http::detect_portal(&self.session).await,
+                Ok(Portal::Undergraduate)
+            )
+        {
+            if let Ok(terms) = schedule_http::load_terms(&self.session).await {
+                self.check_account_owner(&owner)?;
+                return Ok(terms);
             }
         }
+        let data = self.fetch_graduate_schedule(None, None).await?;
+        self.remember_graduate_source(&owner)?;
+        Ok(data.terms)
     }
 
     async fn fetch_grades(
@@ -344,8 +383,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> TodaySource for SchoolC
             }
         }
 
-        let portal = schedule_http::detect_portal(&self.session).await?;
-        if portal != Portal::Undergraduate {
+        let graduate = self.identity.lock().graduate_schedule;
+        let undergraduate = !graduate
+            && matches!(
+                schedule_http::detect_portal(&self.session).await,
+                Ok(Portal::Undergraduate)
+            );
+        if !undergraduate {
             let outcome = self.load_today_from_schedule(&date, force_refresh).await;
             if self.current_account()? != account {
                 return Err(AppError::session_expired());

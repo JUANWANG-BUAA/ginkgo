@@ -684,6 +684,7 @@ async fn concurrent_school_recovery_joins_one_login_chain() {
         }
     }
     let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(super::uc_expired());
     responses.extend(login_chain("sy2501001", "fixture"));
     let transport = MockTransport::with_responses(responses);
     let service = SchoolClient::new(
@@ -697,22 +698,26 @@ async fn concurrent_school_recovery_joins_one_login_chain() {
     let before = transport.request_count();
     let (a, b) = tokio::join!(service.silent_login(), service.silent_login());
     assert!(a.is_ok() && b.is_ok());
-    assert_eq!(transport.request_count() - before, 5);
+    assert_eq!(transport.request_count() - before, 6);
 }
 
 #[tokio::test]
-async fn school_and_gateway_recovery_do_not_share_a_gate() {
-    let (service, _) = recovery_failure_service();
+async fn school_and_gateway_recovery_share_the_authentication_gate() {
+    let (service, transport) = recovery_failure_service();
+    service
+        .session
+        .set_route(crate::auth::session::RouteMode::WebVpn);
     let _school = service.school_recovery_gate.lock().await;
     let gateway = tokio::time::timeout(
-        std::time::Duration::from_millis(50),
+        std::time::Duration::from_millis(20),
         service.ensure_webvpn_session(),
     )
     .await;
     assert!(
-        gateway.is_ok(),
-        "gateway recovery must not wait for the independent school CAS chain"
+        gateway.is_err(),
+        "shared cookies require serialized authentication"
     );
+    assert!(transport.requests.lock().unwrap().is_empty());
 }
 
 #[tokio::test]
@@ -746,6 +751,9 @@ async fn concurrent_expired_business_reads_share_a_failed_password_post() {
 async fn school_and_gateway_failures_have_independent_cooldowns() {
     use std::sync::atomic::Ordering;
     let (service, transport) = recovery_failure_service();
+    service
+        .session
+        .set_route(crate::auth::session::RouteMode::WebVpn);
     assert_eq!(
         service.silent_login().await.expect_err("CAS 500").code,
         ErrorCode::ServiceUnavailable
@@ -784,11 +792,15 @@ async fn school_and_gateway_failures_have_independent_cooldowns() {
         SessionOutcome::SignedIn { .. }
     ));
     assert_eq!(transport.password_posts.load(Ordering::Relaxed), 4);
-    service
-        .silent_login()
-        .await
-        .expect("manual success cleared prior failure");
-    assert_eq!(transport.password_posts.load(Ordering::Relaxed), 5);
+    assert_eq!(
+        service.silent_login().await.unwrap_err().code,
+        ErrorCode::ModuleAuthRequired
+    );
+    assert_eq!(
+        transport.password_posts.load(Ordering::Relaxed),
+        4,
+        "valid UC never resubmits a password"
+    );
 }
 
 #[tokio::test]
@@ -829,6 +841,9 @@ async fn automatic_login_failure_cooldown_expires_and_identity_changes_clear_it(
 async fn failed_gateway_does_not_suppress_school_recovery() {
     use std::sync::atomic::Ordering;
     let (service, transport) = recovery_failure_service();
+    service
+        .session
+        .set_route(crate::auth::session::RouteMode::WebVpn);
     assert_eq!(
         service
             .ensure_webvpn_session()
@@ -839,7 +854,7 @@ async fn failed_gateway_does_not_suppress_school_recovery() {
     );
     assert_eq!(
         service.session.route(),
-        crate::auth::session::RouteMode::Automatic
+        crate::auth::session::RouteMode::WebVpn
     );
     let (school, gateway) = tokio::join!(service.silent_login(), service.ensure_webvpn_session());
     assert_eq!(
@@ -854,7 +869,7 @@ async fn failed_gateway_does_not_suppress_school_recovery() {
     let requests = transport.requests.lock().expect("requests");
     assert!(requests
         .iter()
-        .any(|r| r.method == HttpMethod::Post && r.url.starts_with("https://sso.buaa.edu.cn/")));
+        .all(|r| r.url.starts_with("https://d.buaa.edu.cn/")));
     assert!(requests
         .iter()
         .any(|r| r.method == HttpMethod::Post && r.url.starts_with("https://d.buaa.edu.cn/")));
@@ -958,6 +973,9 @@ async fn in_memory_credentials_take_priority_and_never_reuse_captcha() {
 async fn explicit_webvpn_preference_survives_gateway_failure() {
     let (service, _) = recovery_failure_service();
     *crate::foundation::mutex::lock_value(&service.route) = RoutePreference::WebVpn;
+    service
+        .session
+        .set_route(crate::auth::session::RouteMode::WebVpn);
     assert!(service.ensure_webvpn_session().await.is_err());
     assert_eq!(
         service.session.route(),

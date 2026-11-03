@@ -44,6 +44,7 @@ async fn uc_activation_known_http_cas_redirect_uses_https_secure_cookie_and_one_
         HttpResponse::new(302, LOGIN_URL, "")
             .with_header("Location", home)
             .with_set_cookie("CASTGC=TGT-synthetic; Path=/; Secure; HttpOnly"),
+        HttpResponse::new(200, home, "service ticket consumed"),
         HttpResponse::new(302, UC_ACTIVATION_URL, "").with_header("Location", legacy_cas),
         HttpResponse::new(302, &secure_cas, "").with_header("Location", callback),
         HttpResponse::new(200, callback, "activated"),
@@ -55,9 +56,9 @@ async fn uc_activation_known_http_cas_redirect_uses_https_secure_cookie_and_one_
         LoginResult::SignedIn(_)
     ));
     let requests = transport.requests();
-    // The login chain stops at the ticket for the target service; UC
-    // activation rebuilds its own hops from the documented entry point.
-    assert_eq!(requests.len(), 6);
+    // Consume the target ticket, then activate UC on the same fixed route.
+    assert_eq!(requests.len(), 7);
+    assert_eq!(requests[2].url, home);
     assert_eq!(
         requests
             .iter()
@@ -66,12 +67,12 @@ async fn uc_activation_known_http_cas_redirect_uses_https_secure_cookie_and_one_
         1
     );
     assert_eq!(
-        requests[3].url, secure_cas,
+        requests[4].url, secure_cas,
         "only the scheme changes, including duplicate and encoded query values"
     );
-    assert_eq!(requests[3].method, HttpMethod::Get);
+    assert_eq!(requests[4].method, HttpMethod::Get);
     assert_eq!(
-        requests[3].header_value("Cookie"),
+        requests[4].header_value("Cookie"),
         Some("CASTGC=TGT-synthetic")
     );
     assert!(requests.iter().all(|r| r.url.starts_with("https://")));

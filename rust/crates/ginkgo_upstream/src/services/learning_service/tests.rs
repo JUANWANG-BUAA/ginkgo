@@ -202,6 +202,7 @@ async fn learning_reuses_single_silent_recovery_without_rejecting_same_account()
     let form =
         r#"<form action="/login" method="post"><input name="execution" value="fixture" /></form>"#;
     let t = MockTransport::with_responses(vec![
+        HttpResponse::new(200, UC_STATUS_URL, r#"{"code":10600,"data":null}"#),
         HttpResponse::new(200, LOGIN_URL, form),
         HttpResponse::new(302, LOGIN_URL, "")
             .with_header(
@@ -246,7 +247,7 @@ async fn learning_reuses_single_silent_recovery_without_rejecting_same_account()
     assert_eq!(result, 7);
     assert_eq!(calls.load(Ordering::SeqCst), 2);
     assert_eq!(s.learning_owner().unwrap(), (account.into(), owner.1 + 1));
-    assert_eq!(t.request_count(), 5);
+    assert_eq!(t.request_count(), 6);
 }
 
 #[tokio::test]

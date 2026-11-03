@@ -7,8 +7,8 @@
 | 不变量 | 强制约束 | 可执行证据入口 |
 | --- | --- | --- |
 | AUTH-01 | CAS 跳转、Cookie 存在或 HTTP 200 不单独证明身份；成功必须经过 UC 身份确认且匹配输入账号。新登录/冷恢复不以目录失败构造成功身份；显式认证错误不得被后续 UC 身份验证覆盖 | `auth/tests.rs`、`services/tests/session.rs` |
-| AUTH-02 | 用户路线偏好、实际路线、学校身份、网关身份和业务 token 分开；安全 GET 可有界回退，密码 POST 不由传输层重放；显式路线失败不能冒充切换成功 | `auth/session.rs`、`auth/tests.rs`、`auth_route_stability_test.dart` |
-| AUTH-03 | 验证码绑定账号/认证代次/ID/execution；答错使用学校新表单，旧答案失效。过期或刷新失败可显式 GET 恢复；未知提交不重发 | `session_service/gateway.rs`、`gateway_challenge_test.dart` |
+| AUTH-02 | 用户路线偏好、实际路线、学校身份、网关身份和业务 token 分开；取得 CAS 表单后固定认证路线；自动模式的安全业务 GET 仅在目标 WebVPN UC 验证同一账号后提交路线迁移，失败保留原身份且不额外自动提交密码；密码 POST 不由传输层重放；显式路线失败不能冒充切换成功 | `auth/session.rs`、`services/tests/session_protocol.rs`、`services/tests/automatic_route.rs`；合成请求转录，真实路线仍未验收 |
+| AUTH-03 | 验证码绑定账号/认证代次/路线/ID/execution；答错使用学校新表单，旧答案失效。过期或刷新失败可显式 GET 恢复；未知提交不重发 | `session_service/gateway.rs`、`services/tests/session_protocol.rs`；合成回归不代表真实验证码验收 |
 | AUTH-04 | 未选记住不持久化密码；Android Cookie 仅进独立 Keystore 密文；24 小时固定期限不因恢复/轮换延长；退出/新登录/切路线撤销 | `services/tests/session.rs`、`auth/session.rs`；设备证据待补 |
 | AUTH-05 | 学校与网关恢复分别冷却；明确凭据拒绝及需人工处理的认证提示 30 分钟、传输/服务暂时错误 60 秒；网关挑战即使过期也阻止后台重新认证 | `session_service/gateway.rs`、`services/tests/session.rs` |
 | AUTH-06 | 公开读取不携带/导入认证 Cookie 或认证头，不改变账号实际路线；当前 Android 始终匿名直连 | `services/tests/campus.rs`、公开适配器回归 |
@@ -29,6 +29,14 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 113 | BYKC 明文信封兼容边界 | Rust 假定所有 200 响应均为 AES/Base64 密文，固定参考所接受的明文 JSON 信封返回 ChangedResponse | 保留密文解密，同时接受合法明文对象或 JSON 字符串包装的对象；仍严格验证 status 与 data，业务拒绝不当成功，结构不完整不当空结果；不重试请求 | 固定 UBAA `LocalBykcApi.kt::doCallApiRaw` 对解密失败保留 encodedPayload，再由 decodeData 校验；原 Bykc backend 合成响应及 `accepts_reference_plaintext_envelopes_without_hiding_failures` 修复前真实失败、修复后通过。[本轮复核](_audit/2026-11-03-beta-regression-coverage.md)。不是本轮实网取证或掉线归因 |
+| 112 | 扩展完整认证、成绩与空教室实际请求对照 | 认证只比阶段；成绩/空教室未比较原 Ktor 工厂追加的头；手动重定向丢失协商头 | 固定参考实际捕获认证方法/URL/头/表单/Cookie，补 CAS/UC JSON Accept 与表单 UTF-8 字符集、成绩完整 Accept/字符集、空教室 UA/Accept；安全 GET 跳转只保留 User-Agent/Accept/Accept-Language，不转发认证与来源头。空教室 WebVPN 绝对回调仍保持当前认证路线；不复制参考成功后的额外直连密码事务 | UBAA `e8a397fc` 原工厂、LocalGradeApi、LocalClassroomApi 的实际合成请求；[覆盖复核](_audit/2026-11-03-beta-regression-coverage.md)。原八业务场景未改预期，新增独立 Kotlin golden；参考全测试存在五项时钟相关失败，未改称通过；不证明学校接受或真实故障根因 |
+| 111 | 网络引擎、Cookie 与自动选路继续收敛 | 请求模型对齐未覆盖实际引擎默认头；Domain 不匹配退为主机 Cookie；Max-Age 从请求发出时计时；登录固定直连后业务不可达不能复用已有效的网关会话 | 对齐固定 UBAA Android OkHttp 在 JVM 本机执行的默认头和超时配置；拒绝不匹配 Domain，响应到达后计算 Max-Age；自动模式先在隔离 Cookie 副本验证目标 UC 同一账号，再迁移实际路线并保存。目标未认证不补交密码；切换后重建 iClass 业务认证，不跨路线重放旧 sessionId/loginName；保留更严格的 Cookie 路径边界 | 原客户端工厂 + 原 Cookie 存储 + CIO/Android OkHttp 两种实际引擎，本机 socket 差分；Cookie 过期与 Domain 修复前实际失败；[本轮证据](_audit/2026-11-03-network-transport-and-routing.md)。属于客户端行为与参考执行结果，不冒充学校现场原因或全协议一致 |
+| 110 | 可选密码存储不阻断有效 Cookie 恢复 | UC 已验证同一账号后，读取可选密码条目失败仍使整个 restore 返回 CredentialStore，登录页无法使用有效会话 | Cookie 与密码继续独立：有效 Cookie 恢复不依赖可选密码读取；读取失败只使 remembered=false，不删除密码、不额外登录。同进程已验证身份的暂时 UC 故障沿用既有策略 | `session_protocol_valid_cookies_do_not_depend_on_optional_password_storage` 修复前实际失败、修复后直连/WebVPN 三类恢复分支通过；[完整生命周期记录](_audit/2026-11-03-session-lifecycle-candidate.md)。属于客户端故障隔离，不改变学校协议，不证明设备发生过存储故障 |
+| 109 | UBAA 实际 Ktor 请求离线差分 | 静态复制模块头时未包含 ContentNegotiation 追加的 JSON Accept；签到使用另一 Accept；WebVPN 对空路径 Origin/Referer 补尾斜杠 | 固定 UBAA 源码、原依赖版本与 MockEngine 实际执行：本科探测/签到 Accept 为 application/json；本科 AJAX 与图书馆保留 Ktor 追加的 application/json；WebVPN 保留空路径与显式 / 的区别。六个合成读取场景修正前后请求均归档 | UBAA `e8a397fc` 的 `buildLocalUpstreamClient`、`applyScheduleHeaders`、`LocalSigninApi`、`applyHeaders`、`LocalWebVpnSupport.toWebVpnUrl`；[执行审计](_audit/2026-11-03-ubaa-executable-reference.md) 及 JSON 请求证据。只证明所列 MockEngine/HttpRequest 模型字段一致，不是学校当前接受、真实设备或全协议等价证据 |
+| 108 | 离线对照表单、图书馆头及 UC 分类 | 普通表单遗漏有值普通输入；验证码带额外隐藏字段；图书馆 CAS GET 缺参考请求头；任意异常 UC 业务码触发会话失效 | 普通表单字段与验证码八字段按固定 UBAA 对照；图书馆 CAS GET 使用参考公共头；客户端仅将已观察的 `10600` 且 data null 分类为失效，其他未知响应不触发密码恢复 | 固定 UBAA `e8a397fc` 的 `LocalCasParser`、`LocalLibBookApi`；[离线审计](_audit/2026-11-03-offline-session-parity-and-agent-review.md)；§1.4、§1.8、§5.1。合成测试和客户端策略不证明学校当前响应或完整等价 |
+| 107 | Beta.3 / UBAA 静态会话对齐 | CAS 链遇服务目标提前结束；自动偏好替代实际路线持久化；业务过期可直接提交密码；本科探测失败阻断 GSMIS | 恢复完整有界跳转；表单、验证码、会话快照绑定实际路线；学校与网关恢复先复核 UC；本科路径失败仍读真实 GSMIS 课表。仅明确 UC 会话失效才保留 Beta.3 的单次恢复；旧自动路线快照要求人工登录 | Beta.3 `32b6a1d6`；UBAA `e8a397fc` 的 `followRedirectsAndCheckError`、`ConnectionRuntime`、`resolveLocalBusinessAuthenticationFailure`、`withScheduleAccess`；[静态对齐记录](_audit/2026-11-03-static-session-alignment.md)。本轮未运行测试、构建、应用或任何学校请求，不证明故障已消失 |
+| 106 | 就业公开月历匿名结构复核 | §6G 的实网字段证据主要来自 2026-10-28 | 2026-11-03 对 2026-11 月历匿名读取返回 HTTP 200、`state=1`、23 条记录；本次观察到的条目字段均为字符串。仅补当次结构证据，不扩大状态含义、分页或权限断言 | [i 北航研究中的公开查询](_audit/2026-11-03-ibh-static-protocol-research.md)；响应摘要及字段类型保留，未保存记录值，不修改适配器行为 |
 | 105 | 空教室激活失败与策略拒绝 | 激活响应被忽略，仍查询业务；策略禁止可能被当会话过期 | 激活/查询均先判访问策略、登录页及非成功 HTTP；失败不继续业务查询，策略拒绝不冒充会话过期触发学校恢复 | §6A 既有端点不变；`classroom_http` 两项旧实现失败回归；[本轮复核](_audit/2026-11-03-protocol-and-release-review.md)。客户端失败策略修正，非真实登录/写入验收 |
 | 104 | CAS 明确错误区域的完整读取 | 仅识别 div/span，首个空节点遮蔽后面的非空提示；p.errors 可被忽略并继续 UC | 与固定 UBAA 的 findLoginError 对照补 p.errors，并在已知错误/提示节点中跳过空占位。明确拒绝仍先于 UC 身份验证 | UBAA `155e8b56` `LocalConnectionAuth.kt::findLoginError`；`auth/cas.rs`、`auth/tests.rs` 两项旧实现失败回归；不证明本次真实 401 的具体提示或根因 |
 | 103 | Android 凭据提交 401 的可作答挑战 | 401 在解析新验证码前直接结束，用户无法继续作答 | 仅凭据 POST 的 401、无错误原因或明确验证码提示，且同时有新 execution/验证码时返回新挑战；校验 CAS action，不自动重发。策略/凭据及其他明确拒绝保持错误 | 本次经 WebVPN 实测见 401＋CAS 表单/验证码/非空提示；具体提示未保留，不能宣称该补丁修复本次实网拒绝；`auth/tests.rs` 合成回归；[阶段诊断](_audit/2026-11-02-webvpn-live-acceptance.md) |
@@ -164,7 +172,7 @@
 
 - 所有业务请求默认由共享 Cookie 的 `URLSession` 会话发出（Cookie 自动携带与保存）。
 - 网络路线支持自动 / 直连 / WebVPN。WebVPN 模式按 UBAA 的 `d.buaa.edu.cn` 编码规则包装所有北航 URL，并隔离直连与网关 Cookie；Apple/Windows 镜像保持进程内会话，Android 工作树的独立加密快照见 §1.8 与隐私说明；不实现 ServerRelay。
-- 自动模式先直连；UC 返回非标准 HTTP 483 或访问策略页时，持久化切换到 WebVPN 并重新执行登录。
+- Android 当前选路策略（2026-11-03）：自动模式仅在取得登录表单前允许安全 GET 直连失败后有界选择 WebVPN；取得表单后，密码提交、票据、UC 与后续业务固定使用该实际路线。业务故障不自动换 CookieJar；换路线须走显式会话重置。此为对齐 UBAA 固定连接模式的客户端策略，不是学校重登要求。
 - 需要「Ajax 风格」的接口（各节单独注明）统一附加：
   ```http
   Accept: application/json, text/javascript, */*; q=0.01
@@ -179,6 +187,12 @@
 ### 0.1 Android 匿名公开读取的会话边界（2026-10-29）
 
 Rust 的 `Session::send_anonymous` 为已迁移的 Android 公开只读适配器创建临时直连会话：不发送 `Cookie`、`Authorization` 或 `Proxy-Authorization`，不接收/保存响应 `Set-Cookie`，且不会修改已登录学校会话的 Cookie 或路由。公开读取在 Automatic 下也不会回退 WebVPN，因为网关主机无法满足公开源的同源 HTTPS 校验。该通道用于就业月历、学术文化、校园通知、校车时刻表、公开书目/馆藏、图书馆人数和 GitHub 更新检查；需要登录的本人数据仍使用各自的认证会话。本条描述当前 Rust/Flutter 工作树，不外推到冻结的 Apple 客户端。协议章节说明各端点和证据，完整跨层签名见 [接口索引](INTERFACE-INDEX.md)。
+
+### 0.2 Android HTTP 适配器的参考边界（2026-11-03）
+
+固定 UBAA `e8a397fcb35a68147eee65a94c66ffb84e2f09fe` 的 Android `ApiClient.android.kt::getDefaultEngine` 使用 OkHttp，JVM 使用 CIO。通过原 `buildLocalUpstreamClient` 与原 `PersistentLocalCookieStorage` 在 JVM 上执行两种真实引擎的本机 HTTP 请求：Android OkHttp 默认发送 `User-Agent: ktor-client`、`Accept-Encoding: gzip` 和 `Connection: Keep-Alive`；CIO 的压缩/连接头不同。Rust 按 Android OkHttp 对齐这组默认值，模块显式 User-Agent 仍优先。原工厂的连接/请求/读取超时分别为 10/30/30 秒，Rust 同步这组配置；禁用 reqwest 隐式重试，取消读取会终止其 HTTP 任务。此为固定源码配置与本机执行证据，不是学校要求这些默认头的实网证明。
+
+CookieJar 拒绝请求主机不匹配的 Domain；Max-Age 从响应到达计算，网络等待不预先消耗有效期；调用方提供的任意大小写 Cookie 头都移除后按会话注入。UBAA 固定版本的 Cookie 路径采用前缀匹配，会把 `/cookies` 的 Cookie 发到 `/cookies-other`；Rust 保留路径段边界隔离，这一有意差异在请求 golden 和差分结果中明确列出，不能写成全字段零差异。证据见[网络对照](_audit/2026-11-03-network-transport-and-routing.md)。本机 HTTP 不覆盖 Android 系统 TLS、Keystore/JNI 或真实学校响应。
 
 ## 1. 统一认证（SSO + UC）✅
 
@@ -251,13 +265,16 @@ Content-Type: application/x-www-form-urlencoded
 
 | 字段 | 值 | 说明 |
 |------|-----|------|
-| `<页面全部隐藏字段>` | 原值回传 | **通用收集策略**：解析登录页所有 `<input>`，`type=hidden` 的全部按 name=value 回传；勾选的 checkbox 也回传。不要硬编码字段清单，上游加字段时自动兼容 |
+| `<页面字段>` | 原值回传 | 无验证码时收集隐藏字段、有非空值的其他输入和勾选的 checkbox（无值时为 `on`）；排除按钮及原用户名/密码字段，重复名称保留。验证码场景只发送下述八字段，不附加其他隐藏字段 |
 | `username` | 学号 | |
 | `password` | 密码 | |
+| `execution` | 当前页面 execution | 验证码场景使用取得挑战时的 execution |
 | `submit` | `登录` | |
-| `_eventId` | `submit` | 页面已有则用页面值 |
-| `type` | `username_password` | 页面已有则用页面值 |
+| `_eventId` | `submit` | 无验证码时页面已有则用页面值；验证码场景固定为 `submit` |
+| `type` | `username_password` | 无验证码时页面已有则用页面值；验证码场景固定为 `username_password` |
 | `captcha` / `captchaResponse` | 用户输入 | 仅验证码场景（§1.3） |
+
+固定 UBAA Kotlin 解析器和 Rust 已按 10 组合成输入离线对照，覆盖上述选择及重复字段；两者对部分 HTML 实体等解析细节仍有差异，不能将样本一致扩展为任意页面完全等价。
 
 ### 1.5 密码过期跳过页（容易遗漏的分支）
 
@@ -275,6 +292,8 @@ Android 当前客户端策略（2026-11-02）：上述固定 `/login` 是 UBAA �
 ### 1.6 手动跟随重定向与错误检测
 
 提交登录后，用不跟随重定向的会话**逐跳** GET `Location`（相对路径按当前 URL 拼接，LCA:688-704）。每跳结束检查最终响应：
+
+2026-11-03 静态对齐恢复 Beta.3 与固定 UBAA `e8a397fc` 的完整跳转：即使目标已离开 CAS，也继续消费服务票据，最多十跳；不把收到服务跳转当作链路完成。整个事务固定使用获取表单时的路线，不靠中途换直连/WebVPN 处理失败。历史修订 92 的“遇服务目标提前结束”不再是当前策略；本次没有实网结果支持或否定其当时观察。
 
 | 特征 | 判定 | 对照 |
 |------|------|------|
@@ -308,7 +327,9 @@ GET https://uc.buaa.edu.cn/api/login?target=https%3A%2F%2Fuc.buaa.edu.cn%2F%23%2
 
 ### 1.8 会话验证（登录成功的唯一判据）
 
-> Android 工作树修复（2026-11-02）：恢复 UC 成功身份校验，目录网络错误或结构漂移不再用输入账号构造登录成功。自动模式仅对安全 GET 作一次 WebVPN 回退（包括直连传输失败），密码 POST 不由传输层重放；实际路线不跨进程保存，用户路线偏好由 Flutter 本机设置保存。学校与网关恢复分别冷却；同进程使用当前已验证登录凭据，验证码答案不复用，未选择记住密码时不写保险库。Android 工作树已增加独立 Keystore AES-GCM 会话快照，保存隔离的两份 CookieJar，不保存验证码答案或业务 token；同一认证生命周期最多保留 24 小时，Cookie 更新和冷启动不延长原期限。冷启动须 UC 在线验证身份后才发布会话；目录暂不可用时保留密文供后续重试，不冒充已登录。Windows/macOS 镜像仍为进程内 Cookie。此处描述客户端策略，不新增学校协议断言；敏感存储与真实设备验收未完成。
+> Android 工作树策略（2026-11-03）：UC 成功身份须匹配账号，网络错误或结构漂移不构造登录成功。自动选路止于表单获取，后续固定实际路线，密码 POST 不由传输层重放。独立 Keystore AES-GCM 快照 v2 保存实际直连/WebVPN 路线及隔离的两份 CookieJar，与 Flutter 保存的用户偏好分开；不保存验证码答案或业务 token，24 小时固定期限不因 Cookie 更新/恢复延长。旧 v1 的显式直连/WebVPN 快照仍可读；旧 automatic 记录未记实际路线，保留密文并返回未登录，等待用户手动登录，不猜路线或自动试密码。可用快照恢复先按实际路线向 UC 确认身份；暂时错误保留密文但不发布缓存身份。没有可用快照时最多尝试一个已保存账号，不轮流提交多个账号的密码。同进程恢复仍先用内存凭据、再用可选保存密码，学校/网关分别冷却，共用认证互斥；待作答挑战阻止后台再次提交。Windows/macOS 镜像仍为进程内 Cookie。静态对齐后补做了[离线合成回归](_audit/2026-11-03-offline-session-parity-and-agent-review.md)，未使用真实凭据或发学校请求。
+
+可选密码读取失败不否定已由 UC 验证的 Cookie 身份；`remembered` 此时返回 false，表示未确认有可用保存密码，不删除原条目或再提交密码。该规则只隔离密码条目故障，不绕过 UC 校验，也不把无法读取的 Cookie 快照视作有效。完整客户端合成回归在同一会话并发读取非空课表/考试、签到课程和图书馆场馆，保留模块 Cookie，创建新客户端冷恢复后再次读取；另注入单模块 503/网络中断，检查其他模块与身份不受影响。证据和设备边界见[生命周期记录](_audit/2026-11-03-session-lifecycle-candidate.md)。
 
 
 ```http
@@ -330,10 +351,12 @@ X-Requested-With: XMLHttpRequest
 
 - `code == 0`（**Int 比较**）且 `data != null` → 有效，`data.schoolid`/`data.name` 即用户信息；
 - UBAA 参考实现：非 200 且非 5xx、非 JSON 正文、`code != 0` 或 `data == null` 判为无效；5xx 单独归为暂时错误。不能将“非 200”概括为学校已确认退出。
-- 当前 Rust/Flutter 的保守分类：483/策略页为访问策略拒绝，其他非 200 为暂不可用，JSON/字段结构漂移为 ChangedResponse；只在已识别业务身份无效时返回 SessionExpired。冷启动这些错误均不发布身份；暂时故障不删除密文快照。证据：`auth/uc.rs::validate_session/parse_uc_status`；UBAA 固定对照 `155e8b56` 的 `validateLocalConnectionSession`。
+- 当前 Rust/Flutter 的保守分类：483/策略页为访问策略拒绝，其他非 200 为暂不可用；仅 `code=10600` 且 `data=null` 返回 SessionExpired，未知业务码、不完整身份和结构漂移归为 ChangedResponse，不自动试密码。这是基于既有失效观察的客户端策略，不宣称其他码必然有效。冷启动这些错误均不发布身份；暂时故障不删除密文快照。证据：`auth/uc.rs::validate_session/parse_uc_status`；UBAA 固定对照 `e8a397fc` 的 `validateLocalConnectionSession`；[历史 10600 观察](_audit/2026-10-21-auth-redirect-incident.md)。
 - **5xx 是暂时性错误，不得清除本地会话**（上游抖动会误杀登录态）。判定无效后先别急着清 Cookie：UBAA 的做法是「业务系统报未登录 → 复核 `uc/status` → 复核确认无效才清」（LCA:369-384），建议照抄这个两步确认。
 
 > ⚠️ `uc.buaa.edu.cn/api/uc/userinfo` 端点：**2026-10-13 核对时** UBAA 代码中无调用（只有 `status` 与 `login`）；**2026-10-14 复核发现上游已新增**（`LocalConnectionAuth.kt:765` 的 `LocalUserServiceBackend.getUserInfo()`，直连链路在用）——否定性断言对上游演进脆弱，本条已被证伪（§0.0 第 18 条）。旧版文档所载响应结构仍未取证，如需用户详情（院系/邮箱），先抓包确认再实现。
+
+2026-11-03 自动业务选路补充（客户端策略）：Automatic 登录后若直连安全业务 GET 网络不可达或被访问策略拒绝，先在隔离的 WebVPN Cookie 副本上 GET 本节 UC 状态。只有返回同一账号且账号代次/路线仍有效时，才提交 Cookie 与实际路线，清理旧路线业务 token 并保存快照；并发失败合流一次目标校验。旧路线迟到响应不能导入 Cookie，失败结果按 60 秒冷却。目标未认证、账号不符或暂时错误均保留原学校身份；该入口不读取密码、不启动 CAS 登录，目标尚无有效会话时需要用户选择 WebVPN 后手动登录。SSO/UC 本身、携带服务票据的 GET 和所有 POST 都不由该入口迁移或重放；显式 Direct/WebVPN 不自动换路。这不同于 Beta.3 先改共享路线的行为，也不是 UBAA 显式模式的逐字复制。
 
 ### 1.9 登出
 
@@ -357,6 +380,8 @@ GET https://sso.buaa.edu.cn/logout
 
 触发后走 §1.8 的复核流程再决定是否清会话、要求重新登录。
 
+2026-11-03 Rust 静态对齐：学校恢复入口先读取同路线 UC；身份仍有效返回模块认证错误，网络/5xx/结构漂移直接保留原错误，均不提交密码。只有 UC 明确返回会话失效，才沿用 Beta.3 的一次恢复与原冷却；这部分是保留的客户端策略，UBAA 的 `resolveLocalBusinessAuthenticationFailure` 本身不提交密码。网关恢复同样先复核其 UC，有效时复用会话；直连业务不得借该入口切换全局 WebVPN。该变化不修改各业务 token 的既有单次重建，也不扩大写请求重试。
+
 ---
 
 ## 2. 课表 — 本科生（BYXT）✅
@@ -379,6 +404,8 @@ GET https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/currentUser.do
 | 200，body 以 `{` 或 `[` 开头 | 本科生就绪 | 继续 §2.2 |
 | 200，body 是 HTML（其他情况） | 上游不可用 | 报业务错误 |
 
+Android 课表选源补充（2026-11-03，UBAA `e8a397fc::withScheduleAccess` 静态对照）：本科探测或本科课表查询失败后，仍直接读取 §3 的真实 GSMIS 学期/课表，不把探测失败解释为没有课程。GSMIS 课表成功后按账号与认证代次记住该来源；退出、切换账号/路线或学校重新认证清除该记忆。失败不缓存为研究生成功，旧代次不写回。此为客户端数据源选择策略，非新增端点或账号身份断言。
+
 ### 2.2 学期列表
 
 ```http
@@ -386,6 +413,8 @@ GET https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/student/schoolCalendars.
 ```
 
 Ajax 头 + `Referer: https://byxt.buaa.edu.cn/jwapp/sys/homeapp/index.html`（LSA:206-213）。
+
+2026-11-03 固定 UBAA `e8a397fc` 的 Ktor/MockEngine 实际执行：§2.1 探测携带 `Accept: application/json`；`applyScheduleHeaders` 与原客户端 ContentNegotiation 组合后，学期查询的完整 Accept 为 `application/json, text/javascript, */*; q=0.01, application/json`。Rust 对齐该已执行请求形态；不是学校要求重复 JSON 条目的实网证据，见[请求差分](_audit/2026-11-03-ubaa-executable-reference.md)。
 
 响应（`code` 是**字符串** `"0"`，LSA:227-228）：
 
@@ -572,6 +601,8 @@ Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
 
 此请求只为激活上游会话 + 登录探测（判定规则同 §1.10），返回的 HTML **不解析**（LGA:33-34, 109-114）。
 
+2026-11-03 固定参考的实际客户端请求补充：上述为模块设置值，Ktor ContentNegotiation 还会在 Accept 后追加 `, application/json`；查询 POST 同样追加，表单 Content-Type 实际为 `application/x-www-form-urlencoded; charset=UTF-8`。Android 当前实现已按独立捕获值对齐，不据此断言学校拒绝不含这些头的请求。
+
 ### 4.2 成绩查询（POST）
 
 ```http
@@ -629,6 +660,7 @@ xq=1&year=2025-2026
    ```http
    GET https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas
    ```
+   固定 UBAA 的 CAS GET 同样携带 §5.2 的公共请求头；当前 Rust 已对齐这些头，WebVPN 路线下 Origin/Referer 使用对应网关地址，见[离线审计](_audit/2026-11-03-offline-session-parity-and-agent-review.md)。
 2. 手动逐跳跟随 302（**最多 8 跳**），每跳从「当前请求 URL」和「Location 头」提取 `cas` 参数；正则 `[?&#]cas=([^&#]+)`，**查询串和 fragment（`#cas=...`）都要兼容**（LLB:334-399）。
 3. 拿到 cas 令牌后换业务 token：
    ```http
@@ -648,6 +680,8 @@ xq=1&year=2025-2026
 ### 5.2 业务端点（全部 POST JSON）
 
 公共头：`Accept: application/json, text/plain, */*`、`X-Requested-With: XMLHttpRequest`、`Origin/Referer: https://booking.lib.buaa.edu.cn`，外加浏览器 UA（Chrome 桌面版，LLB:415-416）。
+
+2026-11-03 固定 UBAA `e8a397fc` 原客户端构造函数与 MockEngine 的实际执行：ContentNegotiation 会把上述 Accept 追加为 `application/json, text/plain, */*, application/json`；WebVPN 包装无路径的 Origin/Referer 时不补 `/`。当前 Rust 公共头和 URL 编码按此对齐；[合成请求证据](_audit/2026-11-03-ubaa-executable-reference.md)只覆盖所列读取场景，不证明真实学校接受。
 
 | 端点 | 用途 | 请求体关键字段 | 响应关键路径 |
 |------|------|----------------|--------------|
@@ -833,6 +867,8 @@ OPAC 非零业务码仍为业务拒绝，不推测具体含义。
 
 Android 客户端失败策略（2026-11-03）：空教室的 CAS 激活及业务查询均检查响应，激活失败不继续查询；明确 483/访问策略禁止保留为 AccessPolicyDenied，不当作凭据过期触发恢复。查询字段、端点、成功码不变；合成回归不证明当前账号真实查询成功。
 
+同日原 Ktor 工厂实际捕获补充：空教室激活和查询使用固定参考 `LOCAL_CLASSROOM_USER_AGENT` 的浏览器 UA；激活含 `Accept: application/json`，查询在模块 AJAX Accept 后还追加 `, application/json`。手动安全 GET 跳转保留上述协商头，Cookie 仍由目标所属 jar 注入，Authorization/Origin/Referer 不沿该通用跳转转发。固定 UBAA 的引擎在 WebVPN 激活遇到绝对 Location 时转直连；本项目保持已认证路线，是显式客户端策略差异。
+
 ## 6B. 教学楼研讨室（CGYY，前端/UBAA 协议移植，真实写操作未验收）⚠️
 
 基址 `https://cgyy.buaa.edu.cn/venue-zhjs-server/`。协议依据为 UBAA `LocalCgyyApi.kt`、`LocalCgyyCaptchaSupport.kt`、`LocalCgyySigner.kt`、`docs/features/cgyy.md`，并于 2026-10-19 在已登录浏览器中只读打开学校“培养方案管理应用”页面确认了上游网页结构；**尚未用真实账号完成预约、取消或门锁密码的端到端验收**。
@@ -950,6 +986,8 @@ Android 客户端失败策略（2026-11-03）：空教室的 CAS 激活及业务
 - 证据边界：2026-10-28 匿名请求观察到 HTTP 200、`state=1` 与 135 条数据；首个 15 秒请求超时并只收到部分正文，随后延长等待才完整返回。样本只证明当次公开读取；不据此推断状态码含义、取消语义、分页、限流或其他日期形态。真实非空设备验收仍待完成。
 - 隐私边界：请求不携带账号 Cookie 或认证头；响应的 `Set-Cookie` 不写入学校登录会话。就业日历为匿名公开读取。
 
+2026-11-03 补充匿名结构复核：`time=2026-11` 返回 HTTP 200、`state=1` 和 23 条记录。本次记录的 `id`、`title`、`campus`、`field`、`startTime`、`endTime`、`fairTypeName`、`status`、`url` 均为字符串；另观察到字符串字段 `typeName`、`link`、`type`、`fairType`、`startTimeFormat`、`startTimexs`、`endTimeFormat`、`linkUrl`，尚未确定其业务含义，不据此新增投影或操作。响应 SHA-256 为 `363da96e96fc9c6ed2ac7e54d30497f86db98040dcc3f9b3789f123e9b6bba9e`；只保存结构和摘要，未保存记录值。该类型观察不覆盖其他月份、空值变体、权限或设备，详见 [当次研究](_audit/2026-11-03-ibh-static-protocol-research.md)。
+
 ## 7. 本期不接入的系统（中转接口说明）
 
 旧版文档第 6-15 节（博雅 BYKC、SPOC、操场 CGYY、阳光打卡 YGDK、iHome、空闲教室、课程评价、iclass 签到、考试安排中转版）记载的 `/api/v1/*` 路径全部是 **UBAA Ktor 中转服务器的自有路由**（见 `BBAA/docs/tech/server-routes.md`），不是北航上游直连协议。本项目架构为仅直连（ARCHITECTURE.md §9.1.3），这些接口**无法使用**；上述系统若未来要接入，每个都需按 §6 的逆向流程重新取证（其中博雅/操场还涉及上游自定义加密，见 DEEP-ARCHITECTURE-REVIEW.md §3）。此处不再罗列。
@@ -1022,6 +1060,8 @@ Judge 作业详情页同时包含开始/截止时间、满分、题目表格、�
 ### 7.2 iclass 签到状态与手动提交（写协议尚待真实验收）
 
 候选流程最初来自 BBAA `LocalSigninApi.kt` 与模拟测试。2026-10-15 经用户授权的临时账号，通过北航 WebVPN 浏览器会话对真实服务进行了只读请求观察；没有执行签到提交，未保存原始响应或账号字段。
+
+2026-11-03 固定 UBAA `e8a397fc` 原客户端构造函数与 MockEngine 的实际执行：下列入口、app session 和当天读取均携带 `Accept: application/json`；当前 Rust 读取头已对齐。该项仅为[离线请求对照](_audit/2026-11-03-ubaa-executable-reference.md)，不增加真实账号或写入验收。
 
 - 认证入口：`https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter`。正常 SSO 会话跳转后，最终 URL 查询中含 `loginName`；本项目从重定向 Location/最终 URL 提取，不记录该值。
 - app session：GET `https://iclass.buaa.edu.cn:8347/app/user/login.action`，查询参数 `password`（空值）、`phone`（上一步 loginName）、`userLevel=1`、`verificationType=2`、`verificationUrl`（空值）。本次观察到 HTTP 200、`STATUS=0`，响应 `result` 含 `id` 和 `sessionId`；两值仅用于内存请求，不持久化。

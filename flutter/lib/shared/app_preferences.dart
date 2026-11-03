@@ -63,6 +63,7 @@ class AppPreferences extends ChangeNotifier {
   final PreferencesReader _reader;
   Future<void> _pending = Future.value();
   int _saveRevision = 0;
+  int _restoreRevision = 0;
   bool _disposed = false;
   bool _readFailed = false;
 
@@ -98,8 +99,19 @@ class AppPreferences extends ChangeNotifier {
 
   Future<void> restore() async {
     if (_disposed) return;
+    final revision = ++_restoreRevision;
+    final saveRevision = _saveRevision;
+    bool current() =>
+        !_disposed &&
+        revision == _restoreRevision &&
+        saveRevision == _saveRevision;
     try {
+      // Read after existing writes; a choice made while reading remains newer
+      // than the disk snapshot and must never be replaced by that snapshot.
+      await _pending;
+      if (!current()) return;
       final value = await _reader();
+      if (!current()) return;
       _readFailed = false;
       saveError = _writeError;
       if (value == null) {
@@ -138,6 +150,7 @@ class AppPreferences extends ChangeNotifier {
           : 'automatic';
       _notify();
     } catch (_) {
+      if (!current()) return;
       _readFailed = true;
       saveError = '未能读取本机设置，请重试读取';
       _notify();

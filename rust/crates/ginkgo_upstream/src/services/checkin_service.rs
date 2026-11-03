@@ -50,6 +50,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
 
     async fn fetch_checkin(&self, compact: &str) -> Result<Vec<CheckInCourse>, AppError> {
         match self.try_fetch_checkin(compact).await {
+            Err(error) if error.detail.as_deref() == Some("route_changed") => {
+                // One rebuild on the verified new route, without a password
+                // login or replaying the previous route's module token.
+                self.try_fetch_checkin(compact).await
+            }
             Err(error) if error.code == ErrorCode::SessionExpired => {
                 // The school session may really be gone; re-confirm it once
                 // through the platform credential vault, then rebuild iclass.
@@ -75,7 +80,10 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 }
                 Err(error)
                     if error.code == ErrorCode::BusinessRejected
-                        || error.detail.as_deref() == Some("iclass_session") =>
+                        || matches!(
+                            error.detail.as_deref(),
+                            Some("iclass_session" | "route_changed")
+                        ) =>
                 {
                     self.identity.lock().iclass = None;
                 }
@@ -90,10 +98,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         self.checkin_stage("courses");
         let result = checkin_http::course_schedule(&self.session, &iclass, compact).await;
         if result.as_ref().is_err_and(|error| {
-            matches!(
-                error.code,
-                ErrorCode::BusinessRejected | ErrorCode::SessionExpired
-            )
+            error.detail.as_deref() == Some("route_changed")
+                || matches!(
+                    error.code,
+                    ErrorCode::BusinessRejected | ErrorCode::SessionExpired
+                )
         }) {
             self.identity.lock().iclass = None;
         }
@@ -105,6 +114,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             Ok(session) => return Ok(session),
             Err(error) => error,
         };
+        if first.detail.as_deref() == Some("route_changed") {
+            return self.try_establish_iclass().await;
+        }
         // The gateway needs its own CAS session. Only retry when iclass itself
         // reported that the gateway login is missing, and only with a saved
         // credential: otherwise the caller must sign in again.

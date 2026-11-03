@@ -1,0 +1,30 @@
+{
+  "built_on": "2026-11-03",
+  "source": "local working tree, unpublished",
+  "apk_path": "/Users/juanwang/code/BUAA-Assistant/flutter/build/session-candidate/Ginkgo-session-fix-2026-11-03-arm64.apk",
+  "bytes": 44187325,
+  "sha256": "bd7edf96091fb0d704a59eb23e53969f378dafd3e8ddc54e82e1f93c60c041ce",
+  "package": "package: name='cn.edu.buaa.ginkgo.ginkgo_mirror' versionCode='17' versionName='0.1.0-beta.7' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'",
+  "abi": "native-code: 'arm64-v8a'",
+  "certificate_sha256": "451748b957b44d5a28ebcc967cc2aeec7e7bea6a13d9edcb021c9fd8dc7fb245",
+  "certificate_matches_recorded_beta7": true,
+  "debuggable": false,
+  "integration_test_in_registrant": false,
+  "zipalign_16k": true,
+  "entrypoint": "lib/main.dart",
+  "native_libraries_sha256": {
+    "lib/arm64-v8a/libapp.so": "58df1f5879ad12c7d205772361a471cd469c8cd22c1df2e6ef5fe02f947d59ed",
+    "lib/arm64-v8a/libflutter.so": "2d3bdc3833ba4497ab07f2cd8ea878c9e94f24936510a895b260d317e6c57fdd",
+    "lib/arm64-v8a/libginkgo_flutter_bridge.so": "da004cb2a84ee407fe0d926774de066bf8f1473813325910e92c195325930025"
+  },
+  "installed_or_started": false,
+  "school_requests": false,
+  "source_sha256": "0329519efb756b572125f4fe3d8461c84aa315922bca80ade4fd70b7b34c2783",
+  "contract_sha256": "8f78d1a2ab8d67059aa3a17aad4c8875518b607c748fc605db2512c44a4d533b",
+  "native_core_built_after_session_fix": true,
+  "packaged_core_matches_stripped_build": true,
+  "native_core_built_at_utc": "2026-11-03T07:17:36.598910+00:00",
+  "ginkgo_head": "6692ce424be7e478d78a0030d35b20e585e099da",
+  "baseline_log": "/tmp/ginkgo-session-candidate-mirror.log",
+  "reference_log": "/tmp/ginkgo-session-candidate-reference.log"
+}

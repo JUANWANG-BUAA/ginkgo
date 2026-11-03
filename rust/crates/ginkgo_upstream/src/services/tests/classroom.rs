@@ -68,6 +68,7 @@ async fn classroom_session_expiry_recovers_once_with_the_saved_password() {
         "search",
         r#"<html><input name="execution" value="expired" /></html>"#,
     ));
+    responses.push(super::uc_expired());
     responses.extend(login_chain("sy2501001", "fixture"));
     responses.push(HttpResponse::new(200, "activation", ""));
     responses.push(HttpResponse::new(200, "search", classroom_body()));

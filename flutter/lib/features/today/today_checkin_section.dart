@@ -71,6 +71,8 @@ class TodayCheckInSection extends StatelessWidget {
             // A passive section reports itself quietly: the school's own
             // message belongs to the module, not to the workbench.
             TodayActionRow(title: '签到状态暂时无法读取', onTap: onRetry)
+          else if (!section.loading)
+            TodayActionRow(title: '查看课程签到', onTap: onRetry)
           else
             SectionFeedback(
               loading: section.loading,

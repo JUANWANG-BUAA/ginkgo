@@ -53,6 +53,10 @@ fn uc_ok(account: &str, name: &str) -> HttpResponse {
     )
 }
 
+fn uc_expired() -> HttpResponse {
+    HttpResponse::new(200, UC_STATUS_URL, r#"{"code":10600,"data":null}"#)
+}
+
 fn credentials(account: &str) -> Credentials {
     Credentials {
         username: account.into(),
@@ -268,7 +272,11 @@ impl crate::foundation::http::HttpTransport for RecoveryFailureTransport {
             return Ok(HttpResponse::new(
                 200,
                 &request.url,
-                uc_ok("sy2501001", "synthetic").body,
+                if self.allow_login.load(Ordering::Relaxed) {
+                    uc_ok("sy2501001", "synthetic").body
+                } else {
+                    uc_expired().body
+                },
             ));
         }
         if upstream.contains("/buaafreeclass/") {
@@ -302,6 +310,7 @@ fn recovery_failure_service() -> (
 }
 
 mod academic;
+mod automatic_route;
 mod campus;
 mod campus_activities;
 mod campus_card;
@@ -313,6 +322,9 @@ mod homework;
 mod library;
 mod library_books;
 mod library_loans;
+mod reference_business_wire;
 mod session;
+mod session_lifecycle;
+mod session_protocol;
 
 mod homework_files;

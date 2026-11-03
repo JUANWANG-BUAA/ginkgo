@@ -1,0 +1,2412 @@
+{
+  "reference_commit": "e8a397fcb35a68147eee65a94c66ffb84e2f09fe",
+  "source": "synthetic",
+  "response_sha256": "52cdb91c1dd92fdea47c0391bc08413cb1f12ffc2e7a1672ff535704c81defe9",
+  "comparison_scope": "Eight synthetic read scenarios (including nonempty checkin values) plus 17 real Android-OkHttp-on-JVM/reqwest HTTP loopback cases; no Android OS TLS/Keystore/JNI parity",
+  "normalization": [
+    "header names lowercased",
+    "query pairs sorted and decoded preserving duplicates",
+    "form pairs sorted and decoded preserving duplicates",
+    "JSON objects compared by value",
+    "cookie pairs sorted"
+  ],
+  "ginkgo_head": "6692ce424be7e478d78a0030d35b20e585e099da",
+  "ginkgo_rust_source_sha256": "6ccc6cb41c639559c392f63d22f4b96664defb2d01f7e0dcf38c16baa86a4826",
+  "reference_tests": 31,
+  "raw_reference_business": {
+    "day": "2026-11-03",
+    "source": "synthetic",
+    "cases": [
+      {
+        "id": "direct-terms",
+        "count": 1,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/currentUser.do",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/student/schoolCalendars.do",
+            "body": "",
+            "headers": {
+              "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/index.html"
+            }
+          }
+        ]
+      },
+      {
+        "id": "direct-checkin",
+        "count": 0,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://iclass.buaa.edu.cn:8347/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103",
+            "body": "",
+            "headers": {
+              "sessionid": "session-1",
+              "accept": "application/json"
+            }
+          }
+        ]
+      },
+      {
+        "id": "direct-checkin-nonempty",
+        "count": 2,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://iclass.buaa.edu.cn:8347/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103",
+            "body": "",
+            "headers": {
+              "sessionid": "session-1",
+              "accept": "application/json"
+            }
+          }
+        ],
+        "values": [
+          {
+            "id": "course-1",
+            "name": "软件工程",
+            "begin": "08:00",
+            "end": "09:40",
+            "sign_status": 0
+          },
+          {
+            "id": "course-2",
+            "name": "概率论",
+            "begin": "10:00",
+            "end": "11:40",
+            "sign_status": 1
+          }
+        ]
+      },
+      {
+        "id": "direct-library",
+        "count": 1,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas",
+            "body": "",
+            "headers": {
+              "accept": "application/json, text/plain, */*, application/json",
+              "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://booking.lib.buaa.edu.cn",
+              "origin": "https://booking.lib.buaa.edu.cn"
+            }
+          },
+          {
+            "method": "POST",
+            "url": "https://booking.lib.buaa.edu.cn/v4/login/user",
+            "body": "{\"cas\":\"cas-1\"}",
+            "headers": {
+              "accept": "application/json, text/plain, */*, application/json",
+              "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://booking.lib.buaa.edu.cn",
+              "origin": "https://booking.lib.buaa.edu.cn",
+              "content-type": "application/json"
+            }
+          },
+          {
+            "method": "POST",
+            "url": "https://booking.lib.buaa.edu.cn/v4/space/pcTopFor",
+            "body": "{\"day\":\"2026-11-03\"}",
+            "headers": {
+              "accept": "application/json, text/plain, */*, application/json",
+              "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://booking.lib.buaa.edu.cn",
+              "origin": "https://booking.lib.buaa.edu.cn",
+              "authorization": "bearerjwt-1",
+              "content-type": "application/json"
+            }
+          }
+        ]
+      },
+      {
+        "id": "webvpn-terms",
+        "count": 1,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/api/home/currentUser.do",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/api/home/student/schoolCalendars.do",
+            "body": "",
+            "headers": {
+              "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/index.html"
+            }
+          }
+        ]
+      },
+      {
+        "id": "webvpn-checkin",
+        "count": 0,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https-8346/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/?type=jumpMyCenter",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103",
+            "body": "",
+            "headers": {
+              "sessionid": "session-1",
+              "accept": "application/json"
+            }
+          }
+        ]
+      },
+      {
+        "id": "webvpn-checkin-nonempty",
+        "count": 2,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https-8346/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/?type=jumpMyCenter",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103",
+            "body": "",
+            "headers": {
+              "sessionid": "session-1",
+              "accept": "application/json"
+            }
+          }
+        ],
+        "values": [
+          {
+            "id": "course-1",
+            "name": "软件工程",
+            "begin": "08:00",
+            "end": "09:40",
+            "sign_status": 0
+          },
+          {
+            "id": "course-2",
+            "name": "概率论",
+            "begin": "10:00",
+            "end": "11:40",
+            "sign_status": 1
+          }
+        ]
+      },
+      {
+        "id": "webvpn-library",
+        "count": 1,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e3e44ed225256951300d8db9d6562d/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas",
+            "body": "",
+            "headers": {
+              "accept": "application/json, text/plain, */*, application/json",
+              "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+              "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5"
+            }
+          },
+          {
+            "method": "POST",
+            "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5/v4/login/user",
+            "body": "{\"cas\":\"cas-1\"}",
+            "headers": {
+              "accept": "application/json, text/plain, */*, application/json",
+              "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+              "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+              "content-type": "application/json"
+            }
+          },
+          {
+            "method": "POST",
+            "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5/v4/space/pcTopFor",
+            "body": "{\"day\":\"2026-11-03\"}",
+            "headers": {
+              "accept": "application/json, text/plain, */*, application/json",
+              "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+              "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+              "authorization": "bearerjwt-1",
+              "content-type": "application/json"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "business": {
+    "ubaa": {
+      "day": "2026-11-03",
+      "source": "synthetic",
+      "cases": [
+        {
+          "id": "direct-terms",
+          "count": 1,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/currentUser.do",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/student/schoolCalendars.do",
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/index.html"
+              }
+            }
+          ]
+        },
+        {
+          "id": "direct-checkin",
+          "count": 0,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8347/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103",
+              "body": "",
+              "headers": {
+                "sessionid": "session-1",
+                "accept": "application/json"
+              }
+            }
+          ]
+        },
+        {
+          "id": "direct-checkin-nonempty",
+          "count": 2,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8347/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103",
+              "body": "",
+              "headers": {
+                "sessionid": "session-1",
+                "accept": "application/json"
+              }
+            }
+          ],
+          "values": [
+            {
+              "id": "course-1",
+              "name": "软件工程",
+              "begin": "08:00",
+              "end": "09:40",
+              "sign_status": 0
+            },
+            {
+              "id": "course-2",
+              "name": "概率论",
+              "begin": "10:00",
+              "end": "11:40",
+              "sign_status": 1
+            }
+          ]
+        },
+        {
+          "id": "direct-library",
+          "count": 1,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas",
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://booking.lib.buaa.edu.cn",
+                "origin": "https://booking.lib.buaa.edu.cn"
+              }
+            },
+            {
+              "method": "POST",
+              "url": "https://booking.lib.buaa.edu.cn/v4/login/user",
+              "body": "{\"cas\":\"cas-1\"}",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://booking.lib.buaa.edu.cn",
+                "origin": "https://booking.lib.buaa.edu.cn",
+                "content-type": "application/json"
+              }
+            },
+            {
+              "method": "POST",
+              "url": "https://booking.lib.buaa.edu.cn/v4/space/pcTopFor",
+              "body": "{\"day\":\"2026-11-03\"}",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://booking.lib.buaa.edu.cn",
+                "origin": "https://booking.lib.buaa.edu.cn",
+                "authorization": "bearerjwt-1",
+                "content-type": "application/json"
+              }
+            }
+          ]
+        },
+        {
+          "id": "webvpn-terms",
+          "count": 1,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/api/home/currentUser.do",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/api/home/student/schoolCalendars.do",
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/index.html"
+              }
+            }
+          ]
+        },
+        {
+          "id": "webvpn-checkin",
+          "count": 0,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8346/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/?type=jumpMyCenter",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103",
+              "body": "",
+              "headers": {
+                "sessionid": "session-1",
+                "accept": "application/json"
+              }
+            }
+          ]
+        },
+        {
+          "id": "webvpn-checkin-nonempty",
+          "count": 2,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8346/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/?type=jumpMyCenter",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103",
+              "body": "",
+              "headers": {
+                "sessionid": "session-1",
+                "accept": "application/json"
+              }
+            }
+          ],
+          "values": [
+            {
+              "id": "course-1",
+              "name": "软件工程",
+              "begin": "08:00",
+              "end": "09:40",
+              "sign_status": 0
+            },
+            {
+              "id": "course-2",
+              "name": "概率论",
+              "begin": "10:00",
+              "end": "11:40",
+              "sign_status": 1
+            }
+          ]
+        },
+        {
+          "id": "webvpn-library",
+          "count": 1,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e3e44ed225256951300d8db9d6562d/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas",
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5"
+              }
+            },
+            {
+              "method": "POST",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5/v4/login/user",
+              "body": "{\"cas\":\"cas-1\"}",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "content-type": "application/json"
+              }
+            },
+            {
+              "method": "POST",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5/v4/space/pcTopFor",
+              "body": "{\"day\":\"2026-11-03\"}",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "authorization": "bearerjwt-1",
+                "content-type": "application/json"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "rust": {
+      "cases": [
+        {
+          "count": 1,
+          "id": "direct-terms",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/currentUser.do"
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+                "referer": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/index.html",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "GET",
+              "url": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/student/schoolCalendars.do"
+            }
+          ]
+        },
+        {
+          "count": 0,
+          "id": "direct-checkin",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter"
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8347/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl="
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json",
+                "sessionid": "session-1"
+              },
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103"
+            }
+          ]
+        },
+        {
+          "count": 2,
+          "id": "direct-checkin-nonempty",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter"
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8347/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl="
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json",
+                "sessionid": "session-1"
+              },
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103"
+            }
+          ],
+          "values": [
+            {
+              "begin": "08:00",
+              "end": "09:40",
+              "id": "course-1",
+              "name": "软件工程",
+              "sign_status": 0
+            },
+            {
+              "begin": "10:00",
+              "end": "11:40",
+              "id": "course-2",
+              "name": "概率论",
+              "sign_status": 1
+            }
+          ]
+        },
+        {
+          "count": 1,
+          "id": "direct-library",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "origin": "https://booking.lib.buaa.edu.cn",
+                "referer": "https://booking.lib.buaa.edu.cn",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "GET",
+              "url": "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas"
+            },
+            {
+              "body": "{\"cas\":\"cas-1\"}",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "content-type": "application/json",
+                "origin": "https://booking.lib.buaa.edu.cn",
+                "referer": "https://booking.lib.buaa.edu.cn",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "POST",
+              "url": "https://booking.lib.buaa.edu.cn/v4/login/user"
+            },
+            {
+              "body": "{\"day\":\"2026-11-03\"}",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "authorization": "bearerjwt-1",
+                "content-type": "application/json",
+                "origin": "https://booking.lib.buaa.edu.cn",
+                "referer": "https://booking.lib.buaa.edu.cn",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "POST",
+              "url": "https://booking.lib.buaa.edu.cn/v4/space/pcTopFor"
+            }
+          ]
+        },
+        {
+          "count": 1,
+          "id": "webvpn-terms",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/api/home/currentUser.do"
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/index.html",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/api/home/student/schoolCalendars.do"
+            }
+          ]
+        },
+        {
+          "count": 0,
+          "id": "webvpn-checkin",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8346/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/?type=jumpMyCenter"
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl="
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json",
+                "sessionid": "session-1"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103"
+            }
+          ]
+        },
+        {
+          "count": 2,
+          "id": "webvpn-checkin-nonempty",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8346/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/?type=jumpMyCenter"
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl="
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json",
+                "sessionid": "session-1"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103"
+            }
+          ],
+          "values": [
+            {
+              "begin": "08:00",
+              "end": "09:40",
+              "id": "course-1",
+              "name": "软件工程",
+              "sign_status": 0
+            },
+            {
+              "begin": "10:00",
+              "end": "11:40",
+              "id": "course-2",
+              "name": "概率论",
+              "sign_status": 1
+            }
+          ]
+        },
+        {
+          "count": 1,
+          "id": "webvpn-library",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e3e44ed225256951300d8db9d6562d/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas"
+            },
+            {
+              "body": "{\"cas\":\"cas-1\"}",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "content-type": "application/json",
+                "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "POST",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5/v4/login/user"
+            },
+            {
+              "body": "{\"day\":\"2026-11-03\"}",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "authorization": "bearerjwt-1",
+                "content-type": "application/json",
+                "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "POST",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5/v4/space/pcTopFor"
+            }
+          ]
+        }
+      ],
+      "day": "2026-11-03",
+      "source": "synthetic"
+    },
+    "comparisons": [
+      {
+        "id": "direct-terms",
+        "differences": []
+      },
+      {
+        "id": "direct-checkin",
+        "differences": []
+      },
+      {
+        "id": "direct-checkin-nonempty",
+        "differences": []
+      },
+      {
+        "id": "direct-library",
+        "differences": []
+      },
+      {
+        "id": "webvpn-terms",
+        "differences": []
+      },
+      {
+        "id": "webvpn-checkin",
+        "differences": []
+      },
+      {
+        "id": "webvpn-checkin-nonempty",
+        "differences": []
+      },
+      {
+        "id": "webvpn-library",
+        "differences": []
+      }
+    ]
+  },
+  "jvm_cio_transport": {
+    "source": "synthetic",
+    "engine": "CIO",
+    "requests": [
+      {
+        "id": "form-encoding",
+        "request": {
+          "method": "POST",
+          "target": "/form?duplicate=1&duplicate=2&plus=a%2Bb",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "content-length": "113",
+            "accept": "application/json",
+            "user-agent": "ktor-client",
+            "content-type": "application/x-www-form-urlencoded"
+          },
+          "body_base64": "ZXhlY3V0aW9uPWFiYyUyQmRlZiUyRmdoaSUzRCZ1c2VybmFtZT1zeTI1MDEwMDEmcGFzc3dvcmQ9cGElMkJzcyUyRndvcmQmcmVwZWF0PTEmcmVwZWF0PTImbmFtZT0lRTYlOUQlOEUlRTYlOTYlODc="
+        }
+      },
+      {
+        "id": "cookie-seed",
+        "request": {
+          "method": "GET",
+          "target": "/cookies/seed",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "accept": "application/json",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "cookie-path",
+        "request": {
+          "method": "GET",
+          "target": "/cookies/echo",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "accept": "application/json",
+            "cookie": "root=old; scope=path",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "cookie-boundary",
+        "request": {
+          "method": "GET",
+          "target": "/cookies-other/echo",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "accept": "application/json",
+            "cookie": "root=old; scope=path",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "cookie-rotate",
+        "request": {
+          "method": "GET",
+          "target": "/cookies/rotate",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "accept": "application/json",
+            "cookie": "root=old; scope=path",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "cookie-after-rotate",
+        "request": {
+          "method": "GET",
+          "target": "/cookies/after",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "manual-get-302",
+        "request": {
+          "method": "GET",
+          "target": "/redirect/302/get",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "manual-post-302",
+        "request": {
+          "method": "POST",
+          "target": "/redirect/302/post",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "content-length": "13",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client",
+            "content-type": "application/x-www-form-urlencoded"
+          },
+          "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+        }
+      },
+      {
+        "id": "manual-get-303",
+        "request": {
+          "method": "GET",
+          "target": "/redirect/303/get",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "manual-post-303",
+        "request": {
+          "method": "POST",
+          "target": "/redirect/303/post",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "content-length": "13",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client",
+            "content-type": "application/x-www-form-urlencoded"
+          },
+          "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+        }
+      },
+      {
+        "id": "manual-get-307",
+        "request": {
+          "method": "GET",
+          "target": "/redirect/307/get",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "manual-post-307",
+        "request": {
+          "method": "POST",
+          "target": "/redirect/307/post",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "content-length": "13",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client",
+            "content-type": "application/x-www-form-urlencoded"
+          },
+          "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+        }
+      },
+      {
+        "id": "manual-get-308",
+        "request": {
+          "method": "GET",
+          "target": "/redirect/308/get",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "manual-post-308",
+        "request": {
+          "method": "POST",
+          "target": "/redirect/308/post",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "content-length": "13",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client",
+            "content-type": "application/x-www-form-urlencoded"
+          },
+          "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+        }
+      },
+      {
+        "id": "utf8-body",
+        "request": {
+          "method": "GET",
+          "target": "/utf8",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "binary-body",
+        "request": {
+          "method": "GET",
+          "target": "/binary",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "explicit-user-agent",
+        "request": {
+          "method": "GET",
+          "target": "/agent",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:64921",
+            "accept": "application/json",
+            "user-agent": "synthetic-reference/1.0",
+            "cookie": "root=new"
+          },
+          "body_base64": ""
+        }
+      }
+    ],
+    "results": [
+      {
+        "id": "form-encoding",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "cookie-seed",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": [
+          "root=old; Path=/; HttpOnly",
+          "scope=path; Path=/cookies",
+          "gone=old; Max-Age=0; Path=/",
+          "secret=tls-only; Secure; Path=/",
+          "bad=wrong-domain; Domain=other.invalid; Path=/"
+        ]
+      },
+      {
+        "id": "cookie-path",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "cookie-boundary",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "cookie-rotate",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": [
+          "root=new; Path=/; HttpOnly",
+          "scope=deleted; Max-Age=0; Path=/cookies",
+          "expired=old; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"
+        ]
+      },
+      {
+        "id": "cookie-after-rotate",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "manual-get-302",
+        "status": 302,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-post-302",
+        "status": 302,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-get-303",
+        "status": 303,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-post-303",
+        "status": 303,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-get-307",
+        "status": 307,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-post-307",
+        "status": 307,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-get-308",
+        "status": 308,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-post-308",
+        "status": 308,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "utf8-body",
+        "status": 200,
+        "body_base64": "5L2g5aW977yM5Zu+5Lmm6aaG",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "binary-body",
+        "status": 200,
+        "body_base64": "AP8NCg==",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "explicit-user-agent",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": []
+      }
+    ]
+  },
+  "transport": {
+    "ubaa": {
+      "source": "synthetic",
+      "engine": "OkHttp-on-JVM",
+      "requests": [
+        {
+          "id": "form-encoding",
+          "request": {
+            "method": "POST",
+            "target": "/form?duplicate=1&duplicate=2&plus=a%2Bb",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded",
+              "content-length": "113",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": "ZXhlY3V0aW9uPWFiYyUyQmRlZiUyRmdoaSUzRCZ1c2VybmFtZT1zeTI1MDEwMDEmcGFzc3dvcmQ9cGElMkJzcyUyRndvcmQmcmVwZWF0PTEmcmVwZWF0PTImbmFtZT0lRTYlOUQlOEUlRTYlOTYlODc="
+          }
+        },
+        {
+          "id": "cookie-seed",
+          "request": {
+            "method": "GET",
+            "target": "/cookies/seed",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "cookie-path",
+          "request": {
+            "method": "GET",
+            "target": "/cookies/echo",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=old; scope=path",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "cookie-boundary",
+          "request": {
+            "method": "GET",
+            "target": "/cookies-other/echo",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=old; scope=path",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "cookie-rotate",
+          "request": {
+            "method": "GET",
+            "target": "/cookies/rotate",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=old; scope=path",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "cookie-after-rotate",
+          "request": {
+            "method": "GET",
+            "target": "/cookies/after",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-get-302",
+          "request": {
+            "method": "GET",
+            "target": "/redirect/302/get",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-post-302",
+          "request": {
+            "method": "POST",
+            "target": "/redirect/302/post",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded",
+              "content-length": "13",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+          }
+        },
+        {
+          "id": "manual-get-303",
+          "request": {
+            "method": "GET",
+            "target": "/redirect/303/get",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-post-303",
+          "request": {
+            "method": "POST",
+            "target": "/redirect/303/post",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded",
+              "content-length": "13",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+          }
+        },
+        {
+          "id": "manual-get-307",
+          "request": {
+            "method": "GET",
+            "target": "/redirect/307/get",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-post-307",
+          "request": {
+            "method": "POST",
+            "target": "/redirect/307/post",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded",
+              "content-length": "13",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+          }
+        },
+        {
+          "id": "manual-get-308",
+          "request": {
+            "method": "GET",
+            "target": "/redirect/308/get",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-post-308",
+          "request": {
+            "method": "POST",
+            "target": "/redirect/308/post",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded",
+              "content-length": "13",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+          }
+        },
+        {
+          "id": "utf8-body",
+          "request": {
+            "method": "GET",
+            "target": "/utf8",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "binary-body",
+          "request": {
+            "method": "GET",
+            "target": "/binary",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "explicit-user-agent",
+          "request": {
+            "method": "GET",
+            "target": "/agent",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "user-agent": "synthetic-reference/1.0",
+              "cookie": "root=new",
+              "host": "127.0.0.1:64902",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        }
+      ],
+      "results": [
+        {
+          "id": "form-encoding",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "cookie-seed",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": [
+            "root=old; Path=/; HttpOnly",
+            "scope=path; Path=/cookies",
+            "gone=old; Max-Age=0; Path=/",
+            "secret=tls-only; Secure; Path=/",
+            "bad=wrong-domain; Domain=other.invalid; Path=/"
+          ]
+        },
+        {
+          "id": "cookie-path",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "cookie-boundary",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "cookie-rotate",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": [
+            "root=new; Path=/; HttpOnly",
+            "scope=deleted; Max-Age=0; Path=/cookies",
+            "expired=old; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"
+          ]
+        },
+        {
+          "id": "cookie-after-rotate",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "manual-get-302",
+          "status": 302,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-post-302",
+          "status": 302,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-get-303",
+          "status": 303,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-post-303",
+          "status": 303,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-get-307",
+          "status": 307,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-post-307",
+          "status": 307,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-get-308",
+          "status": 308,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-post-308",
+          "status": 308,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "utf8-body",
+          "status": 200,
+          "body_base64": "5L2g5aW977yM5Zu+5Lmm6aaG",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "binary-body",
+          "status": 200,
+          "body_base64": "AP8NCg==",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "explicit-user-agent",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        }
+      ]
+    },
+    "rust": {
+      "engine": "reqwest",
+      "requests": [
+        {
+          "id": "form-encoding",
+          "request": {
+            "body_base64": "ZXhlY3V0aW9uPWFiYyUyQmRlZiUyRmdoaSUzRCZ1c2VybmFtZT1zeTI1MDEwMDEmcGFzc3dvcmQ9cGElMkJzcyUyRndvcmQmcmVwZWF0PTEmcmVwZWF0PTImbmFtZT0lRTYlOUQlOEUlRTYlOTYlODc=",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "content-length": "113",
+              "content-type": "application/x-www-form-urlencoded",
+              "host": "127.0.0.1:64983",
+              "user-agent": "ktor-client"
+            },
+            "method": "POST",
+            "target": "/form?duplicate=1&duplicate=2&plus=a%2Bb",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-seed",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "host": "127.0.0.1:64983",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/cookies/seed",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-path",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "scope=path; root=old",
+              "host": "127.0.0.1:64983",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/cookies/echo",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-boundary",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=old",
+              "host": "127.0.0.1:64983",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/cookies-other/echo",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-rotate",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "scope=path; root=old",
+              "host": "127.0.0.1:64983",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/cookies/rotate",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-after-rotate",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=new",
+              "host": "127.0.0.1:64983",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/cookies/after",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-get-302",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=new",
+              "host": "127.0.0.1:64983",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/redirect/302/get",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-post-302",
+          "request": {
+            "body_base64": "c2luZ2xlPXN1Ym1pdA==",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "content-length": "13",
+              "content-type": "application/x-www-form-urlencoded",
+              "cookie": "root=new",
+              "host": "127.0.0.1:64983",
+              "user-agent": "ktor-client"
+            },
+            "method": "POST",
+            "target": "/redirect/302/post",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-get-303",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=new",
+              "host": "127.0.0.1:64983",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/redirect/303/get",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-post-303",
+          "request": {
+            "body_base64": "c2luZ2xlPXN1Ym1pdA==",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "content-length": "13",
+              "content-type": "application/x-www-form-urlencoded",
+              "cookie": "root=new",
+              "host": "127.0.0.1:64983",
+              "user-agent": "ktor-client"
+            },
+            "method": "POST",
+            "target": "/redirect/303/post",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-get-307",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=new",
+              "host": "127.0.0.1:64983",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/redirect/307/get",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-post-307",
+          "request": {
+            "body_base64": "c2luZ2xlPXN1Ym1pdA==",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "content-length": "13",
+              "content-type": "application/x-www-form-urlencoded",
+              "cookie": "root=new",
+              "host": "127.0.0.1:64983",
+              "user-agent": "ktor-client"
+            },
+            "method": "POST",
+            "target": "/redirect/307/post",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-get-308",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=new",
+              "host": "127.0.0.1:64983",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/redirect/308/get",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-post-308",
+          "request": {
+            "body_base64": "c2luZ2xlPXN1Ym1pdA==",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "content-length": "13",
+              "content-type": "application/x-www-form-urlencoded",
+              "cookie": "root=new",
+              "host": "127.0.0.1:64983",
+              "user-agent": "ktor-client"
+            },
+            "method": "POST",
+            "target": "/redirect/308/post",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "utf8-body",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=new",
+              "host": "127.0.0.1:64983",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/utf8",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "binary-body",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=new",
+              "host": "127.0.0.1:64983",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/binary",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "explicit-user-agent",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=new",
+              "host": "127.0.0.1:64983",
+              "user-agent": "synthetic-reference/1.0"
+            },
+            "method": "GET",
+            "target": "/agent",
+            "version": "HTTP/1.1"
+          }
+        }
+      ],
+      "results": [
+        {
+          "body_base64": "b2s=",
+          "id": "form-encoding",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-seed",
+          "location": null,
+          "set_cookies": [
+            "root=old; Path=/; HttpOnly",
+            "scope=path; Path=/cookies",
+            "gone=old; Max-Age=0; Path=/",
+            "secret=tls-only; Secure; Path=/",
+            "bad=wrong-domain; Domain=other.invalid; Path=/"
+          ],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-path",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-boundary",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-rotate",
+          "location": null,
+          "set_cookies": [
+            "root=new; Path=/; HttpOnly",
+            "scope=deleted; Max-Age=0; Path=/cookies",
+            "expired=old; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"
+          ],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-after-rotate",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-get-302",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 302
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-post-302",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 302
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-get-303",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 303
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-post-303",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 303
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-get-307",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 307
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-post-307",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 307
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-get-308",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 308
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-post-308",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 308
+        },
+        {
+          "body_base64": "5L2g5aW977yM5Zu+5Lmm6aaG",
+          "id": "utf8-body",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "AP8NCg==",
+          "id": "binary-body",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "explicit-user-agent",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        }
+      ],
+      "source": "synthetic"
+    },
+    "differences": [
+      {
+        "case": "cookie-boundary",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=old",
+          "scope=path"
+        ],
+        "rust": [
+          "root=old"
+        ]
+      }
+    ],
+    "unexpected_differences": [],
+    "missing_policy_differences": [],
+    "full_parity": false,
+    "rust_regression_passed": true
+  },
+  "stage_reference": {
+    "webvpn": [
+      "SignedIn",
+      [
+        "CAS_GET:vpn",
+        "CAS_POST:vpn",
+        "CALLBACK:vpn",
+        "UC_ACTIVATE:vpn",
+        "UC_STATUS:vpn",
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "CALLBACK:vpn",
+        "UC_ACTIVATE:direct"
+      ]
+    ],
+    "ticket": [
+      "SignedIn",
+      [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "CALLBACK:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    ],
+    "uc_unavailable": [
+      "Error",
+      [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    ]
+  },
+  "stage_history": [
+    {
+      "version": "android-v0.1.0-beta.3",
+      "scenario": "ticket",
+      "result": "SignedIn",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "CALLBACK:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.3",
+      "scenario": "uc_unavailable",
+      "result": "Error",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.4",
+      "scenario": "ticket",
+      "result": "SignedIn",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "CALLBACK:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.4",
+      "scenario": "uc_unavailable",
+      "result": "Error",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.5",
+      "scenario": "ticket",
+      "result": "SignedIn",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "CALLBACK:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.5",
+      "scenario": "uc_unavailable",
+      "result": "SignedIn",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.6",
+      "scenario": "ticket",
+      "result": "Error",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.6",
+      "scenario": "uc_unavailable",
+      "result": "SignedIn",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.7",
+      "scenario": "ticket",
+      "result": "Error",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.7",
+      "scenario": "uc_unavailable",
+      "result": "Error",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "working-tree",
+      "scenario": "ticket",
+      "result": "SignedIn",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "CALLBACK:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "working-tree",
+      "scenario": "uc_unavailable",
+      "result": "Error",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    }
+  ]
+}

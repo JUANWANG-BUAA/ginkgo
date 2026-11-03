@@ -1,0 +1,65 @@
+
+android-v0.1.0-beta.3 32b6a1d604128cec39a93826da684d5054cb0ea6
+test services::tests::history_session_probe::history_session_observe_fallback ... OBS fallback login=SignedIn module=Ok route=WebVpn requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false", "MODULE:direct:cookie=false", "MODULE:vpn:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_gateway_mismatch ... OBS gateway_mismatch module=Ok route=WebVpn requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false", "MODULE:direct:cookie=false", "MODULE:vpn:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_ticket ... OBS ticket result=SignedIn requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "CALLBACK:direct:cookie=false", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_uc_unavailable ... OBS uc_unavailable result=Error::ServiceUnavailable requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false"]
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 383 filtered out; finished in 0.49s
+thread 'services::tests::history_session_probe::history_session_observe_gateway_mismatch' (2352382) panicked at crates/ginkgo_upstream/src/services/history_session_probe.rs:217:5:
+error: test failed, to rerun pass `-p ginkgo_upstream --lib`
+
+android-v0.1.0-beta.4 d9239139b51eda0b754873cb7df470c47a4399a2
+test services::tests::history_session_probe::history_session_observe_fallback ... OBS fallback login=SignedIn module=Error route=Automatic requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false", "MODULE:direct:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_gateway_mismatch ... OBS gateway_mismatch module=Error route=Automatic requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false", "MODULE:direct:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_ticket ... OBS ticket result=SignedIn requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "CALLBACK:direct:cookie=false", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_uc_unavailable ... OBS uc_unavailable result=Error::ServiceUnavailable requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false"]
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 385 filtered out; finished in 0.48s
+thread 'services::tests::history_session_probe::history_session_observe_fallback' (2353768) panicked at crates/ginkgo_upstream/src/services/history_session_probe.rs:174:5:
+error: test failed, to rerun pass `-p ginkgo_upstream --lib`
+
+android-v0.1.0-beta.5 3ac380db7ed4ac856073696eb5b0cdb2f50efb10
+test services::tests::history_session_probe::history_session_observe_fallback ... OBS fallback login=SignedIn module=Ok route=WebVpn requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false", "MODULE:direct:cookie=false", "MODULE:vpn:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_gateway_mismatch ... OBS gateway_mismatch module=Ok route=WebVpn requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false", "MODULE:direct:cookie=false", "MODULE:vpn:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_ticket ... OBS ticket result=SignedIn requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "CALLBACK:direct:cookie=false", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_uc_unavailable ... OBS uc_unavailable result=SignedIn requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false"]
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 385 filtered out; finished in 0.74s
+thread 'services::tests::history_session_probe::history_session_observe_gateway_mismatch' (2354803) panicked at crates/ginkgo_upstream/src/services/history_session_probe.rs:217:5:
+thread 'services::tests::history_session_probe::history_session_observe_uc_unavailable' (2354822) panicked at crates/ginkgo_upstream/src/services/history_session_probe.rs:194:5:
+error: test failed, to rerun pass `-p ginkgo_upstream --lib`
+
+android-v0.1.0-beta.6 5215a1bc96461f168ee228d32bd02e36cfc210df
+test services::tests::history_session_probe::history_session_observe_fallback ... OBS fallback login=SignedIn module=Ok route=WebVpn requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false", "MODULE:direct:cookie=false", "MODULE:vpn:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_gateway_mismatch ... OBS gateway_mismatch module=Ok route=WebVpn requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false", "MODULE:direct:cookie=false", "MODULE:vpn:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_ticket ... OBS ticket result=Error::SessionExpired requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_uc_unavailable ... OBS uc_unavailable result=SignedIn requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false"]
+test result: FAILED. 1 passed; 3 failed; 0 ignored; 0 measured; 386 filtered out; finished in 0.78s
+thread 'services::tests::history_session_probe::history_session_observe_gateway_mismatch' (2356655) panicked at crates/ginkgo_upstream/src/services/history_session_probe.rs:217:5:
+thread 'services::tests::history_session_probe::history_session_observe_ticket' (2356660) panicked at crates/ginkgo_upstream/src/services/history_session_probe.rs:146:5:
+thread 'services::tests::history_session_probe::history_session_observe_uc_unavailable' (2356661) panicked at crates/ginkgo_upstream/src/services/history_session_probe.rs:194:5:
+error: test failed, to rerun pass `-p ginkgo_upstream --lib`
+
+android-v0.1.0-beta.7 21f2957e079760dba14376de3551c0b6352d6b0d
+test services::tests::history_session_probe::history_session_observe_cold_boot ... OBS cold_boot login=SignedIn active_route=WebVpn saved_route=Automatic restored=SignedOut restore_requests=["UC_STATUS:direct:cookie=false"] record_remaining=false
+test services::tests::history_session_probe::history_session_observe_cold_boot_remembered ... OBS cold_boot_remembered restored=SignedIn restore_requests=["UC_STATUS:direct:cookie=false", "CAS_GET:direct:cookie=false", "CAS_GET:vpn:cookie=false", "CAS_POST:vpn:cookie=true", "UC_ACTIVATE:vpn:cookie=true", "UC_STATUS:vpn:cookie=true"]
+test services::tests::history_session_probe::history_session_observe_fallback ... OBS fallback login=SignedIn module=Ok route=WebVpn requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false", "MODULE:direct:cookie=false", "MODULE:vpn:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_gateway_mismatch ... OBS gateway_mismatch module=Ok route=WebVpn requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false", "MODULE:direct:cookie=false", "MODULE:vpn:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_ticket ... OBS ticket result=Error::SessionExpired requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_uc_unavailable ... OBS uc_unavailable result=Error::ServiceUnavailable requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false"]
+test result: FAILED. 2 passed; 4 failed; 0 ignored; 0 measured; 435 filtered out; finished in 1.56s
+thread 'services::tests::history_session_probe::history_session_observe_cold_boot' (2358327) panicked at crates/ginkgo_upstream/src/services/history_session_probe.rs:242:5:
+thread 'services::tests::history_session_probe::history_session_observe_cold_boot_remembered' (2358379) panicked at crates/ginkgo_upstream/src/services/history_session_probe.rs:265:5:
+thread 'services::tests::history_session_probe::history_session_observe_gateway_mismatch' (2358383) panicked at crates/ginkgo_upstream/src/services/history_session_probe.rs:217:5:
+thread 'services::tests::history_session_probe::history_session_observe_ticket' (2358385) panicked at crates/ginkgo_upstream/src/services/history_session_probe.rs:146:5:
+error: test failed, to rerun pass `-p ginkgo_upstream --lib`
+
+working-tree uncommitted local sources
+test services::tests::history_session_probe::history_session_observe_checkin_direct_failure ... OBS checkin_direct_failure error=Some(ChangedResponse) status=SessionStatus { account: Some("sy2501001"), profile: Some(UserProfile { school_id: "sy2501001", name: "fixture" }), route: Automatic } requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false", "CHECKIN_ENTRY:direct:cookie=false", "UC_STATUS:vpn:cookie=false", "CHECKIN_ENTRY:vpn:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_cold_boot ... OBS cold_boot login=SignedIn active_route=WebVpn saved_route=WebVpn restored=SignedIn restore_requests=["UC_STATUS:vpn:cookie=true"] record_remaining=true
+test services::tests::history_session_probe::history_session_observe_cold_boot_remembered ... OBS cold_boot_remembered restored=SignedIn restore_requests=["UC_STATUS:vpn:cookie=true"]
+test services::tests::history_session_probe::history_session_observe_fallback ... OBS fallback login=SignedIn module=Ok route=WebVpn requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false", "MODULE:direct:cookie=false", "UC_STATUS:vpn:cookie=false", "MODULE:vpn:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_gateway_mismatch ... OBS gateway_mismatch module=Error route=Direct requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false", "MODULE:direct:cookie=false", "UC_STATUS:vpn:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_ticket ... OBS ticket result=SignedIn requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "CALLBACK:direct:cookie=false", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false"]
+test services::tests::history_session_probe::history_session_observe_uc_unavailable ... OBS uc_unavailable result=Error::ServiceUnavailable requests=["CAS_GET:direct:cookie=false", "CAS_POST:direct:cookie=true", "UC_ACTIVATE:direct:cookie=false", "UC_STATUS:direct:cookie=false"]
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 459 filtered out; finished in 0.12s
+
+Observations matched the recorded matrix; the listed assertion failures are observed defects or behavior differences, not product test passes.

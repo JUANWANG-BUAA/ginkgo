@@ -28,7 +28,9 @@ pub async fn resolve_login_name<T: HttpTransport>(
         if let Some(login_name) = checkin::login_name_from_url(&url) {
             return Ok(login_name);
         }
-        let response = session.send_with_fallback(HttpRequest::get(&url)).await?;
+        let response = session
+            .send_with_fallback(HttpRequest::get(&url).header("Accept", "application/json"))
+            .await?;
         if let Some(login_name) = checkin::login_name_from_url(&response.final_url) {
             return Ok(login_name);
         }
@@ -69,8 +71,7 @@ pub async fn app_login<T: HttpTransport>(
     session: &Session<T>,
     login_name: &str,
 ) -> Result<IClassSession, AppError> {
-    let request = HttpRequest::get(app_login_url(login_name)?)
-        .header("Accept", "application/json, text/plain, */*");
+    let request = HttpRequest::get(app_login_url(login_name)?).header("Accept", "application/json");
     let response = session.send_with_fallback(request).await?;
     classify_json(&response)?;
     let value = serde_json::from_str(&response.body).map_err(|_| AppError::changed())?;
@@ -91,7 +92,7 @@ pub async fn course_schedule<T: HttpTransport>(
         .append_pair("dateStr", date);
     let request = HttpRequest::get(url.to_string())
         .header("sessionId", &iclass.session_id)
-        .header("Accept", "application/json, text/plain, */*");
+        .header("Accept", "application/json");
     let response = session.send_with_fallback(request).await?;
     classify_json(&response)?;
     let value = serde_json::from_str(&response.body).map_err(|_| AppError::changed())?;

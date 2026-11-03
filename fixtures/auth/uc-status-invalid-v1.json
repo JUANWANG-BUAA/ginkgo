@@ -3,7 +3,7 @@
   "version": 1,
   "source": "synthetic",
   "input": {
-    "body": "{\"code\":1,\"data\":null}"
+    "body": "{\"code\":10600,\"data\":null}"
   },
   "expected": {
     "valid": false

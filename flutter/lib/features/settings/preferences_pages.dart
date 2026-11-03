@@ -111,11 +111,27 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
   String permission = 'loading';
   String? notice;
   bool busy = false;
+  int permissionRevision = 0;
+  int serviceGeneration = 0;
+
+  bool currentService(int generation) =>
+      mounted && generation == serviceGeneration;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    refresh();
+  }
+
+  @override
+  void didUpdateWidget(SystemPreferencesPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service == widget.service) return;
+    serviceGeneration++;
+    permission = 'loading';
+    notice = null;
+    busy = false;
     refresh();
   }
 
@@ -131,37 +147,54 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
   }
 
   Future<void> refresh() async {
+    // A resume event can arrive before the permission dialog returns. Its
+    // read must not publish an older state over the user's request result.
+    if (busy) return;
+    final revision = ++permissionRevision;
     try {
       final value = await widget.service.notificationPermission();
-      if (mounted) setState(() => permission = value);
+      if (mounted && revision == permissionRevision) {
+        setState(() => permission = value);
+      }
     } catch (_) {
-      if (mounted) setState(() => permission = 'unknown');
+      if (mounted && revision == permissionRevision) {
+        setState(() => permission = 'unknown');
+      }
     }
   }
 
   Future<void> request() async {
     if (busy) return;
+    final generation = serviceGeneration;
+    final service = widget.service;
+    final reminders = ReminderScope.of(context);
+    permissionRevision++;
     setState(() => busy = true);
     try {
-      final value = await widget.service.requestNotifications();
-      if (mounted) {
+      final value = await service.requestNotifications();
+      if (currentService(generation)) {
         setState(() => permission = value);
-        await ReminderScope.of(context)?.reschedule();
+        await reminders?.reschedule();
       }
     } catch (_) {
-      if (mounted) setState(() => notice = '未能请求通知权限，请到系统设置查看');
+      if (currentService(generation)) {
+        setState(() => notice = '未能请求通知权限，请到系统设置查看');
+      }
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (currentService(generation)) setState(() => busy = false);
     }
   }
 
   Future<void> open(Future<bool> Function() action) async {
+    final generation = serviceGeneration;
     try {
       if (await action()) return;
     } catch (_) {
       // Present a fixed message, never a platform exception or device data.
     }
-    if (mounted) setState(() => notice = '未能打开系统设置，请从系统的应用信息页进入');
+    if (currentService(generation)) {
+      setState(() => notice = '未能打开系统设置，请从系统的应用信息页进入');
+    }
   }
 
   @override
@@ -309,7 +342,9 @@ class PrivacyPage extends StatelessWidget {
           ),
           AppleListTile(
             title: Text('学校会话'),
-            subtitle: Text('Cookie 和各业务系统的短期令牌只保存在本机内存。会话失效时可能需要重新登录或验证码。'),
+            subtitle: Text(
+              'Android 会在本机加密保存短期学校会话，恢复前重新验证。业务令牌仅在内存；退出登录会清除会话。会话失效时可能需要重新登录或验证码。',
+            ),
           ),
         ],
       ),
