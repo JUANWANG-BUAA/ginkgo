@@ -35,7 +35,12 @@ pub(super) async fn login(
 pub(super) async fn restore_session() -> SessionResponse {
     match with_session_write(|| async {
         if SERVICE.get().is_none() {
-            match ginkgo_runtime::has_saved_accounts() {
+            let has_saved =
+                match tokio::task::spawn_blocking(ginkgo_runtime::has_saved_accounts).await {
+                    Ok(result) => result,
+                    Err(_) => Err(AppError::credential_store()),
+                };
+            match has_saved {
                 Ok(false) => return Ok(signed_out()),
                 Ok(true) => {}
                 Err(error) => return Err(error),
@@ -106,7 +111,7 @@ pub(super) async fn set_route(route: RouteChoice) -> SessionResponse {
         RouteChoice::WebVpn => ginkgo_core::application::RoutePreference::WebVpn,
     };
     match with_session_write(|| async {
-        service.set_route(preference);
+        service.apply_route_change(preference).await?;
         Ok(status_response(service.status()))
     })
     .await

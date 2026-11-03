@@ -3,14 +3,15 @@
 //! Production implementations live in [`super::platform`]; the in-memory vault
 //! exists so mock-HTTP tests can exercise login and recovery without touching
 //! a real keychain.
-use super::{CredentialSource, CredentialVault, Credentials};
+use super::{session::PersistedSession, CredentialSource, CredentialVault, Credentials};
 use crate::foundation::mutex::Mutex;
 use crate::AppError;
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, sync::Arc};
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct MemoryVault {
-    entries: Mutex<BTreeMap<String, Credentials>>,
+    entries: Arc<Mutex<BTreeMap<String, Credentials>>>,
+    session: Arc<Mutex<Option<PersistedSession>>>,
 }
 
 impl MemoryVault {
@@ -46,6 +47,24 @@ impl CredentialVault for MemoryVault {
 
     fn accounts(&self) -> Result<Vec<String>, AppError> {
         Ok(self.names())
+    }
+
+    fn save_session(&self, session: &PersistedSession) -> Result<(), AppError> {
+        *self.session.lock() = Some(session.clone());
+        Ok(())
+    }
+
+    fn load_session(&self) -> Result<Option<PersistedSession>, AppError> {
+        Ok(self.session.lock().clone())
+    }
+
+    fn delete_session(&self) -> Result<(), AppError> {
+        *self.session.lock() = None;
+        Ok(())
+    }
+
+    fn has_session(&self) -> Result<bool, AppError> {
+        Ok(self.session.lock().is_some())
     }
 }
 

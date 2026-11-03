@@ -26,7 +26,7 @@
 - [mod](#mod) (2)
 - [notices](#notices) (1)
 - [query_snapshots](#querysnapshots) (2)
-- [session](#session) (8)
+- [session](#session) (11)
 - [shuttle](#shuttle) (1)
 - [tasks_service](#tasksservice) (2)
 - [cgyy_pending_store](#cgyypendingstore) (6)
@@ -252,20 +252,26 @@
 
 - `pub async fn login_challenge( &self, expected_id: Option<&str>, refresh: bool, ) -> Result<ginkgo_domain::ports::LoginChallengeData, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:5</sub>
-- `pub fn status(&self) -> SessionStatus {…}`
+- `pub async fn gateway_challenge( &self, expected_id: Option<&str>, refresh: bool, ) -> Result<Option<ginkgo_domain::ports::LoginChallengeData>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:13</sub>
-- `pub fn set_route(&self, preference: RoutePreference) {…}`
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:16</sub>
-- `pub async fn sign_in( &self, account: &str, password: &str, captcha: Option<&str>, remember: bool, ) -> Result<SessionOutcome, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:19</sub>
-- `pub async fn restore(&self) -> Result<SessionOutcome, AppError> {…}`
+- `pub async fn resume_gateway_login( &self, expected_id: &str, answer: &str, ) -> Result<(), AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:20</sub>
+- `pub fn status(&self) -> SessionStatus {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:30</sub>
-- `pub async fn sign_out(&self) {…}`
+- `pub fn set_route(&self, preference: RoutePreference) {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:33</sub>
+- `pub async fn apply_route_change(&self, preference: RoutePreference) -> Result<(), AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:36</sub>
+- `pub async fn sign_in( &self, account: &str, password: &str, captcha: Option<&str>, remember: bool, ) -> Result<SessionOutcome, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:39</sub>
+- `pub async fn restore(&self) -> Result<SessionOutcome, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:50</sub>
+- `pub async fn sign_out(&self) {…}`
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:53</sub>
 - `pub async fn purge_credentials(&self) {…}` — Second sign-out step: delete saved passwords. Deliberately separate so
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:38</sub>
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:58</sub>
 - `pub fn clear_snapshots(&self) {…}`
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:41</sub>
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:61</sub>
 
 ## shuttle
 

@@ -7,7 +7,7 @@
 
 ## 目录
 
-- [application/auth_challenge.dart](#applicationauthchallengedart) (2)
+- [application/auth_challenge.dart](#applicationauthchallengedart) (3)
 - [application/busy_gate.dart](#applicationbusygatedart) (1)
 - [application/bykc.dart](#applicationbykcdart) (12)
 - [application/campus_activities.dart](#applicationcampusactivitiesdart) (4)
@@ -19,6 +19,7 @@
 - [application/environment.dart](#applicationenvironmentdart) (1)
 - [application/failure_message.dart](#applicationfailuremessagedart) (2)
 - [application/file_actions.dart](#applicationfileactionsdart) (5)
+- [application/gateway_verification_failure.dart](#applicationgatewayverificationfailuredart) (1)
 - [application/graduate.dart](#applicationgraduatedart) (8)
 - [application/graduate_credit_map.dart](#applicationgraduatecreditmapdart) (9)
 - [application/homework_files.dart](#applicationhomeworkfilesdart) (7)
@@ -37,6 +38,7 @@
 - [application/notices.dart](#applicationnoticesdart) (2)
 - [application/platform_actions.dart](#applicationplatformactionsdart) (1)
 - [application/query_snapshots.dart](#applicationquerysnapshotsdart) (2)
+- [application/read_deadline.dart](#applicationreaddeadlinedart) (1)
 - [application/refresh_section.dart](#applicationrefreshsectiondart) (2)
 - [application/reminder_planning.dart](#applicationreminderplanningdart) (11)
 - [application/reminder_platform.dart](#applicationreminderplatformdart) (1)
@@ -53,6 +55,10 @@
 - `abstract interface class AuthChallengeGateway`
   <sub>class · application/auth_challenge.dart:17</sub>
     - `Future<LoginChallenge> loginChallenge({ String? expectedId, bool refresh = false, });` — Read the current pending challenge, or explicitly replace its login page.  <sub>:20</sub>
+- `abstract interface class GatewayVerificationGateway` — Gateway verification is independent of the main school login form.
+  <sub>class · application/auth_challenge.dart:27</sub>
+    - `Future<LoginChallenge?> gatewayChallenge({ String? expectedId, bool refresh = false, });`  <sub>:28</sub>
+    - `Future<void> answerGatewayChallenge({ required String expectedId, required String answer, });`  <sub>:32</sub>
 
 ## application/busy_gate.dart
 
@@ -237,6 +243,12 @@
     - `final Future<FileOpenStatus> Function()? _opener;`  <sub>:36</sub>
     - `bool get canOpen => …`  <sub>:37</sub>
     - `Future<FileOpenStatus> open() async => …`  <sub>:38</sub>
+
+## application/gateway_verification_failure.dart
+
+- `class GatewayVerificationException implements Exception` — Typed failure preserves school rejection, expiry and transport distinctions.
+  <sub>class · application/gateway_verification_failure.dart:4</sub>
+    - `const GatewayVerificationException(this.failure);`  <sub>:5</sub>
 
 ## application/graduate.dart
 
@@ -611,17 +623,25 @@
     - `Future<LearningSnapshotStatus> learningSnapshotStatus();`  <sub>:12</sub>
     - `Future<LearningSnapshotStatus> setLearningSnapshotsEnabled(bool enabled);` — User must explicitly confirm saving private learning metadata first.  <sub>:15</sub>
 
+## application/read_deadline.dart
+
+- `class ReadDeadline<T>` — Bounds a presentation read without cancelling or replaying its native call.
+  <sub>class · application/read_deadline.dart:6</sub>
+    - `Future<T> get result => …`  <sub>:27</sub>
+    - `void discard() => …` — Releases an obsolete caller. The underlying native read still runs.  <sub>:36</sub>
+    - `void stopTimer() => …` — Keep waiting for an already submitted write's ordered readback after its  <sub>:40</sub>
+
 ## application/refresh_section.dart
 
 - `class SectionResult<T>` — A presentation result, including a usable stale value when refresh failed.
-  <sub>class · application/refresh_section.dart:8</sub>
-    - `const SectionResult({this.value, this.error, this.failure});`  <sub>:9</sub>
+  <sub>class · application/refresh_section.dart:9</sub>
+    - `const SectionResult({this.value, this.error, this.failure});`  <sub>:10</sub>
 - `class RefreshSection<T> extends ChangeNotifier` — Independent section refreshes preserve content and join overlapping reads.
-  <sub>class · application/refresh_section.dart:21</sub>
-    - `bool loading = false;`  <sub>:37</sub>
-    - `void invalidate() => …` — Drops every in-flight read at its next await: call when the account or  <sub>:47</sub>
-    - `Future<void> refresh( Future<SectionResult<T>> Function() read, { required String fallbackError, bool force = false, }) {…}` — A plain refresh joins the in-flight read. A forced refresh is never  <sub>:52</sub>
-    - `void dispose() {…}`  <sub>:148</sub>
+  <sub>class · application/refresh_section.dart:22</sub>
+    - `bool loading = false;`  <sub>:38</sub>
+    - `void invalidate() {…}` — Drops every in-flight read at its next await: call when the account or  <sub>:48</sub>
+    - `Future<void> refresh( Future<SectionResult<T>> Function() read, { required String fallbackError, bool force = false, }) {…}` — A plain refresh joins the in-flight read. A forced refresh is never  <sub>:56</sub>
+    - `void dispose() {…}`  <sub>:144</sub>
 
 ## application/reminder_planning.dart
 
@@ -678,9 +698,9 @@
 ## application/service_capabilities.dart
 
 - `class ServiceCapabilities` — Optional capabilities of the injected service, resolved once.
-  <sub>class · application/service_capabilities.dart:15</sub>
-    - `const ServiceCapabilities({ this.academic, this.careerEvents, this.campusActivities, this.courseAnnouncement, this.courseAssessment, this.courseLearningContext, this.courseResource, this.cgyyBooking, this.graduateCreditMap, this.learningCourse, this.learningSnapshots, this.libraryLoans, this.libraryLoansOfficial, this.campusCard, this.reminderPlanning, this.studentServiceLinks, });`  <sub>:16</sub>
-    - `static ServiceCapabilities resolve(MirrorService service) => …` — The composition root resolves every optional capability exactly once, so  <sub>:86</sub>
+  <sub>class · application/service_capabilities.dart:16</sub>
+    - `const ServiceCapabilities({ this.academic, this.gatewayVerification, this.careerEvents, this.campusActivities, this.courseAnnouncement, this.courseAssessment, this.courseLearningContext, this.courseResource, this.cgyyBooking, this.graduateCreditMap, this.learningCourse, this.learningSnapshots, this.libraryLoans, this.libraryLoansOfficial, this.campusCard, this.reminderPlanning, this.studentServiceLinks, });`  <sub>:17</sub>
+    - `static ServiceCapabilities resolve(MirrorService service) => …` — The composition root resolves every optional capability exactly once, so  <sub>:91</sub>
 
 ## application/shuttle.dart
 

@@ -8,7 +8,7 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 ## 目录
 
 - [academic](#academic) (5)
-- [auth_challenge](#authchallenge) (2)
+- [auth_challenge](#authchallenge) (5)
 - [bykc](#bykc) (6)
 - [checkin](#checkin) (3)
 - [classroom](#classroom) (1)
@@ -52,6 +52,14 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
     - `failure: Option<FailureCode>`  <sub>:9</sub>
 - `pub async fn load_login_challenge( expected_id: Option<String>, refresh: bool, ) -> LoginChallengeResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/auth_challenge.rs:12</sub>
+- `pub async fn load_gateway_challenge( expected_account: String, expected_id: Option<String>, refresh: bool, ) -> LoginChallengeResponse {…}` — Empty challenge fields with no failure mean there is no pending challenge.
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/auth_challenge.rs:41</sub>
+- `pub struct GatewayVerificationResponse`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live/auth_challenge.rs:77</sub>
+    - `verified: bool`  <sub>:78</sub>
+    - `failure: Option<FailureCode>`  <sub>:79</sub>
+- `pub async fn resume_gateway_login( expected_account: String, expected_id: String, answer: String, ) -> GatewayVerificationResponse {…}` — One explicit answer, bound to the current challenge; never retried here.
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/auth_challenge.rs:83</sub>
 
 ## bykc
 
@@ -249,13 +257,13 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 - `pub(super) async fn restore_session() -> SessionResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:35</sub>
 - `pub(super) async fn sign_out() -> SessionResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:72</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:77</sub>
 - `pub(super) async fn set_route(route: RouteChoice) -> SessionResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:98</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:103</sub>
 - `pub(super) async fn clear_cache() -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:119</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:124</sub>
 - `pub(super) fn verify_credential_storage(account: String, secret: String) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:132</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs:137</sub>
 
 ## utilities
 

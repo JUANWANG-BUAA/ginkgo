@@ -51,6 +51,16 @@ class HangingBookingsService extends ProgressiveLibraryService {
 }
 
 void main() {
+  test('disposed library controller cannot start a new write', () async {
+    final service = MutationLibraryService();
+    final controller = LibraryController(service)..dispose();
+    final task = controller.perform(
+      libraryBookingsFixture.bookings.single,
+      'cancel',
+    );
+    expect(service.writes, 0);
+    await task;
+  });
   test(
     'post-write readback waits for older reads and survives page disposal',
     () async {

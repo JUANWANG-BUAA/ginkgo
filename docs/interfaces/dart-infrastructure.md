@@ -26,7 +26,7 @@ native/demo 适配器、运行时与持久化实现。
 - [infrastructure/local_tasks_decode.dart](#infrastructurelocaltasksdecodedart) (1)
 - [infrastructure/maintenance_service.dart](#infrastructuremaintenanceservicedart) (1)
 - [infrastructure/mirror_runtime.dart](#infrastructuremirrorruntimedart) (1)
-- [infrastructure/native_auth_challenge.dart](#infrastructurenativeauthchallengedart) (2)
+- [infrastructure/native_auth_challenge.dart](#infrastructurenativeauthchallengedart) (3)
 - [infrastructure/native_campus_activities.dart](#infrastructurenativecampusactivitiesdart) (2)
 - [infrastructure/native_career.dart](#infrastructurenativecareerdart) (2)
 - [infrastructure/native_learning.dart](#infrastructurenativelearningdart) (1)
@@ -208,11 +208,15 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/native_auth_challenge.dart
 
 - `class NativeAuthChallengeGateway implements AuthChallengeGateway`
-  <sub>class · infrastructure/native_auth_challenge.dart:8</sub>
-    - `const NativeAuthChallengeGateway();`  <sub>:9</sub>
-    - `Future<LoginChallenge> loginChallenge({ String? expectedId, bool refresh = false, }) async {…}`  <sub>:12</sub>
+  <sub>class · infrastructure/native_auth_challenge.dart:10</sub>
+    - `const NativeAuthChallengeGateway();`  <sub>:11</sub>
+    - `Future<LoginChallenge> loginChallenge({ String? expectedId, bool refresh = false, }) async {…}`  <sub>:14</sub>
 - `LoginChallenge decodeLoginChallenge(live.LoginChallengeResponse response) {…}`
-  <sub>function · infrastructure/native_auth_challenge.dart:23</sub>
+  <sub>function · infrastructure/native_auth_challenge.dart:25</sub>
+- `mixin NativeGatewayVerification implements GatewayVerificationGateway`
+  <sub>mixin · infrastructure/native_auth_challenge.dart:70</sub>
+    - `Future<LoginChallenge?> gatewayChallenge({ String? expectedId, bool refresh = false, }) async {…}`  <sub>:79</sub>
+    - `Future<void> answerGatewayChallenge({ required String expectedId, required String answer, }) async {…}`  <sub>:98</sub>
 
 ## infrastructure/native_campus_activities.dart
 
@@ -247,7 +251,7 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/native_mirror_service.dart
 
 - `final class NativeMirrorService`
-  <sub>class · infrastructure/native_mirror_service.dart:44</sub>
+  <sub>class · infrastructure/native_mirror_service.dart:46</sub>
 
 ## infrastructure/native_reminder_planning.dart
 

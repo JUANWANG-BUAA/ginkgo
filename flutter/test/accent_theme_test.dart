@@ -88,6 +88,8 @@ void main() {
           // Safety marker, not a display setting: it stops a saved session
           // from auto-restoring after an explicit sign-out.
           'explicitSignOut',
+          // Chosen on the login page and applied before the next restore.
+          'routeMode',
         });
         prefs.dispose();
         restored.dispose();

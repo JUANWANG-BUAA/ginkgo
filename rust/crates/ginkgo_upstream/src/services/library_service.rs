@@ -67,6 +67,10 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         };
         let routed_cas_expired = is_library_login_error(&first)
             && self.session.route() == crate::auth::session::RouteMode::WebVpn;
+        if is_library_login_error(&first) && !routed_cas_expired {
+            self.silent_login().await?;
+            return library_http::login(&self.session).await;
+        }
         if first.detail.as_deref() != Some("webvpn_login_required") && !routed_cas_expired {
             return Err(first);
         }

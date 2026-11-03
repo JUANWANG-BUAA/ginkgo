@@ -26,11 +26,16 @@ class LibraryPage extends StatefulWidget {
 }
 
 class _LibraryPageState extends State<LibraryPage> {
-  late final LibraryController controller;
+  late LibraryController controller;
+  bool confirming = false;
 
   @override
   void initState() {
     super.initState();
+    _attach();
+  }
+
+  void _attach() {
     controller = LibraryController(widget.service)..addListener(_changed);
     controller.loadBookings();
   }
@@ -38,7 +43,11 @@ class _LibraryPageState extends State<LibraryPage> {
   @override
   void didUpdateWidget(LibraryPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.service != widget.service) controller.invalidate();
+    if (oldWidget.service != widget.service) {
+      controller.removeListener(_changed);
+      controller.dispose();
+      _attach();
+    }
   }
 
   void _changed() => setState(() {});
@@ -51,19 +60,47 @@ class _LibraryPageState extends State<LibraryPage> {
   }
 
   Future<void> perform(LibraryBooking booking, String action) async {
-    if (controller.submitting) return;
+    final current = controller;
+    if (confirming ||
+        current.submitting ||
+        current.loadingBookings ||
+        current.bookingError != null ||
+        current.bookings?.stale == true) {
+      return;
+    }
+    final revision = current.bookingRevision;
     final label = libraryActionLabel(action);
     final key = '${booking.id}/$action';
-    if (controller.uncertainActions.contains(key)) return;
-    final confirmed = await confirmMutation(
-      context,
-      title: '确认$label？',
-      detail:
-          '${booking.title}\n${booking.day} ${booking.startTime}–${booking.endTime}',
-      action: label,
-      destructive: action == 'cancel' || action == 'checkout',
-    );
-    if (confirmed && mounted) await controller.perform(booking, action);
+    if (current.uncertainActions.contains(key)) return;
+    confirming = true;
+    bool confirmed;
+    try {
+      confirmed = await confirmMutation(
+        context,
+        title: '确认$label？',
+        detail:
+            '${booking.title}\n${booking.day} ${booking.startTime}–${booking.endTime}',
+        action: label,
+        destructive: action == 'cancel' || action == 'checkout',
+      );
+    } finally {
+      confirming = false;
+    }
+    if (confirmed &&
+        mounted &&
+        identical(controller, current) &&
+        revision == current.bookingRevision &&
+        !current.loadingBookings &&
+        current.bookingError == null &&
+        current.bookings?.stale != true &&
+        (current.bookings?.bookings.any(
+              (value) =>
+                  value.id == booking.id &&
+                  (value.actions?.contains(action) ?? false),
+            ) ??
+            false)) {
+      await current.perform(booking, action);
+    }
   }
 
   void _push(Widget page) {
@@ -303,6 +340,9 @@ class _LibraryPageState extends State<LibraryPage> {
                       tint: libraryActionTint(action),
                       onPressed:
                           controller.submitting ||
+                              controller.loadingBookings ||
+                              controller.bookingError != null ||
+                              controller.bookings?.stale == true ||
                               controller.uncertainActions.contains(
                                 '${booking.id}/$action',
                               )

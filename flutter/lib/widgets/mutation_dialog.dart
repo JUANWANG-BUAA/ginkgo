@@ -6,6 +6,7 @@ Future<bool> confirmMutation(
   required String detail,
   required String action,
   bool destructive = false,
+  String cancelLabel = '返回',
 }) async =>
     await showCupertinoDialog<bool>(
       context: context,
@@ -14,13 +15,21 @@ Future<bool> confirmMutation(
         content: Text(detail),
         actions: [
           CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('返回'),
+            onPressed: () {
+              if (ModalRoute.of(context)?.isCurrent ?? false) {
+                Navigator.pop(context, false);
+              }
+            },
+            child: Text(cancelLabel),
           ),
           CupertinoDialogAction(
             isDestructiveAction: destructive,
             isDefaultAction: !destructive,
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () {
+              if (ModalRoute.of(context)?.isCurrent ?? false) {
+                Navigator.pop(context, true);
+              }
+            },
             child: Text(action),
           ),
         ],

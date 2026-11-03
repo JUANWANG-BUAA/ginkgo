@@ -9,6 +9,7 @@ pub(crate) fn resolve_get(location: &str, base: &str) -> Result<String, AppError
     let target = webvpn::resolve_redirect(location, base).ok_or_else(AppError::changed)?;
     let parsed = url::Url::parse(&target).map_err(|_| AppError::changed())?;
     if parsed.scheme() == "https" {
+        reject_reported_error(&target)?;
         return Ok(target);
     }
     let legacy = target
@@ -20,12 +21,30 @@ pub(crate) fn resolve_get(location: &str, base: &str) -> Result<String, AppError
         });
     if parsed.scheme() == "http" && legacy && parsed.path() == "/login" {
         let (_, rest) = target.split_once(':').ok_or_else(AppError::changed)?;
-        return Ok(format!("https:{rest}"));
+        let secure = format!("https:{rest}");
+        reject_reported_error(&secure)?;
+        return Ok(secure);
     }
     Err(AppError::with_detail(
         ErrorCode::ChangedResponse,
         "insecure_redirect",
     ))
+}
+
+/// A reported authentication error is not a successful service redirect.
+/// Inspect it before requesting a target, including during UC activation.
+pub(crate) fn reject_reported_error(target: &str) -> Result<(), AppError> {
+    let url = url::Url::parse(target).map_err(|_| AppError::changed())?;
+    if let Some((_, message)) = url
+        .query_pairs()
+        .find(|(name, value)| name == "exception.message" && !value.is_empty())
+    {
+        return Err(AppError::with_detail(
+            ErrorCode::PreLoginTip,
+            message.into_owned(),
+        ));
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -75,5 +94,19 @@ mod tests {
                 "must not allow {target}"
             );
         }
+    }
+    #[test]
+    fn reported_errors_are_checked_after_unwrapping_and_only_decoded_once() {
+        let target = "https://uc.buaa.edu.cn/error?exception.message=&exception.message=fixture%2Brefusal%252Bdetail";
+        for location in [target.to_owned(), webvpn::wrap(target).unwrap()] {
+            let error = resolve_get(&location, "https://sso.buaa.edu.cn/login").unwrap_err();
+            assert_eq!(error.code, ErrorCode::PreLoginTip);
+            assert_eq!(error.detail.as_deref(), Some("fixture+refusal%2Bdetail"));
+        }
+        let empty = "https://uc.buaa.edu.cn/cb?exception.message=&ticket=ST-synthetic";
+        assert_eq!(
+            resolve_get(empty, "https://sso.buaa.edu.cn/login").unwrap(),
+            empty
+        );
     }
 }

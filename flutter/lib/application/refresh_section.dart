@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/diagnostic_log.dart';
+import 'package:ginkgo_mirror/application/read_deadline.dart';
 
 /// A presentation result, including a usable stale value when refresh failed.
 class SectionResult<T> {
@@ -39,12 +40,15 @@ class RefreshSection<T> extends ChangeNotifier {
   Future<void>? _task;
   Future<void>? _forcedRun;
   int _generation = 0;
-  Timer? _stall;
+  ReadDeadline<SectionResult<T>>? _deadline;
 
   /// Drops every in-flight read at its next await: call when the account or
   /// service generation behind [read] changes, so a late response from the
   /// previous context never lands. Follow with a forced refresh.
-  void invalidate() => _generation++;
+  void invalidate() {
+    _generation++;
+    _deadline?.discard();
+  }
 
   /// A plain refresh joins the in-flight read. A forced refresh is never
   /// merged away: when one arrives while a (typically cached) read runs, it
@@ -57,7 +61,7 @@ class RefreshSection<T> extends ChangeNotifier {
     final inFlight = _task;
     // Invalidated and stalled slots belong to an abandoned context. They must
     // not capture a new read, and their completion must not clear the new slot.
-    if (inFlight == null || _isStalled || _taskGeneration != _generation) {
+    if (inFlight == null || _taskGeneration != _generation) {
       _forcedRun = null;
       return _start(read, fallbackError);
     }
@@ -73,13 +77,12 @@ class RefreshSection<T> extends ChangeNotifier {
   ) {
     final taskGeneration = _generation;
     _taskGeneration = taskGeneration;
-    return _task = _refresh(read, fallbackError).whenComplete(() {
-      if (_taskGeneration == taskGeneration) _task = null;
+    late final Future<void> task;
+    task = _refresh(read, fallbackError).whenComplete(() {
+      if (identical(_task, task)) _task = null;
     });
+    return _task = task;
   }
-
-  /// Whether the last read hit [stallDeadline] and was discarded.
-  bool _isStalled = false;
 
   Future<void> _chainForced(
     Future<SectionResult<T>> Function() read,
@@ -107,25 +110,18 @@ class RefreshSection<T> extends ChangeNotifier {
   ) async {
     if (_disposed) return;
     final epoch = _generation;
-    _isStalled = false;
     loading = true;
     error = null;
     failure = null;
     notifyListeners();
-    // The read itself is not cancelled (a native command cannot be); only the
-    // caller stops waiting and its late result is discarded via the epoch.
-    _stall?.cancel();
-    final stall = Timer(stallDeadline, () {
-      if (_disposed || epoch != _generation || !loading) return;
-      _generation++;
-      _isStalled = true;
-      loading = false;
-      error = fallbackError;
-      notifyListeners();
-    });
-    _stall = stall;
+    _deadline?.discard();
+    final deadline = ReadDeadline<SectionResult<T>>(
+      Future.sync(read),
+      stallDeadline,
+    );
+    _deadline = deadline;
     try {
-      final result = await read();
+      final result = await deadline.result;
       if (_disposed || epoch != _generation) return;
       if (result.value != null) value = result.value;
       error = result.error;
@@ -135,8 +131,8 @@ class RefreshSection<T> extends ChangeNotifier {
       DiagnosticLog.shared.record(null, showHint: false);
       error = fallbackError;
     } finally {
-      stall.cancel();
-      if (identical(_stall, stall)) _stall = null;
+      deadline.stopTimer();
+      if (identical(_deadline, deadline)) _deadline = null;
       if (!_disposed && epoch == _generation) {
         loading = false;
         notifyListeners();
@@ -147,8 +143,8 @@ class RefreshSection<T> extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
-    _stall?.cancel();
-    _stall = null;
+    _deadline?.discard();
+    _deadline = null;
     super.dispose();
   }
 }

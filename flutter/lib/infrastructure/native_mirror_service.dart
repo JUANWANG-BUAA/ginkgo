@@ -1,3 +1,5 @@
+import 'native_auth_challenge.dart';
+
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -48,7 +50,8 @@ final class NativeMirrorService
         NativeCampusActivities,
         NativeReminderPlanning,
         NativeLibraryLoans,
-        NativeLearningSnapshots
+        NativeLearningSnapshots,
+        NativeGatewayVerification
     implements
         MirrorService,
         CgyyBookingGateway,

@@ -1,8 +1,8 @@
 # Ginkgo 接口索引
 
-更新：2026-10-31。本文是 **Android（Flutter + Rust）全链路接口的单一索引**：按层次列出每个接口的标识、功能、输入、输出、副作用与源码位置，用于快速定位「某个能力从界面一路走到学校协议」的完整路径。
+更新：2026-11-02。本文是 **Android（Flutter + Rust）全链路接口的单一索引**：按层次列出每个接口的标识、功能、输入、输出、副作用与源码位置，用于快速定位「某个能力从界面一路走到学校协议」的完整路径。
 
-本文只做索引与契约说明，不重复上游协议事实。URL、参数、成功码、证据等级以 [API.md](API.md) 为唯一来源；用户能做什么、读写边界与本机数据见 [FEATURES-AND-PROTOCOLS.md](FEATURES-AND-PROTOCOLS.md)；分层职责见 [MIRROR-ARCHITECTURE.md](MIRROR-ARCHITECTURE.md)。
+当前变更必须同步 [协议锁](protocol-contracts.json)，发布另受 [强制验收契约](ANDROID-RELEASE-CONTRACT.md) 约束。本文只做索引与契约说明，不重复上游协议事实。URL、参数、成功码、证据等级以 [API.md](API.md) 为唯一来源；用户能做什么、读写边界与本机数据见 [FEATURES-AND-PROTOCOLS.md](FEATURES-AND-PROTOCOLS.md)；分层职责见 [MIRROR-ARCHITECTURE.md](MIRROR-ARCHITECTURE.md)。
 
 ## 1. 怎么读这份文档
 
@@ -70,6 +70,12 @@ Flutter 页面
 - 粗粒度命令 → [§6](#6-ffi-命令层)。
 - 投影 / 演示同形 → [§7](#7-flutter-应用接口层)、[§7A](#7a-flutter-ui-层接口约定)。
 - 门禁登记 → [§11](#11-维护方法)。
+
+`LibraryController.bookingRevision` 表示预约读取代次，用于撤销过期确认；`confirmMutation` 统一单次关闭保护，并允许调用方保留取消文案。具体签名由下方生成索引约束。
+
+`AppPreferences.readFailed` 与 `writeError` 区分读取和写入故障，`retrySave` 仅重写当前本机设置；启动恢复在读取失败时停止，登录页 `onRetryPreferences` 仅触发用户选择的重读流程。该契约见 PREF-01，具体签名在生成索引中维护。
+
+`ReadDeadline` 只约束呈现读取等待，不能取消原生请求或判定写入结果；`RefreshSection` 和图书馆分区复用它，以读取 Future/代次隔离迟到完成。具体边界见 READ-01。
 
 ### 1.2 接口的四个问题
 
@@ -260,7 +266,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ## 6. FFI 命令层
 
-`ginkgo_flutter_bridge` 导出 **89 个命令**，是 Dart 唯一可见的 Rust 面。Dart 侧只允许 [contracts.dart](../flutter/lib/application/contracts.dart) 以类型形式引用生成绑定，命令本身只能由 `NativeMirrorService` 调用。
+`ginkgo_flutter_bridge` 导出 **91 个命令**，是 Dart 唯一可见的 Rust 面。Dart 侧只允许 [contracts.dart](../flutter/lib/application/contracts.dart) 以类型形式引用生成绑定，命令本身只能由 `NativeMirrorService` 调用。
 
 命令计数口径：`flutter/lib/src/rust/api/**` 生成的 Dart 命令函数（`live` 77 + `live/auth_challenge` 1 + `mirror` 10 + `reminder_planning` 1）。改命令后该数字会变，改完请同步本行与 [§6.10](#610-返回形态与载荷契约)。
 
@@ -272,6 +278,8 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | `restore_session` | — | `SessionResponse` | 可能触发保存凭据的自动登录 |
 | `login` | `account`、`password`、`captcha?`、`remember` | `SessionResponse` | 可能写平台保险库 |
 | `load_login_challenge` | `expectedId?`、`refresh` | 挑战 DTO | 重新拉取登录页 |
+| `load_gateway_challenge` | `expectedAccount`、`expectedId?`、`refresh` | 挑战 DTO（可空） | 读取或刷新独立网关挑战 |
+| `resume_gateway_login` | `expectedAccount`、`expectedId`、`answer` | 验证结果 DTO | 用户单次作答 |
 | `sign_out` | — | `SessionResponse` | 清理会话与保存凭据 |
 | `set_route` | `route` | `SessionResponse` | 重建 Cookie 罐 |
 | `clear_cache` | — | `bool` | 清查询快照，不动凭据与本机待办 |
@@ -318,11 +326,11 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ### 6.10 返回形态与载荷契约
 
-89 个命令按返回形态分为两类：
+91 个命令按返回形态分为两类：
 
 | 形态 | 数量 | 含义 | 解码位置 |
 | --- | --- | --- | --- |
-| 类型化 DTO | 89 | 命令直接返回结构体（`SessionResponse`、`ScheduleResponse`、`CheckInResponse`、`MutationResponse`、`CgyyLoadResponse` …） | Rust 端投影；Dart 只做 DTO → 呈现模型 |
+| 类型化 DTO | 91 | 命令直接返回结构体（`SessionResponse`、`ScheduleResponse`、`CheckInResponse`、`MutationResponse`、`CgyyLoadResponse` …） | Rust 端投影；Dart 只做 DTO → 呈现模型 |
 | `ReadOnlyResponse` 载荷 | 0 | —— | —— |
 
 使用载荷信封的 0 个命令：
@@ -485,7 +493,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 | 模块 | 输入 | 输出 | 失败态 | 本机副作用 |
 | --- | --- | --- | --- | --- |
-| `session` | 账号、密码、验证码、记住开关、路线 | `SessionResponse{state, account, name, route, failure}` | `invalid_credentials`、`captcha_required`、`pre_login_tip`、`credential_store` | 平台保险库写入（仅勾选记住时）；Cookie 在 Rust 内存 |
+| `session` | 账号、密码、验证码、记住开关、路线 | `SessionResponse{state, account, name, route, failure}` | `invalid_credentials`、`captcha_required`、`pre_login_tip`、`credential_store` | 密码仅勾选记住时写保险库；Android 两路线 Cookie 另存独立 Keystore 密文，固定期限/UC 校验后恢复；其他镜像进程内 Cookie |
 | `auth-challenge` | `expectedId`、`refresh` | `LoginChallenge{challengeId, challengeType, textSupported, image}` | `session_expired`、`invalid_request` | 无；图像只在内存 |
 | `today` | `forceRefresh` | `TodayResponse{date, courses[], fetchedAt, fromCache, stale}` | 读失败保留旧值 | 进程快照（TTL 300s） |
 | `schedule` | `termId?`、`week?`、`forceRefresh` | `ScheduleResponse{terms[], weeks[], termId, weekNumber, courses[], exams[]}` | 读失败保留旧值 | 进程快照 |

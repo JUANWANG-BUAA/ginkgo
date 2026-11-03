@@ -8,7 +8,7 @@ Ginkgo（BUAA Assistant，北航校园工作台）是北航校园服务聚合客
 - **Windows 与 Android 共用同一 Flutter 工程**，不做新功能，但共享代码改动必须保持 Windows 可编译；`.github/workflows/mirror.yml` 的 Windows job 会验证。
 - **macOS / iOS 的 Swift/SwiftUI 应用已冻结**：不做功能开发、跨端对齐或排期；只在影响 Android 构建、共享 fixture 或存在安全问题时被动修。公共契约变化不必为 Apple 端做功能对齐。
 - 应用没有项目自建中转服务器。学校请求在设备进程内直连北航系统，或经北航官方 WebVPN；Rust 是应用内本地核心，不是独立后端。
-- 当前公开基线为 Android Beta.4（`0.1.0-beta.4+14`）和 Windows Alpha.6，证据见 `docs/_audit/2026-11-01-android-beta4-readiness.md`。`flutter/pubspec.yaml` 的版本号不能证明工作树后续改动已发布；公开内容以对应 tag、Release 和发布记录为准。
+- 当前公开基线为 Android Beta.6（`0.1.0-beta.6+16`）和 Windows Alpha.6；Beta.6 的公开 Release 与本轮复核见 `docs/_audit/2026-11-03-protocol-and-release-review.md`，Beta.4 记录只证明其历史候选。`flutter/pubspec.yaml` 的版本号不能证明工作树后续改动已发布；公开内容以对应 tag、Release 和发布记录为准。
 - 当前工作树已移除作业详情“加入个人待办”入口，但保留既有本机记录；不要根据历史迭代文档重新添加该入口。
 - 未完成任务只维护在 `docs/MIRROR-TODO.md`，不要另建重复 TODO 清单。当前优先顺序为 P0 可复现回归与安全边界、P1 设备 / 账号验收及小步体验、P2 扩展。
 

@@ -4,8 +4,8 @@ use super::{
 };
 use crate::{
     auth::{
-        vault::MemoryVault, CredentialSource, Credentials, LoginResult, UserProfile, LOGIN_URL,
-        UC_ACTIVATION_URL, UC_STATUS_URL,
+        vault::MemoryVault, CredentialSource, CredentialVault, Credentials, LoginResult,
+        PersistedSession, UserProfile, LOGIN_URL, UC_ACTIVATION_URL, UC_STATUS_URL,
     },
     codecs::checkin::CheckInStatus,
     codecs::classroom::Sort,

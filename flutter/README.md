@@ -4,13 +4,15 @@ Android 是本工程的主推平台：Flutter 界面 + 进程内 Rust 业务核�
 
 当前主开发平台为 **Android**，以新功能与体验/UI 优化为主、稳定性托底。产品与验收设定见 [Android 开发设定](../docs/ANDROID-DEVELOPMENT.md)，未完成项统一见 [镜像待办](../docs/MIRROR-TODO.md)。沿用简洁信息层级，Android 系统返回、权限和无障碍行为优先，不要求逐像素复制 iOS。
 
-当前手机入口为工作台 / 签到 / 课表 / 作业 / 预约，宽屏切换桌面侧栏；各目的地保留独立导航。认证、主要只读模块、Android Keystore、Windows Credential Manager、离线演示和本地待办已接入；签到及图书馆实验写路径包含确认、单次提交与回查，真实写入未验收。Android Beta.2 与 Windows Alpha.6 已发布，Beta.2 的物理设备验收仍未完成。Windows 提供未签名 x64 单文件安装器和需完整解压的便携 ZIP；物理 x64、干净系统运行依赖和真实学校业务仍待验收。范围见 [实施现状](../docs/MIRROR-IMPLEMENTATION.md)、[Android Beta.2](../docs/releases/android-beta2.md)、[模块对照](../docs/MIRROR-PARITY.md) 和 [待办](../docs/MIRROR-TODO.md)。
+当前手机入口为今天 / 课表 / 作业 / 图书馆 / 更多，宽屏切换桌面侧栏；各目的地保留独立导航。认证、主要只读模块、Android Keystore、Windows Credential Manager、离线演示和本地待办已接入；签到及图书馆实验写路径包含确认、单次提交与回查，真实写入未验收。Android Beta.6 与 Windows Alpha.6 已发布，当前 Beta.7 工作树的物理设备与真实受保护业务验收仍未完成。Windows 提供未签名 x64 单文件安装器和需完整解压的便携 ZIP；物理 x64、干净系统运行依赖和真实学校业务仍待验收。范围见 [实施现状](../docs/MIRROR-IMPLEMENTATION.md)、[Android Beta.2](../docs/releases/android-beta2.md)、[模块对照](../docs/MIRROR-PARITY.md) 和 [待办](../docs/MIRROR-TODO.md)。
 
 ## Android 发布线
 
-Android Beta.2（`0.1.0-beta.2+12`）已公开，发布与验收证据见 [Beta.2 记录](../docs/_audit/2026-10-29-android-beta2-release.md)。工作树的后续改动不因版本号相同而视为已发布。[功能与接口协议](../docs/FEATURES-AND-PROTOCOLS.md) 为长期维护入口，用户说明见 [Android Beta.2](../docs/releases/android-beta2.md) 与 [Android Beta.1](../docs/releases/android-beta1.md)。测试/Debug APK 不是公开更新资产。升级前备份重要待办，不建议降级或卸载。最低门禁仍为 5。
+Android Beta.6（`0.1.0-beta.6+16`）已公开，发布信息见 [Beta.6 Release](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.6)；当前 Beta.7 工作树与验收边界见 [本轮复核](../docs/_audit/2026-11-03-protocol-and-release-review.md)。工作树的后续改动不因版本号相同而视为已发布。[功能与接口协议](../docs/FEATURES-AND-PROTOCOLS.md) 为长期维护入口，用户说明见 [Android Beta.2](../docs/releases/android-beta2.md) 与 [Android Beta.1](../docs/releases/android-beta1.md)。测试/Debug APK 不是公开更新资产。升级前备份重要待办，不建议降级或卸载。最低门禁仍为 5。
 
 对外宣传口径（仓库描述、topics、社区发帖、社交文案）统一维护在 [宣传文案](../docs/PROMOTION.md)，按 Android 主推书写。
+
+完整门禁还使用 Node.js 运行无第三方依赖的下载页脚本回归（`node --test scripts/check-landing-test.cjs`），验证 APK 配套校验文件选择与离线静态回退；Node 只用于脚本测试，不是应用运行时。
 
 ## 当前工程验证入口
 
@@ -100,3 +102,8 @@ Rust Android 目标随选定设备确定；当前 ARM64 模拟器使用 `aarch64
 座位与空教室采用公共 `CollectionWindow` / `CollectionToolbar`，固定查询区、每页 50 条、直接跳页及局部状态；结果列表按需构建，同一查询刷新保持当前页。课表固定节次轴并提供周次/星期直达入口；长页滚动入口见 `long_page_scroll.dart`。后续大数据功能的接入规则及热更新限制见 [交互与更新边界](../docs/MIRROR-INTERACTION.md)。
 
 工作区导航由 `workspace_catalog.dart` 统一登记：新增功能在表里登记 id、标题、图标、分组与页面构建器，移动端标签、桌面侧栏与今日快捷入口自动派生；`main.dart` 只保留启动与登录状态机，`workspace_shell.dart` 负责两种布局。登记是编译期静态表，不支持运行时插件加载。
+
+
+## 下一次 Android 发布前置条件
+
+当前处于认证与使用回归修复期。执行 [Android 强制验收契约](../docs/ANDROID-RELEASE-CONTRACT.md)：`python3 scripts/check-contracts.py` 校验协议文档漂移，`--release` 校验当前候选的完整分层证据，缺项拒绝发包。Debug/集成测试和旧版报告不替代本次真实账号、验证码、设备冷恢复和操作闭环验收；待办只维护在 MIRROR-TODO。

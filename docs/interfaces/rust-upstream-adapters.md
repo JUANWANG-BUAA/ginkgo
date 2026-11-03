@@ -110,7 +110,7 @@
 - `pub async fn course_schedule<T: HttpTransport>( session: &Session<T>, iclass: &IClassSession, date: &str, ) -> Result<Vec<CheckInCourse>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:80</sub>
 - `pub async fn sign_in<T: HttpTransport>( session: &Session<T>, iclass: &IClassSession, course_id: &str, ) -> crate::codecs::mutation::MutationOutcome {…}` — CheckInClient.performSignIn / API.md §7.2. Timestamp is a safe read;
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:146</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:152</sub>
 
 ## classroom_http
 
@@ -119,7 +119,7 @@
 - `pub async fn query_classrooms<T: HttpTransport>( session: &Session<T>, campus: i32, date: &str, ) -> Result<BTreeMap<String, Vec<Room>>, AppError> {…}` — Run the two documented classroom requests with the caller-owned session.
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/classroom_http.rs:20</sub>
 - `pub async fn query_classrooms_with_recovery<T: HttpTransport, C: CredentialSource>( session: &Session<T>, store: &C, account: &str, campus: i32, date: &str, ) -> Result<BTreeMap<String, Vec<Room>>, AppError> {…}` — Retry a classroom read exactly once after a confirmed expired session.
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/classroom_http.rs:54</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/classroom_http.rs:50</sub>
 
 ## grades_http
 

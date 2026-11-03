@@ -4,6 +4,10 @@
 
 > **2026-10-23 当前行为补充**：首批“作业转待办”已随 Alpha.7 发布过；后续 `e149f90` 移除作业详情新增个人待办入口，首页不重复展示历史学校来源条目，既有本机数据仍保留。下文首批范围/顺序为历史设定，不应据此恢复已撤销入口或重新排期；当前实现与未完成事项分别以 MIRROR-IMPLEMENTATION / MIRROR-TODO 为准。
 
+## 当前强制优先级（2026-11-02）
+
+用户反馈本日修复前 Beta 实际不可用，下一次发包前优先修复稳定性、操作闭环与当前承诺功能，暂停扩展范围。必须遵守 [Android 强制验收契约](ANDROID-RELEASE-CONTRACT.md)：P0/P1 为零、所有可达目的地及详情操作有当前候选的分层证据；缺真实登录/验证码/会话恢复或核心业务闭环即阻断发布。历史“功能优先”“先样板后接入”不能覆盖此要求，Debug 诊断构建不等于允许公开发包。
+
 ## 1. 产品目标与优先级
 
 **让 Ginkgo 从校园查询工具集合，变成每天打开就知道下一步做什么的个人校园工作台。**
@@ -73,6 +77,7 @@
 - Android 设备检查：窄屏、大字号、深浅色、TalkBack、系统返回和权限拒绝；真实结果与合成演示分别记录。
 - Rust/Flutter 基线：仓库根执行 `bash scripts/check-mirror.sh`；该脚本包含依赖解析，不宣称纯离线。若桥接变化，另做生成差异检查。
 - 产物检查：在 flutter/ 执行 `flutter build apk --debug --target-platform android-arm64 --target lib/main.dart`；不能把 integration_test 生成的 APK 当正常启动包。
+- 真实登录专项：`live_acceptance_test.dart` 同时启用 `GINKGO_LIVE_ACCEPTANCE=true`、`GINKGO_LIVE_WEBVPN=true`、`GINKGO_LIVE_AUTH_ONLY=true` 可只验证 WebVPN 登录并退出清理，不遍历业务模块；凭据仍由一次性 loopback 通道提供，不写 dart-define。失败会保留失败状态，不自动再发密码。
 - 真实网络/学校写往返不由 widget 测试或 APK 构建代替；真实写入只在用户逐次人工授权下验收。
 - 记录改动、自动化结果、设备观察及尚未覆盖的边界；不在设定文档提前写“已完成”。
 

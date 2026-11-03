@@ -1,8 +1,16 @@
 # Rust + Flutter 镜像待办
 
-更新：2026-10-31。这里只保留未完成事项；实现范围见 [现状](MIRROR-IMPLEMENTATION.md)，模块差距见 [对照表](MIRROR-PARITY.md)。完成需有代码和相应层级的验证证据，不反复追加已完成过程；历史计划保留于 [归档](archive/mirror/README.md)。
+更新：2026-11-02。这里只保留未完成事项；实现范围见 [现状](MIRROR-IMPLEMENTATION.md)，模块差距见 [对照表](MIRROR-PARITY.md)。完成需有代码和相应层级的验证证据，不反复追加已完成过程；历史计划保留于 [归档](archive/mirror/README.md)。
 
 > **当前唯一开发目标是 Android（Flutter + Rust）。macOS / iOS 暂时冻结**，不做功能开发、不做跨端对齐、不为其排期；只在影响 Android 构建、共享 fixture 或存在安全问题时被动修。Windows 与 Android 共用同一 Flutter 工程，不做功能开发但必须保持可编译。范围决策见 [多平台路线](MULTI-PLATFORM-STRATEGY.md#当前开发范围2026-10-24-决策)。
+
+2026-11-03 用户要求全协议验证、前后端优化后发包；真实账号登录按其指令暂停，疑似风控尚未确认。源码/合成/匿名实网/设备证据分开，不把暂停写成通过。本轮范围与记录见 [协议及候选复核](_audit/2026-11-03-protocol-and-release-review.md)，不另建 TODO 清单。
+
+## 下一次 Android 发包：阻断（2026-11-02）
+
+用户明确反馈修复前 Beta 实际不可用；下一次发包必须先达到 [强制验收契约](ANDROID-RELEASE-CONTRACT.md)，稳定性与既有功能/操作完整性优先于扩展。仅通过合成测试、编译或静态视觉不能解除阻断。机器状态见 [发布验收记录](android-release-readiness.json)，不能把本文历史已完成标记视作当前候选验收。
+
+- [ ] 完成该契约的全部当前候选验收项，P0/P1 为零；当前真实登录失败（追加宿主 Rust WebVPN 阶段测试及 UBAA 八字段/值对照一致后均停于登录 POST 401，未到 UC；具体拒绝原因待确认）、真实验证码/冷恢复/全功能/签名升级及本人学校写入证据均未闭环。记录详情沿用本文件 P0/P1/P2 和日期审计，不另建任务清单。协议/实现变化先同步 API/本地契约/回归再刷新协议锁；发布前运行 `python3 scripts/check-contracts.py --release`，任何缺项不得发包或提高 minBuild。
 
 ## 本轮 Goal：原会话全范围集成与交付（2026-10-26）
 
@@ -49,7 +57,7 @@
 
 当前主线为 **Android / Flutter + Rust**。以工作树为准，不将历史设计或已发布内容重复排成新开发任务。
 
-- 已发布基线：Android Beta.4（build 14）；Windows Alpha.6（build 7）。证据见 [Beta.4 发布与验收记录](_audit/2026-11-01-android-beta4-readiness.md)。
+- 已发布基线：Android Beta.6（build 16）；Windows Alpha.6（build 7）。Beta.6 的公开元数据与当前 Beta.7 候选边界见 [本轮复核](_audit/2026-11-03-protocol-and-release-review.md)，Beta.4 审计只保留历史证据。
 - Beta.3（build 13）已公开：本地完整门禁、签名 Release APK、核心真实只读与视觉闭环、公开回下载摘要通过；Android Release workflow 因仓库未配置 Android 签名 secrets 而按 fail-closed 规则停止。独立 Release 模拟器未能启动，故本版 Release 覆盖升级、待办保留、物理设备和读屏未验收；详细边界见 [Beta.3 审计](_audit/2026-10-30-android-beta3-readiness.md)。
 - Beta.2（build 12）已公开：本地完整门禁、签名 Release APK 和公开回下载摘要通过；干净 Android 37 模拟器未能启动，故该版 Release 覆盖升级、待办保留、物理设备和读屏未验收；详细边界见 [Beta.2 审计](_audit/2026-10-29-android-beta2-release.md)。
 - Beta.1（build 11）已公开：全量门禁（当次 532 项 Flutter 测试）、签名构建与产物校验通过，模拟器签名包覆盖升级（Alpha.9→Beta.1，本机待办保留）通过，公开资产回下载摘要一致。**未验收**：物理设备（TalkBack、预测返回、大字号/深浅色、帧率）、真实学校认证与写入、借阅非空分页、校车余票和非空协议样本。
@@ -62,6 +70,10 @@
 本轮盘点与回归证据见 [推进收口记录](_audit/2026-10-23-android-progress-closeout.md)；随后完成 [图书馆与校车模拟器真实只读视觉闭环](_audit/2026-10-24-library-shuttle-visual.md)，修复键盘遮挡与窄屏大字双列，保留物理设备、TalkBack、真实非空订单/写入等人工事项；这些记录不替代下方人工验收。
 
 ## P0：认证可靠性与真实行为
+
+### Beta.3 后端回归与 Android 会话恢复（2026-11-02）
+
+- [ ] Android Keystore 会话快照已接入 Rust 登录、冷启动恢复、显式退出与路线切换，正常入口 Debug APK 已构建；仍需在可用 Android 设备或模拟器验证 Keystore/JNI 写读与冷启动恢复，并按 `docs/COLLABORATION.md` 做敏感存储人工审查后再关闭。2026-11-03 隔离 AVD 已可用，合成凭据 Keystore 两次写读删及学习快照设备测试通过；真实会话 Cookie 的在线冷恢复仍未验收，不把这几项混为同一证据。
 
 ### 工作台 P0 强化（2026-10-28）
 
@@ -153,7 +165,7 @@
 - [x] **为载荷信封命令补 bridge DTO，删掉 Dart 里的 `jsonDecode`**：全部 89 个 FFI 命令已返回类型化 DTO，`ReadOnlyResponse { payload, stale, failure }` 逃生舱连同其映射助手与两个信封回归测试已删除（2026-10-29，逐批记录见[迁移记录](_audit/2026-10-29-payload-dto-migration.md)）；`scripts/check-api-doc.py` 持续重算 [INTERFACE-INDEX §6.10](INTERFACE-INDEX.md#610-返回形态与载荷契约) 的清单与计数，重新引入信封即失败。本机待办与偏好等非桥接本地 JSON 解码不属于本项范围。
 - [ ] **把稳定业务规则搬回 `ginkgo_domain`**：核对 `shared/reminder_rules.dart` 的签到窗口和提醒规则、`features/homework/homework_projection.dart` 的截止分类，按现有 Rust 规则逐项收敛并覆盖跨午夜、未知日期与账号隔离。签到和图书馆统计页面当前使用 `todaySchoolNow`，不要按旧行号重复修复；纯呈现格式可保留在 Dart。**2026-10-30 三项规则全部归口 Rust**：`fixtures/rules/` 规则表锁定截止分类与签到窗口（Rust 为权威，Dart 用同一份 `expected` 断言自己的实现，原本无人调用的 Rust 截止分类因此进入共享契约）；`ginkgo_domain::features::reminders` 新增 `plan_checkin_homework_reminders`（签到与作业提醒），经 `ReminderPlanningGateway` 注入，Dart 侧的 `checkinReminders`/`homeworkReminders` 已删除。**已全部归口（2026-10-30 收口）**：新增 `SchoolRules` 端口与两条纯同步桥接命令（`classify_homework_deadline`、`checkin_sign_in_window`）。`homework_projection.dart` 的截止分类与 `shared/reminder_rules.dart` 的签到窗口都改为调用该端口，生产实现只在 `ginkgo_domain`；单元测试在 `flutter_test_config.dart` 注入 Dart 替身，替身与领域实现受同一份共享规则表约束，因此任何一侧改出差异都会红。
 - [ ] **2026-10-28 三轮审查剩余收敛项**：逐条状态见 [整改台账](_audit/2026-10-28-review-remediation.md)。已完成七页状态机迁 `RefreshSection`、公开信息模板、共享状态区/页头、统一外链、Rust 统一读信封、网关按端口拆分、规则页与组件目录归属、载荷信封命令逐命令 DTO 回归（2026-10-29）；能力探测已集中到应用层矩阵，仍需核对组合入口与剩余适配边界；其余包括 design token 新增维度与组件收敛。**已评估不做**：`features/library`/`features/cgyy`/`features/settings` 目录拆分与目录命名统一不以文件搬迁代替依赖解耦；`platform/` 目前只剩更新与系统设置，已无呈现与网络抓取可迁出；`MirrorService` 聚合接口只在组合根与测试替身使用，页面依赖窄网关，不需要拆分。
-- [ ] 验证码图片/刷新/挑战代次已在工作树接通；已移除按 `type == "local"` 的白名单（`local` 仅见于合成 fixture，协议 §1.3 第 5 条与修订 91 明确 type 不参与判断），改为取到图片即允许作答、只有内容不是图片才判不可作答。网关二次登录的验证码作答通路已接通：网关登录页在需要验证时保留，`更多 → 设置 → 网络路线 → WebVPN 验证` 可读取图片并提交一次答案，成功后才放开网关，失败保留挑战重取图片。仍需本人真实风控分支的抓取记录（含真实 type 取值）、物理设备辅助功能验收，以及网关验证通过后签到/图书馆的真实复验。
+- [ ] 登录验证码图片、刷新和挑战代次已接通，type 不作为白名单；仍需真实验证码及物理设备辅助功能验收。此前网关独立验证码页已被 `b8bcb5d` 删除，不能沿用旧文档宣称设置页可作答；2026-11-02 已补 domain/core/upstream 的独立网关挑战与单次作答状态机，FFI 与设置页已接通并有合成页面回归，通过后的签到/图书馆真实复验仍待完成，见 [认证修复记录](_audit/2026-11-02-backend-repair.md)。
 - [ ] “登录成功但密码保存失败”提供就地提示；解释 WebVPN 网关为何可能要求记住密码，减少首次使用的困惑。
 - [ ] 继续验收已接入的签到 / 作业本地提醒：Android 权限拒绝 / 恢复、重启、强停和厂商省电；课程/待办提醒已接 opt-in 规则/排程与设置；可选 Android 加密学习元数据快照已接线，仍需人工安全审查；其余课表/成绩等快照持久化、重启/强停/厂商后台验收未完成。Windows 仅保持编译，不新增通知排期。
 - [ ] 研究生严格执行报告学分图已接线，成绩 / 考试组合及图书馆本机趋势仍未齐；SPOC 文件能力已在工作树分层接入（[集成记录](_audit/2026-10-25-spoc-homework-integration.md)），普通构建已开放受私有待确认记录保护的个人文件入口，仍需本人逐次指定作业和最终文件的真实分片/合并/提交/回查与失败验收；小组及非文件作答、希冀来源、BYKC 选退课 / 签到尚未迁移；CGYY 订单详情与门锁码已接入 UBAA 对照的只读链路、用途内置降级和合成页面，真实预约 / 取消 / 门锁码往返仍未验收。
@@ -179,3 +191,23 @@
 - README 不写会随提交变化的测试 / fixture 总数；需要数量时从当次运行输出取得并连同日期记录。
 - 代码检索排除 FRB 生成物；不把生成代码比例或 `Semantics` / `setState` 出现次数直接当作质量结论。
 - 范围收窄后，`docs/MIRROR-PARITY.md`（Apple↔Flutter 对照表）作为历史对照保留，不再作为追平依据；`docs/UI-DESIGN.md` 需补 Flutter/Android 侧准则，macOS 准则归档到 `docs/archive/`。
+
+## 2026-11-02 认证修复验收
+
+- [ ] 本轮认证修复真实设备与账号只读验收：三种路线、保存/不保存密码、验证码失败/刷新/过期、学校与业务会话分别失效；记录见 [修复记录](_audit/2026-11-02-backend-repair.md)。已有只读磁盘 AVD 成功启动并实际提交一次授权登录，未获得 signedIn，具体失败正文未保留；没有自动重试或进入受保护模块。Mac 主机可达不能代替 Android 链路验收。Cookie 快照已实现，Android Keystore 实机往返和网关独立验证码真实流程仍需验收。2026-11-02 校外复核中，自动路线登录失败，同期独立探测发现 UC HTTP/2 异常，尚无应用请求级因果证据；修正管线后页面明确为仅 WebVPN 且 setRoute 无失败，应用两次显示凭据拒绝通用提示，上游拒绝正文未采集，已停止重试且未开始受保护读取，详见 [校外验收](_audit/2026-11-02-webvpn-live-acceptance.md)。
+
+- [ ] WebVPN 失败归因：按新授权完成一次仅 WebVPN 登录复核，新验证码可显示并提交，但约 68 秒后应用提示凭据错误，未建立会话，已退出并停止重试。实测时版本曾有“表单重显统一映射 InvalidCredentials”分支，尚无请求级证据定位本次失败，已补未知表单/401的保守分类、凭据保护和认证重定向错误前置检查，仍需无敏感数据的请求级阶段证据及官方页面对照；不能归咎密码或声称已修好，见[复核记录](_audit/2026-11-02-webvpn-live-acceptance.md)。
+
+- [ ] 本轮认证稳定性收尾：固定期限、冷启动 UC 失败不发布身份、路线失败和登录/网关验证码过期/刷新失败已补工作树修复；需模拟器/物理设备复核操作与 Keystore。按 [追加诊断](_audit/2026-11-02-backend-regression-diagnosis.md#追加复核前后端与本轮修复自身的缺口) 验证完整登录动作的密码 POST 上限与分类冷却的真实表现；密码到期提示 action/service 上下文和单次确认已补合成修复，仍需真实页面形态、可能的多表单及设备路线验收；工作树已对明确凭据拒绝及需人工处理提示采用 30 分钟、传输/服务错误采用 60 秒后台冷却，过期网关挑战保持阻止后台重新认证，网关验证码页实例替换、旧请求/答案隔离和忙状态已有合成修复，仍需真实拒绝/验证码及设备生命周期验收。
+
+
+## 全量使用优化续接（2026-11-02 代码与截图初查）
+
+- [ ] 弱网与读取等待设备验收：图书馆分区超时隔离、调用方 Future 收敛、失效读取/队列清理与通用 RefreshSection 已补合成修复；已提交操作的原回查顺序保留。仍需 Android 飞行模式/断网重连、导航退出与原生慢调用验证；Dart 等待结束不代表原生请求被取消。
+
+- [ ] 设置持久化设备验收：已补保存快照/串行队列、过期错误隔离、销毁后的异步收尾、读取失败阻止自动会话恢复，以及登录页/外观页的显式重试。合成回归不能替代 Android 存储故障、强停/重启与原子替换验收；共享代码仍需 Windows CI 基线。详见 [修复记录](_audit/2026-11-02-backend-repair.md)。
+
+- [ ] 确认到提交的上下文保护：座位预约、预约操作与签到在弹窗结束后须重查账号/服务/查询代次、忙状态和有效时段；提交后的迟到结果只能作用于原上下文。座位预约与签到已补服务/查询代次校验、迟到结果隔离，签到重查当前时间，座位回查异常释放忙状态；预约操作已补读取代次失效与销毁后禁止新提交，共享确认弹窗已补重复关闭保护。真实设备操作、账号生命周期与校验失败反馈仍需完整验收。作业文件已有 epoch/gateway 捕获，不应为统一结构撤掉现有保护。先合成回归，不执行真实写入。
+- [ ] 截图驱动 UI 复核：已查看 `artifacts/local/ui-review/batch-definal/core-routes/` 的图书馆/作业，以及 `all-pages/checkin-light-large.png`、`settings-light-large.png`。签到大字号截图的统计副标题与右侧核对时间发生挤压/重叠，该问题已在当前代码复现并补共享组件自适应换行；320dp/430dp/800dp 与大字号布局回归、同字体亮暗组件对照渲染已完成，产物见审计。仍需当前完整页面的设备复拍，组件渲染不能替代首屏操作验收。首屏信息密度/关键操作可达性继续逐页核对，不能以旧截图矩阵宣称当前 UI 全面通过。
+
+图书馆服务替换及预约操作确认撤销已完成合成修复，证据见[实施现状](MIRROR-IMPLEMENTATION.md)；其余事项仍未完成，未执行真实学校写入。

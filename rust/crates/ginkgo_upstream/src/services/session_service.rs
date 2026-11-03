@@ -8,7 +8,7 @@ use crate::{
     auth::{
         self,
         session::{RouteMode, Session},
-        CredentialVault, LoginPage, LoginResult, UserProfile,
+        CredentialVault, LoginPage, LoginResult, PersistedSession, UserProfile,
     },
     codecs::checkin::IClassSession,
     foundation::http::HttpTransport,
@@ -17,15 +17,22 @@ use crate::{
 };
 use std::{
     sync::{
-        atomic::{AtomicU64, Ordering},
-        Mutex as StdMutex,
+        atomic::{AtomicBool, AtomicU64, Ordering},
+        Arc, Mutex as StdMutex,
     },
     time::{Duration, Instant},
 };
 
-/// Failed automatic password authentication is shared by both school and
-/// gateway recovery. User-triggered login does not consult this cooldown.
-const AUTOMATIC_LOGIN_FAILURE_TTL: Duration = Duration::from_secs(60);
+/// School and gateway keep separate failures. Explicit credential rejection
+/// or a login tip requiring user attention must not cause a background
+/// password attempt every minute; transient
+/// transport/service failures retain a shorter retry window.
+fn automatic_login_failure_ttl(code: &ErrorCode) -> Duration {
+    match code {
+        ErrorCode::InvalidCredentials | ErrorCode::PreLoginTip => Duration::from_secs(30 * 60),
+        _ => Duration::from_secs(60),
+    }
+}
 
 pub use ginkgo_domain::ports::RoutePreference;
 
@@ -63,6 +70,12 @@ pub(crate) struct PendingLogin {
 }
 
 impl PendingLogin {
+    /// Same sign-in attempt, regardless of age. A challenge that belongs to
+    /// another account must never be answered or silently replaced.
+    pub(crate) fn belongs_to(&self, account: &str, generation: u64) -> bool {
+        self.account == account && self.generation == generation
+    }
+
     fn valid(&self, account: &str, generation: u64) -> bool {
         self.account == account
             && self.generation == generation
@@ -76,6 +89,7 @@ impl PendingLogin {
 pub(crate) struct Identity {
     pub authenticated: Option<AuthenticatedIdentity>,
     pub pending_login: Option<PendingLogin>,
+    pub gateway_pending: Option<PendingLogin>,
     pub iclass: Option<IClassSession>,
     pub library_token: Option<String>,
     pub cgyy_token: Option<String>,
@@ -85,6 +99,8 @@ pub(crate) struct Identity {
     /// asking the user to store the password. Cleared with the identity.
     pub session_credentials: Option<crate::auth::Credentials>,
     pub generation: u64,
+    /// Fixed start of this authenticated lifetime; cookie rotation cannot extend it.
+    pub persisted_started_at_ms: i64,
 }
 
 pub struct SchoolClient<T: HttpTransport, V: CredentialVault> {
@@ -92,9 +108,10 @@ pub struct SchoolClient<T: HttpTransport, V: CredentialVault> {
     pub(crate) learning_gate: tokio::sync::Mutex<()>,
     pub(crate) homework_files: Mutex<super::homework_submission_service::HomeworkFiles>,
     pub(crate) homework_file_gate: tokio::sync::Mutex<()>,
-    pub(crate) vault: V,
-    pub(crate) identity: Mutex<Identity>,
-    pub(crate) route: StdMutex<RoutePreference>,
+    pub(crate) vault: Arc<V>,
+    pub(crate) identity: Arc<Mutex<Identity>>,
+    pub(crate) route: Arc<StdMutex<RoutePreference>>,
+    route_initialized: AtomicBool,
     pub(crate) snapshots: ReadSnapshots,
     pub(crate) bykc_access: tokio::sync::Mutex<()>,
     pub(crate) checkin_request_gates:
@@ -103,6 +120,7 @@ pub struct SchoolClient<T: HttpTransport, V: CredentialVault> {
     pub(crate) school_recovery_gate: tokio::sync::Mutex<()>,
     gateway_recovery_gate: tokio::sync::Mutex<()>,
     pub(crate) automatic_login_failure: Mutex<Option<(Instant, AppError)>>,
+    gateway_login_failure: Mutex<Option<(Instant, AppError)>>,
     school_generation: AtomicU64,
     gateway_generation: AtomicU64,
     pub(crate) graduate_request_gate: tokio::sync::Mutex<()>,
@@ -118,21 +136,51 @@ pub struct SchoolClient<T: HttpTransport, V: CredentialVault> {
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     pub fn new(session: Session<T>, vault: V) -> Self {
+        let vault = Arc::new(vault);
+        let identity: Arc<Mutex<Identity>> = Arc::new(Mutex::default());
+        let route = Arc::new(StdMutex::new(RoutePreference::Automatic));
+        {
+            let vault = Arc::clone(&vault);
+            let identity = Arc::clone(&identity);
+            let route = Arc::clone(&route);
+            session.set_cookie_persistor(move |cookies| {
+                let (account, profile_name, started_at) = {
+                    let identity = identity.lock();
+                    let user = identity.authenticated.as_ref()?;
+                    (
+                        user.account.clone(),
+                        user.profile.name.clone(),
+                        identity.persisted_started_at_ms,
+                    )
+                };
+                let route = *lock_value(&route);
+                let mut record =
+                    PersistedSession::new(account, profile_name, route.into(), cookies);
+                record.saved_at_ms = started_at;
+                let vault = Arc::clone(&vault);
+                let persist: crate::auth::session::CookiePersistFuture = Box::pin(async move {
+                    let _ = tokio::task::spawn_blocking(move || vault.save_session(&record)).await;
+                });
+                Some(persist)
+            });
+        }
         Self {
             session,
             learning_gate: tokio::sync::Mutex::new(()),
             homework_files: Mutex::default(),
             homework_file_gate: tokio::sync::Mutex::new(()),
             vault,
-            identity: Mutex::default(),
+            identity,
             snapshots: ReadSnapshots::default(),
-            route: StdMutex::new(RoutePreference::Automatic),
+            route,
+            route_initialized: AtomicBool::new(false),
             bykc_access: tokio::sync::Mutex::new(()),
             checkin_request_gates: Mutex::default(),
             checkin_progress: Mutex::default(),
             school_recovery_gate: tokio::sync::Mutex::new(()),
             gateway_recovery_gate: tokio::sync::Mutex::new(()),
             automatic_login_failure: Mutex::new(None),
+            gateway_login_failure: Mutex::new(None),
             school_generation: AtomicU64::new(0),
             gateway_generation: AtomicU64::new(0),
             graduate_request_gate: tokio::sync::Mutex::new(()),
@@ -169,6 +217,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         *identity = Identity {
             generation: identity.generation.wrapping_add(1),
             authenticated,
+            persisted_started_at_ms: crate::foundation::cookie::CookieJar::now_ms(),
             ..Identity::default()
         };
     }
@@ -188,7 +237,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     /// synthetic credential. The reserved prefix prevents this call from ever
     /// replacing or deleting a real saved account.
     pub fn verify_vault_round_trip(&self, account: &str, secret: &str) -> bool {
-        auth::vault::verify_vault_round_trip(&self.vault, account, secret)
+        auth::vault::verify_vault_round_trip(self.vault.as_ref(), account, secret)
     }
 
     /// How often one of this client's in-memory locks was recovered from a
@@ -202,6 +251,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         self.identity.poison_count()
             + self.checkin_progress.poison_count()
             + self.automatic_login_failure.poison_count()
+            + self.gateway_login_failure.poison_count()
             + self.cgyy_safety.poison_count()
             + self.snapshots.poison_events()
             + self.session.poison_events()
@@ -214,12 +264,60 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     /// Keep the credential this sign-in used so a gateway that needs its own
     /// CAS session can be authenticated later without a stored password.
     pub(crate) fn remember_session_credentials(&self, credentials: &crate::auth::Credentials) {
-        self.identity.lock().session_credentials = Some(credentials.clone());
+        let mut reusable = credentials.clone();
+        reusable.captcha_text = None;
+        self.identity.lock().session_credentials = Some(reusable);
     }
 
     /// The credential used to open this session, in memory only.
     pub(crate) fn session_credentials(&self) -> Option<crate::auth::Credentials> {
         self.identity.lock().session_credentials.clone()
+    }
+
+    pub(crate) async fn persist_active_session(&self) -> Result<(), AppError> {
+        let (account, profile_name, started_at) = {
+            let identity = self.identity.lock();
+            let user = identity
+                .authenticated
+                .as_ref()
+                .ok_or_else(AppError::session_expired)?;
+            (
+                user.account.clone(),
+                user.profile.name.clone(),
+                identity.persisted_started_at_ms,
+            )
+        };
+        let mut record = PersistedSession::new(
+            account,
+            profile_name,
+            self.session_route_preference(),
+            self.session.cookie_snapshot(),
+        );
+        record.saved_at_ms = started_at;
+        let vault = Arc::clone(&self.vault);
+        tokio::task::spawn_blocking(move || vault.save_session(&record))
+            .await
+            .map_err(|_| AppError::credential_store())?
+    }
+
+    pub(crate) async fn load_persisted_session(
+        &self,
+    ) -> Result<Option<PersistedSession>, AppError> {
+        let vault = Arc::clone(&self.vault);
+        tokio::task::spawn_blocking(move || vault.load_session())
+            .await
+            .map_err(|_| AppError::credential_store())?
+    }
+
+    pub(crate) async fn delete_persisted_session(&self) -> Result<(), AppError> {
+        let vault = Arc::clone(&self.vault);
+        tokio::task::spawn_blocking(move || vault.delete_session())
+            .await
+            .map_err(|_| AppError::credential_store())?
+    }
+
+    fn session_route_preference(&self) -> RouteMode {
+        self.preference().into()
     }
 
     pub(crate) fn current_account(&self) -> Result<String, AppError> {
@@ -266,10 +364,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         self.check_automatic_login_failure()?;
         let owner = self.account_owner()?;
         let account = owner.account.clone();
-        let credentials = self
-            .vault
-            .load(&account)?
-            .ok_or_else(AppError::session_expired)?;
+        let credentials = self.recovery_credentials(&account)?;
         let result = match auth::login(&self.session, &credentials).await {
             Ok(LoginResult::SignedIn(profile)) => {
                 {
@@ -296,50 +391,78 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             Err(error) => Err(error),
         };
         self.record_automatic_login_result(&result);
+        if result.is_ok() {
+            let _ = self.persist_active_session().await;
+        }
         result
     }
 
     /// Establish the WebVPN gateway's own CAS session after an automatic route
-    /// fallback. Requires a saved credential: without one the caller must sign
-    /// in again. On failure the route returns to Automatic so the gateway can
-    /// never leave every later request stranded.
+    /// fallback. Uses the current sign-in credential before the platform vault.
+    /// Failure restores the explicit preference; gateway cooldown is independent
+    /// of school recovery so one unavailable authority cannot suppress the other.
     pub(crate) async fn ensure_webvpn_session(&self) -> Result<(), AppError> {
         let generation = self.gateway_generation.load(Ordering::Acquire);
         let _recovery = self.gateway_recovery_gate.lock().await;
         if self.gateway_generation.load(Ordering::Acquire) != generation {
             return Ok(());
         }
-        if let Err(error) = self.check_automatic_login_failure() {
-            self.session.set_route(RouteMode::Automatic);
-            return Err(error);
+        if let Some((at, error)) = self.gateway_login_failure.lock().as_ref() {
+            if at.elapsed() < automatic_login_failure_ttl(&error.code) {
+                return Err(error.clone());
+            }
         }
-        // Called after an explicit gateway challenge. A cookie may be only
-        // the pre-login gateway session, not proof of authenticated access.
-        // Off campus the gateway needs its own CAS session; the password typed
-        // for this sign-in is still valid for it and never left memory, so
-        // requiring "remember password" here made check-in and the library
-        // fail for everyone who did not store it.
         let account = self.current_account()?;
-        let credentials = match self.vault.load(&account) {
-            Ok(Some(credentials)) => credentials,
-            Ok(None) | Err(_) => self
-                .session_credentials()
-                .ok_or_else(AppError::session_expired)?,
-        };
-        let result = auth::establish_webvpn_session(&self.session, &credentials).await;
+        let owner = self.account_owner()?;
+        let credentials = self.recovery_credentials(&account)?;
+        // Do not submit another password while the user is answering a challenge.
+        if self
+            .identity
+            .lock()
+            .gateway_pending
+            .as_ref()
+            .is_some_and(|pending| pending.belongs_to(&account, owner.generation))
+        {
+            return Err(AppError::new(ErrorCode::CaptchaRequired));
+        }
+        self.session.set_route(RouteMode::WebVpn);
+        let outcome = auth::login(&self.session, &credentials).await;
+        self.check_account_owner(&owner)?;
+        let result = self.finish_gateway_login(outcome, &owner);
         if result.is_err() {
-            self.session.set_route(RouteMode::Automatic);
+            self.session.set_route(self.preference().into());
         } else {
             self.gateway_generation.fetch_add(1, Ordering::Release);
+            let _ = self.persist_active_session().await;
         }
-        self.record_automatic_login_result(&result);
+        *self.gateway_login_failure.lock() = result
+            .as_ref()
+            .err()
+            .map(|error| (Instant::now(), error.clone()));
         result
+    }
+
+    pub(crate) fn recovery_credentials(
+        &self,
+        account: &str,
+    ) -> Result<crate::auth::Credentials, AppError> {
+        if let Some(credentials) = self
+            .session_credentials()
+            .filter(|credentials| credentials.username.eq_ignore_ascii_case(account))
+        {
+            return Ok(credentials);
+        }
+        self.vault
+            .load(account)?
+            .ok_or_else(AppError::session_expired)
     }
 
     fn check_automatic_login_failure(&self) -> Result<(), AppError> {
         let failure = self.automatic_login_failure.lock();
         match failure.as_ref() {
-            Some((at, error)) if at.elapsed() < AUTOMATIC_LOGIN_FAILURE_TTL => Err(error.clone()),
+            Some((at, error)) if at.elapsed() < automatic_login_failure_ttl(&error.code) => {
+                Err(error.clone())
+            }
             _ => Ok(()),
         }
     }
@@ -352,6 +475,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     }
 
     fn clear_automatic_login_failure(&self) {
+        *self.gateway_login_failure.lock() = None;
         *self.automatic_login_failure.lock() = None;
     }
 
@@ -385,4 +509,5 @@ pub(crate) fn is_library_login_error(error: &AppError) -> bool {
     error.code == ErrorCode::SessionExpired && error.detail.as_deref() == Some("library_login")
 }
 
+mod gateway;
 mod session_source;

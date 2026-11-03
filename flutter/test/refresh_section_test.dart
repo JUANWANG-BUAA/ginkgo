@@ -4,6 +4,57 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 
 void main() {
+  testWidgets(
+    'deadline completes caller and releases an explicitly queued refresh',
+    (tester) async {
+      final section = RefreshSection<int>(
+        stallDeadline: const Duration(seconds: 3),
+      );
+      addTearDown(section.dispose);
+      final pending = Completer<SectionResult<int>>();
+      var done = false;
+      var forcedReads = 0;
+      unawaited(
+        section
+            .refresh(() => pending.future, fallbackError: '超时')
+            .then((_) => done = true),
+      );
+      unawaited(
+        section.refresh(
+          () async {
+            forcedReads++;
+            return const SectionResult(value: 2);
+          },
+          fallbackError: '超时',
+          force: true,
+        ),
+      );
+      await tester.pump(const Duration(seconds: 4));
+      expect(done, true);
+      expect(forcedReads, 1);
+      expect(section.value, 2);
+      pending.complete(const SectionResult(value: 99));
+      await tester.pump();
+      expect(section.value, 2);
+    },
+  );
+  testWidgets(
+    'dispose releases refresh caller without waiting for the native answer',
+    (tester) async {
+      final section = RefreshSection<int>();
+      final pending = Completer<SectionResult<int>>();
+      var done = false;
+      unawaited(
+        section
+            .refresh(() => pending.future, fallbackError: '失败')
+            .then((_) => done = true),
+      );
+      section.dispose();
+      await tester.pump();
+      expect(done, true);
+      pending.complete(const SectionResult(value: 99));
+    },
+  );
   test('old queued refresh cannot clear a newer forced refresh', () async {
     final section = RefreshSection<int>();
     addTearDown(section.dispose);

@@ -74,14 +74,22 @@ function trustedReleaseURL(value, prefix) {
     return false;
   }
 }
-function releaseAsset(release, suffix) {
+function releaseAsset(release, suffix, exact = false) {
   return (Array.isArray(release.assets) ? release.assets : []).find(
     (item) =>
       item &&
       typeof item.name === "string" &&
-      item.name.endsWith(suffix) &&
+      (exact ? item.name === suffix : item.name.endsWith(suffix)) &&
       item.size > 0 &&
       trustedReleaseURL(item.browser_download_url, "download/"),
+  );
+}
+function androidChecksum(release) {
+  const apk = releaseAsset(release, "-android-arm64.apk");
+  if (!apk) return undefined;
+  return (
+    releaseAsset(release, "checksums.txt", true) ||
+    releaseAsset(release, apk.name + ".sha256", true)
   );
 }
 function updateLinks(selector, value) {
@@ -122,7 +130,7 @@ async function updateReleaseLinks() {
       (item) =>
         /^android-v\d/.test(item.tag_name) &&
         releaseAsset(item, "-android-arm64.apk") &&
-        releaseAsset(item, "checksums.txt") &&
+        androidChecksum(item) &&
         trustedReleaseURL(item.html_url, "tag/android-v"),
     );
     const windows = releases.find(
@@ -161,7 +169,7 @@ async function updateReleaseLinks() {
       updateText("[data-android-channel]", channel);
       if (trustedReleaseURL(android.html_url, "tag/android-v"))
         updateLinks("[data-android-release]", android.html_url);
-      const sums = releaseAsset(android, "checksums.txt");
+      const sums = androidChecksum(android);
       if (sums)
         updateLinks("[data-android-checksums]", sums.browser_download_url);
     }

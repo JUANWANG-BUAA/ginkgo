@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "status": "blocked",
+  "version": "0.1.0-beta.7+17",
+  "source_sha256": "281c29828870096b28b8befebda017b30305cff50bcddf1434d4a78296f3823d",
+  "contract_sha256": "b5481b6e366689975c92152cb3365d132891a3bbe7f206055586ef774ed56bfe",
+  "reviewer": null,
+  "reviewed_at": null,
+  "open_p0": null,
+  "open_p1": null,
+  "reason": "Final signed Beta.7 candidate is bound to the current source and contract. Local gates, scoped emulator evidence and Windows remote CI passed; real login is paused at the user's request, and physical-device acceptance, school writes, maintainer security review and remaining feature cases are incomplete. P0/P1 counts and maintainer review are not asserted.",
+  "cases": {
+    "baseline": {
+      "status": "passed",
+      "level": "local",
+      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "section": "EVIDENCE baseline",
+      "date": "2026-11-03",
+      "environment": "macOS; locked cached dependencies; repository full gate",
+      "result": "Full local gate exited 0, including 749 Flutter tests and Rust, docs, API, FRB and Node checks."
+    },
+    "auth:directory-failure-never-fakes-login": {
+      "status": "passed",
+      "level": "local",
+      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "section": "EVIDENCE auth:directory-failure-never-fakes-login",
+      "date": "2026-11-03",
+      "environment": "macOS; Rust synthetic transport tests in upstream auth module",
+      "result": "UC directory and activation failures returned errors without publishing a signed-in identity."
+    },
+    "auth:single-submit-and-unknown-result": {
+      "status": "passed",
+      "level": "local",
+      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "section": "EVIDENCE auth:single-submit-and-unknown-result",
+      "date": "2026-11-03",
+      "environment": "macOS; Rust synthetic transport tests for CAS and WebVPN login",
+      "result": "Synthetic tests asserted one password POST and no replay after an unknown gateway submission result."
+    },
+    "production-entrypoint": {
+      "status": "passed",
+      "level": "emulator",
+      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "section": "EVIDENCE production-entrypoint",
+      "date": "2026-11-03",
+      "environment": "Android API 37 ARM64 isolated emulator-5580; final signed Release APK",
+      "result": "Normal MainActivity installed and cold-started successfully."
+    },
+    "feature:tasks": {
+      "status": "passed",
+      "level": "emulator",
+      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "section": "EVIDENCE feature:tasks",
+      "date": "2026-11-03",
+      "environment": "Android API 37 ARM64 isolated emulator-5580; Beta.6 to final signed Beta.7 overwrite",
+      "result": "Synthetic offline-demo local task survived signed overwrite install and remained visible."
+    },
+    "feature:more": {
+      "status": "passed",
+      "level": "emulator",
+      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "section": "EVIDENCE feature:more",
+      "date": "2026-11-03",
+      "environment": "Android API 37 ARM64 isolated emulator-5580; final signed Beta.7",
+      "result": "More page and its settings entry rendered and were navigable."
+    },
+    "feature:settings": {
+      "status": "passed",
+      "level": "emulator",
+      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "section": "EVIDENCE feature:settings",
+      "date": "2026-11-03",
+      "environment": "Android API 37 ARM64 isolated emulator-5580; Beta.6 to final signed Beta.7 overwrite",
+      "result": "Appearance choices could be changed; the Beta.6 dark preference survived upgrade and returned to the login screen."
+    },
+    "windows:shared-build-and-tests": {
+      "status": "passed",
+      "level": "remote-ci",
+      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "section": "EVIDENCE windows:shared-build-and-tests",
+      "date": "2026-11-03",
+      "environment": "GitHub Actions mirror workflow for commit 4372972470e1aa74c3529df1113f35bd4d6615a4; Windows runner",
+      "result": "Windows Flutter Debug build and dedicated Windows checks passed."
+    }
+  }
+}

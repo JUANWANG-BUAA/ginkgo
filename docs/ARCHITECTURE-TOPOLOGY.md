@@ -1,6 +1,6 @@
 # Ginkgo 架构拓扑与数据流
 
-更新：2026-10-29。工程由五个 Rust crate 组成；本文用图说明 **Android（Flutter + Rust）的七段调用拓扑与数据 IO**，配合 [接口索引](INTERFACE-INDEX.md) 使用：索引给出签名与位置，本文给出结构与走向。
+更新：2026-11-02。工程由五个 Rust crate 组成；本文用图说明 **Android（Flutter + Rust）的七段调用拓扑与数据 IO**，配合 [接口索引](INTERFACE-INDEX.md) 使用：索引给出签名与位置，本文给出结构与走向。
 
 图为 Mermaid，GitHub 原生渲染；依赖图由 `scripts/generate-interface-index.py` 从源码算出，不手绘。
 
@@ -280,7 +280,7 @@ flowchart LR
 | Dart 契约 | `application/contracts.dart` 导出类型 | 生成绑定 | 页面 |
 | 页面投影 | `*_models.dart` 类型值 | 模型函数 | 组件 |
 
-这就是「载荷解码只允许在 `*_models.dart`」那条门禁的由来：前四层都在 Rust，第五层是类型转发，第六层是唯一允许 Dart 自己解码的地方——而它解码的是**已序列化的领域 JSON**，不是学校原始响应。
+当前桥接已全部类型化：学校 JSON 的解析和净化在 Rust 完成，Dart 模型函数只消费 DTO 并构造呈现值；已序列化领域 JSON 的载荷逃生舱也已删除。不要根据旧版“模型层可解码 JSON”恢复原始 Map 依赖。
 
 ## 6. 能力地图
 
@@ -327,6 +327,8 @@ flowchart LR
 ```
 
 ## 7. 会话与缓存的位置
+
+Android 工作树另将两份隔离 CookieJar 交平台 Keystore AES-GCM 加密保存；固定认证生命周期 24 小时内经 UC 校验才恢复，不保存验证码答案或业务 token。Windows/macOS 镜像仍仅进程内 Cookie。密码保存另由用户选择；细节和证据边界见 [API](API.md)、[隐私](PRIVACY.md) 和 [发布契约](ANDROID-RELEASE-CONTRACT.md)。
 
 这两者是全局状态，理解它们的归属才能理解「为什么切账号要丢弃旧结果」。
 

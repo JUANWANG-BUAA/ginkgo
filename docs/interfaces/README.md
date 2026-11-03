@@ -11,16 +11,16 @@
 | [领域业务端口（ginkgo_domain::ports）](rust-domain-ports.md) | `rust-domain-ports.md` | 91 |
 | [领域值类型与纯规则（ginkgo_domain::features）](rust-domain-features.md) | `rust-domain-features.md` | 123 |
 | [领域基础类型（ginkgo_domain）](rust-domain-foundation.md) | `rust-domain-foundation.md` | 18 |
-| [应用编排（ginkgo_core）](rust-core-application.md) | `rust-core-application.md` | 89 |
+| [应用编排（ginkgo_core）](rust-core-application.md) | `rust-core-application.md` | 92 |
 | [上游适配器（ginkgo_upstream::adapters）](rust-upstream-adapters.md) | `rust-upstream-adapters.md` | 125 |
 | [上游解析（ginkgo_upstream::codecs）](rust-upstream-codecs.md) | `rust-upstream-codecs.md` | 75 |
-| [认证与会话（ginkgo_upstream::auth）](rust-upstream-auth.md) | `rust-upstream-auth.md` | 64 |
-| [上游服务（ginkgo_upstream::services）](rust-upstream-services.md) | `rust-upstream-services.md` | 112 |
-| [上游基础能力（ginkgo_upstream）](rust-upstream-foundation.md) | `rust-upstream-foundation.md` | 47 |
+| [认证与会话（ginkgo_upstream::auth）](rust-upstream-auth.md) | `rust-upstream-auth.md` | 74 |
+| [上游服务（ginkgo_upstream::services）](rust-upstream-services.md) | `rust-upstream-services.md` | 120 |
+| [上游基础能力（ginkgo_upstream）](rust-upstream-foundation.md) | `rust-upstream-foundation.md` | 48 |
 | [组装（ginkgo_runtime）](rust-runtime.md) | `rust-runtime.md` | 8 |
-| [桥接（ginkgo_flutter_bridge）](rust-bridge.md) | `rust-bridge.md` | 375 |
-| [Dart 应用接口（flutter/lib/application）](dart-application.md) | `dart-application.md` | 161 |
-| [Dart 基础设施（flutter/lib/infrastructure）](dart-infrastructure.md) | `dart-infrastructure.md` | 48 |
+| [桥接（ginkgo_flutter_bridge）](rust-bridge.md) | `rust-bridge.md` | 378 |
+| [Dart 应用接口（flutter/lib/application）](dart-application.md) | `dart-application.md` | 164 |
+| [Dart 基础设施（flutter/lib/infrastructure）](dart-infrastructure.md) | `dart-infrastructure.md` | 49 |
 | [跨域共享状态（flutter/lib/shared）](dart-shared.md) | `dart-shared.md` | 30 |
 | [平台集成（flutter/lib/platform）](dart-platform.md) | `dart-platform.md` | 12 |
 | [共享呈现组件（flutter/lib/widgets）](dart-widgets.md) | `dart-widgets.md` | 52 |
@@ -28,7 +28,7 @@
 | [应用外壳组件（flutter/lib/app）](dart-app.md) | `dart-app.md` | 4 |
 | [工作区壳层（flutter/lib/workspace）](dart-workspace.md) | `dart-workspace.md` | 30 |
 | [Flutter 功能域：academic](dart-feature-academic.md) | `dart-feature-academic.md` | 1 |
-| [Flutter 功能域：auth](dart-feature-auth.md) | `dart-feature-auth.md` | 1 |
+| [Flutter 功能域：auth](dart-feature-auth.md) | `dart-feature-auth.md` | 8 |
 | [Flutter 功能域：bykc](dart-feature-bykc.md) | `dart-feature-bykc.md` | 10 |
 | [Flutter 功能域：campus](dart-feature-campus.md) | `dart-feature-campus.md` | 1 |
 | [Flutter 功能域：campus_card](dart-feature-campus_card.md) | `dart-feature-campus_card.md` | 1 |
@@ -44,7 +44,7 @@
 | [Flutter 功能域：notices](dart-feature-notices.md) | `dart-feature-notices.md` | 1 |
 | [Flutter 功能域：reservations](dart-feature-reservations.md) | `dart-feature-reservations.md` | 1 |
 | [Flutter 功能域：schedule](dart-feature-schedule.md) | `dart-feature-schedule.md` | 26 |
-| [Flutter 功能域：settings](dart-feature-settings.md) | `dart-feature-settings.md` | 16 |
+| [Flutter 功能域：settings](dart-feature-settings.md) | `dart-feature-settings.md` | 17 |
 | [Flutter 功能域：shuttle](dart-feature-shuttle.md) | `dart-feature-shuttle.md` | 8 |
 | [Flutter 功能域：tasks](dart-feature-tasks.md) | `dart-feature-tasks.md` | 6 |
 | [Flutter 功能域：today](dart-feature-today.md) | `dart-feature-today.md` | 22 |

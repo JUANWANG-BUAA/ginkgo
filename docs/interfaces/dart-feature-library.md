@@ -57,17 +57,18 @@
 ## features/library/library_controller.dart
 
 - `class LibraryController extends ChangeNotifier` — One library page owns its read snapshots and post-write readback queue.
-  <sub>class · features/library/library_controller.dart:11</sub>
-    - `bool loadingBookings = false, loadingVenues = false, submitting = false;`  <sub>:26</sub>
-    - `final Set<String> uncertainActions = {…}`  <sub>:27</sub>
-    - `bool get busy => …`  <sub>:33</sub>
-    - `void invalidate() => …` — Drops every in-flight read at its next await: call when the account or  <sub>:38</sub>
-    - `Future<void> load({bool force = false}) => …`  <sub>:44</sub>
-    - `Future<void> loadVenues({bool force = false}) => …`  <sub>:99</sub>
-    - `Future<void> loadBookings({bool force = false}) => …`  <sub>:167</sub>
-    - `Future<void> reservationChanged() async {…}` — A pre-write read must finish before the forced read can be published.  <sub>:207</sub>
-    - `Future<void> perform(LibraryBooking booking, String action) async {…}` — The page has already obtained explicit confirmation for this action.  <sub>:217</sub>
-    - `void dispose() {…}`  <sub>:254</sub>
+  <sub>class · features/library/library_controller.dart:12</sub>
+    - `bool loadingBookings = false, loadingVenues = false, submitting = false;`  <sub>:27</sub>
+    - `final Set<String> uncertainActions = {…}`  <sub>:28</sub>
+    - `int get bookingRevision => …` — Every booking read invalidates confirmations from its previous snapshot.  <sub>:36</sub>
+    - `bool get busy => …`  <sub>:38</sub>
+    - `void invalidate() {…}` — Drops every in-flight read at its next await: call when the account or  <sub>:43</sub>
+    - `Future<void> load({bool force = false}) => …`  <sub>:63</sub>
+    - `Future<void> loadVenues({bool force = false}) => …`  <sub>:129</sub>
+    - `Future<void> loadBookings({bool force = false}) => …`  <sub>:177</sub>
+    - `Future<void> reservationChanged() async {…}` — A pre-write read must finish before the forced read can be published.  <sub>:215</sub>
+    - `Future<void> perform(LibraryBooking booking, String action) async {…}` — The page has already obtained explicit confirmation for this action.  <sub>:225</sub>
+    - `void dispose() {…}`  <sub>:267</sub>
 
 ## features/library/library_controls.dart
 

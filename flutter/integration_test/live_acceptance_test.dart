@@ -28,6 +28,7 @@ import 'package:ginkgo_mirror/features/shuttle/shuttle_page.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/features/auth/login_page.dart';
 import 'package:ginkgo_mirror/main.dart';
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
 import 'package:ginkgo_mirror/infrastructure/native_auth_challenge.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
@@ -50,6 +51,7 @@ import 'package:ginkgo_mirror/application/library_stats.dart';
 const enabled = bool.fromEnvironment('GINKGO_LIVE_ACCEPTANCE');
 const forceDirect = bool.fromEnvironment('GINKGO_LIVE_DIRECT');
 const forceWebVpn = bool.fromEnvironment('GINKGO_LIVE_WEBVPN');
+const authOnly = bool.fromEnvironment('GINKGO_LIVE_AUTH_ONLY');
 const rememberForRecovery = bool.fromEnvironment('GINKGO_LIVE_REMEMBER');
 const endpoint = String.fromEnvironment(
   'GINKGO_LIVE_ENDPOINT',
@@ -63,12 +65,17 @@ void main() {
     'authorized real-account interface, visual and latency audit',
     (tester) async {
       await RustLib.init();
-      if (forceDirect) {
-        await live.setRoute(route: live.RouteChoice.direct);
+      final preferences = AppPreferences();
+      Future<void> selectRoute(live.RouteChoice choice) async {
+        final response = await live.setRoute(route: choice);
+        if (response.failure != null) {
+          throw StateError('Route change failed: ${response.failure!.name}');
+        }
+        await preferences.setRouteMode(choice.name);
       }
-      if (forceWebVpn) {
-        await live.setRoute(route: live.RouteChoice.webVpn);
-      }
+
+      if (forceDirect) await selectRoute(live.RouteChoice.direct);
+      if (forceWebVpn) await selectRoute(live.RouteChoice.webVpn);
       const service = NativeMirrorService();
       var accountService = const NativeMirrorService();
       // The harness channel is deliberately loopback-only and does not change
@@ -288,6 +295,7 @@ void main() {
         final loginWatch = Stopwatch()..start();
         await tester.pumpWidget(
           ginkgoApp(
+            preferences: preferences,
             home: LoginPage(
               service: service,
               onSignedIn: (value) => session = value,
@@ -368,7 +376,7 @@ void main() {
         }
         if (session == null) await capture('login-result');
         String? challengeFailure, challengeDecode, expectedRetryFailure;
-        if (session == null) {
+        if (session == null && !authOnly) {
           try {
             challengeFailure = await tester.runAsync<String?>(() async {
               final response = await challenge.loadLoginChallenge(
@@ -399,7 +407,9 @@ void main() {
           'ms': loginWatch.elapsedMilliseconds,
           'signedIn': session?.state == live.SessionState.signedIn,
           'remembered': session?.remembered,
-          'error': loginError,
+          // The UI can contain account-specific upstream text. Reports only
+          // record its presence; temporary screenshots stay outside the repo.
+          'errorShown': loginError?.isNotEmpty == true,
           'challengeFailure': challengeFailure,
           'challengeDecode': challengeDecode,
           'expectedRetryFailure': expectedRetryFailure,
@@ -412,6 +422,7 @@ void main() {
         // Remove password controllers immediately after successful login.
         await tester.pumpWidget(ginkgoApp(home: const SizedBox.shrink()));
         await settle(tester, frames: 2);
+        if (authOnly) return;
         accountService = NativeMirrorService(expectedAccount: session!.account);
 
         final dates = await service.dates(

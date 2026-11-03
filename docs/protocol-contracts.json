@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-11-03",
+  "review_note": "Beta.3/UBAA comparison and current working-tree authentication repair; synthetic evidence is not live acceptance.",
+  "groups": [
+    {
+      "id": "authentication",
+      "inputs": [
+        "rust/crates/ginkgo_upstream/src/auth/**/*.rs",
+        "rust/crates/ginkgo_upstream/src/foundation/*.rs",
+        "rust/crates/ginkgo_upstream/src/services/session_service.rs",
+        "rust/crates/ginkgo_upstream/src/services/session_service/*.rs",
+        "rust/crates/ginkgo_upstream/src/services/tests/session.rs",
+        "rust/crates/ginkgo_upstream/examples/auth_stage_probe.rs"
+      ],
+      "documents": [
+        "docs/API.md",
+        "docs/PRIVACY.md",
+        "docs/FEATURES-AND-PROTOCOLS.md"
+      ],
+      "evidence": [
+        "rust/crates/ginkgo_upstream/src/auth/tests.rs",
+        "rust/crates/ginkgo_upstream/src/services/session_service/gateway.rs",
+        "rust/crates/ginkgo_upstream/src/services/tests/session.rs",
+        "rust/crates/ginkgo_upstream/src/auth/expiry_tests.rs"
+      ],
+      "invariants": [
+        "AUTH-01",
+        "AUTH-02",
+        "AUTH-03",
+        "AUTH-04",
+        "AUTH-05",
+        "AUTH-06"
+      ],
+      "source_sha256": "f9f7bd3e2a76d579f1a8784bf887f540a589b86675c7d498e20b5706396ea0a5",
+      "document_sha256": "9e95e56c8e32dba56a604c6eaed16334d30a7c86dad7b304023b51adf42c981d"
+    },
+    {
+      "id": "school-protocols",
+      "inputs": [
+        "rust/crates/ginkgo_upstream/src/adapters/*.rs",
+        "rust/crates/ginkgo_upstream/src/codecs/**/*.rs",
+        "rust/crates/ginkgo_upstream/src/services/**/*.rs",
+        "fixtures/**/*.json",
+        "rust/crates/ginkgo_upstream/examples/public_protocol_probe.rs"
+      ],
+      "documents": [
+        "docs/API.md",
+        "docs/FEATURES-AND-PROTOCOLS.md"
+      ],
+      "evidence": [
+        "rust/crates/ginkgo_upstream/tests/contracts.rs",
+        "rust/crates/ginkgo_upstream/src/services/tests/library.rs",
+        "rust/crates/ginkgo_upstream/src/services/tests/checkin.rs"
+      ],
+      "invariants": [
+        "DATA-01",
+        "WRITE-01",
+        "WRITE-02"
+      ],
+      "source_sha256": "4da77c0c0ab2de5250cf179a3a295c251c549162da17468d07b72a217804790d",
+      "document_sha256": "52ef1f02df9d1aff4b97e73028b7bf003d13b0ab548d766609f1204b5a7b1a75"
+    },
+    {
+      "id": "client-contracts",
+      "inputs": [
+        "rust/crates/ginkgo_domain/src/ports/*.rs",
+        "rust/crates/ginkgo_flutter_bridge/src/api/**/*.rs",
+        "flutter/lib/application/**/*.dart",
+        "flutter/lib/features/auth/*.dart",
+        "flutter/lib/features/settings/*.dart",
+        "flutter/lib/infrastructure/native_auth_challenge.dart",
+        "flutter/lib/shared/app_preferences.dart",
+        "flutter/lib/main.dart",
+        "flutter/lib/features/library/library_seat_page.dart",
+        "flutter/lib/features/checkin/checkin_page.dart",
+        "flutter/lib/features/library/library_controller.dart",
+        "flutter/lib/features/library/library_page.dart",
+        "flutter/lib/widgets/mutation_dialog.dart",
+        "flutter/lib/widgets/apple_surfaces.dart",
+        "flutter/lib/infrastructure/display_preferences_file_store.dart",
+        "flutter/lib/features/grades/grades_page.dart"
+      ],
+      "documents": [
+        "docs/INTERFACE-INDEX.md",
+        "docs/FEATURES-AND-PROTOCOLS.md",
+        "docs/MIRROR-ARCHITECTURE.md",
+        "docs/ARCHITECTURE-TOPOLOGY.md"
+      ],
+      "evidence": [
+        "flutter/test/auth_route_stability_test.dart",
+        "flutter/test/gateway_challenge_test.dart",
+        "flutter/test/login_route_test.dart",
+        "flutter/test/library_seat_mutation_context_test.dart",
+        "flutter/test/checkin_mutation_context_test.dart",
+        "flutter/test/mutation_dialog_test.dart",
+        "flutter/test/library_service_replacement_test.dart",
+        "flutter/test/library_controller_test.dart",
+        "flutter/test/apple_list_tile_layout_test.dart",
+        "flutter/test/preferences_consistency_test.dart",
+        "flutter/test/display_preferences_file_store_test.dart",
+        "flutter/test/library_read_deadline_test.dart",
+        "flutter/test/refresh_section_test.dart",
+        "flutter/test/gateway_challenge_generation_test.dart",
+        "flutter/test/grades_term_recovery_test.dart",
+        "flutter/test/login_placeholder_contrast_test.dart"
+      ],
+      "invariants": [
+        "FFI-01",
+        "UI-01",
+        "DATA-01",
+        "PREF-01",
+        "READ-01"
+      ],
+      "source_sha256": "9bcd29183e0ae537f24aab7a2e25730767fddedd02aa5ef6a271295a9e45e0f7",
+      "document_sha256": "e542d18fe069b9689e3a64d58bf1b84b1c0b83fbe3c0b930e21f2ca425e286eb"
+    }
+  ]
+}

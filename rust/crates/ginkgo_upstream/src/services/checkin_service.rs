@@ -69,7 +69,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 Ok(courses) => return Ok(courses),
                 // The app session is unusable; rebuild it, do not retry the
                 // query against the same rejected session.
-                Err(error) if error.code == ErrorCode::BusinessRejected => {
+                Err(error) if error.detail.as_deref() == Some("webvpn_login_required") => {
+                    self.ensure_webvpn_session().await?;
+                    self.identity.lock().iclass = None;
+                }
+                Err(error)
+                    if error.code == ErrorCode::BusinessRejected
+                        || error.detail.as_deref() == Some("iclass_session") =>
+                {
                     self.identity.lock().iclass = None;
                 }
                 Err(error) => return Err(error),

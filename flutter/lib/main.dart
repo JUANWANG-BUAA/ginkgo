@@ -4,7 +4,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/application/contracts.dart'
-    show SessionResponse, SessionState;
+    show RouteChoice, SessionResponse, SessionState;
 import 'package:ginkgo_mirror/infrastructure/display_preferences_file_store.dart';
 import 'package:ginkgo_mirror/infrastructure/mirror_runtime.dart';
 import 'package:ginkgo_mirror/features/auth/login_page.dart';
@@ -163,7 +163,51 @@ class _GinkgoRootState extends State<GinkgoRoot> {
     });
   }
 
+  Future<void> retryPreferences() async {
+    if (!mounted || stage == _Stage.restoring) return;
+    setState(() => stage = _Stage.restoring);
+    await _preferences.restore();
+    if (mounted) await restore();
+  }
+
   Future<void> restore() async {
+    if (_preferences.readFailed) {
+      setState(() {
+        stage = _Stage.signedOut;
+        session = null;
+        captchaRequired = false;
+        message = '未能读取本机设置，已停止自动恢复。请重新读取设置，或选择路线后手动登录。';
+      });
+      return;
+    }
+    // The route chosen on the login page must apply before the session is
+    // restored or the first sign-in runs, otherwise a later start silently
+    // logs in on a different path than the one the user picked.
+    final route = switch (_preferences.routeMode) {
+      'direct' => RouteChoice.direct,
+      'webVpn' => RouteChoice.webVpn,
+      _ => RouteChoice.automatic,
+    };
+    try {
+      final result = await widget.liveService.setRoute(route);
+      if (result.failure != null) {
+        if (!mounted) return;
+        setState(() {
+          stage = _Stage.signedOut;
+          message = failureMessage(result.failure);
+        });
+        return;
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        stage = _Stage.signedOut;
+        message = '网络路线初始化失败，请重新选择路线后登录';
+      });
+      return;
+    }
+    if (!mounted) return;
+
     // An explicit sign-out persists until the next successful sign-in: the
     // user chose to leave, so a later start shows the login page instead of
     // auto-restoring a saved session.
@@ -271,6 +315,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
           service: widget.liveService,
           initialMessage: message,
           initialCaptcha: captchaRequired,
+          onRetryPreferences: _preferences.readFailed ? retryPreferences : null,
           challengeGateway:
               widget.challengeGateway ??
               (widget.liveService is NativeMirrorService

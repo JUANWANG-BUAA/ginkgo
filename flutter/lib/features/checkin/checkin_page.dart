@@ -11,6 +11,7 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_loading.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
+import 'package:ginkgo_mirror/widgets/mutation_dialog.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
@@ -51,6 +52,8 @@ class _CheckInPageState extends State<CheckInPage> {
   String? submitting;
   final Set<String> awaitingVerification = {};
   int requestSerial = 0;
+  int contextGeneration = 0;
+  bool confirming = false;
   late DateTime selectedDate;
   DateTime get instant => widget.clock?.call() ?? DateTime.now();
   DateTime get schoolToday {
@@ -121,6 +124,8 @@ class _CheckInPageState extends State<CheckInPage> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.service != widget.service ||
         oldWidget.history != widget.history) {
+      contextGeneration++;
+      confirming = false;
       requestSerial++;
       data = null;
       error = null;
@@ -190,8 +195,16 @@ class _CheckInPageState extends State<CheckInPage> {
   }
 
   Future<void> submit(CheckInCourse course) async {
-    if (submitting != null ||
+    if (confirming ||
+        submitting != null ||
         busy ||
+        error != null ||
+        data == null ||
+        data!.stale ||
+        data!.failure != null ||
+        course.status != CheckInStatus.notSigned ||
+        course.conflicting ||
+        !(course.signInAllowed ?? course.mergedRecordCount == 1) ||
         widget.history ||
         awaitingVerification.contains(course.id) ||
         !checkinWindowOpen(
@@ -201,47 +214,64 @@ class _CheckInPageState extends State<CheckInPage> {
         )) {
       return;
     }
-    final confirmed = await showCupertinoDialog<bool>(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('确认签到？'),
-        content: Text(
-          '${course.courseName}\n${data?.date ?? dateString(schoolToday)}\n'
-          '${schoolTimeRange(course.beginsAt, course.endsAt)}\n'
-          '${course.classroomName ?? ""}',
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('确认签到'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted || submitting != null) return;
+    final generation = contextGeneration;
+    final serial = requestSerial;
+    final service = widget.service;
+    confirming = true;
+    bool confirmed;
+    try {
+      confirmed = await confirmMutation(
+        context,
+        title: '确认签到？',
+        detail:
+            '${course.courseName}\n${data?.date ?? dateString(schoolToday)}\n'
+            '${schoolTimeRange(course.beginsAt, course.endsAt)}\n'
+            '${course.classroomName ?? ""}',
+        action: '确认签到',
+        cancelLabel: '取消',
+      );
+    } finally {
+      if (generation == contextGeneration) confirming = false;
+    }
+    if (!confirmed ||
+        !mounted ||
+        generation != contextGeneration ||
+        serial != requestSerial ||
+        submitting != null ||
+        busy ||
+        widget.history ||
+        awaitingVerification.contains(course.id) ||
+        !checkinWindowOpen(course, data!.date, instant)) {
+      return;
+    }
     setState(() {
       submitting = course.id;
       awaitingVerification.add(course.id);
     });
     var message = '提交结果待确认，请刷新状态核实，勿重复提交';
     try {
-      final response = await widget.service.submitCheckin(course.id);
+      final response = await service.submitCheckin(course.id);
       message = response.message;
-      if (response.state == 'notSubmitted' || response.state == 'rejected') {
+      if (mounted &&
+          generation == contextGeneration &&
+          (response.state == 'notSubmitted' || response.state == 'rejected')) {
         awaitingVerification.remove(course.id);
       }
     } catch (_) {
       // The Dart exception cannot prove that the server did not receive the write.
     }
-    if (!mounted) return;
+    if (!mounted || generation != contextGeneration) {
+      // The original gateway owns readback; never refresh a new account.
+      try {
+        await service.checkin(forceRefresh: true);
+      } catch (_) {
+        // No current page can safely present this old context's result.
+      }
+      return;
+    }
     setState(() => notice = message);
     await load(force: true);
-    if (!mounted) return;
+    if (!mounted || generation != contextGeneration) return;
     setState(() {
       submitting = null;
       notice = message;
@@ -482,7 +512,12 @@ class _CheckInPageState extends State<CheckInPage> {
                     (course.signInAllowed ?? course.mergedRecordCount == 1),
                 submitting: submitting,
                 awaitingVerification: awaitingVerification.contains(course.id),
-                onSubmit: busy || awaitingVerification.contains(course.id)
+                onSubmit:
+                    busy ||
+                        error != null ||
+                        data.stale ||
+                        data.failure != null ||
+                        awaitingVerification.contains(course.id)
                     ? null
                     : () => submit(course),
               ),

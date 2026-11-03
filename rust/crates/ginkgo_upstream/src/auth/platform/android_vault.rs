@@ -5,7 +5,9 @@
 //! caches the app class loader's `CredentialVault` class. All encryption and
 //! `SharedPreferences` access stays in Kotlin.
 use crate::{
-    auth::{vault::sanitized, CredentialSource, CredentialVault, Credentials},
+    auth::{
+        session::PersistedSession, vault::sanitized, CredentialSource, CredentialVault, Credentials,
+    },
     AppError,
 };
 use jni::{
@@ -172,5 +174,53 @@ impl CredentialVault for AndroidVault {
             // vault: callers must not treat it as "nothing left to delete".
             None => Err(AppError::credential_store()),
         }
+    }
+
+    fn save_session(&self, session: &PersistedSession) -> Result<(), AppError> {
+        let payload = serde_json::to_string(session).map_err(|_| AppError::credential_store())?;
+        if payload.len() > 262_144 {
+            return Err(AppError::credential_store());
+        }
+        let saved = Self::with_env(|env| {
+            let payload = Self::argument(env, &payload)?;
+            Self::call_bool(
+                env,
+                "saveSession",
+                "(Ljava/lang/String;)Z",
+                &[JValue::Object(&payload)],
+            )
+        })?;
+        if saved {
+            Ok(())
+        } else {
+            Err(AppError::credential_store())
+        }
+    }
+
+    fn load_session(&self) -> Result<Option<PersistedSession>, AppError> {
+        let payload = Self::with_env(|env| {
+            Self::call_string(env, "loadSession", "()Ljava/lang/String;", &[])
+        })?;
+        payload
+            .map(|payload| {
+                if payload.len() > 262_144 {
+                    return Err(AppError::credential_store());
+                }
+                serde_json::from_str(&payload).map_err(|_| AppError::credential_store())
+            })
+            .transpose()
+    }
+
+    fn delete_session(&self) -> Result<(), AppError> {
+        let deleted = Self::with_env(|env| Self::call_bool(env, "deleteSession", "()Z", &[]))?;
+        if deleted {
+            Ok(())
+        } else {
+            Err(AppError::credential_store())
+        }
+    }
+
+    fn has_session(&self) -> Result<bool, AppError> {
+        Self::with_env(|env| Self::call_bool(env, "hasSession", "()Z", &[]))
     }
 }

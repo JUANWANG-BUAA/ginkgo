@@ -16,6 +16,13 @@
     - `const AccentCoursePreview({super.key, required this.accent});`  <sub>:131</sub>
     - `State<AccentCoursePreview> createState() => …`  <sub>:135</sub>
 
+## features/settings/gateway_challenge_page.dart
+
+- `class GatewayChallengePage extends StatefulWidget`
+  <sub>class · features/settings/gateway_challenge_page.dart:11</sub>
+    - `const GatewayChallengePage({super.key, required this.gateway});`  <sub>:12</sub>
+    - `State<GatewayChallengePage> createState() => …`  <sub>:15</sub>
+
 ## features/settings/maintenance_pages.dart
 
 - `class MaintenanceScaffold extends StatelessWidget`
@@ -61,22 +68,22 @@
     - `const AppearancePage({super.key});`  <sub>:14</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:16</sub>
 - `class SystemPreferencesPage extends StatefulWidget`
-  <sub>class · features/settings/preferences_pages.dart:93</sub>
-    - `const SystemPreferencesPage({ super.key, this.service = const NativeSystemSettingsService(), });`  <sub>:94</sub>
-    - `State<SystemPreferencesPage> createState() => …`  <sub>:100</sub>
+  <sub>class · features/settings/preferences_pages.dart:99</sub>
+    - `const SystemPreferencesPage({ super.key, this.service = const NativeSystemSettingsService(), });`  <sub>:100</sub>
+    - `State<SystemPreferencesPage> createState() => …`  <sub>:106</sub>
 - `class PrivacyPage extends StatelessWidget`
-  <sub>class · features/settings/preferences_pages.dart:288</sub>
-    - `const PrivacyPage({super.key});`  <sub>:289</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:291</sub>
+  <sub>class · features/settings/preferences_pages.dart:294</sub>
+    - `const PrivacyPage({super.key});`  <sub>:295</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:297</sub>
 - `class AboutPage extends StatefulWidget`
-  <sub>class · features/settings/preferences_pages.dart:335</sub>
-    - `const AboutPage({ super.key, this.system = const NativeSystemSettingsService(), });`  <sub>:336</sub>
-    - `State<AboutPage> createState() => …`  <sub>:342</sub>
+  <sub>class · features/settings/preferences_pages.dart:341</sub>
+    - `const AboutPage({ super.key, this.system = const NativeSystemSettingsService(), });`  <sub>:342</sub>
+    - `State<AboutPage> createState() => …`  <sub>:348</sub>
 
 ## features/settings/settings_page.dart
 
 - `class SettingsPage extends StatefulWidget`
-  <sub>class · features/settings/settings_page.dart:20</sub>
-    - `const SettingsPage({ super.key, required this.service, required this.onSignOut, this.accountName, this.accountId, this.route, required this.maintenance, });`  <sub>:21</sub>
-    - `final Future<void> Function() onSignOut;`  <sub>:36</sub>
-    - `State<SettingsPage> createState() => …`  <sub>:41</sub>
+  <sub>class · features/settings/settings_page.dart:22</sub>
+    - `const SettingsPage({ super.key, required this.service, required this.onSignOut, this.accountName, this.accountId, this.route, required this.maintenance, });`  <sub>:23</sub>
+    - `final Future<void> Function() onSignOut;`  <sub>:38</sub>
+    - `State<SettingsPage> createState() => …`  <sub>:43</sub>

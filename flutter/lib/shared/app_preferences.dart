@@ -62,6 +62,12 @@ class AppPreferences extends ChangeNotifier {
   final PreferencesWriter _writer;
   final PreferencesReader _reader;
   Future<void> _pending = Future.value();
+  int _saveRevision = 0;
+  bool _disposed = false;
+  bool _readFailed = false;
+
+  /// An unreadable settings file cannot establish the saved sign-out choice.
+  bool get readFailed => _readFailed;
   AppAppearance appearance = AppAppearance.system;
   AppAccent accent = AppAccent.green;
   bool compactLists = false;
@@ -73,15 +79,45 @@ class AppPreferences extends ChangeNotifier {
   /// so a failed vault deletion can never resurrect a chosen signed-out state.
   bool explicitSignOut = false;
   String? saveError;
+  String? _writeError;
+
+  /// Last failed write, separate from a failed settings read.
+  String? get writeError => _writeError;
+
+  /// Chosen network route, kept so the login page and the next start use the
+  /// same path instead of silently falling back to automatic.
+  String routeMode = 'automatic';
 
   static Future<void> _discardWrite(Map<String, Object> _) async {}
 
   static Future<Map<String, Object?>?> _emptyRead() async => null;
 
+  void _notify() {
+    if (!_disposed) notifyListeners();
+  }
+
   Future<void> restore() async {
+    if (_disposed) return;
     try {
       final value = await _reader();
-      if (value == null) return;
+      _readFailed = false;
+      saveError = _writeError;
+      if (value == null) {
+        _notify();
+        return;
+      }
+      if (value.containsKey('explicitSignOut') &&
+          value['explicitSignOut'] is! bool) {
+        throw const FormatException('Invalid sign-out marker');
+      }
+      if (value.containsKey('routeMode') &&
+          !const {
+            'automatic',
+            'direct',
+            'webVpn',
+          }.contains(value['routeMode'])) {
+        throw const FormatException('Invalid route preference');
+      }
       appearance = AppAppearance.values.firstWhere(
         (item) => item.name == value['appearance'],
         orElse: () => AppAppearance.system,
@@ -97,10 +133,14 @@ class AppPreferences extends ChangeNotifier {
           ? size.toDouble()
           : 1;
       explicitSignOut = value['explicitSignOut'] == true;
-      notifyListeners();
+      routeMode = value['routeMode'] is String
+          ? value['routeMode'] as String
+          : 'automatic';
+      _notify();
     } catch (_) {
-      saveError = '未能读取外观偏好，已使用默认设置';
-      notifyListeners();
+      _readFailed = true;
+      saveError = '未能读取本机设置，请重试读取';
+      _notify();
     }
   }
 
@@ -111,18 +151,42 @@ class AppPreferences extends ChangeNotifier {
     'reduceMotion': reduceMotion,
     'textSize': textSize,
     'explicitSignOut': explicitSignOut,
+    'routeMode': routeMode,
   };
 
   Future<void> _scheduleSave(String failureMessage) {
+    if (_disposed) return Future.value();
+    final revision = ++_saveRevision;
+    final snapshot = _snapshot();
     saveError = null;
-    notifyListeners();
-    _pending = _pending.then((_) => _writer(_snapshot())).catchError((
-      Object _,
-    ) {
-      saveError = failureMessage;
-      notifyListeners();
+    _writeError = null;
+    final task = _pending.then((_) async {
+      try {
+        await _writer(snapshot);
+        if (revision == _saveRevision && saveError != null) {
+          saveError = null;
+          _notify();
+        }
+      } catch (_) {
+        if (revision == _saveRevision) {
+          saveError = failureMessage;
+          _writeError = failureMessage;
+          _notify();
+        }
+      }
     });
-    return _pending;
+    _pending = task;
+    _notify();
+    return task;
+  }
+
+  /// Retries the current local snapshot without changing any setting.
+  Future<void> retrySave() => _scheduleSave('本机设置保存失败，请稍后重试');
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 
   Future<void> update({
@@ -140,12 +204,18 @@ class AppPreferences extends ChangeNotifier {
     return _scheduleSave('外观已应用，本机保存失败，请稍后重试');
   }
 
+  /// Persists the network route chosen on the login page.
+  Future<void> setRouteMode(String value) {
+    routeMode = value;
+    return _scheduleSave('网络路线已选择，本机保存失败，请稍后重试');
+  }
+
   /// Records or clears the explicit sign-out marker with the same serialized
   /// write path as the display choices.
   Future<void> setExplicitSignOut(bool value) {
     explicitSignOut = value;
     return _scheduleSave(
-      value ? '已退出登录，本机标记保存失败，恢复功能可能仍会显示登录页' : '外观已应用，本机保存失败，请稍后重试',
+      value ? '已退出登录，但本机退出标记保存失败，请重试保存' : '登录已完成，但本机设置保存失败，请重试保存',
     );
   }
 }

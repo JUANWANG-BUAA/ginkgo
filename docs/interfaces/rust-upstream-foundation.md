@@ -15,35 +15,37 @@ HTTP 传输、Cookie、路由与错误映射。
 ## cookie
 
 - `pub struct Cookie`
-  <sub>struct · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:10</sub>
-    - `name: String`  <sub>:11</sub>
-    - `value: String`  <sub>:12</sub>
-    - `domain: String`  <sub>:13</sub>
-    - `host_only: bool`  <sub>:14</sub>
-    - `path: String`  <sub>:15</sub>
-    - `secure: bool`  <sub>:16</sub>
-    - `http_only: bool`  <sub>:17</sub>
-    - `expires_at_ms: Option<i64>`  <sub>:18</sub>
+  <sub>struct · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:12</sub>
+    - `name: String`  <sub>:13</sub>
+    - `value: String`  <sub>:14</sub>
+    - `domain: String`  <sub>:15</sub>
+    - `host_only: bool`  <sub>:16</sub>
+    - `path: String`  <sub>:17</sub>
+    - `secure: bool`  <sub>:18</sub>
+    - `http_only: bool`  <sub>:19</sub>
+    - `expires_at_ms: Option<i64>`  <sub>:20</sub>
 - `pub fn is_expired(&self, now_ms: i64) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:24</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:26</sub>
 - `pub struct CookieJar`
-  <sub>struct · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:49</sub>
+  <sub>struct · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:52</sub>
 - `pub fn new() -> Self {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:55</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:58</sub>
 - `pub fn now_ms() -> i64 {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:59</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:62</sub>
 - `pub fn store(&mut self, request_url: &str, header: &str, now_ms: i64) {…}` — Store one `Set-Cookie` header received for `request_url`.
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:67</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:70</sub>
 - `pub fn header_for(&mut self, url: &str, now_ms: i64) -> Option<String> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:172</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:175</sub>
 - `pub fn contains(&self, name: &str) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:200</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:203</sub>
 - `pub fn len(&self) -> usize {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:204</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:207</sub>
 - `pub fn is_empty(&self) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:208</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:211</sub>
 - `pub fn clear(&mut self) {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:212</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:215</sub>
+- `pub(crate) fn is_sane(&self) -> bool {…}` — Reject malformed or unexpectedly large jars before restoring them from
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:221</sub>
 
 ## http
 

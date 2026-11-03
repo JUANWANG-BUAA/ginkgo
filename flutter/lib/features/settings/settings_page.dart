@@ -1,3 +1,5 @@
+import 'gateway_challenge_page.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
@@ -108,8 +110,13 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       final response = await widget.service.setRoute(route);
       if (!mounted) return;
-      setState(() => busy = false);
+      if (response.failure != null) {
+        setState(() => notice = failureMessage(response.failure));
+        return;
+      }
       if (response.state == SessionState.signedOut) {
+        await AppPreferencesScope.of(context).setRouteMode(route.name);
+        if (!mounted) return;
         await widget.onSignOut();
         return;
       }
@@ -120,6 +127,8 @@ class _SettingsPageState extends State<SettingsPage> {
         busy = false;
         notice = failureMessage(null);
       });
+    } finally {
+      if (mounted) setState(() => busy = false);
     }
   }
 
@@ -255,6 +264,16 @@ class _SettingsPageState extends State<SettingsPage> {
                   '默认自动：直连优先，遇到学校访问策略时单次切换到 WebVPN。切换路线会要求重新登录。',
                 ),
                 children: [
+                  if (ServiceCapabilities.resolve(widget.service)
+                          .gatewayVerification
+                      case final gateway?)
+                    AppleListTile(
+                      title: const Text('WebVPN 验证'),
+                      subtitle: const Text('查看并完成学校网关的验证码'),
+                      trailing: const CupertinoListTileChevron(),
+                      onTap: () =>
+                          _open(GatewayChallengePage(gateway: gateway)),
+                    ),
                   ApplePickerTile<RouteChoice>(
                     title: '路线',
                     value: _route,
