@@ -1,5 +1,7 @@
 # Rust + Flutter 镜像实施现状
 
+2026-11-03 发布收尾：下述认证调整已随 Beta.9（build 19）公开，PR #4 已合并；远端 Mirror、macOS、iOS 检查通过，含严格登录/冷恢复转录与 22/22 已知错误变体检出。下方同日过程记录中的“未执行/未发布”保留其当时含义，不代表最终发布状态。最终证据见 [Beta.9 发布审计](_audit/2026-11-03-beta9-publication.md)；真实登录阻断仍待用户现场结果，readiness 保持 blocked。
+
 2026-11-03 Beta.8 发布后，用户明确指定认证主链统一采用固定 UBAA `e8a397fc`：验证码作答前在原路线 GET `/login`，优先保留传入 execution；密码固定 POST `/login`，不采纳页面 action；到期确认使用当前请求 URL 去 query；UC 激活最终落地页不替代 status 身份校验。已撤销临时 Safari/连接头回退，保持参考默认配置；先前猜测性 HTTP/2 增补也已撤回。安全重定向、严格 Cookie 隔离、有效身份/账号匹配及密码不自动重发保持不变，未复制额外直连密码事务。对应转录与回归只修改源码，未改独立 UBAA 捕获；按用户要求未执行测试、构建或学校请求，修改未发布，不宣称现场原因已锁定或真实故障已消失。差异及证据缺口见[源码审计](_audit/2026-11-03-webvpn-captcha-source-comparison.md)；真实登录阻断保留于唯一 TODO。
 
 同轮继续移除认证控制流差异：初始 3xx 不消费其 Location，直接激活 UC；CAS 提交链先消费跳转、处理一次到期提示，再检测最终错误，其他非 200 不额外拦截 UC；UC 导航不扫描 CAS 错误查询；提交失败不自动转换成新验证码挑战。Cookie 按 UBAA 插入/轮换顺序发送，不按路径长度重排。用户随后要求收尾发包，版本准备为 Beta.9（build 19）；构建、公开结果及本轮未执行的检查分开记在发布审计中，不复用 Beta.8 的通过记录。
@@ -47,7 +49,7 @@ CAS 错误解析按固定 UBAA 对照补齐 `p.errors`，已知错误/提示区�
 | 平台 | 当前状态 | 证据与限制 |
 | --- | --- | --- |
 | macOS / iOS | 独立 SwiftUI 应用，共享 Swift 客户端、模型与工作区编排 | Apple 测试见 [TESTING](TESTING.md)；模拟器通过不代表真机、签名分发或真实写入通过 |
-| Android | Rust + Flutter；公开包 Beta.8（build 18）；readiness 仍 blocked | [Beta.8 发布记录](releases/android-beta8.md)；用户明确要求在仍 blocked 时发布；真实账号/验证码、物理设备、学校写入和维护者安全审查仍未完成；以下 Beta.4 历史记录只代表当时证据 |
+| Android | Rust + Flutter；公开包 Beta.9（build 19）；readiness 仍 blocked | [Beta.9 发布记录](releases/android-beta9.md)；用户明确要求在仍 blocked 时发布；真实账号/验证码、物理设备、学校写入和维护者安全审查仍未完成；以下 Beta.4 历史记录只代表当时证据 |
 | Windows | Rust + Flutter；公开包 Alpha.6（build 7），Windows 10 / 11 x64 单文件安装器 + 便携 ZIP | [首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)、[主机验证](archive/mirror/WINDOWS-2026-10-21.md)；系统保险库、宽屏侧栏、窄屏底部导航、键盘与返回栈基础通过；安装器未签名，物理 x64 / 干净系统运行依赖 / 真实学校业务仍未验收 |
 
 既往真实账号只读检查已覆盖已接入模块，但最近一次集成登录失败；两次结果分别保留于 [验收记录](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md) 与 [认证异常诊断](_audit/2026-10-21-auth-redirect-incident.md)。不能把早先通过推广为当前所有网络均可用，也不能将工作树改动当作已经发布。
