@@ -17,7 +17,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
         expected_id: Option<&str>,
         refresh: bool,
     ) -> Result<LoginChallengeData, AppError> {
-        let (page, account, generation, created) = {
+        let (page, route, account, generation, created) = {
             let mut identity = self.identity.lock();
             let generation = identity.generation;
             let pending = identity
@@ -46,11 +46,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
             }
             (
                 pending.page.clone(),
+                pending.route,
                 pending.account.clone(),
                 pending.generation,
                 pending.created,
             )
         };
+        self.session.set_route(route);
         // Refresh is a new login-page GET, not an invented refresh endpoint and
         // never an ExistingSession hop or form submission.
         let clear_original_pending = || {
@@ -102,6 +104,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
             }
             identity.pending_login = Some(PendingLogin {
                 page,
+                route: self.session.route(),
                 account: account.clone(),
                 generation,
                 created: if refresh { Instant::now() } else { created },
@@ -165,7 +168,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
             self.clear_identity();
         }
         self.route_initialized.store(true, Ordering::Release);
-        self.session.set_route(preference.into());
+        if changed || self.identity.lock().authenticated.is_none() {
+            self.session.set_route(preference.into());
+        }
     }
 
     async fn apply_route_change(&self, preference: RoutePreference) -> Result<(), AppError> {
@@ -204,7 +209,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
         if switching_account {
             self.clear_identity();
         }
-        self.session.set_route(self.preference().into());
         let credentials = Credentials {
             username: account.to_owned(),
             password: password.to_owned(),
@@ -226,12 +230,16 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
             page.belongs_to(account, generation) && !page.valid(account, generation)
         });
         let page = match pending {
-            Some(page) if page.valid(account, generation) => page.page,
+            Some(page) if page.valid(account, generation) => {
+                self.session.set_route(page.route);
+                page.page
+            }
             _ => {
                 if credentials.captcha_text.is_some() && !timed_out {
                     return Err(AppError::session_expired());
                 }
                 credentials.captcha_text = None;
+                self.session.set_route(self.preference().into());
                 auth::fetch_login_page(&self.session).await?
             }
         };
@@ -245,6 +253,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                 // token is the one the answer must be submitted with.
                 identity.pending_login = Some(PendingLogin {
                     page,
+                    route: self.session.route(),
                     account: account.to_owned(),
                     generation,
                     created: Instant::now(),
@@ -291,21 +300,33 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
     /// Restore after process start. The in-memory cookies are validated first;
     /// a saved account is only re-logged-in when that confirmation fails.
     async fn restore(&self) -> Result<SessionOutcome, AppError> {
-        self.session.set_route(self.preference().into());
+        if self.identity.lock().authenticated.is_none() {
+            self.session.set_route(self.preference().into());
+        }
         match self.load_persisted_session().await {
             Ok(Some(saved)) => {
                 if !saved.is_usable_for(
                     self.preference().into(),
                     crate::foundation::cookie::CookieJar::now_ms(),
                 ) {
+                    if saved.route == super::RouteMode::Automatic {
+                        // The old format cannot identify the authenticated
+                        // route. Ask for one explicit login instead of probing
+                        // both jars or silently submitting a saved password.
+                        return Ok(SessionOutcome::SignedOut);
+                    }
                     let _ = self.delete_persisted_session().await;
                 } else {
                     let account = saved.account.clone();
+                    self.session.set_route(saved.route);
                     self.session.restore_cookies(saved.cookies);
                     match auth::validate_session(&self.session).await {
                         Ok(profile) if profile.school_id.eq_ignore_ascii_case(&account) => {
                             self.clear_caches();
-                            let remembered = self.vault.load(&account)?.is_some();
+                            // Cookie authentication already succeeded. The
+                            // optional password entry cannot invalidate it.
+                            let remembered =
+                                self.vault.load(&account).is_ok_and(|entry| entry.is_some());
                             self.set_authenticated(account, profile.clone());
                             self.identity.lock().persisted_started_at_ms = saved.saved_at_ms;
                             let _ = self.persist_active_session().await;
@@ -344,7 +365,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                     self.update_profile(&account, profile.clone())?;
                     return Ok(SessionOutcome::SignedIn {
                         profile,
-                        remembered: self.vault.load(&account)?.is_some(),
+                        remembered: self.vault.load(&account).is_ok_and(|entry| entry.is_some()),
                     });
                 }
                 // The cookie jar no longer belongs to the published account.
@@ -365,7 +386,10 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                     if let Some(profile) = profile {
                         return Ok(SessionOutcome::SignedIn {
                             profile,
-                            remembered: self.vault.load(&account)?.is_some(),
+                            remembered: self
+                                .vault
+                                .load(&account)
+                                .is_ok_and(|entry| entry.is_some()),
                         });
                     }
                 }
@@ -377,42 +401,46 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
             Ok(accounts) => accounts,
             Err(_) => return Ok(SessionOutcome::SignedOut),
         };
-        for account in accounts.into_iter().take(5) {
-            let credentials = match self.vault.load(&account) {
-                Ok(Some(credentials)) => credentials,
-                Ok(None) | Err(_) => continue,
-            };
-            let page = auth::fetch_login_page(&self.session).await?;
-            match auth::complete_login(&self.session, &credentials, page.clone()).await {
-                Ok(LoginResult::SignedIn(profile)) => {
-                    self.clear_automatic_login_failure();
-                    self.clear_caches();
-                    self.set_authenticated(credentials.username.clone(), profile.clone());
-                    self.remember_session_credentials(&credentials);
-                    let _ = self.persist_active_session().await;
-                    return Ok(SessionOutcome::SignedIn {
-                        profile,
-                        remembered: true,
-                    });
-                }
-                Ok(LoginResult::CaptchaRequired { challenge, page }) => {
-                    let mut identity = self.identity.lock();
-                    let generation = identity.generation;
-                    identity.pending_login = Some(PendingLogin {
-                        page,
-                        account: credentials.username,
-                        generation,
-                        created: Instant::now(),
-                    });
-                    return Ok(SessionOutcome::CaptchaRequired(challenge));
-                }
-                Err(error) if error.code == ErrorCode::InvalidCredentials => {
-                    let _ = self.vault.delete(&account);
-                }
-                Err(error) => return Err(error),
+        // A startup must never cycle through saved accounts and submit several
+        // passwords. Further account selection belongs to explicit sign-in.
+        let Some(account) = accounts.into_iter().next() else {
+            return Ok(SessionOutcome::SignedOut);
+        };
+        let credentials = match self.vault.load(&account) {
+            Ok(Some(credentials)) => credentials,
+            Ok(None) | Err(_) => return Ok(SessionOutcome::SignedOut),
+        };
+        let page = auth::fetch_login_page(&self.session).await?;
+        match auth::complete_login(&self.session, &credentials, page).await {
+            Ok(LoginResult::SignedIn(profile)) => {
+                self.clear_automatic_login_failure();
+                self.clear_caches();
+                self.set_authenticated(credentials.username.clone(), profile.clone());
+                self.remember_session_credentials(&credentials);
+                let _ = self.persist_active_session().await;
+                Ok(SessionOutcome::SignedIn {
+                    profile,
+                    remembered: true,
+                })
             }
+            Ok(LoginResult::CaptchaRequired { challenge, page }) => {
+                let mut identity = self.identity.lock();
+                let generation = identity.generation;
+                identity.pending_login = Some(PendingLogin {
+                    page,
+                    route: self.session.route(),
+                    account: credentials.username,
+                    generation,
+                    created: Instant::now(),
+                });
+                Ok(SessionOutcome::CaptchaRequired(challenge))
+            }
+            Err(error) if error.code == ErrorCode::InvalidCredentials => {
+                let _ = self.vault.delete(&account);
+                Ok(SessionOutcome::SignedOut)
+            }
+            Err(error) => Err(error),
         }
-        Ok(SessionOutcome::SignedOut)
     }
 
     /// Local sign-out never waits for an upstream round trip. Identity,

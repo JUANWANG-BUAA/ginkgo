@@ -1,0 +1,261 @@
+{
+  "source": "synthetic",
+  "cases": [
+    {
+      "id": "B4-reminder-cache",
+      "test_file": "extended_reminders_test.dart",
+      "observations": [
+        {
+          "commit": "95d8eb892e2a798b48c1128b4b31cab0df7fb146",
+          "role": "faulty",
+          "test_sha256": "ab1cfc25ec0ea460fda2ef0b565c17208ab74871a98cc6d1e2ba6754766ef9f5",
+          "tests": {
+            "automatic reminder refresh reuses fresh page snapshots": "failure"
+          }
+        },
+        {
+          "commit": "bd97642133a8b754451be88be45bbdadf47f3fea",
+          "role": "fixed",
+          "test_sha256": "ab1cfc25ec0ea460fda2ef0b565c17208ab74871a98cc6d1e2ba6754766ef9f5",
+          "tests": {
+            "automatic reminder refresh reuses fresh page snapshots": "success"
+          }
+        },
+        {
+          "role": "working-tree",
+          "tests": {
+            "automatic reminder refresh reuses fresh page snapshots": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B4-more-bottom",
+      "test_file": "service_directory_injection_test.dart",
+      "observations": [
+        {
+          "commit": "95d8eb892e2a798b48c1128b4b31cab0df7fb146",
+          "role": "faulty",
+          "test_sha256": "8973c71acabc8e4594cfd86424c31cd0d247ec40d30d7e5b94b731a8aba48b55",
+          "tests": {
+            "last More service scrolls fully above the bottom tab bar": "error"
+          }
+        },
+        {
+          "commit": "bd97642133a8b754451be88be45bbdadf47f3fea",
+          "role": "fixed",
+          "test_sha256": "8973c71acabc8e4594cfd86424c31cd0d247ec40d30d7e5b94b731a8aba48b55",
+          "tests": {
+            "last More service scrolls fully above the bottom tab bar": "success"
+          }
+        },
+        {
+          "role": "working-tree",
+          "tests": {
+            "last More service scrolls fully above the bottom tab bar": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B4-empty-refresh",
+      "test_file": "today_progressive_widget_test.dart",
+      "observations": [
+        {
+          "commit": "95d8eb892e2a798b48c1128b4b31cab0df7fb146",
+          "role": "faulty",
+          "test_sha256": "dca81b13685f71263977942fa7fa81ac826bbac03c8fb251a748fcd36cd22ed4",
+          "tests": {
+            "empty sections stay hidden during a background refresh": "error"
+          }
+        },
+        {
+          "commit": "bd97642133a8b754451be88be45bbdadf47f3fea",
+          "role": "fixed",
+          "test_sha256": "dca81b13685f71263977942fa7fa81ac826bbac03c8fb251a748fcd36cd22ed4",
+          "tests": {
+            "empty sections stay hidden during a background refresh": "success"
+          }
+        },
+        {
+          "role": "working-tree",
+          "tests": {
+            "empty sections stay hidden during a background refresh": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B7-grade-retry",
+      "test_file": "grades_term_recovery_test.dart",
+      "observations": [
+        {
+          "commit": "e342a21102fa9b08840513510361bcb1215559f4",
+          "role": "faulty",
+          "test_sha256": "a58d936a757b1fd4abbe0502e6dbd2246cbdc399168a391901d872970b3367fe",
+          "tests": {
+            "term selection remains available after the first grade read fails": "error"
+          }
+        },
+        {
+          "commit": "21f2957e079760dba14376de3551c0b6352d6b0d",
+          "role": "fixed",
+          "test_sha256": "a58d936a757b1fd4abbe0502e6dbd2246cbdc399168a391901d872970b3367fe",
+          "tests": {
+            "term selection remains available after the first grade read fails": "success"
+          }
+        },
+        {
+          "role": "working-tree",
+          "tests": {
+            "term selection remains available after the first grade read fails": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B4-SPOC-refusal",
+      "test_file": "native_learning_failure_regression_test.dart",
+      "observations": [
+        {
+          "commit": "95d8eb892e2a798b48c1128b4b31cab0df7fb146",
+          "role": "faulty",
+          "test_sha256": "336b4ed5c1d9ce7733397236ca2e5f67fe5390d4a35ee7ba83d15679fbb12c86",
+          "tests": {
+            "native learning collections preserve upstream refusal without data": "error"
+          }
+        },
+        {
+          "commit": "bd97642133a8b754451be88be45bbdadf47f3fea",
+          "role": "fixed",
+          "test_sha256": "336b4ed5c1d9ce7733397236ca2e5f67fe5390d4a35ee7ba83d15679fbb12c86",
+          "tests": {
+            "native learning collections preserve upstream refusal without data": "success"
+          }
+        },
+        {
+          "role": "working-tree",
+          "tests": {
+            "native learning collections preserve upstream refusal without data": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B5-seven-days",
+      "test_file": "schedule_day_strip_regression_test.dart",
+      "observations": [
+        {
+          "commit": "2c85a6c35840368e387a6e2c44a233b83274920f",
+          "role": "faulty",
+          "test_sha256": "d48af70de11b2f7d133c77de22e29f466d5ea092d45eb0c7dd7f874a889ad525",
+          "tests": {
+            "all school days are reachable at 430.0 dp and 1.0 type": "error"
+          }
+        },
+        {
+          "commit": "34a6d61f555729850cf27cf87892656891517c42",
+          "role": "fixed",
+          "test_sha256": "d48af70de11b2f7d133c77de22e29f466d5ea092d45eb0c7dd7f874a889ad525",
+          "tests": {
+            "all school days are reachable at 430.0 dp and 1.0 type": "success"
+          }
+        },
+        {
+          "role": "working-tree",
+          "tests": {
+            "all school days are reachable at 430.0 dp and 1.0 type": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B5-four-modes",
+      "test_file": "schedule_modes_regression_test.dart",
+      "observations": [
+        {
+          "commit": "34a6d61f555729850cf27cf87892656891517c42",
+          "role": "faulty",
+          "test_sha256": "59b69804d21e3e432419d19f643f186dad5e398c253b7b3ba0fc5b2b5b4d1225",
+          "tests": {
+            "four schedule modes stay operable at 320.0 dp / 1.4": "error"
+          }
+        },
+        {
+          "commit": "37501493d7b655c0e5120655dff6cb614e50ad37",
+          "role": "fixed",
+          "test_sha256": "59b69804d21e3e432419d19f643f186dad5e398c253b7b3ba0fc5b2b5b4d1225",
+          "tests": {
+            "four schedule modes stay operable at 320.0 dp / 1.4": "success"
+          }
+        },
+        {
+          "role": "working-tree",
+          "tests": {
+            "four schedule modes stay operable at 320.0 dp / 1.4": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B5-demo-detail",
+      "test_file": "demo_bridge_contract_test.dart",
+      "observations": [
+        {
+          "commit": "37501493d7b655c0e5120655dff6cb614e50ad37",
+          "role": "faulty",
+          "test_sha256": "19e0405a576f5e2045a75390d63d30186d1040629e77a33c2fccc59ff57724a0",
+          "tests": {
+            "native demo homework list and detail preserve the same assignment": "failure"
+          },
+          "native_library_sha256": "dda28ba3880fe3b4fb6728845b1ec85ae56bba998d8ae73419e4c8ef6fe1f003"
+        },
+        {
+          "commit": "a65651e1596d25890e5bb58ae864004d096d3842",
+          "role": "fixed",
+          "test_sha256": "19e0405a576f5e2045a75390d63d30186d1040629e77a33c2fccc59ff57724a0",
+          "tests": {
+            "native demo homework list and detail preserve the same assignment": "success"
+          },
+          "native_library_sha256": "382d9a90c60ea6a707f3475a16b206969ba1124c5abe9f2dbb455b8b5f6742cc"
+        },
+        {
+          "role": "working-tree",
+          "tests": {
+            "native demo homework list and detail preserve the same assignment": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B6-school-clock",
+      "test_file": "school_wall_clock_bridge_test.dart",
+      "observations": [
+        {
+          "commit": "818c2b0942219a0b3aa4805a48e7b509b39df781",
+          "role": "faulty",
+          "test_sha256": "3925aeec4a24a0888cb1d4e9bf46bfcfff6faceeb110403481270150fba2ab71",
+          "tests": {
+            "native rules interpret the Beijing wall clock once": "failure"
+          },
+          "native_library_sha256": "b0b60fd631d43e6964765f183f21f24fd924ce504ad2b3293906aacf0f19e0bb"
+        },
+        {
+          "commit": "5215a1bc96461f168ee228d32bd02e36cfc210df",
+          "role": "fixed",
+          "test_sha256": "3925aeec4a24a0888cb1d4e9bf46bfcfff6faceeb110403481270150fba2ab71",
+          "tests": {
+            "native rules interpret the Beijing wall clock once": "success"
+          },
+          "native_library_sha256": "f912d05a8d8e5b729bf7eb7309d071ac2ac9f0525aa9e35dc14ffe072f2c4aaa"
+        },
+        {
+          "role": "working-tree",
+          "tests": {
+            "native rules interpret the Beijing wall clock once": "success"
+          }
+        }
+      ]
+    }
+  ]
+}

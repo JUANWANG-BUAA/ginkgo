@@ -64,6 +64,7 @@ pub(crate) struct AccountOwner {
 
 pub(crate) struct PendingLogin {
     page: LoginPage,
+    route: RouteMode,
     account: String,
     generation: u64,
     created: Instant,
@@ -88,12 +89,17 @@ impl PendingLogin {
 #[derive(Default)]
 pub(crate) struct Identity {
     pub authenticated: Option<AuthenticatedIdentity>,
+    /// Route of the verified identity; temporary gateway transactions cannot
+    /// replace it until their own identity check succeeds.
+    pub active_route: Option<RouteMode>,
     pub pending_login: Option<PendingLogin>,
     pub gateway_pending: Option<PendingLogin>,
     pub iclass: Option<IClassSession>,
     pub library_token: Option<String>,
     pub cgyy_token: Option<String>,
     pub cgyy_booking: Option<super::cgyy_booking_service::BookingContext>,
+    /// UBAA remembers a successful GSMIS source for this authenticated lifetime.
+    pub graduate_schedule: bool,
     /// The credential this session was opened with, kept in memory only so a
     /// gateway that needs its own CAS session can be authenticated without
     /// asking the user to store the password. Cleared with the identity.
@@ -140,22 +146,48 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         let identity: Arc<Mutex<Identity>> = Arc::new(Mutex::default());
         let route = Arc::new(StdMutex::new(RoutePreference::Automatic));
         {
-            let vault = Arc::clone(&vault);
             let identity = Arc::clone(&identity);
             let route = Arc::clone(&route);
+            session.set_verified_route_handler(move |account, generation, profile| {
+                if *lock_value(&route) != RoutePreference::Automatic {
+                    return false;
+                }
+                let mut identity = identity.lock();
+                if identity.generation != generation
+                    || !identity
+                        .authenticated
+                        .as_ref()
+                        .is_some_and(|user| user.account.eq_ignore_ascii_case(account))
+                {
+                    return false;
+                }
+                if let Some(user) = identity.authenticated.as_mut() {
+                    user.profile = profile.clone();
+                }
+                identity.active_route = Some(RouteMode::WebVpn);
+                identity.iclass = None;
+                identity.library_token = None;
+                identity.gateway_pending = None;
+                identity.graduate_schedule = false;
+                true
+            });
+        }
+        {
+            let vault = Arc::clone(&vault);
+            let identity = Arc::clone(&identity);
             session.set_cookie_persistor(move |cookies| {
-                let (account, profile_name, started_at) = {
+                let (account, profile_name, started_at, active_route) = {
                     let identity = identity.lock();
                     let user = identity.authenticated.as_ref()?;
                     (
                         user.account.clone(),
                         user.profile.name.clone(),
                         identity.persisted_started_at_ms,
+                        identity.active_route?,
                     )
                 };
-                let route = *lock_value(&route);
                 let mut record =
-                    PersistedSession::new(account, profile_name, route.into(), cookies);
+                    PersistedSession::new(account, profile_name, active_route, cookies);
                 record.saved_at_ms = started_at;
                 let vault = Arc::clone(&vault);
                 let persist: crate::auth::session::CookiePersistFuture = Box::pin(async move {
@@ -200,6 +232,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     }
 
     pub(crate) fn set_authenticated(&self, account: String, profile: UserProfile) {
+        let active_route = self.session.pin_route();
         let mut identity = self.identity.lock();
         // Central invariant: the published account is the profile's school ID.
         // A mismatch means the cookie session belongs to another login; fail
@@ -211,15 +244,27 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                     account: profile.school_id.clone(),
                     profile,
                 });
-        if authenticated.is_none() {
-            self.session.clear_cookies();
-        }
+        let rejected = authenticated.is_none();
         *identity = Identity {
             generation: identity.generation.wrapping_add(1),
+            active_route: authenticated.as_ref().map(|_| active_route),
             authenticated,
             persisted_started_at_ms: crate::foundation::cookie::CookieJar::now_ms(),
             ..Identity::default()
         };
+        let automatic_owner = identity
+            .authenticated
+            .as_ref()
+            .map(|user| (user.account.clone(), identity.generation));
+        drop(identity);
+        if rejected {
+            self.session.clear_cookies();
+        } else if self.preference() == RoutePreference::Automatic {
+            if let Some((account, generation)) = automatic_owner {
+                self.session
+                    .allow_automatic_business_route(account, generation);
+            }
+        }
     }
 
     fn update_profile(&self, account: &str, profile: UserProfile) -> Result<(), AppError> {
@@ -275,7 +320,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     }
 
     pub(crate) async fn persist_active_session(&self) -> Result<(), AppError> {
-        let (account, profile_name, started_at) = {
+        let (account, profile_name, started_at, active_route) = {
             let identity = self.identity.lock();
             let user = identity
                 .authenticated
@@ -285,12 +330,15 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 user.account.clone(),
                 user.profile.name.clone(),
                 identity.persisted_started_at_ms,
+                identity
+                    .active_route
+                    .ok_or_else(AppError::session_expired)?,
             )
         };
         let mut record = PersistedSession::new(
             account,
             profile_name,
-            self.session_route_preference(),
+            active_route,
             self.session.cookie_snapshot(),
         );
         record.saved_at_ms = started_at;
@@ -314,10 +362,6 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         tokio::task::spawn_blocking(move || vault.delete_session())
             .await
             .map_err(|_| AppError::credential_store())?
-    }
-
-    fn session_route_preference(&self) -> RouteMode {
-        self.preference().into()
     }
 
     pub(crate) fn current_account(&self) -> Result<String, AppError> {
@@ -364,6 +408,34 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         self.check_automatic_login_failure()?;
         let owner = self.account_owner()?;
         let account = owner.account.clone();
+        // UBAA rechecks UC before treating a business refusal as a global
+        // logout. A valid UC session or a transient directory failure must
+        // never trigger another password POST.
+        let failure = match auth::validate_session(&self.session).await {
+            Ok(profile) if profile.school_id.eq_ignore_ascii_case(&account) => {
+                self.check_account_owner(&owner)?;
+                self.update_profile(&account, profile)?;
+                Some(AppError::module_auth_required())
+            }
+            Ok(_) => Some(AppError::session_expired()),
+            Err(error) if error.code == ErrorCode::SessionExpired => None,
+            Err(error) => Some(error),
+        };
+        self.check_account_owner(&owner)?;
+        if let Some(error) = failure {
+            let result = Err(error);
+            self.record_automatic_login_result(&result);
+            return result;
+        }
+        if self
+            .identity
+            .lock()
+            .pending_login
+            .as_ref()
+            .is_some_and(|pending| pending.belongs_to(&account, owner.generation))
+        {
+            return Err(AppError::new(ErrorCode::CaptchaRequired));
+        }
         let credentials = self.recovery_credentials(&account)?;
         let result = match auth::login(&self.session, &credentials).await {
             Ok(LoginResult::SignedIn(profile)) => {
@@ -381,29 +453,48 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                     identity.generation = identity.generation.wrapping_add(1);
                     identity.cgyy_booking = None;
                     identity.cgyy_token = None;
+                    identity.iclass = None;
+                    identity.library_token = None;
+                    identity.gateway_pending = None;
+                    identity.graduate_schedule = false;
                 }
                 self.school_generation.fetch_add(1, Ordering::Release);
                 Ok(())
             }
-            Ok(LoginResult::CaptchaRequired { .. }) => {
-                Err(AppError::new(ErrorCode::CaptchaRequired))
+            Ok(LoginResult::CaptchaRequired { challenge, page }) => {
+                self.check_account_owner(&owner)?;
+                self.identity.lock().pending_login = Some(PendingLogin {
+                    page,
+                    route: self.session.route(),
+                    account,
+                    generation: owner.generation,
+                    created: Instant::now(),
+                });
+                Err(AppError::with_detail(
+                    ErrorCode::CaptchaRequired,
+                    challenge.id,
+                ))
             }
             Err(error) => Err(error),
         };
         self.record_automatic_login_result(&result);
         if result.is_ok() {
+            if self.preference() == RoutePreference::Automatic {
+                let owner = self.account_owner()?;
+                self.session
+                    .allow_automatic_business_route(owner.account, owner.generation);
+            }
             let _ = self.persist_active_session().await;
         }
         result
     }
 
-    /// Establish the WebVPN gateway's own CAS session after an automatic route
-    /// fallback. Uses the current sign-in credential before the platform vault.
-    /// Failure restores the explicit preference; gateway cooldown is independent
-    /// of school recovery so one unavailable authority cannot suppress the other.
+    /// Establish a gateway session on an isolated, fixed-route transaction.
+    /// Failed or cancelled authentication cannot reroute business reads.
     pub(crate) async fn ensure_webvpn_session(&self) -> Result<(), AppError> {
         let generation = self.gateway_generation.load(Ordering::Acquire);
         let _recovery = self.gateway_recovery_gate.lock().await;
+        let _school = self.school_recovery_gate.lock().await;
         if self.gateway_generation.load(Ordering::Acquire) != generation {
             return Ok(());
         }
@@ -414,7 +505,11 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         }
         let account = self.current_account()?;
         let owner = self.account_owner()?;
-        let credentials = self.recovery_credentials(&account)?;
+        if self.session.route() != RouteMode::WebVpn {
+            // UBAA connection modes are explicit session boundaries. A module
+            // cannot open a second mode and move an authenticated account to it.
+            return Err(AppError::module_auth_required());
+        }
         // Do not submit another password while the user is answering a challenge.
         if self
             .identity
@@ -425,13 +520,22 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         {
             return Err(AppError::new(ErrorCode::CaptchaRequired));
         }
-        self.session.set_route(RouteMode::WebVpn);
-        let outcome = auth::login(&self.session, &credentials).await;
+        let session = self.session.routed(RouteMode::WebVpn);
+        // A stale business token does not establish that the gateway's CAS
+        // session expired either. Reuse a valid UC session without a password.
+        let outcome = match auth::validate_session(&session).await {
+            Ok(profile) => Ok(LoginResult::SignedIn(profile)),
+            Err(error) if error.code == ErrorCode::SessionExpired => {
+                match self.recovery_credentials(&account) {
+                    Ok(credentials) => auth::login(&session, &credentials).await,
+                    Err(error) => Err(error),
+                }
+            }
+            Err(error) => Err(error),
+        };
         self.check_account_owner(&owner)?;
         let result = self.finish_gateway_login(outcome, &owner);
-        if result.is_err() {
-            self.session.set_route(self.preference().into());
-        } else {
+        if result.is_ok() {
             self.gateway_generation.fetch_add(1, Ordering::Release);
             let _ = self.persist_active_session().await;
         }

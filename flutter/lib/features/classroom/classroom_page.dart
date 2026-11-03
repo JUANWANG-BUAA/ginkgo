@@ -52,6 +52,7 @@ class _ClassroomPageState extends State<ClassroomPage> {
   }
 
   int campus = 1, generation = 0;
+  int initializationGeneration = 0;
   String date = '', today = '', tomorrow = '';
   bool filtersExpanded = false,
       busy = false,
@@ -69,6 +70,25 @@ class _ClassroomPageState extends State<ClassroomPage> {
   }
 
   @override
+  void didUpdateWidget(ClassroomPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service == widget.service) return;
+    searchDebounce?.cancel();
+    generation++;
+    date = today = tomorrow = '';
+    initializing = true;
+    busy = queried = filtersExpanded = false;
+    response = null;
+    selectedBuilding = null;
+    rows = [];
+    window.reconcile([], reset: true);
+    error = notice = null;
+    search.clear();
+    filters.reset();
+    initialize();
+  }
+
+  @override
   void dispose() {
     searchDebounce?.cancel();
     scrollController.dispose();
@@ -77,11 +97,12 @@ class _ClassroomPageState extends State<ClassroomPage> {
   }
 
   Future<void> initialize() async {
+    final ticket = ++initializationGeneration;
     try {
       final dates = await widget.service.dates(
         DateTime.now().toUtc().toIso8601String(),
       );
-      if (!mounted) return;
+      if (!mounted || ticket != initializationGeneration) return;
       setState(() {
         initializing = false;
         if (dates.failure != null) {
@@ -94,7 +115,7 @@ class _ClassroomPageState extends State<ClassroomPage> {
         error = null;
       });
     } catch (_) {
-      if (mounted) {
+      if (mounted && ticket == initializationGeneration) {
         setState(() {
           initializing = false;
           error = failureMessage(null);

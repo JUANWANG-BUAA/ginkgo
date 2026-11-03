@@ -7,7 +7,9 @@ use reqwest::{redirect::Policy, Client, Method};
 use std::{collections::BTreeMap, future::Future, time::Duration};
 use tokio::runtime::{Builder, Runtime};
 
-const USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15";
+// Captured from pinned UBAA's original factory + Android's OkHttp on JVM.
+// Modules with a documented browser UA (e.g. library) override this value.
+const USER_AGENT: &str = "ktor-client";
 
 /// Both public library hosts answer with an **incomplete chain**: they send only
 /// `CN=*.lib.buaa.edu.cn` and omit the issuing intermediate, which macOS and
@@ -33,11 +35,23 @@ fn requires_incomplete_chain_anchor(url: &str) -> bool {
 }
 
 fn builder() -> reqwest::ClientBuilder {
+    let mut defaults = reqwest::header::HeaderMap::new();
+    defaults.insert(
+        reqwest::header::CONNECTION,
+        reqwest::header::HeaderValue::from_static("Keep-Alive"),
+    );
     Client::builder()
+        .default_headers(defaults)
         .redirect(Policy::none())
         // Bound unreachable DNS/TCP/TLS before a safe read can route-fallback.
-        .connect_timeout(Duration::from_secs(6))
+        .connect_timeout(Duration::from_secs(10))
         .timeout(Duration::from_secs(30))
+        .read_timeout(Duration::from_secs(30))
+        // Android OkHttp adds gzip negotiation at engine level, even though
+        // the shared Ktor factory has no ContentEncoding plugin. CIO differs.
+        .gzip(true)
+        // Authentication and writes remain a single transport submission.
+        .retry(reqwest::retry::never())
         .user_agent(USER_AGENT)
 }
 
@@ -99,6 +113,9 @@ impl Drop for AbortOnDrop {
         self.0.abort();
     }
 }
+
+#[cfg(test)]
+mod lifecycle_tests;
 
 /// A failure before any response arrived is a network-path problem, not a
 /// school outage: DNS, TCP connect, TLS handshake or the request deadline.

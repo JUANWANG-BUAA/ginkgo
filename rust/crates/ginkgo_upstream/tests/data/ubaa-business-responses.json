@@ -1,0 +1,66 @@
+{
+  "source": "synthetic",
+  "reference": "UBAA e8a397fcb35a68147eee65a94c66ffb84e2f09fe LocalScheduleApiBackendTest, LocalSigninApiBackendTest, LocalLibBookApiBackendTest",
+  "responses": [
+    {
+      "path": "/jwapp/sys/homeapp/api/home/currentUser.do",
+      "status": 200,
+      "body": "{\"user\":\"ok\"}"
+    },
+    {
+      "path": "/jwapp/sys/homeapp/api/home/student/schoolCalendars.do",
+      "status": 200,
+      "body": "{\"datas\":[{\"itemCode\":\"2025-2026-1\",\"itemName\":\"示例学期\",\"selected\":true,\"itemIndex\":1}],\"code\":\"0\",\"msg\":null}"
+    },
+    {
+      "path": "/",
+      "status": 302,
+      "body": "",
+      "location": "https://iclass.buaa.edu.cn:8346/?loginName=fixture-login&type=jumpMyCenter#/MyCenter"
+    },
+    {
+      "path": "/app/user/login.action",
+      "status": 200,
+      "body": "{\"STATUS\":0,\"result\":{\"id\":\"user-1\",\"sessionId\":\"session-1\"}}"
+    },
+    {
+      "path": "/app/course/get_stu_course_sched.action",
+      "status": 200,
+      "body": "{\"STATUS\":0,\"result\":[]}"
+    },
+    {
+      "path": "/login",
+      "status": 302,
+      "body": "",
+      "location": "https://booking.lib.buaa.edu.cn/v4/login/cas?cas=cas-1",
+      "classroom_location": "https://app.buaa.edu.cn/site/classRoomQuery/index"
+    },
+    {
+      "path": "/v4/login/user",
+      "status": 200,
+      "body": "{\"code\":0,\"data\":{\"member\":{\"token\":\"jwt-1\",\"name\":\"示例用户\"}}}"
+    },
+    {
+      "path": "/v4/space/pcTopFor",
+      "status": 200,
+      "body": "{\"code\":1,\"data\":{\"list\":[{\"id\":\"9\",\"name\":\"示例图书馆\",\"free_num\":12,\"total_num\":100,\"children\":[]}]}}"
+    },
+    {
+      "path": "/buaascore/wap/default/index",
+      "status": 200,
+      "get_body": "<html>grade ready</html>",
+      "body": "{\"e\":0,\"m\":\"\",\"d\":{}}"
+    },
+    {
+      "path": "/site/classRoomQuery/index",
+      "status": 200,
+      "body": "<html>classroom ready</html>"
+    },
+    {
+      "path": "/buaafreeclass/wap/default/search1",
+      "status": 200,
+      "body": "{\"e\":0,\"m\":\"\",\"d\":{\"list\":{\"主楼\":[{\"id\":\"A101\",\"floorid\":\"1\",\"name\":\"101\",\"kxsds\":\"1,3\"}]}}}"
+    }
+  ],
+  "nonempty_checkin_body": "{\"STATUS\":\"0\",\"result\":[{\"id\":\"course-1\",\"courseName\":\"软件工程\",\"classBeginTime\":\"08:00\",\"classEndTime\":\"09:40\",\"signStatus\":0},{\"id\":\"course-2\",\"courseName\":\"概率论\",\"classBeginTime\":\"10:00\",\"classEndTime\":\"11:40\",\"signStatus\":\"1\"}]}"
+}

@@ -75,7 +75,11 @@ Flutter 页面
 
 `AppPreferences.readFailed` 与 `writeError` 区分读取和写入故障，`retrySave` 仅重写当前本机设置；启动恢复在读取失败时停止，登录页 `onRetryPreferences` 仅触发用户选择的重读流程。该契约见 PREF-01，具体签名在生成索引中维护。
 
+本机设置重读等待既有保存完成，并隔离旧读取与更新的选择。空教室替换服务后重新初始化日期并清除旧查询；学习快照确认/保存、通知权限读取/请求均绑定原实例，旧响应和收尾不覆盖新状态。学习快照设置结果不明时提供只读核对入口，不自动重放变更；具体约束见 UI-01/PREF-01。
+
 `ReadDeadline` 只约束呈现读取等待，不能取消原生请求或判定写入结果；`RefreshSection` 和图书馆分区复用它，以读取 Future/代次隔离迟到完成。具体边界见 READ-01。
+
+认证内部的固定路线事务、验证码路线绑定、实际路线快照 v2 和按认证代次记忆的 GSMIS 来源只属于 upstream，不新增 domain/FFI/Dart API。来源与证据边界见 [2026-11-03 静态对齐](_audit/2026-11-03-static-session-alignment.md)。后续真实本机 HTTP 引擎对照、自动业务路线验证与 Cookie 修复见[网络修复记录](_audit/2026-11-03-network-transport-and-routing.md)，仍无新增 domain/FFI API。
 
 ### 1.2 接口的四个问题
 

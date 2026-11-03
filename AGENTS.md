@@ -254,6 +254,9 @@ bash scripts/check-android-module-visual.sh emulator-5580
 - Dart 使用既有 `lowerCamelCase` API、`snake_case` 文件名和 `flutter_lints`；沿用当前状态管理方式，不为换皮引入全局状态框架。
 - 新功能按 domain 值类型与最小端口 → upstream adapter / codec / service → core 应用命令与测试 → bridge DTO / 命令及 FRB 生成 → Flutter gateway、native / demo adapter、页面与 `workspace/workspace_catalog.dart` 登记的顺序接入。
 - 仅改已有学校协议时，通常只改 upstream、协议 fixture 与 `docs/API.md`，不要为了“统一”把学校成功码抽象成通用常量。
+- 修改认证、Cookie、路线或会话恢复前，先固定可运行参考的提交并列出请求/状态机差异；当前基线为 Beta.3 `32b6a1d6`、UBAA `e8a397fc`。缺少协议证据时，不增加登录成功条件、不省略服务票据消费、不因模块错误迁移全局路线或重发密码。
+- 此类修复先补能在错误实现上失败的回归，严格核对请求目标、方法、表单、Cookie/头和次数；响应队列取值或最终 `SignedIn` 断言不足以证明对齐。参考字段向量见 `rust/crates/ginkgo_upstream/tests/data/ubaa-cas.json`，可用 `scripts/check-ubaa-cas-parity.py --ubaa-root <固定源码目录>` 执行原 Kotlin 解析器差分，用 `scripts/check-session-regressions.py` 在临时副本检出已知错误变体。
+- 参考源码、预期向量、实现和协议摘要同时变化时，须逐项解释预期变化；不能通过改预期或刷新 SHA 将协议差异判为通过。离线结果只能覆盖列出的契约；用户禁止运行某类检查时保留该类未验结论，不以真实账号重登替代源码对齐，也不宣称彻底修复。
 - Flutter 文件按职责命名：`*_page.dart`、`*_section.dart`、`*_widgets.dart`、`*_models.dart`、`*_controller.dart` / `*_gateway.dart`。`lib/` 根只保留组合入口；单个 Dart 文件上限 600 行，超出应拆分而不是放宽门禁。
 - 页面复杂异步状态参考 `LibraryController` 和 `application/refresh_section.dart`：重叠读取合流、刷新保留旧内容、局部失败可重试、账号或服务代次变化后丢弃旧状态。
 - 组件只接收类型值与回调，不接收学校响应或裸 `Map<String, dynamic>`；页面和共享组件不直接 `jsonDecode`。

@@ -34,25 +34,25 @@
 - `class AppPreferences extends ChangeNotifier` — Device-wide display choices and the session-flow marker only. Credentials
   <sub>class · shared/app_preferences.dart:55</sub>
     - `static final shared = AppPreferences();`  <sub>:61</sub>
-    - `bool get readFailed => …` — An unreadable settings file cannot establish the saved sign-out choice.  <sub>:70</sub>
-    - `AppAppearance appearance = AppAppearance.system;`  <sub>:71</sub>
-    - `AppAccent accent = AppAccent.green;`  <sub>:72</sub>
-    - `bool compactLists = false;`  <sub>:73</sub>
-    - `bool reduceMotion = false;`  <sub>:74</sub>
-    - `double textSize = 1;`  <sub>:75</sub>
-    - `bool explicitSignOut = false;` — Set by an explicit sign-out and cleared by the next successful sign-in.  <sub>:80</sub>
-    - `String? get writeError => …` — Last failed write, separate from a failed settings read.  <sub>:85</sub>
-    - `String routeMode = 'automatic';` — Chosen network route, kept so the login page and the next start use the  <sub>:89</sub>
-    - `Future<void> restore() async {…}`  <sub>:99</sub>
-    - `Future<void> retrySave() => …` — Retries the current local snapshot without changing any setting.  <sub>:184</sub>
-    - `void dispose() {…}`  <sub>:187</sub>
-    - `Future<void> update({ AppAppearance? appearance, AppAccent? accent, bool? compactLists, bool? reduceMotion, double? textSize, }) {…}`  <sub>:192</sub>
-    - `Future<void> setRouteMode(String value) {…}` — Persists the network route chosen on the login page.  <sub>:208</sub>
-    - `Future<void> setExplicitSignOut(bool value) {…}` — Records or clears the explicit sign-out marker with the same serialized  <sub>:215</sub>
+    - `bool get readFailed => …` — An unreadable settings file cannot establish the saved sign-out choice.  <sub>:71</sub>
+    - `AppAppearance appearance = AppAppearance.system;`  <sub>:72</sub>
+    - `AppAccent accent = AppAccent.green;`  <sub>:73</sub>
+    - `bool compactLists = false;`  <sub>:74</sub>
+    - `bool reduceMotion = false;`  <sub>:75</sub>
+    - `double textSize = 1;`  <sub>:76</sub>
+    - `bool explicitSignOut = false;` — Set by an explicit sign-out and cleared by the next successful sign-in.  <sub>:81</sub>
+    - `String? get writeError => …` — Last failed write, separate from a failed settings read.  <sub>:86</sub>
+    - `String routeMode = 'automatic';` — Chosen network route, kept so the login page and the next start use the  <sub>:90</sub>
+    - `Future<void> restore() async {…}`  <sub>:100</sub>
+    - `Future<void> retrySave() => …` — Retries the current local snapshot without changing any setting.  <sub>:197</sub>
+    - `void dispose() {…}`  <sub>:200</sub>
+    - `Future<void> update({ AppAppearance? appearance, AppAccent? accent, bool? compactLists, bool? reduceMotion, double? textSize, }) {…}`  <sub>:205</sub>
+    - `Future<void> setRouteMode(String value) {…}` — Persists the network route chosen on the login page.  <sub>:221</sub>
+    - `Future<void> setExplicitSignOut(bool value) {…}` — Records or clears the explicit sign-out marker with the same serialized  <sub>:228</sub>
 - `class AppPreferencesScope extends InheritedNotifier<AppPreferences>`
-  <sub>class · shared/app_preferences.dart:223</sub>
-    - `const AppPreferencesScope({ super.key, required AppPreferences preferences, required super.child, }) : super(notifier: preferences);`  <sub>:224</sub>
-    - `static AppPreferences of(BuildContext context) => …`  <sub>:230</sub>
+  <sub>class · shared/app_preferences.dart:236</sub>
+    - `const AppPreferencesScope({ super.key, required AppPreferences preferences, required super.child, }) : super(notifier: preferences);`  <sub>:237</sub>
+    - `static AppPreferences of(BuildContext context) => …`  <sub>:243</sub>
 
 ## shared/checkin_sessions.dart
 

@@ -1,0 +1,4448 @@
+{
+  "reference_commit": "e8a397fcb35a68147eee65a94c66ffb84e2f09fe",
+  "source": "synthetic",
+  "response_sha256": "f410aea09b6aaa19c2f98020da2c74140512a44d8893f0c09c023d67f16c3e4b",
+  "comparison_scope": "All original commonTest suites; twelve synthetic read scenarios plus 17 real Android-OkHttp-on-JVM/reqwest HTTP loopback cases; no Android OS TLS/Keystore/JNI parity",
+  "normalization": [
+    "header names lowercased",
+    "query pairs sorted and decoded preserving duplicates",
+    "form pairs sorted and decoded preserving duplicates",
+    "JSON objects compared by value",
+    "cookie pairs sorted"
+  ],
+  "ginkgo_head": "6692ce424be7e478d78a0030d35b20e585e099da",
+  "ginkgo_rust_source_sha256": "ea6216cd9edbc2280b9fb584ca9e519653fee0d3721e72713c8ca9d47b7420da",
+  "reference_tests": 209,
+  "reference_suites": [
+    {
+      "suite": "cn.edu.ubaa.SharedCommonTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "example[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.AnnouncementReadStoreTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "announcementStartsUnreadAndCanBeMarkedRead[jvm]",
+          "passed": true
+        },
+        {
+          "name": "differentAnnouncementIdsAreTrackedSeparately[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.AnnouncementServiceTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "returnsNullWhenEndpointFails[jvm]",
+          "passed": true
+        },
+        {
+          "name": "returnsNullWhenEndpointRespondsNoContent[jvm]",
+          "passed": true
+        },
+        {
+          "name": "returnsAnnouncementWhenEndpointRespondsOk[jvm]",
+          "passed": true
+        },
+        {
+          "name": "returnsNullWhenResponseCannotBeParsed[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.ApiFactoryDispatchTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "default api factory reuses local backends within selected mode[jvm]",
+          "passed": true
+        },
+        {
+          "name": "auth service created before mode selection resolves backend lazily from current mode[jvm]",
+          "passed": true
+        },
+        {
+          "name": "auth service default constructor delegates to connection runtime api factory[jvm]",
+          "passed": true
+        },
+        {
+          "name": "grade api default constructor delegates to connection runtime api factory[jvm]",
+          "passed": true
+        },
+        {
+          "name": "default api factory routes webvpn supported services to local backends[jvm]",
+          "passed": true
+        },
+        {
+          "name": "schedule api default constructor delegates to connection runtime api factory[jvm]",
+          "passed": true
+        },
+        {
+          "name": "evaluation service default constructor delegates to connection runtime api factory[jvm]",
+          "passed": true
+        },
+        {
+          "name": "schedule api created before mode selection resolves backend lazily from current mode[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.AuthServiceTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "shouldReturnFailureWhenStatusRequestFailsWithNonExceptionThrowable[jvm]",
+          "passed": true
+        },
+        {
+          "name": "shouldPreserveStoredTokensWhenStatusTimesOutUpstream[jvm]",
+          "passed": true
+        },
+        {
+          "name": "shouldReturnPreloadResponseWhenPreloadLoginStateSuccess[jvm]",
+          "passed": true
+        },
+        {
+          "name": "shouldRefreshAccessTokenAfterUnauthorizedStatus[jvm]",
+          "passed": true
+        },
+        {
+          "name": "shouldClearStoredTokensWhenRefreshFails[jvm]",
+          "passed": true
+        },
+        {
+          "name": "shouldReturnLoginResponseWhenLoginSuccess[jvm]",
+          "passed": true
+        },
+        {
+          "name": "shouldReturnFailureWhenLoginUnauthorized[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.BykcCourseFilterStoreTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "clear removes only target user filters[jvm]",
+          "passed": true
+        },
+        {
+          "name": "save and get are isolated by user key[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.CgyyApiTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "shouldFetchVenueSitesAndPurposeTypes[jvm]",
+          "passed": true
+        },
+        {
+          "name": "shouldSubmitReservation[jvm]",
+          "passed": true
+        },
+        {
+          "name": "shouldFetchDayInfo[jvm]",
+          "passed": true
+        },
+        {
+          "name": "shouldFetchOrdersAndLockCode[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.ConnectionRuntimeTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "direct mode auth service uses local persisted session contract by default[jvm]",
+          "passed": true
+        },
+        {
+          "name": "switching connection mode clears all scoped sessions and disables auto login[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.GradeScoreCacheStoreTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "clear all scopes removes indexed cache entries[jvm]",
+          "passed": true
+        },
+        {
+          "name": "cache is isolated by user and connection mode[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.GraduateScheduleTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "preselectionOnlyKeepsSemesterButProducesNoFormalCourses[jvm]",
+          "passed": true
+        },
+        {
+          "name": "onlyConfirmedClassesAppearEvenWhenPreselectionSharesCourseCodeOrClassId[jvm]",
+          "passed": true
+        },
+        {
+          "name": "validEmptyResponseIsDifferentFromInvalidResponse[jvm]",
+          "passed": true
+        },
+        {
+          "name": "rejectsInvalidAndInconsistentUpstreamData[jvm]",
+          "passed": true
+        },
+        {
+          "name": "repairsOnlyKnownWebVpnInjectionAndPreservesSchedule[jvm]",
+          "passed": true
+        },
+        {
+          "name": "mapsTermsWeeksAndTodayWithoutDuplicatingSections[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.GraduateScheduleUpstreamTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "authenticatesThroughOfficialEntryBeforeLoadingCourses[jvm]",
+          "passed": true
+        },
+        {
+          "name": "reportsParserStageWithoutExposingResponse[jvm]",
+          "passed": true
+        },
+        {
+          "name": "reportsRequestStageWithoutExposingResponse[jvm]",
+          "passed": true
+        },
+        {
+          "name": "propagatesCancellation[jvm]",
+          "passed": true
+        },
+        {
+          "name": "diagnosticsNeverIncludePayloadOrExceptionText[jvm]",
+          "passed": true
+        },
+        {
+          "name": "identifiesLoginPageEvenWhenStatusIs200[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.GsmisScheduleTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "mapsWeeksAndCompleteTimelineAndRejectsInvalidData[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.IhomeProtocolTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "未知形状不会静默伪装为空列表[jvm]",
+          "passed": true
+        },
+        {
+          "name": "完整详情保留当前轮次进度与官方回复[jvm]",
+          "passed": true
+        },
+        {
+          "name": "失败封装的混合类型不会被当成成功[jvm]",
+          "passed": true
+        },
+        {
+          "name": "列表与评价包装分别解析且不泄露用户资料[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.IhomeUpstreamClientTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "真实WebVPN编码的CAS回调可提取片段令牌而不循环加载web页面[jvm]",
+          "passed": true
+        },
+        {
+          "name": "CAS片段令牌仅发送至业务请求并保留原service[jvm]",
+          "passed": true
+        },
+        {
+          "name": "关注提交响应丢失时回查且重复目标不会二次切换[jvm]",
+          "passed": true
+        },
+        {
+          "name": "本人详情与个人筛选使用独立路径参数[jvm]",
+          "passed": true
+        },
+        {
+          "name": "WebVPN登录和业务请求始终保持所选路由[jvm]",
+          "passed": true
+        },
+        {
+          "name": "外部登录跳转被阻止且不跟随业务重定向[jvm]",
+          "passed": true
+        },
+        {
+          "name": "读取401只重新认证一次且模块日志不包含凭据[jvm]",
+          "passed": true
+        },
+        {
+          "name": "写后回查失败保持未确认且不自动重发[jvm]",
+          "passed": true
+        },
+        {
+          "name": "登录服务500不误报账号失效[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.JudgeApiTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "shouldPassClientSkippedCoursesAndStoreReturnedCutoffCourses[jvm]",
+          "passed": true
+        },
+        {
+          "name": "shouldReturnAssignmentsWhenGetAssignmentsSuccess[jvm]",
+          "passed": true
+        },
+        {
+          "name": "shouldReturnAssignmentDetailsWhenBatchDetailSuccess[jvm]",
+          "passed": true
+        },
+        {
+          "name": "shouldReturnAssignmentDetailWhenGetAssignmentDetailSuccess[jvm]",
+          "passed": true
+        },
+        {
+          "name": "shouldPassIncludeExpiredWhenGetAssignmentsRequestsExpired[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalAuthServiceBackendTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "preloadLoginState restores direct session from upstream cookies[jvm]",
+          "passed": true
+        },
+        {
+          "name": "getAuthStatus clears persisted local session when uc session is invalid[jvm]",
+          "passed": true
+        },
+        {
+          "name": "login ignores sso password expiry warning and records direct login stats[jvm]",
+          "passed": true
+        },
+        {
+          "name": "preloadLoginState uses webvpn wrapped upstream urls when current mode is webvpn[jvm]",
+          "passed": true
+        },
+        {
+          "name": "login returns captcha requirement when direct mode upstream asks for captcha[jvm]",
+          "passed": true
+        },
+        {
+          "name": "login reports direct login stats after successful authentication[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalAuthSessionStoreTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "local auth sessions are isolated by connection mode[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalBykcApiBackendTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "bykc login follows sso redirect chain before extracting token[jvm]",
+          "passed": true
+        },
+        {
+          "name": "bykc login preserves pathless cookies for subsequent api calls[jvm]",
+          "passed": true
+        },
+        {
+          "name": "bykc api uses webvpn wrapped urls when current mode is webvpn[jvm]",
+          "passed": true
+        },
+        {
+          "name": "bykc api supports select deselect and sign in direct mode[jvm]",
+          "passed": true
+        },
+        {
+          "name": "bykc api fetches profile and filters ended courses in direct mode[jvm]",
+          "passed": true
+        },
+        {
+          "name": "bykc api resolves detail chosen courses and statistics in direct mode[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalBykcCryptoTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "sha1Sign matches known digest[jvm]",
+          "passed": true
+        },
+        {
+          "name": "encryptRequest returns decryptable payload and rsa headers[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalCgyyApiBackendTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "cgyy api submits reservation and handles order actions in direct mode[jvm]",
+          "passed": true
+        },
+        {
+          "name": "cgyy purpose types fall back to static definitions when direct endpoint fails[jvm]",
+          "passed": true
+        },
+        {
+          "name": "cgyy business auth failure clears global local session when uc session is invalid[jvm]",
+          "passed": true
+        },
+        {
+          "name": "cgyy api fetches direct upstream data[jvm]",
+          "passed": true
+        },
+        {
+          "name": "cgyy business auth failure keeps global local session when uc session is still valid[jvm]",
+          "passed": true
+        },
+        {
+          "name": "cgyy api keeps direct urls when current mode is webvpn[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalCgyyCaptchaSolverTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "solveOffset returns non negative position from raster data[jvm]",
+          "passed": true
+        },
+        {
+          "name": "encrypt returns non blank base64 text[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalCgyySignerTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "addNoCacheIfMissing only adds once[jvm]",
+          "passed": true
+        },
+        {
+          "name": "sign ignores empty values and removed keys[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalClassroomApiBackendTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "classroom api uses direct upstream backend to query classrooms[jvm]",
+          "passed": true
+        },
+        {
+          "name": "classroom api clears local session when upstream redirects to sso and uc session is invalid[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalCookieStoreTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "cookies without explicit path use request directory as default path[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalEvaluationServiceBackendTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "local evaluation service fetches latest pending courses with minimal upstream filters[jvm]",
+          "passed": true
+        },
+        {
+          "name": "local evaluation service leaves subjective answers empty instead of submitting option ids[jvm]",
+          "passed": true
+        },
+        {
+          "name": "local evaluation service fetches courses from direct upstream[jvm]",
+          "passed": true
+        },
+        {
+          "name": "local evaluation service marks courses evaluated from upstream ypjcs[jvm]",
+          "passed": true
+        },
+        {
+          "name": "local evaluation service submits evaluation through direct upstream[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalJudgeApiBackendTest",
+      "tests": 11,
+      "failures": 5,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "judge api uses direct upstream backend to fetch assignments[jvm]",
+          "passed": false
+        },
+        {
+          "name": "judge api batch details reuses local cache until session reset[jvm]",
+          "passed": true
+        },
+        {
+          "name": "judge api sends browser headers like python client[jvm]",
+          "passed": false
+        },
+        {
+          "name": "judge api fetches assignment details until six month cutoff per course[jvm]",
+          "passed": true
+        },
+        {
+          "name": "judge api does not cache empty assignment lists[jvm]",
+          "passed": false
+        },
+        {
+          "name": "judge api parses multiline course links and upstream assignment links[jvm]",
+          "passed": true
+        },
+        {
+          "name": "judge api records cutoff courses locally and skips them on later default refresh[jvm]",
+          "passed": true
+        },
+        {
+          "name": "judge api reactivates session and retries when judge page returns login html[jvm]",
+          "passed": false
+        },
+        {
+          "name": "judge api uses direct upstream backend to fetch assignment detail[jvm]",
+          "passed": true
+        },
+        {
+          "name": "judge api batch details supports webvpn upstream urls[jvm]",
+          "passed": true
+        },
+        {
+          "name": "judge api activates direct judge cas session before fetching assignments[jvm]",
+          "passed": false
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalLibBookApiBackendTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "cancel ended booking maps to not found without breaking later requests[jvm]",
+          "passed": true
+        },
+        {
+          "name": "libbook backend exchanges cas token and calls v4 APIs[jvm]",
+          "passed": true
+        },
+        {
+          "name": "libbook backend extracts cas token from h5 fragment redirect[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalLibBookCryptoTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "encrypt reserve request matches Python golden value[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalScheduleApiBackendTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "graduate schedule uses GSMIS when undergraduate portal requires login[jvm]",
+          "passed": true
+        },
+        {
+          "name": "schedule api uses direct upstream backend to fetch terms[jvm]",
+          "passed": true
+        },
+        {
+          "name": "grade api uses direct upstream backend to fetch grades[jvm]",
+          "passed": true
+        },
+        {
+          "name": "schedule api uses direct upstream backend to fetch exam arrangement[jvm]",
+          "passed": true
+        },
+        {
+          "name": "undergraduate JSON error falls back to graduate source and remembers it for this login[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalSigninApiBackendTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "perform signin handles string STATUS and stuSignStatus[jvm]",
+          "passed": true
+        },
+        {
+          "name": "signin api handles string STATUS and signStatus from iclass server[jvm]",
+          "passed": true
+        },
+        {
+          "name": "signin retries on session expired error message[jvm]",
+          "passed": true
+        },
+        {
+          "name": "signin api reuses app session across repeated direct calls[jvm]",
+          "passed": true
+        },
+        {
+          "name": "signin api uses direct upstream backend to fetch today classes[jvm]",
+          "passed": true
+        },
+        {
+          "name": "signin api uses direct upstream backend to perform signin[jvm]",
+          "passed": true
+        },
+        {
+          "name": "WebVPN 签到使用 8347 app 路径且保留提交参数[jvm]",
+          "passed": true
+        },
+        {
+          "name": "signin api follows iclass my center redirect chain before app login[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalSpocApiBackendTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "spoc api uses direct upstream backend to fetch assignment detail[jvm]",
+          "passed": true
+        },
+        {
+          "name": "spoc api reuses business login across repeated direct calls[jvm]",
+          "passed": true
+        },
+        {
+          "name": "spoc api uses direct upstream backend to fetch assignments[jvm]",
+          "passed": true
+        },
+        {
+          "name": "spoc login follows sso redirect chain before extracting token[jvm]",
+          "passed": true
+        },
+        {
+          "name": "spoc login preserves pathless cookies for subsequent api calls[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalSpocSupportTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "extract login tokens returns null for unrelated url[jvm]",
+          "passed": true
+        },
+        {
+          "name": "map submission status handles known and unknown cases[jvm]",
+          "passed": true
+        },
+        {
+          "name": "html sanitizer returns readable plain text[jvm]",
+          "passed": true
+        },
+        {
+          "name": "resolve role code prefers jsdm then rolecode then jsdmList[jvm]",
+          "passed": true
+        },
+        {
+          "name": "extract login tokens from cas redirect url[jvm]",
+          "passed": true
+        },
+        {
+          "name": "normalize score strips display prefix[jvm]",
+          "passed": true
+        },
+        {
+          "name": "normalize datetime converts iso offset to legacy format[jvm]",
+          "passed": true
+        },
+        {
+          "name": "spoc crypto encrypts known example[jvm]",
+          "passed": true
+        },
+        {
+          "name": "spoc crypto decrypts known example[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalWebVpnSupportTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "webvpn codec round-trips https upstream url[jvm]",
+          "passed": true
+        },
+        {
+          "name": "webvpn codec round-trips custom port url[jvm]",
+          "passed": true
+        },
+        {
+          "name": "转换后的片段令牌不进入HTTP查询[jvm]",
+          "passed": true
+        },
+        {
+          "name": "WebVPN还原保留尾斜杠重复斜杠与登录片段[jvm]",
+          "passed": true
+        },
+        {
+          "name": "upstream url helper wraps direct upstream when current mode is webvpn[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.LocalYgdkApiBackendTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "ygdk api reuses business session across repeated direct calls[jvm]",
+          "passed": true
+        },
+        {
+          "name": "ygdk api uses direct upstream backend to submit clockin[jvm]",
+          "passed": true
+        },
+        {
+          "name": "ygdk api uses direct upstream backend to fetch records[jvm]",
+          "passed": true
+        },
+        {
+          "name": "ygdk api uses direct upstream backend to fetch overview[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.NetworkUtilsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "gradeErrorCodeHasUserFacingMessage[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.SigninLoginNameSupportTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "extract loginName accepts lowercase parameter[jvm]",
+          "passed": true
+        },
+        {
+          "name": "extract loginName returns null when parameter is missing[jvm]",
+          "passed": true
+        },
+        {
+          "name": "resolve signin redirect url resolves path relative location[jvm]",
+          "passed": true
+        },
+        {
+          "name": "extract loginName accepts relative redirect url[jvm]",
+          "passed": true
+        },
+        {
+          "name": "extract loginName preserves encoded base64 characters[jvm]",
+          "passed": true
+        },
+        {
+          "name": "resolve signin redirect url preserves iclass port for root relative location[jvm]",
+          "passed": true
+        },
+        {
+          "name": "extract loginName from iclass my center url[jvm]",
+          "passed": true
+        },
+        {
+          "name": "resolve signin redirect url accepts absolute location[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.SpocApiTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "shouldReturnAssignmentsWhenGetAssignmentsSuccess[jvm]",
+          "passed": true
+        },
+        {
+          "name": "shouldReturnAssignmentDetailWhenGetAssignmentDetailSuccess[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.UpdateServiceTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "reusesCurrentApiClientProviderAfterPreviousClientIsClosed[jvm]",
+          "passed": true
+        },
+        {
+          "name": "returnsNullWhenClientAndServerVersionsAreAligned[jvm]",
+          "passed": true
+        },
+        {
+          "name": "returnsVersionInfoWhenClientAndServerVersionsAreNotAligned[jvm]",
+          "passed": true
+        },
+        {
+          "name": "returnsNullWhenVersionRequestFailsWithNonExceptionThrowable[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.YgdkApiTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "should submit clockin via multipart[jvm]",
+          "passed": true
+        },
+        {
+          "name": "should fetch overview and records[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.YgdkReminderStoreTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "clear removes only target user reminder state[jvm]",
+          "passed": true
+        },
+        {
+          "name": "week and term done keys are isolated by user and period[jvm]",
+          "passed": true
+        },
+        {
+          "name": "reminder is enabled by default and isolated by user key[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.model.dto.CgyyOrderCancellationTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "cancel stays available more than four hours before start[jvm]",
+          "passed": true
+        },
+        {
+          "name": "cancel hides once within four hours before start[jvm]",
+          "passed": true
+        },
+        {
+          "name": "cancel hides for past reservation[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.model.dto.CgyyOrderDateDisplayTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "missing date fields fall back to placeholder[jvm]",
+          "passed": true
+        },
+        {
+          "name": "cross day reservation range keeps both datetimes[jvm]",
+          "passed": true
+        },
+        {
+          "name": "same day reservation range compresses end date[jvm]",
+          "passed": true
+        },
+        {
+          "name": "single start date falls back to start datetime[jvm]",
+          "passed": true
+        },
+        {
+          "name": "reservation date is prefixed when detail only contains room and time[jvm]",
+          "passed": true
+        },
+        {
+          "name": "plain reservation date is used when detailed fields are absent[jvm]",
+          "passed": true
+        },
+        {
+          "name": "reservation date detail takes precedence[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.model.dto.CgyyOrderStatusTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "unknown order falls back to unknown label[jvm]",
+          "passed": true
+        },
+        {
+          "name": "pending order resolves to generic and detailed approval text[jvm]",
+          "passed": true
+        },
+        {
+          "name": "approved order resolves to approved display[jvm]",
+          "passed": true
+        },
+        {
+          "name": "cancelled order resolves to cancelled display[jvm]",
+          "passed": true
+        },
+        {
+          "name": "rejected order resolves to rejected display[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.model.dto.LibBookBookingStatusTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "ended booking cannot be cancelled[jvm]",
+          "passed": true
+        },
+        {
+          "name": "booking without id cannot be cancelled[jvm]",
+          "passed": true
+        },
+        {
+          "name": "user cancelled booking cannot be cancelled[jvm]",
+          "passed": true
+        },
+        {
+          "name": "active booking with id can be cancelled[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.repository.SavedScheduleWeekTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "upcomingAgendaIncludesNextWeekButNeverRepeatsAfterTermEnds[jvm]",
+          "passed": true
+        },
+        {
+          "name": "widgetUsesCurrentWeekOrRequestedCachedWeekWithoutNetwork[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.repository.ScheduleRepositoryTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "partial import cancellation and account switch never overwrite saved semester[jvm]",
+          "passed": true
+        },
+        {
+          "name": "entire semester survives recreation and browsing never uses network[jvm]",
+          "passed": true
+        },
+        {
+          "name": "account switch and cancellation cannot fall back to another account data[jvm]",
+          "passed": true
+        },
+        {
+          "name": "online browsing never writes and original network failure survives missing local data[jvm]",
+          "passed": true
+        },
+        {
+          "name": "localization accepts opaque weekly codes but rejects incomplete or mismatched snapshots[jvm]",
+          "passed": true
+        },
+        {
+          "name": "undergraduate date time boundaries normalize before saving and include the first day offline[jvm]",
+          "passed": true
+        },
+        {
+          "name": "semester switching keeps past imports and does not revive old courses on empty days[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.repository.ScheduleSnapshotStorageTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "大快照可以重新加载且账号和代理对保持完整[jvm]",
+          "passed": true
+        },
+        {
+          "name": "读取途中发布新版时重试完整快照[jvm]",
+          "passed": true
+        },
+        {
+          "name": "读取旧缓存不写入且成功更新后迁移为分块格式[jvm]",
+          "passed": true
+        },
+        {
+          "name": "清理旧分块失败不影响已发布快照[jvm]",
+          "passed": true
+        },
+        {
+          "name": "分块或索引写入失败时保留旧快照并清理未发布数据[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.repository.ScheduleTimelineTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "original": true,
+      "cases": [
+        {
+          "name": "explicitTimesAndOldCacheBoundariesNeverInventBreaks[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.ReferenceSessionProbeTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "original": false,
+      "cases": [
+        {
+          "name": "webvpnAlsoSubmitsDirectCredentials[jvm]",
+          "passed": true
+        },
+        {
+          "name": "ticket[jvm]",
+          "passed": true
+        },
+        {
+          "name": "ucUnavailable[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.ReferenceBusinessWireTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "original": false,
+      "cases": [
+        {
+          "name": "captureBusinessRequests[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.ReferenceTransportProbeTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "original": false,
+      "cases": [
+        {
+          "name": "captureAndroidOkHttpOnJvm[jvm]",
+          "passed": true
+        },
+        {
+          "name": "captureRealLoopbackTransport[jvm]",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "cn.edu.ubaa.api.ReferenceClockProbeTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "original": false,
+      "cases": [
+        {
+          "name": "originalJudgeCutoffDependsOnWallDate[jvm]",
+          "passed": true
+        },
+        {
+          "name": "originalJudgeTestsWithExplicitFixtureClock[jvm]",
+          "passed": true
+        }
+      ],
+      "controlled_original_replays": [
+        "CLOCK_CONTROL judge api uses direct upstream backend to fetch assignments passed",
+        "CLOCK_CONTROL judge api sends browser headers like python client passed",
+        "CLOCK_CONTROL judge api does not cache empty assignment lists passed",
+        "CLOCK_CONTROL judge api reactivates session and retries when judge page returns login html passed",
+        "CLOCK_CONTROL judge api activates direct judge cas session before fetching assignments passed"
+      ]
+    }
+  ],
+  "reference_tests_passed": false,
+  "raw_reference_business": {
+    "day": "2026-11-03",
+    "source": "synthetic",
+    "cases": [
+      {
+        "id": "direct-terms",
+        "count": 1,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/currentUser.do",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/student/schoolCalendars.do",
+            "body": "",
+            "headers": {
+              "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/index.html"
+            }
+          }
+        ]
+      },
+      {
+        "id": "direct-checkin",
+        "count": 0,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://iclass.buaa.edu.cn:8347/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103",
+            "body": "",
+            "headers": {
+              "sessionid": "session-1",
+              "accept": "application/json"
+            }
+          }
+        ]
+      },
+      {
+        "id": "direct-checkin-nonempty",
+        "count": 2,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://iclass.buaa.edu.cn:8347/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103",
+            "body": "",
+            "headers": {
+              "sessionid": "session-1",
+              "accept": "application/json"
+            }
+          }
+        ],
+        "values": [
+          {
+            "id": "course-1",
+            "name": "软件工程",
+            "begin": "08:00",
+            "end": "09:40",
+            "sign_status": 0
+          },
+          {
+            "id": "course-2",
+            "name": "概率论",
+            "begin": "10:00",
+            "end": "11:40",
+            "sign_status": 1
+          }
+        ]
+      },
+      {
+        "id": "direct-library",
+        "count": 1,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas",
+            "body": "",
+            "headers": {
+              "accept": "application/json, text/plain, */*, application/json",
+              "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://booking.lib.buaa.edu.cn",
+              "origin": "https://booking.lib.buaa.edu.cn"
+            }
+          },
+          {
+            "method": "POST",
+            "url": "https://booking.lib.buaa.edu.cn/v4/login/user",
+            "body": "{\"cas\":\"cas-1\"}",
+            "headers": {
+              "accept": "application/json, text/plain, */*, application/json",
+              "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://booking.lib.buaa.edu.cn",
+              "origin": "https://booking.lib.buaa.edu.cn",
+              "content-type": "application/json"
+            }
+          },
+          {
+            "method": "POST",
+            "url": "https://booking.lib.buaa.edu.cn/v4/space/pcTopFor",
+            "body": "{\"day\":\"2026-11-03\"}",
+            "headers": {
+              "accept": "application/json, text/plain, */*, application/json",
+              "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://booking.lib.buaa.edu.cn",
+              "origin": "https://booking.lib.buaa.edu.cn",
+              "authorization": "bearerjwt-1",
+              "content-type": "application/json"
+            }
+          }
+        ]
+      },
+      {
+        "id": "direct-grades",
+        "count": 0,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://app.buaa.edu.cn/buaascore/wap/default/index",
+            "body": "",
+            "headers": {
+              "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8, application/json"
+            }
+          },
+          {
+            "method": "POST",
+            "url": "https://app.buaa.edu.cn/buaascore/wap/default/index",
+            "body": "xq=1&year=2025-2026",
+            "headers": {
+              "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://app.buaa.edu.cn/buaascore/wap/default/index",
+              "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+            }
+          }
+        ]
+      },
+      {
+        "id": "direct-classroom",
+        "count": 1,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fapp.buaa.edu.cn%2Fa_buaa%2Fapi%2Fcas%2Findex%3Fredirect%3Dhttps%253A%252F%252Fapp.buaa.edu.cn%252Fsite%252FclassRoomQuery%252Findex%26from%3Dwap%26login_from%3D&noAutoRedirect=1",
+            "body": "",
+            "headers": {
+              "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://app.buaa.edu.cn/site/classRoomQuery/index",
+            "body": "",
+            "headers": {
+              "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://app.buaa.edu.cn/buaafreeclass/wap/default/search1?xqid=1&floorid=&date=2026-11-03",
+            "body": "",
+            "headers": {
+              "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+              "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+              "referer": "https://app.buaa.edu.cn/site/classRoomQuery/index",
+              "x-requested-with": "XMLHttpRequest"
+            }
+          }
+        ]
+      },
+      {
+        "id": "webvpn-terms",
+        "count": 1,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/api/home/currentUser.do",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/api/home/student/schoolCalendars.do",
+            "body": "",
+            "headers": {
+              "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/index.html"
+            }
+          }
+        ]
+      },
+      {
+        "id": "webvpn-checkin",
+        "count": 0,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https-8346/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/?type=jumpMyCenter",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103",
+            "body": "",
+            "headers": {
+              "sessionid": "session-1",
+              "accept": "application/json"
+            }
+          }
+        ]
+      },
+      {
+        "id": "webvpn-checkin-nonempty",
+        "count": 2,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https-8346/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/?type=jumpMyCenter",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+            "body": "",
+            "headers": {
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103",
+            "body": "",
+            "headers": {
+              "sessionid": "session-1",
+              "accept": "application/json"
+            }
+          }
+        ],
+        "values": [
+          {
+            "id": "course-1",
+            "name": "软件工程",
+            "begin": "08:00",
+            "end": "09:40",
+            "sign_status": 0
+          },
+          {
+            "id": "course-2",
+            "name": "概率论",
+            "begin": "10:00",
+            "end": "11:40",
+            "sign_status": 1
+          }
+        ]
+      },
+      {
+        "id": "webvpn-library",
+        "count": 1,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e3e44ed225256951300d8db9d6562d/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas",
+            "body": "",
+            "headers": {
+              "accept": "application/json, text/plain, */*, application/json",
+              "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+              "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5"
+            }
+          },
+          {
+            "method": "POST",
+            "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5/v4/login/user",
+            "body": "{\"cas\":\"cas-1\"}",
+            "headers": {
+              "accept": "application/json, text/plain, */*, application/json",
+              "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+              "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+              "content-type": "application/json"
+            }
+          },
+          {
+            "method": "POST",
+            "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5/v4/space/pcTopFor",
+            "body": "{\"day\":\"2026-11-03\"}",
+            "headers": {
+              "accept": "application/json, text/plain, */*, application/json",
+              "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+              "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+              "authorization": "bearerjwt-1",
+              "content-type": "application/json"
+            }
+          }
+        ]
+      },
+      {
+        "id": "webvpn-grades",
+        "count": 0,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/buaascore/wap/default/index",
+            "body": "",
+            "headers": {
+              "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8, application/json"
+            }
+          },
+          {
+            "method": "POST",
+            "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/buaascore/wap/default/index",
+            "body": "xq=1&year=2025-2026",
+            "headers": {
+              "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+              "x-requested-with": "XMLHttpRequest",
+              "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/buaascore/wap/default/index",
+              "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+            }
+          }
+        ]
+      },
+      {
+        "id": "webvpn-classroom",
+        "count": 1,
+        "requests": [
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e3e44ed225256951300d8db9d6562d/login?service=https%3A%2F%2Fapp.buaa.edu.cn%2Fa_buaa%2Fapi%2Fcas%2Findex%3Fredirect%3Dhttps%253A%252F%252Fapp.buaa.edu.cn%252Fsite%252FclassRoomQuery%252Findex%26from%3Dwap%26login_from%3D&noAutoRedirect=1",
+            "body": "",
+            "headers": {
+              "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://app.buaa.edu.cn/site/classRoomQuery/index",
+            "body": "",
+            "headers": {
+              "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+              "accept": "application/json"
+            }
+          },
+          {
+            "method": "GET",
+            "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/buaafreeclass/wap/default/search1?xqid=1&floorid=&date=2026-11-03",
+            "body": "",
+            "headers": {
+              "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+              "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+              "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/site/classRoomQuery/index",
+              "x-requested-with": "XMLHttpRequest"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "business": {
+    "ubaa": {
+      "day": "2026-11-03",
+      "source": "synthetic",
+      "cases": [
+        {
+          "id": "direct-terms",
+          "count": 1,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/currentUser.do",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/student/schoolCalendars.do",
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/index.html"
+              }
+            }
+          ]
+        },
+        {
+          "id": "direct-checkin",
+          "count": 0,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8347/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103",
+              "body": "",
+              "headers": {
+                "sessionid": "session-1",
+                "accept": "application/json"
+              }
+            }
+          ]
+        },
+        {
+          "id": "direct-checkin-nonempty",
+          "count": 2,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8347/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103",
+              "body": "",
+              "headers": {
+                "sessionid": "session-1",
+                "accept": "application/json"
+              }
+            }
+          ],
+          "values": [
+            {
+              "id": "course-1",
+              "name": "软件工程",
+              "begin": "08:00",
+              "end": "09:40",
+              "sign_status": 0
+            },
+            {
+              "id": "course-2",
+              "name": "概率论",
+              "begin": "10:00",
+              "end": "11:40",
+              "sign_status": 1
+            }
+          ]
+        },
+        {
+          "id": "direct-library",
+          "count": 1,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas",
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://booking.lib.buaa.edu.cn",
+                "origin": "https://booking.lib.buaa.edu.cn"
+              }
+            },
+            {
+              "method": "POST",
+              "url": "https://booking.lib.buaa.edu.cn/v4/login/user",
+              "body": "{\"cas\":\"cas-1\"}",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://booking.lib.buaa.edu.cn",
+                "origin": "https://booking.lib.buaa.edu.cn",
+                "content-type": "application/json"
+              }
+            },
+            {
+              "method": "POST",
+              "url": "https://booking.lib.buaa.edu.cn/v4/space/pcTopFor",
+              "body": "{\"day\":\"2026-11-03\"}",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://booking.lib.buaa.edu.cn",
+                "origin": "https://booking.lib.buaa.edu.cn",
+                "authorization": "bearerjwt-1",
+                "content-type": "application/json"
+              }
+            }
+          ]
+        },
+        {
+          "id": "direct-grades",
+          "count": 0,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://app.buaa.edu.cn/buaascore/wap/default/index",
+              "body": "",
+              "headers": {
+                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8, application/json"
+              }
+            },
+            {
+              "method": "POST",
+              "url": "https://app.buaa.edu.cn/buaascore/wap/default/index",
+              "body": "xq=1&year=2025-2026",
+              "headers": {
+                "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://app.buaa.edu.cn/buaascore/wap/default/index",
+                "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+              }
+            }
+          ]
+        },
+        {
+          "id": "direct-classroom",
+          "count": 1,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fapp.buaa.edu.cn%2Fa_buaa%2Fapi%2Fcas%2Findex%3Fredirect%3Dhttps%253A%252F%252Fapp.buaa.edu.cn%252Fsite%252FclassRoomQuery%252Findex%26from%3Dwap%26login_from%3D&noAutoRedirect=1",
+              "body": "",
+              "headers": {
+                "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://app.buaa.edu.cn/site/classRoomQuery/index",
+              "body": "",
+              "headers": {
+                "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://app.buaa.edu.cn/buaafreeclass/wap/default/search1?xqid=1&floorid=&date=2026-11-03",
+              "body": "",
+              "headers": {
+                "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+                "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+                "referer": "https://app.buaa.edu.cn/site/classRoomQuery/index",
+                "x-requested-with": "XMLHttpRequest"
+              }
+            }
+          ]
+        },
+        {
+          "id": "webvpn-terms",
+          "count": 1,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/api/home/currentUser.do",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/api/home/student/schoolCalendars.do",
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/index.html"
+              }
+            }
+          ]
+        },
+        {
+          "id": "webvpn-checkin",
+          "count": 0,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8346/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/?type=jumpMyCenter",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103",
+              "body": "",
+              "headers": {
+                "sessionid": "session-1",
+                "accept": "application/json"
+              }
+            }
+          ]
+        },
+        {
+          "id": "webvpn-checkin-nonempty",
+          "count": 2,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8346/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/?type=jumpMyCenter",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103",
+              "body": "",
+              "headers": {
+                "sessionid": "session-1",
+                "accept": "application/json"
+              }
+            }
+          ],
+          "values": [
+            {
+              "id": "course-1",
+              "name": "软件工程",
+              "begin": "08:00",
+              "end": "09:40",
+              "sign_status": 0
+            },
+            {
+              "id": "course-2",
+              "name": "概率论",
+              "begin": "10:00",
+              "end": "11:40",
+              "sign_status": 1
+            }
+          ]
+        },
+        {
+          "id": "webvpn-library",
+          "count": 1,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e3e44ed225256951300d8db9d6562d/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas",
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5"
+              }
+            },
+            {
+              "method": "POST",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5/v4/login/user",
+              "body": "{\"cas\":\"cas-1\"}",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "content-type": "application/json"
+              }
+            },
+            {
+              "method": "POST",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5/v4/space/pcTopFor",
+              "body": "{\"day\":\"2026-11-03\"}",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "authorization": "bearerjwt-1",
+                "content-type": "application/json"
+              }
+            }
+          ]
+        },
+        {
+          "id": "webvpn-grades",
+          "count": 0,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/buaascore/wap/default/index",
+              "body": "",
+              "headers": {
+                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8, application/json"
+              }
+            },
+            {
+              "method": "POST",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/buaascore/wap/default/index",
+              "body": "xq=1&year=2025-2026",
+              "headers": {
+                "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+                "x-requested-with": "XMLHttpRequest",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/buaascore/wap/default/index",
+                "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+              }
+            }
+          ]
+        },
+        {
+          "id": "webvpn-classroom",
+          "count": 1,
+          "requests": [
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e3e44ed225256951300d8db9d6562d/login?service=https%3A%2F%2Fapp.buaa.edu.cn%2Fa_buaa%2Fapi%2Fcas%2Findex%3Fredirect%3Dhttps%253A%252F%252Fapp.buaa.edu.cn%252Fsite%252FclassRoomQuery%252Findex%26from%3Dwap%26login_from%3D&noAutoRedirect=1",
+              "body": "",
+              "headers": {
+                "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://app.buaa.edu.cn/site/classRoomQuery/index",
+              "body": "",
+              "headers": {
+                "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+                "accept": "application/json"
+              }
+            },
+            {
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/buaafreeclass/wap/default/search1?xqid=1&floorid=&date=2026-11-03",
+              "body": "",
+              "headers": {
+                "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+                "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/site/classRoomQuery/index",
+                "x-requested-with": "XMLHttpRequest"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "rust": {
+      "cases": [
+        {
+          "count": 1,
+          "id": "direct-terms",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/currentUser.do"
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+                "referer": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/index.html",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "GET",
+              "url": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/student/schoolCalendars.do"
+            }
+          ]
+        },
+        {
+          "count": 0,
+          "id": "direct-checkin",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter"
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8347/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl="
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json",
+                "sessionid": "session-1"
+              },
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103"
+            }
+          ]
+        },
+        {
+          "count": 2,
+          "id": "direct-checkin-nonempty",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter"
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8347/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl="
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json",
+                "sessionid": "session-1"
+              },
+              "method": "GET",
+              "url": "https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103"
+            }
+          ],
+          "values": [
+            {
+              "begin": "08:00",
+              "end": "09:40",
+              "id": "course-1",
+              "name": "软件工程",
+              "sign_status": 0
+            },
+            {
+              "begin": "10:00",
+              "end": "11:40",
+              "id": "course-2",
+              "name": "概率论",
+              "sign_status": 1
+            }
+          ]
+        },
+        {
+          "count": 1,
+          "id": "direct-library",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "origin": "https://booking.lib.buaa.edu.cn",
+                "referer": "https://booking.lib.buaa.edu.cn",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "GET",
+              "url": "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas"
+            },
+            {
+              "body": "{\"cas\":\"cas-1\"}",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "content-type": "application/json",
+                "origin": "https://booking.lib.buaa.edu.cn",
+                "referer": "https://booking.lib.buaa.edu.cn",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "POST",
+              "url": "https://booking.lib.buaa.edu.cn/v4/login/user"
+            },
+            {
+              "body": "{\"day\":\"2026-11-03\"}",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "authorization": "bearerjwt-1",
+                "content-type": "application/json",
+                "origin": "https://booking.lib.buaa.edu.cn",
+                "referer": "https://booking.lib.buaa.edu.cn",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "POST",
+              "url": "https://booking.lib.buaa.edu.cn/v4/space/pcTopFor"
+            }
+          ]
+        },
+        {
+          "count": 0,
+          "id": "direct-grades",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8, application/json"
+              },
+              "method": "GET",
+              "url": "https://app.buaa.edu.cn/buaascore/wap/default/index"
+            },
+            {
+              "body": "xq=1&year=2025-2026",
+              "headers": {
+                "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+                "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "referer": "https://app.buaa.edu.cn/buaascore/wap/default/index",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "POST",
+              "url": "https://app.buaa.edu.cn/buaascore/wap/default/index"
+            }
+          ]
+        },
+        {
+          "count": 1,
+          "id": "direct-classroom",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json",
+                "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi"
+              },
+              "method": "GET",
+              "url": "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fapp.buaa.edu.cn%2Fa_buaa%2Fapi%2Fcas%2Findex%3Fredirect%3Dhttps%253A%252F%252Fapp.buaa.edu.cn%252Fsite%252FclassRoomQuery%252Findex%26from%3Dwap%26login_from%3D&noAutoRedirect=1"
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json",
+                "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi"
+              },
+              "method": "GET",
+              "url": "https://app.buaa.edu.cn/site/classRoomQuery/index"
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+                "referer": "https://app.buaa.edu.cn/site/classRoomQuery/index",
+                "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "GET",
+              "url": "https://app.buaa.edu.cn/buaafreeclass/wap/default/search1?xqid=1&floorid=&date=2026-11-03"
+            }
+          ]
+        },
+        {
+          "count": 1,
+          "id": "webvpn-terms",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/api/home/currentUser.do"
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/index.html",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/api/home/student/schoolCalendars.do"
+            }
+          ]
+        },
+        {
+          "count": 0,
+          "id": "webvpn-checkin",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8346/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/?type=jumpMyCenter"
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl="
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json",
+                "sessionid": "session-1"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103"
+            }
+          ]
+        },
+        {
+          "count": 2,
+          "id": "webvpn-checkin-nonempty",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8346/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/?type=jumpMyCenter"
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl="
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json",
+                "sessionid": "session-1"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/course/get_stu_course_sched.action?id=user-1&dateStr=20261103"
+            }
+          ],
+          "values": [
+            {
+              "begin": "08:00",
+              "end": "09:40",
+              "id": "course-1",
+              "name": "软件工程",
+              "sign_status": 0
+            },
+            {
+              "begin": "10:00",
+              "end": "11:40",
+              "id": "course-2",
+              "name": "概率论",
+              "sign_status": 1
+            }
+          ]
+        },
+        {
+          "count": 1,
+          "id": "webvpn-library",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e3e44ed225256951300d8db9d6562d/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas"
+            },
+            {
+              "body": "{\"cas\":\"cas-1\"}",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "content-type": "application/json",
+                "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "POST",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5/v4/login/user"
+            },
+            {
+              "body": "{\"day\":\"2026-11-03\"}",
+              "headers": {
+                "accept": "application/json, text/plain, */*, application/json",
+                "authorization": "bearerjwt-1",
+                "content-type": "application/json",
+                "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "POST",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5/v4/space/pcTopFor"
+            }
+          ]
+        },
+        {
+          "count": 0,
+          "id": "webvpn-grades",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8, application/json"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/buaascore/wap/default/index"
+            },
+            {
+              "body": "xq=1&year=2025-2026",
+              "headers": {
+                "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+                "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/buaascore/wap/default/index",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "POST",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/buaascore/wap/default/index"
+            }
+          ]
+        },
+        {
+          "count": 1,
+          "id": "webvpn-classroom",
+          "requests": [
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json",
+                "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e3e44ed225256951300d8db9d6562d/login?service=https%3A%2F%2Fapp.buaa.edu.cn%2Fa_buaa%2Fapi%2Fcas%2Findex%3Fredirect%3Dhttps%253A%252F%252Fapp.buaa.edu.cn%252Fsite%252FclassRoomQuery%252Findex%26from%3Dwap%26login_from%3D&noAutoRedirect=1"
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json",
+                "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/site/classRoomQuery/index"
+            },
+            {
+              "body": "",
+              "headers": {
+                "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+                "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/site/classRoomQuery/index",
+                "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+                "x-requested-with": "XMLHttpRequest"
+              },
+              "method": "GET",
+              "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/buaafreeclass/wap/default/search1?xqid=1&floorid=&date=2026-11-03"
+            }
+          ]
+        }
+      ],
+      "day": "2026-11-03",
+      "source": "synthetic"
+    },
+    "comparisons": [
+      {
+        "id": "direct-terms",
+        "differences": [],
+        "unexpected_differences": [],
+        "missing_policy_differences": []
+      },
+      {
+        "id": "direct-checkin",
+        "differences": [],
+        "unexpected_differences": [],
+        "missing_policy_differences": []
+      },
+      {
+        "id": "direct-checkin-nonempty",
+        "differences": [],
+        "unexpected_differences": [],
+        "missing_policy_differences": []
+      },
+      {
+        "id": "direct-library",
+        "differences": [],
+        "unexpected_differences": [],
+        "missing_policy_differences": []
+      },
+      {
+        "id": "direct-grades",
+        "differences": [],
+        "unexpected_differences": [],
+        "missing_policy_differences": []
+      },
+      {
+        "id": "direct-classroom",
+        "differences": [],
+        "unexpected_differences": [],
+        "missing_policy_differences": []
+      },
+      {
+        "id": "webvpn-terms",
+        "differences": [],
+        "unexpected_differences": [],
+        "missing_policy_differences": []
+      },
+      {
+        "id": "webvpn-checkin",
+        "differences": [],
+        "unexpected_differences": [],
+        "missing_policy_differences": []
+      },
+      {
+        "id": "webvpn-checkin-nonempty",
+        "differences": [],
+        "unexpected_differences": [],
+        "missing_policy_differences": []
+      },
+      {
+        "id": "webvpn-library",
+        "differences": [],
+        "unexpected_differences": [],
+        "missing_policy_differences": []
+      },
+      {
+        "id": "webvpn-grades",
+        "differences": [],
+        "unexpected_differences": [],
+        "missing_policy_differences": []
+      },
+      {
+        "id": "webvpn-classroom",
+        "differences": [
+          {
+            "request": 2,
+            "field": "url",
+            "ubaa": [
+              "https",
+              "app.buaa.edu.cn",
+              "/site/classRoomQuery/index",
+              [],
+              ""
+            ],
+            "rust": [
+              "https",
+              "d.buaa.edu.cn",
+              "/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/site/classRoomQuery/index",
+              [],
+              ""
+            ]
+          }
+        ],
+        "unexpected_differences": [],
+        "missing_policy_differences": []
+      }
+    ],
+    "rust_regression_passed": true
+  },
+  "authentication": {
+    "ubaa": {
+      "webvpn": [
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e3e44ed225256951300d8db9d6562d/login",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e3e44ed225256951300d8db9d6562d/login",
+          "body": "execution=abc%2Bdef%2Fghi%3D&username=sy2501001&password=synthetic&submit=%E7%99%BB%E5%BD%95&_eventId=submit&type=username_password",
+          "headers": {
+            "accept": "application/json",
+            "cookie": "wengine_vpn_ticket=synthetic",
+            "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e5f40f9e3231691e7b0c9ce29b5b/api/callback?ticket=ST-synthetic",
+          "body": "",
+          "headers": {
+            "accept": "application/json",
+            "cookie": "wengine_vpn_ticket=synthetic"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e5f40f9e3231691e7b0c9ce29b5b/api/login?target=https%3A%2F%2Fuc.buaa.edu.cn%2F%23%2Fuser%2Flogin",
+          "body": "",
+          "headers": {
+            "accept": "application/json",
+            "cookie": "wengine_vpn_ticket=synthetic"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e5f40f9e3231691e7b0c9ce29b5b/api/uc/status",
+          "body": "",
+          "headers": {
+            "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+            "x-requested-with": "XMLHttpRequest",
+            "cookie": "wengine_vpn_ticket=synthetic"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://sso.buaa.edu.cn/login",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://sso.buaa.edu.cn/login",
+          "body": "execution=abc%2Bdef%2Fghi%3D&username=sy2501001&password=synthetic&submit=%E7%99%BB%E5%BD%95&_eventId=submit&type=username_password",
+          "headers": {
+            "accept": "application/json",
+            "cookie": "CASTGC=synthetic",
+            "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e5f40f9e3231691e7b0c9ce29b5b/api/callback?ticket=ST-synthetic",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://uc.buaa.edu.cn/api/login?target=https%3A%2F%2Fuc.buaa.edu.cn%2F%23%2Fuser%2Flogin",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        }
+      ],
+      "ticket": [
+        {
+          "method": "GET",
+          "url": "https://sso.buaa.edu.cn/login",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://sso.buaa.edu.cn/login",
+          "body": "execution=abc%2Bdef%2Fghi%3D&username=sy2501001&password=synthetic&submit=%E7%99%BB%E5%BD%95&_eventId=submit&type=username_password",
+          "headers": {
+            "accept": "application/json",
+            "cookie": "CASTGC=synthetic",
+            "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://uc.buaa.edu.cn/api/callback?ticket=ST-synthetic",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://uc.buaa.edu.cn/api/login?target=https%3A%2F%2Fuc.buaa.edu.cn%2F%23%2Fuser%2Flogin",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://uc.buaa.edu.cn/api/uc/status",
+          "body": "",
+          "headers": {
+            "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+            "x-requested-with": "XMLHttpRequest"
+          }
+        }
+      ],
+      "uc_unavailable": [
+        {
+          "method": "GET",
+          "url": "https://sso.buaa.edu.cn/login",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://sso.buaa.edu.cn/login",
+          "body": "execution=abc%2Bdef%2Fghi%3D&username=sy2501001&password=synthetic&submit=%E7%99%BB%E5%BD%95&_eventId=submit&type=username_password",
+          "headers": {
+            "accept": "application/json",
+            "cookie": "CASTGC=synthetic",
+            "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://uc.buaa.edu.cn/api/login?target=https%3A%2F%2Fuc.buaa.edu.cn%2F%23%2Fuser%2Flogin",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://uc.buaa.edu.cn/api/uc/status",
+          "body": "",
+          "headers": {
+            "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+            "x-requested-with": "XMLHttpRequest"
+          }
+        }
+      ]
+    },
+    "rust": {
+      "ticket": [
+        {
+          "body": "",
+          "headers": {
+            "Accept": "application/json"
+          },
+          "method": "GET",
+          "url": "https://sso.buaa.edu.cn/login"
+        },
+        {
+          "body": "execution=abc%2Bdef%2Fghi%3D&username=sy2501001&password=synthetic&submit=%E7%99%BB%E5%BD%95&_eventId=submit&type=username_password",
+          "headers": {
+            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "Cookie": "CASTGC=synthetic"
+          },
+          "method": "POST",
+          "url": "https://sso.buaa.edu.cn/login"
+        },
+        {
+          "body": "",
+          "headers": {
+            "Accept": "application/json"
+          },
+          "method": "GET",
+          "url": "https://uc.buaa.edu.cn/api/callback?ticket=ST-synthetic"
+        },
+        {
+          "body": "",
+          "headers": {
+            "Accept": "application/json"
+          },
+          "method": "GET",
+          "url": "https://uc.buaa.edu.cn/api/login?target=https%3A%2F%2Fuc.buaa.edu.cn%2F%23%2Fuser%2Flogin"
+        },
+        {
+          "body": "",
+          "headers": {
+            "Accept": "application/json, text/javascript, */*; q=0.01, application/json",
+            "X-Requested-With": "XMLHttpRequest"
+          },
+          "method": "GET",
+          "url": "https://uc.buaa.edu.cn/api/uc/status"
+        }
+      ],
+      "uc_unavailable": [
+        {
+          "body": "",
+          "headers": {
+            "Accept": "application/json"
+          },
+          "method": "GET",
+          "url": "https://sso.buaa.edu.cn/login"
+        },
+        {
+          "body": "execution=abc%2Bdef%2Fghi%3D&username=sy2501001&password=synthetic&submit=%E7%99%BB%E5%BD%95&_eventId=submit&type=username_password",
+          "headers": {
+            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "Cookie": "CASTGC=synthetic"
+          },
+          "method": "POST",
+          "url": "https://sso.buaa.edu.cn/login"
+        },
+        {
+          "body": "",
+          "headers": {
+            "Accept": "application/json"
+          },
+          "method": "GET",
+          "url": "https://uc.buaa.edu.cn/api/login?target=https%3A%2F%2Fuc.buaa.edu.cn%2F%23%2Fuser%2Flogin"
+        },
+        {
+          "body": "",
+          "headers": {
+            "Accept": "application/json, text/javascript, */*; q=0.01, application/json",
+            "X-Requested-With": "XMLHttpRequest"
+          },
+          "method": "GET",
+          "url": "https://uc.buaa.edu.cn/api/uc/status"
+        }
+      ],
+      "webvpn": [
+        {
+          "body": "",
+          "headers": {
+            "Accept": "application/json"
+          },
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e3e44ed225256951300d8db9d6562d/login"
+        },
+        {
+          "body": "execution=abc%2Bdef%2Fghi%3D&username=sy2501001&password=synthetic&submit=%E7%99%BB%E5%BD%95&_eventId=submit&type=username_password",
+          "headers": {
+            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "Cookie": "wengine_vpn_ticket=synthetic"
+          },
+          "method": "POST",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e3e44ed225256951300d8db9d6562d/login"
+        },
+        {
+          "body": "",
+          "headers": {
+            "Accept": "application/json",
+            "Cookie": "wengine_vpn_ticket=synthetic"
+          },
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e5f40f9e3231691e7b0c9ce29b5b/api/callback?ticket=ST-synthetic"
+        },
+        {
+          "body": "",
+          "headers": {
+            "Accept": "application/json",
+            "Cookie": "wengine_vpn_ticket=synthetic"
+          },
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e5f40f9e3231691e7b0c9ce29b5b/api/login?target=https%3A%2F%2Fuc.buaa.edu.cn%2F%23%2Fuser%2Flogin"
+        },
+        {
+          "body": "",
+          "headers": {
+            "Accept": "application/json, text/javascript, */*; q=0.01, application/json",
+            "Cookie": "wengine_vpn_ticket=synthetic",
+            "X-Requested-With": "XMLHttpRequest"
+          },
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e5f40f9e3231691e7b0c9ce29b5b/api/uc/status"
+        }
+      ]
+    },
+    "unexpected_differences": [],
+    "intentional_policy": "No unconditional second direct-password transaction after WebVPN login"
+  },
+  "jvm_cio_transport": {
+    "source": "synthetic",
+    "engine": "CIO",
+    "requests": [
+      {
+        "id": "form-encoding",
+        "request": {
+          "method": "POST",
+          "target": "/form?duplicate=1&duplicate=2&plus=a%2Bb",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "content-length": "113",
+            "accept": "application/json",
+            "user-agent": "ktor-client",
+            "content-type": "application/x-www-form-urlencoded"
+          },
+          "body_base64": "ZXhlY3V0aW9uPWFiYyUyQmRlZiUyRmdoaSUzRCZ1c2VybmFtZT1zeTI1MDEwMDEmcGFzc3dvcmQ9cGElMkJzcyUyRndvcmQmcmVwZWF0PTEmcmVwZWF0PTImbmFtZT0lRTYlOUQlOEUlRTYlOTYlODc="
+        }
+      },
+      {
+        "id": "cookie-seed",
+        "request": {
+          "method": "GET",
+          "target": "/cookies/seed",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "accept": "application/json",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "cookie-path",
+        "request": {
+          "method": "GET",
+          "target": "/cookies/echo",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "accept": "application/json",
+            "cookie": "root=old; scope=path",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "cookie-boundary",
+        "request": {
+          "method": "GET",
+          "target": "/cookies-other/echo",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "accept": "application/json",
+            "cookie": "root=old; scope=path",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "cookie-rotate",
+        "request": {
+          "method": "GET",
+          "target": "/cookies/rotate",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "accept": "application/json",
+            "cookie": "root=old; scope=path",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "cookie-after-rotate",
+        "request": {
+          "method": "GET",
+          "target": "/cookies/after",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "manual-get-302",
+        "request": {
+          "method": "GET",
+          "target": "/redirect/302/get",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "manual-post-302",
+        "request": {
+          "method": "POST",
+          "target": "/redirect/302/post",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "content-length": "13",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client",
+            "content-type": "application/x-www-form-urlencoded"
+          },
+          "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+        }
+      },
+      {
+        "id": "manual-get-303",
+        "request": {
+          "method": "GET",
+          "target": "/redirect/303/get",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "manual-post-303",
+        "request": {
+          "method": "POST",
+          "target": "/redirect/303/post",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "content-length": "13",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client",
+            "content-type": "application/x-www-form-urlencoded"
+          },
+          "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+        }
+      },
+      {
+        "id": "manual-get-307",
+        "request": {
+          "method": "GET",
+          "target": "/redirect/307/get",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "manual-post-307",
+        "request": {
+          "method": "POST",
+          "target": "/redirect/307/post",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "content-length": "13",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client",
+            "content-type": "application/x-www-form-urlencoded"
+          },
+          "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+        }
+      },
+      {
+        "id": "manual-get-308",
+        "request": {
+          "method": "GET",
+          "target": "/redirect/308/get",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "manual-post-308",
+        "request": {
+          "method": "POST",
+          "target": "/redirect/308/post",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "content-length": "13",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client",
+            "content-type": "application/x-www-form-urlencoded"
+          },
+          "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+        }
+      },
+      {
+        "id": "utf8-body",
+        "request": {
+          "method": "GET",
+          "target": "/utf8",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "binary-body",
+        "request": {
+          "method": "GET",
+          "target": "/binary",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "explicit-user-agent",
+        "request": {
+          "method": "GET",
+          "target": "/agent",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:57465",
+            "accept": "application/json",
+            "user-agent": "synthetic-reference/1.0",
+            "cookie": "root=new"
+          },
+          "body_base64": ""
+        }
+      }
+    ],
+    "results": [
+      {
+        "id": "form-encoding",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "cookie-seed",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": [
+          "root=old; Path=/; HttpOnly",
+          "scope=path; Path=/cookies",
+          "gone=old; Max-Age=0; Path=/",
+          "secret=tls-only; Secure; Path=/",
+          "bad=wrong-domain; Domain=other.invalid; Path=/"
+        ]
+      },
+      {
+        "id": "cookie-path",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "cookie-boundary",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "cookie-rotate",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": [
+          "root=new; Path=/; HttpOnly",
+          "scope=deleted; Max-Age=0; Path=/cookies",
+          "expired=old; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"
+        ]
+      },
+      {
+        "id": "cookie-after-rotate",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "manual-get-302",
+        "status": 302,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-post-302",
+        "status": 302,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-get-303",
+        "status": 303,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-post-303",
+        "status": 303,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-get-307",
+        "status": 307,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-post-307",
+        "status": 307,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-get-308",
+        "status": 308,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-post-308",
+        "status": 308,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "utf8-body",
+        "status": 200,
+        "body_base64": "5L2g5aW977yM5Zu+5Lmm6aaG",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "binary-body",
+        "status": 200,
+        "body_base64": "AP8NCg==",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "explicit-user-agent",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": []
+      }
+    ]
+  },
+  "transport": {
+    "ubaa": {
+      "source": "synthetic",
+      "engine": "OkHttp-on-JVM",
+      "requests": [
+        {
+          "id": "form-encoding",
+          "request": {
+            "method": "POST",
+            "target": "/form?duplicate=1&duplicate=2&plus=a%2Bb",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded",
+              "content-length": "113",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": "ZXhlY3V0aW9uPWFiYyUyQmRlZiUyRmdoaSUzRCZ1c2VybmFtZT1zeTI1MDEwMDEmcGFzc3dvcmQ9cGElMkJzcyUyRndvcmQmcmVwZWF0PTEmcmVwZWF0PTImbmFtZT0lRTYlOUQlOEUlRTYlOTYlODc="
+          }
+        },
+        {
+          "id": "cookie-seed",
+          "request": {
+            "method": "GET",
+            "target": "/cookies/seed",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "cookie-path",
+          "request": {
+            "method": "GET",
+            "target": "/cookies/echo",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=old; scope=path",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "cookie-boundary",
+          "request": {
+            "method": "GET",
+            "target": "/cookies-other/echo",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=old; scope=path",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "cookie-rotate",
+          "request": {
+            "method": "GET",
+            "target": "/cookies/rotate",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=old; scope=path",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "cookie-after-rotate",
+          "request": {
+            "method": "GET",
+            "target": "/cookies/after",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-get-302",
+          "request": {
+            "method": "GET",
+            "target": "/redirect/302/get",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-post-302",
+          "request": {
+            "method": "POST",
+            "target": "/redirect/302/post",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded",
+              "content-length": "13",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+          }
+        },
+        {
+          "id": "manual-get-303",
+          "request": {
+            "method": "GET",
+            "target": "/redirect/303/get",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-post-303",
+          "request": {
+            "method": "POST",
+            "target": "/redirect/303/post",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded",
+              "content-length": "13",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+          }
+        },
+        {
+          "id": "manual-get-307",
+          "request": {
+            "method": "GET",
+            "target": "/redirect/307/get",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-post-307",
+          "request": {
+            "method": "POST",
+            "target": "/redirect/307/post",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded",
+              "content-length": "13",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+          }
+        },
+        {
+          "id": "manual-get-308",
+          "request": {
+            "method": "GET",
+            "target": "/redirect/308/get",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-post-308",
+          "request": {
+            "method": "POST",
+            "target": "/redirect/308/post",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded",
+              "content-length": "13",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+          }
+        },
+        {
+          "id": "utf8-body",
+          "request": {
+            "method": "GET",
+            "target": "/utf8",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "binary-body",
+          "request": {
+            "method": "GET",
+            "target": "/binary",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "explicit-user-agent",
+          "request": {
+            "method": "GET",
+            "target": "/agent",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "user-agent": "synthetic-reference/1.0",
+              "cookie": "root=new",
+              "host": "127.0.0.1:57447",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        }
+      ],
+      "results": [
+        {
+          "id": "form-encoding",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "cookie-seed",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": [
+            "root=old; Path=/; HttpOnly",
+            "scope=path; Path=/cookies",
+            "gone=old; Max-Age=0; Path=/",
+            "secret=tls-only; Secure; Path=/",
+            "bad=wrong-domain; Domain=other.invalid; Path=/"
+          ]
+        },
+        {
+          "id": "cookie-path",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "cookie-boundary",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "cookie-rotate",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": [
+            "root=new; Path=/; HttpOnly",
+            "scope=deleted; Max-Age=0; Path=/cookies",
+            "expired=old; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"
+          ]
+        },
+        {
+          "id": "cookie-after-rotate",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "manual-get-302",
+          "status": 302,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-post-302",
+          "status": 302,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-get-303",
+          "status": 303,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-post-303",
+          "status": 303,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-get-307",
+          "status": 307,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-post-307",
+          "status": 307,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-get-308",
+          "status": 308,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-post-308",
+          "status": 308,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "utf8-body",
+          "status": 200,
+          "body_base64": "5L2g5aW977yM5Zu+5Lmm6aaG",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "binary-body",
+          "status": 200,
+          "body_base64": "AP8NCg==",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "explicit-user-agent",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        }
+      ]
+    },
+    "rust": {
+      "engine": "reqwest",
+      "requests": [
+        {
+          "id": "form-encoding",
+          "request": {
+            "body_base64": "ZXhlY3V0aW9uPWFiYyUyQmRlZiUyRmdoaSUzRCZ1c2VybmFtZT1zeTI1MDEwMDEmcGFzc3dvcmQ9cGElMkJzcyUyRndvcmQmcmVwZWF0PTEmcmVwZWF0PTImbmFtZT0lRTYlOUQlOEUlRTYlOTYlODc=",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "content-length": "113",
+              "content-type": "application/x-www-form-urlencoded",
+              "host": "127.0.0.1:57534",
+              "user-agent": "ktor-client"
+            },
+            "method": "POST",
+            "target": "/form?duplicate=1&duplicate=2&plus=a%2Bb",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-seed",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "host": "127.0.0.1:57534",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/cookies/seed",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-path",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "scope=path; root=old",
+              "host": "127.0.0.1:57534",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/cookies/echo",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-boundary",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=old",
+              "host": "127.0.0.1:57534",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/cookies-other/echo",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-rotate",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "scope=path; root=old",
+              "host": "127.0.0.1:57534",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/cookies/rotate",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-after-rotate",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=new",
+              "host": "127.0.0.1:57534",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/cookies/after",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-get-302",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=new",
+              "host": "127.0.0.1:57534",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/redirect/302/get",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-post-302",
+          "request": {
+            "body_base64": "c2luZ2xlPXN1Ym1pdA==",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "content-length": "13",
+              "content-type": "application/x-www-form-urlencoded",
+              "cookie": "root=new",
+              "host": "127.0.0.1:57534",
+              "user-agent": "ktor-client"
+            },
+            "method": "POST",
+            "target": "/redirect/302/post",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-get-303",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=new",
+              "host": "127.0.0.1:57534",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/redirect/303/get",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-post-303",
+          "request": {
+            "body_base64": "c2luZ2xlPXN1Ym1pdA==",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "content-length": "13",
+              "content-type": "application/x-www-form-urlencoded",
+              "cookie": "root=new",
+              "host": "127.0.0.1:57534",
+              "user-agent": "ktor-client"
+            },
+            "method": "POST",
+            "target": "/redirect/303/post",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-get-307",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=new",
+              "host": "127.0.0.1:57534",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/redirect/307/get",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-post-307",
+          "request": {
+            "body_base64": "c2luZ2xlPXN1Ym1pdA==",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "content-length": "13",
+              "content-type": "application/x-www-form-urlencoded",
+              "cookie": "root=new",
+              "host": "127.0.0.1:57534",
+              "user-agent": "ktor-client"
+            },
+            "method": "POST",
+            "target": "/redirect/307/post",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-get-308",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=new",
+              "host": "127.0.0.1:57534",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/redirect/308/get",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-post-308",
+          "request": {
+            "body_base64": "c2luZ2xlPXN1Ym1pdA==",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "content-length": "13",
+              "content-type": "application/x-www-form-urlencoded",
+              "cookie": "root=new",
+              "host": "127.0.0.1:57534",
+              "user-agent": "ktor-client"
+            },
+            "method": "POST",
+            "target": "/redirect/308/post",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "utf8-body",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=new",
+              "host": "127.0.0.1:57534",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/utf8",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "binary-body",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=new",
+              "host": "127.0.0.1:57534",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/binary",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "explicit-user-agent",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "accept-encoding": "gzip",
+              "connection": "Keep-Alive",
+              "cookie": "root=new",
+              "host": "127.0.0.1:57534",
+              "user-agent": "synthetic-reference/1.0"
+            },
+            "method": "GET",
+            "target": "/agent",
+            "version": "HTTP/1.1"
+          }
+        }
+      ],
+      "results": [
+        {
+          "body_base64": "b2s=",
+          "id": "form-encoding",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-seed",
+          "location": null,
+          "set_cookies": [
+            "root=old; Path=/; HttpOnly",
+            "scope=path; Path=/cookies",
+            "gone=old; Max-Age=0; Path=/",
+            "secret=tls-only; Secure; Path=/",
+            "bad=wrong-domain; Domain=other.invalid; Path=/"
+          ],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-path",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-boundary",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-rotate",
+          "location": null,
+          "set_cookies": [
+            "root=new; Path=/; HttpOnly",
+            "scope=deleted; Max-Age=0; Path=/cookies",
+            "expired=old; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"
+          ],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-after-rotate",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-get-302",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 302
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-post-302",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 302
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-get-303",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 303
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-post-303",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 303
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-get-307",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 307
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-post-307",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 307
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-get-308",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 308
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-post-308",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 308
+        },
+        {
+          "body_base64": "5L2g5aW977yM5Zu+5Lmm6aaG",
+          "id": "utf8-body",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "AP8NCg==",
+          "id": "binary-body",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "explicit-user-agent",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        }
+      ],
+      "source": "synthetic"
+    },
+    "differences": [
+      {
+        "case": "cookie-boundary",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=old",
+          "scope=path"
+        ],
+        "rust": [
+          "root=old"
+        ]
+      }
+    ],
+    "unexpected_differences": [],
+    "missing_policy_differences": [],
+    "full_parity": false,
+    "rust_regression_passed": true
+  },
+  "stage_reference": {
+    "webvpn": [
+      "SignedIn",
+      [
+        "CAS_GET:vpn",
+        "CAS_POST:vpn",
+        "CALLBACK:vpn",
+        "UC_ACTIVATE:vpn",
+        "UC_STATUS:vpn",
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "CALLBACK:vpn",
+        "UC_ACTIVATE:direct"
+      ]
+    ],
+    "ticket": [
+      "SignedIn",
+      [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "CALLBACK:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    ],
+    "uc_unavailable": [
+      "Error",
+      [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    ]
+  },
+  "stage_history": [
+    {
+      "version": "android-v0.1.0-beta.3",
+      "scenario": "ticket",
+      "result": "SignedIn",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "CALLBACK:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.3",
+      "scenario": "uc_unavailable",
+      "result": "Error",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.4",
+      "scenario": "ticket",
+      "result": "SignedIn",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "CALLBACK:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.4",
+      "scenario": "uc_unavailable",
+      "result": "Error",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.5",
+      "scenario": "ticket",
+      "result": "SignedIn",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "CALLBACK:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.5",
+      "scenario": "uc_unavailable",
+      "result": "SignedIn",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.6",
+      "scenario": "ticket",
+      "result": "Error",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.6",
+      "scenario": "uc_unavailable",
+      "result": "SignedIn",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.7",
+      "scenario": "ticket",
+      "result": "Error",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "android-v0.1.0-beta.7",
+      "scenario": "uc_unavailable",
+      "result": "Error",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "working-tree",
+      "scenario": "ticket",
+      "result": "SignedIn",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "CALLBACK:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    },
+    {
+      "version": "working-tree",
+      "scenario": "uc_unavailable",
+      "result": "Error",
+      "requests": [
+        "CAS_GET:direct",
+        "CAS_POST:direct",
+        "UC_ACTIVATE:direct",
+        "UC_STATUS:direct"
+      ]
+    }
+  ]
+}

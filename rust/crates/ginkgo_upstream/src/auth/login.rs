@@ -114,13 +114,9 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
             }
             let location = response.header("location").ok_or_else(AppError::changed)?;
             let target = redirect::resolve_get(location, &current_url)?;
-            // A ticket for a target service means the school already accepted
-            // the login. Following that service leaves CAS, fails on a network
-            // that cannot reach it, reroutes through the gateway and comes back
-            // to CAS unauthenticated — which is where the captcha comes from.
-            if !is_login_page_target(&target) {
-                return Ok(None);
-            }
+            // Consume the service ticket on the same route as the CAS form,
+            // as Beta.3 and UBAA do. A redirect alone has not established the
+            // target service's cookie session.
             credential_response = false;
             response = session.send_auth(HttpRequest::get(&target)).await?;
             current_url = target;
@@ -165,7 +161,14 @@ pub(crate) async fn follow_redirects_and_check_error<T: HttpTransport>(
             ]);
             credential_response = false;
             response = session
-                .send(HttpRequest::post_form(action_url.clone(), body))
+                .send(
+                    HttpRequest::post_form(action_url.clone(), body)
+                        .header("Accept", "application/json")
+                        .header(
+                            "Content-Type",
+                            "application/x-www-form-urlencoded; charset=UTF-8",
+                        ),
+                )
                 .await?;
             current_url = action_url;
             continue;

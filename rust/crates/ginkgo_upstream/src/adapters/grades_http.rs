@@ -16,7 +16,7 @@ pub async fn load_grades<T: HttpTransport>(
     let activation = session
         .send_following_redirects(HttpRequest::get(GRADE_URL).header(
             "Accept",
-            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8, application/json",
         ))
         .await?;
     if is_login_response(&activation) {
@@ -33,7 +33,14 @@ pub async fn load_grades<T: HttpTransport>(
     let response = session
         .send_with_fallback(
             HttpRequest::post_form(GRADE_URL, body)
-                .header("Accept", "application/json, text/javascript, */*; q=0.01")
+                .header(
+                    "Accept",
+                    "application/json, text/javascript, */*; q=0.01, application/json",
+                )
+                .header(
+                    "Content-Type",
+                    "application/x-www-form-urlencoded; charset=UTF-8",
+                )
                 .header("X-Requested-With", "XMLHttpRequest")
                 .header("Referer", GRADE_URL),
         )

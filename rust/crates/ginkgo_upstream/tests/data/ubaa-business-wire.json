@@ -1,0 +1,420 @@
+{
+  "day": "$DAY",
+  "source": "synthetic",
+  "cases": [
+    {
+      "id": "direct-terms",
+      "count": 1,
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/currentUser.do",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/student/schoolCalendars.do",
+          "body": "",
+          "headers": {
+            "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+            "x-requested-with": "XMLHttpRequest",
+            "referer": "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/index.html"
+          }
+        }
+      ]
+    },
+    {
+      "id": "direct-checkin",
+      "count": 0,
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://iclass.buaa.edu.cn:8347/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action?id=user-1&dateStr=$COMPACT_DAY",
+          "body": "",
+          "headers": {
+            "sessionid": "session-1",
+            "accept": "application/json"
+          }
+        }
+      ]
+    },
+    {
+      "id": "direct-checkin-nonempty",
+      "count": 2,
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://iclass.buaa.edu.cn:8346/?type=jumpMyCenter",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://iclass.buaa.edu.cn:8347/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://iclass.buaa.edu.cn:8347/app/course/get_stu_course_sched.action?id=user-1&dateStr=$COMPACT_DAY",
+          "body": "",
+          "headers": {
+            "sessionid": "session-1",
+            "accept": "application/json"
+          }
+        }
+      ],
+      "values": [
+        {
+          "id": "course-1",
+          "name": "软件工程",
+          "begin": "08:00",
+          "end": "09:40",
+          "sign_status": 0
+        },
+        {
+          "id": "course-2",
+          "name": "概率论",
+          "begin": "10:00",
+          "end": "11:40",
+          "sign_status": 1
+        }
+      ]
+    },
+    {
+      "id": "direct-library",
+      "count": 1,
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas",
+          "body": "",
+          "headers": {
+            "accept": "application/json, text/plain, */*, application/json",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+            "x-requested-with": "XMLHttpRequest",
+            "referer": "https://booking.lib.buaa.edu.cn",
+            "origin": "https://booking.lib.buaa.edu.cn"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://booking.lib.buaa.edu.cn/v4/login/user",
+          "body": "{\"cas\":\"cas-1\"}",
+          "headers": {
+            "accept": "application/json, text/plain, */*, application/json",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+            "x-requested-with": "XMLHttpRequest",
+            "referer": "https://booking.lib.buaa.edu.cn",
+            "origin": "https://booking.lib.buaa.edu.cn",
+            "content-type": "application/json"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://booking.lib.buaa.edu.cn/v4/space/pcTopFor",
+          "body": "{\"day\":\"$DAY\"}",
+          "headers": {
+            "accept": "application/json, text/plain, */*, application/json",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+            "x-requested-with": "XMLHttpRequest",
+            "referer": "https://booking.lib.buaa.edu.cn",
+            "origin": "https://booking.lib.buaa.edu.cn",
+            "authorization": "bearerjwt-1",
+            "content-type": "application/json"
+          }
+        }
+      ]
+    },
+    {
+      "id": "direct-grades",
+      "count": 0,
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://app.buaa.edu.cn/buaascore/wap/default/index",
+          "body": "",
+          "headers": {
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8, application/json"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://app.buaa.edu.cn/buaascore/wap/default/index",
+          "body": "xq=1&year=2025-2026",
+          "headers": {
+            "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+            "x-requested-with": "XMLHttpRequest",
+            "referer": "https://app.buaa.edu.cn/buaascore/wap/default/index",
+            "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "direct-classroom",
+      "count": 1,
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fapp.buaa.edu.cn%2Fa_buaa%2Fapi%2Fcas%2Findex%3Fredirect%3Dhttps%253A%252F%252Fapp.buaa.edu.cn%252Fsite%252FclassRoomQuery%252Findex%26from%3Dwap%26login_from%3D&noAutoRedirect=1",
+          "body": "",
+          "headers": {
+            "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://app.buaa.edu.cn/site/classRoomQuery/index",
+          "body": "",
+          "headers": {
+            "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://app.buaa.edu.cn/buaafreeclass/wap/default/search1?xqid=1&floorid=&date=$DAY",
+          "body": "",
+          "headers": {
+            "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+            "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+            "referer": "https://app.buaa.edu.cn/site/classRoomQuery/index",
+            "x-requested-with": "XMLHttpRequest"
+          }
+        }
+      ]
+    },
+    {
+      "id": "webvpn-terms",
+      "count": 1,
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/api/home/currentUser.do",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/api/home/student/schoolCalendars.do",
+          "body": "",
+          "headers": {
+            "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+            "x-requested-with": "XMLHttpRequest",
+            "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2ee598869327d517f468ca88d1b203b/jwapp/sys/homeapp/index.html"
+          }
+        }
+      ]
+    },
+    {
+      "id": "webvpn-checkin",
+      "count": 0,
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https-8346/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/?type=jumpMyCenter",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/course/get_stu_course_sched.action?id=user-1&dateStr=$COMPACT_DAY",
+          "body": "",
+          "headers": {
+            "sessionid": "session-1",
+            "accept": "application/json"
+          }
+        }
+      ]
+    },
+    {
+      "id": "webvpn-checkin-nonempty",
+      "count": 2,
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https-8346/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/?type=jumpMyCenter",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/user/login.action?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=",
+          "body": "",
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https-8347/77726476706e69737468656265737421f9f44d9d342326526b0988e29d51367ba018/app/course/get_stu_course_sched.action?id=user-1&dateStr=$COMPACT_DAY",
+          "body": "",
+          "headers": {
+            "sessionid": "session-1",
+            "accept": "application/json"
+          }
+        }
+      ],
+      "values": [
+        {
+          "id": "course-1",
+          "name": "软件工程",
+          "begin": "08:00",
+          "end": "09:40",
+          "sign_status": 0
+        },
+        {
+          "id": "course-2",
+          "name": "概率论",
+          "begin": "10:00",
+          "end": "11:40",
+          "sign_status": 1
+        }
+      ]
+    },
+    {
+      "id": "webvpn-library",
+      "count": 1,
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e3e44ed225256951300d8db9d6562d/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas",
+          "body": "",
+          "headers": {
+            "accept": "application/json, text/plain, */*, application/json",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+            "x-requested-with": "XMLHttpRequest",
+            "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+            "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5/v4/login/user",
+          "body": "{\"cas\":\"cas-1\"}",
+          "headers": {
+            "accept": "application/json, text/plain, */*, application/json",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+            "x-requested-with": "XMLHttpRequest",
+            "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+            "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+            "content-type": "application/json"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5/v4/space/pcTopFor",
+          "body": "{\"day\":\"$DAY\"}",
+          "headers": {
+            "accept": "application/json, text/plain, */*, application/json",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+            "x-requested-with": "XMLHttpRequest",
+            "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+            "origin": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f2f84e972e3e6f1e72018be29a4022341d934536c87fa5",
+            "authorization": "bearerjwt-1",
+            "content-type": "application/json"
+          }
+        }
+      ]
+    },
+    {
+      "id": "webvpn-grades",
+      "count": 0,
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/buaascore/wap/default/index",
+          "body": "",
+          "headers": {
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8, application/json"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/buaascore/wap/default/index",
+          "body": "xq=1&year=2025-2026",
+          "headers": {
+            "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+            "x-requested-with": "XMLHttpRequest",
+            "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/buaascore/wap/default/index",
+            "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "webvpn-classroom",
+      "count": 1,
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421e3e44ed225256951300d8db9d6562d/login?service=https%3A%2F%2Fapp.buaa.edu.cn%2Fa_buaa%2Fapi%2Fcas%2Findex%3Fredirect%3Dhttps%253A%252F%252Fapp.buaa.edu.cn%252Fsite%252FclassRoomQuery%252Findex%26from%3Dwap%26login_from%3D&noAutoRedirect=1",
+          "body": "",
+          "headers": {
+            "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://app.buaa.edu.cn/site/classRoomQuery/index",
+          "body": "",
+          "headers": {
+            "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+            "accept": "application/json"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/buaafreeclass/wap/default/search1?xqid=1&floorid=&date=$DAY",
+          "body": "",
+          "headers": {
+            "user-agent": "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi",
+            "accept": "application/json, text/javascript, */*; q=0.01, application/json",
+            "referer": "https://d.buaa.edu.cn/https/77726476706e69737468656265737421f1e751d225256951300d8db9d6562d/site/classRoomQuery/index",
+            "x-requested-with": "XMLHttpRequest"
+          }
+        }
+      ]
+    }
+  ]
+}

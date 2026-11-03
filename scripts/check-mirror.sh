@@ -12,17 +12,32 @@ python3 scripts/check-api-doc-test.py
 python3 scripts/check-api-doc.py
 node --test scripts/check-landing-test.cjs
 python3 scripts/check-contracts-test.py
+python3 scripts/check-session-verifiers-test.py
 python3 scripts/check-contracts.py
 cargo fmt --manifest-path rust/Cargo.toml --all --check
 cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets --all-features --locked -- -D warnings
 cargo test --manifest-path rust/Cargo.toml -p ginkgo_core --no-default-features --locked
-cargo test --manifest-path rust/Cargo.toml -p ginkgo_upstream --locked
+cargo test --manifest-path rust/Cargo.toml -p ginkgo_upstream --features network --locked
+python3 scripts/check-session-regressions.py
 cargo test --manifest-path rust/Cargo.toml --workspace --locked
+case "$(uname -s)" in
+  Darwin) bridge_library=libginkgo_flutter_bridge.dylib ;;
+  Linux) bridge_library=libginkgo_flutter_bridge.so ;;
+  *) bridge_library= ;;
+esac
+if [[ -n "$bridge_library" ]]; then
+  cargo build --manifest-path rust/Cargo.toml -p ginkgo_flutter_bridge --locked
+  bridge_target="$(cargo metadata --manifest-path rust/Cargo.toml --no-deps --format-version 1 | python3 -c 'import json,sys; print(json.load(sys.stdin)["target_directory"])')"
+  export GINKGO_HOST_BRIDGE="$bridge_target/debug/$bridge_library"
+  test -f "$GINKGO_HOST_BRIDGE"
+fi
 cd flutter
 flutter pub get
 (cd rust_builder/cargokit/build_tool && dart pub get)
-flutter analyze
-flutter test test
+# Dependencies were resolved explicitly above. Do not make analysis/tests start
+# a second online resolution (and hang before any test executes on a weak link).
+flutter analyze --no-pub
+flutter test --no-pub test
 cd ..
 # Keep the local baseline as strong as CI: regenerate the FRB bindings when the
 # pinned codegen is already installed and fail if anything drifts. CI (bindings

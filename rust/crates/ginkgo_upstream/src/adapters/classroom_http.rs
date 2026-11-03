@@ -14,6 +14,7 @@ use std::collections::BTreeMap;
 pub const ACTIVATION_URL: &str = "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fapp.buaa.edu.cn%2Fa_buaa%2Fapi%2Fcas%2Findex%3Fredirect%3Dhttps%253A%252F%252Fapp.buaa.edu.cn%252Fsite%252FclassRoomQuery%252Findex%26from%3Dwap%26login_from%3D&noAutoRedirect=1";
 const CLASSROOM_BASE: &str = "https://app.buaa.edu.cn/buaafreeclass/wap/default/search1";
 const CLASSROOM_REFERER: &str = "https://app.buaa.edu.cn/site/classRoomQuery/index";
+const USER_AGENT: &str = "Mozilla/5.0 (Linux; Android 16; 24031PN0DC Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36 XWEB/1380275 MMWEBSDK/20230806 MMWEBID/4102 wxworklocal/3.2.200 wwlocal/3.2.200 wxwork/4.0.0 appname/wxworklocal-customized wxworklocal-device-code/195ef5586d7d3c2808fcbea32d77c0d4 MicroMessenger/7.0.1 appScheme/wxworklocalcustomized Language/zh_CN ColorScheme/Light WXWorklocalClientType/Android Brand/xiaomi";
 
 /// Run the two documented classroom requests with the caller-owned session.
 /// This only performs reads: SSO activation plus the classroom query.
@@ -27,14 +28,22 @@ pub async fn query_classrooms<T: HttpTransport>(
     }
 
     let activation = session
-        .send_following_redirects(HttpRequest::get(ACTIVATION_URL))
+        .send_following_redirects(
+            HttpRequest::get(ACTIVATION_URL)
+                .header("User-Agent", USER_AGENT)
+                .header("Accept", "application/json"),
+        )
         .await?;
     validate_read_response(&activation)?;
 
     let request = HttpRequest::get(format!(
         "{CLASSROOM_BASE}?xqid={campus}&floorid=&date={date}"
     ))
-    .header("Accept", "application/json, text/javascript, */*; q=0.01")
+    .header(
+        "Accept",
+        "application/json, text/javascript, */*; q=0.01, application/json",
+    )
+    .header("User-Agent", USER_AGENT)
     .header("X-Requested-With", "XMLHttpRequest")
     .header("Referer", CLASSROOM_REFERER);
     let response = session.send_following_redirects(request).await?;

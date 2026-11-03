@@ -1371,6 +1371,7 @@ async fn missing_cancel_approval_never_sends_write() {
 #[tokio::test]
 async fn silent_same_account_reauth_preserves_pending_and_invalidates_review() {
     let mut responses = vec![response(json!({"content":[]}))];
+    responses.push(super::uc_expired());
     responses.extend(login_chain("synthetic", "合成"));
     let (service, _) = service(responses);
     service

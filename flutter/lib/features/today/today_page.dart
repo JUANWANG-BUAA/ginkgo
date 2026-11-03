@@ -164,6 +164,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     courses.dispose();
     homework.dispose();
     notices.dispose();
+    checkin.dispose();
     super.dispose();
   }
 
@@ -174,7 +175,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
       _loadHomework(force: force),
       _loadTasks(),
       _loadNotices(force: force),
-      _loadCheckIn(force: force),
+      if (force) _loadCheckIn(force: true),
     ]);
   }
 

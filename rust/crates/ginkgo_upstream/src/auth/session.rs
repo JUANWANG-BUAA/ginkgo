@@ -19,6 +19,8 @@ use std::{
 
 pub(crate) type CookiePersistFuture = Pin<Box<dyn Future<Output = ()> + Send>>;
 type CookiePersistor = dyn Fn(SessionCookies) -> Option<CookiePersistFuture> + Send + Sync;
+mod automatic_route;
+use automatic_route::AutomaticRouteState;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -45,6 +47,7 @@ pub struct PersistedSession {
     pub schema_version: u8,
     pub account: String,
     pub profile_name: String,
+    /// Actual authenticated route, independent from the UI's automatic choice.
     pub route: RouteMode,
     pub saved_at_ms: i64,
     pub cookies: SessionCookies,
@@ -60,7 +63,7 @@ impl PersistedSession {
         cookies: SessionCookies,
     ) -> Self {
         Self {
-            schema_version: 1,
+            schema_version: 2,
             account,
             profile_name,
             route,
@@ -70,11 +73,14 @@ impl PersistedSession {
     }
 
     pub fn is_usable_for(&self, route: RouteMode, now_ms: i64) -> bool {
-        self.schema_version == 1
+        matches!(self.schema_version, 1 | 2)
             && !self.account.trim().is_empty()
             && self.account.len() <= 128
             && self.profile_name.len() <= 256
-            && self.route == route
+            // Legacy automatic snapshots did not record the selected route.
+            // Never guess which jar owns their authenticated identity.
+            && self.route != RouteMode::Automatic
+            && (route == RouteMode::Automatic || self.route == route)
             && self.saved_at_ms <= now_ms
             && now_ms.saturating_sub(self.saved_at_ms) <= Self::MAX_AGE_MS
             && (!self.cookies.direct.is_empty() || !self.cookies.webvpn.is_empty())
@@ -86,10 +92,25 @@ impl PersistedSession {
 pub struct Session<T: HttpTransport> {
     transport: T,
     route: StdMutex<RouteMode>,
-    direct_jar: Mutex<CookieJar>,
-    webvpn_jar: Mutex<CookieJar>,
+    direct_jar: Arc<Mutex<CookieJar>>,
+    webvpn_jar: Arc<Mutex<CookieJar>>,
     cookie_persistor: StdMutex<Option<Arc<CookiePersistor>>>,
-    cookie_persist_gate: tokio::sync::Mutex<()>,
+    cookie_persist_gate: Arc<tokio::sync::Mutex<()>>,
+    automatic_route: Arc<Mutex<AutomaticRouteState>>,
+    automatic_route_gate: Arc<tokio::sync::Mutex<()>>,
+}
+
+/// An authentication transaction may use a fixed route without changing the
+/// route of concurrent business reads. Cookie updates share the same store.
+pub(crate) struct RoutedTransport<'a, T>(&'a T);
+
+impl<T: HttpTransport + Sync> HttpTransport for RoutedTransport<'_, T> {
+    async fn send(
+        &self,
+        request: HttpRequest,
+    ) -> Result<HttpResponse, crate::foundation::http::TransportError> {
+        self.0.send(request).await
+    }
 }
 
 /// A transport view for public reads. It prevents the shared session from
@@ -118,10 +139,12 @@ impl<T: HttpTransport> Session<T> {
         Self {
             transport,
             route: StdMutex::new(RouteMode::Automatic),
-            direct_jar: Mutex::new(CookieJar::new()),
-            webvpn_jar: Mutex::new(CookieJar::new()),
+            direct_jar: Arc::new(Mutex::new(CookieJar::new())),
+            webvpn_jar: Arc::new(Mutex::new(CookieJar::new())),
             cookie_persistor: StdMutex::new(None),
-            cookie_persist_gate: tokio::sync::Mutex::new(()),
+            cookie_persist_gate: Arc::new(tokio::sync::Mutex::new(())),
+            automatic_route: Arc::default(),
+            automatic_route_gate: Arc::default(),
         }
     }
 
@@ -136,21 +159,61 @@ impl<T: HttpTransport> Session<T> {
     }
 
     pub fn set_route(&self, mode: RouteMode) {
-        *lock_value(&self.route) = mode;
+        let mut automatic = self.automatic_route.lock();
+        let mut route = lock_value(&self.route);
+        if *route != mode {
+            automatic.revoke();
+            *route = mode;
+        }
     }
 
-    /// Automatic mode remembers the first confirmed access-policy block and
-    /// switches to WebVPN for the rest of the session, matching the Apple app.
+    pub(crate) fn pin_route(&self) -> RouteMode {
+        let mut automatic = self.automatic_route.lock();
+        let mut route = lock_value(&self.route);
+        if *route == RouteMode::Automatic {
+            automatic.revoke();
+            *route = RouteMode::Direct;
+        }
+        *route
+    }
+
+    pub(crate) fn routed(&self, mode: RouteMode) -> Session<RoutedTransport<'_, T>>
+    where
+        T: Sync,
+    {
+        Session {
+            transport: RoutedTransport(&self.transport),
+            route: StdMutex::new(mode),
+            direct_jar: Arc::clone(&self.direct_jar),
+            webvpn_jar: Arc::clone(&self.webvpn_jar),
+            cookie_persistor: StdMutex::new(
+                self.cookie_persistor
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+                    .clone(),
+            ),
+            cookie_persist_gate: Arc::clone(&self.cookie_persist_gate),
+            automatic_route: Arc::clone(&self.automatic_route),
+            automatic_route_gate: Arc::clone(&self.automatic_route_gate),
+        }
+    }
+
+    /// Automatic route selection is available before the CAS form is pinned.
+    /// Authenticated business reads retain their selected route and cookie jar.
     pub fn activate_automatic_webvpn_fallback(&self) -> bool {
+        let mut automatic = self.automatic_route.lock();
         let mut route = lock_value(&self.route);
         if *route != RouteMode::Automatic {
             return false;
         }
         *route = RouteMode::WebVpn;
+        automatic.revoke();
         true
     }
 
     pub fn clear_cookies(&self) {
+        let mut automatic = self.automatic_route.lock();
+        automatic.revoke();
         self.direct_jar.lock().clear();
         self.webvpn_jar.lock().clear();
     }
@@ -163,6 +226,8 @@ impl<T: HttpTransport> Session<T> {
     }
 
     pub fn restore_cookies(&self, cookies: SessionCookies) {
+        let mut automatic = self.automatic_route.lock();
+        automatic.epoch = automatic.epoch.wrapping_add(1);
         *self.direct_jar.lock() = cookies.direct;
         *self.webvpn_jar.lock() = cookies.webvpn;
     }
@@ -228,8 +293,8 @@ impl<T: HttpTransport> Session<T> {
     }
 
     pub async fn send(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {
-        let mode = self.route();
-        self.send_routed(request, mode).await
+        let (mode, epoch, _) = self.route_attempt();
+        self.send_routed_at(request, mode, epoch).await
     }
 
     /// Follow browser-style redirects for a safe GET. Business systems such as
@@ -244,6 +309,16 @@ impl<T: HttpTransport> Session<T> {
         }
         let mut current = request;
         for _ in 0..10 {
+            let negotiation: Vec<_> = current
+                .headers
+                .iter()
+                .filter(|(name, _)| {
+                    ["user-agent", "accept", "accept-language"]
+                        .iter()
+                        .any(|allowed| name.eq_ignore_ascii_case(allowed))
+                })
+                .map(|(name, value)| (name.clone(), value.clone()))
+                .collect();
             let response = self.send_with_fallback(current).await?;
             if !(300..400).contains(&response.status) {
                 return Ok(response);
@@ -253,6 +328,8 @@ impl<T: HttpTransport> Session<T> {
             };
             let next = redirect::resolve_get(location, &response.final_url)?;
             current = HttpRequest::get(next);
+            // Preserve public negotiation metadata, never credentials or origin-bound headers.
+            current.headers.extend(negotiation);
         }
         Err(AppError::new(crate::ErrorCode::RedirectLimit))
     }
@@ -279,8 +356,16 @@ impl<T: HttpTransport> Session<T> {
         let safe_to_retry = request.method == HttpMethod::Get;
         // Capture the route actually used by this attempt. Another concurrent
         // read may switch Automatic -> WebVpn while this direct request waits.
-        let attempted_route = self.route();
-        let response = self.send_routed(request.clone(), attempted_route).await;
+        let (attempted_route, epoch, owner) = self.route_attempt();
+        let response = self
+            .send_routed_at(request.clone(), attempted_route, epoch)
+            .await;
+        if attempted_route == RouteMode::Direct && automatic_route::can_migrate(&request, &response)
+        {
+            if let Some(owner) = owner {
+                return self.verified_business_fallback(request, epoch, owner).await;
+            }
+        }
         let should_fallback = match &response {
             Ok(response) => response.status == 483 || cas::is_access_policy_denied(&response.body),
             Err(_) => safe_to_retry,
@@ -299,7 +384,12 @@ impl<T: HttpTransport> Session<T> {
 
     /// Authentication GETs may probe WebVPN once after a direct failure.
     /// Password POSTs use `send` and are never replayed by this helper.
-    pub async fn send_auth(&self, request: HttpRequest) -> Result<HttpResponse, AppError> {
+    pub async fn send_auth(&self, mut request: HttpRequest) -> Result<HttpResponse, AppError> {
+        if request.header_value("Accept").is_none() {
+            request
+                .headers
+                .insert("Accept".into(), "application/json".into());
+        }
         let attempted_route = self.route();
         let response = self.send_routed(request.clone(), attempted_route).await;
         let safe_to_retry = request.method == HttpMethod::Get;
@@ -323,8 +413,28 @@ impl<T: HttpTransport> Session<T> {
 
     async fn send_routed(
         &self,
+        request: HttpRequest,
+        mode: RouteMode,
+    ) -> Result<HttpResponse, AppError> {
+        let epoch = self.automatic_route.lock().epoch;
+        self.send_routed_at(request, mode, epoch).await
+    }
+
+    async fn send_routed_at(
+        &self,
+        request: HttpRequest,
+        mode: RouteMode,
+        epoch: u64,
+    ) -> Result<HttpResponse, AppError> {
+        self.send_routed_using(request, mode, epoch, None).await
+    }
+
+    async fn send_routed_using(
+        &self,
         mut request: HttpRequest,
         mode: RouteMode,
+        epoch: u64,
+        isolated_jar: Option<&Mutex<CookieJar>>,
     ) -> Result<HttpResponse, AppError> {
         let campus_or_gateway = mode == RouteMode::WebVpn
             && (webvpn::should_route(&request.url) || is_gateway(&request.url));
@@ -339,13 +449,23 @@ impl<T: HttpTransport> Session<T> {
                 }
             }
         }
-        request.headers.remove("Cookie");
+        request
+            .headers
+            .retain(|name, _| !name.eq_ignore_ascii_case("cookie"));
 
         let now = CookieJar::now_ms();
-        let cookie_header = if campus_or_gateway {
-            self.webvpn_jar.lock().header_for(&request.url, now)
-        } else {
-            self.direct_jar.lock().header_for(&request.url, now)
+        let cookie_header = {
+            let automatic = self.automatic_route.lock();
+            if automatic.epoch != epoch {
+                return Err(AppError::module_auth_required());
+            }
+            if let Some(jar) = isolated_jar {
+                jar.lock().header_for(&request.url, now)
+            } else if campus_or_gateway {
+                self.webvpn_jar.lock().header_for(&request.url, now)
+            } else {
+                self.direct_jar.lock().header_for(&request.url, now)
+            }
         };
         if let Some(cookie) = cookie_header {
             request.headers.insert("Cookie".into(), cookie);
@@ -355,17 +475,25 @@ impl<T: HttpTransport> Session<T> {
         let response = self.transport.send(request).await.map_err(AppError::from)?;
         let should_persist = !response.set_cookies.is_empty();
         {
-            let jar = if campus_or_gateway {
+            let mut automatic = self.automatic_route.lock();
+            if automatic.epoch != epoch {
+                return Err(AppError::module_auth_required());
+            }
+            let jar: &Mutex<CookieJar> = isolated_jar.unwrap_or(if campus_or_gateway {
                 &self.webvpn_jar
             } else {
                 &self.direct_jar
-            };
+            });
             let mut jar = jar.lock();
+            let received_at = CookieJar::now_ms();
             for header in &response.set_cookies {
-                jar.store(&request_url, header, now);
+                jar.store(&request_url, header, received_at);
+            }
+            if should_persist && campus_or_gateway && isolated_jar.is_none() {
+                automatic.webvpn_revision = automatic.webvpn_revision.wrapping_add(1);
             }
         }
-        if should_persist {
+        if should_persist && isolated_jar.is_none() {
             self.persist_cookie_update().await;
         }
         // The gateway speaks gateway-shaped URLs while callers reason about the
@@ -401,7 +529,7 @@ mod persisted_session_tests {
         let record = PersistedSession::new(
             "sy2501001".into(),
             "合成用户".into(),
-            RouteMode::Automatic,
+            RouteMode::WebVpn,
             SessionCookies { direct, webvpn },
         );
         let saved_at = record.saved_at_ms;

@@ -1,7 +1,7 @@
 //! UC activation and session verification (API.md §1.7–§1.8).
 use super::{cas, redirect, session::Session, UserProfile, UC_ACTIVATION_URL, UC_STATUS_URL};
 use crate::{
-    foundation::http::{HttpRequest, HttpTransport},
+    foundation::http::{HttpRequest, HttpResponse, HttpTransport},
     AppError, ErrorCode,
 };
 use serde::Deserialize;
@@ -37,10 +37,19 @@ pub async fn activate_uc<T: HttpTransport>(session: &Session<T>) -> Result<(), A
 pub async fn validate_session<T: HttpTransport>(
     session: &Session<T>,
 ) -> Result<UserProfile, AppError> {
-    let request = HttpRequest::get(UC_STATUS_URL)
-        .header("Accept", "application/json, text/javascript, */*; q=0.01")
-        .header("X-Requested-With", "XMLHttpRequest");
-    let response = session.send_auth(request).await?;
+    validate_response(session.send_auth(status_request()).await?)
+}
+
+pub(super) fn status_request() -> HttpRequest {
+    HttpRequest::get(UC_STATUS_URL)
+        .header(
+            "Accept",
+            "application/json, text/javascript, */*; q=0.01, application/json",
+        )
+        .header("X-Requested-With", "XMLHttpRequest")
+}
+
+pub(super) fn validate_response(response: HttpResponse) -> Result<UserProfile, AppError> {
     if response.status == 483
         || ((400..500).contains(&response.status) && cas::is_access_policy_denied(&response.body))
     {
@@ -64,13 +73,18 @@ pub fn parse_uc_status(body: &str) -> Result<UserProfile, AppError> {
             school_id: user.school_id,
             name: user.name,
         }),
-        _ => Err(AppError::session_expired()),
+        UcStatus {
+            code: 10600,
+            data: None,
+        } => Err(AppError::session_expired()),
+        _ => Err(AppError::changed()),
     }
 }
 
 #[derive(Deserialize)]
 struct UcStatus {
     code: i64,
+    #[serde(deserialize_with = "Option::deserialize")]
     data: Option<UcUser>,
 }
 

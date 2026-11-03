@@ -1,0 +1,1678 @@
+{
+  "reference_commit": "e8a397fcb35a68147eee65a94c66ffb84e2f09fe",
+  "source": "synthetic",
+  "response_sha256": "52cdb91c1dd92fdea47c0391bc08413cb1f12ffc2e7a1672ff535704c81defe9",
+  "comparison_scope": "Eight synthetic read scenarios (including nonempty checkin values) plus 17 real CIO/reqwest HTTP loopback cases; no Android engine or TLS parity",
+  "normalization": [
+    "header names lowercased",
+    "query pairs sorted and decoded preserving duplicates",
+    "form pairs sorted and decoded preserving duplicates",
+    "JSON objects compared by value",
+    "cookie pairs sorted"
+  ],
+  "ginkgo_head": "6692ce424be7e478d78a0030d35b20e585e099da",
+  "ginkgo_rust_source_sha256": "26371920ef12104282f64eec4f53f8301d77354423843f510389bf1e082b3a83",
+  "reference_tests": 2,
+  "jvm_cio_transport": {
+    "source": "synthetic",
+    "engine": "CIO",
+    "requests": [
+      {
+        "id": "form-encoding",
+        "request": {
+          "method": "POST",
+          "target": "/form?duplicate=1&duplicate=2&plus=a%2Bb",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "content-length": "113",
+            "accept": "application/json",
+            "user-agent": "ktor-client",
+            "content-type": "application/x-www-form-urlencoded"
+          },
+          "body_base64": "ZXhlY3V0aW9uPWFiYyUyQmRlZiUyRmdoaSUzRCZ1c2VybmFtZT1zeTI1MDEwMDEmcGFzc3dvcmQ9cGElMkJzcyUyRndvcmQmcmVwZWF0PTEmcmVwZWF0PTImbmFtZT0lRTYlOUQlOEUlRTYlOTYlODc="
+        }
+      },
+      {
+        "id": "cookie-seed",
+        "request": {
+          "method": "GET",
+          "target": "/cookies/seed",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "accept": "application/json",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "cookie-path",
+        "request": {
+          "method": "GET",
+          "target": "/cookies/echo",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "accept": "application/json",
+            "cookie": "root=old; scope=path",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "cookie-boundary",
+        "request": {
+          "method": "GET",
+          "target": "/cookies-other/echo",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "accept": "application/json",
+            "cookie": "root=old; scope=path",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "cookie-rotate",
+        "request": {
+          "method": "GET",
+          "target": "/cookies/rotate",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "accept": "application/json",
+            "cookie": "root=old; scope=path",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "cookie-after-rotate",
+        "request": {
+          "method": "GET",
+          "target": "/cookies/after",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "manual-get-302",
+        "request": {
+          "method": "GET",
+          "target": "/redirect/302/get",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "manual-post-302",
+        "request": {
+          "method": "POST",
+          "target": "/redirect/302/post",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "content-length": "13",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client",
+            "content-type": "application/x-www-form-urlencoded"
+          },
+          "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+        }
+      },
+      {
+        "id": "manual-get-303",
+        "request": {
+          "method": "GET",
+          "target": "/redirect/303/get",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "manual-post-303",
+        "request": {
+          "method": "POST",
+          "target": "/redirect/303/post",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "content-length": "13",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client",
+            "content-type": "application/x-www-form-urlencoded"
+          },
+          "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+        }
+      },
+      {
+        "id": "manual-get-307",
+        "request": {
+          "method": "GET",
+          "target": "/redirect/307/get",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "manual-post-307",
+        "request": {
+          "method": "POST",
+          "target": "/redirect/307/post",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "content-length": "13",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client",
+            "content-type": "application/x-www-form-urlencoded"
+          },
+          "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+        }
+      },
+      {
+        "id": "manual-get-308",
+        "request": {
+          "method": "GET",
+          "target": "/redirect/308/get",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "manual-post-308",
+        "request": {
+          "method": "POST",
+          "target": "/redirect/308/post",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "content-length": "13",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client",
+            "content-type": "application/x-www-form-urlencoded"
+          },
+          "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+        }
+      },
+      {
+        "id": "utf8-body",
+        "request": {
+          "method": "GET",
+          "target": "/utf8",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "binary-body",
+        "request": {
+          "method": "GET",
+          "target": "/binary",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "accept": "application/json",
+            "cookie": "root=new",
+            "user-agent": "ktor-client"
+          },
+          "body_base64": ""
+        }
+      },
+      {
+        "id": "explicit-user-agent",
+        "request": {
+          "method": "GET",
+          "target": "/agent",
+          "version": "HTTP/1.1",
+          "headers": {
+            "host": "127.0.0.1:59264",
+            "accept": "application/json",
+            "user-agent": "synthetic-reference/1.0",
+            "cookie": "root=new"
+          },
+          "body_base64": ""
+        }
+      }
+    ],
+    "results": [
+      {
+        "id": "form-encoding",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "cookie-seed",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": [
+          "root=old; Path=/; HttpOnly",
+          "scope=path; Path=/cookies",
+          "gone=old; Max-Age=0; Path=/",
+          "secret=tls-only; Secure; Path=/",
+          "bad=wrong-domain; Domain=other.invalid; Path=/"
+        ]
+      },
+      {
+        "id": "cookie-path",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "cookie-boundary",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "cookie-rotate",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": [
+          "root=new; Path=/; HttpOnly",
+          "scope=deleted; Max-Age=0; Path=/cookies",
+          "expired=old; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"
+        ]
+      },
+      {
+        "id": "cookie-after-rotate",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "manual-get-302",
+        "status": 302,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-post-302",
+        "status": 302,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-get-303",
+        "status": 303,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-post-303",
+        "status": 303,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-get-307",
+        "status": 307,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-post-307",
+        "status": 307,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-get-308",
+        "status": 308,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "manual-post-308",
+        "status": 308,
+        "body_base64": "b2s=",
+        "location": "/must-not-follow",
+        "set_cookies": []
+      },
+      {
+        "id": "utf8-body",
+        "status": 200,
+        "body_base64": "5L2g5aW977yM5Zu+5Lmm6aaG",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "binary-body",
+        "status": 200,
+        "body_base64": "AP8NCg==",
+        "location": null,
+        "set_cookies": []
+      },
+      {
+        "id": "explicit-user-agent",
+        "status": 200,
+        "body_base64": "b2s=",
+        "location": null,
+        "set_cookies": []
+      }
+    ]
+  },
+  "transport": {
+    "ubaa": {
+      "source": "synthetic",
+      "engine": "OkHttp-on-JVM",
+      "requests": [
+        {
+          "id": "form-encoding",
+          "request": {
+            "method": "POST",
+            "target": "/form?duplicate=1&duplicate=2&plus=a%2Bb",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded",
+              "content-length": "113",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": "ZXhlY3V0aW9uPWFiYyUyQmRlZiUyRmdoaSUzRCZ1c2VybmFtZT1zeTI1MDEwMDEmcGFzc3dvcmQ9cGElMkJzcyUyRndvcmQmcmVwZWF0PTEmcmVwZWF0PTImbmFtZT0lRTYlOUQlOEUlRTYlOTYlODc="
+          }
+        },
+        {
+          "id": "cookie-seed",
+          "request": {
+            "method": "GET",
+            "target": "/cookies/seed",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "cookie-path",
+          "request": {
+            "method": "GET",
+            "target": "/cookies/echo",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=old; scope=path",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "cookie-boundary",
+          "request": {
+            "method": "GET",
+            "target": "/cookies-other/echo",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=old; scope=path",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "cookie-rotate",
+          "request": {
+            "method": "GET",
+            "target": "/cookies/rotate",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=old; scope=path",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "cookie-after-rotate",
+          "request": {
+            "method": "GET",
+            "target": "/cookies/after",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-get-302",
+          "request": {
+            "method": "GET",
+            "target": "/redirect/302/get",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-post-302",
+          "request": {
+            "method": "POST",
+            "target": "/redirect/302/post",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded",
+              "content-length": "13",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+          }
+        },
+        {
+          "id": "manual-get-303",
+          "request": {
+            "method": "GET",
+            "target": "/redirect/303/get",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-post-303",
+          "request": {
+            "method": "POST",
+            "target": "/redirect/303/post",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded",
+              "content-length": "13",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+          }
+        },
+        {
+          "id": "manual-get-307",
+          "request": {
+            "method": "GET",
+            "target": "/redirect/307/get",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-post-307",
+          "request": {
+            "method": "POST",
+            "target": "/redirect/307/post",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded",
+              "content-length": "13",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+          }
+        },
+        {
+          "id": "manual-get-308",
+          "request": {
+            "method": "GET",
+            "target": "/redirect/308/get",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "manual-post-308",
+          "request": {
+            "method": "POST",
+            "target": "/redirect/308/post",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "content-type": "application/x-www-form-urlencoded",
+              "content-length": "13",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+          }
+        },
+        {
+          "id": "utf8-body",
+          "request": {
+            "method": "GET",
+            "target": "/utf8",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "binary-body",
+          "request": {
+            "method": "GET",
+            "target": "/binary",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "user-agent": "ktor-client",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        },
+        {
+          "id": "explicit-user-agent",
+          "request": {
+            "method": "GET",
+            "target": "/agent",
+            "version": "HTTP/1.1",
+            "headers": {
+              "accept": "application/json",
+              "user-agent": "synthetic-reference/1.0",
+              "cookie": "root=new",
+              "host": "127.0.0.1:59246",
+              "connection": "Keep-Alive",
+              "accept-encoding": "gzip"
+            },
+            "body_base64": ""
+          }
+        }
+      ],
+      "results": [
+        {
+          "id": "form-encoding",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "cookie-seed",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": [
+            "root=old; Path=/; HttpOnly",
+            "scope=path; Path=/cookies",
+            "gone=old; Max-Age=0; Path=/",
+            "secret=tls-only; Secure; Path=/",
+            "bad=wrong-domain; Domain=other.invalid; Path=/"
+          ]
+        },
+        {
+          "id": "cookie-path",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "cookie-boundary",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "cookie-rotate",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": [
+            "root=new; Path=/; HttpOnly",
+            "scope=deleted; Max-Age=0; Path=/cookies",
+            "expired=old; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"
+          ]
+        },
+        {
+          "id": "cookie-after-rotate",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "manual-get-302",
+          "status": 302,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-post-302",
+          "status": 302,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-get-303",
+          "status": 303,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-post-303",
+          "status": 303,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-get-307",
+          "status": 307,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-post-307",
+          "status": 307,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-get-308",
+          "status": 308,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "manual-post-308",
+          "status": 308,
+          "body_base64": "b2s=",
+          "location": "/must-not-follow",
+          "set_cookies": []
+        },
+        {
+          "id": "utf8-body",
+          "status": 200,
+          "body_base64": "5L2g5aW977yM5Zu+5Lmm6aaG",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "binary-body",
+          "status": 200,
+          "body_base64": "AP8NCg==",
+          "location": null,
+          "set_cookies": []
+        },
+        {
+          "id": "explicit-user-agent",
+          "status": 200,
+          "body_base64": "b2s=",
+          "location": null,
+          "set_cookies": []
+        }
+      ]
+    },
+    "rust": {
+      "engine": "reqwest",
+      "requests": [
+        {
+          "id": "form-encoding",
+          "request": {
+            "body_base64": "ZXhlY3V0aW9uPWFiYyUyQmRlZiUyRmdoaSUzRCZ1c2VybmFtZT1zeTI1MDEwMDEmcGFzc3dvcmQ9cGElMkJzcyUyRndvcmQmcmVwZWF0PTEmcmVwZWF0PTImbmFtZT0lRTYlOUQlOEUlRTYlOTYlODc=",
+            "headers": {
+              "accept": "application/json",
+              "content-length": "113",
+              "content-type": "application/x-www-form-urlencoded",
+              "host": "127.0.0.1:59282",
+              "user-agent": "ktor-client"
+            },
+            "method": "POST",
+            "target": "/form?duplicate=1&duplicate=2&plus=a%2Bb",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-seed",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "host": "127.0.0.1:59282",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/cookies/seed",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-path",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "scope=path; root=old",
+              "host": "127.0.0.1:59282",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/cookies/echo",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-boundary",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=old",
+              "host": "127.0.0.1:59282",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/cookies-other/echo",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-rotate",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "scope=path; root=old",
+              "host": "127.0.0.1:59282",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/cookies/rotate",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "cookie-after-rotate",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "host": "127.0.0.1:59282",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/cookies/after",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-get-302",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "host": "127.0.0.1:59282",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/redirect/302/get",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-post-302",
+          "request": {
+            "body_base64": "c2luZ2xlPXN1Ym1pdA==",
+            "headers": {
+              "accept": "application/json",
+              "content-length": "13",
+              "content-type": "application/x-www-form-urlencoded",
+              "cookie": "root=new",
+              "host": "127.0.0.1:59282",
+              "user-agent": "ktor-client"
+            },
+            "method": "POST",
+            "target": "/redirect/302/post",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-get-303",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "host": "127.0.0.1:59282",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/redirect/303/get",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-post-303",
+          "request": {
+            "body_base64": "c2luZ2xlPXN1Ym1pdA==",
+            "headers": {
+              "accept": "application/json",
+              "content-length": "13",
+              "content-type": "application/x-www-form-urlencoded",
+              "cookie": "root=new",
+              "host": "127.0.0.1:59282",
+              "user-agent": "ktor-client"
+            },
+            "method": "POST",
+            "target": "/redirect/303/post",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-get-307",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "host": "127.0.0.1:59282",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/redirect/307/get",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-post-307",
+          "request": {
+            "body_base64": "c2luZ2xlPXN1Ym1pdA==",
+            "headers": {
+              "accept": "application/json",
+              "content-length": "13",
+              "content-type": "application/x-www-form-urlencoded",
+              "cookie": "root=new",
+              "host": "127.0.0.1:59282",
+              "user-agent": "ktor-client"
+            },
+            "method": "POST",
+            "target": "/redirect/307/post",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-get-308",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "host": "127.0.0.1:59282",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/redirect/308/get",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "manual-post-308",
+          "request": {
+            "body_base64": "c2luZ2xlPXN1Ym1pdA==",
+            "headers": {
+              "accept": "application/json",
+              "content-length": "13",
+              "content-type": "application/x-www-form-urlencoded",
+              "cookie": "root=new",
+              "host": "127.0.0.1:59282",
+              "user-agent": "ktor-client"
+            },
+            "method": "POST",
+            "target": "/redirect/308/post",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "utf8-body",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "host": "127.0.0.1:59282",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/utf8",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "binary-body",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "host": "127.0.0.1:59282",
+              "user-agent": "ktor-client"
+            },
+            "method": "GET",
+            "target": "/binary",
+            "version": "HTTP/1.1"
+          }
+        },
+        {
+          "id": "explicit-user-agent",
+          "request": {
+            "body_base64": "",
+            "headers": {
+              "accept": "application/json",
+              "cookie": "root=new",
+              "host": "127.0.0.1:59282",
+              "user-agent": "synthetic-reference/1.0"
+            },
+            "method": "GET",
+            "target": "/agent",
+            "version": "HTTP/1.1"
+          }
+        }
+      ],
+      "results": [
+        {
+          "body_base64": "b2s=",
+          "id": "form-encoding",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-seed",
+          "location": null,
+          "set_cookies": [
+            "root=old; Path=/; HttpOnly",
+            "scope=path; Path=/cookies",
+            "gone=old; Max-Age=0; Path=/",
+            "secret=tls-only; Secure; Path=/",
+            "bad=wrong-domain; Domain=other.invalid; Path=/"
+          ],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-path",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-boundary",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-rotate",
+          "location": null,
+          "set_cookies": [
+            "root=new; Path=/; HttpOnly",
+            "scope=deleted; Max-Age=0; Path=/cookies",
+            "expired=old; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"
+          ],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "cookie-after-rotate",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-get-302",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 302
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-post-302",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 302
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-get-303",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 303
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-post-303",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 303
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-get-307",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 307
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-post-307",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 307
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-get-308",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 308
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "manual-post-308",
+          "location": "/must-not-follow",
+          "set_cookies": [],
+          "status": 308
+        },
+        {
+          "body_base64": "5L2g5aW977yM5Zu+5Lmm6aaG",
+          "id": "utf8-body",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "AP8NCg==",
+          "id": "binary-body",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        },
+        {
+          "body_base64": "b2s=",
+          "id": "explicit-user-agent",
+          "location": null,
+          "set_cookies": [],
+          "status": 200
+        }
+      ],
+      "source": "synthetic"
+    },
+    "differences": [
+      {
+        "case": "form-encoding",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "form-encoding",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "cookie-seed",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "cookie-seed",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "cookie-path",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "cookie-path",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "cookie-boundary",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "cookie-boundary",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "cookie-boundary",
+        "field": "headers.cookie",
+        "ubaa": [
+          "root=old",
+          "scope=path"
+        ],
+        "rust": [
+          "root=old"
+        ]
+      },
+      {
+        "case": "cookie-rotate",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "cookie-rotate",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "cookie-after-rotate",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "cookie-after-rotate",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "manual-get-302",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "manual-get-302",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "manual-post-302",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "manual-post-302",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "manual-get-303",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "manual-get-303",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "manual-post-303",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "manual-post-303",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "manual-get-307",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "manual-get-307",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "manual-post-307",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "manual-post-307",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "manual-get-308",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "manual-get-308",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "manual-post-308",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "manual-post-308",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "utf8-body",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "utf8-body",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "binary-body",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "binary-body",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "explicit-user-agent",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "explicit-user-agent",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      }
+    ],
+    "unexpected_differences": [
+      {
+        "case": "form-encoding",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "form-encoding",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "cookie-seed",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "cookie-seed",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "cookie-path",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "cookie-path",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "cookie-boundary",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "cookie-boundary",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "cookie-rotate",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "cookie-rotate",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "cookie-after-rotate",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "cookie-after-rotate",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "manual-get-302",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "manual-get-302",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "manual-post-302",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "manual-post-302",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "manual-get-303",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "manual-get-303",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "manual-post-303",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "manual-post-303",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "manual-get-307",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "manual-get-307",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "manual-post-307",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "manual-post-307",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "manual-get-308",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "manual-get-308",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "manual-post-308",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "manual-post-308",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "utf8-body",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "utf8-body",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "binary-body",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "binary-body",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      },
+      {
+        "case": "explicit-user-agent",
+        "field": "headers.accept-encoding",
+        "ubaa": "gzip",
+        "rust": null
+      },
+      {
+        "case": "explicit-user-agent",
+        "field": "headers.connection",
+        "ubaa": "Keep-Alive",
+        "rust": null
+      }
+    ],
+    "missing_policy_differences": [],
+    "full_parity": false,
+    "rust_regression_passed": true
+  }
+}

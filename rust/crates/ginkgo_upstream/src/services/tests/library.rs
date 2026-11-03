@@ -180,6 +180,7 @@ async fn library_auth_failure_preserves_the_previous_snapshot() {
         library_body("space/pcTopFor"),
         HttpResponse::new(200, crate::adapters::library_http::LOGIN_START, FORM_PAGE),
     ]);
+    responses.push(super::uc_expired());
     let (service, _) = build_service(responses, MemoryVault::default());
     service
         .sign_in("sy2501001", "pa+ss/word", None, false)
@@ -340,9 +341,12 @@ async fn library_public_stats_are_cookie_isolated_cached_and_preserved_on_failur
         .send(HttpRequest::get("https://lib.buaa.edu.cn/"))
         .await
         .expect("seed cookie");
-    // A private business request already activated WebVPN fallback. Public
-    // statistics still start from the user's Automatic preference, cookie-free.
-    assert!(service.session.activate_automatic_webvpn_fallback());
+    // Anonymous reads are independent even if an internal caller has a
+    // gateway route. Verified sessions themselves cannot auto-fallback.
+    assert!(!service.session.activate_automatic_webvpn_fallback());
+    service
+        .session
+        .set_route(crate::auth::session::RouteMode::WebVpn);
     let first = service.load_library_stats(false).await.expect("public");
     assert_eq!(first.campuses.len(), 2);
     assert_eq!(first.campuses[0].people, 120);
@@ -617,6 +621,7 @@ async fn library_school_expiry_recovers_with_current_unsaved_credentials() {
         crate::adapters::library_http::LOGIN_START,
         FORM_PAGE,
     ));
+    responses.push(super::uc_expired());
     responses.extend(login_chain("sy2501001", "fixture"));
     responses.extend([
         library_login_redirect(),

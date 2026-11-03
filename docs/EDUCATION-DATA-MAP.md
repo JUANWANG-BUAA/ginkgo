@@ -38,6 +38,7 @@ https://bykc.buaa.edu.cn/sscv/cas/login
 - `ts`：毫秒时间戳。
 - Header：`auth_token`、`authtoken`、`ak`、`sk`、`ts`、`Content-Type: application/json; charset=UTF-8`。
 - 响应可能是 Base64 JSON 字符串，使用同一 AES key ECB 解密。
+- 2026-11-03 固定 UBAA `e8a397fc` 源码与其合成测试对照补充：`doCallApiRaw` 在解密失败后保留原 encodedPayload，因此也接受明文 JSON 信封（含 JSON 字符串包装）；随后仍由业务解码验证成功状态及数据结构。Rust 当前保持同样的信封校验与一次请求边界，未知结构报错；对应证据与学校协议修订以 [API 修订 113](API.md#00-修订对照记录旧版--本版) 为准，不证明本次学校返回了明文。
 
 ### 2.3 已验证只读 API
 

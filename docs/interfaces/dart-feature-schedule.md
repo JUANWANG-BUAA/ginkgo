@@ -46,9 +46,9 @@
 ## features/schedule/schedule_day_strip.dart
 
 - `class ScheduleDayStrip extends StatelessWidget`
-  <sub>class · features/schedule/schedule_day_strip.dart:7</sub>
-    - `const ScheduleDayStrip({ super.key, required this.weekStart, required this.selectedDay, required this.onSelected, });`  <sub>:8</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:20</sub>
+  <sub>class · features/schedule/schedule_day_strip.dart:9</sub>
+    - `const ScheduleDayStrip({ super.key, required this.weekStart, required this.selectedDay, required this.onSelected, });`  <sub>:10</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:22</sub>
 
 ## features/schedule/schedule_grid.dart
 

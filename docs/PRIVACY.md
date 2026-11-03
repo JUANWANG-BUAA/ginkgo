@@ -23,6 +23,8 @@
 
 ### 1.1 Rust + Flutter 镜像（Android / Windows）
 
+2026-11-03 工作树改动：Android 会话快照 v2 保存实际 Direct/WebVPN 路线，用户的 Automatic 偏好仍单独保存。旧 v1 显式路线可恢复；旧 Automatic 记录缺少实际路线，保留密文并等待用户手动登录，不猜 Cookie 归属或后台试密码。密码、Cookie 的加密范围和固定 24 小时上限不扩大；后续只用合成数据做离线回归，设备存储和人工安全审查仍未完成，详见[离线对照](_audit/2026-11-03-offline-session-parity-and-agent-review.md)。
+
 | 数据 | 存放位置 | 生命周期与说明 |
 |------|----------|----------------|
 | 学号、密码 | Android Keystore + 私有 SharedPreferences；Windows Credential Manager；macOS Keychain | 仅在用户勾选「记住密码」后写入；Android 使用 AES-GCM，密钥不出 Android Keystore，账号名以 SHA-256 摘要作为偏好键；验证码答案不持久化；关闭开关或登出即删除 |
@@ -74,3 +76,5 @@ iOS 端在启动时把 Application Support 根目录标记为 `isExcludedFromBac
 - 本仓库文档中的命令行构建使用 `CODE_SIGNING_ALLOWED=NO`（仅用于编译/测试，不启用沙箱）；此类构建产物资源未封签，Dock 图标需 `codesign --force --sign -` 修复，见 [RELEASE-NOTES.md](RELEASE-NOTES.md)。
 - iOS 工程使用应用沙盒，本地缓存排除备份，包含 `PrivacyInfo.xcprivacy`；签名、TestFlight 与 App Store 隐私标签尚未配置。
 - 仓库已扫描确认不含真实姓名、学号或凭据；界面截图身份字段已打码。
+
+2026-11-03 网络工作树补充：自动业务回退仅用现有 Cookie，在隔离副本校验目标 UC 同一账号后才提交到既有密文会话；失败副本不导入，不额外读取或提交密码。原路线、24 小时固定生命周期与退出清理边界保留。Cookie 拒绝不匹配 Domain，路径段隔离比固定 UBAA 的前缀规则更严格；真实设备与人工安全审查仍未完成。

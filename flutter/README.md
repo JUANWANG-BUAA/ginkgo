@@ -4,15 +4,19 @@ Android 是本工程的主推平台：Flutter 界面 + 进程内 Rust 业务核�
 
 当前主开发平台为 **Android**，以新功能与体验/UI 优化为主、稳定性托底。产品与验收设定见 [Android 开发设定](../docs/ANDROID-DEVELOPMENT.md)，未完成项统一见 [镜像待办](../docs/MIRROR-TODO.md)。沿用简洁信息层级，Android 系统返回、权限和无障碍行为优先，不要求逐像素复制 iOS。
 
-当前手机入口为今天 / 课表 / 作业 / 图书馆 / 更多，宽屏切换桌面侧栏；各目的地保留独立导航。认证、主要只读模块、Android Keystore、Windows Credential Manager、离线演示和本地待办已接入；签到及图书馆实验写路径包含确认、单次提交与回查，真实写入未验收。Android Beta.7 与 Windows Alpha.6 已公开；Beta.7 发布时认证、验证码真实闭环、物理设备与真实学校写入验收仍未完成，发布验收状态保持 blocked。Windows 提供未签名 x64 单文件安装器和需完整解压的便携 ZIP；物理 x64、干净系统运行依赖和真实学校业务仍待验收。范围见 [实施现状](../docs/MIRROR-IMPLEMENTATION.md)、[Android Beta.2](../docs/releases/android-beta2.md)、[模块对照](../docs/MIRROR-PARITY.md) 和 [待办](../docs/MIRROR-TODO.md)。
+当前手机入口为今天 / 课表 / 作业 / 图书馆 / 更多，宽屏切换桌面侧栏；各目的地保留独立导航。认证、主要只读模块、Android Keystore、Windows Credential Manager、离线演示和本地待办已接入；签到及图书馆实验写路径包含确认、单次提交与回查，真实写入未验收。Android Beta.8 与 Windows Alpha.6 已公开；Beta.8 发布时认证、验证码真实闭环、物理设备与真实学校写入验收仍未完成，发布验收状态保持 blocked。Windows 提供未签名 x64 单文件安装器和需完整解压的便携 ZIP；物理 x64、干净系统运行依赖和真实学校业务仍待验收。范围见 [实施现状](../docs/MIRROR-IMPLEMENTATION.md)、[Android Beta.8](../docs/releases/android-beta8.md)、[模块对照](../docs/MIRROR-PARITY.md) 和 [待办](../docs/MIRROR-TODO.md)。
 
 ## Android 发布线
 
-Android Beta.7（`0.1.0-beta.7+17`）已公开，发布信息见 [Beta.7 Release](../docs/releases/android-beta7.md)；发布时验收仍 blocked，边界见 [本轮复核](../docs/_audit/2026-11-03-protocol-and-release-review.md)。工作树的后续改动不因版本号相同而视为已发布。[功能与接口协议](../docs/FEATURES-AND-PROTOCOLS.md) 为长期维护入口，用户说明见 [Android Beta.2](../docs/releases/android-beta2.md) 与 [Android Beta.1](../docs/releases/android-beta1.md)。测试/Debug APK 不是公开更新资产。升级前备份重要待办，不建议降级或卸载。最低门禁仍为 5。
+Android Beta.8（`0.1.0-beta.8+18`）已公开，发布信息见 [Beta.8 Release](../docs/releases/android-beta8.md)；发布时验收仍 blocked，边界见 [本轮复核](../docs/_audit/2026-11-03-protocol-and-release-review.md)。[功能与接口协议](../docs/FEATURES-AND-PROTOCOLS.md) 为长期维护入口，用户说明见 [Android Beta.2](../docs/releases/android-beta2.md) 与 [Android Beta.1](../docs/releases/android-beta1.md)。测试/Debug APK 不是公开更新资产。升级前备份重要待办，不建议降级或卸载。最低门禁仍为 5。
 
 对外宣传口径（仓库描述、topics、社区发帖、社交文案）统一维护在 [宣传文案](../docs/PROMOTION.md)，按 Android 主推书写。
 
 完整门禁还使用 Node.js 运行无第三方依赖的下载页脚本回归（`node --test scripts/check-landing-test.cjs`），验证 APK 配套校验文件选择与离线静态回退；Node 只用于脚本测试，不是应用运行时。
+
+完整门禁先显式执行主包 `flutter pub get` 与 Cargokit 独立包解析，再用 `--no-pub` 执行分析和测试，避免测试开始前重复联网解析；首次依赖解析仍保留，不将此流程称为离线门禁。
+
+macOS/Linux 的完整门禁还会构建当前宿主 Rust bridge，并通过 `GINKGO_HOST_BRIDGE` 执行真实 FRB 的演示作业列表/详情契约测试，仅使用合成数据，不启动应用、不读真实账号、不访问学校。单独运行 Flutter 单测且未指定该变量时，该项显式跳过；不能将宿主 bridge 通过解释为 Android JNI/Keystore 或设备验收。
 
 ## 当前工程验证入口
 
@@ -43,6 +47,8 @@ Android Beta.7（`0.1.0-beta.7+17`）已公开，发布信息见 [Beta.7 Release
 `../rust/rust-toolchain.toml` 和本目录 `.fvmrc` 固定版本；Cargo 和 Dart 锁文件入库。升级时同时更新 CI、工具链文件、Cargokit 的版本选择、依赖锁及本文，并重新执行两端验收。
 
 Android Studio 打开本目录；Windows 需要 Visual Studio C++ 桌面工具链。Windows PowerShell 5.1 路径回归用 `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-mirror-windows-paths.ps1`（仓库根目录）。Parallels 共享目录只用于复制源码，构建放在来宾本地 NTFS，具体环境与本轮结果见 [Windows 验证](../docs/archive/mirror/WINDOWS-2026-10-21.md)。Flutter 的 Android `local.properties` 由本机生成，不入库。
+
+Apple Silicon 上若 `-accel-check` 通过，但启动仍报告 `hvf is not enabled`、`mprotect` 后卡死或退出，先检查 `~/.android/avd/<名称>.ini` 和其 `config.ini` 的 `target` 是否与实际系统镜像一致。旧工具可能生成 `target=android-0`，使模拟器跳过硬件加速。备份后只校正错误元数据，再确认启动日志包含 `-enable-hvf`、ADB 在线及 `sys.boot_completed=1`；不要先清空用户数据。此次本机复现和恢复见 [诊断记录](../docs/_audit/2026-11-03-non-auth-lifecycle-repair.md#模拟器重复退出的根因与恢复)。
 
 ## 运行
 

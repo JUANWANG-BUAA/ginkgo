@@ -27,6 +27,7 @@ class ProgressiveService extends ControlledService {
   final assignments = <Completer<HomeworkResponse>>[];
   final forceCourses = <bool>[];
   final forceAssignments = <bool>[];
+  int checkinCalls = 0;
 
   @override
   Future<TodayResponse> today({bool forceRefresh = false}) {
@@ -37,13 +38,15 @@ class ProgressiveService extends ControlledService {
   }
 
   @override
-  Future<CheckInResponse> checkin({bool forceRefresh = false}) async =>
-      const CheckInResponse(
-        date: '2026-10-22',
-        courses: [],
-        fromCache: false,
-        stale: false,
-      );
+  Future<CheckInResponse> checkin({bool forceRefresh = false}) async {
+    checkinCalls++;
+    return const CheckInResponse(
+      date: '2026-10-22',
+      courses: [],
+      fromCache: false,
+      stale: false,
+    );
+  }
 
   @override
   Future<HomeworkResponse> homework({bool forceRefresh = false}) {
@@ -88,6 +91,45 @@ void size(WidgetTester tester, Size value) {
 }
 
 void main() {
+  testWidgets('opening Today never starts implicit checkin authentication', (
+    tester,
+  ) async {
+    final service = ProgressiveService();
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: TodayPage(
+          fileActions: platformActions,
+          storageRoot: '/synthetic/tasks',
+          service: service,
+        ),
+      ),
+    );
+    service.courses.single.complete(todayFixture);
+    service.assignments.single.complete(assignments);
+    await tester.pumpAndSettle();
+    expect(service.checkinCalls, 0);
+    await tester.pump(const Duration(minutes: 3));
+    expect(service.checkinCalls, 0);
+    await tester.tap(find.text('查看课程签到'));
+    await tester.pumpAndSettle();
+    expect(service.checkinCalls, 1);
+    final replacement = ProgressiveService();
+    await tester.pumpWidget(
+      ginkgoApp(
+        home: TodayPage(
+          fileActions: platformActions,
+          storageRoot: '/synthetic/tasks',
+          service: replacement,
+        ),
+      ),
+    );
+    replacement.courses.single.complete(todayFixture);
+    replacement.assignments.single.complete(assignments);
+    await tester.pumpAndSettle();
+    expect(replacement.checkinCalls, 0);
+    expect(find.text('查看课程签到'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
   testWidgets('successful section loading never creates an error hint', (
     tester,
   ) async {
@@ -234,7 +276,8 @@ void main() {
       expect(find.byKey(Key(key)), findsNothing);
     }
     expect(find.byKey(const Key('today-checkin')), findsOneWidget);
-    expect(find.text('今天没有签到任务'), findsOneWidget);
+    expect(find.text('查看课程签到'), findsOneWidget);
+    expect(service.checkinCalls, 0);
 
     await tester.tap(find.bySemanticsLabel('刷新今天').first);
     await tester.pump();

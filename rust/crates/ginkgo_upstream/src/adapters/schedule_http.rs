@@ -19,7 +19,8 @@ pub const TODAY_URL: &str =
     "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/teachingSchedule/detail.do";
 const HOME_REFERER: &str = "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/index.html";
 const EXAM_REFERER: &str = "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/home/index.html";
-const AJAX_ACCEPT: &str = "application/json, text/javascript, */*; q=0.01";
+// Pinned UBAA applies this header, then Ktor ContentNegotiation appends JSON.
+const AJAX_ACCEPT: &str = "application/json, text/javascript, */*; q=0.01, application/json";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Portal {
@@ -34,7 +35,7 @@ pub enum Portal {
 /// Probe the shared session once and classify the portal (API.md §2.1).
 pub async fn detect_portal<T: HttpTransport>(session: &Session<T>) -> Result<Portal, AppError> {
     let response = session
-        .send_following_redirects(HttpRequest::get(PORTAL_URL))
+        .send_following_redirects(HttpRequest::get(PORTAL_URL).header("Accept", "application/json"))
         .await?;
     if is_login_response(&response) {
         return Err(AppError::session_expired());

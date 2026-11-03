@@ -1,0 +1,452 @@
+{
+  "source": "synthetic",
+  "reference_commit": "e8a397fcb35a68147eee65a94c66ffb84e2f09fe",
+  "fixture_sha256": "0dca5b9f119dced1c64e33d68e279bfd001ad1629f493381673afbaaf15cbe43",
+  "scope": "Original UBAA factory and persistent cookie storage with Android OkHttp engine executed on JVM, IPv4 HTTP loopback. Android OS TLS/Keystore are not covered.",
+  "policy_note": "Retain RFC cookie path segment boundary. Pinned UBAA startsWith also sends /cookies cookie to /cookies-other. This deliberate difference remains subject to human security review; it is not full protocol parity.",
+  "intentional_differences": [
+    {
+      "case": "cookie-boundary",
+      "field": "headers.cookie",
+      "ubaa": [
+        "root=old",
+        "scope=path"
+      ],
+      "rust": [
+        "root=old"
+      ]
+    }
+  ],
+  "engine": "OkHttp-on-JVM",
+  "requests": [
+    {
+      "id": "form-encoding",
+      "request": {
+        "method": "POST",
+        "target": "/form?duplicate=1&duplicate=2&plus=a%2Bb",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "user-agent": "ktor-client",
+          "content-type": "application/x-www-form-urlencoded",
+          "content-length": "113",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": "ZXhlY3V0aW9uPWFiYyUyQmRlZiUyRmdoaSUzRCZ1c2VybmFtZT1zeTI1MDEwMDEmcGFzc3dvcmQ9cGElMkJzcyUyRndvcmQmcmVwZWF0PTEmcmVwZWF0PTImbmFtZT0lRTYlOUQlOEUlRTYlOTYlODc="
+      }
+    },
+    {
+      "id": "cookie-seed",
+      "request": {
+        "method": "GET",
+        "target": "/cookies/seed",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "user-agent": "ktor-client",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": ""
+      }
+    },
+    {
+      "id": "cookie-path",
+      "request": {
+        "method": "GET",
+        "target": "/cookies/echo",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "cookie": "root=old; scope=path",
+          "user-agent": "ktor-client",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": ""
+      }
+    },
+    {
+      "id": "cookie-boundary",
+      "request": {
+        "method": "GET",
+        "target": "/cookies-other/echo",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "cookie": "root=old; scope=path",
+          "user-agent": "ktor-client",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": ""
+      }
+    },
+    {
+      "id": "cookie-rotate",
+      "request": {
+        "method": "GET",
+        "target": "/cookies/rotate",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "cookie": "root=old; scope=path",
+          "user-agent": "ktor-client",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": ""
+      }
+    },
+    {
+      "id": "cookie-after-rotate",
+      "request": {
+        "method": "GET",
+        "target": "/cookies/after",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "cookie": "root=new",
+          "user-agent": "ktor-client",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": ""
+      }
+    },
+    {
+      "id": "manual-get-302",
+      "request": {
+        "method": "GET",
+        "target": "/redirect/302/get",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "cookie": "root=new",
+          "user-agent": "ktor-client",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": ""
+      }
+    },
+    {
+      "id": "manual-post-302",
+      "request": {
+        "method": "POST",
+        "target": "/redirect/302/post",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "cookie": "root=new",
+          "user-agent": "ktor-client",
+          "content-type": "application/x-www-form-urlencoded",
+          "content-length": "13",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+      }
+    },
+    {
+      "id": "manual-get-303",
+      "request": {
+        "method": "GET",
+        "target": "/redirect/303/get",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "cookie": "root=new",
+          "user-agent": "ktor-client",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": ""
+      }
+    },
+    {
+      "id": "manual-post-303",
+      "request": {
+        "method": "POST",
+        "target": "/redirect/303/post",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "cookie": "root=new",
+          "user-agent": "ktor-client",
+          "content-type": "application/x-www-form-urlencoded",
+          "content-length": "13",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+      }
+    },
+    {
+      "id": "manual-get-307",
+      "request": {
+        "method": "GET",
+        "target": "/redirect/307/get",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "cookie": "root=new",
+          "user-agent": "ktor-client",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": ""
+      }
+    },
+    {
+      "id": "manual-post-307",
+      "request": {
+        "method": "POST",
+        "target": "/redirect/307/post",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "cookie": "root=new",
+          "user-agent": "ktor-client",
+          "content-type": "application/x-www-form-urlencoded",
+          "content-length": "13",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+      }
+    },
+    {
+      "id": "manual-get-308",
+      "request": {
+        "method": "GET",
+        "target": "/redirect/308/get",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "cookie": "root=new",
+          "user-agent": "ktor-client",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": ""
+      }
+    },
+    {
+      "id": "manual-post-308",
+      "request": {
+        "method": "POST",
+        "target": "/redirect/308/post",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "cookie": "root=new",
+          "user-agent": "ktor-client",
+          "content-type": "application/x-www-form-urlencoded",
+          "content-length": "13",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": "c2luZ2xlPXN1Ym1pdA=="
+      }
+    },
+    {
+      "id": "utf8-body",
+      "request": {
+        "method": "GET",
+        "target": "/utf8",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "cookie": "root=new",
+          "user-agent": "ktor-client",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": ""
+      }
+    },
+    {
+      "id": "binary-body",
+      "request": {
+        "method": "GET",
+        "target": "/binary",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "cookie": "root=new",
+          "user-agent": "ktor-client",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": ""
+      }
+    },
+    {
+      "id": "explicit-user-agent",
+      "request": {
+        "method": "GET",
+        "target": "/agent",
+        "version": "HTTP/1.1",
+        "headers": {
+          "accept": "application/json",
+          "user-agent": "synthetic-reference/1.0",
+          "cookie": "root=new",
+          "host": "127.0.0.1:59246",
+          "connection": "Keep-Alive",
+          "accept-encoding": "gzip"
+        },
+        "body_base64": ""
+      }
+    }
+  ],
+  "results": [
+    {
+      "id": "form-encoding",
+      "status": 200,
+      "body_base64": "b2s=",
+      "location": null,
+      "set_cookies": []
+    },
+    {
+      "id": "cookie-seed",
+      "status": 200,
+      "body_base64": "b2s=",
+      "location": null,
+      "set_cookies": [
+        "root=old; Path=/; HttpOnly",
+        "scope=path; Path=/cookies",
+        "gone=old; Max-Age=0; Path=/",
+        "secret=tls-only; Secure; Path=/",
+        "bad=wrong-domain; Domain=other.invalid; Path=/"
+      ]
+    },
+    {
+      "id": "cookie-path",
+      "status": 200,
+      "body_base64": "b2s=",
+      "location": null,
+      "set_cookies": []
+    },
+    {
+      "id": "cookie-boundary",
+      "status": 200,
+      "body_base64": "b2s=",
+      "location": null,
+      "set_cookies": []
+    },
+    {
+      "id": "cookie-rotate",
+      "status": 200,
+      "body_base64": "b2s=",
+      "location": null,
+      "set_cookies": [
+        "root=new; Path=/; HttpOnly",
+        "scope=deleted; Max-Age=0; Path=/cookies",
+        "expired=old; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"
+      ]
+    },
+    {
+      "id": "cookie-after-rotate",
+      "status": 200,
+      "body_base64": "b2s=",
+      "location": null,
+      "set_cookies": []
+    },
+    {
+      "id": "manual-get-302",
+      "status": 302,
+      "body_base64": "b2s=",
+      "location": "/must-not-follow",
+      "set_cookies": []
+    },
+    {
+      "id": "manual-post-302",
+      "status": 302,
+      "body_base64": "b2s=",
+      "location": "/must-not-follow",
+      "set_cookies": []
+    },
+    {
+      "id": "manual-get-303",
+      "status": 303,
+      "body_base64": "b2s=",
+      "location": "/must-not-follow",
+      "set_cookies": []
+    },
+    {
+      "id": "manual-post-303",
+      "status": 303,
+      "body_base64": "b2s=",
+      "location": "/must-not-follow",
+      "set_cookies": []
+    },
+    {
+      "id": "manual-get-307",
+      "status": 307,
+      "body_base64": "b2s=",
+      "location": "/must-not-follow",
+      "set_cookies": []
+    },
+    {
+      "id": "manual-post-307",
+      "status": 307,
+      "body_base64": "b2s=",
+      "location": "/must-not-follow",
+      "set_cookies": []
+    },
+    {
+      "id": "manual-get-308",
+      "status": 308,
+      "body_base64": "b2s=",
+      "location": "/must-not-follow",
+      "set_cookies": []
+    },
+    {
+      "id": "manual-post-308",
+      "status": 308,
+      "body_base64": "b2s=",
+      "location": "/must-not-follow",
+      "set_cookies": []
+    },
+    {
+      "id": "utf8-body",
+      "status": 200,
+      "body_base64": "5L2g5aW977yM5Zu+5Lmm6aaG",
+      "location": null,
+      "set_cookies": []
+    },
+    {
+      "id": "binary-body",
+      "status": 200,
+      "body_base64": "AP8NCg==",
+      "location": null,
+      "set_cookies": []
+    },
+    {
+      "id": "explicit-user-agent",
+      "status": 200,
+      "body_base64": "b2s=",
+      "location": null,
+      "set_cookies": []
+    }
+  ],
+  "android_engine_source": "shared/src/androidMain/kotlin/cn/edu/ubaa/api/ApiClient.android.kt:6 at e8a397fcb35a68147eee65a94c66ffb84e2f09fe"
+}

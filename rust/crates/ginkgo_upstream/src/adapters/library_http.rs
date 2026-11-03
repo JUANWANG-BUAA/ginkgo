@@ -14,7 +14,7 @@ pub const BASE: &str = "https://booking.lib.buaa.edu.cn";
 pub const LOGIN_START: &str = "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fbooking.lib.buaa.edu.cn%2Fv4%2Flogin%2Fcas";
 pub const LOGIN_USER: &str = "https://booking.lib.buaa.edu.cn/v4/login/user";
 const USER_AGENT: &str =
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/147.0.0.0 Safari/537.36";
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
 
 fn library_auth_error() -> AppError {
     AppError::with_detail(ErrorCode::SessionExpired, "library_login")
@@ -33,7 +33,9 @@ pub async fn login<T: HttpTransport>(session: &Session<T>) -> Result<String, App
         if let Some(token) = cas_token(&url) {
             return exchange(session, &token).await;
         }
-        let response = session.send_with_fallback(HttpRequest::get(&url)).await?;
+        let response = session
+            .send_with_fallback(request_headers(HttpRequest::get(&url)))
+            .await?;
         if let Some(token) = cas_token(&response.final_url) {
             return exchange(session, &token).await;
         }
@@ -198,18 +200,27 @@ async fn post<T: HttpTransport>(
 }
 
 fn json_request(url: &str, token: Option<&str>, body: &Value) -> HttpRequest {
-    let mut request = HttpRequest::new(HttpMethod::Post, url)
-        .header("Content-Type", "application/json")
-        .header("Accept", "application/json, text/plain, */*")
-        .header("X-Requested-With", "XMLHttpRequest")
-        .header("Origin", BASE)
-        .header("Referer", BASE)
-        .header("User-Agent", USER_AGENT);
+    let mut request = request_headers(HttpRequest::new(HttpMethod::Post, url))
+        .header("Content-Type", "application/json");
     if let Some(token) = token {
         request = request.header("Authorization", &format!("bearer{token}"));
     }
     request.body = Some(body.to_string());
     request
+}
+
+// UBAA applies these headers to the library CAS GETs as well as JSON calls.
+// Session routing translates Origin/Referer alongside the request URL.
+fn request_headers(request: HttpRequest) -> HttpRequest {
+    request
+        .header(
+            "Accept",
+            "application/json, text/plain, */*, application/json",
+        )
+        .header("X-Requested-With", "XMLHttpRequest")
+        .header("Origin", BASE)
+        .header("Referer", BASE)
+        .header("User-Agent", USER_AGENT)
 }
 
 /// The envelope is shared by every business endpoint: HTTP auth, a login
