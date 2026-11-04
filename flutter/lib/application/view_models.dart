@@ -1,10 +1,9 @@
-import 'package:ginkgo_mirror/application/contracts.dart';
-
 /// ViewModels - adaptation layer between backend DTOs and UI
 /// Purpose: Decouple UI from backend data structures
 ///
 /// When backend changes field names, only these adapters need updates
 /// Pages remain unchanged
+library;
 
 // Placeholder for HomeworkViewModel
 // (Full implementation deferred to Phase 3-P1)

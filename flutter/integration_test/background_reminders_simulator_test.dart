@@ -66,8 +66,16 @@ void main() {
       app.main();
       await tester.pumpAndSettle();
 
-      // Simulate: App lifecycle
-      addTearDown(tester.binding.window.physicalSizeTestValue = Size.zero);
+      // Simulate: App lifecycle - use new API to handle window sizing
+      final binding = tester.binding;
+      addTearDown(() {
+        // Reset to default physical size
+        binding.window.physicalSizeTestValue = Size.zero;
+        binding.platformDispatcher.onMetricsChanged?.call();
+      });
+
+      // Test size adjustment
+      binding.window.physicalSizeTestValue = const Size(400, 800);
 
       // Restart by pushing route and popping
       // (Full app restart cannot be tested in integration_test)

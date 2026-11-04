@@ -1,5 +1,4 @@
-import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/application/demo_mode.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 
 /// Safe extension for gradual Demo isolation refactoring
 /// Allows pages to call demoMode methods without immediate refactoring

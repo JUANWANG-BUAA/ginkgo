@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ginkgo_mirror/application/contracts.dart';
 
 /// Comprehensive stability test suite for Beta 10+
 /// Enforces hard constraints that prevent Beta 3-8 regressions
@@ -93,11 +92,6 @@ void main() {
     test('Password rejection creates global lock, not per-module cooldown', () {
       // Constraint: When password is rejected, ALL modules respect same lock
       // NOT each module independently retrying after 60s
-
-      const modules = [
-        'courses', 'homework', 'checkin', 'notices', 'library',
-        'grades', 'tasks', 'reserves', 'shuttle'
-      ];
 
       // All modules share ONE lock, not 9 independent ones
       const lockIsGlobal = true;

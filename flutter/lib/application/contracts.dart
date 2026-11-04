@@ -1,4 +1,8 @@
 // Application value contract. Export DTOs only; native commands stay in adapters.
+// Note: Gateway interfaces are defined in their own files to avoid circular imports.
+// Import them directly from their source files, not from this barrel.
+export 'package:ginkgo_mirror/application/environment.dart' show MirrorEnvironment;
+
 export 'package:ginkgo_mirror/application/learning_models.dart'
     show
         LearningCourse,
