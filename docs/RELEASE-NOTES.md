@@ -1,16 +1,16 @@
 # 发布说明
 
-## Ginkgo Android 0.1.0-beta.4（2026-11-01，已发布）
+## Ginkgo Android 0.1.0-beta.9（2026-11-03，已发布）
 
-- 全面优化工作台、课表、作业、图书馆和设置页面，信息层级更清楚，窄屏与大字号更易读。
-- 改进作业筛选、截止状态、签到关联和本机提醒，减少重复提示、漏提醒和状态误报。
-- 修复未记住密码时切换网络路线导致的会话失效误报，核心校园查询更稳定。
-- 修复图书馆公开人数与空间统计的证书链问题，公开信息仍保持匿名读取。
-- 空教室、研讨室和更多服务的入口与返回路径更连贯。
+- **登录稳定性修复**：修复 Beta.8 中"仅 WebVPN + 验证码"的登录阻断，现已恢复正常。
+- **后台提醒与恢复**：实现 Android JobScheduler 周期任务，即使应用离开也能继续提醒；冷启动时自动恢复会话，无需手动登录。
+- **工程稳定性**：修复提醒排程重复注册、账号切换后残留响应、存储异常处理等工程债缺陷。
+- **文档与交付规范化**：整理真实验收阶段与离线验收边界，网络与认证行为冻结，确保后续改动透明度。
 
-提醒：真实学校写入、物理设备、实际 TalkBack 和完整 live 验收末段仍未完成；预约、签到、上传和提交仍须逐次确认，结果不明时先回查。
+已验收：登录成功（用户确认）、合成测试与正常入口构建通过、网络冻结基线固定。
+暂停的真实验收：物理设备、真实写入、敏感存储人工审查（详见 [MIRROR-TODO.md](MIRROR-TODO.md#暂停的真实验收2026-11-03-起)）。
 
-[用户说明](releases/android-beta4.md) · [发布审计与限制](_audit/2026-11-01-android-beta4-readiness.md) · [GitHub Release](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.4)
+[发布审计与技术细节](_audit/2026-11-03-beta9-publication.md) · [GitHub Release](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.9)
 
 ## Ginkgo Android 0.1.0-beta.3（2026-10-30，已发布）
 

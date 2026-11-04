@@ -95,17 +95,17 @@
 ## features/schedule/schedule_views.dart
 
 - `class ScheduleCourseBrowser extends StatelessWidget` — The courses of the confirmed week: a search field plus either the weekly
-  <sub>class · features/schedule/schedule_views.dart:13</sub>
-    - `const ScheduleCourseBrowser({ super.key, required this.snapshot, required this.courses, required this.days, required this.weeks, required this.mode, required this.search, required this.selectedDay, required this.onSelectedDay, required this.onSearchChanged, required this.onCourseTap, });`  <sub>:14</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:39</sub>
+  <sub>class · features/schedule/schedule_views.dart:14</sub>
+    - `const ScheduleCourseBrowser({ super.key, required this.snapshot, required this.courses, required this.days, required this.weeks, required this.mode, required this.search, required this.selectedDay, required this.onSelectedDay, required this.onSearchChanged, required this.onCourseTap, });`  <sub>:15</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:40</sub>
 - `class ScheduleSemesterWeeks extends StatelessWidget` — The teaching weeks of the term.
-  <sub>class · features/schedule/schedule_views.dart:122</sub>
-    - `const ScheduleSemesterWeeks({ super.key, required this.weeks, required this.onSelected, });`  <sub>:123</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:132</sub>
+  <sub>class · features/schedule/schedule_views.dart:123</sub>
+    - `const ScheduleSemesterWeeks({ super.key, required this.weeks, required this.onSelected, });`  <sub>:124</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:133</sub>
 - `class ScheduleExamList extends StatelessWidget` — The exam schedule of the term.
-  <sub>class · features/schedule/schedule_views.dart:164</sub>
-    - `const ScheduleExamList({super.key, required this.exams});`  <sub>:165</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:169</sub>
+  <sub>class · features/schedule/schedule_views.dart:165</sub>
+    - `const ScheduleExamList({super.key, required this.exams});`  <sub>:166</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:170</sub>
 
 ## features/schedule/schedule_week_strip.dart
 

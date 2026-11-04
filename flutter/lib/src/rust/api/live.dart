@@ -25,6 +25,17 @@ Future<SessionResponse> login({
 Future<SessionResponse> restoreSession() =>
     RustLib.instance.api.crateApiLiveRestoreSession();
 
+/// Cookie-only reads; never calls the interactive/saved-password restore API.
+Future<BackgroundReminderRead> readBackgroundReminders({
+  required String owner,
+  required bool checkin,
+  required bool homework,
+}) => RustLib.instance.api.crateApiLiveReadBackgroundReminders(
+  owner: owner,
+  checkin: checkin,
+  homework: homework,
+);
+
 Future<SessionResponse> signOut() => RustLib.instance.api.crateApiLiveSignOut();
 
 Future<SessionResponse> setRoute({required RouteChoice route}) =>
@@ -649,6 +660,37 @@ class AndroidDownloadDto {
           apiUrl == other.apiUrl &&
           size == other.size &&
           sha256 == other.sha256;
+}
+
+class BackgroundReminderRead {
+  final String? account;
+  final CheckInResponse? checkin;
+  final HomeworkResponse? homework;
+  final FailureCode? failure;
+
+  const BackgroundReminderRead({
+    this.account,
+    this.checkin,
+    this.homework,
+    this.failure,
+  });
+
+  @override
+  int get hashCode =>
+      account.hashCode ^
+      checkin.hashCode ^
+      homework.hashCode ^
+      failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BackgroundReminderRead &&
+          runtimeType == other.runtimeType &&
+          account == other.account &&
+          checkin == other.checkin &&
+          homework == other.homework &&
+          failure == other.failure;
 }
 
 /// Public OPAC search (read-only, anonymous). Payload is the projected page.

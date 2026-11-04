@@ -70,7 +70,7 @@ class CollectionToolbar extends StatelessWidget {
                       builder: (anchor) => CupertinoButton(
                         key: const Key('collection-page-picker'),
                         padding: const EdgeInsets.symmetric(horizontal: 8),
-                        minimumSize: const Size(44, 48),
+                        minimumSize: const Size(48, 48),
                         onPressed: busy
                             ? null
                             : () async {

@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1085738299;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1333339535;
 
 // Section: executor
 
@@ -3484,6 +3484,51 @@ fn wire__crate__api__mirror__query_demo_classrooms_impl(
         },
     )
 }
+fn wire__crate__api__live__read_background_reminders_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "read_background_reminders",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_owner = <String>::sse_decode(&mut deserializer);
+            let api_checkin = <bool>::sse_decode(&mut deserializer);
+            let api_homework = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::read_background_reminders(
+                                api_owner,
+                                api_checkin,
+                                api_homework,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__live__reconcile_homework_file_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -3961,6 +4006,24 @@ impl SseDecode for crate::api::live::AndroidDownloadDto {
             api_url: var_apiUrl,
             size: var_size,
             sha256: var_sha256,
+        };
+    }
+}
+
+impl SseDecode for crate::api::live::BackgroundReminderRead {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_account = <Option<String>>::sse_decode(deserializer);
+        let mut var_checkin =
+            <Option<crate::api::mirror::CheckInResponse>>::sse_decode(deserializer);
+        let mut var_homework =
+            <Option<crate::api::mirror::HomeworkResponse>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::BackgroundReminderRead {
+            account: var_account,
+            checkin: var_checkin,
+            homework: var_homework,
+            failure: var_failure,
         };
     }
 }
@@ -7150,6 +7213,19 @@ impl SseDecode for Option<crate::api::live::CgyyReviewDto> {
     }
 }
 
+impl SseDecode for Option<crate::api::mirror::CheckInResponse> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::mirror::CheckInResponse>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<crate::api::live::CheckinLoadProgressDto> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -7266,6 +7342,19 @@ impl SseDecode for Option<crate::api::live::GraduateProgressDto> {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<crate::api::live::GraduateProgressDto>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::mirror::HomeworkResponse> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::mirror::HomeworkResponse>::sse_decode(
                 deserializer,
             ));
         } else {
@@ -8224,23 +8313,29 @@ fn pde_ffi_dispatcher_primary_impl(
         87 => {
             wire__crate__api__mirror__query_demo_classrooms_impl(port, ptr, rust_vec_len, data_len)
         }
-        88 => {
-            wire__crate__api__live__reconcile_homework_file_impl(port, ptr, rust_vec_len, data_len)
-        }
-        89 => wire__crate__api__live__reserve_library_seat_impl(port, ptr, rust_vec_len, data_len),
-        90 => wire__crate__api__live__restore_session_impl(port, ptr, rust_vec_len, data_len),
-        91 => wire__crate__api__live__auth_challenge__resume_gateway_login_impl(
+        88 => wire__crate__api__live__read_background_reminders_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        92 => wire__crate__api__live__set_route_impl(port, ptr, rust_vec_len, data_len),
-        93 => wire__crate__api__live__sign_out_impl(port, ptr, rust_vec_len, data_len),
-        95 => wire__crate__api__live__submit_checkin_impl(port, ptr, rust_vec_len, data_len),
-        96 => wire__crate__api__live__submit_homework_file_impl(port, ptr, rust_vec_len, data_len),
-        97 => wire__crate__api__live__upload_homework_file_impl(port, ptr, rust_vec_len, data_len),
-        98 => wire__crate__api__live__verify_credential_storage_impl(
+        89 => {
+            wire__crate__api__live__reconcile_homework_file_impl(port, ptr, rust_vec_len, data_len)
+        }
+        90 => wire__crate__api__live__reserve_library_seat_impl(port, ptr, rust_vec_len, data_len),
+        91 => wire__crate__api__live__restore_session_impl(port, ptr, rust_vec_len, data_len),
+        92 => wire__crate__api__live__auth_challenge__resume_gateway_login_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        93 => wire__crate__api__live__set_route_impl(port, ptr, rust_vec_len, data_len),
+        94 => wire__crate__api__live__sign_out_impl(port, ptr, rust_vec_len, data_len),
+        96 => wire__crate__api__live__submit_checkin_impl(port, ptr, rust_vec_len, data_len),
+        97 => wire__crate__api__live__submit_homework_file_impl(port, ptr, rust_vec_len, data_len),
+        98 => wire__crate__api__live__upload_homework_file_impl(port, ptr, rust_vec_len, data_len),
+        99 => wire__crate__api__live__verify_credential_storage_impl(
             port,
             ptr,
             rust_vec_len,
@@ -8271,7 +8366,7 @@ fn pde_ffi_dispatcher_sync_impl(
             rust_vec_len,
             data_len,
         ),
-        94 => wire__crate__api__live__student_service_url_impl(ptr, rust_vec_len, data_len),
+        95 => wire__crate__api__live__student_service_url_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -8321,6 +8416,29 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::live::AndroidDownloadDto>
     for crate::api::live::AndroidDownloadDto
 {
     fn into_into_dart(self) -> crate::api::live::AndroidDownloadDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::BackgroundReminderRead {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.account.into_into_dart().into_dart(),
+            self.checkin.into_into_dart().into_dart(),
+            self.homework.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::BackgroundReminderRead
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::BackgroundReminderRead>
+    for crate::api::live::BackgroundReminderRead
+{
+    fn into_into_dart(self) -> crate::api::live::BackgroundReminderRead {
         self
     }
 }
@@ -11925,6 +12043,16 @@ impl SseEncode for crate::api::live::AndroidDownloadDto {
     }
 }
 
+impl SseEncode for crate::api::live::BackgroundReminderRead {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<String>>::sse_encode(self.account, serializer);
+        <Option<crate::api::mirror::CheckInResponse>>::sse_encode(self.checkin, serializer);
+        <Option<crate::api::mirror::HomeworkResponse>>::sse_encode(self.homework, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
 impl SseEncode for crate::api::live::BookHitDto {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -14147,6 +14275,16 @@ impl SseEncode for Option<crate::api::live::CgyyReviewDto> {
     }
 }
 
+impl SseEncode for Option<crate::api::mirror::CheckInResponse> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::mirror::CheckInResponse>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<crate::api::live::CheckinLoadProgressDto> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -14243,6 +14381,16 @@ impl SseEncode for Option<crate::api::live::GraduateProgressDto> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <crate::api::live::GraduateProgressDto>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::mirror::HomeworkResponse> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::mirror::HomeworkResponse>::sse_encode(value, serializer);
         }
     }
 }

@@ -67,6 +67,22 @@ pub async fn restore_session() -> SessionResponse {
     session::restore_session().await
 }
 
+pub struct BackgroundReminderRead {
+    pub account: Option<String>,
+    pub checkin: Option<CheckInResponse>,
+    pub homework: Option<super::mirror::HomeworkResponse>,
+    pub failure: Option<FailureCode>,
+}
+
+/// Cookie-only reads; never calls the interactive/saved-password restore API.
+pub async fn read_background_reminders(
+    owner: String,
+    checkin: bool,
+    homework: bool,
+) -> BackgroundReminderRead {
+    background_reminders::read(owner, checkin, homework).await
+}
+
 pub async fn sign_out() -> SessionResponse {
     session::sign_out().await
 }
@@ -883,6 +899,7 @@ mod lifecycle_tests {
 }
 
 mod academic;
+mod background_reminders;
 mod bykc;
 mod checkin;
 mod classroom;

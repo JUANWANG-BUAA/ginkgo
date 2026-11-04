@@ -536,6 +536,7 @@ void main() {
         await preferences.update(textSize: largeText ? 1.6 : 1.0);
         final page = CourseVisibilityScope(
           account: '__visual_review__',
+          controllerFactory: (account) => CourseVisibility(account),
           child: QueryCacheScope(child: route.build()),
         );
         final registeredDestination = workspaceDestinations.any(

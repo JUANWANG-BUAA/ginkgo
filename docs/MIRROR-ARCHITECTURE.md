@@ -1,6 +1,6 @@
 # Rust / Flutter 工程与上游隔离边界
 
-更新：2026-10-29。本文描述当前源码的工程边界；学校协议事实仍以 [API.md](API.md) 为准，公开安装包与真实学校业务验收仍以 [MIRROR-IMPLEMENTATION.md](MIRROR-IMPLEMENTATION.md) 为准。末尾的“后续演进方向”是策略，不代表事项已实现。
+更新：2026-11-03。本文描述当前源码的工程边界；学校协议事实仍以 [API.md](API.md) 为准，公开安装包与真实学校业务验收仍以 [MIRROR-IMPLEMENTATION.md](MIRROR-IMPLEMENTATION.md) 为准。末尾的“后续演进方向”是策略，不代表事项已实现。网络/认证实现受 [冻结规则](NETWORK-FREEZE.md) 约束，不作为工程债重构范围。
 
 ## 隔离目标与当前结构
 
@@ -45,6 +45,12 @@ core 与 upstream 的依赖方向是分别指向 domain。`ginkgo_core::auth`、
 
 FFI 的 `SESSION_ACCESS` 用于应用命令级排他，保证切账号、切路线和清理快照等待已经发出的命令结束。签到/图书馆另有功能读写排他。它们只协调应用操作，不包含学校认证字段、token 或恢复算法；学校登录与会话维护实现统一在 upstream。直接消费业务端口的其他宿主也需要协调账号生命周期操作。
 
+## 本机课程范围与提醒队列
+
+`shared/course_visibility.dart` 仅持有课程隐藏状态和异步生命周期，文件路径、JSON 与原子替换由 `infrastructure/course_visibility_file_store.dart` 实现；工作区和后台入口注入同一存储格式。无回调时为纯内存控制器，Scope 必须显式提供 factory。读失败不写盘，销毁后不再开始排队写入；文件名及摘要列表兼容旧版本。架构门禁已移除此文件的 IO/平台与 JSON 解码例外，剩余系统外链例外见唯一 TODO。
+
+`SerialReminderPlatform` 将全量替换、分组同步和账号清理放入同一容错队列；失败向原调用方传播但不阻断下一项。计划均为标量字段映射，入队时复制每个映射与分组集合，不持有调用方可修改的集合。原生 `ReminderQueue.worker` 的跨调度器/广播串行规则不变。
+
 ## 按功能的稳定业务端口
 
 `ginkgo_domain/src/ports/` 按 session、academic、classroom、checkin、library、bykc、graduate、homework、notices、cgyy、library_stats 拆分接口与结果值。core 的相应功能模块只依赖这些能力。
@@ -72,6 +78,8 @@ FFI 的 `SESSION_ACCESS` 用于应用命令级排他，保证切账号、切路�
 `application/contracts.dart` 显式导出生成的值类型，作为字段契约的单一来源。`application/mirror_service.dart` 声明按功能拆分的 gateway，`infrastructure/` 提供 native/demo 与平台适配。页面通过注入接口调用命令，不接触生成函数或 `RustLib`。
 
 本机待办目录通过 `TaskStorageScope` 注入异步路径解析函数：组合入口接入 `infrastructure/task_storage.dart` 的平台实现，工作台和待办页只读取端口；测试可注入合成目录。目录解析失败时页面显示失败，不把失败当作空待办。`shared/reminder_controller.dart` 通过 `ReminderStore` 读写偏好、通过 `ReminderPlatform` 调度，`shared/reminder_scope.dart` 只负责控制器生命周期；`shared/reminders.dart` 仅作兼容导出。提醒刷新按整轮代次丢弃超时前的迟到结果，文件实现保留原账号摘要命名和原子替换，`GinkgoApp` 工作区组合入口注入适配器。
+
+Android 后台提醒由 `ScopedReminderPlatform` 配置账号摘要/开关，经原生 `ReminderQueue` 与前台排程、通知接收共用串行顺序。`ReminderRefreshJob` 由 JobScheduler 唤醒短时 Flutter engine，显式调用 `infrastructure/background_reminders.dart` 库入口，再经独立 `read_background_reminders` 命令创建密码盲的 MemoryVault 会话副本。仅快照捕获持有前台身份读锁；UC/签到/作业读取不持有前台身份锁，也不修改前台持久会话。结果按账号随机代次提交，失败分组保留旧计划；Activity 已打开时不提交。无常驻服务、自动密码登录或学校写操作。快照仍受固定 24 小时期限约束，系统调度最短 15 分钟且可能延迟，短时签到不保证发现；开机/升级仅恢复未过期计划，不启动交互登录。详见[本轮审计](_audit/2026-11-03-background-reminders-and-recovery.md)。
 
 提醒作用域在服务实例或账号变化时隔离控制器代次，取消旧定时器与恢复等待；系统排程适配器串行处理跨控制器的替换和清理，避免旧清理晚于新排程。若平台调用一直不返回，队列不会越过它执行后续排程，以免失序；该情况不等于系统通知已更新。
 

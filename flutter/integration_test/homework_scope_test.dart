@@ -58,6 +58,7 @@ void main() {
       ginkgoApp(
         home: CourseVisibilityScope(
           account: 'synthetic-homework-scope-test',
+          controllerFactory: (account) => CourseVisibility(account),
           child: HomeworkPage(
             service: service,
             fileActions: platformActions,

@@ -9,18 +9,19 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 
 - [academic](#academic) (5)
 - [auth_challenge](#authchallenge) (5)
+- [background_reminders](#backgroundreminders) (1)
 - [bykc](#bykc) (6)
 - [checkin](#checkin) (3)
 - [classroom](#classroom) (1)
 - [graduate](#graduate) (4)
-- [homework](#homework) (9)
+- [homework](#homework) (10)
 - [learning](#learning) (15)
 - [library](#library) (11)
 - [mapping](#mapping) (15)
 - [runtime](#runtime) (17)
 - [session](#session) (6)
 - [utilities](#utilities) (17)
-- [live](#live) (190)
+- [live](#live) (192)
 - [academic](#academic) (6)
 - [classroom](#classroom) (3)
 - [library](#library) (1)
@@ -60,6 +61,11 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
     - `failure: Option<FailureCode>`  <sub>:79</sub>
 - `pub async fn resume_gateway_login( expected_account: String, expected_id: String, answer: String, ) -> GatewayVerificationResponse {…}` — One explicit answer, bound to the current challenge; never retried here.
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/auth_challenge.rs:83</sub>
+
+## background_reminders
+
+- `pub(super) async fn read(owner: String, checkin: bool, homework: bool) -> BackgroundReminderRead {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/background_reminders.rs:3</sub>
 
 ## bykc
 
@@ -105,22 +111,24 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 
 - `pub(super) async fn load_homework(force_refresh: bool) -> crate::api::mirror::HomeworkResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:4</sub>
+- `pub(super) fn homework_response( result: Result<ginkgo_core::application::HomeworkOutcome, AppError>, ) -> crate::api::mirror::HomeworkResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:12</sub>
 - `pub(super) async fn load_homework_detail( assignment_id: String, force_refresh: bool, ) -> HomeworkDetailResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:59</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:65</sub>
 - `pub(super) async fn file_workspace(expected: String, id: String) -> HomeworkFileWorkspaceResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:169</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:175</sub>
 - `pub(super) async fn upload_file( expected: String, id: String, name: String, bytes: Vec<u8>, ) -> HomeworkUploadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:188</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:194</sub>
 - `pub(super) async fn submit_file( expected: String, handle: String, confirmed: bool, reconcile: bool, ) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:224</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:230</sub>
 - `pub(super) async fn download_file( expected: String, id: String, attachment: String, ) -> HomeworkFileDownloadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:255</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:261</sub>
 - `pub(super) async fn configure_recovery(expected: String, root: String) -> HomeworkRecoveryResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:279</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:285</sub>
 - `pub(super) async fn pending_submissions( expected: String, assignment: Option<String>, ) -> HomeworkPendingResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:293</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:299</sub>
 - `pub(super) async fn capabilities(expected: String, id: String) -> HomeworkCapabilitiesResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:323</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/homework.rs:329</sub>
 
 ## learning
 
@@ -328,764 +336,772 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:57</sub>
 - `pub async fn restore_session() -> SessionResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:66</sub>
-- `pub async fn sign_out() -> SessionResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:70</sub>
-- `pub async fn set_route(route: RouteChoice) -> SessionResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:74</sub>
-- `pub async fn clear_cache() -> bool {…}`
+- `pub struct BackgroundReminderRead`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:70</sub>
+    - `account: Option<String>`  <sub>:71</sub>
+    - `checkin: Option<CheckInResponse>`  <sub>:72</sub>
+    - `homework: Option<super::mirror::HomeworkResponse>`  <sub>:73</sub>
+    - `failure: Option<FailureCode>`  <sub>:74</sub>
+- `pub async fn read_background_reminders( owner: String, checkin: bool, homework: bool, ) -> BackgroundReminderRead {…}` — Cookie-only reads; never calls the interactive/saved-password restore API.
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:78</sub>
-- `pub async fn load_classrooms(scope: LiveScope, query: ClassroomQuery) -> ClassroomResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:82</sub>
-- `pub async fn load_schedule( term_id: Option<String>, week: Option<i32>, force_refresh: bool, ) -> ScheduleResponse {…}`
+- `pub async fn sign_out() -> SessionResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:86</sub>
-- `pub async fn load_today(force_refresh: bool) -> TodayResponse {…}`
+- `pub async fn set_route(route: RouteChoice) -> SessionResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:90</sub>
+- `pub async fn clear_cache() -> bool {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:94</sub>
-- `pub async fn load_checkin_today(force_refresh: bool) -> CheckInResponse {…}`
+- `pub async fn load_classrooms(scope: LiveScope, query: ClassroomQuery) -> ClassroomResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:98</sub>
+- `pub async fn load_schedule( term_id: Option<String>, week: Option<i32>, force_refresh: bool, ) -> ScheduleResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:102</sub>
+- `pub async fn load_today(force_refresh: bool) -> TodayResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:110</sub>
+- `pub async fn load_checkin_today(force_refresh: bool) -> CheckInResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:114</sub>
 - `pub struct CheckinLoadProgressDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:102</sub>
-    - `phase: String`  <sub>:103</sub>
-    - `elapsed_ms: Option<i64>`  <sub>:104</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:118</sub>
+    - `phase: String`  <sub>:119</sub>
+    - `elapsed_ms: Option<i64>`  <sub>:120</sub>
 - `pub struct CheckinLoadProgressResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:107</sub>
-    - `data: Option<CheckinLoadProgressDto>`  <sub>:108</sub>
-    - `failure: Option<FailureCode>`  <sub>:109</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:123</sub>
+    - `data: Option<CheckinLoadProgressDto>`  <sub>:124</sub>
+    - `failure: Option<FailureCode>`  <sub>:125</sub>
 - `pub async fn checkin_load_progress() -> CheckinLoadProgressResponse {…}` — Observe the current read without issuing any school request.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:113</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:129</sub>
 - `pub async fn load_checkin_on_date(date: String, force_refresh: bool) -> CheckInResponse {…}` — Historical day in Asia/Shanghai, yyyy-MM-dd; no sign-in submission.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:118</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:134</sub>
 - `pub struct GradeTermsResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:122</sub>
-    - `terms: Vec<ScheduleTerm>`  <sub>:123</sub>
-    - `failure: Option<FailureCode>`  <sub>:124</sub>
-    - `failure_detail: Option<String>`  <sub>:125</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:138</sub>
+    - `terms: Vec<ScheduleTerm>`  <sub>:139</sub>
+    - `failure: Option<FailureCode>`  <sub>:140</sub>
+    - `failure_detail: Option<String>`  <sub>:141</sub>
 - `pub async fn load_grade_terms() -> GradeTermsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:128</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:144</sub>
 - `pub async fn load_grades(term_code: Option<String>, force_refresh: bool) -> GradeResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:132</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:148</sub>
 - `pub fn verify_credential_storage(account: String, secret: String) -> bool {…}` — Device-acceptance diagnostic: write, read and delete one synthetic secret.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:138</sub>
-- `pub async fn load_library_venues(force_refresh: bool) -> LibraryVenuesResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:142</sub>
-- `pub async fn load_library_areas(library_id: String) -> LibraryAreasResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:146</sub>
-- `pub async fn load_library_slots(area_id: String) -> LibrarySlotsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:150</sub>
-- `pub async fn load_library_seats( area_id: String, slot_id: String, day: String, start: String, end: String, ) -> LibrarySeatsResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:154</sub>
+- `pub async fn load_library_venues(force_refresh: bool) -> LibraryVenuesResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:158</sub>
+- `pub async fn load_library_areas(library_id: String) -> LibraryAreasResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:162</sub>
+- `pub async fn load_library_slots(area_id: String) -> LibrarySlotsResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:166</sub>
+- `pub async fn load_library_seats( area_id: String, slot_id: String, day: String, start: String, end: String, ) -> LibrarySeatsResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:170</sub>
 - `pub async fn load_library_bookings(force_refresh: bool) -> LibraryBookingsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:164</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:180</sub>
 - `pub struct LibraryHistoryResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:168</sub>
-    - `bookings: Vec<super::mirror::LibraryBooking>`  <sub>:169</sub>
-    - `page: i32`  <sub>:170</sub>
-    - `page_size: i32`  <sub>:171</sub>
-    - `total: Option<i32>`  <sub>:172</sub>
-    - `has_next: bool`  <sub>:173</sub>
-    - `fetched_at: Option<String>`  <sub>:174</sub>
-    - `from_cache: bool`  <sub>:175</sub>
-    - `stale: bool`  <sub>:176</sub>
-    - `failure: Option<FailureCode>`  <sub>:177</sub>
-    - `failure_detail: Option<String>`  <sub>:178</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:184</sub>
+    - `bookings: Vec<super::mirror::LibraryBooking>`  <sub>:185</sub>
+    - `page: i32`  <sub>:186</sub>
+    - `page_size: i32`  <sub>:187</sub>
+    - `total: Option<i32>`  <sub>:188</sub>
+    - `has_next: bool`  <sub>:189</sub>
+    - `fetched_at: Option<String>`  <sub>:190</sub>
+    - `from_cache: bool`  <sub>:191</sub>
+    - `stale: bool`  <sub>:192</sub>
+    - `failure: Option<FailureCode>`  <sub>:193</sub>
+    - `failure_detail: Option<String>`  <sub>:194</sub>
 - `pub async fn load_library_history(page: i32, force_refresh: bool) -> LibraryHistoryResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:181</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:197</sub>
 - `pub fn load_demo_library_history(page: i32) -> LibraryHistoryResponse {…}` — Synthetic page runs the same domain parser as live history.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:186</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:202</sub>
 - `pub async fn load_homework(force_refresh: bool) -> super::mirror::HomeworkResponse {…}` — Real SPOC list, API.md §7.1. Demo remains an explicit separate command.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:191</sub>
-- `pub struct HomeworkDetailResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:195</sub>
-    - `source_url: Option<String>`  <sub>:196</sub>
-    - `content: Option<String>`  <sub>:197</sub>
-    - `published_at: Option<String>`  <sub>:198</sub>
-    - `due_at: Option<String>`  <sub>:199</sub>
-    - `score: Option<String>`  <sub>:200</sub>
-    - `status: String`  <sub>:201</sub>
-    - `submitted_at: Option<String>`  <sub>:202</sub>
-    - `stale: bool`  <sub>:203</sub>
-    - `failure: Option<FailureCode>`  <sub>:204</sub>
-- `pub async fn load_homework_detail( assignment_id: String, force_refresh: bool, ) -> HomeworkDetailResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:207</sub>
+- `pub struct HomeworkDetailResponse`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:211</sub>
+    - `source_url: Option<String>`  <sub>:212</sub>
+    - `content: Option<String>`  <sub>:213</sub>
+    - `published_at: Option<String>`  <sub>:214</sub>
+    - `due_at: Option<String>`  <sub>:215</sub>
+    - `score: Option<String>`  <sub>:216</sub>
+    - `status: String`  <sub>:217</sub>
+    - `submitted_at: Option<String>`  <sub>:218</sub>
+    - `stale: bool`  <sub>:219</sub>
+    - `failure: Option<FailureCode>`  <sub>:220</sub>
+- `pub async fn load_homework_detail( assignment_id: String, force_refresh: bool, ) -> HomeworkDetailResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:223</sub>
 - `pub struct BykcSemesterDto` — Sanitized domain JSON, never raw upstream data, credentials or tokens.
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:215</sub>
-    - `id: String`  <sub>:216</sub>
-    - `name: String`  <sub>:217</sub>
-    - `start: Option<String>`  <sub>:218</sub>
-    - `end: Option<String>`  <sub>:219</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:231</sub>
+    - `id: String`  <sub>:232</sub>
+    - `name: String`  <sub>:233</sub>
+    - `start: Option<String>`  <sub>:234</sub>
+    - `end: Option<String>`  <sub>:235</sub>
 - `pub struct BykcCourseDetailsDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:222</sub>
-    - `start: Option<String>`  <sub>:223</sub>
-    - `end: Option<String>`  <sub>:224</sub>
-    - `select_start: Option<String>`  <sub>:225</sub>
-    - `select_end: Option<String>`  <sub>:226</sub>
-    - `cancel_end: Option<String>`  <sub>:227</sub>
-    - `capacity: Option<i64>`  <sub>:228</sub>
-    - `enrolled: Option<i64>`  <sub>:229</sub>
-    - `campuses: Vec<String>`  <sub>:230</sub>
-    - `summary: Option<String>`  <sub>:231</sub>
-    - `selected: Option<bool>`  <sub>:232</sub>
-    - `has_sign_config: Option<bool>`  <sub>:233</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:238</sub>
+    - `start: Option<String>`  <sub>:239</sub>
+    - `end: Option<String>`  <sub>:240</sub>
+    - `select_start: Option<String>`  <sub>:241</sub>
+    - `select_end: Option<String>`  <sub>:242</sub>
+    - `cancel_end: Option<String>`  <sub>:243</sub>
+    - `capacity: Option<i64>`  <sub>:244</sub>
+    - `enrolled: Option<i64>`  <sub>:245</sub>
+    - `campuses: Vec<String>`  <sub>:246</sub>
+    - `summary: Option<String>`  <sub>:247</sub>
+    - `selected: Option<bool>`  <sub>:248</sub>
+    - `has_sign_config: Option<bool>`  <sub>:249</sub>
 - `pub struct BykcCourseDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:236</sub>
-    - `id: i64`  <sub>:237</sub>
-    - `name: String`  <sub>:238</sub>
-    - `teacher: Option<String>`  <sub>:239</sub>
-    - `position: Option<String>`  <sub>:240</sub>
-    - `category: Option<String>`  <sub>:241</sub>
-    - `subcategory: Option<String>`  <sub>:242</sub>
-    - `details: Option<BykcCourseDetailsDto>`  <sub>:243</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:252</sub>
+    - `id: i64`  <sub>:253</sub>
+    - `name: String`  <sub>:254</sub>
+    - `teacher: Option<String>`  <sub>:255</sub>
+    - `position: Option<String>`  <sub>:256</sub>
+    - `category: Option<String>`  <sub>:257</sub>
+    - `subcategory: Option<String>`  <sub>:258</sub>
+    - `details: Option<BykcCourseDetailsDto>`  <sub>:259</sub>
 - `pub struct BykcCatalogDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:246</sub>
-    - `terms: Vec<BykcSemesterDto>`  <sub>:247</sub>
-    - `courses: Vec<BykcCourseDto>`  <sub>:248</sub>
-    - `current_term: Option<BykcSemesterDto>` — Chosen by the shared Beijing semester policy, not by the device clock.  <sub>:250</sub>
-- `pub struct BykcChosenRecordDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:253</sub>
-    - `id: i64`  <sub>:254</sub>
-    - `course: BykcCourseDto`  <sub>:255</sub>
-    - `selected_at: Option<String>`  <sub>:256</sub>
-    - `checkin: Option<i64>`  <sub>:257</sub>
-    - `passed: Option<i64>`  <sub>:258</sub>
-    - `score: Option<i64>`  <sub>:259</sub>
-- `pub struct BykcChosenCoursesDto`
   <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:262</sub>
-    - `term: Option<BykcSemesterDto>`  <sub>:263</sub>
-    - `courses: Option<Vec<BykcChosenRecordDto>>` — `None` means no valid semester range was available, not zero selections.  <sub>:265</sub>
+    - `terms: Vec<BykcSemesterDto>`  <sub>:263</sub>
+    - `courses: Vec<BykcCourseDto>`  <sub>:264</sub>
+    - `current_term: Option<BykcSemesterDto>` — Chosen by the shared Beijing semester policy, not by the device clock.  <sub>:266</sub>
+- `pub struct BykcChosenRecordDto`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:269</sub>
+    - `id: i64`  <sub>:270</sub>
+    - `course: BykcCourseDto`  <sub>:271</sub>
+    - `selected_at: Option<String>`  <sub>:272</sub>
+    - `checkin: Option<i64>`  <sub>:273</sub>
+    - `passed: Option<i64>`  <sub>:274</sub>
+    - `score: Option<i64>`  <sub>:275</sub>
+- `pub struct BykcChosenCoursesDto`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:278</sub>
+    - `term: Option<BykcSemesterDto>`  <sub>:279</sub>
+    - `courses: Option<Vec<BykcChosenRecordDto>>` — `None` means no valid semester range was available, not zero selections.  <sub>:281</sub>
 - `pub struct BykcStatisticsEntryDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:268</sub>
-    - `category: String`  <sub>:269</sub>
-    - `subcategory: String`  <sub>:270</sub>
-    - `required: i64`  <sub>:271</sub>
-    - `completed: i64`  <sub>:272</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:284</sub>
+    - `category: String`  <sub>:285</sub>
+    - `subcategory: String`  <sub>:286</sub>
+    - `required: i64`  <sub>:287</sub>
+    - `completed: i64`  <sub>:288</sub>
 - `pub struct BykcStatisticsDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:275</sub>
-    - `valid_course_count: Option<i64>`  <sub>:276</sub>
-    - `entries: Vec<BykcStatisticsEntryDto>`  <sub>:277</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:291</sub>
+    - `valid_course_count: Option<i64>`  <sub>:292</sub>
+    - `entries: Vec<BykcStatisticsEntryDto>`  <sub>:293</sub>
 - `pub struct BykcCatalogResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:280</sub>
-    - `data: Option<BykcCatalogDto>`  <sub>:281</sub>
-    - `failure: Option<FailureCode>`  <sub>:282</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:296</sub>
+    - `data: Option<BykcCatalogDto>`  <sub>:297</sub>
+    - `failure: Option<FailureCode>`  <sub>:298</sub>
 - `pub struct BykcChosenResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:285</sub>
-    - `data: Option<BykcChosenCoursesDto>`  <sub>:286</sub>
-    - `failure: Option<FailureCode>`  <sub>:287</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:301</sub>
+    - `data: Option<BykcChosenCoursesDto>`  <sub>:302</sub>
+    - `failure: Option<FailureCode>`  <sub>:303</sub>
 - `pub struct BykcStatisticsResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:290</sub>
-    - `data: Option<BykcStatisticsDto>`  <sub>:291</sub>
-    - `failure: Option<FailureCode>`  <sub>:292</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:306</sub>
+    - `data: Option<BykcStatisticsDto>`  <sub>:307</sub>
+    - `failure: Option<FailureCode>`  <sub>:308</sub>
 - `pub async fn load_bykc(force_refresh: bool) -> BykcCatalogResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:295</sub>
-- `pub fn load_demo_bykc() -> BykcCatalogResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:299</sub>
-- `pub async fn load_bykc_chosen(force_refresh: bool) -> BykcChosenResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:303</sub>
-- `pub async fn load_bykc_statistics(force_refresh: bool) -> BykcStatisticsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:307</sub>
-- `pub fn load_demo_bykc_chosen() -> BykcChosenResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:311</sub>
-- `pub fn load_demo_bykc_statistics() -> BykcStatisticsResponse {…}`
+- `pub fn load_demo_bykc() -> BykcCatalogResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:315</sub>
+- `pub async fn load_bykc_chosen(force_refresh: bool) -> BykcChosenResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:319</sub>
+- `pub async fn load_bykc_statistics(force_refresh: bool) -> BykcStatisticsResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:323</sub>
+- `pub fn load_demo_bykc_chosen() -> BykcChosenResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:327</sub>
+- `pub fn load_demo_bykc_statistics() -> BykcStatisticsResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:331</sub>
 - `pub struct GraduateRowDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:319</sub>
-    - `title: String`  <sub>:320</sub>
-    - `detail: String`  <sub>:321</sub>
-    - `is_course: bool` — Explicitly distinguishes a course with an unknown result from metadata.  <sub>:323</sub>
-    - `completed: Option<bool>`  <sub>:324</sub>
-    - `credit: Option<f64>`  <sub>:325</sub>
-    - `semester: Option<String>`  <sub>:326</sub>
-- `pub struct GraduateProgressDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:329</sub>
-    - `required: Option<f64>`  <sub>:330</sub>
-    - `earned: Option<f64>`  <sub>:331</sub>
-    - `pending: Option<f64>`  <sub>:332</sub>
-- `pub struct GraduateSectionDto`
   <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:335</sub>
     - `title: String`  <sub>:336</sub>
-    - `rows: Vec<GraduateRowDto>`  <sub>:337</sub>
-    - `progress: Option<GraduateProgressDto>`  <sub>:338</sub>
+    - `detail: String`  <sub>:337</sub>
+    - `is_course: bool` — Explicitly distinguishes a course with an unknown result from metadata.  <sub>:339</sub>
+    - `completed: Option<bool>`  <sub>:340</sub>
+    - `credit: Option<f64>`  <sub>:341</sub>
+    - `semester: Option<String>`  <sub>:342</sub>
+- `pub struct GraduateProgressDto`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:345</sub>
+    - `required: Option<f64>`  <sub>:346</sub>
+    - `earned: Option<f64>`  <sub>:347</sub>
+    - `pending: Option<f64>`  <sub>:348</sub>
+- `pub struct GraduateSectionDto`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:351</sub>
+    - `title: String`  <sub>:352</sub>
+    - `rows: Vec<GraduateRowDto>`  <sub>:353</sub>
+    - `progress: Option<GraduateProgressDto>`  <sub>:354</sub>
 - `pub struct AcademicDataDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:341</sub>
-    - `sections: Vec<GraduateSectionDto>`  <sub>:342</sub>
-    - `notice: Option<String>`  <sub>:343</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:357</sub>
+    - `sections: Vec<GraduateSectionDto>`  <sub>:358</sub>
+    - `notice: Option<String>`  <sub>:359</sub>
 - `pub struct GraduateResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:346</sub>
-    - `data: Option<AcademicDataDto>`  <sub>:347</sub>
-    - `failure: Option<FailureCode>`  <sub>:348</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:362</sub>
+    - `data: Option<AcademicDataDto>`  <sub>:363</sub>
+    - `failure: Option<FailureCode>`  <sub>:364</sub>
 - `pub async fn load_graduate_part(report: bool, force_refresh: bool) -> GraduateResponse {…}` — Independently cached sections, allowing Flutter to render the first response
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:353</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:369</sub>
 - `pub fn load_demo_graduate_status() -> GraduateResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:357</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:373</sub>
 - `pub fn load_demo_graduate() -> GraduateResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:361</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:377</sub>
 - `pub struct LocalTaskDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:365</sub>
-    - `id: String`  <sub>:366</sub>
-    - `title: String`  <sub>:367</sub>
-    - `due: String` — Empty means no deadline; a calendar date stays a date.  <sub>:369</sub>
-    - `completed: bool`  <sub>:370</sub>
-    - `source_assignment_id: Option<String>` — Set only for a historical record linked to a school assignment.  <sub>:372</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:381</sub>
+    - `id: String`  <sub>:382</sub>
+    - `title: String`  <sub>:383</sub>
+    - `due: String` — Empty means no deadline; a calendar date stays a date.  <sub>:385</sub>
+    - `completed: bool`  <sub>:386</sub>
+    - `source_assignment_id: Option<String>` — Set only for a historical record linked to a school assignment.  <sub>:388</sub>
 - `pub struct LocalTasksResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:375</sub>
-    - `data: Option<Vec<LocalTaskDto>>`  <sub>:376</sub>
-    - `failure: Option<FailureCode>`  <sub>:377</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:391</sub>
+    - `data: Option<Vec<LocalTaskDto>>`  <sub>:392</sub>
+    - `failure: Option<FailureCode>`  <sub>:393</sub>
 - `pub async fn edit_tasks( root: String, demo: bool, action: String, id: Option<String>, title: Option<String>, due: Option<String>, completed: Option<bool>, ) -> LocalTasksResponse {…}` — Local CRUD only. Account identity comes from Rust, never a Dart-supplied identifier.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:381</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:397</sub>
 - `pub struct NoticeDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:393</sub>
-    - `title: String`  <sub>:394</sub>
-    - `summary: String`  <sub>:395</sub>
-    - `published_at: String`  <sub>:396</sub>
-    - `url: String`  <sub>:397</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:409</sub>
+    - `title: String`  <sub>:410</sub>
+    - `summary: String`  <sub>:411</sub>
+    - `published_at: String`  <sub>:412</sub>
+    - `url: String`  <sub>:413</sub>
 - `pub struct NoticesResponse` — A failure may accompany data only when it is a previous successful snapshot.
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:401</sub>
-    - `data: Option<Vec<NoticeDto>>`  <sub>:402</sub>
-    - `failure: Option<FailureCode>`  <sub>:403</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:417</sub>
+    - `data: Option<Vec<NoticeDto>>`  <sub>:418</sub>
+    - `failure: Option<FailureCode>`  <sub>:419</sub>
 - `pub async fn load_notices(force_refresh: bool) -> NoticesResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:406</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:422</sub>
 - `pub struct CampusCardBalanceResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:410</sub>
-    - `balance_minor: Option<i64>`  <sub>:411</sub>
-    - `fetched_at: Option<String>`  <sub>:412</sub>
-    - `failure: Option<FailureCode>`  <sub>:413</sub>
-    - `failure_detail: Option<String>`  <sub>:414</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:426</sub>
+    - `balance_minor: Option<i64>`  <sub>:427</sub>
+    - `fetched_at: Option<String>`  <sub>:428</sub>
+    - `failure: Option<FailureCode>`  <sub>:429</sub>
+    - `failure_detail: Option<String>`  <sub>:430</sub>
 - `pub async fn load_campus_card_balance() -> CampusCardBalanceResponse {…}` — Explicit, user-triggered campus-card balance read. No disk cache or bank data.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:418</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:434</sub>
 - `pub fn load_demo_campus_card_balance() -> CampusCardBalanceResponse {…}` — Synthetic balance for the isolated demo workspace.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:423</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:439</sub>
 - `pub fn load_demo_notices() -> NoticesResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:427</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:443</sub>
 - `pub async fn load_career_events(month: String, force_refresh: bool) -> CareerEventsResponse {…}` — Public career-calendar events for a school month (YYYY-MM). Read-only.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:432</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:448</sub>
 - `pub struct CareerEventDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:436</sub>
-    - `id: String`  <sub>:437</sub>
-    - `title: String`  <sub>:438</sub>
-    - `campus: String`  <sub>:439</sub>
-    - `place: String`  <sub>:440</sub>
-    - `begins_at: String`  <sub>:441</sub>
-    - `ends_at: String`  <sub>:442</sub>
-    - `fair_type: String`  <sub>:443</sub>
-    - `status: String`  <sub>:444</sub>
-    - `url: String`  <sub>:445</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:452</sub>
+    - `id: String`  <sub>:453</sub>
+    - `title: String`  <sub>:454</sub>
+    - `campus: String`  <sub>:455</sub>
+    - `place: String`  <sub>:456</sub>
+    - `begins_at: String`  <sub>:457</sub>
+    - `ends_at: String`  <sub>:458</sub>
+    - `fair_type: String`  <sub>:459</sub>
+    - `status: String`  <sub>:460</sub>
+    - `url: String`  <sub>:461</sub>
 - `pub struct CareerEventsDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:448</sub>
-    - `month: String`  <sub>:449</sub>
-    - `events: Vec<CareerEventDto>`  <sub>:450</sub>
-    - `fetched_at: String`  <sub>:451</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:464</sub>
+    - `month: String`  <sub>:465</sub>
+    - `events: Vec<CareerEventDto>`  <sub>:466</sub>
+    - `fetched_at: String`  <sub>:467</sub>
 - `pub struct CareerEventsResponse` — A failure may accompany data only when it is a previous successful snapshot.
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:455</sub>
-    - `data: Option<CareerEventsDto>`  <sub>:456</sub>
-    - `failure: Option<FailureCode>`  <sub>:457</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:471</sub>
+    - `data: Option<CareerEventsDto>`  <sub>:472</sub>
+    - `failure: Option<FailureCode>`  <sub>:473</sub>
 - `pub struct CampusActivityDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:460</sub>
-    - `id: String`  <sub>:461</sub>
-    - `title: String`  <sub>:462</sub>
-    - `category: String`  <sub>:463</sub>
-    - `published_at: String`  <sub>:464</sub>
-    - `activity_time: String`  <sub>:465</sub>
-    - `place: String`  <sub>:466</sub>
-    - `url: String`  <sub>:467</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:476</sub>
+    - `id: String`  <sub>:477</sub>
+    - `title: String`  <sub>:478</sub>
+    - `category: String`  <sub>:479</sub>
+    - `published_at: String`  <sub>:480</sub>
+    - `activity_time: String`  <sub>:481</sub>
+    - `place: String`  <sub>:482</sub>
+    - `url: String`  <sub>:483</sub>
 - `pub struct CampusActivitiesDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:470</sub>
-    - `page: i32`  <sub>:471</sub>
-    - `activities: Vec<CampusActivityDto>`  <sub>:472</sub>
-    - `fetched_at: String`  <sub>:473</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:486</sub>
+    - `page: i32`  <sub>:487</sub>
+    - `activities: Vec<CampusActivityDto>`  <sub>:488</sub>
+    - `fetched_at: String`  <sub>:489</sub>
 - `pub struct CampusActivitiesResponse` — Published and displayed dates stay separate fields; neither is a deadline.
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:477</sub>
-    - `data: Option<CampusActivitiesDto>`  <sub>:478</sub>
-    - `failure: Option<FailureCode>`  <sub>:479</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:493</sub>
+    - `data: Option<CampusActivitiesDto>`  <sub>:494</sub>
+    - `failure: Option<FailureCode>`  <sub>:495</sub>
 - `pub async fn load_campus_activities(page: i32, force_refresh: bool) -> CampusActivitiesResponse {…}` — Public campus cultural activities (page 1-based). Read-only.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:483</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:499</sub>
 - `pub struct CgyySiteDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:487</sub>
-    - `id: i64`  <sub>:488</sub>
-    - `name: String`  <sub>:489</sub>
-    - `venue: String`  <sub>:490</sub>
-    - `campus: String`  <sub>:491</sub>
-    - `seats: Option<i64>`  <sub>:492</sub>
-    - `open_start: String`  <sub>:493</sub>
-    - `open_end: String`  <sub>:494</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:503</sub>
+    - `id: i64`  <sub>:504</sub>
+    - `name: String`  <sub>:505</sub>
+    - `venue: String`  <sub>:506</sub>
+    - `campus: String`  <sub>:507</sub>
+    - `seats: Option<i64>`  <sub>:508</sub>
+    - `open_start: String`  <sub>:509</sub>
+    - `open_end: String`  <sub>:510</sub>
 - `pub struct CgyySlotDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:497</sub>
-    - `time: String`  <sub>:498</sub>
-    - `status: String`  <sub>:499</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:513</sub>
+    - `time: String`  <sub>:514</sub>
+    - `status: String`  <sub>:515</sub>
 - `pub struct CgyySpaceDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:502</sub>
-    - `name: String`  <sub>:503</sub>
-    - `slots: Vec<CgyySlotDto>`  <sub>:504</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:518</sub>
+    - `name: String`  <sub>:519</sub>
+    - `slots: Vec<CgyySlotDto>`  <sub>:520</sub>
 - `pub struct CgyyDayDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:507</sub>
-    - `site_id: i64`  <sub>:508</sub>
-    - `date: String`  <sub>:509</sub>
-    - `dates: Vec<String>`  <sub>:510</sub>
-    - `spaces: Vec<CgyySpaceDto>`  <sub>:511</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:523</sub>
+    - `site_id: i64`  <sub>:524</sub>
+    - `date: String`  <sub>:525</sub>
+    - `dates: Vec<String>`  <sub>:526</sub>
+    - `spaces: Vec<CgyySpaceDto>`  <sub>:527</sub>
 - `pub struct CgyyOrderDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:514</sub>
-    - `order_status: Option<i64>`  <sub>:515</sub>
-    - `check_status: Option<i64>`  <sub>:516</sub>
-    - `can_cancel: bool`  <sub>:517</sub>
-    - `id: i64`  <sub>:518</sub>
-    - `place: String`  <sub>:519</sub>
-    - `date: String`  <sub>:520</sub>
-    - `time: String`  <sub>:521</sub>
-    - `status: String`  <sub>:522</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:530</sub>
+    - `order_status: Option<i64>`  <sub>:531</sub>
+    - `check_status: Option<i64>`  <sub>:532</sub>
+    - `can_cancel: bool`  <sub>:533</sub>
+    - `id: i64`  <sub>:534</sub>
+    - `place: String`  <sub>:535</sub>
+    - `date: String`  <sub>:536</sub>
+    - `time: String`  <sub>:537</sub>
+    - `status: String`  <sub>:538</sub>
 - `pub struct CgyyLockCodeDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:525</sub>
-    - `qr_code: Option<String>`  <sub>:526</sub>
-    - `due_date: Option<String>`  <sub>:527</sub>
-    - `trade_no: Option<String>`  <sub>:528</sub>
-    - `venue_name: Option<String>`  <sub>:529</sub>
-    - `site_name: Option<String>`  <sub>:530</sub>
-    - `space_name: Option<String>`  <sub>:531</sub>
-    - `order_name: Option<String>`  <sub>:532</sub>
-    - `reservation_date: Option<String>`  <sub>:533</sub>
-    - `reservation_date_detail: Option<String>`  <sub>:534</sub>
-    - `reservation_start_date: Option<String>`  <sub>:535</sub>
-    - `reservation_end_date: Option<String>`  <sub>:536</sub>
-- `pub struct CgyyLoadResponse` — Exactly one shape field is `Some`; the rest stay `None` so Dart can switch
   <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:541</sub>
-    - `venues: Option<Vec<CgyySiteDto>>`  <sub>:542</sub>
-    - `day: Option<CgyyDayDto>`  <sub>:543</sub>
-    - `orders: Option<Vec<CgyyOrderDto>>`  <sub>:544</sub>
-    - `order: Option<CgyyOrderDto>`  <sub>:545</sub>
-    - `lock_code: Option<CgyyLockCodeDto>`  <sub>:546</sub>
-    - `failure: Option<FailureCode>`  <sub>:547</sub>
-- `pub struct CgyyBookingChoiceDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:550</sub>
-    - `space_id: i64`  <sub>:551</sub>
-    - `space_name: String`  <sub>:552</sub>
-    - `time_id: i64`  <sub>:553</sub>
-    - `time: String`  <sub>:554</sub>
-- `pub struct CgyyPurposeDto`
+    - `qr_code: Option<String>`  <sub>:542</sub>
+    - `due_date: Option<String>`  <sub>:543</sub>
+    - `trade_no: Option<String>`  <sub>:544</sub>
+    - `venue_name: Option<String>`  <sub>:545</sub>
+    - `site_name: Option<String>`  <sub>:546</sub>
+    - `space_name: Option<String>`  <sub>:547</sub>
+    - `order_name: Option<String>`  <sub>:548</sub>
+    - `reservation_date: Option<String>`  <sub>:549</sub>
+    - `reservation_date_detail: Option<String>`  <sub>:550</sub>
+    - `reservation_start_date: Option<String>`  <sub>:551</sub>
+    - `reservation_end_date: Option<String>`  <sub>:552</sub>
+- `pub struct CgyyLoadResponse` — Exactly one shape field is `Some`; the rest stay `None` so Dart can switch
   <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:557</sub>
-    - `id: i64`  <sub>:558</sub>
-    - `name: String`  <sub>:559</sub>
+    - `venues: Option<Vec<CgyySiteDto>>`  <sub>:558</sub>
+    - `day: Option<CgyyDayDto>`  <sub>:559</sub>
+    - `orders: Option<Vec<CgyyOrderDto>>`  <sub>:560</sub>
+    - `order: Option<CgyyOrderDto>`  <sub>:561</sub>
+    - `lock_code: Option<CgyyLockCodeDto>`  <sub>:562</sub>
+    - `failure: Option<FailureCode>`  <sub>:563</sub>
+- `pub struct CgyyBookingChoiceDto`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:566</sub>
+    - `space_id: i64`  <sub>:567</sub>
+    - `space_name: String`  <sub>:568</sub>
+    - `time_id: i64`  <sub>:569</sub>
+    - `time: String`  <sub>:570</sub>
+- `pub struct CgyyPurposeDto`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:573</sub>
+    - `id: i64`  <sub>:574</sub>
+    - `name: String`  <sub>:575</sub>
 - `pub struct CgyyBookingOptionsDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:562</sub>
-    - `choices: Vec<CgyyBookingChoiceDto>`  <sub>:563</sub>
-    - `purposes: Vec<CgyyPurposeDto>`  <sub>:564</sub>
-    - `uses_fallback_purposes: bool`  <sub>:565</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:578</sub>
+    - `choices: Vec<CgyyBookingChoiceDto>`  <sub>:579</sub>
+    - `purposes: Vec<CgyyPurposeDto>`  <sub>:580</sub>
+    - `uses_fallback_purposes: bool`  <sub>:581</sub>
 - `pub struct CgyyChallengeDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:568</sub>
-    - `id: String`  <sub>:569</sub>
-    - `background: String`  <sub>:570</sub>
-    - `jigsaw: String`  <sub>:571</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:584</sub>
+    - `id: String`  <sub>:585</sub>
+    - `background: String`  <sub>:586</sub>
+    - `jigsaw: String`  <sub>:587</sub>
 - `pub struct CgyyReviewDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:574</sub>
-    - `id: String`  <sub>:575</sub>
-    - `orders: Vec<CgyyOrderDto>`  <sub>:576</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:590</sub>
+    - `id: String`  <sub>:591</sub>
+    - `orders: Vec<CgyyOrderDto>`  <sub>:592</sub>
 - `pub struct CgyyActionResultDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:579</sub>
-    - `state: String`  <sub>:580</sub>
-    - `message: String`  <sub>:581</sub>
-    - `options: Option<CgyyBookingOptionsDto>`  <sub>:582</sub>
-    - `challenge: Option<CgyyChallengeDto>`  <sub>:583</sub>
-    - `review: Option<CgyyReviewDto>`  <sub>:584</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:595</sub>
+    - `state: String`  <sub>:596</sub>
+    - `message: String`  <sub>:597</sub>
+    - `options: Option<CgyyBookingOptionsDto>`  <sub>:598</sub>
+    - `challenge: Option<CgyyChallengeDto>`  <sub>:599</sub>
+    - `review: Option<CgyyReviewDto>`  <sub>:600</sub>
 - `pub struct CgyyActionResultResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:587</sub>
-    - `data: Option<CgyyActionResultDto>`  <sub>:588</sub>
-    - `failure: Option<FailureCode>`  <sub>:589</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:603</sub>
+    - `data: Option<CgyyActionResultDto>`  <sub>:604</sub>
+    - `failure: Option<FailureCode>`  <sub>:605</sub>
 - `pub async fn load_cgyy( kind: String, site_id: i64, date: String, force_refresh: bool, ) -> CgyyLoadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:592</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:608</sub>
 - `pub async fn execute_cgyy(command: String) -> CgyyActionResultResponse {…}` — User-confirmed CGYY commands; payload contains no upstream credentials.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:602</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:618</sub>
 - `pub fn load_demo_cgyy(kind: String) -> CgyyLoadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:606</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:622</sub>
 - `pub struct BookHitDto` — Public OPAC search (read-only, anonymous). Payload is the projected page.
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:611</sub>
-    - `bib_id: String`  <sub>:612</sub>
-    - `title: String`  <sub>:613</sub>
-    - `author: String`  <sub>:614</sub>
-    - `publisher: String`  <sub>:615</sub>
-    - `year: String`  <sub>:616</sub>
-    - `callno: String`  <sub>:617</sub>
-    - `isbn: String`  <sub>:618</sub>
-    - `items_available: Option<i64>` — Reported copy availability, or `None` when the source stays silent.  <sub>:620</sub>
-    - `item_count: Option<i64>`  <sub>:621</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:627</sub>
+    - `bib_id: String`  <sub>:628</sub>
+    - `title: String`  <sub>:629</sub>
+    - `author: String`  <sub>:630</sub>
+    - `publisher: String`  <sub>:631</sub>
+    - `year: String`  <sub>:632</sub>
+    - `callno: String`  <sub>:633</sub>
+    - `isbn: String`  <sub>:634</sub>
+    - `items_available: Option<i64>` — Reported copy availability, or `None` when the source stays silent.  <sub>:636</sub>
+    - `item_count: Option<i64>`  <sub>:637</sub>
 - `pub struct BookPageDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:624</sub>
-    - `page: i64`  <sub>:625</sub>
-    - `page_size: i64`  <sub>:626</sub>
-    - `total: i64`  <sub>:627</sub>
-    - `actual_total: i64`  <sub>:628</sub>
-    - `items: Vec<BookHitDto>`  <sub>:629</sub>
-    - `has_more: bool` — True when the school reported more matches than this page returned.  <sub>:631</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:640</sub>
+    - `page: i64`  <sub>:641</sub>
+    - `page_size: i64`  <sub>:642</sub>
+    - `total: i64`  <sub>:643</sub>
+    - `actual_total: i64`  <sub>:644</sub>
+    - `items: Vec<BookHitDto>`  <sub>:645</sub>
+    - `has_more: bool` — True when the school reported more matches than this page returned.  <sub>:647</sub>
 - `pub struct BookPageResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:634</sub>
-    - `data: Option<BookPageDto>`  <sub>:635</sub>
-    - `failure: Option<FailureCode>`  <sub>:636</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:650</sub>
+    - `data: Option<BookPageDto>`  <sub>:651</sub>
+    - `failure: Option<FailureCode>`  <sub>:652</sub>
 - `pub async fn load_library_books( query: String, page: i64, sort: String, descending: bool, ) -> BookPageResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:639</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:655</sub>
 - `pub struct ShuttleRunDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:648</sub>
-    - `index: String`  <sub>:649</sub>
-    - `time: String`  <sub>:650</sub>
-    - `capacity: String`  <sub>:651</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:664</sub>
+    - `index: String`  <sub>:665</sub>
+    - `time: String`  <sub>:666</sub>
+    - `capacity: String`  <sub>:667</sub>
 - `pub struct ShuttleSectionDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:654</sub>
-    - `label: String`  <sub>:655</sub>
-    - `left: Vec<ShuttleRunDto>`  <sub>:656</sub>
-    - `right: Vec<ShuttleRunDto>`  <sub>:657</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:670</sub>
+    - `label: String`  <sub>:671</sub>
+    - `left: Vec<ShuttleRunDto>`  <sub>:672</sub>
+    - `right: Vec<ShuttleRunDto>`  <sub>:673</sub>
 - `pub struct ShuttleTableDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:660</sub>
-    - `left: String`  <sub>:661</sub>
-    - `right: String`  <sub>:662</sub>
-    - `sections: Vec<ShuttleSectionDto>`  <sub>:663</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:676</sub>
+    - `left: String`  <sub>:677</sub>
+    - `right: String`  <sub>:678</sub>
+    - `sections: Vec<ShuttleSectionDto>`  <sub>:679</sub>
 - `pub struct ShuttleTimetableDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:666</sub>
-    - `tables: Vec<ShuttleTableDto>`  <sub>:667</sub>
-    - `source: String`  <sub>:668</sub>
-    - `live_source: String`  <sub>:669</sub>
-- `pub struct ShuttleTimetableResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:672</sub>
-    - `data: Option<ShuttleTimetableDto>`  <sub>:673</sub>
-    - `failure: Option<FailureCode>`  <sub>:674</sub>
-- `pub async fn load_shuttle_timetable() -> ShuttleTimetableResponse {…}` — Published shuttle timetable (official page). Read-only, no ticketing.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:678</sub>
-- `pub struct BookHoldingDto`
   <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:682</sub>
-    - `call_no: String`  <sub>:683</sub>
-    - `bar_code: String`  <sub>:684</sub>
-    - `library: String`  <sub>:685</sub>
-    - `location: String`  <sub>:686</sub>
-    - `status: String` — The school's own status text; never a local available/unavailable flag.  <sub>:688</sub>
+    - `tables: Vec<ShuttleTableDto>`  <sub>:683</sub>
+    - `source: String`  <sub>:684</sub>
+    - `live_source: String`  <sub>:685</sub>
+- `pub struct ShuttleTimetableResponse`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:688</sub>
+    - `data: Option<ShuttleTimetableDto>`  <sub>:689</sub>
+    - `failure: Option<FailureCode>`  <sub>:690</sub>
+- `pub async fn load_shuttle_timetable() -> ShuttleTimetableResponse {…}` — Published shuttle timetable (official page). Read-only, no ticketing.
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:694</sub>
+- `pub struct BookHoldingDto`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:698</sub>
+    - `call_no: String`  <sub>:699</sub>
+    - `bar_code: String`  <sub>:700</sub>
+    - `library: String`  <sub>:701</sub>
+    - `location: String`  <sub>:702</sub>
+    - `status: String` — The school's own status text; never a local available/unavailable flag.  <sub>:704</sub>
 - `pub struct BookHoldingsResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:691</sub>
-    - `data: Option<Vec<BookHoldingDto>>`  <sub>:692</sub>
-    - `failure: Option<FailureCode>`  <sub>:693</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:707</sub>
+    - `data: Option<Vec<BookHoldingDto>>`  <sub>:708</sub>
+    - `failure: Option<FailureCode>`  <sub>:709</sub>
 - `pub async fn load_library_holdings(bib_id: String) -> BookHoldingsResponse {…}` — Public holdings for one bib id; the nested JSON string never crosses the bridge.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:697</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:713</sub>
 - `pub struct LearningSnapshotResponse` — Transient archive bytes. Hosts must use explicitly opted-in encrypted storage.
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:702</sub>
-    - `bytes: Option<Vec<u8>>`  <sub>:703</sub>
-    - `failure: Option<FailureCode>`  <sub>:704</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:718</sub>
+    - `bytes: Option<Vec<u8>>`  <sub>:719</sub>
+    - `failure: Option<FailureCode>`  <sub>:720</sub>
 - `pub async fn export_learning_snapshots(expected_account: String) -> LearningSnapshotResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:706</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:722</sub>
 - `pub async fn import_learning_snapshots( expected_account: String, bytes: Vec<u8>, ) -> SnapshotImportResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:709</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:725</sub>
 - `pub fn library_loans_portal_url() -> String {…}` — Public website metadata only. Does not initialize an authenticated session.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:718</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:734</sub>
 - `pub fn student_service_url(id: String) -> Option<String> {…}` — Public destination metadata; does not initialize an authenticated session.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:724</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:740</sub>
 - `pub struct LibraryLoanDto` — Explicit private read, scoped to the caller's account. No disk cache or writes.
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:729</sub>
-    - `id: String`  <sub>:730</sub>
-    - `title: Option<String>`  <sub>:731</sub>
-    - `author: Option<String>`  <sub>:732</sub>
-    - `call_number: Option<String>`  <sub>:733</sub>
-    - `borrowed_at: Option<String>`  <sub>:734</sub>
-    - `due_at: Option<String>`  <sub>:735</sub>
-- `pub struct LibraryLoanPageDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:738</sub>
-    - `items: Vec<LibraryLoanDto>`  <sub>:739</sub>
-    - `page: u32`  <sub>:740</sub>
-    - `total: u32`  <sub>:741</sub>
-    - `has_more: bool`  <sub>:742</sub>
-- `pub struct LibraryLoansResponse`
   <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:745</sub>
-    - `data: Option<LibraryLoanPageDto>`  <sub>:746</sub>
-    - `failure: Option<FailureCode>`  <sub>:747</sub>
+    - `id: String`  <sub>:746</sub>
+    - `title: Option<String>`  <sub>:747</sub>
+    - `author: Option<String>`  <sub>:748</sub>
+    - `call_number: Option<String>`  <sub>:749</sub>
+    - `borrowed_at: Option<String>`  <sub>:750</sub>
+    - `due_at: Option<String>`  <sub>:751</sub>
+- `pub struct LibraryLoanPageDto`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:754</sub>
+    - `items: Vec<LibraryLoanDto>`  <sub>:755</sub>
+    - `page: u32`  <sub>:756</sub>
+    - `total: u32`  <sub>:757</sub>
+    - `has_more: bool`  <sub>:758</sub>
+- `pub struct LibraryLoansResponse`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:761</sub>
+    - `data: Option<LibraryLoanPageDto>`  <sub>:762</sub>
+    - `failure: Option<FailureCode>`  <sub>:763</sub>
 - `pub async fn load_library_loans(expected_account: String, page: u32) -> LibraryLoansResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:750</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:766</sub>
 - `pub struct CountPairDto` — Public counts only. No school identity or library token is serialized.
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:755</sub>
-    - `available: i32`  <sub>:756</sub>
-    - `total: i32`  <sub>:757</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:771</sub>
+    - `available: i32`  <sub>:772</sub>
+    - `total: i32`  <sub>:773</sub>
 - `pub struct ReadingRoomDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:760</sub>
-    - `name: String`  <sub>:761</sub>
-    - `people: i32`  <sub>:762</sub>
-- `pub struct LibraryCampusStatsDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:765</sub>
-    - `id: String`  <sub>:766</sub>
-    - `name: String`  <sub>:767</sub>
-    - `people: i32`  <sub>:768</sub>
-    - `reading_rooms: Vec<ReadingRoomDto>`  <sub>:769</sub>
-    - `seats: Option<CountPairDto>` — Absent means the school did not publish that resource, not zero.  <sub>:771</sub>
-    - `study_rooms: Option<CountPairDto>`  <sub>:772</sub>
-    - `lockers: Option<CountPairDto>`  <sub>:773</sub>
-- `pub struct LibraryStatsDto`
   <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:776</sub>
-    - `campuses: Vec<LibraryCampusStatsDto>`  <sub>:777</sub>
-    - `fetched_at: Option<String>`  <sub>:778</sub>
-    - `from_cache: bool`  <sub>:779</sub>
+    - `name: String`  <sub>:777</sub>
+    - `people: i32`  <sub>:778</sub>
+- `pub struct LibraryCampusStatsDto`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:781</sub>
+    - `id: String`  <sub>:782</sub>
+    - `name: String`  <sub>:783</sub>
+    - `people: i32`  <sub>:784</sub>
+    - `reading_rooms: Vec<ReadingRoomDto>`  <sub>:785</sub>
+    - `seats: Option<CountPairDto>` — Absent means the school did not publish that resource, not zero.  <sub>:787</sub>
+    - `study_rooms: Option<CountPairDto>`  <sub>:788</sub>
+    - `lockers: Option<CountPairDto>`  <sub>:789</sub>
+- `pub struct LibraryStatsDto`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:792</sub>
+    - `campuses: Vec<LibraryCampusStatsDto>`  <sub>:793</sub>
+    - `fetched_at: Option<String>`  <sub>:794</sub>
+    - `from_cache: bool`  <sub>:795</sub>
 - `pub struct LibraryStatsResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:782</sub>
-    - `data: Option<LibraryStatsDto>`  <sub>:783</sub>
-    - `failure: Option<FailureCode>`  <sub>:784</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:798</sub>
+    - `data: Option<LibraryStatsDto>`  <sub>:799</sub>
+    - `failure: Option<FailureCode>`  <sub>:800</sub>
 - `pub async fn load_library_stats(force_refresh: bool) -> LibraryStatsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:787</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:803</sub>
 - `pub fn load_demo_library_stats() -> LibraryStatsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:790</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:806</sub>
 - `pub struct AndroidDownloadDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:794</sub>
-    - `version: String`  <sub>:795</sub>
-    - `name: String`  <sub>:796</sub>
-    - `url: String`  <sub>:797</sub>
-    - `api_url: String`  <sub>:798</sub>
-    - `size: i64` — Upstream only ever publishes a verified asset inside  <sub>:801</sub>
-    - `sha256: String`  <sub>:802</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:810</sub>
+    - `version: String`  <sub>:811</sub>
+    - `name: String`  <sub>:812</sub>
+    - `url: String`  <sub>:813</sub>
+    - `api_url: String`  <sub>:814</sub>
+    - `size: i64` — Upstream only ever publishes a verified asset inside  <sub>:817</sub>
+    - `sha256: String`  <sub>:818</sub>
 - `pub struct UpdateSummaryDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:805</sub>
-    - `current: String`  <sub>:806</sub>
-    - `latest: Option<String>`  <sub>:807</sub>
-    - `available: bool`  <sub>:808</sub>
-    - `page_url: Option<String>`  <sub>:809</sub>
-    - `notes: Option<String>`  <sub>:810</sub>
-    - `apk_available: bool`  <sub>:811</sub>
-    - `download: Option<AndroidDownloadDto>`  <sub>:812</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:821</sub>
+    - `current: String`  <sub>:822</sub>
+    - `latest: Option<String>`  <sub>:823</sub>
+    - `available: bool`  <sub>:824</sub>
+    - `page_url: Option<String>`  <sub>:825</sub>
+    - `notes: Option<String>`  <sub>:826</sub>
+    - `apk_available: bool`  <sub>:827</sub>
+    - `download: Option<AndroidDownloadDto>`  <sub>:828</sub>
 - `pub struct UpdateResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:815</sub>
-    - `data: Option<UpdateSummaryDto>`  <sub>:816</sub>
-    - `failure: Option<FailureCode>`  <sub>:817</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:831</sub>
+    - `data: Option<UpdateSummaryDto>`  <sub>:832</sub>
+    - `failure: Option<FailureCode>`  <sub>:833</sub>
 - `pub async fn check_android_update(current: String) -> UpdateResponse {…}` — Deliberately independent from login, school routes and account caches.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:821</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:837</sub>
 - `pub struct MutationResponse` — User-confirmed write. Never retries the mutation and never exposes raw upstream text.
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:826</sub>
-    - `state: String`  <sub>:827</sub>
-    - `message: String`  <sub>:828</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:842</sub>
+    - `state: String`  <sub>:843</sub>
+    - `message: String`  <sub>:844</sub>
 - `pub async fn submit_checkin(course_id: String) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:831</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:847</sub>
 - `pub async fn reserve_library_seat( area_id: String, seat_id: String, slot: crate::api::mirror::LibrarySlot, ) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:835</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:851</sub>
 - `pub async fn perform_library_action(booking_id: String, action: String) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:842</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:858</sub>
 - `pub struct HomeworkAttachmentDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:897</sub>
-    - `id: String`  <sub>:898</sub>
-    - `name: String`  <sub>:899</sub>
-    - `kind: String`  <sub>:900</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:914</sub>
+    - `id: String`  <sub>:915</sub>
+    - `name: String`  <sub>:916</sub>
+    - `kind: String`  <sub>:917</sub>
 - `pub struct HomeworkWorkspaceDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:903</sub>
-    - `assignment_id: String`  <sub>:904</sub>
-    - `allowed_methods: Vec<String>`  <sub>:905</sub>
-    - `allowed_extensions: Vec<String>`  <sub>:906</sub>
-    - `submission_limit: Option<u32>`  <sub>:907</sub>
-    - `submitted_count: Option<u32>`  <sub>:908</sub>
-    - `returned: bool`  <sub>:909</sub>
-    - `submitted_text: Option<String>`  <sub>:910</sub>
-    - `feedback: Option<String>`  <sub>:911</sub>
-    - `attachments: Vec<HomeworkAttachmentDto>`  <sub>:912</sub>
-    - `can_submit_file: bool`  <sub>:913</sub>
-    - `blocked_reason: Option<String>`  <sub>:914</sub>
-    - `file_limit_bytes: i64` — Widened from `u64`; the 20 MB upload cap keeps this lossless.  <sub>:916</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:920</sub>
+    - `assignment_id: String`  <sub>:921</sub>
+    - `allowed_methods: Vec<String>`  <sub>:922</sub>
+    - `allowed_extensions: Vec<String>`  <sub>:923</sub>
+    - `submission_limit: Option<u32>`  <sub>:924</sub>
+    - `submitted_count: Option<u32>`  <sub>:925</sub>
+    - `returned: bool`  <sub>:926</sub>
+    - `submitted_text: Option<String>`  <sub>:927</sub>
+    - `feedback: Option<String>`  <sub>:928</sub>
+    - `attachments: Vec<HomeworkAttachmentDto>`  <sub>:929</sub>
+    - `can_submit_file: bool`  <sub>:930</sub>
+    - `blocked_reason: Option<String>`  <sub>:931</sub>
+    - `file_limit_bytes: i64` — Widened from `u64`; the 20 MB upload cap keeps this lossless.  <sub>:933</sub>
 - `pub struct HomeworkFileWorkspaceResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:919</sub>
-    - `data: Option<HomeworkWorkspaceDto>`  <sub>:920</sub>
-    - `failure: Option<FailureCode>`  <sub>:921</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:936</sub>
+    - `data: Option<HomeworkWorkspaceDto>`  <sub>:937</sub>
+    - `failure: Option<FailureCode>`  <sub>:938</sub>
 - `pub struct HomeworkUploadReceiptDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:924</sub>
-    - `handle: String`  <sub>:925</sub>
-    - `file_name: String`  <sub>:926</sub>
-    - `size: i64` — Widened from `u64`; the 20 MB upload cap keeps this lossless.  <sub>:928</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:941</sub>
+    - `handle: String`  <sub>:942</sub>
+    - `file_name: String`  <sub>:943</sub>
+    - `size: i64` — Widened from `u64`; the 20 MB upload cap keeps this lossless.  <sub>:945</sub>
 - `pub struct HomeworkUploadResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:931</sub>
-    - `data: Option<HomeworkUploadReceiptDto>`  <sub>:932</sub>
-    - `failure: Option<FailureCode>`  <sub>:933</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:948</sub>
+    - `data: Option<HomeworkUploadReceiptDto>`  <sub>:949</sub>
+    - `failure: Option<FailureCode>`  <sub>:950</sub>
 - `pub async fn homework_file_workspace( expected_account: String, assignment_id: String, ) -> HomeworkFileWorkspaceResponse {…}` — Homework business JSON only; raw SPOC payloads never leave upstream.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:937</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:954</sub>
 - `pub async fn upload_homework_file( expected_account: String, assignment_id: String, name: String, bytes: Vec<u8>, ) -> HomeworkUploadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:943</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:960</sub>
 - `pub async fn submit_homework_file( expected_account: String, handle: String, confirmed: bool, ) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:951</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:968</sub>
 - `pub async fn reconcile_homework_file(expected_account: String, handle: String) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:958</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:975</sub>
 - `pub struct HomeworkFileDownloadResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:961</sub>
-    - `name: Option<String>`  <sub>:962</sub>
-    - `bytes: Option<Vec<u8>>`  <sub>:963</sub>
-    - `failure: Option<FailureCode>`  <sub>:964</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:978</sub>
+    - `name: Option<String>`  <sub>:979</sub>
+    - `bytes: Option<Vec<u8>>`  <sub>:980</sub>
+    - `failure: Option<FailureCode>`  <sub>:981</sub>
 - `pub async fn download_homework_file( expected_account: String, assignment_id: String, attachment_id: String, ) -> HomeworkFileDownloadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:966</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:983</sub>
 - `pub struct LearningCourseDto` — Learning queries return business DTO JSON, never school response envelopes.
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:975</sub>
-    - `id: String`  <sub>:976</sub>
-    - `name: String`  <sub>:977</sub>
-    - `teacher: Option<String>`  <sub>:978</sub>
-    - `term: Option<String>`  <sub>:979</sub>
-    - `source_url: String`  <sub>:980</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:992</sub>
+    - `id: String`  <sub>:993</sub>
+    - `name: String`  <sub>:994</sub>
+    - `teacher: Option<String>`  <sub>:995</sub>
+    - `term: Option<String>`  <sub>:996</sub>
+    - `source_url: String`  <sub>:997</sub>
 - `pub struct LearningCoursesResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:983</sub>
-    - `data: Option<Vec<LearningCourseDto>>`  <sub>:984</sub>
-    - `failure: Option<FailureCode>`  <sub>:985</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1000</sub>
+    - `data: Option<Vec<LearningCourseDto>>`  <sub>:1001</sub>
+    - `failure: Option<FailureCode>`  <sub>:1002</sub>
 - `pub struct CourseAnnouncementDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:988</sub>
-    - `id: String`  <sub>:989</sub>
-    - `title: String`  <sub>:990</sub>
-    - `published_at: Option<String>`  <sub>:991</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1005</sub>
+    - `id: String`  <sub>:1006</sub>
+    - `title: String`  <sub>:1007</sub>
+    - `published_at: Option<String>`  <sub>:1008</sub>
 - `pub struct CourseAnnouncementsResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:994</sub>
-    - `data: Option<Vec<CourseAnnouncementDto>>`  <sub>:995</sub>
-    - `failure: Option<FailureCode>`  <sub>:996</sub>
-- `pub struct LearningAttachmentDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:999</sub>
-    - `id: String`  <sub>:1000</sub>
-    - `name: String`  <sub>:1001</sub>
-- `pub struct CourseAnnouncementDetailDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1004</sub>
-    - `id: String`  <sub>:1005</sub>
-    - `title: String`  <sub>:1006</sub>
-    - `content: Option<String>`  <sub>:1007</sub>
-    - `attachments: Vec<LearningAttachmentDto>`  <sub>:1008</sub>
-- `pub struct CourseAnnouncementDetailResponse`
   <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1011</sub>
-    - `data: Option<CourseAnnouncementDetailDto>`  <sub>:1012</sub>
+    - `data: Option<Vec<CourseAnnouncementDto>>`  <sub>:1012</sub>
     - `failure: Option<FailureCode>`  <sub>:1013</sub>
-- `pub struct CourseResourceDto`
+- `pub struct LearningAttachmentDto`
   <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1016</sub>
     - `id: String`  <sub>:1017</sub>
     - `name: String`  <sub>:1018</sub>
-    - `folder: bool`  <sub>:1019</sub>
-    - `downloadable: bool`  <sub>:1020</sub>
-    - `updated_at: Option<String>`  <sub>:1021</sub>
-    - `extension: Option<String>`  <sub>:1022</sub>
+- `pub struct CourseAnnouncementDetailDto`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1021</sub>
+    - `id: String`  <sub>:1022</sub>
+    - `title: String`  <sub>:1023</sub>
+    - `content: Option<String>`  <sub>:1024</sub>
+    - `attachments: Vec<LearningAttachmentDto>`  <sub>:1025</sub>
+- `pub struct CourseAnnouncementDetailResponse`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1028</sub>
+    - `data: Option<CourseAnnouncementDetailDto>`  <sub>:1029</sub>
+    - `failure: Option<FailureCode>`  <sub>:1030</sub>
+- `pub struct CourseResourceDto`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1033</sub>
+    - `id: String`  <sub>:1034</sub>
+    - `name: String`  <sub>:1035</sub>
+    - `folder: bool`  <sub>:1036</sub>
+    - `downloadable: bool`  <sub>:1037</sub>
+    - `updated_at: Option<String>`  <sub>:1038</sub>
+    - `extension: Option<String>`  <sub>:1039</sub>
 - `pub struct CourseResourcePageDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1025</sub>
-    - `items: Vec<CourseResourceDto>`  <sub>:1026</sub>
-    - `page: u32`  <sub>:1027</sub>
-    - `has_next: bool`  <sub>:1028</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1042</sub>
+    - `items: Vec<CourseResourceDto>`  <sub>:1043</sub>
+    - `page: u32`  <sub>:1044</sub>
+    - `has_next: bool`  <sub>:1045</sub>
 - `pub struct CourseResourcePageResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1031</sub>
-    - `data: Option<CourseResourcePageDto>`  <sub>:1032</sub>
-    - `failure: Option<FailureCode>`  <sub>:1033</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1048</sub>
+    - `data: Option<CourseResourcePageDto>`  <sub>:1049</sub>
+    - `failure: Option<FailureCode>`  <sub>:1050</sub>
 - `pub struct CourseAssessmentDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1036</sub>
-    - `id: String`  <sub>:1037</sub>
-    - `title: String`  <sub>:1038</sub>
-    - `starts_at: Option<String>`  <sub>:1039</sub>
-    - `due_at: Option<String>`  <sub>:1040</sub>
-    - `score: Option<String>`  <sub>:1041</sub>
-    - `source_url: String`  <sub>:1042</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1053</sub>
+    - `id: String`  <sub>:1054</sub>
+    - `title: String`  <sub>:1055</sub>
+    - `starts_at: Option<String>`  <sub>:1056</sub>
+    - `due_at: Option<String>`  <sub>:1057</sub>
+    - `score: Option<String>`  <sub>:1058</sub>
+    - `source_url: String`  <sub>:1059</sub>
 - `pub struct CourseAssessmentsResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1045</sub>
-    - `data: Option<Vec<CourseAssessmentDto>>`  <sub>:1046</sub>
-    - `failure: Option<FailureCode>`  <sub>:1047</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1062</sub>
+    - `data: Option<Vec<CourseAssessmentDto>>`  <sub>:1063</sub>
+    - `failure: Option<FailureCode>`  <sub>:1064</sub>
 - `pub enum LearningColumnKindDto`
-  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1050</sub>
+  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1067</sub>
 - `pub struct LearningColumnDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1055</sub>
-    - `id: String`  <sub>:1056</sub>
-    - `name: String`  <sub>:1057</sub>
-    - `kind: LearningColumnKindDto`  <sub>:1058</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1072</sub>
+    - `id: String`  <sub>:1073</sub>
+    - `name: String`  <sub>:1074</sub>
+    - `kind: LearningColumnKindDto`  <sub>:1075</sub>
 - `pub struct LearningColumnsResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1061</sub>
-    - `data: Option<Vec<LearningColumnDto>>`  <sub>:1062</sub>
-    - `failure: Option<FailureCode>`  <sub>:1063</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1078</sub>
+    - `data: Option<Vec<LearningColumnDto>>`  <sub>:1079</sub>
+    - `failure: Option<FailureCode>`  <sub>:1080</sub>
 - `pub enum LearningCapabilityStateDto`
-  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1066</sub>
+  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1083</sub>
 - `pub struct LearningCapabilitiesDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1075</sub>
-    - `columns: LearningCapabilityStateDto`  <sub>:1076</sub>
-    - `announcements: LearningCapabilityStateDto`  <sub>:1077</sub>
-    - `resources: LearningCapabilityStateDto`  <sub>:1078</sub>
-    - `assessments: LearningCapabilityStateDto`  <sub>:1079</sub>
-    - `resource_download: LearningCapabilityStateDto`  <sub>:1080</sub>
-    - `announcement_download: LearningCapabilityStateDto`  <sub>:1081</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1092</sub>
+    - `columns: LearningCapabilityStateDto`  <sub>:1093</sub>
+    - `announcements: LearningCapabilityStateDto`  <sub>:1094</sub>
+    - `resources: LearningCapabilityStateDto`  <sub>:1095</sub>
+    - `assessments: LearningCapabilityStateDto`  <sub>:1096</sub>
+    - `resource_download: LearningCapabilityStateDto`  <sub>:1097</sub>
+    - `announcement_download: LearningCapabilityStateDto`  <sub>:1098</sub>
 - `pub struct LearningCapabilitiesResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1084</sub>
-    - `data: Option<LearningCapabilitiesDto>`  <sub>:1085</sub>
-    - `failure: Option<FailureCode>`  <sub>:1086</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1101</sub>
+    - `data: Option<LearningCapabilitiesDto>`  <sub>:1102</sub>
+    - `failure: Option<FailureCode>`  <sub>:1103</sub>
 - `pub struct SnapshotImportResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1089</sub>
-    - `imported: Option<u32>` — Count of snapshots actually merged, not the number offered.  <sub>:1091</sub>
-    - `failure: Option<FailureCode>`  <sub>:1092</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1106</sub>
+    - `imported: Option<u32>` — Count of snapshots actually merged, not the number offered.  <sub>:1108</sub>
+    - `failure: Option<FailureCode>`  <sub>:1109</sub>
 - `pub async fn learning_courses(expected_account: String, force: bool) -> LearningCoursesResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1095</sub>
-- `pub async fn course_announcements( expected_account: String, course: String, force: bool, ) -> CourseAnnouncementsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1098</sub>
-- `pub async fn course_announcement_detail( expected_account: String, course: String, id: String, ) -> CourseAnnouncementDetailResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1105</sub>
-- `pub async fn course_resources( expected_account: String, course: String, folder: Option<String>, page: u32, force: bool, ) -> CourseResourcePageResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1112</sub>
+- `pub async fn course_announcements( expected_account: String, course: String, force: bool, ) -> CourseAnnouncementsResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1115</sub>
+- `pub async fn course_announcement_detail( expected_account: String, course: String, id: String, ) -> CourseAnnouncementDetailResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1122</sub>
+- `pub async fn course_resources( expected_account: String, course: String, folder: Option<String>, page: u32, force: bool, ) -> CourseResourcePageResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1129</sub>
 - `pub async fn course_assessments( expected_account: String, course: String, force: bool, ) -> CourseAssessmentsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1121</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1138</sub>
 - `pub async fn course_resource_download( expected_account: String, course: String, folder: Option<String>, page: u32, id: String, ) -> HomeworkFileDownloadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1128</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1145</sub>
 - `pub async fn course_announcement_attachment( expected_account: String, course: String, id: String, file: String, ) -> HomeworkFileDownloadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1137</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1154</sub>
 - `pub async fn course_learning_columns( expected_account: String, course: String, force: bool, ) -> LearningColumnsResponse {…}` — Explicit module context; all identifiers are revalidated by the source.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1150</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1167</sub>
 - `pub async fn course_learning_capabilities( expected_account: String, course: String, ) -> LearningCapabilitiesResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1157</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1174</sub>
 - `pub async fn course_announcements_in( expected_account: String, course: String, column: String, force: bool, ) -> CourseAnnouncementsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1163</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1180</sub>
 - `pub async fn course_assessments_in( expected_account: String, course: String, column: String, force: bool, ) -> CourseAssessmentsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1171</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1188</sub>
 - `pub async fn course_announcement_detail_in( expected_account: String, course: String, column: String, id: String, ) -> CourseAnnouncementDetailResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1179</sub>
-- `pub async fn course_announcement_attachment_in( expected_account: String, course: String, column: String, id: String, file: String, ) -> HomeworkFileDownloadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1187</sub>
-- `pub async fn course_resources_at( expected_account: String, course: String, path: Vec<String>, page: u32, force: bool, ) -> CourseResourcePageResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1196</sub>
+- `pub async fn course_announcement_attachment_in( expected_account: String, course: String, column: String, id: String, file: String, ) -> HomeworkFileDownloadResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1204</sub>
+- `pub async fn course_resources_at( expected_account: String, course: String, path: Vec<String>, page: u32, force: bool, ) -> CourseResourcePageResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1213</sub>
 - `pub async fn course_resource_download_at( expected_account: String, course: String, path: Vec<String>, page: u32, id: String, ) -> HomeworkFileDownloadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1205</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1222</sub>
 - `pub enum GraduateCreditStateDto`
-  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1214</sub>
+  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1231</sub>
 - `pub struct GraduateCreditMetricsDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1221</sub>
-    - `state: GraduateCreditStateDto`  <sub>:1222</sub>
-    - `required: Option<f64>`  <sub>:1223</sub>
-    - `earned: Option<f64>`  <sub>:1224</sub>
-    - `pending: Option<f64>`  <sub>:1225</sub>
-    - `remaining: Option<f64>` — Derived only from this node's official requirement and earned credits.  <sub>:1227</sub>
-    - `ratio: Option<f64>`  <sub>:1228</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1238</sub>
+    - `state: GraduateCreditStateDto`  <sub>:1239</sub>
+    - `required: Option<f64>`  <sub>:1240</sub>
+    - `earned: Option<f64>`  <sub>:1241</sub>
+    - `pending: Option<f64>`  <sub>:1242</sub>
+    - `remaining: Option<f64>` — Derived only from this node's official requirement and earned credits.  <sub>:1244</sub>
+    - `ratio: Option<f64>`  <sub>:1245</sub>
 - `pub struct GraduateCreditRowDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1231</sub>
-    - `title: String`  <sub>:1232</sub>
-    - `detail: String`  <sub>:1233</sub>
-    - `is_course: bool`  <sub>:1234</sub>
-    - `completed: Option<bool>`  <sub>:1235</sub>
-    - `credit: Option<f64>`  <sub>:1236</sub>
-    - `semester: Option<String>`  <sub>:1237</sub>
-- `pub struct GraduateCreditNodeDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1240</sub>
-    - `source_index: u32` — Source ordinal, not an inferred category/group relationship.  <sub>:1242</sub>
-    - `title: String`  <sub>:1243</sub>
-    - `progress: Option<GraduateCreditMetricsDto>`  <sub>:1244</sub>
-    - `rows: Vec<GraduateCreditRowDto>`  <sub>:1245</sub>
-- `pub struct GraduateCreditMapDto`
   <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1248</sub>
-    - `summary: Option<GraduateCreditNodeDto>`  <sub>:1249</sub>
-    - `nodes: Vec<GraduateCreditNodeDto>`  <sub>:1250</sub>
-    - `notice: Option<String>`  <sub>:1251</sub>
-- `pub struct GraduateCreditMapResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1254</sub>
-    - `data: Option<GraduateCreditMapDto>`  <sub>:1255</sub>
-    - `failure: Option<FailureCode>`  <sub>:1256</sub>
-- `pub async fn load_graduate_credit_map( expected_account: String, force_refresh: bool, ) -> GraduateCreditMapResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1259</sub>
-- `pub struct HomeworkPendingSubmissionDto`
+    - `title: String`  <sub>:1249</sub>
+    - `detail: String`  <sub>:1250</sub>
+    - `is_course: bool`  <sub>:1251</sub>
+    - `completed: Option<bool>`  <sub>:1252</sub>
+    - `credit: Option<f64>`  <sub>:1253</sub>
+    - `semester: Option<String>`  <sub>:1254</sub>
+- `pub struct GraduateCreditNodeDto`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1257</sub>
+    - `source_index: u32` — Source ordinal, not an inferred category/group relationship.  <sub>:1259</sub>
+    - `title: String`  <sub>:1260</sub>
+    - `progress: Option<GraduateCreditMetricsDto>`  <sub>:1261</sub>
+    - `rows: Vec<GraduateCreditRowDto>`  <sub>:1262</sub>
+- `pub struct GraduateCreditMapDto`
   <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1265</sub>
-    - `handle: String`  <sub>:1266</sub>
-    - `assignment_id: String`  <sub>:1267</sub>
-    - `file_name: String`  <sub>:1268</sub>
-    - `size: i64` — Widened from `u64`; the 20 MB upload cap keeps this lossless.  <sub>:1270</sub>
+    - `summary: Option<GraduateCreditNodeDto>`  <sub>:1266</sub>
+    - `nodes: Vec<GraduateCreditNodeDto>`  <sub>:1267</sub>
+    - `notice: Option<String>`  <sub>:1268</sub>
+- `pub struct GraduateCreditMapResponse`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1271</sub>
+    - `data: Option<GraduateCreditMapDto>`  <sub>:1272</sub>
+    - `failure: Option<FailureCode>`  <sub>:1273</sub>
+- `pub async fn load_graduate_credit_map( expected_account: String, force_refresh: bool, ) -> GraduateCreditMapResponse {…}`
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1276</sub>
+- `pub struct HomeworkPendingSubmissionDto`
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1282</sub>
+    - `handle: String`  <sub>:1283</sub>
+    - `assignment_id: String`  <sub>:1284</sub>
+    - `file_name: String`  <sub>:1285</sub>
+    - `size: i64` — Widened from `u64`; the 20 MB upload cap keeps this lossless.  <sub>:1287</sub>
 - `pub struct HomeworkPendingResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1273</sub>
-    - `data: Option<Vec<HomeworkPendingSubmissionDto>>`  <sub>:1274</sub>
-    - `failure: Option<FailureCode>`  <sub>:1275</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1290</sub>
+    - `data: Option<Vec<HomeworkPendingSubmissionDto>>`  <sub>:1291</sub>
+    - `failure: Option<FailureCode>`  <sub>:1292</sub>
 - `pub enum HomeworkCapabilityStateDto`
-  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1278</sub>
+  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1295</sub>
 - `pub struct HomeworkCapabilityEvidenceDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1287</sub>
-    - `capability: String`  <sub>:1288</sub>
-    - `state: HomeworkCapabilityStateDto`  <sub>:1289</sub>
-    - `reason: String`  <sub>:1290</sub>
-    - `evidence: String`  <sub>:1291</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1304</sub>
+    - `capability: String`  <sub>:1305</sub>
+    - `state: HomeworkCapabilityStateDto`  <sub>:1306</sub>
+    - `reason: String`  <sub>:1307</sub>
+    - `evidence: String`  <sub>:1308</sub>
 - `pub struct HomeworkCapabilitiesResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1294</sub>
-    - `data: Option<Vec<HomeworkCapabilityEvidenceDto>>`  <sub>:1295</sub>
-    - `failure: Option<FailureCode>`  <sub>:1296</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1311</sub>
+    - `data: Option<Vec<HomeworkCapabilityEvidenceDto>>`  <sub>:1312</sub>
+    - `failure: Option<FailureCode>`  <sub>:1313</sub>
 - `pub struct HomeworkRecoveryResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1299</sub>
-    - `configured: Option<bool>` — `Some(true)` only after the store accepted the private directory.  <sub>:1301</sub>
-    - `failure: Option<FailureCode>`  <sub>:1302</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1316</sub>
+    - `configured: Option<bool>` — `Some(true)` only after the store accepted the private directory.  <sub>:1318</sub>
+    - `failure: Option<FailureCode>`  <sub>:1319</sub>
 - `pub async fn configure_homework_recovery( expected_account: String, storage_root: String, ) -> HomeworkRecoveryResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1305</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1322</sub>
 - `pub async fn pending_homework_submissions( expected_account: String, assignment_id: Option<String>, ) -> HomeworkPendingResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1311</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1328</sub>
 - `pub async fn homework_capabilities( expected_account: String, assignment_id: String, ) -> HomeworkCapabilitiesResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1317</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1334</sub>
 
 ## academic
 

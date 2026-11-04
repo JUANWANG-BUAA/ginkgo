@@ -81,7 +81,7 @@ class LibraryDisclosureToggle extends StatelessWidget {
           child: CupertinoButton(
             key: toggleKey,
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            minimumSize: const Size(44, 32),
+            minimumSize: const Size(48, 48),
             onPressed: onToggle,
             child: Row(
               mainAxisSize: MainAxisSize.min,

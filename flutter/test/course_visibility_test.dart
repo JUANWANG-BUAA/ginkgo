@@ -4,6 +4,41 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/shared/course_visibility.dart';
 
 void main() {
+  test('a queued edit cannot save after the initial restore fails', () async {
+    final stored = Completer<Set<String>>();
+    var writes = 0;
+    final preferences = CourseVisibility(
+      'fixture',
+      load: () => stored.future,
+      save: (_) async => writes++,
+    );
+    addTearDown(preferences.dispose);
+    final restoring = preferences.restore();
+    final saving = preferences.setHidden('spoc', 'course', true);
+    stored.completeError(const FormatException('synthetic corrupt record'));
+    await Future.wait([restoring, saving]);
+    expect(preferences.loadFailed, isTrue);
+    expect(preferences.ready, isFalse);
+    expect(writes, 0);
+    expect(preferences.error, contains('未能读取'));
+  });
+
+  test('disposing while restoring prevents queued persistence', () async {
+    final stored = Completer<Set<String>>();
+    var writes = 0;
+    final preferences = CourseVisibility(
+      'fixture',
+      load: () => stored.future,
+      save: (_) async => writes++,
+    );
+    final saving = preferences.setHidden('spoc', 'course', true);
+    await Future<void>.delayed(Duration.zero);
+    preferences.dispose();
+    stored.complete({});
+    await saving;
+    expect(writes, 0);
+  });
+
   test(
     'a failed read locks editing until an explicit retry succeeds',
     () async {

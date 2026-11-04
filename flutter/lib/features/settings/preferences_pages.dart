@@ -109,6 +109,7 @@ class SystemPreferencesPage extends StatefulWidget {
 class _SystemPreferencesPageState extends State<SystemPreferencesPage>
     with WidgetsBindingObserver {
   String permission = 'loading';
+  BackgroundReminderStatus? background;
   String? notice;
   bool busy = false;
   int permissionRevision = 0;
@@ -130,6 +131,7 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
     if (oldWidget.service == widget.service) return;
     serviceGeneration++;
     permission = 'loading';
+    background = null;
     notice = null;
     busy = false;
     refresh();
@@ -159,6 +161,20 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
     } catch (_) {
       if (mounted && revision == permissionRevision) {
         setState(() => permission = 'unknown');
+      }
+    }
+    final service = widget.service;
+    if (service is BackgroundReminderStatusService) {
+      try {
+        final value = await (service as BackgroundReminderStatusService)
+            .backgroundReminderStatus();
+        if (mounted && revision == permissionRevision) {
+          setState(() => background = value);
+        }
+      } catch (_) {
+        if (mounted && revision == permissionRevision) {
+          setState(() => background = null);
+        }
       }
     }
   }
@@ -207,7 +223,7 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
       AppleSection(
         header: const Text('通知'),
         footer: const Text(
-          '签到每节课提醒一次；未完成作业在截止前 48 小时和 24 小时提醒。系统通知隐藏课程和作业名称。Android 使用非精确定时，省电和休眠可能延迟；重启设备后请打开应用重排。其他平台暂仅提供应用内提示。',
+          '签到每节课提醒一次；未完成作业在截止前 48 小时和 24 小时提醒。Android 使用非精确定时，后台刷新周期不少于 15 分钟，省电和休眠可能继续延迟，短时签到可能漏检；已有计划在重启后自动重排。其他平台暂仅提供应用内提示。',
         ),
         children: [
           AppleListTile(
@@ -235,6 +251,26 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
             trailing: const CupertinoListTileChevron(),
             onTap: () => open(widget.service.openNotifications),
           ),
+          if (widget.service.isAndroid)
+            AppleListTile(
+              title: const Text('后台刷新'),
+              subtitle: Text(switch (background) {
+                null => '暂时无法读取',
+                BackgroundReminderStatus(enabled: false) => '未启用校园提醒后台刷新',
+                BackgroundReminderStatus(scheduled: false) => '后台任务未排程，请重新开启提醒',
+                BackgroundReminderStatus(status: 'sessionRequired') =>
+                  '需要打开应用恢复登录；已有提醒仍保留',
+                BackgroundReminderStatus(status: 'storageUnavailable') =>
+                  '会话保险库暂不可用，稍后自动重试',
+                BackgroundReminderStatus(status: 'localSettings') =>
+                  '本机设置未能确认，已暂停本轮刷新',
+                BackgroundReminderStatus(status: 'retryLater') =>
+                  '上次未完成，已保留提醒并等待下次调度',
+                BackgroundReminderStatus(status: 'updated') =>
+                  '最近一轮已更新，等待系统再次调度',
+                _ => '已排程，等待系统调度',
+              }),
+            ),
         ],
       ),
       if (ReminderScope.of(context) case final ReminderController reminders)
@@ -306,7 +342,7 @@ class _SystemPreferencesPageState extends State<SystemPreferencesPage>
         header: const Text('启动与后台运行'),
         footer: Text(
           widget.service.isAndroid
-              ? 'Android 的自启动和电池管理因手机品牌而异，请在应用信息中的“电池”或“自启动”查看。Ginkgo 目前不会开机自动启动，也不会常驻后台。'
+              ? 'Android 的自启动和电池管理因手机品牌而异，请在应用信息中的“电池”或“自启动”查看。Ginkgo 不常驻后台，由系统按周期唤醒；重启后恢复已有提醒计划，不会自动打开界面。'
               : '启动权限由系统管理；Windows 登录启动尚未注册。',
         ),
         children: [

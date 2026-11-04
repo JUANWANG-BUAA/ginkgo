@@ -8,6 +8,7 @@ import 'package:ginkgo_mirror/shared/course_visibility.dart';
 import 'package:ginkgo_mirror/widgets/diagnostic_hints.dart';
 import 'package:ginkgo_mirror/app/ginkgo_app.dart';
 import 'package:ginkgo_mirror/infrastructure/reminder_store.dart';
+import 'package:ginkgo_mirror/infrastructure/course_visibility_file_store.dart';
 import 'package:ginkgo_mirror/infrastructure/native_reminder_platform.dart';
 import 'package:ginkgo_mirror/infrastructure/serial_reminder_platform.dart';
 import 'package:ginkgo_mirror/infrastructure/task_storage.dart';
@@ -62,6 +63,8 @@ class GinkgoApp extends StatelessWidget {
     home: CourseVisibilityScope(
       key: ValueKey(service.isDemo ? 'demo' : accountId ?? 'account'),
       account: service.isDemo ? '__demo__' : accountId ?? '__account__',
+      controllerFactory: (account) =>
+          CourseVisibilityFileStore(account).createController(),
       child: ReminderScope(
         service: service,
         account: service.isDemo ? '__demo__' : accountId ?? '__account__',

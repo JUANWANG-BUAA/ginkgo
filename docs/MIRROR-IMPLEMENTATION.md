@@ -1,6 +1,18 @@
 # Rust + Flutter 镜像实施现状
 
+更新：2026-11-03。公开基线为 Android Beta.9 / Windows Alpha.6；以下“工作树”不代表已发布。学校协议以 [API](API.md) 为准，未完成事项只维护在 [TODO](MIRROR-TODO.md)。
+
+## 当前工作树（Beta.9 之后，未发布）
+
+工程债首批：课程范围状态不再直接做文件 IO；`CourseVisibilityFileStore` 由工作区/后台组合入口注入，保留账号摘要文件名、digest 列表及原子替换。恢复失败或对象销毁后的排队修改禁止写盘。提醒平台共享一个容错串行入口，入队即复制计划和分组，调用方后续修改不改变排程。过程与验证见[文档及工程债记录](_audit/2026-11-03-docs-and-engineering-debt.md)。
+
+2026-11-03 工作树：按用户具体授权增加 Android JobScheduler 周期后台提醒发现、重启重排与可观察状态；冷启动存储/恢复暂时错误保留为重试，不冒充退出。后台 Cookie 副本没有密码、不改前台持久会话，CAS/验证码/HTTP 保持 Beta.9 冻结。分组失败保留旧计划、账号/代次拒绝迟到结果；周期任务不是实时常驻。实现、局部解冻与实际验证见[本轮记录](_audit/2026-11-03-background-reminders-and-recovery.md)。尚未发布。
+
 2026-11-03 用户后续确认 Beta.9 登录成功，并要求冻结网络部分。该次 Beta.8 WebVPN/验证码登录阻断已关闭，共享网络与认证链以 Beta.9 `c4afc0c3` 冻结；[冻结规则](NETWORK-FREEZE.md) 和本地/CI 文件哈希门禁禁止未经具体授权的修改。此现场结果不外推到冷恢复、其他路线和全模块验收，也不改变总体 readiness。以下发布时的“待现场结果”属于历史时点。
+
+## Beta.9 发布及此前过程
+
+本节保留各轮记录的当时状态；其中“未发布”“登录待验证”不是当前结论，最终发布与用户反馈以上节及 Beta.9 审计为准。
 
 2026-11-03 发布收尾：下述认证调整已随 Beta.9（build 19）公开，PR #4 已合并；远端 Mirror、macOS、iOS 检查通过，含严格登录/冷恢复转录与 22/22 已知错误变体检出。下方同日过程记录中的“未执行/未发布”保留其当时含义，不代表最终发布状态。最终证据见 [Beta.9 发布审计](_audit/2026-11-03-beta9-publication.md)；真实登录阻断仍待用户现场结果，readiness 保持 blocked。
 
@@ -54,7 +66,7 @@ CAS 错误解析按固定 UBAA 对照补齐 `p.errors`，已知错误/提示区�
 | Android | Rust + Flutter；公开包 Beta.9（build 19）；readiness 仍 blocked | [Beta.9 发布记录](releases/android-beta9.md)；用户明确要求在仍 blocked 时发布；真实账号/验证码、物理设备、学校写入和维护者安全审查仍未完成；以下 Beta.4 历史记录只代表当时证据 |
 | Windows | Rust + Flutter；公开包 Alpha.6（build 7），Windows 10 / 11 x64 单文件安装器 + 便携 ZIP | [首发记录](archive/mirror/MIRROR-WINDOWS-ALPHA4.md)、[主机验证](archive/mirror/WINDOWS-2026-10-21.md)；系统保险库、宽屏侧栏、窄屏底部导航、键盘与返回栈基础通过；安装器未签名，物理 x64 / 干净系统运行依赖 / 真实学校业务仍未验收 |
 
-既往真实账号只读检查已覆盖已接入模块，但最近一次集成登录失败；两次结果分别保留于 [验收记录](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md) 与 [认证异常诊断](_audit/2026-10-21-auth-redirect-incident.md)。不能把早先通过推广为当前所有网络均可用，也不能将工作树改动当作已经发布。
+2026-10-21 的只读成功和后续集成登录失败分别保留于 [验收记录](archive/mirror/MIRROR-ACCEPTANCE-2026-10-21.md) 与 [认证异常诊断](_audit/2026-10-21-auth-redirect-incident.md)。当前用户已确认 Beta.9 登录成功；历史结果和单次成功都不推广为全模块/冷恢复验收，不把工作树改动当作已经发布。
 
 手机一级入口为 **今天 / 课表 / 作业 / 图书馆 / 更多**；桌面使用分组侧栏与独立目的地栈。`main.dart` 已按可用宽度 760px 选择手机或桌面布局。「更多」承载其余服务，常用服务置顶后从原分组动态移除，避免同一页面出现重复导航项。Android 保险库使用 Keystore；Windows Credential Manager 合成往返已通过，macOS 镜像保险库分支仍待验收。
 

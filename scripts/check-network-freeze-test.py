@@ -85,6 +85,8 @@ class NetworkFreezeTest(unittest.TestCase):
             ("patterns", ["../escape"]),
             ("patterns", ["/absolute"]),
             ("files", {"network/login.rs": "invalid"}),
+            ("authorized_revisions", {"network/login.rs": "0" * 64}),
+            ("authorized_revisions", []),
         ]:
             with self.subTest(key=key, value=value), self.assertRaises(ValueError):
                 record = copy.deepcopy(self.record)
@@ -92,6 +94,22 @@ class NetworkFreezeTest(unittest.TestCase):
                 freeze.validate_manifest(record)
         with self.assertRaises(TypeError):
             freeze.validate_manifest(None)
+
+    def test_authorized_change_cannot_expand_to_cas_or_arbitrary_bytes(self) -> None:
+        name, digest = next(iter(freeze.APPROVED_REVISIONS.items()))
+        record = copy.deepcopy(self.record)
+        record["files"][name] = "0" * 64
+        record["authorized_revisions"] = {name: digest}
+        record["authorization_record"] = freeze.APPROVAL_RECORD
+        self.assertEqual(freeze.validate_manifest(record)["authorized_revisions"], {name: digest})
+        for revisions in [{name: "f" * 64}, {"network/login.rs": digest}]:
+            record["authorized_revisions"] = revisions
+            with self.assertRaises(ValueError):
+                freeze.validate_manifest(record)
+        record["authorized_revisions"] = {name: digest}
+        record.pop("authorization_record")
+        with self.assertRaises(ValueError):
+            freeze.validate_manifest(record)
 
 
 if __name__ == "__main__":

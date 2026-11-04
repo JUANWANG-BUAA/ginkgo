@@ -4,11 +4,11 @@ Android 是本工程的主推平台：Flutter 界面 + 进程内 Rust 业务核�
 
 当前主开发平台为 **Android**，以新功能与体验/UI 优化为主、稳定性托底。产品与验收设定见 [Android 开发设定](../docs/ANDROID-DEVELOPMENT.md)，未完成项统一见 [镜像待办](../docs/MIRROR-TODO.md)。沿用简洁信息层级，Android 系统返回、权限和无障碍行为优先，不要求逐像素复制 iOS。
 
-当前手机入口为今天 / 课表 / 作业 / 图书馆 / 更多，宽屏切换桌面侧栏；各目的地保留独立导航。认证、主要只读模块、Android Keystore、Windows Credential Manager、离线演示和本地待办已接入；签到及图书馆实验写路径包含确认、单次提交与回查，真实写入未验收。Android Beta.8 与 Windows Alpha.6 已公开；Beta.8 发布时认证、验证码真实闭环、物理设备与真实学校写入验收仍未完成，发布验收状态保持 blocked。Windows 提供未签名 x64 单文件安装器和需完整解压的便携 ZIP；物理 x64、干净系统运行依赖和真实学校业务仍待验收。范围见 [实施现状](../docs/MIRROR-IMPLEMENTATION.md)、[Android Beta.8](../docs/releases/android-beta8.md)、[模块对照](../docs/MIRROR-PARITY.md) 和 [待办](../docs/MIRROR-TODO.md)。
+当前手机入口为今天 / 课表 / 作业 / 图书馆 / 更多，宽屏切换桌面侧栏；各目的地保留独立导航。认证、主要只读模块、Android Keystore、Windows Credential Manager、离线演示和本地待办已接入；签到及图书馆实验写路径包含确认、单次提交与回查，真实写入未验收。Android Beta.9 与 Windows Alpha.6 已公开；用户已确认 Beta.9 登录成功，其他认证场景、物理设备与真实学校写入验收仍未闭环，发布验收状态保持 blocked。Windows 提供未签名 x64 单文件安装器和需完整解压的便携 ZIP。范围见 [实施现状](../docs/MIRROR-IMPLEMENTATION.md)、[Android Beta.9](../docs/releases/android-beta9.md)、[模块对照](../docs/MIRROR-PARITY.md) 和 [待办](../docs/MIRROR-TODO.md)。
 
 ## Android 发布线
 
-Android Beta.8（`0.1.0-beta.8+18`）已公开，发布信息见 [Beta.8 Release](../docs/releases/android-beta8.md)；发布时验收仍 blocked，边界见 [本轮复核](../docs/_audit/2026-11-03-protocol-and-release-review.md)。[功能与接口协议](../docs/FEATURES-AND-PROTOCOLS.md) 为长期维护入口，用户说明见 [Android Beta.2](../docs/releases/android-beta2.md) 与 [Android Beta.1](../docs/releases/android-beta1.md)。测试/Debug APK 不是公开更新资产。升级前备份重要待办，不建议降级或卸载。最低门禁仍为 5。
+Android Beta.9（`0.1.0-beta.9+19`）已公开，发布信息见 [Beta.9 Release](../docs/releases/android-beta9.md) 与 [发布审计](../docs/_audit/2026-11-03-beta9-publication.md)。网络认证按用户要求[冻结](../docs/NETWORK-FREEZE.md)；工作树的后台提醒与暂时恢复错误处理尚未发布，见[修复记录](../docs/_audit/2026-11-03-background-reminders-and-recovery.md)。[功能与接口协议](../docs/FEATURES-AND-PROTOCOLS.md) 为长期维护入口。测试/Debug APK 不是公开更新资产。升级前备份重要待办，不建议降级或卸载。最低门禁仍为 5。
 
 对外宣传口径（仓库描述、topics、社区发帖、社交文案）统一维护在 [宣传文案](../docs/PROMOTION.md)，按 Android 主推书写。
 
@@ -19,6 +19,8 @@ Android Beta.8（`0.1.0-beta.8+18`）已公开，发布信息见 [Beta.8 Release
 macOS/Linux 的完整门禁还会构建当前宿主 Rust bridge，并通过 `GINKGO_HOST_BRIDGE` 执行真实 FRB 的演示作业列表/详情契约测试，仅使用合成数据，不启动应用、不读真实账号、不访问学校。单独运行 Flutter 单测且未指定该变量时，该项显式跳过；不能将宿主 bridge 通过解释为 Android JNI/Keystore 或设备验收。
 
 ## 当前工程验证入口
+
+后台提醒的无账号原生闭环使用新建的 `GinkgoBackground*` 隔离模拟器，在仓库根运行 `bash scripts/check-android-background-reminders.sh emulator-5580`。可加 `GINKGO_BACKGROUND_CHECK_PROFILE=1` 验证正式入口 AOT。脚本开启该隔离设备的飞行模式，只配置合成摘要/计划与损坏会话夹具，验证分组、换账号、双引擎、进程死亡、重启、覆盖升级和故障恢复页面；成功结束时清除合成应用数据并用 `--pub` 重建正常 main Debug APK。中间 probe/integration APK 不是应用或发布产物，禁止装到真实账号设备。实际结果见[本轮审计](../docs/_audit/2026-11-03-background-reminders-and-recovery.md)。
 
 学习目录/保存、多栏目、文件作业确认与回查、验证码、学分地图、课程/待办提醒、
 本人借阅和功能密集页视觉闭环的逐项证据与限制见

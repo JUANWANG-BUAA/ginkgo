@@ -64,22 +64,23 @@
 ## shared/course_visibility.dart
 
 - `class CourseVisibility extends ChangeNotifier` — User classification, isolated by account and upstream system. SPOC and
-  <sub>class · shared/course_visibility.dart:10</sub>
-    - `final Future<void> Function(Set<String>)? save;`  <sub>:13</sub>
-    - `final Future<Set<String>> Function()? load;`  <sub>:14</sub>
-    - `bool ready = false;`  <sub>:16</sub>
-    - `bool loadFailed = false;` — A failed read locks editing until an explicit retry succeeds, so a  <sub>:20</sub>
-    - `void dispose() {…}`  <sub>:27</sub>
-    - `void notifyListeners() {…}`  <sub>:33</sub>
-    - `bool hidden(String system, String id) => …`  <sub>:46</sub>
-    - `Future<void> restore() => …`  <sub>:48</sub>
-    - `Future<void> retryRestore() {…}` — Explicit retry after a failed read. Re-opens the restore path and applies  <sub>:52</sub>
-    - `Future<void> setHidden(String system, String id, bool hidden) {…}`  <sub>:98</sub>
+  <sub>class · shared/course_visibility.dart:8</sub>
+    - `final Future<void> Function(Set<String>)? save;`  <sub>:12</sub>
+    - `final Future<Set<String>> Function()? load;`  <sub>:13</sub>
+    - `bool ready = false;`  <sub>:15</sub>
+    - `bool loadFailed = false;` — A failed read locks editing until an explicit retry succeeds, so a  <sub>:19</sub>
+    - `void dispose() {…}`  <sub>:26</sub>
+    - `void notifyListeners() {…}`  <sub>:32</sub>
+    - `bool hidden(String system, String id) => …`  <sub>:39</sub>
+    - `Future<void> restore() => …`  <sub>:41</sub>
+    - `Future<void> retryRestore() {…}` — Explicit retry after a failed read. Re-opens the restore path and applies  <sub>:45</sub>
+    - `Future<void> setHidden(String system, String id, bool hidden) {…}`  <sub>:82</sub>
 - `class CourseVisibilityScope extends StatefulWidget`
-  <sub>class · shared/course_visibility.dart:134</sub>
-    - `const CourseVisibilityScope({ super.key, required this.account, required this.child, });`  <sub>:135</sub>
-    - `static CourseVisibility? of(BuildContext context) => …`  <sub>:142</sub>
-    - `State<CourseVisibilityScope> createState() => …`  <sub>:146</sub>
+  <sub>class · shared/course_visibility.dart:120</sub>
+    - `const CourseVisibilityScope({ super.key, required this.account, required this.controllerFactory, required this.child, });`  <sub>:121</sub>
+    - `final CourseVisibility Function(String account) controllerFactory;`  <sub>:128</sub>
+    - `static CourseVisibility? of(BuildContext context) => …`  <sub>:130</sub>
+    - `State<CourseVisibilityScope> createState() => …`  <sub>:134</sub>
 
 ## shared/homework_visibility.dart
 
@@ -100,29 +101,29 @@
   <sub>class · shared/reminder_controller.dart:22</sub>
     - `final Future<String> Function() tasksRoot;`  <sub>:43</sub>
     - `final DateTime Function() clock;`  <sub>:45</sub>
-    - `bool checkinEnabled = true, homeworkEnabled = true;`  <sub>:51</sub>
-    - `bool courseEnabled = false, taskEnabled = false;`  <sub>:53</sub>
-    - `bool get busy => …`  <sub>:60</sub>
-    - `bool get settingsReady => …`  <sub>:63</sub>
-    - `bool get canRetryRestore => …`  <sub>:64</sub>
-    - `int scheduled = 0;`  <sub>:65</sub>
-    - `String digest(String key) => …`  <sub>:67</sub>
-    - `Future<void> restore() async {…}`  <sub>:72</sub>
-    - `void reportRestoreTimeout() {…}`  <sub>:117</sub>
-    - `List<ReminderPlan> get plans => …`  <sub>:145</sub>
-    - `int unread(String group) => …`  <sub>:157</sub>
-    - `void markRead(String group) {…}`  <sub>:166</sub>
-    - `void setActive(String group) {…}`  <sub>:184</sub>
-    - `Future<void> setEnabled(String group, bool value) async {…}`  <sub>:189</sub>
-    - `Future<void> updateSchedule(ScheduleResponse data) async {…}` — Failed or stale school reads never replace a previously accepted plan.  <sub>:216</sub>
-    - `Future<void> updateTasks(List<LocalTaskRecord> tasks) async {…}`  <sub>:232</sub>
-    - `void updateCheckin(CheckInResponse data) {…}`  <sub>:273</sub>
-    - `void updateHomework(HomeworkResponse data) {…}`  <sub>:293</sub>
-    - `Future<void> refresh({bool includeHomework = true}) async {…}`  <sub>:315</sub>
-    - `Future<void> reconcile() {…}`  <sub>:400</sub>
-    - `Future<void> reschedule() async {…}`  <sub>:447</sub>
-    - `Future<void> stop() async {…}`  <sub>:452</sub>
-    - `void dispose() {…}`  <sub>:458</sub>
+    - `bool checkinEnabled = true, homeworkEnabled = true;`  <sub>:56</sub>
+    - `bool courseEnabled = false, taskEnabled = false;`  <sub>:58</sub>
+    - `bool get busy => …`  <sub>:65</sub>
+    - `bool get settingsReady => …`  <sub>:68</sub>
+    - `bool get canRetryRestore => …`  <sub>:69</sub>
+    - `int scheduled = 0;`  <sub>:70</sub>
+    - `String digest(String key) => …`  <sub>:72</sub>
+    - `Future<void> restore() async {…}`  <sub>:77</sub>
+    - `void reportRestoreTimeout() {…}`  <sub>:122</sub>
+    - `List<ReminderPlan> get plans => …`  <sub>:150</sub>
+    - `int unread(String group) => …`  <sub>:162</sub>
+    - `void markRead(String group) {…}`  <sub>:171</sub>
+    - `void setActive(String group) {…}`  <sub>:189</sub>
+    - `Future<void> setEnabled(String group, bool value) async {…}`  <sub>:194</sub>
+    - `Future<void> updateSchedule(ScheduleResponse data) async {…}` — Failed or stale school reads never replace a previously accepted plan.  <sub>:222</sub>
+    - `Future<void> updateTasks(List<LocalTaskRecord> tasks) async {…}`  <sub>:238</sub>
+    - `void updateCheckin(CheckInResponse data) {…}`  <sub>:280</sub>
+    - `void updateHomework(HomeworkResponse data) {…}`  <sub>:301</sub>
+    - `Future<void> refresh({bool includeHomework = true}) async {…}`  <sub>:324</sub>
+    - `Future<void> reconcile() {…}`  <sub>:413</sub>
+    - `Future<void> reschedule() async {…}`  <sub>:495</sub>
+    - `Future<void> stop() async {…}`  <sub>:500</sub>
+    - `void dispose() {…}`  <sub>:515</sub>
 
 ## shared/reminder_rules.dart
 

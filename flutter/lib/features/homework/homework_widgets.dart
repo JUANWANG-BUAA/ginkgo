@@ -37,7 +37,7 @@ class HomeworkQuickFilter extends StatelessWidget {
   Widget build(BuildContext context) => CupertinoButton(
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
     color: tint.resolveFrom(context).withValues(alpha: selected ? 0.2 : 0.08),
-    minimumSize: const Size(44, 44),
+    minimumSize: const Size(48, 48),
     onPressed: onPressed,
     child: Text(
       label,

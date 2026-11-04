@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/features/auth/login_page.dart';
+import 'package:ginkgo_mirror/features/auth/session_recovery_page.dart';
 import 'package:ginkgo_mirror/features/settings/settings_page.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
@@ -54,7 +55,8 @@ void main() {
       GinkgoRoot(liveService: service, preferences: AppPreferences()),
     );
     expect(service.restores, 0);
-    expect(find.byType(LoginPage), findsOneWidget);
+    expect(find.byType(SessionRecoveryPage), findsOneWidget);
+    expect(find.byType(LoginPage), findsNothing);
     expect(
       find.text(failureMessage(FailureCode.credentialStore)),
       findsOneWidget,

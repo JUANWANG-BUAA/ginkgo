@@ -42,6 +42,7 @@ __pycache__/
 dsh-tui-export-*.md
 pi-session-*.html
 kimi-export-session_*.md
+codex-session-*.md
 
 # Local architecture-diagram tool output
 .archify/

@@ -50,6 +50,12 @@ flowchart TB
 2. **端口是唯一收口**：`core` 依赖 `traits`，学校实现从外部注入，因此换实现不影响业务规则。
 3. **协议只在 ⑦**：URL、Cookie、token、成功码不出 `ginkgo_upstream`。
 
+### 1.1 Android 后台提醒旁路（工作树，尚未发布）
+
+`JobScheduler → ReminderRefreshJob → headless Flutter runBackgroundReminders → read_background_reminders → runtime → upstream` 是只读提醒发现链，不经过页面或前台全局 Workspace。它只把已验证、未过期的加密会话快照复制到无密码的内存保险库，不读取保存密码，不更新前台持久会话。身份事务忙时跳过；账号/代次变化后丢弃结果；未成功读取的分组保留旧计划。计划提交、广播送达与重启重排共用原生 `ReminderQueue.worker`。详细状态与边界见[后台修复审计](_audit/2026-11-03-background-reminders-and-recovery.md)。
+
+前台两分钟刷新和系统周期任务不是进程常驻或实时推送。当前周期最短 15 分钟，执行可能被系统推迟；快照固定 24 小时失效，后台不自动续期或重交密码。存储/恢复暂时错误显示重试页，不按退出处理。认证与 HTTP 仍受 [网络冻结](NETWORK-FREEZE.md) 约束。
+
 ## 2. 调用拓扑：读操作 vs 写操作
 
 只读与写入走同一条链，差别在**返回值语义**与**是否可能已改学校状态**。

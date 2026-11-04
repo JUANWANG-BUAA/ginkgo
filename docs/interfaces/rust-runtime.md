@@ -17,9 +17,13 @@
   <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:39</sub>
 - `pub fn create_service() -> Result<AppService, AppError> {…}` — Called lazily on the first command, never while Flutter initializes.
   <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:44</sub>
+- `pub type BackgroundService = Workspace<SchoolClient<ReqwestTransport, ginkgo_upstream::auth::vault::MemoryVault>>;`
+  <sub>type · rust/crates/ginkgo_runtime/src/lib.rs:52</sub>
+- `pub fn create_background_service(owner: &str) -> Result<BackgroundService, AppError> {…}` — Background jobs cannot access passwords or persist session mutations.
+  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:56</sub>
 - `pub fn has_saved_accounts() -> Result<bool, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:52</sub>
+  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:66</sub>
 - `pub fn verify_credential_storage(account: &str, secret: &str) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:57</sub>
+  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:71</sub>
 - `pub async fn check_update( current: &str, ) -> Result<ginkgo_core::features::updates::UpdateSummary, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:63</sub>
+  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:77</sub>

@@ -19,8 +19,10 @@ internal const val REMINDER_CHANNEL_ID = "campus-reminders-v1"
 
 // The receiver and every scheduler instance share one process-wide order.
 // A queued cancellation cannot race a broadcast's read/mark/notify sequence.
-private object ReminderQueue {
+internal object ReminderQueue {
     val worker = Executors.newSingleThreadExecutor()
+    @Volatile
+    var lastScheduleEpoch = 0L
 }
 
 /**
@@ -35,6 +37,10 @@ class ReminderScheduler(private val context: Context) : MethodChannel.MethodCall
     private val main = android.os.Handler(android.os.Looper.getMainLooper())
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+        if (call.method == "backgroundSummary") {
+            result.success(ReminderBackgroundState.summary(context))
+            return
+        }
         if (call.method == "summary") {
             val prefs = context.getSharedPreferences("local-reminders", 0)
             val manager = context.getSystemService(NotificationManager::class.java)
@@ -43,11 +49,20 @@ class ReminderScheduler(private val context: Context) : MethodChannel.MethodCall
                 "visible" to manager.activeNotifications.count { Build.VERSION.SDK_INT < 26 || it.notification.channelId == REMINDER_CHANNEL_ID }))
             return
         }
-        if (call.method != "replace") { result.notImplemented(); return }
+        if (call.method !in listOf("replace", "synchronize", "clearOwner")) { result.notImplemented(); return }
         val arguments = call.arguments
         ReminderQueue.worker.execute {
             val outcome = try {
-                replace(arguments)
+                when (call.method) {
+                    "synchronize" -> synchronize(arguments)
+                    "clearOwner" -> {
+                        if (ReminderBackgroundState.owner(context) == arguments) {
+                            ReminderBackgroundState.clear(context)
+                            replace(emptyList<Any>())
+                        }
+                    }
+                    else -> replace(arguments)
+                }
                 null
             } catch (e: Exception) {
                 e
@@ -59,7 +74,39 @@ class ReminderScheduler(private val context: Context) : MethodChannel.MethodCall
         }
     }
 
+    private fun synchronize(arguments: Any?) {
+        val args = arguments as? Map<*, *> ?: error("Missing reminder configuration")
+        val owner = args["owner"] as? String ?: error("Missing reminder owner")
+        check(owner.matches(Regex("[a-f0-9]{32}")))
+        if (ReminderBackgroundState.owner(context) != owner) replace(emptyList<Any>())
+        ReminderBackgroundState.configure(context, owner, args["checkin"] == true, args["homework"] == true)
+        merge(args["groups"] as? List<*> ?: emptyList<Any>(), args["plans"])
+    }
+
+    internal fun merge(groups: List<*>, plans: Any?) {
+        check(groups.all { it in listOf("checkin", "homework", "course", "task") })
+        val previous = JSONArray(context.getSharedPreferences("local-reminders", 0).getString("plans", "[]"))
+        val retained = (0 until previous.length()).map { previous.getJSONObject(it) }
+            .filter { it.getString("group") !in groups }
+            .map { plan -> mapOf("key" to plan.getString("key"), "group" to plan.getString("group"),
+                "at" to plan.getLong("at"), "expires" to plan.getLong("expires")) }
+        val incoming = (plans as? List<*> ?: emptyList<Any>()).filter {
+            (it as? Map<*, *>)?.get("group") in groups
+        }
+        val combined = (retained + incoming).sortedBy { ((it as? Map<*, *>)?.get("at") as? Number)?.toLong() ?: Long.MAX_VALUE }
+        replace(combined)
+    }
+
+    internal fun rearm() {
+        val old = JSONArray(context.getSharedPreferences("local-reminders", 0).getString("plans", "[]"))
+        replace((0 until old.length()).map { old.getJSONObject(it) }.map {
+            mapOf("key" to it.getString("key"), "group" to it.getString("group"),
+                "at" to it.getLong("at"), "expires" to it.getLong("expires"))
+        })
+    }
+
     private fun replace(callArguments: Any?) {
+        val epoch = System.currentTimeMillis()
         val plans = callArguments as? List<*> ?: emptyList<Any>()
         val next = JSONArray()
         for (raw in plans.take(60)) {
@@ -73,6 +120,19 @@ class ReminderScheduler(private val context: Context) : MethodChannel.MethodCall
         }
         val prefs = context.getSharedPreferences("local-reminders", 0)
         val previous = JSONArray(prefs.getString("plans", "[]"))
+
+        // Deduplication guard: if the last schedule epoch is within the same second
+        // and signatures match, skip to prevent double registration on reconnect.
+        if (epoch / 1000 == ReminderQueue.lastScheduleEpoch / 1000) {
+            val prevSig = prefs.getString("_last_replace_sig", null)
+            val nowSig = next.toString()
+            if (prevSig == nowSig) {
+                android.util.Log.d("Ginkgo", "skipped duplicate replace schedule")
+                return
+            }
+        }
+        ReminderQueue.lastScheduleEpoch = epoch
+
         val alarms = context.getSystemService(AlarmManager::class.java)
         val notifications = context.getSystemService(NotificationManager::class.java)
         val keys = (0 until next.length()).map { next.getJSONObject(it).getString("key") }.toSet()
@@ -83,7 +143,7 @@ class ReminderScheduler(private val context: Context) : MethodChannel.MethodCall
             if (key !in keys) notifications.cancel(key, 0)
         }
         // Persist first; a stale/cancelled broadcast must never deliver a reminder.
-        check(prefs.edit().putString("plans", next.toString()).commit()) {
+        check(prefs.edit().putString("plans", next.toString()).putString("_last_replace_sig", next.toString()).commit()) {
             "Could not persist reminder plans"
         }
         val delivered = JSONObject(prefs.getString("delivered", "{}"))

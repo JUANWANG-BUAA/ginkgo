@@ -49,6 +49,20 @@ pub fn create_service() -> Result<AppService, AppError> {
     )))
 }
 
+pub type BackgroundService =
+    Workspace<SchoolClient<ReqwestTransport, ginkgo_upstream::auth::vault::MemoryVault>>;
+
+/// Background jobs cannot access passwords or persist session mutations.
+pub fn create_background_service(owner: &str) -> Result<BackgroundService, AppError> {
+    let snapshot = platform_vault()?
+        .load_session()?
+        .ok_or_else(AppError::session_expired)?;
+    let transport = ReqwestTransport::new().map_err(|_| AppError::unavailable())?;
+    Ok(Workspace::new(
+        ginkgo_upstream::services::background_session::from_snapshot(transport, snapshot, owner)?,
+    ))
+}
+
 pub fn has_saved_accounts() -> Result<bool, AppError> {
     let vault = platform_vault()?;
     Ok(vault.has_session()? || !vault.accounts()?.is_empty())

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
+import 'package:ginkgo_mirror/design/tokens.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
@@ -270,7 +271,7 @@ class _GradeCourseRow extends StatelessWidget {
             children: [
               if (stacked) ...[
                 heading,
-                const SizedBox(height: 10),
+                const SizedBox(height: GinkgoSpacing.md),
                 score,
               ] else
                 Row(
@@ -286,7 +287,7 @@ class _GradeCourseRow extends StatelessWidget {
                     ),
                   ],
                 ),
-              const SizedBox(height: 10),
+              const SizedBox(height: GinkgoSpacing.md),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -334,7 +335,7 @@ class _ScoreBadge extends StatelessWidget {
           fontFeatures: const [FontFeature.tabularFigures()],
         ),
       ),
-      const SizedBox(height: 3),
+      const SizedBox(height: GinkgoSpacing.xs),
       Text(
         course.scoreType ?? '原始成绩',
         style: TextStyle(

@@ -59,7 +59,6 @@ def source_violations(root):
 # reminders, update gate), never school payloads. Located by path so a rename
 # cannot silently promote a codec into an unchecked layer.
 LOCAL_JSON_CODECS = {
-    'shared/course_visibility.dart',
     'shared/reminder_controller.dart',
     'platform/update_gate.dart',
     'workspace/workspace_shortcut_preferences.dart',
@@ -100,7 +99,7 @@ def payload_decode_violations(root):
 
 
 # Shared state may depend on pure values and injected ports, not file or OS APIs.
-# Keep the two not-yet-migrated modules explicit so their exceptions cannot grow
+# Keep the remaining legacy module explicit so its exceptions cannot grow
 # unnoticed while the adapters are moved into infrastructure/platform.
 SHARED_PLATFORM_IMPORT_PREFIXES = (
     'package:path_provider/',
@@ -109,10 +108,6 @@ SHARED_PLATFORM_IMPORT_PREFIXES = (
     'package:flutter/services.dart',
 )
 SHARED_PLATFORM_IMPORT_EXCEPTIONS = {
-    'shared/course_visibility.dart': {
-        'dart:io',
-        'package:path_provider/path_provider.dart',
-    },
     'shared/school_links.dart': {'package:url_launcher/url_launcher.dart'},
 }
 

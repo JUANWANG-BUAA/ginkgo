@@ -117,7 +117,7 @@ class TodayActionRow extends StatelessWidget {
                 width: 1.0,
               ),
             ),
-            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            margin: const EdgeInsets.symmetric(horizontal: GinkgoSpacing.md, vertical: GinkgoSpacing.sm),
             child: content,
           )
         : content;

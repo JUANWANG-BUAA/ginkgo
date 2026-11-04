@@ -8,6 +8,7 @@
 ## 目录
 
 - [application/auth_challenge.dart](#applicationauthchallengedart) (3)
+- [application/background_reminders.dart](#applicationbackgroundremindersdart) (2)
 - [application/busy_gate.dart](#applicationbusygatedart) (1)
 - [application/bykc.dart](#applicationbykcdart) (12)
 - [application/campus_activities.dart](#applicationcampusactivitiesdart) (4)
@@ -41,7 +42,7 @@
 - [application/read_deadline.dart](#applicationreaddeadlinedart) (1)
 - [application/refresh_section.dart](#applicationrefreshsectiondart) (2)
 - [application/reminder_planning.dart](#applicationreminderplanningdart) (11)
-- [application/reminder_platform.dart](#applicationreminderplatformdart) (1)
+- [application/reminder_platform.dart](#applicationreminderplatformdart) (2)
 - [application/reminder_store.dart](#applicationreminderstoredart) (1)
 - [application/school_rules.dart](#applicationschoolrulesdart) (1)
 - [application/service_capabilities.dart](#applicationservicecapabilitiesdart) (1)
@@ -59,6 +60,14 @@
   <sub>class · application/auth_challenge.dart:27</sub>
     - `Future<LoginChallenge?> gatewayChallenge({ String? expectedId, bool refresh = false, });`  <sub>:28</sub>
     - `Future<void> answerGatewayChallenge({ required String expectedId, required String answer, });`  <sub>:32</sub>
+
+## application/background_reminders.dart
+
+- `class BackgroundReminderBatch` — A failed group is absent, while a successful empty group removes old plans.
+  <sub>class · application/background_reminders.dart:8</sub>
+    - `const BackgroundReminderBatch(this.groups, this.plans);`  <sub>:9</sub>
+- `BackgroundReminderBatch backgroundReminderBatch({ required String account, required String expectedOwner, required CheckInResponse? checkin, required HomeworkResponse? homework, required ReminderPlanningGateway planner, required int nowMillis, required bool Function(HomeworkItem) personalHomework, }) {…}`
+  <sub>function · application/background_reminders.dart:14</sub>
 
 ## application/busy_gate.dart
 
@@ -680,6 +689,10 @@
 - `abstract interface class ReminderPlatform` — System notification scheduling, independent of the platform channel.
   <sub>class · application/reminder_platform.dart:2</sub>
     - `Future<void> replace(List<Map<String, Object>> plans);`  <sub>:3</sub>
+- `abstract interface class ScopedReminderPlatform` — Atomically binds background discovery and partial plan updates to an owner.
+  <sub>class · application/reminder_platform.dart:7</sub>
+    - `Future<void> synchronize({ required String owner, required bool checkin, required bool homework, required Set<String> groups, required List<Map<String, Object>> plans, });`  <sub>:8</sub>
+    - `Future<void> clearOwner(String owner);`  <sub>:15</sub>
 
 ## application/reminder_store.dart
 

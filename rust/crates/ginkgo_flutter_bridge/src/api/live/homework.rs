@@ -2,11 +2,17 @@
 use super::*;
 
 pub(super) async fn load_homework(force_refresh: bool) -> crate::api::mirror::HomeworkResponse {
-    use crate::api::mirror::{HomeworkItem, HomeworkResponse, HomeworkStatus};
     let result = match service() {
         Ok(service) => with_session_read(|| service.load_homework(force_refresh)).await,
         Err(error) => Err(error),
     };
+    homework_response(result)
+}
+
+pub(super) fn homework_response(
+    result: Result<ginkgo_core::application::HomeworkOutcome, AppError>,
+) -> crate::api::mirror::HomeworkResponse {
+    use crate::api::mirror::{HomeworkItem, HomeworkResponse, HomeworkStatus};
     match result {
         Ok(outcome) => HomeworkResponse {
             fetched_at: Some(outcome.fetched_at),

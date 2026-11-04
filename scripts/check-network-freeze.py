@@ -11,6 +11,11 @@ ROOT = Path(__file__).resolve().parent.parent
 BASELINE = "c4afc0c3f5edad5cded1352da5b536001edb430a"
 TAG = "android-v0.1.0-beta.9"
 MANIFEST = "docs/network-freeze.json"
+APPROVED_REVISIONS = {
+    "rust/crates/ginkgo_upstream/src/services/session_service/session_source.rs":
+        "7cf178f8abe7b00704a508b3826814678f16210997a41ca941394a938b2bbd21",
+}
+APPROVAL_RECORD = "docs/_audit/2026-11-03-background-reminders-and-recovery.md"
 
 
 class Freeze(TypedDict):
@@ -19,6 +24,7 @@ class Freeze(TypedDict):
     baseline_tag: str
     patterns: list[str]
     files: dict[str, str]
+    authorized_revisions: dict[str, str]
 
 
 def validate_manifest(value: object) -> Freeze:
@@ -50,12 +56,21 @@ def validate_manifest(value: object) -> Freeze:
     for digest in files.values():
         if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
             raise ValueError("invalid freeze digest")
+    revisions = value.get("authorized_revisions", {})
+    if not isinstance(revisions, dict):
+        raise ValueError("invalid authorized revisions")
+    for path, digest in revisions.items():
+        if path not in files or APPROVED_REVISIONS.get(path) != digest:
+            raise ValueError("unapproved frozen revision")
+    if revisions and value.get("authorization_record") != APPROVAL_RECORD:
+        raise ValueError("missing authorization evidence")
     return Freeze(
         schema=1,
         baseline_commit=BASELINE,
         baseline_tag=TAG,
         patterns=patterns,
         files=files,
+        authorized_revisions=revisions,
     )
 
 
@@ -78,7 +93,9 @@ def check(root: Path, frozen: Freeze) -> list[str]:
             errors.append(f"symlink not allowed: {name}")
         elif name not in frozen["files"]:
             errors.append(f"added: {name}")
-        elif hashlib.sha256(path.read_bytes()).hexdigest() != frozen["files"][name]:
+        elif hashlib.sha256(path.read_bytes()).hexdigest() != frozen["authorized_revisions"].get(
+            name, frozen["files"][name]
+        ):
             errors.append(f"changed: {name}")
     return errors
 
@@ -88,6 +105,8 @@ def main() -> None:
     try:
         frozen = validate_manifest(json.loads((ROOT / MANIFEST).read_text()))
         errors = check(ROOT, frozen)
+        if frozen["authorized_revisions"] and not (ROOT / APPROVAL_RECORD).is_file():
+            errors.append("authorization record is missing")
         if errors:
             raise ValueError("\n".join(errors))
     except (OSError, ValueError, TypeError) as error:
@@ -96,7 +115,8 @@ def main() -> None:
             "Read docs/NETWORK-FREEZE.md; do not refresh hashes without explicit "
             "user authorization."
         ) from error
-    print(f"Network freeze verified: {TAG}, {len(frozen['files'])} unchanged files")
+    print(f"Network freeze verified: {TAG}, {len(frozen['files'])} protected files, "
+          f"{len(frozen['authorized_revisions'])} explicitly authorized revision(s)")
 
 
 if __name__ == "__main__":

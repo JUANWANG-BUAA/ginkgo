@@ -2,6 +2,10 @@
   "schema": 1,
   "baseline_commit": "c4afc0c3f5edad5cded1352da5b536001edb430a",
   "baseline_tag": "android-v0.1.0-beta.9",
+  "authorization_record": "docs/_audit/2026-11-03-background-reminders-and-recovery.md",
+  "authorized_revisions": {
+    "rust/crates/ginkgo_upstream/src/services/session_service/session_source.rs": "7cf178f8abe7b00704a508b3826814678f16210997a41ca941394a938b2bbd21"
+  },
   "patterns": [
     "rust/crates/ginkgo_upstream/src/auth/**/*.rs",
     "rust/crates/ginkgo_upstream/src/foundation/http.rs",

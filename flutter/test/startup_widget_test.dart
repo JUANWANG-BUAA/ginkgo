@@ -10,6 +10,9 @@ import 'package:ginkgo_mirror/startup_page.dart';
 class PendingSession implements MirrorService {
   final response = Completer<SessionResponse>();
   @override
+  Future<SessionResponse> setRoute(RouteChoice route) async =>
+      const SessionResponse(state: SessionState.signedOut, remembered: false);
+  @override
   Future<SessionResponse> restoreSession() => response.future;
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
