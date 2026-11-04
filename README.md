@@ -9,11 +9,11 @@
 
 **Android 是本项目当前唯一的主推平台**：Flutter + Rust 同一套工程，手机底部标签导航、平板与宽屏自动展开为侧栏。Windows 与它共用这份工程，只保证可编译；macOS / iOS 的原生应用已冻结，保留源码与归档文档。
 
-- 最新公开版本：**Android 0.1.0-beta.9**（`0.1.0-beta.9+19`）· [下载 ARM64 APK](https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.9/Ginkgo-0.1.0-beta.9-android-arm64.apk) · [发布记录](docs/releases/android-beta9.md)
+- 最新公开版本：**Android 0.1.0-beta.9**（`0.1.0-beta.9+19`）· [下载 ARM64 APK](https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.9/Ginkgo-0.1.0-beta.9-android-arm64.apk) · [发布记录](docs/_audit/2026-11-03-beta9-publication.md)
 - 用户已确认 Beta.9 登录成功，网络认证链已[冻结](docs/NETWORK-FREEZE.md)。发布验收仍为 `blocked`：其他认证场景、学校写入、物理设备与维护者安全审查未完成；详见[发布审计](docs/_audit/2026-11-03-beta9-publication.md)。
 - 工作树已接入周期后台提醒与恢复错误重试，**尚未发布**，不承诺进程常驻或实时通知；实现和验证边界见[修复记录](docs/_audit/2026-11-03-background-reminders-and-recovery.md)。
 - Beta 试用反馈：[提交 Android 问题](https://github.com/JUANWANG-BUAA/ginkgo/issues/new?template=android-beta.md)（请勿附密码、Cookie、真实学号或未打码截图）
-- 长期维护入口：[功能与接口协议总览](docs/FEATURES-AND-PROTOCOLS.md) · [接口索引](docs/INTERFACE-INDEX.md) · [学校协议事实](docs/API.md)
+- **📚 完整文档**：[文档索引](docs/INDEX.md) · [功能与接口协议总览](docs/FEATURES-AND-PROTOCOLS.md) · [学校协议事实](docs/API.md)
 
 > **为什么叫 Ginkgo**：银杏是北航最有辨识度的符号——学院路与沙河的银杏大道。它简短、好念、一眼能画成图标；也希望这个工作台像秋天那条路一样，成为你每天都会经过的地方。
 
