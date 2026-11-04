@@ -2,6 +2,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/rust-toolchain-env.sh
+python3 scripts/check-network-freeze.py
+python3 scripts/check-network-freeze-test.py
 python3 scripts/check-mirror-architecture.py
 python3 scripts/check-mirror-architecture-test.py
 python3 scripts/generate-interface-index-test.py

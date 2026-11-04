@@ -8,6 +8,7 @@ Ginkgo（BUAA Assistant，北航校园工作台）是北航校园服务聚合客
 - **Windows 与 Android 共用同一 Flutter 工程**，不做新功能，但共享代码改动必须保持 Windows 可编译；`.github/workflows/mirror.yml` 的 Windows job 会验证。
 - **macOS / iOS 的 Swift/SwiftUI 应用已冻结**：不做功能开发、跨端对齐或排期；只在影响 Android 构建、共享 fixture 或存在安全问题时被动修。公共契约变化不必为 Apple 端做功能对齐。
 - 应用没有项目自建中转服务器。学校请求在设备进程内直连北航系统，或经北航官方 WebVPN；Rust 是应用内本地核心，不是独立后端。
+- **共享网络与认证链已冻结（2026-11-03）**：用户确认 Beta.9 登录成功，固定基线 `android-v0.1.0-beta.9` / `c4afc0c3f5edad5cded1352da5b536001edb430a`。后续 agent 不得为重构、优化、对齐参考库或修其他模块而改变 HTTP、CAS/验证码、重定向、Cookie、直连/WebVPN、身份确认、会话恢复/保险库及自动重试行为；不得绕开既有入口另建网络实现。只有用户明确授权针对该冻结范围的具体修改才可解冻，发现安全问题也先报告，不擅自修改。完整范围、例外流程及用户验证边界见 `docs/NETWORK-FREEZE.md`；`python3 scripts/check-network-freeze.py` 为强制门禁，禁止自行刷新清单、改基线或删除门禁来通过检查。
 - 当前公开基线为 Android Beta.9（`0.1.0-beta.9+19`）和 Windows Alpha.6；Beta.9 已于 2026-11-03 按用户明确要求公开，但发布时 readiness 仍为 blocked，详见 `docs/_audit/2026-11-03-beta9-publication.md`。这不构成未完成账号、物理设备、写入和安全审查的验收；后续发布继续受门禁约束。`flutter/pubspec.yaml` 的版本号不能证明工作树后续改动已发布；公开内容以对应 tag、Release 和发布记录为准。
 - 当前工作树已移除作业详情“加入个人待办”入口，但保留既有本机记录；不要根据历史迭代文档重新添加该入口。
 - 未完成任务只维护在 `docs/MIRROR-TODO.md`，不要另建重复 TODO 清单。当前优先顺序为 P0 可复现回归与安全边界、P1 设备 / 账号验收及小步体验、P2 扩展。
@@ -254,7 +255,7 @@ bash scripts/check-android-module-visual.sh emulator-5580
 - Dart 使用既有 `lowerCamelCase` API、`snake_case` 文件名和 `flutter_lints`；沿用当前状态管理方式，不为换皮引入全局状态框架。
 - 新功能按 domain 值类型与最小端口 → upstream adapter / codec / service → core 应用命令与测试 → bridge DTO / 命令及 FRB 生成 → Flutter gateway、native / demo adapter、页面与 `workspace/workspace_catalog.dart` 登记的顺序接入。
 - 仅改已有学校协议时，通常只改 upstream、协议 fixture 与 `docs/API.md`，不要为了“统一”把学校成功码抽象成通用常量。
-- 修改认证、Cookie、路线或会话恢复前，先固定可运行参考的提交并列出请求/状态机差异；当前基线为 Beta.3 `32b6a1d6`、UBAA `e8a397fc`。缺少协议证据时，不增加登录成功条件、不省略服务票据消费、不因模块错误迁移全局路线或重发密码。
+- 认证、Cookie、路线或会话恢复默认禁止修改，先遵守 `docs/NETWORK-FREEZE.md` 的用户明确解冻授权；获准后再固定可运行参考并列出请求/状态机差异。当前可用产品基线为 Beta.9 `c4afc0c3`，Beta.3 `32b6a1d6`、UBAA `e8a397fc` 仅作历史参考，不构成再次对齐或重构的理由。缺少协议证据时，不增加登录成功条件、不省略服务票据消费、不因模块错误迁移全局路线或重发密码。
 - 此类修复先补能在错误实现上失败的回归，严格核对请求目标、方法、表单、Cookie/头和次数；响应队列取值或最终 `SignedIn` 断言不足以证明对齐。参考字段向量见 `rust/crates/ginkgo_upstream/tests/data/ubaa-cas.json`，可用 `scripts/check-ubaa-cas-parity.py --ubaa-root <固定源码目录>` 执行原 Kotlin 解析器差分，用 `scripts/check-session-regressions.py` 在临时副本检出已知错误变体。
 - 参考源码、预期向量、实现和协议摘要同时变化时，须逐项解释预期变化；不能通过改预期或刷新 SHA 将协议差异判为通过。离线结果只能覆盖列出的契约；用户禁止运行某类检查时保留该类未验结论，不以真实账号重登替代源码对齐，也不宣称彻底修复。
 - Flutter 文件按职责命名：`*_page.dart`、`*_section.dart`、`*_widgets.dart`、`*_models.dart`、`*_controller.dart` / `*_gateway.dart`。`lib/` 根只保留组合入口；单个 Dart 文件上限 600 行，超出应拆分而不是放宽门禁。

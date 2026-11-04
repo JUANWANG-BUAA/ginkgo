@@ -1,6 +1,8 @@
 # Rust + Flutter 镜像待办
 
-更新：2026-11-02。这里只保留未完成事项；实现范围见 [现状](MIRROR-IMPLEMENTATION.md)，模块差距见 [对照表](MIRROR-PARITY.md)。完成需有代码和相应层级的验证证据，不反复追加已完成过程；历史计划保留于 [归档](archive/mirror/README.md)。
+更新：2026-11-03。这里只保留未完成事项；实现范围见 [现状](MIRROR-IMPLEMENTATION.md)，模块差距见 [对照表](MIRROR-PARITY.md)。完成需有代码和相应层级的验证证据，不反复追加已完成过程；历史计划保留于 [归档](archive/mirror/README.md)。
+
+当前覆盖说明：用户已确认 Beta.9 登录成功，Beta.8 “仅 WebVPN + 验证码”登录阻断已关闭，证据记入 [Beta.9 发布审计](_audit/2026-11-03-beta9-publication.md)。网络与认证链按用户要求[冻结](NETWORK-FREEZE.md)，下方历史“当前登录失败”描述不再代表最新状态；其他路线、冷恢复、业务与人审仍待验收，未经明确解冻不得为这些待办改网络实现，也不得代理恢复真实账号请求。
 
 > **当前唯一开发目标是 Android（Flutter + Rust）。macOS / iOS 暂时冻结**，不做功能开发、不做跨端对齐、不为其排期；只在影响 Android 构建、共享 fixture 或存在安全问题时被动修。Windows 与 Android 共用同一 Flutter 工程，不做功能开发但必须保持可编译。范围决策见 [多平台路线](MULTI-PLATFORM-STRATEGY.md#当前开发范围2026-10-24-决策)。
 
@@ -16,7 +18,7 @@
 
 用户明确反馈修复前 Beta 实际不可用；下一次发包必须先达到 [强制验收契约](ANDROID-RELEASE-CONTRACT.md)，稳定性与既有功能/操作完整性优先于扩展。仅通过合成测试、编译或静态视觉不能解除阻断。机器状态见 [发布验收记录](android-release-readiness.json)，不能把本文历史已完成标记视作当前候选验收。
 
-- [ ] 完成该契约的全部当前候选验收项，P0/P1 为零；当前真实登录失败（追加宿主 Rust WebVPN 阶段测试及 UBAA 八字段/值对照一致后均停于登录 POST 401，未到 UC；具体拒绝原因待确认）、真实验证码/冷恢复/全功能/签名升级及本人学校写入证据均未闭环。记录详情沿用本文件 P0/P1/P2 和日期审计，不另建任务清单。协议/实现变化先同步 API/本地契约/回归再刷新协议锁；发布前运行 `python3 scripts/check-contracts.py --release`，任何缺项不得发包或提高 minBuild。
+- [ ] 完成该契约的全部当前候选验收项，P0/P1 为零；用户已确认 Beta.9 登录成功，但其他认证场景、冷恢复/全功能/签名升级及本人学校写入证据仍未闭环。记录详情沿用本文件 P0/P1/P2 和日期审计，不另建任务清单。网络冻结未经用户明确解冻不得改动；获准的协议/实现变化先同步 API/本地契约/回归再审查协议锁。发布前运行 `python3 scripts/check-contracts.py --release`，不因一次成功解除其他门禁或提高 minBuild。
 
 ## 本轮 Goal：原会话全范围集成与交付（2026-10-26）
 
@@ -76,8 +78,6 @@
 本轮盘点与回归证据见 [推进收口记录](_audit/2026-10-23-android-progress-closeout.md)；随后完成 [图书馆与校车模拟器真实只读视觉闭环](_audit/2026-10-24-library-shuttle-visual.md)，修复键盘遮挡与窄屏大字双列，保留物理设备、TalkBack、真实非空订单/写入等人工事项；这些记录不替代下方人工验收。
 
 ## P0：认证可靠性与真实行为
-
-- [ ] Beta.8（build 18）“仅 WebVPN + 验证码”立即失败。当前按固定 UBAA 修改取页/execution、固定密码提交目标、到期确认、初始 3xx 直达 UC、提交终态错误检查、UC 导航及 Cookie 插入顺序；独立参考捕获未改，安全边界保留。用户随后要求发包，Beta.9（build 19）的构建与发布结果另记当日审计，不复用旧门禁。未获现场成功结果，不关闭真实登录阻断；[源码对照](_audit/2026-11-03-webvpn-captcha-source-comparison.md) 列明剩余安全/文本解析差异，readiness 不改为通过，学校请求保持暂停。
 
 ### Beta.3 后端回归与 Android 会话恢复（2026-11-02）
 
