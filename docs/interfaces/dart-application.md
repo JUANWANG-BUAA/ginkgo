@@ -16,6 +16,8 @@
 - [application/cgyy_commands.dart](#applicationcgyycommandsdart) (9)
 - [application/checkin_progress.dart](#applicationcheckinprogressdart) (2)
 - [application/collection_window.dart](#applicationcollectionwindowdart) (1)
+- [application/demo_awareness.dart](#applicationdemoawarenessdart) (4)
+- [application/demo_mode.dart](#applicationdemomodedart) (2)
 - [application/diagnostic_log.dart](#applicationdiagnosticlogdart) (2)
 - [application/environment.dart](#applicationenvironmentdart) (1)
 - [application/failure_message.dart](#applicationfailuremessagedart) (2)
@@ -36,6 +38,7 @@
 - [application/local_tasks.dart](#applicationlocaltasksdart) (7)
 - [application/maintenance.dart](#applicationmaintenancedart) (4)
 - [application/mirror_service.dart](#applicationmirrorservicedart) (17)
+- [application/mutation_result.dart](#applicationmutationresultdart) (9)
 - [application/notices.dart](#applicationnoticesdart) (2)
 - [application/platform_actions.dart](#applicationplatformactionsdart) (1)
 - [application/query_snapshots.dart](#applicationquerysnapshotsdart) (2)
@@ -48,6 +51,7 @@
 - [application/service_capabilities.dart](#applicationservicecapabilitiesdart) (1)
 - [application/shuttle.dart](#applicationshuttledart) (7)
 - [application/task_storage_scope.dart](#applicationtaskstoragescopedart) (2)
+- [application/view_models.dart](#applicationviewmodelsdart) (1)
 
 ## application/auth_challenge.dart
 
@@ -210,6 +214,37 @@
     - `int get end => …`  <sub>:11</sub>
     - `void reconcile(Iterable<String> keys, {bool reset = false}) {…}`  <sub>:13</sub>
     - `void select(int value) => …`  <sub>:24</sub>
+
+## application/demo_awareness.dart
+
+- `extension DemoAwareness on AcademicGateway` — Safe extension for gradual Demo isolation refactoring
+  <sub>extension · application/demo_awareness.dart:9</sub>
+    - `bool get isDemoSafe => …` — Temporary bridge - will be removed after full DemoMode integration  <sub>:13</sub>
+    - `bool shouldShowDemo(String pageName) {…}` — Semantic check: Should demo indicator show on this page?  <sub>:16</sub>
+    - `String? demoWarning(String context) {…}` — Semantic check: Demo warning text for context  <sub>:25</sub>
+    - `bool canPerformAction(String action) {…}` — Demo action constraint: Is this action allowed in demo mode?  <sub>:39</sub>
+- `class SettingsPage`
+  <sub>class · application/demo_awareness.dart:52</sub>
+- `class SettingsPage`
+  <sub>class · application/demo_awareness.dart:59</sub>
+    - `final warning = demoMode.maybeDemoWarning('settings');`  <sub>:62</sub>
+- `class SettingsPage`
+  <sub>class · application/demo_awareness.dart:69</sub>
+
+## application/demo_mode.dart
+
+- `abstract interface class DemoMode` — Centralizes demo mode detection and prevents scattered `if (isDemo)` checks.
+  <sub>class · application/demo_mode.dart:7</sub>
+    - `bool shouldShowDemoIndicator(String page);` — Whether to show demo-specific UI elements  <sub>:11</sub>
+    - `bool shouldTransformData(String entity);` — Whether to apply demo-specific data transformations  <sub>:14</sub>
+    - `String? maybeDemoWarning(String context);` — Demo-safe error messages (sanitized)  <sub>:17</sub>
+- `class LiveDemoMode implements DemoMode` — Concrete implementation: wraps service.isDemo into structured decisions
+  <sub>class · application/demo_mode.dart:21</sub>
+    - `const LiveDemoMode(this.service);`  <sub>:22</sub>
+    - `bool get isEnabled => …`  <sub>:27</sub>
+    - `bool shouldShowDemoIndicator(String page) {…}`  <sub>:30</sub>
+    - `bool shouldTransformData(String entity) {…}`  <sub>:37</sub>
+    - `String? maybeDemoWarning(String context) {…}`  <sub>:44</sub>
 
 ## application/diagnostic_log.dart
 
@@ -607,6 +642,41 @@
 - `enum BykcPart { catalog, chosen, statistics }`
   <sub>enum · application/mirror_service.dart:188</sub>
 
+## application/mutation_result.dart
+
+- `enum MutationResultStatus`
+  <sub>enum · application/mutation_result.dart:6</sub>
+- `class MutationResult<T>` — Generic mutation result - matches Rust counterpart
+  <sub>class · application/mutation_result.dart:15</sub>
+    - `bool get isSuccess => …`  <sub>:40</sub>
+    - `bool get isFailed => …`  <sub>:44</sub>
+    - `bool get needsInput => …`  <sub>:48</sub>
+- `enum ErrorCode` — Error codes - explicit classification
+  <sub>enum · application/mutation_result.dart:117</sub>
+- `extension ErrorCodeExtension on ErrorCode`
+  <sub>extension · application/mutation_result.dart:138</sub>
+    - `bool get isRetriable => …`  <sub>:139</sub>
+    - `bool get requiresLogin => …`  <sub>:147</sub>
+    - `bool get locksAuthentication => …`  <sub>:149</sub>
+    - `String get description => …`  <sub>:154</sub>
+- `abstract class InputPrompt` — Input prompts - what UI should display
+  <sub>class · application/mutation_result.dart:170</sub>
+- `class VerificationCodePrompt implements InputPrompt`
+  <sub>class · application/mutation_result.dart:174</sub>
+    - `String get label => …`  <sub>:184</sub>
+- `class PasswordPrompt implements InputPrompt`
+  <sub>class · application/mutation_result.dart:187</sub>
+    - `String get label => …`  <sub>:193</sub>
+- `class SelectionPrompt implements InputPrompt`
+  <sub>class · application/mutation_result.dart:196</sub>
+    - `String get label => …`  <sub>:202</sub>
+- `class AuthPageExample` — Usage example (Flutter page)
+  <sub>class · application/mutation_result.dart:206</sub>
+    - `void showSnackBar(String message) {…}`  <sub>:228</sub>
+    - `void showVerificationDialog(String image, String id) {…}`  <sub>:229</sub>
+    - `void showLoginScreen() {…}`  <sub>:230</sub>
+    - `void showRetryButton() {…}`  <sub>:231</sub>
+
 ## application/notices.dart
 
 - `class Notice` — One public notice from the school news site. The publish date is never a
@@ -751,3 +821,8 @@
     - `const TaskStorageScope({ super.key, required this.resolve, required super.child, });`  <sub>:7</sub>
     - `static TaskStorageRoot read(BuildContext context) {…}`  <sub>:15</sub>
     - `bool updateShouldNotify(TaskStorageScope oldWidget) => …`  <sub>:22</sub>
+
+## application/view_models.dart
+
+- `class HomeworkViewModel`
+  <sub>class · application/view_models.dart:31</sub>
