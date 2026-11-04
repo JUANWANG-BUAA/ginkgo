@@ -167,6 +167,8 @@ class HomeworkItemTile extends StatelessWidget {
     trailing: const CupertinoListTileChevron(),
     title: Text(
       item.title,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
       style: const TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w600,

@@ -66,8 +66,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
   }
 
   String _filterLabel(int value) => switch (value) {
-    1 => '待完成 $pending',
-    2 => '已提交 $submitted',
+    1 => data == null ? '待完成' : '待完成 $pending',
+    2 => data == null ? '已提交' : '已提交 $submitted',
     3 => '已截止 $overdue',
     4 => '待确认 $unknown',
     _ => '全部',

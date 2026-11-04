@@ -67,6 +67,8 @@ class TodayActionRow extends StatelessWidget {
                   ],
                   Text(
                     title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: emphasized
                           ? 20

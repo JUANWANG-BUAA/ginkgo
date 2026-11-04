@@ -26,8 +26,8 @@ class ReminderBadge extends StatelessWidget {
               child: Text(
                 count > 99 ? '99+' : '$count',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: CupertinoColors.white,
+                style: TextStyle(
+                  color: CupertinoColors.white.resolveFrom(context),
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
                 ),

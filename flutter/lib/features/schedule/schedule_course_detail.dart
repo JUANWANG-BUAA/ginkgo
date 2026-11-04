@@ -42,6 +42,8 @@ class ScheduleCourseDetailPage extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
             child: Text(
               course.name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
             ),
           ),
