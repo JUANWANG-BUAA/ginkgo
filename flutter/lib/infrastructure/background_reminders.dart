@@ -42,10 +42,11 @@ Future<void> runBackgroundReminders() async {
     final account = response.account;
     if (response.failure != null || account == null) {
       status = switch (response.failure) {
-        FailureCode.sessionExpired => 'sessionRequired',
         FailureCode.credentialStore => 'storageUnavailable',
         _ => 'retryLater',
       };
+      // Failed read does not clear existing notifications.
+      // batch remains empty, which tells Android to keep previous plans.
       return;
     }
     final visibility = CourseVisibilityFileStore(account).createController();

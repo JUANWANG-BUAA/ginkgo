@@ -17,7 +17,9 @@ pub(super) async fn read(owner: String, checkin: bool, homework: bool) -> Backgr
                 .map_err(|_| AppError::credential_store())??
         };
         if !matches!(service.restore().await?, SessionOutcome::SignedIn { .. }) {
-            return Err(AppError::session_expired());
+            // Background session cannot restore, but foreground session may still be valid.
+            // Return unavailable (retry later) instead of session_expired (requires re-login).
+            return Err(AppError::unavailable());
         }
         let account = service.status().account;
         let checkin = if checkin {
@@ -66,3 +68,17 @@ mod tests {
         assert!(result.account.is_none());
     }
 }
+
+    #[tokio::test]
+    async fn background_failure_does_not_require_foreground_re_login() {
+        // Background session failure (unavailable) should not trigger session_expired,
+        // which would force foreground user to re-login even if their session is valid.
+        let _serial = TEST_GATE.lock().await;
+        let _busy = SESSION_ACCESS.write().await;
+        let result = read("synthetic-owner".into(), true, true).await;
+        // After change: should be ServiceUnavailable, not SessionExpired
+        assert!(matches!(
+            result.failure,
+            Some(FailureCode::ServiceUnavailable)
+        ));
+    }
