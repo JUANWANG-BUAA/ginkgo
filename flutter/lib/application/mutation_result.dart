@@ -1,7 +1,7 @@
 /// Dart layer: MutationResult enum mirroring Rust implementation
 /// Ensures type-safe handling on the Flutter side
 
-library ginkgo_mirror.mutation_result;
+library;
 
 enum MutationResultStatus {
   success,
