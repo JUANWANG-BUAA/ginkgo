@@ -4,7 +4,7 @@
 > 修改接口后运行 `python3 scripts/generate-interface-index.py` 重新生成；
 > 手工总览与分层说明见 [INTERFACE-INDEX.md](../INTERFACE-INDEX.md)。
 
-按目录分组统计：31 个分组节点（其中 29 个有出向依赖）、139 条跨组依赖。箭头方向为「依赖方 → 被依赖方」。
+按目录分组统计：31 个分组节点（其中 29 个有出向依赖）、138 条跨组依赖。箭头方向为「依赖方 → 被依赖方」。
 
 ## 依赖图
 
@@ -47,7 +47,6 @@ flowchart LR
   n_app --> n_platform
   n_app --> n_shared
   n_app --> n_widgets
-  n_application --> n_features_cgyy
   n_application --> n_shared
   n_application --> n_src
   n_features_academic --> n_application
@@ -184,23 +183,7 @@ flowchart LR
 
 ## 循环依赖
 
-以下分组互相依赖，构成强连通分量。Dart 侧没有像 Rust 那样的依赖方向门禁，因此这些环不会被自动拦截；改动前先确认是否真的需要双向引用。
-
-- **5 个分组**：`application`、`features/cgyy`、`features/reservations`、`shared`、`widgets`
-
-```mermaid
-flowchart LR
-  n_application --> n_features_cgyy
-  n_application --> n_shared
-  n_features_cgyy --> n_application
-  n_features_cgyy --> n_features_reservations
-  n_features_cgyy --> n_shared
-  n_features_cgyy --> n_widgets
-  n_features_reservations --> n_widgets
-  n_shared --> n_application
-  n_widgets --> n_application
-  n_widgets --> n_shared
-```
+以下分组互相依赖，构成强连通分量。Dart 门禁已约束部分分层方向，但并不禁止所有目录循环；改动前先确认是否真的需要双向引用。
 
 - **3 个分组**：`features/learning`、`features/settings`、`platform`
 
@@ -210,5 +193,13 @@ flowchart LR
   n_features_settings --> n_features_learning
   n_features_settings --> n_platform
   n_platform --> n_features_settings
+```
+
+- **2 个分组**：`application`、`shared`
+
+```mermaid
+flowchart LR
+  n_application --> n_shared
+  n_shared --> n_application
 ```
 

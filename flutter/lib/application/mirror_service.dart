@@ -13,7 +13,7 @@ import 'package:ginkgo_mirror/application/shuttle.dart';
 import 'package:ginkgo_mirror/application/library_books.dart';
 import 'package:ginkgo_mirror/application/graduate.dart';
 import 'package:ginkgo_mirror/application/bykc.dart';
-import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';
+import 'package:ginkgo_mirror/application/cgyy_models.dart';
 
 /// Page-facing capabilities. Tests and alternative adapters need no native runtime.
 abstract interface class MirrorService

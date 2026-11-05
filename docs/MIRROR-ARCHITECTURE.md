@@ -2,6 +2,8 @@
 
 更新：2026-11-03。本文描述当前源码的工程边界；学校协议事实仍以 [API.md](API.md) 为准，公开安装包与真实学校业务验收仍以 [MIRROR-IMPLEMENTATION.md](MIRROR-IMPLEMENTATION.md) 为准。末尾的“后续演进方向”是策略，不代表事项已实现。网络/认证实现受 [冻结规则](NETWORK-FREEZE.md) 约束，不作为工程债重构范围。
 
+2026-11-05 工作树边界补充：Dart 的 application 与 infrastructure 均不得导入或导出 features/widgets/workspace/app。研讨室跨层值已归 application；页面目录只保留展示扩展和契约转出，适配器不再依赖页面。门禁同时核对 package 与相对路径，防止换用相对导入绕开规则。
+
 ## 隔离目标与当前结构
 
 学校的 URL、HTTP 请求、CAS 表单与跳转、Cookie、学校/网关会话恢复、iClass/图书馆/CGYY token、成功码和响应字段解析，全部位于 `ginkgo_upstream`。应用核心不依赖这个 crate；修改学校协议实现时，不需要修改 core 或 Flutter。

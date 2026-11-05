@@ -14,6 +14,7 @@
 - [application/campus_activities.dart](#applicationcampusactivitiesdart) (4)
 - [application/career.dart](#applicationcareerdart) (3)
 - [application/cgyy_commands.dart](#applicationcgyycommandsdart) (9)
+- [application/cgyy_models.dart](#applicationcgyymodelsdart) (14)
 - [application/checkin_progress.dart](#applicationcheckinprogressdart) (2)
 - [application/collection_window.dart](#applicationcollectionwindowdart) (1)
 - [application/demo_awareness.dart](#applicationdemoawarenessdart) (4)
@@ -194,6 +195,57 @@
     - `bool get isComplete => …`  <sub>:119</sub>
     - `String get summary => …`  <sub>:133</sub>
     - `Map<String, Object?> toPayload() => …`  <sub>:148</sub>
+
+## application/cgyy_models.dart
+
+- `class CgyySite`
+  <sub>class · application/cgyy_models.dart:6</sub>
+    - `const CgyySite({ required this.id, required this.name, this.venue = '', this.campus = '', this.seats, });`  <sub>:7</sub>
+- `class CgyySlot`
+  <sub>class · application/cgyy_models.dart:20</sub>
+    - `const CgyySlot({required this.time, required this.status});`  <sub>:21</sub>
+- `class CgyySpace`
+  <sub>class · application/cgyy_models.dart:26</sub>
+    - `const CgyySpace({required this.name, required this.slots});`  <sub>:27</sub>
+- `class CgyyDay`
+  <sub>class · application/cgyy_models.dart:33</sub>
+    - `const CgyyDay({required this.date, required this.spaces});`  <sub>:34</sub>
+- `class CgyyOrder` — Order values preserve absent approval fields as unknown.
+  <sub>class · application/cgyy_models.dart:41</sub>
+    - `const CgyyOrder({ required this.id, required this.place, required this.date, required this.time, required this.status, this.orderStatus, this.checkStatus, this.canCancel = false, });`  <sub>:42</sub>
+- `class CgyyBookingChoice`
+  <sub>class · application/cgyy_models.dart:60</sub>
+    - `const CgyyBookingChoice({ required this.spaceId, required this.spaceName, required this.timeId, required this.time, });`  <sub>:61</sub>
+- `class CgyyPurpose`
+  <sub>class · application/cgyy_models.dart:72</sub>
+    - `const CgyyPurpose({required this.id, required this.name});`  <sub>:73</sub>
+- `class CgyyBookingOptions`
+  <sub>class · application/cgyy_models.dart:79</sub>
+    - `const CgyyBookingOptions({ required this.choices, required this.purposes, required this.usesFallbackPurposes, });`  <sub>:80</sub>
+- `class CgyyChallenge` — Jigsaw challenge images stay raw data URLs; decoding happens in the widget
+  <sub>class · application/cgyy_models.dart:93</sub>
+    - `const CgyyChallenge({ required this.id, required this.background, required this.jigsaw, });`  <sub>:94</sub>
+- `class CgyyReviewSnapshot`
+  <sub>class · application/cgyy_models.dart:103</sub>
+    - `const CgyyReviewSnapshot({required this.id, required this.orders});`  <sub>:104</sub>
+- `class CgyyActionResult` — One write-flow result envelope. An unrecognized state stays `unknown`
+  <sub>class · application/cgyy_models.dart:112</sub>
+    - `static const knownStates = {…}`  <sub>:136</sub>
+    - `bool get isKnown => …`  <sub>:154</sub>
+    - `bool get requiresReview => …`  <sub>:155</sub>
+    - `bool get isChallenge => …`  <sub>:156</sub>
+    - `bool get isReady => …`  <sub>:157</sub>
+    - `bool get isReviewRequired => …`  <sub>:158</sub>
+- `class CgyyWriteStatus` — The guard status of the last local write; anything but ready/uncertain
+  <sub>class · application/cgyy_models.dart:163</sub>
+- `class CgyyLockCode`
+  <sub>class · application/cgyy_models.dart:178</sub>
+    - `const CgyyLockCode({ this.qrCode, this.dueDate, this.tradeNo, this.venueName, this.siteName, this.spaceName, this.orderName, this.reservationDate, this.reservationDateDetail, this.reservationStartDate, this.reservationEndDate, });`  <sub>:179</sub>
+    - `bool get hasPassword => …`  <sub>:200</sub>
+    - `bool get hasUpcomingReservation => …`  <sub>:202</sub>
+- `class CgyyLoadRead` — One CGYY read: exactly one shape is non-null, mirroring the Rust union.
+  <sub>class · application/cgyy_models.dart:210</sub>
+    - `const CgyyLoadRead({ this.sites, this.day, this.orders, this.order, this.lockCode, this.failure, });`  <sub>:211</sub>
 
 ## application/checkin_progress.dart
 

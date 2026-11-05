@@ -18,3 +18,7 @@
 - 原始日志保留在 artifacts/local/external-link-boundary-2026-11-05/（忽略目录）。真实学校请求、物理设备及 Windows 主机构建未执行。本轮未发布。
 
 客户端契约锁仅刷新本轮 Dart 接线和对应文档摘要，学校协议和网络冻结清单未改变。完整门禁复跑缺口保留在唯一 TODO。
+
+## 后续完整门禁复跑
+
+2026-11-05 研讨室契约拆分批次中依赖解析恢复，完整 scripts/check-mirror.sh 返回 0，857 项 Flutter 测试和 FRB 零漂移通过。此前下载阻塞的复跑项已从唯一 TODO 移除，原失败过程保留。记录见 [研讨室边界审计](2026-11-05-cgyy-contract-boundary.md)。

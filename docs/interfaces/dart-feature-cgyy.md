@@ -17,7 +17,7 @@
 - [features/cgyy/cgyy_day_view.dart](#featurescgyycgyydayviewdart) (8)
 - [features/cgyy/cgyy_gateway.dart](#featurescgyycgyygatewaydart) (5)
 - [features/cgyy/cgyy_lock_code_page.dart](#featurescgyycgyylockcodepagedart) (1)
-- [features/cgyy/cgyy_models.dart](#featurescgyycgyymodelsdart) (14)
+- [features/cgyy/cgyy_models.dart](#featurescgyycgyymodelsdart) (2)
 - [features/cgyy/cgyy_order_detail_page.dart](#featurescgyycgyyorderdetailpagedart) (1)
 - [features/cgyy/cgyy_page.dart](#featurescgyycgyypagedart) (1)
 - [features/cgyy/cgyy_review_page.dart](#featurescgyycgyyreviewpagedart) (1)
@@ -147,57 +147,13 @@
 
 ## features/cgyy/cgyy_models.dart
 
-- `class CgyySite`
-  <sub>class · features/cgyy/cgyy_models.dart:7</sub>
-    - `const CgyySite({ required this.id, required this.name, this.venue = '', this.campus = '', this.seats, });`  <sub>:8</sub>
-- `class CgyySlot`
-  <sub>class · features/cgyy/cgyy_models.dart:21</sub>
-    - `const CgyySlot({required this.time, required this.status});`  <sub>:22</sub>
-- `class CgyySpace`
-  <sub>class · features/cgyy/cgyy_models.dart:27</sub>
-    - `const CgyySpace({required this.name, required this.slots});`  <sub>:28</sub>
-- `class CgyyDay`
-  <sub>class · features/cgyy/cgyy_models.dart:34</sub>
-    - `const CgyyDay({required this.date, required this.spaces});`  <sub>:35</sub>
-- `class CgyyOrder` — Approval labels follow API §6B and the existing CgyyModels.swift mapping.
-  <sub>class · features/cgyy/cgyy_models.dart:43</sub>
-    - `const CgyyOrder({ required this.id, required this.place, required this.date, required this.time, required this.status, this.orderStatus, this.checkStatus, this.canCancel = false, });`  <sub>:44</sub>
-    - `String get statusLabel {…}`  <sub>:61</sub>
-    - `String get summary => …`  <sub>:91</sub>
-- `class CgyyBookingChoice`
-  <sub>class · features/cgyy/cgyy_models.dart:100</sub>
-    - `const CgyyBookingChoice({ required this.spaceId, required this.spaceName, required this.timeId, required this.time, });`  <sub>:101</sub>
-- `class CgyyPurpose`
-  <sub>class · features/cgyy/cgyy_models.dart:112</sub>
-    - `const CgyyPurpose({required this.id, required this.name});`  <sub>:113</sub>
-- `class CgyyBookingOptions`
-  <sub>class · features/cgyy/cgyy_models.dart:119</sub>
-    - `const CgyyBookingOptions({ required this.choices, required this.purposes, required this.usesFallbackPurposes, });`  <sub>:120</sub>
-- `class CgyyChallenge` — Jigsaw challenge images stay raw data URLs; decoding happens in the widget
-  <sub>class · features/cgyy/cgyy_models.dart:133</sub>
-    - `const CgyyChallenge({ required this.id, required this.background, required this.jigsaw, });`  <sub>:134</sub>
-- `class CgyyReviewSnapshot`
-  <sub>class · features/cgyy/cgyy_models.dart:143</sub>
-    - `const CgyyReviewSnapshot({required this.id, required this.orders});`  <sub>:144</sub>
-- `class CgyyActionResult` — One write-flow result envelope. An unrecognized state stays `unknown`
-  <sub>class · features/cgyy/cgyy_models.dart:152</sub>
-    - `static const knownStates = {…}`  <sub>:176</sub>
-    - `bool get isKnown => …`  <sub>:194</sub>
-    - `bool get requiresReview => …`  <sub>:195</sub>
-    - `bool get isChallenge => …`  <sub>:196</sub>
-    - `bool get isReady => …`  <sub>:197</sub>
-    - `bool get isReviewRequired => …`  <sub>:198</sub>
-- `class CgyyWriteStatus` — The guard status of the last local write; anything but ready/uncertain
-  <sub>class · features/cgyy/cgyy_models.dart:203</sub>
-- `class CgyyLockCode`
-  <sub>class · features/cgyy/cgyy_models.dart:218</sub>
-    - `const CgyyLockCode({ this.qrCode, this.dueDate, this.tradeNo, this.venueName, this.siteName, this.spaceName, this.orderName, this.reservationDate, this.reservationDateDetail, this.reservationStartDate, this.reservationEndDate, });`  <sub>:219</sub>
-    - `bool get hasPassword => …`  <sub>:240</sub>
-    - `bool get hasUpcomingReservation => …`  <sub>:242</sub>
-    - `String get location => …`  <sub>:248</sub>
-- `class CgyyLoadRead` — One CGYY read: exactly one shape is non-null, mirroring the Rust union.
-  <sub>class · features/cgyy/cgyy_models.dart:256</sub>
-    - `const CgyyLoadRead({ this.sites, this.day, this.orders, this.order, this.lockCode, this.failure, });`  <sub>:257</sub>
+- `extension CgyyOrderPresentation on CgyyOrder` — Approval labels follow API §6B. Acceptance is not final approval.
+  <sub>extension · features/cgyy/cgyy_models.dart:6</sub>
+    - `String get statusLabel {…}`  <sub>:7</sub>
+    - `String get summary => …`  <sub>:37</sub>
+- `extension CgyyLockCodePresentation on CgyyLockCode`
+  <sub>extension · features/cgyy/cgyy_models.dart:46</sub>
+    - `String get location => …`  <sub>:47</sub>
 
 ## features/cgyy/cgyy_order_detail_page.dart
 

@@ -37,7 +37,7 @@ import 'package:ginkgo_mirror/infrastructure/graduate_decode.dart';
 import 'package:ginkgo_mirror/infrastructure/bykc_decode.dart';
 import 'package:ginkgo_mirror/infrastructure/cgyy_decode.dart';
 
-import '../features/cgyy/cgyy_models.dart';
+import '../application/cgyy_models.dart';
 import '../application/bykc.dart';
 import '../application/graduate.dart';
 import '../application/library_books.dart';

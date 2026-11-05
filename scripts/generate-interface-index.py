@@ -721,8 +721,8 @@ def write_dependency_graph() -> None:
     lines.append('')
     if components:
         lines.append(
-            '以下分组互相依赖，构成强连通分量。Dart 侧没有像 Rust 那样的依赖方向门禁，'
-            '因此这些环不会被自动拦截；改动前先确认是否真的需要双向引用。')
+            '以下分组互相依赖，构成强连通分量。Dart 门禁已约束部分分层方向，'
+            '但并不禁止所有目录循环；改动前先确认是否真的需要双向引用。')
         lines.append('')
         for component in sorted(components, key=len, reverse=True):
             lines.append(f'- **{len(component)} 个分组**：' + '、'.join(f'`{c}`' for c in component))

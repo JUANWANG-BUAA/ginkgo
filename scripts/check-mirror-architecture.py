@@ -127,6 +127,22 @@ def dart_boundary_violations(root):
     lib = root / 'flutter/lib'
     for file in lib.rglob('*.dart'):
         relative = file.relative_to(lib)
+        if relative.parts[0] in ('application', 'infrastructure'):
+            # Resolve both package and relative imports; renaming an import
+            # must not bypass the application/presentation boundary.
+            for imported in re.findall(r"(?:import|export)\s+['\"]([^'\"]+)['\"]", file.read_text()):
+                if imported.startswith('package:ginkgo_mirror/'):
+                    target = lib / imported.removeprefix('package:ginkgo_mirror/')
+                elif ':' not in imported:
+                    target = file.parent / imported
+                else:
+                    continue
+                try:
+                    target_parts = target.resolve().relative_to(lib.resolve()).parts
+                except ValueError:
+                    continue
+                if target_parts and target_parts[0] in ('features', 'widgets', 'workspace', 'app'):
+                    errors.append(f'{relative}: contracts and adapters must not depend on presentation')
         if relative.parts[0] in ('src', 'infrastructure'):
             continue
         source = file.read_text()

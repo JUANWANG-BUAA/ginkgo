@@ -1,4 +1,4 @@
-import '../features/cgyy/cgyy_models.dart';
+import '../application/cgyy_models.dart';
 import '../src/rust/api/live.dart' as live;
 
 CgyySite _site(live.CgyySiteDto dto) => CgyySite(

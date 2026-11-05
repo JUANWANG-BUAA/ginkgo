@@ -11,6 +11,24 @@ SPEC.loader.exec_module(BOUNDARY)
 
 
 class BoundaryTests(unittest.TestCase):
+    def test_contracts_and_adapters_cannot_depend_on_presentation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for layer in ('application', 'infrastructure'):
+                file = root / f'flutter/lib/{layer}/example.dart'
+                file.parent.mkdir(parents=True, exist_ok=True)
+                for directive in (
+                    "import 'package:ginkgo_mirror/features/cgyy/cgyy_models.dart';",
+                    "export '../features/cgyy/cgyy_models.dart';",
+                    "import '../widgets/example.dart';",
+                    "import '../application/../features/cgyy/cgyy_models.dart';",
+                ):
+                    file.write_text(directive)
+                    self.assertTrue(BOUNDARY.dart_boundary_violations(root), directive)
+                file.write_text("import 'package:ginkgo_mirror/application/cgyy_models.dart';")
+                self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
+                file.unlink()
+
     def test_reminder_controller_cannot_import_platform_adapters(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

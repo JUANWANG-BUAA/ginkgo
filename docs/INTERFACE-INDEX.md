@@ -6,6 +6,8 @@
 
 官网外链能力通过 `application/external_links.dart` 的 `ExternalLinkLauncher` 注入；`ginkgoApp` 绑定平台适配并覆盖导航路由，shared 仅校验 URL，widgets 处理交互反馈。接口签名见下方生成索引。
 
+研讨室值类型归属 `application/cgyy_models.dart`，网关与 native/demo 适配器只依赖该契约；订单审批文案、摘要和地点拼接由 `features/cgyy/cgyy_models.dart` 的展示扩展提供。
+
 ## 1. 怎么读这份文档
 
 本文是**手工维护的总览**：讲清分层、能力归属与跨层不变量。
