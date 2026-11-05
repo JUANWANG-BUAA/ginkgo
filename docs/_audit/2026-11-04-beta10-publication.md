@@ -27,6 +27,17 @@
 
 ## 远端检查
 
-PR #6 的 Mirror run `41970163465`：contracts、Android、FRB bindings 已通过，Windows 集成检查运行中。macOS run `41970163455`、iOS run `41970163523` 通过。
+PR #6 发布源码的 Mirror run `41970163465` 全部通过：contracts、Android、FRB bindings、Windows 构建/单测/集成。macOS run `41970163455`、iOS run `41970163523` 通过。
 
 Tag Android Release run `41971104700` 按保留的正式 readiness 在签名前失败。本次产物来自本机既有外部证书手动签名，未称为 CI 签名通过，未修改门禁。完整 readiness 和缺失证据继续保留，用户的真实账号暂停指令不被记作真实通过。
+
+## 公开回下载
+
+匿名官方直链完整回下载 APK 及两份校验文件；SHA-256 均为 `08db1ee482c2cde8805d4f6e06d762240395803a6a3b3a049245860ddf42bd25`，校验文件只含 basename，与上传前文件逐字节相同。对公开回下载 APK 再核验 versionName/versionCode、MainActivity、仅 ARM64、非调试、发布签名和 16KiB 对齐均通过。证据 `artifacts/local/beta10-release/public-verification.json`；没有以本地副本冒充公开下载。
+
+## 更新与主页闭环
+
+- 用仓库已编译、未修改的 `ginkgo_upstream::codecs::updates::parse` 解析匿名公开 Releases API：以 Beta.9 为当前版本，得到 Beta.10 可用、准确 ARM64 下载项及与公开 APK 相同的 SHA-256。临时验证器使用仓库固定 rustc 1.99.0；首次误用根目录 1.99.1 导致 rlib 不兼容，纠正编译器后通过，没有重编译或修改产品来掩盖错误。日志 `artifacts/local/beta10-release/in-app-update-verification.log`。
+- PR #6 合并提交 `b84360edd8e356b372c3a4f9f4ff24fb4c0bb528`；Pages run `41971347695` 成功。匿名加 cache-buster 回取线上 HTML 与 landing.js，静态兜底显示 0.1.0-beta.10；用线上脚本与真实公开 Releases API 执行动态选择，APK、SHA、发布说明和备用入口均指向 Beta.10。记录 `live-pages-verification.json`；另有五项 landing 回归通过。
+- 合并后的 Mirror run `41971348334` 与 iOS run `41971348202` 为独立重跑，归档时尚在进行；macOS run `41971348188` 已通过。本次发布源码的全部 Mirror/Windows、macOS 与 iOS 成功结果已在上节列出，文档追加不改变候选源码摘要或 APK。
+- `minBuild` 仍为 5，未提升最低版本；网络冻结检查继续通过，未移动旧标签、改写旧 Release 或恢复真实账号请求。

@@ -74,13 +74,13 @@
       "result": "Settings routes and themes reviewed in four modes; navigation and native unreadable-storage recovery checked. Full physical-device persistence, permissions and signed upgrade remain pending."
     },
     "windows:shared-build-and-tests": {
-      "status": "historical",
+      "status": "passed",
       "level": "remote-ci",
-      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
-      "section": "EVIDENCE windows:shared-build-and-tests",
-      "date": "2026-11-03",
-      "environment": "GitHub Actions mirror workflow for commit 4372972470e1aa74c3529df1113f35bd4d6615a4; Windows runner",
-      "result": "Windows Flutter Debug build and dedicated Windows checks passed."
+      "report": "docs/_audit/2026-11-04-beta10-publication.md",
+      "section": "远端检查",
+      "date": "2026-11-04",
+      "environment": "GitHub Actions Windows runner; Mirror run 41970163465; released source da3e65b25092be0906016451b1803304cb6e51b5",
+      "result": "Windows shared Debug build, Flutter unit tests, dedicated Windows integration and normal production entrypoint checks passed."
     }
   },
   "manual_publication_exception": {
