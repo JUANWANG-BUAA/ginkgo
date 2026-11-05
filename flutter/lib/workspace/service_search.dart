@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/workspace/workspace_types.dart';
-import 'package:ginkgo_mirror/shared/school_links.dart';
+import 'package:ginkgo_mirror/widgets/school_links.dart';
 
 enum ServiceArea {
   academic('学业'),
@@ -166,7 +166,10 @@ Future<void> openServiceDescriptor(
   if (links == null) return;
   var opened = false;
   try {
-    opened = await openSchoolLink(links.studentServiceUrl(entry.id) ?? '');
+    opened = await openSchoolLink(
+      context,
+      links.studentServiceUrl(entry.id) ?? '',
+    );
   } catch (_) {
     opened = false;
   }

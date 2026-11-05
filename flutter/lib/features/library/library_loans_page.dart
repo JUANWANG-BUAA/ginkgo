@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/widgets/feature_intro.dart';
-import 'package:ginkgo_mirror/shared/school_links.dart';
+import 'package:ginkgo_mirror/widgets/school_links.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/library_loans.dart';
@@ -98,7 +98,7 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
     if (gateway == null) return;
     try {
       final url = gateway.libraryLoansPortalUrl();
-      if (!await openSchoolLink(url)) {
+      if (!await openSchoolLink(context, url)) {
         throw StateError('official website unavailable');
       }
     } catch (_) {

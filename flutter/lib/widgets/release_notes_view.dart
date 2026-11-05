@@ -10,7 +10,7 @@ library;
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
-import 'package:ginkgo_mirror/shared/school_links.dart';
+import 'package:ginkgo_mirror/widgets/school_links.dart';
 
 /// Remote release copy is bounded before parsing. A malformed or hostile body
 /// must not turn into an unbounded widget tree.
@@ -192,7 +192,7 @@ class ReleaseNotesView extends StatelessWidget {
   );
 
   Future<void> _open(BuildContext context, String url) async {
-    if (!await openSchoolLink(url) && context.mounted) {
+    if (!await openSchoolLink(context, url) && context.mounted) {
       await showSchoolLinkError(context);
     }
   }

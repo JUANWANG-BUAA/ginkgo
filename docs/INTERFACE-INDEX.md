@@ -4,6 +4,8 @@
 
 当前变更必须同步 [协议锁](protocol-contracts.json)，发布另受 [强制验收契约](ANDROID-RELEASE-CONTRACT.md) 约束。本文只做索引与契约说明，不重复上游协议事实。URL、参数、成功码、证据等级以 [API.md](API.md) 为唯一来源；用户能做什么、读写边界与本机数据见 [FEATURES-AND-PROTOCOLS.md](FEATURES-AND-PROTOCOLS.md)；分层职责见 [MIRROR-ARCHITECTURE.md](MIRROR-ARCHITECTURE.md)。
 
+官网外链能力通过 `application/external_links.dart` 的 `ExternalLinkLauncher` 注入；`ginkgoApp` 绑定平台适配并覆盖导航路由，shared 仅校验 URL，widgets 处理交互反馈。接口签名见下方生成索引。
+
 ## 1. 怎么读这份文档
 
 本文是**手工维护的总览**：讲清分层、能力归属与跨层不变量。

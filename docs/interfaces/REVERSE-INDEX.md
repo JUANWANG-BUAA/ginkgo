@@ -23,6 +23,7 @@
 | `application/demo_mode.dart` | DemoMode → dart-application.md<br>LiveDemoMode → dart-application.md |
 | `application/diagnostic_log.dart` | DiagnosticEntry → dart-application.md<br>DiagnosticLog → dart-application.md |
 | `application/environment.dart` | MirrorEnvironment → dart-application.md |
+| `application/external_links.dart` | ExternalLinkLauncher → dart-application.md |
 | `application/failure_message.dart` | failureMessage → dart-application.md<br>failureAdvice → dart-application.md |
 | `application/file_actions.dart` | HomeworkFilePicker → dart-application.md<br>HomeworkFileSave → dart-application.md<br>FileSaveStatus → dart-application.md<br>FileOpenStatus → dart-application.md<br>FileSaveResult → dart-application.md |
 | `application/gateway_verification_failure.dart` | GatewayVerificationException → dart-application.md |
@@ -216,6 +217,7 @@
 | `infrastructure/task_storage.dart` | localTasksStorageRoot → dart-infrastructure.md |
 | `main.dart` | main → dart-app.md<br>GinkgoRoot → dart-app.md |
 | `platform/android_update_controller.dart` | UpdateDownloadSource → dart-platform.md<br>UpdateDownloadPhase → dart-platform.md<br>UpdateRoot → dart-platform.md<br>ApkInstaller → dart-platform.md<br>AndroidUpdateController → dart-platform.md |
+| `platform/external_links.dart` | launchExternalLink → dart-platform.md |
 | `platform/startup_update.dart` | StartupUpdateController → dart-platform.md<br>StartupUpdateHint → dart-platform.md |
 | `platform/system_settings_service.dart` | SystemSettingsService → dart-platform.md<br>BackgroundReminderStatus → dart-platform.md<br>BackgroundReminderStatusService → dart-platform.md<br>NativeSystemSettingsService → dart-platform.md |
 | `platform/update_download_section.dart` | UpdateDownloadSection → dart-platform.md |
@@ -419,7 +421,7 @@
 | `shared/reminder_controller.dart` | ReminderController → dart-shared.md |
 | `shared/reminder_rules.dart` | schoolInstant → dart-shared.md<br>checkinWindowOpen → dart-shared.md |
 | `shared/reminder_scope.dart` | ReminderScope → dart-shared.md |
-| `shared/school_links.dart` | openSchoolLink → dart-shared.md<br>showSchoolLinkError → dart-shared.md |
+| `shared/school_links.dart` | openSchoolLink → dart-shared.md |
 | `shared/school_timestamp.dart` | parseSchoolTimestamp → dart-shared.md<br>schoolDateString → dart-shared.md<br>schoolDateWeekdayLabel → dart-shared.md<br>schoolTimestampLabel → dart-shared.md<br>schoolClockLabel → dart-shared.md<br>schoolTimeRange → dart-shared.md |
 | `shared/today_time.dart` | todaySchoolNow → dart-shared.md<br>schoolWallClockMillis → dart-shared.md<br>todayDate → dart-shared.md<br>todayDue → dart-shared.md<br>todayCompareDue → dart-shared.md<br>todayDueLabel → dart-shared.md |
 | `startup_page.dart` | StartupPage → dart-app.md |
@@ -446,6 +448,7 @@
 | `widgets/release_notes_view.dart` | NotesBlock → dart-widgets.md<br>NotesHeading → dart-widgets.md<br>NotesBullet → dart-widgets.md<br>NotesParagraph → dart-widgets.md<br>NotesSpan → dart-widgets.md<br>NotesText → dart-widgets.md<br>NotesLink → dart-widgets.md<br>openableReleaseLink → dart-widgets.md<br>parseNotesInline → dart-widgets.md<br>parseReleaseNotes → dart-widgets.md<br>ReleaseNotesView → dart-widgets.md |
 | `widgets/reminder_badge.dart` | ReminderBadge → dart-widgets.md |
 | `widgets/resource_meter.dart` | ResourceMeter → dart-widgets.md |
+| `widgets/school_links.dart` | ExternalLinkScope → dart-widgets.md<br>openSchoolLink → dart-widgets.md<br>showSchoolLinkError → dart-widgets.md |
 | `widgets/status_chip.dart` | StatusTone → dart-widgets.md<br>statusToneColor → dart-widgets.md<br>StatusChip → dart-widgets.md |
 | `widgets/summary_strip.dart` | SummaryItem → dart-widgets.md<br>SummaryStrip → dart-widgets.md<br>summaryValueColor → dart-widgets.md<br>SummaryLine → dart-widgets.md<br>MetricValue → dart-widgets.md |
 | `workspace/desktop_workspace_shell.dart` | DesktopWorkspaceShell → dart-workspace.md |

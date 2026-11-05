@@ -15,7 +15,7 @@
 - [shared/reminder_controller.dart](#sharedremindercontrollerdart) (1)
 - [shared/reminder_rules.dart](#sharedreminderrulesdart) (2)
 - [shared/reminder_scope.dart](#sharedreminderscopedart) (1)
-- [shared/school_links.dart](#sharedschoollinksdart) (2)
+- [shared/school_links.dart](#sharedschoollinksdart) (1)
 - [shared/school_timestamp.dart](#sharedschooltimestampdart) (6)
 - [shared/today_time.dart](#sharedtodaytimedart) (6)
 
@@ -144,10 +144,8 @@
 
 ## shared/school_links.dart
 
-- `Future<bool> openSchoolLink( String value, { Future<bool> Function(Uri url)? launcher, }) async {…}`
-  <sub>function · shared/school_links.dart:6</sub>
-- `Future<void> showSchoolLinkError(BuildContext context) => …`
-  <sub>function · shared/school_links.dart:25</sub>
+- `Future<bool> openSchoolLink( String value, { required ExternalLinkLauncher launcher, }) async {…}`
+  <sub>function · shared/school_links.dart:5</sub>
 
 ## shared/school_timestamp.dart
 

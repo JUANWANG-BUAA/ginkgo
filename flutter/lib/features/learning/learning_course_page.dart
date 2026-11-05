@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:ginkgo_mirror/shared/school_links.dart';
+import 'package:ginkgo_mirror/widgets/school_links.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/learning.dart';
@@ -353,7 +353,7 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
 
   Future<void> _openSource() async {
     final e = epoch;
-    if (!await openSchoolLink(widget.course.sourceUrl) && current(e)) {
+    if (!await openSchoolLink(context, widget.course.sourceUrl) && current(e)) {
       setState(() => linkError = schoolLinkError);
     }
   }

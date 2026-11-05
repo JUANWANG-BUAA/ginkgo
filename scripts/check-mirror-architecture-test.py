@@ -54,19 +54,12 @@ class BoundaryTests(unittest.TestCase):
                 file.write_text(directive)
                 self.assertEqual(len(BOUNDARY.dart_boundary_violations(root)), 1)
 
-            self.assertEqual(
-                BOUNDARY.SHARED_PLATFORM_IMPORT_EXCEPTIONS,
-                {
-                    'shared/school_links.dart': {
-                        'package:url_launcher/url_launcher.dart',
-                    },
-                },
-            )
+            self.assertEqual(BOUNDARY.SHARED_PLATFORM_IMPORT_EXCEPTIONS, {})
             file.unlink()
-            for path, imports in BOUNDARY.SHARED_PLATFORM_IMPORT_EXCEPTIONS.items():
-                legacy = lib / path
-                legacy.parent.mkdir(parents=True, exist_ok=True)
-                legacy.write_text(''.join(f"import '{item}';\n" for item in imports))
+            migrated = lib / 'shared/school_links.dart'
+            migrated.write_text("import 'package:url_launcher/url_launcher.dart';\n")
+            self.assertEqual(len(BOUNDARY.dart_boundary_violations(root)), 1)
+            migrated.write_text("import 'package:ginkgo_mirror/application/external_links.dart';\n")
             self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
 
     def test_core_cannot_reintroduce_upstream_even_as_a_test_dependency(self):

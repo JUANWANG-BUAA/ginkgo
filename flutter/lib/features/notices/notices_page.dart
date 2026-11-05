@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/widgets/date_tile.dart';
 import 'package:ginkgo_mirror/widgets/feature_intro.dart';
-import 'package:ginkgo_mirror/shared/school_links.dart';
+import 'package:ginkgo_mirror/widgets/school_links.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
@@ -167,7 +167,7 @@ class _NoticeDetail extends StatefulWidget {
 class _NoticeDetailState extends State<_NoticeDetail> {
   String? error;
   Future<void> open() async {
-    if (!await openSchoolLink(widget.notice.url) && mounted) {
+    if (!await openSchoolLink(context, widget.notice.url) && mounted) {
       setState(() => error = schoolLinkError);
     }
   }

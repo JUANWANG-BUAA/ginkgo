@@ -32,6 +32,11 @@
     - `Future<void> download(AndroidDownload next) async {…}`  <sub>:85</sub>
     - `Future<void> install() async {…}`  <sub>:279</sub>
 
+## platform/external_links.dart
+
+- `Future<bool> launchExternalLink(Uri url) => …`
+  <sub>function · platform/external_links.dart:3</sub>
+
 ## platform/startup_update.dart
 
 - `class StartupUpdateController extends ChangeNotifier` — One best-effort check per root lifetime. No timers, downloads or installation.

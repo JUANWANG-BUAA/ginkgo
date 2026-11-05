@@ -20,6 +20,7 @@
 - [application/demo_mode.dart](#applicationdemomodedart) (2)
 - [application/diagnostic_log.dart](#applicationdiagnosticlogdart) (2)
 - [application/environment.dart](#applicationenvironmentdart) (1)
+- [application/external_links.dart](#applicationexternallinksdart) (1)
 - [application/failure_message.dart](#applicationfailuremessagedart) (2)
 - [application/file_actions.dart](#applicationfileactionsdart) (5)
 - [application/gateway_verification_failure.dart](#applicationgatewayverificationfailuredart) (1)
@@ -264,6 +265,11 @@
 
 - `abstract interface class MirrorEnvironment` — Which backing environment a gateway is running against.
   <sub>class · application/environment.dart:5</sub>
+
+## application/external_links.dart
+
+- `typedef ExternalLinkLauncher = Future<bool> Function(Uri url);` — Opens a validated URL using the host platform.
+  <sub>typedef · application/external_links.dart:2</sub>
 
 ## application/failure_message.dart
 

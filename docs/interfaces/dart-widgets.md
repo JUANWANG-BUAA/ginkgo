@@ -30,6 +30,7 @@
 - [widgets/release_notes_view.dart](#widgetsreleasenotesviewdart) (11)
 - [widgets/reminder_badge.dart](#widgetsreminderbadgedart) (1)
 - [widgets/resource_meter.dart](#widgetsresourcemeterdart) (1)
+- [widgets/school_links.dart](#widgetsschoollinksdart) (3)
 - [widgets/status_chip.dart](#widgetsstatuschipdart) (3)
 - [widgets/summary_strip.dart](#widgetssummarystripdart) (5)
 
@@ -324,6 +325,18 @@
   <sub>class · widgets/resource_meter.dart:7</sub>
     - `const ResourceMeter({ super.key, required this.label, required this.available, required this.total, required this.unit, this.detail, this.onTap, });`  <sub>:8</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:23</sub>
+
+## widgets/school_links.dart
+
+- `class ExternalLinkScope extends InheritedWidget` — The application root provides the platform capability to every route.
+  <sub>class · widgets/school_links.dart:8</sub>
+    - `const ExternalLinkScope({ super.key, required this.launcher, required super.child, });`  <sub>:9</sub>
+    - `static ExternalLinkLauncher? maybeLauncherOf(BuildContext context) => …`  <sub>:17</sub>
+    - `bool updateShouldNotify(ExternalLinkScope oldWidget) => …`  <sub>:21</sub>
+- `Future<bool> openSchoolLink(BuildContext context, String value) async {…}`
+  <sub>function · widgets/school_links.dart:25</sub>
+- `Future<void> showSchoolLinkError(BuildContext context) => …`
+  <sub>function · widgets/school_links.dart:31</sub>
 
 ## widgets/status_chip.dart
 

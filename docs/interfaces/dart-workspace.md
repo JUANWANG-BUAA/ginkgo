@@ -83,9 +83,9 @@
 - `Future<void> openServiceDescriptor( BuildContext context, WorkspaceContext workspace, ServiceDescriptor entry, ) async {…}`
   <sub>function · workspace/service_search.dart:156</sub>
 - `class ServiceSearchContent extends StatelessWidget` — Shared service search field and grouped local results on the More page.
-  <sub>class · workspace/service_search.dart:177</sub>
-    - `const ServiceSearchContent({ super.key, required this.workspace, required this.destinations, required this.controller, required this.query, required this.onChanged, });`  <sub>:178</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:194</sub>
+  <sub>class · workspace/service_search.dart:180</sub>
+    - `const ServiceSearchContent({ super.key, required this.workspace, required this.destinations, required this.controller, required this.query, required this.onChanged, });`  <sub>:181</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:197</sub>
 
 ## workspace/workspace_back_guard.dart
 

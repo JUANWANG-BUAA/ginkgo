@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/campus_activities.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
-import 'package:ginkgo_mirror/shared/school_links.dart';
+import 'package:ginkgo_mirror/widgets/school_links.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/public_information_page.dart';
@@ -91,7 +91,7 @@ Future<void> _openActivity(
   CampusActivity activity,
 ) async {
   if (activity.url.isEmpty) return;
-  if (!await openSchoolLink(activity.url) && context.mounted) {
+  if (!await openSchoolLink(context, activity.url) && context.mounted) {
     await showSchoolLinkError(context);
   }
 }

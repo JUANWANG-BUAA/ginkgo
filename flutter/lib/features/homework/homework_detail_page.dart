@@ -4,7 +4,7 @@ import 'package:ginkgo_mirror/widgets/feature_intro.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 
 import 'package:flutter/material.dart' show SelectableText;
-import 'package:ginkgo_mirror/shared/school_links.dart';
+import 'package:ginkgo_mirror/widgets/school_links.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
@@ -337,7 +337,10 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                     ? null
                     : () async {
                         final epoch = generation;
-                        final opened = await openSchoolLink(data!.sourceUrl!);
+                        final opened = await openSchoolLink(
+                          context,
+                          data!.sourceUrl!,
+                        );
                         if (!opened && mounted && epoch == generation) {
                           setState(() => error = schoolLinkError);
                         }

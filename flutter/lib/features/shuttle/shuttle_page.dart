@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show SelectableText;
 import 'package:ginkgo_mirror/design/apple_design.dart';
-import 'package:ginkgo_mirror/shared/school_links.dart';
+import 'package:ginkgo_mirror/widgets/school_links.dart';
 
 import 'package:ginkgo_mirror/shared/today_time.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
@@ -144,7 +144,7 @@ class _ShuttlePageState extends State<ShuttlePage> with WidgetsBindingObserver {
       return;
     }
     final generation = _generation;
-    final opened = await openSchoolLink(uri.toString());
+    final opened = await openSchoolLink(context, uri.toString());
     if (opened || !mounted || generation != _generation) return;
     await _showOfficialDialog(
       '未能打开浏览器',

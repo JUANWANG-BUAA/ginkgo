@@ -99,17 +99,15 @@ def payload_decode_violations(root):
 
 
 # Shared state may depend on pure values and injected ports, not file or OS APIs.
-# Keep the remaining legacy module explicit so its exceptions cannot grow
-# unnoticed while the adapters are moved into infrastructure/platform.
+# No legacy exceptions remain; the self-test prevents platform imports
+# from returning to shared state.
 SHARED_PLATFORM_IMPORT_PREFIXES = (
     'package:path_provider/',
     'package:url_launcher/',
     'package:shared_preferences/',
     'package:flutter/services.dart',
 )
-SHARED_PLATFORM_IMPORT_EXCEPTIONS = {
-    'shared/school_links.dart': {'package:url_launcher/url_launcher.dart'},
-}
+SHARED_PLATFORM_IMPORT_EXCEPTIONS = {}
 
 
 # The presentation layer never reaches into the adapter layer. A page that

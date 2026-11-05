@@ -1,3 +1,6 @@
+import 'package:ginkgo_mirror/platform/external_links.dart';
+import 'package:ginkgo_mirror/widgets/school_links.dart';
+
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
@@ -121,16 +124,19 @@ ShuttleTimetableRead _timetable({
 });
 
 Widget _app(Widget home, {double scale = 1, Brightness? brightness}) =>
-    CupertinoApp(
-      theme: CupertinoThemeData(brightness: brightness),
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(
-          textScaler: TextScaler.linear(scale),
-          disableAnimations: true,
+    ExternalLinkScope(
+      launcher: launchExternalLink,
+      child: CupertinoApp(
+        theme: CupertinoThemeData(brightness: brightness),
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(scale),
+            disableAnimations: true,
+          ),
+          child: child!,
         ),
-        child: child!,
+        home: home,
       ),
-      home: home,
     );
 
 void _viewport(WidgetTester tester, Size size) {
