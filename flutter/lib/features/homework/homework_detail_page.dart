@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:ginkgo_mirror/widgets/feature_intro.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 
@@ -127,29 +128,12 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
       child: ListView(
         padding: const EdgeInsets.only(bottom: GinkgoSpacing.xl),
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(32, 24, 32, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.item.courseName,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppleDesign.statusInactive.resolveFrom(context),
-                  ),
-                ),
-                const SizedBox(height: 9),
-                Text(
-                  widget.item.title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
+          FeatureIntro(
+            icon: CupertinoIcons.doc_text_fill,
+            prominent: true,
+            title: widget.item.title,
+            description: widget.item.courseName,
+            color: GinkgoColors.resourcePurple,
           ),
           AppleSection(
             children: [
@@ -282,7 +266,10 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                 children: [_field('上次结果', failureMessage(detail.failure))],
               ),
             AppleSection(
-              header: const Text('作业说明'),
+              header: const FeatureSectionTitle(
+                '作业说明',
+                icon: CupertinoIcons.doc_text,
+              ),
               children: [
                 Padding(
                   padding: const EdgeInsets.all(16),
@@ -303,7 +290,10 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
               ],
             ),
             AppleSection(
-              header: const Text('发布与提交'),
+              header: const FeatureSectionTitle(
+                '发布与提交',
+                icon: CupertinoIcons.tray_arrow_up,
+              ),
               children: [
                 _field('授课教师', widget.item.teacherName ?? '上游未提供'),
                 _field(

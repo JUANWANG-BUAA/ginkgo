@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
+import 'package:ginkgo_mirror/design/tokens.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
@@ -148,7 +149,7 @@ class ScheduleSemesterWeeks extends StatelessWidget {
                 '第 ${week.number} 周${week.current ? ' · 本周' : ''}',
                 style: const TextStyle(fontWeight: FontWeight.w500),
               ),
-              const SizedBox(height: 5),
+              const SizedBox(height: GinkgoSpacing.compact),
               Text(
                 '${shortDate(week.startDate)}–${shortDate(week.endDate)}',
                 style: scheduleSecondary(context),
@@ -183,7 +184,7 @@ class ScheduleExamList extends StatelessWidget {
                   exam.courseName,
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: GinkgoSpacing.small),
                 Text(_examDetail(exam), style: scheduleSecondary(context)),
                 if (exam.examSeatNo != null)
                   Text(

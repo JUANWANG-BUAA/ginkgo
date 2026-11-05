@@ -71,7 +71,7 @@ class DesktopWorkspaceShell extends StatelessWidget {
                     ),
                     children: [
                       for (final section in WorkspaceSection.values) ...[
-                        _section(section.title),
+                        _section(context, section.title),
                         for (final destination in sidebarDestinations(section))
                           workspaceSidebarItem(
                             context,
@@ -129,15 +129,15 @@ class DesktopWorkspaceShell extends StatelessWidget {
     );
   }
 
-  Widget _section(String title) => Padding(
+  Widget _section(BuildContext context, String title) => Padding(
     padding: const EdgeInsets.fromLTRB(14, 14, 14, 4),
     child: Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.6,
-        color: CupertinoColors.secondaryLabel,
+        color: CupertinoColors.secondaryLabel.resolveFrom(context),
       ),
     ),
   );

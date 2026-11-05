@@ -261,7 +261,9 @@ class _SummaryGridCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tone = item.tone ?? StatusTone.neutral;
-    final iconColor = statusToneColor(context, tone);
+    final iconColor = tone == StatusTone.neutral
+        ? CupertinoTheme.of(context).primaryColor
+        : statusToneColor(context, tone);
     final labelStyle = TextStyle(
       fontSize: GinkgoTypography.footnote.fontSize,
       height: 1.25,

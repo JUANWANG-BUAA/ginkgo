@@ -56,11 +56,19 @@ class MainActivity : FlutterActivity() {
         // Load the Rust library from the JVM before Flutter's Dart FFI does, so
         // JNI_OnLoad can cache the app class loader's CredentialVault class.
         try {
-            System.loadLibrary("ginkgo_flutter_bridge")
-            CredentialVault.initialize(applicationContext)
+            GinkgoNativeRuntime.initialize(applicationContext)
         } catch (t: Throwable) {
             Log.e("Ginkgo", "credential vault initialization failed")
         }
         super.onCreate(savedInstanceState)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        ReminderBackgroundState.foreground = true
+    }
+    override fun onStop() {
+        ReminderBackgroundState.foreground = false
+        super.onStop()
     }
 }

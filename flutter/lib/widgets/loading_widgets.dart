@@ -166,12 +166,14 @@ class SectionFeedback extends StatelessWidget {
     required this.hasData,
     this.error,
     this.onRetry,
+    this.retryKey,
     this.quietWhenRefreshing = false,
   });
   final bool loading, hasData;
   final String label;
   final String? error;
   final VoidCallback? onRetry;
+  final Key? retryKey;
   final bool quietWhenRefreshing;
 
   @override
@@ -180,44 +182,69 @@ class SectionFeedback extends StatelessWidget {
         (loading && hasData && quietWhenRefreshing)) {
       return const SizedBox.shrink();
     }
+    final message = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(loading ? label : error!),
+        if (hasData) ...[
+          const SizedBox(height: 3),
+          Text(
+            '保留上次结果',
+            style: TextStyle(
+              fontSize: 13,
+              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+            ),
+          ),
+        ],
+      ],
+    );
+    final indicator = loading
+        ? const GinkgoActivity()
+        : const Icon(
+            CupertinoIcons.exclamationmark_triangle,
+            size: 22,
+            color: CupertinoColors.systemOrange,
+          );
+    final retry = !loading && onRetry != null
+        ? CupertinoButton(
+            key: retryKey,
+            onPressed: onRetry,
+            child: const Text('重试'),
+          )
+        : null;
     return Semantics(
       liveRegion: true,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            if (loading)
-              const GinkgoActivity()
-            else
-              const Icon(
-                CupertinoIcons.exclamationmark_triangle,
-                size: 22,
-                color: CupertinoColors.systemOrange,
-              ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final stacked =
+                constraints.maxWidth < 260 ||
+                MediaQuery.textScalerOf(context).scale(17) > 22;
+            if (stacked) {
+              return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(loading ? label : error!),
-                  if (hasData) ...[
-                    const SizedBox(height: 3),
-                    Text(
-                      '保留上次结果',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: CupertinoColors.secondaryLabel.resolveFrom(
-                          context,
-                        ),
-                      ),
+                  indicator,
+                  const SizedBox(height: GinkgoSpacing.sm),
+                  message,
+                  if (retry != null)
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: retry,
                     ),
-                  ],
                 ],
-              ),
-            ),
-            if (!loading && onRetry != null)
-              CupertinoButton(onPressed: onRetry, child: const Text('重试')),
-          ],
+              );
+            }
+            return Row(
+              children: [
+                indicator,
+                const SizedBox(width: 12),
+                Expanded(child: message),
+                ?retry,
+              ],
+            );
+          },
         ),
       ),
     );

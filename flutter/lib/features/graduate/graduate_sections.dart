@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:ginkgo_mirror/widgets/feature_intro.dart';
 
 import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
@@ -138,8 +139,16 @@ class GraduateOverview extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        const FeatureIntro(
+          icon: CupertinoIcons.book_circle,
+          title: '培养进度',
+          description: '已认定、待考核与尚需学分分别呈现，按类别查看课程。',
+        ),
         AppleSection(
-          header: const Text('学分进度'),
+          header: const FeatureSectionTitle(
+            '学分进度',
+            icon: CupertinoIcons.chart_pie,
+          ),
           footer: const Text('仅统计学校已认定的方案学分，待考核学分单独列出。'),
           children: [
             if (summary.progress != null)
@@ -158,7 +167,10 @@ class GraduateOverview extends StatelessWidget {
         ),
         if (sections.length > 1)
           AppleSection(
-            header: const Text('类别与课组'),
+            header: const FeatureSectionTitle(
+              '类别与课组',
+              icon: CupertinoIcons.square_grid_2x2,
+            ),
             footer: const Text('各类可能包含同一课程，学分不可直接相加。展开查看学校要求和课程。'),
             children: [
               for (final section in sections.skip(1))
@@ -213,6 +225,12 @@ class GraduateProfileView extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
+      const FeatureIntro(
+        icon: CupertinoIcons.person_crop_rectangle,
+        title: '我的学籍',
+        description: '学校提供的在读信息与培养身份',
+        color: CupertinoColors.systemIndigo,
+      ),
       GraduatePartNotices(
         title: '学籍信息',
         loading: loading,

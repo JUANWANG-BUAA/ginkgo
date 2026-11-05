@@ -48,6 +48,7 @@ SUMMARY_TOKENS = (
     'SummaryStrip(',
     'SummaryLine(',
     'AcademicMetricGrid(',
+    'AcademicOverview(',  # Hero value plus labeled supporting academic metrics.
     'ResourceMeter(',
     'CheckinStatusSummary(',
     'GraduateStat(',

@@ -9,7 +9,7 @@ Ginkgo（BUAA Assistant，北航校园工作台）是北航校园服务聚合客
 - **macOS / iOS 的 Swift/SwiftUI 应用已冻结**：不做功能开发、跨端对齐或排期；只在影响 Android 构建、共享 fixture 或存在安全问题时被动修。公共契约变化不必为 Apple 端做功能对齐。
 - 应用没有项目自建中转服务器。学校请求在设备进程内直连北航系统，或经北航官方 WebVPN；Rust 是应用内本地核心，不是独立后端。
 - **共享网络与认证链已冻结（2026-11-03）**：用户确认 Beta.9 登录成功，固定基线 `android-v0.1.0-beta.9` / `c4afc0c3f5edad5cded1352da5b536001edb430a`。后续 agent 不得为重构、优化、对齐参考库或修其他模块而改变 HTTP、CAS/验证码、重定向、Cookie、直连/WebVPN、身份确认、会话恢复/保险库及自动重试行为；不得绕开既有入口另建网络实现。只有用户明确授权针对该冻结范围的具体修改才可解冻，发现安全问题也先报告，不擅自修改。完整范围、例外流程及用户验证边界见 `docs/NETWORK-FREEZE.md`；`python3 scripts/check-network-freeze.py` 为强制门禁，禁止自行刷新清单、改基线或删除门禁来通过检查。
-- 当前公开基线为 Android Beta.9（`0.1.0-beta.9+19`）和 Windows Alpha.6；Beta.9 已于 2026-11-03 按用户明确要求公开，但发布时 readiness 仍为 blocked，详见 `docs/_audit/2026-11-03-beta9-publication.md`。这不构成未完成账号、物理设备、写入和安全审查的验收；后续发布继续受门禁约束。`flutter/pubspec.yaml` 的版本号不能证明工作树后续改动已发布；公开内容以对应 tag、Release 和发布记录为准。
+- 当前公开基线为 Android Beta.10（`0.1.0-beta.10+20`）和 Windows Alpha.6；Beta.10 于 2026-11-04（America/Los_Angeles）按用户明确要求在真实账号测试暂停期间手动公开，详见 `docs/_audit/2026-11-04-beta10-publication.md`。正式 readiness 仍为 blocked，本次例外不把未执行验收记作通过；网络冻结基线仍为 Beta.9，不随公开版本变更。`flutter/pubspec.yaml` 的版本号不能证明工作树后续改动已发布；公开内容以对应 tag、Release 和发布记录为准。
 - 当前工作树已移除作业详情“加入个人待办”入口，但保留既有本机记录；不要根据历史迭代文档重新添加该入口。
 - 未完成任务只维护在 `docs/MIRROR-TODO.md`，不要另建重复 TODO 清单。当前优先顺序为 P0 可复现回归与安全边界、P1 设备 / 账号验收及小步体验、P2 扩展。
 

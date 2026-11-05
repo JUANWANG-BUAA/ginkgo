@@ -41,6 +41,7 @@ class _BykcPageState extends State<BykcPage> {
   final parts = {for (final part in BykcPart.values) part: _BykcSnapshot()};
   final scrollController = ScrollController();
   final searchController = TextEditingController();
+  int generation = 0;
   BykcPart selection = BykcPart.catalog;
   List<BykcCourse> visible = [];
   List<String> categories = ['全部'];
@@ -51,6 +52,25 @@ class _BykcPageState extends State<BykcPage> {
   void initState() {
     super.initState();
     load(BykcPart.catalog);
+  }
+
+  @override
+  void didUpdateWidget(BykcPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service ||
+        oldWidget.loader != widget.loader) {
+      generation++;
+      for (final part in BykcPart.values) {
+        parts[part] = _BykcSnapshot();
+      }
+      visible = [];
+      categories = ['全部'];
+      category = '全部';
+      query = '';
+      termName = '学期课程目录';
+      searchController.clear();
+      load(selection);
+    }
   }
 
   @override
@@ -81,6 +101,7 @@ class _BykcPageState extends State<BykcPage> {
 
   Future<void> _fetch(BykcPart part, {required bool force}) async {
     final snapshot = parts[part]!;
+    final epoch = generation;
     setState(() {
       snapshot.loading = true;
       snapshot.attempted = true;
@@ -88,7 +109,7 @@ class _BykcPageState extends State<BykcPage> {
     });
     try {
       final result = await _request(part, force);
-      if (!mounted) return;
+      if (!mounted || epoch != generation) return;
       setState(() {
         snapshot.error = result.failure == null
             ? null
@@ -115,9 +136,13 @@ class _BykcPageState extends State<BykcPage> {
         }
       });
     } catch (_) {
-      if (mounted) setState(() => snapshot.error = failureMessage(null));
+      if (mounted && epoch == generation) {
+        setState(() => snapshot.error = failureMessage(null));
+      }
     } finally {
-      if (mounted) setState(() => snapshot.loading = false);
+      if (mounted && epoch == generation) {
+        setState(() => snapshot.loading = false);
+      }
     }
   }
 
@@ -162,22 +187,13 @@ class _BykcPageState extends State<BykcPage> {
     }
     return AppleSection(
       children: [
-        AppleListTile(
-          leading: current.loading
-              ? const GinkgoActivity(size: 17)
-              : const Icon(
-                  CupertinoIcons.exclamationmark_triangle,
-                  color: CupertinoColors.systemOrange,
-                ),
-          title: Text(current.loading ? '正在更新…' : current.error!),
-          subtitle: !current.hasData ? null : const Text('保留上次结果'),
-          trailing: current.loading
-              ? null
-              : CupertinoButton(
-                  key: ValueKey('bykc-retry-${selection.name}'),
-                  onPressed: () => load(selection, force: true),
-                  child: const Text('重试'),
-                ),
+        SectionFeedback(
+          loading: current.loading,
+          label: '正在更新…',
+          hasData: current.hasData,
+          error: current.error,
+          retryKey: ValueKey('bykc-retry-${selection.name}'),
+          onRetry: () => load(selection, force: true),
         ),
       ],
     );

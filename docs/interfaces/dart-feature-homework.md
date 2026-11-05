@@ -8,9 +8,9 @@
 ## features/homework/homework_detail_page.dart
 
 - `class HomeworkDetailPage extends StatefulWidget`
-  <sub>class · features/homework/homework_detail_page.dart:20</sub>
-    - `const HomeworkDetailPage({ super.key, required this.item, required this.fileActions, required this.service, this.taskService, this.storageRoot, this.openTaskOnLinked = true, });`  <sub>:21</sub>
-    - `State<HomeworkDetailPage> createState() => …`  <sub>:39</sub>
+  <sub>class · features/homework/homework_detail_page.dart:21</sub>
+    - `const HomeworkDetailPage({ super.key, required this.item, required this.fileActions, required this.service, this.taskService, this.storageRoot, this.openTaskOnLinked = true, });`  <sub>:22</sub>
+    - `State<HomeworkDetailPage> createState() => …`  <sub>:40</sub>
 
 ## features/homework/homework_files_panel.dart
 
@@ -91,10 +91,10 @@
     - `const HomeworkStatusBadge({ super.key, required this.status, required this.dueAt, required this.clock, });`  <sub>:51</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:63</sub>
 - `class HomeworkDeadlineText extends StatelessWidget` — 单条作业的截止时间与倒计时描述。
-  <sub>class · features/homework/homework_widgets.dart:99</sub>
-    - `const HomeworkDeadlineText({ super.key, required this.item, required this.clock, });`  <sub>:100</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:110</sub>
+  <sub>class · features/homework/homework_widgets.dart:100</sub>
+    - `const HomeworkDeadlineText({ super.key, required this.item, required this.clock, });`  <sub>:101</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:111</sub>
 - `class HomeworkItemTile extends StatelessWidget` — 作业列表项：标题、截止信息与课程；教师信息位于详情页。
-  <sub>class · features/homework/homework_widgets.dart:151</sub>
-    - `const HomeworkItemTile({ super.key, required this.item, required this.clock, required this.onTap, });`  <sub>:152</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:164</sub>
+  <sub>class · features/homework/homework_widgets.dart:153</sub>
+    - `const HomeworkItemTile({ super.key, required this.item, required this.clock, required this.onTap, });`  <sub>:154</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:166</sub>

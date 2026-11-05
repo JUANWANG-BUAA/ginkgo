@@ -57,10 +57,6 @@ class BoundaryTests(unittest.TestCase):
             self.assertEqual(
                 BOUNDARY.SHARED_PLATFORM_IMPORT_EXCEPTIONS,
                 {
-                    'shared/course_visibility.dart': {
-                        'dart:io',
-                        'package:path_provider/path_provider.dart',
-                    },
                     'shared/school_links.dart': {
                         'package:url_launcher/url_launcher.dart',
                     },
@@ -229,11 +225,11 @@ class BoundaryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             lib = root / 'flutter/lib'
-            codec = lib / 'shared/course_visibility.dart'
+            codec = lib / 'shared/reminder_controller.dart'
             codec.parent.mkdir(parents=True)
             codec.write_text('final value = jsonDecode(text);\n')
             self.assertEqual(BOUNDARY.payload_decode_violations(root), [])
-            moved = lib / 'shared/renamed_course_visibility.dart'
+            moved = lib / 'shared/course_visibility.dart'
             moved.write_text('final value = jsonDecode(text);\n')
             self.assertEqual(len(BOUNDARY.payload_decode_violations(root)), 1)
 
@@ -242,7 +238,7 @@ class BoundaryTests(unittest.TestCase):
             root = Path(temporary)
             lib = root / 'flutter/lib'
             models = lib / 'features/bykc/bykc_models.dart'
-            codec = lib / 'shared/course_visibility.dart'
+            codec = lib / 'shared/reminder_controller.dart'
             models.parent.mkdir(parents=True)
             codec.parent.mkdir(parents=True)
             models.write_text('final value = jsonDecode(payload);\n')

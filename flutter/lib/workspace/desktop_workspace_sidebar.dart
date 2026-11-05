@@ -38,11 +38,11 @@ Widget workspaceBrandIdentity(
               colors: [accent, accent.withValues(alpha: 0.72)],
             ),
           ),
-          child: const Center(
+          child: Center(
             child: Icon(
               CupertinoIcons.leaf_arrow_circlepath,
               size: 20,
-              color: CupertinoColors.white,
+              color: CupertinoColors.systemBackground.resolveFrom(context),
             ),
           ),
         ),

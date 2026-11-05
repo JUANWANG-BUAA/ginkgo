@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:ginkgo_mirror/widgets/date_tile.dart';
+import 'package:ginkgo_mirror/widgets/feature_intro.dart';
 
 import 'package:ginkgo_mirror/application/career.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
@@ -78,11 +80,16 @@ class CareerEventsPage extends StatelessWidget {
                 note: '来源：学校就业网 · 同步 ${schoolTimestampLabel(data.fetchedAt)}',
               ),
               AppleSection(
-                header: const Text('安排'),
+                header: const FeatureSectionTitle(
+                  '安排',
+                  icon: CupertinoIcons.calendar,
+                ),
                 children: [
                   for (final event in data.events)
                     AppleListTile(
                       key: Key('career-event-${event.id}'),
+                      leading: DateTile(event.beginsAt),
+                      leadingSize: 48,
                       title: Text(event.title),
                       subtitle: Text(
                         '${event.beginsAt}–${event.endsAt}\n'

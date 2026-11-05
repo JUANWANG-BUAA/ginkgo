@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:ginkgo_mirror/widgets/feature_intro.dart';
 import 'package:ginkgo_mirror/shared/school_links.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
@@ -81,7 +82,10 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
     setState(() {
       _busy = false;
       _failure = result.failure;
-      if (result.failure == FailureCode.sessionExpired) _data = null;
+      if (result.failure == FailureCode.sessionExpired ||
+          result.failure == FailureCode.moduleAuthRequired) {
+        _data = null;
+      }
       if (result.failure == null && result.data != null) _data = result.data;
       if (result.failure == null && result.data == null) {
         _failure = FailureCode.changedResponse;
@@ -103,11 +107,14 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
   }
 
   String get _error => switch (_failure) {
-    FailureCode.sessionExpired => '读者认证未完成或已过期，请重新登录；官网可单独查看本人借阅。',
-    FailureCode.redirectLimit => '读者认证反复跳转，尚未建立图书馆会话；请通过图书馆官网完成认证后核对。',
+    FailureCode.sessionExpired || FailureCode.moduleAuthRequired =>
+      '读者认证未完成或已过期，可在图书馆官网单独查询。本提示不代表整个 App 已退出，请勿反复重登。',
+    FailureCode.redirectLimit =>
+      '读者认证反复跳转，尚未建立图书馆会话；可在官网单独核对借阅，官网登录状态不会同步到 App。',
     FailureCode.changedResponse => '借阅接口路径或数据结构发生变化，请通过官网核对。',
     FailureCode.accessPolicyDenied => '当前网络或读者权限不允许查询，请通过官网核对。',
     FailureCode.businessRejected => '图书馆未受理本次查询，请通过官网核对。',
+    FailureCode.networkUnreachable => '未能连接借阅服务，请检查网络后重试；这不代表没有借阅记录。',
     _ => '借阅服务暂不可用，请稍后重试；不能据此判断接口不存在。',
   };
   @override
@@ -139,6 +146,12 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
       child: SafeArea(
         child: ListView(
           children: [
+            const FeatureIntro(
+              icon: CupertinoIcons.bookmark,
+              title: '我的借阅',
+              description: '按需查看借出书目与应还日期',
+              color: CupertinoColors.systemIndigo,
+            ),
             AppleSection(
               header: const Text('当前借阅'),
               children: [
@@ -192,7 +205,7 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
                 if (_failure != null && data == null)
                   AppleEmptyState(
                     title: '暂时无法读取借阅记录',
-                    description: _error,
+                    description: '$_error\n诊断代码：${_failure!.name}',
                     error: true,
                     action: '重试',
                     onAction: () => _read(1),

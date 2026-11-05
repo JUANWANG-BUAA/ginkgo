@@ -7,25 +7,38 @@
 
 ## 目录
 
+- [widgets/academic_overview.dart](#widgetsacademicoverviewdart) (1)
 - [widgets/academic_widgets.dart](#widgetsacademicwidgetsdart) (5)
 - [widgets/apple_controls.dart](#widgetsapplecontrolsdart) (2)
 - [widgets/apple_navigation.dart](#widgetsapplenavigationdart) (2)
 - [widgets/apple_page_chrome.dart](#widgetsapplepagechromedart) (2)
 - [widgets/apple_surfaces.dart](#widgetsapplesurfacesdart) (4)
 - [widgets/collection_toolbar.dart](#widgetscollectiontoolbardart) (3)
+- [widgets/date_tile.dart](#widgetsdatetiledart) (1)
 - [widgets/day_scroll_physics.dart](#widgetsdayscrollphysicsdart) (1)
 - [widgets/diagnostic_hints.dart](#widgetsdiagnostichintsdart) (1)
+- [widgets/feature_intro.dart](#widgetsfeatureintrodart) (2)
+- [widgets/ginkgo_dialog_widgets.dart](#widgetsginkgodialogwidgetsdart) (6)
 - [widgets/ginkgo_mark.dart](#widgetsginkgomarkdart) (1)
+- [widgets/ginkgo_polished_widgets.dart](#widgetsginkgopolishedwidgetsdart) (5)
 - [widgets/ginkgo_visuals.dart](#widgetsginkgovisualsdart) (2)
 - [widgets/loading_widgets.dart](#widgetsloadingwidgetsdart) (5)
 - [widgets/long_page_scroll.dart](#widgetslongpagescrolldart) (1)
 - [widgets/mutation_dialog.dart](#widgetsmutationdialogdart) (1)
+- [widgets/press_feedback.dart](#widgetspressfeedbackdart) (1)
 - [widgets/public_information_page.dart](#widgetspublicinformationpagedart) (1)
 - [widgets/release_notes_view.dart](#widgetsreleasenotesviewdart) (11)
 - [widgets/reminder_badge.dart](#widgetsreminderbadgedart) (1)
 - [widgets/resource_meter.dart](#widgetsresourcemeterdart) (1)
 - [widgets/status_chip.dart](#widgetsstatuschipdart) (3)
 - [widgets/summary_strip.dart](#widgetssummarystripdart) (5)
+
+## widgets/academic_overview.dart
+
+- `class AcademicOverview extends StatelessWidget` — A single focal value plus supporting facts. Unknown values stay explicit.
+  <sub>class · widgets/academic_overview.dart:7</sub>
+    - `const AcademicOverview({ super.key, required this.title, required this.value, required this.icon, required this.facts, this.note, this.color, });`  <sub>:8</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:24</sub>
 
 ## widgets/academic_widgets.dart
 
@@ -44,9 +57,9 @@
     - `const AcademicMetric({ super.key, required this.label, required this.value, this.prominent = false, });`  <sub>:103</sub>
     - `Widget build(BuildContext context) => …`  <sub>:112</sub>
 - `class AcademicMetricGrid extends StatelessWidget`
-  <sub>class · widgets/academic_widgets.dart:137</sub>
-    - `const AcademicMetricGrid({ super.key, required this.children, this.maxColumns, });`  <sub>:138</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:146</sub>
+  <sub>class · widgets/academic_widgets.dart:140</sub>
+    - `const AcademicMetricGrid({ super.key, required this.children, this.maxColumns, });`  <sub>:141</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:149</sub>
 
 ## widgets/apple_controls.dart
 
@@ -87,21 +100,21 @@
 ## widgets/apple_surfaces.dart
 
 - `class ApplePageHeader extends StatelessWidget` — Phone pages keep the native collapsing title. Wide windows use the same
-  <sub>class · widgets/apple_surfaces.dart:9</sub>
-    - `const ApplePageHeader({ super.key, required this.largeTitle, this.trailing, this.leading, this.previousPageTitle, this.border, this.section, this.subtitle, this.icon, });`  <sub>:10</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:34</sub>
+  <sub>class · widgets/apple_surfaces.dart:10</sub>
+    - `const ApplePageHeader({ super.key, required this.largeTitle, this.trailing, this.leading, this.previousPageTitle, this.border, this.section, this.subtitle, this.icon, });`  <sub>:11</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:35</sub>
 - `class AppleEmptyState extends StatelessWidget`
-  <sub>class · widgets/apple_surfaces.dart:137</sub>
-    - `const AppleEmptyState({ super.key, required this.title, required this.description, this.action, this.onAction, this.error = false, this.icon, });`  <sub>:138</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:153</sub>
+  <sub>class · widgets/apple_surfaces.dart:155</sub>
+    - `const AppleEmptyState({ super.key, required this.title, required this.description, this.action, this.onAction, this.error = false, this.icon, });`  <sub>:156</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:171</sub>
 - `class AppleSection extends StatelessWidget` — Modern inset groups use a continuous corner, a quiet content surface and
-  <sub>class · widgets/apple_surfaces.dart:189</sub>
-    - `const AppleSection({ super.key, required this.children, this.header, this.footer, this.animateSize = true, });`  <sub>:190</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:201</sub>
+  <sub>class · widgets/apple_surfaces.dart:207</sub>
+    - `const AppleSection({ super.key, required this.children, this.header, this.footer, this.animateSize = true, });`  <sub>:208</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:219</sub>
 - `class AppleListTile extends StatelessWidget`
-  <sub>class · widgets/apple_surfaces.dart:294</sub>
-    - `const AppleListTile({ super.key, required this.title, this.subtitle, this.additionalInfo, this.leading, this.trailing, this.onTap, this.minimumHeight = AppleDesign.rowHeight, this.leadingSize = 30, });`  <sub>:295</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:312</sub>
+  <sub>class · widgets/apple_surfaces.dart:312</sub>
+    - `const AppleListTile({ super.key, required this.title, this.subtitle, this.additionalInfo, this.leading, this.trailing, this.onTap, this.minimumHeight = AppleDesign.rowHeight, this.leadingSize = 30, });`  <sub>:313</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:330</sub>
 
 ## widgets/collection_toolbar.dart
 
@@ -118,6 +131,13 @@
     - `Widget get sliver => …`  <sub>:159</sub>
     - `void reveal(ScrollController controller) {…}`  <sub>:161</sub>
 
+## widgets/date_tile.dart
+
+- `class DateTile extends StatelessWidget` — A calendar anchor for an explicit ISO date; unknown formats stay textual.
+  <sub>class · widgets/date_tile.dart:5</sub>
+    - `const DateTile(this.value, {super.key});`  <sub>:6</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:9</sub>
+
 ## widgets/day_scroll_physics.dart
 
 - `class DayScrollPhysics extends ScrollPhysics` — Touch flings settle on a day boundary, while wheel and thumb movement remain
@@ -133,12 +153,66 @@
     - `const DiagnosticHintOverlay({super.key, required this.child});`  <sub>:7</sub>
     - `Widget build(BuildContext context) => …`  <sub>:10</sub>
 
+## widgets/feature_intro.dart
+
+- `class FeatureIntro extends StatelessWidget` — A compact feature identity with a clear task, separate from live status.
+  <sub>class · widgets/feature_intro.dart:6</sub>
+    - `const FeatureIntro({ super.key, required this.icon, required this.title, required this.description, this.color, this.prominent = false, });`  <sub>:7</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:21</sub>
+- `class FeatureSectionTitle extends StatelessWidget` — Section heading with an explicit semantic icon; no inferred business state.
+  <sub>class · widgets/feature_intro.dart:56</sub>
+    - `const FeatureSectionTitle( this.title, { super.key, required this.icon, this.color, });`  <sub>:57</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:67</sub>
+
+## widgets/ginkgo_dialog_widgets.dart
+
+- `class GinkgoPageRoute<T> extends CupertinoPageRoute<T>` — Swift-style page route with sophisticated transition
+  <sub>class · widgets/ginkgo_dialog_widgets.dart:6</sub>
+    - `Duration get transitionDuration => …`  <sub>:16</sub>
+- `class GinkgoBottomSheet extends StatelessWidget` — Smooth bottom sheet with polished appearance
+  <sub>class · widgets/ginkgo_dialog_widgets.dart:20</sub>
+    - `const GinkgoBottomSheet({ super.key, required this.child, this.title, this.onClose, this.backgroundColor, this.isDismissible = true, this.enableDrag = true, });`  <sub>:21</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:39</sub>
+- `class GinkgoAlertDialog extends StatelessWidget` — Alert dialog with Swift styling
+  <sub>class · widgets/ginkgo_dialog_widgets.dart:106</sub>
+    - `const GinkgoAlertDialog({ super.key, required this.title, this.message, required this.actions, this.defaultActionIndex, this.cancelActionIndex, });`  <sub>:107</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:123</sub>
+- `class GinkgoAlertAction`
+  <sub>class · widgets/ginkgo_dialog_widgets.dart:151</sub>
+- `class GinkgoLoadingIndicator extends StatelessWidget` — Loading indicator with Ginkgo styling
+  <sub>class · widgets/ginkgo_dialog_widgets.dart:164</sub>
+    - `const GinkgoLoadingIndicator({super.key, this.message, this.size = 50.0});`  <sub>:165</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:171</sub>
+- `class GinkgoEmptyState extends StatelessWidget` — Empty state view with Ginkgo styling
+  <sub>class · widgets/ginkgo_dialog_widgets.dart:196</sub>
+    - `const GinkgoEmptyState({ super.key, required this.icon, required this.title, this.message, this.action, this.actionLabel, });`  <sub>:197</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:213</sub>
+
 ## widgets/ginkgo_mark.dart
 
 - `class GinkgoMark extends StatelessWidget` — Ginkgo 品牌标记：银杏叶的矢量绘制，与 Android 启动图标、主页 logo 同源。
   <sub>class · widgets/ginkgo_mark.dart:9</sub>
     - `const GinkgoMark({ super.key, this.size = 96, this.color, this.progress = 1, this.veinColor, });`  <sub>:10</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:31</sub>
+
+## widgets/ginkgo_polished_widgets.dart
+
+- `class GinkgoButton extends StatelessWidget` — A system button with shared typography, touch feedback and busy semantics.
+  <sub>class · widgets/ginkgo_polished_widgets.dart:7</sub>
+    - `const GinkgoButton({ super.key, required this.label, required this.onPressed, this.variant = GinkgoButtonVariant.primary, this.size = GinkgoButtonSize.medium, this.isLoading = false, this.isEnabled = true, this.icon, this.trailing, });`  <sub>:8</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:28</sub>
+- `enum GinkgoButtonVariant { primary, secondary, ghost }`
+  <sub>enum · widgets/ginkgo_polished_widgets.dart:88</sub>
+- `enum GinkgoButtonSize { small, medium, large }`
+  <sub>enum · widgets/ginkgo_polished_widgets.dart:90</sub>
+- `class GinkgoCard extends StatelessWidget` — Swift-like card with polished appearance
+  <sub>class · widgets/ginkgo_polished_widgets.dart:93</sub>
+    - `const GinkgoCard({ super.key, required this.child, this.elevation, this.backgroundColor, this.borderRadius = GinkgoRadii.panel, this.padding = GinkgoSpacing.edgeInsetsCard, });`  <sub>:94</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:110</sub>
+- `class GinkgoDivider extends StatelessWidget` — Smooth divider matching iOS aesthetic
+  <sub>class · widgets/ginkgo_polished_widgets.dart:126</sub>
+    - `const GinkgoDivider({ super.key, this.height = 1, this.color = GinkgoColors.separator, });`  <sub>:127</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:137</sub>
 
 ## widgets/ginkgo_visuals.dart
 
@@ -163,16 +237,16 @@
     - `Widget build(BuildContext context) => …`  <sub>:120</sub>
 - `class SectionFeedback extends StatelessWidget` — Stable, inline status: stale content stays in place during refresh/failure.
   <sub>class · widgets/loading_widgets.dart:161</sub>
-    - `const SectionFeedback({ super.key, required this.loading, required this.label, required this.hasData, this.error, this.onRetry, this.quietWhenRefreshing = false, });`  <sub>:162</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:178</sub>
+    - `const SectionFeedback({ super.key, required this.loading, required this.label, required this.hasData, this.error, this.onRetry, this.retryKey, this.quietWhenRefreshing = false, });`  <sub>:162</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:180</sub>
 - `class SectionReveal extends StatelessWidget` — Fade only on first insertion; later refreshes keep layout and content steady.
-  <sub>class · widgets/loading_widgets.dart:228</sub>
-    - `const SectionReveal({super.key, required this.child});`  <sub>:229</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:233</sub>
+  <sub>class · widgets/loading_widgets.dart:255</sub>
+    - `const SectionReveal({super.key, required this.child});`  <sub>:256</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:260</sub>
 - `class PageRefreshShortcut extends StatelessWidget` — Desktop refresh lives in the focused page, including its search fields.
-  <sub>class · widgets/loading_widgets.dart:242</sub>
-    - `const PageRefreshShortcut({super.key, required this.child, this.onRefresh});`  <sub>:243</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:248</sub>
+  <sub>class · widgets/loading_widgets.dart:269</sub>
+    - `const PageRefreshShortcut({super.key, required this.child, this.onRefresh});`  <sub>:270</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:275</sub>
 
 ## widgets/long_page_scroll.dart
 
@@ -186,15 +260,22 @@
 - `Future<bool> confirmMutation( BuildContext context, { required String title, required String detail, required String action, bool destructive = false, String cancelLabel = '返回', }) async => …`
   <sub>function · widgets/mutation_dialog.dart:3</sub>
 
+## widgets/press_feedback.dart
+
+- `class PressFeedback extends StatefulWidget` — Adds a small touch compression without replacing a control's gestures,
+  <sub>class · widgets/press_feedback.dart:7</sub>
+    - `const PressFeedback({super.key, required this.child, this.enabled = true});`  <sub>:8</sub>
+    - `State<PressFeedback> createState() => …`  <sub>:13</sub>
+
 ## widgets/public_information_page.dart
 
 - `class PublicInformationPage<T, Q> extends StatefulWidget`
-  <sub>class · widgets/public_information_page.dart:8</sub>
-    - `const PublicInformationPage({ super.key, required this.service, required this.initialQuery, required this.read, required this.queryBuilder, required this.contentBuilder, required this.scrollKey, required this.title, required this.subtitle, required this.icon, required this.refreshLabel, required this.loadingLabel, required this.unsupportedTitle, this.section = '资讯与就业', });`  <sub>:9</sub>
-    - `final Future<SectionResult<T>> Function(Q query, bool forceRefresh) read;`  <sub>:30</sub>
-    - `final Widget Function( BuildContext context, Q query, bool loading, ValueChanged<Q> select, )`  <sub>:31</sub>
-    - `final Widget Function(BuildContext context, T data) contentBuilder;`  <sub>:38</sub>
-    - `State<PublicInformationPage<T, Q>> createState() => …`  <sub>:49</sub>
+  <sub>class · widgets/public_information_page.dart:9</sub>
+    - `const PublicInformationPage({ super.key, required this.service, required this.initialQuery, required this.read, required this.queryBuilder, required this.contentBuilder, required this.scrollKey, required this.title, required this.subtitle, required this.icon, required this.refreshLabel, required this.loadingLabel, required this.unsupportedTitle, this.section = '资讯与就业', });`  <sub>:10</sub>
+    - `final Future<SectionResult<T>> Function(Q query, bool forceRefresh) read;`  <sub>:31</sub>
+    - `final Widget Function( BuildContext context, Q query, bool loading, ValueChanged<Q> select, )`  <sub>:32</sub>
+    - `final Widget Function(BuildContext context, T data) contentBuilder;`  <sub>:39</sub>
+    - `State<PublicInformationPage<T, Q>> createState() => …`  <sub>:50</sub>
 
 ## widgets/release_notes_view.dart
 
@@ -265,12 +346,12 @@
     - `const SummaryStrip({super.key, required this.items, this.note});`  <sub>:41</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:49</sub>
 - `Color summaryValueColor(BuildContext context, StatusTone tone) {…}` — The colour of a summary value.
-  <sub>function · widgets/summary_strip.dart:336</sub>
+  <sub>function · widgets/summary_strip.dart:338</sub>
 - `class SummaryLine extends StatelessWidget` — A single label/value line for the top of a section.
-  <sub>class · widgets/summary_strip.dart:348</sub>
-    - `const SummaryLine( this.label, this.value, { super.key, this.icon, this.tone = StatusTone.neutral, });`  <sub>:349</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:363</sub>
+  <sub>class · widgets/summary_strip.dart:350</sub>
+    - `const SummaryLine( this.label, this.value, { super.key, this.icon, this.tone = StatusTone.neutral, });`  <sub>:351</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:365</sub>
 - `class MetricValue extends StatelessWidget` — A right aligned number that acts as the visual anchor of one row.
-  <sub>class · widgets/summary_strip.dart:497</sub>
-    - `const MetricValue( this.value, { super.key, this.prominent = false, this.tone = StatusTone.neutral, this.suffix, });`  <sub>:498</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:512</sub>
+  <sub>class · widgets/summary_strip.dart:499</sub>
+    - `const MetricValue( this.value, { super.key, this.prominent = false, this.tone = StatusTone.neutral, this.suffix, });`  <sub>:500</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:514</sub>

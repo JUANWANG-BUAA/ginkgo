@@ -234,7 +234,12 @@ class TasksPageHeader extends StatelessWidget {
                 Expanded(
                   child: Semantics(
                     header: true,
-                    child: Text('待办', style: GinkgoTypography.title2),
+                    child: Text(
+                      '待办',
+                      style: GinkgoTypography.title2.copyWith(
+                        color: CupertinoColors.label.resolveFrom(context),
+                      ),
+                    ),
                   ),
                 ),
                 actions,

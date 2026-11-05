@@ -66,8 +66,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
   }
 
   String _filterLabel(int value) => switch (value) {
-    1 => '待完成 $pending',
-    2 => '已提交 $submitted',
+    1 => data == null ? '待完成' : '待完成 $pending',
+    2 => data == null ? '已提交' : '已提交 $submitted',
     3 => '已截止 $overdue',
     4 => '待确认 $unknown',
     _ => '全部',
@@ -399,10 +399,12 @@ class _HomeworkPageState extends State<HomeworkPage> {
           ),
           child: Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   '包含助教课程\n筛选计数仅包含个人课程',
-                  style: TextStyle(color: CupertinoColors.secondaryLabel),
+                  style: TextStyle(
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                  ),
                 ),
               ),
               Semantics(

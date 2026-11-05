@@ -8,7 +8,6 @@ import 'package:ginkgo_mirror/application/local_tasks.dart';
 
 export 'package:ginkgo_mirror/application/local_tasks.dart'
     show LocalTaskGateway;
-import 'package:ginkgo_mirror/application/environment.dart';
 import 'package:ginkgo_mirror/application/notices.dart';
 import 'package:ginkgo_mirror/application/shuttle.dart';
 import 'package:ginkgo_mirror/application/library_books.dart';

@@ -265,7 +265,7 @@ class _ScheduleGridState extends State<ScheduleGrid> {
           next ? 'schedule-grid-next-days' : 'schedule-grid-previous-days',
         ),
         padding: EdgeInsets.zero,
-        minimumSize: const Size(44, 44),
+        minimumSize: const Size(48, 48),
         onPressed: next
             ? (offset < maxExtent - 1 ? () => move(columnWidth * 2) : null)
             : (offset > 1 ? () => move(-columnWidth * 2) : null),

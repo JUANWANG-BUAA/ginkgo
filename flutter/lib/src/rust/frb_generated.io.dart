@@ -35,6 +35,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AndroidDownloadDto dco_decode_android_download_dto(dynamic raw);
 
   @protected
+  BackgroundReminderRead dco_decode_background_reminder_read(dynamic raw);
+
+  @protected
   BookHitDto dco_decode_book_hit_dto(dynamic raw);
 
   @protected
@@ -115,6 +118,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CgyyReviewDto dco_decode_box_autoadd_cgyy_review_dto(dynamic raw);
 
   @protected
+  CheckInResponse dco_decode_box_autoadd_check_in_response(dynamic raw);
+
+  @protected
   CheckinLoadProgressDto dco_decode_box_autoadd_checkin_load_progress_dto(
     dynamic raw,
   );
@@ -160,6 +166,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   GraduateProgressDto dco_decode_box_autoadd_graduate_progress_dto(dynamic raw);
+
+  @protected
+  HomeworkResponse dco_decode_box_autoadd_homework_response(dynamic raw);
 
   @protected
   HomeworkUploadReceiptDto dco_decode_box_autoadd_homework_upload_receipt_dto(
@@ -890,6 +899,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CgyyReviewDto? dco_decode_opt_box_autoadd_cgyy_review_dto(dynamic raw);
 
   @protected
+  CheckInResponse? dco_decode_opt_box_autoadd_check_in_response(dynamic raw);
+
+  @protected
   CheckinLoadProgressDto? dco_decode_opt_box_autoadd_checkin_load_progress_dto(
     dynamic raw,
   );
@@ -930,6 +942,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   GraduateProgressDto? dco_decode_opt_box_autoadd_graduate_progress_dto(
     dynamic raw,
   );
+
+  @protected
+  HomeworkResponse? dco_decode_opt_box_autoadd_homework_response(dynamic raw);
 
   @protected
   HomeworkUploadReceiptDto?
@@ -1119,6 +1134,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  BackgroundReminderRead sse_decode_background_reminder_read(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   BookHitDto sse_decode_book_hit_dto(SseDeserializer deserializer);
 
   @protected
@@ -1225,6 +1245,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CheckInResponse sse_decode_box_autoadd_check_in_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CheckinLoadProgressDto sse_decode_box_autoadd_checkin_load_progress_dto(
     SseDeserializer deserializer,
   );
@@ -1276,6 +1301,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   GraduateProgressDto sse_decode_box_autoadd_graduate_progress_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  HomeworkResponse sse_decode_box_autoadd_homework_response(
     SseDeserializer deserializer,
   );
 
@@ -2234,6 +2264,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CheckInResponse? sse_decode_opt_box_autoadd_check_in_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CheckinLoadProgressDto? sse_decode_opt_box_autoadd_checkin_load_progress_dto(
     SseDeserializer deserializer,
   );
@@ -2280,6 +2315,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   GraduateProgressDto? sse_decode_opt_box_autoadd_graduate_progress_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  HomeworkResponse? sse_decode_opt_box_autoadd_homework_response(
     SseDeserializer deserializer,
   );
 
@@ -2509,6 +2549,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_background_reminder_read(
+    BackgroundReminderRead self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_book_hit_dto(BookHitDto self, SseSerializer serializer);
 
   @protected
@@ -2641,6 +2687,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_check_in_response(
+    CheckInResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_checkin_load_progress_dto(
     CheckinLoadProgressDto self,
     SseSerializer serializer,
@@ -2706,6 +2758,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_graduate_progress_dto(
     GraduateProgressDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_homework_response(
+    HomeworkResponse self,
     SseSerializer serializer,
   );
 
@@ -3922,6 +3980,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_check_in_response(
+    CheckInResponse? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_checkin_load_progress_dto(
     CheckinLoadProgressDto? self,
     SseSerializer serializer,
@@ -3975,6 +4039,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_graduate_progress_dto(
     GraduateProgressDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_homework_response(
+    HomeworkResponse? self,
     SseSerializer serializer,
   );
 

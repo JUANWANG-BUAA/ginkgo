@@ -1,3 +1,4 @@
+import 'package:ginkgo_mirror/widgets/feature_intro.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
@@ -191,6 +192,12 @@ class _TaskEditorState extends State<TaskEditor> {
         child: ListView(
           padding: const EdgeInsets.only(bottom: 32),
           children: [
+            const FeatureIntro(
+              icon: CupertinoIcons.checkmark_circle,
+              title: '安排一件小事',
+              description: '记录要做的事，按需设置截止时间',
+              color: CupertinoColors.systemOrange,
+            ),
             AppleSection(
               children: [
                 Padding(

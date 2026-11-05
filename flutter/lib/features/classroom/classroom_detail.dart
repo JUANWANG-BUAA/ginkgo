@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
+import 'package:ginkgo_mirror/widgets/feature_intro.dart';
+
 import 'classroom_widgets.dart';
 
 class ClassroomDetail extends StatelessWidget {
@@ -25,6 +27,13 @@ class ClassroomDetail extends StatelessWidget {
     child: SafeArea(
       child: ListView(
         children: [
+          FeatureIntro(
+            icon: CupertinoIcons.building_2_fill,
+            title: room.name,
+            description: building,
+            color: CupertinoColors.systemTeal,
+            prominent: true,
+          ),
           AppleSection(
             header: Text(room.name),
             children: [

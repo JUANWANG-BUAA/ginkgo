@@ -1,6 +1,6 @@
 # Ginkgo 接口索引
 
-更新：2026-11-02。本文是 **Android（Flutter + Rust）全链路接口的单一索引**：按层次列出每个接口的标识、功能、输入、输出、副作用与源码位置，用于快速定位「某个能力从界面一路走到学校协议」的完整路径。
+更新：2026-11-03。本文是 **Android（Flutter + Rust）全链路接口的单一索引**：按层次列出每个接口的标识、功能、输入、输出、副作用与源码位置，用于快速定位「某个能力从界面一路走到学校协议」的完整路径。
 
 当前变更必须同步 [协议锁](protocol-contracts.json)，发布另受 [强制验收契约](ANDROID-RELEASE-CONTRACT.md) 约束。本文只做索引与契约说明，不重复上游协议事实。URL、参数、成功码、证据等级以 [API.md](API.md) 为唯一来源；用户能做什么、读写边界与本机数据见 [FEATURES-AND-PROTOCOLS.md](FEATURES-AND-PROTOCOLS.md)；分层职责见 [MIRROR-ARCHITECTURE.md](MIRROR-ARCHITECTURE.md)。
 
@@ -60,7 +60,7 @@ Flutter 页面
 | **写状态机模式** | 写操作不确定时不误报 | 写结果只有四态：`accepted` / `rejected` / `notSubmitted` / `uncertain` | 把未知当失败（用户会重发）或当成功 |
 | **三件套模式** | 写操作可回查 | 用户明确触发 → 单次提交 → 回查；`uncertain` 只允许回查 | 超时后自动重发、自动补发 |
 | **账号绑定模式** | 防止跨账号串数据 | 账号由 Rust 会话派生；网络 await 后复检；代次不匹配丢弃 | 由 Dart 传账号 ID，或把旧响应写回新账号 |
-| **投影模式** | 页面不接触原始响应 | Rust 输出领域 JSON → Dart `*_models.dart` 解码为类型 | 页面 `jsonDecode`、`Map<String, dynamic>` 传进组件 |
+| **投影模式** | 页面不接触原始响应 | Rust 净化为类型化 DTO → Dart 业务值/呈现模型 | 学校 JSON 跨 FFI、页面 `jsonDecode`、裸 Map 传进组件 |
 | **演示同形模式** | 演示模式不碰真实数据 | demo 与真实适配器共享返回类型 | 演示页用另一套假结构，或演示读真实账号 |
 | **门禁登记模式** | 新入口可达且可查 | 新页面在 `workspace_catalog.dart` 登记；改公开接口后重生成索引 | 页面存在但无入口；接口改了不刷新索引 |
 
@@ -270,9 +270,9 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ## 6. FFI 命令层
 
-`ginkgo_flutter_bridge` 导出 **91 个命令**，是 Dart 唯一可见的 Rust 面。Dart 侧只允许 [contracts.dart](../flutter/lib/application/contracts.dart) 以类型形式引用生成绑定，命令本身只能由 `NativeMirrorService` 调用。
+`ginkgo_flutter_bridge` 导出 **92 个命令**，是 Dart 唯一可见的 Rust 面。Dart 侧只允许 infrastructure 适配器调用生成命令；页面仅经 [contracts.dart](../flutter/lib/application/contracts.dart) 引用类型。
 
-命令计数口径：`flutter/lib/src/rust/api/**` 生成的 Dart 命令函数（`live` 77 + `live/auth_challenge` 1 + `mirror` 10 + `reminder_planning` 1）。改命令后该数字会变，改完请同步本行与 [§6.10](#610-返回形态与载荷契约)。
+命令计数口径：`flutter/lib/src/rust/api/**` 生成的 Dart 命令函数；以生成门禁统计为准。改命令后同步本行与 [§6.10](#610-返回形态与载荷契约)。
 
 ### 6.1 会话
 
@@ -280,6 +280,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | --- | --- | --- | --- |
 | `init_app` | — | — | 初始化运行时；不在启动时预热网络 |
 | `restore_session` | — | `SessionResponse` | 可能触发保存凭据的自动登录 |
+| `read_background_reminders` | `owner` 摘要、签到/作业开关 | `BackgroundReminderRead` | UC 验证后仅查询；内存副本无密码，不修改前台持久会话 |
 | `login` | `account`、`password`、`captcha?`、`remember` | `SessionResponse` | 可能写平台保险库 |
 | `load_login_challenge` | `expectedId?`、`refresh` | 挑战 DTO | 重新拉取登录页 |
 | `load_gateway_challenge` | `expectedAccount`、`expectedId?`、`refresh` | 挑战 DTO（可空） | 读取或刷新独立网关挑战 |
@@ -330,11 +331,11 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ### 6.10 返回形态与载荷契约
 
-91 个命令按返回形态分为两类：
+92 个命令按返回形态分为两类：
 
 | 形态 | 数量 | 含义 | 解码位置 |
 | --- | --- | --- | --- |
-| 类型化 DTO | 91 | 命令直接返回结构体（`SessionResponse`、`ScheduleResponse`、`CheckInResponse`、`MutationResponse`、`CgyyLoadResponse` …） | Rust 端投影；Dart 只做 DTO → 呈现模型 |
+| 类型化 DTO | 92 | 命令直接返回结构体（`SessionResponse`、`ScheduleResponse`、`CheckInResponse`、`MutationResponse`、`CgyyLoadResponse` …） | Rust 端投影；Dart 只做 DTO → 呈现模型 |
 | `ReadOnlyResponse` 载荷 | 0 | —— | —— |
 
 使用载荷信封的 0 个命令：
@@ -418,6 +419,10 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | `MaintenanceService` | `supportsUpdates`、`version`、`checkUpdate`、`openReleases`、`checkBridge`、`checkStorage`、`checkVault` | 更新检查与本地诊断 |
 | `SystemSettingsService` | `notificationPermission`、`requestNotifications`、`openNotifications`、`openAppSettings`、`shareProject` | 平台系统设置 |
 | `ReminderPlatform` | `replace(plans)` | 系统通知调度 |
+| `ScopedReminderPlatform` | `synchronize(owner, checkin, homework, groups, plans)`、`clearOwner(owner)` | 账号绑定的分组同步与后台配置；失败分组不覆盖 |
+| `BackgroundReminderStatusService` | `backgroundReminders()` | 读取本机后台任务状态，不登录或请求学校 |
+
+`SerialReminderPlatform` 对全量/分组/清理共享串行队列，入队复制标量计划映射和分组集合；本项失败不阻断后继。`CourseVisibility` 仅持有本机状态，`CourseVisibilityScope.controllerFactory` 显式注入实例；工作区及后台入口使用 `CourseVisibilityFileStore` 注入读写，文件格式保持兼容。文件恢复失败或对象销毁不开始新的排队写入。
 
 ### 7.14 CampusCardGateway
 
@@ -463,7 +468,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | `LibraryController` | `features/library/library_controller.dart` | 分页与分区快照、账号/服务代次变化后丢弃旧状态 |
 | `CollectionWindow` | `application/collection_window.dart` | 本机分页；页码随结果变化重置，不代表上游分页 |
 
-就业活动使用 `CareerEventsResponse` 类型化 DTO；学术文化仍使用 JSON 信封，缺少必需投影字段或字段类型错误归为结构变化。两者均可同时返回有效旧快照与失败码；页面切换月份或页码后不复用上一查询的可见数据。
+就业活动使用 `CareerEventsResponse`、学术文化使用 `CampusActivitiesResponse` 类型化 DTO，不再跨 FFI 传 JSON 信封。缺少必需上游字段或类型错误归为结构变化；两者均可同时返回有效旧快照与失败码，页面切换月份或页码后不复用上一查询的可见数据。
 
 ### 7A.4 导航与登记
 
@@ -587,8 +592,8 @@ features/tasks/tasks_page.dart
 这些约束任何一层改动都必须保持，越界即视为缺陷：
 
 1. **协议不出 upstream**：学校 URL、表单、Cookie、token、成功码只属于 `ginkgo_upstream`。
-2. **页面不解析响应**：Dart 页面不调用 `jsonDecode`，不接收 `Map<String, dynamic>`；解码只允许在 `*_models.dart`。
-3. **命令只走一个入口**：生成绑定只由 `contracts.dart`（类型）与 `NativeMirrorService`（命令）引用。
+2. **页面不解析响应**：Dart 页面不调用 `jsonDecode`，不接收 `Map<String, dynamic>`；学校响应解码只在 Rust upstream，本机文件编解码属于明确的存储适配器/现有受限例外，模型层仅做类型投影。
+3. **命令只走适配层**：生成绑定由 infrastructure、启动组合入口和契约类型导出消费；功能页面不调用生成命令，后台入口也只走现有 bridge/runtime/upstream，不另建 HTTP。
 4. **失败不伪造成功**：失败保留旧快照与原成功时间；空结果可以覆盖旧数据；未知状态一律保守。
 5. **写操作三件套**：用户明确触发、单次提交、结果回查；结果不明禁止自动重发。
 6. **账号绑定**：读写的归属由 Rust 已认证会话派生，不由调用方指定的账号决定。

@@ -7,8 +7,10 @@ native/demo 适配器、运行时与持久化实现。
 
 ## 目录
 
+- [infrastructure/background_reminders.dart](#infrastructurebackgroundremindersdart) (1)
 - [infrastructure/bykc_decode.dart](#infrastructurebykcdecodedart) (3)
 - [infrastructure/cgyy_decode.dart](#infrastructurecgyydecodedart) (2)
+- [infrastructure/course_visibility_file_store.dart](#infrastructurecoursevisibilityfilestoredart) (1)
 - [infrastructure/demo_graduate_credit_map.dart](#infrastructuredemograduatecreditmapdart) (1)
 - [infrastructure/demo_homework_files.dart](#infrastructuredemohomeworkfilesdart) (1)
 - [infrastructure/demo_learning.dart](#infrastructuredemolearningdart) (1)
@@ -41,6 +43,11 @@ native/demo 适配器、运行时与持久化实现。
 - [infrastructure/shuttle_decode.dart](#infrastructureshuttledecodedart) (1)
 - [infrastructure/task_storage.dart](#infrastructuretaskstoragedart) (1)
 
+## infrastructure/background_reminders.dart
+
+- `Future<void> runBackgroundReminders() async {…}` — A headless isolate owned by Android JobScheduler, not a second UI session.
+  <sub>function · infrastructure/background_reminders.dart:16</sub>
+
 ## infrastructure/bykc_decode.dart
 
 - `BykcCatalogRead decodeBykcCatalog(live.BykcCatalogResponse response) {…}`
@@ -56,6 +63,15 @@ native/demo 适配器、运行时与持久化实现。
   <sub>function · infrastructure/cgyy_decode.dart:56</sub>
 - `CgyyActionResult decodeCgyyAction(live.CgyyActionResultResponse response) {…}` — Projects the write result. Options/challenge/review stay optional exactly
   <sub>function · infrastructure/cgyy_decode.dart:69</sub>
+
+## infrastructure/course_visibility_file_store.dart
+
+- `class CourseVisibilityFileStore` — Keeps the existing account-scoped digest list and atomic replacement format.
+  <sub>class · infrastructure/course_visibility_file_store.dart:10</sub>
+    - `final Future<Directory> Function() _supportDirectory;`  <sub>:17</sub>
+    - `Future<Set<String>> read() async {…}`  <sub>:25</sub>
+    - `Future<void> write(Set<String> value) async {…}`  <sub>:38</sub>
+    - `CourseVisibility createController() => …`  <sub>:46</sub>
 
 ## infrastructure/demo_graduate_credit_map.dart
 
@@ -262,11 +278,13 @@ native/demo 适配器、运行时与持久化实现。
 
 ## infrastructure/native_reminder_platform.dart
 
-- `class NativeReminderPlatform implements ReminderPlatform`
+- `class NativeReminderPlatform`
   <sub>class · infrastructure/native_reminder_platform.dart:6</sub>
-    - `const NativeReminderPlatform();`  <sub>:7</sub>
-    - `static const channel = MethodChannel('cn.edu.buaa.ginkgo/reminders');`  <sub>:9</sub>
-    - `Future<void> replace(List<Map<String, Object>> plans) async {…}`  <sub>:12</sub>
+    - `const NativeReminderPlatform();`  <sub>:8</sub>
+    - `static const channel = MethodChannel('cn.edu.buaa.ginkgo/reminders');`  <sub>:10</sub>
+    - `Future<void> replace(List<Map<String, Object>> plans) async {…}`  <sub>:13</sub>
+    - `Future<void> synchronize({ required String owner, required bool checkin, required bool homework, required Set<String> groups, required List<Map<String, Object>> plans, }) async {…}`  <sub>:21</sub>
+    - `Future<void> clearOwner(String owner) async {…}`  <sub>:39</sub>
 
 ## infrastructure/native_school_rules.dart
 
@@ -291,9 +309,11 @@ native/demo 适配器、运行时与持久化实现。
 
 ## infrastructure/serial_reminder_platform.dart
 
-- `class SerialReminderPlatform implements ReminderPlatform` — Orders replacements across controller generations sharing one scheduler.
+- `class SerialReminderPlatform` — Orders replacements across controller generations sharing one scheduler.
   <sub>class · infrastructure/serial_reminder_platform.dart:4</sub>
-    - `Future<void> replace(List<Map<String, Object>> plans) {…}`  <sub>:11</sub>
+    - `Future<void> replace(List<Map<String, Object>> plans) {…}`  <sub>:22</sub>
+    - `Future<void> synchronize({ required String owner, required bool checkin, required bool homework, required Set<String> groups, required List<Map<String, Object>> plans, }) {…}`  <sub>:28</sub>
+    - `Future<void> clearOwner(String owner) {…}`  <sub>:52</sub>
 
 ## infrastructure/shuttle_decode.dart
 

@@ -12,11 +12,50 @@ abstract interface class SystemSettingsService {
   Future<bool> shareProject();
 }
 
-class NativeSystemSettingsService implements SystemSettingsService {
+class BackgroundReminderStatus {
+  const BackgroundReminderStatus({
+    required this.enabled,
+    required this.scheduled,
+    required this.status,
+    this.lastRun,
+  });
+  final bool enabled, scheduled;
+  final String status;
+  final DateTime? lastRun;
+}
+
+abstract interface class BackgroundReminderStatusService {
+  Future<BackgroundReminderStatus> backgroundReminderStatus();
+}
+
+class NativeSystemSettingsService
+    implements SystemSettingsService, BackgroundReminderStatusService {
   const NativeSystemSettingsService();
   static const channel = MethodChannel('cn.edu.buaa.ginkgo/system');
   @override
   bool get isAndroid => Platform.isAndroid;
+  @override
+  Future<BackgroundReminderStatus> backgroundReminderStatus() async {
+    if (!isAndroid) {
+      return const BackgroundReminderStatus(
+        enabled: false,
+        scheduled: false,
+        status: 'unsupported',
+      );
+    }
+    final value = await const MethodChannel('cn.edu.buaa.ginkgo/reminders')
+        .invokeMapMethod<String, Object?>('backgroundSummary');
+    final millis = value?['lastRun'];
+    return BackgroundReminderStatus(
+      enabled: value?['enabled'] == true,
+      scheduled: value?['scheduled'] == true,
+      status: value?['status'] as String? ?? 'pending',
+      lastRun: millis is int && millis > 0
+          ? DateTime.fromMillisecondsSinceEpoch(millis)
+          : null,
+    );
+  }
+
   @override
   Future<String> notificationPermission() async => isAndroid
       ? await channel.invokeMethod<String>('notificationPermission') ??

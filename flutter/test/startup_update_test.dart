@@ -45,6 +45,9 @@ class Updates extends Fake implements MaintenanceService {
 
 class SignedOutService extends Fake implements MirrorService {
   @override
+  Future<SessionResponse> setRoute(RouteChoice route) async =>
+      const SessionResponse(state: SessionState.signedOut, remembered: false);
+  @override
   Future<SessionResponse> restoreSession() async =>
       const SessionResponse(state: SessionState.signedOut, remembered: false);
 }

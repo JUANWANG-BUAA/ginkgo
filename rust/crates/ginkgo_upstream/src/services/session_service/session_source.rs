@@ -349,7 +349,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                 }
             }
             Ok(None) => {}
-            Err(_) => {}
+            // A locked/unreadable vault is not evidence of expiry. Keep the
+            // saved session intact and let the caller offer a local retry.
+            Err(error) => return Err(error),
         }
         let account = self
             .identity

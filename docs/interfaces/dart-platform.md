@@ -54,16 +54,23 @@
     - `Future<bool> openNotifications();`  <sub>:10</sub>
     - `Future<bool> openAppSettings();`  <sub>:11</sub>
     - `Future<bool> shareProject();`  <sub>:12</sub>
-- `class NativeSystemSettingsService implements SystemSettingsService`
+- `class BackgroundReminderStatus`
   <sub>class · platform/system_settings_service.dart:15</sub>
-    - `const NativeSystemSettingsService();`  <sub>:16</sub>
-    - `static const channel = MethodChannel('cn.edu.buaa.ginkgo/system');`  <sub>:17</sub>
-    - `bool get isAndroid => …`  <sub>:19</sub>
-    - `Future<String> notificationPermission() async => …`  <sub>:21</sub>
-    - `Future<String> requestNotifications() async => …`  <sub>:26</sub>
-    - `Future<bool> openNotifications() async => …`  <sub>:30</sub>
-    - `Future<bool> openAppSettings() async => …`  <sub>:35</sub>
-    - `Future<bool> shareProject() async {…}`  <sub>:40</sub>
+    - `const BackgroundReminderStatus({ required this.enabled, required this.scheduled, required this.status, this.lastRun, });`  <sub>:16</sub>
+- `abstract interface class BackgroundReminderStatusService`
+  <sub>class · platform/system_settings_service.dart:27</sub>
+    - `Future<BackgroundReminderStatus> backgroundReminderStatus();`  <sub>:28</sub>
+- `class NativeSystemSettingsService`
+  <sub>class · platform/system_settings_service.dart:31</sub>
+    - `const NativeSystemSettingsService();`  <sub>:33</sub>
+    - `static const channel = MethodChannel('cn.edu.buaa.ginkgo/system');`  <sub>:34</sub>
+    - `bool get isAndroid => …`  <sub>:36</sub>
+    - `Future<BackgroundReminderStatus> backgroundReminderStatus() async {…}`  <sub>:38</sub>
+    - `Future<String> notificationPermission() async => …`  <sub>:60</sub>
+    - `Future<String> requestNotifications() async => …`  <sub>:65</sub>
+    - `Future<bool> openNotifications() async => …`  <sub>:69</sub>
+    - `Future<bool> openAppSettings() async => …`  <sub>:74</sub>
+    - `Future<bool> shareProject() async {…}`  <sub>:79</sub>
 
 ## platform/update_download_section.dart
 

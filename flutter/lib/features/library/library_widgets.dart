@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
-import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
 /// Library chrome shared by the venue / area / slot / seat / books pages.
@@ -28,24 +27,13 @@ class LibrarySectionStatus extends StatelessWidget {
   final VoidCallback retry;
 
   @override
-  Widget build(BuildContext context) => AppleListTile(
+  Widget build(BuildContext context) => SectionFeedback(
     key: Key('library-$id-status'),
-    leading: loading
-        ? const GinkgoActivity(size: 17)
-        : const Icon(
-            CupertinoIcons.exclamationmark_triangle,
-            color: AppleDesign.statusPending,
-            size: 20,
-          ),
-    title: Text(loading ? (hasSnapshot ? '正在更新…' : '正在加载…') : failure!),
-    subtitle: hasSnapshot ? const Text('保留上次结果') : null,
-    trailing: loading
-        ? null
-        : CupertinoButton(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            onPressed: retry,
-            child: const Text('重试'),
-          ),
+    loading: loading,
+    label: hasSnapshot ? '正在更新…' : '正在加载…',
+    hasData: hasSnapshot,
+    error: failure,
+    onRetry: retry,
   );
 }
 
@@ -81,7 +69,7 @@ class LibraryDisclosureToggle extends StatelessWidget {
           child: CupertinoButton(
             key: toggleKey,
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            minimumSize: const Size(44, 32),
+            minimumSize: const Size(48, 48),
             onPressed: onToggle,
             child: Row(
               mainAxisSize: MainAxisSize.min,

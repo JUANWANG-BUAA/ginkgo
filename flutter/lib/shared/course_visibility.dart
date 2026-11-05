@@ -1,13 +1,12 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:path_provider/path_provider.dart';
 
 /// User classification, isolated by account and upstream system. SPOC and
 /// iClass course IDs are never interchangeable. Store digests, not course names.
 class CourseVisibility extends ChangeNotifier {
+  /// In-memory unless persistence callbacks are injected at the composition root.
   CourseVisibility(this.account, {this.save, this.load});
   final String account;
   final Future<void> Function(Set<String>)? save;
@@ -37,12 +36,6 @@ class CourseVisibility extends ChangeNotifier {
   String _key(String system, String id) =>
       sha256.convert(utf8.encode('$system:$id')).toString();
 
-  Future<File> _file() async {
-    final directory = await getApplicationSupportDirectory();
-    final digest = sha256.convert(utf8.encode(account));
-    return File('${directory.path}/course-visibility-$digest.json');
-  }
-
   bool hidden(String system, String id) => _hidden.contains(_key(system, id));
 
   Future<void> restore() => _restoring ??= _restore();
@@ -60,18 +53,9 @@ class CourseVisibility extends ChangeNotifier {
   Future<void> _restore() async {
     try {
       if (load != null) {
-        _hidden.addAll(await load!());
-      } else if (save == null) {
-        final file = await _file();
-        await file.parent.create(recursive: true);
-        if (await file.exists()) {
-          final values = jsonDecode(await file.readAsString()) as List;
-          _hidden.addAll(
-            values.whereType<String>().where(
-              (value) => RegExp(r'^[a-f0-9]{64}$').hasMatch(value),
-            ),
-          );
-        }
+        final values = await load!();
+        if (_disposed) return;
+        _hidden.addAll(values);
       }
     } catch (_) {
       // Stay not-ready: switches stay disabled and nothing is saved until a
@@ -108,23 +92,25 @@ class CourseVisibility extends ChangeNotifier {
     notifyListeners();
     _pending = _pending
         .then((_) async {
+          if (_disposed) return;
           await restore();
+          if (_disposed || !ready || loadFailed) return;
           final snapshot = Set<String>.of(_hidden);
           if (save != null) {
-            await save!(snapshot);
-          } else {
-            final file = await _file();
-            await file.parent.create(recursive: true);
-            final temporary = File('${file.path}.tmp');
-            await temporary.writeAsString(
-              jsonEncode(snapshot.toList()),
-              flush: true,
-            );
-            await temporary.rename(file.path);
+            try {
+              await save!(snapshot);
+            } catch (e) {
+              error = '课程范围已应用，但未能保存到本机';
+              loadFailed = true;
+              notifyListeners();
+              return;
+            }
           }
         })
-        .catchError((Object _) {
+        .catchError((Object e) {
+          if (_disposed) return;
           error = '课程范围已应用，但未能保存到本机';
+          loadFailed = true;
           notifyListeners();
         });
     return _pending;
@@ -135,9 +121,11 @@ class CourseVisibilityScope extends StatefulWidget {
   const CourseVisibilityScope({
     super.key,
     required this.account,
+    required this.controllerFactory,
     required this.child,
   });
   final String account;
+  final CourseVisibility Function(String account) controllerFactory;
   final Widget child;
   static CourseVisibility? of(BuildContext context) => context
       .dependOnInheritedWidgetOfExactType<_CourseVisibilityScope>()
@@ -147,7 +135,7 @@ class CourseVisibilityScope extends StatefulWidget {
 }
 
 class _CourseVisibilityScopeState extends State<CourseVisibilityScope> {
-  late final controller = CourseVisibility(widget.account);
+  late final controller = widget.controllerFactory(widget.account);
   @override
   void initState() {
     super.initState();

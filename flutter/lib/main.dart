@@ -4,10 +4,11 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/application/contracts.dart'
-    show RouteChoice, SessionResponse, SessionState;
+    show RouteChoice, SessionResponse, SessionState, FailureCode;
 import 'package:ginkgo_mirror/infrastructure/display_preferences_file_store.dart';
 import 'package:ginkgo_mirror/infrastructure/mirror_runtime.dart';
 import 'package:ginkgo_mirror/features/auth/login_page.dart';
+import 'package:ginkgo_mirror/features/auth/session_recovery_page.dart';
 import 'package:ginkgo_mirror/infrastructure/native_auth_challenge.dart';
 import 'package:ginkgo_mirror/application/auth_challenge.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
@@ -22,6 +23,10 @@ import 'package:ginkgo_mirror/infrastructure/learning_file_actions.dart';
 import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
 import 'package:ginkgo_mirror/platform/update_gate.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
+
+// Keep the explicitly named Android service library in the application bundle.
+export 'package:ginkgo_mirror/infrastructure/background_reminders.dart'
+    show runBackgroundReminders;
 
 // 测试与页面直接使用 ginkgoApp/GinkgoApp，保持既有入口不变。
 export 'package:ginkgo_mirror/workspace/workspace_shell.dart'
@@ -100,7 +105,7 @@ class GinkgoRoot extends StatefulWidget {
   State<GinkgoRoot> createState() => _GinkgoRootState();
 }
 
-enum _Stage { restoring, signedOut, signedIn, demo }
+enum _Stage { restoring, restoreFailed, signedOut, signedIn, demo }
 
 class _GinkgoRootState extends State<GinkgoRoot> {
   AppPreferences get _preferences =>
@@ -110,6 +115,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
   SessionResponse? session;
   String? message;
   bool captchaRequired = false;
+  bool _restorePending = false;
   UpdateGate? blockingGate;
   bool gateResolved = false;
   String? installedVersion;
@@ -171,6 +177,17 @@ class _GinkgoRootState extends State<GinkgoRoot> {
   }
 
   Future<void> restore() async {
+    if (!mounted || _restorePending) return;
+    _restorePending = true;
+    setState(() => stage = _Stage.restoring);
+    try {
+      await _restoreSession();
+    } finally {
+      _restorePending = false;
+    }
+  }
+
+  Future<void> _restoreSession() async {
     if (_preferences.readFailed) {
       setState(() {
         stage = _Stage.signedOut;
@@ -193,7 +210,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
       if (result.failure != null) {
         if (!mounted) return;
         setState(() {
-          stage = _Stage.signedOut;
+          stage = _Stage.restoreFailed;
           message = failureMessage(result.failure);
         });
         return;
@@ -201,8 +218,8 @@ class _GinkgoRootState extends State<GinkgoRoot> {
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        stage = _Stage.signedOut;
-        message = '网络路线初始化失败，请重新选择路线后登录';
+        stage = _Stage.restoreFailed;
+        message = '网络路线初始化失败，请重试恢复，或手动选择路线登录';
       });
       return;
     }
@@ -233,6 +250,17 @@ class _GinkgoRootState extends State<GinkgoRoot> {
         });
         return;
       }
+      if (response.failure != null &&
+          response.failure != FailureCode.sessionExpired &&
+          response.failure != FailureCode.invalidCredentials &&
+          response.state != SessionState.captchaRequired) {
+        setState(() {
+          session = null;
+          stage = _Stage.restoreFailed;
+          message = failureMessage(response.failure);
+        });
+        return;
+      }
       setState(() {
         session = null;
         stage = _Stage.signedOut;
@@ -246,7 +274,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        stage = _Stage.signedOut;
+        stage = _Stage.restoreFailed;
         message = failureMessage(null);
       });
     }
@@ -300,6 +328,18 @@ class _GinkgoRootState extends State<GinkgoRoot> {
       _Stage.restoring => ginkgoApp(
         preferences: _preferences,
         home: const StartupPage(),
+      ),
+      _Stage.restoreFailed => ginkgoApp(
+        preferences: _preferences,
+        home: SessionRecoveryPage(
+          message: message,
+          onRetry: restore,
+          onLogin: () => setState(() {
+            stage = _Stage.signedOut;
+            captchaRequired = false;
+            message = null;
+          }),
+        ),
       ),
       _Stage.demo => GinkgoApp(
         preferences: _preferences,

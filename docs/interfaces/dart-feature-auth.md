@@ -53,3 +53,10 @@
   <sub>class · features/auth/login_route_selector.dart:8</sub>
     - `const LoginRouteSelector({ super.key, required this.route, required this.onChanged, });`  <sub>:9</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:19</sub>
+
+## features/auth/session_recovery_page.dart
+
+- `class SessionRecoveryPage extends StatelessWidget`
+  <sub>class · features/auth/session_recovery_page.dart:4</sub>
+    - `const SessionRecoveryPage({ super.key, required this.message, required this.onRetry, required this.onLogin, });`  <sub>:5</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:16</sub>

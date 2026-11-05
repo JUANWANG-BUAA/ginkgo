@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
+import 'package:ginkgo_mirror/widgets/press_feedback.dart';
 
 /// Phone pages keep the native collapsing title. Wide windows use the same
 /// section / title / description hierarchy as Swift's AcademicPageHeader.
@@ -34,7 +35,24 @@ class ApplePageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!AppleDesign.desktop(context)) {
       return CupertinoSliverNavigationBar(
-        largeTitle: largeTitle,
+        // The compact bar has less space than the expanded title, especially
+        // with a back label. Never reuse the icon row in that fixed-height slot.
+        middle: DefaultTextStyle.merge(
+          maxLines: 1,
+          softWrap: false,
+          overflow: TextOverflow.ellipsis,
+          child: largeTitle,
+        ),
+        alwaysShowMiddle: false,
+        largeTitle: icon == null
+            ? largeTitle
+            : Row(
+                children: [
+                  GinkgoIconTile(icon: icon!, size: 34, iconSize: 20),
+                  const SizedBox(width: GinkgoSpacing.md),
+                  Expanded(child: largeTitle),
+                ],
+              ),
         leading: leading,
         automaticallyImplyLeading: leading == null,
         previousPageTitle: previousPageTitle,
@@ -325,43 +343,45 @@ class AppleListTile extends StatelessWidget {
               constraints.maxWidth /
                       (MediaQuery.textScalerOf(context).scale(17) / 17) <
                   360;
-          return CupertinoListTile(
-            title: _wrapText(title),
-            subtitle: stackInfo
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (subtitle != null) _wrapText(subtitle!),
-                      if (subtitle != null)
-                        const SizedBox(height: GinkgoSpacing.xs),
-                      DefaultTextStyle(
-                        style: CupertinoTheme.of(context).textTheme.textStyle
-                            .copyWith(
-                              color: CupertinoColors.secondaryLabel.resolveFrom(
-                                context,
+          return PressFeedback(
+            enabled: onTap != null,
+            child: CupertinoListTile(
+              title: _wrapText(title),
+              subtitle: stackInfo
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (subtitle != null) _wrapText(subtitle!),
+                        if (subtitle != null)
+                          const SizedBox(height: GinkgoSpacing.xs),
+                        DefaultTextStyle(
+                          style: CupertinoTheme.of(context).textTheme.textStyle
+                              .copyWith(
+                                color: CupertinoColors.secondaryLabel
+                                    .resolveFrom(context),
                               ),
-                            ),
-                        softWrap: true,
-                        overflow: TextOverflow.visible,
-                        child: additionalInfo!,
-                      ),
-                    ],
-                  )
-                : subtitle == null
-                ? null
-                : _wrapText(subtitle!),
-            additionalInfo: stackInfo ? null : additionalInfo,
-            leading: leading,
-            trailing: trailing == null
-                ? null
-                : Semantics(container: true, child: trailing),
-            onTap: onTap,
-            padding: EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: AppPreferencesScope.of(context).compactLists ? 6 : 10,
+                          softWrap: true,
+                          overflow: TextOverflow.visible,
+                          child: additionalInfo!,
+                        ),
+                      ],
+                    )
+                  : subtitle == null
+                  ? null
+                  : _wrapText(subtitle!),
+              additionalInfo: stackInfo ? null : additionalInfo,
+              leading: leading,
+              trailing: trailing == null
+                  ? null
+                  : Semantics(container: true, child: trailing),
+              onTap: onTap,
+              padding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: AppPreferencesScope.of(context).compactLists ? 6 : 10,
+              ),
+              leadingToTitle: 12,
+              leadingSize: leadingSize,
             ),
-            leadingToTitle: 12,
-            leadingSize: leadingSize,
           );
         },
       ),
@@ -385,8 +405,8 @@ class _AppleGroupResize extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!enabled || MediaQuery.disableAnimationsOf(context)) return child;
     return AnimatedSize(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeInOutCubic,
+      duration: GinkgoMotion.smooth,
+      curve: GinkgoMotion.gentleSpring,
       alignment: Alignment.topCenter,
       child: child,
     );

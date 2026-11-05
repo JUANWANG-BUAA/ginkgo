@@ -7,6 +7,7 @@
 
 ## 目录
 
+- [background_session](#backgroundsession) (2)
 - [cache](#cache) (14)
 - [campus_activities_service](#campusactivitiesservice) (1)
 - [career_service](#careerservice) (1)
@@ -35,6 +36,13 @@
 - [session_service](#sessionservice) (25)
 - [snapshots](#snapshots) (10)
 - [updates_service](#updatesservice) (1)
+
+## background_session
+
+- `pub fn owner_key(account: &str) -> String {…}` — Opaque local ownership key, not encryption or an authentication proof.
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/background_session.rs:11</sub>
+- `pub fn from_snapshot<T: HttpTransport + Send + Sync>( transport: T, snapshot: PersistedSession, expected_owner: &str, ) -> Result<SchoolClient<T, MemoryVault>, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/background_session.rs:15</sub>
 
 ## cache
 
@@ -304,9 +312,9 @@
 ## mod
 
 - `pub fn demo_classrooms( search: String, section: i32, minimum_free_sections: i32, minimum_consecutive_sections: i32, building: Option<String>, sort: classroom::Sort, ) -> Result<classroom::FilterResult, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/mod.rs:42</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/mod.rs:43</sub>
 - `pub fn demo_rules() -> Result<(school_time::SchoolDay, schedule::Snapshot), AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/mod.rs:63</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/mod.rs:64</sub>
 
 ## gateway
 

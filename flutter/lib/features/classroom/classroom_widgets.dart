@@ -300,7 +300,7 @@ class ClassroomShortcutButton extends StatelessWidget {
   Widget build(BuildContext context) => CupertinoButton.tinted(
     key: Key('classroom-shortcut-$title'),
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-    minimumSize: const Size(44, 36),
+    minimumSize: const Size(48, 48),
     borderRadius: BorderRadius.circular(24),
     onPressed: !enabled || value.isEmpty ? null : () => onSelected(value),
     child: Text(title, style: const TextStyle(fontSize: 17)),

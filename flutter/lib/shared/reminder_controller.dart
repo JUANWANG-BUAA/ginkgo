@@ -45,6 +45,11 @@ class ReminderController extends ChangeNotifier {
   final DateTime Function() clock;
   final Map<String, int> _read = {};
   List<ReminderPlan> _checkin = [], _homework = [], _course = [], _task = [];
+  final Map<String, int> _acceptedGroups = {};
+  int _planRevision = 0;
+  void _acceptGroup(String group) => _acceptedGroups[group] = ++_planRevision;
+  String get _backgroundOwner =>
+      md5.convert(utf8.encode('$account:background')).toString();
   final Map<String, int> _planningTickets = {};
   String? activeGroup;
   String? hint;
@@ -208,6 +213,7 @@ class ReminderController extends ChangeNotifier {
     } else {
       throw ArgumentError.value(group, 'group');
     }
+    if (value) _acceptGroup(group);
     await _save();
     await reconcile();
   }
@@ -262,6 +268,7 @@ class ReminderController extends ChangeNotifier {
       } else {
         _task = result.plans;
       }
+      _acceptGroup(group);
       if (result.skipped > 0) hint = '部分提醒时间不明确或已过期，未排程，请进入对应页面核对';
     } catch (_) {
       if (!_disposed && _planningTickets[group] == ticket) {
@@ -284,6 +291,7 @@ class ReminderController extends ChangeNotifier {
       return;
     }
     _checkin = result.plans;
+    _acceptGroup('checkin');
     if (result.skipped > 0) {
       hint = '部分提醒时间不明确或已过期，未排程，请进入对应页面核对';
       notifyListeners();
@@ -306,6 +314,7 @@ class ReminderController extends ChangeNotifier {
       return;
     }
     _homework = result.plans;
+    _acceptGroup('homework');
     if (result.skipped > 0) {
       hint = '部分提醒时间不明确或已过期，未排程，请进入对应页面核对';
       notifyListeners();
@@ -322,6 +331,10 @@ class ReminderController extends ChangeNotifier {
       notifyListeners();
     };
     if (settingsReady) hint = null;
+    // Arm native discovery before school reads: a slow first read must not
+    // prevent future jobs when the user immediately leaves the Activity.
+    if (platform is ScopedReminderPlatform) await reconcile();
+    if (_disposed || generation != _refreshGeneration) return;
     // Independent reads: one service failing must not remove the other's plans.
     await Future.wait([
       if (courseEnabled)
@@ -401,16 +414,19 @@ class ReminderController extends ChangeNotifier {
     if (_disposed || (persist && !_storageReady)) return Future.value();
     final inFlight = _reconciling;
     if (inFlight == null) {
-      return _reconciling = _reconcile().whenComplete(
-        () => _reconciling = null,
-      );
+      final originalAccountId = account;
+      return _reconciling = _reconcile().whenComplete(() {
+        if (!_disposed && account == originalAccountId) {
+          _reconciling = null;
+        }
+      });
     }
     // A tick that arrived mid-run must not be dropped: the plans may have
     // changed since the running pass started.
     return _reconcileRerun ??= inFlight
         .then((_) async {
           _reconcileRerun = null;
-          if (_disposed) return;
+          if (_disposed || account != account) return; // Account switch during wait
           await reconcile();
         })
         .whenComplete(() => _reconcileRerun = null);
@@ -432,10 +448,42 @@ class ReminderController extends ChangeNotifier {
           'expires': p.expires.millisecondsSinceEpoch,
         },
     ];
-    final signature = jsonEncode(platformPlans);
+    final accepted = Map<String, int>.of(_acceptedGroups);
+    final groups = {
+      ...accepted.keys,
+      if (!checkinEnabled) 'checkin',
+      if (!homeworkEnabled) 'homework',
+      if (!courseEnabled) 'course',
+      if (!taskEnabled) 'task',
+    };
+    final signature = jsonEncode([
+      checkinEnabled,
+      homeworkEnabled,
+      groups.toList()..sort(),
+      if (platform is ScopedReminderPlatform) accepted,
+      platformPlans,
+    ]);
     try {
       if (!service.isDemo && signature != _lastPlatformState) {
-        await platform.replace(platformPlans);
+        final scheduler = platform;
+        if (scheduler is ScopedReminderPlatform) {
+          await (scheduler as ScopedReminderPlatform).synchronize(
+            owner: _backgroundOwner,
+            checkin: checkinEnabled,
+            homework: homeworkEnabled,
+            groups: groups,
+            plans: platformPlans,
+          );
+          // A resume must not overwrite native plans refreshed in the
+          // background. Do not consume a newer read that arrived mid-sync.
+          for (final entry in accepted.entries) {
+            if (_acceptedGroups[entry.key] == entry.value) {
+              _acceptedGroups.remove(entry.key);
+            }
+          }
+        } else {
+          await scheduler.replace(platformPlans);
+        }
         _lastPlatformState = signature;
       }
     } catch (_) {
@@ -451,7 +499,16 @@ class ReminderController extends ChangeNotifier {
 
   Future<void> stop() async {
     _disposed = true;
-    if (!service.isDemo) await platform.replace([]);
+    if (!service.isDemo) {
+      final scheduler = platform;
+      if (scheduler is ScopedReminderPlatform) {
+        await (scheduler as ScopedReminderPlatform).clearOwner(
+          _backgroundOwner,
+        );
+      } else {
+        await scheduler.replace([]);
+      }
+    }
   }
 
   @override

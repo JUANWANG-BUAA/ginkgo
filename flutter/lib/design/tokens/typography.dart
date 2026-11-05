@@ -56,6 +56,8 @@ abstract final class GinkgoTypography {
     color: GinkgoColors.label,
   );
 
+  static const focusTitleSize = 20.0;
+
   static const bodyCondensedSize = 16.0;
   static const calloutSize = 15.0;
   static const metricSize = 24.0;

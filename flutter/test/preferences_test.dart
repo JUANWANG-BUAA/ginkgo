@@ -52,6 +52,17 @@ class PendingSystemSettings extends TestSystemSettings {
   }
 }
 
+class BackgroundSettings extends TestSystemSettings
+    implements BackgroundReminderStatusService {
+  @override
+  Future<BackgroundReminderStatus> backgroundReminderStatus() async =>
+      const BackgroundReminderStatus(
+        enabled: true,
+        scheduled: true,
+        status: 'sessionRequired',
+      );
+}
+
 class _RetryStore implements ReminderStore {
   bool failed = true;
   @override
@@ -70,6 +81,19 @@ class _ReminderPlatform implements ReminderPlatform {
 }
 
 void main() {
+  testWidgets(
+    'background session failure is not disguised as missing notification permission',
+    (tester) async {
+      final service = BackgroundSettings()..permission = 'granted';
+      await tester.pumpWidget(
+        ginkgoApp(home: SystemPreferencesPage(service: service)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('需要打开应用恢复登录；已有提醒仍保留'), findsOneWidget);
+      expect(find.text('已允许'), findsOneWidget);
+      expect(find.text('请求通知权限'), findsNothing);
+    },
+  );
   testWidgets('disabled reminder channel is explained separately', (
     tester,
   ) async {

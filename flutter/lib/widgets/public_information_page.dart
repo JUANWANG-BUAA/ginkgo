@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:ginkgo_mirror/widgets/feature_intro.dart';
 
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
@@ -126,6 +127,11 @@ class _PublicInformationPageState<T, Q>
         CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
         SliverList.list(
           children: [
+            FeatureIntro(
+              icon: widget.icon,
+              title: widget.section,
+              description: widget.subtitle,
+            ),
             if (widget.service == null)
               AppleStatusSection(
                 title: widget.unsupportedTitle,

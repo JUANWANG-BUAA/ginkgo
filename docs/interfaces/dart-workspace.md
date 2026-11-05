@@ -113,10 +113,10 @@
 ## workspace/workspace_shell.dart
 
 - `class GinkgoApp extends StatelessWidget` — 工作区外壳：只负责会话切换、移动/桌面布局与功能登记表的消费，
-  <sub>class · workspace/workspace_shell.dart:32</sub>
-    - `const GinkgoApp({ super.key, required this.service, this.platformActions = const PlatformActions(), this.brightness, this.preferences, this.startupUpdate, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:33</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:56</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:58</sub>
+  <sub>class · workspace/workspace_shell.dart:33</sub>
+    - `const GinkgoApp({ super.key, required this.service, this.platformActions = const PlatformActions(), this.brightness, this.preferences, this.startupUpdate, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:34</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:57</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:59</sub>
 
 ## workspace/workspace_shell_controller.dart
 

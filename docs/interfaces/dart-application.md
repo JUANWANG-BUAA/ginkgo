@@ -8,6 +8,7 @@
 ## 目录
 
 - [application/auth_challenge.dart](#applicationauthchallengedart) (3)
+- [application/background_reminders.dart](#applicationbackgroundremindersdart) (2)
 - [application/busy_gate.dart](#applicationbusygatedart) (1)
 - [application/bykc.dart](#applicationbykcdart) (12)
 - [application/campus_activities.dart](#applicationcampusactivitiesdart) (4)
@@ -15,6 +16,8 @@
 - [application/cgyy_commands.dart](#applicationcgyycommandsdart) (9)
 - [application/checkin_progress.dart](#applicationcheckinprogressdart) (2)
 - [application/collection_window.dart](#applicationcollectionwindowdart) (1)
+- [application/demo_awareness.dart](#applicationdemoawarenessdart) (4)
+- [application/demo_mode.dart](#applicationdemomodedart) (2)
 - [application/diagnostic_log.dart](#applicationdiagnosticlogdart) (2)
 - [application/environment.dart](#applicationenvironmentdart) (1)
 - [application/failure_message.dart](#applicationfailuremessagedart) (2)
@@ -35,18 +38,20 @@
 - [application/local_tasks.dart](#applicationlocaltasksdart) (7)
 - [application/maintenance.dart](#applicationmaintenancedart) (4)
 - [application/mirror_service.dart](#applicationmirrorservicedart) (17)
+- [application/mutation_result.dart](#applicationmutationresultdart) (9)
 - [application/notices.dart](#applicationnoticesdart) (2)
 - [application/platform_actions.dart](#applicationplatformactionsdart) (1)
 - [application/query_snapshots.dart](#applicationquerysnapshotsdart) (2)
 - [application/read_deadline.dart](#applicationreaddeadlinedart) (1)
 - [application/refresh_section.dart](#applicationrefreshsectiondart) (2)
 - [application/reminder_planning.dart](#applicationreminderplanningdart) (11)
-- [application/reminder_platform.dart](#applicationreminderplatformdart) (1)
+- [application/reminder_platform.dart](#applicationreminderplatformdart) (2)
 - [application/reminder_store.dart](#applicationreminderstoredart) (1)
 - [application/school_rules.dart](#applicationschoolrulesdart) (1)
 - [application/service_capabilities.dart](#applicationservicecapabilitiesdart) (1)
 - [application/shuttle.dart](#applicationshuttledart) (7)
 - [application/task_storage_scope.dart](#applicationtaskstoragescopedart) (2)
+- [application/view_models.dart](#applicationviewmodelsdart) (1)
 
 ## application/auth_challenge.dart
 
@@ -59,6 +64,14 @@
   <sub>class · application/auth_challenge.dart:27</sub>
     - `Future<LoginChallenge?> gatewayChallenge({ String? expectedId, bool refresh = false, });`  <sub>:28</sub>
     - `Future<void> answerGatewayChallenge({ required String expectedId, required String answer, });`  <sub>:32</sub>
+
+## application/background_reminders.dart
+
+- `class BackgroundReminderBatch` — A failed group is absent, while a successful empty group removes old plans.
+  <sub>class · application/background_reminders.dart:8</sub>
+    - `const BackgroundReminderBatch(this.groups, this.plans);`  <sub>:9</sub>
+- `BackgroundReminderBatch backgroundReminderBatch({ required String account, required String expectedOwner, required CheckInResponse? checkin, required HomeworkResponse? homework, required ReminderPlanningGateway planner, required int nowMillis, required bool Function(HomeworkItem) personalHomework, }) {…}`
+  <sub>function · application/background_reminders.dart:14</sub>
 
 ## application/busy_gate.dart
 
@@ -116,17 +129,17 @@
 ## application/campus_activities.dart
 
 - `class CampusActivity`
-  <sub>class · application/campus_activities.dart:4</sub>
-    - `const CampusActivity({ required this.id, required this.title, required this.category, required this.publishedAt, required this.activityTime, required this.place, required this.url, });`  <sub>:5</sub>
+  <sub>class · application/campus_activities.dart:3</sub>
+    - `const CampusActivity({ required this.id, required this.title, required this.category, required this.publishedAt, required this.activityTime, required this.place, required this.url, });`  <sub>:4</sub>
 - `class CampusActivities`
-  <sub>class · application/campus_activities.dart:18</sub>
-    - `const CampusActivities({ required this.page, required this.activities, required this.fetchedAt, });`  <sub>:19</sub>
+  <sub>class · application/campus_activities.dart:17</sub>
+    - `const CampusActivities({ required this.page, required this.activities, required this.fetchedAt, });`  <sub>:18</sub>
 - `class CampusActivitiesRead`
-  <sub>class · application/campus_activities.dart:30</sub>
-    - `const CampusActivitiesRead({this.data, this.failure});`  <sub>:31</sub>
+  <sub>class · application/campus_activities.dart:29</sub>
+    - `const CampusActivitiesRead({this.data, this.failure});`  <sub>:30</sub>
 - `abstract interface class CampusActivitiesGateway implements MirrorEnvironment` — Public campus activities; no login, no writes and no background polling.
-  <sub>class · application/campus_activities.dart:37</sub>
-    - `Future<CampusActivitiesRead> campusActivities({int page, bool forceRefresh});`  <sub>:38</sub>
+  <sub>class · application/campus_activities.dart:36</sub>
+    - `Future<CampusActivitiesRead> campusActivities({int page, bool forceRefresh});`  <sub>:37</sub>
 
 ## application/career.dart
 
@@ -201,6 +214,37 @@
     - `int get end => …`  <sub>:11</sub>
     - `void reconcile(Iterable<String> keys, {bool reset = false}) {…}`  <sub>:13</sub>
     - `void select(int value) => …`  <sub>:24</sub>
+
+## application/demo_awareness.dart
+
+- `extension DemoAwareness on AcademicGateway` — Safe extension for gradual Demo isolation refactoring
+  <sub>extension · application/demo_awareness.dart:9</sub>
+    - `bool get isDemoSafe => …` — Temporary bridge - will be removed after full DemoMode integration  <sub>:13</sub>
+    - `bool shouldShowDemo(String pageName) {…}` — Semantic check: Should demo indicator show on this page?  <sub>:16</sub>
+    - `String? demoWarning(String context) {…}` — Semantic check: Demo warning text for context  <sub>:25</sub>
+    - `bool canPerformAction(String action) {…}` — Demo action constraint: Is this action allowed in demo mode?  <sub>:39</sub>
+- `class SettingsPage`
+  <sub>class · application/demo_awareness.dart:52</sub>
+- `class SettingsPage`
+  <sub>class · application/demo_awareness.dart:59</sub>
+    - `final warning = demoMode.maybeDemoWarning('settings');`  <sub>:62</sub>
+- `class SettingsPage`
+  <sub>class · application/demo_awareness.dart:69</sub>
+
+## application/demo_mode.dart
+
+- `abstract interface class DemoMode` — Centralizes demo mode detection and prevents scattered `if (isDemo)` checks.
+  <sub>class · application/demo_mode.dart:7</sub>
+    - `bool shouldShowDemoIndicator(String page);` — Whether to show demo-specific UI elements  <sub>:11</sub>
+    - `bool shouldTransformData(String entity);` — Whether to apply demo-specific data transformations  <sub>:14</sub>
+    - `String? maybeDemoWarning(String context);` — Demo-safe error messages (sanitized)  <sub>:17</sub>
+- `class LiveDemoMode implements DemoMode` — Concrete implementation: wraps service.isDemo into structured decisions
+  <sub>class · application/demo_mode.dart:21</sub>
+    - `const LiveDemoMode(this.service);`  <sub>:22</sub>
+    - `bool get isEnabled => …`  <sub>:27</sub>
+    - `bool shouldShowDemoIndicator(String page) {…}`  <sub>:30</sub>
+    - `bool shouldTransformData(String entity) {…}`  <sub>:37</sub>
+    - `String? maybeDemoWarning(String context) {…}`  <sub>:44</sub>
 
 ## application/diagnostic_log.dart
 
@@ -526,77 +570,112 @@
 ## application/mirror_service.dart
 
 - `abstract interface class MirrorService` — Page-facing capabilities. Tests and alternative adapters need no native runtime.
-  <sub>class · application/mirror_service.dart:20</sub>
+  <sub>class · application/mirror_service.dart:19</sub>
 - `abstract interface class CampusCardGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:30</sub>
-    - `Future<CampusCardBalanceResponse> campusCardBalance();`  <sub>:31</sub>
+  <sub>class · application/mirror_service.dart:29</sub>
+    - `Future<CampusCardBalanceResponse> campusCardBalance();`  <sub>:30</sub>
 - `abstract interface class StudentServiceLinksGateway` — Public official destinations only; does not read or transmit account data.
-  <sub>class · application/mirror_service.dart:35</sub>
-    - `String? studentServiceUrl(String id);`  <sub>:36</sub>
+  <sub>class · application/mirror_service.dart:34</sub>
+    - `String? studentServiceUrl(String id);`  <sub>:35</sub>
 - `abstract interface class CareerEventsGateway implements MirrorEnvironment` — Public career-calendar reads; no login and no background refresh.
-  <sub>class · application/mirror_service.dart:40</sub>
-    - `Future<CareerEventsRead> careerEvents({ required String month, bool forceRefresh = false, });`  <sub>:41</sub>
+  <sub>class · application/mirror_service.dart:39</sub>
+    - `Future<CareerEventsRead> careerEvents({ required String month, bool forceRefresh = false, });`  <sub>:40</sub>
 - `abstract interface class SessionGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:47</sub>
-    - `Future<SessionResponse> restoreSession();`  <sub>:48</sub>
-    - `Future<SessionResponse> login({ required String account, required String password, String? captcha, required bool remember, });`  <sub>:50</sub>
-    - `Future<SessionResponse> signOut();`  <sub>:57</sub>
-    - `Future<SessionResponse> setRoute(RouteChoice route);`  <sub>:59</sub>
-    - `Future<bool> clearCache();`  <sub>:61</sub>
-    - `Future<bool> verifyBridgeContract();`  <sub>:63</sub>
+  <sub>class · application/mirror_service.dart:46</sub>
+    - `Future<SessionResponse> restoreSession();`  <sub>:47</sub>
+    - `Future<SessionResponse> login({ required String account, required String password, String? captcha, required bool remember, });`  <sub>:49</sub>
+    - `Future<SessionResponse> signOut();`  <sub>:56</sub>
+    - `Future<SessionResponse> setRoute(RouteChoice route);`  <sub>:58</sub>
+    - `Future<bool> clearCache();`  <sub>:60</sub>
+    - `Future<bool> verifyBridgeContract();`  <sub>:62</sub>
 - `abstract interface class AcademicGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:66</sub>
-    - `Future<QueryDates> dates(String instant);`  <sub>:67</sub>
-    - `Future<ClassroomResponse> classrooms(DemoScope scope, ClassroomQuery query);`  <sub>:69</sub>
-    - `Future<RuleExamples> rules();`  <sub>:71</sub>
-    - `Future<ScheduleResponse> schedule({ String? termId, int? week, bool forceRefresh = false, });`  <sub>:73</sub>
-    - `Future<GradeTermsResponse> gradeTerms();`  <sub>:79</sub>
-    - `Future<GradeResponse> grades({String? termCode, bool forceRefresh = false});`  <sub>:81</sub>
-    - `Future<TodayResponse> today({bool forceRefresh = false});`  <sub>:83</sub>
-    - `Future<HomeworkResponse> homework({bool forceRefresh = false});`  <sub>:85</sub>
-    - `Future<HomeworkDetailResponse> homeworkDetail( String assignmentId, { bool forceRefresh = false, });`  <sub>:87</sub>
+  <sub>class · application/mirror_service.dart:65</sub>
+    - `Future<QueryDates> dates(String instant);`  <sub>:66</sub>
+    - `Future<ClassroomResponse> classrooms(DemoScope scope, ClassroomQuery query);`  <sub>:68</sub>
+    - `Future<RuleExamples> rules();`  <sub>:70</sub>
+    - `Future<ScheduleResponse> schedule({ String? termId, int? week, bool forceRefresh = false, });`  <sub>:72</sub>
+    - `Future<GradeTermsResponse> gradeTerms();`  <sub>:78</sub>
+    - `Future<GradeResponse> grades({String? termCode, bool forceRefresh = false});`  <sub>:80</sub>
+    - `Future<TodayResponse> today({bool forceRefresh = false});`  <sub>:82</sub>
+    - `Future<HomeworkResponse> homework({bool forceRefresh = false});`  <sub>:84</sub>
+    - `Future<HomeworkDetailResponse> homeworkDetail( String assignmentId, { bool forceRefresh = false, });`  <sub>:86</sub>
 - `abstract interface class CheckInGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:93</sub>
-    - `Future<CheckInResponse> checkin({bool forceRefresh = false});`  <sub>:94</sub>
-    - `Future<CheckInResponse> checkinOnDate( String date, { bool forceRefresh = false, });`  <sub>:96</sub>
-    - `Future<MutationResponse> submitCheckin(String courseId);`  <sub>:101</sub>
-    - `Future<CheckinProgressRead> checkinProgress();`  <sub>:103</sub>
+  <sub>class · application/mirror_service.dart:92</sub>
+    - `Future<CheckInResponse> checkin({bool forceRefresh = false});`  <sub>:93</sub>
+    - `Future<CheckInResponse> checkinOnDate( String date, { bool forceRefresh = false, });`  <sub>:95</sub>
+    - `Future<MutationResponse> submitCheckin(String courseId);`  <sub>:100</sub>
+    - `Future<CheckinProgressRead> checkinProgress();`  <sub>:102</sub>
 - `abstract interface class LibrarySeatingGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:106</sub>
-    - `Future<LibraryStatsRead> libraryStats({bool forceRefresh = false});`  <sub>:107</sub>
-    - `Future<MutationResponse> reserveLibrarySeat({ required String areaId, required String seatId, required LibrarySlot slot, });`  <sub>:109</sub>
-    - `Future<MutationResponse> performLibraryAction( String bookingId, String action, );`  <sub>:115</sub>
-    - `Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false});`  <sub>:120</sub>
-    - `Future<LibraryAreasResponse> libraryAreas(String libraryId);`  <sub>:122</sub>
-    - `Future<LibrarySlotsResponse> librarySlots(String areaId);`  <sub>:124</sub>
-    - `Future<LibrarySeatsResponse> librarySeats({ required String areaId, required LibrarySlot slot, });`  <sub>:126</sub>
-    - `Future<LibraryBookingsResponse> libraryBookings({bool forceRefresh = false});`  <sub>:131</sub>
-    - `Future<LibraryHistoryResponse> libraryHistory( int page, { bool forceRefresh = false, });`  <sub>:133</sub>
+  <sub>class · application/mirror_service.dart:105</sub>
+    - `Future<LibraryStatsRead> libraryStats({bool forceRefresh = false});`  <sub>:106</sub>
+    - `Future<MutationResponse> reserveLibrarySeat({ required String areaId, required String seatId, required LibrarySlot slot, });`  <sub>:108</sub>
+    - `Future<MutationResponse> performLibraryAction( String bookingId, String action, );`  <sub>:114</sub>
+    - `Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false});`  <sub>:119</sub>
+    - `Future<LibraryAreasResponse> libraryAreas(String libraryId);`  <sub>:121</sub>
+    - `Future<LibrarySlotsResponse> librarySlots(String areaId);`  <sub>:123</sub>
+    - `Future<LibrarySeatsResponse> librarySeats({ required String areaId, required LibrarySlot slot, });`  <sub>:125</sub>
+    - `Future<LibraryBookingsResponse> libraryBookings({bool forceRefresh = false});`  <sub>:130</sub>
+    - `Future<LibraryHistoryResponse> libraryHistory( int page, { bool forceRefresh = false, });`  <sub>:132</sub>
 - `abstract interface class LibraryCatalogGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:139</sub>
-    - `Future<BookPageRead> libraryBooks({ required String query, required int page, String sort, bool descending, });` — Public OPAC search. Anonymous and read-only; never personal records.  <sub>:142</sub>
-    - `Future<BookHoldingsRead> libraryHoldings(String bibId);` — Public holdings for one bib id; the school's nested JSON stays in Rust.  <sub>:150</sub>
+  <sub>class · application/mirror_service.dart:138</sub>
+    - `Future<BookPageRead> libraryBooks({ required String query, required int page, String sort, bool descending, });` — Public OPAC search. Anonymous and read-only; never personal records.  <sub>:141</sub>
+    - `Future<BookHoldingsRead> libraryHoldings(String bibId);` — Public holdings for one bib id; the school's nested JSON stays in Rust.  <sub>:149</sub>
 - `abstract interface class LibraryGateway`
-  <sub>class · application/mirror_service.dart:153</sub>
+  <sub>class · application/mirror_service.dart:152</sub>
 - `abstract interface class BykcGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:156</sub>
-    - `Future<BykcPartRead> bykcPart(BykcPart part, {bool forceRefresh = false});`  <sub>:157</sub>
+  <sub>class · application/mirror_service.dart:155</sub>
+    - `Future<BykcPartRead> bykcPart(BykcPart part, {bool forceRefresh = false});`  <sub>:156</sub>
 - `abstract interface class GraduateGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:160</sub>
-    - `Future<GraduateRead> graduatePart({ required bool report, required bool forceRefresh, });`  <sub>:161</sub>
+  <sub>class · application/mirror_service.dart:159</sub>
+    - `Future<GraduateRead> graduatePart({ required bool report, required bool forceRefresh, });`  <sub>:160</sub>
 - `abstract interface class NoticeGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:167</sub>
-    - `Future<NoticesRead> notices({bool forceRefresh = false});`  <sub>:168</sub>
+  <sub>class · application/mirror_service.dart:166</sub>
+    - `Future<NoticesRead> notices({bool forceRefresh = false});`  <sub>:167</sub>
 - `abstract interface class CgyyGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:171</sub>
-    - `Future<CgyyLoadRead> cgyy({ required String kind, required int siteId, required String date, required bool forceRefresh, });`  <sub>:172</sub>
+  <sub>class · application/mirror_service.dart:170</sub>
+    - `Future<CgyyLoadRead> cgyy({ required String kind, required int siteId, required String date, required bool forceRefresh, });`  <sub>:171</sub>
 - `abstract interface class CampusGateway`
-  <sub>class · application/mirror_service.dart:180</sub>
+  <sub>class · application/mirror_service.dart:179</sub>
 - `abstract interface class CgyyBookingGateway` — Separate capability: read-only adapters never gain writes implicitly.
-  <sub>class · application/mirror_service.dart:184</sub>
-    - `Future<CgyyActionResult> executeCgyy(CgyyCommand command);`  <sub>:185</sub>
+  <sub>class · application/mirror_service.dart:183</sub>
+    - `Future<CgyyActionResult> executeCgyy(CgyyCommand command);`  <sub>:184</sub>
 - `enum BykcPart { catalog, chosen, statistics }`
-  <sub>enum · application/mirror_service.dart:188</sub>
+  <sub>enum · application/mirror_service.dart:187</sub>
+
+## application/mutation_result.dart
+
+- `enum MutationResultStatus`
+  <sub>enum · application/mutation_result.dart:6</sub>
+- `class MutationResult<T>` — Generic mutation result - matches Rust counterpart
+  <sub>class · application/mutation_result.dart:15</sub>
+    - `bool get isSuccess => …`  <sub>:40</sub>
+    - `bool get isFailed => …`  <sub>:44</sub>
+    - `bool get needsInput => …`  <sub>:48</sub>
+- `enum ErrorCode` — Error codes - explicit classification
+  <sub>enum · application/mutation_result.dart:117</sub>
+- `extension ErrorCodeExtension on ErrorCode`
+  <sub>extension · application/mutation_result.dart:138</sub>
+    - `bool get isRetriable => …`  <sub>:139</sub>
+    - `bool get requiresLogin => …`  <sub>:147</sub>
+    - `bool get locksAuthentication => …`  <sub>:149</sub>
+    - `String get description => …`  <sub>:154</sub>
+- `abstract class InputPrompt` — Input prompts - what UI should display
+  <sub>class · application/mutation_result.dart:170</sub>
+- `class VerificationCodePrompt implements InputPrompt`
+  <sub>class · application/mutation_result.dart:174</sub>
+    - `String get label => …`  <sub>:184</sub>
+- `class PasswordPrompt implements InputPrompt`
+  <sub>class · application/mutation_result.dart:187</sub>
+    - `String get label => …`  <sub>:193</sub>
+- `class SelectionPrompt implements InputPrompt`
+  <sub>class · application/mutation_result.dart:196</sub>
+    - `String get label => …`  <sub>:202</sub>
+- `class AuthPageExample` — Usage example (Flutter page)
+  <sub>class · application/mutation_result.dart:206</sub>
+    - `void showSnackBar(String message) {…}`  <sub>:228</sub>
+    - `void showVerificationDialog(String image, String id) {…}`  <sub>:229</sub>
+    - `void showLoginScreen() {…}`  <sub>:230</sub>
+    - `void showRetryButton() {…}`  <sub>:231</sub>
 
 ## application/notices.dart
 
@@ -680,6 +759,10 @@
 - `abstract interface class ReminderPlatform` — System notification scheduling, independent of the platform channel.
   <sub>class · application/reminder_platform.dart:2</sub>
     - `Future<void> replace(List<Map<String, Object>> plans);`  <sub>:3</sub>
+- `abstract interface class ScopedReminderPlatform` — Atomically binds background discovery and partial plan updates to an owner.
+  <sub>class · application/reminder_platform.dart:7</sub>
+    - `Future<void> synchronize({ required String owner, required bool checkin, required bool homework, required Set<String> groups, required List<Map<String, Object>> plans, });`  <sub>:8</sub>
+    - `Future<void> clearOwner(String owner);`  <sub>:15</sub>
 
 ## application/reminder_store.dart
 
@@ -705,29 +788,29 @@
 ## application/shuttle.dart
 
 - `class ShuttleRun` — One scheduled departure as printed by the school.
-  <sub>class · application/shuttle.dart:7</sub>
-    - `const ShuttleRun({ required this.index, required this.time, required this.capacity, });`  <sub>:8</sub>
-    - `int? get minuteOfDay {…}` — Minutes past midnight, or null when the printed time is not `H:mm`.  <sub>:19</sub>
+  <sub>class · application/shuttle.dart:6</sub>
+    - `const ShuttleRun({ required this.index, required this.time, required this.capacity, });`  <sub>:7</sub>
+    - `int? get minuteOfDay {…}` — Minutes past midnight, or null when the printed time is not `H:mm`.  <sub>:18</sub>
 - `class ShuttleSection` — One direction pair under a validity label such as "星期一至星期五".
-  <sub>class · application/shuttle.dart:30</sub>
-    - `const ShuttleSection({ required this.label, required this.left, required this.right, });`  <sub>:31</sub>
-    - `bool appliesToday(int weekday) {…}` — Published validity labels name weekdays rather than dates. Only labels  <sub>:43</sub>
+  <sub>class · application/shuttle.dart:29</sub>
+    - `const ShuttleSection({ required this.label, required this.left, required this.right, });`  <sub>:30</sub>
+    - `bool appliesToday(int weekday) {…}` — Published validity labels name weekdays rather than dates. Only labels  <sub>:42</sub>
 - `class ShuttleTable` — One published table: two directions plus their dated sections.
-  <sub>class · application/shuttle.dart:86</sub>
-    - `const ShuttleTable({ required this.left, required this.right, required this.sections, });`  <sub>:87</sub>
+  <sub>class · application/shuttle.dart:85</sub>
+    - `const ShuttleTable({ required this.left, required this.right, required this.sections, });`  <sub>:86</sub>
 - `class ShuttleTimetable`
-  <sub>class · application/shuttle.dart:97</sub>
-    - `const ShuttleTimetable({ required this.tables, required this.source, required this.liveSource, });`  <sub>:98</sub>
-    - `List<ShuttleDeparture> todayRuns(DateTime clock) {…}` — Flattens every published run that applies today. Duplicate rows across  <sub>:110</sub>
+  <sub>class · application/shuttle.dart:96</sub>
+    - `const ShuttleTimetable({ required this.tables, required this.source, required this.liveSource, });`  <sub>:97</sub>
+    - `List<ShuttleDeparture> todayRuns(DateTime clock) {…}` — Flattens every published run that applies today. Duplicate rows across  <sub>:109</sub>
 - `class ShuttleDeparture` — A today-applicable departure with its direction resolved from the table.
-  <sub>class · application/shuttle.dart:147</sub>
-    - `const ShuttleDeparture({ required this.direction, required this.time, required this.minutes, required this.capacity, });`  <sub>:148</sub>
+  <sub>class · application/shuttle.dart:146</sub>
+    - `const ShuttleDeparture({ required this.direction, required this.time, required this.minutes, required this.capacity, });`  <sub>:147</sub>
 - `class ShuttleTimetableRead`
-  <sub>class · application/shuttle.dart:161</sub>
-    - `const ShuttleTimetableRead({this.data, this.failure});`  <sub>:162</sub>
+  <sub>class · application/shuttle.dart:160</sub>
+    - `const ShuttleTimetableRead({this.data, this.failure});`  <sub>:161</sub>
 - `abstract interface class ShuttleGateway implements MirrorEnvironment`
-  <sub>class · application/shuttle.dart:167</sub>
-    - `Future<ShuttleTimetableRead> shuttleTimetable();` — Published shuttle timetable (official page). No live seats, no ticketing.  <sub>:169</sub>
+  <sub>class · application/shuttle.dart:166</sub>
+    - `Future<ShuttleTimetableRead> shuttleTimetable();` — Published shuttle timetable (official page). No live seats, no ticketing.  <sub>:168</sub>
 
 ## application/task_storage_scope.dart
 
@@ -738,3 +821,8 @@
     - `const TaskStorageScope({ super.key, required this.resolve, required super.child, });`  <sub>:7</sub>
     - `static TaskStorageRoot read(BuildContext context) {…}`  <sub>:15</sub>
     - `bool updateShouldNotify(TaskStorageScope oldWidget) => …`  <sub>:22</sub>
+
+## application/view_models.dart
+
+- `class HomeworkViewModel`
+  <sub>class · application/view_models.dart:31</sub>

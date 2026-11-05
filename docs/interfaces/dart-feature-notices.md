@@ -8,6 +8,6 @@
 ## features/notices/notices_page.dart
 
 - `class NoticesPage extends StatefulWidget`
-  <sub>class · features/notices/notices_page.dart:10</sub>
-    - `const NoticesPage({super.key, required this.service});`  <sub>:11</sub>
-    - `State<NoticesPage> createState() => …`  <sub>:14</sub>
+  <sub>class · features/notices/notices_page.dart:12</sub>
+    - `const NoticesPage({super.key, required this.service});`  <sub>:13</sub>
+    - `State<NoticesPage> createState() => …`  <sub>:16</sub>

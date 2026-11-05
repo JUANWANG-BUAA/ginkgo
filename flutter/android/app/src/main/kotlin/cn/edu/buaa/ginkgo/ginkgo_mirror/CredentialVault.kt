@@ -73,7 +73,7 @@ object CredentialVault {
         if (plaintext.substring(0, separator) != account) return null
         plaintext.substring(separator + 1)
     } catch (t: Throwable) {
-        Log.e(TAG, "credential load failed")
+        Log.e(TAG, "credential load failed: ${t.javaClass.simpleName}: ${t.message}")
         null
     }
 
@@ -133,10 +133,10 @@ object CredentialVault {
 
     @JvmStatic
     fun loadSession(): String? = try {
-        val context = appContext ?: return null
+        val context = checkNotNull(appContext)
         val blob = sessionPrefs(context).getString(SESSION_SLOT, null) ?: return null
         val bytes = Base64.decode(blob, Base64.NO_WRAP)
-        if (bytes.size <= IV_BYTES) return null
+        check(bytes.size > IV_BYTES)
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(
             Cipher.DECRYPT_MODE,
@@ -147,7 +147,9 @@ object CredentialVault {
         String(cipher.doFinal(bytes.copyOfRange(IV_BYTES, bytes.size)), Charsets.UTF_8)
     } catch (t: Throwable) {
         Log.e(TAG, "session load failed")
-        null
+        // JNI translates this sanitized exception to CredentialStore. Null
+        // means only "no saved session", never a transient Keystore failure.
+        throw IllegalStateException("Session storage unavailable")
     }
 
     @JvmStatic

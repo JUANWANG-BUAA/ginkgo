@@ -1,4 +1,3 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -11,6 +10,7 @@ import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
 import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/features/tasks/task_editor.dart';
 import 'package:ginkgo_mirror/application/local_tasks_read.dart';
+
 import '../test/local_tasks_read_fixture.dart';
 
 import 'support.dart' show platformActions, settle, show;
@@ -78,25 +78,25 @@ class VisualService extends Fake implements MirrorService {
       throw StateError('Visual suite attempted a task mutation');
     }
     return tasksRead([
-        {
-          'id': 'visual-linked',
-          'title': '整理操作系统实验报告',
-          'due': '2026-10-23T18:30:00+08:00',
-          'completed': false,
-          'source': {'kind': 'homework', 'assignment_id': 'spoc:visual-report'},
-        },
-        {
-          'id': 'visual-personal',
-          'title': '预习下一章课程内容',
-          'due': '',
-          'completed': false,
-        },
-        {
-          'id': 'visual-complete',
-          'title': '阅读课程参考资料',
-          'due': '2026-10-21',
-          'completed': true,
-        },
+      {
+        'id': 'visual-linked',
+        'title': '整理操作系统实验报告',
+        'due': '2026-10-23T18:30:00+08:00',
+        'completed': false,
+        'source': {'kind': 'homework', 'assignment_id': 'spoc:visual-report'},
+      },
+      {
+        'id': 'visual-personal',
+        'title': '预习下一章课程内容',
+        'due': '',
+        'completed': false,
+      },
+      {
+        'id': 'visual-complete',
+        'title': '阅读课程参考资料',
+        'due': '2026-10-21',
+        'completed': true,
+      },
     ]);
   }
 }
@@ -127,7 +127,8 @@ void main() {
       await tester.pumpWidget(
         ginkgoApp(
           brightness: mode,
-          home: TodayPage(fileActions: platformActions,
+          home: TodayPage(
+            fileActions: platformActions,
             service: service,
             storageRoot: '/synthetic-visual-only',
             accountId: 'synthetic-visual',
@@ -139,16 +140,19 @@ void main() {
       await capture(tester, 'ios-visual-today-$name');
       await show(
         tester,
-        find.byKey(const Key('today-task-visual-linked')),
+        find.byKey(const Key('today-task-visual-personal')),
         scrollKey: 'today-scroll',
       );
+      expect(find.byKey(const Key('today-task-visual-linked')), findsNothing);
+      expect(find.byKey(const Key('today-tasks-linked-note')), findsOneWidget);
       await capture(tester, 'ios-visual-today-actions-$name');
 
       await tester.pumpWidget(const SizedBox());
       await tester.pumpWidget(
         ginkgoApp(
           brightness: mode,
-          home: TasksPage(fileActions: platformActions,
+          home: TasksPage(
+            fileActions: platformActions,
             service: service,
             academicService: service,
             storageRoot: '/synthetic-visual-only',
@@ -174,7 +178,8 @@ void main() {
       await tester.pumpWidget(
         ginkgoApp(
           brightness: mode,
-          home: HomeworkDetailPage(fileActions: platformActions,
+          home: HomeworkDetailPage(
+            fileActions: platformActions,
             item: VisualService.assignment,
             service: service,
             taskService: service,
@@ -184,8 +189,7 @@ void main() {
       );
       await settle(tester, frames: 20);
       await capture(tester, 'ios-visual-homework-$name');
-      await tester.ensureVisible(find.byKey(const Key('homework-add-task')));
-      await capture(tester, 'ios-visual-homework-action-$name');
+      expect(find.byKey(const Key('homework-add-task')), findsNothing);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pumpWidget(
@@ -210,7 +214,8 @@ void main() {
     await tester.pumpWidget(
       ginkgoApp(
         brightness: Brightness.dark,
-        home: TasksPage(fileActions: platformActions,
+        home: TasksPage(
+          fileActions: platformActions,
           service: service,
           storageRoot: '/synthetic-visual-only',
           initialTaskId: 'visual-linked',

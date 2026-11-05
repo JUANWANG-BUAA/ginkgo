@@ -127,6 +127,9 @@ class AcademicMetric extends StatelessWidget {
               ? GinkgoTypography.metricProminentSize
               : GinkgoTypography.metricSize,
           fontWeight: FontWeight.w600,
+          color: prominent
+              ? GinkgoColors.resourcePurple.resolveFrom(context)
+              : CupertinoColors.label.resolveFrom(context),
           fontFeatures: const [FontFeature.tabularFigures()],
         ),
       ),

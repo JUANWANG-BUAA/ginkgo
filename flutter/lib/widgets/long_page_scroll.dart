@@ -52,7 +52,7 @@ class LongPageScroll extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: CupertinoColors.black.withValues(alpha: 0.08),
+                    color: CupertinoColors.systemGrey.resolveFrom(context).withValues(alpha: 0.15),
                     blurRadius: 12,
                     offset: const Offset(0, 3),
                   ),

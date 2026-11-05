@@ -121,6 +121,21 @@ void main() {
       expect(find.textContaining('读者认证未完成'), findsOneWidget);
     },
   );
+  testWidgets(
+    'reader authentication failure does not prescribe repeated app login',
+    (tester) async {
+      final gateway = Loans()
+        ..result = const LibraryLoansRead(failure: FailureCode.sessionExpired);
+      await tester.pumpWidget(app(gateway));
+      await read(tester);
+      expect(find.textContaining('请重新登录'), findsNothing);
+      expect(find.textContaining('sessionExpired'), findsOneWidget);
+      expect(find.textContaining('读者认证未完成'), findsOneWidget);
+      expect(gateway.calls, [1]);
+      await tester.pump(const Duration(seconds: 30));
+      expect(gateway.calls, [1]);
+    },
+  );
   testWidgets('confirmed empty replaces previous records', (tester) async {
     final gateway = Loans();
     await tester.pumpWidget(app(gateway));

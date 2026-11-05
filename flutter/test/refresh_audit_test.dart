@@ -125,6 +125,16 @@ void main() {
       await failed;
       await tester.pumpAndSettle();
       expect(find.textContaining('正在保留'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text(gradesFixture.courses.first.name),
+        180,
+        scrollable: find
+            .descendant(
+              of: find.byKey(const Key('grades-scroll')),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
       expect(find.text(gradesFixture.courses.first.name), findsWidgets);
     },
   );

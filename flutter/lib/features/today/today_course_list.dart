@@ -215,14 +215,14 @@ class TodayCourseEmpty extends StatelessWidget {
 
   Widget _openScheduleButton(BuildContext context, Color accent) =>
       CupertinoButton(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         color: accent.withValues(
           alpha: CupertinoTheme.of(context).brightness == Brightness.dark
               ? 0.18
               : 0.10,
         ),
         borderRadius: BorderRadius.circular(8),
-        minimumSize: const Size(48, 32),
+        minimumSize: const Size(48, 48),
         onPressed: onOpenSchedule,
         child: Text(
           '查看完整课表',

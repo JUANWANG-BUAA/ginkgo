@@ -64,26 +64,26 @@
 ## features/graduate/graduate_sections.dart
 
 - `class GraduateViewSwitcher extends StatelessWidget` — The three lenses on the graduate page: credit map, course list and the
-  <sub>class · features/graduate/graduate_sections.dart:13</sub>
-    - `const GraduateViewSwitcher({ super.key, required this.view, required this.onChanged, });`  <sub>:14</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:24</sub>
+  <sub>class · features/graduate/graduate_sections.dart:14</sub>
+    - `const GraduateViewSwitcher({ super.key, required this.view, required this.onChanged, });`  <sub>:15</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:25</sub>
 - `class GraduatePartNotices extends StatelessWidget` — Loading, error and notice lines for one academic part. The student record
-  <sub>class · features/graduate/graduate_sections.dart:65</sub>
-    - `const GraduatePartNotices({ super.key, required this.title, required this.loading, required this.hasSections, required this.error, required this.notice, required this.onRetry, });`  <sub>:66</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:82</sub>
+  <sub>class · features/graduate/graduate_sections.dart:66</sub>
+    - `const GraduatePartNotices({ super.key, required this.title, required this.loading, required this.hasSections, required this.error, required this.notice, required this.onRetry, });`  <sub>:67</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:83</sub>
 - `class GraduateOverview extends StatelessWidget` — Credit progress and the category groups of the school execution report.
-  <sub>class · features/graduate/graduate_sections.dart:114</sub>
-    - `const GraduateOverview({ super.key, required this.sections, required this.expandedSections, required this.onExpanded, required this.onOpenCategory, required this.reportDataExpanded, required this.onReportDataExpanded, });`  <sub>:115</sub>
-    - `final void Function(String title, bool expanded) onExpanded;`  <sub>:129</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:135</sub>
+  <sub>class · features/graduate/graduate_sections.dart:115</sub>
+    - `const GraduateOverview({ super.key, required this.sections, required this.expandedSections, required this.onExpanded, required this.onOpenCategory, required this.reportDataExpanded, required this.onReportDataExpanded, });`  <sub>:116</sub>
+    - `final void Function(String title, bool expanded) onExpanded;`  <sub>:130</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:136</sub>
 - `class GraduateProfileSection extends StatelessWidget` — The student record fields the school returned.
-  <sub>class · features/graduate/graduate_sections.dart:179</sub>
-    - `const GraduateProfileSection({super.key, required this.section});`  <sub>:180</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:185</sub>
+  <sub>class · features/graduate/graduate_sections.dart:191</sub>
+    - `const GraduateProfileSection({super.key, required this.section});`  <sub>:192</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:197</sub>
 - `class GraduateProfileView extends StatelessWidget` — The student record lens: the notices, the fields the school returned and
-  <sub>class · features/graduate/graduate_sections.dart:196</sub>
-    - `const GraduateProfileView({ super.key, required this.sections, required this.loading, required this.hasSections, required this.error, required this.notice, required this.onRetry, });`  <sub>:197</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:213</sub>
+  <sub>class · features/graduate/graduate_sections.dart:208</sub>
+    - `const GraduateProfileView({ super.key, required this.sections, required this.loading, required this.hasSections, required this.error, required this.notice, required this.onRetry, });`  <sub>:209</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:225</sub>
 
 ## features/graduate/graduate_widgets.dart
 

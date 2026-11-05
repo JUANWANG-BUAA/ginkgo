@@ -128,6 +128,27 @@ HTTP 传输、Cookie、路由与错误映射。
 - `pub enum WebVpnError`
   <sub>enum · rust/crates/ginkgo_upstream/src/foundation/webvpn.rs:205</sub>
 
+## mutation_result
+
+- `pub enum MutationResult<T>`
+  <sub>enum · rust/crates/ginkgo_upstream/src/mutation_result.rs:7</sub>
+- `pub enum InputPrompt` — Input prompts - what UI should show
+  <sub>enum · rust/crates/ginkgo_upstream/src/mutation_result.rs:38</sub>
+- `pub enum ErrorCode` — Error codes - explicit, no "unknown"
+  <sub>enum · rust/crates/ginkgo_upstream/src/mutation_result.rs:46</sub>
+- `pub fn is_retriable(&self) -> bool {…}` — Should background task retry this?
+  <sub>fn · rust/crates/ginkgo_upstream/src/mutation_result.rs:69</sub>
+- `pub fn requires_login(&self) -> bool {…}` — Should UI show login screen?
+  <sub>fn · rust/crates/ginkgo_upstream/src/mutation_result.rs:79</sub>
+- `pub fn locks_authentication(&self) -> bool {…}` — Should this lock authentication globally?
+  <sub>fn · rust/crates/ginkgo_upstream/src/mutation_result.rs:84</sub>
+- `pub fn map<U, F: FnOnce(T) -> U>(self, f: F) -> MutationResult<U> {…}` — Map success case
+  <sub>fn · rust/crates/ginkgo_upstream/src/mutation_result.rs:94</sub>
+- `pub fn is_success(&self) -> bool {…}` — Check if operation succeeded (any variant)
+  <sub>fn · rust/crates/ginkgo_upstream/src/mutation_result.rs:116</sub>
+- `pub fn error_code(&self) -> Option<ErrorCode> {…}` — Get error code if failed
+  <sub>fn · rust/crates/ginkgo_upstream/src/mutation_result.rs:124</sub>
+
 ## test_support
 
 - `pub struct MockTransport`

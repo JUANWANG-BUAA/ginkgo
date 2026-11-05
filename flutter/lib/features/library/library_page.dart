@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:ginkgo_mirror/widgets/feature_intro.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
@@ -149,13 +151,23 @@ class _LibraryPageState extends State<LibraryPage> {
           ),
           SliverList.list(
             children: [
+              const FeatureIntro(
+                icon: CupertinoIcons.book_fill,
+                title: '你的学习空间',
+                description: '找一处座位，查一本书，或查看当前借阅。',
+                color: GinkgoColors.resourceTeal,
+              ),
               AppleSection(
                 children: [
                   AppleListTile(
                     key: const Key('library-find-seats'),
                     title: const Text('预约座位'),
                     subtitle: const Text('选择场馆、区域与可预约时段'),
-                    leading: const Icon(CupertinoIcons.rectangle_grid_2x2),
+                    leading: const GinkgoIconTile(
+                      icon: CupertinoIcons.rectangle_grid_2x2,
+                      size: 30,
+                      color: GinkgoColors.resourceBlue,
+                    ),
                     trailing: const CupertinoListTileChevron(),
                     onTap: _openVenueSelection,
                   ),
@@ -163,7 +175,11 @@ class _LibraryPageState extends State<LibraryPage> {
                     key: const Key('library-books'),
                     title: const Text('查书目与馆藏'),
                     subtitle: const Text('公开目录检索 · 复本状态'),
-                    leading: const Icon(CupertinoIcons.book),
+                    leading: const GinkgoIconTile(
+                      icon: CupertinoIcons.book,
+                      size: 30,
+                      color: GinkgoColors.resourceTeal,
+                    ),
                     trailing: const CupertinoListTileChevron(),
                     onTap: () =>
                         _push(LibraryBooksPage(service: widget.service)),
@@ -173,7 +189,11 @@ class _LibraryPageState extends State<LibraryPage> {
                       key: const Key('library-loans-entry'),
                       title: const Text('本人借阅'),
                       subtitle: const Text('按需读取当前账号借阅记录'),
-                      leading: const Icon(CupertinoIcons.bookmark),
+                      leading: const GinkgoIconTile(
+                        icon: CupertinoIcons.bookmark,
+                        size: 30,
+                        color: GinkgoColors.resourcePurple,
+                      ),
                       trailing: const CupertinoListTileChevron(),
                       onTap: widget.onOpenLoans,
                     ),

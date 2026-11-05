@@ -73,7 +73,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => -1085738299;
+  int get rustContentHash => -1333339535;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -476,6 +476,12 @@ abstract class RustLibApi extends BaseApi {
   Future<ClassroomResponse> crateApiMirrorQueryDemoClassrooms({
     required DemoScope scope,
     required ClassroomQuery query,
+  });
+
+  Future<BackgroundReminderRead> crateApiLiveReadBackgroundReminders({
+    required String owner,
+    required bool checkin,
+    required bool homework,
   });
 
   Future<MutationResponse> crateApiLiveReconcileHomeworkFile({
@@ -3415,6 +3421,43 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<BackgroundReminderRead> crateApiLiveReadBackgroundReminders({
+    required String owner,
+    required bool checkin,
+    required bool homework,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(owner, serializer);
+          sse_encode_bool(checkin, serializer);
+          sse_encode_bool(homework, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 88,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_background_reminder_read,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiLiveReadBackgroundRemindersConstMeta,
+        argValues: [owner, checkin, homework],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLiveReadBackgroundRemindersConstMeta =>
+      const TaskConstMeta(
+        debugName: "read_background_reminders",
+        argNames: ["owner", "checkin", "homework"],
+      );
+
+  @override
   Future<MutationResponse> crateApiLiveReconcileHomeworkFile({
     required String expectedAccount,
     required String handle,
@@ -3428,7 +3471,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 88,
+            funcId: 89,
             port: port_,
           );
         },
@@ -3465,7 +3508,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 89,
+            funcId: 90,
             port: port_,
           );
         },
@@ -3495,7 +3538,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 90,
+            funcId: 91,
             port: port_,
           );
         },
@@ -3530,7 +3573,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 91,
+            funcId: 92,
             port: port_,
           );
         },
@@ -3561,7 +3604,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 92,
+            funcId: 93,
             port: port_,
           );
         },
@@ -3588,7 +3631,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 93,
+            funcId: 94,
             port: port_,
           );
         },
@@ -3613,7 +3656,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(id, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 94)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 95)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_opt_String,
@@ -3641,7 +3684,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 95,
+            funcId: 96,
             port: port_,
           );
         },
@@ -3675,7 +3718,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 96,
+            funcId: 97,
             port: port_,
           );
         },
@@ -3714,7 +3757,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 97,
+            funcId: 98,
             port: port_,
           );
         },
@@ -3749,7 +3792,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 98,
+            funcId: 99,
             port: port_,
           );
         },
@@ -3801,6 +3844,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       apiUrl: dco_decode_String(arr[3]),
       size: dco_decode_i_64(arr[4]),
       sha256: dco_decode_String(arr[5]),
+    );
+  }
+
+  @protected
+  BackgroundReminderRead dco_decode_background_reminder_read(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return BackgroundReminderRead(
+      account: dco_decode_opt_String(arr[0]),
+      checkin: dco_decode_opt_box_autoadd_check_in_response(arr[1]),
+      homework: dco_decode_opt_box_autoadd_homework_response(arr[2]),
+      failure: dco_decode_opt_box_autoadd_failure_code(arr[3]),
     );
   }
 
@@ -4003,6 +4060,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CheckInResponse dco_decode_box_autoadd_check_in_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_check_in_response(raw);
+  }
+
+  @protected
   CheckinLoadProgressDto dco_decode_box_autoadd_checkin_load_progress_dto(
     dynamic raw,
   ) {
@@ -4085,6 +4148,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_graduate_progress_dto(raw);
+  }
+
+  @protected
+  HomeworkResponse dco_decode_box_autoadd_homework_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_homework_response(raw);
   }
 
   @protected
@@ -6469,6 +6538,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CheckInResponse? dco_decode_opt_box_autoadd_check_in_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_check_in_response(raw);
+  }
+
+  @protected
   CheckinLoadProgressDto? dco_decode_opt_box_autoadd_checkin_load_progress_dto(
     dynamic raw,
   ) {
@@ -6552,6 +6627,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return raw == null
         ? null
         : dco_decode_box_autoadd_graduate_progress_dto(raw);
+  }
+
+  @protected
+  HomeworkResponse? dco_decode_opt_box_autoadd_homework_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_homework_response(raw);
   }
 
   @protected
@@ -7141,6 +7222,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BackgroundReminderRead sse_decode_background_reminder_read(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_account = sse_decode_opt_String(deserializer);
+    var var_checkin = sse_decode_opt_box_autoadd_check_in_response(
+      deserializer,
+    );
+    var var_homework = sse_decode_opt_box_autoadd_homework_response(
+      deserializer,
+    );
+    var var_failure = sse_decode_opt_box_autoadd_failure_code(deserializer);
+    return BackgroundReminderRead(
+      account: var_account,
+      checkin: var_checkin,
+      homework: var_homework,
+      failure: var_failure,
+    );
+  }
+
+  @protected
   BookHitDto sse_decode_book_hit_dto(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_bibId = sse_decode_String(deserializer);
@@ -7366,6 +7468,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CheckInResponse sse_decode_box_autoadd_check_in_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_check_in_response(deserializer));
+  }
+
+  @protected
   CheckinLoadProgressDto sse_decode_box_autoadd_checkin_load_progress_dto(
     SseDeserializer deserializer,
   ) {
@@ -7456,6 +7566,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_graduate_progress_dto(deserializer));
+  }
+
+  @protected
+  HomeworkResponse sse_decode_box_autoadd_homework_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_homework_response(deserializer));
   }
 
   @protected
@@ -10566,6 +10684,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CheckInResponse? sse_decode_opt_box_autoadd_check_in_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_check_in_response(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   CheckinLoadProgressDto? sse_decode_opt_box_autoadd_checkin_load_progress_dto(
     SseDeserializer deserializer,
   ) {
@@ -10692,6 +10823,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_box_autoadd_graduate_progress_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  HomeworkResponse? sse_decode_opt_box_autoadd_homework_response(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_homework_response(deserializer));
     } else {
       return null;
     }
@@ -11439,6 +11583,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_background_reminder_read(
+    BackgroundReminderRead self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_String(self.account, serializer);
+    sse_encode_opt_box_autoadd_check_in_response(self.checkin, serializer);
+    sse_encode_opt_box_autoadd_homework_response(self.homework, serializer);
+    sse_encode_opt_box_autoadd_failure_code(self.failure, serializer);
+  }
+
+  @protected
   void sse_encode_book_hit_dto(BookHitDto self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.bibId, serializer);
@@ -11662,6 +11818,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_check_in_response(
+    CheckInResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_check_in_response(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_checkin_load_progress_dto(
     CheckinLoadProgressDto self,
     SseSerializer serializer,
@@ -11764,6 +11929,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_graduate_progress_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_homework_response(
+    HomeworkResponse self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_homework_response(self, serializer);
   }
 
   @protected
@@ -14297,6 +14471,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_check_in_response(
+    CheckInResponse? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_check_in_response(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_checkin_load_progress_dto(
     CheckinLoadProgressDto? self,
     SseSerializer serializer,
@@ -14420,6 +14607,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_box_autoadd_graduate_progress_dto(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_homework_response(
+    HomeworkResponse? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_homework_response(self, serializer);
     }
   }
 
