@@ -1,4 +1,4 @@
-import 'package:ginkgo_mirror/shared/school_timestamp.dart';
+import 'package:ginkgo_mirror/application/school_timestamp.dart';
 import 'package:ginkgo_mirror/application/environment.dart';
 import 'package:ginkgo_mirror/application/failures.dart';
 

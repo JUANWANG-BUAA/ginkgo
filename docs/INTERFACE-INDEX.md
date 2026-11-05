@@ -8,6 +8,8 @@
 
 研讨室值类型归属 `application/cgyy_models.dart`，网关与 native/demo 适配器只依赖该契约；订单审批文案、摘要和地点拼接由 `features/cgyy/cgyy_models.dart` 的展示扩展提供。
 
+本机截止时间校验与页面时间展示共同使用 `application/school_timestamp.dart` 的纯解析函数；shared/school_timestamp.dart 只负责格式化及兼容转出。返回值是用 UTC 容器表达的北京时间墙钟，不应当成 UTC 瞬间存储。
+
 ## 1. 怎么读这份文档
 
 本文是**手工维护的总览**：讲清分层、能力归属与跨层不变量。

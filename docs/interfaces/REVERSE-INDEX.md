@@ -53,6 +53,7 @@
 | `application/reminder_platform.dart` | ReminderPlatform → dart-application.md<br>ScopedReminderPlatform → dart-application.md |
 | `application/reminder_store.dart` | ReminderStore → dart-application.md |
 | `application/school_rules.dart` | SchoolRules → dart-application.md |
+| `application/school_timestamp.dart` | parseSchoolTimestamp → dart-application.md |
 | `application/service_capabilities.dart` | ServiceCapabilities → dart-application.md |
 | `application/shuttle.dart` | ShuttleRun → dart-application.md<br>ShuttleSection → dart-application.md<br>ShuttleTable → dart-application.md<br>ShuttleTimetable → dart-application.md<br>ShuttleDeparture → dart-application.md<br>ShuttleTimetableRead → dart-application.md<br>ShuttleGateway → dart-application.md |
 | `application/task_storage_scope.dart` | TaskStorageRoot → dart-application.md<br>TaskStorageScope → dart-application.md |
@@ -423,7 +424,7 @@
 | `shared/reminder_rules.dart` | schoolInstant → dart-shared.md<br>checkinWindowOpen → dart-shared.md |
 | `shared/reminder_scope.dart` | ReminderScope → dart-shared.md |
 | `shared/school_links.dart` | openSchoolLink → dart-shared.md |
-| `shared/school_timestamp.dart` | parseSchoolTimestamp → dart-shared.md<br>schoolDateString → dart-shared.md<br>schoolDateWeekdayLabel → dart-shared.md<br>schoolTimestampLabel → dart-shared.md<br>schoolClockLabel → dart-shared.md<br>schoolTimeRange → dart-shared.md |
+| `shared/school_timestamp.dart` | schoolDateString → dart-shared.md<br>schoolDateWeekdayLabel → dart-shared.md<br>schoolTimestampLabel → dart-shared.md<br>schoolClockLabel → dart-shared.md<br>schoolTimeRange → dart-shared.md |
 | `shared/today_time.dart` | todaySchoolNow → dart-shared.md<br>schoolWallClockMillis → dart-shared.md<br>todayDate → dart-shared.md<br>todayDue → dart-shared.md<br>todayCompareDue → dart-shared.md<br>todayDueLabel → dart-shared.md |
 | `startup_page.dart` | StartupPage → dart-app.md |
 | `widgets/academic_overview.dart` | AcademicOverview → dart-widgets.md |

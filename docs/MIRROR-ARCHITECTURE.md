@@ -4,6 +4,8 @@
 
 2026-11-05 工作树边界补充：Dart 的 application 与 infrastructure 均不得导入或导出 features/widgets/workspace/app。研讨室跨层值已归 application；页面目录只保留展示扩展和契约转出，适配器不再依赖页面。门禁同时核对 package 与相对路径，防止换用相对导入绕开规则。
 
+2026-11-05 时间工具边界：本机待办依赖 application 的纯时间解析；shared 的日期/时段显示复用该函数，application 不再依赖 shared。门禁禁止应用层重新导入共享展示或状态模块，原 application/shared 目录循环已解除。没有改变 Rust 学校日期规则或解析算法。
+
 ## 隔离目标与当前结构
 
 学校的 URL、HTTP 请求、CAS 表单与跳转、Cookie、学校/网关会话恢复、iClass/图书馆/CGYY token、成功码和响应字段解析，全部位于 `ginkgo_upstream`。应用核心不依赖这个 crate；修改学校协议实现时，不需要修改 core 或 Flutter。

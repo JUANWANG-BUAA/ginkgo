@@ -16,7 +16,7 @@
 - [shared/reminder_rules.dart](#sharedreminderrulesdart) (2)
 - [shared/reminder_scope.dart](#sharedreminderscopedart) (1)
 - [shared/school_links.dart](#sharedschoollinksdart) (1)
-- [shared/school_timestamp.dart](#sharedschooltimestampdart) (6)
+- [shared/school_timestamp.dart](#sharedschooltimestampdart) (5)
 - [shared/today_time.dart](#sharedtodaytimedart) (6)
 
 ## shared/app_preferences.dart
@@ -149,18 +149,16 @@
 
 ## shared/school_timestamp.dart
 
-- `DateTime? parseSchoolTimestamp(String? value) {…}` — Presentation-only school time. Unzoned upstream values already describe
-  <sub>function · shared/school_timestamp.dart:3</sub>
 - `String schoolDateString(DateTime day) => …` — yyyy-MM-dd, the canonical query-date format the school systems accept.
-  <sub>function · shared/school_timestamp.dart:40</sub>
+  <sub>function · shared/school_timestamp.dart:16</sub>
 - `String schoolDateWeekdayLabel(DateTime date) => …` — yyyy年M月d日 · 周X, the dated heading shared by list pages.
-  <sub>function · shared/school_timestamp.dart:45</sub>
+  <sub>function · shared/school_timestamp.dart:21</sub>
 - `String schoolTimestampLabel(String? value) {…}` — MM月dd日 HH:mm in Beijing, with unknown and invalid inputs kept distinct.
-  <sub>function · shared/school_timestamp.dart:49</sub>
+  <sub>function · shared/school_timestamp.dart:25</sub>
 - `String schoolClockLabel(String? value) {…}`
-  <sub>function · shared/school_timestamp.dart:55</sub>
+  <sub>function · shared/school_timestamp.dart:31</sub>
 - `String schoolTimeRange(String beginsAt, String endsAt) {…}` — The page already labels the course day. Keep that day's times compact;
-  <sub>function · shared/school_timestamp.dart:64</sub>
+  <sub>function · shared/school_timestamp.dart:40</sub>
 
 ## shared/today_time.dart
 

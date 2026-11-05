@@ -143,6 +143,9 @@ def dart_boundary_violations(root):
                     continue
                 if target_parts and target_parts[0] in ('features', 'widgets', 'workspace', 'app'):
                     errors.append(f'{relative}: contracts and adapters must not depend on presentation')
+                if (relative.parts[0] == 'application' and target_parts
+                        and target_parts[0] == 'shared'):
+                    errors.append(f'{relative}: application values must not depend on shared presentation/state')
         if relative.parts[0] in ('src', 'infrastructure'):
             continue
         source = file.read_text()

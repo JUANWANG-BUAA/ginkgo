@@ -29,6 +29,21 @@ class BoundaryTests(unittest.TestCase):
                 self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
                 file.unlink()
 
+    def test_application_cannot_reintroduce_shared_cycle(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            file = root / 'flutter/lib/application/local_tasks.dart'
+            file.parent.mkdir(parents=True)
+            for directive in (
+                "import 'package:ginkgo_mirror/shared/school_timestamp.dart';",
+                "export '../shared/school_timestamp.dart';",
+                "import '../application/../shared/school_timestamp.dart';",
+            ):
+                file.write_text(directive)
+                self.assertTrue(BOUNDARY.dart_boundary_violations(root), directive)
+            file.write_text("import 'package:ginkgo_mirror/application/school_timestamp.dart';")
+            self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
+
     def test_reminder_controller_cannot_import_platform_adapters(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

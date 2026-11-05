@@ -19,9 +19,9 @@
 | [上游基础能力（ginkgo_upstream）](rust-upstream-foundation.md) | `rust-upstream-foundation.md` | 61 |
 | [组装（ginkgo_runtime）](rust-runtime.md) | `rust-runtime.md` | 10 |
 | [桥接（ginkgo_flutter_bridge）](rust-bridge.md) | `rust-bridge.md` | 382 |
-| [Dart 应用接口（flutter/lib/application）](dart-application.md) | `dart-application.md` | 198 |
+| [Dart 应用接口（flutter/lib/application）](dart-application.md) | `dart-application.md` | 199 |
 | [Dart 基础设施（flutter/lib/infrastructure）](dart-infrastructure.md) | `dart-infrastructure.md` | 51 |
-| [跨域共享状态（flutter/lib/shared）](dart-shared.md) | `dart-shared.md` | 29 |
+| [跨域共享状态（flutter/lib/shared）](dart-shared.md) | `dart-shared.md` | 28 |
 | [平台集成（flutter/lib/platform）](dart-platform.md) | `dart-platform.md` | 15 |
 | [共享呈现组件（flutter/lib/widgets）](dart-widgets.md) | `dart-widgets.md` | 71 |
 | [设计系统（flutter/lib/design）](dart-design.md) | `dart-design.md` | 12 |

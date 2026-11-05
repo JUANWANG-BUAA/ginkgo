@@ -50,6 +50,7 @@
 - [application/reminder_platform.dart](#applicationreminderplatformdart) (2)
 - [application/reminder_store.dart](#applicationreminderstoredart) (1)
 - [application/school_rules.dart](#applicationschoolrulesdart) (1)
+- [application/school_timestamp.dart](#applicationschooltimestampdart) (1)
 - [application/service_capabilities.dart](#applicationservicecapabilitiesdart) (1)
 - [application/shuttle.dart](#applicationshuttledart) (7)
 - [application/task_storage_scope.dart](#applicationtaskstoragescopedart) (2)
@@ -835,6 +836,11 @@
   <sub>class · application/school_rules.dart:8</sub>
     - `HomeworkDeadlineStatus homeworkDeadline(String? dueAt, DateTime now);` — Classify a school deadline against the Beijing wall clock.  <sub>:10</sub>
     - `bool checkinWindowOpen( String date, String beginsAt, String endsAt, DateTime now, );` — Whether a check-in session accepts a sign-in at `now`.  <sub>:13</sub>
+
+## application/school_timestamp.dart
+
+- `DateTime? parseSchoolTimestamp(String? value) {…}` — School wall-clock value for local validation and presentation.
+  <sub>function · application/school_timestamp.dart:5</sub>
 
 ## application/service_capabilities.dart
 

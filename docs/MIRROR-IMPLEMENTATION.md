@@ -1,5 +1,7 @@
 # Rust + Flutter 镜像实施现状
 
+2026-11-05 工作树：将纯学校时间解析与 shared 格式化分离，本机待办直接依赖 application 时间值工具，解除 application/shared 循环；保留解析实现和全部调用者行为，见 [本轮审计](_audit/2026-11-05-time-value-boundary.md)。尚未发布。
+
 2026-11-05 工作树：研讨室共享值类型从页面目录分离到 application，网关和三个 native/demo/DTO 适配文件消除对 features 的反向依赖；订单文案、摘要和地点拼接留在功能展示扩展。新增双层依赖门禁及路径变体自测，详见 [边界审计](_audit/2026-11-05-cgyy-contract-boundary.md)。不改变学校读写协议或网络冻结行为，尚未发布。
 
 2026-11-05 工作树：官网外链已拆分为 application 的 `ExternalLinkLauncher` 端口、shared 的纯 HTTPS/凭据校验、platform 的系统浏览器适配，以及 widgets 的作用域与失败弹窗。`ginkgoApp` 在导航器上方统一注入，页面不再借共享函数隐式创建系统适配器；缺失端口明确失败。共享平台导入例外清空，门禁自测阻止旧依赖回流。验证与边界见 [本轮记录](_audit/2026-11-05-external-link-boundary.md)。该变化尚未发布。
