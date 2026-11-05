@@ -13,6 +13,44 @@ spec.loader.exec_module(module)
 
 
 class IndexTests(unittest.TestCase):
+    def test_dependency_edges_include_relative_conditional_and_part(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'application').mkdir()
+            (root / 'shared').mkdir()
+            source = root / 'application/a.dart'
+            source.write_text(
+                '// import "../shared/missing.dart";\n'
+                '/* export "../shared/missing.dart"; */\n'
+                'import "../shared/b.dart" if (dart.library.io) "../shared/c.dart";\n'
+                "export 'package:ginkgo_mirror/shared/b.dart';\n"
+                "part 'piece.dart';\n"
+                "const fake = \"import '../shared/missing.dart';\";\n")
+            for file in ('shared/b.dart', 'shared/c.dart', 'application/piece.dart'):
+                (root / file).write_text('')
+            previous = module.FLUTTER_LIB
+            module.FLUTTER_LIB = root
+            try:
+                edges = module.dart_dependency_edges()
+                self.assertEqual(edges, [
+                    ('application/a.dart', 'application/piece.dart', 5),
+                    ('application/a.dart', 'shared/b.dart', 3),
+                    ('application/a.dart', 'shared/b.dart', 4),
+                    ('application/a.dart', 'shared/c.dart', 3),
+                ])
+                self.assertEqual(module.dart_dependency_graph(), {'application': {'shared'}})
+                (root / 'shared/b.dart').unlink()
+                with self.assertRaisesRegex(ValueError, 'unresolved local dependency'):
+                    module.dart_dependency_edges()
+            finally:
+                module.FLUTTER_LIB = previous
+
+    def test_group_cycle_is_not_necessarily_a_file_cycle(self):
+        files = {'a/one.dart': {'b/two.dart'}, 'b/three.dart': {'a/four.dart'}}
+        self.assertEqual(module.strongly_connected(files), [])
+        self.assertEqual(module.strongly_connected({'a': {'b'}, 'b': {'a'}}), [['a', 'b']])
+        self.assertEqual(module.strongly_connected({'a.dart': {'b.dart'}, 'b.dart': {'a.dart'}}), [['a.dart', 'b.dart']])
+
     def test_rust_public_items_after_test_module_are_indexed(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

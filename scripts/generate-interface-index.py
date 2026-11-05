@@ -12,6 +12,8 @@ docs/interfaces/。同一份源码只被解析一次，输出可直接 diff 审�
 from __future__ import annotations
 
 import os
+import json
+import subprocess
 import re
 import sys
 from dataclasses import dataclass, field
@@ -630,23 +632,56 @@ def dart_group(relative: str) -> str:
     return parts[0] if len(parts) > 1 else 'root'
 
 
-def dart_dependency_graph() -> dict[str, set[str]]:
-    """按目录分组统计 Dart 跨组依赖。"""
-    graph: dict[str, set[str]] = {}
+def dart_dependency_edges() -> list[tuple[str, str, int]]:
+    """Local import/export/part URI edges, with source line evidence.
+
+    Lexical scan, not Dart type resolution. All conditional URI alternatives
+    are included; part-of names and external packages are not local edges.
+    """
+    edges = []
+    token = re.compile('/\\*[\\s\\S]*?\\*/|//[^\\n]*|r?(?:\\x22{3}[\\s\\S]*?\\x22{3}|\\x27{3}[\\s\\S]*?\\x27{3}|\\x22(?:\\\\.|[^\\x22\\\\])*\\x22|\\x27(?:\\\\.|[^\\x27\\\\])*\\x27)')
     for path in sorted(FLUTTER_LIB.rglob('*.dart')):
-        relative = path.relative_to(FLUTTER_LIB).as_posix()
-        if relative.startswith('src/'):
+        source = path.relative_to(FLUTTER_LIB).as_posix()
+        if source.startswith('src/'):
             continue
-        source = dart_group(relative)
         code = path.read_text(encoding='utf-8')
-        for match in re.finditer(r"(?:import|export)\s+'([^']+)'", code):
-            target = match.group(1)
-            if not target.startswith('package:ginkgo_mirror/'):
+        strings = {}
+        def mask(match):
+            value = match.group()
+            if not value.startswith(('/', 'r"""', "r'''", '"""', "'''")):
+                strings[match.start()] = value
+            return ''.join('\n' if c == '\n' else ' ' for c in value)
+        masked = token.sub(mask, code)
+        for directive in re.finditer(r'(?m)^[ \t]*(?:import|export|part)\b[^;]*;', masked):
+            # A part-of URI is a declaration, not a dependency edge.
+            if re.match(r'\s*part\s+of\b', directive.group()):
                 continue
-            target_group = dart_group(target[len('package:ginkgo_mirror/'):])
-            if target_group == source:
-                continue
-            graph.setdefault(source, set()).add(target_group)
+            for offset, literal in strings.items():
+                if not directive.start() <= offset < directive.end():
+                    continue
+                uri = literal.removeprefix('r')[1:-1]
+                if uri.startswith('package:ginkgo_mirror/'):
+                    target = FLUTTER_LIB / uri.removeprefix('package:ginkgo_mirror/')
+                elif ':' not in uri:
+                    target = path.parent / uri
+                else:
+                    continue
+                try:
+                    relative = target.resolve().relative_to(FLUTTER_LIB.resolve()).as_posix()
+                except ValueError:
+                    continue
+                if not target.is_file():
+                    raise ValueError(f'{source}: unresolved local dependency {uri}')
+                edges.append((source, relative, code.count('\n', 0, offset) + 1))
+    return sorted(set(edges))
+
+
+def dart_dependency_graph() -> dict[str, set[str]]:
+    graph: dict[str, set[str]] = {}
+    for source, target, _ in dart_dependency_edges():
+        source_group, target_group = dart_group(source), dart_group(target)
+        if source_group != target_group:
+            graph.setdefault(source_group, set()).add(target_group)
     return graph
 
 
@@ -666,7 +701,7 @@ def strongly_connected(graph: dict[str, set[str]]) -> list[list[str]]:
         counter[0] += 1
         stack.append(node)
         on_stack.add(node)
-        for neighbour in graph.get(node, ()):
+        for neighbour in sorted(graph.get(node, ())):
             if neighbour not in index:
                 visit(neighbour)
                 low[node] = min(low[node], low[neighbour])
@@ -738,6 +773,40 @@ def write_dependency_graph() -> None:
     else:
         lines.append('未发现循环依赖。')
         lines.append('')
+
+    edges_with_locations = dart_dependency_edges()
+    files: dict[str, set[str]] = {}
+    for source, target, _ in edges_with_locations:
+        files.setdefault(source, set()).add(target)
+    lines += ['## 文件级循环', '',
+              '目录分组环不代表文件环。以下按实际源码文件运行强连通分量检测；生成绑定不作为扫描源。', '']
+    file_cycles = strongly_connected(files)
+    if not file_cycles:
+        lines += ['未发现多文件强连通分量。', '']
+    for component in sorted(file_cycles):
+        lines += ['- ' + '、'.join(f'`{item}`' for item in component)]
+    lines += ['', '## 跨目录依赖证据', '',
+              '覆盖单双引号、相对路径、import/export/part 与条件导入的全部候选；忽略注释和字符串中的伪指令。'
+              '这是词法依赖扫描，不是 Dart AST/类型分析；条件分支可能产生保守的潜在依赖。', '',
+              '| 来源 | 目标 |', '| --- | --- |']
+    for source, target, line in edges_with_locations:
+        if dart_group(source) != dart_group(target):
+            lines.append(f'| `flutter/lib/{source}:{line}` | `flutter/lib/{target}` |')
+    lines += ['', '## Rust workspace 依赖（Cargo metadata）', '',
+              '通过 --no-deps --offline --locked 读取声明；包含 normal/dev/build，未展开 feature/target 条件。', '',
+              '| crate | 项目依赖 | 类型 | 条件 |', '| --- | --- | --- | --- |']
+    metadata = json.loads(subprocess.check_output([
+        'cargo', 'metadata', '--manifest-path', str(REPO / 'rust/Cargo.toml'),
+        '--format-version', '1', '--no-deps', '--offline', '--locked'], text=True))
+    members = {item['id'] for item in metadata['packages']} & set(metadata['workspace_members'])
+    names = {item['name'] for item in metadata['packages'] if item['id'] in members}
+    for package in sorted(metadata['packages'], key=lambda item: item['name']):
+        if package['id'] not in members:
+            continue
+        for dep in sorted(package['dependencies'], key=lambda item: (item['name'], item['kind'] or '')):
+            if dep['name'] in names and dep.get('path'):
+                lines.append(f"| `{package['name']}` | `{dep['name']}` | {dep['kind'] or 'normal'} | `{dep.get('target') or 'all'}` |")
+    lines.append('')
 
     (OUT_DIR / 'DEPENDENCY-GRAPH.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
 

@@ -147,27 +147,17 @@ stateDiagram-v2
 
 完整图与循环检测结果见 [依赖图](interfaces/DEPENDENCY-GRAPH.md)。**本文不复制具体数字**：分组数、依赖条数与循环分量随代码变化，以该生成文件的首段为准（由 `scripts/generate-interface-index.py` 从源码算出）。
 
-### 4.1 分层依赖方向
+### 4.1 静态分析入口与证据
 
-```mermaid
-flowchart LR
-  features["features/*"] --> application["application"]
-  features --> widgets["widgets"]
-  features --> design["design"]
-  features --> shared["shared"]
-  features --> platform["platform"]
-  workspace["workspace"] --> features
-  workspace --> application
-  app["app"] --> design
-  app --> platform
-  infrastructure["infrastructure"] --> application
+当前依赖只维护在 [生成报告](interfaces/DEPENDENCY-GRAPH.md)，不另画一份现状图。报告包含 Dart 目录图、文件级强连通分量、跨目录导入的源码行号，以及 Cargo metadata 提取的 Rust workspace 依赖。
+
+```sh
+python3 scripts/generate-interface-index.py
+python3 scripts/generate-interface-index.py --check
+python3 scripts/check-mirror-architecture.py
 ```
 
-### 4.2 文件依赖与目录聚合图
-
-Dart 目录聚合图会把同一目录里的多个文件压成一个节点，因此目录级强连通分量不一定代表文件之间存在真实 import 环。2026-10-28 的文件级审查结果为 **0 个循环分量**；当前目录聚合图中的分组关系见[生成图](interfaces/DEPENDENCY-GRAPH.md)，不能将目录级分量直接解释成编译期文件环。目录仍有跨职责依赖需要按 [镜像待办](MIRROR-TODO.md) 收敛。
-
-`course_visibility.dart` 和 `homework_visibility.dart` 已移至 `shared/`；这修复了审查中确认的 `shared/ → features/schedule/` 文件依赖。自动索引只能展示目录聚合，文件路径级结构应以源码导入和审计记录复核。
+生成器检查文档漂移，架构门禁检查允许的依赖方向；完整镜像脚本另运行 Dart analyzer、Clippy 和测试。Dart 扫描包含相对路径、单双引号及条件导入全部候选，但属于词法分析而非 AST/类型分析；目录环不等同于文件环，静态依赖也不能证明运行时调用或真实业务可用。Rust 表包含声明的 normal/dev/build 与 target 条件，不代表某一平台实际启用的 feature 图。
 
 ## 4.3 目录层级与归属规则
 
@@ -181,20 +171,14 @@ Dart 目录聚合图会把同一目录里的多个文件压成一个节点，因
 | `workspace/` | 导航壳：标签/侧栏、目的地登记、跨断点状态提升、聚合入口页 | 学校协议、本机持久化 |
 | `features/<域>/` | 单域页面、域内组件、域内模型解码（`*_models.dart`） | 直接 import `src/rust`、自建服务实例 |
 | `application/` | 页面契约：gateway 接口、值类型、呈现状态机（`refresh_section`、`busy_gate`）、失败文案 | 平台插件、文件 IO、具体 adapter |
-| `shared/` | 跨域状态模型与纯规则：日期时间、业务规则、共享偏好 | import `features/`、`infrastructure/`；自行访问文件或系统平台 API（待迁移例外见 [待办](MIRROR-TODO.md)） |
+| `shared/` | 跨域状态模型与纯规则：日期时间、业务规则、共享偏好 | import `features/`、`infrastructure/`；自行访问文件或系统平台 API |
 | `widgets/` · `design/` | 无业务语义的组件与设计 token | 应用状态、持久化、网络 |
 | `infrastructure/` | 真实/演示 adapter、FRB 调用、本机存储、平台通道 | 页面语义、导航 |
 | `platform/` | 平台端口与系统交互（通知、更新、系统设置） | 页面组件、学校协议 |
 
 ### 4.3.2 依赖方向
 
-```text
-app → workspace → features → application → (shared, design, widgets)
-                                    ↑
-                        infrastructure（只被组合根与 workspace 装配）
-```
-
-该图是目标依赖方向，不是当前全量现状：页面层不再自行组装学校服务；`AppPreferences` 仅持有显示状态与读写端口，文件实现由 `infrastructure/display_preferences_file_store.dart` 提供并在 `main.dart` 注入。`shared/course_visibility.dart` 的文件读写与 `shared/school_links.dart` 的系统链接调用仍是明确登记的历史例外，待按 [镜像待办](MIRROR-TODO.md) 迁移。
+应用契约与基础设施不反向依赖页面；application 不依赖 shared 展示/状态模块。共享存储和外链平台调用的旧例外已迁出并受门禁约束。具体文件依赖以生成报告为准，代码变更后重跑，不把目标层次图当作实现事实。
 
 三条硬规则：
 
@@ -370,7 +354,7 @@ flowchart TB
 | 图 | 来源 | 是否手绘 |
 | --- | --- | --- |
 | 分层拓扑、时序、状态机、数据形状 | 架构约定 | 手绘，随架构决策更新 |
-| 目录依赖图与循环检测 | `scripts/generate-interface-index.py` 扫描 import | 生成，改代码后重跑 |
+| 目录依赖图与循环检测 | `scripts/generate-interface-index.py` 扫描 Dart 指令并读取 Cargo metadata | 生成，改代码后重跑 |
 | 能力地图 | 与 [能力总表](INTERFACE-INDEX.md#2-能力总表) 同源 | 手绘，新增能力时同步 |
 
 改完代码后：
