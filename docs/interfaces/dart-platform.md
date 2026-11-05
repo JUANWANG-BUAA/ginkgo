@@ -37,19 +37,6 @@
 - `Future<bool> launchExternalLink(Uri url) => …`
   <sub>function · platform/external_links.dart:3</sub>
 
-## platform/startup_update.dart
-
-- `class StartupUpdateController extends ChangeNotifier` — One best-effort check per root lifetime. No timers, downloads or installation.
-  <sub>class · platform/startup_update.dart:10</sub>
-    - `bool get visible => …`  <sub>:23</sub>
-    - `Future<void> checkOnce() async {…}`  <sub>:25</sub>
-    - `void dismiss() {…}`  <sub>:62</sub>
-    - `void dispose() {…}`  <sub>:69</sub>
-- `class StartupUpdateHint extends StatefulWidget` — Same quiet hint posture as diagnostics, but a separate informational state.
-  <sub>class · platform/startup_update.dart:77</sub>
-    - `const StartupUpdateHint({ super.key, required this.controller, required this.child, });`  <sub>:78</sub>
-    - `State<StartupUpdateHint> createState() => …`  <sub>:87</sub>
-
 ## platform/system_settings_service.dart
 
 - `abstract interface class SystemSettingsService`

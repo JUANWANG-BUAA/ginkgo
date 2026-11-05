@@ -1,8 +1,8 @@
 # Ginkgo 架构拓扑与数据流
 
-更新：2026-11-02。工程由五个 Rust crate 组成；本文用图说明 **Android（Flutter + Rust）的七段调用拓扑与数据 IO**，配合 [接口索引](INTERFACE-INDEX.md) 使用：索引给出签名与位置，本文给出结构与走向。
+更新：2026-11-05。**工程现状从 [工具生成的架构浏览器](architecture/index.html) 阅读**：函数调用、回调引用、实现候选、模块依赖、并发调用点与源码证据均可逐级展开。提取方式、覆盖缺口和重新生成命令见 [分析说明](architecture/README.md)。
 
-图为 Mermaid，GitHub 原生渲染；依赖图由 `scripts/generate-interface-index.py` 从源码算出，不手绘。
+本文保留分层约束、读写语义与状态机的设计说明。下方人工维护的 Mermaid 是概念示意，不是完整函数调用图，也不能替代解析结果。具体签名与源码位置见 [接口索引](INTERFACE-INDEX.md)。
 
 ## 1. 五个 Rust crate 与七段调用拓扑
 
@@ -149,7 +149,7 @@ stateDiagram-v2
 
 ### 4.1 静态分析入口与证据
 
-当前依赖只维护在 [生成报告](interfaces/DEPENDENCY-GRAPH.md)，不另画一份现状图。报告包含 Dart 目录图、文件级强连通分量、跨目录导入的源码行号，以及 Cargo metadata 提取的 Rust workspace 依赖。
+文件 / 目录依赖维护在 [生成报告](interfaces/DEPENDENCY-GRAPH.md)，函数级证据维护在 [架构浏览器](architecture/index.html)。报告包含 Dart 目录图、文件级强连通分量、跨目录导入的源码行号，以及 Cargo metadata 提取的 Rust workspace 依赖。
 
 ```sh
 python3 scripts/generate-interface-index.py
@@ -353,7 +353,8 @@ flowchart TB
 
 | 图 | 来源 | 是否手绘 |
 | --- | --- | --- |
-| 分层拓扑、时序、状态机、数据形状 | 架构约定 | 手绘，随架构决策更新 |
+| 函数调用、回调、实现候选、并发调用点 | Dart analyzer / rust-analyzer / ast-grep | 自动生成，缺口显式列出 |
+| 分层拓扑、时序、状态机、数据形状 | 架构约定 | 概念示意，不作为完整调用证据 |
 | 目录依赖图与循环检测 | `scripts/generate-interface-index.py` 扫描 Dart 指令并读取 Cargo metadata | 生成，改代码后重跑 |
 | 能力地图 | 与 [能力总表](INTERFACE-INDEX.md#2-能力总表) 同源 | 手绘，新增能力时同步 |
 
@@ -362,6 +363,8 @@ flowchart TB
 ```sh
 python3 scripts/generate-interface-index.py          # 刷新接口清单与依赖图
 python3 scripts/generate-interface-index.py --check  # 校验是否过期
+python3 scripts/architecture/generate.py             # 类型解析与网页数据
+python3 scripts/architecture/check_snapshot.py       # 源码 / 提取器哈希校验
 ```
 
 本文只描述源码结构，不代表功能已发布或已通过真实账号验收。

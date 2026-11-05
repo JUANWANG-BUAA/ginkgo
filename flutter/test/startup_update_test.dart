@@ -8,7 +8,7 @@ import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/features/settings/maintenance_pages.dart';
 import 'package:ginkgo_mirror/application/maintenance.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
-import 'package:ginkgo_mirror/platform/startup_update.dart';
+import 'package:ginkgo_mirror/application/startup_update_controller.dart';
 import 'package:ginkgo_mirror/platform/update_gate.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 

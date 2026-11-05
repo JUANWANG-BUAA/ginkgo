@@ -10,6 +10,10 @@
 
 本机截止时间校验与页面时间展示共同使用 `application/school_timestamp.dart` 的纯解析函数；shared/school_timestamp.dart 只负责格式化及兼容转出。返回值是用 UTC 容器表达的北京时间墙钟，不应当成 UTC 瞬间存储。
 
+启动更新控制器位于 `application/startup_update_controller.dart`，提示与更新页导航位于 `features/settings/startup_update_hint.dart`；通用 `MaintenanceScaffold` 位于 `widgets/maintenance_scaffold.dart`。平台适配不得反向引用功能页面。
+
+运行自检仅接收 `LibraryStatsGateway`（演示标识与公开统计读取），不再接收整个 `MirrorService`。缓存、失败与演示数据仍不能证明连通成功；该收窄不改变 HTTP 或学校协议。
+
 ## 1. 怎么读这份文档
 
 本文是**手工维护的总览**：讲清分层、能力归属与跨层不变量。

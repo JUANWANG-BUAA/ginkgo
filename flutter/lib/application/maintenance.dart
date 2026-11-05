@@ -1,4 +1,4 @@
-import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/library_stats.dart';
 
 /// The update and self-check capability the settings pages use.
 ///
@@ -62,7 +62,7 @@ abstract interface class MaintenanceService {
   /// Network check is deliberately separate from the local checks. A cached
   /// fallback cannot prove connectivity, and synthetic demo data cannot prove a
   /// live API.
-  Future<bool> checkPublicService(MirrorService service);
+  Future<bool> checkPublicService(LibraryStatsGateway service);
   Future<InstalledVersion> version();
   Future<UpdateResult> checkUpdate(String current);
   Future<bool> openReleases(String? page);

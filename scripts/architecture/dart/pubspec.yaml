@@ -1,0 +1,6 @@
+name: ginkgo_architecture_analyzer
+publish_to: none
+environment:
+  sdk: '>=3.11.0 <4.0.0'
+dependencies:
+  analyzer: 10.2.0

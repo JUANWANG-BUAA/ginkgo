@@ -123,7 +123,7 @@ class _VisualMaintenanceService implements MaintenanceService {
   bool get supportsUpdates => false;
 
   @override
-  Future<bool> checkPublicService(MirrorService service) async => false;
+  Future<bool> checkPublicService(LibraryStatsGateway service) async => false;
 
   @override
   Future<InstalledVersion> version() async =>

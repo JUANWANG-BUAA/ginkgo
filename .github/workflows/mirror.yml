@@ -25,6 +25,7 @@ jobs:
       - run: python3 scripts/generate-interface-index-test.py
       - run: python3 scripts/check-design-tokens.py
       - run: python3 scripts/generate-interface-index.py --check
+      - run: python3 scripts/architecture/check_snapshot.py
       - run: python3 scripts/check-api-doc-test.py
       - run: python3 scripts/check-api-doc.py
       - run: node --test scripts/check-landing-test.cjs

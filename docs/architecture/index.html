@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ginkgo · 工程调用图</title>
+<link rel="stylesheet" href="viewer.css">
+<header><div><small>GINKGO / SOURCE ATLAS</small><h1>从入口，追到实现。</h1><p>由类型解析器生成的工程调用图 · 每个节点与调用点都能回查源码</p></div><a href="README.md">生成方式与覆盖边界 ↗</a></header>
+<nav aria-label="视图"><button data-mode="calls" aria-pressed="true">函数调用</button><button data-mode="modules">模块依赖</button><button data-mode="concurrency">并发调用点</button><button data-mode="coverage">解析覆盖</button></nav>
+<main><aside><label for="search">搜索符号或路径</label><input id="search" type="search" placeholder="main / restoreSession / lock…"><label for="language">语言</label><select id="language"><option value="">全部语言</option><option>dart</option><option>rust</option><option>kotlin</option></select><label for="group">模块</label><select id="group"><option value="">全部模块</option></select><p id="resultCount" class="muted" aria-live="polite"></p><div id="results"></div><button id="more" hidden>再显示 60 项</button></aside><article id="content" aria-live="polite"></article></main>
+<footer>静态关系不代表执行次序。接口实现是候选；回调引用不代表已调用。Android 条件编译快照 · 生成数据可离线浏览。</footer>
+<script src="graph-data.js"></script><script src="viewer.js"></script>
+</html>

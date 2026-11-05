@@ -4,6 +4,8 @@ import 'package:ginkgo_mirror/application/cgyy_commands.dart';
 import 'package:ginkgo_mirror/application/checkin_progress.dart';
 import 'package:ginkgo_mirror/application/library_holdings.dart';
 import 'package:ginkgo_mirror/application/library_stats.dart';
+export 'package:ginkgo_mirror/application/library_stats.dart'
+    show LibraryStatsGateway;
 import 'package:ginkgo_mirror/application/local_tasks.dart';
 
 export 'package:ginkgo_mirror/application/local_tasks.dart'
@@ -102,9 +104,7 @@ abstract interface class CheckInGateway implements MirrorEnvironment {
   Future<CheckinProgressRead> checkinProgress();
 }
 
-abstract interface class LibrarySeatingGateway implements MirrorEnvironment {
-  Future<LibraryStatsRead> libraryStats({bool forceRefresh = false});
-
+abstract interface class LibrarySeatingGateway implements LibraryStatsGateway {
   Future<MutationResponse> reserveLibrarySeat({
     required String areaId,
     required String seatId,

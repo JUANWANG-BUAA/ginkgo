@@ -24,6 +24,7 @@
 - [widgets/ginkgo_visuals.dart](#widgetsginkgovisualsdart) (2)
 - [widgets/loading_widgets.dart](#widgetsloadingwidgetsdart) (5)
 - [widgets/long_page_scroll.dart](#widgetslongpagescrolldart) (1)
+- [widgets/maintenance_scaffold.dart](#widgetsmaintenancescaffolddart) (1)
 - [widgets/mutation_dialog.dart](#widgetsmutationdialogdart) (1)
 - [widgets/press_feedback.dart](#widgetspressfeedbackdart) (1)
 - [widgets/public_information_page.dart](#widgetspublicinformationpagedart) (1)
@@ -255,6 +256,14 @@
   <sub>class · widgets/long_page_scroll.dart:7</sub>
     - `const LongPageScroll({ super.key, required this.controller, required this.child, });`  <sub>:8</sub>
     - `Widget build(BuildContext context) => …`  <sub>:17</sub>
+
+## widgets/maintenance_scaffold.dart
+
+- `class MaintenanceScaffold extends StatelessWidget`
+  <sub>class · widgets/maintenance_scaffold.dart:5</sub>
+    - `const MaintenanceScaffold({ super.key, required this.title, required this.children, this.onRefresh, this.busy = false, this.section, this.subtitle, this.icon, });`  <sub>:6</sub>
+    - `final Future<void> Function()? onRefresh;`  <sub>:18</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:23</sub>
 
 ## widgets/mutation_dialog.dart
 

@@ -13,7 +13,7 @@ import 'package:ginkgo_mirror/infrastructure/native_auth_challenge.dart';
 import 'package:ginkgo_mirror/application/auth_challenge.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
 import 'package:ginkgo_mirror/startup_page.dart';
-import 'package:ginkgo_mirror/platform/startup_update.dart';
+import 'package:ginkgo_mirror/application/startup_update_controller.dart';
 import 'package:ginkgo_mirror/application/maintenance.dart';
 import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/application/school_rules.dart';

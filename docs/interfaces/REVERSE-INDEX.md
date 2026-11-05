@@ -39,7 +39,7 @@
 | `application/library_books.dart` | BookHit → dart-application.md<br>BookPage → dart-application.md<br>BookPageRead → dart-application.md |
 | `application/library_holdings.dart` | BookHolding → dart-application.md<br>BookHoldingsRead → dart-application.md |
 | `application/library_loans.dart` | LibraryLoan → dart-application.md<br>LibraryLoanPage → dart-application.md<br>LibraryLoansRead → dart-application.md<br>LibraryLoansOfficialGateway → dart-application.md<br>LibraryLoansGateway → dart-application.md |
-| `application/library_stats.dart` | CountPair → dart-application.md<br>ReadingRoom → dart-application.md<br>LibraryCampusStats → dart-application.md<br>LibraryStatsSnapshot → dart-application.md<br>LibraryStatsRead → dart-application.md |
+| `application/library_stats.dart` | CountPair → dart-application.md<br>ReadingRoom → dart-application.md<br>LibraryCampusStats → dart-application.md<br>LibraryStatsSnapshot → dart-application.md<br>LibraryStatsRead → dart-application.md<br>LibraryStatsGateway → dart-application.md |
 | `application/local_tasks.dart` | LocalTaskRecord → dart-application.md<br>isLocalTaskDue → dart-application.md<br>localTaskDueFromHomework → dart-application.md<br>localTaskDueLabel → dart-application.md<br>LocalTasksRead → dart-application.md<br>LocalTaskGateway → dart-application.md<br>editLocalTasks → dart-application.md |
 | `application/maintenance.dart` | InstalledVersion → dart-application.md<br>AndroidDownload → dart-application.md<br>UpdateResult → dart-application.md<br>MaintenanceService → dart-application.md |
 | `application/mirror_service.dart` | MirrorService → dart-application.md<br>CampusCardGateway → dart-application.md<br>StudentServiceLinksGateway → dart-application.md<br>CareerEventsGateway → dart-application.md<br>SessionGateway → dart-application.md<br>AcademicGateway → dart-application.md<br>CheckInGateway → dart-application.md<br>LibrarySeatingGateway → dart-application.md<br>LibraryCatalogGateway → dart-application.md<br>LibraryGateway → dart-application.md<br>BykcGateway → dart-application.md<br>GraduateGateway → dart-application.md<br>NoticeGateway → dart-application.md<br>CgyyGateway → dart-application.md<br>CampusGateway → dart-application.md<br>CgyyBookingGateway → dart-application.md<br>BykcPart → dart-application.md |
@@ -56,6 +56,7 @@
 | `application/school_timestamp.dart` | parseSchoolTimestamp → dart-application.md |
 | `application/service_capabilities.dart` | ServiceCapabilities → dart-application.md |
 | `application/shuttle.dart` | ShuttleRun → dart-application.md<br>ShuttleSection → dart-application.md<br>ShuttleTable → dart-application.md<br>ShuttleTimetable → dart-application.md<br>ShuttleDeparture → dart-application.md<br>ShuttleTimetableRead → dart-application.md<br>ShuttleGateway → dart-application.md |
+| `application/startup_update_controller.dart` | StartupUpdateController → dart-application.md |
 | `application/task_storage_scope.dart` | TaskStorageRoot → dart-application.md<br>TaskStorageScope → dart-application.md |
 | `application/view_models.dart` | HomeworkViewModel → dart-application.md |
 | `design/apple_design.dart` | AppleDesign → dart-design.md |
@@ -160,10 +161,11 @@
 | `features/schedule/schedule_widgets.dart` | ScheduleViewMode → dart-feature-schedule.md<br>scheduleViewModeLabel → dart-feature-schedule.md<br>scheduleViewModeDescription → dart-feature-schedule.md<br>ScheduleCourseRow → dart-feature-schedule.md<br>ScheduleDetailLine → dart-feature-schedule.md<br>ScheduleChevronRow → dart-feature-schedule.md<br>ScheduleSection → dart-feature-schedule.md<br>ScheduleLoadingSection → dart-feature-schedule.md |
 | `features/settings/accent_theme_preview.dart` | AccentThemePicker → dart-feature-settings.md<br>AccentCoursePreview → dart-feature-settings.md |
 | `features/settings/gateway_challenge_page.dart` | GatewayChallengePage → dart-feature-settings.md |
-| `features/settings/maintenance_pages.dart` | MaintenanceScaffold → dart-feature-settings.md<br>SoftwareUpdatePage → dart-feature-settings.md<br>DiagnosticsPage → dart-feature-settings.md |
+| `features/settings/maintenance_pages.dart` | SoftwareUpdatePage → dart-feature-settings.md<br>DiagnosticsPage → dart-feature-settings.md |
 | `features/settings/network_diagnostics_page.dart` | AcademicProbe → dart-feature-settings.md<br>NetworkProbeResult → dart-feature-settings.md<br>NetworkProbe → dart-feature-settings.md<br>schoolNetworkProbes → dart-feature-settings.md<br>NetworkDiagnosticsPage → dart-feature-settings.md<br>SchoolNetworkChecks → dart-feature-settings.md |
 | `features/settings/preferences_pages.dart` | AppearancePage → dart-feature-settings.md<br>SystemPreferencesPage → dart-feature-settings.md<br>PrivacyPage → dart-feature-settings.md<br>AboutPage → dart-feature-settings.md |
 | `features/settings/settings_page.dart` | SettingsPage → dart-feature-settings.md |
+| `features/settings/startup_update_hint.dart` | StartupUpdateHint → dart-feature-settings.md |
 | `features/shuttle/shuttle_page.dart` | ShuttlePage → dart-feature-shuttle.md |
 | `features/shuttle/shuttle_widgets.dart` | shuttleCapacityLabel → dart-feature-shuttle.md<br>ShuttlePlanSection → dart-feature-shuttle.md<br>ShuttlePlanNext → dart-feature-shuttle.md<br>ShuttlePlanFollowing → dart-feature-shuttle.md<br>ShuttleTableSection → dart-feature-shuttle.md<br>ShuttleDirectionRuns → dart-feature-shuttle.md<br>ShuttleRunChip → dart-feature-shuttle.md |
 | `features/tasks/task_editor.dart` | TaskDraft → dart-feature-tasks.md<br>TaskEditor → dart-feature-tasks.md |
@@ -220,7 +222,6 @@
 | `main.dart` | main → dart-app.md<br>GinkgoRoot → dart-app.md |
 | `platform/android_update_controller.dart` | UpdateDownloadSource → dart-platform.md<br>UpdateDownloadPhase → dart-platform.md<br>UpdateRoot → dart-platform.md<br>ApkInstaller → dart-platform.md<br>AndroidUpdateController → dart-platform.md |
 | `platform/external_links.dart` | launchExternalLink → dart-platform.md |
-| `platform/startup_update.dart` | StartupUpdateController → dart-platform.md<br>StartupUpdateHint → dart-platform.md |
 | `platform/system_settings_service.dart` | SystemSettingsService → dart-platform.md<br>BackgroundReminderStatus → dart-platform.md<br>BackgroundReminderStatusService → dart-platform.md<br>NativeSystemSettingsService → dart-platform.md |
 | `platform/update_download_section.dart` | UpdateDownloadSection → dart-platform.md |
 | `platform/update_gate.dart` | UpdateGate → dart-platform.md<br>UpdateRequiredPage → dart-platform.md |
@@ -444,6 +445,7 @@
 | `widgets/ginkgo_visuals.dart` | GinkgoIconTile → dart-widgets.md<br>GinkgoBadge → dart-widgets.md |
 | `widgets/loading_widgets.dart` | GinkgoActivity → dart-widgets.md<br>GinkgoLoadingView → dart-widgets.md<br>SectionFeedback → dart-widgets.md<br>SectionReveal → dart-widgets.md<br>PageRefreshShortcut → dart-widgets.md |
 | `widgets/long_page_scroll.dart` | LongPageScroll → dart-widgets.md |
+| `widgets/maintenance_scaffold.dart` | MaintenanceScaffold → dart-widgets.md |
 | `widgets/mutation_dialog.dart` | confirmMutation → dart-widgets.md |
 | `widgets/press_feedback.dart` | PressFeedback → dart-widgets.md |
 | `widgets/public_information_page.dart` | PublicInformationPage → dart-widgets.md |

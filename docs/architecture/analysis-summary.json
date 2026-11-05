@@ -1,0 +1,151 @@
+{
+  "revision": "bf9924c2416647db1d2ff33de098e435b4cd613b",
+  "sourceFingerprint": "2c33533056a5c34960814fe7ba927dad793dfd44aa7daf9a0f317370ac5f1cab",
+  "tools": {
+    "dart": "Dart analyzer 10.2.0 resolved AST",
+    "rust": "rust-analyzer 1.99.1 (58cf8f9c 2026-10-13)",
+    "kotlin": "ast-grep 0.51.0"
+  },
+  "files": {
+    "dart": 283,
+    "rust": 228,
+    "kotlin": 12
+  },
+  "rustConfiguration": {
+    "allTargets": false,
+    "procMacro": false,
+    "target": "aarch64-linux-android",
+    "tests": false
+  },
+  "rustStatus": {
+    "health": "ok",
+    "quiescent": true,
+    "message": null
+  },
+  "issues": {
+    "dart": [],
+    "rust": [],
+    "rustUnprepared": [
+      {
+        "file": "rust/crates/ginkgo_upstream/src/auth/platform/keyring_vault.rs",
+        "name": "new",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/auth/platform/keyring_vault.rs",
+        "name": "entry",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/auth/platform/keyring_vault.rs",
+        "name": "index_entry",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/auth/platform/keyring_vault.rs",
+        "name": "write_index",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/auth/platform/keyring_vault.rs",
+        "name": "load",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/auth/platform/keyring_vault.rs",
+        "name": "save",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/auth/platform/keyring_vault.rs",
+        "name": "delete",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/auth/platform/keyring_vault.rs",
+        "name": "accounts",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/auth/platform/mod.rs",
+        "name": "new",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/auth/platform/mod.rs",
+        "name": "load",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/auth/platform/mod.rs",
+        "name": "save",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/auth/platform/mod.rs",
+        "name": "delete",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/auth/platform/mod.rs",
+        "name": "accounts",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/mutation_result.rs",
+        "name": "is_retriable",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/mutation_result.rs",
+        "name": "requires_login",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/mutation_result.rs",
+        "name": "locks_authentication",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/mutation_result.rs",
+        "name": "map",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/mutation_result.rs",
+        "name": "is_success",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/mutation_result.rs",
+        "name": "error_code",
+        "reason": "prepareCallHierarchy returned no item"
+      },
+      {
+        "file": "rust/crates/ginkgo_upstream/src/services/cgyy_booking_service/protocol.rs",
+        "name": "encrypt_blocks",
+        "reason": "prepareCallHierarchy returned no item"
+      }
+    ],
+    "ffiUnpaired": []
+  },
+  "ffiPairs": 98,
+  "counts": {
+    "syntax-call": 661,
+    "contains": 2095,
+    "reference": 15513,
+    "construct": 6331,
+    "call": 17575,
+    "implementation": 323,
+    "await": 472,
+    "invoke": 192,
+    "ffi-pair": 98
+  },
+  "fileCycles": [],
+  "directoryCycles": [
+    [
+      "root",
+      "workspace"
+    ]
+  ]
+}

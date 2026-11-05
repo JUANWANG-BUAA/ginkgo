@@ -11,6 +11,21 @@ SPEC.loader.exec_module(BOUNDARY)
 
 
 class BoundaryTests(unittest.TestCase):
+    def test_platform_cannot_navigate_to_feature_pages(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            file = root / 'flutter/lib/platform/update.dart'
+            file.parent.mkdir(parents=True)
+            for directive in (
+                "import 'package:ginkgo_mirror/features/settings/maintenance_pages.dart';",
+                'export "../features/settings/maintenance_pages.dart";',
+                "import '../platform/../features/settings/maintenance_pages.dart';",
+            ):
+                file.write_text(directive)
+                self.assertTrue(BOUNDARY.dart_boundary_violations(root), directive)
+            file.write_text("import '../application/maintenance.dart';")
+            self.assertEqual(BOUNDARY.dart_boundary_violations(root), [])
+
     def test_contracts_and_adapters_cannot_depend_on_presentation(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

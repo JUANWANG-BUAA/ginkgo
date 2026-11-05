@@ -1,3 +1,4 @@
+import 'package:ginkgo_mirror/widgets/maintenance_scaffold.dart';
 import 'package:ginkgo_mirror/application/gateway_verification_failure.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -6,7 +7,6 @@ import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
-import 'maintenance_pages.dart';
 
 class GatewayChallengePage extends StatefulWidget {
   const GatewayChallengePage({super.key, required this.gateway});

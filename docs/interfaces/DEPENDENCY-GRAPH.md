@@ -4,7 +4,7 @@
 > 修改接口后运行 `python3 scripts/generate-interface-index.py` 重新生成；
 > 手工总览与分层说明见 [INTERFACE-INDEX.md](../INTERFACE-INDEX.md)。
 
-按目录分组统计：31 个分组节点（其中 29 个有出向依赖）、139 条跨组依赖。箭头方向为「依赖方 → 被依赖方」。
+按目录分组统计：31 个分组节点（其中 29 个有出向依赖）、136 条跨组依赖。箭头方向为「依赖方 → 被依赖方」。
 
 ## 依赖图
 
@@ -43,6 +43,7 @@ flowchart LR
   n_workspace["workspace"]
   n_app --> n_application
   n_app --> n_design
+  n_app --> n_features_settings
   n_app --> n_infrastructure
   n_app --> n_platform
   n_app --> n_shared
@@ -96,7 +97,6 @@ flowchart LR
   n_features_homework --> n_widgets
   n_features_learning --> n_application
   n_features_learning --> n_design
-  n_features_learning --> n_features_settings
   n_features_learning --> n_widgets
   n_features_library --> n_application
   n_features_library --> n_design
@@ -134,12 +134,10 @@ flowchart LR
   n_features_today --> n_shared
   n_features_today --> n_widgets
   n_infrastructure --> n_application
-  n_infrastructure --> n_root
   n_infrastructure --> n_shared
   n_infrastructure --> n_src
   n_platform --> n_application
   n_platform --> n_design
-  n_platform --> n_features_settings
   n_platform --> n_widgets
   n_root --> n_application
   n_root --> n_design
@@ -176,7 +174,6 @@ flowchart LR
   n_workspace --> n_features_tasks
   n_workspace --> n_features_today
   n_workspace --> n_infrastructure
-  n_workspace --> n_platform
   n_workspace --> n_root
   n_workspace --> n_shared
   n_workspace --> n_widgets
@@ -186,27 +183,12 @@ flowchart LR
 
 以下分组互相依赖，构成强连通分量。Dart 门禁已约束部分分层方向，但并不禁止所有目录循环；改动前先确认是否真的需要双向引用。
 
-- **4 个分组**：`app`、`infrastructure`、`root`、`workspace`
+- **2 个分组**：`root`、`workspace`
 
 ```mermaid
 flowchart LR
-  n_app --> n_infrastructure
-  n_infrastructure --> n_root
-  n_root --> n_infrastructure
   n_root --> n_workspace
-  n_workspace --> n_app
-  n_workspace --> n_infrastructure
   n_workspace --> n_root
-```
-
-- **3 个分组**：`features/learning`、`features/settings`、`platform`
-
-```mermaid
-flowchart LR
-  n_features_learning --> n_features_settings
-  n_features_settings --> n_features_learning
-  n_features_settings --> n_platform
-  n_platform --> n_features_settings
 ```
 
 ## 文件级循环
@@ -223,11 +205,12 @@ flowchart LR
 | 来源 | 目标 |
 | --- | --- |
 | `flutter/lib/app/ginkgo_app.dart:4` | `flutter/lib/application/external_links.dart` |
-| `flutter/lib/app/ginkgo_app.dart:10` | `flutter/lib/application/task_storage_scope.dart` |
+| `flutter/lib/app/ginkgo_app.dart:9` | `flutter/lib/application/startup_update_controller.dart` |
+| `flutter/lib/app/ginkgo_app.dart:11` | `flutter/lib/application/task_storage_scope.dart` |
 | `flutter/lib/app/ginkgo_app.dart:8` | `flutter/lib/design/ginkgo_theme.dart` |
-| `flutter/lib/app/ginkgo_app.dart:11` | `flutter/lib/infrastructure/task_storage.dart` |
+| `flutter/lib/app/ginkgo_app.dart:10` | `flutter/lib/features/settings/startup_update_hint.dart` |
+| `flutter/lib/app/ginkgo_app.dart:12` | `flutter/lib/infrastructure/task_storage.dart` |
 | `flutter/lib/app/ginkgo_app.dart:5` | `flutter/lib/platform/external_links.dart` |
-| `flutter/lib/app/ginkgo_app.dart:9` | `flutter/lib/platform/startup_update.dart` |
 | `flutter/lib/app/ginkgo_app.dart:7` | `flutter/lib/shared/app_preferences.dart` |
 | `flutter/lib/app/ginkgo_app.dart:6` | `flutter/lib/widgets/school_links.dart` |
 | `flutter/lib/application/contracts.dart:17` | `flutter/lib/src/rust/api/live.dart` |
@@ -486,9 +469,9 @@ flowchart LR
 | `flutter/lib/features/learning/learning_resource_section.dart:5` | `flutter/lib/application/learning_file_actions.dart` |
 | `flutter/lib/features/learning/learning_resource_section.dart:6` | `flutter/lib/application/refresh_section.dart` |
 | `flutter/lib/features/learning/learning_resource_section.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
-| `flutter/lib/features/learning/learning_snapshots_page.dart:3` | `flutter/lib/application/query_snapshots.dart` |
-| `flutter/lib/features/learning/learning_snapshots_page.dart:5` | `flutter/lib/features/settings/maintenance_pages.dart` |
-| `flutter/lib/features/learning/learning_snapshots_page.dart:4` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/learning/learning_snapshots_page.dart:4` | `flutter/lib/application/query_snapshots.dart` |
+| `flutter/lib/features/learning/learning_snapshots_page.dart:5` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/learning/learning_snapshots_page.dart:1` | `flutter/lib/widgets/maintenance_scaffold.dart` |
 | `flutter/lib/features/learning/learning_widgets.dart:3` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/learning/learning_widgets.dart:4` | `flutter/lib/application/failure_message.dart` |
 | `flutter/lib/features/learning/learning_widgets.dart:5` | `flutter/lib/application/learning.dart` |
@@ -608,30 +591,34 @@ flowchart LR
 | `flutter/lib/features/schedule/schedule_widgets.dart:5` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/schedule/schedule_widgets.dart:6` | `flutter/lib/widgets/loading_widgets.dart` |
 | `flutter/lib/features/settings/accent_theme_preview.dart:3` | `flutter/lib/shared/app_preferences.dart` |
-| `flutter/lib/features/settings/gateway_challenge_page.dart:4` | `flutter/lib/application/auth_challenge.dart` |
-| `flutter/lib/features/settings/gateway_challenge_page.dart:1` | `flutter/lib/application/gateway_verification_failure.dart` |
-| `flutter/lib/features/settings/gateway_challenge_page.dart:5` | `flutter/lib/design/apple_design.dart` |
-| `flutter/lib/features/settings/gateway_challenge_page.dart:6` | `flutter/lib/widgets/apple_widgets.dart` |
-| `flutter/lib/features/settings/gateway_challenge_page.dart:7` | `flutter/lib/widgets/loading_widgets.dart` |
-| `flutter/lib/features/settings/maintenance_pages.dart:7` | `flutter/lib/application/maintenance.dart` |
-| `flutter/lib/features/settings/maintenance_pages.dart:8` | `flutter/lib/application/mirror_service.dart` |
-| `flutter/lib/features/settings/maintenance_pages.dart:3` | `flutter/lib/design/apple_design.dart` |
-| `flutter/lib/features/settings/maintenance_pages.dart:9` | `flutter/lib/platform/android_update_controller.dart` |
-| `flutter/lib/features/settings/maintenance_pages.dart:10` | `flutter/lib/platform/update_download_section.dart` |
-| `flutter/lib/features/settings/maintenance_pages.dart:4` | `flutter/lib/widgets/apple_widgets.dart` |
-| `flutter/lib/features/settings/maintenance_pages.dart:5` | `flutter/lib/widgets/loading_widgets.dart` |
-| `flutter/lib/features/settings/maintenance_pages.dart:6` | `flutter/lib/widgets/release_notes_view.dart` |
+| `flutter/lib/features/settings/gateway_challenge_page.dart:5` | `flutter/lib/application/auth_challenge.dart` |
+| `flutter/lib/features/settings/gateway_challenge_page.dart:2` | `flutter/lib/application/gateway_verification_failure.dart` |
+| `flutter/lib/features/settings/gateway_challenge_page.dart:6` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/settings/gateway_challenge_page.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/settings/gateway_challenge_page.dart:8` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/settings/gateway_challenge_page.dart:1` | `flutter/lib/widgets/maintenance_scaffold.dart` |
+| `flutter/lib/features/settings/maintenance_pages.dart:9` | `flutter/lib/application/library_stats.dart` |
+| `flutter/lib/features/settings/maintenance_pages.dart:8` | `flutter/lib/application/maintenance.dart` |
+| `flutter/lib/features/settings/maintenance_pages.dart:4` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/settings/maintenance_pages.dart:10` | `flutter/lib/platform/android_update_controller.dart` |
+| `flutter/lib/features/settings/maintenance_pages.dart:11` | `flutter/lib/platform/update_download_section.dart` |
+| `flutter/lib/features/settings/maintenance_pages.dart:5` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/settings/maintenance_pages.dart:6` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/settings/maintenance_pages.dart:1` | `flutter/lib/widgets/maintenance_scaffold.dart` |
+| `flutter/lib/features/settings/maintenance_pages.dart:7` | `flutter/lib/widgets/release_notes_view.dart` |
 | `flutter/lib/features/settings/network_diagnostics_page.dart:7` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/settings/network_diagnostics_page.dart:8` | `flutter/lib/application/graduate.dart` |
 | `flutter/lib/features/settings/network_diagnostics_page.dart:6` | `flutter/lib/application/mirror_service.dart` |
-| `flutter/lib/features/settings/network_diagnostics_page.dart:3` | `flutter/lib/widgets/apple_widgets.dart` |
-| `flutter/lib/features/settings/network_diagnostics_page.dart:4` | `flutter/lib/widgets/loading_widgets.dart` |
-| `flutter/lib/features/settings/preferences_pages.dart:6` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/settings/network_diagnostics_page.dart:4` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/settings/network_diagnostics_page.dart:5` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/settings/network_diagnostics_page.dart:1` | `flutter/lib/widgets/maintenance_scaffold.dart` |
+| `flutter/lib/features/settings/preferences_pages.dart:7` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/features/settings/preferences_pages.dart:10` | `flutter/lib/platform/system_settings_service.dart` |
-| `flutter/lib/features/settings/preferences_pages.dart:4` | `flutter/lib/shared/app_preferences.dart` |
+| `flutter/lib/features/settings/preferences_pages.dart:5` | `flutter/lib/shared/app_preferences.dart` |
 | `flutter/lib/features/settings/preferences_pages.dart:11` | `flutter/lib/shared/reminders.dart` |
-| `flutter/lib/features/settings/preferences_pages.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
-| `flutter/lib/features/settings/preferences_pages.dart:8` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/settings/preferences_pages.dart:8` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/settings/preferences_pages.dart:9` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/settings/preferences_pages.dart:1` | `flutter/lib/widgets/maintenance_scaffold.dart` |
 | `flutter/lib/features/settings/settings_page.dart:19` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/settings/settings_page.dart:11` | `flutter/lib/application/maintenance.dart` |
 | `flutter/lib/features/settings/settings_page.dart:10` | `flutter/lib/application/mirror_service.dart` |
@@ -643,6 +630,8 @@ flowchart LR
 | `flutter/lib/features/settings/settings_page.dart:14` | `flutter/lib/shared/query_cache_scope.dart` |
 | `flutter/lib/features/settings/settings_page.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/settings/settings_page.dart:9` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/settings/startup_update_hint.dart:3` | `flutter/lib/application/diagnostic_log.dart` |
+| `flutter/lib/features/settings/startup_update_hint.dart:4` | `flutter/lib/application/startup_update_controller.dart` |
 | `flutter/lib/features/shuttle/shuttle_page.dart:12` | `flutter/lib/application/shuttle.dart` |
 | `flutter/lib/features/shuttle/shuttle_page.dart:5` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/features/shuttle/shuttle_page.dart:8` | `flutter/lib/shared/today_time.dart` |
@@ -792,8 +781,8 @@ flowchart LR
 | `flutter/lib/infrastructure/local_tasks_decode.dart:1` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/infrastructure/local_tasks_decode.dart:2` | `flutter/lib/application/local_tasks.dart` |
 | `flutter/lib/infrastructure/local_tasks_decode.dart:3` | `flutter/lib/src/rust/api/live.dart` |
+| `flutter/lib/infrastructure/maintenance_service.dart:7` | `flutter/lib/application/library_stats.dart` |
 | `flutter/lib/infrastructure/maintenance_service.dart:9` | `flutter/lib/application/maintenance.dart` |
-| `flutter/lib/infrastructure/maintenance_service.dart:7` | `flutter/lib/mirror_service.dart` |
 | `flutter/lib/infrastructure/maintenance_service.dart:11` | `flutter/lib/src/rust/api/live.dart` |
 | `flutter/lib/infrastructure/maintenance_service.dart:12` | `flutter/lib/src/rust/api/mirror.dart` |
 | `flutter/lib/infrastructure/mirror_runtime.dart:1` | `flutter/lib/src/rust/frb_generated.dart` |
@@ -850,6 +839,7 @@ flowchart LR
 | `flutter/lib/main.dart:17` | `flutter/lib/application/maintenance.dart` |
 | `flutter/lib/main.dart:18` | `flutter/lib/application/platform_actions.dart` |
 | `flutter/lib/main.dart:19` | `flutter/lib/application/school_rules.dart` |
+| `flutter/lib/main.dart:16` | `flutter/lib/application/startup_update_controller.dart` |
 | `flutter/lib/main.dart:10` | `flutter/lib/features/auth/login_page.dart` |
 | `flutter/lib/main.dart:11` | `flutter/lib/features/auth/session_recovery_page.dart` |
 | `flutter/lib/main.dart:28` | `flutter/lib/infrastructure/background_reminders.dart` |
@@ -860,7 +850,6 @@ flowchart LR
 | `flutter/lib/main.dart:9` | `flutter/lib/infrastructure/mirror_runtime.dart` |
 | `flutter/lib/main.dart:12` | `flutter/lib/infrastructure/native_auth_challenge.dart` |
 | `flutter/lib/main.dart:20` | `flutter/lib/infrastructure/native_school_rules.dart` |
-| `flutter/lib/main.dart:16` | `flutter/lib/platform/startup_update.dart` |
 | `flutter/lib/main.dart:24` | `flutter/lib/platform/update_gate.dart` |
 | `flutter/lib/main.dart:5` | `flutter/lib/shared/app_preferences.dart` |
 | `flutter/lib/main.dart:4` | `flutter/lib/widgets/apple_widgets.dart` |
@@ -870,9 +859,6 @@ flowchart LR
 | `flutter/lib/mirror_service.dart:11` | `flutter/lib/infrastructure/demo_mirror_service.dart` |
 | `flutter/lib/mirror_service.dart:10` | `flutter/lib/infrastructure/native_mirror_service.dart` |
 | `flutter/lib/platform/android_update_controller.dart:10` | `flutter/lib/application/maintenance.dart` |
-| `flutter/lib/platform/startup_update.dart:5` | `flutter/lib/application/diagnostic_log.dart` |
-| `flutter/lib/platform/startup_update.dart:7` | `flutter/lib/application/maintenance.dart` |
-| `flutter/lib/platform/startup_update.dart:6` | `flutter/lib/features/settings/maintenance_pages.dart` |
 | `flutter/lib/platform/update_download_section.dart:3` | `flutter/lib/application/maintenance.dart` |
 | `flutter/lib/platform/update_download_section.dart:5` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/platform/update_download_section.dart:6` | `flutter/lib/widgets/apple_widgets.dart` |
@@ -980,6 +966,7 @@ flowchart LR
 | `flutter/lib/workspace/workspace_shell.dart:26` | `flutter/lib/app/ginkgo_app.dart` |
 | `flutter/lib/workspace/workspace_shell.dart:3` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/workspace/workspace_shell.dart:4` | `flutter/lib/application/platform_actions.dart` |
+| `flutter/lib/workspace/workspace_shell.dart:20` | `flutter/lib/application/startup_update_controller.dart` |
 | `flutter/lib/workspace/workspace_shell.dart:27` | `flutter/lib/design/ginkgo_theme.dart` |
 | `flutter/lib/workspace/workspace_shell.dart:11` | `flutter/lib/infrastructure/course_visibility_file_store.dart` |
 | `flutter/lib/workspace/workspace_shell.dart:12` | `flutter/lib/infrastructure/native_reminder_platform.dart` |
@@ -987,7 +974,6 @@ flowchart LR
 | `flutter/lib/workspace/workspace_shell.dart:13` | `flutter/lib/infrastructure/serial_reminder_platform.dart` |
 | `flutter/lib/workspace/workspace_shell.dart:14` | `flutter/lib/infrastructure/task_storage.dart` |
 | `flutter/lib/workspace/workspace_shell.dart:16` | `flutter/lib/mirror_service.dart` |
-| `flutter/lib/workspace/workspace_shell.dart:20` | `flutter/lib/platform/startup_update.dart` |
 | `flutter/lib/workspace/workspace_shell.dart:6` | `flutter/lib/shared/app_preferences.dart` |
 | `flutter/lib/workspace/workspace_shell.dart:7` | `flutter/lib/shared/course_visibility.dart` |
 | `flutter/lib/workspace/workspace_shell.dart:18` | `flutter/lib/shared/query_cache_scope.dart` |

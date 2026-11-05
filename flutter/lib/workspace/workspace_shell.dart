@@ -17,7 +17,7 @@ import '../mirror_service.dart';
 
 import 'package:ginkgo_mirror/shared/query_cache_scope.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
-import 'package:ginkgo_mirror/platform/startup_update.dart';
+import 'package:ginkgo_mirror/application/startup_update_controller.dart';
 import 'package:ginkgo_mirror/workspace/desktop_workspace_shell.dart';
 import 'package:ginkgo_mirror/workspace/mobile_workspace_shell.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shell_controller.dart';

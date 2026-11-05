@@ -98,5 +98,5 @@ class _StubMaintenance implements MaintenanceService {
   Future<bool> checkVault() async => true;
 
   @override
-  Future<bool> checkPublicService(MirrorService service) async => false;
+  Future<bool> checkPublicService(LibraryStatsGateway service) async => false;
 }

@@ -213,7 +213,7 @@ native/demo 适配器、运行时与持久化实现。
     - `Future<bool> openReleases(String? page) async {…}`  <sub>:55</sub>
     - `Future<bool> checkBridge() async {…}`  <sub>:71</sub>
     - `Future<bool> checkStorage() async {…}`  <sub>:77</sub>
-    - `Future<bool> checkPublicService(MirrorService service) async {…}`  <sub>:97</sub>
+    - `Future<bool> checkPublicService(LibraryStatsGateway service) async {…}`  <sub>:97</sub>
     - `Future<bool> checkVault() => …`  <sub>:106</sub>
 
 ## infrastructure/mirror_runtime.dart

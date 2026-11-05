@@ -414,9 +414,8 @@ class ReminderController extends ChangeNotifier {
     if (_disposed || (persist && !_storageReady)) return Future.value();
     final inFlight = _reconciling;
     if (inFlight == null) {
-      final originalAccountId = account;
       return _reconciling = _reconcile().whenComplete(() {
-        if (!_disposed && account == originalAccountId) {
+        if (!_disposed) {
           _reconciling = null;
         }
       });
@@ -426,7 +425,8 @@ class ReminderController extends ChangeNotifier {
     return _reconcileRerun ??= inFlight
         .then((_) async {
           _reconcileRerun = null;
-          if (_disposed || account != account) return; // Account switch during wait
+          // Account is final. ReminderScope retires this controller on a switch.
+          if (_disposed) return;
           await reconcile();
         })
         .whenComplete(() => _reconcileRerun = null);

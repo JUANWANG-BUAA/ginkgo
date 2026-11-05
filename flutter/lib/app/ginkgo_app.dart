@@ -6,7 +6,8 @@ import 'package:ginkgo_mirror/platform/external_links.dart';
 import 'package:ginkgo_mirror/widgets/school_links.dart';
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/design/ginkgo_theme.dart';
-import 'package:ginkgo_mirror/platform/startup_update.dart';
+import 'package:ginkgo_mirror/application/startup_update_controller.dart';
+import 'package:ginkgo_mirror/features/settings/startup_update_hint.dart';
 import 'package:ginkgo_mirror/application/task_storage_scope.dart';
 import 'package:ginkgo_mirror/infrastructure/task_storage.dart';
 

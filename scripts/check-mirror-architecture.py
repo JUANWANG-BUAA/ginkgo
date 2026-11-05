@@ -127,7 +127,7 @@ def dart_boundary_violations(root):
     lib = root / 'flutter/lib'
     for file in lib.rglob('*.dart'):
         relative = file.relative_to(lib)
-        if relative.parts[0] in ('application', 'infrastructure'):
+        if relative.parts[0] in ('application', 'infrastructure', 'platform'):
             # Resolve both package and relative imports; renaming an import
             # must not bypass the application/presentation boundary.
             for imported in re.findall(r"(?:import|export)\s+['\"]([^'\"]+)['\"]", file.read_text()):
@@ -141,8 +141,12 @@ def dart_boundary_violations(root):
                     target_parts = target.resolve().relative_to(lib.resolve()).parts
                 except ValueError:
                     continue
-                if target_parts and target_parts[0] in ('features', 'widgets', 'workspace', 'app'):
+                if (relative.parts[0] in ('application', 'infrastructure') and target_parts
+                        and target_parts[0] in ('features', 'widgets', 'workspace', 'app')):
                     errors.append(f'{relative}: contracts and adapters must not depend on presentation')
+                if (relative.parts[0] == 'platform' and target_parts
+                        and target_parts[0] == 'features'):
+                    errors.append(f'{relative}: platform adapters must not depend on feature pages')
                 if (relative.parts[0] == 'application' and target_parts
                         and target_parts[0] == 'shared'):
                     errors.append(f'{relative}: application values must not depend on shared presentation/state')

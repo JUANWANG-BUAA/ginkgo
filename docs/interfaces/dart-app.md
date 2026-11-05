@@ -8,7 +8,7 @@ CupertinoApp 组合与主题桥接。
 ## app/ginkgo_app.dart
 
 - `Widget ginkgoApp({ required Widget home, Brightness? brightness, AppPreferences? preferences, StartupUpdateController? startupUpdate, ExternalLinkLauncher externalLinkLauncher = launchExternalLink, }) {…}`
-  <sub>function · app/ginkgo_app.dart:13</sub>
+  <sub>function · app/ginkgo_app.dart:14</sub>
 
 ## main.dart
 

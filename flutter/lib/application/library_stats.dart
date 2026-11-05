@@ -51,3 +51,8 @@ class LibraryStatsRead {
   final LibraryStatsSnapshot? data;
   final FailureCode? failure;
 }
+
+/// Minimal anonymous statistics port used by maintenance connectivity checks.
+abstract interface class LibraryStatsGateway implements MirrorEnvironment {
+  Future<LibraryStatsRead> libraryStats({bool forceRefresh = false});
+}

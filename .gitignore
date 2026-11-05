@@ -46,3 +46,6 @@ codex-session-*.md
 
 # Local architecture-diagram tool output
 .archify/
+
+# Independent architecture analyzer package
+scripts/architecture/dart/.dart_tool/

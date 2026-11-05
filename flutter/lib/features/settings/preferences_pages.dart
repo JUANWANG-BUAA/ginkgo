@@ -1,3 +1,4 @@
+import 'package:ginkgo_mirror/widgets/maintenance_scaffold.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -6,7 +7,6 @@ import 'package:ginkgo_mirror/features/settings/accent_theme_preview.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/features/settings/maintenance_pages.dart';
 import 'package:ginkgo_mirror/platform/system_settings_service.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
 

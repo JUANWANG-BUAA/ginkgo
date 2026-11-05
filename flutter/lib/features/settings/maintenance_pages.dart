@@ -1,3 +1,4 @@
+import 'package:ginkgo_mirror/widgets/maintenance_scaffold.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
@@ -5,7 +6,7 @@ import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/widgets/release_notes_view.dart';
 import 'package:ginkgo_mirror/application/maintenance.dart';
-import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/library_stats.dart';
 import 'package:ginkgo_mirror/platform/android_update_controller.dart';
 import 'package:ginkgo_mirror/platform/update_download_section.dart';
 
@@ -13,48 +14,6 @@ String _time(DateTime date) =>
     '${date.month}月${date.day}日 '
     '${date.hour.toString().padLeft(2, '0')}:'
     '${date.minute.toString().padLeft(2, '0')}（本机时间）';
-
-class MaintenanceScaffold extends StatelessWidget {
-  const MaintenanceScaffold({
-    super.key,
-    required this.title,
-    required this.children,
-    this.onRefresh,
-    this.busy = false,
-    this.section,
-    this.subtitle,
-    this.icon,
-  });
-  final String title;
-  final List<Widget> children;
-  final Future<void> Function()? onRefresh;
-  final bool busy;
-  final String? section, subtitle;
-  final IconData? icon;
-  @override
-  Widget build(BuildContext context) => CupertinoPageScaffold(
-    backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
-      context,
-    ),
-    child: SafeArea(
-      child: CustomScrollView(
-        key: ValueKey('maintenance-$title'),
-        slivers: [
-          ApplePageHeader(
-            largeTitle: Text(title),
-            border: null,
-            section: section,
-            subtitle: subtitle,
-            icon: icon,
-          ),
-          if (onRefresh != null)
-            CupertinoSliverRefreshControl(onRefresh: onRefresh),
-          SliverList.list(children: [...children, const SizedBox(height: 96)]),
-        ],
-      ),
-    ),
-  );
-}
 
 class SoftwareUpdatePage extends StatefulWidget {
   const SoftwareUpdatePage({
@@ -237,7 +196,7 @@ class DiagnosticsPage extends StatefulWidget {
     required this.mirror,
   });
   final MaintenanceService service;
-  final MirrorService mirror;
+  final LibraryStatsGateway mirror;
   @override
   State<DiagnosticsPage> createState() => _DiagnosticsPageState();
 }

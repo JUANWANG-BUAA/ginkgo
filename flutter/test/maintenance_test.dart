@@ -16,7 +16,7 @@ class TestMaintenance implements MaintenanceService {
   @override
   bool get supportsUpdates => true;
   @override
-  Future<bool> checkPublicService(MirrorService service) async => false;
+  Future<bool> checkPublicService(LibraryStatsGateway service) async => false;
   @override
   Future<InstalledVersion> version() async =>
       const InstalledVersion('0.1.0-alpha.1', '2');

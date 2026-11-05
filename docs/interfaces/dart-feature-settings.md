@@ -25,19 +25,14 @@
 
 ## features/settings/maintenance_pages.dart
 
-- `class MaintenanceScaffold extends StatelessWidget`
-  <sub>class · features/settings/maintenance_pages.dart:17</sub>
-    - `const MaintenanceScaffold({ super.key, required this.title, required this.children, this.onRefresh, this.busy = false, this.section, this.subtitle, this.icon, });`  <sub>:18</sub>
-    - `final Future<void> Function()? onRefresh;`  <sub>:30</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:35</sub>
 - `class SoftwareUpdatePage extends StatefulWidget`
-  <sub>class · features/settings/maintenance_pages.dart:59</sub>
-    - `const SoftwareUpdatePage({ super.key, required this.service, this.downloader, this.initialVersion, this.initialResult, this.initialCheckedAt, });`  <sub>:60</sub>
-    - `State<SoftwareUpdatePage> createState() => …`  <sub>:74</sub>
+  <sub>class · features/settings/maintenance_pages.dart:18</sub>
+    - `const SoftwareUpdatePage({ super.key, required this.service, this.downloader, this.initialVersion, this.initialResult, this.initialCheckedAt, });`  <sub>:19</sub>
+    - `State<SoftwareUpdatePage> createState() => …`  <sub>:33</sub>
 - `class DiagnosticsPage extends StatefulWidget`
-  <sub>class · features/settings/maintenance_pages.dart:233</sub>
-    - `const DiagnosticsPage({ super.key, required this.service, required this.mirror, });`  <sub>:234</sub>
-    - `State<DiagnosticsPage> createState() => …`  <sub>:242</sub>
+  <sub>class · features/settings/maintenance_pages.dart:192</sub>
+    - `const DiagnosticsPage({ super.key, required this.service, required this.mirror, });`  <sub>:193</sub>
+    - `State<DiagnosticsPage> createState() => …`  <sub>:201</sub>
 
 ## features/settings/network_diagnostics_page.dart
 
@@ -87,3 +82,10 @@
     - `const SettingsPage({ super.key, required this.service, required this.onSignOut, this.accountName, this.accountId, this.route, required this.maintenance, });`  <sub>:23</sub>
     - `final Future<void> Function() onSignOut;`  <sub>:38</sub>
     - `State<SettingsPage> createState() => …`  <sub>:43</sub>
+
+## features/settings/startup_update_hint.dart
+
+- `class StartupUpdateHint extends StatefulWidget` — Same quiet hint posture as diagnostics, but a separate informational state.
+  <sub>class · features/settings/startup_update_hint.dart:10</sub>
+    - `const StartupUpdateHint({ super.key, required this.controller, required this.child, });`  <sub>:11</sub>
+    - `State<StartupUpdateHint> createState() => …`  <sub>:20</sub>

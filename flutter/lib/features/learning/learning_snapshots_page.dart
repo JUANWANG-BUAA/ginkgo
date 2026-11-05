@@ -1,8 +1,8 @@
+import 'package:ginkgo_mirror/widgets/maintenance_scaffold.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/query_snapshots.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/features/settings/maintenance_pages.dart';
 
 class LearningSnapshotsPage extends StatefulWidget {
   const LearningSnapshotsPage({super.key, required this.gateway});

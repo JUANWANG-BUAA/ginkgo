@@ -1,6 +1,6 @@
 # Rust + Flutter 镜像待办
 
-更新：2026-11-04。这里只保留未完成事项；实现范围见 [现状](MIRROR-IMPLEMENTATION.md)，模块差距见 [对照表](MIRROR-PARITY.md)。完成需有代码和相应层级的验证证据，不反复追加已完成过程；历史计划保留于 [归档](archive/mirror/README.md)。
+更新：2026-11-05。这里只保留未完成事项；实现范围见 [现状](MIRROR-IMPLEMENTATION.md)，模块差距见 [对照表](MIRROR-PARITY.md)。完成需有代码和相应层级的验证证据，不反复追加已完成过程；历史计划保留于 [归档](archive/mirror/README.md)。
 
 当前覆盖说明：用户已确认 Beta.9 登录成功，Beta.8 “仅 WebVPN + 验证码”登录阻断已关闭，证据记入 [Beta.9 发布审计](_audit/2026-11-03-beta9-publication.md)。网络与认证链按用户要求[冻结](NETWORK-FREEZE.md)，下方历史”当前登录失败”描述不再代表最新状态；其他路线、冷恢复、业务与人审仍待验收，未经明确解冻不得为这些待办改网络实现，也不得代理恢复真实账号请求。
 
@@ -170,8 +170,8 @@
 
 ## P2：功能与结构
 
-- [ ] 按生成依赖报告处理平台/页面职责：startup_update.dart 同时含控制器与导航 UI；学习快照页仅为复用 MaintenanceScaffold 而依赖设置页集合。先拆开纯编排、通用外壳与具体页面，保留超时/关闭/迟到结果回归。目录环不是文件环，源码位置以 [静态报告](interfaces/DEPENDENCY-GRAPH.md) 为准。
-- [ ] 维护自检端口收窄：checkPublicService 仍接收完整 MirrorService，实际消费演示标识与公开图书馆统计；按最小只读端口迁移，保持缓存结果不算连通成功、合成数据不冒充网络通过。
+- [ ] 在独立合成回归中复现模块读取预算交错：Rust 两级锁等待与执行分别 45 秒，Dart 外层 120 秒；同时验证 blocking 任务超时后的锁寿命与迟到结果。当前仅有静态预算不一致证据，不能宣称发生重复提交；修改冻结网络超时/取消前须取得具体授权。分析入口见 [工程架构](architecture/README.md)。
+
 
 
 

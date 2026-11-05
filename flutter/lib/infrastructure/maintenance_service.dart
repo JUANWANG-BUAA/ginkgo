@@ -4,7 +4,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../mirror_service.dart';
+import '../application/library_stats.dart';
 
 import '../application/maintenance.dart';
 
@@ -94,7 +94,7 @@ class NativeMaintenanceService implements MaintenanceService {
   }
 
   @override
-  Future<bool> checkPublicService(MirrorService service) async {
+  Future<bool> checkPublicService(LibraryStatsGateway service) async {
     if (service.isDemo) return false;
     final result = await service.libraryStats(forceRefresh: true);
     final data = result.data;
