@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 
+import 'package:ginkgo_mirror/widgets/feature_intro.dart';
+
 import 'schedule_style.dart';
 import 'schedule_widgets.dart';
 
@@ -38,14 +40,12 @@ class ScheduleCourseDetailPage extends StatelessWidget {
     child: SafeArea(
       child: ListView(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
-            child: Text(
-              course.name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
-            ),
+          FeatureIntro(
+            icon: CupertinoIcons.calendar,
+            title: course.name,
+            description: '$dayTitle · 第 $weekNumber 周',
+            color: CupertinoColors.systemBlue,
+            prominent: true,
           ),
           ScheduleSection(
             children: [

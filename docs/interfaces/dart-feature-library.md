@@ -110,16 +110,16 @@
 ## features/library/library_loans_page.dart
 
 - `class LibraryLoansPage extends StatefulWidget` — Private records exist only while this page is active. No background reads.
-  <sub>class · features/library/library_loans_page.dart:12</sub>
-    - `const LibraryLoansPage({super.key, this.gateway, this.officialGateway});`  <sub>:13</sub>
-    - `State<LibraryLoansPage> createState() => …`  <sub>:20</sub>
+  <sub>class · features/library/library_loans_page.dart:13</sub>
+    - `const LibraryLoansPage({super.key, this.gateway, this.officialGateway});`  <sub>:14</sub>
+    - `State<LibraryLoansPage> createState() => …`  <sub>:21</sub>
 
 ## features/library/library_page.dart
 
 - `class LibraryPage extends StatefulWidget` — Library hierarchy and explicit, single-attempt booking actions.
-  <sub>class · features/library/library_page.dart:20</sub>
-    - `const LibraryPage({super.key, required this.service, this.onOpenLoans});`  <sub>:21</sub>
-    - `State<LibraryPage> createState() => …`  <sub>:25</sub>
+  <sub>class · features/library/library_page.dart:22</sub>
+    - `const LibraryPage({super.key, required this.service, this.onOpenLoans});`  <sub>:23</sub>
+    - `State<LibraryPage> createState() => …`  <sub>:27</sub>
 
 ## features/library/library_seat_page.dart
 
@@ -154,20 +154,20 @@
 ## features/library/library_widgets.dart
 
 - `class LibrarySectionStatus extends StatelessWidget` — Inline status for a section that is still loading or that failed while
-  <sub>class · features/library/library_widgets.dart:14</sub>
-    - `const LibrarySectionStatus({ super.key, required this.id, required this.loading, required this.hasSnapshot, required this.failure, required this.retry, });`  <sub>:15</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:31</sub>
+  <sub>class · features/library/library_widgets.dart:13</sub>
+    - `const LibrarySectionStatus({ super.key, required this.id, required this.loading, required this.hasSnapshot, required this.failure, required this.retry, });`  <sub>:14</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:30</sub>
 - `class LibraryDisclosureToggle extends StatelessWidget` — The toggle of a collapsible read-only note. The label states the current
-  <sub>class · features/library/library_widgets.dart:54</sub>
-    - `const LibraryDisclosureToggle({ super.key, required this.label, required this.expanded, required this.onToggle, this.toggleKey, });`  <sub>:55</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:69</sub>
+  <sub>class · features/library/library_widgets.dart:42</sub>
+    - `const LibraryDisclosureToggle({ super.key, required this.label, required this.expanded, required this.onToggle, this.toggleKey, });`  <sub>:43</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:57</sub>
 - `class LibraryNoteText extends StatelessWidget` — The body of a read-only note that the reader opened on purpose.
-  <sub>class · features/library/library_widgets.dart:113</sub>
-    - `const LibraryNoteText({super.key, required this.text});`  <sub>:114</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:119</sub>
+  <sub>class · features/library/library_widgets.dart:101</sub>
+    - `const LibraryNoteText({super.key, required this.text});`  <sub>:102</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:107</sub>
 - `String libraryActionLabel(String action) => …` — The human label of one booking action. The same mapping is used by the
-  <sub>function · features/library/library_widgets.dart:135</sub>
+  <sub>function · features/library/library_widgets.dart:123</sub>
 - `IconData libraryActionIcon(String action) => …` — The icon of one booking action.
-  <sub>function · features/library/library_widgets.dart:144</sub>
+  <sub>function · features/library/library_widgets.dart:132</sub>
 - `CupertinoDynamicColor? libraryActionTint(String action) => …` — The semantic tint of one booking action. Actions without a tint keep the
-  <sub>function · features/library/library_widgets.dart:153</sub>
+  <sub>function · features/library/library_widgets.dart:141</sub>

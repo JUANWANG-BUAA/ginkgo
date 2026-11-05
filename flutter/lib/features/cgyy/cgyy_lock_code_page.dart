@@ -35,6 +35,19 @@ class _CgyyLockCodePageState extends State<CgyyLockCodePage> {
     load();
   }
 
+  @override
+  void didUpdateWidget(CgyyLockCodePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service ||
+        oldWidget.loader != widget.loader) {
+      request++;
+      code = null;
+      error = null;
+      busy = false;
+      load();
+    }
+  }
+
   Future<void> load({bool force = false}) async {
     final serial = ++request;
     setState(() {

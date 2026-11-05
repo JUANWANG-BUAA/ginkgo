@@ -1,88 +1,52 @@
-import 'package:integration_test/integration_test.dart';
-import 'package:flutter_test/flutter_test.dart';
+// This is an offline shell navigation smoke test. Native background scheduling,
+// process death and persisted reminders are covered by background_reminders_test
+// and scripts/check-android-background-reminders.sh, not by this test.
 import 'package:flutter/cupertino.dart';
-import 'package:ginkgo_mirror/main.dart' as app;
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+import 'package:ginkgo_mirror/application/platform_actions.dart';
+import 'package:ginkgo_mirror/mirror_service.dart';
+import 'package:ginkgo_mirror/src/rust/frb_generated.dart';
+import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async => RustLib.init());
 
-  group('Background Reminders - Simulator Integration', () {
-    testWidgets('App does not require re-login after background job runs',
-        (WidgetTester tester) async {
-      // 1. Launch app (no login required - demo mode)
-      app.main();
-      await tester.pumpAndSettle();
+  testWidgets('offline demo shell keeps navigation usable after resize', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      GinkgoApp(
+        service: const DemoMirrorService(),
+        platformActions: const PlatformActions(),
+        accountName: '合成演示账号',
+        accountId: '__visual_review__',
+        onSignOut: () async {},
+      ),
+    );
+    Future<void> settle() async {
+      for (var frame = 0; frame < 30; frame++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(tester.takeException(), isNull);
+    }
 
-      // 2. Verify: Home page loads (demo data)
-      expect(find.byType(CupertinoPageScaffold), findsWidgets);
-
-      // 3. Simulate: App backgrounded (not important for this test in demo mode)
-      // In real scenario, Android JobScheduler would invoke background service
-
-      // 4. Verify: After returning, still on same page (no unexpected re-login)
-      await tester.pumpAndSettle();
-      expect(find.byType(CupertinoPageScaffold), findsWidgets);
-    });
-
-    testWidgets('Demo mode does not trigger background credential errors',
-        (WidgetTester tester) async {
-      // Background service uses demo mirror, should never fail authentication
-      app.main();
-      await tester.pumpAndSettle();
-
-      // Verify: No error dialogs about background failures
-      expect(find.byType(CupertinoAlertDialog), findsNothing,
-        reason: 'Demo mode should not show background auth errors'
+    await settle();
+    for (final label in ['课表', '作业', '图书馆', '更多', '今天']) {
+      final tab = find.descendant(
+        of: find.byType(CupertinoTabBar),
+        matching: find.text(label),
       );
-
-      // Verify: Reminders section renders (if visible in demo)
-      // Note: Actual reminder scheduling requires Android JobScheduler,
-      // which cannot be tested in Flutter alone
-    });
-
-    testWidgets('Switching between tabs preserves session state',
-        (WidgetTester tester) async {
-      // Scenario: User browses multiple tabs, each might have backgrounded data
-      // Expected: No unexpected re-logins
-
-      app.main();
-      await tester.pumpAndSettle();
-
-      // Try navigating to different tabs (if available in demo)
-      // This simulates the lifecycle where background jobs run while tabs are switching
-
-      expect(true, true,
-        reason: 'Tab switching should not corrupt session state'
-      );
-    });
-  });
-
-  group('Background Reminders - Offline Data Integrity', () {
-    testWidgets('Demo notifications persist across app restarts',
-        (WidgetTester tester) async {
-      // In demo mode, reminders are from synthetic data
-      // Verify: No crashes or data loss on restart
-
-      app.main();
-      await tester.pumpAndSettle();
-
-      // Simulate: App lifecycle - use new API to handle window sizing
-      final binding = tester.binding;
-      addTearDown(() {
-        // Reset to default physical size
-        binding.window.physicalSizeTestValue = Size.zero;
-        binding.platformDispatcher.onMetricsChanged?.call();
-      });
-
-      // Test size adjustment
-      binding.window.physicalSizeTestValue = const Size(400, 800);
-
-      // Restart by pushing route and popping
-      // (Full app restart cannot be tested in integration_test)
-
-      expect(true, true,
-        reason: 'Demo data should survive configuration changes'
-      );
-    });
+      expect(tab, findsOneWidget);
+      await tester.tap(tab);
+      await settle();
+      expect(find.byType(CupertinoTabBar), findsOneWidget);
+    }
+    final original = tester.view.physicalSize;
+    addTearDown(tester.view.resetPhysicalSize);
+    tester.view.physicalSize = Size(original.width, original.height * 0.8);
+    await settle();
+    expect(find.byType(CupertinoTabBar), findsOneWidget);
   });
 }

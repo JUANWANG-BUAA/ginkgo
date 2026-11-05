@@ -8,13 +8,13 @@
 ## features/tasks/task_editor.dart
 
 - `class TaskDraft`
-  <sub>class · features/tasks/task_editor.dart:11</sub>
-    - `const TaskDraft(this.title, this.due);`  <sub>:12</sub>
+  <sub>class · features/tasks/task_editor.dart:12</sub>
+    - `const TaskDraft(this.title, this.due);`  <sub>:13</sub>
 - `class TaskEditor extends StatefulWidget` — User must explicitly confirm. Failed saves retain all editable fields.
-  <sub>class · features/tasks/task_editor.dart:17</sub>
-    - `const TaskEditor({ super.key, this.title = '', this.due = '', this.sourceAssignmentId, this.isNew = true, required this.onSave, });`  <sub>:18</sub>
-    - `final Future<bool> Function(TaskDraft draft) onSave;`  <sub>:29</sub>
-    - `State<TaskEditor> createState() => …`  <sub>:31</sub>
+  <sub>class · features/tasks/task_editor.dart:18</sub>
+    - `const TaskEditor({ super.key, this.title = '', this.due = '', this.sourceAssignmentId, this.isNew = true, required this.onSave, });`  <sub>:19</sub>
+    - `final Future<bool> Function(TaskDraft draft) onSave;`  <sub>:30</sub>
+    - `State<TaskEditor> createState() => …`  <sub>:32</sub>
 
 ## features/tasks/tasks_page.dart
 

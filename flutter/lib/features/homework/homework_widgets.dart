@@ -76,17 +76,18 @@ class HomeworkStatusBadge extends StatelessWidget {
       ),
     };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      padding: GinkgoSpacing.edgeInsetsBadge,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6),
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(GinkgoRadii.badge),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: GinkgoTypography.caption.fontSize,
           fontWeight: FontWeight.w600,
           color: color,
+          letterSpacing: 0.2,
         ),
       ),
     );
@@ -124,8 +125,9 @@ class HomeworkDeadlineText extends StatelessWidget {
                     : '截止时间未确认')
               : '截止 ${schoolTimestampLabel(item.dueAt)}',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: FontWeight.w500,
+            letterSpacing: -0.1,
             color: late
                 ? AppleDesign.statusDanger.resolveFrom(context)
                 : CupertinoColors.label.resolveFrom(context),

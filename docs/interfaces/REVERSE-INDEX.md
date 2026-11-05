@@ -56,8 +56,11 @@
 | `application/task_storage_scope.dart` | TaskStorageRoot → dart-application.md<br>TaskStorageScope → dart-application.md |
 | `application/view_models.dart` | HomeworkViewModel → dart-application.md |
 | `design/apple_design.dart` | AppleDesign → dart-design.md |
+| `design/design_comparison_screen.dart` | DesignComparisonScreen → dart-design.md |
 | `design/ginkgo_theme.dart` | ginkgoTheme → dart-design.md |
+| `design/today_action_row_demo.dart` | TodayActionRowDemo → dart-design.md |
 | `design/tokens/colors.dart` | GinkgoColors → dart-design.md |
+| `design/tokens/elevation.dart` | GinkgoElevation → dart-design.md |
 | `design/tokens/layout.dart` | GinkgoLayout → dart-design.md |
 | `design/tokens/motion.dart` | GinkgoMotion → dart-design.md |
 | `design/tokens/opacity.dart` | GinkgoOpacity → dart-design.md |
@@ -420,19 +423,25 @@
 | `shared/school_timestamp.dart` | parseSchoolTimestamp → dart-shared.md<br>schoolDateString → dart-shared.md<br>schoolDateWeekdayLabel → dart-shared.md<br>schoolTimestampLabel → dart-shared.md<br>schoolClockLabel → dart-shared.md<br>schoolTimeRange → dart-shared.md |
 | `shared/today_time.dart` | todaySchoolNow → dart-shared.md<br>schoolWallClockMillis → dart-shared.md<br>todayDate → dart-shared.md<br>todayDue → dart-shared.md<br>todayCompareDue → dart-shared.md<br>todayDueLabel → dart-shared.md |
 | `startup_page.dart` | StartupPage → dart-app.md |
+| `widgets/academic_overview.dart` | AcademicOverview → dart-widgets.md |
 | `widgets/academic_widgets.dart` | academicNumber → dart-widgets.md<br>AcademicBadge → dart-widgets.md<br>AcademicFactRow → dart-widgets.md<br>AcademicMetric → dart-widgets.md<br>AcademicMetricGrid → dart-widgets.md |
 | `widgets/apple_controls.dart` | AppleToolbarButton → dart-widgets.md<br>ApplePickerTile → dart-widgets.md |
 | `widgets/apple_navigation.dart` | AppleContentTransition → dart-widgets.md<br>AppleNavigationItem → dart-widgets.md |
 | `widgets/apple_page_chrome.dart` | AppleRefreshPageHeader → dart-widgets.md<br>AppleStatusSection → dart-widgets.md |
 | `widgets/apple_surfaces.dart` | ApplePageHeader → dart-widgets.md<br>AppleEmptyState → dart-widgets.md<br>AppleSection → dart-widgets.md<br>AppleListTile → dart-widgets.md |
 | `widgets/collection_toolbar.dart` | CollectionToolbar → dart-widgets.md<br>CollectionQuerySurface → dart-widgets.md<br>CollectionAnchor → dart-widgets.md |
+| `widgets/date_tile.dart` | DateTile → dart-widgets.md |
 | `widgets/day_scroll_physics.dart` | DayScrollPhysics → dart-widgets.md |
 | `widgets/diagnostic_hints.dart` | DiagnosticHintOverlay → dart-widgets.md |
+| `widgets/feature_intro.dart` | FeatureIntro → dart-widgets.md<br>FeatureSectionTitle → dart-widgets.md |
+| `widgets/ginkgo_dialog_widgets.dart` | GinkgoPageRoute → dart-widgets.md<br>GinkgoBottomSheet → dart-widgets.md<br>GinkgoAlertDialog → dart-widgets.md<br>GinkgoAlertAction → dart-widgets.md<br>GinkgoLoadingIndicator → dart-widgets.md<br>GinkgoEmptyState → dart-widgets.md |
 | `widgets/ginkgo_mark.dart` | GinkgoMark → dart-widgets.md |
+| `widgets/ginkgo_polished_widgets.dart` | GinkgoButton → dart-widgets.md<br>GinkgoButtonVariant → dart-widgets.md<br>GinkgoButtonSize → dart-widgets.md<br>GinkgoCard → dart-widgets.md<br>GinkgoDivider → dart-widgets.md |
 | `widgets/ginkgo_visuals.dart` | GinkgoIconTile → dart-widgets.md<br>GinkgoBadge → dart-widgets.md |
 | `widgets/loading_widgets.dart` | GinkgoActivity → dart-widgets.md<br>GinkgoLoadingView → dart-widgets.md<br>SectionFeedback → dart-widgets.md<br>SectionReveal → dart-widgets.md<br>PageRefreshShortcut → dart-widgets.md |
 | `widgets/long_page_scroll.dart` | LongPageScroll → dart-widgets.md |
 | `widgets/mutation_dialog.dart` | confirmMutation → dart-widgets.md |
+| `widgets/press_feedback.dart` | PressFeedback → dart-widgets.md |
 | `widgets/public_information_page.dart` | PublicInformationPage → dart-widgets.md |
 | `widgets/release_notes_view.dart` | NotesBlock → dart-widgets.md<br>NotesHeading → dart-widgets.md<br>NotesBullet → dart-widgets.md<br>NotesParagraph → dart-widgets.md<br>NotesSpan → dart-widgets.md<br>NotesText → dart-widgets.md<br>NotesLink → dart-widgets.md<br>openableReleaseLink → dart-widgets.md<br>parseNotesInline → dart-widgets.md<br>parseReleaseNotes → dart-widgets.md<br>ReleaseNotesView → dart-widgets.md |
 | `widgets/reminder_badge.dart` | ReminderBadge → dart-widgets.md |

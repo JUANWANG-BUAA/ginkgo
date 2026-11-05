@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:ginkgo_mirror/widgets/date_tile.dart';
+import 'package:ginkgo_mirror/widgets/feature_intro.dart';
 import 'package:ginkgo_mirror/shared/school_links.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
@@ -124,10 +126,15 @@ class _NoticesPageState extends State<NoticesPage> {
               ),
             if (notices != null && notices!.isNotEmpty)
               AppleSection(
-                header: const Text('通知列表'),
+                header: const FeatureSectionTitle(
+                  '通知列表',
+                  icon: CupertinoIcons.news,
+                ),
                 children: [
                   for (final notice in notices!)
                     AppleListTile(
+                      leading: DateTile(notice.publishedAt),
+                      leadingSize: 48,
                       title: Text(notice.title),
                       subtitle: Text(notice.publishedAt),
                       trailing: const Icon(
@@ -175,14 +182,12 @@ class _NoticeDetailState extends State<_NoticeDetail> {
       child: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          Text(
-            widget.notice.title,
-            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            widget.notice.publishedAt,
-            style: const TextStyle(color: CupertinoColors.secondaryLabel),
+          FeatureIntro(
+            icon: CupertinoIcons.news_solid,
+            title: widget.notice.title,
+            description: widget.notice.publishedAt,
+            color: CupertinoColors.systemBlue,
+            prominent: true,
           ),
           const SizedBox(height: 24),
           Text(

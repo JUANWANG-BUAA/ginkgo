@@ -23,8 +23,8 @@
 | [Dart 基础设施（flutter/lib/infrastructure）](dart-infrastructure.md) | `dart-infrastructure.md` | 51 |
 | [跨域共享状态（flutter/lib/shared）](dart-shared.md) | `dart-shared.md` | 30 |
 | [平台集成（flutter/lib/platform）](dart-platform.md) | `dart-platform.md` | 14 |
-| [共享呈现组件（flutter/lib/widgets）](dart-widgets.md) | `dart-widgets.md` | 52 |
-| [设计系统（flutter/lib/design）](dart-design.md) | `dart-design.md` | 9 |
+| [共享呈现组件（flutter/lib/widgets）](dart-widgets.md) | `dart-widgets.md` | 68 |
+| [设计系统（flutter/lib/design）](dart-design.md) | `dart-design.md` | 12 |
 | [应用外壳组件（flutter/lib/app）](dart-app.md) | `dart-app.md` | 4 |
 | [工作区壳层（flutter/lib/workspace）](dart-workspace.md) | `dart-workspace.md` | 30 |
 | [Flutter 功能域：academic](dart-feature-academic.md) | `dart-feature-academic.md` | 1 |

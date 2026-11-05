@@ -128,31 +128,31 @@ class UpdateRequiredPage extends StatelessWidget {
                 color: CupertinoTheme.of(context).primaryColor,
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 '需要更新',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
-                  color: CupertinoColors.label,
+                  color: CupertinoColors.label.resolveFrom(context),
                 ),
               ),
               const SizedBox(height: 12),
               Text(
                 gate.message ?? '当前版本已不兼容学校接口的变化，请安装新版本后继续使用。',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: AppleDesign.bodyCondensedSize,
                   height: 1.5,
-                  color: CupertinoColors.secondaryLabel,
+                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
                 ),
               ),
               if (installedVersion != null) ...[
                 const SizedBox(height: 10),
                 Text(
                   '当前版本 $installedVersion',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: CupertinoColors.tertiaryLabel,
+                    color: CupertinoColors.tertiaryLabel.resolveFrom(context),
                   ),
                 ),
               ],

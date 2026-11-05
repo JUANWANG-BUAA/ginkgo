@@ -60,12 +60,12 @@ done
 [[ -z "$(device shell pidof "$package" || true)" ]]
 
 read_run() {
-  local expected="${1:-sessionRequired}"
+  local expected="${1:-retryLater}"
   device exec-out run-as "$package" cat shared_prefs/reminder-background-v1.xml |
     python3 -c 'import sys,xml.etree.ElementTree as E; r=E.parse(sys.stdin).getroot(); d={n.get("name"): n.get("value",n.text) for n in r}; print(d.get("lastRun","0") if d.get("status")==sys.argv[1] else "0")' "$expected"
 }
 wait_run() {
-  local previous="$1" current=0 expected="${2:-sessionRequired}"
+  local previous="$1" current=0 expected="${2:-retryLater}"
   for ((j=0; j<45; j++)); do
     current="$(read_run "$expected")"
     if ((current > previous)); then echo "$current"; return; fi

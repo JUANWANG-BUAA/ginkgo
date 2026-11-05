@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:ginkgo_mirror/infrastructure/mirror_runtime.dart';
+import 'package:ginkgo_mirror/application/contracts.dart' show FailureCode;
+import 'package:ginkgo_mirror/src/rust/api/live.dart' as native;
 export 'package:ginkgo_mirror/infrastructure/background_reminders.dart'
     show runBackgroundReminders;
 
@@ -16,6 +18,16 @@ void main() {
     tester,
   ) async {
     await initializeMirrorRuntime();
+    // The runtime rejects a missing local snapshot before any HTTP request.
+    // Dart (73b2dcf) maps this failure to retryLater for the background engine;
+    // the bridge failure and the displayed background status are distinct.
+    final missing = await native.readBackgroundReminders(
+      owner: owner,
+      checkin: true,
+      homework: true,
+    );
+    expect(missing.failure, FailureCode.sessionExpired);
+    expect(missing.account, isNull);
     final now = DateTime.now().millisecondsSinceEpoch;
     Map<String, Object> plan(String key, String group) => {
       'key': key.padLeft(64, key),
@@ -85,10 +97,10 @@ void main() {
       summary = await channel.invokeMapMethod<String, Object?>(
         'backgroundSummary',
       );
-      if (summary?['status'] == 'sessionRequired') break;
+      if (summary?['status'] == 'retryLater') break;
       await Future<void>.delayed(const Duration(seconds: 1));
     }
-    expect(summary?['status'], 'sessionRequired');
+    expect(summary?['status'], 'retryLater');
     expect(summary?['lastRun'], greaterThan(0));
     expect(summary?['scheduled'], true);
     // Preserve only this synthetic configuration for the host's cold-process

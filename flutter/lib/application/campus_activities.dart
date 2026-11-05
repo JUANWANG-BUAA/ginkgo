@@ -1,5 +1,4 @@
 import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/application/environment.dart';
 
 class CampusActivity {
   const CampusActivity({

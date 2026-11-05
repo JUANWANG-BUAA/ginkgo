@@ -8,9 +8,9 @@
 ## features/classroom/classroom_detail.dart
 
 - `class ClassroomDetail extends StatelessWidget`
-  <sub>class · features/classroom/classroom_detail.dart:8</sub>
-    - `const ClassroomDetail({ super.key, required this.room, required this.building, });`  <sub>:9</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:17</sub>
+  <sub>class · features/classroom/classroom_detail.dart:10</sub>
+    - `const ClassroomDetail({ super.key, required this.room, required this.building, });`  <sub>:11</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:19</sub>
 
 ## features/classroom/classroom_models.dart
 

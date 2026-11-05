@@ -8,8 +8,11 @@ token 层与视觉常量。
 ## 目录
 
 - [design/apple_design.dart](#designappledesigndart) (1)
+- [design/design_comparison_screen.dart](#designdesigncomparisonscreendart) (1)
 - [design/ginkgo_theme.dart](#designginkgothemedart) (1)
+- [design/today_action_row_demo.dart](#designtodayactionrowdemodart) (1)
 - [design/tokens/colors.dart](#designtokenscolorsdart) (1)
+- [design/tokens/elevation.dart](#designtokenselevationdart) (1)
 - [design/tokens/layout.dart](#designtokenslayoutdart) (1)
 - [design/tokens/motion.dart](#designtokensmotiondart) (1)
 - [design/tokens/opacity.dart](#designtokensopacitydart) (1)
@@ -52,10 +55,24 @@ token 层与视觉常量。
     - `static const headline = GinkgoTypography.headline;`  <sub>:53</sub>
     - `static Duration duration(BuildContext context, int milliseconds) => …`  <sub>:55</sub>
 
+## design/design_comparison_screen.dart
+
+- `class DesignComparisonScreen extends StatefulWidget` — 视觉对比工具 - 展示改进前后的设计效果
+  <sub>class · design/design_comparison_screen.dart:4</sub>
+    - `const DesignComparisonScreen({super.key});`  <sub>:5</sub>
+    - `State<DesignComparisonScreen> createState() => …`  <sub>:8</sub>
+
 ## design/ginkgo_theme.dart
 
 - `CupertinoThemeData ginkgoTheme([ Brightness? brightness, Color accent = GinkgoColors.accent, ]) => …`
   <sub>function · design/ginkgo_theme.dart:18</sub>
+
+## design/today_action_row_demo.dart
+
+- `class TodayActionRowDemo extends StatelessWidget` — 独立的 Demo 页面 - 展示 TodayActionRow 的三个版本
+  <sub>class · design/today_action_row_demo.dart:4</sub>
+    - `const TodayActionRowDemo({super.key});`  <sub>:5</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:8</sub>
 
 ## design/tokens/colors.dart
 
@@ -80,6 +97,18 @@ token 层与视觉常量。
     - `static const connectionOnline = Color(0xff34c759);`  <sub>:70</sub>
     - `static const connectionOffline = CupertinoColors.systemOrange;`  <sub>:71</sub>
 
+## design/tokens/elevation.dart
+
+- `abstract final class GinkgoElevation` — Shadow specifications matching Apple design language precision.
+  <sub>class · design/tokens/elevation.dart:5</sub>
+    - `static const List<BoxShadow> none = [];` — No elevation - flat surface  <sub>:7</sub>
+    - `static const List<BoxShadow> xs = [ BoxShadow(color: Color(0x0a000000), blurRadius: 2, offset: Offset(0, 1)), ];` — 1pt elevation - subtle depth for interactive elements  <sub>:10</sub>
+    - `static const List<BoxShadow> sm = [ BoxShadow(color: Color(0x14000000), blurRadius: 4, offset: Offset(0, 2)), ];` — 2pt elevation - slight floating effect  <sub>:15</sub>
+    - `static const List<BoxShadow> md = [ BoxShadow(color: Color(0x1a000000), blurRadius: 8, offset: Offset(0, 4)), ];` — 4pt elevation - standard floating card  <sub>:20</sub>
+    - `static const List<BoxShadow> lg = [ BoxShadow(color: Color(0x1f000000), blurRadius: 12, offset: Offset(0, 6)), ];` — 8pt elevation - emphasized floating surface  <sub>:25</sub>
+    - `static const List<BoxShadow> xl = [ BoxShadow(color: Color(0x26000000), blurRadius: 16, offset: Offset(0, 8)), ];` — 12pt elevation - high emphasis modal/sheet  <sub>:30</sub>
+    - `static const List<BoxShadow> xxl = [ BoxShadow(color: Color(0x2d000000), blurRadius: 24, offset: Offset(0, 12)), ];` — 16pt elevation - modal dialogs and top-level content  <sub>:35</sub>
+
 ## design/tokens/layout.dart
 
 - `abstract final class GinkgoLayout` — Layout breakpoints and structural dimensions.
@@ -95,8 +124,18 @@ token 层与视觉常量。
 
 - `abstract final class GinkgoMotion` — Motion tokens respecting system accessibility reduce-motion settings.
   <sub>class · design/tokens/motion.dart:4</sub>
-    - `static const normal = Duration(milliseconds: 180);`  <sub>:5</sub>
-    - `static Duration duration(BuildContext context, int milliseconds) => …`  <sub>:7</sub>
+    - `static const Duration snappy = Duration(milliseconds: 120);`  <sub>:6</sub>
+    - `static const Duration quick = Duration(milliseconds: 150);`  <sub>:7</sub>
+    - `static const Duration normal = Duration(milliseconds: 180);`  <sub>:8</sub>
+    - `static const Duration smooth = Duration(milliseconds: 240);`  <sub>:9</sub>
+    - `static const Duration slow = Duration(milliseconds: 300);`  <sub>:10</sub>
+    - `static const Curve easeOut = Curves.easeOut;`  <sub>:13</sub>
+    - `static const Curve easeInOut = Curves.easeInOut;`  <sub>:14</sub>
+    - `static const Curve easeIn = Curves.easeIn;`  <sub>:15</sub>
+    - `static const Curve swiftSpring = Cubic(0.2, 0.9, 0.3, 1.08);` — Soft return with a small overshoot; not a SwiftUI spring parameter mapping.  <sub>:18</sub>
+    - `static const Curve gentleSpring = Curves.decelerate;` — Monotonic easing for content resizing.  <sub>:21</sub>
+    - `static Duration duration(BuildContext context, int milliseconds) => …`  <sub>:23</sub>
+    - `static bool isReducedMotion(BuildContext context) => …`  <sub>:28</sub>
 
 ## design/tokens/opacity.dart
 
@@ -128,32 +167,34 @@ token 层与视觉常量。
     - `static const double base = 16.0;`  <sub>:7</sub>
     - `static const double xl = 24.0;`  <sub>:8</sub>
     - `static const double xxl = 32.0;`  <sub>:9</sub>
-    - `static const pageInset = 16.0;`  <sub>:12</sub>
-    - `static const desktopPageInset = 24.0;`  <sub>:13</sub>
-    - `static const edgeInsetsPage = EdgeInsets.symmetric(horizontal: pageInset);`  <sub>:15</sub>
-    - `static const edgeInsetsDesktopPage = EdgeInsets.fromLTRB( desktopPageInset, 22, desktopPageInset, 6, );`  <sub>:16</sub>
-    - `static const edgeInsetsCard = EdgeInsets.all(base);`  <sub>:22</sub>
-    - `static const edgeInsetsListTile = EdgeInsets.symmetric( horizontal: base, vertical: 10, );`  <sub>:23</sub>
-    - `static const edgeInsetsBadge = EdgeInsets.symmetric( horizontal: 8, vertical: 5, );`  <sub>:27</sub>
-    - `static const edgeInsetsPickerAction = EdgeInsets.symmetric(horizontal: 12);`  <sub>:31</sub>
-    - `static const edgeInsetsPickerCompactAction = EdgeInsets.symmetric( horizontal: 8, );`  <sub>:32</sub>
-    - `static const edgeInsetsPickerTitle = EdgeInsets.only(top: 6);`  <sub>:35</sub>
-    - `static const edgeInsetsSectionStart = EdgeInsets.only(top: 20);`  <sub>:36</sub>
-    - `static const edgeInsetsStatusGlyphAlignment = EdgeInsets.only(top: 2);`  <sub>:37</sub>
-    - `static const edgeInsetsBalanceHero = EdgeInsets.symmetric( horizontal: pageInset, vertical: 20, );`  <sub>:38</sub>
-    - `static const edgeInsetsFact = EdgeInsets.symmetric( horizontal: 16, vertical: 13, );`  <sub>:42</sub>
-    - `static EdgeInsets summaryStart({ required bool single, required bool desktop, }) => …`  <sub>:47</sub>
-    - `static const double xs = 4.0;`  <sub>:52</sub>
-    - `static const double compact = 5.0;`  <sub>:53</sub>
-    - `static const double small = 6.0;`  <sub>:54</sub>
-    - `static const double hairline = 0.5;`  <sub>:55</sub>
-    - `static const double opticalIconInset = 1.0;`  <sub>:56</sub>
-    - `static const double factLabelWidth = 124.0;`  <sub>:57</sub>
-    - `static const double metricColumnWidth = 108.0;`  <sub>:58</sub>
-    - `static const double metricGridSpacing = 18.0;`  <sub>:59</sub>
-    - `static const double bottomScrollClearance = 96.0;`  <sub>:60</sub>
-    - `static const EdgeInsets edgeInsetsNavigationBack = EdgeInsets.symmetric( horizontal: 2, );`  <sub>:62</sub>
-    - `static EdgeInsets badgeInsets({ required bool compact, required bool largeText, }) => …`  <sub>:66</sub>
+    - `static const edgeInsetsFocusRow = EdgeInsets.symmetric( horizontal: base, vertical: 14, );`  <sub>:11</sub>
+    - `static const edgeInsetsFocusMargin = EdgeInsets.symmetric( horizontal: md, vertical: sm, );`  <sub>:15</sub>
+    - `static const pageInset = 16.0;`  <sub>:21</sub>
+    - `static const desktopPageInset = 24.0;`  <sub>:22</sub>
+    - `static const edgeInsetsPage = EdgeInsets.symmetric(horizontal: pageInset);`  <sub>:24</sub>
+    - `static const edgeInsetsDesktopPage = EdgeInsets.fromLTRB( desktopPageInset, 22, desktopPageInset, 6, );`  <sub>:25</sub>
+    - `static const edgeInsetsCard = EdgeInsets.all(base);`  <sub>:31</sub>
+    - `static const edgeInsetsListTile = EdgeInsets.symmetric( horizontal: base, vertical: 10, );`  <sub>:32</sub>
+    - `static const edgeInsetsBadge = EdgeInsets.symmetric( horizontal: 8, vertical: 5, );`  <sub>:36</sub>
+    - `static const edgeInsetsPickerAction = EdgeInsets.symmetric(horizontal: 12);`  <sub>:40</sub>
+    - `static const edgeInsetsPickerCompactAction = EdgeInsets.symmetric( horizontal: 8, );`  <sub>:41</sub>
+    - `static const edgeInsetsPickerTitle = EdgeInsets.only(top: 6);`  <sub>:44</sub>
+    - `static const edgeInsetsSectionStart = EdgeInsets.only(top: 20);`  <sub>:45</sub>
+    - `static const edgeInsetsStatusGlyphAlignment = EdgeInsets.only(top: 2);`  <sub>:46</sub>
+    - `static const edgeInsetsBalanceHero = EdgeInsets.symmetric( horizontal: pageInset, vertical: 20, );`  <sub>:47</sub>
+    - `static const edgeInsetsFact = EdgeInsets.symmetric( horizontal: 16, vertical: 13, );`  <sub>:51</sub>
+    - `static EdgeInsets summaryStart({ required bool single, required bool desktop, }) => …`  <sub>:56</sub>
+    - `static const double xs = 4.0;`  <sub>:61</sub>
+    - `static const double compact = 5.0;`  <sub>:62</sub>
+    - `static const double small = 6.0;`  <sub>:63</sub>
+    - `static const double hairline = 0.5;`  <sub>:64</sub>
+    - `static const double opticalIconInset = 1.0;`  <sub>:65</sub>
+    - `static const double factLabelWidth = 124.0;`  <sub>:66</sub>
+    - `static const double metricColumnWidth = 108.0;`  <sub>:67</sub>
+    - `static const double metricGridSpacing = 18.0;`  <sub>:68</sub>
+    - `static const double bottomScrollClearance = 96.0;`  <sub>:69</sub>
+    - `static const EdgeInsets edgeInsetsNavigationBack = EdgeInsets.symmetric( horizontal: 2, );`  <sub>:71</sub>
+    - `static EdgeInsets badgeInsets({ required bool compact, required bool largeText, }) => …`  <sub>:75</sub>
 
 ## design/tokens/typography.dart
 
@@ -166,15 +207,16 @@ token 层与视觉常量。
     - `static const title2 = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3, color: GinkgoColors.label, );`  <sub>:30</sub>
     - `static const headline = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 17, fontWeight: FontWeight.w600, letterSpacing: -0.4, color: GinkgoColors.label, );`  <sub>:40</sub>
     - `static const body = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 17, letterSpacing: -0.25, color: GinkgoColors.label, );`  <sub>:50</sub>
-    - `static const bodyCondensedSize = 16.0;`  <sub>:59</sub>
-    - `static const calloutSize = 15.0;`  <sub>:60</sub>
-    - `static const metricSize = 24.0;`  <sub>:61</sub>
-    - `static const metricProminentSize = 32.0;`  <sub>:62</sub>
-    - `static const bodyCondensed = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: bodyCondensedSize, letterSpacing: -0.2, color: GinkgoColors.label, );` — Dense rows and sidebars. 16 and 15 are the two most used sizes in the  <sub>:67</sub>
-    - `static const callout = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: calloutSize, letterSpacing: -0.18, color: GinkgoColors.label, );`  <sub>:76</sub>
-    - `static const subheadline = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 14, letterSpacing: -0.15, color: GinkgoColors.label, );`  <sub>:85</sub>
-    - `static const footnote = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 13, letterSpacing: -0.08, color: GinkgoColors.secondaryLabel, );`  <sub>:94</sub>
-    - `static const caption = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 12, letterSpacing: 0.0, color: GinkgoColors.secondaryLabel, );`  <sub>:103</sub>
-    - `static const caption2 = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 11, letterSpacing: 0.06, color: GinkgoColors.tertiaryLabel, );`  <sub>:112</sub>
-    - `static const tabLabel = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: -0.24, color: GinkgoColors.tertiaryLabel, );` — Keeps Cupertino tab labels on the app's bundled typefaces while retaining  <sub>:123</sub>
-    - `static const tabularDigits = [FontFeature.tabularFigures()];`  <sub>:133</sub>
+    - `static const focusTitleSize = 20.0;`  <sub>:59</sub>
+    - `static const bodyCondensedSize = 16.0;`  <sub>:61</sub>
+    - `static const calloutSize = 15.0;`  <sub>:62</sub>
+    - `static const metricSize = 24.0;`  <sub>:63</sub>
+    - `static const metricProminentSize = 32.0;`  <sub>:64</sub>
+    - `static const bodyCondensed = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: bodyCondensedSize, letterSpacing: -0.2, color: GinkgoColors.label, );` — Dense rows and sidebars. 16 and 15 are the two most used sizes in the  <sub>:69</sub>
+    - `static const callout = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: calloutSize, letterSpacing: -0.18, color: GinkgoColors.label, );`  <sub>:78</sub>
+    - `static const subheadline = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 14, letterSpacing: -0.15, color: GinkgoColors.label, );`  <sub>:87</sub>
+    - `static const footnote = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 13, letterSpacing: -0.08, color: GinkgoColors.secondaryLabel, );`  <sub>:96</sub>
+    - `static const caption = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 12, letterSpacing: 0.0, color: GinkgoColors.secondaryLabel, );`  <sub>:105</sub>
+    - `static const caption2 = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 11, letterSpacing: 0.06, color: GinkgoColors.tertiaryLabel, );`  <sub>:114</sub>
+    - `static const tabLabel = TextStyle( inherit: false, fontFamily: font, fontFamilyFallback: fallback, fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: -0.24, color: GinkgoColors.tertiaryLabel, );` — Keeps Cupertino tab labels on the app's bundled typefaces while retaining  <sub>:125</sub>
+    - `static const tabularDigits = [FontFeature.tabularFigures()];`  <sub>:135</sub>

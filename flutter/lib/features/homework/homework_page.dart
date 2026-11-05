@@ -399,10 +399,12 @@ class _HomeworkPageState extends State<HomeworkPage> {
           ),
           child: Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   '包含助教课程\n筛选计数仅包含个人课程',
-                  style: TextStyle(color: CupertinoColors.secondaryLabel),
+                  style: TextStyle(
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                  ),
                 ),
               ),
               Semantics(

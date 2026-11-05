@@ -1,80 +1,80 @@
 {
   "schema_version": 1,
   "status": "blocked",
-  "version": "0.1.0-beta.8+18",
-  "source_sha256": "fc8535f0215d4e21a72b9182e727f712e4a35fa74e74cc102bf6290841a69a7b",
-  "contract_sha256": "b5481b6e366689975c92152cb3365d132891a3bbe7f206055586ef774ed56bfe",
+  "version": "0.1.0-beta.10+20",
+  "source_sha256": "492b351ab3087d19e7ffa9f5cae0e478a473a29f2af501b9545e7bd4888c4615",
+  "contract_sha256": "e18b925e1603938ab8fbcdf4c61fa5d91710575a7d7b1870f9adeb03c592ac19",
   "reviewer": null,
   "reviewed_at": null,
   "open_p0": null,
   "open_p1": null,
-  "reason": "Beta.8 was released on 2026-11-03 at the user's explicit direction while readiness remained blocked. This record intentionally retains the earlier candidate hashes and evidence; this release has new local regression evidence in docs/_audit/2026-11-03-beta-regression-coverage.md. Physical-device acceptance, real accounts, school writes and maintainer security review remain incomplete. P0/P1 counts are not asserted; this release does not pass the gate for future releases.",
+  "reason": "2026-11-04: the user explicitly directed a manual Beta.10 publication while real-account tests remain paused. Missing real-account, physical-device, school-write and human-review evidence is retained as unverified, not a prerequisite for this authorized manual exception. Formal readiness remains blocked. Library reader authentication is an unresolved known issue. No network/authentication implementation is unfrozen.",
   "cases": {
     "baseline": {
       "status": "passed",
       "level": "local",
-      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "report": "docs/_audit/2026-11-04-beta10-code-and-visual.md",
       "section": "EVIDENCE baseline",
-      "date": "2026-11-03",
-      "environment": "macOS; locked cached dependencies; repository full gate",
-      "result": "Full local gate exited 0, including 749 Flutter tests and Rust, docs, API, FRB and Node checks."
+      "date": "2026-11-04",
+      "environment": "macOS; locked dependencies; full scripts/check-mirror.sh",
+      "result": "Final full gate exited 0: Rust, 22 compiling mutation regressions, Flutter analysis and 854 tests, documentation and FRB zero drift."
     },
     "auth:directory-failure-never-fakes-login": {
       "status": "passed",
       "level": "local",
-      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "report": "docs/_audit/2026-11-04-beta10-code-and-visual.md",
       "section": "EVIDENCE auth:directory-failure-never-fakes-login",
-      "date": "2026-11-03",
-      "environment": "macOS; Rust synthetic transport tests in upstream auth module",
-      "result": "UC directory and activation failures returned errors without publishing a signed-in identity."
+      "date": "2026-11-04",
+      "environment": "macOS; upstream synthetic transports; full gate",
+      "result": "Directory failures and unverified UC identity regressions passed; no real credentials or requests."
     },
     "auth:single-submit-and-unknown-result": {
       "status": "passed",
       "level": "local",
-      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "report": "docs/_audit/2026-11-04-beta10-code-and-visual.md",
       "section": "EVIDENCE auth:single-submit-and-unknown-result",
-      "date": "2026-11-03",
-      "environment": "macOS; Rust synthetic transport tests for CAS and WebVPN login",
-      "result": "Synthetic tests asserted one password POST and no replay after an unknown gateway submission result."
+      "date": "2026-11-04",
+      "environment": "macOS; upstream strict synthetic transcripts and mutation checks",
+      "result": "Single password POST and no password replay after unknown gateway outcomes passed; frozen implementation and reference expectations unchanged."
     },
     "production-entrypoint": {
       "status": "passed",
       "level": "emulator",
-      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "report": "docs/_audit/2026-11-04-beta10-code-and-visual.md",
       "section": "EVIDENCE production-entrypoint",
-      "date": "2026-11-03",
-      "environment": "Android API 37 ARM64 isolated emulator-5580; final signed Release APK",
-      "result": "Normal MainActivity installed and cold-started successfully."
+      "date": "2026-11-04",
+      "environment": "Android API 37 ARM64; isolated emulator-5580; normal lib/main.dart Debug APK",
+      "result": "Built with --pub, installed and cold-started MainActivity; fresh UI dump shows login and offline demo entry, not an integration driver."
     },
     "feature:tasks": {
       "status": "passed",
       "level": "emulator",
-      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "report": "docs/_audit/2026-11-04-beta10-code-and-visual.md",
       "section": "EVIDENCE feature:tasks",
-      "date": "2026-11-03",
-      "environment": "Android API 37 ARM64 isolated emulator-5580; Beta.6 to final signed Beta.7 overwrite",
-      "result": "Synthetic offline-demo local task survived signed overwrite install and remained visible."
+      "date": "2026-11-04",
+      "environment": "Android API 37; synthetic local files via actual Rust demo bridge",
+      "result": "Created and completed local task; returned to Today and verified persisted completion. Legacy linked records retained; editor, keyboard and discard reviewed in four modes. No signed-upgrade claim."
     },
     "feature:more": {
       "status": "passed",
       "level": "emulator",
-      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "report": "docs/_audit/2026-11-04-beta10-code-and-visual.md",
       "section": "EVIDENCE feature:more",
-      "date": "2026-11-03",
-      "environment": "Android API 37 ARM64 isolated emulator-5580; final signed Beta.7",
-      "result": "More page and its settings entry rendered and were navigable."
+      "date": "2026-11-04",
+      "environment": "Android API 37; actual workspace shell; synthetic demo services",
+      "result": "Service routes, shortcut editor, settings navigation and back verified with light/dark and narrow large-text visual review."
     },
     "feature:settings": {
       "status": "passed",
       "level": "emulator",
-      "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
+      "report": "docs/_audit/2026-11-04-beta10-code-and-visual.md",
       "section": "EVIDENCE feature:settings",
-      "date": "2026-11-03",
-      "environment": "Android API 37 ARM64 isolated emulator-5580; Beta.6 to final signed Beta.7 overwrite",
-      "result": "Appearance choices could be changed; the Beta.6 dark preference survived upgrade and returned to the login screen."
+      "date": "2026-11-04",
+      "environment": "Android API 37; actual shell with synthetic preferences plus native background recovery",
+      "result": "Settings routes and themes reviewed in four modes; navigation and native unreadable-storage recovery checked. Full physical-device persistence, permissions and signed upgrade remain pending."
     },
     "windows:shared-build-and-tests": {
-      "status": "passed",
+      "status": "historical",
       "level": "remote-ci",
       "report": "docs/_audit/2026-11-03-protocol-and-release-review.md",
       "section": "EVIDENCE windows:shared-build-and-tests",
@@ -82,5 +82,13 @@
       "environment": "GitHub Actions mirror workflow for commit 4372972470e1aa74c3529df1113f35bd4d6615a4; Windows runner",
       "result": "Windows Flutter Debug build and dedicated Windows checks passed."
     }
+  },
+  "manual_publication_exception": {
+    "date": "2026-11-04",
+    "authorized_by": "user",
+    "instruction": "不是为什么不发？不是说了现在不能做真实账号测试了，这些都不要了吗",
+    "report": "docs/_audit/2026-11-04-beta10-publication.md",
+    "acceptance_waived": false,
+    "real_account_requests": "paused"
   }
 }

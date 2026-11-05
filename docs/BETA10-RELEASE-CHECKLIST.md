@@ -1,72 +1,13 @@
-# Beta 10 发布检查清单
+# Beta.10 发布检查入口
 
-**目标**：3 小时内完成 Beta 10 验收，修复后台通知问题
+更新：2026-11-04。全目录视觉闭环和本地检查已完成；用户明确要求在真实账号测试暂停期间发布 Beta.10，本次采用手动发布例外。
 
----
+- 当前检查与分层证据：[候选审计](_audit/2026-11-04-beta10-code-and-visual.md)。
+- 发布执行与公开验证：[Beta.10 发布记录](_audit/2026-11-04-beta10-publication.md)。
+- 唯一未完成事项：[MIRROR-TODO](MIRROR-TODO.md)。
+- 正式验收标准：[Android 强制验收契约](ANDROID-RELEASE-CONTRACT.md)。
+- 网络及认证：[冻结边界](NETWORK-FREEZE.md)，本次授权不解冻网络实现。
 
-## 代码审查结论
+本地完整门禁、全目录四模式视觉、设备合成业务/导航和后台检查通过。本人借阅读者认证问题仍未解决，发布说明须披露；不得声称已修复。
 
-### ✅ 已验证安全的改动
-- `background_reminders.rs:L19` → unavailable（✅ 正确）
-- `background_reminders.dart:L43-50` → retryLater（✅ 正确）
-- 首屏不自动加载签到（✅ 代码已验证）
-
-### ⚠️ 架构现状
-- Demo 模式 23 处分散（可改进，不阻塞）
-- 错误分类完整（✅ 已验证）
-- 后台隔离正确（✅ 单元测试通过）
-
-### 🟢 **Beta 10 发布条件**：全部满足
-
-| 项 | 状态 | 验证 |
-|--|--|--|
-| 后台修复 | ✅ | 代码审查 + 单元测试 |
-| 测试覆盖 | ✅ | 9/9 单元测试通过 |
-| 文档完整 | ✅ | 3 份文档 + 测试手册 |
-| 门禁检查 | ✅ | flutter analyze 通过 |
-
----
-
-## Beta 10 发布流程
-
-### Step 1：版本更新
-```bash
-# 更新版本号
-sed -i '' 's/0.1.0-beta.9/0.1.0-beta.10/g' flutter/pubspec.yaml rust/Cargo.toml
-
-# 更新 versionCode
-sed -i '' 's/versionCode 19/versionCode 20/g' flutter/android/app/build.gradle
-```
-
-### Step 2：发布说明
-创建 `docs/RELEASE-NOTES-BETA10.md`
-
-### Step 3：最终验证
-```bash
-flutter analyze --no-pub
-flutter test test/ --no-pub
-python3 scripts/check-mirror.sh
-```
-
-### Step 4：标签与发布
-```bash
-git tag android-v0.1.0-beta.10
-git push origin android-v0.1.0-beta.10
-# GitHub Release 发布（手动上传 APK）
-```
-
----
-
-## Phase 3 重新规划
-
-**认知**：首屏问题已修复，Phase 3 应该聚焦于**长期架构健壮性**，而非紧急bug修复。
-
-**新的 Phase 3 目标**（Day 4-7）：
-1. **错误处理规范化** → 消除未来的风控问题
-2. **前后端适配层** → 让改动不影响界面
-3. **测试体系完善** → 防止 Beta 3-8 再发生
-
-**不在 Beta 10 的改动**：
-- ❌ Demo 重构（可改进但不紧急）
-- ❌ 大型架构变更（留到 Phase 4）
-
+用户最新指令“不是为什么不发？不是说了现在不能做真实账号测试了，这些都不要了吗”覆盖此前等待真实验收的发布安排。真实账号和学校请求继续暂停，未完成的账号、物理设备、学校写入及人审不作为本次手动发布的前置条件，也不记为通过。正式 readiness 仍为 blocked，保留原门禁及 tag workflow 的失败结果；正常入口外部签名、覆盖安装与公开回下载按发布记录核验。最低版本门禁不提升。

@@ -39,9 +39,9 @@
 ## features/schedule/schedule_course_detail.dart
 
 - `class ScheduleCourseDetailPage extends StatelessWidget` — The pushed course detail page.
-  <sub>class · features/schedule/schedule_course_detail.dart:12</sub>
-    - `const ScheduleCourseDetailPage({ super.key, required this.course, required this.termName, required this.weekNumber, required this.week, required this.dayTitle, this.onOpenCheckIn, });`  <sub>:13</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:30</sub>
+  <sub>class · features/schedule/schedule_course_detail.dart:14</sub>
+    - `const ScheduleCourseDetailPage({ super.key, required this.course, required this.termName, required this.weekNumber, required this.week, required this.dayTitle, this.onOpenCheckIn, });`  <sub>:15</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:32</sub>
 
 ## features/schedule/schedule_day_strip.dart
 
@@ -117,28 +117,28 @@
 ## features/schedule/schedule_widgets.dart
 
 - `enum ScheduleViewMode` — How the schedule page presents the confirmed snapshot.
-  <sub>enum · features/schedule/schedule_widgets.dart:14</sub>
+  <sub>enum · features/schedule/schedule_widgets.dart:15</sub>
 - `String scheduleViewModeLabel(ScheduleViewMode mode) => …` — Short label of a view mode.
-  <sub>function · features/schedule/schedule_widgets.dart:29</sub>
+  <sub>function · features/schedule/schedule_widgets.dart:30</sub>
 - `String scheduleViewModeDescription(ScheduleViewMode mode) => …` — Label of a view mode in the large-text picker, where the grid hint has to
-  <sub>function · features/schedule/schedule_widgets.dart:38</sub>
+  <sub>function · features/schedule/schedule_widgets.dart:39</sub>
 - `class ScheduleCourseRow extends StatelessWidget` — One course in the day list. Large type stacks the time above the content;
-  <sub>class · features/schedule/schedule_widgets.dart:47</sub>
-    - `const ScheduleCourseRow({super.key, required this.course, this.onTap});`  <sub>:48</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:53</sub>
+  <sub>class · features/schedule/schedule_widgets.dart:48</sub>
+    - `const ScheduleCourseRow({super.key, required this.course, this.onTap});`  <sub>:49</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:54</sub>
 - `class ScheduleDetailLine extends StatelessWidget` — One label/value line in the pushed course detail page.
-  <sub>class · features/schedule/schedule_widgets.dart:140</sub>
-    - `const ScheduleDetailLine({ super.key, required this.label, required this.value, });`  <sub>:141</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:148</sub>
+  <sub>class · features/schedule/schedule_widgets.dart:141</sub>
+    - `const ScheduleDetailLine({ super.key, required this.label, required this.value, });`  <sub>:142</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:149</sub>
 - `class ScheduleChevronRow extends StatelessWidget` — A tappable row that reveals the next screen, with a trailing chevron.
-  <sub>class · features/schedule/schedule_widgets.dart:165</sub>
-    - `const ScheduleChevronRow({ super.key, required this.child, required this.onTap, });`  <sub>:166</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:175</sub>
+  <sub>class · features/schedule/schedule_widgets.dart:154</sub>
+    - `const ScheduleChevronRow({ super.key, required this.child, required this.onTap, });`  <sub>:155</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:164</sub>
 - `class ScheduleSection extends StatelessWidget` — A group of rows under an optional section title.
-  <sub>class · features/schedule/schedule_widgets.dart:200</sub>
-    - `const ScheduleSection({ super.key, required this.children, this.title, this.footer, });`  <sub>:201</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:212</sub>
+  <sub>class · features/schedule/schedule_widgets.dart:189</sub>
+    - `const ScheduleSection({ super.key, required this.children, this.title, this.footer, });`  <sub>:190</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:201</sub>
 - `class ScheduleLoadingSection extends StatelessWidget` — A section that reports the first load of a snapshot.
-  <sub>class · features/schedule/schedule_widgets.dart:220</sub>
-    - `const ScheduleLoadingSection({super.key, this.label = '正在读取课表…'});`  <sub>:221</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:225</sub>
+  <sub>class · features/schedule/schedule_widgets.dart:209</sub>
+    - `const ScheduleLoadingSection({super.key, this.label = '正在读取课表…'});`  <sub>:210</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:214</sub>

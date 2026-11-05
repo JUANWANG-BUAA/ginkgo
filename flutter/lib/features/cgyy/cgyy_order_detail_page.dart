@@ -38,6 +38,20 @@ class _CgyyOrderDetailPageState extends State<CgyyOrderDetailPage> {
     load();
   }
 
+  @override
+  void didUpdateWidget(CgyyOrderDetailPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.orderId != widget.orderId ||
+        oldWidget.service != widget.service ||
+        oldWidget.loader != widget.loader) {
+      request++;
+      order = null;
+      error = null;
+      busy = false;
+      load();
+    }
+  }
+
   Future<void> load({bool force = false}) async {
     final serial = ++request;
     setState(() {

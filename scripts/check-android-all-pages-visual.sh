@@ -10,7 +10,7 @@ sdk="${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}"
 adb="$sdk/platform-tools/adb"
 "$adb" -s "$device" get-state >/dev/null
 mkdir -p "$output"
-python3 scripts/capture-android-module-visual.py "$output" &
+python3 scripts/capture-android-module-visual.py "$output" --device "$device" --adb "$adb" &
 receiver=$!
 cleanup() {
   kill "$receiver" 2>/dev/null || true

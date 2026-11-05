@@ -24,9 +24,9 @@
 ## features/today/today_action_row.dart
 
 - `class TodayActionRow extends StatelessWidget` — Dashboard action rows reflow naturally and retain a 48dp minimum target.
-  <sub>class · features/today/today_action_row.dart:6</sub>
-    - `const TodayActionRow({ super.key, required this.title, this.subtitle, this.status, this.statusColor, this.trailing, this.onTap, this.emphasized = false, this.summary = false, this.caption = false, });`  <sub>:7</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:33</sub>
+  <sub>class · features/today/today_action_row.dart:7</sub>
+    - `const TodayActionRow({ super.key, required this.title, this.subtitle, this.status, this.statusColor, this.trailing, this.onTap, this.emphasized = false, this.summary = false, this.caption = false, });`  <sub>:8</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:34</sub>
 
 ## features/today/today_checkin_section.dart
 

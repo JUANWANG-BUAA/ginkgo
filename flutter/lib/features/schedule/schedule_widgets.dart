@@ -1,3 +1,4 @@
+import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
@@ -145,20 +146,8 @@ class ScheduleDetailLine extends StatelessWidget {
   });
   final String label, value;
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(16),
-    child: Align(
-      alignment: Alignment.centerLeft,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: scheduleSecondary(context)),
-          const SizedBox(height: 5),
-          Text(value),
-        ],
-      ),
-    ),
-  );
+  Widget build(BuildContext context) =>
+      AcademicFactRow(label: label, value: value);
 }
 
 /// A tappable row that reveals the next screen, with a trailing chevron.

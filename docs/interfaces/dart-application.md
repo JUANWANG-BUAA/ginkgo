@@ -129,17 +129,17 @@
 ## application/campus_activities.dart
 
 - `class CampusActivity`
-  <sub>class · application/campus_activities.dart:4</sub>
-    - `const CampusActivity({ required this.id, required this.title, required this.category, required this.publishedAt, required this.activityTime, required this.place, required this.url, });`  <sub>:5</sub>
+  <sub>class · application/campus_activities.dart:3</sub>
+    - `const CampusActivity({ required this.id, required this.title, required this.category, required this.publishedAt, required this.activityTime, required this.place, required this.url, });`  <sub>:4</sub>
 - `class CampusActivities`
-  <sub>class · application/campus_activities.dart:18</sub>
-    - `const CampusActivities({ required this.page, required this.activities, required this.fetchedAt, });`  <sub>:19</sub>
+  <sub>class · application/campus_activities.dart:17</sub>
+    - `const CampusActivities({ required this.page, required this.activities, required this.fetchedAt, });`  <sub>:18</sub>
 - `class CampusActivitiesRead`
-  <sub>class · application/campus_activities.dart:30</sub>
-    - `const CampusActivitiesRead({this.data, this.failure});`  <sub>:31</sub>
+  <sub>class · application/campus_activities.dart:29</sub>
+    - `const CampusActivitiesRead({this.data, this.failure});`  <sub>:30</sub>
 - `abstract interface class CampusActivitiesGateway implements MirrorEnvironment` — Public campus activities; no login, no writes and no background polling.
-  <sub>class · application/campus_activities.dart:37</sub>
-    - `Future<CampusActivitiesRead> campusActivities({int page, bool forceRefresh});`  <sub>:38</sub>
+  <sub>class · application/campus_activities.dart:36</sub>
+    - `Future<CampusActivitiesRead> campusActivities({int page, bool forceRefresh});`  <sub>:37</sub>
 
 ## application/career.dart
 
@@ -570,77 +570,77 @@
 ## application/mirror_service.dart
 
 - `abstract interface class MirrorService` — Page-facing capabilities. Tests and alternative adapters need no native runtime.
-  <sub>class · application/mirror_service.dart:20</sub>
+  <sub>class · application/mirror_service.dart:19</sub>
 - `abstract interface class CampusCardGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:30</sub>
-    - `Future<CampusCardBalanceResponse> campusCardBalance();`  <sub>:31</sub>
+  <sub>class · application/mirror_service.dart:29</sub>
+    - `Future<CampusCardBalanceResponse> campusCardBalance();`  <sub>:30</sub>
 - `abstract interface class StudentServiceLinksGateway` — Public official destinations only; does not read or transmit account data.
-  <sub>class · application/mirror_service.dart:35</sub>
-    - `String? studentServiceUrl(String id);`  <sub>:36</sub>
+  <sub>class · application/mirror_service.dart:34</sub>
+    - `String? studentServiceUrl(String id);`  <sub>:35</sub>
 - `abstract interface class CareerEventsGateway implements MirrorEnvironment` — Public career-calendar reads; no login and no background refresh.
-  <sub>class · application/mirror_service.dart:40</sub>
-    - `Future<CareerEventsRead> careerEvents({ required String month, bool forceRefresh = false, });`  <sub>:41</sub>
+  <sub>class · application/mirror_service.dart:39</sub>
+    - `Future<CareerEventsRead> careerEvents({ required String month, bool forceRefresh = false, });`  <sub>:40</sub>
 - `abstract interface class SessionGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:47</sub>
-    - `Future<SessionResponse> restoreSession();`  <sub>:48</sub>
-    - `Future<SessionResponse> login({ required String account, required String password, String? captcha, required bool remember, });`  <sub>:50</sub>
-    - `Future<SessionResponse> signOut();`  <sub>:57</sub>
-    - `Future<SessionResponse> setRoute(RouteChoice route);`  <sub>:59</sub>
-    - `Future<bool> clearCache();`  <sub>:61</sub>
-    - `Future<bool> verifyBridgeContract();`  <sub>:63</sub>
+  <sub>class · application/mirror_service.dart:46</sub>
+    - `Future<SessionResponse> restoreSession();`  <sub>:47</sub>
+    - `Future<SessionResponse> login({ required String account, required String password, String? captcha, required bool remember, });`  <sub>:49</sub>
+    - `Future<SessionResponse> signOut();`  <sub>:56</sub>
+    - `Future<SessionResponse> setRoute(RouteChoice route);`  <sub>:58</sub>
+    - `Future<bool> clearCache();`  <sub>:60</sub>
+    - `Future<bool> verifyBridgeContract();`  <sub>:62</sub>
 - `abstract interface class AcademicGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:66</sub>
-    - `Future<QueryDates> dates(String instant);`  <sub>:67</sub>
-    - `Future<ClassroomResponse> classrooms(DemoScope scope, ClassroomQuery query);`  <sub>:69</sub>
-    - `Future<RuleExamples> rules();`  <sub>:71</sub>
-    - `Future<ScheduleResponse> schedule({ String? termId, int? week, bool forceRefresh = false, });`  <sub>:73</sub>
-    - `Future<GradeTermsResponse> gradeTerms();`  <sub>:79</sub>
-    - `Future<GradeResponse> grades({String? termCode, bool forceRefresh = false});`  <sub>:81</sub>
-    - `Future<TodayResponse> today({bool forceRefresh = false});`  <sub>:83</sub>
-    - `Future<HomeworkResponse> homework({bool forceRefresh = false});`  <sub>:85</sub>
-    - `Future<HomeworkDetailResponse> homeworkDetail( String assignmentId, { bool forceRefresh = false, });`  <sub>:87</sub>
+  <sub>class · application/mirror_service.dart:65</sub>
+    - `Future<QueryDates> dates(String instant);`  <sub>:66</sub>
+    - `Future<ClassroomResponse> classrooms(DemoScope scope, ClassroomQuery query);`  <sub>:68</sub>
+    - `Future<RuleExamples> rules();`  <sub>:70</sub>
+    - `Future<ScheduleResponse> schedule({ String? termId, int? week, bool forceRefresh = false, });`  <sub>:72</sub>
+    - `Future<GradeTermsResponse> gradeTerms();`  <sub>:78</sub>
+    - `Future<GradeResponse> grades({String? termCode, bool forceRefresh = false});`  <sub>:80</sub>
+    - `Future<TodayResponse> today({bool forceRefresh = false});`  <sub>:82</sub>
+    - `Future<HomeworkResponse> homework({bool forceRefresh = false});`  <sub>:84</sub>
+    - `Future<HomeworkDetailResponse> homeworkDetail( String assignmentId, { bool forceRefresh = false, });`  <sub>:86</sub>
 - `abstract interface class CheckInGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:93</sub>
-    - `Future<CheckInResponse> checkin({bool forceRefresh = false});`  <sub>:94</sub>
-    - `Future<CheckInResponse> checkinOnDate( String date, { bool forceRefresh = false, });`  <sub>:96</sub>
-    - `Future<MutationResponse> submitCheckin(String courseId);`  <sub>:101</sub>
-    - `Future<CheckinProgressRead> checkinProgress();`  <sub>:103</sub>
+  <sub>class · application/mirror_service.dart:92</sub>
+    - `Future<CheckInResponse> checkin({bool forceRefresh = false});`  <sub>:93</sub>
+    - `Future<CheckInResponse> checkinOnDate( String date, { bool forceRefresh = false, });`  <sub>:95</sub>
+    - `Future<MutationResponse> submitCheckin(String courseId);`  <sub>:100</sub>
+    - `Future<CheckinProgressRead> checkinProgress();`  <sub>:102</sub>
 - `abstract interface class LibrarySeatingGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:106</sub>
-    - `Future<LibraryStatsRead> libraryStats({bool forceRefresh = false});`  <sub>:107</sub>
-    - `Future<MutationResponse> reserveLibrarySeat({ required String areaId, required String seatId, required LibrarySlot slot, });`  <sub>:109</sub>
-    - `Future<MutationResponse> performLibraryAction( String bookingId, String action, );`  <sub>:115</sub>
-    - `Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false});`  <sub>:120</sub>
-    - `Future<LibraryAreasResponse> libraryAreas(String libraryId);`  <sub>:122</sub>
-    - `Future<LibrarySlotsResponse> librarySlots(String areaId);`  <sub>:124</sub>
-    - `Future<LibrarySeatsResponse> librarySeats({ required String areaId, required LibrarySlot slot, });`  <sub>:126</sub>
-    - `Future<LibraryBookingsResponse> libraryBookings({bool forceRefresh = false});`  <sub>:131</sub>
-    - `Future<LibraryHistoryResponse> libraryHistory( int page, { bool forceRefresh = false, });`  <sub>:133</sub>
+  <sub>class · application/mirror_service.dart:105</sub>
+    - `Future<LibraryStatsRead> libraryStats({bool forceRefresh = false});`  <sub>:106</sub>
+    - `Future<MutationResponse> reserveLibrarySeat({ required String areaId, required String seatId, required LibrarySlot slot, });`  <sub>:108</sub>
+    - `Future<MutationResponse> performLibraryAction( String bookingId, String action, );`  <sub>:114</sub>
+    - `Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false});`  <sub>:119</sub>
+    - `Future<LibraryAreasResponse> libraryAreas(String libraryId);`  <sub>:121</sub>
+    - `Future<LibrarySlotsResponse> librarySlots(String areaId);`  <sub>:123</sub>
+    - `Future<LibrarySeatsResponse> librarySeats({ required String areaId, required LibrarySlot slot, });`  <sub>:125</sub>
+    - `Future<LibraryBookingsResponse> libraryBookings({bool forceRefresh = false});`  <sub>:130</sub>
+    - `Future<LibraryHistoryResponse> libraryHistory( int page, { bool forceRefresh = false, });`  <sub>:132</sub>
 - `abstract interface class LibraryCatalogGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:139</sub>
-    - `Future<BookPageRead> libraryBooks({ required String query, required int page, String sort, bool descending, });` — Public OPAC search. Anonymous and read-only; never personal records.  <sub>:142</sub>
-    - `Future<BookHoldingsRead> libraryHoldings(String bibId);` — Public holdings for one bib id; the school's nested JSON stays in Rust.  <sub>:150</sub>
+  <sub>class · application/mirror_service.dart:138</sub>
+    - `Future<BookPageRead> libraryBooks({ required String query, required int page, String sort, bool descending, });` — Public OPAC search. Anonymous and read-only; never personal records.  <sub>:141</sub>
+    - `Future<BookHoldingsRead> libraryHoldings(String bibId);` — Public holdings for one bib id; the school's nested JSON stays in Rust.  <sub>:149</sub>
 - `abstract interface class LibraryGateway`
-  <sub>class · application/mirror_service.dart:153</sub>
+  <sub>class · application/mirror_service.dart:152</sub>
 - `abstract interface class BykcGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:156</sub>
-    - `Future<BykcPartRead> bykcPart(BykcPart part, {bool forceRefresh = false});`  <sub>:157</sub>
+  <sub>class · application/mirror_service.dart:155</sub>
+    - `Future<BykcPartRead> bykcPart(BykcPart part, {bool forceRefresh = false});`  <sub>:156</sub>
 - `abstract interface class GraduateGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:160</sub>
-    - `Future<GraduateRead> graduatePart({ required bool report, required bool forceRefresh, });`  <sub>:161</sub>
+  <sub>class · application/mirror_service.dart:159</sub>
+    - `Future<GraduateRead> graduatePart({ required bool report, required bool forceRefresh, });`  <sub>:160</sub>
 - `abstract interface class NoticeGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:167</sub>
-    - `Future<NoticesRead> notices({bool forceRefresh = false});`  <sub>:168</sub>
+  <sub>class · application/mirror_service.dart:166</sub>
+    - `Future<NoticesRead> notices({bool forceRefresh = false});`  <sub>:167</sub>
 - `abstract interface class CgyyGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:171</sub>
-    - `Future<CgyyLoadRead> cgyy({ required String kind, required int siteId, required String date, required bool forceRefresh, });`  <sub>:172</sub>
+  <sub>class · application/mirror_service.dart:170</sub>
+    - `Future<CgyyLoadRead> cgyy({ required String kind, required int siteId, required String date, required bool forceRefresh, });`  <sub>:171</sub>
 - `abstract interface class CampusGateway`
-  <sub>class · application/mirror_service.dart:180</sub>
+  <sub>class · application/mirror_service.dart:179</sub>
 - `abstract interface class CgyyBookingGateway` — Separate capability: read-only adapters never gain writes implicitly.
-  <sub>class · application/mirror_service.dart:184</sub>
-    - `Future<CgyyActionResult> executeCgyy(CgyyCommand command);`  <sub>:185</sub>
+  <sub>class · application/mirror_service.dart:183</sub>
+    - `Future<CgyyActionResult> executeCgyy(CgyyCommand command);`  <sub>:184</sub>
 - `enum BykcPart { catalog, chosen, statistics }`
-  <sub>enum · application/mirror_service.dart:188</sub>
+  <sub>enum · application/mirror_service.dart:187</sub>
 
 ## application/mutation_result.dart
 
@@ -788,29 +788,29 @@
 ## application/shuttle.dart
 
 - `class ShuttleRun` — One scheduled departure as printed by the school.
-  <sub>class · application/shuttle.dart:7</sub>
-    - `const ShuttleRun({ required this.index, required this.time, required this.capacity, });`  <sub>:8</sub>
-    - `int? get minuteOfDay {…}` — Minutes past midnight, or null when the printed time is not `H:mm`.  <sub>:19</sub>
+  <sub>class · application/shuttle.dart:6</sub>
+    - `const ShuttleRun({ required this.index, required this.time, required this.capacity, });`  <sub>:7</sub>
+    - `int? get minuteOfDay {…}` — Minutes past midnight, or null when the printed time is not `H:mm`.  <sub>:18</sub>
 - `class ShuttleSection` — One direction pair under a validity label such as "星期一至星期五".
-  <sub>class · application/shuttle.dart:30</sub>
-    - `const ShuttleSection({ required this.label, required this.left, required this.right, });`  <sub>:31</sub>
-    - `bool appliesToday(int weekday) {…}` — Published validity labels name weekdays rather than dates. Only labels  <sub>:43</sub>
+  <sub>class · application/shuttle.dart:29</sub>
+    - `const ShuttleSection({ required this.label, required this.left, required this.right, });`  <sub>:30</sub>
+    - `bool appliesToday(int weekday) {…}` — Published validity labels name weekdays rather than dates. Only labels  <sub>:42</sub>
 - `class ShuttleTable` — One published table: two directions plus their dated sections.
-  <sub>class · application/shuttle.dart:86</sub>
-    - `const ShuttleTable({ required this.left, required this.right, required this.sections, });`  <sub>:87</sub>
+  <sub>class · application/shuttle.dart:85</sub>
+    - `const ShuttleTable({ required this.left, required this.right, required this.sections, });`  <sub>:86</sub>
 - `class ShuttleTimetable`
-  <sub>class · application/shuttle.dart:97</sub>
-    - `const ShuttleTimetable({ required this.tables, required this.source, required this.liveSource, });`  <sub>:98</sub>
-    - `List<ShuttleDeparture> todayRuns(DateTime clock) {…}` — Flattens every published run that applies today. Duplicate rows across  <sub>:110</sub>
+  <sub>class · application/shuttle.dart:96</sub>
+    - `const ShuttleTimetable({ required this.tables, required this.source, required this.liveSource, });`  <sub>:97</sub>
+    - `List<ShuttleDeparture> todayRuns(DateTime clock) {…}` — Flattens every published run that applies today. Duplicate rows across  <sub>:109</sub>
 - `class ShuttleDeparture` — A today-applicable departure with its direction resolved from the table.
-  <sub>class · application/shuttle.dart:147</sub>
-    - `const ShuttleDeparture({ required this.direction, required this.time, required this.minutes, required this.capacity, });`  <sub>:148</sub>
+  <sub>class · application/shuttle.dart:146</sub>
+    - `const ShuttleDeparture({ required this.direction, required this.time, required this.minutes, required this.capacity, });`  <sub>:147</sub>
 - `class ShuttleTimetableRead`
-  <sub>class · application/shuttle.dart:161</sub>
-    - `const ShuttleTimetableRead({this.data, this.failure});`  <sub>:162</sub>
+  <sub>class · application/shuttle.dart:160</sub>
+    - `const ShuttleTimetableRead({this.data, this.failure});`  <sub>:161</sub>
 - `abstract interface class ShuttleGateway implements MirrorEnvironment`
-  <sub>class · application/shuttle.dart:167</sub>
-    - `Future<ShuttleTimetableRead> shuttleTimetable();` — Published shuttle timetable (official page). No live seats, no ticketing.  <sub>:169</sub>
+  <sub>class · application/shuttle.dart:166</sub>
+    - `Future<ShuttleTimetableRead> shuttleTimetable();` — Published shuttle timetable (official page). No live seats, no ticketing.  <sub>:168</sub>
 
 ## application/task_storage_scope.dart
 

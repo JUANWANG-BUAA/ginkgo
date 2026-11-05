@@ -1,8 +1,10 @@
+> 2026-11-04 勘误：本文是未经验收的历史草稿，下方“全部满足”“已发布/就绪”、固定冻结期限和后台失败会清前台身份的因果推断均不可作当前事实。正式冻结规则以 [NETWORK-FREEZE](NETWORK-FREEZE.md) 为准；发布条件以 [强制验收契约](ANDROID-RELEASE-CONTRACT.md) 为准，当前仍 blocked。实测与修复见 [本轮审计](_audit/2026-11-04-beta10-code-and-visual.md)，未完成项只在 [MIRROR-TODO](MIRROR-TODO.md) 维护。不要执行本草稿的发包命令或恢复真实账号测试。
+
 # 后台通知与会话隔离 — 完整测试与验收手册
 
-**版本**：Beta 10 候选  
-**日期**：2026-11-03  
-**维护者**：JUANWANG-BUAA  
+**版本**：Beta 10 候选
+**日期**：2026-11-03
+**维护者**：JUANWANG-BUAA
 
 ---
 
@@ -247,6 +249,6 @@ adb logcat | grep -i "background\|reminder\|ginkgo"
 
 ---
 
-**最后更新**：2026-11-03 当日  
-**维护者**：JUANWANG-BUAA  
+**最后更新**：2026-11-03 当日
+**维护者**：JUANWANG-BUAA
 **审批**：Pending user authorization

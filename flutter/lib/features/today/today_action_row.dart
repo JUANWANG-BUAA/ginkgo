@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/widgets/press_feedback.dart';
 
 /// Dashboard action rows reflow naturally and retain a 48dp minimum target.
 class TodayActionRow extends StatelessWidget {
@@ -37,7 +38,7 @@ class TodayActionRow extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 48),
       child: Padding(
         padding: emphasized
-            ? const EdgeInsets.symmetric(horizontal: 16, vertical: 14)
+            ? GinkgoSpacing.edgeInsetsFocusRow
             : GinkgoSpacing.edgeInsetsListTile,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -50,7 +51,7 @@ class TodayActionRow extends StatelessWidget {
                     Text(
                       status!,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: GinkgoTypography.footnote.fontSize,
                         color:
                             statusColor ??
                             (emphasized
@@ -67,16 +68,18 @@ class TodayActionRow extends StatelessWidget {
                   ],
                   Text(
                     title,
-                    maxLines: 2,
+                    maxLines: MediaQuery.textScalerOf(context).scale(17) > 24
+                        ? null
+                        : 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: emphasized
-                          ? 20
+                          ? GinkgoTypography.focusTitleSize
                           : caption
-                          ? 13
+                          ? GinkgoTypography.footnote.fontSize
                           : summary
-                          ? 15
-                          : 17,
+                          ? GinkgoTypography.calloutSize
+                          : GinkgoTypography.body.fontSize,
                       fontWeight: emphasized
                           ? FontWeight.w600
                           : FontWeight.w400,
@@ -90,7 +93,7 @@ class TodayActionRow extends StatelessWidget {
                     Text(
                       subtitle!,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: GinkgoTypography.footnote.fontSize,
                         height: 1.4,
                         color: AppleDesign.statusInactive.resolveFrom(context),
                       ),
@@ -113,27 +116,30 @@ class TodayActionRow extends StatelessWidget {
         ? Container(
             decoration: BoxDecoration(
               color: cardTint.withValues(alpha: isDark ? 0.14 : 0.08),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(GinkgoRadii.compact),
               border: Border.all(
                 color: cardTint.withValues(alpha: isDark ? 0.26 : 0.18),
                 width: 1.0,
               ),
             ),
-            margin: const EdgeInsets.symmetric(horizontal: GinkgoSpacing.md, vertical: GinkgoSpacing.sm),
+            margin: GinkgoSpacing.edgeInsetsFocusMargin,
             child: content,
           )
         : content;
     return MergeSemantics(
       child: Semantics(
         button: onTap != null,
+        enabled: onTap == null ? null : true,
         hint: onTap == null ? null : '打开详情',
         child: onTap == null
             ? surface
-            : CupertinoButton(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(48, 48),
-                onPressed: onTap,
-                child: surface,
+            : PressFeedback(
+                child: CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(48, 48),
+                  onPressed: onTap,
+                  child: surface,
+                ),
               ),
       ),
     );

@@ -13,6 +13,7 @@ import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 
 import 'support.dart' show platformActions, settle, show;
+
 import 'package:ginkgo_mirror/infrastructure/demo_mirror_service.dart';
 import 'package:ginkgo_mirror/application/local_tasks.dart';
 
@@ -51,7 +52,8 @@ void main() {
       final taskId = added.data!.single.id;
       await tester.pumpWidget(
         ginkgoApp(
-          home: TodayPage(fileActions: platformActions,
+          home: TodayPage(
+            fileActions: platformActions,
             service: service,
             storageRoot: directory.path,
             accountId: 'synthetic-demo-device',
@@ -87,56 +89,54 @@ void main() {
     }
   });
 
-  testWidgets('homework detail adds and opens a linked task on Android', (
-    tester,
-  ) async {
-    const service = DemoMirrorService();
-    final directory = await Directory.systemTemp.createTemp(
-      'ginkgo-android-homework-ui-',
-    );
-    try {
-      await tester.pumpWidget(
-        ginkgoApp(
-          home: HomeworkDetailPage(fileActions: platformActions,
-            service: service,
-            storageRoot: directory.path,
-            item: const HomeworkItem(
-              id: 'spoc:synthetic-ui-one',
-              courseName: '合成设备课程',
-              title: '合成设备作业转待办',
-              dueAt: '2026-10-25T18:30:00+08:00',
-              status: HomeworkStatus.pending,
+  testWidgets(
+    'homework detail has no add-task entry and preserves legacy records',
+    (tester) async {
+      const service = DemoMirrorService();
+      final directory = await Directory.systemTemp.createTemp(
+        'ginkgo-legacy-task-',
+      );
+      try {
+        final seeded = await service.editTasks(
+          root: directory.path,
+          action: 'add_homework',
+          id: 'spoc:synthetic-ui-one',
+          title: '既有本机记录',
+          due: '',
+        );
+        expect(seeded.failure, isNull);
+        await tester.pumpWidget(
+          ginkgoApp(
+            home: HomeworkDetailPage(
+              fileActions: platformActions,
+              service: service,
+              storageRoot: directory.path,
+              item: const HomeworkItem(
+                id: 'spoc:synthetic-ui-one',
+                courseName: '合成课程',
+                title: '合成作业',
+                status: HomeworkStatus.pending,
+              ),
             ),
           ),
-        ),
-      );
-      await settle(tester, frames: 30);
-      await tester.ensureVisible(find.byKey(const Key('homework-add-task')));
-      await tester.tap(find.byKey(const Key('homework-add-task')));
-      await settle(tester);
-      await tester.enterText(find.byKey(const Key('task-title')), '设备编辑后待办');
-      await tester.tap(find.byKey(const Key('task-save')));
-      await settle(tester, frames: 30);
-      final result = await service.editTasks(
-        root: directory.path,
-        action: 'load',
-      );
-      expect(result.failure, isNull);
-      final rows = result.data!;
-      expect(rows, hasLength(1));
-      expect(rows.single.title, '设备编辑后待办');
-      expect(rows.single.sourceAssignmentId, 'spoc:synthetic-ui-one');
-      await tester.ensureVisible(find.byKey(const Key('homework-view-task')));
-      await tester.tap(find.byKey(const Key('homework-view-task')));
-      await settle(tester, frames: 30);
-      expect(find.text('设备编辑后待办'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    } finally {
-      await tester.pumpWidget(ginkgoApp(home: const SizedBox()));
-      await settle(tester, frames: 3);
-      await directory.delete(recursive: true);
-    }
-  });
+        );
+        await settle(tester, frames: 10);
+        expect(find.byKey(const Key('homework-add-task')), findsNothing);
+        expect(find.byKey(const Key('homework-view-task')), findsNothing);
+        final reloaded = await service.editTasks(
+          root: directory.path,
+          action: 'load',
+        );
+        expect(reloaded.failure, isNull);
+        expect(reloaded.data!.single.id, seeded.data!.single.id);
+        expect(reloaded.data!.single.title, '既有本机记录');
+        expect(tester.takeException(), isNull);
+      } finally {
+        await tester.pumpWidget(ginkgoApp(home: const SizedBox()));
+        await directory.delete(recursive: true);
+      }
+    },
+  );
 
   testWidgets(
     'homework-linked tasks persist across native bridge without school writes',
@@ -204,7 +204,8 @@ void main() {
         expect(duplicate.single['completed'], isTrue);
         await tester.pumpWidget(
           ginkgoApp(
-            home: TasksPage(fileActions: platformActions,
+            home: TasksPage(
+              fileActions: platformActions,
               service: service,
               storageRoot: directory.path,
               initialTaskId: taskId,

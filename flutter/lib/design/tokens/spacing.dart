@@ -8,6 +8,15 @@ abstract final class GinkgoSpacing {
   static const double xl = 24.0;
   static const double xxl = 32.0;
 
+  static const edgeInsetsFocusRow = EdgeInsets.symmetric(
+    horizontal: base,
+    vertical: 14,
+  );
+  static const edgeInsetsFocusMargin = EdgeInsets.symmetric(
+    horizontal: md,
+    vertical: sm,
+  );
+
   // Insets
   static const pageInset = 16.0;
   static const desktopPageInset = 24.0;

@@ -19,11 +19,7 @@ void main() {
     await settle(tester, frames: 30);
 
     expect(find.text('当前预约'), findsOneWidget);
-    expect(find.text('选择场馆'), findsOneWidget);
-    expect(find.text('学院路馆'), findsOneWidget);
-    expect(find.text('12'), findsOneWidget);
-    expect(find.text('座可用 · 共 30 座'), findsOneWidget);
-    expect(find.byKey(const Key('library-public-stats')), findsOneWidget);
+    expect(find.text('预约座位'), findsOneWidget);
 
     await tap(tester, '全部预约记录', scrollKey: 'library-scroll');
     await show(tester, find.text('已取消'), scrollKey: 'library-history-scroll');
@@ -38,7 +34,8 @@ void main() {
     );
     await tester.tap(find.byType(CupertinoNavigationBarBackButton));
     await settle(tester);
-    await tap(tester, '学院路馆', scrollKey: 'library-scroll');
+    await tap(tester, '预约座位', scrollKey: 'library-scroll');
+    await tap(tester, '学院路馆', scrollKey: 'library-venues-scroll');
     expect(find.text('区域'), findsOneWidget);
     expect(find.text('4'), findsOneWidget);
     expect(find.text('座可用 · 共 20 座'), findsOneWidget);

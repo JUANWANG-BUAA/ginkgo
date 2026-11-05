@@ -4,6 +4,8 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:path_provider/path_provider.dart';
@@ -49,6 +51,11 @@ import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 
 import 'support.dart' show settle;
+import 'visual_additional_routes.dart';
+import 'visual_route_interactions.dart';
+import 'visual_failure_routes.dart';
+
+import 'package:ginkgo_mirror/features/library/library_controller.dart';
 
 const captureToHost = bool.fromEnvironment('GINKGO_VISUAL_CAPTURE');
 const largeText = bool.fromEnvironment('GINKGO_VISUAL_LARGE');
@@ -189,7 +196,7 @@ void main() {
   testWidgets('workspace destinations and synthetic subroutes render', (
     tester,
   ) async {
-    await binding.convertFlutterSurfaceToImage();
+    if (!captureToHost) await binding.convertFlutterSurfaceToImage();
     final root = await getTemporaryDirectory();
     final directory = Directory('${root.path}/all-pages-visual')
       ..createSync(recursive: true);
@@ -256,7 +263,14 @@ void main() {
       background: await _syntheticPng(300, 150, const Color(0xff5a88b6)),
       jigsaw: await _syntheticPng(60, 150, const Color(0xffbc7137)),
     );
+    final visualLibrary = LibraryController(service);
     final extraPages = <({String id, Widget Function() build})>[
+      ...failureVisualRoutes(),
+      ...additionalVisualRoutes(
+        service,
+        visualLibrary,
+        base64Decode(captcha.background),
+      ),
       (
         id: 'bykc-detail',
         build: () => const BykcDetailPage(
@@ -393,6 +407,10 @@ void main() {
       ),
       (id: 'library-stats', build: () => LibraryStatsPage(service: service)),
       (
+        id: 'cgyy-orders',
+        build: () => CgyyDayPage(demo: true, service: service),
+      ),
+      (
         id: 'cgyy-day',
         build: () => CgyyDayPage(
           demo: true,
@@ -445,29 +463,45 @@ void main() {
     ];
 
     Future<void> capture(String name) async {
-      await settle(tester, frames: 12);
+      debugPrint('VISUAL $name');
+      await settle(tester, frames: 5);
       expect(tester.takeException(), isNull, reason: 'rendering $name');
-      final bytes = await binding.takeScreenshot(name);
-      binding.reportData?.remove('screenshots');
       if (captureToHost) {
         await tester.runAsync(() async {
-          final socket = await Socket.connect(
-            '127.0.0.1',
-            18765,
-            timeout: const Duration(seconds: 5),
-          );
-          socket.add(
-            'POST /$name.png HTTP/1.0\r\nHost: 127.0.0.1\r\nContent-Length: ${bytes.length}\r\n\r\n'
-                .codeUnits,
-          );
-          socket.add(bytes);
-          await socket.flush();
-          await socket.drain<void>();
-          socket.destroy();
+          final client = HttpClient();
+          try {
+            final request = await client.getUrl(
+              Uri.parse('http://127.0.0.1:18765/$name.png'),
+            );
+            final response = await request.close();
+            expect(
+              response.statusCode,
+              HttpStatus.noContent,
+              reason: 'Android compositor screenshot $name',
+            );
+            await response.drain<void>();
+          } finally {
+            client.close(force: true);
+          }
         });
+        return;
       }
+      Uint8List? bytes;
+      for (var attempt = 0; attempt < 3; attempt++) {
+        try {
+          bytes = Uint8List.fromList(await binding.takeScreenshot(name));
+          break;
+        } on PlatformException catch (error) {
+          if (error.code != 'Could not copy the pixels' || attempt == 2) {
+            rethrow;
+          }
+          await settle(tester, frames: 10);
+        }
+      }
+      final pixels = bytes!;
+      binding.reportData?.remove('screenshots');
       await File('${directory.path}/$name.png')
-          .writeAsBytes(bytes, flush: true);
+          .writeAsBytes(pixels, flush: true);
     }
 
     final pageFilter = onlyPageIds
@@ -496,7 +530,7 @@ void main() {
 
     for (final brightness in [Brightness.light, Brightness.dark]) {
       final mode = brightness == Brightness.light ? 'light' : 'dark';
-      if (shellOnly) {
+      if (pageFilter.isEmpty || shellOnly) {
         final preferences = AppPreferences(writer: (_) async {});
         await preferences.update(textSize: largeText ? 1.6 : 1.0);
         await tester.pumpWidget(
@@ -511,7 +545,7 @@ void main() {
             onSignOut: context.onSignOut,
           ),
         );
-        await settle(tester, frames: 40);
+        await settle(tester, frames: 8);
         await capture('shell-today-$mode${largeText ? '-large' : ''}');
         for (final label in ['课表', '作业', '图书馆', '更多']) {
           await tester.tap(
@@ -520,7 +554,7 @@ void main() {
               matching: find.text(label),
             ),
           );
-          await settle(tester, frames: 40);
+          await settle(tester, frames: 8);
           final id = switch (label) {
             '课表' => 'schedule',
             '作业' => 'homework',
@@ -529,7 +563,7 @@ void main() {
           };
           await capture('shell-$id-$mode${largeText ? '-large' : ''}');
         }
-        continue;
+        if (shellOnly && requestedPageIds.isEmpty) continue;
       }
       for (final route in selectedPages) {
         final preferences = AppPreferences(writer: (_) async {});
@@ -570,7 +604,7 @@ void main() {
               CupertinoPageRoute<void>(builder: (_) => page),
             ),
           );
-          await settle(tester, frames: 40);
+          await settle(tester, frames: 8);
         }
         if (route.id == 'library-loans') {
           expect(
@@ -584,8 +618,38 @@ void main() {
           );
         }
         await capture('${route.id}-$mode${largeText ? '-large' : ''}');
+        await inspectRouteInteractions(
+          tester,
+          route.id,
+          (name) => capture('$name-$mode${largeText ? '-large' : ''}'),
+        );
+        final scrollables = find.byType(Scrollable);
+        if (scrollables.evaluate().isNotEmpty) {
+          final scrollable = tester.state<ScrollableState>(scrollables.first);
+          if (scrollable.position.maxScrollExtent > 0) {
+            await tester.drag(scrollables.first, const Offset(0, -260));
+            await settle(tester, frames: 5);
+            scrollable.position.jumpTo(scrollable.position.maxScrollExtent);
+            await capture('${route.id}-$mode${largeText ? '-large' : ''}-end');
+          }
+        }
+        if (needsNavigationStack) {
+          final navigator = tester.state<NavigatorState>(
+            find.byType(Navigator).first,
+          );
+          expect(navigator.canPop(), isTrue);
+          navigator.pop();
+          await settle(tester, frames: 8);
+          expect(find.text('工作区'), findsOneWidget);
+          expect(
+            tester.takeException(),
+            isNull,
+            reason: 'returning from ${route.id}',
+          );
+        }
       }
     }
+    visualLibrary.dispose();
     rangePreferences.dispose();
   });
 }

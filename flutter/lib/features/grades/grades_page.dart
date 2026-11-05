@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:ginkgo_mirror/widgets/feature_intro.dart';
+import 'package:ginkgo_mirror/widgets/academic_overview.dart';
 
 import 'package:ginkgo_mirror/design/tokens.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
@@ -197,16 +199,17 @@ class _GradesPageState extends State<GradesPage> {
   );
 
   List<Widget> _content(GradeResponse data) => [
-    SummaryStrip(
-      items: [
-        SummaryItem(
-          '已发布',
-          '${data.summary.courseCount} 门',
-          icon: CupertinoIcons.checkmark_seal,
+    AcademicOverview(
+      title: '加权平均',
+      value: data.summary.weightedAverage?.toStringAsFixed(1) ?? '未提供',
+      icon: CupertinoIcons.chart_bar_alt_fill,
+      facts: [
+        (label: '已发布', value: '${data.summary.courseCount} 门'),
+        (
+          label: '平均绩点',
+          value: data.summary.gradePointAverage?.toStringAsFixed(2) ?? '未提供',
         ),
-        SummaryItem('加权平均', data.summary.weightedAverage?.toStringAsFixed(1)),
-        SummaryItem('平均绩点', data.summary.gradePointAverage?.toStringAsFixed(2)),
-        SummaryItem('总学分', _credit(data.summary.creditTotal)),
+        (label: '总学分', value: _credit(data.summary.creditTotal)),
       ],
       note: widget.service.isDemo
           ? '离线合成样例 · 统计百分制或计分方式未标明的有效数字成绩'
@@ -224,7 +227,11 @@ class _GradesPageState extends State<GradesPage> {
       )
     else
       AppleSection(
-        header: const Text('课程成绩'),
+        header: const FeatureSectionTitle(
+          '课程成绩',
+          icon: CupertinoIcons.book,
+          color: GinkgoColors.resourceBlue,
+        ),
         children: [
           for (final course in data.courses)
             _GradeCourseRow(
@@ -331,7 +338,7 @@ class _ScoreBadge extends StatelessWidget {
         style: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.w600,
-          color: CupertinoColors.label.resolveFrom(context),
+          color: GinkgoColors.resourceBlue.resolveFrom(context),
           fontFeatures: const [FontFeature.tabularFigures()],
         ),
       ),
@@ -360,12 +367,12 @@ class _GradeCourseDetails extends StatelessWidget {
     child: SafeArea(
       child: ListView(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-            child: Text(
-              course.name,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-            ),
+          FeatureIntro(
+            icon: CupertinoIcons.chart_bar_alt_fill,
+            title: course.name,
+            description: term,
+            color: CupertinoColors.systemBlue,
+            prominent: true,
           ),
           AppleSection(
             header: const Text('学校成绩记录'),

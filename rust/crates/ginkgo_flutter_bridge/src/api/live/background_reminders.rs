@@ -69,16 +69,16 @@ mod tests {
     }
 }
 
-    #[tokio::test]
-    async fn background_failure_does_not_require_foreground_re_login() {
-        // Background session failure (unavailable) should not trigger session_expired,
-        // which would force foreground user to re-login even if their session is valid.
-        let _serial = TEST_GATE.lock().await;
-        let _busy = SESSION_ACCESS.write().await;
-        let result = read("synthetic-owner".into(), true, true).await;
-        // After change: should be ServiceUnavailable, not SessionExpired
-        assert!(matches!(
-            result.failure,
-            Some(FailureCode::ServiceUnavailable)
-        ));
-    }
+#[tokio::test]
+async fn background_failure_does_not_require_foreground_re_login() {
+    // Background session failure (unavailable) should not trigger session_expired,
+    // which would force foreground user to re-login even if their session is valid.
+    let _serial = TEST_GATE.lock().await;
+    let _busy = SESSION_ACCESS.write().await;
+    let result = read("synthetic-owner".into(), true, true).await;
+    // After change: should be ServiceUnavailable, not SessionExpired
+    assert!(matches!(
+        result.failure,
+        Some(FailureCode::ServiceUnavailable)
+    ));
+}
