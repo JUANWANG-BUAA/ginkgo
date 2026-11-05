@@ -1,6 +1,6 @@
 # Ginkgo 文档索引
 
-更新：2026-11-04。Android 是唯一功能开发目标；Windows 保持共享工程可编译，Apple 冻结。仓库记录的公开基线为 Android Beta.9 / Windows Alpha.6，Beta.10 正在候选检查，发布验收仍为 blocked。
+更新：2026-11-04。Android 是唯一功能开发目标；Windows 保持共享工程可编译，Apple 冻结。仓库记录的公开基线为 Android Beta.10 / Windows Alpha.6；Beta.10 按用户指令手动发布，真实账号测试暂停，正式验收记录仍为 blocked。
 
 ## 产品与开发
 
@@ -24,7 +24,8 @@
 
 - [Flutter 工程指南](../flutter/README.md)：完整门禁、设备测试、正常入口构建。
 - [发布验收契约](ANDROID-RELEASE-CONTRACT.md)：候选绑定、真实账号/设备/写入/人审证据要求。
-- [机器验收状态](android-release-readiness.json)：保留旧候选证据，不能视作当前 HEAD 已通过。
+- [机器验收状态](android-release-readiness.json)：按层记录证据和手动发布例外，不代表完整验收通过。
+- [Beta.10 发布记录](_audit/2026-11-04-beta10-publication.md)：本次手动发布、签名与公开验证。
 - [Beta.9 发布审计](_audit/2026-11-03-beta9-publication.md)：公开与用户登录反馈的边界。
 - [后台提醒与恢复](_audit/2026-11-03-background-reminders-and-recovery.md)：工作树实现与隔离模拟器证据。
 - [Beta.10 代码与视觉审查](_audit/2026-11-04-beta10-code-and-visual.md)：本轮修复、截图与未覆盖项。
