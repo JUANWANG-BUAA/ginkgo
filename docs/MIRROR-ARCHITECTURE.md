@@ -60,7 +60,7 @@ FFI 的 `SESSION_ACCESS` 用于应用命令级排他，保证切账号、切路�
 `ginkgo_domain/src/ports/` 按 session、academic、classroom、checkin、library、bykc、graduate、homework、notices、cgyy、library_stats 拆分接口与结果值。core 的相应功能模块只依赖这些能力。
 
 - `Workspace<U>` 按每个命令所需的 trait 提供方法；一个通知测试只需实现 `NoticeSource`，不需要伪造整套登录、课表或图书馆能力。
-- `CheckInSource` / `CheckInMutationSource`、`LibrarySource` / `LibraryMutationSource` 分开。新增读取能力不会要求实现无关写操作，应用层也不增加隐式写重试。
+- `CheckInSource` / `CheckInQrSource`、`LibrarySource` / `LibraryMutationSource` 分开。新增读取能力不会要求实现无关操作，应用层也不增加隐式写重试。
 - CGYY 使用 `CgyyQuery` 和 `CgyyData` 区分场馆、日期空档、订单；签到进度使用 `CheckInLoadProgress`，业务端口没有任意 JSON 信封返回值。
 - 应用错误与保留的旧数据可以一起跨过接口，维持部分失败和陈旧状态的正确呈现。
 - 平台保险库和真实 HTTP 的选择只出现在 runtime；第一次命令才建立实际客户端，保持 Android 启动时的惰性初始化。

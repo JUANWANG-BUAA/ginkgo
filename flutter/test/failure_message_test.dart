@@ -63,10 +63,7 @@ void main() {
       final withSignIn = FailureCode.values
           .where((code) => failureMessage(code).contains('重新登录'))
           .toSet();
-      expect(withSignIn, {
-        FailureCode.sessionExpired,
-        FailureCode.captchaRequired,
-      });
+      expect(withSignIn, {FailureCode.sessionExpired});
     });
   });
 

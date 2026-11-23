@@ -25,6 +25,25 @@ Future<SessionResponse> login({
 Future<SessionResponse> restoreSession() =>
     RustLib.instance.api.crateApiLiveRestoreSession();
 
+/// Reads the single saved credential from the platform secure vault on a
+/// blocking thread so the login form can pre-fill remembered credentials when
+/// CAS requests a fresh captcha or session re-verification.
+Future<SavedCredentialResponse> loadSavedCredential() =>
+    RustLib.instance.api.crateApiLiveLoadSavedCredential();
+
+/// Local observation only: never initialize a client or probe the school.
+Future<RouteChoice?> lastVerifiedRoute() =>
+    RustLib.instance.api.crateApiLiveLastVerifiedRoute();
+
+/// Explicit workspace action. Unlike login setup, never discards a valid session.
+Future<FailureCode?> switchVerifiedRoute({
+  required String expectedAccount,
+  required RouteChoice route,
+}) => RustLib.instance.api.crateApiLiveSwitchVerifiedRoute(
+  expectedAccount: expectedAccount,
+  route: route,
+);
+
 /// Cookie-only reads; never calls the interactive/saved-password restore API.
 Future<BackgroundReminderRead> readBackgroundReminders({
   required String owner,
@@ -325,8 +344,13 @@ Future<LibraryStatsResponse> loadDemoLibraryStats() =>
 Future<UpdateResponse> checkAndroidUpdate({required String current}) =>
     RustLib.instance.api.crateApiLiveCheckAndroidUpdate(current: current);
 
-Future<MutationResponse> submitCheckin({required String courseId}) =>
-    RustLib.instance.api.crateApiLiveSubmitCheckin(courseId: courseId);
+Future<CheckInQrResponse> prepareCheckinQr({
+  required String courseId,
+  required bool revalidateCourse,
+}) => RustLib.instance.api.crateApiLivePrepareCheckinQr(
+  courseId: courseId,
+  revalidateCourse: revalidateCourse,
+);
 
 Future<MutationResponse> reserveLibrarySeat({
   required String areaId,
@@ -3316,6 +3340,26 @@ class ReadingRoomDto {
 }
 
 enum RouteChoice { automatic, direct, webVpn }
+
+class SavedCredentialResponse {
+  final String? account;
+  final String? password;
+  final FailureCode? failure;
+
+  const SavedCredentialResponse({this.account, this.password, this.failure});
+
+  @override
+  int get hashCode => account.hashCode ^ password.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SavedCredentialResponse &&
+          runtimeType == other.runtimeType &&
+          account == other.account &&
+          password == other.password &&
+          failure == other.failure;
+}
 
 class SessionResponse {
   final SessionState state;

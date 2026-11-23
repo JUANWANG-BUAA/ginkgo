@@ -1,3 +1,5 @@
+pub use super::checkin_qr::{encode_qr_matrix, CheckInQrTicket};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CheckInStatus {
     NotSigned,

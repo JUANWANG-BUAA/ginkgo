@@ -229,45 +229,44 @@ class _GraduatePageState extends State<GraduatePage> {
   });
 
   @override
-  Widget build(BuildContext context) => PageRefreshShortcut(
-    onRefresh: busy ? null : () => load(force: true),
-    child: CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
-        context,
-      ),
-      child: SafeArea(
-        child: LongPageScroll(
-          controller: scrollController,
-          child: CustomScrollView(
-            key: const Key('graduate-scroll'),
+  Widget build(BuildContext context) {
+    final horizontalInset = ((MediaQuery.sizeOf(context).width - 900) / 2)
+        .clamp(0.0, double.infinity);
+    return PageRefreshShortcut(
+      onRefresh: busy ? null : () => load(force: true),
+      child: CupertinoPageScaffold(
+        backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
+          context,
+        ),
+        child: SafeArea(
+          child: LongPageScroll(
             controller: scrollController,
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            slivers: [
-              ApplePageHeader(
-                largeTitle: const Text('研究生教务'),
-                previousPageTitle: '工作台',
-                border: null,
-                section: '学业',
-                subtitle: '学籍、培养方案与研究生学业查询',
-                icon: CupertinoIcons.briefcase_fill,
-                trailing: AppleToolbarButton(
-                  label: '刷新研究生教务',
-                  busy: busy,
-                  onPressed: busy ? null : () => load(force: true),
-                  child: busy
-                      ? const GinkgoActivity()
-                      : const Icon(CupertinoIcons.refresh),
-                ),
-              ),
-              CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
-              SliverLayoutBuilder(
-                builder: (context, constraints) => SliverPadding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: ((constraints.crossAxisExtent - 900) / 2).clamp(
-                      0,
-                      double.infinity,
-                    ),
+            child: CustomScrollView(
+              key: const Key('graduate-scroll'),
+              controller: scrollController,
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              slivers: [
+                ApplePageHeader(
+                  largeTitle: const Text('研究生教务'),
+                  previousPageTitle: '工作台',
+                  border: null,
+                  section: '学业',
+                  subtitle: '学籍、培养方案与研究生学业查询',
+                  icon: CupertinoIcons.briefcase_fill,
+                  trailing: AppleToolbarButton(
+                    label: '刷新研究生教务',
+                    busy: busy,
+                    onPressed: busy ? null : () => load(force: true),
+                    child: busy
+                        ? const GinkgoActivity()
+                        : const Icon(CupertinoIcons.refresh),
                   ),
+                ),
+                CupertinoSliverRefreshControl(
+                  onRefresh: () => load(force: true),
+                ),
+                SliverPadding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalInset),
                   sliver: SliverList.list(
                     children: [
                       GraduateViewSwitcher(view: view, onChanged: selectView),
@@ -371,26 +370,21 @@ class _GraduatePageState extends State<GraduatePage> {
                     ],
                   ),
                 ),
-              ),
-              if (view == GraduateView.courses && report.sections != null)
-                SliverLayoutBuilder(
-                  builder: (context, constraints) => SliverPadding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: ((constraints.crossAxisExtent - 900) / 2)
-                          .clamp(0, double.infinity),
-                    ),
+                if (view == GraduateView.courses && report.sections != null)
+                  SliverPadding(
+                    padding: EdgeInsets.symmetric(horizontal: horizontalInset),
                     sliver: SliverList.builder(
                       itemCount: visibleCourses.length,
                       itemBuilder: (context, index) =>
                           GraduateCourseCard(entry: visibleCourses[index]),
                     ),
                   ),
-                ),
-              const SliverToBoxAdapter(child: SizedBox(height: 32)),
-            ],
+                const SliverToBoxAdapter(child: SizedBox(height: 32)),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

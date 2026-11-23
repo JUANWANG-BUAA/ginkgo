@@ -1,6 +1,8 @@
 //! Feature implementation behind the stable live API.
 use super::*;
 
+static SCHEDULE_READ_GATE: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+
 pub(super) async fn load_schedule(
     term_id: Option<String>,
     week: Option<i32>,
@@ -9,12 +11,22 @@ pub(super) async fn load_schedule(
     let Ok(service) = service() else {
         return schedule_failure(FailureCode::CredentialStore, None);
     };
+    let share_cold_default = !force_refresh && term_id.is_none() && week.is_none();
     let input = ScheduleQueryInput {
         term_id,
         week,
         force_refresh,
     };
-    match with_session_read(|| service.load_schedule(&input)).await {
+    match with_session_read(|| async {
+        let _coalesce = if share_cold_default {
+            Some(SCHEDULE_READ_GATE.lock().await)
+        } else {
+            None
+        };
+        service.load_schedule(&input).await
+    })
+    .await
+    {
         Ok(outcome) => schedule_response(outcome),
         Err(error) => schedule_failure(error.code.clone().into(), error.detail),
     }
@@ -30,7 +42,16 @@ pub(super) async fn load_today(force_refresh: bool) -> TodayResponse {
             failure_detail: None,
         };
     };
-    match with_session_read(|| service.load_today(force_refresh)).await {
+    match with_session_read(|| async {
+        let _coalesce = if !force_refresh {
+            Some(SCHEDULE_READ_GATE.lock().await)
+        } else {
+            None
+        };
+        service.load_today(force_refresh).await
+    })
+    .await
+    {
         Ok(outcome) => today_response(outcome),
         Err(error) => {
             let (failure, failure_detail) = failure(&error);

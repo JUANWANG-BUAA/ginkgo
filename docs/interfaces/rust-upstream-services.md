@@ -14,10 +14,10 @@
 - [protocol](#protocol) (12)
 - [cgyy_booking_service](#cgyybookingservice) (4)
 - [cgyy_service](#cgyyservice) (1)
-- [checkin_service](#checkinservice) (1)
+- [checkin_service](#checkinservice) (2)
 - [contracts](#contracts) (1)
 - [demo_campus](#democampus) (9)
-- [demo_checkin](#democheckin) (2)
+- [demo_checkin](#democheckin) (3)
 - [demo_grades](#demogrades) (2)
 - [demo_homework](#demohomework) (2)
 - [demo_library](#demolibrary) (2)
@@ -139,7 +139,9 @@
 ## checkin_service
 
 - `pub(crate) struct CheckInProgress` — Local timing only: no account, URLs, cookies, course names or session IDs.
-  <sub>struct · rust/crates/ginkgo_upstream/src/services/checkin_service.rs:21</sub>
+  <sub>struct · rust/crates/ginkgo_upstream/src/services/checkin_service.rs:20</sub>
+- `pub async fn fetch_checkin_timestamp(&self) -> Result<String, AppError> {…}` — Read-only upstream server timestamp for building QR check-in payloads.
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/checkin_service.rs:118</sub>
 
 ## contracts
 
@@ -175,6 +177,8 @@
     - `courses: Vec<CheckInCourse>`  <sub>:10</sub>
 - `pub fn load() -> Result<DemoCheckIn, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_checkin.rs:13</sub>
+- `pub fn prepare_qr( course_id: &str, ) -> Result<ginkgo_domain::features::checkin::CheckInQrTicket, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/demo_checkin.rs:29</sub>
 
 ## demo_grades
 
@@ -302,7 +306,7 @@
 ## library_service
 
 - `pub(crate) async fn library_token(&self) -> Result<String, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/library_service.rs:34</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/library_service.rs:29</sub>
 
 ## library_stats_service
 

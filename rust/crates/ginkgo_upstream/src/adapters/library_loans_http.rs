@@ -44,14 +44,20 @@ async fn get<T: HttpTransport + Sync>(
         request.response_limit = Some(LIMIT);
         let r = session.send_with_fallback(request).await?;
         let final_url = url::Url::parse(&r.final_url).map_err(|_| AppError::changed())?;
+        if final_url.host_str() == Some(crate::foundation::webvpn::GATEWAY_HOST)
+            && final_url.path().trim_end_matches('/').ends_with("/login")
+        {
+            return Err(AppError::with_detail(
+                ErrorCode::AccessPolicyDenied,
+                "webvpn_login_required",
+            ));
+        }
         if !trusted(&final_url) {
             return Err(AppError::session_expired());
         }
         if matches!(r.status, 301 | 302 | 303 | 307 | 308) {
-            next = final_url
-                .join(r.header("location").ok_or_else(AppError::changed)?)
-                .map_err(|_| AppError::changed())?
-                .into();
+            let location = r.header("location").ok_or_else(AppError::changed)?;
+            next = crate::auth::redirect::resolve_get(location, &r.final_url)?;
             continue;
         }
         if r.status == 401 || final_url.host_str() == Some("sso.buaa.edu.cn") {

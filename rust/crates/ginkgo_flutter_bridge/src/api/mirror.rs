@@ -324,8 +324,23 @@ fn checkin_course(course: ginkgo_core::features::checkin::CheckInCourse) -> Chec
     }
 }
 
+pub struct CheckInQrResponse {
+    pub course_id: String,
+    pub fetched_at: Option<String>,
+    pub refresh_seconds: i32,
+    pub matrix_size: i32,
+    pub modules: Vec<bool>,
+    pub demo: bool,
+    pub failure: Option<FailureCode>,
+    pub failure_detail: Option<String>,
+}
+
 pub fn load_demo_checkin() -> CheckInResponse {
     academic::load_demo_checkin()
+}
+
+pub fn load_demo_checkin_qr(course_id: String) -> CheckInQrResponse {
+    academic::load_demo_checkin_qr(&course_id)
 }
 
 pub struct LibraryVenue {

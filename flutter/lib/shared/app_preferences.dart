@@ -79,6 +79,10 @@ class AppPreferences extends ChangeNotifier {
   /// While set, a later start shows the login page instead of auto-restoring,
   /// so a failed vault deletion can never resurrect a chosen signed-out state.
   bool explicitSignOut = false;
+
+  /// Whether the user opted into saving credentials in the platform vault.
+  /// Only this boolean is stored here; actual credentials live in Keystore/Keychain.
+  bool rememberPassword = false;
   String? saveError;
   String? _writeError;
 
@@ -145,6 +149,7 @@ class AppPreferences extends ChangeNotifier {
           ? size.toDouble()
           : 1;
       explicitSignOut = value['explicitSignOut'] == true;
+      rememberPassword = value['rememberPassword'] == true;
       routeMode = value['routeMode'] is String
           ? value['routeMode'] as String
           : 'automatic';
@@ -164,6 +169,7 @@ class AppPreferences extends ChangeNotifier {
     'reduceMotion': reduceMotion,
     'textSize': textSize,
     'explicitSignOut': explicitSignOut,
+    'rememberPassword': rememberPassword,
     'routeMode': routeMode,
   };
 
@@ -221,6 +227,13 @@ class AppPreferences extends ChangeNotifier {
   Future<void> setRouteMode(String value) {
     routeMode = value;
     return _scheduleSave('网络路线已选择，本机保存失败，请稍后重试');
+  }
+
+  /// Persists the user's remember-password switch preference (boolean only).
+  Future<void> setRememberPassword(bool value) {
+    if (rememberPassword == value) return Future.value();
+    rememberPassword = value;
+    return _scheduleSave('记住密码选项保存失败，请稍后重试');
   }
 
   /// Records or clears the explicit sign-out marker with the same serialized

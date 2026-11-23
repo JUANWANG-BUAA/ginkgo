@@ -24,7 +24,7 @@ class LibraryLoansPage extends StatefulWidget {
 class _LibraryLoansPageState extends State<LibraryLoansPage>
     with WidgetsBindingObserver {
   LibraryLoanPage? _data;
-  FailureCode? _failure;
+  ({int page, FailureCode code})? _failure;
   bool _busy = false, _showPrivacy = false;
   int _generation = 0;
   void _clear() {
@@ -67,7 +67,7 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
   Future<void> _read(int page) async {
     final gateway = widget.gateway;
     if (_busy || gateway == null) return;
-    final generation = ++_generation;
+    final generation = _generation;
     setState(() {
       _busy = true;
       _failure = null;
@@ -81,14 +81,16 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
     if (!mounted || generation != _generation) return;
     setState(() {
       _busy = false;
-      _failure = result.failure;
-      if (result.failure == FailureCode.sessionExpired ||
-          result.failure == FailureCode.moduleAuthRequired) {
-        _data = null;
-      }
-      if (result.failure == null && result.data != null) _data = result.data;
-      if (result.failure == null && result.data == null) {
-        _failure = FailureCode.changedResponse;
+      final code = result.failure ??
+          (result.data == null ? FailureCode.changedResponse : null);
+      if (code == null) {
+        _data = result.data;
+      } else {
+        _failure = (page: page, code: code);
+        if (code == FailureCode.sessionExpired ||
+            code == FailureCode.moduleAuthRequired) {
+          _data = null;
+        }
       }
     });
   }
@@ -96,21 +98,23 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
   Future<void> _openOfficial() async {
     final gateway = widget.officialGateway;
     if (gateway == null) return;
+    final generation = _generation;
     try {
-      final url = gateway.libraryLoansPortalUrl();
-      if (!await openSchoolLink(context, url)) {
-        throw StateError('official website unavailable');
-      }
+      if (await openSchoolLink(context, gateway.libraryLoansPortalUrl())) return;
     } catch (_) {
-      if (mounted) setState(() => _failure = FailureCode.serviceUnavailable);
+      // The portal address itself may be unavailable.
+    }
+    if (mounted && generation == _generation &&
+        identical(gateway, widget.officialGateway)) {
+      await showSchoolLinkError(context);
     }
   }
 
-  String get _error => switch (_failure) {
+  String _error(FailureCode code) => switch (code) {
     FailureCode.sessionExpired || FailureCode.moduleAuthRequired =>
-      '读者认证未完成或已过期，可在图书馆官网单独查询。本提示不代表整个 App 已退出，请勿反复重登。',
+      '本次查询未能确认图书馆读者身份，可在图书馆官网单独查询。这不代表整个 App 已退出。',
     FailureCode.redirectLimit =>
-      '读者认证反复跳转，尚未建立图书馆会话；可在官网单独核对借阅，官网登录状态不会同步到 App。',
+      '读者认证反复跳转，本次未能确认图书馆会话；可在官网单独核对借阅，官网登录状态不会同步到 App。',
     FailureCode.changedResponse => '借阅接口路径或数据结构发生变化，请通过官网核对。',
     FailureCode.accessPolicyDenied => '当前网络或读者权限不允许查询，请通过官网核对。',
     FailureCode.businessRejected => '图书馆未受理本次查询，请通过官网核对。',
@@ -120,6 +124,8 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
   @override
   Widget build(BuildContext context) {
     final data = _data;
+    final failure = _failure;
+    final retained = _busy || failure != null;
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
         context,
@@ -128,7 +134,7 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
         middle: const Text('本人借阅'),
         // Keep refresh available after a successful read. The first read is
         // also offered in the empty state so it is discoverable in context.
-        trailing: widget.gateway == null || data == null
+        trailing: widget.gateway == null || data == null || failure != null
             ? null
             : CupertinoButton(
                 key: const Key('library-loans-read'),
@@ -180,7 +186,7 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
                   const GinkgoActivity(size: 24),
                 if (widget.gateway != null &&
                     data == null &&
-                    _failure == null &&
+                    failure == null &&
                     !_busy) ...[
                   const AppleEmptyState(
                     title: '尚未读取借阅记录',
@@ -202,24 +208,24 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
                     onPressed: _openOfficial,
                     child: const Text('打开图书馆官网'),
                   ),
-                if (_failure != null && data == null)
+                if (failure != null)
                   AppleEmptyState(
-                    title: '暂时无法读取借阅记录',
-                    description: '$_error\n诊断代码：${_failure!.name}',
+                    title: '第 ${failure.page} 页借阅读取失败',
+                    description: '${_error(failure.code)}\n诊断代码：${failure.code.name}',
                     error: true,
-                    action: '重试',
-                    onAction: () => _read(1),
-                  ),
-                if (_failure != null && data != null)
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text('$_error 保留本页上次结果（非最新）。'),
+                    action: '重试第 ${failure.page} 页',
+                    onAction: () => _read(failure.page),
                   ),
                 if (data != null) ...[
+                  if (retained)
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text('以下为第 ${data.page} 页上次读取的结果，未确认是否最新。'),
+                    ),
                   SummaryStrip(
                     items: [
                       SummaryItem(
-                        '当前借阅',
+                        '本页记录',
                         '${data.items.length} 条',
                         icon: CupertinoIcons.bookmark,
                       ),
@@ -229,16 +235,22 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
                         icon: CupertinoIcons.list_bullet,
                       ),
                       SummaryItem(
-                        '当前页',
+                        '显示页',
                         '第 ${data.page} 页',
                         icon: CupertinoIcons.doc_text,
                       ),
                     ],
                   ),
                   if (data.items.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Text('暂无当前借阅（本次查询已确认）'),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        retained
+                            ? '上次读取时本页没有借阅记录。'
+                            : data.total == 0
+                                ? '暂无当前借阅（本次查询已确认）'
+                                : '本页没有借阅记录。',
+                      ),
                     ),
                   for (final loan in data.items)
                     AppleListTile(

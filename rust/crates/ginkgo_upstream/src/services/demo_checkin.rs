@@ -26,6 +26,25 @@ pub fn load() -> Result<DemoCheckIn, AppError> {
     })
 }
 
+pub fn prepare_qr(
+    course_id: &str,
+) -> Result<ginkgo_domain::features::checkin::CheckInQrTicket, AppError> {
+    use ginkgo_domain::features::checkin::{encode_qr_matrix, CheckInQrTicket};
+    let course_id = course_id.trim();
+    if course_id.is_empty() {
+        return Err(AppError::invalid());
+    }
+    let payload = format!("ginkgo-demo-checkin:{course_id}");
+    let (matrix_size, modules) = encode_qr_matrix(&payload).map_err(|()| AppError::invalid())?;
+    Ok(CheckInQrTicket {
+        course_id: course_id.to_owned(),
+        fetched_at: "2026-10-20T08:00:00+08:00".into(),
+        refresh_seconds: 4,
+        matrix_size,
+        modules,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

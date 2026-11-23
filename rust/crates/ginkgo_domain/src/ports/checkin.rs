@@ -1,5 +1,8 @@
 //! Stable checkin business capability and values.
-use crate::{features::checkin::CheckInCourse, AppError};
+use crate::{
+    features::checkin::{CheckInCourse, CheckInQrTicket},
+    AppError,
+};
 #[derive(Debug, Clone)]
 pub struct CheckInOutcome {
     /// School-local date, yyyy-MM-dd.
@@ -38,9 +41,10 @@ pub trait CheckInSource: Send + Sync {
     ) -> impl std::future::Future<Output = Result<CheckInOutcome, AppError>> + Send;
 }
 
-pub trait CheckInMutationSource: Send + Sync {
-    fn submit_checkin(
+pub trait CheckInQrSource: Send + Sync {
+    fn prepare_checkin_qr(
         &self,
         course_id: &str,
-    ) -> impl std::future::Future<Output = crate::features::mutation::MutationOutcome> + Send;
+        revalidate_course: bool,
+    ) -> impl std::future::Future<Output = Result<CheckInQrTicket, AppError>> + Send;
 }

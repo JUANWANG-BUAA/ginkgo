@@ -203,6 +203,11 @@ impl CookieJar {
         self.cookies.iter().any(|cookie| cookie.name == name)
     }
 
+    /// Changes on every accepted Set-Cookie, including rotation and deletion.
+    pub(crate) fn revision(&self) -> u64 {
+        self.sequence
+    }
+
     pub fn len(&self) -> usize {
         self.cookies.len()
     }

@@ -81,7 +81,7 @@ void main() {
       // remembered and re-runs once that read settles.
       await tester.tap(find.bySemanticsLabel('刷新预约').first);
       await tester.pump();
-      expect(find.text('当前没有进行中的预约'), findsOneWidget);
+      expect(find.text('上次结果中没有已确认的进行中预约'), findsOneWidget);
       final refresh = tester.widget<CupertinoSliverRefreshControl>(
         find.byType(CupertinoSliverRefreshControl, skipOffstage: false),
       );
@@ -95,7 +95,7 @@ void main() {
         StateError('synthetic transport error'),
       );
       await tester.pump();
-      expect(find.text('当前没有进行中的预约'), findsOneWidget);
+      expect(find.text('上次结果中没有已确认的进行中预约'), findsOneWidget);
       expect(service.bookings.length, 3);
 
       service.bookings.last.complete(emptyBookings);
@@ -110,7 +110,8 @@ void main() {
         StateError('synthetic transport error'),
       );
       await tester.pumpAndSettle();
-      expect(find.text('当前没有进行中的预约'), findsOneWidget);
+      expect(find.text('当前没有进行中的预约'), findsNothing);
+      expect(find.text('上次结果中没有已确认的进行中预约'), findsOneWidget);
       final retry = find.descendant(
         of: find.byKey(const Key('library-bookings-status')),
         matching: find.text('重试'),
@@ -125,6 +126,32 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('a venue read does not disable the booking refresh', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 1300);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final service = ProgressiveLibraryService();
+    await tester.pumpWidget(ginkgoApp(home: LibraryPage(service: service)));
+    service.bookings.single.complete(emptyBookings);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('library-find-seats')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(service.venues, hasLength(1));
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('刷新预约').first);
+    await tester.pump();
+    expect(service.bookings, hasLength(2));
+    expect(service.venues, hasLength(1));
+    service.bookings.last.complete(emptyBookings);
+    service.venues.single.complete(venueSnapshot);
+    await tester.pumpAndSettle();
+  });
 
   testWidgets('disposed venue selection ignores late results', (tester) async {
     final service = ProgressiveLibraryService();

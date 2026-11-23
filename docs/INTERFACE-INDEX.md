@@ -4,6 +4,8 @@
 
 当前变更必须同步 [协议锁](protocol-contracts.json)，发布另受 [强制验收契约](ANDROID-RELEASE-CONTRACT.md) 约束。本文只做索引与契约说明，不重复上游协议事实。URL、参数、成功码、证据等级以 [API.md](API.md) 为唯一来源；用户能做什么、读写边界与本机数据见 [FEATURES-AND-PROTOCOLS.md](FEATURES-AND-PROTOCOLS.md)；分层职责见 [MIRROR-ARCHITECTURE.md](MIRROR-ARCHITECTURE.md)。
 
+已登录工作区通过 `VerifiedRouteGateway` 读取最近确认的实际路线、校验目标路线并切换；它不调用登录页的 `setRoute`，切换失败也不调用 `signOut`。显示路线只读取本机内存，不探测网络、不输出账号或票据。
+
 官网外链能力通过 `application/external_links.dart` 的 `ExternalLinkLauncher` 注入；`ginkgoApp` 绑定平台适配并覆盖导航路由，shared 仅校验 URL，widgets 处理交互反馈。接口签名见下方生成索引。
 
 研讨室值类型归属 `application/cgyy_models.dart`，网关与 native/demo 适配器只依赖该契约；订单审批文案、摘要和地点拼接由 `features/cgyy/cgyy_models.dart` 的展示扩展提供。
@@ -115,7 +117,7 @@ Flutter 页面
 | 学校作业 | `homework` | 读 | SPOC | [`AcademicGateway.homework`](#72-academicgateway) | `load_homework`、`load_homework_detail` | `HomeworkSource` | [§7.1](API.md#71-bbaa-原版作业实现对照2026-10-15) |
 | 作业附件与提交 | `homework-files` | **写** | SPOC | [`HomeworkFilesGateway`](#77-homeworkfilesgateway) | `upload_homework_file`、`submit_homework_file`、`reconcile_homework_file`、`download_homework_file` 等 | `HomeworkSubmissionSource` | [§7.1](API.md#71-bbaa-原版作业实现对照2026-10-15) |
 | SPOC 学习 | `learning` | 读 | SPOC | [`LearningCourseGateway` 等](#78-learning-系列-gateway) | `learning_courses`、`course_announcements` 等 | `Learning*Source` | [§7.1.4](API.md#714-spoc-课程学习只读扩展2026-10-26静态证据与实测分开) |
-| 课程签到 | `checkin` | **写** | iClass | [`CheckInGateway`](#73-checkingateway) | `load_checkin_today`、`load_checkin_on_date`、`submit_checkin` | `CheckInSource`、`CheckInMutationSource` | [§7.2](API.md#72-iclass-签到状态与手动提交写协议尚待真实验收) |
+| 课程签到 | `checkin` | 读 + 实时签到码 | iClass | [`CheckInGateway`](#73-checkingateway) | `load_checkin_today`、`load_checkin_on_date`、`prepare_checkin_qr` | `CheckInSource`、`CheckInQrSource` | [§7.2](API.md#72-iclass-签到状态与手动提交写协议尚待真实验收) |
 | 图书馆座位 | `library` | **写** | booking.lib | `LibrarySeatingGateway` | `reserve_library_seat`、`perform_library_action`、`load_library_*` | `LibrarySource`、`LibraryMutationSource` | [§5](API.md#5-图书馆座位bookinglib-v4) |
 | 公开查书 | `library-books` | 读 | OPAC | `LibraryCatalogGateway.libraryBooks` | `load_library_books`、`load_library_holdings` | `LibraryCatalogSource` | [§6](API.md#6-图书目录馆藏与本人借阅2026-10-23-部分只读验证) |
 | 本人借阅 | `library-loans` | 读 | OPAC | [`LibraryLoansGateway`](#79-libraryloansgateway) | `load_library_loans` | `LibraryLoansSource` | [§6.2](API.md#62-本人借阅与隐私) |
@@ -155,7 +157,7 @@ Flutter 页面
 | [§6C 校车](API.md#6c-智慧校车脚本静态本人查询页面观察未购票) | `adapters/shuttle_http.rs` | 学校公开页面 | `shuttle_service` |
 | [§7.1 作业](API.md#71-bbaa-原版作业实现对照2026-10-15) | `adapters/homework_http.rs`、`homework_files_http.rs` | `SPOC_BASE`、`/jxkj/*`、`/kczy/*` | `homework_service`、`homework_submission_service` |
 | [§7.1.4 学习](API.md#714-spoc-课程学习只读扩展2026-10-26静态证据与实测分开) | `adapters/learning/` | SPOC 栏目/公告/资料/测验 | `learning_service` |
-| [§7.2 签到](API.md#72-iclass-签到状态与手动提交写协议尚待真实验收) | `adapters/checkin_http.rs` | `ENTRY_URL`、`APP_LOGIN_URL`、`COURSE_SCHEDULE_URL` | `checkin_service` |
+| [§7.2 签到](API.md#72-iclass-签到状态与手动提交写协议尚待真实验收) | `adapters/checkin_http.rs` | `ENTRY_URL`、`APP_LOGIN_URL`、`COURSE_SCHEDULE_URL`、`TIMESTAMP_URL`、`CLASSROOM_QR_BASE_URL` | `checkin_service` |
 | [§7.3 博雅与通知](API.md#73-2026-10-18-教育系统只读数据盘点) | `adapters/bykc_http.rs`、`notices_http.rs` | BYKC 查询、新闻列表 | `bykc_service`、`notices_service` |
 | [§7.4 研究生教务](API.md#74-培养方案执行报告结构化类别课组) | `adapters/graduate_http.rs` | GSMIS 学籍/执行报告 | `graduate_service` |
 | [更新源](API.md#android-镜像更新源2026-10-20) | `adapters/updates_http.rs` | GitHub Releases | `updates_service` |
@@ -232,7 +234,7 @@ pub struct DataOutcome<T> {
 | `CourseAssessmentSource` | `course_assessments` | `ports/learning.rs` |
 | `CourseLearningContextSource` | `course_learning_columns`、`course_announcements_in`、`course_announcement_detail_in`、`course_announcement_attachment_in`、`course_assessments_in`、`course_resources_at`、`course_resource_download_at`、`course_learning_capabilities` | `ports/learning.rs` |
 | `CheckInSource` | `checkin_load_progress`、`load_checkin`、`load_checkin_on_date` | `ports/checkin.rs` |
-| `CheckInMutationSource` | `submit_checkin` | `ports/checkin.rs` |
+| `CheckInQrSource` | `prepare_checkin_qr` | `ports/checkin.rs` |
 | `LibrarySource` | `load_library_history`、`load_library_venues`、`load_library_areas`、`load_library_slots`、`load_library_seats`、`load_library_bookings` | `ports/library.rs` |
 | `LibraryMutationSource` | `reserve_library_seat`、`perform_library_action` | `ports/library.rs` |
 | `LibraryCatalogSource` | `search_books`、`book_holdings` | `ports/library_books.rs` |
@@ -312,9 +314,9 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 `learning_courses`、`course_announcements`、`course_announcement_detail`、`course_announcement_attachment`、`course_resources`、`course_resource_download`、`course_assessments`、`course_learning_columns`、`course_learning_capabilities`，以及带 `_in` / `_at` 后缀的显式路径变体（逐层复核目录，未知层级拒绝）。`export_learning_snapshots` / `import_learning_snapshots` 管本机加密快照。
 
-### 6.5 签到（写）
+### 6.5 签到与实时签到码
 
-`load_checkin_today`、`load_checkin_on_date`、`checkin_load_progress`、`submit_checkin`。结果须回查，未知不重发。
+`load_checkin_today`、`load_checkin_on_date`、`checkin_load_progress`、`prepare_checkin_qr`。客户端生成实时签到码供智慧北航扫码，完成后只读回查课程状态。
 
 ### 6.6 图书馆
 
@@ -341,11 +343,11 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ### 6.10 返回形态与载荷契约
 
-92 个命令按返回形态分为两类：
+94 个命令按返回形态分为两类：
 
 | 形态 | 数量 | 含义 | 解码位置 |
 | --- | --- | --- | --- |
-| 类型化 DTO | 92 | 命令直接返回结构体（`SessionResponse`、`ScheduleResponse`、`CheckInResponse`、`MutationResponse`、`CgyyLoadResponse` …） | Rust 端投影；Dart 只做 DTO → 呈现模型 |
+| 类型化 DTO | 94 | 命令直接返回结构体（`SessionResponse`、`SavedCredentialResponse`、`ScheduleResponse`、`CheckInResponse`、`CheckInQrResponse`、`MutationResponse`、`CgyyLoadResponse` …） | Rust 端投影；Dart 只做 DTO → 呈现模型 |
 | `ReadOnlyResponse` 载荷 | 0 | —— | —— |
 
 使用载荷信封的 0 个命令：
@@ -374,13 +376,15 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | `clearCache()` | — | `bool` |
 | `verifyBridgeContract()` | — | `bool` |
 
+可选 `SavedCredentialGateway.savedCredential()` 从系统保险库只读回填已保存凭据（显式退出后不读取）；`ServiceHealthTracker` 在内存被动汇总各网关请求阶段、耗时与失败码。
+
 ### 7.2 AcademicGateway
 
 `dates(instant)`、`classrooms(scope, query)`、`rules()`、`schedule({termId, week, forceRefresh})`、`gradeTerms()`、`grades({termCode, forceRefresh})`、`today({forceRefresh})`、`homework({forceRefresh})`、`homeworkDetail(id, {forceRefresh})`。
 
 ### 7.3 CheckInGateway
 
-`checkin({forceRefresh})`、`checkinOnDate(date, {forceRefresh})`、`submitCheckin(courseId)`、`checkinProgress()`。
+`checkin({forceRefresh})`、`checkinOnDate(date, {forceRefresh})`、`prepareCheckinQr(courseId, {revalidateCourse})`、`checkinProgress()`。
 
 ### 7.4 LibrarySeatingGateway / LibraryCatalogGateway / ShuttleGateway
 
@@ -431,6 +435,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | `ReminderPlatform` | `replace(plans)` | 系统通知调度 |
 | `ScopedReminderPlatform` | `synchronize(owner, checkin, homework, groups, plans)`、`clearOwner(owner)` | 账号绑定的分组同步与后台配置；失败分组不覆盖 |
 | `BackgroundReminderStatusService` | `backgroundReminders()` | 读取本机后台任务状态，不登录或请求学校 |
+| `CheckinQrSaver` | `saveCheckinQrPng(bytes)` | 将实时签到码 PNG 覆写保存至系统相册 `Pictures/Ginkgo/ginkgo_checkin_qr.png`（桌面端文件保存对话框） |
 
 `SerialReminderPlatform` 对全量/分组/清理共享串行队列，入队复制标量计划映射和分组集合；本项失败不阻断后继。`CourseVisibility` 仅持有本机状态，`CourseVisibilityScope.controllerFactory` 显式注入实例；工作区及后台入口使用 `CourseVisibilityFileStore` 注入读写，文件格式保持兼容。文件恢复失败或对象销毁不开始新的排队写入。
 
@@ -494,7 +499,8 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | --- | --- | --- | --- |
 | `load_*` / `*_load_*` | 读学校或本机状态 | `load_schedule`、`load_today`、`checkin_load_progress` | 只读；允许返回旧快照与失败元数据 |
 | `search_*` / `*_list_*` | 读列表或检索 | `search_books`、`pending_homework_submissions` | 只读；分页属本机或上游，不混用 |
-| `submit_*` / `execute_*` / `reserve_*` / `perform_*` | 改学校系统 | `submit_checkin`、`execute_cgyy`、`reserve_library_seat` | 必须用户确认、单次提交、结果回查；结果不明不重发 |
+| `prepare_*` | 按需准备一次性交互凭据/实时票据 | `prepare_checkin_qr` | 先校验当前业务窗口与状态；原始学校 URL 不跨 FFI |
+| `submit_*` / `execute_*` / `reserve_*` / `perform_*` | 改学校系统 | `submit_homework_file`、`execute_cgyy`、`reserve_library_seat` | 必须用户确认、单次提交、结果回查；结果不明不重发 |
 | `reconcile_*` | 回查未知结果 | `reconcile_homework_file` | 只读学校状态，不再次写入 |
 | `edit_*` | 改本机数据 | `edit_tasks` | 不触达学校；账号命名空间来自 Rust 会话 |
 | `export_*` / `import_*` | 本机快照出入 | `export_learning_snapshots` | 导入失败不部分生效 |
@@ -520,7 +526,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | `homework` | `forceRefresh`、`id`（详情） | `HomeworkResponse{items[], termName}` / 详情 | 读失败保留旧值 | 进程快照；课程可见性偏好 |
 | `homework-files` | `assignmentId`、文件字节、`handle` | `HomeworkFileWorkspace`、`HomeworkFileReceipt`、`MutationResponse` | `uncertain` → 只允许回查 | 待确认提交记录（不含文件内容） |
 | `learning` | 课程 ID、栏目、目录路径、分页 | `LearningRead<T>`（含旧值与失败）、`LearningDownload` | 分区独立失败，各自保留旧值 | 可选加密学习元数据快照（默认关闭） |
-| `checkin` | 日期、课程 ID | `CheckInResponse{date, courses[]}`、`MutationResponse` | 写 `uncertain` → 只回查 | 日期隔离快照；提醒已读摘要 |
+| `checkin` | 日期、课程 ID、`revalidateCourse` | `CheckInResponse{date, courses[]}`、`CheckInQrResponse{courseId, fetchedAt, refreshSeconds, matrixSize, modules[]}` | 读失败保留旧值；非窗口/已签拒绝生成二维码 | 日期隔离快照；提醒已读摘要；仅主动点击保存时覆写相册单张二维码 |
 | `library` | 馆/区/时段/座位 ID、动作 | 各 `*Response`、`MutationResponse` | 写 `uncertain` → 只回查 | 分区/分页快照 |
 | `library-books` | 关键词、排序、分页、`bibId` | `BookPageResponse{page, pageSize, total, items[], hasMore}` | 读失败保留旧值 | 进程快照 |
 | `library-loans` | `page` | `LibraryLoansRead{pages, records[]}` | 读失败与确认空分别呈现 | **不持久化**；离开页面即清 |

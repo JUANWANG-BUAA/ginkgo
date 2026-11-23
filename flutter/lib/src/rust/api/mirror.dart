@@ -42,6 +42,9 @@ Future<ClassroomResponse> queryDemoClassrooms({
 Future<CheckInResponse> loadDemoCheckin() =>
     RustLib.instance.api.crateApiMirrorLoadDemoCheckin();
 
+Future<CheckInQrResponse> loadDemoCheckinQr({required String courseId}) =>
+    RustLib.instance.api.crateApiMirrorLoadDemoCheckinQr(courseId: courseId);
+
 Future<LibraryDemoResponse> loadDemoLibrary() =>
     RustLib.instance.api.crateApiMirrorLoadDemoLibrary();
 
@@ -108,6 +111,53 @@ class CheckInCourse {
           mergedRecordCount == other.mergedRecordCount &&
           conflicting == other.conflicting &&
           signInAllowed == other.signInAllowed;
+}
+
+class CheckInQrResponse {
+  final String courseId;
+  final String? fetchedAt;
+  final int refreshSeconds;
+  final int matrixSize;
+  final List<bool> modules;
+  final bool demo;
+  final FailureCode? failure;
+  final String? failureDetail;
+
+  const CheckInQrResponse({
+    required this.courseId,
+    this.fetchedAt,
+    required this.refreshSeconds,
+    required this.matrixSize,
+    required this.modules,
+    required this.demo,
+    this.failure,
+    this.failureDetail,
+  });
+
+  @override
+  int get hashCode =>
+      courseId.hashCode ^
+      fetchedAt.hashCode ^
+      refreshSeconds.hashCode ^
+      matrixSize.hashCode ^
+      modules.hashCode ^
+      demo.hashCode ^
+      failure.hashCode ^
+      failureDetail.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CheckInQrResponse &&
+          runtimeType == other.runtimeType &&
+          courseId == other.courseId &&
+          fetchedAt == other.fetchedAt &&
+          refreshSeconds == other.refreshSeconds &&
+          matrixSize == other.matrixSize &&
+          modules == other.modules &&
+          demo == other.demo &&
+          failure == other.failure &&
+          failureDetail == other.failureDetail;
 }
 
 class CheckInResponse {

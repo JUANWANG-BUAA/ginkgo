@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/features/auth/login_page.dart';
 import 'package:ginkgo_mirror/features/auth/session_recovery_page.dart';
 import 'package:ginkgo_mirror/features/settings/settings_page.dart';
@@ -16,11 +17,20 @@ const routeFailure = SessionResponse(
   failure: FailureCode.credentialStore,
 );
 
-class StabilityService extends FakeService {
+class StabilityService extends FakeService implements VerifiedRouteGateway {
   StabilityService()
     : super(restoreResponse: signedOut, loginResponse: signedOut);
   int restores = 0;
   int logins = 0;
+  int switches = 0;
+  @override
+  Future<RouteChoice?> lastVerifiedRoute() async => RouteChoice.direct;
+  @override
+  Future<FailureCode?> switchVerifiedRoute(RouteChoice route) async {
+    switches++;
+    return FailureCode.credentialStore;
+  }
+
   @override
   Future<SessionResponse> setRoute(RouteChoice route) async => routeFailure;
   @override
@@ -88,8 +98,7 @@ void main() {
     );
     picker.onSelected(RouteChoice.webVpn);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CupertinoDialogAction, '继续'));
-    await tester.pumpAndSettle();
+    expect(service.switches, 1);
     expect(signouts, 0);
     expect(preferences.routeMode, 'automatic');
   });

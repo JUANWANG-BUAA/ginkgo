@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import '../application/contracts.dart' show RouteChoice;
 import '../application/platform_actions.dart';
+import '../application/session_reauth.dart';
 
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/shared/course_visibility.dart';
@@ -42,6 +43,7 @@ class GinkgoApp extends StatelessWidget {
     this.accountId,
     this.route,
     this.onSignOut,
+    this.onReauthenticate,
   });
   final MirrorService service;
 
@@ -55,12 +57,15 @@ class GinkgoApp extends StatelessWidget {
   final String? accountId;
   final RouteChoice? route;
   final Future<void> Function()? onSignOut;
+  final SessionReauthCallback? onReauthenticate;
   @override
   Widget build(BuildContext context) => ginkgoApp(
     brightness: brightness,
     preferences: preferences,
     startupUpdate: startupUpdate,
-    home: CourseVisibilityScope(
+    home: SessionReauthScope(
+      onReauthenticate: onReauthenticate,
+      child: CourseVisibilityScope(
       key: ValueKey(service.isDemo ? 'demo' : accountId ?? 'account'),
       account: service.isDemo ? '__demo__' : accountId ?? '__account__',
       controllerFactory: (account) =>
@@ -100,6 +105,7 @@ class GinkgoApp extends StatelessWidget {
           ),
         ),
       ),
+    ),
     ),
   );
 }

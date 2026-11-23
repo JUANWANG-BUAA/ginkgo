@@ -34,6 +34,7 @@
 - [widgets/school_links.dart](#widgetsschoollinksdart) (3)
 - [widgets/status_chip.dart](#widgetsstatuschipdart) (3)
 - [widgets/summary_strip.dart](#widgetssummarystripdart) (5)
+- [widgets/verified_route_label.dart](#widgetsverifiedroutelabeldart) (1)
 
 ## widgets/academic_overview.dart
 
@@ -377,3 +378,10 @@
   <sub>class · widgets/summary_strip.dart:499</sub>
     - `const MetricValue( this.value, { super.key, this.prominent = false, this.tone = StatusTone.neutral, this.suffix, });`  <sub>:500</sub>
     - `Widget build(BuildContext context) => …`  <sub>:514</sub>
+
+## widgets/verified_route_label.dart
+
+- `class VerifiedRouteLabel extends StatefulWidget` — Reads an in-process identity snapshot, never probes school connectivity.
+  <sub>class · widgets/verified_route_label.dart:8</sub>
+    - `const VerifiedRouteLabel({ super.key, required this.gateway, this.revision = 0, });`  <sub>:9</sub>
+    - `State<VerifiedRouteLabel> createState() => …`  <sub>:18</sub>

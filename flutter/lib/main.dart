@@ -17,7 +17,9 @@ import 'package:ginkgo_mirror/application/startup_update_controller.dart';
 import 'package:ginkgo_mirror/application/maintenance.dart';
 import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/application/school_rules.dart';
+import 'package:ginkgo_mirror/application/service_health.dart';
 import 'package:ginkgo_mirror/infrastructure/native_school_rules.dart';
+import 'package:ginkgo_mirror/infrastructure/checkin_qr_saver.dart';
 import 'package:ginkgo_mirror/infrastructure/homework_file_io.dart';
 import 'package:ginkgo_mirror/infrastructure/learning_file_actions.dart';
 import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
@@ -78,6 +80,7 @@ final _platformActions = PlatformActions(
   learningFileSaver: saveLearningFile,
   homeworkFilePicker: pickHomeworkFile,
   homeworkFileSave: saveAndOpenSchoolFile,
+  checkinQrSaver: saveCheckinQrPng,
   maintenance: const NativeMaintenanceService(),
 );
 
@@ -116,6 +119,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
   String? message;
   bool captchaRequired = false;
   bool _restorePending = false;
+  Future<void>? _pendingRevocation;
   UpdateGate? blockingGate;
   bool gateResolved = false;
   String? installedVersion;
@@ -145,20 +149,16 @@ class _GinkgoRootState extends State<GinkgoRoot> {
   Future<void> checkUpdateGate() async {
     final loader = widget.loadUpdateGate;
     if (loader == null) return;
-    UpdateGate? gate;
-    try {
-      gate = await loader();
-    } catch (_) {
-      gate = null;
-    }
+    final gateFuture = loader().catchError((Object _) => null);
+    final infoFuture = PackageInfo.fromPlatform().then<PackageInfo?>(
+      (info) => info,
+      onError: (Object _) => null,
+    );
+    final gate = await gateFuture;
     if (!mounted) return;
-    String? label;
-    int? build;
-    try {
-      final info = await PackageInfo.fromPlatform();
-      label = '${info.version} (${info.buildNumber})';
-      build = int.tryParse(info.buildNumber);
-    } catch (_) {}
+    final info = await infoFuture;
+    final label = info == null ? null : '${info.version} (${info.buildNumber})';
+    final build = info == null ? null : int.tryParse(info.buildNumber);
     if (!mounted) return;
     setState(() {
       installedVersion = label;
@@ -187,7 +187,21 @@ class _GinkgoRootState extends State<GinkgoRoot> {
     }
   }
 
+  Future<void> _awaitPendingRevocation() async {
+    final pending = _pendingRevocation;
+    if (pending != null) {
+      await pending;
+      if (identical(_pendingRevocation, pending)) {
+        _pendingRevocation = null;
+      }
+    }
+  }
+
   Future<void> _restoreSession() async {
+    if (_pendingRevocation != null) {
+      await _awaitPendingRevocation();
+      if (!mounted) return;
+    }
     if (_preferences.readFailed) {
       setState(() {
         stage = _Stage.signedOut;
@@ -281,21 +295,43 @@ class _GinkgoRootState extends State<GinkgoRoot> {
   }
 
   Future<void> signOut() async {
-    await widget.liveService.signOut();
-    // Recorded before the state change: even if a vault deletion once failed,
-    // the next start must show the login page, never auto-restore.
+    // Recorded and applied to UI immediately so a slow in-flight school read
+    // can never trap the user inside the workspace. Backend revocation still
+    // runs to completion and serializes ahead of any subsequent login/restore.
     final saved = _preferences.setExplicitSignOut(true);
+    ServiceHealthTracker.shared.clear();
+    final revoking = widget.liveService.signOut().then<void>(
+      (_) {},
+      onError: (Object _) {},
+    );
+    _pendingRevocation = revoking;
     if (mounted) {
       setState(() {
         session = null;
         stage = _Stage.signedOut;
+        captchaRequired = false;
         message = null;
       });
     }
     await saved;
   }
 
+  /// Returns to [LoginPage] without wiping saved credentials or setting
+  /// [AppPreferences.explicitSignOut], so an expired 24h session can be
+  /// renewed in one tap with pre-filled Keystore credentials.
+  Future<void> reauthenticate({String? reason}) async {
+    ServiceHealthTracker.shared.clear();
+    if (!mounted) return;
+    setState(() {
+      session = null;
+      stage = _Stage.signedOut;
+      captchaRequired = false;
+      message = reason ?? '学校会话已过期，已自动填入记住的账号密码，请重新登录。';
+    });
+  }
+
   void signedIn(SessionResponse response) {
+    ServiceHealthTracker.shared.clear();
     _preferences.setExplicitSignOut(false);
     setState(() {
       session = response;
@@ -356,6 +392,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
           initialMessage: message,
           initialCaptcha: captchaRequired,
           onRetryPreferences: _preferences.readFailed ? retryPreferences : null,
+          beforeSessionAction: _awaitPendingRevocation,
           challengeGateway:
               widget.challengeGateway ??
               (widget.liveService is NativeMirrorService
@@ -380,6 +417,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
         accountId: session?.account,
         route: session?.route,
         onSignOut: signOut,
+        onReauthenticate: reauthenticate,
       ),
     };
   }

@@ -14,6 +14,7 @@
 - [cgyy](#cgyy) (6)
 - [cgyy_booking](#cgyybooking) (9)
 - [checkin](#checkin) (4)
+- [checkin_qr](#checkinqr) (2)
 - [classroom](#classroom) (11)
 - [grades](#grades) (4)
 - [graduate](#graduate) (4)
@@ -259,25 +260,37 @@
 ## checkin
 
 - `pub enum CheckInStatus`
-  <sub>enum · rust/crates/ginkgo_domain/src/features/checkin.rs:2</sub>
+  <sub>enum · rust/crates/ginkgo_domain/src/features/checkin.rs:4</sub>
 - `pub fn name(self) -> &'static str {…}`
-  <sub>fn · rust/crates/ginkgo_domain/src/features/checkin.rs:10</sub>
+  <sub>fn · rust/crates/ginkgo_domain/src/features/checkin.rs:12</sub>
 - `pub struct CheckInCourse`
-  <sub>struct · rust/crates/ginkgo_domain/src/features/checkin.rs:20</sub>
-    - `id: String`  <sub>:21</sub>
-    - `course_id: Option<String>`  <sub>:22</sub>
-    - `course_num: Option<String>`  <sub>:23</sub>
-    - `course_name: String`  <sub>:24</sub>
-    - `begins_at: String`  <sub>:25</sub>
-    - `ends_at: String`  <sub>:26</sub>
-    - `status: CheckInStatus`  <sub>:27</sub>
-    - `teacher_name: Option<String>`  <sub>:28</sub>
-    - `classroom_name: Option<String>`  <sub>:29</sub>
-    - `merged_record_count: usize`  <sub>:30</sub>
-    - `conflicting: bool`  <sub>:31</sub>
-    - `sign_in_allowed: bool`  <sub>:32</sub>
+  <sub>struct · rust/crates/ginkgo_domain/src/features/checkin.rs:22</sub>
+    - `id: String`  <sub>:23</sub>
+    - `course_id: Option<String>`  <sub>:24</sub>
+    - `course_num: Option<String>`  <sub>:25</sub>
+    - `course_name: String`  <sub>:26</sub>
+    - `begins_at: String`  <sub>:27</sub>
+    - `ends_at: String`  <sub>:28</sub>
+    - `status: CheckInStatus`  <sub>:29</sub>
+    - `teacher_name: Option<String>`  <sub>:30</sub>
+    - `classroom_name: Option<String>`  <sub>:31</sub>
+    - `merged_record_count: usize`  <sub>:32</sub>
+    - `conflicting: bool`  <sub>:33</sub>
+    - `sign_in_allowed: bool`  <sub>:34</sub>
 - `pub fn sign_in_window(date: &str, begin: &str, end: &str, now: &str) -> bool {…}` — Product rule: opens ten minutes before class, closes at its end. Parse
-  <sub>fn · rust/crates/ginkgo_domain/src/features/checkin.rs:37</sub>
+  <sub>fn · rust/crates/ginkgo_domain/src/features/checkin.rs:39</sub>
+
+## checkin_qr
+
+- `pub struct CheckInQrTicket`
+  <sub>struct · rust/crates/ginkgo_domain/src/features/checkin_qr.rs:5</sub>
+    - `course_id: String`  <sub>:6</sub>
+    - `fetched_at: String`  <sub>:7</sub>
+    - `refresh_seconds: u16`  <sub>:8</sub>
+    - `matrix_size: u16`  <sub>:9</sub>
+    - `modules: Vec<bool>` — Row-major dark/light modules of length `matrix_size * matrix_size` (excluding quiet zone).  <sub>:11</sub>
+- `pub fn encode_qr_matrix(text: &str) -> Result<(u16, Vec<bool>), ()> {…}` — Encode an arbitrary byte payload (up to 213 bytes) into a standard QR matrix.
+  <sub>fn · rust/crates/ginkgo_domain/src/features/checkin_qr.rs:154</sub>
 
 ## classroom
 

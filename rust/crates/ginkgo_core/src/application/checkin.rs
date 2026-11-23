@@ -19,11 +19,14 @@ impl<U: CheckInSource> Workspace<U> {
     }
 }
 
-impl<U: CheckInMutationSource> Workspace<U> {
-    pub async fn submit_checkin(
+impl<U: CheckInQrSource> Workspace<U> {
+    pub async fn prepare_checkin_qr(
         &self,
         course_id: &str,
-    ) -> crate::features::mutation::MutationOutcome {
-        self.upstream.submit_checkin(course_id).await
+        revalidate_course: bool,
+    ) -> Result<crate::features::checkin::CheckInQrTicket, AppError> {
+        self.upstream
+            .prepare_checkin_qr(course_id, revalidate_course)
+            .await
     }
 }

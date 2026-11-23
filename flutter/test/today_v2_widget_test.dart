@@ -62,6 +62,12 @@ class TodayFake extends Fake implements MirrorService {
   final homeworkRequests = <Completer<HomeworkResponse>>[];
   final taskRequests = <Completer<LocalTasksRead>>[];
   bool holdCourses = false, holdHomework = false, holdTasks = false;
+  CheckInResponse checkinResult = const CheckInResponse(
+    date: '2026-10-22',
+    courses: [],
+    fromCache: true,
+    stale: false,
+  );
   HomeworkResponse assignments = emptyHomework;
   LocalTasksRead local = tasksPayload([]);
   @override
@@ -87,12 +93,7 @@ class TodayFake extends Fake implements MirrorService {
   @override
   Future<CheckInResponse> checkin({bool forceRefresh = false}) async {
     checkinReads++;
-    return const CheckInResponse(
-      date: '2026-10-22',
-      courses: [],
-      fromCache: true,
-      stale: false,
-    );
+    return checkinResult;
   }
 
   @override
@@ -208,6 +209,41 @@ void main() {
     expect(find.text('今天没有签到任务'), findsOneWidget);
   });
 
+  testWidgets('a check-in auth failure offers only a local read retry', (
+    tester,
+  ) async {
+    size(tester);
+    final service = TodayFake()
+      ..checkinResult = const CheckInResponse(
+        date: '',
+        courses: [],
+        fromCache: false,
+        stale: false,
+        failure: FailureCode.moduleAuthRequired,
+      );
+    await tester.pumpWidget(host(page(service)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('查看课程签到'));
+    await tester.pumpAndSettle();
+    final section = find.byKey(const Key('today-checkin'));
+    expect(find.text('签到服务认证未完成'), findsOneWidget);
+    expect(find.textContaining('重新登录'), findsNothing);
+    expect(find.text('今天没有签到任务'), findsNothing);
+    final before = (service.courseReads, service.homeworkReads, service.taskReads);
+    service.checkinResult = const CheckInResponse(
+      date: '2026-10-22',
+      courses: [],
+      fromCache: false,
+      stale: false,
+    );
+    await tester.tap(find.descendant(of: section, matching: find.text('重试')));
+    await tester.pumpAndSettle();
+    expect(service.checkinReads, 2);
+    expect((service.courseReads, service.homeworkReads, service.taskReads), before);
+    expect(find.text('今天没有签到任务'), findsOneWidget);
+    expect(find.text('签到服务认证未完成'), findsNothing);
+  });
+
   testWidgets('old empty check-in snapshot stays visible and can refresh', (
     tester,
   ) async {
@@ -273,6 +309,9 @@ void main() {
       ),
     );
     expect(find.text('合成签到读取失败'), findsOneWidget);
+    expect(find.text('上次读取没有签到记录'), findsOneWidget);
+    expect(find.text('今天没有可签到的课程'), findsNothing);
+    expect(find.text('今天没有签到任务'), findsNothing);
     checkins.dispose();
 
     final notices = RefreshSection<NoticesRead>()

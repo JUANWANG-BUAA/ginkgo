@@ -5,6 +5,7 @@ pub mod career;
 pub mod cgyy;
 pub mod cgyy_booking;
 pub mod checkin;
+pub mod checkin_qr;
 pub mod classroom;
 pub mod grades;
 pub mod graduate;

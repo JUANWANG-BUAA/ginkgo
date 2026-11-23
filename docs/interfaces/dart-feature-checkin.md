@@ -14,19 +14,36 @@
 
 ## features/checkin/checkin_page.dart
 
-- `class CheckInPage extends StatefulWidget` — Confirmed per-course submission with a subsequent status read.
-  <sub>class · features/checkin/checkin_page.dart:23</sub>
-    - `const CheckInPage({ super.key, required this.service, this.history = false, this.clock, });`  <sub>:24</sub>
-    - `final DateTime Function()? clock;`  <sub>:32</sub>
-    - `State<CheckInPage> createState() => …`  <sub>:34</sub>
+- `class CheckInPage extends StatefulWidget` — Per-course classroom QR generation with智慧北航 scan guidance and status readback.
+  <sub>class · features/checkin/checkin_page.dart:24</sub>
+    - `const CheckInPage({ super.key, required this.service, this.platformActions = const PlatformActions(), this.history = false, this.clock, });`  <sub>:25</sub>
+    - `final DateTime Function()? clock;`  <sub>:35</sub>
+    - `State<CheckInPage> createState() => …`  <sub>:37</sub>
+
+## features/checkin/checkin_qr_sheet.dart
+
+- `class CheckinQrSheet extends StatefulWidget` — Live classroom QR modal for scanning in 智慧北航 (either from another screen
+  <sub>class · features/checkin/checkin_qr_sheet.dart:18</sub>
+    - `const CheckinQrSheet({ super.key, required this.course, required this.dateLabel, required this.service, required this.platformActions, required this.isContextValid, required this.onVerifySigned, });`  <sub>:19</sub>
+    - `final bool Function() isContextValid;`  <sub>:33</sub>
+    - `final Future<bool> Function() onVerifySigned;`  <sub>:34</sub>
+    - `State<CheckinQrSheet> createState() => …`  <sub>:37</sub>
+- `class CheckinQrPainter extends CustomPainter`
+  <sub>class · features/checkin/checkin_qr_sheet.dart:434</sub>
+    - `const CheckinQrPainter({required this.matrixSize, required this.modules});`  <sub>:435</sub>
+    - `static const int quietZone = 4;`  <sub>:439</sub>
+    - `void paint(Canvas canvas, Size size) {…}`  <sub>:442</sub>
+    - `bool shouldRepaint(covariant CheckinQrPainter oldDelegate) => …`  <sub>:473</sub>
+- `Future<Uint8List> renderCheckinQrPng({ required int matrixSize, required List<bool> modules, }) async {…}` — Rasterizes a crisp black-on-white QR PNG with a standard 4-module quiet zone.
+  <sub>function · features/checkin/checkin_qr_sheet.dart:478</sub>
 
 ## features/checkin/checkin_widgets.dart
 
-- `class CheckinCourseRow extends StatelessWidget` — One course with its sign-in status, merged-record notes and the single
-  <sub>class · features/checkin/checkin_widgets.dart:11</sub>
-    - `const CheckinCourseRow({ super.key, required this.course, required this.windowOpen, required this.canSubmit, required this.submitting, required this.awaitingVerification, required this.onSubmit, });`  <sub>:12</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:32</sub>
+- `class CheckinCourseRow extends StatelessWidget` — One course with its sign-in status, merged-record notes and the classroom
+  <sub>class · features/checkin/checkin_widgets.dart:10</sub>
+    - `const CheckinCourseRow({ super.key, required this.course, required this.windowOpen, required this.canSubmit, required this.onSubmit, });`  <sub>:11</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:27</sub>
 - `class CheckinStatusSummary extends StatelessWidget` — Day totals: count tile, proportional status meter and readable legend.
-  <sub>class · features/checkin/checkin_widgets.dart:151</sub>
-    - `const CheckinStatusSummary({ super.key, required this.dateLabel, required this.scopeLabel, required this.signed, required this.notSigned, required this.unknown, required this.fetchedAt, });`  <sub>:152</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:168</sub>
+  <sub>class · features/checkin/checkin_widgets.dart:135</sub>
+    - `const CheckinStatusSummary({ super.key, required this.dateLabel, required this.scopeLabel, required this.signed, required this.notSigned, required this.unknown, required this.fetchedAt, });`  <sub>:136</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:152</sub>

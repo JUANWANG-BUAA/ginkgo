@@ -1,5 +1,6 @@
 import '../application/campus_activities.dart';
 import '../application/contracts.dart';
+import '../application/service_health.dart';
 import '../src/rust/api/live.dart' as live;
 
 import 'package:ginkgo_mirror/infrastructure/native_command.dart';
@@ -40,9 +41,14 @@ mixin NativeCampusActivities implements CampusActivitiesGateway {
   Future<CampusActivitiesRead> campusActivities({
     int page = 1,
     bool forceRefresh = false,
-  }) async => decodeCampusActivities(
-    await boundedNativeRead(
-      () => live.loadCampusActivities(page: page, forceRefresh: forceRefresh),
+  }) => ServiceHealthTracker.shared.observe(
+    ServiceEndpointId.campusActivities,
+    () async => decodeCampusActivities(
+      await boundedNativeRead(
+        () => live.loadCampusActivities(page: page, forceRefresh: forceRefresh),
+      ),
     ),
+    failureOf: (r) => r.failure,
+    staleOf: (r) => r.failure != null && r.data != null,
   );
 }

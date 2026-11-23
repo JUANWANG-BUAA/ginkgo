@@ -95,6 +95,125 @@ impl<T: HttpTransport> Session<T> {
         (self.route(), automatic.epoch, automatic.owner.clone())
     }
 
+    /// Commit a requested preference and its owner together with the live
+    /// route. A different route needs UC proof from its own existing cookies;
+    /// neither the probe nor an abandoned response can mutate the live jars.
+    pub(crate) async fn transition_saved_route<R>(
+        &self,
+        source: RouteMode,
+        target: RouteMode,
+        account: &str,
+        publish: impl FnOnce(Option<UserProfile>) -> Result<(R, Option<u64>), AppError> + Send,
+    ) -> Result<R, AppError> {
+        let requested_epoch = self.automatic_route.lock().epoch;
+        let _gate = self.automatic_route_gate.lock().await;
+        let live_jar = match target {
+            RouteMode::Direct => &self.direct_jar,
+            RouteMode::WebVpn => &self.webvpn_jar,
+            RouteMode::Automatic => return Err(AppError::invalid()),
+        };
+        let (epoch, candidate) = {
+            let automatic = self.automatic_route.lock();
+            if automatic.epoch != requested_epoch || self.route() != source {
+                return Err(AppError::module_auth_required());
+            }
+            let candidate = (source != target).then(|| live_jar.lock().clone());
+            (automatic.epoch, candidate)
+        };
+        let proof = if let Some(mut candidate) = candidate {
+            let request = uc::status_request();
+            let url = if target == RouteMode::WebVpn {
+                webvpn::wrap(&request.url).map_err(|_| AppError::invalid())?
+            } else {
+                request.url.clone()
+            };
+            if candidate.header_for(&url, CookieJar::now_ms()).is_none() {
+                return Err(AppError::module_auth_required());
+            }
+            let revision = candidate.revision();
+            let staged = Mutex::new(candidate);
+            let response = self
+                .send_routed_using(request, target, epoch, Some(&staged))
+                .await?;
+            let profile = uc::validate_response(response).map_err(|error| {
+                if error.code == ErrorCode::SessionExpired {
+                    AppError::module_auth_required()
+                } else {
+                    error
+                }
+            })?;
+            if !profile.school_id.eq_ignore_ascii_case(account) {
+                return Err(AppError::module_auth_required());
+            }
+            Some((profile, staged, revision))
+        } else {
+            None // The current route was already verified for this owner.
+        };
+        let (result, committed_epoch) = {
+            let mut automatic = self.automatic_route.lock();
+            let mut route = lock_value(&self.route);
+            if automatic.epoch != epoch || *route != source {
+                return Err(AppError::module_auth_required());
+            }
+            let (profile, staged) = if let Some((profile, staged, revision)) = proof {
+                if live_jar.lock().revision() != revision {
+                    return Err(AppError::module_auth_required());
+                }
+                (Some(profile), Some(staged))
+            } else {
+                (None, None)
+            };
+            // Same lock order as verified_business_fallback. The callback checks
+            // the identity generation before publishing and must not re-enter Session.
+            let (result, automatic_generation) = publish(profile)?;
+            if let Some(staged) = staged {
+                std::mem::swap(&mut *live_jar.lock(), &mut *staged.lock());
+                if target == RouteMode::WebVpn {
+                    automatic.webvpn_revision = automatic.webvpn_revision.wrapping_add(1);
+                }
+            }
+            *route = target;
+            automatic.revoke();
+            automatic.owner = automatic_generation.map(|generation| AutomaticRouteOwner {
+                account: account.to_owned(),
+                generation,
+            });
+            (result, automatic.epoch)
+        };
+        if target != source {
+            // Serialize with earlier cookie writes. The persistor reads the
+            // current owner and its original lifetime, never a cached secret.
+            let gate = Arc::clone(&self.cookie_persist_gate).lock_owned().await;
+            let write = self
+                .cookie_persistor
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .as_ref()
+                .and_then(|persist| persist(self.cookie_snapshot()));
+            if let Some(write) = write {
+                // A bridge deadline may drop the caller but cannot cancel a
+                // vault write already running on a blocking worker. The task
+                // holds the gate until that worker actually finishes.
+                tokio::spawn(async move {
+                    let _gate = gate;
+                    write.await;
+                })
+                .await
+                .map_err(|_| AppError::credential_store())?;
+            }
+            if self.automatic_route.lock().epoch != committed_epoch {
+                return Err(AppError::module_auth_required());
+            }
+        }
+        Ok(result)
+    }
+
+    /// Logout revokes in memory first. Drain a save already handed to the
+    /// vault before deleting the durable record, so it cannot reappear later.
+    pub(crate) async fn drain_cookie_writes(&self) {
+        drop(self.cookie_persist_gate.lock().await);
+    }
+
     pub(super) async fn verified_business_fallback(
         &self,
         request: HttpRequest,

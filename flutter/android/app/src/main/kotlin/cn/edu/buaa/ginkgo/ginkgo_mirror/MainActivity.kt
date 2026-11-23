@@ -10,6 +10,7 @@ import io.flutter.plugin.common.StandardMethodCodec
 
 class MainActivity : FlutterActivity() {
     private var homeworkFileSaver: HomeworkFileSaver? = null
+    private var checkinQrSaver: CheckinQrGallerySaver? = null
     private var settingsHandler: SystemSettingsHandler? = null
     private var reminderScheduler: ReminderScheduler? = null
 
@@ -17,6 +18,9 @@ class MainActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         homeworkFileSaver = HomeworkFileSaver(this).also {
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/homework-files").setMethodCallHandler(it)
+        }
+        checkinQrSaver = CheckinQrGallerySaver(applicationContext).also {
+            MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/checkin-qr").setMethodCallHandler(it)
         }
         val messenger = flutterEngine.dartExecutor.binaryMessenger
         MethodChannel(messenger, "cn.edu.buaa.ginkgo/learning-snapshots",
@@ -42,6 +46,8 @@ class MainActivity : FlutterActivity() {
     override fun onDestroy() {
         homeworkFileSaver?.dispose()
         homeworkFileSaver = null
+        checkinQrSaver?.dispose()
+        checkinQrSaver = null
         reminderScheduler?.dispose()
         reminderScheduler = null
         super.onDestroy()

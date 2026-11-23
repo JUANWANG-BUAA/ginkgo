@@ -11,6 +11,23 @@ import 'package:ginkgo_mirror/features/settings/startup_update_hint.dart';
 import 'package:ginkgo_mirror/application/task_storage_scope.dart';
 import 'package:ginkgo_mirror/infrastructure/task_storage.dart';
 
+/// Ensures [CupertinoSliverRefreshControl] works on Android (where Flutter's
+/// default [CupertinoScrollBehavior] falls back to [ClampingScrollPhysics] and
+/// blocks negative overscroll) while honoring reduced-motion accessibility.
+class GinkgoScrollBehavior extends CupertinoScrollBehavior {
+  const GinkgoScrollBehavior();
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    if (MediaQuery.disableAnimationsOf(context)) {
+      return const ClampingScrollPhysics();
+    }
+    return const AlwaysScrollableScrollPhysics(
+      parent: BouncingScrollPhysics(),
+    );
+  }
+}
+
 Widget ginkgoApp({
   required Widget home,
   Brightness? brightness,
@@ -30,6 +47,7 @@ Widget ginkgoApp({
           child: CupertinoApp(
             title: 'Ginkgo',
             debugShowCheckedModeBanner: false,
+            scrollBehavior: const GinkgoScrollBehavior(),
             locale: const Locale('zh', 'CN'),
             supportedLocales: const [Locale('zh', 'CN')],
             localizationsDelegates: GlobalCupertinoLocalizations.delegates,

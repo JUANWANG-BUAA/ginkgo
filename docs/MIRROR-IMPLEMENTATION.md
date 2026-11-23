@@ -1,5 +1,13 @@
 # Rust + Flutter 镜像实施现状
 
+2026-11-23 发布更新（Beta.11）：完成会话恢复与换线、即时退出与无损重登、记住密码回填、Android 全站下拉刷新与滚动防抖、冷启动并发合流、本人借阅 WebVPN 重定向解包、实时接口可用性看板及课程签到码链路更新。
+- **课程签到码与状态回查**：`ginkgo_domain` 内置零依赖 QR 矩阵编码与 `CheckInQrTicket`（原始 URL 不跨 FFI），在课前 10 分钟至下课窗口内按需获取实时签到码，支持自动刷新、前后台感知暂停/重验、Android `MediaStore` 单张覆写保存（`Pictures/Ginkgo/ginkgo_checkin_qr.png`）与只读状态回查。
+- **会话体验、全站滚动、冷启动合流与实时接口看板修复**：显式退出登录立即切回登录页并持久化退出标记，不再受慢速读锁阻塞；同时新增无损「重新登录（保留已记住密码）」通路（`SessionReauthScope`），会话过期时从首页状态栏、实时接口看板或设置页均可一键回填已存凭据重登而不清空 Keystore。新增系统保险库凭据只读回填（`SavedCredentialGateway`）、`rememberPassword` 持久化与 `CredentialVault.kt` 密钥自愈。全站 `CupertinoApp` 注入 `GinkgoScrollBehavior`，修复 Android 全部 18 个页面 `CupertinoSliverRefreshControl` 因默认 `ClampingScrollPhysics` 无法下拉刷新的系统级缺陷，并移除首页、成绩页、研究生教务页的 `SliverLayoutBuilder` 逐像素布局重算。修复 `ReminderController` 关闭签到/作业开关后仍后台轮询的问题；为冷启动并发 `today` / `schedule` / `homework` 读取增加 Dart + Rust 双层 Singleflight 合流；修复图书馆「本人借阅」在 WebVPN 下未解包 302 `Location` 导致首跳失败及网关未自愈的问题；确认本科生门户后不再将 BYXT 故障误降级到 GSMIS；收紧 `UpdateGate` 国内网络冷启动超时上限至 `1.8s`。详见 [本轮修复记录](_audit/2026-11-23-session-scroll-and-health-repair.md)。
+
+会话恢复候选（未发布）：Android 登录后的设置换线与退出分离。目标路线用已有 Cookie 验证同一账号才采用；目标未授权时保留原会话，不后台提交密码。Automatic 冷启动仅在原路线不可达时考虑另一条已有会话。今天页和设置显示最近验证的路线，不宣称实时联网。签到和预约在读取失败时区分旧结果与确认空；提交后的重试只读状态。此次没有真实账号测试，不改变 24 小时冷恢复上限，也不修改冻结清单。
+
+本次候选验证：合成上游测试覆盖双方向恢复、并发换线/退出、写盘取消、当前 WebVPN 的签到与图书馆认证拒绝；Flutter widget 测试覆盖换线失败保留选择与签到回查不重发。Rust 严格 Clippy 和 Flutter analyze 通过。完整镜像门禁因认证实现与冻结基线不同而阻断，未调整保护规则；正常入口 Android Debug 构建因 Gradle 9.4.1 分发下载超时未产出新 APK。
+
 2026-11-05 交接收尾：启动更新编排与提示导航分层，维护页外壳转为共享组件；维护自检使用最小公开统计端口。提醒控制器账号不可变，切换时由 scope 销毁旧实例，移除无意义的自身账号比较。学校网络、认证与超时行为保持冻结；工具生成的架构与覆盖边界见 [工程架构](architecture/README.md)。 变更动机、静态审图结论与验证边界见 [交接审计](_audit/2026-11-05-engineering-handoff.md)。
 
 

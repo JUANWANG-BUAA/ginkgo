@@ -1,10 +1,12 @@
 //! These consumers compile without any school implementation, HTTP or vault.
 use ginkgo_core::{
     application::{
-        CheckInMutationSource, NoticeSource, NoticesOutcome, RoutePreference, SessionOutcome,
-        SessionSource, SessionStatus, Workspace,
+        CheckInQrSource, LibraryMutationSource, NoticeSource, NoticesOutcome, RoutePreference,
+        SessionOutcome, SessionSource, SessionStatus, Workspace,
     },
     features::{
+        checkin::{encode_qr_matrix, CheckInQrTicket},
+        library::LibrarySlot,
         mutation::{MutationOutcome, MutationState},
         notices::Notice,
     },
@@ -52,8 +54,12 @@ async fn a_single_replacement_capability_preserves_fallback_data_and_failure() {
 struct UncertainWrite {
     calls: Arc<AtomicUsize>,
 }
-impl CheckInMutationSource for UncertainWrite {
-    async fn submit_checkin(&self, _: &str) -> MutationOutcome {
+impl LibraryMutationSource for UncertainWrite {
+    async fn reserve_library_seat(&self, _: &str, _: &str, _: LibrarySlot) -> MutationOutcome {
+        self.calls.fetch_add(1, Ordering::SeqCst);
+        MutationOutcome::uncertain()
+    }
+    async fn perform_library_action(&self, _: &str, _: &str) -> MutationOutcome {
         self.calls.fetch_add(1, Ordering::SeqCst);
         MutationOutcome::uncertain()
     }
@@ -66,9 +72,45 @@ async fn an_uncertain_write_is_returned_without_replaying_the_command() {
     let app = Workspace::new(UncertainWrite {
         calls: calls.clone(),
     });
-    let result = app.submit_checkin("synthetic-course").await;
+    let result = app
+        .perform_library_action("synthetic-booking", "sign")
+        .await;
     assert_eq!(result.state, MutationState::Uncertain);
     assert_eq!(calls.load(Ordering::SeqCst), 1);
+}
+
+struct SyntheticQrSource;
+impl CheckInQrSource for SyntheticQrSource {
+    async fn prepare_checkin_qr(
+        &self,
+        course_id: &str,
+        revalidate_course: bool,
+    ) -> Result<CheckInQrTicket, AppError> {
+        let (matrix_size, modules) =
+            encode_qr_matrix(&format!("synthetic:{course_id}:{revalidate_course}"))
+                .map_err(|()| AppError::invalid())?;
+        Ok(CheckInQrTicket {
+            course_id: course_id.to_owned(),
+            fetched_at: "2026-11-23T11:30:00+08:00".into(),
+            refresh_seconds: 4,
+            matrix_size,
+            modules,
+        })
+    }
+}
+
+#[tokio::test]
+async fn checkin_qr_port_returns_sanitized_matrix_ticket() {
+    let app = Workspace::new(SyntheticQrSource);
+    let ticket = app
+        .prepare_checkin_qr("501", true)
+        .await
+        .expect("qr ticket");
+    assert_eq!(ticket.course_id, "501");
+    assert_eq!(
+        ticket.modules.len(),
+        usize::from(ticket.matrix_size) * usize::from(ticket.matrix_size)
+    );
 }
 
 struct LocalIdentity {

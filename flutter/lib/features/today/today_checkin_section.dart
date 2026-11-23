@@ -49,6 +49,11 @@ class TodayCheckInSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final data = section.value;
+    final error = switch (section.failure) {
+      FailureCode.moduleAuthRequired => '签到服务认证未完成',
+      _ when data == null && section.error != null => '签到状态暂时无法读取',
+      _ => section.error,
+    };
     final courses = pendingCourses(data);
     final pendingCount =
         data?.courses
@@ -67,18 +72,14 @@ class TodayCheckInSection extends StatelessWidget {
           title: '课程签到',
         ),
         children: [
-          if (section.error != null)
-            // A passive section reports itself quietly: the school's own
-            // message belongs to the module, not to the workbench.
-            TodayActionRow(title: '签到状态暂时无法读取', onTap: onRetry)
-          else if (!section.loading)
+          if (!section.loading && error == null)
             TodayActionRow(title: '查看课程签到', onTap: onRetry)
           else
             SectionFeedback(
               loading: section.loading,
               label: '正在读取签到状态…',
               hasData: false,
-              error: null,
+              error: error,
               onRetry: onRetry,
             ),
         ],
@@ -92,7 +93,7 @@ class TodayCheckInSection extends StatelessWidget {
     final needsRefresh = data.stale || date == null || date != today;
     // A quiet day still keeps its row: the workbench has to say that nothing
     // needs signing, otherwise an empty screen reads as "state unknown".
-    if (courses.isEmpty && section.error == null && !needsRefresh) {
+    if (courses.isEmpty && error == null && !needsRefresh && !section.loading) {
       return TodayVisualSection(
         key: const Key('today-checkin'),
         header: TodaySectionHeader(
@@ -126,25 +127,22 @@ class TodayCheckInSection extends StatelessWidget {
             title: '签到日期待更新',
             subtitle:
                 '当前数据日期：${data.date.isEmpty ? '未提供' : data.date}，请刷新后确认今天的签到。',
-            onTap: onRetry,
+            onTap: section.loading || error != null ? null : onRetry,
           ),
-        if (section.error != null)
+        if (section.loading || error != null)
           SectionFeedback(
             loading: section.loading,
             label: '正在更新签到状态…',
             hasData: true,
-            quietWhenRefreshing: true,
-            error: section.error,
+            error: error,
             onRetry: onRetry,
           ),
         if (courses.isEmpty)
           TodayActionRow(
             title: data.courses.isEmpty
-                ? (needsRefresh ? '该日期没有签到记录' : '今天没有可签到的课程')
-                : '已确认 $signed/${data.courses.length} 场签到',
-            subtitle: data.courses.isEmpty
-                ? (needsRefresh ? '查看签到列表以核对日期。' : '课程开始后才会出现签到入口。')
-                : '没有待签到的场次。',
+                ? '上次读取没有签到记录'
+                : '上次读取：$signed/${data.courses.length} 场已签到',
+            subtitle: '当前签到状态仍待确认。',
             onTap: onOpen,
           )
         else

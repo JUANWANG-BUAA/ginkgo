@@ -1,16 +1,15 @@
 //! booking.lib read-only use cases (API.md §5.2, §5.6).
 //!
-//! The business token lives in memory. A library login-expired answer rebuilds
-//! that token once; a missing WebVPN gateway login triggers the shared gateway
-//! sign-in. Venue and current-booking lists keep the previous snapshot when a
-//! refresh fails.
+//! A rejected business token is rebuilt once. A gateway challenge on a read
+//! uses the shared WebVPN recovery instead: the gateway did not reject the
+//! library token. Failed refreshes retain the previous snapshot.
 use super::{
     cache::now_shanghai,
     session_service::{is_library_login_error, SchoolClient},
 };
 use crate::{
     adapters::library_http,
-    auth::CredentialVault,
+    auth::{session::RouteMode, CredentialVault},
     codecs::library::{LibraryArea, LibrarySeat, LibrarySlot},
     foundation::{http::HttpTransport, school_time},
     AppError,
@@ -19,10 +18,6 @@ use ginkgo_domain::ports::*;
 
 const VENUES_KEY: &str = "venues";
 const BOOKINGS_KEY: &str = "bookings";
-
-fn needs_relogin<T>(result: &Result<T, AppError>) -> bool {
-    result.as_ref().err().is_some_and(is_library_login_error)
-}
 
 pub use ginkgo_domain::ports::LibraryVenuesOutcome;
 
@@ -65,8 +60,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             Ok(token) => return Ok(token),
             Err(error) => error,
         };
-        let routed_cas_expired = is_library_login_error(&first)
-            && self.session.route() == crate::auth::session::RouteMode::WebVpn;
+        let routed_cas_expired =
+            is_library_login_error(&first) && self.session.route() == RouteMode::WebVpn;
         if is_library_login_error(&first) && !routed_cas_expired {
             self.silent_login().await?;
             return library_http::login(&self.session).await;
@@ -78,26 +73,26 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         library_http::login(&self.session).await
     }
 
-    /// Run one library read with a single token recovery.
-    ///
-    /// booking.lib answers an expired business token with a login error instead of
-    /// an HTTP status. Every read used to repeat the same rebuild-once dance; this
-    /// helper keeps the rule in one place: a read is retried at most once, the
-    /// rejected token is invalidated, and a peer that already recovered keeps its
-    /// newer token.
+    /// Retry only a business read, and only once. A library rejection invalidates
+    /// the token used (never a peer's replacement). A gateway challenge leaves
+    /// that token alone and recovers the already-selected WebVPN route.
     async fn library_retry<R, F, Fut>(&self, call: F) -> Result<R, AppError>
     where
         F: Fn(String) -> Fut,
         Fut: std::future::Future<Output = Result<R, AppError>>,
     {
         let token = self.library_token().await?;
-        let result = call(token.clone()).await;
-        if !needs_relogin(&result) {
-            return result;
+        match call(token.clone()).await {
+            Err(error) if is_library_login_error(&error) => self.invalidate_library_token(&token),
+            Err(error)
+                if error.detail.as_deref() == Some("webvpn_login_required")
+                    && self.session.route() == RouteMode::WebVpn =>
+            {
+                self.ensure_webvpn_session().await?;
+            }
+            other => return other,
         }
-        self.invalidate_library_token(&token);
-        let token = self.library_token().await?;
-        call(token).await
+        call(self.library_token().await?).await
     }
 }
 

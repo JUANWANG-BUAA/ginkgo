@@ -88,6 +88,8 @@ void main() {
           // Safety marker, not a display setting: it stops a saved session
           // from auto-restoring after an explicit sign-out.
           'explicitSignOut',
+          // Boolean switch state only; actual credentials stay in OS vault.
+          'rememberPassword',
           // Chosen on the login page and applied before the next restore.
           'routeMode',
         });

@@ -7,6 +7,7 @@ import 'package:ginkgo_mirror/application/library_loans.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/query_snapshots.dart';
 import 'package:ginkgo_mirror/application/reminder_planning.dart';
+import 'package:ginkgo_mirror/application/saved_credential.dart';
 
 /// Optional capabilities of the injected service, resolved once.
 ///
@@ -17,6 +18,8 @@ class ServiceCapabilities {
   const ServiceCapabilities({
     this.academic,
     this.gatewayVerification,
+    this.verifiedRoute,
+    this.savedCredential,
     this.careerEvents,
     this.campusActivities,
     this.courseAnnouncement,
@@ -36,6 +39,12 @@ class ServiceCapabilities {
 
   factory ServiceCapabilities.of(MirrorService service) => ServiceCapabilities(
     academic: service,
+    verifiedRoute: service is VerifiedRouteGateway
+        ? service as VerifiedRouteGateway
+        : null,
+    savedCredential: service is SavedCredentialGateway
+        ? service as SavedCredentialGateway
+        : null,
     gatewayVerification: service is GatewayVerificationGateway
         ? service as GatewayVerificationGateway
         : null,
@@ -107,5 +116,7 @@ class ServiceCapabilities {
   final LibraryLoansOfficialGateway? libraryLoansOfficial;
   final CampusCardGateway? campusCard;
   final ReminderPlanningGateway? reminderPlanning;
+  final VerifiedRouteGateway? verifiedRoute;
+  final SavedCredentialGateway? savedCredential;
   final StudentServiceLinksGateway? studentServiceLinks;
 }

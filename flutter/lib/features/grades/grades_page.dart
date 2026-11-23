@@ -99,37 +99,34 @@ class _GradesPageState extends State<GradesPage> {
   }
 
   @override
-  Widget build(BuildContext context) => CupertinoPageScaffold(
-    backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
-      context,
-    ),
-    child: CustomScrollView(
-      key: const Key('grades-scroll'),
-      slivers: [
-        ApplePageHeader(
-          largeTitle: const Text('成绩'),
-          section: '学业',
-          subtitle: '查看课程成绩、学分与加权统计',
-          icon: CupertinoIcons.chart_bar_alt_fill,
-          border: null,
-          trailing: AppleToolbarButton(
-            label: '刷新成绩',
-            busy: busy,
-            onPressed: busy ? null : () => load(force: true),
-            child: busy
-                ? const GinkgoActivity(size: 17)
-                : const Icon(CupertinoIcons.refresh, size: 24),
-          ),
-        ),
-        CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
-        SliverLayoutBuilder(
-          builder: (context, constraints) => SliverPadding(
-            padding: EdgeInsets.symmetric(
-              horizontal: ((constraints.crossAxisExtent - 900) / 2).clamp(
-                0,
-                double.infinity,
-              ),
+  Widget build(BuildContext context) {
+    final horizontalInset = ((MediaQuery.sizeOf(context).width - 900) / 2)
+        .clamp(0.0, double.infinity);
+    return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
+        context,
+      ),
+      child: CustomScrollView(
+        key: const Key('grades-scroll'),
+        slivers: [
+          ApplePageHeader(
+            largeTitle: const Text('成绩'),
+            section: '学业',
+            subtitle: '查看课程成绩、学分与加权统计',
+            icon: CupertinoIcons.chart_bar_alt_fill,
+            border: null,
+            trailing: AppleToolbarButton(
+              label: '刷新成绩',
+              busy: busy,
+              onPressed: busy ? null : () => load(force: true),
+              child: busy
+                  ? const GinkgoActivity(size: 17)
+                  : const Icon(CupertinoIcons.refresh, size: 24),
             ),
+          ),
+          CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: horizontalInset),
             sliver: SliverList.list(
               children: [
                 if (terms.length > 1) _termPicker(),
@@ -174,10 +171,10 @@ class _GradesPageState extends State<GradesPage> {
               ],
             ),
           ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 
   Widget _termPicker() => AppleSection(
     children: [

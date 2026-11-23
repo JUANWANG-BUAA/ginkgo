@@ -220,9 +220,15 @@ void main() {
         final reloaded = await command('load');
         expect(reloaded.single['id'], taskId);
         expect(reloaded.single['source'], duplicate.single['source']);
-        // The isolated demo capability is deliberately unable to submit school writes.
-        final blocked = await service.submitCheckin('synthetic-device-course');
+        // The isolated demo capability never submits school writes and marks QR tickets as demo.
+        final blocked = await service.performLibraryAction(
+          'synthetic-device-booking',
+          'sign',
+        );
         expect(blocked.state, 'notSubmitted');
+        final demoQr = await service.prepareCheckinQr('synthetic-device-course');
+        expect(demoQr.demo, isTrue);
+        expect(demoQr.modules, isNotEmpty);
       } finally {
         await tester.pumpWidget(ginkgoApp(home: const SizedBox()));
         await settle(tester, frames: 3);

@@ -49,10 +49,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 Ok(Portal::Undergraduate)
             )
         {
-            if let Ok(data) = self.fetch_undergraduate_schedule(term_id, week).await {
-                self.check_account_owner(&owner)?;
-                return Ok(data);
-            }
+            let data = self.fetch_undergraduate_schedule(term_id, week).await?;
+            self.check_account_owner(&owner)?;
+            return Ok(data);
         }
         // Match UBAA withScheduleAccess: a failed undergraduate probe/query
         // must not block the documented GSMIS data source.
@@ -254,10 +253,9 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                 Ok(Portal::Undergraduate)
             )
         {
-            if let Ok(terms) = schedule_http::load_terms(&self.session).await {
-                self.check_account_owner(&owner)?;
-                return Ok(terms);
-            }
+            let terms = schedule_http::load_terms(&self.session).await?;
+            self.check_account_owner(&owner)?;
+            return Ok(terms);
         }
         let data = self.fetch_graduate_schedule(None, None).await?;
         self.remember_graduate_source(&owner)?;

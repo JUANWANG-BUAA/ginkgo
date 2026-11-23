@@ -43,6 +43,7 @@ class TodayVisualSection extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: EdgeInsets.only(top: AppleDesign.desktop(context) ? 4 : 0),
     child: AppleSection(
+      animateSize: false,
       header: header == null
           ? null
           : DefaultTextStyle.merge(

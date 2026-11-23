@@ -371,8 +371,7 @@ async fn checkin_history_is_cached_per_date_and_failure_preserves_only_that_day(
 }
 
 #[tokio::test]
-async fn checkin_write_revalidates_today_sends_once_and_invalidates_snapshot() {
-    use crate::codecs::mutation::MutationState;
+async fn checkin_qr_revalidates_today_then_refreshes_timestamp_without_reloading_schedule() {
     let now = chrono::DateTime::parse_from_rfc3339(&crate::services::cache::now_shanghai())
         .expect("clock");
     let mut day: serde_json::Value = serde_json::from_str(&checkin_day_body()).expect("fixture");
@@ -387,8 +386,8 @@ async fn checkin_write_revalidates_today_sends_once_and_invalidates_snapshot() {
         checkin_entry_response("fixture-login"),
         checkin_app_login_response(),
         checkin_schedule_response(day.to_string()),
-        HttpResponse::new(200, "timestamp", r#"{"timestamp":"1720000000+1"}"#),
-        HttpResponse::new(503, "sign", ""),
+        HttpResponse::new(200, "timestamp", r#"{"timestamp":"1700000000000"}"#),
+        HttpResponse::new(200, "timestamp", r#"{"timestamp":"1700000005000"}"#),
     ]);
     let (service, transport) = build_service(responses, MemoryVault::default());
     service
@@ -400,31 +399,55 @@ async fn checkin_write_revalidates_today_sends_once_and_invalidates_snapshot() {
         .as_str()
         .unwrap_or("501")
         .to_owned();
-    let outcome = service.submit_checkin(&id).await;
-    assert_eq!(outcome.state, MutationState::Uncertain);
-    let writes: Vec<_> = transport
-        .requests()
-        .into_iter()
-        .filter(|r| r.url.contains("stu_scan_sign.action"))
-        .collect();
-    assert_eq!(writes.len(), 1);
-    assert_eq!(writes[0].method, HttpMethod::Post);
-    assert!(writes[0].url.contains("timestamp=1720000000%2B1"));
-    assert!(writes[0].header_value("sessionId").is_some());
-    let day = crate::foundation::school_time::beijing_day(&crate::services::cache::now_shanghai())
-        .unwrap()
-        .local_date;
-    assert!(service.snapshots.checkin.lock().any(&day).is_none());
+
+    let first = service
+        .prepare_checkin_qr(&id, true)
+        .await
+        .expect("initial qr");
+    assert_eq!(first.course_id, id);
+    assert_eq!(first.refresh_seconds, 4);
+    assert_eq!(
+        first.modules.len(),
+        usize::from(first.matrix_size) * usize::from(first.matrix_size)
+    );
+
+    // Periodic refresh inside the open QR sheet reuses the fresh day snapshot
+    // and only fetches a new timestamp.
+    let second = service
+        .prepare_checkin_qr(&id, false)
+        .await
+        .expect("refreshed qr");
+    assert_ne!(first.modules, second.modules);
+
+    let requests = transport.requests();
+    assert!(requests
+        .iter()
+        .all(|r| !r.url.contains("stu_scan_sign.action")));
+    assert_eq!(
+        requests
+            .iter()
+            .filter(|r| r.url.contains("get_stu_course_sched.action"))
+            .count(),
+        1
+    );
+    assert_eq!(
+        requests
+            .iter()
+            .filter(|r| r.url.contains("get_timestamp.action"))
+            .count(),
+        2
+    );
 }
 
 #[tokio::test]
-async fn out_of_window_checkin_never_requests_a_signature_or_posts() {
+async fn out_of_window_or_signed_checkin_never_requests_timestamp() {
     let mut day: serde_json::Value = serde_json::from_str(&checkin_day_body()).expect("fixture");
     for row in day["result"].as_array_mut().expect("rows") {
         row["classBeginTime"] = serde_json::json!("2099-10-20 08:00:00");
         row["classEndTime"] = serde_json::json!("2099-10-20 09:00:00");
     }
-    let id = day["result"][0]["id"].as_str().expect("id").to_owned();
+    let unsigned_id = day["result"][0]["id"].as_str().expect("id").to_owned();
+    let signed_id = day["result"][1]["id"].as_str().expect("id").to_owned();
     let mut responses = login_chain("sy2501001", "fixture");
     responses.extend([
         checkin_entry_response("fixture-login"),
@@ -436,10 +459,21 @@ async fn out_of_window_checkin_never_requests_a_signature_or_posts() {
         .sign_in("sy2501001", "synthetic-password", None, false)
         .await
         .expect("login");
-    assert_eq!(
-        service.submit_checkin(&id).await.state,
-        crate::codecs::mutation::MutationState::NotSubmitted
-    );
+
+    let outside = service
+        .prepare_checkin_qr(&unsigned_id, true)
+        .await
+        .expect_err("outside window");
+    assert_eq!(outside.code, ErrorCode::BusinessRejected);
+    assert_eq!(outside.detail.as_deref(), Some("outside_window"));
+
+    let already = service
+        .prepare_checkin_qr(&signed_id, false)
+        .await
+        .expect_err("already signed");
+    assert_eq!(already.code, ErrorCode::BusinessRejected);
+    assert_eq!(already.detail.as_deref(), Some("already_signed"));
+
     assert!(transport
         .requests()
         .iter()
@@ -475,4 +509,80 @@ async fn checkin_business_401_rebuilds_module_without_password_login() {
             .count(),
         1
     );
+}
+
+#[tokio::test]
+async fn current_webvpn_iclass_401_rebuilds_once_without_school_reauth() {
+    use super::session_protocol::wire;
+    use crate::{
+        adapters::checkin_http::{APP_LOGIN_URL, COURSE_SCHEDULE_URL, ENTRY_URL},
+        auth::session::{RouteMode, Session},
+        test_support::TranscriptTransport,
+    };
+
+    let route = RouteMode::WebVpn;
+    let get = |url: &str| HttpRequest::get(wire(url, route)).header("Accept", "application/json");
+    // A newly issued session can already be unusable; an old cached one can
+    // also remain rejected after a rebuild. Neither case justifies a UC probe.
+    for (cached, repeated) in [(false, false), (false, true), (true, true)] {
+        let mut steps = Vec::new();
+        for (id, denied) in [("old", true), ("new", repeated)] {
+            let response = if denied {
+                HttpResponse::new(401, wire(COURSE_SCHEDULE_URL, route), "")
+            } else {
+                checkin_schedule_response(checkin_day_body())
+            };
+            if !cached || id == "new" {
+                let app_login = format!("{APP_LOGIN_URL}?password=&phone=fixture-login&userLevel=1&verificationType=2&verificationUrl=");
+                let app_session =
+                    serde_json::json!({"STATUS":0,"result":{"id":"1001","sessionId":id}});
+                steps.extend([
+                    (get(ENTRY_URL), Ok(checkin_entry_response("fixture-login"))),
+                    (
+                        get(&app_login),
+                        Ok(HttpResponse::new(
+                            200,
+                            wire(APP_LOGIN_URL, route),
+                            app_session.to_string(),
+                        )),
+                    ),
+                ]);
+            }
+            steps.push((
+                get(&format!("{COURSE_SCHEDULE_URL}?id=1001&dateStr=20261020"))
+                    .header("sessionId", id),
+                Ok(response),
+            ));
+        }
+        let transport = TranscriptTransport::new(steps);
+        let service = SchoolClient::new(Session::new(transport.clone()), seeded("sy2501001"));
+        service.set_route(RoutePreference::WebVpn);
+        service.set_authenticated(
+            "sy2501001".into(),
+            UserProfile {
+                school_id: "sy2501001".into(),
+                name: "fixture".into(),
+            },
+        );
+        if cached {
+            service.identity.lock().iclass = Some(crate::codecs::checkin::IClassSession {
+                user_id: "1001".into(),
+                session_id: "old".into(),
+            });
+        }
+        let result = service
+            .load_checkin_on_date(Some("2026-10-20".into()), true)
+            .await;
+        if repeated {
+            assert_eq!(result.unwrap_err().code, ErrorCode::ModuleAuthRequired);
+            assert!(service.identity.lock().iclass.is_none());
+        } else {
+            let result = result.unwrap();
+            assert!(result.failure.is_none() && !result.from_cache);
+            assert_eq!(result.courses.len(), 2);
+        }
+        assert!(service.status().signed_in());
+        assert_eq!(service.session.route(), route);
+        transport.assert_finished();
+    }
 }

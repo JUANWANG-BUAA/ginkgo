@@ -7,18 +7,22 @@ CupertinoApp 组合与主题桥接。
 
 ## app/ginkgo_app.dart
 
+- `class GinkgoScrollBehavior extends CupertinoScrollBehavior` — Ensures [CupertinoSliverRefreshControl] works on Android (where Flutter's
+  <sub>class · app/ginkgo_app.dart:17</sub>
+    - `const GinkgoScrollBehavior();`  <sub>:18</sub>
+    - `ScrollPhysics getScrollPhysics(BuildContext context) {…}`  <sub>:21</sub>
 - `Widget ginkgoApp({ required Widget home, Brightness? brightness, AppPreferences? preferences, StartupUpdateController? startupUpdate, ExternalLinkLauncher externalLinkLauncher = launchExternalLink, }) {…}`
-  <sub>function · app/ginkgo_app.dart:14</sub>
+  <sub>function · app/ginkgo_app.dart:31</sub>
 
 ## main.dart
 
 - `Future<void> main() async {…}`
-  <sub>function · main.dart:35</sub>
+  <sub>function · main.dart:37</sub>
 - `class GinkgoRoot extends StatefulWidget`
-  <sub>class · main.dart:84</sub>
-    - `const GinkgoRoot({ super.key, this.liveService = const NativeMirrorService(), this.demoService = const DemoMirrorService(), this.preferences, this.loadUpdateGate, this.startupUpdates, this.challengeGateway, });`  <sub>:85</sub>
-    - `final Future<UpdateGate?> Function()? loadUpdateGate;` — 启动时读取最低版本清单；测试与离线场景传 null 即跳过门禁。  <sub>:103</sub>
-    - `State<GinkgoRoot> createState() => …`  <sub>:105</sub>
+  <sub>class · main.dart:87</sub>
+    - `const GinkgoRoot({ super.key, this.liveService = const NativeMirrorService(), this.demoService = const DemoMirrorService(), this.preferences, this.loadUpdateGate, this.startupUpdates, this.challengeGateway, });`  <sub>:88</sub>
+    - `final Future<UpdateGate?> Function()? loadUpdateGate;` — 启动时读取最低版本清单；测试与离线场景传 null 即跳过门禁。  <sub>:106</sub>
+    - `State<GinkgoRoot> createState() => …`  <sub>:108</sub>
 
 ## startup_page.dart
 

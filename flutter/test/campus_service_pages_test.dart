@@ -193,7 +193,7 @@ void main() {
     expectHeaderIdentity(
       tester,
       '工作台',
-      '查看课程签到状态与记录',
+      '查看课程签到状态与实时签到码',
       CupertinoIcons.checkmark_seal,
     );
 

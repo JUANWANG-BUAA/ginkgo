@@ -1,9 +1,21 @@
 //! Feature implementation behind the stable live API.
 use super::*;
 
+static HOMEWORK_READ_GATE: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+
 pub(super) async fn load_homework(force_refresh: bool) -> crate::api::mirror::HomeworkResponse {
     let result = match service() {
-        Ok(service) => with_session_read(|| service.load_homework(force_refresh)).await,
+        Ok(service) => {
+            with_session_read(|| async {
+                let _coalesce = if !force_refresh {
+                    Some(HOMEWORK_READ_GATE.lock().await)
+                } else {
+                    None
+                };
+                service.load_homework(force_refresh).await
+            })
+            .await
+        }
         Err(error) => Err(error),
     };
     homework_response(result)

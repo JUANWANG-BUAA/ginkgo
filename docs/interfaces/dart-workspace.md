@@ -50,11 +50,11 @@
 ## workspace/more_page.dart
 
 - `class MorePage extends StatefulWidget` — The "更多" surface: the five primary destinations live in the tab bar,
-  <sub>class · workspace/more_page.dart:19</sub>
-    - `const MorePage({ super.key, required this.service, required this.platformActions, required this.destinations, required this.onSignOut, required this.openFeature, this.accountName, this.accountId, this.route, });`  <sub>:20</sub>
-    - `final Future<void> Function() onSignOut;`  <sub>:35</sub>
-    - `static const tabIds = {…}` — Destinations that already own a tab do not repeat in the list.  <sub>:42</sub>
-    - `State<MorePage> createState() => …`  <sub>:45</sub>
+  <sub>class · workspace/more_page.dart:20</sub>
+    - `const MorePage({ super.key, required this.service, required this.platformActions, required this.destinations, required this.onSignOut, required this.openFeature, this.accountName, this.accountId, this.route, });`  <sub>:21</sub>
+    - `final Future<void> Function() onSignOut;`  <sub>:36</sub>
+    - `static const tabIds = {…}` — Destinations that already own a tab do not repeat in the list.  <sub>:43</sub>
+    - `State<MorePage> createState() => …`  <sub>:46</sub>
 
 ## workspace/service_directory.dart
 
@@ -106,17 +106,17 @@
 ## workspace/workspace_catalog.dart
 
 - `WorkspaceDestination? destinationById(String id) {…}` — 按 id 查找；壳层与今日快捷入口只使用字符串标识。
-  <sub>function · workspace/workspace_catalog.dart:248</sub>
+  <sub>function · workspace/workspace_catalog.dart:251</sub>
 - `List<WorkspaceDestination> sidebarDestinations(WorkspaceSection section) => …` — 某个侧栏分组内的条目，顺序即登记顺序。
-  <sub>function · workspace/workspace_catalog.dart:266</sub>
+  <sub>function · workspace/workspace_catalog.dart:269</sub>
 
 ## workspace/workspace_shell.dart
 
 - `class GinkgoApp extends StatelessWidget` — 工作区外壳：只负责会话切换、移动/桌面布局与功能登记表的消费，
-  <sub>class · workspace/workspace_shell.dart:33</sub>
-    - `const GinkgoApp({ super.key, required this.service, this.platformActions = const PlatformActions(), this.brightness, this.preferences, this.startupUpdate, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:34</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:57</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:59</sub>
+  <sub>class · workspace/workspace_shell.dart:34</sub>
+    - `const GinkgoApp({ super.key, required this.service, this.platformActions = const PlatformActions(), this.brightness, this.preferences, this.startupUpdate, this.accountName, this.accountId, this.route, this.onSignOut, this.onReauthenticate, });`  <sub>:35</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:59</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:62</sub>
 
 ## workspace/workspace_shell_controller.dart
 

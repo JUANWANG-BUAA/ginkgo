@@ -646,3 +646,60 @@ async fn library_school_expiry_recovers_with_current_unsaved_credentials() {
         2
     );
 }
+
+#[tokio::test]
+async fn current_webvpn_library_gateway_challenge_retries_only_the_read_once() {
+    use super::session_protocol::{library_request, status_request, wire};
+    use crate::{
+        auth::session::RouteMode, auth::session::Session, test_support::TranscriptTransport,
+    };
+
+    let route = RouteMode::WebVpn;
+    let url = "https://booking.lib.buaa.edu.cn/v4/index/subscribe";
+    let read = library_request(url, route, Some("cached"), Some("{}"));
+    let challenge = HttpResponse::new(200, "https://d.buaa.edu.cn/login", "gateway login");
+    for repeated in [false, true] {
+        let terminal = if repeated {
+            challenge.clone()
+        } else {
+            let data = fixture("library", "bookings-normal-v1.json")["input"]["data"].clone();
+            HttpResponse::new(
+                200,
+                wire(url, route),
+                serde_json::json!({"code":0,"data":data}).to_string(),
+            )
+        };
+        let transport = TranscriptTransport::new(vec![
+            (read.clone(), Ok(challenge.clone())),
+            (
+                status_request(route, None),
+                Ok(uc_ok("sy2501001", "fixture")),
+            ),
+            (read.clone(), Ok(terminal)),
+        ]);
+        let service = SchoolClient::new(Session::new(transport.clone()), seeded("sy2501001"));
+        service.set_route(RoutePreference::WebVpn);
+        service.set_authenticated(
+            "sy2501001".into(),
+            UserProfile {
+                school_id: "sy2501001".into(),
+                name: "fixture".into(),
+            },
+        );
+        service.identity.lock().library_token = Some("cached".into());
+        let result = service.load_library_bookings(true).await;
+        if repeated {
+            assert_eq!(
+                result.unwrap_err().detail.as_deref(),
+                Some("webvpn_login_required")
+            );
+        } else {
+            let result = result.unwrap();
+            assert!(result.failure.is_none() && !result.from_cache);
+            assert_eq!(result.bookings.len(), 2);
+        }
+        assert!(service.status().signed_in());
+        assert_eq!(service.session.route(), route);
+        transport.assert_finished();
+    }
+}

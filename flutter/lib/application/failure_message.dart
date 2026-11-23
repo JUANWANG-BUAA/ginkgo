@@ -14,7 +14,7 @@ String failureMessage(FailureCode? code) {
     FailureCode.moduleAuthRequired => '该服务的认证尚未就绪，其他功能不受影响；请重试或检查账号设置中的连接路线',
     FailureCode.serviceUnavailable => '学校服务暂时不可用，请稍后重试',
     FailureCode.networkUnreachable => '无法连接网络，请检查手机网络或校园网后重试',
-    FailureCode.captchaRequired => '学校要求验证码，请重新登录并完成验证',
+    FailureCode.captchaRequired => '学校要求验证码，请按提示完成验证',
     FailureCode.invalidCredentials => '账号或密码错误，请检查后重试',
     FailureCode.preLoginTip => '学校登录提示未通过，请稍后重试',
     FailureCode.accessPolicyDenied => '当前网络被学校访问策略拦截，请连接校园网或北航 VPN 后重试',

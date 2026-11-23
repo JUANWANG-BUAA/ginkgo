@@ -1,5 +1,6 @@
 import '../application/contracts.dart';
 import '../application/library_loans.dart';
+import '../application/service_health.dart';
 import '../src/rust/api/live.dart' as live;
 
 import 'package:ginkgo_mirror/infrastructure/native_command.dart';
@@ -45,10 +46,14 @@ mixin NativeLibraryLoans
     if (owner == null || owner.isEmpty) {
       return const LibraryLoansRead(failure: FailureCode.sessionExpired);
     }
-    return decodeLibraryLoans(
-      await boundedNativeRead(
-        () => live.loadLibraryLoans(expectedAccount: owner, page: page),
+    return ServiceHealthTracker.shared.observe(
+      ServiceEndpointId.libraryLoans,
+      () async => decodeLibraryLoans(
+        await boundedNativeRead(
+          () => live.loadLibraryLoans(expectedAccount: owner, page: page),
+        ),
       ),
+      failureOf: (r) => r.failure,
     );
   }
 }

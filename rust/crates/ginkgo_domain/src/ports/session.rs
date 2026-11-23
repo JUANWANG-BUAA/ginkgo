@@ -3,6 +3,8 @@ use crate::{
     session::{CaptchaChallenge, UserProfile},
     AppError,
 };
+use std::future::Future;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RoutePreference {
     Automatic,
@@ -68,6 +70,16 @@ pub trait SessionSource: Send + Sync {
     }
 
     fn status(&self) -> SessionStatus;
+    /// Last route on which this identity was confirmed, not a reachability test.
+    fn verified_route(&self) -> Option<RoutePreference> {
+        None
+    }
+    fn switch_verified_route(
+        &self,
+        _preference: RoutePreference,
+    ) -> impl Future<Output = Result<(), AppError>> + Send {
+        async { Err(AppError::invalid()) }
+    }
     fn set_route(&self, preference: RoutePreference);
     fn apply_route_change(
         &self,

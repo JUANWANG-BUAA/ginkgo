@@ -12,7 +12,7 @@
 - [campus_card_http](#campuscardhttp) (7)
 - [career_http](#careerhttp) (2)
 - [cgyy_http](#cgyyhttp) (8)
-- [checkin_http](#checkinhttp) (7)
+- [checkin_http](#checkinhttp) (12)
 - [classroom_http](#classroomhttp) (3)
 - [grades_http](#gradeshttp) (2)
 - [graduate_http](#graduatehttp) (3)
@@ -109,8 +109,18 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:70</sub>
 - `pub async fn course_schedule<T: HttpTransport>( session: &Session<T>, iclass: &IClassSession, date: &str, ) -> Result<Vec<CheckInCourse>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:81</sub>
-- `pub async fn sign_in<T: HttpTransport>( session: &Session<T>, iclass: &IClassSession, course_id: &str, ) -> crate::codecs::mutation::MutationOutcome {…}` — CheckInClient.performSignIn / API.md §7.2. Timestamp is a safe read;
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:153</sub>
+- `pub const TIMESTAMP_URL: &str = "https://iclass.buaa.edu.cn:8347/app/common/get_timestamp.action";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:151</sub>
+- `pub const SCAN_SIGN_URL: &str = "https://iclass.buaa.edu.cn:8347/app/course/stu_scan_sign.action";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:152</sub>
+- `pub const CLASSROOM_QR_BASE_URL: &str = "http://iclass.buaa.edu.cn:8081/app/course/stu_scan_sign.action";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:153</sub>
+- `pub async fn fetch_timestamp<T: HttpTransport>(session: &Session<T>) -> Result<String, AppError> {…}` — Fetch the upstream server timestamp used by the iClass QR check-in payload.
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:157</sub>
+- `pub fn scan_sign_url(course_id: &str, timestamp: &str) -> Result<String, AppError> {…}` — Build the `stu_scan_sign.action` URL used for direct POST submission.
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:183</sub>
+- `pub fn classroom_qr_url(course_id: &str, timestamp: &str) -> Result<String, AppError> {…}` — Build the classroom QR payload scanned by WeCom / 智慧北航 `wx.scanQRCode`.
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:188</sub>
 
 ## classroom_http
 
@@ -297,9 +307,9 @@
 - `pub fn portal_url() -> String {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_loans_http.rs:12</sub>
 - `pub async fn establish<T: HttpTransport + Sync>(session: &Session<T>) -> Result<(), AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_loans_http.rs:79</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_loans_http.rs:85</sub>
 - `pub async fn load<T: HttpTransport + Sync>( session: &Session<T>, page: u32, ) -> Result<LibraryLoanPage, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_loans_http.rs:87</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_loans_http.rs:93</sub>
 
 ## library_stats_http
 

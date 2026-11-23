@@ -79,11 +79,11 @@
     - `static const manifestUrl = 'https://juanwang-buaa.github.io/ginkgo/update-gate.json';`  <sub>:25</sub>
     - `static const defaultReleasesUrl = 'https://github.com/JUANWANG-BUAA/ginkgo/releases';`  <sub>:27</sub>
     - `static UpdateGate? parse(String body) {…}` — 解析清单；结构不符合预期时视为“没有清单”，不阻塞启动。  <sub>:49</sub>
-    - `static Future<UpdateGate?> fetch({ HttpClient? client, Duration timeout = const Duration(seconds: 4), }) async {…}` — 拉取清单；任何网络/解析错误都返回 null，由调用方放行。  <sub>:72</sub>
-    - `bool blocks(int buildNumber) => …`  <sub>:95</sub>
-    - `Uri get releasesUri => …`  <sub>:97</sub>
+    - `static Future<UpdateGate?> fetch({ HttpClient? client, Duration timeout = const Duration(milliseconds: 1800), }) async {…}` — 拉取清单；任何网络/解析错误都返回 null，由调用方放行。  <sub>:73</sub>
+    - `bool blocks(int buildNumber) => …`  <sub>:93</sub>
+    - `Uri get releasesUri => …`  <sub>:95</sub>
 - `class UpdateRequiredPage extends StatelessWidget` — 低于最低版本时替代工作区的更新页；不提供“跳过”，避免旧客户端继续写上游。
-  <sub>class · platform/update_gate.dart:101</sub>
-    - `const UpdateRequiredPage({ super.key, required this.gate, required this.onRetry, this.installedVersion, });`  <sub>:102</sub>
-    - `final Future<void> Function() onRetry;`  <sub>:111</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:114</sub>
+  <sub>class · platform/update_gate.dart:99</sub>
+    - `const UpdateRequiredPage({ super.key, required this.gate, required this.onRetry, this.installedVersion, });`  <sub>:100</sub>
+    - `final Future<void> Function() onRetry;`  <sub>:109</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:112</sub>

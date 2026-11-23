@@ -2,7 +2,7 @@
 //!
 //! 认证与会话状态全部留在这里；Flutter 只见粗粒度结果。字段可见性不变。
 
-use super::{Identity, PendingLogin, SchoolClient};
+use super::{AuthenticatedIdentity, Identity, PendingLogin, RouteMode, SchoolClient};
 use crate::{
     auth::{self, CredentialVault, Credentials, LoginPage, LoginResult},
     foundation::{http::HttpTransport, mutex::lock_value},
@@ -10,6 +10,10 @@ use crate::{
 };
 use ginkgo_domain::ports::*;
 use std::{sync::atomic::Ordering, time::Instant};
+
+#[cfg(test)]
+#[path = "../tests/cold_restore.rs"]
+mod cold_restore;
 
 impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for SchoolClient<T, V> {
     async fn login_challenge(
@@ -153,6 +157,79 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                 .map(|user| user.profile.clone()),
             route: self.preference(),
         }
+    }
+
+    fn verified_route(&self) -> Option<RoutePreference> {
+        match self.identity.lock().active_route {
+            Some(RouteMode::Direct) => Some(RoutePreference::Direct),
+            Some(RouteMode::WebVpn) => Some(RoutePreference::WebVpn),
+            Some(RouteMode::Automatic) | None => None,
+        }
+    }
+
+    async fn switch_verified_route(&self, preference: RoutePreference) -> Result<(), AppError> {
+        let (owner, source, previous) = {
+            let identity = self.identity.lock();
+            let owner = identity
+                .authenticated
+                .as_ref()
+                .ok_or_else(AppError::session_expired)?;
+            (
+                (owner.account.clone(), identity.generation),
+                identity
+                    .active_route
+                    .ok_or_else(AppError::session_expired)?,
+                self.preference(),
+            )
+        };
+        let target = match preference {
+            RoutePreference::Automatic => source,
+            explicit => explicit.into(),
+        };
+        if previous == preference && target == source {
+            return Ok(());
+        }
+        self.session
+            .transition_saved_route(source, target, &owner.0, |proof| {
+                let mut identity = self.identity.lock();
+                let mut current = lock_value(&self.route);
+                if *current != previous
+                    || identity.generation != owner.1
+                    || identity.active_route != Some(source)
+                    || !identity
+                        .authenticated
+                        .as_ref()
+                        .is_some_and(|user| user.account == owner.0)
+                {
+                    return Err(AppError::module_auth_required());
+                }
+                if let Some(profile) = proof {
+                    // Tokens and pending challenges belong to the route on which
+                    // they were acquired. Keep the login lifetime and its secret.
+                    *identity = Identity {
+                        authenticated: Some(AuthenticatedIdentity {
+                            account: owner.0.clone(),
+                            profile,
+                        }),
+                        active_route: Some(target),
+                        persisted_started_at_ms: identity.persisted_started_at_ms,
+                        session_credentials: identity.session_credentials.take(),
+                        generation: identity.generation.wrapping_add(1),
+                        ..Identity::default()
+                    };
+                }
+                *current = preference;
+                Ok((
+                    (),
+                    (preference == RoutePreference::Automatic).then_some(identity.generation),
+                ))
+            })
+            .await?;
+        if target != source {
+            self.clear_automatic_login_failure();
+            *self.checkin_progress.lock() = Default::default();
+        }
+        Ok(())
     }
 
     /// Route changes invalidate the cookie jars and cached snapshots, matching
@@ -300,7 +377,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
     /// Restore after process start. The in-memory cookies are validated first;
     /// a saved account is only re-logged-in when that confirmation fails.
     async fn restore(&self) -> Result<SessionOutcome, AppError> {
-        if self.identity.lock().authenticated.is_none() {
+        let cold_generation = {
+            let identity = self.identity.lock();
+            identity
+                .authenticated
+                .is_none()
+                .then_some(identity.generation)
+        };
+        if cold_generation.is_some() {
             self.session.set_route(self.preference().into());
         }
         match self.load_persisted_session().await {
@@ -343,6 +427,52 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
                         Err(error) if error.code == ErrorCode::SessionExpired => {
                             self.clear_identity();
                             let _ = self.delete_persisted_session().await;
+                        }
+                        Err(error)
+                            if error.code == ErrorCode::NetworkUnreachable
+                                && cold_generation.is_some()
+                                && self.preference() == RoutePreference::Automatic =>
+                        {
+                            let target = match saved.route {
+                                RouteMode::Direct => RouteMode::WebVpn,
+                                RouteMode::WebVpn => RouteMode::Direct,
+                                RouteMode::Automatic => return Err(error),
+                            };
+                            let result = self
+                                .session
+                                .transition_saved_route(saved.route, target, &account, |proof| {
+                                    let profile =
+                                        proof.ok_or_else(AppError::module_auth_required)?;
+                                    let mut identity = self.identity.lock();
+                                    if Some(identity.generation) != cold_generation
+                                        || identity.authenticated.is_some()
+                                        || self.preference() != RoutePreference::Automatic
+                                    {
+                                        return Err(AppError::module_auth_required());
+                                    }
+                                    *identity = Identity {
+                                        authenticated: Some(AuthenticatedIdentity {
+                                            account: profile.school_id.clone(),
+                                            profile: profile.clone(),
+                                        }),
+                                        active_route: Some(target),
+                                        generation: identity.generation.wrapping_add(1),
+                                        persisted_started_at_ms: saved.saved_at_ms,
+                                        ..Identity::default()
+                                    };
+                                    Ok((profile, Some(identity.generation)))
+                                })
+                                .await;
+                            // Failed alternate proof says nothing about the original
+                            // session. Keep it for retry; never enter password recovery.
+                            let profile = result.map_err(|_| error)?;
+                            self.clear_caches();
+                            let remembered =
+                                self.vault.load(&account).is_ok_and(|entry| entry.is_some());
+                            return Ok(SessionOutcome::SignedIn {
+                                profile,
+                                remembered,
+                            });
                         }
                         Err(error) => return Err(error),
                     }
@@ -470,6 +600,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SessionSource for Schoo
     /// followed by a blocking `SharedPreferences.commit()`, so it runs on a
     /// blocking thread and never under the caller's session gate.
     async fn purge_credentials(&self) {
+        self.session.drain_cookie_writes().await;
         if self.delete_persisted_session().await.is_err() {
             let _ = self.delete_persisted_session().await;
         }

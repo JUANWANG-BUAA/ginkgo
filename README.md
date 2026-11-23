@@ -3,15 +3,14 @@
 > **手机上的北航校园工作台**：今天的课、待交的作业、能签到的课、能坐的图书馆座位。
 > Flutter + Rust，学校请求在进程内直连学校系统或北航 WebVPN，不经过项目自建中转服务器；个人待办按账号保存在本机。
 
-[![下载 Android 版](https://img.shields.io/badge/下载-Android%20版-2f7d4a?style=flat-square)](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.10)
+[![下载 Android 版](https://img.shields.io/badge/下载-Android%20版-2f7d4a?style=flat-square)](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.11)
 [![项目主页](https://img.shields.io/badge/项目主页-juanwang--buaa.github.io%2Fginkgo-2f7d4a?style=flat-square)](https://juanwang-buaa.github.io/ginkgo/)
 [![许可](https://img.shields.io/badge/许可-MIT-2f7d4a?style=flat-square)](LICENSE)
 
 **Android 是本项目当前唯一的主推平台**：Flutter + Rust 同一套工程，手机底部标签导航、平板与宽屏自动展开为侧栏。Windows 与它共用这份工程，只保证可编译；macOS / iOS 的原生应用已冻结，保留源码与归档文档。
 
-- 最新公开版本：**Android 0.1.0-beta.10**（`0.1.0-beta.10+20`）· [下载 ARM64 APK](https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.10/Ginkgo-0.1.0-beta.10-android-arm64.apk) · [发布记录](docs/_audit/2026-11-04-beta10-publication.md)
-- Beta.10 按维护者要求发布，真实账号测试继续暂停；本人借阅读者认证问题尚未解决，详见[已知问题](docs/releases/android-beta10.md)。网络认证链继续以 Beta.9 为[冻结基线](docs/NETWORK-FREEZE.md)。
-- Beta.10 统一页面层级、组件反馈、深色和大字号显示，并包含周期后台提醒与恢复提示修复；周期任务不保证实时通知，见[发布说明](docs/releases/android-beta10.md)。
+- 最新公开版本：**Android 0.1.0-beta.11**（`0.1.0-beta.11+21`）· [下载 ARM64 APK](https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.11/Ginkgo-0.1.0-beta.11-android-arm64.apk) · [发布记录](docs/releases/android-beta11.md)
+- Beta.11 修复退出登录与记住密码、首页滚动抖动，并改进会话恢复、直连 / WebVPN 切换与服务状态呈现；真实账号测试仍按[待办](docs/MIRROR-TODO.md)记录，网络认证链继续以 Beta.9 为[冻结基线](docs/NETWORK-FREEZE.md)。
 - Beta 试用反馈：[提交 Android 问题](https://github.com/JUANWANG-BUAA/ginkgo/issues/new?template=android-beta.md)（请勿附密码、Cookie、真实学号或未打码截图）
 - **📚 完整文档**：[文档索引](docs/INDEX.md) · [功能与接口协议总览](docs/FEATURES-AND-PROTOCOLS.md) · [学校协议事实](docs/API.md)
 
@@ -89,7 +88,7 @@ flutter build apk --debug --target-platform android-arm64 --target lib/main.dart
 
 | 平台 | 状态 | 说明 |
 | --- | --- | --- |
-| **Android** | **主推 · 持续开发** | 公开版本 0.1.0-beta.10（build 20，GitHub prerelease）；真实账号测试继续暂停，本人借阅认证为已知问题。物理设备与学校写入未验收 |
+| **Android** | **主推 · 持续开发** | 公开版本 0.1.0-beta.11（build 21，GitHub prerelease）；物理设备与学校写入未验收 |
 | Windows | 共用工程 · 不再排期 | 与 Android 共用同一 Flutter 工程，只保证可编译；公开版本 0.1.0-alpha.6（安装器未签名） |
 | macOS | 已冻结 | 独立 Swift/SwiftUI 应用，功能面最完整；保留源码与归档文档，见 [平台对照](docs/MIRROR-PARITY.md) |
 | iOS | 已冻结 | 独立原生壳，复用 macOS 校园服务；保留源码与构建说明，见 [docs/IOS.md](docs/IOS.md) |

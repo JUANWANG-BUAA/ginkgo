@@ -23,7 +23,9 @@
   <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:56</sub>
 - `pub fn has_saved_accounts() -> Result<bool, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:66</sub>
-- `pub fn verify_credential_storage(account: &str, secret: &str) -> bool {…}`
+- `pub fn load_saved_credential() -> Result<Option<(String, String)>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:71</sub>
+- `pub fn verify_credential_storage(account: &str, secret: &str) -> bool {…}`
+  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:88</sub>
 - `pub async fn check_update( current: &str, ) -> Result<ginkgo_core::features::updates::UpdateSummary, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:77</sub>
+  <sub>fn · rust/crates/ginkgo_runtime/src/lib.rs:94</sub>

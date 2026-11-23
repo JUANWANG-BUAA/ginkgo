@@ -28,6 +28,11 @@ abstract interface class MirrorService
         ShuttleGateway,
         LocalTaskGateway {}
 
+abstract interface class VerifiedRouteGateway {
+  Future<RouteChoice?> lastVerifiedRoute();
+  Future<FailureCode?> switchVerifiedRoute(RouteChoice route);
+}
+
 abstract interface class CampusCardGateway implements MirrorEnvironment {
   Future<CampusCardBalanceResponse> campusCardBalance();
 }
@@ -99,7 +104,10 @@ abstract interface class CheckInGateway implements MirrorEnvironment {
     bool forceRefresh = false,
   });
 
-  Future<MutationResponse> submitCheckin(String courseId);
+  Future<CheckInQrResponse> prepareCheckinQr(
+    String courseId, {
+    bool revalidateCourse = true,
+  });
 
   Future<CheckinProgressRead> checkinProgress();
 }

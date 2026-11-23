@@ -143,7 +143,7 @@ class _LibraryPageState extends State<LibraryPage> {
             subtitle: '预约座位、查找书目与管理本人借阅',
             icon: CupertinoIcons.book,
             refreshLabel: '刷新预约',
-            busy: controller.busy,
+            busy: controller.loadingBookings,
             onRefresh: () => controller.loadBookings(force: true),
           ),
           CupertinoSliverRefreshControl(
@@ -243,6 +243,10 @@ class _LibraryPageState extends State<LibraryPage> {
     final items = controller.bookings?.bookings ?? const <LibraryBooking>[];
     final current = items.where(_bookingIsCurrent).toList();
     final ended = items.where(_bookingIsEnded).toList();
+    final previous =
+        controller.loadingBookings ||
+        controller.bookingError != null ||
+        controller.bookings?.stale == true;
     final unresolved = items
         .where(
           (booking) => !_bookingIsCurrent(booking) && !_bookingIsEnded(booking),
@@ -271,7 +275,13 @@ class _LibraryPageState extends State<LibraryPage> {
                   color: CupertinoColors.tertiaryLabel.resolveFrom(context),
                   size: 22,
                 ),
-                title: Text(unresolved.isEmpty ? '当前没有进行中的预约' : '暂无已确认的进行中预约'),
+                title: Text(
+                  previous
+                      ? '上次结果中没有已确认的进行中预约'
+                      : unresolved.isEmpty
+                      ? '当前没有进行中的预约'
+                      : '暂无已确认的进行中预约',
+                ),
                 subtitle: ended.isEmpty
                     ? null
                     : Text('另有 ${ended.length} 条已取消或结束的记录'),

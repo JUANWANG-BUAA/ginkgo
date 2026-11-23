@@ -132,30 +132,30 @@
 ## checkin
 
 - `pub struct CheckInOutcome`
-  <sub>struct · rust/crates/ginkgo_domain/src/ports/checkin.rs:4</sub>
-    - `date: String` — School-local date, yyyy-MM-dd.  <sub>:6</sub>
-    - `courses: Vec<CheckInCourse>`  <sub>:7</sub>
-    - `fetched_at: String`  <sub>:8</sub>
-    - `from_cache: bool`  <sub>:9</sub>
-    - `stale: bool`  <sub>:10</sub>
-    - `failure: Option<AppError>`  <sub>:11</sub>
+  <sub>struct · rust/crates/ginkgo_domain/src/ports/checkin.rs:7</sub>
+    - `date: String` — School-local date, yyyy-MM-dd.  <sub>:9</sub>
+    - `courses: Vec<CheckInCourse>`  <sub>:10</sub>
+    - `fetched_at: String`  <sub>:11</sub>
+    - `from_cache: bool`  <sub>:12</sub>
+    - `stale: bool`  <sub>:13</sub>
+    - `failure: Option<AppError>`  <sub>:14</sub>
 - `pub struct CheckInLoadProgress`
-  <sub>struct · rust/crates/ginkgo_domain/src/ports/checkin.rs:16</sub>
-    - `phase: String`  <sub>:17</sub>
-    - `elapsed_ms: Option<u128>`  <sub>:18</sub>
-    - `stages: Vec<CheckInLoadStage>`  <sub>:19</sub>
+  <sub>struct · rust/crates/ginkgo_domain/src/ports/checkin.rs:19</sub>
+    - `phase: String`  <sub>:20</sub>
+    - `elapsed_ms: Option<u128>`  <sub>:21</sub>
+    - `stages: Vec<CheckInLoadStage>`  <sub>:22</sub>
 - `pub struct CheckInLoadStage`
-  <sub>struct · rust/crates/ginkgo_domain/src/ports/checkin.rs:23</sub>
-    - `phase: String`  <sub>:24</sub>
-    - `milliseconds: u128`  <sub>:25</sub>
+  <sub>struct · rust/crates/ginkgo_domain/src/ports/checkin.rs:26</sub>
+    - `phase: String`  <sub>:27</sub>
+    - `milliseconds: u128`  <sub>:28</sub>
 - `pub trait CheckInSource: Send + Sync`
-  <sub>trait · rust/crates/ginkgo_domain/src/ports/checkin.rs:28</sub>
-    - `fn checkin_load_progress(&self) -> CheckInLoadProgress;`  <sub>:29</sub>
-    - `fn load_checkin( &self, force_refresh: bool, ) -> Future<Result<CheckInOutcome, AppError>>;`  <sub>:30</sub>
-    - `fn load_checkin_on_date( &self, date: Option<String>, force_refresh: bool, ) -> Future<Result<CheckInOutcome, AppError>>;`  <sub>:34</sub>
-- `pub trait CheckInMutationSource: Send + Sync`
-  <sub>trait · rust/crates/ginkgo_domain/src/ports/checkin.rs:41</sub>
-    - `fn submit_checkin( &self, course_id: &str, ) -> Future<crate::features::mutation::MutationOutcome>;`  <sub>:42</sub>
+  <sub>trait · rust/crates/ginkgo_domain/src/ports/checkin.rs:31</sub>
+    - `fn checkin_load_progress(&self) -> CheckInLoadProgress;`  <sub>:32</sub>
+    - `fn load_checkin( &self, force_refresh: bool, ) -> Future<Result<CheckInOutcome, AppError>>;`  <sub>:33</sub>
+    - `fn load_checkin_on_date( &self, date: Option<String>, force_refresh: bool, ) -> Future<Result<CheckInOutcome, AppError>>;`  <sub>:37</sub>
+- `pub trait CheckInQrSource: Send + Sync`
+  <sub>trait · rust/crates/ginkgo_domain/src/ports/checkin.rs:44</sub>
+    - `fn prepare_checkin_qr( &self, course_id: &str, revalidate_course: bool, ) -> Future<Result<CheckInQrTicket, AppError>>;`  <sub>:45</sub>
 
 ## classroom
 
@@ -455,36 +455,38 @@
 ## session
 
 - `pub enum RoutePreference`
-  <sub>enum · rust/crates/ginkgo_domain/src/ports/session.rs:7</sub>
+  <sub>enum · rust/crates/ginkgo_domain/src/ports/session.rs:9</sub>
 - `pub struct SessionStatus`
-  <sub>struct · rust/crates/ginkgo_domain/src/ports/session.rs:14</sub>
-    - `account: Option<String>`  <sub>:15</sub>
-    - `profile: Option<UserProfile>`  <sub>:16</sub>
-    - `route: RoutePreference`  <sub>:17</sub>
+  <sub>struct · rust/crates/ginkgo_domain/src/ports/session.rs:16</sub>
+    - `account: Option<String>`  <sub>:17</sub>
+    - `profile: Option<UserProfile>`  <sub>:18</sub>
+    - `route: RoutePreference`  <sub>:19</sub>
 - `pub enum SessionOutcome`
-  <sub>enum · rust/crates/ginkgo_domain/src/ports/session.rs:21</sub>
+  <sub>enum · rust/crates/ginkgo_domain/src/ports/session.rs:23</sub>
 - `pub fn signed_in(&self) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_domain/src/ports/session.rs:31</sub>
+  <sub>fn · rust/crates/ginkgo_domain/src/ports/session.rs:33</sub>
 - `pub struct LoginChallengeData` — Transient image bytes; never persisted or used as an identity proof.
-  <sub>struct · rust/crates/ginkgo_domain/src/ports/session.rs:38</sub>
-    - `challenge_id: String`  <sub>:39</sub>
-    - `challenge_type: String`  <sub>:40</sub>
-    - `text_supported: bool`  <sub>:41</sub>
-    - `image: Vec<u8>`  <sub>:42</sub>
+  <sub>struct · rust/crates/ginkgo_domain/src/ports/session.rs:40</sub>
+    - `challenge_id: String`  <sub>:41</sub>
+    - `challenge_type: String`  <sub>:42</sub>
+    - `text_supported: bool`  <sub>:43</sub>
+    - `image: Vec<u8>`  <sub>:44</sub>
 - `pub trait SessionSource: Send + Sync`
-  <sub>trait · rust/crates/ginkgo_domain/src/ports/session.rs:45</sub>
-    - `fn login_challenge( &self, _expected_id: Option<&str>, _refresh: bool, ) -> Future<Result<LoginChallengeData, AppError>> {…}`  <sub>:46</sub>
-    - `fn gateway_challenge( &self, _expected_id: Option<&str>, _refresh: bool, ) -> Future<Result<Option<LoginChallengeData>, AppError>>`  <sub>:54</sub>
-    - `fn resume_gateway_login( &self, _expected_id: &str, _answer: &str, ) -> Future<Result<(), AppError>> {…}`  <sub>:62</sub>
-    - `fn status(&self) -> SessionStatus;`  <sub>:70</sub>
-    - `fn set_route(&self, preference: RoutePreference);`  <sub>:71</sub>
-    - `fn apply_route_change( &self, preference: RoutePreference, ) -> Future<Result<(), AppError>> {…}`  <sub>:72</sub>
-    - `fn sign_in( &self, account: &str, password: &str, captcha: Option<&str>, remember: bool, ) -> Future<Result<SessionOutcome, AppError>>;`  <sub>:81</sub>
-    - `fn restore(&self) -> Future<Result<SessionOutcome, AppError>>;`  <sub>:88</sub>
-    - `fn sign_out(&self) -> Future<()>;` — Revoke the in-memory session: identity, cookies and snapshots.  <sub>:95</sub>
-    - `fn purge_credentials(&self) -> Future<()>;` — Remove every saved password. Local platform storage; may block.  <sub>:97</sub>
-    - `fn clear_snapshots(&self);`  <sub>:98</sub>
-    - `fn account(&self) -> Result<String, AppError>;`  <sub>:99</sub>
+  <sub>trait · rust/crates/ginkgo_domain/src/ports/session.rs:47</sub>
+    - `fn login_challenge( &self, _expected_id: Option<&str>, _refresh: bool, ) -> Future<Result<LoginChallengeData, AppError>> {…}`  <sub>:48</sub>
+    - `fn gateway_challenge( &self, _expected_id: Option<&str>, _refresh: bool, ) -> Future<Result<Option<LoginChallengeData>, AppError>>`  <sub>:56</sub>
+    - `fn resume_gateway_login( &self, _expected_id: &str, _answer: &str, ) -> Future<Result<(), AppError>> {…}`  <sub>:64</sub>
+    - `fn status(&self) -> SessionStatus;`  <sub>:72</sub>
+    - `fn verified_route(&self) -> Option<RoutePreference> {…}` — Last route on which this identity was confirmed, not a reachability test.  <sub>:74</sub>
+    - `fn switch_verified_route( &self, _preference: RoutePreference, ) -> Future<Result<(), AppError>> {…}`  <sub>:77</sub>
+    - `fn set_route(&self, preference: RoutePreference);`  <sub>:83</sub>
+    - `fn apply_route_change( &self, preference: RoutePreference, ) -> Future<Result<(), AppError>> {…}`  <sub>:84</sub>
+    - `fn sign_in( &self, account: &str, password: &str, captcha: Option<&str>, remember: bool, ) -> Future<Result<SessionOutcome, AppError>>;`  <sub>:93</sub>
+    - `fn restore(&self) -> Future<Result<SessionOutcome, AppError>>;`  <sub>:100</sub>
+    - `fn sign_out(&self) -> Future<()>;` — Revoke the in-memory session: identity, cookies and snapshots.  <sub>:107</sub>
+    - `fn purge_credentials(&self) -> Future<()>;` — Remove every saved password. Local platform storage; may block.  <sub>:109</sub>
+    - `fn clear_snapshots(&self);`  <sub>:110</sub>
+    - `fn account(&self) -> Result<String, AppError>;`  <sub>:111</sub>
 
 ## shuttle
 

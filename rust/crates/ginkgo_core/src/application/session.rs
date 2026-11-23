@@ -30,6 +30,12 @@ impl<U: SessionSource> Workspace<U> {
     pub fn status(&self) -> SessionStatus {
         self.upstream.status()
     }
+    pub fn verified_route(&self) -> Option<RoutePreference> {
+        self.upstream.verified_route()
+    }
+    pub async fn switch_verified_route(&self, preference: RoutePreference) -> Result<(), AppError> {
+        self.upstream.switch_verified_route(preference).await
+    }
     pub fn set_route(&self, preference: RoutePreference) {
         self.upstream.set_route(preference)
     }

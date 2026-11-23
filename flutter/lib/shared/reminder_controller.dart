@@ -200,8 +200,10 @@ class ReminderController extends ChangeNotifier {
     }
     if (group == 'checkin') {
       checkinEnabled = value;
+      _planningTickets['checkin'] = (_planningTickets['checkin'] ?? 0) + 1;
     } else if (group == 'homework') {
       homeworkEnabled = value;
+      _planningTickets['homework'] = (_planningTickets['homework'] ?? 0) + 1;
     } else if (group == 'course') {
       courseEnabled = value;
       _planningTickets['course'] = (_planningTickets['course'] ?? 0) + 1;
@@ -367,33 +369,48 @@ class ReminderController extends ChangeNotifier {
             if (!_disposed) hint = '待办提醒未更新，请进入待办页重试';
           }
         }(),
-      () async {
-        try {
-          final data = await service.checkin(forceRefresh: false);
-          if (!_disposed && generation == _refreshGeneration) {
-            updateCheckin(data);
-            if (data.failure != null) {
-              hint = '签到提醒未更新：${failureMessage(data.failure)}';
+      if (checkinEnabled)
+        () async {
+          final ticket = _planningTickets['checkin'] ?? 0;
+          try {
+            final data = await service.checkin(forceRefresh: false);
+            if (!_disposed &&
+                checkinEnabled &&
+                generation == _refreshGeneration &&
+                (_planningTickets['checkin'] ?? 0) == ticket) {
+              updateCheckin(data);
+              if (data.failure != null) {
+                hint = '签到提醒未更新：${failureMessage(data.failure)}';
+              }
+            }
+          } catch (_) {
+            if (!_disposed &&
+                checkinEnabled &&
+                generation == _refreshGeneration &&
+                (_planningTickets['checkin'] ?? 0) == ticket) {
+              hint = '签到提醒暂未更新，请进入签到页重试';
             }
           }
-        } catch (_) {
-          if (!_disposed && generation == _refreshGeneration) {
-            hint = '签到提醒暂未更新，请进入签到页重试';
-          }
-        }
-      }(),
-      if (includeHomework)
+        }(),
+      if (includeHomework && homeworkEnabled)
         () async {
+          final ticket = _planningTickets['homework'] ?? 0;
           try {
             final data = await service.homework(forceRefresh: false);
-            if (!_disposed && generation == _refreshGeneration) {
+            if (!_disposed &&
+                homeworkEnabled &&
+                generation == _refreshGeneration &&
+                (_planningTickets['homework'] ?? 0) == ticket) {
               updateHomework(data);
               if (data.failure != null) {
                 hint = '作业提醒未更新：${failureMessage(data.failure)}';
               }
             }
           } catch (_) {
-            if (!_disposed && generation == _refreshGeneration) {
+            if (!_disposed &&
+                homeworkEnabled &&
+                generation == _refreshGeneration &&
+                (_planningTickets['homework'] ?? 0) == ticket) {
               hint = '作业提醒暂未更新，请进入作业页重试';
             }
           }

@@ -123,8 +123,16 @@ class FakeService extends Fake implements MirrorService {
     String action,
   ) async => const MutationResponse(state: 'notSubmitted', message: '合成测试未提交');
   @override
-  Future<MutationResponse> submitCheckin(String courseId) async =>
-      const MutationResponse(state: 'notSubmitted', message: '合成测试未提交');
+  Future<CheckInQrResponse> prepareCheckinQr(
+    String courseId, {
+    bool revalidateCourse = true,
+  }) async => CheckInQrResponse(
+    courseId: courseId,
+    refreshSeconds: 4,
+    matrixSize: 21,
+    modules: List<bool>.filled(21 * 21, false),
+    demo: true,
+  );
   @override
   bool get isDemo => demo;
   @override

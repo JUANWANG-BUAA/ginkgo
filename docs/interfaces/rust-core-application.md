@@ -26,7 +26,7 @@
 - [mod](#mod) (2)
 - [notices](#notices) (1)
 - [query_snapshots](#querysnapshots) (2)
-- [session](#session) (11)
+- [session](#session) (13)
 - [shuttle](#shuttle) (1)
 - [tasks_service](#tasksservice) (2)
 - [cgyy_pending_store](#cgyypendingstore) (6)
@@ -90,7 +90,7 @@
   <sub>fn · rust/crates/ginkgo_core/src/application/checkin.rs:8</sub>
 - `pub async fn load_checkin_on_date( &self, date: Option<String>, force_refresh: bool, ) -> Result<CheckInOutcome, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/checkin.rs:11</sub>
-- `pub async fn submit_checkin( &self, course_id: &str, ) -> crate::features::mutation::MutationOutcome {…}`
+- `pub async fn prepare_checkin_qr( &self, course_id: &str, revalidate_course: bool, ) -> Result<crate::features::checkin::CheckInQrTicket, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/checkin.rs:23</sub>
 
 ## classroom
@@ -258,20 +258,24 @@
   <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:20</sub>
 - `pub fn status(&self) -> SessionStatus {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:30</sub>
-- `pub fn set_route(&self, preference: RoutePreference) {…}`
+- `pub fn verified_route(&self) -> Option<RoutePreference> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:33</sub>
-- `pub async fn apply_route_change(&self, preference: RoutePreference) -> Result<(), AppError> {…}`
+- `pub async fn switch_verified_route(&self, preference: RoutePreference) -> Result<(), AppError> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:36</sub>
-- `pub async fn sign_in( &self, account: &str, password: &str, captcha: Option<&str>, remember: bool, ) -> Result<SessionOutcome, AppError> {…}`
+- `pub fn set_route(&self, preference: RoutePreference) {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:39</sub>
+- `pub async fn apply_route_change(&self, preference: RoutePreference) -> Result<(), AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:42</sub>
+- `pub async fn sign_in( &self, account: &str, password: &str, captcha: Option<&str>, remember: bool, ) -> Result<SessionOutcome, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:45</sub>
 - `pub async fn restore(&self) -> Result<SessionOutcome, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:50</sub>
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:56</sub>
 - `pub async fn sign_out(&self) {…}`
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:53</sub>
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:59</sub>
 - `pub async fn purge_credentials(&self) {…}` — Second sign-out step: delete saved passwords. Deliberately separate so
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:58</sub>
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:64</sub>
 - `pub fn clear_snapshots(&self) {…}`
-  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:61</sub>
+  <sub>fn · rust/crates/ginkgo_core/src/application/session.rs:67</sub>
 
 ## shuttle
 

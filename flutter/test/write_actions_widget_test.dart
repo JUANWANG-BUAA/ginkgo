@@ -1,11 +1,13 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ginkgo_mirror/application/checkin_qr.dart';
+import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_page.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/features/library/library_page.dart';
-import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/main.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart';
 import 'package:ginkgo_mirror/src/rust/api/mirror.dart';
@@ -15,17 +17,53 @@ import 'mirror_widget_test.dart'
 
 class WriteService extends ControlledService {
   int writes = 0, readbacks = 0;
+  bool markSignedOnReadback = false;
+  final qrCalls = <(String, bool)>[];
   final pending = Completer<MutationResponse>();
+  @override
+  bool get isDemo => false;
   @override
   Future<CheckInResponse> checkin({bool forceRefresh = false}) async {
     if (forceRefresh) readbacks++;
+    if (markSignedOnReadback && forceRefresh) {
+      return CheckInResponse(
+        date: checkInFixture.date,
+        courses: [
+          for (final c in checkInFixture.courses)
+            CheckInCourse(
+              id: c.id,
+              courseName: c.courseName,
+              beginsAt: c.beginsAt,
+              endsAt: c.endsAt,
+              status: CheckInStatus.signed,
+              classroomName: c.classroomName,
+              teacherName: c.teacherName,
+              mergedRecordCount: c.mergedRecordCount,
+              conflicting: c.conflicting,
+              signInAllowed: c.signInAllowed,
+            ),
+        ],
+        fromCache: false,
+        stale: false,
+      );
+    }
     return checkInFixture;
   }
 
   @override
-  Future<MutationResponse> submitCheckin(String courseId) {
-    writes++;
-    return pending.future;
+  Future<CheckInQrResponse> prepareCheckinQr(
+    String courseId, {
+    bool revalidateCourse = true,
+  }) async {
+    qrCalls.add((courseId, revalidateCourse));
+    return CheckInQrResponse(
+      courseId: courseId,
+      fetchedAt: '2026-10-20T08:00:05+08:00',
+      refreshSeconds: 4,
+      matrixSize: 21,
+      modules: List<bool>.generate(21 * 21, (i) => i.isEven),
+      demo: false,
+    );
   }
 
   @override
@@ -89,9 +127,10 @@ class RepeatedCourseService extends ControlledService {
 
 void main() {
   testWidgets(
-    'checkin requires confirmation, prevents double submit and reads back uncertain outcome',
+    'checkin opens live QR sheet, saves PNG to gallery and verifies status readback',
     (tester) async {
       final service = WriteService();
+      Uint8List? savedPng;
       tester.view.physicalSize = const Size(430, 1300);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
@@ -100,6 +139,13 @@ void main() {
         ginkgoApp(
           home: CheckInPage(
             service: service,
+            platformActions: PlatformActions(
+              checkinQrSaver: (bytes, {required isCurrent}) async {
+                expect(isCurrent(), isTrue);
+                savedPng = bytes;
+                return CheckinQrSaveStatus.savedToGallery;
+              },
+            ),
             clock: () => DateTime.parse('2026-10-20T08:00:00+08:00'),
           ),
         ),
@@ -108,33 +154,29 @@ void main() {
       final button = find.byKey(const Key('checkin-submit-501'));
       await tester.tap(button);
       await tester.pumpAndSettle();
-      expect(service.writes, 0);
-      expect(
-        find.text('高等数学\n2026-10-20\n08:00–09:35\n主楼A101'),
-        findsOneWidget,
-      );
-      await tester.tap(find.text('取消'));
+      expect(find.byKey(const Key('checkin-qr-sheet')), findsOneWidget);
+      expect(find.byKey(const Key('checkin-qr-canvas')), findsOneWidget);
+      expect(service.qrCalls, [('501', true)]);
+
+      // Render and save QR PNG inside test binding (runAsync for ui.Image.toByteData).
+      await tester.runAsync(() async {
+        await tester.tap(find.byKey(const Key('checkin-qr-save')));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      });
       await tester.pumpAndSettle();
-      expect(service.writes, 0);
-      await tester.tap(button);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('确认签到'));
-      await tester.pump();
-      expect(service.writes, 1);
-      final submitting = find.descendant(
-        of: button,
-        matching: find.byType(GinkgoActivity),
-      );
-      expect(submitting, findsOneWidget);
-      expect(tester.widget<GinkgoActivity>(submitting).size, 17);
-      expect(tester.widget<CupertinoButton>(button).onPressed, isNull);
-      service.pending.complete(
-        const MutationResponse(state: 'uncertain', message: '测试：结果待核实'),
-      );
+      expect(savedPng, isNotNull);
+      expect(savedPng!.sublist(0, 4), [0x89, 0x50, 0x4E, 0x47]);
+      expect(service.qrCalls, [('501', true), ('501', false)]);
+      expect(find.textContaining('已存至系统相册首张'), findsOneWidget);
+
+      service.markSignedOnReadback = true;
+      await tester.tap(find.byKey(const Key('checkin-qr-verify')));
       await tester.pumpAndSettle();
       expect(service.readbacks, 1);
-      expect(find.text('测试：结果待核实'), findsOneWidget);
-      expect(tester.widget<CupertinoButton>(button).onPressed, isNull);
+      expect(find.byKey(const Key('checkin-qr-confirmed')), findsOneWidget);
+      expect(find.text('签到已确认'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('checkin-qr-close')));
+      await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
     },
   );
@@ -181,7 +223,7 @@ void main() {
       tester.element(label),
     );
     expect(tester.widget<Text>(label).style!.color, expected);
-    final footer = find.text('演示模式不会提交签到');
+    final footer = find.textContaining('保存至相册后在智慧北航扫一扫完成签到');
     await tester.scrollUntilVisible(
       footer,
       300,

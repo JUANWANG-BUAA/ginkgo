@@ -77,8 +77,10 @@ class FailOnceNativeService implements MirrorService {
   Future<bool> verifyBridgeContract() => native.verifyBridgeContract();
   bool first = true;
   @override
-  Future<MutationResponse> submitCheckin(String courseId) =>
-      native.submitCheckin(courseId);
+  Future<CheckInQrResponse> prepareCheckinQr(
+    String courseId, {
+    bool revalidateCourse = true,
+  }) => native.prepareCheckinQr(courseId, revalidateCourse: revalidateCourse);
   @override
   Future<MutationResponse> reserveLibrarySeat({
     required String areaId,

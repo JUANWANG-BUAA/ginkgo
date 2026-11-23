@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
@@ -5,10 +7,12 @@ import 'package:ginkgo_mirror/widgets/ginkgo_mark.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/service_capabilities.dart';
 import 'package:ginkgo_mirror/application/contracts.dart'
     show RouteChoice, SessionResponse, SessionState;
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
 
+import 'login_challenge_row.dart';
 import 'login_route_selector.dart';
 import 'login_credential_field.dart';
 import 'login_feedback.dart';
@@ -26,6 +30,7 @@ class LoginPage extends StatefulWidget {
     this.initialCaptcha = false,
     this.onRetryPreferences,
     this.challengeGateway,
+    this.beforeSessionAction,
   });
 
   final MirrorService service;
@@ -35,6 +40,7 @@ class LoginPage extends StatefulWidget {
   final bool initialCaptcha;
   final VoidCallback? onRetryPreferences;
   final AuthChallengeGateway? challengeGateway;
+  final Future<void> Function()? beforeSessionAction;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -49,6 +55,8 @@ class _LoginPageState extends State<LoginPage> {
   });
 
   bool remember = false;
+  bool prefilledFromVault = false;
+  bool _suppressCredentialChange = false;
   bool busy = false;
   bool showPassword = false;
   late bool needCaptcha = widget.initialCaptcha;
@@ -94,7 +102,10 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void credentialsChanged() {
-    if (busy || challengeBusy) return;
+    if (_suppressCredentialChange || busy || challengeBusy) return;
+    if (prefilledFromVault) {
+      setState(() => prefilledFromVault = false);
+    }
     if (needCaptcha || challenge != null || captcha.text.isNotEmpty) {
       challengeEpoch++;
       captcha.clear();
@@ -120,19 +131,52 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   RouteChoice _route = RouteChoice.automatic;
-  bool _routeApplied = false;
+  bool _dependenciesApplied = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_routeApplied) return;
-    _routeApplied = true;
-    final stored = AppPreferencesScope.of(context).routeMode;
-    _route = switch (stored) {
+    if (_dependenciesApplied) return;
+    _dependenciesApplied = true;
+    final preferences = AppPreferencesScope.of(context);
+    remember = preferences.rememberPassword;
+    _route = switch (preferences.routeMode) {
       'direct' => RouteChoice.direct,
       'webVpn' => RouteChoice.webVpn,
       _ => RouteChoice.automatic,
     };
+    if (!preferences.explicitSignOut) {
+      unawaited(_loadSavedCredential(preferences));
+    }
+  }
+
+  Future<void> _loadSavedCredential(AppPreferences preferences) async {
+    final vault = ServiceCapabilities.resolve(widget.service).savedCredential;
+    if (vault == null) return;
+    try {
+      await widget.beforeSessionAction?.call();
+      final saved = await vault.savedCredential();
+      if (!mounted || saved == null) return;
+      // Never overwrite anything the user already started typing.
+      if (account.text.isNotEmpty || password.text.isNotEmpty) return;
+      _suppressCredentialChange = true;
+      account.text = saved.account;
+      password.text = saved.password;
+      _suppressCredentialChange = false;
+      setState(() {
+        remember = true;
+        prefilledFromVault = true;
+      });
+      unawaited(preferences.setRememberPassword(true));
+    } catch (_) {
+      _suppressCredentialChange = false;
+    }
+  }
+
+  void _toggleRemember(bool value) {
+    if (busy) return;
+    setState(() => remember = value);
+    unawaited(AppPreferencesScope.of(context).setRememberPassword(value));
   }
 
   Future<void> _changeRoute(RouteChoice route) async {
@@ -140,6 +184,7 @@ class _LoginPageState extends State<LoginPage> {
     final preferences = AppPreferencesScope.of(context);
     setState(() => busy = true);
     try {
+      await widget.beforeSessionAction?.call();
       final response = await widget.service.setRoute(route);
       if (!mounted) return;
       if (response.failure != null) {
@@ -188,11 +233,13 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
     FocusScope.of(context).unfocus();
+    final preferences = AppPreferencesScope.of(context);
     setState(() {
       busy = true;
       error = null;
     });
     try {
+      await widget.beforeSessionAction?.call();
       final response = await widget.service.login(
         account: studentId,
         password: password.text,
@@ -201,6 +248,9 @@ class _LoginPageState extends State<LoginPage> {
       );
       if (!mounted) return;
       if (response.state == SessionState.signedIn) {
+        unawaited(
+          preferences.setRememberPassword(remember && response.remembered),
+        );
         if (remember && !response.remembered) {
           setState(() => busy = false);
           await showCupertinoDialog<void>(
@@ -223,15 +273,16 @@ class _LoginPageState extends State<LoginPage> {
         }
         captcha.clear();
         challengeEpoch++;
-        challenge = null;
+        setState(() {
+          busy = false;
+          challenge = null;
+        });
         widget.onSignedIn(response);
         return;
       }
       setState(() {
         busy = false;
         needCaptcha = response.state == SessionState.captchaRequired;
-        // The school's own reason ("验证码错误", "账号已锁定") is more useful
-        // than a generic line and is already stripped of markup upstream.
         final detail = response.failureDetail?.trim();
         error = needCaptcha
             ? '学校本次登录要求验证码，请输入验证码后继续'
@@ -292,7 +343,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 22),
+                    const SizedBox(height: GinkgoSpacing.xl),
                     const Text(
                       'Ginkgo',
                       textAlign: TextAlign.center,
@@ -302,24 +353,22 @@ class _LoginPageState extends State<LoginPage> {
                         letterSpacing: -.7,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: GinkgoSpacing.sm),
                     Text(
                       '让校园生活井然有序',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: AppleDesign.bodyCondensedSize,
+                      style: GinkgoTypography.bodyCondensed.copyWith(
                         color: CupertinoColors.secondaryLabel.resolveFrom(
                           context,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 44),
+                    const SizedBox(height: GinkgoSpacing.xxl),
                     Padding(
                       padding: const EdgeInsets.only(left: 4, bottom: 12),
                       child: Text(
                         '统一身份认证',
-                        style: TextStyle(
-                          fontSize: 14,
+                        style: GinkgoTypography.subheadline.copyWith(
                           fontWeight: FontWeight.w500,
                           color: CupertinoColors.secondaryLabel.resolveFrom(
                             context,
@@ -350,7 +399,7 @@ class _LoginPageState extends State<LoginPage> {
                               autofillHints: const [AutofillHints.username],
                             ),
                             Container(
-                              height: .5,
+                              height: GinkgoSpacing.hairline,
                               margin: const EdgeInsets.only(left: 48),
                               color: CupertinoColors.separator.resolveFrom(
                                 context,
@@ -377,9 +426,18 @@ class _LoginPageState extends State<LoginPage> {
                                 textInputAction: TextInputAction.done,
                                 onSubmitted: (_) => submit(),
                               ),
-                            if (needCaptcha) _challengeRow(),
+                            if (needCaptcha)
+                              LoginChallengeRow(
+                                challenge: challenge,
+                                busy: busy,
+                                challengeBusy: challengeBusy,
+                                onRefresh: (expectedId) => loadChallenge(
+                                  expectedId: expectedId,
+                                  refresh: true,
+                                ),
+                              ),
                             Container(
-                              height: .5,
+                              height: GinkgoSpacing.hairline,
                               margin: const EdgeInsets.only(left: 48),
                               color: CupertinoColors.separator.resolveFrom(
                                 context,
@@ -389,19 +447,13 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        const Expanded(
-                          child: Text('记住密码', style: TextStyle(fontSize: 15)),
-                        ),
-                        CupertinoSwitch(
-                          value: remember,
-                          onChanged: busy
-                              ? null
-                              : (value) => setState(() => remember = value),
-                        ),
-                      ],
+                    const SizedBox(height: GinkgoSpacing.base),
+                    LoginRememberRow(
+                      key: const Key('login-remember-row'),
+                      remember: remember,
+                      prefilledFromVault: prefilledFromVault,
+                      busy: busy,
+                      onChanged: _toggleRemember,
                     ),
                     if (error != null)
                       LoginFeedback(
@@ -417,11 +469,11 @@ class _LoginPageState extends State<LoginPage> {
                             ? null
                             : widget.onRetryPreferences,
                       ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: GinkgoSpacing.xl),
                     CupertinoButton.filled(
                       key: const Key('login-submit'),
-                      borderRadius: BorderRadius.circular(16),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      borderRadius: GinkgoRadii.borderRadiusDialog,
+                      padding: GinkgoSpacing.edgeInsetsCard,
                       onPressed:
                           busy ||
                               retryPause.remaining > 0 ||
@@ -435,12 +487,11 @@ class _LoginPageState extends State<LoginPage> {
                               liveRegion: true,
                               label: '正在登录',
                               child: ColorFiltered(
-                                // The filled button keeps the brand leaf legible
-                                // on its accent fill.
                                 colorFilter: ColorFilter.mode(
                                   CupertinoDynamicColor.resolve(
-                                    CupertinoTheme.of(context)
-                                        .primaryContrastingColor,
+                                    CupertinoTheme.of(
+                                      context,
+                                    ).primaryContrastingColor,
                                     context,
                                   ),
                                   BlendMode.srcIn,
@@ -453,12 +504,11 @@ class _LoginPageState extends State<LoginPage> {
                               style: TextStyle(fontWeight: FontWeight.w600),
                             ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: GinkgoSpacing.md),
                     Text(
                       '密码仅发送至学校认证系统；勾选记住密码后才保存到本机安全存储。',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: GinkgoTypography.footnote.copyWith(
                         color: CupertinoColors.secondaryLabel.resolveFrom(
                           context,
                         ),
@@ -469,9 +519,11 @@ class _LoginPageState extends State<LoginPage> {
                     CupertinoButton(
                       onPressed: busy ? null : widget.onDemo,
                       minimumSize: const Size(48, 48),
-                      child: const Text(
+                      child: Text(
                         '先看看离线演示',
-                        style: TextStyle(fontSize: 13),
+                        style: GinkgoTypography.footnote.copyWith(
+                          color: CupertinoTheme.of(context).primaryColor,
+                        ),
                       ),
                     ),
                   ],
@@ -483,88 +535,6 @@ class _LoginPageState extends State<LoginPage> {
       ),
     ),
   );
-
-  /// The challenge image and its refresh action belong to the same card as
-  /// the fields they validate, so they keep one rhythm instead of floating on
-  /// the page background.
-  Widget _challengeRow() {
-    final current = challenge;
-    if (current == null || !current.textSupported) {
-      return Padding(
-        padding: GinkgoSpacing.edgeInsetsListTile,
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                challengeBusy ? '正在读取验证码…' : '验证方式暂不可用，请刷新',
-                style: TextStyle(
-                  fontSize: AppleDesign.bodyCondensedSize,
-                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                ),
-              ),
-            ),
-            CupertinoButton(
-              key: const Key('login-captcha-refresh'),
-              padding: EdgeInsets.zero,
-              onPressed: busy || challengeBusy
-                  ? null
-                  : () =>
-                        loadChallenge(expectedId: challenge?.id, refresh: true),
-              child: const Text('刷新'),
-            ),
-          ],
-        ),
-      );
-    }
-    return Padding(
-      padding: GinkgoSpacing.edgeInsetsListTile,
-      child: Row(
-        children: [
-          Expanded(
-            child: Semantics(
-              label: '登录验证码图片，请输入图片中的字符',
-              image: true,
-              child: Image.memory(
-                current.image,
-                height: 72,
-                alignment: Alignment.centerLeft,
-                fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => Text(
-                  '图片无法显示，请刷新',
-                  style: TextStyle(
-                    fontSize: AppleDesign.bodyCondensedSize,
-                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          CupertinoButton(
-            key: const Key('login-captcha-refresh'),
-            padding: const EdgeInsets.only(left: 12),
-            onPressed: busy || challengeBusy
-                ? null
-                : () => loadChallenge(expectedId: current.id, refresh: true),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  CupertinoIcons.refresh,
-                  size: 18,
-                  color: CupertinoTheme.of(context).primaryColor,
-                ),
-                const SizedBox(width: GinkgoSpacing.xs),
-                Text(
-                  challengeBusy ? '读取中' : '刷新',
-                  style: const TextStyle(fontSize: 15),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _field({
     required Key key,

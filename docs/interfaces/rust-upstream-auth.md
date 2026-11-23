@@ -16,7 +16,7 @@
 - [keyring_vault](#keyringvault) (2)
 - [mod](#mod) (2)
 - [redirect](#redirect) (3)
-- [automatic_route](#automaticroute) (9)
+- [automatic_route](#automaticroute) (11)
 - [session](#session) (30)
 - [uc](#uc) (5)
 - [vault](#vault) (5)
@@ -165,8 +165,12 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/session/automatic_route.rs:80</sub>
 - `pub(super) fn route_attempt(&self) -> (RouteMode, u64, Option<AutomaticRouteOwner>) {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/auth/session/automatic_route.rs:93</sub>
+- `pub(crate) async fn transition_saved_route<R>( &self, source: RouteMode, target: RouteMode, account: &str, publish: impl FnOnce(Option<UserProfile>) -> Result<(R, Option<u64>), AppError> + Send, ) -> Result<R, AppError> {…}` — Commit a requested preference and its owner together with the live
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session/automatic_route.rs:101</sub>
+- `pub(crate) async fn drain_cookie_writes(&self) {…}` — Logout revokes in memory first. Drain a save already handed to the
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session/automatic_route.rs:213</sub>
 - `pub(super) async fn verified_business_fallback( &self, request: HttpRequest, attempted_epoch: u64, owner: AutomaticRouteOwner, ) -> Result<HttpResponse, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session/automatic_route.rs:98</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/auth/session/automatic_route.rs:217</sub>
 
 ## session
 

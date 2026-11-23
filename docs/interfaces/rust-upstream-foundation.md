@@ -38,14 +38,16 @@ HTTP 传输、Cookie、路由与错误映射。
   <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:179</sub>
 - `pub fn contains(&self, name: &str) -> bool {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:202</sub>
+- `pub(crate) fn revision(&self) -> u64 {…}` — Changes on every accepted Set-Cookie, including rotation and deletion.
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:207</sub>
 - `pub fn len(&self) -> usize {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:206</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:211</sub>
 - `pub fn is_empty(&self) -> bool {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:210</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:215</sub>
 - `pub fn clear(&mut self) {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:214</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:219</sub>
 - `pub(crate) fn is_sane(&self) -> bool {…}` — Reject malformed or unexpectedly large jars before restoring them from
-  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:220</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/foundation/cookie.rs:225</sub>
 
 ## http
 

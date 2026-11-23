@@ -3,14 +3,18 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
+import 'package:ginkgo_mirror/application/bykc.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/contracts.dart' show FailureCode;
 import 'package:ginkgo_mirror/application/graduate.dart';
+import 'package:ginkgo_mirror/application/service_health.dart';
+import 'package:ginkgo_mirror/features/settings/network_diagnostics_live_section.dart';
 
-typedef AcademicProbe = Future<GraduateRead> Function({
-  required bool report,
-  required bool forceRefresh,
-});
+typedef AcademicProbe =
+    Future<GraduateRead> Function({
+      required bool report,
+      required bool forceRefresh,
+    });
 
 /// Only aggregate counts and error codes leave a probe. Response bodies and
 /// identity fields are neither retained nor included in the diagnostic UI.
@@ -55,6 +59,7 @@ List<NetworkProbe> schoolNetworkProbes(
   }
 
   return [
+    // Keep indices 0..4 stable for existing probe contract tests.
     NetworkProbe('图书馆场馆', (force) async {
       final result = await service.libraryVenues(forceRefresh: force);
       return NetworkProbeResult(
@@ -84,12 +89,85 @@ List<NetworkProbe> schoolNetworkProbes(
     }),
     NetworkProbe('研究生学籍', (force) => graduate(false, force)),
     NetworkProbe('研究生执行报告', (force) => graduate(true, force)),
+    NetworkProbe('今日课表', (force) async {
+      final result = await service.today(forceRefresh: force);
+      return NetworkProbeResult(
+        count: result.courses.length,
+        stale: result.failure != null && result.fetchedAt != null,
+        failure: result.failure,
+      );
+    }),
+    NetworkProbe('周课表与考试', (force) async {
+      final result = await service.schedule(forceRefresh: force);
+      return NetworkProbeResult(
+        count: result.courses.length + result.exams.length,
+        stale: result.failure != null && result.fetchedAt != null,
+        failure: result.failure,
+      );
+    }),
+    NetworkProbe('成绩查询', (force) async {
+      final result = await service.grades(forceRefresh: force);
+      return NetworkProbeResult(
+        count: result.courses.length,
+        stale: result.failure != null && result.fetchedAt != null,
+        failure: result.failure,
+      );
+    }),
+    NetworkProbe('SPOC 作业', (force) async {
+      final result = await service.homework(forceRefresh: force);
+      return NetworkProbeResult(
+        count: result.items.length,
+        stale: result.failure != null && result.fetchedAt != null,
+        failure: result.failure,
+      );
+    }),
+    NetworkProbe('博雅课程目录', (force) async {
+      final result = await service.bykcPart(
+        BykcPart.catalog,
+        forceRefresh: force,
+      );
+      final data = result is BykcCatalogRead ? result.data : null;
+      return NetworkProbeResult(
+        count: data?.courses.length ?? 0,
+        stale: result.failure != null && data != null,
+        failure: result.failure,
+      );
+    }),
+    NetworkProbe('校园通知（公开）', (force) async {
+      final result = await service.notices(forceRefresh: force);
+      return NetworkProbeResult(
+        count: result.data?.length ?? 0,
+        stale: result.failure != null && result.data != null,
+        failure: result.failure,
+      );
+    }),
+    NetworkProbe('图书馆实时人数（公开）', (force) async {
+      final result = await service.libraryStats(forceRefresh: force);
+      return NetworkProbeResult(
+        count: result.data?.campuses.length ?? 0,
+        stale: result.failure != null && result.data != null,
+        failure: result.failure,
+      );
+    }),
+    NetworkProbe('校车时刻表（公开）', (_) async {
+      final result = await service.shuttleTimetable();
+      return NetworkProbeResult(
+        count: result.data?.tables.length ?? 0,
+        stale: result.failure != null && result.data != null,
+        failure: result.failure,
+      );
+    }),
   ];
 }
 
 class NetworkDiagnosticsPage extends StatelessWidget {
-  const NetworkDiagnosticsPage({super.key, required this.service});
+  const NetworkDiagnosticsPage({
+    super.key,
+    required this.service,
+    this.tracker,
+  });
   final MirrorService service;
+  final ServiceHealthTracker? tracker;
   @override
   Widget build(BuildContext context) => service.isDemo
       ? const MaintenanceScaffold(
@@ -108,7 +186,11 @@ class NetworkDiagnosticsPage extends StatelessWidget {
             ),
           ],
         )
-      : SchoolNetworkChecks(probes: schoolNetworkProbes(service));
+      : SchoolNetworkChecks(
+          probes: schoolNetworkProbes(service),
+          showLiveHealth: true,
+          tracker: tracker,
+        );
 }
 
 class _ProbeState {
@@ -121,8 +203,15 @@ class _ProbeState {
 /// Injectable checks also allow deterministic delayed-render tests without
 /// school traffic. Each result is published before starting the next request.
 class SchoolNetworkChecks extends StatefulWidget {
-  const SchoolNetworkChecks({super.key, required this.probes});
+  const SchoolNetworkChecks({
+    super.key,
+    required this.probes,
+    this.showLiveHealth = false,
+    this.tracker,
+  });
   final List<NetworkProbe> probes;
+  final bool showLiveHealth;
+  final ServiceHealthTracker? tracker;
   @override
   State<SchoolNetworkChecks> createState() => _SchoolNetworkChecksState();
 }
@@ -138,6 +227,30 @@ class _SchoolNetworkChecksState extends State<SchoolNetworkChecks> {
   void initState() {
     super.initState();
     states = [for (final _ in widget.probes) _ProbeState()];
+  }
+
+  Future<void> runSingle(int index, {bool force = true}) async {
+    if (busy || index < 0 || index >= states.length || states[index].running) {
+      return;
+    }
+    final state = states[index];
+    setState(() => state.running = true);
+    final watch = Stopwatch()..start();
+    NetworkProbeResult? result;
+    try {
+      result = await widget.probes[index].read(force);
+    } catch (_) {
+      // Never expose exception text: upstream URLs can contain identity data.
+    }
+    watch.stop();
+    if (!mounted) return;
+    setState(() {
+      state.running = false;
+      state.elapsed = watch.elapsed;
+      state.result = result;
+      state.unavailable = result == null;
+      completed = DateTime.now();
+    });
   }
 
   Future<void> run(bool force) async {
@@ -179,7 +292,7 @@ class _SchoolNetworkChecksState extends State<SchoolNetworkChecks> {
 
   String detail(_ProbeState state) {
     if (state.running) return '正在读取…';
-    if (state.elapsed == null) return '等待检查';
+    if (state.elapsed == null) return '等待检查 · 点按单测此项';
     final duration = (state.elapsed!.inMilliseconds / 1000).toStringAsFixed(2);
     final result = state.result;
     if (result == null) return '$duration 秒 · 读取失败';
@@ -199,9 +312,12 @@ class _SchoolNetworkChecksState extends State<SchoolNetworkChecks> {
     subtitle: '比较当前账号的缓存与刷新等待',
     icon: CupertinoIcons.timer,
     children: [
+      if (widget.showLiveHealth)
+        LiveServiceHealthSection(tracker: widget.tracker),
       AppleSection(
+        header: const Text('主动逐项测速'),
         footer: const Text(
-          '逐项只读，不提交签到或预约。首次读取后再次读取可比较缓存耗时；强制刷新会重新请求学校。仅在本页显示耗时、条数与错误码，离开后清除。',
+          '逐项只读，不提交签到或预约。也可直接点按下方任意单行单独重测该接口；仅显示耗时、条数与错误码。',
         ),
         children: [
           AppleListTile(
@@ -214,7 +330,7 @@ class _SchoolNetworkChecksState extends State<SchoolNetworkChecks> {
           ),
           AppleListTile(
             title: const Text('强制刷新并测量'),
-            subtitle: const Text('忽略有效缓存，逐项回查'),
+            subtitle: const Text('忽略有效缓存，逐项回查上游'),
             trailing: busy && forced
                 ? const GinkgoActivity(size: 16)
                 : const CupertinoListTileChevron(),
@@ -237,6 +353,7 @@ class _SchoolNetworkChecksState extends State<SchoolNetworkChecks> {
               key: ValueKey('network-probe-$i'),
               title: Text(widget.probes[i].title),
               subtitle: Text(detail(states[i])),
+              onTap: busy || states[i].running ? null : () => runSingle(i),
               leading: states[i].running
                   ? const GinkgoActivity(size: 16)
                   : Icon(

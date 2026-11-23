@@ -9,7 +9,7 @@
 | AUTH-01 | CAS 跳转、Cookie 存在或 HTTP 200 不单独证明身份；成功必须经过 UC 身份确认且匹配输入账号。新登录/冷恢复不以目录失败构造成功身份；CAS 提交链最终的明确错误不得被后续 UC 身份验证覆盖，UC 导航不套用 CAS 错误解析 | `auth/tests.rs`、`services/tests/session.rs` |
 | AUTH-02 | 用户路线偏好、实际路线、学校身份、网关身份和业务 token 分开；取得 CAS 表单后固定认证路线；自动模式的安全业务 GET 仅在目标 WebVPN UC 验证同一账号后提交路线迁移，失败保留原身份且不额外自动提交密码；密码 POST 不由传输层重放；显式路线失败不能冒充切换成功 | `auth/session.rs`、`services/tests/session_protocol.rs`、`services/tests/automatic_route.rs`；合成请求转录，真实路线仍未验收 |
 | AUTH-03 | 验证码绑定账号/认证代次/路线/ID/execution；答错使用学校新表单，旧答案失效。过期或刷新失败可显式 GET 恢复；未知提交不重发 | `session_service/gateway.rs`、`services/tests/session_protocol.rs`；合成回归不代表真实验证码验收 |
-| AUTH-04 | 未选记住不持久化密码；Android Cookie 仅进独立 Keystore 密文；24 小时固定期限不因恢复/轮换延长；退出/新登录/切路线撤销 | `services/tests/session.rs`、`auth/session.rs`；设备证据待补 |
+| AUTH-04 | 未选记住不持久化密码；Android Cookie 仅进独立 Keystore 密文；24 小时固定期限不因恢复/轮换延长；退出和新登录撤销旧身份。登录前设置路线与已登录工作区验证后换线是不同操作：后者不因探测失败删除原身份，不混用双路线的 Cookie。 | `services/tests/session.rs`、`auth/session.rs`；设备证据待补 |
 | AUTH-05 | 学校与网关恢复分别冷却；明确凭据拒绝及需人工处理的认证提示 30 分钟、传输/服务暂时错误 60 秒；网关挑战即使过期也阻止后台重新认证 | `session_service/gateway.rs`、`services/tests/session.rs` |
 | AUTH-06 | 公开读取不携带/导入认证 Cookie 或认证头，不改变账号实际路线；当前 Android 始终匿名直连 | `services/tests/campus.rs`、公开适配器回归 |
 | DATA-01 | 成功空覆盖旧快照；失败保留旧成功时间，不延长 TTL；账号/查询变化拒绝迟到响应 | 各域 services 与 Flutter 状态机回归 |
@@ -29,6 +29,7 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 118 | §7.2 iClass 签到码接口与状态回查 | 客户端保存历史写端点说明 | 记录 `GET /app/common/get_timestamp.action` 时间戳字段、签到码参数格式与课程列表 `signStatus` 只读回查语义 | `checkin_http.rs`、`checkin_service.rs` 合成测试与 [本轮记录](_audit/2026-11-23-session-scroll-and-health-repair.md) |
 | 117 | 冷恢复存储故障与后台提醒边界 | 会话读取/解密失败可能被当作无记录，冷恢复错误进入登录页；提醒仅前台发现新事项 | 存储错误保留为可重试故障；Android 独立后台命令使用同一路线 Cookie 副本并经 UC 验证，密码端口为空，不改前台持久会话；失败组保留计划。CAS、验证码、HTTP 与 Cookie 规则不变 | 用户明确授权的最小冻结例外；`session_restore_storage.rs` 旧实现红灯、`background_session` 严格单次 UC GET 转录；[本轮审计](_audit/2026-11-03-background-reminders-and-recovery.md)。客户端策略，不是新增学校接口或实网验收 |
 | 116 | 继续移除自定认证控制流 | 初始 3xx 额外消费 Location；CAS 提交链终态非 200 直接返回服务异常；UC 导航提前按 CAS 错误查询中止；Cookie 按路径长度重排 | 初始 3xx 直接激活 UC；提交链先消费跳转、确认一次到期提示，再检查最终错误/401/参考表单标记，其他状态继续 UC；UC 导航不解析 CAS 错误查询；Cookie 按插入/轮换次序发送。撤销提交响应自动转新验证码挑战的自定分支 | 固定 UBAA `e8a397fc` 的 `login`、`followRedirectsAndCheckError`、`activateUcLogin`、`PersistentLocalCookieStorage`；[源码对照](_audit/2026-11-03-webvpn-captcha-source-comparison.md)。保留有界 HTTPS 导航、Cookie 安全作用域和 UC 身份匹配；未更改原独立捕获或伪造真实结果 |
 | 115 | 用户指定统一按 UBAA 认证主链实现 | 验证码直接复用旧页提交，密码 POST 跟随页面 action，到期确认保留 action/query，UC 落地页非 200 直接中止 | 验证码作答前同路线 GET `/login`，优先保留传入 execution；密码固定 POST `/login`；到期确认使用当前请求 URL 去 query；UC 导航完成后查询 status，不以落地页状态/正文替代身份。撤销临时 Safari 回退，保持参考的 `ktor-client`/Keep-Alive | 固定 UBAA `e8a397fc` 的 `LocalAuthServiceBackend.login`、`followRedirectsAndCheckError`、`activateUcLogin`；[源码对照](_audit/2026-11-03-webvpn-captcha-source-comparison.md)。仅源码修订，测试未运行，独立捕获与验收状态未改；安全差异单列，不宣称引擎或全部行为逐字一致 |
@@ -1086,13 +1087,12 @@ Judge 作业详情页同时包含开始/截止时间、满分、题目表格、�
 - 2026-10-16 CUA 只读复测中，WebVPN CAS 已验证，课程查询连续返回 `STATUS=2`。BBAA 原实现会把所有非成功状态刷新一次后再返回空列表，无法区分无课和认证错误；公开 iclass 用户脚本明确将当天课程查询的 `STATUS=2` 解析为空结果。桌面端现仅对该查询状态返回空课程快照，并避免无意义的 session 刷新；其他端点和未知业务状态仍保持错误处理。该状态码含义有第三方代码佐证和本机运行态吻合，但尚无官方协议文档确认。
 - 页面出现、定时轮询和会话状态变化可能同时请求签到状态；实现现跳过进行中的刷新，并折叠重复课程 ID。若重复 ID 的字段或签到状态不一致，将显示待确认且不提供签到按钮。该处理有合成响应回归测试，不代表已观察到真实响应含重复 ID。
 - 本项目对 SSO 跳转、app 登录和课程查询分别记录脱敏 OSLog 阶段、HTTP/业务状态或网络错误域/码；日志不得包含 loginName、sessionId、Cookie、查询串或响应正文。重定向诊断仅记录状态码与 Location 形态，不记录 Location 内容。
-- BBAA `LocalSigninApi.kt` 的写请求为先 GET `https://iclass.buaa.edu.cn:8347/app/common/get_timestamp.action`，再 POST `https://iclass.buaa.edu.cn:8347/app/course/stu_scan_sign.action`，查询参数 `courseSchedId`、`timestamp`，表单字段 `id`，请求头 `sessionId`。BBAA 以 `STATUS` 成功且 `result.stuSignStatus == 1` 判定提交成功。本项目现按此实现手动操作；这些写请求尚未由本项目对真实上游实测，故不把源码对照标成协议验收。
-- 界面仅在用户逐课程点击并确认后发送写请求；不自动签到、不自动重发。收到成功响应后立即再次读取当天课程，只有回查到 `signStatus == 1` 才显示绿色“签到成功，课程状态已回查确认”；提交超时、回查失败或状态未变化时保留“结果待确认”并提供刷新，不宣称成功。
-- 本项目对 SSO、app 登录、课程查询、服务器时间和提交阶段分别记录脱敏 OSLog；日志不得包含 loginName、sessionId、Cookie、查询串或响应正文。应用内状态变化提示与用户授权后的通用 macOS 通知已接入；真实写入往返、通知投递、后台/休眠行为仍待人工验收。
+- 服务器时间戳端点为 `GET https://iclass.buaa.edu.cn:8347/app/common/get_timestamp.action`（`STATUS=="0"`，读取 `timestamp`），用于组装课程签到码查询参数（`courseSchedId`、`timestamp`），完成后通过当天课程列表只读回查 `signStatus` 确认状态。
+- 本项目对 SSO、app 登录、课程查询和服务器时间阶段分别记录脱敏日志；日志不得包含 loginName、sessionId、Cookie、查询串或响应正文。应用内状态变化提示与用户授权后的通用通知已接入；真机完整闭环与后台/休眠行为仍待人工验收。
 
-只读字段以真实 WebVPN 转发响应为据；本轮 CUA 已验证当前 App 经 WebVPN CAS 读取当天无课状态。提交协议目前仅以 BBAA 源码为参考，真实签到写入、通知投递和后台/休眠行为仍待验收。
+只读字段以真实 WebVPN 转发响应为据；真机闭环与后台通知仍待验收。
 
-> 镜像实现（2026-10-20）：Rust/Flutter 已接入入口 SSO、app login 与当天课程查询的只读链路，字段与状态语义按本节；STATUS=2 只对当天课程查询解释为空，其他非成功 STATUS 返回业务拒绝；重复记录按 id 或课程时间合并，状态冲突显示待确认；同场次不同 ID 仅在存在未签到目标时保留独立操作入口，已签到等无需操作的记录折叠为一行。WebVPN 路由下，`session` 把网关响应的 final URL/Location 还原为上游 URL；直连不可达时只对有界安全 GET 回退。网关自身需要 CAS 会话，镜像优先用本次已验证登录的内存凭据建立，缺少时读取平台保险库；两者都没有时要求重新登录。镜像没有实现 `stu_scan_sign.action`，页面没有签到提交入口；共享 fixture 与 Android 合成设备测试不能替代真实签到状态验收。
+> 镜像实现（2026-11-23 更新）：Rust/Flutter 已接入入口 SSO、app login、当天/历史课程查询与 `get_timestamp.action` 实时签到码矩阵生成，字段与状态语义按本节；`STATUS=2` 只对当天课程查询解释为空，其他非成功 `STATUS` 返回业务拒绝；重复记录按 `id` 或课程时间合并，状态冲突显示待确认；同场次不同 ID 仅在存在未签到目标时保留独立入口，已签到等无需操作的记录折叠为一行。前端通过 `prepare_checkin_qr` 获取由 `ginkgo_domain` 编码的布尔矩阵（学校原始 URL 不跨 FFI），支持定时刷新、单张保存至相册与状态只读回查。
 
 ### 7.3 2026-10-18 教育系统只读数据盘点
 

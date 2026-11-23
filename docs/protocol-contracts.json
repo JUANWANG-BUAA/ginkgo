@@ -43,8 +43,8 @@
         "AUTH-05",
         "AUTH-06"
       ],
-      "source_sha256": "23f4d1a76af025a9457fe00ba6a1b15337ecafb9a05e2d9e6840c66cfacd7df1",
-      "document_sha256": "4728f812ab4c0971b9e12d77cd170003b327a2ff9cfe576b012f52b2915d8648"
+      "source_sha256": "eaa5911ab6388d3a385a2fe336fc7ee214c3cf04a198850499e3ac3eb4857455",
+      "document_sha256": "ff8ff828104a7dd90cd20e75f16840f428cb08015ffa24c12b764c57e1c21f94"
     },
     {
       "id": "school-protocols",
@@ -81,8 +81,8 @@
         "WRITE-01",
         "WRITE-02"
       ],
-      "source_sha256": "9aa2c1742d40844fab3f08f9abbcf1516969d6830742ea52c3a6fab5e2f191cd",
-      "document_sha256": "fb2b48758b5152050c3b2b5ee21e2014d0f150bb47a0a4c1613f0faee37d2c8b"
+      "source_sha256": "7975a5debc2d6c2aad3d95c1503d494d795f0479334e69072d131b0a4a5c3a7e",
+      "document_sha256": "b378ed210b9ad09800830d5ad4f2c298c9c1f989c8831e80a621017beae9b542"
     },
     {
       "id": "client-contracts",
@@ -129,7 +129,8 @@
         "flutter/test/gateway_challenge_generation_test.dart",
         "flutter/test/grades_term_recovery_test.dart",
         "flutter/test/login_placeholder_contrast_test.dart",
-        "flutter/test/non_auth_lifecycle_regression_test.dart"
+        "flutter/test/non_auth_lifecycle_regression_test.dart",
+        "flutter/test/session_health_and_scroll_regression_test.dart"
       ],
       "invariants": [
         "FFI-01",
@@ -138,8 +139,8 @@
         "PREF-01",
         "READ-01"
       ],
-      "source_sha256": "dd0b6f8a42261dea1737d284a3db642d8cc1b50440cffdd68781e66cfac60973",
-      "document_sha256": "43147ea2f10c3862a8adc59d58817729f0496da7eb1e59f04eab7b0c578ea282"
+      "source_sha256": "8c19e19d354ae83467d097a8fcd5039f82459e3ec64dc3f2a731419245da392f",
+      "document_sha256": "f9be0b2388c74162749b83ceb0ca20dbf929c84c83d3e6ad6f575d8e49c7f7e3"
     }
   ]
 }

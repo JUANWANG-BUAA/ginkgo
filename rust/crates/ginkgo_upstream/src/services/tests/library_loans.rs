@@ -180,3 +180,29 @@ async fn endpoint_and_business_failures_are_not_successful_empty_or_cached() {
         assert_eq!(t.request_count(), 6);
     }
 }
+
+#[tokio::test]
+async fn webvpn_wrapped_redirect_is_unwrapped_and_reaches_loans_board() {
+    let wrapped_board =
+        crate::foundation::webvpn::wrap("https://space.lib.buaa.edu.cn/space/casBoard")
+            .expect("wrapped board url");
+    let (s, t) = signed(vec![
+        HttpResponse::new(
+            302,
+            "https://space.lib.buaa.edu.cn/meta-local/opac/cas/rosetta",
+            "",
+        )
+        .with_header("location", &wrapped_board)
+        .with_set_cookie("reader=webvpn_synthetic; Path=/; Secure; HttpOnly"),
+        board(),
+        loans(empty()),
+    ]);
+    s.session.set_route(crate::auth::session::RouteMode::WebVpn);
+    assert!(s
+        .library_loans(1)
+        .await
+        .expect("webvpn loans")
+        .items
+        .is_empty());
+    assert_eq!(t.request_count(), 3);
+}

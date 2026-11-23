@@ -198,8 +198,10 @@ final class DemoMirrorService
   ) async =>
       const live.MutationResponse(state: 'notSubmitted', message: '演示模式不会修改预约');
   @override
-  Future<live.MutationResponse> submitCheckin(String courseId) async =>
-      const live.MutationResponse(state: 'notSubmitted', message: '演示模式不会提交签到');
+  Future<CheckInQrResponse> prepareCheckinQr(
+    String courseId, {
+    bool revalidateCourse = true,
+  }) => rust.loadDemoCheckinQr(courseId: courseId);
   @override
   bool get isDemo => true;
   @override

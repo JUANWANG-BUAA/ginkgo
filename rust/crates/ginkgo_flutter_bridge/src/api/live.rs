@@ -1,12 +1,12 @@
 //! Real-account bridge. Cookies, credentials and recovery stay in Rust; these
 //! functions only map coarse use cases to stable DTOs.
 use super::mirror::{
-    CheckInCourse as CheckInCourseDto, CheckInResponse, CheckInStatus as CheckInStatusDto,
-    ClassroomBuilding, ClassroomQuery, ClassroomResponse, ClassroomRow, ClassroomSort, FailureCode,
-    GradeCourse, GradeResponse, GradeSummary, LibraryAreasResponse, LibraryBookingsResponse,
-    LibrarySeatsResponse, LibrarySlotsResponse, LibraryVenuesResponse, ScheduleCourse,
-    ScheduleExam, ScheduleResponse, ScheduleTerm, ScheduleWeek, SectionState, TodayCourse,
-    TodayResponse,
+    CheckInCourse as CheckInCourseDto, CheckInQrResponse, CheckInResponse,
+    CheckInStatus as CheckInStatusDto, ClassroomBuilding, ClassroomQuery, ClassroomResponse,
+    ClassroomRow, ClassroomSort, FailureCode, GradeCourse, GradeResponse, GradeSummary,
+    LibraryAreasResponse, LibraryBookingsResponse, LibrarySeatsResponse, LibrarySlotsResponse,
+    LibraryVenuesResponse, ScheduleCourse, ScheduleExam, ScheduleResponse, ScheduleTerm,
+    ScheduleWeek, SectionState, TodayCourse, TodayResponse,
 };
 use ginkgo_core::{
     application::{
@@ -65,6 +65,80 @@ pub async fn login(
 
 pub async fn restore_session() -> SessionResponse {
     session::restore_session().await
+}
+
+pub struct SavedCredentialResponse {
+    pub account: Option<String>,
+    pub password: Option<String>,
+    pub failure: Option<FailureCode>,
+}
+
+/// Reads the single saved credential from the platform secure vault on a
+/// blocking thread so the login form can pre-fill remembered credentials when
+/// CAS requests a fresh captcha or session re-verification.
+pub async fn load_saved_credential() -> SavedCredentialResponse {
+    match tokio::task::spawn_blocking(ginkgo_runtime::load_saved_credential).await {
+        Ok(Ok(Some((account, password)))) => SavedCredentialResponse {
+            account: Some(account),
+            password: Some(password),
+            failure: None,
+        },
+        Ok(Ok(None)) => SavedCredentialResponse {
+            account: None,
+            password: None,
+            failure: None,
+        },
+        Ok(Err(error)) => SavedCredentialResponse {
+            account: None,
+            password: None,
+            failure: Some(FailureCode::from(error.code)),
+        },
+        Err(_) => SavedCredentialResponse {
+            account: None,
+            password: None,
+            failure: Some(FailureCode::CredentialStore),
+        },
+    }
+}
+
+/// Local observation only: never initialize a client or probe the school.
+pub async fn last_verified_route() -> Option<RouteChoice> {
+    use ginkgo_core::application::RoutePreference;
+    match SERVICE.get()?.verified_route()? {
+        RoutePreference::Direct => Some(RouteChoice::Direct),
+        RoutePreference::WebVpn => Some(RouteChoice::WebVpn),
+        RoutePreference::Automatic => None,
+    }
+}
+
+/// Explicit workspace action. Unlike login setup, never discards a valid session.
+pub async fn switch_verified_route(
+    expected_account: String,
+    route: RouteChoice,
+) -> Option<FailureCode> {
+    use ginkgo_core::application::RoutePreference;
+    with_session_write(|| async {
+        let service = SERVICE.get().ok_or_else(AppError::session_expired)?;
+        if expected_account.is_empty()
+            || !service
+                .status()
+                .account
+                .as_deref()
+                .is_some_and(|account| account.eq_ignore_ascii_case(&expected_account))
+        {
+            return Err(AppError::session_expired());
+        }
+        service
+            .switch_verified_route(match route {
+                RouteChoice::Automatic => RoutePreference::Automatic,
+                RouteChoice::Direct => RoutePreference::Direct,
+                RouteChoice::WebVpn => RoutePreference::WebVpn,
+            })
+            .await
+    })
+    .await
+    .err()
+    .map(|error| FailureCode::from(error.code))
 }
 
 pub struct BackgroundReminderRead {
@@ -844,8 +918,8 @@ pub struct MutationResponse {
     pub message: String,
 }
 
-pub async fn submit_checkin(course_id: String) -> MutationResponse {
-    checkin::submit_checkin(course_id).await
+pub async fn prepare_checkin_qr(course_id: String, revalidate_course: bool) -> CheckInQrResponse {
+    checkin::prepare_checkin_qr(course_id, revalidate_course).await
 }
 
 pub async fn reserve_library_seat(

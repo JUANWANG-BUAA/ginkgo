@@ -34,27 +34,34 @@
     - `const DiagnosticsPage({ super.key, required this.service, required this.mirror, });`  <sub>:193</sub>
     - `State<DiagnosticsPage> createState() => …`  <sub>:201</sub>
 
+## features/settings/network_diagnostics_live_section.dart
+
+- `class LiveServiceHealthSection extends StatelessWidget` — Displays live passive telemetry recorded by [ServiceHealthTracker] across
+  <sub>class · features/settings/network_diagnostics_live_section.dart:11</sub>
+    - `const LiveServiceHealthSection({super.key, this.tracker});`  <sub>:12</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:47</sub>
+
 ## features/settings/network_diagnostics_page.dart
 
-- `typedef AcademicProbe = Future<GraduateRead> Function(`
-  <sub>typedef · features/settings/network_diagnostics_page.dart:10</sub>
+- `typedef AcademicProbe =`
+  <sub>typedef · features/settings/network_diagnostics_page.dart:13</sub>
 - `class NetworkProbeResult` — Only aggregate counts and error codes leave a probe. Response bodies and
-  <sub>class · features/settings/network_diagnostics_page.dart:17</sub>
-    - `const NetworkProbeResult({ required this.count, this.fromCache, this.stale = false, this.failure, });`  <sub>:18</sub>
+  <sub>class · features/settings/network_diagnostics_page.dart:21</sub>
+    - `const NetworkProbeResult({ required this.count, this.fromCache, this.stale = false, this.failure, });`  <sub>:22</sub>
 - `class NetworkProbe`
-  <sub>class · features/settings/network_diagnostics_page.dart:30</sub>
-    - `const NetworkProbe(this.title, this.read);`  <sub>:31</sub>
-    - `final Future<NetworkProbeResult> Function(bool force) read;`  <sub>:33</sub>
+  <sub>class · features/settings/network_diagnostics_page.dart:34</sub>
+    - `const NetworkProbe(this.title, this.read);`  <sub>:35</sub>
+    - `final Future<NetworkProbeResult> Function(bool force) read;`  <sub>:37</sub>
 - `List<NetworkProbe> schoolNetworkProbes( MirrorService service, { AcademicProbe? academic, }) {…}`
-  <sub>function · features/settings/network_diagnostics_page.dart:36</sub>
+  <sub>function · features/settings/network_diagnostics_page.dart:40</sub>
 - `class NetworkDiagnosticsPage extends StatelessWidget`
-  <sub>class · features/settings/network_diagnostics_page.dart:90</sub>
-    - `const NetworkDiagnosticsPage({super.key, required this.service});`  <sub>:91</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:94</sub>
+  <sub>class · features/settings/network_diagnostics_page.dart:163</sub>
+    - `const NetworkDiagnosticsPage({ super.key, required this.service, this.tracker, });`  <sub>:164</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:172</sub>
 - `class SchoolNetworkChecks extends StatefulWidget` — Injectable checks also allow deterministic delayed-render tests without
-  <sub>class · features/settings/network_diagnostics_page.dart:123</sub>
-    - `const SchoolNetworkChecks({super.key, required this.probes});`  <sub>:124</sub>
-    - `State<SchoolNetworkChecks> createState() => …`  <sub>:127</sub>
+  <sub>class · features/settings/network_diagnostics_page.dart:205</sub>
+    - `const SchoolNetworkChecks({ super.key, required this.probes, this.showLiveHealth = false, this.tracker, });`  <sub>:206</sub>
+    - `State<SchoolNetworkChecks> createState() => …`  <sub>:216</sub>
 
 ## features/settings/preferences_pages.dart
 
@@ -78,10 +85,10 @@
 ## features/settings/settings_page.dart
 
 - `class SettingsPage extends StatefulWidget`
-  <sub>class · features/settings/settings_page.dart:22</sub>
-    - `const SettingsPage({ super.key, required this.service, required this.onSignOut, this.accountName, this.accountId, this.route, required this.maintenance, });`  <sub>:23</sub>
-    - `final Future<void> Function() onSignOut;`  <sub>:38</sub>
-    - `State<SettingsPage> createState() => …`  <sub>:43</sub>
+  <sub>class · features/settings/settings_page.dart:25</sub>
+    - `const SettingsPage({ super.key, required this.service, required this.onSignOut, this.accountName, this.accountId, this.route, required this.maintenance, });`  <sub>:26</sub>
+    - `final Future<void> Function() onSignOut;`  <sub>:41</sub>
+    - `State<SettingsPage> createState() => …`  <sub>:46</sub>
 
 ## features/settings/startup_update_hint.dart
 

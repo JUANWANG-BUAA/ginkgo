@@ -12,8 +12,14 @@ BASELINE = "c4afc0c3f5edad5cded1352da5b536001edb430a"
 TAG = "android-v0.1.0-beta.9"
 MANIFEST = "docs/network-freeze.json"
 APPROVED_REVISIONS = {
+    "rust/crates/ginkgo_upstream/src/auth/session/automatic_route.rs":
+        "87bc2392af0f25cb94b14da9eed986bf957bcba3a7dc65450bc05b2a4aecec61",
+    "rust/crates/ginkgo_upstream/src/foundation/cookie.rs":
+        "638de5679628e9c8d8c1df94a8e3e5fa8d1e1100384c4bb97c1e58462127787d",
     "rust/crates/ginkgo_upstream/src/services/session_service/session_source.rs":
-        "7cf178f8abe7b00704a508b3826814678f16210997a41ca941394a938b2bbd21",
+        "d0e3d91bc05cd7324c5d9c8d08eb9b11b82070a92323fa4dfdcb068c2ccd079e",
+    "scripts/check-session-regressions.py":
+        "949d6ab2a6ed47daa6a3e4f7b00d1689f1f64b3d5cf6b60cb7ed6c86748ff93c",
 }
 APPROVAL_RECORD = "docs/_audit/2026-11-03-background-reminders-and-recovery.md"
 

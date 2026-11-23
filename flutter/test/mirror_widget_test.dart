@@ -298,8 +298,16 @@ class ControlledService extends Fake implements MirrorService {
     String action,
   ) async => const MutationResponse(state: 'notSubmitted', message: '合成测试未提交');
   @override
-  Future<MutationResponse> submitCheckin(String courseId) async =>
-      const MutationResponse(state: 'notSubmitted', message: '合成测试未提交');
+  Future<CheckInQrResponse> prepareCheckinQr(
+    String courseId, {
+    bool revalidateCourse = true,
+  }) async => CheckInQrResponse(
+    courseId: courseId,
+    refreshSeconds: 4,
+    matrixSize: 21,
+    modules: List<bool>.filled(21 * 21, false),
+    demo: true,
+  );
   @override
   bool get isDemo => true;
   @override
@@ -1220,7 +1228,7 @@ void main() {
     );
     expect(find.textContaining('合并 2 条'), findsWidgets);
     expect(find.textContaining('记录不一致'), findsWidgets);
-    expect(find.textContaining('演示模式不会提交签到'), findsOneWidget);
+    expect(find.textContaining('演示模式仅展示合成签到码'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -1233,7 +1241,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('今天没有课程'), findsWidgets);
-    expect(find.textContaining('演示模式不会提交签到'), findsOneWidget);
+    expect(find.textContaining('演示模式仅展示合成签到码'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

@@ -260,3 +260,28 @@ pub(super) fn load_demo_checkin() -> CheckInResponse {
         },
     }
 }
+
+pub(super) fn load_demo_checkin_qr(course_id: &str) -> CheckInQrResponse {
+    match application::demo_checkin::prepare_qr(course_id) {
+        Ok(ticket) => CheckInQrResponse {
+            course_id: ticket.course_id,
+            fetched_at: Some(ticket.fetched_at),
+            refresh_seconds: i32::from(ticket.refresh_seconds),
+            matrix_size: i32::from(ticket.matrix_size),
+            modules: ticket.modules,
+            demo: true,
+            failure: None,
+            failure_detail: None,
+        },
+        Err(error) => CheckInQrResponse {
+            course_id: course_id.to_owned(),
+            fetched_at: None,
+            refresh_seconds: 0,
+            matrix_size: 0,
+            modules: vec![],
+            demo: true,
+            failure: Some(error.code.into()),
+            failure_detail: error.detail,
+        },
+    }
+}

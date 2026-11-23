@@ -5,6 +5,18 @@
 > 手工总览与分层说明见 [INTERFACE-INDEX.md](../INTERFACE-INDEX.md)。
 `flutter/lib/features/auth/` 的页面、域内组件与模型。
 
+## features/auth/login_challenge_row.dart
+
+- `class LoginChallengeRow extends StatelessWidget` — Displays the login captcha image and its refresh control inside the form card.
+  <sub>class · features/auth/login_challenge_row.dart:7</sub>
+    - `const LoginChallengeRow({ super.key, required this.challenge, required this.busy, required this.challengeBusy, required this.onRefresh, });`  <sub>:8</sub>
+    - `final void Function(String? expectedId) onRefresh;`  <sub>:19</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:22</sub>
+- `class LoginRememberRow extends StatelessWidget`
+  <sub>class · features/auth/login_challenge_row.dart:99</sub>
+    - `const LoginRememberRow({ super.key, required this.remember, required this.prefilledFromVault, required this.busy, required this.onChanged, });`  <sub>:100</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:114</sub>
+
 ## features/auth/login_credential_field.dart
 
 - `Widget loginCredentialField({ required BuildContext context, required bool busy, required bool challengeBusy, required bool showPassword, required VoidCallback togglePassword, required Key key, required TextEditingController controller, required String placeholder, required String label, bool obscure = false, TextInputAction? textInputAction, Iterable<String>? autofillHints, ValueChanged<String>? onSubmitted, }) => …`
@@ -32,9 +44,10 @@
 ## features/auth/login_page.dart
 
 - `class LoginPage extends StatefulWidget`
-  <sub>class · features/auth/login_page.dart:19</sub>
-    - `const LoginPage({ super.key, required this.service, required this.onSignedIn, required this.onDemo, this.initialMessage, this.initialCaptcha = false, this.onRetryPreferences, this.challengeGateway, });`  <sub>:20</sub>
-    - `State<LoginPage> createState() => …`  <sub>:40</sub>
+  <sub>class · features/auth/login_page.dart:23</sub>
+    - `const LoginPage({ super.key, required this.service, required this.onSignedIn, required this.onDemo, this.initialMessage, this.initialCaptcha = false, this.onRetryPreferences, this.challengeGateway, this.beforeSessionAction, });`  <sub>:24</sub>
+    - `final Future<void> Function()? beforeSessionAction;`  <sub>:43</sub>
+    - `State<LoginPage> createState() => …`  <sub>:46</sub>
 
 ## features/auth/login_retry_pause.dart
 

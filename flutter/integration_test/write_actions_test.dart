@@ -16,9 +16,13 @@ void main() {
   testWidgets(
     'synthetic checkin and reservation confirmation with no upstream writes',
     (tester) async {
-      // No account exists; native preflight must reject without a mutation request.
-      final native = await live.submitCheckin(courseId: 'synthetic-no-account');
-      expect(native.state, 'notSubmitted');
+      // No account exists; native preflight must reject without any upstream request.
+      final native = await live.prepareCheckinQr(
+        courseId: 'synthetic-no-account',
+        revalidateCourse: true,
+      );
+      expect(native.failure, isNotNull);
+      expect(native.modules, isEmpty);
       // The Rust demo fixture is dated 2026-10-20, 08:00-09:35 in Beijing.
       // Exercise the real time-window guard with an explicit clock; wall time
       // would disable the action as soon as that synthetic lesson has ended.
@@ -33,10 +37,10 @@ void main() {
       await settle(tester);
       await tester.tap(find.byKey(const Key('checkin-submit-501')));
       await settle(tester);
-      expect(find.text('确认签到？'), findsOneWidget);
-      await tester.tap(find.text('确认签到'));
+      expect(find.byKey(const Key('checkin-qr-sheet')), findsOneWidget);
+      expect(find.textContaining('演示模式仅展示合成二维码'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('checkin-qr-close')));
       await settle(tester);
-      expect(find.textContaining('演示模式不会提交签到'), findsWidgets);
       await tester.pumpWidget(const SizedBox());
       await launch(tester);
       await tapTab(tester, '图书馆');

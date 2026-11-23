@@ -10,6 +10,7 @@ native/demo 适配器、运行时与持久化实现。
 - [infrastructure/background_reminders.dart](#infrastructurebackgroundremindersdart) (1)
 - [infrastructure/bykc_decode.dart](#infrastructurebykcdecodedart) (3)
 - [infrastructure/cgyy_decode.dart](#infrastructurecgyydecodedart) (2)
+- [infrastructure/checkin_qr_saver.dart](#infrastructurecheckinqrsaverdart) (1)
 - [infrastructure/course_visibility_file_store.dart](#infrastructurecoursevisibilityfilestoredart) (1)
 - [infrastructure/demo_graduate_credit_map.dart](#infrastructuredemograduatecreditmapdart) (1)
 - [infrastructure/demo_homework_files.dart](#infrastructuredemohomeworkfilesdart) (1)
@@ -31,11 +32,14 @@ native/demo 适配器、运行时与持久化实现。
 - [infrastructure/native_auth_challenge.dart](#infrastructurenativeauthchallengedart) (3)
 - [infrastructure/native_campus_activities.dart](#infrastructurenativecampusactivitiesdart) (2)
 - [infrastructure/native_career.dart](#infrastructurenativecareerdart) (2)
+- [infrastructure/native_command.dart](#infrastructurenativecommanddart) (1)
+- [infrastructure/native_homework_files.dart](#infrastructurenativehomeworkfilesdart) (1)
 - [infrastructure/native_learning.dart](#infrastructurenativelearningdart) (1)
 - [infrastructure/native_library_loans.dart](#infrastructurenativelibraryloansdart) (2)
 - [infrastructure/native_mirror_service.dart](#infrastructurenativemirrorservicedart) (1)
 - [infrastructure/native_reminder_planning.dart](#infrastructurenativereminderplanningdart) (1)
 - [infrastructure/native_reminder_platform.dart](#infrastructurenativereminderplatformdart) (1)
+- [infrastructure/native_saved_credential.dart](#infrastructurenativesavedcredentialdart) (1)
 - [infrastructure/native_school_rules.dart](#infrastructurenativeschoolrulesdart) (1)
 - [infrastructure/notices_decode.dart](#infrastructurenoticesdecodedart) (1)
 - [infrastructure/reminder_store.dart](#infrastructurereminderstoredart) (1)
@@ -63,6 +67,11 @@ native/demo 适配器、运行时与持久化实现。
   <sub>function · infrastructure/cgyy_decode.dart:56</sub>
 - `CgyyActionResult decodeCgyyAction(live.CgyyActionResultResponse response) {…}` — Projects the write result. Options/challenge/review stay optional exactly
   <sub>function · infrastructure/cgyy_decode.dart:69</sub>
+
+## infrastructure/checkin_qr_saver.dart
+
+- `Future<CheckinQrSaveStatus> saveCheckinQrPng( Uint8List pngBytes, { required bool Function() isCurrent, }) async {…}`
+  <sub>function · infrastructure/checkin_qr_saver.dart:11</sub>
 
 ## infrastructure/course_visibility_file_store.dart
 
@@ -237,18 +246,37 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/native_campus_activities.dart
 
 - `CampusActivitiesRead decodeCampusActivities( live.CampusActivitiesResponse response, ) {…}`
-  <sub>function · infrastructure/native_campus_activities.dart:7</sub>
+  <sub>function · infrastructure/native_campus_activities.dart:8</sub>
 - `mixin NativeCampusActivities implements CampusActivitiesGateway`
-  <sub>mixin · infrastructure/native_campus_activities.dart:38</sub>
-    - `Future<CampusActivitiesRead> campusActivities({ int page = 1, bool forceRefresh = false, }) async => …`  <sub>:40</sub>
+  <sub>mixin · infrastructure/native_campus_activities.dart:39</sub>
+    - `Future<CampusActivitiesRead> campusActivities({ int page = 1, bool forceRefresh = false, }) => …`  <sub>:41</sub>
 
 ## infrastructure/native_career.dart
 
 - `CareerEventsRead decodeCareerEvents(live.CareerEventsResponse response) {…}`
-  <sub>function · infrastructure/native_career.dart:8</sub>
+  <sub>function · infrastructure/native_career.dart:9</sub>
 - `mixin NativeCareer implements CareerEventsGateway`
-  <sub>mixin · infrastructure/native_career.dart:39</sub>
-    - `Future<CareerEventsRead> careerEvents({ required String month, bool forceRefresh = false, }) async => …`  <sub>:41</sub>
+  <sub>mixin · infrastructure/native_career.dart:40</sub>
+    - `Future<CareerEventsRead> careerEvents({ required String month, bool forceRefresh = false, }) => …`  <sub>:42</sub>
+
+## infrastructure/native_command.dart
+
+- `void clearInFlightNativeReads() => …`
+  <sub>function · infrastructure/native_command.dart:61</sub>
+
+## infrastructure/native_homework_files.dart
+
+- `mixin NativeHomeworkFiles implements HomeworkFilesGateway`
+  <sub>mixin · infrastructure/native_homework_files.dart:11</sub>
+    - `Future<HomeworkResponse> homework({bool forceRefresh = false}) => …`  <sub>:14</sub>
+    - `Future<live.HomeworkDetailResponse> homeworkDetail( String assignmentId, { bool forceRefresh = false, }) => …`  <sub>:29</sub>
+    - `Future<List<HomeworkPendingSubmission>> pendingHomeworkSubmissions({ String? assignmentId, }) async {…}`  <sub>:62</sub>
+    - `Future<List<HomeworkCapabilityEvidence>> homeworkCapabilities( String assignmentId, ) async {…}`  <sub>:88</sub>
+    - `Future<HomeworkFileWorkspace> homeworkFiles(String assignmentId) async {…}`  <sub>:123</sub>
+    - `Future<HomeworkFileReceipt> uploadHomeworkFile( String assignmentId, String name, Uint8List bytes, ) async {…}`  <sub>:153</sub>
+    - `Future<MutationResponse> submitHomeworkFile(String handle) async {…}`  <sub>:178</sub>
+    - `Future<MutationResponse> reconcileHomeworkFile(String handle) => …`  <sub>:190</sub>
+    - `Future<HomeworkFileDownload> downloadHomeworkFile( String assignmentId, String attachmentId, ) async {…}`  <sub>:194</sub>
 
 ## infrastructure/native_learning.dart
 
@@ -258,16 +286,16 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/native_library_loans.dart
 
 - `LibraryLoansRead decodeLibraryLoans(live.LibraryLoansResponse response) {…}` — Decode the business projection, never the school OPAC envelope.
-  <sub>function · infrastructure/native_library_loans.dart:8</sub>
+  <sub>function · infrastructure/native_library_loans.dart:9</sub>
 - `mixin NativeLibraryLoans`
-  <sub>mixin · infrastructure/native_library_loans.dart:37</sub>
-    - `String libraryLoansPortalUrl() => …`  <sub>:40</sub>
-    - `Future<LibraryLoansRead> libraryLoans({int page = 1}) async {…}`  <sub>:43</sub>
+  <sub>mixin · infrastructure/native_library_loans.dart:38</sub>
+    - `String libraryLoansPortalUrl() => …`  <sub>:41</sub>
+    - `Future<LibraryLoansRead> libraryLoans({int page = 1}) async {…}`  <sub>:44</sub>
 
 ## infrastructure/native_mirror_service.dart
 
 - `final class NativeMirrorService`
-  <sub>class · infrastructure/native_mirror_service.dart:46</sub>
+  <sub>class · infrastructure/native_mirror_service.dart:49</sub>
 
 ## infrastructure/native_reminder_planning.dart
 
@@ -285,6 +313,12 @@ native/demo 适配器、运行时与持久化实现。
     - `Future<void> replace(List<Map<String, Object>> plans) async {…}`  <sub>:13</sub>
     - `Future<void> synchronize({ required String owner, required bool checkin, required bool homework, required Set<String> groups, required List<Map<String, Object>> plans, }) async {…}`  <sub>:21</sub>
     - `Future<void> clearOwner(String owner) async {…}`  <sub>:39</sub>
+
+## infrastructure/native_saved_credential.dart
+
+- `mixin NativeSavedCredential implements SavedCredentialGateway`
+  <sub>mixin · infrastructure/native_saved_credential.dart:5</sub>
+    - `Future<SavedCredential?> savedCredential() async {…}`  <sub>:7</sub>
 
 ## infrastructure/native_school_rules.dart
 

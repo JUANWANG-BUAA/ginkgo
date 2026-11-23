@@ -148,56 +148,45 @@ fn is_gateway_login(response: &HttpResponse) -> bool {
     })
 }
 
-/// CheckInClient.performSignIn / API.md §7.2. Timestamp is a safe read;
-/// the final POST deliberately uses send, without fallback, redirect or retry.
-pub async fn sign_in<T: HttpTransport>(
-    session: &Session<T>,
-    iclass: &IClassSession,
-    course_id: &str,
-) -> crate::codecs::mutation::MutationOutcome {
-    use crate::codecs::mutation::MutationOutcome as Outcome;
-    const TIMESTAMP: &str = "https://iclass.buaa.edu.cn:8347/app/common/get_timestamp.action";
-    let timestamp = async {
-        let response = session
-            .send_with_fallback(HttpRequest::get(TIMESTAMP))
-            .await?;
-        classify_json(&response)?;
-        let value: serde_json::Value =
-            serde_json::from_str(&response.body).map_err(|_| AppError::changed())?;
-        match &value["timestamp"] {
-            serde_json::Value::String(s) if !s.trim().is_empty() => Ok(s.trim().to_owned()),
-            serde_json::Value::Number(n) => Ok(n.to_string()),
-            _ => Err(AppError::changed()),
-        }
-    }
-    .await;
-    let Ok(timestamp) = timestamp else {
-        return Outcome::not_submitted("无法取得学校时间，未提交签到");
-    };
-    let Ok(mut url) =
-        url::Url::parse("https://iclass.buaa.edu.cn:8347/app/course/stu_scan_sign.action")
-    else {
-        return Outcome::not_submitted("签到地址无效");
-    };
-    url.query_pairs_mut()
-        .append_pair("courseSchedId", course_id)
-        .append_pair("timestamp", &timestamp);
-    let body = url::form_urlencoded::Serializer::new(String::new())
-        .append_pair("id", &iclass.user_id)
-        .finish();
+pub const TIMESTAMP_URL: &str = "https://iclass.buaa.edu.cn:8347/app/common/get_timestamp.action";
+pub const SCAN_SIGN_URL: &str = "https://iclass.buaa.edu.cn:8347/app/course/stu_scan_sign.action";
+pub const CLASSROOM_QR_BASE_URL: &str =
+    "http://iclass.buaa.edu.cn:8081/app/course/stu_scan_sign.action";
+
+/// Fetch the upstream server timestamp used by the iClass QR check-in payload.
+pub async fn fetch_timestamp<T: HttpTransport>(session: &Session<T>) -> Result<String, AppError> {
     let response = session
-        .send(HttpRequest::post_form(url.to_string(), body).header("sessionId", &iclass.session_id))
-        .await;
-    let Ok(response) = response else {
-        return Outcome::uncertain();
-    };
-    if response.status != 200 || classify_json(&response).is_err() {
-        return Outcome::uncertain();
+        .send_with_fallback(HttpRequest::get(TIMESTAMP_URL).header("Accept", "application/json"))
+        .await?;
+    classify_json(&response)?;
+    let value: serde_json::Value =
+        serde_json::from_str(&response.body).map_err(|_| AppError::changed())?;
+    match &value["timestamp"] {
+        serde_json::Value::String(s) if !s.trim().is_empty() => Ok(s.trim().to_owned()),
+        serde_json::Value::Number(n) => Ok(n.to_string()),
+        _ => Err(AppError::changed()),
     }
-    let Ok(value) = serde_json::from_str::<serde_json::Value>(&response.body) else {
-        return Outcome::uncertain();
-    };
-    checkin::parse_sign_in(&value)
+}
+
+fn build_sign_url(base: &str, course_id: &str, timestamp: &str) -> Result<String, AppError> {
+    if course_id.trim().is_empty() || timestamp.trim().is_empty() {
+        return Err(AppError::invalid());
+    }
+    let mut url = url::Url::parse(base).map_err(|_| AppError::invalid())?;
+    url.query_pairs_mut()
+        .append_pair("courseSchedId", course_id.trim())
+        .append_pair("timestamp", timestamp.trim());
+    Ok(url.to_string())
+}
+
+/// Build the `stu_scan_sign.action` URL used for direct POST submission.
+pub fn scan_sign_url(course_id: &str, timestamp: &str) -> Result<String, AppError> {
+    build_sign_url(SCAN_SIGN_URL, course_id, timestamp)
+}
+
+/// Build the classroom QR payload scanned by WeCom / 智慧北航 `wx.scanQRCode`.
+pub fn classroom_qr_url(course_id: &str, timestamp: &str) -> Result<String, AppError> {
+    build_sign_url(CLASSROOM_QR_BASE_URL, course_id, timestamp)
 }
 
 #[cfg(test)]
@@ -394,5 +383,28 @@ mod tests {
             .await
             .expect("empty")
             .is_empty());
+    }
+
+    #[tokio::test]
+    async fn timestamp_parses_string_or_number_and_builds_classroom_qr_url() {
+        let transport = MockTransport::with_responses(vec![
+            HttpResponse::new(200, TIMESTAMP_URL, r#"{"timestamp":1700000000000}"#),
+            HttpResponse::new(200, TIMESTAMP_URL, r#"{"timestamp":"1700000005000"}"#),
+        ]);
+        let session = Session::new(transport);
+        let first = fetch_timestamp(&session).await.expect("numeric timestamp");
+        let second = fetch_timestamp(&session).await.expect("string timestamp");
+        assert_eq!(first, "1700000000000");
+        assert_eq!(second, "1700000005000");
+        assert_eq!(
+            classroom_qr_url("501", &first).expect("qr url"),
+            "http://iclass.buaa.edu.cn:8081/app/course/stu_scan_sign.action?courseSchedId=501&timestamp=1700000000000"
+        );
+        assert_eq!(
+            classroom_qr_url(" ", &first)
+                .expect_err("empty course")
+                .code,
+            ErrorCode::InvalidRequest
+        );
     }
 }

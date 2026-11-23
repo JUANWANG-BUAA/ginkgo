@@ -28,6 +28,7 @@ export '../src/rust/api/live.dart'
 export '../src/rust/api/mirror.dart'
     show
         CheckInCourse,
+        CheckInQrResponse,
         CheckInResponse,
         CheckInStatus,
         ClassroomBuilding,

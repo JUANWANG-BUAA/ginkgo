@@ -49,15 +49,23 @@ object CredentialVault {
     }
 
     @JvmStatic
-    fun save(account: String, payload: String): Boolean = try {
+    fun save(account: String, payload: String): Boolean {
         val context = appContext ?: return false
+        return encryptAndSaveCredential(context, account, payload) || run {
+            resetKey(KEY_ALIAS)
+            encryptAndSaveCredential(context, account, payload)
+        }
+    }
+
+    private fun encryptAndSaveCredential(context: Context, account: String, payload: String): Boolean = try {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, key())
         val iv = cipher.iv
-        if (iv.size != IV_BYTES) return false
-        val ciphertext = cipher.doFinal("$account\n$payload".toByteArray(Charsets.UTF_8))
-        val blob = Base64.encodeToString(iv + ciphertext, Base64.NO_WRAP)
-        prefs(context).edit().putString(hash(account), blob).commit()
+        if (iv.size != IV_BYTES) false else {
+            val ciphertext = cipher.doFinal("$account\n$payload".toByteArray(Charsets.UTF_8))
+            val blob = Base64.encodeToString(iv + ciphertext, Base64.NO_WRAP)
+            prefs(context).edit().putString(hash(account), blob).commit()
+        }
     } catch (t: Throwable) {
         Log.e(TAG, "credential save failed")
         false
@@ -113,19 +121,27 @@ object CredentialVault {
 
     /** Store Rust's opaque, versioned cookie snapshot with its own Keystore key. */
     @JvmStatic
-    fun saveSession(payload: String): Boolean = try {
+    fun saveSession(payload: String): Boolean {
         val context = appContext ?: return false
         if (payload.isEmpty() || payload.length > 262_144) return false
+        return encryptAndSaveSession(context, payload) || run {
+            resetKey(SESSION_KEY_ALIAS)
+            encryptAndSaveSession(context, payload)
+        }
+    }
+
+    private fun encryptAndSaveSession(context: Context, payload: String): Boolean = try {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, sessionKey())
         cipher.updateAAD(SESSION_AAD)
         val iv = cipher.iv
-        if (iv.size != IV_BYTES) return false
-        val blob = Base64.encodeToString(
-            iv + cipher.doFinal(payload.toByteArray(Charsets.UTF_8)),
-            Base64.NO_WRAP,
-        )
-        sessionPrefs(context).edit().putString(SESSION_SLOT, blob).commit()
+        if (iv.size != IV_BYTES) false else {
+            val blob = Base64.encodeToString(
+                iv + cipher.doFinal(payload.toByteArray(Charsets.UTF_8)),
+                Base64.NO_WRAP,
+            )
+            sessionPrefs(context).edit().putString(SESSION_SLOT, blob).commit()
+        }
     } catch (t: Throwable) {
         Log.e(TAG, "session save failed")
         false
@@ -183,6 +199,16 @@ object CredentialVault {
 
     @Synchronized
     private fun sessionKey(): SecretKey = loadOrCreateKey(SESSION_KEY_ALIAS)
+
+    @Synchronized
+    private fun resetKey(alias: String) {
+        try {
+            val store = KeyStore.getInstance(PROVIDER).apply { load(null) }
+            if (store.containsAlias(alias)) store.deleteEntry(alias)
+        } catch (_: Throwable) {
+            Log.e(TAG, "keystore reset failed")
+        }
+    }
 
     private fun loadOrCreateKey(alias: String): SecretKey {
         val store = KeyStore.getInstance(PROVIDER).apply { load(null) }

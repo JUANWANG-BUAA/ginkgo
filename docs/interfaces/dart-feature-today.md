@@ -19,6 +19,7 @@
 - [features/today/today_page_actions.dart](#featurestodaytodaypageactionsdart) (1)
 - [features/today/today_page_header.dart](#featurestodaytodaypageheaderdart) (1)
 - [features/today/today_presentation.dart](#featurestodaytodaypresentationdart) (4)
+- [features/today/today_status_strip.dart](#featurestodaytodaystatusstripdart) (1)
 - [features/today/today_tasks_section.dart](#featurestodaytodaytaskssectiondart) (2)
 
 ## features/today/today_action_row.dart
@@ -101,10 +102,10 @@
 ## features/today/today_page.dart
 
 - `class TodayPage extends StatefulWidget`
-  <sub>class · features/today/today_page.dart:27</sub>
-    - `const TodayPage({ super.key, required this.service, required this.fileActions, this.accountName, this.accountId, this.storageRoot, this.now, this.onOpenFeature, });`  <sub>:28</sub>
-    - `final DateTime Function()? now;` — An instant, converted to Beijing wall time for presentation.  <sub>:50</sub>
-    - `State<TodayPage> createState() => …`  <sub>:52</sub>
+  <sub>class · features/today/today_page.dart:31</sub>
+    - `const TodayPage({ super.key, required this.service, required this.fileActions, this.accountName, this.accountId, this.storageRoot, this.now, this.onOpenFeature, });`  <sub>:32</sub>
+    - `final DateTime Function()? now;` — An instant, converted to Beijing wall time for presentation.  <sub>:54</sub>
+    - `State<TodayPage> createState() => …`  <sub>:56</sub>
 
 ## features/today/today_page_actions.dart
 
@@ -134,9 +135,16 @@
     - `const TodayVisualSection({ super.key, required this.children, this.header, this.footer, });`  <sub>:32</sub>
     - `Widget build(BuildContext context) => …`  <sub>:43</sub>
 - `class TodaySectionHeader extends StatelessWidget` — A structured section header with theme icon, bold title, count capsule badge,
-  <sub>class · features/today/today_presentation.dart:70</sub>
-    - `const TodaySectionHeader({ super.key, required this.title, this.icon, this.badge, this.actionLabel, this.actionKey, this.onAction, });`  <sub>:71</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:89</sub>
+  <sub>class · features/today/today_presentation.dart:71</sub>
+    - `const TodaySectionHeader({ super.key, required this.title, this.icon, this.badge, this.actionLabel, this.actionKey, this.onAction, });`  <sub>:72</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:90</sub>
+
+## features/today/today_status_strip.dart
+
+- `class TodayStatusStrip extends StatelessWidget` — Compact single-line status bar at the top of TodayPage: keeps next-course
+  <sub>class · features/today/today_status_strip.dart:13</sub>
+    - `const TodayStatusStrip({ super.key, required this.demo, required this.loadingLabels, required this.readySections, required this.errorSections, required this.routeRevision, this.verifiedRoute, this.tracker, this.onOpenDiagnostics, });`  <sub>:14</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:36</sub>
 
 ## features/today/today_tasks_section.dart
 

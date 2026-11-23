@@ -4,6 +4,7 @@ import 'package:ginkgo_mirror/application/contracts.dart' show RouteChoice;
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/design/tokens/spacing.dart';
+import 'package:ginkgo_mirror/features/settings/network_diagnostics_page.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/workspace/service_directory.dart';
 import 'package:ginkgo_mirror/workspace/service_search.dart';
@@ -138,9 +139,26 @@ class _MorePageState extends State<MorePage> {
                       key: const Key('more-account-settings'),
                       leading: const Icon(CupertinoIcons.person_crop_circle),
                       title: const Text('账号与设置'),
-                      subtitle: const Text('账号、外观、通知与数据隐私'),
+                      subtitle: Text(
+                        widget.service.isDemo
+                            ? '离线演示 · 外观、隐私与返回登录'
+                            : '${widget.accountName ?? widget.accountId ?? '当前账号'} · 外观、路线与退出登录',
+                      ),
                       trailing: const CupertinoListTileChevron(),
                       onTap: () => widget.openFeature('settings'),
+                    ),
+                    AppleListTile(
+                      key: const Key('more-network-status'),
+                      leading: const Icon(CupertinoIcons.waveform_path_ecg),
+                      title: const Text('实时接口状态'),
+                      subtitle: const Text('查看各业务模块可用性、缓存与响应耗时'),
+                      trailing: const CupertinoListTileChevron(),
+                      onTap: () => Navigator.of(context).push(
+                        CupertinoPageRoute<void>(
+                          builder: (_) =>
+                              NetworkDiagnosticsPage(service: widget.service),
+                        ),
+                      ),
                     ),
                   ],
                 ),

@@ -317,6 +317,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CheckInCourse dco_decode_check_in_course(dynamic raw);
 
   @protected
+  CheckInQrResponse dco_decode_check_in_qr_response(dynamic raw);
+
+  @protected
   CheckInReminderSeed dco_decode_check_in_reminder_seed(dynamic raw);
 
   @protected
@@ -614,6 +617,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<BookHoldingDto> dco_decode_list_book_holding_dto(dynamic raw);
+
+  @protected
+  List<bool> dco_decode_list_bool(dynamic raw);
 
   @protected
   List<BykcChosenRecordDto> dco_decode_list_bykc_chosen_record_dto(dynamic raw);
@@ -1057,6 +1063,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RuleExamples dco_decode_rule_examples(dynamic raw);
 
   @protected
+  SavedCredentialResponse dco_decode_saved_credential_response(dynamic raw);
+
+  @protected
   ScheduleCourse dco_decode_schedule_course(dynamic raw);
 
   @protected
@@ -1496,6 +1505,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CheckInCourse sse_decode_check_in_course(SseDeserializer deserializer);
 
   @protected
+  CheckInQrResponse sse_decode_check_in_qr_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CheckInReminderSeed sse_decode_check_in_reminder_seed(
     SseDeserializer deserializer,
   );
@@ -1883,6 +1897,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<BookHoldingDto> sse_decode_list_book_holding_dto(
     SseDeserializer deserializer,
   );
+
+  @protected
+  List<bool> sse_decode_list_bool(SseDeserializer deserializer);
 
   @protected
   List<BykcChosenRecordDto> sse_decode_list_bykc_chosen_record_dto(
@@ -2460,6 +2477,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RuleExamples sse_decode_rule_examples(SseDeserializer deserializer);
 
   @protected
+  SavedCredentialResponse sse_decode_saved_credential_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ScheduleCourse sse_decode_schedule_course(SseDeserializer deserializer);
 
   @protected
@@ -3014,6 +3036,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_check_in_course(CheckInCourse self, SseSerializer serializer);
 
   @protected
+  void sse_encode_check_in_qr_response(
+    CheckInQrResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_check_in_reminder_seed(
     CheckInReminderSeed self,
     SseSerializer serializer,
@@ -3498,6 +3526,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     List<BookHoldingDto> self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_list_bool(List<bool> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_bykc_chosen_record_dto(
@@ -4215,6 +4246,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_rule_examples(RuleExamples self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_saved_credential_response(
+    SavedCredentialResponse self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_schedule_course(

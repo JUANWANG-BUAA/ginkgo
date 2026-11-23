@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
+import 'package:ginkgo_mirror/widgets/verified_route_label.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/maintenance.dart';
@@ -14,10 +15,12 @@ import 'package:ginkgo_mirror/features/settings/network_diagnostics_page.dart';
 import 'package:ginkgo_mirror/shared/query_cache_scope.dart';
 import 'package:ginkgo_mirror/application/query_snapshots.dart';
 import 'package:ginkgo_mirror/application/service_capabilities.dart';
+import 'package:ginkgo_mirror/application/service_health.dart';
+import 'package:ginkgo_mirror/application/session_reauth.dart';
 import 'package:ginkgo_mirror/features/learning/learning_snapshots_page.dart';
 import 'package:ginkgo_mirror/features/settings/preferences_pages.dart';
 import 'package:ginkgo_mirror/application/contracts.dart'
-    show RouteChoice, SessionState;
+    show FailureCode, RouteChoice;
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({
@@ -44,14 +47,35 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool busy = false;
+  bool clearingCache = false;
+  bool signingOut = false;
   String? notice;
+  bool changingRoute = false;
+  String? routeNotice;
   String versionLabel = '读取中…';
+  int routeRevision = 0;
 
-  /// Optional capabilities are resolved once, so the page never probes the
-  /// service to decide whether an entry exists.
-  late final LearningSnapshotGateway? snapshotGateway =
-      ServiceCapabilities.resolve(widget.service).learningSnapshots;
+  bool get busy => clearingCache || signingOut || changingRoute;
+
+  late ServiceCapabilities capabilities = ServiceCapabilities.resolve(
+    widget.service,
+  );
+  LearningSnapshotGateway? get snapshotGateway =>
+      capabilities.learningSnapshots;
+
+  @override
+  void didUpdateWidget(SettingsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service) {
+      capabilities = ServiceCapabilities.resolve(widget.service);
+      notice = null;
+      routeNotice = null;
+      changingRoute = false;
+      clearingCache = false;
+      signingOut = false;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -69,7 +93,12 @@ class _SettingsPageState extends State<SettingsPage> {
     Navigator.of(context).push(CupertinoPageRoute<void>(builder: (_) => page));
   }
 
-  RouteChoice get _route => widget.route ?? RouteChoice.automatic;
+  RouteChoice get _route => switch (AppPreferencesScope.of(context).routeMode) {
+    'direct' => RouteChoice.direct,
+    'webVpn' => RouteChoice.webVpn,
+    'automatic' => RouteChoice.automatic,
+    _ => widget.route ?? RouteChoice.automatic,
+  };
 
   String _routeLabel(RouteChoice route) => switch (route) {
     RouteChoice.automatic => '自动（直连优先，必要时 WebVPN）',
@@ -102,38 +131,46 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _changeRoute(RouteChoice route) async {
     if (busy || route == _route) return;
-    if (!await _confirm('切换网络路线？', '切换路线会清空当前 Cookie 并退出学校会话，需要重新登录。')) {
-      return;
-    }
-    if (!mounted) return;
-    setState(() => busy = true);
+    final gateway = capabilities.verifiedRoute;
+    if (gateway == null) return;
+    final service = widget.service;
+    final preferences = AppPreferencesScope.of(context);
+    setState(() {
+      changingRoute = true;
+      routeNotice = null;
+    });
     try {
-      final response = await widget.service.setRoute(route);
-      if (!mounted) return;
-      if (response.failure != null) {
-        setState(() => notice = failureMessage(response.failure));
+      final failure = await gateway.switchVerifiedRoute(route);
+      if (!mounted || widget.service != service) return;
+      if (failure != null) {
+        setState(
+          () => routeNotice = switch (failure) {
+            FailureCode.moduleAuthRequired => '目标路线尚未验证，已保留当前路线和登录。',
+            _ => failureMessage(failure),
+          },
+        );
         return;
       }
-      if (response.state == SessionState.signedOut) {
-        await AppPreferencesScope.of(context).setRouteMode(route.name);
-        if (!mounted) return;
-        await widget.onSignOut();
-        return;
-      }
-      setState(() => notice = failureMessage(response.failure));
-    } catch (_) {
-      if (!mounted) return;
+      await preferences.setRouteMode(route.name);
+      if (!mounted || widget.service != service) return;
       setState(() {
-        busy = false;
-        notice = failureMessage(null);
+        routeRevision++;
+        routeNotice = preferences.writeError ?? '网络路线已更新';
+      });
+    } catch (_) {
+      if (!mounted || widget.service != service) return;
+      setState(() {
+        routeNotice = failureMessage(null);
       });
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (mounted && widget.service == service) {
+        setState(() => changingRoute = false);
+      }
     }
   }
 
   Future<void> _clearCache() async {
-    if (busy) return;
+    if (clearingCache || signingOut) return;
     if (!await _confirm(
       '清除本机查询快照？',
       '清除查询快照与已打开页面的旧结果，然后返回工作台重新读取。账号和本地待办会保留。',
@@ -141,35 +178,35 @@ class _SettingsPageState extends State<SettingsPage> {
       return;
     }
     if (!mounted) return;
-    setState(() => busy = true);
+    setState(() => clearingCache = true);
     try {
       final cleared = await widget.service.clearCache();
       if (!mounted) return;
       setState(() {
-        busy = false;
+        clearingCache = false;
         notice = cleared ? '已清除本机查询快照' : failureMessage(null);
       });
       if (cleared) QueryCacheScope.invalidate(context);
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        busy = false;
+        clearingCache = false;
         notice = failureMessage(null);
       });
     }
   }
 
   Future<void> _signOut() async {
-    if (busy) return;
+    if (signingOut) return;
     if (!await _confirm('退出登录？', '退出后会清除本机会话和已保存的密码。')) return;
     if (!mounted) return;
-    setState(() => busy = true);
+    setState(() => signingOut = true);
     try {
       await widget.onSignOut();
     } catch (_) {
       if (mounted) setState(() => notice = '退出未完成，请重试');
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (mounted) setState(() => signingOut = false);
     }
   }
 
@@ -212,12 +249,29 @@ class _SettingsPageState extends State<SettingsPage> {
                           : widget.accountId ?? '学校统一身份认证',
                     ),
                   ),
+                  if (!widget.service.isDemo &&
+                      SessionReauthScope.of(context) != null)
+                    AppleListTile(
+                      key: const Key('settings-reauthenticate'),
+                      title: const Text('重新登录（保留已记住密码）'),
+                      subtitle: const Text('会话过期或需要验证码时使用，不删除已保存密码'),
+                      trailing: const CupertinoListTileChevron(),
+                      onTap: signingOut
+                          ? null
+                          : () => SessionReauthScope.of(context)!(
+                              reason: '请核对已保存的账号密码并重新登录。',
+                            ),
+                    ),
                   AppleListTile(
+                    key: const Key('settings-sign-out'),
                     title: Text(
                       widget.service.isDemo ? '返回登录' : '退出登录',
                       style: const TextStyle(color: CupertinoColors.systemRed),
                     ),
-                    onTap: busy ? null : _signOut,
+                    trailing: signingOut
+                        ? const GinkgoActivity(size: 16)
+                        : null,
+                    onTap: signingOut ? null : _signOut,
                   ),
                 ],
               ),
@@ -260,13 +314,17 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               AppleSection(
                 header: const Text('网络路线'),
-                footer: const Text(
-                  '默认自动：直连优先，遇到学校访问策略时单次切换到 WebVPN。切换路线会要求重新登录。',
-                ),
+                footer: const Text('显示最近验证成功的路线，不代表网络实时在线。切换失败不会退出账号。'),
                 children: [
-                  if (ServiceCapabilities.resolve(widget.service)
-                          .gatewayVerification
-                      case final gateway?)
+                  if (capabilities.verifiedRoute case final gateway?)
+                    AppleListTile(
+                      title: const Text('学校会话路线'),
+                      subtitle: VerifiedRouteLabel(
+                        gateway: gateway,
+                        revision: routeRevision,
+                      ),
+                    ),
+                  if (capabilities.gatewayVerification case final gateway?)
                     AppleListTile(
                       title: const Text('WebVPN 验证'),
                       subtitle: const Text('查看并完成学校网关的验证码'),
@@ -279,9 +337,23 @@ class _SettingsPageState extends State<SettingsPage> {
                     value: _route,
                     values: RouteChoice.values,
                     label: _routeLabel,
-                    enabled: !busy,
+                    enabled: !busy && capabilities.verifiedRoute != null,
                     onSelected: _changeRoute,
                   ),
+                  if (changingRoute || routeNotice != null)
+                    AppleListTile(
+                      leading: changingRoute
+                          ? const GinkgoActivity(size: 16)
+                          : const Icon(CupertinoIcons.info_circle, size: 20),
+                      title: Semantics(
+                        liveRegion: true,
+                        child: Text(
+                          changingRoute
+                              ? '正在验证目标路线，当前登录会保留…'
+                              : routeNotice!,
+                        ),
+                      ),
+                    ),
                 ],
               ),
               AppleSection(
@@ -303,12 +375,12 @@ class _SettingsPageState extends State<SettingsPage> {
                       CupertinoIcons.trash,
                       color: CupertinoColors.systemOrange,
                     ),
-                    trailing: busy
+                    trailing: clearingCache
                         ? const GinkgoActivity(size: 16)
                         : const CupertinoListTileChevron(),
                     title: const Text('清除查询快照'),
                     subtitle: const Text('清除已读取的学校数据，不影响个人待办'),
-                    onTap: busy ? null : _clearCache,
+                    onTap: clearingCache || signingOut ? null : _clearCache,
                   ),
                 ],
               ),
@@ -346,19 +418,29 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                             ),
                     ),
-                  AppleListTile(
-                    leading: const Icon(
-                      CupertinoIcons.timer,
-                      color: AppleDesign.accent,
-                    ),
-                    title: const Text('学校接口耗时'),
-                    subtitle: const Text('比较当前账号的缓存与刷新等待'),
-                    trailing: const CupertinoListTileChevron(),
-                    onTap: busy
-                        ? null
-                        : () => _open(
-                            NetworkDiagnosticsPage(service: widget.service),
-                          ),
+                  ListenableBuilder(
+                    listenable: ServiceHealthTracker.shared,
+                    builder: (context, _) {
+                      final tracker = ServiceHealthTracker.shared;
+                      final summary = tracker.observedCount == 0
+                          ? '实时查看各业务接口可用性、缓存与响应耗时'
+                          : '已观测 ${tracker.healthyCount} 项可用'
+                                '${tracker.degradedCount > 0 ? ' · ${tracker.degradedCount} 项异常' : ''}';
+                      return AppleListTile(
+                        leading: const Icon(
+                          CupertinoIcons.timer,
+                          color: AppleDesign.accent,
+                        ),
+                        title: const Text('学校接口耗时'),
+                        subtitle: Text(summary),
+                        trailing: const CupertinoListTileChevron(),
+                        onTap: signingOut
+                            ? null
+                            : () => _open(
+                                NetworkDiagnosticsPage(service: widget.service),
+                              ),
+                      );
+                    },
                   ),
                   if (widget.maintenance != null)
                     AppleListTile(

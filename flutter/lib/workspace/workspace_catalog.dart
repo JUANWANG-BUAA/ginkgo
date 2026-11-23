@@ -59,7 +59,10 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     title: '课程签到',
     icon: CupertinoIcons.checkmark_seal,
     section: WorkspaceSection.workbench,
-    build: (context) => CheckInPage(service: context.service),
+    build: (context) => CheckInPage(
+      service: context.service,
+      platformActions: context.platformActions,
+    ),
   ),
   WorkspaceDestination(
     id: 'schedule',

@@ -69,22 +69,20 @@ class UpdateGate {
   }
 
   /// 拉取清单；任何网络/解析错误都返回 null，由调用方放行。
+  /// 使用总墙钟上限 + 连接超时双重约束，避免国内网络访问 github.io 丢包时在启动页长时间白屏等待。
   static Future<UpdateGate?> fetch({
     HttpClient? client,
-    Duration timeout = const Duration(seconds: 4),
+    Duration timeout = const Duration(milliseconds: 1800),
   }) async {
-    final httpClient = client ?? HttpClient();
+    final httpClient = client ?? (HttpClient()..connectionTimeout = timeout);
     try {
-      final request = await httpClient
-          .getUrl(Uri.parse(manifestUrl))
-          .timeout(timeout);
-      final response = await request.close().timeout(timeout);
-      if (response.statusCode != HttpStatus.ok) return null;
-      final body = await response
-          .transform(utf8.decoder)
-          .join()
-          .timeout(timeout);
-      return parse(body);
+      return await (() async {
+        final request = await httpClient.getUrl(Uri.parse(manifestUrl));
+        final response = await request.close();
+        if (response.statusCode != HttpStatus.ok) return null;
+        final body = await response.transform(utf8.decoder).join();
+        return parse(body);
+      })().timeout(timeout);
     } catch (_) {
       return null;
     } finally {

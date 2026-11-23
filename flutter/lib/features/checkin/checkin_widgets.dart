@@ -2,30 +2,25 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 
-/// One course with its sign-in status, merged-record notes and the single
-/// confirmed submission button. The button never offers an unconfirmed retry.
+/// One course with its sign-in status, merged-record notes and the classroom
+/// QR sign-in sheet trigger.
 class CheckinCourseRow extends StatelessWidget {
   const CheckinCourseRow({
     super.key,
     required this.course,
     required this.windowOpen,
     required this.canSubmit,
-    required this.submitting,
-    required this.awaitingVerification,
     required this.onSubmit,
   });
   final CheckInCourse course;
   final bool windowOpen;
 
-  /// Whether this course is eligible for sign-in at all (not history, status
-  /// and record rules). The button stays visible while a write is in flight.
+  /// Whether this course is eligible for QR sign-in (not history, status and
+  /// record rules).
   final bool canSubmit;
-  final String? submitting;
-  final bool awaitingVerification;
   final VoidCallback? onSubmit;
 
   @override
@@ -53,7 +48,6 @@ class CheckinCourseRow extends StatelessWidget {
       if (course.classroomName != null) course.classroomName!,
       if (course.teacherName != null) course.teacherName!,
     ];
-    final isSubmitting = submitting == course.id;
     return Padding(
       key: Key('checkin-course-${course.id}'),
       padding: const EdgeInsets.all(16),
@@ -125,18 +119,8 @@ class CheckinCourseRow extends StatelessWidget {
                     horizontal: 18,
                     vertical: 8,
                   ),
-                  onPressed: submitting != null || !windowOpen
-                      ? null
-                      : onSubmit,
-                  child: isSubmitting
-                      ? const GinkgoActivity(size: 17)
-                      : Text(
-                          awaitingVerification
-                              ? '待核实'
-                              : windowOpen
-                              ? '签到'
-                              : '课前 10 分钟开放',
-                        ),
+                  onPressed: !windowOpen ? null : onSubmit,
+                  child: Text(windowOpen ? '签到码' : '课前 10 分钟开放'),
                 ),
             ],
           ),

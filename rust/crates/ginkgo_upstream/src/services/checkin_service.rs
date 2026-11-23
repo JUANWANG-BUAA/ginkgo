@@ -1,14 +1,13 @@
 //! iclass check-in read-only use case (API.md §7.2).
 //!
-//! The app session is cached in memory only. A confirmed business rejection or
-//! an auth redirect rebuilds that session exactly once; a still-expired school
-//! session triggers one silent re-login. Refresh failures keep the previous
-//! day's snapshot instead of clearing the page.
+//! A read may rebuild the in-memory iClass session once. An iClass 401 is not
+//! evidence of school expiry; only an explicit school-session failure takes
+//! the silent-login path. Failed refreshes retain the day's previous snapshot.
 use super::{cache::now_shanghai, session_service::SchoolClient};
 use crate::{
     adapters::checkin_http,
     auth::CredentialVault,
-    codecs::checkin::CheckInCourse,
+    codecs::checkin::{CheckInCourse, IClassSession},
     foundation::{http::HttpTransport, school_time},
     AppError, ErrorCode,
 };
@@ -49,91 +48,86 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
     }
 
     async fn fetch_checkin(&self, compact: &str) -> Result<Vec<CheckInCourse>, AppError> {
-        match self.try_fetch_checkin(compact).await {
-            Err(error) if error.detail.as_deref() == Some("route_changed") => {
-                // One rebuild on the verified new route, without a password
-                // login or replaying the previous route's module token.
-                self.try_fetch_checkin(compact).await
-            }
-            Err(error) if error.code == ErrorCode::SessionExpired => {
-                // The school session may really be gone; re-confirm it once
-                // through the platform credential vault, then rebuild iclass.
-                self.silent_login().await?;
-                self.identity.lock().iclass = None;
-                self.try_fetch_checkin(compact).await
-            }
-            other => other,
+        let cached = self.identity.lock().iclass.clone();
+        let had_cached_session = cached.is_some();
+        let error = match self.read_checkin_once(compact, cached).await {
+            Ok(courses) => return Ok(courses),
+            Err(error) => error,
+        };
+        match error.detail.as_deref() {
+            // Neither a rejected module session nor a verified route change
+            // calls for a UC probe or password submission.
+            Some("iclass_session" | "route_changed") => {}
+            Some("webvpn_login_required") => self.ensure_webvpn_session().await?,
+            None if error.code == ErrorCode::SessionExpired => self.silent_login().await?,
+            _ if had_cached_session && error.code == ErrorCode::BusinessRejected => {}
+            _ => return Err(error),
         }
+        self.read_checkin_once(compact, None)
+            .await
+            .map_err(|error| {
+                if error.detail.as_deref() == Some("iclass_session") {
+                    AppError::module_auth_required()
+                } else {
+                    error
+                }
+            })
     }
 
-    async fn try_fetch_checkin(&self, compact: &str) -> Result<Vec<CheckInCourse>, AppError> {
-        let cached = { self.identity.lock().iclass.clone() };
-        if let Some(iclass) = cached {
-            self.checkin_stage("courses");
-            match checkin_http::course_schedule(&self.session, &iclass, compact).await {
-                Ok(courses) => return Ok(courses),
-                // The app session is unusable; rebuild it, do not retry the
-                // query against the same rejected session.
-                Err(error) if error.detail.as_deref() == Some("webvpn_login_required") => {
-                    self.ensure_webvpn_session().await?;
-                    self.identity.lock().iclass = None;
-                }
-                Err(error)
-                    if error.code == ErrorCode::BusinessRejected
-                        || matches!(
-                            error.detail.as_deref(),
-                            Some("iclass_session" | "route_changed")
-                        ) =>
-                {
-                    self.identity.lock().iclass = None;
-                }
-                Err(error) => return Err(error),
+    async fn read_checkin_once(
+        &self,
+        compact: &str,
+        cached: Option<IClassSession>,
+    ) -> Result<Vec<CheckInCourse>, AppError> {
+        let iclass = match cached {
+            Some(session) => session,
+            None => {
+                let session = self.establish_iclass().await?;
+                // A temporary course-read failure does not invalidate app login.
+                self.identity.lock().iclass = Some(session.clone());
+                session
             }
-        }
-        let iclass = self.establish_iclass().await?;
-        // Swift's currentSession caches immediately after app login succeeds.
-        // A temporary course-read failure does not invalidate that login; do
-        // not repeat the SSO redirects and app login on the next user retry.
-        self.identity.lock().iclass = Some(iclass.clone());
+        };
         self.checkin_stage("courses");
         let result = checkin_http::course_schedule(&self.session, &iclass, compact).await;
         if result.as_ref().is_err_and(|error| {
-            error.detail.as_deref() == Some("route_changed")
-                || matches!(
-                    error.code,
-                    ErrorCode::BusinessRejected | ErrorCode::SessionExpired
-                )
+            matches!(
+                error.detail.as_deref(),
+                Some("route_changed" | "webvpn_login_required")
+            ) || matches!(
+                error.code,
+                ErrorCode::BusinessRejected | ErrorCode::SessionExpired
+            )
         }) {
-            self.identity.lock().iclass = None;
+            let mut identity = self.identity.lock();
+            if identity.iclass.as_ref() == Some(&iclass) {
+                identity.iclass = None;
+            }
         }
         result
     }
 
-    async fn establish_iclass(&self) -> Result<crate::codecs::checkin::IClassSession, AppError> {
-        let first = match self.try_establish_iclass().await {
-            Ok(session) => return Ok(session),
-            Err(error) => error,
-        };
-        if first.detail.as_deref() == Some("route_changed") {
-            return self.try_establish_iclass().await;
-        }
-        // The gateway needs its own CAS session. Only retry when iclass itself
-        // reported that the gateway login is missing, and only with a saved
-        // credential: otherwise the caller must sign in again.
-        if first.detail.as_deref() != Some("webvpn_login_required") {
-            return Err(first);
-        }
-        self.ensure_webvpn_session().await?;
-        self.try_establish_iclass().await
-    }
-
-    async fn try_establish_iclass(
-        &self,
-    ) -> Result<crate::codecs::checkin::IClassSession, AppError> {
+    async fn establish_iclass(&self) -> Result<IClassSession, AppError> {
         self.checkin_stage("authenticating");
         let login_name = checkin_http::resolve_login_name(&self.session).await?;
         self.checkin_stage("appLogin");
         checkin_http::app_login(&self.session, &login_name).await
+    }
+
+    /// Read-only upstream server timestamp for building QR check-in payloads.
+    pub async fn fetch_checkin_timestamp(&self) -> Result<String, AppError> {
+        match checkin_http::fetch_timestamp(&self.session).await {
+            Ok(ts) => Ok(ts),
+            Err(error) if error.detail.as_deref() == Some("webvpn_login_required") => {
+                self.ensure_webvpn_session().await?;
+                checkin_http::fetch_timestamp(&self.session).await
+            }
+            Err(error) if error.detail.is_none() && error.code == ErrorCode::SessionExpired => {
+                self.silent_login().await?;
+                checkin_http::fetch_timestamp(&self.session).await
+            }
+            Err(error) => Err(error),
+        }
     }
 }
 
@@ -269,44 +263,80 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CheckInSource for Schoo
     }
 }
 
-impl<T: HttpTransport + Send + Sync, V: CredentialVault> CheckInMutationSource
-    for SchoolClient<T, V>
-{
-    /// Caller holds the bridge's exclusive session access for this single user action.
-    /// Re-read today first: never submit an old date, ambiguous merged ID, or cached status.
-    async fn submit_checkin(&self, course_id: &str) -> crate::codecs::mutation::MutationOutcome {
-        use crate::codecs::{checkin::CheckInStatus, mutation::MutationOutcome};
-        let snapshot = match self.load_checkin(true).await {
-            Ok(snapshot) if snapshot.failure.is_none() => snapshot,
-            _ => {
-                return MutationOutcome::not_submitted("无法核对当天课程，未提交签到，请刷新后重试")
-            }
-        };
+impl<T: HttpTransport + Send + Sync, V: CredentialVault> CheckInQrSource for SchoolClient<T, V> {
+    /// Prepare a live classroom QR matrix for WeCom / 智慧北航 scan check-in.
+    ///
+    /// Initial open (`revalidate_course = true`) forces a fresh day read so a
+    /// stale or conflicting schedule never mints a QR code; periodic ticks
+    /// inside an open QR sheet (`revalidate_course = false`) reuse the verified
+    /// 5-minute day snapshot and only refresh the upstream server timestamp.
+    async fn prepare_checkin_qr(
+        &self,
+        course_id: &str,
+        revalidate_course: bool,
+    ) -> Result<ginkgo_domain::features::checkin::CheckInQrTicket, AppError> {
+        use crate::codecs::checkin::CheckInStatus;
+        use ginkgo_domain::features::checkin::{encode_qr_matrix, sign_in_window, CheckInQrTicket};
+
+        let course_id = course_id.trim();
+        if course_id.is_empty() {
+            return Err(AppError::invalid());
+        }
+        let account = self.current_account()?;
+        let snapshot = self.load_checkin(revalidate_course).await?;
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
+        }
+        if let Some(failure) = snapshot.failure {
+            return Err(failure);
+        }
+        if snapshot.stale {
+            return Err(AppError::unavailable());
+        }
         let Some(course) = snapshot
             .courses
             .iter()
             .find(|course| course.id == course_id)
         else {
-            return MutationOutcome::not_submitted("当天课程已变化，未提交签到");
+            return Err(AppError::with_detail(
+                ErrorCode::BusinessRejected,
+                "course_changed",
+            ));
         };
-        if !course.sign_in_allowed || course.status != CheckInStatus::NotSigned {
-            return MutationOutcome::not_submitted("课程已签到或记录待确认，未重复提交");
+        if course.status == CheckInStatus::Signed {
+            return Err(AppError::with_detail(
+                ErrorCode::BusinessRejected,
+                "already_signed",
+            ));
         }
-        if !ginkgo_domain::features::checkin::sign_in_window(
-            &snapshot.date,
-            &course.begins_at,
-            &course.ends_at,
-            &now_shanghai(),
-        ) {
-            return MutationOutcome::not_submitted("课前 10 分钟开放签到，课程结束后不可提交");
+        if !course.sign_in_allowed
+            || course.conflicting
+            || course.status != CheckInStatus::NotSigned
+        {
+            return Err(AppError::with_detail(
+                ErrorCode::BusinessRejected,
+                "status_unconfirmed",
+            ));
         }
-        let iclass = self.identity.lock().iclass.clone();
-        let Some(iclass) = iclass else {
-            return MutationOutcome::not_submitted("签到会话失效，请刷新后重试");
-        };
-        let result = checkin_http::sign_in(&self.session, &iclass, course_id).await;
-        // Invalidate only this module; subsequent reads must contact upstream.
-        self.snapshots.checkin.lock().clear();
-        result
+        let now = now_shanghai();
+        if !sign_in_window(&snapshot.date, &course.begins_at, &course.ends_at, &now) {
+            return Err(AppError::with_detail(
+                ErrorCode::BusinessRejected,
+                "outside_window",
+            ));
+        }
+        let timestamp = self.fetch_checkin_timestamp().await?;
+        if self.current_account()? != account {
+            return Err(AppError::session_expired());
+        }
+        let url = checkin_http::classroom_qr_url(course_id, &timestamp)?;
+        let (matrix_size, modules) = encode_qr_matrix(&url).map_err(|()| AppError::invalid())?;
+        Ok(CheckInQrTicket {
+            course_id: course_id.to_owned(),
+            fetched_at: now_shanghai(),
+            refresh_seconds: 4,
+            matrix_size,
+            modules,
+        })
     }
 }

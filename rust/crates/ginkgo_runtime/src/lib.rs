@@ -68,6 +68,23 @@ pub fn has_saved_accounts() -> Result<bool, AppError> {
     Ok(vault.has_session()? || !vault.accounts()?.is_empty())
 }
 
+pub fn load_saved_credential() -> Result<Option<(String, String)>, AppError> {
+    use ginkgo_upstream::auth::CredentialSource;
+    let vault = platform_vault()?;
+    let Some(account) = vault.accounts()?.into_iter().next() else {
+        return Ok(None);
+    };
+    let Some(credentials) = vault.load(&account)? else {
+        return Ok(None);
+    };
+    let username = if credentials.username.trim().is_empty() {
+        account
+    } else {
+        credentials.username
+    };
+    Ok(Some((username, credentials.password)))
+}
+
 pub fn verify_credential_storage(account: &str, secret: &str) -> bool {
     platform_vault().is_ok_and(|vault| {
         ginkgo_upstream::auth::vault::verify_vault_round_trip(&vault, account, secret)

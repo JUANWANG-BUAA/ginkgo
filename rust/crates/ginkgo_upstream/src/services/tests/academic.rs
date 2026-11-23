@@ -503,3 +503,41 @@ async fn an_account_change_during_the_schedule_read_rejects_its_result() {
         "a rejected read must not populate the schedule snapshot"
     );
 }
+
+#[tokio::test]
+async fn confirmed_undergraduate_portal_propagates_byxt_failure_without_hitting_gsmis() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.push(HttpResponse::new(
+        200,
+        "https://byxt.buaa.edu.cn/portal",
+        r#"{"code":"0"}"#,
+    ));
+    responses.push(HttpResponse::new(
+        503,
+        "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/student/schoolCalendars.do",
+        "unavailable",
+    ));
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+    let count_after_login = transport.request_count();
+
+    let error = service
+        .load_schedule(&ScheduleQueryInput {
+            term_id: None,
+            week: None,
+            force_refresh: false,
+        })
+        .await
+        .expect_err("confirmed undergraduate must surface BYXT error directly");
+    assert_eq!(error.code, ErrorCode::ServiceUnavailable);
+    assert_eq!(error.detail, None);
+    assert!(!service.identity.lock().graduate_schedule);
+    assert_eq!(
+        transport.request_count(),
+        count_after_login + 2,
+        "must not fall through to graduate GSMIS after confirming undergraduate portal"
+    );
+}

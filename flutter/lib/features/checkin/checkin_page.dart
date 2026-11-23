@@ -7,27 +7,30 @@ import 'package:ginkgo_mirror/shared/reminder_rules.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
 
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_loading.dart';
+import 'package:ginkgo_mirror/features/checkin/checkin_qr_sheet.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
-import 'package:ginkgo_mirror/widgets/mutation_dialog.dart';
+import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/shared/course_visibility.dart';
 import 'package:ginkgo_mirror/features/schedule/course_range_page.dart';
 
-/// Confirmed per-course submission with a subsequent status read.
+/// Per-course classroom QR generation with智慧北航 scan guidance and status readback.
 class CheckInPage extends StatefulWidget {
   const CheckInPage({
     super.key,
     required this.service,
+    this.platformActions = const PlatformActions(),
     this.history = false,
     this.clock,
   });
   final CheckInGateway service;
+  final PlatformActions platformActions;
   final bool history;
   final DateTime Function()? clock;
   @override
@@ -37,10 +40,13 @@ class CheckInPage extends StatefulWidget {
 class _CheckInPageState extends State<CheckInPage> {
   Timer? windowTick;
   CheckInResponse? data;
-  String? error;
-  String? notice;
+  String? readIssue;
   bool busy = false;
+  bool qrOpen = false;
   CourseVisibility? range;
+
+  bool get verified => data != null && !busy && readIssue == null;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -49,11 +55,8 @@ class _CheckInPageState extends State<CheckInPage> {
 
   String courseKey(CheckInCourse course) =>
       course.courseId ?? course.courseNum ?? course.id;
-  String? submitting;
-  final Set<String> awaitingVerification = {};
   int requestSerial = 0;
   int contextGeneration = 0;
-  bool confirming = false;
   late DateTime selectedDate;
   DateTime get instant => widget.clock?.call() ?? DateTime.now();
   DateTime get schoolToday {
@@ -125,14 +128,11 @@ class _CheckInPageState extends State<CheckInPage> {
     if (oldWidget.service != widget.service ||
         oldWidget.history != widget.history) {
       contextGeneration++;
-      confirming = false;
       requestSerial++;
       data = null;
-      error = null;
-      notice = null;
+      readIssue = null;
       busy = false;
-      submitting = null;
-      awaitingVerification.clear();
+      qrOpen = false;
       load();
     }
   }
@@ -143,13 +143,23 @@ class _CheckInPageState extends State<CheckInPage> {
     super.dispose();
   }
 
+  Future<void> retryRead() async {
+    if (busy) return;
+    await load(force: true);
+  }
+
+  String readFailureMessage(FailureCode code) {
+    if (code != FailureCode.moduleAuthRequired) return failureMessage(code);
+    DiagnosticLog.shared.record(code, showHint: false);
+    return 'iClass 认证尚未完成，请重试签到查询。这不代表账号已退出。';
+  }
+
   Future<void> load({bool force = false}) async {
     final serial = ++requestSerial;
     final requested = dateString(selectedDate);
     setState(() {
       busy = true;
-      error = null;
-      if (submitting == null) notice = null;
+      if (data == null) readIssue = null;
     });
     try {
       final result = widget.history
@@ -161,52 +171,35 @@ class _CheckInPageState extends State<CheckInPage> {
         reminders?.updateCheckin(result);
         if (reminders != null) unawaited(reminders.reconcile());
       }
-      if (result.failure == null && !result.stale) {
-        for (final course in result.courses) {
-          if (course.status == CheckInStatus.signed) {
-            awaitingVerification.remove(course.id);
-          }
-        }
-      }
       setState(() {
         busy = false;
-        if (result.failure != null && !result.stale) {
-          error = failureMessage(result.failure);
-          notice = null;
-          return;
-        }
-        data = result;
-        error = null;
-        notice = result.failure == null
-            ? null
-            : '${failureMessage(result.failure)}，正在显示上次结果。';
+        // A failure envelope without a snapshot is not an empty school day.
+        // Keep the original rows, date and verification time in that case.
+        if (result.failure == null || result.stale) data = result;
+        final failure = result.failure;
+        readIssue = failure != null
+            ? readFailureMessage(failure)
+            : result.stale
+            ? '签到状态尚未更新'
+            : null;
       });
     } catch (_) {
       if (!mounted || serial != requestSerial) return;
       setState(() {
         busy = false;
-        if (data == null) {
-          error = failureMessage(null);
-        } else {
-          notice = '${failureMessage(null)}，正在显示上次结果。';
-        }
+        readIssue = failureMessage(null);
       });
     }
   }
 
-  Future<void> submit(CheckInCourse course) async {
-    if (confirming ||
-        submitting != null ||
-        busy ||
-        error != null ||
-        data == null ||
-        data!.stale ||
-        data!.failure != null ||
+  Future<void> openQr(CheckInCourse course) async {
+    if (qrOpen ||
+        !verified ||
+        !data!.courses.contains(course) ||
         course.status != CheckInStatus.notSigned ||
         course.conflicting ||
         !(course.signInAllowed ?? course.mergedRecordCount == 1) ||
         widget.history ||
-        awaitingVerification.contains(course.id) ||
         !checkinWindowOpen(
           course,
           data?.date ?? dateString(schoolToday),
@@ -215,67 +208,46 @@ class _CheckInPageState extends State<CheckInPage> {
       return;
     }
     final generation = contextGeneration;
-    final serial = requestSerial;
-    final service = widget.service;
-    confirming = true;
-    bool confirmed;
+    final currentDate = data!.date;
+    final parsedDate = DateTime.tryParse(currentDate);
+    final dateLabel = parsedDate == null
+        ? currentDate
+        : schoolDateWeekdayLabel(parsedDate);
+    qrOpen = true;
     try {
-      confirmed = await confirmMutation(
-        context,
-        title: '确认签到？',
-        detail:
-            '${course.courseName}\n${data?.date ?? dateString(schoolToday)}\n'
-            '${schoolTimeRange(course.beginsAt, course.endsAt)}\n'
-            '${course.classroomName ?? ""}',
-        action: '确认签到',
-        cancelLabel: '取消',
+      await showCupertinoModalPopup<void>(
+        context: context,
+        builder: (_) => CheckinQrSheet(
+          course: course,
+          dateLabel: dateLabel,
+          service: widget.service,
+          platformActions: widget.platformActions,
+          isContextValid: () =>
+              mounted &&
+              generation == contextGeneration &&
+              !widget.history &&
+              checkinWindowOpen(
+                course,
+                data?.date ?? currentDate,
+                instant,
+              ),
+          onVerifySigned: () async {
+            await load(force: true);
+            if (!mounted || generation != contextGeneration) return false;
+            final current = data;
+            if (current == null || readIssue != null || current.stale) {
+              return false;
+            }
+            return current.courses.any(
+              (item) =>
+                  item.id == course.id && item.status == CheckInStatus.signed,
+            );
+          },
+        ),
       );
     } finally {
-      if (generation == contextGeneration) confirming = false;
+      if (generation == contextGeneration) qrOpen = false;
     }
-    if (!confirmed ||
-        !mounted ||
-        generation != contextGeneration ||
-        serial != requestSerial ||
-        submitting != null ||
-        busy ||
-        widget.history ||
-        awaitingVerification.contains(course.id) ||
-        !checkinWindowOpen(course, data!.date, instant)) {
-      return;
-    }
-    setState(() {
-      submitting = course.id;
-      awaitingVerification.add(course.id);
-    });
-    var message = '提交结果待确认，请刷新状态核实，勿重复提交';
-    try {
-      final response = await service.submitCheckin(course.id);
-      message = response.message;
-      if (mounted &&
-          generation == contextGeneration &&
-          (response.state == 'notSubmitted' || response.state == 'rejected')) {
-        awaitingVerification.remove(course.id);
-      }
-    } catch (_) {
-      // The Dart exception cannot prove that the server did not receive the write.
-    }
-    if (!mounted || generation != contextGeneration) {
-      // The original gateway owns readback; never refresh a new account.
-      try {
-        await service.checkin(forceRefresh: true);
-      } catch (_) {
-        // No current page can safely present this old context's result.
-      }
-      return;
-    }
-    setState(() => notice = message);
-    await load(force: true);
-    if (!mounted || generation != contextGeneration) return;
-    setState(() {
-      submitting = null;
-      notice = message;
-    });
   }
 
   @override
@@ -289,21 +261,19 @@ class _CheckInPageState extends State<CheckInPage> {
         ApplePageHeader(
           largeTitle: Text(widget.history ? '签到历史' : '课程签到'),
           section: '工作台',
-          subtitle: '查看课程签到状态与记录',
+          subtitle: '查看课程签到状态与实时签到码',
           icon: CupertinoIcons.checkmark_seal,
           border: null,
           trailing: AppleToolbarButton(
             label: '刷新签到状态',
             busy: busy,
-            onPressed: busy || submitting != null
-                ? null
-                : () => load(force: true),
+            onPressed: busy ? null : retryRead,
             child: busy
                 ? const GinkgoActivity(size: 17)
                 : const Icon(CupertinoIcons.refresh, size: 24),
           ),
         ),
-        CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
+        CupertinoSliverRefreshControl(onRefresh: retryRead),
         SliverList.list(
           children: [
             if (widget.history)
@@ -353,39 +323,33 @@ class _CheckInPageState extends State<CheckInPage> {
                     trailing: const CupertinoListTileChevron(),
                     onTap: () => Navigator.of(context).push(
                       CupertinoPageRoute<void>(
-                        builder: (_) =>
-                            CheckInPage(service: widget.service, history: true),
+                        builder: (_) => CheckInPage(
+                          service: widget.service,
+                          platformActions: widget.platformActions,
+                          history: true,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
-            if (notice != null)
-              AppleSection(
-                children: [
-                  AppleListTile(
-                    leading: const Icon(
-                      CupertinoIcons.exclamationmark_triangle,
-                      color: AppleDesign.statusPending,
-                      size: 20,
-                    ),
-                    title: Text(notice!),
-                  ),
-                ],
-              ),
-            if (error != null)
+            if (readIssue != null)
               AppleSection(
                 children: [
                   AppleEmptyState(
-                    title: error!,
-                    description: '请根据上方提示处理后重试；已确认的旧状态会保留。',
+                    title: readIssue!,
+                    description: data == null
+                        ? '尚未读到签到状态，不能判断是否有课。'
+                        : data!.courses.isEmpty
+                        ? '上次结果没有课程，本次尚未核实。'
+                        : '正在显示上次结果，不能据此生成签到码。',
                     error: true,
                     action: '重试',
-                    onAction: () => load(force: true),
+                    onAction: busy ? null : retryRead,
                   ),
                 ],
               ),
-            if (data == null && error == null)
+            if (data == null && readIssue == null)
               CheckInLoading(
                 isDemo: widget.service.isDemo,
                 service: widget.service,
@@ -473,22 +437,28 @@ class _CheckInPageState extends State<CheckInPage> {
             ),
           ],
         ),
-      if (data.courses.isEmpty)
+      if (courses.isEmpty &&
+          readIssue == null &&
+          (!widget.history || data.date == dateString(selectedDate)))
         AppleSection(
           header: Text(dateLabel),
           children: [
             AppleEmptyState(
               icon: CupertinoIcons.checkmark_shield,
-              title: widget.history ? '当天没有课程' : '今天没有课程',
-              description: widget.history
+              title: original.courses.isNotEmpty
+                  ? '当前课程范围内没有课程'
+                  : widget.history
+                  ? '当天没有课程'
+                  : '今天没有课程',
+              description: original.courses.isNotEmpty
+                  ? '课程已按你的本机范围收起，可在“我的课程范围”恢复。'
+                  : widget.history
                   ? '该日期没有可查询课程，不代表出勤或缺勤。'
-                  : (original.courses.isNotEmpty
-                        ? '课程已按你的本机范围收起，可在“我的课程范围”恢复。'
-                        : '学校返回当天无课程，可以到课表确认其他教学周。'),
+                  : '学校返回当天无课程，可以到课表确认其他教学周。',
             ),
           ],
         )
-      else ...[
+      else if (courses.isNotEmpty) ...[
         CheckinStatusSummary(
           dateLabel: dateLabel,
           scopeLabel: '${widget.history ? '当天' : '今天'} ${sessions.length} 节课',
@@ -510,16 +480,7 @@ class _CheckInPageState extends State<CheckInPage> {
                     course.status == CheckInStatus.notSigned &&
                     !course.conflicting &&
                     (course.signInAllowed ?? course.mergedRecordCount == 1),
-                submitting: submitting,
-                awaitingVerification: awaitingVerification.contains(course.id),
-                onSubmit:
-                    busy ||
-                        error != null ||
-                        data.stale ||
-                        data.failure != null ||
-                        awaitingVerification.contains(course.id)
-                    ? null
-                    : () => submit(course),
+                onSubmit: !verified ? null : () => openQr(course),
               ),
           ],
         ),
@@ -530,8 +491,8 @@ class _CheckInPageState extends State<CheckInPage> {
             padding: const EdgeInsets.all(16),
             child: Text(
               widget.service.isDemo
-                  ? '演示模式不会提交签到'
-                  : '课前 10 分钟开放，课程结束后关闭。每节课提醒一次，须手动确认签到。',
+                  ? '演示模式仅展示合成签到码'
+                  : '课前 10 分钟开放实时签到码，保存至相册后在智慧北航扫一扫完成签到。',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,

@@ -1,6 +1,7 @@
 import '../application/career.dart';
 import '../application/mirror_service.dart';
 import '../application/contracts.dart';
+import '../application/service_health.dart';
 import '../src/rust/api/live.dart' as live;
 
 import 'package:ginkgo_mirror/infrastructure/native_command.dart';
@@ -41,9 +42,14 @@ mixin NativeCareer implements CareerEventsGateway {
   Future<CareerEventsRead> careerEvents({
     required String month,
     bool forceRefresh = false,
-  }) async => decodeCareerEvents(
-    await boundedNativeRead(
-      () => live.loadCareerEvents(month: month, forceRefresh: forceRefresh),
+  }) => ServiceHealthTracker.shared.observe(
+    ServiceEndpointId.careerEvents,
+    () async => decodeCareerEvents(
+      await boundedNativeRead(
+        () => live.loadCareerEvents(month: month, forceRefresh: forceRefresh),
+      ),
     ),
+    failureOf: (r) => r.failure,
+    staleOf: (r) => r.failure != null && r.data != null,
   );
 }

@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1333339535;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1364388804;
 
 // Section: executor
 
@@ -1261,6 +1261,42 @@ fn wire__crate__api__mirror__init_app_impl(
         },
     )
 }
+fn wire__crate__api__live__last_verified_route_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "last_verified_route",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok =
+                            Result::<_, ()>::Ok(crate::api::live::last_verified_route().await)?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__live__learning_courses_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -1915,6 +1951,41 @@ fn wire__crate__api__mirror__load_demo_checkin_impl(
             move |context| {
                 transform_result_sse::<_, ()>((move || {
                     let output_ok = Result::<_, ()>::Ok(crate::api::mirror::load_demo_checkin())?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__mirror__load_demo_checkin_qr_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_demo_checkin_qr",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_course_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok(crate::api::mirror::load_demo_checkin_qr(
+                        api_course_id,
+                    ))?;
                     Ok(output_ok)
                 })())
             }
@@ -3114,6 +3185,42 @@ fn wire__crate__api__mirror__load_rule_examples_impl(
         },
     )
 }
+fn wire__crate__api__live__load_saved_credential_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "load_saved_credential",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok =
+                            Result::<_, ()>::Ok(crate::api::live::load_saved_credential().await)?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__live__load_schedule_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -3445,6 +3552,49 @@ fn wire__crate__api__reminder_planning__plan_course_task_reminders_impl(
                 )?;
                 Ok(output_ok)
             })())
+        },
+    )
+}
+fn wire__crate__api__live__prepare_checkin_qr_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "prepare_checkin_qr",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_course_id = <String>::sse_decode(&mut deserializer);
+            let api_revalidate_course = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::prepare_checkin_qr(
+                                api_course_id,
+                                api_revalidate_course,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
         },
     )
 }
@@ -3800,44 +3950,6 @@ fn wire__crate__api__live__student_service_url_impl(
         },
     )
 }
-fn wire__crate__api__live__submit_checkin_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "submit_checkin",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_course_id = <String>::sse_decode(&mut deserializer);
-            deserializer.end();
-            move |context| async move {
-                transform_result_sse::<_, ()>(
-                    (move || async move {
-                        let output_ok = Result::<_, ()>::Ok(
-                            crate::api::live::submit_checkin(api_course_id).await,
-                        )?;
-                        Ok(output_ok)
-                    })()
-                    .await,
-                )
-            }
-        },
-    )
-}
 fn wire__crate__api__live__submit_homework_file_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -3872,6 +3984,49 @@ fn wire__crate__api__live__submit_homework_file_impl(
                                 api_expected_account,
                                 api_handle,
                                 api_confirmed,
+                            )
+                            .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__live__switch_verified_route_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "switch_verified_route",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_expected_account = <String>::sse_decode(&mut deserializer);
+            let api_route = <crate::api::live::RouteChoice>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::live::switch_verified_route(
+                                api_expected_account,
+                                api_route,
                             )
                             .await,
                         )?;
@@ -4693,6 +4848,30 @@ impl SseDecode for crate::api::mirror::CheckInCourse {
             merged_record_count: var_mergedRecordCount,
             conflicting: var_conflicting,
             sign_in_allowed: var_signInAllowed,
+        };
+    }
+}
+
+impl SseDecode for crate::api::mirror::CheckInQrResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_courseId = <String>::sse_decode(deserializer);
+        let mut var_fetchedAt = <Option<String>>::sse_decode(deserializer);
+        let mut var_refreshSeconds = <i32>::sse_decode(deserializer);
+        let mut var_matrixSize = <i32>::sse_decode(deserializer);
+        let mut var_modules = <Vec<bool>>::sse_decode(deserializer);
+        let mut var_demo = <bool>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        let mut var_failureDetail = <Option<String>>::sse_decode(deserializer);
+        return crate::api::mirror::CheckInQrResponse {
+            course_id: var_courseId,
+            fetched_at: var_fetchedAt,
+            refresh_seconds: var_refreshSeconds,
+            matrix_size: var_matrixSize,
+            modules: var_modules,
+            demo: var_demo,
+            failure: var_failure,
+            failure_detail: var_failureDetail,
         };
     }
 }
@@ -6151,6 +6330,18 @@ impl SseDecode for Vec<crate::api::live::BookHoldingDto> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<crate::api::live::BookHoldingDto>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<bool> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<bool>::sse_decode(deserializer));
         }
         return ans_;
     }
@@ -7766,6 +7957,20 @@ impl SseDecode for crate::api::mirror::RuleExamples {
     }
 }
 
+impl SseDecode for crate::api::live::SavedCredentialResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_account = <Option<String>>::sse_decode(deserializer);
+        let mut var_password = <Option<String>>::sse_decode(deserializer);
+        let mut var_failure = <Option<crate::api::mirror::FailureCode>>::sse_decode(deserializer);
+        return crate::api::live::SavedCredentialResponse {
+            account: var_account,
+            password: var_password,
+            failure: var_failure,
+        };
+    }
+}
+
 impl SseDecode for crate::api::mirror::ScheduleCourse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -8206,136 +8411,144 @@ fn pde_ffi_dispatcher_primary_impl(
             data_len,
         ),
         28 => wire__crate__api__mirror__init_app_impl(port, ptr, rust_vec_len, data_len),
-        29 => wire__crate__api__live__learning_courses_impl(port, ptr, rust_vec_len, data_len),
-        31 => wire__crate__api__live__load_bykc_impl(port, ptr, rust_vec_len, data_len),
-        32 => wire__crate__api__live__load_bykc_chosen_impl(port, ptr, rust_vec_len, data_len),
-        33 => wire__crate__api__live__load_bykc_statistics_impl(port, ptr, rust_vec_len, data_len),
-        34 => {
+        29 => wire__crate__api__live__last_verified_route_impl(port, ptr, rust_vec_len, data_len),
+        30 => wire__crate__api__live__learning_courses_impl(port, ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__live__load_bykc_impl(port, ptr, rust_vec_len, data_len),
+        33 => wire__crate__api__live__load_bykc_chosen_impl(port, ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__live__load_bykc_statistics_impl(port, ptr, rust_vec_len, data_len),
+        35 => {
             wire__crate__api__live__load_campus_activities_impl(port, ptr, rust_vec_len, data_len)
         }
-        35 => {
+        36 => {
             wire__crate__api__live__load_campus_card_balance_impl(port, ptr, rust_vec_len, data_len)
         }
-        36 => wire__crate__api__live__load_career_events_impl(port, ptr, rust_vec_len, data_len),
-        37 => wire__crate__api__live__load_cgyy_impl(port, ptr, rust_vec_len, data_len),
-        38 => wire__crate__api__live__load_checkin_on_date_impl(port, ptr, rust_vec_len, data_len),
-        39 => wire__crate__api__live__load_checkin_today_impl(port, ptr, rust_vec_len, data_len),
-        40 => wire__crate__api__live__load_classrooms_impl(port, ptr, rust_vec_len, data_len),
-        41 => wire__crate__api__live__load_demo_bykc_impl(port, ptr, rust_vec_len, data_len),
-        42 => wire__crate__api__live__load_demo_bykc_chosen_impl(port, ptr, rust_vec_len, data_len),
-        43 => wire__crate__api__live__load_demo_bykc_statistics_impl(
+        37 => wire__crate__api__live__load_career_events_impl(port, ptr, rust_vec_len, data_len),
+        38 => wire__crate__api__live__load_cgyy_impl(port, ptr, rust_vec_len, data_len),
+        39 => wire__crate__api__live__load_checkin_on_date_impl(port, ptr, rust_vec_len, data_len),
+        40 => wire__crate__api__live__load_checkin_today_impl(port, ptr, rust_vec_len, data_len),
+        41 => wire__crate__api__live__load_classrooms_impl(port, ptr, rust_vec_len, data_len),
+        42 => wire__crate__api__live__load_demo_bykc_impl(port, ptr, rust_vec_len, data_len),
+        43 => wire__crate__api__live__load_demo_bykc_chosen_impl(port, ptr, rust_vec_len, data_len),
+        44 => wire__crate__api__live__load_demo_bykc_statistics_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        44 => wire__crate__api__live__load_demo_campus_card_balance_impl(
+        45 => wire__crate__api__live__load_demo_campus_card_balance_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        45 => wire__crate__api__live__load_demo_cgyy_impl(port, ptr, rust_vec_len, data_len),
-        46 => wire__crate__api__mirror__load_demo_checkin_impl(port, ptr, rust_vec_len, data_len),
-        47 => {
+        46 => wire__crate__api__live__load_demo_cgyy_impl(port, ptr, rust_vec_len, data_len),
+        47 => wire__crate__api__mirror__load_demo_checkin_impl(port, ptr, rust_vec_len, data_len),
+        48 => {
+            wire__crate__api__mirror__load_demo_checkin_qr_impl(port, ptr, rust_vec_len, data_len)
+        }
+        49 => {
             wire__crate__api__mirror__load_demo_classrooms_impl(port, ptr, rust_vec_len, data_len)
         }
-        48 => wire__crate__api__mirror__load_demo_grades_impl(port, ptr, rust_vec_len, data_len),
-        49 => wire__crate__api__live__load_demo_graduate_impl(port, ptr, rust_vec_len, data_len),
-        50 => wire__crate__api__live__load_demo_graduate_status_impl(
+        50 => wire__crate__api__mirror__load_demo_grades_impl(port, ptr, rust_vec_len, data_len),
+        51 => wire__crate__api__live__load_demo_graduate_impl(port, ptr, rust_vec_len, data_len),
+        52 => wire__crate__api__live__load_demo_graduate_status_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        51 => wire__crate__api__mirror__load_demo_homework_impl(port, ptr, rust_vec_len, data_len),
-        52 => wire__crate__api__mirror__load_demo_library_impl(port, ptr, rust_vec_len, data_len),
-        53 => wire__crate__api__live__load_demo_library_history_impl(
+        53 => wire__crate__api__mirror__load_demo_homework_impl(port, ptr, rust_vec_len, data_len),
+        54 => wire__crate__api__mirror__load_demo_library_impl(port, ptr, rust_vec_len, data_len),
+        55 => wire__crate__api__live__load_demo_library_history_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        54 => {
+        56 => {
             wire__crate__api__live__load_demo_library_stats_impl(port, ptr, rust_vec_len, data_len)
         }
-        55 => wire__crate__api__live__load_demo_notices_impl(port, ptr, rust_vec_len, data_len),
-        56 => wire__crate__api__mirror__load_demo_schedule_impl(port, ptr, rust_vec_len, data_len),
-        57 => wire__crate__api__mirror__load_demo_today_impl(port, ptr, rust_vec_len, data_len),
-        58 => wire__crate__api__live__auth_challenge__load_gateway_challenge_impl(
+        57 => wire__crate__api__live__load_demo_notices_impl(port, ptr, rust_vec_len, data_len),
+        58 => wire__crate__api__mirror__load_demo_schedule_impl(port, ptr, rust_vec_len, data_len),
+        59 => wire__crate__api__mirror__load_demo_today_impl(port, ptr, rust_vec_len, data_len),
+        60 => wire__crate__api__live__auth_challenge__load_gateway_challenge_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        59 => wire__crate__api__live__load_grade_terms_impl(port, ptr, rust_vec_len, data_len),
-        60 => wire__crate__api__live__load_grades_impl(port, ptr, rust_vec_len, data_len),
-        61 => {
+        61 => wire__crate__api__live__load_grade_terms_impl(port, ptr, rust_vec_len, data_len),
+        62 => wire__crate__api__live__load_grades_impl(port, ptr, rust_vec_len, data_len),
+        63 => {
             wire__crate__api__live__load_graduate_credit_map_impl(port, ptr, rust_vec_len, data_len)
         }
-        62 => wire__crate__api__live__load_graduate_part_impl(port, ptr, rust_vec_len, data_len),
-        63 => wire__crate__api__live__load_homework_impl(port, ptr, rust_vec_len, data_len),
-        64 => wire__crate__api__live__load_homework_detail_impl(port, ptr, rust_vec_len, data_len),
-        65 => wire__crate__api__live__load_library_areas_impl(port, ptr, rust_vec_len, data_len),
-        66 => wire__crate__api__live__load_library_bookings_impl(port, ptr, rust_vec_len, data_len),
-        67 => wire__crate__api__live__load_library_books_impl(port, ptr, rust_vec_len, data_len),
-        68 => wire__crate__api__live__load_library_history_impl(port, ptr, rust_vec_len, data_len),
-        69 => wire__crate__api__live__load_library_holdings_impl(port, ptr, rust_vec_len, data_len),
-        70 => wire__crate__api__live__load_library_loans_impl(port, ptr, rust_vec_len, data_len),
-        71 => wire__crate__api__live__load_library_seats_impl(port, ptr, rust_vec_len, data_len),
-        72 => wire__crate__api__live__load_library_slots_impl(port, ptr, rust_vec_len, data_len),
-        73 => wire__crate__api__live__load_library_stats_impl(port, ptr, rust_vec_len, data_len),
-        74 => wire__crate__api__live__load_library_venues_impl(port, ptr, rust_vec_len, data_len),
-        75 => wire__crate__api__live__auth_challenge__load_login_challenge_impl(
+        64 => wire__crate__api__live__load_graduate_part_impl(port, ptr, rust_vec_len, data_len),
+        65 => wire__crate__api__live__load_homework_impl(port, ptr, rust_vec_len, data_len),
+        66 => wire__crate__api__live__load_homework_detail_impl(port, ptr, rust_vec_len, data_len),
+        67 => wire__crate__api__live__load_library_areas_impl(port, ptr, rust_vec_len, data_len),
+        68 => wire__crate__api__live__load_library_bookings_impl(port, ptr, rust_vec_len, data_len),
+        69 => wire__crate__api__live__load_library_books_impl(port, ptr, rust_vec_len, data_len),
+        70 => wire__crate__api__live__load_library_history_impl(port, ptr, rust_vec_len, data_len),
+        71 => wire__crate__api__live__load_library_holdings_impl(port, ptr, rust_vec_len, data_len),
+        72 => wire__crate__api__live__load_library_loans_impl(port, ptr, rust_vec_len, data_len),
+        73 => wire__crate__api__live__load_library_seats_impl(port, ptr, rust_vec_len, data_len),
+        74 => wire__crate__api__live__load_library_slots_impl(port, ptr, rust_vec_len, data_len),
+        75 => wire__crate__api__live__load_library_stats_impl(port, ptr, rust_vec_len, data_len),
+        76 => wire__crate__api__live__load_library_venues_impl(port, ptr, rust_vec_len, data_len),
+        77 => wire__crate__api__live__auth_challenge__load_login_challenge_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        76 => wire__crate__api__live__load_notices_impl(port, ptr, rust_vec_len, data_len),
-        77 => wire__crate__api__mirror__load_query_dates_impl(port, ptr, rust_vec_len, data_len),
-        78 => wire__crate__api__mirror__load_rule_examples_impl(port, ptr, rust_vec_len, data_len),
-        79 => wire__crate__api__live__load_schedule_impl(port, ptr, rust_vec_len, data_len),
-        80 => {
+        78 => wire__crate__api__live__load_notices_impl(port, ptr, rust_vec_len, data_len),
+        79 => wire__crate__api__mirror__load_query_dates_impl(port, ptr, rust_vec_len, data_len),
+        80 => wire__crate__api__mirror__load_rule_examples_impl(port, ptr, rust_vec_len, data_len),
+        81 => wire__crate__api__live__load_saved_credential_impl(port, ptr, rust_vec_len, data_len),
+        82 => wire__crate__api__live__load_schedule_impl(port, ptr, rust_vec_len, data_len),
+        83 => {
             wire__crate__api__live__load_shuttle_timetable_impl(port, ptr, rust_vec_len, data_len)
         }
-        81 => wire__crate__api__live__load_today_impl(port, ptr, rust_vec_len, data_len),
-        82 => wire__crate__api__live__login_impl(port, ptr, rust_vec_len, data_len),
-        83 => wire__crate__api__live__pending_homework_submissions_impl(
+        84 => wire__crate__api__live__load_today_impl(port, ptr, rust_vec_len, data_len),
+        85 => wire__crate__api__live__login_impl(port, ptr, rust_vec_len, data_len),
+        86 => wire__crate__api__live__pending_homework_submissions_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        84 => {
+        87 => {
             wire__crate__api__live__perform_library_action_impl(port, ptr, rust_vec_len, data_len)
         }
-        87 => {
+        90 => wire__crate__api__live__prepare_checkin_qr_impl(port, ptr, rust_vec_len, data_len),
+        91 => {
             wire__crate__api__mirror__query_demo_classrooms_impl(port, ptr, rust_vec_len, data_len)
         }
-        88 => wire__crate__api__live__read_background_reminders_impl(
+        92 => wire__crate__api__live__read_background_reminders_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        89 => {
+        93 => {
             wire__crate__api__live__reconcile_homework_file_impl(port, ptr, rust_vec_len, data_len)
         }
-        90 => wire__crate__api__live__reserve_library_seat_impl(port, ptr, rust_vec_len, data_len),
-        91 => wire__crate__api__live__restore_session_impl(port, ptr, rust_vec_len, data_len),
-        92 => wire__crate__api__live__auth_challenge__resume_gateway_login_impl(
+        94 => wire__crate__api__live__reserve_library_seat_impl(port, ptr, rust_vec_len, data_len),
+        95 => wire__crate__api__live__restore_session_impl(port, ptr, rust_vec_len, data_len),
+        96 => wire__crate__api__live__auth_challenge__resume_gateway_login_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        93 => wire__crate__api__live__set_route_impl(port, ptr, rust_vec_len, data_len),
-        94 => wire__crate__api__live__sign_out_impl(port, ptr, rust_vec_len, data_len),
-        96 => wire__crate__api__live__submit_checkin_impl(port, ptr, rust_vec_len, data_len),
-        97 => wire__crate__api__live__submit_homework_file_impl(port, ptr, rust_vec_len, data_len),
-        98 => wire__crate__api__live__upload_homework_file_impl(port, ptr, rust_vec_len, data_len),
-        99 => wire__crate__api__live__verify_credential_storage_impl(
+        97 => wire__crate__api__live__set_route_impl(port, ptr, rust_vec_len, data_len),
+        98 => wire__crate__api__live__sign_out_impl(port, ptr, rust_vec_len, data_len),
+        100 => wire__crate__api__live__submit_homework_file_impl(port, ptr, rust_vec_len, data_len),
+        101 => {
+            wire__crate__api__live__switch_verified_route_impl(port, ptr, rust_vec_len, data_len)
+        }
+        102 => wire__crate__api__live__upload_homework_file_impl(port, ptr, rust_vec_len, data_len),
+        103 => wire__crate__api__live__verify_credential_storage_impl(
             port,
             ptr,
             rust_vec_len,
@@ -8355,18 +8568,18 @@ fn pde_ffi_dispatcher_sync_impl(
     match func_id {
         3 => wire__crate__api__rules__checkin_sign_in_window_impl(ptr, rust_vec_len, data_len),
         4 => wire__crate__api__rules__classify_homework_deadline_impl(ptr, rust_vec_len, data_len),
-        30 => wire__crate__api__live__library_loans_portal_url_impl(ptr, rust_vec_len, data_len),
-        85 => wire__crate__api__reminder_planning__plan_checkin_homework_reminders_impl(
+        31 => wire__crate__api__live__library_loans_portal_url_impl(ptr, rust_vec_len, data_len),
+        88 => wire__crate__api__reminder_planning__plan_checkin_homework_reminders_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        86 => wire__crate__api__reminder_planning__plan_course_task_reminders_impl(
+        89 => wire__crate__api__reminder_planning__plan_course_task_reminders_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        95 => wire__crate__api__live__student_service_url_impl(ptr, rust_vec_len, data_len),
+        99 => wire__crate__api__live__student_service_url_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -9318,6 +9531,33 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::CheckInCourse>
     for crate::api::mirror::CheckInCourse
 {
     fn into_into_dart(self) -> crate::api::mirror::CheckInCourse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::mirror::CheckInQrResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.course_id.into_into_dart().into_dart(),
+            self.fetched_at.into_into_dart().into_dart(),
+            self.refresh_seconds.into_into_dart().into_dart(),
+            self.matrix_size.into_into_dart().into_dart(),
+            self.modules.into_into_dart().into_dart(),
+            self.demo.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+            self.failure_detail.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::mirror::CheckInQrResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::CheckInQrResponse>
+    for crate::api::mirror::CheckInQrResponse
+{
+    fn into_into_dart(self) -> crate::api::mirror::CheckInQrResponse {
         self
     }
 }
@@ -11566,6 +11806,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mirror::RuleExamples>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::live::SavedCredentialResponse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.account.into_into_dart().into_dart(),
+            self.password.into_into_dart().into_dart(),
+            self.failure.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::live::SavedCredentialResponse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::live::SavedCredentialResponse>
+    for crate::api::live::SavedCredentialResponse
+{
+    fn into_into_dart(self) -> crate::api::live::SavedCredentialResponse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::mirror::ScheduleCourse {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -12457,6 +12719,20 @@ impl SseEncode for crate::api::mirror::CheckInCourse {
         <i32>::sse_encode(self.merged_record_count, serializer);
         <bool>::sse_encode(self.conflicting, serializer);
         <Option<bool>>::sse_encode(self.sign_in_allowed, serializer);
+    }
+}
+
+impl SseEncode for crate::api::mirror::CheckInQrResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.course_id, serializer);
+        <Option<String>>::sse_encode(self.fetched_at, serializer);
+        <i32>::sse_encode(self.refresh_seconds, serializer);
+        <i32>::sse_encode(self.matrix_size, serializer);
+        <Vec<bool>>::sse_encode(self.modules, serializer);
+        <bool>::sse_encode(self.demo, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+        <Option<String>>::sse_encode(self.failure_detail, serializer);
     }
 }
 
@@ -13456,6 +13732,16 @@ impl SseEncode for Vec<crate::api::live::BookHoldingDto> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::live::BookHoldingDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<bool> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <bool>::sse_encode(item, serializer);
         }
     }
 }
@@ -14707,6 +14993,15 @@ impl SseEncode for crate::api::mirror::RuleExamples {
         <Vec<i32>>::sse_encode(self.cached_weeks, serializer);
         <i32>::sse_encode(self.selected_week, serializer);
         <Vec<String>>::sse_encode(self.course_names, serializer);
+        <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
+    }
+}
+
+impl SseEncode for crate::api::live::SavedCredentialResponse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<String>>::sse_encode(self.account, serializer);
+        <Option<String>>::sse_encode(self.password, serializer);
         <Option<crate::api::mirror::FailureCode>>::sse_encode(self.failure, serializer);
     }
 }

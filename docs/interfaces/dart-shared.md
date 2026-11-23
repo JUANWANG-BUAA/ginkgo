@@ -41,18 +41,20 @@
     - `bool reduceMotion = false;`  <sub>:75</sub>
     - `double textSize = 1;`  <sub>:76</sub>
     - `bool explicitSignOut = false;` — Set by an explicit sign-out and cleared by the next successful sign-in.  <sub>:81</sub>
-    - `String? get writeError => …` — Last failed write, separate from a failed settings read.  <sub>:86</sub>
-    - `String routeMode = 'automatic';` — Chosen network route, kept so the login page and the next start use the  <sub>:90</sub>
-    - `Future<void> restore() async {…}`  <sub>:100</sub>
-    - `Future<void> retrySave() => …` — Retries the current local snapshot without changing any setting.  <sub>:197</sub>
-    - `void dispose() {…}`  <sub>:200</sub>
-    - `Future<void> update({ AppAppearance? appearance, AppAccent? accent, bool? compactLists, bool? reduceMotion, double? textSize, }) {…}`  <sub>:205</sub>
-    - `Future<void> setRouteMode(String value) {…}` — Persists the network route chosen on the login page.  <sub>:221</sub>
-    - `Future<void> setExplicitSignOut(bool value) {…}` — Records or clears the explicit sign-out marker with the same serialized  <sub>:228</sub>
+    - `bool rememberPassword = false;` — Whether the user opted into saving credentials in the platform vault.  <sub>:85</sub>
+    - `String? get writeError => …` — Last failed write, separate from a failed settings read.  <sub>:90</sub>
+    - `String routeMode = 'automatic';` — Chosen network route, kept so the login page and the next start use the  <sub>:94</sub>
+    - `Future<void> restore() async {…}`  <sub>:104</sub>
+    - `Future<void> retrySave() => …` — Retries the current local snapshot without changing any setting.  <sub>:203</sub>
+    - `void dispose() {…}`  <sub>:206</sub>
+    - `Future<void> update({ AppAppearance? appearance, AppAccent? accent, bool? compactLists, bool? reduceMotion, double? textSize, }) {…}`  <sub>:211</sub>
+    - `Future<void> setRouteMode(String value) {…}` — Persists the network route chosen on the login page.  <sub>:227</sub>
+    - `Future<void> setRememberPassword(bool value) {…}` — Persists the user's remember-password switch preference (boolean only).  <sub>:233</sub>
+    - `Future<void> setExplicitSignOut(bool value) {…}` — Records or clears the explicit sign-out marker with the same serialized  <sub>:241</sub>
 - `class AppPreferencesScope extends InheritedNotifier<AppPreferences>`
-  <sub>class · shared/app_preferences.dart:236</sub>
-    - `const AppPreferencesScope({ super.key, required AppPreferences preferences, required super.child, }) : super(notifier: preferences);`  <sub>:237</sub>
-    - `static AppPreferences of(BuildContext context) => …`  <sub>:243</sub>
+  <sub>class · shared/app_preferences.dart:249</sub>
+    - `const AppPreferencesScope({ super.key, required AppPreferences preferences, required super.child, }) : super(notifier: preferences);`  <sub>:250</sub>
+    - `static AppPreferences of(BuildContext context) => …`  <sub>:256</sub>
 
 ## shared/checkin_sessions.dart
 
@@ -115,15 +117,15 @@
     - `void markRead(String group) {…}`  <sub>:171</sub>
     - `void setActive(String group) {…}`  <sub>:189</sub>
     - `Future<void> setEnabled(String group, bool value) async {…}`  <sub>:194</sub>
-    - `Future<void> updateSchedule(ScheduleResponse data) async {…}` — Failed or stale school reads never replace a previously accepted plan.  <sub>:222</sub>
-    - `Future<void> updateTasks(List<LocalTaskRecord> tasks) async {…}`  <sub>:238</sub>
-    - `void updateCheckin(CheckInResponse data) {…}`  <sub>:280</sub>
-    - `void updateHomework(HomeworkResponse data) {…}`  <sub>:301</sub>
-    - `Future<void> refresh({bool includeHomework = true}) async {…}`  <sub>:324</sub>
-    - `Future<void> reconcile() {…}`  <sub>:413</sub>
-    - `Future<void> reschedule() async {…}`  <sub>:495</sub>
-    - `Future<void> stop() async {…}`  <sub>:500</sub>
-    - `void dispose() {…}`  <sub>:515</sub>
+    - `Future<void> updateSchedule(ScheduleResponse data) async {…}` — Failed or stale school reads never replace a previously accepted plan.  <sub>:224</sub>
+    - `Future<void> updateTasks(List<LocalTaskRecord> tasks) async {…}`  <sub>:240</sub>
+    - `void updateCheckin(CheckInResponse data) {…}`  <sub>:282</sub>
+    - `void updateHomework(HomeworkResponse data) {…}`  <sub>:303</sub>
+    - `Future<void> refresh({bool includeHomework = true}) async {…}`  <sub>:326</sub>
+    - `Future<void> reconcile() {…}`  <sub>:430</sub>
+    - `Future<void> reschedule() async {…}`  <sub>:512</sub>
+    - `Future<void> stop() async {…}`  <sub>:517</sub>
+    - `void dispose() {…}`  <sub>:532</sub>
 
 ## shared/reminder_rules.dart
 
