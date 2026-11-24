@@ -10,7 +10,7 @@ native/demo 适配器、运行时与持久化实现。
 - [infrastructure/background_reminders.dart](#infrastructurebackgroundremindersdart) (1)
 - [infrastructure/bykc_decode.dart](#infrastructurebykcdecodedart) (3)
 - [infrastructure/cgyy_decode.dart](#infrastructurecgyydecodedart) (2)
-- [infrastructure/checkin_qr_saver.dart](#infrastructurecheckinqrsaverdart) (1)
+- [infrastructure/checkin_qr_saver.dart](#infrastructurecheckinqrsaverdart) (2)
 - [infrastructure/course_visibility_file_store.dart](#infrastructurecoursevisibilityfilestoredart) (1)
 - [infrastructure/demo_evaluation.dart](#infrastructuredemoevaluationdart) (1)
 - [infrastructure/demo_finance.dart](#infrastructuredemofinancedart) (1)
@@ -77,7 +77,16 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/checkin_qr_saver.dart
 
 - `Future<CheckinQrSaveStatus> saveCheckinQrPng( Uint8List pngBytes, { required bool Function() isCurrent, }) async {…}`
-  <sub>function · infrastructure/checkin_qr_saver.dart:11</sub>
+  <sub>function · infrastructure/checkin_qr_saver.dart:13</sub>
+- `class AndroidCheckinQrQuickHelper implements CheckinQrQuickHelper`
+  <sub>class · infrastructure/checkin_qr_saver.dart:36</sub>
+    - `static final AndroidCheckinQrQuickHelper shared = AndroidCheckinQrQuickHelper._();`  <sub>:39</sub>
+    - `Future<void> Function()? _refreshHandler;`  <sub>:42</sub>
+    - `Future<CheckinScannerHost> probeScannerApp() async {…}`  <sub>:62</sub>
+    - `Future<CheckinScannerHost> launchScannerApp() async {…}`  <sub>:75</sub>
+    - `Future<CheckinQuickNotificationStatus> showQuickNotification({ String? statusText, }) async {…}`  <sub>:88</sub>
+    - `Future<void> dismissQuickNotification() async {…}`  <sub>:109</sub>
+    - `void setRefreshFromNotificationHandler(Future<void> Function()? handler) {…}`  <sub>:117</sub>
 
 ## infrastructure/course_visibility_file_store.dart
 

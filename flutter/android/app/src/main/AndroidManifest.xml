@@ -10,6 +10,7 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <receiver android:name=".ReminderReceiver" android:exported="false" />
+        <receiver android:name=".CheckinQrActionReceiver" android:exported="false" />
         <receiver android:name=".ReminderRearmReceiver" android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -65,5 +66,7 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <package android:name="cn.edu.buaa.wxwork" />
+        <package android:name="com.tencent.wework" />
     </queries>
 </manifest>

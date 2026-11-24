@@ -48,6 +48,7 @@ class CheckinQrFake extends Fake implements CheckInGateway {
   Future<CheckInQrResponse> prepareCheckinQr(
     String courseId, {
     bool revalidateCourse = true,
+    int offsetMs = 0,
   }) {
     final completer = Completer<CheckInQrResponse>();
     qrRequests.add((courseId, revalidateCourse, completer));

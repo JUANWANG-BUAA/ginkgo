@@ -17,7 +17,7 @@
 - [application/cgyy_commands.dart](#applicationcgyycommandsdart) (9)
 - [application/cgyy_models.dart](#applicationcgyymodelsdart) (14)
 - [application/checkin_progress.dart](#applicationcheckinprogressdart) (2)
-- [application/checkin_qr.dart](#applicationcheckinqrdart) (2)
+- [application/checkin_qr.dart](#applicationcheckinqrdart) (6)
 - [application/collection_window.dart](#applicationcollectionwindowdart) (1)
 - [application/demo_awareness.dart](#applicationdemoawarenessdart) (4)
 - [application/demo_mode.dart](#applicationdemomodedart) (2)
@@ -276,9 +276,23 @@
 ## application/checkin_qr.dart
 
 - `enum CheckinQrSaveStatus { savedToGallery, savedToFile, cancelled, stale }`
-  <sub>enum · application/checkin_qr.dart:3</sub>
+  <sub>enum · application/checkin_qr.dart:8</sub>
+- `enum CheckinScannerHost { ibuaa, wecom, none }`
+  <sub>enum · application/checkin_qr.dart:10</sub>
+- `enum CheckinQuickNotificationStatus { shown, permissionDenied, unavailable }`
+  <sub>enum · application/checkin_qr.dart:12</sub>
+- `extension CheckinScannerHostLabel on CheckinScannerHost`
+  <sub>extension · application/checkin_qr.dart:14</sub>
+    - `String get displayName => …`  <sub>:15</sub>
 - `typedef CheckinQrSaver = Future<CheckinQrSaveStatus> Function(` — Saves a freshly rendered check-in QR PNG so the user can select it from
-  <sub>typedef · application/checkin_qr.dart:7</sub>
+  <sub>typedef · application/checkin_qr.dart:24</sub>
+- `abstract interface class CheckinQrQuickHelper` — Optional Android single-phone check-in QR acceleration port:
+  <sub>class · application/checkin_qr.dart:32</sub>
+    - `Future<CheckinScannerHost> probeScannerApp();`  <sub>:33</sub>
+    - `Future<CheckinScannerHost> launchScannerApp();`  <sub>:35</sub>
+    - `Future<CheckinQuickNotificationStatus> showQuickNotification({ String? statusText, });`  <sub>:37</sub>
+    - `Future<void> dismissQuickNotification();`  <sub>:41</sub>
+    - `void setRefreshFromNotificationHandler(Future<void> Function()? handler);`  <sub>:43</sub>
 
 ## application/collection_window.dart
 
@@ -721,43 +735,43 @@
   <sub>class · application/mirror_service.dart:94</sub>
     - `Future<CheckInResponse> checkin({bool forceRefresh = false});`  <sub>:95</sub>
     - `Future<CheckInResponse> checkinOnDate( String date, { bool forceRefresh = false, });`  <sub>:97</sub>
-    - `Future<CheckInQrResponse> prepareCheckinQr( String courseId, { bool revalidateCourse = true, });`  <sub>:102</sub>
-    - `Future<CheckinProgressRead> checkinProgress();`  <sub>:107</sub>
+    - `Future<CheckInQrResponse> prepareCheckinQr( String courseId, { bool revalidateCourse = true, int offsetMs = 0, });`  <sub>:102</sub>
+    - `Future<CheckinProgressRead> checkinProgress();`  <sub>:108</sub>
 - `abstract interface class LibrarySeatingGateway implements LibraryStatsGateway`
-  <sub>class · application/mirror_service.dart:110</sub>
-    - `Future<MutationResponse> reserveLibrarySeat({ required String areaId, required String seatId, required LibrarySlot slot, });`  <sub>:111</sub>
-    - `Future<MutationResponse> performLibraryAction( String bookingId, String action, );`  <sub>:117</sub>
-    - `Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false});`  <sub>:122</sub>
-    - `Future<LibraryAreasResponse> libraryAreas(String libraryId);`  <sub>:124</sub>
-    - `Future<LibrarySlotsResponse> librarySlots(String areaId);`  <sub>:126</sub>
-    - `Future<LibrarySeatsResponse> librarySeats({ required String areaId, required LibrarySlot slot, });`  <sub>:128</sub>
-    - `Future<LibraryBookingsResponse> libraryBookings({bool forceRefresh = false});`  <sub>:133</sub>
-    - `Future<LibraryHistoryResponse> libraryHistory( int page, { bool forceRefresh = false, });`  <sub>:135</sub>
+  <sub>class · application/mirror_service.dart:111</sub>
+    - `Future<MutationResponse> reserveLibrarySeat({ required String areaId, required String seatId, required LibrarySlot slot, });`  <sub>:112</sub>
+    - `Future<MutationResponse> performLibraryAction( String bookingId, String action, );`  <sub>:118</sub>
+    - `Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false});`  <sub>:123</sub>
+    - `Future<LibraryAreasResponse> libraryAreas(String libraryId);`  <sub>:125</sub>
+    - `Future<LibrarySlotsResponse> librarySlots(String areaId);`  <sub>:127</sub>
+    - `Future<LibrarySeatsResponse> librarySeats({ required String areaId, required LibrarySlot slot, });`  <sub>:129</sub>
+    - `Future<LibraryBookingsResponse> libraryBookings({bool forceRefresh = false});`  <sub>:134</sub>
+    - `Future<LibraryHistoryResponse> libraryHistory( int page, { bool forceRefresh = false, });`  <sub>:136</sub>
 - `abstract interface class LibraryCatalogGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:141</sub>
-    - `Future<BookPageRead> libraryBooks({ required String query, required int page, String sort, bool descending, });` — Public OPAC search. Anonymous and read-only; never personal records.  <sub>:144</sub>
-    - `Future<BookHoldingsRead> libraryHoldings(String bibId);` — Public holdings for one bib id; the school's nested JSON stays in Rust.  <sub>:152</sub>
+  <sub>class · application/mirror_service.dart:142</sub>
+    - `Future<BookPageRead> libraryBooks({ required String query, required int page, String sort, bool descending, });` — Public OPAC search. Anonymous and read-only; never personal records.  <sub>:145</sub>
+    - `Future<BookHoldingsRead> libraryHoldings(String bibId);` — Public holdings for one bib id; the school's nested JSON stays in Rust.  <sub>:153</sub>
 - `abstract interface class LibraryGateway`
-  <sub>class · application/mirror_service.dart:155</sub>
+  <sub>class · application/mirror_service.dart:156</sub>
 - `abstract interface class BykcGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:158</sub>
-    - `Future<BykcPartRead> bykcPart(BykcPart part, {bool forceRefresh = false});`  <sub>:159</sub>
+  <sub>class · application/mirror_service.dart:159</sub>
+    - `Future<BykcPartRead> bykcPart(BykcPart part, {bool forceRefresh = false});`  <sub>:160</sub>
 - `abstract interface class GraduateGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:162</sub>
-    - `Future<GraduateRead> graduatePart({ required bool report, required bool forceRefresh, });`  <sub>:163</sub>
+  <sub>class · application/mirror_service.dart:163</sub>
+    - `Future<GraduateRead> graduatePart({ required bool report, required bool forceRefresh, });`  <sub>:164</sub>
 - `abstract interface class NoticeGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:169</sub>
-    - `Future<NoticesRead> notices({bool forceRefresh = false});`  <sub>:170</sub>
+  <sub>class · application/mirror_service.dart:170</sub>
+    - `Future<NoticesRead> notices({bool forceRefresh = false});`  <sub>:171</sub>
 - `abstract interface class CgyyGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:173</sub>
-    - `Future<CgyyLoadRead> cgyy({ required String kind, required int siteId, required String date, required bool forceRefresh, });`  <sub>:174</sub>
+  <sub>class · application/mirror_service.dart:174</sub>
+    - `Future<CgyyLoadRead> cgyy({ required String kind, required int siteId, required String date, required bool forceRefresh, });`  <sub>:175</sub>
 - `abstract interface class CampusGateway`
-  <sub>class · application/mirror_service.dart:182</sub>
+  <sub>class · application/mirror_service.dart:183</sub>
 - `abstract interface class CgyyBookingGateway` — Separate capability: read-only adapters never gain writes implicitly.
-  <sub>class · application/mirror_service.dart:186</sub>
-    - `Future<CgyyActionResult> executeCgyy(CgyyCommand command);`  <sub>:187</sub>
+  <sub>class · application/mirror_service.dart:187</sub>
+    - `Future<CgyyActionResult> executeCgyy(CgyyCommand command);`  <sub>:188</sub>
 - `enum BykcPart { catalog, chosen, statistics }`
-  <sub>enum · application/mirror_service.dart:190</sub>
+  <sub>enum · application/mirror_service.dart:191</sub>
 
 ## application/mutation_result.dart
 
@@ -826,7 +840,7 @@
 
 - `class PlatformActions` — The platform actions the presentation layer needs.
   <sub>class · application/platform_actions.dart:12</sub>
-    - `const PlatformActions({ this.learningFileSaver, this.homeworkFilePicker, this.homeworkFileSave, this.checkinQrSaver, this.maintenance, });`  <sub>:13</sub>
+    - `const PlatformActions({ this.learningFileSaver, this.homeworkFilePicker, this.homeworkFileSave, this.checkinQrSaver, this.checkinQrHelper, this.maintenance, });`  <sub>:13</sub>
 
 ## application/query_snapshots.dart
 

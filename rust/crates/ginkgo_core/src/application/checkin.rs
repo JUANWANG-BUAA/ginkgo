@@ -24,9 +24,10 @@ impl<U: CheckInQrSource> Workspace<U> {
         &self,
         course_id: &str,
         revalidate_course: bool,
+        offset_ms: u32,
     ) -> Result<crate::features::checkin::CheckInQrTicket, AppError> {
         self.upstream
-            .prepare_checkin_qr(course_id, revalidate_course)
+            .prepare_checkin_qr(course_id, revalidate_course, offset_ms)
             .await
     }
 }

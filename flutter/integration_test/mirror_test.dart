@@ -80,7 +80,12 @@ class FailOnceNativeService implements MirrorService {
   Future<CheckInQrResponse> prepareCheckinQr(
     String courseId, {
     bool revalidateCourse = true,
-  }) => native.prepareCheckinQr(courseId, revalidateCourse: revalidateCourse);
+    int offsetMs = 0,
+  }) => native.prepareCheckinQr(
+    courseId,
+    revalidateCourse: revalidateCourse,
+    offsetMs: offsetMs,
+  );
   @override
   Future<MutationResponse> reserveLibrarySeat({
     required String areaId,

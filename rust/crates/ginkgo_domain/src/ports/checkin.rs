@@ -46,5 +46,6 @@ pub trait CheckInQrSource: Send + Sync {
         &self,
         course_id: &str,
         revalidate_course: bool,
+        offset_ms: u32,
     ) -> impl std::future::Future<Output = Result<CheckInQrTicket, AppError>> + Send;
 }

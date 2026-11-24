@@ -184,6 +184,30 @@ pub fn scan_sign_url(course_id: &str, timestamp: &str) -> Result<String, AppErro
     build_sign_url(SCAN_SIGN_URL, course_id, timestamp)
 }
 
+/// Maximum forward buffer (in milliseconds) allowed when saving a QR code for
+/// single-phone album scanning. Keeps saved timestamps realistic while
+/// absorbing the 2-second switch into 智慧北航.
+pub const MAX_QR_TIMESTAMP_OFFSET_MS: u32 = 15_000;
+
+/// Apply a bounded non-negative millisecond offset to an upstream timestamp.
+pub fn apply_timestamp_offset(timestamp: &str, offset_ms: u32) -> Result<String, AppError> {
+    if offset_ms > MAX_QR_TIMESTAMP_OFFSET_MS {
+        return Err(AppError::invalid());
+    }
+    let trimmed = timestamp.trim();
+    if trimmed.is_empty() {
+        return Err(AppError::invalid());
+    }
+    if offset_ms == 0 {
+        return Ok(trimmed.to_owned());
+    }
+    let base = trimmed.parse::<i64>().map_err(|_| AppError::changed())?;
+    let shifted = base
+        .checked_add(i64::from(offset_ms))
+        .ok_or_else(AppError::changed)?;
+    Ok(shifted.to_string())
+}
+
 /// Build the classroom QR payload scanned by WeCom / 智慧北航 `wx.scanQRCode`.
 pub fn classroom_qr_url(course_id: &str, timestamp: &str) -> Result<String, AppError> {
     build_sign_url(CLASSROOM_QR_BASE_URL, course_id, timestamp)
@@ -405,6 +429,22 @@ mod tests {
                 .expect_err("empty course")
                 .code,
             ErrorCode::InvalidRequest
+        );
+        assert_eq!(
+            apply_timestamp_offset(&first, 2_000).expect("shifted timestamp"),
+            "1700000002000"
+        );
+        assert_eq!(
+            apply_timestamp_offset(&first, MAX_QR_TIMESTAMP_OFFSET_MS + 1)
+                .expect_err("excessive offset")
+                .code,
+            ErrorCode::InvalidRequest
+        );
+        assert_eq!(
+            apply_timestamp_offset("not-a-number", 2_000)
+                .expect_err("non-numeric shifted")
+                .code,
+            ErrorCode::ChangedResponse
         );
     }
 }

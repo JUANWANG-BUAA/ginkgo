@@ -85,10 +85,12 @@ impl CheckInQrSource for SyntheticQrSource {
         &self,
         course_id: &str,
         revalidate_course: bool,
+        offset_ms: u32,
     ) -> Result<CheckInQrTicket, AppError> {
-        let (matrix_size, modules) =
-            encode_qr_matrix(&format!("synthetic:{course_id}:{revalidate_course}"))
-                .map_err(|()| AppError::invalid())?;
+        let (matrix_size, modules) = encode_qr_matrix(&format!(
+            "synthetic:{course_id}:{revalidate_course}:{offset_ms}"
+        ))
+        .map_err(|()| AppError::invalid())?;
         Ok(CheckInQrTicket {
             course_id: course_id.to_owned(),
             fetched_at: "2026-11-23T11:30:00+08:00".into(),
@@ -103,7 +105,7 @@ impl CheckInQrSource for SyntheticQrSource {
 async fn checkin_qr_port_returns_sanitized_matrix_ticket() {
     let app = Workspace::new(SyntheticQrSource);
     let ticket = app
-        .prepare_checkin_qr("501", true)
+        .prepare_checkin_qr("501", true, 2_000)
         .await
         .expect("qr ticket");
     assert_eq!(ticket.course_id, "501");

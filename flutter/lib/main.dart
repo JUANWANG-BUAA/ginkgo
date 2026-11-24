@@ -81,6 +81,7 @@ final _platformActions = PlatformActions(
   homeworkFilePicker: pickHomeworkFile,
   homeworkFileSave: saveAndOpenSchoolFile,
   checkinQrSaver: saveCheckinQrPng,
+  checkinQrHelper: AndroidCheckinQrQuickHelper.shared,
   maintenance: const NativeMaintenanceService(),
 );
 

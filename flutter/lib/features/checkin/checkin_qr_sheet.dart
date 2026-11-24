@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
 
@@ -10,11 +8,15 @@ import 'package:ginkgo_mirror/application/failure_message.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/features/checkin/checkin_qr_render.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
-/// Live classroom QR modal for scanning in 智慧北航 (either from another screen
-/// or by saving to the top of the system photo album on a single phone).
+export 'package:ginkgo_mirror/features/checkin/checkin_qr_render.dart';
+
+/// Live classroom QR modal for scanning in 智慧北航 (either from another screen,
+/// via single-phone album overwrite + app jump, or via silent notification-shade
+/// refresh while staying inside 智慧北航's scanner screen).
 class CheckinQrSheet extends StatefulWidget {
   const CheckinQrSheet({
     super.key,
@@ -47,12 +49,23 @@ class _CheckinQrSheetState extends State<CheckinQrSheet>
   bool _saving = false;
   bool _verifying = false;
   bool _confirmedSigned = false;
+  bool _inBackground = false;
   int _serial = 0;
+  CheckinScannerHost _scannerHost = CheckinScannerHost.none;
+  CheckinQuickNotificationStatus? _quickNotificationStatus;
+
+  CheckinQrQuickHelper? get _helper =>
+      widget.service.isDemo ? null : widget.platformActions.checkinQrHelper;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    final helper = _helper;
+    if (helper != null) {
+      helper.setRefreshFromNotificationHandler(_refreshAndSaveFromNotification);
+      unawaited(_probeScannerHost(helper));
+    }
     unawaited(_fetchQr(revalidateCourse: true));
   }
 
@@ -60,24 +73,62 @@ class _CheckinQrSheetState extends State<CheckinQrSheet>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _refreshTimer?.cancel();
+    final helper = _helper;
+    if (helper != null) {
+      helper.setRefreshFromNotificationHandler(null);
+      unawaited(helper.dismissQuickNotification());
+    }
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed &&
-        mounted &&
-        !_confirmedSigned &&
-        widget.isContextValid()) {
-      unawaited(_verifyStatus(automatic: true));
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      _inBackground = true;
+      _refreshTimer?.cancel();
+      return;
+    }
+    if (state == AppLifecycleState.resumed) {
+      _inBackground = false;
+      if (mounted && !_confirmedSigned && widget.isContextValid()) {
+        unawaited(_verifyStatus(automatic: true));
+        final seconds = _ticket?.refreshSeconds ?? 0;
+        if (seconds > 0) {
+          _scheduleAutoRefresh(seconds);
+        }
+      }
+    }
+  }
+
+  Future<void> _probeScannerHost(CheckinQrQuickHelper helper) async {
+    final host = await helper.probeScannerApp();
+    if (!mounted || !widget.isContextValid()) return;
+    if (host != _scannerHost) {
+      setState(() => _scannerHost = host);
+    }
+  }
+
+  Future<void> _ensureQuickNotification({String? statusText}) async {
+    final helper = _helper;
+    if (helper == null || _confirmedSigned) return;
+    final status = await helper.showQuickNotification(statusText: statusText);
+    if (!mounted || !widget.isContextValid()) return;
+    if (_quickNotificationStatus != status) {
+      setState(() => _quickNotificationStatus = status);
     }
   }
 
   void _scheduleAutoRefresh(int seconds) {
     _refreshTimer?.cancel();
-    if (widget.service.isDemo || _confirmedSigned || seconds <= 0) return;
+    if (widget.service.isDemo ||
+        _confirmedSigned ||
+        _inBackground ||
+        seconds <= 0) {
+      return;
+    }
     _refreshTimer = Timer.periodic(Duration(seconds: seconds), (_) {
-      if (!mounted || !widget.isContextValid()) {
+      if (!mounted || !widget.isContextValid() || _inBackground) {
         _refreshTimer?.cancel();
         return;
       }
@@ -98,7 +149,10 @@ class _CheckinQrSheetState extends State<CheckinQrSheet>
         _ => failureMessage(code),
       };
 
-  Future<CheckInQrResponse?> _fetchQr({required bool revalidateCourse}) async {
+  Future<CheckInQrResponse?> _fetchQr({
+    required bool revalidateCourse,
+    int offsetMs = 0,
+  }) async {
     if (!widget.isContextValid()) return null;
     final current = ++_serial;
     setState(() {
@@ -109,6 +163,7 @@ class _CheckinQrSheetState extends State<CheckinQrSheet>
       final response = await widget.service.prepareCheckinQr(
         widget.course.id,
         revalidateCourse: revalidateCourse,
+        offsetMs: offsetMs,
       );
       if (!mounted || current != _serial || !widget.isContextValid()) {
         return null;
@@ -132,6 +187,9 @@ class _CheckinQrSheetState extends State<CheckinQrSheet>
         _issue = null;
         _ticket = response;
       });
+      if (_quickNotificationStatus == null && _helper != null) {
+        unawaited(_ensureQuickNotification());
+      }
       _scheduleAutoRefresh(response.refreshSeconds);
       return response;
     } catch (_) {
@@ -146,7 +204,7 @@ class _CheckinQrSheetState extends State<CheckinQrSheet>
     }
   }
 
-  Future<void> _saveToAlbum() async {
+  Future<void> _saveToAlbum({bool launchScanner = false}) async {
     final saver = widget.platformActions.checkinQrSaver;
     if (saver == null || _saving || !widget.isContextValid()) return;
     setState(() {
@@ -154,9 +212,12 @@ class _CheckinQrSheetState extends State<CheckinQrSheet>
       _feedback = null;
     });
     try {
-      // Mint a fresh timestamp right before saving so single-phone album scans
-      // carry the widest remaining validity window.
-      final latest = await _fetchQr(revalidateCourse: false) ?? _ticket;
+      final latest =
+          await _fetchQr(
+            revalidateCourse: false,
+            offsetMs: kCheckinQrSaveOffsetMs,
+          ) ??
+          _ticket;
       if (!mounted || !widget.isContextValid() || latest == null) return;
       final png = await renderCheckinQrPng(
         matrixSize: latest.matrixSize,
@@ -168,10 +229,28 @@ class _CheckinQrSheetState extends State<CheckinQrSheet>
         isCurrent: () => mounted && widget.isContextValid(),
       );
       if (!mounted || !widget.isContextValid()) return;
+      if (status == CheckinQrSaveStatus.savedToGallery) {
+        final clock = schoolClockLabel(latest.fetchedAt);
+        unawaited(
+          _ensureQuickNotification(
+            statusText: '已于 $clock 存入相册首图（+2秒缓冲），可在扫一扫页直接选图或再次点此刷新',
+          ),
+        );
+        if (launchScanner && _helper != null) {
+          final launched = await _helper!.launchScannerApp();
+          if (!mounted || !widget.isContextValid()) return;
+          setState(() {
+            _feedback = launched != CheckinScannerHost.none
+                ? '已存相册首图（+2秒缓冲）并打开${launched.displayName}，扫一扫页可下拉通知栏秒刷新'
+                : '已存至系统相册首张，请打开智慧北航扫一扫并从相册选择';
+          });
+          return;
+        }
+      }
       setState(() {
         _feedback = switch (status) {
           CheckinQrSaveStatus.savedToGallery =>
-            '已存至系统相册首张，请打开智慧北航扫一扫并从相册选择',
+            '已存至系统相册首张（+2秒缓冲），可在智慧北航扫一扫中选择',
           CheckinQrSaveStatus.savedToFile => '已保存签到码图片，可在智慧北航扫一扫中选择',
           CheckinQrSaveStatus.cancelled || CheckinQrSaveStatus.stale => null,
         };
@@ -179,6 +258,54 @@ class _CheckinQrSheetState extends State<CheckinQrSheet>
     } catch (_) {
       if (!mounted || !widget.isContextValid()) return;
       setState(() => _feedback = '保存签到码失败，请重试');
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _refreshAndSaveFromNotification() async {
+    final saver = widget.platformActions.checkinQrSaver;
+    if (saver == null ||
+        _saving ||
+        _confirmedSigned ||
+        !mounted ||
+        !widget.isContextValid()) {
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      final latest = await _fetchQr(
+        revalidateCourse: false,
+        offsetMs: kCheckinQrSaveOffsetMs,
+      );
+      if (!mounted || !widget.isContextValid()) return;
+      if (latest == null) {
+        unawaited(_ensureQuickNotification(statusText: '刷新签到码失败，请点击重试或返回核对'));
+        return;
+      }
+      final png = await renderCheckinQrPng(
+        matrixSize: latest.matrixSize,
+        modules: latest.modules,
+      );
+      if (!mounted || !widget.isContextValid()) return;
+      final status = await saver(
+        png,
+        isCurrent: () => mounted && widget.isContextValid(),
+      );
+      if (!mounted || !widget.isContextValid()) return;
+      final clock = schoolClockLabel(latest.fetchedAt);
+      if (status == CheckinQrSaveStatus.savedToGallery) {
+        setState(() => _feedback = '已通过通知栏于 $clock 刷新相册首图（+2秒缓冲）');
+        unawaited(
+          _ensureQuickNotification(
+            statusText: '已于 $clock 刷新相册首图（+2秒缓冲），请在相册选第一张',
+          ),
+        );
+      } else {
+        unawaited(_ensureQuickNotification(statusText: '写入相册未完成，请重试'));
+      }
+    } catch (_) {
+      unawaited(_ensureQuickNotification(statusText: '刷新签到码失败，请稍后重试'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -195,6 +322,7 @@ class _CheckinQrSheetState extends State<CheckinQrSheet>
       if (!mounted || !widget.isContextValid()) return;
       if (signed) {
         _refreshTimer?.cancel();
+        unawaited(_helper?.dismissQuickNotification());
         setState(() {
           _confirmedSigned = true;
           _issue = null;
@@ -218,6 +346,8 @@ class _CheckinQrSheetState extends State<CheckinQrSheet>
     final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
     final ticket = _ticket;
     final saverAvailable = widget.platformActions.checkinQrSaver != null;
+    final canLaunchScanner =
+        !widget.service.isDemo && _scannerHost != CheckinScannerHost.none;
 
     return Container(
       key: const Key('checkin-qr-sheet'),
@@ -278,9 +408,24 @@ class _CheckinQrSheetState extends State<CheckinQrSheet>
                       borderRadius: BorderRadius.circular(GinkgoRadii.group),
                     ),
                     child: _confirmedSigned
-                        ? _buildConfirmedView(context)
-                        : _buildQrContent(context, ticket, secondary),
+                        ? const CheckinQrConfirmedView()
+                        : CheckinQrDisplayCard(
+                            courseName: widget.course.courseName,
+                            ticket: ticket,
+                            loadingQr: _loadingQr,
+                            isDemo: widget.service.isDemo,
+                            issue: _issue,
+                            secondary: secondary,
+                            onRetry: () => _fetchQr(revalidateCourse: true),
+                          ),
                   ),
+                  if (!_confirmedSigned && _quickNotificationStatus != null) ...[
+                    const SizedBox(height: GinkgoSpacing.sm),
+                    CheckinQrQuickHelperBanner(
+                      status: _quickNotificationStatus!,
+                      secondary: secondary,
+                    ),
+                  ],
                   if (_feedback != null) ...[
                     const SizedBox(height: GinkgoSpacing.sm),
                     Text(
@@ -299,26 +444,62 @@ class _CheckinQrSheetState extends State<CheckinQrSheet>
                       key: const Key('checkin-qr-save'),
                       onPressed: _saving || (ticket == null && _loadingQr)
                           ? null
-                          : _saveToAlbum,
+                          : () => _saveToAlbum(launchScanner: canLaunchScanner),
                       child: _saving
                           ? const GinkgoActivity()
-                          : const Text('保存到相册（单机扫码）'),
+                          : Text(
+                              canLaunchScanner
+                                  ? '存相册并打开${_scannerHost.displayName}'
+                                  : '保存到相册（单机扫码）',
+                            ),
                     ),
                     const SizedBox(height: GinkgoSpacing.sm),
                   ],
                   if (!_confirmedSigned)
-                    CupertinoButton.tinted(
-                      key: const Key('checkin-qr-verify'),
-                      onPressed: _verifying ? null : () => _verifyStatus(),
-                      child: _verifying
-                          ? const GinkgoActivity()
-                          : const Text('我已扫码，核对结果'),
-                    ),
+                    canLaunchScanner && saverAvailable
+                        ? Row(
+                            children: [
+                              Expanded(
+                                child: CupertinoButton.tinted(
+                                  key: const Key('checkin-qr-save-only'),
+                                  padding: GinkgoSpacing.edgeInsetsListTile,
+                                  onPressed:
+                                      _saving || (ticket == null && _loadingQr)
+                                      ? null
+                                      : () =>
+                                            _saveToAlbum(launchScanner: false),
+                                  child: const Text('仅存相册'),
+                                ),
+                              ),
+                              const SizedBox(width: GinkgoSpacing.sm),
+                              Expanded(
+                                child: CupertinoButton.tinted(
+                                  key: const Key('checkin-qr-verify'),
+                                  padding: GinkgoSpacing.edgeInsetsListTile,
+                                  onPressed: _verifying
+                                      ? null
+                                      : () => _verifyStatus(),
+                                  child: _verifying
+                                      ? const GinkgoActivity()
+                                      : const Text('核对结果'),
+                                ),
+                              ),
+                            ],
+                          )
+                        : CupertinoButton.tinted(
+                            key: const Key('checkin-qr-verify'),
+                            onPressed: _verifying
+                                ? null
+                                : () => _verifyStatus(),
+                            child: _verifying
+                                ? const GinkgoActivity()
+                                : const Text('我已扫码，核对结果'),
+                          ),
                   const SizedBox(height: GinkgoSpacing.sm),
                   Text(
                     widget.service.isDemo
                         ? '演示模式仅展示合成二维码，不会连接学校服务。'
-                        : '请在智慧北航内打开智慧课堂“我的 → 扫一扫”并从相册选择首张图；使用移动流量时需先连接学校 VPN1 客户端。',
+                        : '技巧：先打开智慧北航“扫一扫”就绪，再下拉通知栏点“刷新码到相册”并选首张图，2 秒完成；走移动流量需先连学校 VPN1。',
                     textAlign: TextAlign.center,
                     style: AppleDesign.caption.copyWith(color: secondary),
                   ),
@@ -329,176 +510,5 @@ class _CheckinQrSheetState extends State<CheckinQrSheet>
         ),
       ),
     );
-  }
-
-  Widget _buildConfirmedView(BuildContext context) {
-    final success = AppleDesign.statusSuccess.resolveFrom(context);
-    return Column(
-      key: const Key('checkin-qr-confirmed'),
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          CupertinoIcons.checkmark_circle_fill,
-          color: success,
-          size: GinkgoSpacing.xxl,
-        ),
-        const SizedBox(height: GinkgoSpacing.sm),
-        Text(
-          '签到已确认',
-          style: AppleDesign.headline.copyWith(color: success),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildQrContent(
-    BuildContext context,
-    CheckInQrResponse? ticket,
-    Color secondary,
-  ) {
-    if (ticket == null) {
-      if (_loadingQr) {
-        return const Padding(
-          padding: GinkgoSpacing.edgeInsetsBalanceHero,
-          child: Center(child: GinkgoActivity()),
-        );
-      }
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            _issue ?? '暂时无法生成签到码',
-            textAlign: TextAlign.center,
-            style: AppleDesign.subheadline.copyWith(
-              color: AppleDesign.statusDanger.resolveFrom(context),
-            ),
-          ),
-          const SizedBox(height: GinkgoSpacing.sm),
-          CupertinoButton.tinted(
-            key: const Key('checkin-qr-retry'),
-            onPressed: _loadingQr
-                ? null
-                : () => _fetchQr(revalidateCourse: true),
-            child: const Text('重试生成'),
-          ),
-        ],
-      );
-    }
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: GinkgoLayout.desktopSidebarWidth,
-          ),
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: Semantics(
-              label: '${widget.course.courseName} 实时签到二维码',
-              image: true,
-              child: DecoratedBox(
-                key: const Key('checkin-qr-canvas'),
-                decoration: BoxDecoration(
-                  color: CupertinoColors.white,
-                  borderRadius: BorderRadius.circular(GinkgoRadii.button),
-                ),
-                child: CustomPaint(
-                  painter: CheckinQrPainter(
-                    matrixSize: ticket.matrixSize,
-                    modules: ticket.modules,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: GinkgoSpacing.sm),
-        Text(
-          _issue ??
-              (widget.service.isDemo
-                  ? '演示二维码已就绪'
-                  : '每 ${ticket.refreshSeconds} 秒自动更新 · 时间 ${schoolClockLabel(ticket.fetchedAt)}'),
-          textAlign: TextAlign.center,
-          style: AppleDesign.caption.copyWith(
-            color: _issue != null
-                ? AppleDesign.statusPending.resolveFrom(context)
-                : secondary,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class CheckinQrPainter extends CustomPainter {
-  const CheckinQrPainter({required this.matrixSize, required this.modules});
-
-  final int matrixSize;
-  final List<bool> modules;
-  static const int quietZone = 4;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final white = Paint()..color = const Color(0xFFFFFFFF);
-    canvas.drawRect(Offset.zero & size, white);
-    if (matrixSize <= 0 || modules.length < matrixSize * matrixSize) return;
-
-    final totalModules = matrixSize + quietZone * 2;
-    final cell = size.shortestSide / totalModules;
-    final originX = (size.width - cell * totalModules) / 2;
-    final originY = (size.height - cell * totalModules) / 2;
-    final dark = Paint()
-      ..color = const Color(0xFF000000)
-      ..isAntiAlias = false;
-
-    for (var r = 0; r < matrixSize; r++) {
-      for (var c = 0; c < matrixSize; c++) {
-        if (modules[r * matrixSize + c]) {
-          canvas.drawRect(
-            Rect.fromLTWH(
-              originX + (c + quietZone) * cell,
-              originY + (r + quietZone) * cell,
-              cell,
-              cell,
-            ),
-            dark,
-          );
-        }
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CheckinQrPainter oldDelegate) =>
-      oldDelegate.matrixSize != matrixSize || oldDelegate.modules != modules;
-}
-
-/// Rasterizes a crisp black-on-white QR PNG with a standard 4-module quiet zone.
-Future<Uint8List> renderCheckinQrPng({
-  required int matrixSize,
-  required List<bool> modules,
-}) async {
-  const quiet = CheckinQrPainter.quietZone;
-  final total = (matrixSize > 0 ? matrixSize : 21) + quiet * 2;
-  final scale = (960 ~/ total).clamp(8, 32);
-  final dimension = total * scale;
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder);
-  CheckinQrPainter(
-    matrixSize: matrixSize,
-    modules: modules,
-  ).paint(canvas, Size(dimension.toDouble(), dimension.toDouble()));
-  final picture = recorder.endRecording();
-  final image = await picture.toImage(dimension, dimension);
-  try {
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    if (byteData == null) {
-      throw StateError('failed to encode QR PNG');
-    }
-    return byteData.buffer.asUint8List();
-  } finally {
-    image.dispose();
-    picture.dispose();
   }
 }

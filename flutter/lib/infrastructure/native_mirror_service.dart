@@ -300,12 +300,14 @@ final class NativeMirrorService
   Future<CheckInQrResponse> prepareCheckinQr(
     String courseId, {
     bool revalidateCourse = true,
+    int offsetMs = 0,
   }) => ServiceHealthTracker.shared.observe(
     ServiceEndpointId.checkin,
     () => boundedNativeRead(
       () => live.prepareCheckinQr(
         courseId: courseId,
         revalidateCourse: revalidateCourse,
+        offsetMs: offsetMs,
       ),
     ),
     failureOf: (r) => r.failure,

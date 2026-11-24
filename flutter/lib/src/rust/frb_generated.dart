@@ -497,6 +497,7 @@ abstract class RustLibApi extends BaseApi {
   Future<CheckInQrResponse> crateApiLivePrepareCheckinQr({
     required String courseId,
     required bool revalidateCourse,
+    required int offsetMs,
   });
 
   Future<ClassroomResponse> crateApiMirrorQueryDemoClassrooms({
@@ -3604,6 +3605,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Future<CheckInQrResponse> crateApiLivePrepareCheckinQr({
     required String courseId,
     required bool revalidateCourse,
+    required int offsetMs,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -3611,6 +3613,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(courseId, serializer);
           sse_encode_bool(revalidateCourse, serializer);
+          sse_encode_u_32(offsetMs, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -3623,7 +3626,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: null,
         ),
         constMeta: kCrateApiLivePrepareCheckinQrConstMeta,
-        argValues: [courseId, revalidateCourse],
+        argValues: [courseId, revalidateCourse, offsetMs],
         apiImpl: this,
       ),
     );
@@ -3632,7 +3635,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiLivePrepareCheckinQrConstMeta =>
       const TaskConstMeta(
         debugName: "prepare_checkin_qr",
-        argNames: ["courseId", "revalidateCourse"],
+        argNames: ["courseId", "revalidateCourse", "offsetMs"],
       );
 
   @override

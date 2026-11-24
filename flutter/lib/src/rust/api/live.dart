@@ -347,9 +347,11 @@ Future<UpdateResponse> checkAndroidUpdate({required String current}) =>
 Future<CheckInQrResponse> prepareCheckinQr({
   required String courseId,
   required bool revalidateCourse,
+  required int offsetMs,
 }) => RustLib.instance.api.crateApiLivePrepareCheckinQr(
   courseId: courseId,
   revalidateCourse: revalidateCourse,
+  offsetMs: offsetMs,
 );
 
 Future<MutationResponse> reserveLibrarySeat({

@@ -918,8 +918,12 @@ pub struct MutationResponse {
     pub message: String,
 }
 
-pub async fn prepare_checkin_qr(course_id: String, revalidate_course: bool) -> CheckInQrResponse {
-    checkin::prepare_checkin_qr(course_id, revalidate_course).await
+pub async fn prepare_checkin_qr(
+    course_id: String,
+    revalidate_course: bool,
+    offset_ms: u32,
+) -> CheckInQrResponse {
+    checkin::prepare_checkin_qr(course_id, revalidate_course, offset_ms).await
 }
 
 pub async fn reserve_library_seat(

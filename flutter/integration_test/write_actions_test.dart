@@ -20,6 +20,7 @@ void main() {
       final native = await live.prepareCheckinQr(
         courseId: 'synthetic-no-account',
         revalidateCourse: true,
+        offsetMs: 0,
       );
       expect(native.failure, isNotNull);
       expect(native.modules, isEmpty);

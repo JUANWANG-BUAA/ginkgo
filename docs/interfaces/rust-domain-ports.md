@@ -158,7 +158,7 @@
     - `fn load_checkin_on_date( &self, date: Option<String>, force_refresh: bool, ) -> Future<Result<CheckInOutcome, AppError>>;`  <sub>:37</sub>
 - `pub trait CheckInQrSource: Send + Sync`
   <sub>trait · rust/crates/ginkgo_domain/src/ports/checkin.rs:44</sub>
-    - `fn prepare_checkin_qr( &self, course_id: &str, revalidate_course: bool, ) -> Future<Result<CheckInQrTicket, AppError>>;`  <sub>:45</sub>
+    - `fn prepare_checkin_qr( &self, course_id: &str, revalidate_course: bool, offset_ms: u32, ) -> Future<Result<CheckInQrTicket, AppError>>;`  <sub>:45</sub>
 
 ## classroom
 

@@ -12,7 +12,7 @@
 - [campus_card_http](#campuscardhttp) (7)
 - [career_http](#careerhttp) (2)
 - [cgyy_http](#cgyyhttp) (8)
-- [checkin_http](#checkinhttp) (12)
+- [checkin_http](#checkinhttp) (14)
 - [classroom_http](#classroomhttp) (3)
 - [evaluation_http](#evaluationhttp) (8)
 - [finance_http](#financehttp) (7)
@@ -122,8 +122,12 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:157</sub>
 - `pub fn scan_sign_url(course_id: &str, timestamp: &str) -> Result<String, AppError> {…}` — Build the `stu_scan_sign.action` URL used for direct POST submission.
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:183</sub>
+- `pub const MAX_QR_TIMESTAMP_OFFSET_MS: u32 = 15_000;` — Maximum forward buffer (in milliseconds) allowed when saving a QR code for
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:190</sub>
+- `pub fn apply_timestamp_offset(timestamp: &str, offset_ms: u32) -> Result<String, AppError> {…}` — Apply a bounded non-negative millisecond offset to an upstream timestamp.
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:193</sub>
 - `pub fn classroom_qr_url(course_id: &str, timestamp: &str) -> Result<String, AppError> {…}` — Build the classroom QR payload scanned by WeCom / 智慧北航 `wx.scanQRCode`.
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:188</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:212</sub>
 
 ## classroom_http
 

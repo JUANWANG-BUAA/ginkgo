@@ -93,7 +93,7 @@
   <sub>fn · rust/crates/ginkgo_core/src/application/checkin.rs:8</sub>
 - `pub async fn load_checkin_on_date( &self, date: Option<String>, force_refresh: bool, ) -> Result<CheckInOutcome, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/checkin.rs:11</sub>
-- `pub async fn prepare_checkin_qr( &self, course_id: &str, revalidate_course: bool, ) -> Result<crate::features::checkin::CheckInQrTicket, AppError> {…}`
+- `pub async fn prepare_checkin_qr( &self, course_id: &str, revalidate_course: bool, offset_ms: u32, ) -> Result<crate::features::checkin::CheckInQrTicket, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/checkin.rs:23</sub>
 
 ## classroom

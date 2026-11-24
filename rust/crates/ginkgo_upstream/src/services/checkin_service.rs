@@ -274,12 +274,13 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CheckInQrSource for Sch
         &self,
         course_id: &str,
         revalidate_course: bool,
+        offset_ms: u32,
     ) -> Result<ginkgo_domain::features::checkin::CheckInQrTicket, AppError> {
         use crate::codecs::checkin::CheckInStatus;
         use ginkgo_domain::features::checkin::{encode_qr_matrix, sign_in_window, CheckInQrTicket};
 
         let course_id = course_id.trim();
-        if course_id.is_empty() {
+        if course_id.is_empty() || offset_ms > checkin_http::MAX_QR_TIMESTAMP_OFFSET_MS {
             return Err(AppError::invalid());
         }
         let account = self.current_account()?;
@@ -329,7 +330,8 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> CheckInQrSource for Sch
         if self.current_account()? != account {
             return Err(AppError::session_expired());
         }
-        let url = checkin_http::classroom_qr_url(course_id, &timestamp)?;
+        let effective_timestamp = checkin_http::apply_timestamp_offset(&timestamp, offset_ms)?;
+        let url = checkin_http::classroom_qr_url(course_id, &effective_timestamp)?;
         let (matrix_size, modules) = encode_qr_matrix(&url).map_err(|()| AppError::invalid())?;
         Ok(CheckInQrTicket {
             course_id: course_id.to_owned(),

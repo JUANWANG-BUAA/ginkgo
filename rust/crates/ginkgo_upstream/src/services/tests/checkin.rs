@@ -401,7 +401,7 @@ async fn checkin_qr_revalidates_today_then_refreshes_timestamp_without_reloading
         .to_owned();
 
     let first = service
-        .prepare_checkin_qr(&id, true)
+        .prepare_checkin_qr(&id, true, 0)
         .await
         .expect("initial qr");
     assert_eq!(first.course_id, id);
@@ -414,10 +414,17 @@ async fn checkin_qr_revalidates_today_then_refreshes_timestamp_without_reloading
     // Periodic refresh inside the open QR sheet reuses the fresh day snapshot
     // and only fetches a new timestamp.
     let second = service
-        .prepare_checkin_qr(&id, false)
+        .prepare_checkin_qr(&id, false, 2_000)
         .await
         .expect("refreshed qr");
     assert_ne!(first.modules, second.modules);
+
+    // Excessive forward offset is rejected before touching the network.
+    let rejected = service
+        .prepare_checkin_qr(&id, false, 20_000)
+        .await
+        .expect_err("excessive offset");
+    assert_eq!(rejected.code, ErrorCode::InvalidRequest);
 
     let requests = transport.requests();
     assert!(requests
@@ -461,14 +468,14 @@ async fn out_of_window_or_signed_checkin_never_requests_timestamp() {
         .expect("login");
 
     let outside = service
-        .prepare_checkin_qr(&unsigned_id, true)
+        .prepare_checkin_qr(&unsigned_id, true, 0)
         .await
         .expect_err("outside window");
     assert_eq!(outside.code, ErrorCode::BusinessRejected);
     assert_eq!(outside.detail.as_deref(), Some("outside_window"));
 
     let already = service
-        .prepare_checkin_qr(&signed_id, false)
+        .prepare_checkin_qr(&signed_id, false, 0)
         .await
         .expect_err("already signed");
     assert_eq!(already.code, ErrorCode::BusinessRejected);

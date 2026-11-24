@@ -91,7 +91,7 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/checkin.rs:4</sub>
 - `pub(super) async fn load_checkin_on_date(date: String, force_refresh: bool) -> CheckInResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/checkin.rs:30</sub>
-- `pub(super) async fn prepare_checkin_qr( course_id: String, revalidate_course: bool, ) -> CheckInQrResponse {…}`
+- `pub(super) async fn prepare_checkin_qr( course_id: String, revalidate_course: bool, offset_ms: u32, ) -> CheckInQrResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/checkin.rs:46</sub>
 
 ## classroom
@@ -889,324 +889,324 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
   <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:916</sub>
     - `state: String`  <sub>:917</sub>
     - `message: String`  <sub>:918</sub>
-- `pub async fn prepare_checkin_qr(course_id: String, revalidate_course: bool) -> CheckInQrResponse {…}`
+- `pub async fn prepare_checkin_qr( course_id: String, revalidate_course: bool, offset_ms: u32, ) -> CheckInQrResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:921</sub>
 - `pub async fn reserve_library_seat( area_id: String, seat_id: String, slot: crate::api::mirror::LibrarySlot, ) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:925</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:929</sub>
 - `pub async fn perform_library_action(booking_id: String, action: String) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:932</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:936</sub>
 - `pub struct HomeworkAttachmentDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:991</sub>
-    - `id: String`  <sub>:992</sub>
-    - `name: String`  <sub>:993</sub>
-    - `kind: String`  <sub>:994</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:995</sub>
+    - `id: String`  <sub>:996</sub>
+    - `name: String`  <sub>:997</sub>
+    - `kind: String`  <sub>:998</sub>
 - `pub struct HomeworkWorkspaceDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:997</sub>
-    - `assignment_id: String`  <sub>:998</sub>
-    - `allowed_methods: Vec<String>`  <sub>:999</sub>
-    - `allowed_extensions: Vec<String>`  <sub>:1000</sub>
-    - `submission_limit: Option<u32>`  <sub>:1001</sub>
-    - `submitted_count: Option<u32>`  <sub>:1002</sub>
-    - `returned: bool`  <sub>:1003</sub>
-    - `submitted_text: Option<String>`  <sub>:1004</sub>
-    - `feedback: Option<String>`  <sub>:1005</sub>
-    - `attachments: Vec<HomeworkAttachmentDto>`  <sub>:1006</sub>
-    - `can_submit_file: bool`  <sub>:1007</sub>
-    - `blocked_reason: Option<String>`  <sub>:1008</sub>
-    - `file_limit_bytes: i64` — Widened from `u64`; the 20 MB upload cap keeps this lossless.  <sub>:1010</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1001</sub>
+    - `assignment_id: String`  <sub>:1002</sub>
+    - `allowed_methods: Vec<String>`  <sub>:1003</sub>
+    - `allowed_extensions: Vec<String>`  <sub>:1004</sub>
+    - `submission_limit: Option<u32>`  <sub>:1005</sub>
+    - `submitted_count: Option<u32>`  <sub>:1006</sub>
+    - `returned: bool`  <sub>:1007</sub>
+    - `submitted_text: Option<String>`  <sub>:1008</sub>
+    - `feedback: Option<String>`  <sub>:1009</sub>
+    - `attachments: Vec<HomeworkAttachmentDto>`  <sub>:1010</sub>
+    - `can_submit_file: bool`  <sub>:1011</sub>
+    - `blocked_reason: Option<String>`  <sub>:1012</sub>
+    - `file_limit_bytes: i64` — Widened from `u64`; the 20 MB upload cap keeps this lossless.  <sub>:1014</sub>
 - `pub struct HomeworkFileWorkspaceResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1013</sub>
-    - `data: Option<HomeworkWorkspaceDto>`  <sub>:1014</sub>
-    - `failure: Option<FailureCode>`  <sub>:1015</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1017</sub>
+    - `data: Option<HomeworkWorkspaceDto>`  <sub>:1018</sub>
+    - `failure: Option<FailureCode>`  <sub>:1019</sub>
 - `pub struct HomeworkUploadReceiptDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1018</sub>
-    - `handle: String`  <sub>:1019</sub>
-    - `file_name: String`  <sub>:1020</sub>
-    - `size: i64` — Widened from `u64`; the 20 MB upload cap keeps this lossless.  <sub>:1022</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1022</sub>
+    - `handle: String`  <sub>:1023</sub>
+    - `file_name: String`  <sub>:1024</sub>
+    - `size: i64` — Widened from `u64`; the 20 MB upload cap keeps this lossless.  <sub>:1026</sub>
 - `pub struct HomeworkUploadResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1025</sub>
-    - `data: Option<HomeworkUploadReceiptDto>`  <sub>:1026</sub>
-    - `failure: Option<FailureCode>`  <sub>:1027</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1029</sub>
+    - `data: Option<HomeworkUploadReceiptDto>`  <sub>:1030</sub>
+    - `failure: Option<FailureCode>`  <sub>:1031</sub>
 - `pub async fn homework_file_workspace( expected_account: String, assignment_id: String, ) -> HomeworkFileWorkspaceResponse {…}` — Homework business JSON only; raw SPOC payloads never leave upstream.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1031</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1035</sub>
 - `pub async fn upload_homework_file( expected_account: String, assignment_id: String, name: String, bytes: Vec<u8>, ) -> HomeworkUploadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1037</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1041</sub>
 - `pub async fn submit_homework_file( expected_account: String, handle: String, confirmed: bool, ) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1045</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1049</sub>
 - `pub async fn reconcile_homework_file(expected_account: String, handle: String) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1052</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1056</sub>
 - `pub struct HomeworkFileDownloadResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1055</sub>
-    - `name: Option<String>`  <sub>:1056</sub>
-    - `bytes: Option<Vec<u8>>`  <sub>:1057</sub>
-    - `failure: Option<FailureCode>`  <sub>:1058</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1059</sub>
+    - `name: Option<String>`  <sub>:1060</sub>
+    - `bytes: Option<Vec<u8>>`  <sub>:1061</sub>
+    - `failure: Option<FailureCode>`  <sub>:1062</sub>
 - `pub async fn download_homework_file( expected_account: String, assignment_id: String, attachment_id: String, ) -> HomeworkFileDownloadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1060</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1064</sub>
 - `pub struct LearningCourseDto` — Learning queries return business DTO JSON, never school response envelopes.
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1069</sub>
-    - `id: String`  <sub>:1070</sub>
-    - `name: String`  <sub>:1071</sub>
-    - `teacher: Option<String>`  <sub>:1072</sub>
-    - `term: Option<String>`  <sub>:1073</sub>
-    - `source_url: String`  <sub>:1074</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1073</sub>
+    - `id: String`  <sub>:1074</sub>
+    - `name: String`  <sub>:1075</sub>
+    - `teacher: Option<String>`  <sub>:1076</sub>
+    - `term: Option<String>`  <sub>:1077</sub>
+    - `source_url: String`  <sub>:1078</sub>
 - `pub struct LearningCoursesResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1077</sub>
-    - `data: Option<Vec<LearningCourseDto>>`  <sub>:1078</sub>
-    - `failure: Option<FailureCode>`  <sub>:1079</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1081</sub>
+    - `data: Option<Vec<LearningCourseDto>>`  <sub>:1082</sub>
+    - `failure: Option<FailureCode>`  <sub>:1083</sub>
 - `pub struct CourseAnnouncementDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1082</sub>
-    - `id: String`  <sub>:1083</sub>
-    - `title: String`  <sub>:1084</sub>
-    - `published_at: Option<String>`  <sub>:1085</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1086</sub>
+    - `id: String`  <sub>:1087</sub>
+    - `title: String`  <sub>:1088</sub>
+    - `published_at: Option<String>`  <sub>:1089</sub>
 - `pub struct CourseAnnouncementsResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1088</sub>
-    - `data: Option<Vec<CourseAnnouncementDto>>`  <sub>:1089</sub>
-    - `failure: Option<FailureCode>`  <sub>:1090</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1092</sub>
+    - `data: Option<Vec<CourseAnnouncementDto>>`  <sub>:1093</sub>
+    - `failure: Option<FailureCode>`  <sub>:1094</sub>
 - `pub struct LearningAttachmentDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1093</sub>
-    - `id: String`  <sub>:1094</sub>
-    - `name: String`  <sub>:1095</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1097</sub>
+    - `id: String`  <sub>:1098</sub>
+    - `name: String`  <sub>:1099</sub>
 - `pub struct CourseAnnouncementDetailDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1098</sub>
-    - `id: String`  <sub>:1099</sub>
-    - `title: String`  <sub>:1100</sub>
-    - `content: Option<String>`  <sub>:1101</sub>
-    - `attachments: Vec<LearningAttachmentDto>`  <sub>:1102</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1102</sub>
+    - `id: String`  <sub>:1103</sub>
+    - `title: String`  <sub>:1104</sub>
+    - `content: Option<String>`  <sub>:1105</sub>
+    - `attachments: Vec<LearningAttachmentDto>`  <sub>:1106</sub>
 - `pub struct CourseAnnouncementDetailResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1105</sub>
-    - `data: Option<CourseAnnouncementDetailDto>`  <sub>:1106</sub>
-    - `failure: Option<FailureCode>`  <sub>:1107</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1109</sub>
+    - `data: Option<CourseAnnouncementDetailDto>`  <sub>:1110</sub>
+    - `failure: Option<FailureCode>`  <sub>:1111</sub>
 - `pub struct CourseResourceDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1110</sub>
-    - `id: String`  <sub>:1111</sub>
-    - `name: String`  <sub>:1112</sub>
-    - `folder: bool`  <sub>:1113</sub>
-    - `downloadable: bool`  <sub>:1114</sub>
-    - `updated_at: Option<String>`  <sub>:1115</sub>
-    - `extension: Option<String>`  <sub>:1116</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1114</sub>
+    - `id: String`  <sub>:1115</sub>
+    - `name: String`  <sub>:1116</sub>
+    - `folder: bool`  <sub>:1117</sub>
+    - `downloadable: bool`  <sub>:1118</sub>
+    - `updated_at: Option<String>`  <sub>:1119</sub>
+    - `extension: Option<String>`  <sub>:1120</sub>
 - `pub struct CourseResourcePageDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1119</sub>
-    - `items: Vec<CourseResourceDto>`  <sub>:1120</sub>
-    - `page: u32`  <sub>:1121</sub>
-    - `has_next: bool`  <sub>:1122</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1123</sub>
+    - `items: Vec<CourseResourceDto>`  <sub>:1124</sub>
+    - `page: u32`  <sub>:1125</sub>
+    - `has_next: bool`  <sub>:1126</sub>
 - `pub struct CourseResourcePageResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1125</sub>
-    - `data: Option<CourseResourcePageDto>`  <sub>:1126</sub>
-    - `failure: Option<FailureCode>`  <sub>:1127</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1129</sub>
+    - `data: Option<CourseResourcePageDto>`  <sub>:1130</sub>
+    - `failure: Option<FailureCode>`  <sub>:1131</sub>
 - `pub struct CourseAssessmentDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1130</sub>
-    - `id: String`  <sub>:1131</sub>
-    - `title: String`  <sub>:1132</sub>
-    - `starts_at: Option<String>`  <sub>:1133</sub>
-    - `due_at: Option<String>`  <sub>:1134</sub>
-    - `score: Option<String>`  <sub>:1135</sub>
-    - `source_url: String`  <sub>:1136</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1134</sub>
+    - `id: String`  <sub>:1135</sub>
+    - `title: String`  <sub>:1136</sub>
+    - `starts_at: Option<String>`  <sub>:1137</sub>
+    - `due_at: Option<String>`  <sub>:1138</sub>
+    - `score: Option<String>`  <sub>:1139</sub>
+    - `source_url: String`  <sub>:1140</sub>
 - `pub struct CourseAssessmentsResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1139</sub>
-    - `data: Option<Vec<CourseAssessmentDto>>`  <sub>:1140</sub>
-    - `failure: Option<FailureCode>`  <sub>:1141</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1143</sub>
+    - `data: Option<Vec<CourseAssessmentDto>>`  <sub>:1144</sub>
+    - `failure: Option<FailureCode>`  <sub>:1145</sub>
 - `pub enum LearningColumnKindDto`
-  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1144</sub>
+  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1148</sub>
 - `pub struct LearningColumnDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1149</sub>
-    - `id: String`  <sub>:1150</sub>
-    - `name: String`  <sub>:1151</sub>
-    - `kind: LearningColumnKindDto`  <sub>:1152</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1153</sub>
+    - `id: String`  <sub>:1154</sub>
+    - `name: String`  <sub>:1155</sub>
+    - `kind: LearningColumnKindDto`  <sub>:1156</sub>
 - `pub struct LearningColumnsResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1155</sub>
-    - `data: Option<Vec<LearningColumnDto>>`  <sub>:1156</sub>
-    - `failure: Option<FailureCode>`  <sub>:1157</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1159</sub>
+    - `data: Option<Vec<LearningColumnDto>>`  <sub>:1160</sub>
+    - `failure: Option<FailureCode>`  <sub>:1161</sub>
 - `pub enum LearningCapabilityStateDto`
-  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1160</sub>
+  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1164</sub>
 - `pub struct LearningCapabilitiesDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1169</sub>
-    - `columns: LearningCapabilityStateDto`  <sub>:1170</sub>
-    - `announcements: LearningCapabilityStateDto`  <sub>:1171</sub>
-    - `resources: LearningCapabilityStateDto`  <sub>:1172</sub>
-    - `assessments: LearningCapabilityStateDto`  <sub>:1173</sub>
-    - `resource_download: LearningCapabilityStateDto`  <sub>:1174</sub>
-    - `announcement_download: LearningCapabilityStateDto`  <sub>:1175</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1173</sub>
+    - `columns: LearningCapabilityStateDto`  <sub>:1174</sub>
+    - `announcements: LearningCapabilityStateDto`  <sub>:1175</sub>
+    - `resources: LearningCapabilityStateDto`  <sub>:1176</sub>
+    - `assessments: LearningCapabilityStateDto`  <sub>:1177</sub>
+    - `resource_download: LearningCapabilityStateDto`  <sub>:1178</sub>
+    - `announcement_download: LearningCapabilityStateDto`  <sub>:1179</sub>
 - `pub struct LearningCapabilitiesResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1178</sub>
-    - `data: Option<LearningCapabilitiesDto>`  <sub>:1179</sub>
-    - `failure: Option<FailureCode>`  <sub>:1180</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1182</sub>
+    - `data: Option<LearningCapabilitiesDto>`  <sub>:1183</sub>
+    - `failure: Option<FailureCode>`  <sub>:1184</sub>
 - `pub struct SnapshotImportResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1183</sub>
-    - `imported: Option<u32>` — Count of snapshots actually merged, not the number offered.  <sub>:1185</sub>
-    - `failure: Option<FailureCode>`  <sub>:1186</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1187</sub>
+    - `imported: Option<u32>` — Count of snapshots actually merged, not the number offered.  <sub>:1189</sub>
+    - `failure: Option<FailureCode>`  <sub>:1190</sub>
 - `pub async fn learning_courses(expected_account: String, force: bool) -> LearningCoursesResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1189</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1193</sub>
 - `pub async fn course_announcements( expected_account: String, course: String, force: bool, ) -> CourseAnnouncementsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1192</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1196</sub>
 - `pub async fn course_announcement_detail( expected_account: String, course: String, id: String, ) -> CourseAnnouncementDetailResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1199</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1203</sub>
 - `pub async fn course_resources( expected_account: String, course: String, folder: Option<String>, page: u32, force: bool, ) -> CourseResourcePageResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1206</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1210</sub>
 - `pub async fn course_assessments( expected_account: String, course: String, force: bool, ) -> CourseAssessmentsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1215</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1219</sub>
 - `pub async fn course_resource_download( expected_account: String, course: String, folder: Option<String>, page: u32, id: String, ) -> HomeworkFileDownloadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1222</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1226</sub>
 - `pub async fn course_announcement_attachment( expected_account: String, course: String, id: String, file: String, ) -> HomeworkFileDownloadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1231</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1235</sub>
 - `pub async fn course_learning_columns( expected_account: String, course: String, force: bool, ) -> LearningColumnsResponse {…}` — Explicit module context; all identifiers are revalidated by the source.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1244</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1248</sub>
 - `pub async fn course_learning_capabilities( expected_account: String, course: String, ) -> LearningCapabilitiesResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1251</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1255</sub>
 - `pub async fn course_announcements_in( expected_account: String, course: String, column: String, force: bool, ) -> CourseAnnouncementsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1257</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1261</sub>
 - `pub async fn course_assessments_in( expected_account: String, course: String, column: String, force: bool, ) -> CourseAssessmentsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1265</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1269</sub>
 - `pub async fn course_announcement_detail_in( expected_account: String, course: String, column: String, id: String, ) -> CourseAnnouncementDetailResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1273</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1277</sub>
 - `pub async fn course_announcement_attachment_in( expected_account: String, course: String, column: String, id: String, file: String, ) -> HomeworkFileDownloadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1281</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1285</sub>
 - `pub async fn course_resources_at( expected_account: String, course: String, path: Vec<String>, page: u32, force: bool, ) -> CourseResourcePageResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1290</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1294</sub>
 - `pub async fn course_resource_download_at( expected_account: String, course: String, path: Vec<String>, page: u32, id: String, ) -> HomeworkFileDownloadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1299</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1303</sub>
 - `pub enum GraduateCreditStateDto`
-  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1308</sub>
+  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1312</sub>
 - `pub struct GraduateCreditMetricsDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1315</sub>
-    - `state: GraduateCreditStateDto`  <sub>:1316</sub>
-    - `required: Option<f64>`  <sub>:1317</sub>
-    - `earned: Option<f64>`  <sub>:1318</sub>
-    - `pending: Option<f64>`  <sub>:1319</sub>
-    - `remaining: Option<f64>` — Derived only from this node's official requirement and earned credits.  <sub>:1321</sub>
-    - `ratio: Option<f64>`  <sub>:1322</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1319</sub>
+    - `state: GraduateCreditStateDto`  <sub>:1320</sub>
+    - `required: Option<f64>`  <sub>:1321</sub>
+    - `earned: Option<f64>`  <sub>:1322</sub>
+    - `pending: Option<f64>`  <sub>:1323</sub>
+    - `remaining: Option<f64>` — Derived only from this node's official requirement and earned credits.  <sub>:1325</sub>
+    - `ratio: Option<f64>`  <sub>:1326</sub>
 - `pub struct GraduateCreditRowDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1325</sub>
-    - `title: String`  <sub>:1326</sub>
-    - `detail: String`  <sub>:1327</sub>
-    - `is_course: bool`  <sub>:1328</sub>
-    - `completed: Option<bool>`  <sub>:1329</sub>
-    - `credit: Option<f64>`  <sub>:1330</sub>
-    - `semester: Option<String>`  <sub>:1331</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1329</sub>
+    - `title: String`  <sub>:1330</sub>
+    - `detail: String`  <sub>:1331</sub>
+    - `is_course: bool`  <sub>:1332</sub>
+    - `completed: Option<bool>`  <sub>:1333</sub>
+    - `credit: Option<f64>`  <sub>:1334</sub>
+    - `semester: Option<String>`  <sub>:1335</sub>
 - `pub struct GraduateCreditNodeDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1334</sub>
-    - `source_index: u32` — Source ordinal, not an inferred category/group relationship.  <sub>:1336</sub>
-    - `title: String`  <sub>:1337</sub>
-    - `progress: Option<GraduateCreditMetricsDto>`  <sub>:1338</sub>
-    - `rows: Vec<GraduateCreditRowDto>`  <sub>:1339</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1338</sub>
+    - `source_index: u32` — Source ordinal, not an inferred category/group relationship.  <sub>:1340</sub>
+    - `title: String`  <sub>:1341</sub>
+    - `progress: Option<GraduateCreditMetricsDto>`  <sub>:1342</sub>
+    - `rows: Vec<GraduateCreditRowDto>`  <sub>:1343</sub>
 - `pub struct GraduateCreditMapDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1342</sub>
-    - `summary: Option<GraduateCreditNodeDto>`  <sub>:1343</sub>
-    - `nodes: Vec<GraduateCreditNodeDto>`  <sub>:1344</sub>
-    - `notice: Option<String>`  <sub>:1345</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1346</sub>
+    - `summary: Option<GraduateCreditNodeDto>`  <sub>:1347</sub>
+    - `nodes: Vec<GraduateCreditNodeDto>`  <sub>:1348</sub>
+    - `notice: Option<String>`  <sub>:1349</sub>
 - `pub struct GraduateCreditMapResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1348</sub>
-    - `data: Option<GraduateCreditMapDto>`  <sub>:1349</sub>
-    - `failure: Option<FailureCode>`  <sub>:1350</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1352</sub>
+    - `data: Option<GraduateCreditMapDto>`  <sub>:1353</sub>
+    - `failure: Option<FailureCode>`  <sub>:1354</sub>
 - `pub async fn load_graduate_credit_map( expected_account: String, force_refresh: bool, ) -> GraduateCreditMapResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1353</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1357</sub>
 - `pub struct HomeworkPendingSubmissionDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1359</sub>
-    - `handle: String`  <sub>:1360</sub>
-    - `assignment_id: String`  <sub>:1361</sub>
-    - `file_name: String`  <sub>:1362</sub>
-    - `size: i64` — Widened from `u64`; the 20 MB upload cap keeps this lossless.  <sub>:1364</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1363</sub>
+    - `handle: String`  <sub>:1364</sub>
+    - `assignment_id: String`  <sub>:1365</sub>
+    - `file_name: String`  <sub>:1366</sub>
+    - `size: i64` — Widened from `u64`; the 20 MB upload cap keeps this lossless.  <sub>:1368</sub>
 - `pub struct HomeworkPendingResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1367</sub>
-    - `data: Option<Vec<HomeworkPendingSubmissionDto>>`  <sub>:1368</sub>
-    - `failure: Option<FailureCode>`  <sub>:1369</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1371</sub>
+    - `data: Option<Vec<HomeworkPendingSubmissionDto>>`  <sub>:1372</sub>
+    - `failure: Option<FailureCode>`  <sub>:1373</sub>
 - `pub enum HomeworkCapabilityStateDto`
-  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1372</sub>
+  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1376</sub>
 - `pub struct HomeworkCapabilityEvidenceDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1381</sub>
-    - `capability: String`  <sub>:1382</sub>
-    - `state: HomeworkCapabilityStateDto`  <sub>:1383</sub>
-    - `reason: String`  <sub>:1384</sub>
-    - `evidence: String`  <sub>:1385</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1385</sub>
+    - `capability: String`  <sub>:1386</sub>
+    - `state: HomeworkCapabilityStateDto`  <sub>:1387</sub>
+    - `reason: String`  <sub>:1388</sub>
+    - `evidence: String`  <sub>:1389</sub>
 - `pub struct HomeworkCapabilitiesResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1388</sub>
-    - `data: Option<Vec<HomeworkCapabilityEvidenceDto>>`  <sub>:1389</sub>
-    - `failure: Option<FailureCode>`  <sub>:1390</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1392</sub>
+    - `data: Option<Vec<HomeworkCapabilityEvidenceDto>>`  <sub>:1393</sub>
+    - `failure: Option<FailureCode>`  <sub>:1394</sub>
 - `pub struct HomeworkRecoveryResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1393</sub>
-    - `configured: Option<bool>` — `Some(true)` only after the store accepted the private directory.  <sub>:1395</sub>
-    - `failure: Option<FailureCode>`  <sub>:1396</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1397</sub>
+    - `configured: Option<bool>` — `Some(true)` only after the store accepted the private directory.  <sub>:1399</sub>
+    - `failure: Option<FailureCode>`  <sub>:1400</sub>
 - `pub async fn configure_homework_recovery( expected_account: String, storage_root: String, ) -> HomeworkRecoveryResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1399</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1403</sub>
 - `pub async fn pending_homework_submissions( expected_account: String, assignment_id: Option<String>, ) -> HomeworkPendingResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1405</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1409</sub>
 - `pub async fn homework_capabilities( expected_account: String, assignment_id: String, ) -> HomeworkCapabilitiesResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1411</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1415</sub>
 - `pub struct FinanceIncomeEntryDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1418</sub>
-    - `id: String`  <sub>:1419</sub>
-    - `project: Option<String>`  <sub>:1420</sub>
-    - `description: Option<String>`  <sub>:1421</sub>
-    - `gross_minor: Option<i64>`  <sub>:1422</sub>
-    - `tax_minor: Option<i64>`  <sub>:1423</sub>
-    - `net_minor: Option<i64>`  <sub>:1424</sub>
-    - `tax_rate: Option<String>`  <sub>:1425</sub>
-    - `recorded_date: Option<String>`  <sub>:1426</sub>
-    - `year: Option<String>`  <sub>:1427</sub>
-    - `month: Option<String>`  <sub>:1428</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1422</sub>
+    - `id: String`  <sub>:1423</sub>
+    - `project: Option<String>`  <sub>:1424</sub>
+    - `description: Option<String>`  <sub>:1425</sub>
+    - `gross_minor: Option<i64>`  <sub>:1426</sub>
+    - `tax_minor: Option<i64>`  <sub>:1427</sub>
+    - `net_minor: Option<i64>`  <sub>:1428</sub>
+    - `tax_rate: Option<String>`  <sub>:1429</sub>
+    - `recorded_date: Option<String>`  <sub>:1430</sub>
+    - `year: Option<String>`  <sub>:1431</sub>
+    - `month: Option<String>`  <sub>:1432</sub>
 - `pub struct FinanceIncomeReportDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1431</sub>
-    - `entries: Vec<FinanceIncomeEntryDto>`  <sub>:1432</sub>
-    - `total: u32`  <sub>:1433</sub>
-    - `fetched_at: String`  <sub>:1434</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1435</sub>
+    - `entries: Vec<FinanceIncomeEntryDto>`  <sub>:1436</sub>
+    - `total: u32`  <sub>:1437</sub>
+    - `fetched_at: String`  <sub>:1438</sub>
 - `pub struct FinanceIncomeResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1437</sub>
-    - `data: Option<FinanceIncomeReportDto>`  <sub>:1438</sub>
-    - `failure: Option<FailureCode>`  <sub>:1439</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1441</sub>
+    - `data: Option<FinanceIncomeReportDto>`  <sub>:1442</sub>
+    - `failure: Option<FailureCode>`  <sub>:1443</sub>
 - `pub async fn load_finance_incomes(expected_account: String) -> FinanceIncomeResponse {…}` — Explicit on-demand student finance income read. No disk cache or bank numbers.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1443</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1447</sub>
 - `pub struct PortalMetricDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1447</sub>
-    - `value: String`  <sub>:1448</sub>
-    - `unit: Option<String>`  <sub>:1449</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1451</sub>
+    - `value: String`  <sub>:1452</sub>
+    - `unit: Option<String>`  <sub>:1453</sub>
 - `pub struct NetworkTrafficProductDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1452</sub>
-    - `product_name: Option<String>`  <sub>:1453</sub>
-    - `used_text: String`  <sub>:1454</sub>
-    - `free_remaining_text: String`  <sub>:1455</sub>
-    - `paid_remaining_text: String`  <sub>:1456</sub>
-    - `package_count: u32`  <sub>:1457</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1456</sub>
+    - `product_name: Option<String>`  <sub>:1457</sub>
+    - `used_text: String`  <sub>:1458</sub>
+    - `free_remaining_text: String`  <sub>:1459</sub>
+    - `paid_remaining_text: String`  <sub>:1460</sub>
+    - `package_count: u32`  <sub>:1461</sub>
 - `pub struct NetworkAccountDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1460</sub>
-    - `net_fee_minor: Option<i64>`  <sub>:1461</sub>
-    - `net_fee_failure: Option<FailureCode>`  <sub>:1462</sub>
-    - `unreturned_books: Option<PortalMetricDto>`  <sub>:1463</sub>
-    - `unread_mail: Option<PortalMetricDto>`  <sub>:1464</sub>
-    - `cloud_drive_free: Option<PortalMetricDto>`  <sub>:1465</sub>
-    - `portal_failure: Option<FailureCode>`  <sub>:1466</sub>
-    - `traffic_products: Vec<NetworkTrafficProductDto>`  <sub>:1467</sub>
-    - `traffic_failure: Option<FailureCode>`  <sub>:1468</sub>
-    - `fetched_at: String`  <sub>:1469</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1464</sub>
+    - `net_fee_minor: Option<i64>`  <sub>:1465</sub>
+    - `net_fee_failure: Option<FailureCode>`  <sub>:1466</sub>
+    - `unreturned_books: Option<PortalMetricDto>`  <sub>:1467</sub>
+    - `unread_mail: Option<PortalMetricDto>`  <sub>:1468</sub>
+    - `cloud_drive_free: Option<PortalMetricDto>`  <sub>:1469</sub>
+    - `portal_failure: Option<FailureCode>`  <sub>:1470</sub>
+    - `traffic_products: Vec<NetworkTrafficProductDto>`  <sub>:1471</sub>
+    - `traffic_failure: Option<FailureCode>`  <sub>:1472</sub>
+    - `fetched_at: String`  <sub>:1473</sub>
 - `pub struct NetworkAccountResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1472</sub>
-    - `data: Option<NetworkAccountDto>`  <sub>:1473</sub>
-    - `failure: Option<FailureCode>`  <sub>:1474</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1476</sub>
+    - `data: Option<NetworkAccountDto>`  <sub>:1477</sub>
+    - `failure: Option<FailureCode>`  <sub>:1478</sub>
 - `pub async fn load_network_account(expected_account: String) -> NetworkAccountResponse {…}` — Explicit on-demand portal metrics & campus network traffic read. No recharge writes.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1478</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1482</sub>
 - `pub enum EvaluationCourseStatusDto`
-  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1482</sub>
+  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1486</sub>
 - `pub struct EvaluationCourseDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1488</sub>
-    - `id: String`  <sub>:1489</sub>
-    - `course_name: String`  <sub>:1490</sub>
-    - `teacher_name: Option<String>`  <sub>:1491</sub>
-    - `questionnaire_name: Option<String>`  <sub>:1492</sub>
-    - `category: Option<String>`  <sub>:1493</sub>
-    - `status: EvaluationCourseStatusDto`  <sub>:1494</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1492</sub>
+    - `id: String`  <sub>:1493</sub>
+    - `course_name: String`  <sub>:1494</sub>
+    - `teacher_name: Option<String>`  <sub>:1495</sub>
+    - `questionnaire_name: Option<String>`  <sub>:1496</sub>
+    - `category: Option<String>`  <sub>:1497</sub>
+    - `status: EvaluationCourseStatusDto`  <sub>:1498</sub>
 - `pub struct TeachingEvaluationDto`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1497</sub>
-    - `task_id: Option<String>`  <sub>:1498</sub>
-    - `task_name: Option<String>`  <sub>:1499</sub>
-    - `term: Option<String>`  <sub>:1500</sub>
-    - `courses: Vec<EvaluationCourseDto>`  <sub>:1501</sub>
-    - `fetched_at: String`  <sub>:1502</sub>
-    - `from_cache: bool`  <sub>:1503</sub>
-    - `stale: bool`  <sub>:1504</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1501</sub>
+    - `task_id: Option<String>`  <sub>:1502</sub>
+    - `task_name: Option<String>`  <sub>:1503</sub>
+    - `term: Option<String>`  <sub>:1504</sub>
+    - `courses: Vec<EvaluationCourseDto>`  <sub>:1505</sub>
+    - `fetched_at: String`  <sub>:1506</sub>
+    - `from_cache: bool`  <sub>:1507</sub>
+    - `stale: bool`  <sub>:1508</sub>
 - `pub struct TeachingEvaluationResponse`
-  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1507</sub>
-    - `data: Option<TeachingEvaluationDto>`  <sub>:1508</sub>
-    - `failure: Option<FailureCode>`  <sub>:1509</sub>
+  <sub>struct · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1511</sub>
+    - `data: Option<TeachingEvaluationDto>`  <sub>:1512</sub>
+    - `failure: Option<FailureCode>`  <sub>:1513</sub>
 - `pub async fn load_teaching_evaluation( expected_account: String, force_refresh: bool, ) -> TeachingEvaluationResponse {…}` — Read-only teaching evaluation status check. Never submits evaluations.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1513</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live.rs:1517</sub>
 
 ## academic
 

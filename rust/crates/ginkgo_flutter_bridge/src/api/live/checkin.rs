@@ -46,11 +46,12 @@ pub(super) async fn load_checkin_on_date(date: String, force_refresh: bool) -> C
 pub(super) async fn prepare_checkin_qr(
     course_id: String,
     revalidate_course: bool,
+    offset_ms: u32,
 ) -> CheckInQrResponse {
     let result = match service() {
         Ok(service) => {
             with_module_read(ModuleAccess::CheckIn, || {
-                service.prepare_checkin_qr(&course_id, revalidate_course)
+                service.prepare_checkin_qr(&course_id, revalidate_course, offset_ms)
             })
             .await
         }

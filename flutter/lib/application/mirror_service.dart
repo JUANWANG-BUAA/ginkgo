@@ -102,6 +102,7 @@ abstract interface class CheckInGateway implements MirrorEnvironment {
   Future<CheckInQrResponse> prepareCheckinQr(
     String courseId, {
     bool revalidateCourse = true,
+    int offsetMs = 0,
   });
 
   Future<CheckinProgressRead> checkinProgress();

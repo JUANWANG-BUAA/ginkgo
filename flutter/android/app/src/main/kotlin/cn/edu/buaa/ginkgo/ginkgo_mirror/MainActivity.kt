@@ -19,8 +19,9 @@ class MainActivity : FlutterActivity() {
         homeworkFileSaver = HomeworkFileSaver(this).also {
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/homework-files").setMethodCallHandler(it)
         }
-        checkinQrSaver = CheckinQrGallerySaver(applicationContext).also {
-            MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/checkin-qr").setMethodCallHandler(it)
+        val checkinQrChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/checkin-qr")
+        checkinQrSaver = CheckinQrGallerySaver(applicationContext, checkinQrChannel).also {
+            checkinQrChannel.setMethodCallHandler(it)
         }
         val messenger = flutterEngine.dartExecutor.binaryMessenger
         MethodChannel(messenger, "cn.edu.buaa.ginkgo/learning-snapshots",

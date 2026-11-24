@@ -15,6 +15,7 @@ class PlatformActions {
     this.homeworkFilePicker,
     this.homeworkFileSave,
     this.checkinQrSaver,
+    this.checkinQrHelper,
     this.maintenance,
   });
 
@@ -29,6 +30,9 @@ class PlatformActions {
 
   /// Writes a single overwritten check-in QR image to the album or chosen file.
   final CheckinQrSaver? checkinQrSaver;
+
+  /// Optional Android quick-jump and notification-shade refresh helper.
+  final CheckinQrQuickHelper? checkinQrHelper;
 
   /// The update and self-check capability.
   final MaintenanceService? maintenance;

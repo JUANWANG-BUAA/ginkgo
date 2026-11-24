@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -28,5 +30,100 @@ Future<CheckinQrSaveStatus> saveCheckinQrPng(
     FileSaveStatus.saved => CheckinQrSaveStatus.savedToFile,
     FileSaveStatus.cancelled => CheckinQrSaveStatus.cancelled,
     FileSaveStatus.stale => CheckinQrSaveStatus.stale,
+  };
+}
+
+class AndroidCheckinQrQuickHelper implements CheckinQrQuickHelper {
+  AndroidCheckinQrQuickHelper._();
+
+  static final AndroidCheckinQrQuickHelper shared =
+      AndroidCheckinQrQuickHelper._();
+
+  Future<void> Function()? _refreshHandler;
+  bool _channelListening = false;
+
+  bool get _supported => defaultTargetPlatform == TargetPlatform.android;
+
+  void _ensureListening() {
+    if (_channelListening || !_supported) return;
+    _channelListening = true;
+    _checkinQrChannel.setMethodCallHandler((call) async {
+      if (call.method == 'refreshAndSaveFromNotification') {
+        final handler = _refreshHandler;
+        if (handler != null) {
+          await handler();
+        }
+      }
+      return null;
+    });
+  }
+
+  @override
+  Future<CheckinScannerHost> probeScannerApp() async {
+    if (!_supported) return CheckinScannerHost.none;
+    try {
+      final result = await _checkinQrChannel.invokeMethod<String>(
+        'probeScannerApp',
+      );
+      return _parseScannerHost(result);
+    } catch (_) {
+      return CheckinScannerHost.none;
+    }
+  }
+
+  @override
+  Future<CheckinScannerHost> launchScannerApp() async {
+    if (!_supported) return CheckinScannerHost.none;
+    try {
+      final result = await _checkinQrChannel.invokeMethod<String>(
+        'launchScannerApp',
+      );
+      return _parseScannerHost(result);
+    } catch (_) {
+      return CheckinScannerHost.none;
+    }
+  }
+
+  @override
+  Future<CheckinQuickNotificationStatus> showQuickNotification({
+    String? statusText,
+  }) async {
+    if (!_supported) return CheckinQuickNotificationStatus.unavailable;
+    _ensureListening();
+    try {
+      final result = await _checkinQrChannel.invokeMethod<String>(
+        'showQuickNotification',
+        {'statusText': statusText},
+      );
+      return switch (result) {
+        'shown' => CheckinQuickNotificationStatus.shown,
+        'permission_denied' => CheckinQuickNotificationStatus.permissionDenied,
+        _ => CheckinQuickNotificationStatus.unavailable,
+      };
+    } catch (_) {
+      return CheckinQuickNotificationStatus.unavailable;
+    }
+  }
+
+  @override
+  Future<void> dismissQuickNotification() async {
+    if (!_supported) return;
+    try {
+      await _checkinQrChannel.invokeMethod<bool>('dismissQuickNotification');
+    } catch (_) {}
+  }
+
+  @override
+  void setRefreshFromNotificationHandler(Future<void> Function()? handler) {
+    _refreshHandler = handler;
+    if (handler != null) {
+      _ensureListening();
+    }
+  }
+
+  static CheckinScannerHost _parseScannerHost(String? raw) => switch (raw) {
+    'ibuaa' => CheckinScannerHost.ibuaa,
+    'wecom' => CheckinScannerHost.wecom,
+    _ => CheckinScannerHost.none,
   };
 }

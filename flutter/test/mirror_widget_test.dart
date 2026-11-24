@@ -301,6 +301,7 @@ class ControlledService extends Fake implements MirrorService {
   Future<CheckInQrResponse> prepareCheckinQr(
     String courseId, {
     bool revalidateCourse = true,
+    int offsetMs = 0,
   }) async => CheckInQrResponse(
     courseId: courseId,
     refreshSeconds: 4,

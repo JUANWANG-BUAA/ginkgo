@@ -12,15 +12,15 @@
 | [领域值类型与纯规则（ginkgo_domain::features）](rust-domain-features.md) | `rust-domain-features.md` | 133 |
 | [领域基础类型（ginkgo_domain）](rust-domain-foundation.md) | `rust-domain-foundation.md` | 18 |
 | [应用编排（ginkgo_core）](rust-core-application.md) | `rust-core-application.md` | 97 |
-| [上游适配器（ginkgo_upstream::adapters）](rust-upstream-adapters.md) | `rust-upstream-adapters.md` | 160 |
+| [上游适配器（ginkgo_upstream::adapters）](rust-upstream-adapters.md) | `rust-upstream-adapters.md` | 162 |
 | [上游解析（ginkgo_upstream::codecs）](rust-upstream-codecs.md) | `rust-upstream-codecs.md` | 95 |
 | [认证与会话（ginkgo_upstream::auth）](rust-upstream-auth.md) | `rust-upstream-auth.md` | 93 |
 | [上游服务（ginkgo_upstream::services）](rust-upstream-services.md) | `rust-upstream-services.md` | 125 |
 | [上游基础能力（ginkgo_upstream）](rust-upstream-foundation.md) | `rust-upstream-foundation.md` | 62 |
 | [组装（ginkgo_runtime）](rust-runtime.md) | `rust-runtime.md` | 11 |
 | [桥接（ginkgo_flutter_bridge）](rust-bridge.md) | `rust-bridge.md` | 406 |
-| [Dart 应用接口（flutter/lib/application）](dart-application.md) | `dart-application.md` | 226 |
-| [Dart 基础设施（flutter/lib/infrastructure）](dart-infrastructure.md) | `dart-infrastructure.md` | 64 |
+| [Dart 应用接口（flutter/lib/application）](dart-application.md) | `dart-application.md` | 230 |
+| [Dart 基础设施（flutter/lib/infrastructure）](dart-infrastructure.md) | `dart-infrastructure.md` | 65 |
 | [跨域共享状态（flutter/lib/shared）](dart-shared.md) | `dart-shared.md` | 28 |
 | [平台集成（flutter/lib/platform）](dart-platform.md) | `dart-platform.md` | 13 |
 | [共享呈现组件（flutter/lib/widgets）](dart-widgets.md) | `dart-widgets.md` | 85 |
@@ -34,7 +34,7 @@
 | [Flutter 功能域：campus_card](dart-feature-campus_card.md) | `dart-feature-campus_card.md` | 1 |
 | [Flutter 功能域：career](dart-feature-career.md) | `dart-feature-career.md` | 1 |
 | [Flutter 功能域：cgyy](dart-feature-cgyy.md) | `dart-feature-cgyy.md` | 39 |
-| [Flutter 功能域：checkin](dart-feature-checkin.md) | `dart-feature-checkin.md` | 7 |
+| [Flutter 功能域：checkin](dart-feature-checkin.md) | `dart-feature-checkin.md` | 10 |
 | [Flutter 功能域：classroom](dart-feature-classroom.md) | `dart-feature-classroom.md` | 21 |
 | [Flutter 功能域：evaluation](dart-feature-evaluation.md) | `dart-feature-evaluation.md` | 1 |
 | [Flutter 功能域：finance](dart-feature-finance.md) | `dart-feature-finance.md` | 3 |

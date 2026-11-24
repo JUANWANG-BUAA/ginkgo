@@ -54,6 +54,7 @@ class WriteService extends ControlledService {
   Future<CheckInQrResponse> prepareCheckinQr(
     String courseId, {
     bool revalidateCourse = true,
+    int offsetMs = 0,
   }) async {
     qrCalls.add((courseId, revalidateCourse));
     return CheckInQrResponse(
@@ -131,6 +132,7 @@ void main() {
     (tester) async {
       final service = WriteService();
       Uint8List? savedPng;
+      final saved = Completer<void>();
       tester.view.physicalSize = const Size(430, 1300);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
@@ -143,6 +145,7 @@ void main() {
               checkinQrSaver: (bytes, {required isCurrent}) async {
                 expect(isCurrent(), isTrue);
                 savedPng = bytes;
+                if (!saved.isCompleted) saved.complete();
                 return CheckinQrSaveStatus.savedToGallery;
               },
             ),
@@ -158,11 +161,15 @@ void main() {
       expect(find.byKey(const Key('checkin-qr-canvas')), findsOneWidget);
       expect(service.qrCalls, [('501', true)]);
 
-      // Render and save QR PNG inside test binding (runAsync for ui.Image.toByteData).
-      await tester.runAsync(() async {
-        await tester.tap(find.byKey(const Key('checkin-qr-save')));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
-      });
+      // Render and save QR PNG inside test binding (pump FakeAsync microtasks while
+      // letting the rasterizer complete ui.Image.toByteData in real async time).
+      await tester.tap(find.byKey(const Key('checkin-qr-save')));
+      for (var i = 0; i < 100 && !saved.isCompleted; i++) {
+        await tester.pump();
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 10)),
+        );
+      }
       await tester.pumpAndSettle();
       expect(savedPng, isNotNull);
       expect(savedPng!.sublist(0, 4), [0x89, 0x50, 0x4E, 0x47]);

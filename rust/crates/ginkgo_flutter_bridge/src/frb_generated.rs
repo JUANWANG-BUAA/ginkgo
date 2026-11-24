@@ -3698,6 +3698,7 @@ fn wire__crate__api__live__prepare_checkin_qr_impl(
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_course_id = <String>::sse_decode(&mut deserializer);
             let api_revalidate_course = <bool>::sse_decode(&mut deserializer);
+            let api_offset_ms = <u32>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, ()>(
@@ -3706,6 +3707,7 @@ fn wire__crate__api__live__prepare_checkin_qr_impl(
                             crate::api::live::prepare_checkin_qr(
                                 api_course_id,
                                 api_revalidate_course,
+                                api_offset_ms,
                             )
                             .await,
                         )?;

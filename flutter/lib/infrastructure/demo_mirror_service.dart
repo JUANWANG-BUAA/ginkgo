@@ -207,6 +207,7 @@ final class DemoMirrorService
   Future<CheckInQrResponse> prepareCheckinQr(
     String courseId, {
     bool revalidateCourse = true,
+    int offsetMs = 0,
   }) => rust.loadDemoCheckinQr(courseId: courseId);
   @override
   bool get isDemo => true;
