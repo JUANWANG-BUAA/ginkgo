@@ -22,8 +22,6 @@
 | `application/checkin_progress.dart` | CheckinProgressTelemetry → dart-application.md<br>CheckinProgressRead → dart-application.md |
 | `application/checkin_qr.dart` | CheckinQrSaveStatus → dart-application.md<br>CheckinScannerHost → dart-application.md<br>CheckinQuickNotificationStatus → dart-application.md<br>CheckinScannerHostLabel → dart-application.md<br>CheckinQrSaver → dart-application.md<br>CheckinQrQuickHelper → dart-application.md |
 | `application/collection_window.dart` | CollectionWindow → dart-application.md |
-| `application/demo_awareness.dart` | DemoAwareness → dart-application.md<br>SettingsPage → dart-application.md<br>SettingsPage → dart-application.md<br>SettingsPage → dart-application.md |
-| `application/demo_mode.dart` | DemoMode → dart-application.md<br>LiveDemoMode → dart-application.md |
 | `application/diagnostic_log.dart` | DiagnosticEntry → dart-application.md<br>DiagnosticLog → dart-application.md |
 | `application/environment.dart` | MirrorEnvironment → dart-application.md |
 | `application/evaluation.dart` | EvaluationCourseStatus → dart-application.md<br>EvaluationCourseItem → dart-application.md<br>TeachingEvaluationReport → dart-application.md<br>TeachingEvaluationRead → dart-application.md<br>TeachingEvaluationGateway → dart-application.md |
@@ -47,7 +45,6 @@
 | `application/local_tasks.dart` | LocalTaskRecord → dart-application.md<br>isLocalTaskDue → dart-application.md<br>localTaskDueFromHomework → dart-application.md<br>localTaskDueLabel → dart-application.md<br>LocalTasksRead → dart-application.md<br>LocalTaskGateway → dart-application.md<br>editLocalTasks → dart-application.md |
 | `application/maintenance.dart` | InstalledVersion → dart-application.md<br>AndroidDownload → dart-application.md<br>UpdateResult → dart-application.md<br>MaintenanceService → dart-application.md |
 | `application/mirror_service.dart` | MirrorService → dart-application.md<br>VerifiedRouteGateway → dart-application.md<br>CareerEventsGateway → dart-application.md<br>SessionGateway → dart-application.md<br>AcademicGateway → dart-application.md<br>CheckInGateway → dart-application.md<br>LibrarySeatingGateway → dart-application.md<br>LibraryCatalogGateway → dart-application.md<br>LibraryGateway → dart-application.md<br>BykcGateway → dart-application.md<br>GraduateGateway → dart-application.md<br>NoticeGateway → dart-application.md<br>CgyyGateway → dart-application.md<br>CampusGateway → dart-application.md<br>CgyyBookingGateway → dart-application.md<br>BykcPart → dart-application.md |
-| `application/mutation_result.dart` | MutationResultStatus → dart-application.md<br>MutationResult → dart-application.md<br>ErrorCode → dart-application.md<br>ErrorCodeExtension → dart-application.md<br>InputPrompt → dart-application.md<br>VerificationCodePrompt → dart-application.md<br>PasswordPrompt → dart-application.md<br>SelectionPrompt → dart-application.md<br>AuthPageExample → dart-application.md |
 | `application/network_account.dart` | PortalMetric → dart-application.md<br>NetworkTrafficProduct → dart-application.md<br>NetworkAccountReport → dart-application.md<br>NetworkAccountRead → dart-application.md<br>NetworkAccountGateway → dart-application.md |
 | `application/notices.dart` | Notice → dart-application.md<br>NoticesRead → dart-application.md |
 | `application/platform_actions.dart` | PlatformActions → dart-application.md |
@@ -67,11 +64,8 @@
 | `application/startup_update_controller.dart` | StartupUpdateController → dart-application.md |
 | `application/student_service_links.dart` | StudentServiceLinksGateway → dart-application.md |
 | `application/task_storage_scope.dart` | TaskStorageRoot → dart-application.md<br>TaskStorageScope → dart-application.md |
-| `application/view_models.dart` | HomeworkViewModel → dart-application.md |
 | `design/apple_design.dart` | AppleDesign → dart-design.md |
-| `design/design_comparison_screen.dart` | DesignComparisonScreen → dart-design.md |
 | `design/ginkgo_theme.dart` | ginkgoTheme → dart-design.md |
-| `design/today_action_row_demo.dart` | TodayActionRowDemo → dart-design.md |
 | `design/tokens/colors.dart` | GinkgoColors → dart-design.md |
 | `design/tokens/elevation.dart` | GinkgoElevation → dart-design.md |
 | `design/tokens/layout.dart` | GinkgoLayout → dart-design.md |
@@ -138,6 +132,7 @@
 | `features/homework/homework_detail_page.dart` | HomeworkDetailPage → dart-feature-homework.md |
 | `features/homework/homework_files_panel.dart` | HomeworkFilesPanel → dart-feature-homework.md |
 | `features/homework/homework_files_widgets.dart` | homeworkSubmitMethodLabel → dart-feature-homework.md<br>homeworkAttachmentKindLabel → dart-feature-homework.md<br>homeworkCapabilityLabel → dart-feature-homework.md<br>homeworkCapabilityStateLabel → dart-feature-homework.md<br>HomeworkSubmitSummary → dart-feature-homework.md<br>HomeworkAttachmentList → dart-feature-homework.md<br>HomeworkCapabilityNotes → dart-feature-homework.md<br>HomeworkSubmitActions → dart-feature-homework.md<br>HomeworkPendingSubmissionNotice → dart-feature-homework.md<br>HomeworkFeedbackNote → dart-feature-homework.md<br>HomeworkBlockedNote → dart-feature-homework.md |
+| `features/homework/homework_list_slivers.dart` | buildHomeworkListSlivers → dart-feature-homework.md |
 | `features/homework/homework_page.dart` | HomeworkPage → dart-feature-homework.md |
 | `features/homework/homework_projection.dart` | classifyHomeworkDeadline → dart-feature-homework.md<br>isHomeworkOverdue → dart-feature-homework.md<br>homeworkRelativeDeadline → dart-feature-homework.md<br>homeworkCompactDeadline → dart-feature-homework.md<br>homeworkDeadlineTint → dart-feature-homework.md |
 | `features/homework/homework_visuals.dart` | HomeworkTelemetryCard → dart-feature-homework.md |
@@ -200,7 +195,6 @@
 | `features/today/today_course_section.dart` | TodayCoursePlaceholder → dart-feature-today.md<br>TodayCourseSection → dart-feature-today.md |
 | `features/today/today_exam_section.dart` | TodayExamSection → dart-feature-today.md |
 | `features/today/today_homework_section.dart` | todayVisibleHomework → dart-feature-today.md<br>TodayHomeworkSection → dart-feature-today.md |
-| `features/today/today_notice_section.dart` | TodayNoticeSection → dart-feature-today.md |
 | `features/today/today_page.dart` | TodayPage → dart-feature-today.md |
 | `features/today/today_page_actions.dart` | TodayNavigator → dart-feature-today.md |
 | `features/today/today_page_header.dart` | TodayPageHeader → dart-feature-today.md |
@@ -241,6 +235,7 @@
 | `infrastructure/native_finance.dart` | decodeFinanceIncomes → dart-infrastructure.md<br>NativeFinance → dart-infrastructure.md |
 | `infrastructure/native_homework_files.dart` | NativeHomeworkFiles → dart-infrastructure.md |
 | `infrastructure/native_learning.dart` | NativeLearning → dart-infrastructure.md |
+| `infrastructure/native_library.dart` | NativeLibrary → dart-infrastructure.md |
 | `infrastructure/native_library_loans.dart` | decodeLibraryLoans → dart-infrastructure.md<br>NativeLibraryLoans → dart-infrastructure.md |
 | `infrastructure/native_mirror_service.dart` | NativeMirrorService → dart-infrastructure.md |
 | `infrastructure/native_network_account.dart` | decodeNetworkAccount → dart-infrastructure.md<br>NativeNetworkAccount → dart-infrastructure.md |
@@ -438,7 +433,6 @@
 | `rust/crates/ginkgo_upstream/src/foundation/http.rs` | HttpMethod → rust-upstream-foundation.md<br>HttpRequest → rust-upstream-foundation.md<br>new → rust-upstream-foundation.md<br>get → rust-upstream-foundation.md<br>post_form → rust-upstream-foundation.md<br>header → rust-upstream-foundation.md<br>header_value → rust-upstream-foundation.md<br>HttpResponse → rust-upstream-foundation.md<br>new → rust-upstream-foundation.md<br>with_header → rust-upstream-foundation.md<br>with_set_cookie → rust-upstream-foundation.md<br>header → rust-upstream-foundation.md<br>TransportError → rust-upstream-foundation.md<br>HttpTransport → rust-upstream-foundation.md |
 | `rust/crates/ginkgo_upstream/src/foundation/mutex.rs` | poison_events → rust-upstream-foundation.md<br>Guard → rust-upstream-foundation.md<br>was_poisoned → rust-upstream-foundation.md<br>Mutex → rust-upstream-foundation.md<br>fn → rust-upstream-foundation.md<br>lock → rust-upstream-foundation.md<br>poison_count → rust-upstream-foundation.md<br>was_poisoned → rust-upstream-foundation.md<br>lock_value → rust-upstream-foundation.md |
 | `rust/crates/ginkgo_upstream/src/foundation/webvpn.rs` | GATEWAY_HOST → rust-upstream-foundation.md<br>should_route → rust-upstream-foundation.md<br>wrap → rust-upstream-foundation.md<br>unwrap → rust-upstream-foundation.md<br>resolve_redirect → rust-upstream-foundation.md<br>WebVpnError → rust-upstream-foundation.md |
-| `rust/crates/ginkgo_upstream/src/mutation_result.rs` | MutationResult → rust-upstream-foundation.md<br>InputPrompt → rust-upstream-foundation.md<br>ErrorCode → rust-upstream-foundation.md<br>is_retriable → rust-upstream-foundation.md<br>requires_login → rust-upstream-foundation.md<br>locks_authentication → rust-upstream-foundation.md<br>map → rust-upstream-foundation.md<br>is_success → rust-upstream-foundation.md<br>error_code → rust-upstream-foundation.md |
 | `rust/crates/ginkgo_upstream/src/services/background_session.rs` | owner_key → rust-upstream-services.md<br>from_snapshot → rust-upstream-services.md |
 | `rust/crates/ginkgo_upstream/src/services/cache.rs` | CACHE_TTL → rust-upstream-services.md<br>Timed → rust-upstream-services.md<br>SnapshotCache → rust-upstream-services.md<br>fresh → rust-upstream-services.md<br>any → rust-upstream-services.md<br>begin → rust-upstream-services.md<br>insert_if_current → rust-upstream-services.md<br>entries → rust-upstream-services.md<br>restore → rust-upstream-services.md<br>clear → rust-upstream-services.md<br>resolve_current → rust-upstream-services.md<br>read_with_snapshot → rust-upstream-services.md<br>read_with_snapshot_checked → rust-upstream-services.md<br>now_shanghai → rust-upstream-services.md |
 | `rust/crates/ginkgo_upstream/src/services/campus_activities_service.rs` | CampusActivitiesCache → rust-upstream-services.md |
@@ -482,7 +476,6 @@
 | `shared/school_timestamp.dart` | schoolDateString → dart-shared.md<br>schoolDateWeekdayLabel → dart-shared.md<br>schoolTimestampLabel → dart-shared.md<br>schoolClockLabel → dart-shared.md<br>schoolTimeRange → dart-shared.md |
 | `shared/today_time.dart` | todaySchoolNow → dart-shared.md<br>schoolWallClockMillis → dart-shared.md<br>todayDate → dart-shared.md<br>todayDue → dart-shared.md<br>todayCompareDue → dart-shared.md<br>todayDueLabel → dart-shared.md |
 | `startup_page.dart` | StartupPage → dart-app.md |
-| `widgets/academic_overview.dart` | AcademicOverview → dart-widgets.md |
 | `widgets/academic_widgets.dart` | academicNumber → dart-widgets.md<br>AcademicBadge → dart-widgets.md<br>AcademicFactRow → dart-widgets.md<br>AcademicMetric → dart-widgets.md<br>AcademicMetricGrid → dart-widgets.md |
 | `widgets/apple_controls.dart` | AppleToolbarButton → dart-widgets.md<br>ApplePickerTile → dart-widgets.md |
 | `widgets/apple_navigation.dart` | AppleContentTransition → dart-widgets.md<br>AppleNavigationItem → dart-widgets.md |
@@ -493,9 +486,7 @@
 | `widgets/day_scroll_physics.dart` | DayScrollPhysics → dart-widgets.md |
 | `widgets/diagnostic_hints.dart` | DiagnosticHintOverlay → dart-widgets.md |
 | `widgets/feature_intro.dart` | FeatureIntro → dart-widgets.md<br>FeatureSectionTitle → dart-widgets.md |
-| `widgets/ginkgo_dialog_widgets.dart` | GinkgoPageRoute → dart-widgets.md<br>GinkgoBottomSheet → dart-widgets.md<br>GinkgoAlertDialog → dart-widgets.md<br>GinkgoAlertAction → dart-widgets.md<br>GinkgoLoadingIndicator → dart-widgets.md<br>GinkgoEmptyState → dart-widgets.md |
 | `widgets/ginkgo_mark.dart` | GinkgoMark → dart-widgets.md |
-| `widgets/ginkgo_polished_widgets.dart` | GinkgoButton → dart-widgets.md<br>GinkgoButtonVariant → dart-widgets.md<br>GinkgoButtonSize → dart-widgets.md<br>GinkgoCard → dart-widgets.md<br>GinkgoDivider → dart-widgets.md |
 | `widgets/ginkgo_visuals.dart` | GinkgoIconTile → dart-widgets.md<br>GinkgoBadge → dart-widgets.md |
 | `widgets/liquid_vial_gauge.dart` | LiquidPalette → dart-widgets.md<br>LiquidVialWell → dart-widgets.md |
 | `widgets/loading_widgets.dart` | GinkgoActivity → dart-widgets.md<br>GinkgoLoadingView → dart-widgets.md<br>SectionFeedback → dart-widgets.md<br>SectionReveal → dart-widgets.md<br>PageRefreshShortcut → dart-widgets.md |
@@ -510,7 +501,8 @@
 | `widgets/school_links.dart` | ExternalLinkScope → dart-widgets.md<br>openSchoolLink → dart-widgets.md<br>showSchoolLinkError → dart-widgets.md |
 | `widgets/status_chip.dart` | StatusTone → dart-widgets.md<br>statusToneColor → dart-widgets.md<br>StatusChip → dart-widgets.md |
 | `widgets/summary_strip.dart` | SummaryItem → dart-widgets.md<br>SummaryStrip → dart-widgets.md<br>summaryValueColor → dart-widgets.md<br>SummaryLine → dart-widgets.md<br>MetricValue → dart-widgets.md |
-| `widgets/telemetry_instrument_card.dart` | BarSegment → dart-widgets.md<br>TelemetryMeterData → dart-widgets.md<br>TelemetryPill → dart-widgets.md<br>SegmentedCapsuleBar → dart-widgets.md<br>TelemetryModeSwitcher → dart-widgets.md<br>TelemetryInstrumentCard → dart-widgets.md |
+| `widgets/telemetry_instrument_card.dart` | TelemetryInstrumentCard → dart-widgets.md |
+| `widgets/telemetry_primitives.dart` | BarSegment → dart-widgets.md<br>TelemetryMeterData → dart-widgets.md<br>TelemetryPill → dart-widgets.md<br>SegmentedCapsuleBar → dart-widgets.md<br>TelemetryModeSwitcher → dart-widgets.md |
 | `widgets/top_bounce_scroll_physics.dart` | TopBounceScrollPhysics → dart-widgets.md |
 | `widgets/verified_route_label.dart` | VerifiedRouteLabel → dart-widgets.md |
 | `widgets/visual_section.dart` | TodayVisualDivider → dart-widgets.md<br>TodayVisualSection → dart-widgets.md<br>TodaySectionHeader → dart-widgets.md |

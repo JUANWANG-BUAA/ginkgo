@@ -14,7 +14,6 @@
 - [features/today/today_course_section.dart](#featurestodaytodaycoursesectiondart) (2)
 - [features/today/today_exam_section.dart](#featurestodaytodayexamsectiondart) (1)
 - [features/today/today_homework_section.dart](#featurestodaytodayhomeworksectiondart) (2)
-- [features/today/today_notice_section.dart](#featurestodaytodaynoticesectiondart) (1)
 - [features/today/today_page.dart](#featurestodaytodaypagedart) (1)
 - [features/today/today_page_actions.dart](#featurestodaytodaypageactionsdart) (1)
 - [features/today/today_page_header.dart](#featurestodaytodaypageheaderdart) (1)
@@ -91,13 +90,6 @@
   <sub>class · features/today/today_homework_section.dart:36</sub>
     - `const TodayHomeworkSection({ super.key, required this.section, required this.onRetry, this.onOpen, this.onOpenItem, this.now, });`  <sub>:37</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:54</sub>
-
-## features/today/today_notice_section.dart
-
-- `class TodayNoticeSection extends StatelessWidget` — The latest school notices. A publication date is never a personal
-  <sub>class · features/today/today_notice_section.dart:12</sub>
-    - `const TodayNoticeSection({ super.key, required this.section, required this.onRetry, required this.onOpen, });`  <sub>:13</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:25</sub>
 
 ## features/today/today_page.dart
 

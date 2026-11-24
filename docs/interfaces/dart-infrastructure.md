@@ -40,6 +40,7 @@ native/demo 适配器、运行时与持久化实现。
 - [infrastructure/native_finance.dart](#infrastructurenativefinancedart) (2)
 - [infrastructure/native_homework_files.dart](#infrastructurenativehomeworkfilesdart) (1)
 - [infrastructure/native_learning.dart](#infrastructurenativelearningdart) (1)
+- [infrastructure/native_library.dart](#infrastructurenativelibrarydart) (1)
 - [infrastructure/native_library_loans.dart](#infrastructurenativelibraryloansdart) (2)
 - [infrastructure/native_mirror_service.dart](#infrastructurenativemirrorservicedart) (1)
 - [infrastructure/native_network_account.dart](#infrastructurenativenetworkaccountdart) (2)
@@ -332,6 +333,20 @@ native/demo 适配器、运行时与持久化实现。
 - `mixin NativeLearning`
   <sub>mixin · infrastructure/native_learning.dart:123</sub>
 
+## infrastructure/native_library.dart
+
+- `mixin NativeLibrary` — Library catalog, holdings, real-time occupancy, and seat-booking reads.
+  <sub>mixin · infrastructure/native_library.dart:13</sub>
+    - `Future<LibraryStatsRead> libraryStats({bool forceRefresh = false}) => …`  <sub>:14</sub>
+    - `Future<BookPageRead> libraryBooks({ required String query, required int page, String sort = 'relevance', bool descending = true, }) => …`  <sub>:26</sub>
+    - `Future<BookHoldingsRead> libraryHoldings(String bibId) async => …`  <sub>:47</sub>
+    - `Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false}) => …`  <sub>:52</sub>
+    - `Future<LibraryAreasResponse> libraryAreas(String libraryId) => …`  <sub>:63</sub>
+    - `Future<LibrarySlotsResponse> librarySlots(String areaId) => …`  <sub>:66</sub>
+    - `Future<LibrarySeatsResponse> librarySeats({ required String areaId, required LibrarySlot slot, }) => …`  <sub>:69</sub>
+    - `Future<LibraryBookingsResponse> libraryBookings({ bool forceRefresh = false, }) => …`  <sub>:82</sub>
+    - `Future<live.LibraryHistoryResponse> libraryHistory( int page, { bool forceRefresh = false, }) => …`  <sub>:94</sub>
+
 ## infrastructure/native_library_loans.dart
 
 - `LibraryLoansRead decodeLibraryLoans(live.LibraryLoansResponse response) {…}` — Decode the business projection, never the school OPAC envelope.
@@ -344,7 +359,7 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/native_mirror_service.dart
 
 - `final class NativeMirrorService`
-  <sub>class · infrastructure/native_mirror_service.dart:52</sub>
+  <sub>class · infrastructure/native_mirror_service.dart:47</sub>
 
 ## infrastructure/native_network_account.dart
 

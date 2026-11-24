@@ -10,7 +10,6 @@ import '../application/contracts.dart';
 import '../application/campus_activities.dart';
 import '../application/cgyy_commands.dart';
 import '../application/checkin_progress.dart';
-import '../application/library_holdings.dart';
 import '../application/local_tasks_read.dart';
 import '../application/notices.dart';
 import '../application/saved_credential.dart';
@@ -23,7 +22,6 @@ import '../src/rust/api/mirror.dart' as rust;
 import 'package:ginkgo_mirror/infrastructure/native_learning.dart';
 import 'package:ginkgo_mirror/infrastructure/native_homework_files.dart';
 import 'package:ginkgo_mirror/infrastructure/native_saved_credential.dart';
-import 'package:ginkgo_mirror/infrastructure/library_holdings_decode.dart';
 import 'package:ginkgo_mirror/infrastructure/local_tasks_decode.dart';
 import 'package:ginkgo_mirror/infrastructure/notices_decode.dart';
 import 'package:ginkgo_mirror/infrastructure/shuttle_decode.dart';
@@ -31,14 +29,13 @@ import 'package:ginkgo_mirror/infrastructure/native_campus_activities.dart';
 import 'package:ginkgo_mirror/infrastructure/native_career.dart';
 import 'package:ginkgo_mirror/infrastructure/native_evaluation.dart';
 import 'package:ginkgo_mirror/infrastructure/native_finance.dart';
+import 'package:ginkgo_mirror/infrastructure/native_library.dart';
 import 'package:ginkgo_mirror/infrastructure/native_library_loans.dart';
 import 'package:ginkgo_mirror/infrastructure/native_network_account.dart';
 import 'package:ginkgo_mirror/infrastructure/learning_snapshot_store.dart';
 import 'package:ginkgo_mirror/infrastructure/native_reminder_planning.dart';
 import 'package:ginkgo_mirror/infrastructure/graduate_credit_map_payload.dart';
 import 'package:ginkgo_mirror/infrastructure/native_command.dart';
-import 'package:ginkgo_mirror/infrastructure/library_stats_decode.dart';
-import 'package:ginkgo_mirror/infrastructure/library_books_decode.dart';
 import 'package:ginkgo_mirror/infrastructure/graduate_decode.dart';
 import 'package:ginkgo_mirror/infrastructure/bykc_decode.dart';
 import 'package:ginkgo_mirror/infrastructure/cgyy_decode.dart';
@@ -46,8 +43,6 @@ import 'package:ginkgo_mirror/infrastructure/cgyy_decode.dart';
 import '../application/cgyy_models.dart';
 import '../application/bykc.dart';
 import '../application/graduate.dart';
-import '../application/library_books.dart';
-import '../application/library_stats.dart';
 
 final class NativeMirrorService
     with
@@ -57,6 +52,7 @@ final class NativeMirrorService
         NativeCareer,
         NativeCampusActivities,
         NativeReminderPlanning,
+        NativeLibrary,
         NativeLibraryLoans,
         NativeFinance,
         NativeNetworkAccount,
@@ -477,41 +473,6 @@ final class NativeMirrorService
   );
 
   @override
-  Future<LibraryStatsRead> libraryStats({bool forceRefresh = false}) =>
-      ServiceHealthTracker.shared.observe(
-        ServiceEndpointId.libraryStats,
-        () async => decodeLibraryStats(
-          await boundedNativeRead(
-            () => live.loadLibraryStats(forceRefresh: forceRefresh),
-          ),
-        ),
-        failureOf: (r) => r.failure,
-        staleOf: (r) => r.failure != null && r.data != null,
-      );
-
-  @override
-  Future<BookPageRead> libraryBooks({
-    required String query,
-    required int page,
-    String sort = 'relevance',
-    bool descending = true,
-  }) => ServiceHealthTracker.shared.observe(
-    ServiceEndpointId.libraryBooks,
-    () async => decodeBookPage(
-      await boundedNativeRead(
-        () => live.loadLibraryBooks(
-          query: query,
-          page: page,
-          sort: sort,
-          descending: descending,
-        ),
-      ),
-    ),
-    failureOf: (r) => r.failure,
-    staleOf: (r) => r.failure != null && r.data != null,
-  );
-
-  @override
   Future<ShuttleTimetableRead> shuttleTimetable() =>
       ServiceHealthTracker.shared.observe(
         ServiceEndpointId.shuttle,
@@ -521,65 +482,4 @@ final class NativeMirrorService
         failureOf: (r) => r.failure,
         staleOf: (r) => r.failure != null && r.data != null,
       );
-
-  @override
-  Future<BookHoldingsRead> libraryHoldings(String bibId) async =>
-      decodeBookHoldings(
-        await boundedNativeRead(() => live.loadLibraryHoldings(bibId: bibId)),
-      );
-
-  @override
-  Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false}) =>
-      ServiceHealthTracker.shared.observe(
-        ServiceEndpointId.libraryVenues,
-        () => boundedNativeRead(
-          () => live.loadLibraryVenues(forceRefresh: forceRefresh),
-        ),
-        failureOf: (r) => r.failure,
-        staleOf: (r) => r.stale,
-        cachedOf: (r) => r.fromCache,
-      );
-
-  @override
-  Future<LibraryAreasResponse> libraryAreas(String libraryId) =>
-      boundedNativeRead(() => live.loadLibraryAreas(libraryId: libraryId));
-
-  @override
-  Future<LibrarySlotsResponse> librarySlots(String areaId) =>
-      boundedNativeRead(() => live.loadLibrarySlots(areaId: areaId));
-
-  @override
-  Future<LibrarySeatsResponse> librarySeats({
-    required String areaId,
-    required LibrarySlot slot,
-  }) => boundedNativeRead(
-    () => live.loadLibrarySeats(
-      areaId: areaId,
-      slotId: slot.id,
-      day: slot.day,
-      start: slot.start,
-      end: slot.end,
-    ),
-  );
-
-  @override
-  Future<LibraryBookingsResponse> libraryBookings({
-    bool forceRefresh = false,
-  }) => ServiceHealthTracker.shared.observe(
-    ServiceEndpointId.libraryVenues,
-    () => boundedNativeRead(
-      () => live.loadLibraryBookings(forceRefresh: forceRefresh),
-    ),
-    failureOf: (r) => r.failure,
-    staleOf: (r) => r.stale,
-    cachedOf: (r) => r.fromCache,
-  );
-
-  @override
-  Future<live.LibraryHistoryResponse> libraryHistory(
-    int page, {
-    bool forceRefresh = false,
-  }) => boundedNativeRead(
-    () => live.loadLibraryHistory(page: page, forceRefresh: forceRefresh),
-  );
 }

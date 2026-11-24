@@ -1129,7 +1129,7 @@ Judge 作业详情页同时包含开始/截止时间、满分、题目表格、�
 
 只读字段以真实 WebVPN 转发响应为据；真机闭环与后台通知仍待验收。
 
-> 镜像实现（2026-11-23 更新）：Rust/Flutter 已接入入口 SSO、app login、当天/历史课程查询与 `get_timestamp.action` 实时签到码矩阵生成，字段与状态语义按本节；`STATUS=2` 只对当天课程查询解释为空，其他非成功 `STATUS` 返回业务拒绝；重复记录按 `id` 或课程时间合并，状态冲突显示待确认；同场次不同 ID 仅在存在未签到目标时保留独立入口，已签到等无需操作的记录折叠为一行。前端通过 `prepare_checkin_qr` 获取由 `ginkgo_domain` 编码的布尔矩阵（学校原始 URL 不跨 FFI），支持定时刷新、单张保存至相册与状态只读回查。**防误改保护（2026-11-23 真机扫码确认）**：二维码基准地址 `http://iclass.buaa.edu.cn:8081/app/course/stu_scan_sign.action`（不含 `/eschool` 前缀）已经维护者本人真机扫码验证可用，**禁止**凭外部参考库追加 `/eschool` 前缀；同时上游应用内直接提交已迁往 `8181/app/course/stu_auto_sign.action`，旧 `stu_scan_sign.action` 直接 POST 写操作已停用（仅保留供扫码端识别），不得将未接线的旧写常量重新启用为直接提交入口。
+> 镜像实现（2026-11-24 更新）：Rust/Flutter 已接入入口 SSO、app login、当天/历史课程查询与 `get_timestamp.action` 实时签到码矩阵生成，字段与状态语义按本节；`STATUS=2` 只对当天课程查询解释为空，其他非成功 `STATUS` 返回业务拒绝；重复记录按 `id` 或课程时间合并，状态冲突显示待确认；同场次不同 ID 仅在存在未签到目标时保留独立入口，已签到等无需操作的记录折叠为一行。前端通过 `prepare_checkin_qr(course_id, revalidate_course, offset_ms)` 获取由 `ginkgo_domain` 编码的布尔矩阵（学校原始 URL 不跨 FFI），支持前台 4 秒定时刷新（`offset_ms=0`）、退后台暂停、单张覆写保存至系统相册（默认 `+2000ms` 前向缓冲，上限 `MAX_QR_TIMESTAMP_OFFSET_MS = 15_000`，超出直接返回参数错误）、Android 端一键拉起智慧北航（`cn.edu.buaa.wxwork` / 备选 `com.tencent.wework`）与静默通知栏动作「刷新码到相册」以及状态只读回查。**防误改保护（2026-11-23 真机扫码确认）**：二维码基准地址 `http://iclass.buaa.edu.cn:8081/app/course/stu_scan_sign.action`（不含 `/eschool` 前缀）已经维护者本人真机扫码验证可用，**禁止**凭外部参考库追加 `/eschool` 前缀；同时上游应用内直接提交已迁往 `8181/app/course/stu_auto_sign.action`，旧 `stu_scan_sign.action` 直接 POST 写操作已停用（仅保留供扫码端识别），不得将未接线的旧写常量重新启用为直接提交入口。
 
 ### 7.3 2026-10-18 教育系统只读数据盘点
 

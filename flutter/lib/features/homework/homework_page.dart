@@ -9,14 +9,13 @@ import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/application/school_rules.dart'
     show HomeworkDeadlineStatus;
-import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/shared/course_visibility.dart';
 import 'package:ginkgo_mirror/features/schedule/course_range_page.dart';
+import 'package:ginkgo_mirror/features/homework/homework_list_slivers.dart';
 import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
 import 'package:ginkgo_mirror/features/homework/homework_visuals.dart';
-import 'package:ginkgo_mirror/features/homework/homework_widgets.dart';
 
 import 'package:ginkgo_mirror/shared/today_time.dart';
 
@@ -432,157 +431,30 @@ class _HomeworkPageState extends State<HomeworkPage> {
           ),
         ),
       ),
-    SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            HomeworkQuickFilter(
-              value: 1,
-              label: '未截止',
-              tint: CupertinoColors.secondaryLabel,
-              selected: deadlineFilter == 1,
-              onPressed: () => _toggleDeadline(1),
-            ),
-            HomeworkQuickFilter(
-              value: 3,
-              label: '已截止 $overdue',
-              tint: overduePending == 0
-                  ? CupertinoColors.secondaryLabel
-                  : AppleDesign.statusDanger,
-              selected: deadlineFilter == 2,
-              onPressed: () => _toggleDeadline(2),
-            ),
-            HomeworkQuickFilter(
-              value: 5,
-              label: '时间未确认',
-              tint: CupertinoColors.secondaryLabel,
-              selected: deadlineFilter == 3,
-              onPressed: () => _toggleDeadline(3),
-            ),
-            HomeworkQuickFilter(
-              value: 4,
-              label: '待确认 $unknown',
-              tint: unknown == 0
-                  ? CupertinoColors.secondaryLabel
-                  : AppleDesign.statusUncertain,
-              selected: filter == 4,
-              onPressed: () => _toggleFilter(4),
-            ),
-            if (filter != 0 || deadlineFilter != 0 || search.isNotEmpty)
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () => setState(() {
-                  filter = 0;
-                  deadlineFilter = 0;
-                  search = '';
-                  searchController.clear();
-                  prepare();
-                }),
-                child: const Text('清除筛选'),
-              ),
-          ],
-        ),
-      ),
-    ),
-    SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 10),
-        child: Text(
-          '${visible.length} 项作业',
-          style: const TextStyle(
-            fontSize: AppleDesign.calloutSize,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    ),
-    if (visible.isEmpty)
-      SliverToBoxAdapter(
-        child: AppleEmptyState(
-          title: data.rolesComplete == false
-              ? '作业来源尚未完整读取'
-              : !includeTeaching &&
-                    filter == 1 &&
-                    deadlineFilter == 0 &&
-                    search.trim().isEmpty &&
-                    _allPersonalSubmitted
-              ? '作业已全部提交'
-              : search.trim().isNotEmpty
-              ? '没有匹配的作业'
-              : (filter != 0 || deadlineFilter != 0 || search.trim().isNotEmpty)
-              ? '没有符合筛选条件的作业'
-              : '暂无作业',
-          description: data.rolesComplete == false
-              ? '部分课程的作业可能尚未显示，请检查课程范围并重试。'
-              : (filter != 0 || deadlineFilter != 0 || search.trim().isNotEmpty)
-              ? '清除筛选或修改关键词后查看其他作业。'
-              : '当前课程范围内没有作业。',
-        ),
-      )
-    else
-      SliverList.builder(
-        itemCount: visible.length,
-        addAutomaticKeepAlives: false,
-        itemBuilder: (context, index) {
-          final item = visible[index];
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ClipRSuperellipse(
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(index == 0 ? 20 : 0),
-                bottom: Radius.circular(index == visible.length - 1 ? 20 : 0),
-              ),
-              child: ColoredBox(
-                color: CupertinoColors.secondarySystemGroupedBackground
-                    .resolveFrom(context),
-                child: Column(
-                  children: [
-                    HomeworkItemTile(
-                      item: item,
-                      clock: _clock,
-                      onTap: () => Navigator.of(context).push(
-                        CupertinoPageRoute<void>(
-                          builder: (_) => HomeworkDetailPage(
-                            fileActions: widget.fileActions,
-                            item: item,
-                            service: widget.service,
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (index != visible.length - 1)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Container(
-                          height: 0.5,
-                          color: CupertinoColors.separator
-                              .resolveFrom(context)
-                              .withValues(alpha: 0.2),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-        child: Text(
-          widget.service.isDemo
-              ? '演示数据 · 学校状态与个人待办独立 · 截止按北京时间'
-              : '来源：SPOC · 学校状态与个人待办独立 · 截止按北京时间',
-          style: TextStyle(
-            fontSize: 12,
-            color: CupertinoColors.secondaryLabel.resolveFrom(context),
-          ),
-        ),
-      ),
+    ...buildHomeworkListSlivers(
+      context: context,
+      data: data,
+      visible: visible,
+      overdue: overdue,
+      overduePending: overduePending,
+      unknown: unknown,
+      filter: filter,
+      deadlineFilter: deadlineFilter,
+      includeTeaching: includeTeaching,
+      allPersonalSubmitted: _allPersonalSubmitted,
+      search: search,
+      clock: _clock,
+      service: widget.service,
+      fileActions: widget.fileActions,
+      onToggleFilter: _toggleFilter,
+      onToggleDeadline: _toggleDeadline,
+      onClearFilters: () => setState(() {
+        filter = 0;
+        deadlineFilter = 0;
+        search = '';
+        searchController.clear();
+        prepare();
+      }),
     ),
   ];
 

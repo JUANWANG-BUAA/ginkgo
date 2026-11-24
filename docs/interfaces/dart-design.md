@@ -8,9 +8,7 @@ token 层与视觉常量。
 ## 目录
 
 - [design/apple_design.dart](#designappledesigndart) (1)
-- [design/design_comparison_screen.dart](#designdesigncomparisonscreendart) (1)
 - [design/ginkgo_theme.dart](#designginkgothemedart) (1)
-- [design/today_action_row_demo.dart](#designtodayactionrowdemodart) (1)
 - [design/tokens/colors.dart](#designtokenscolorsdart) (1)
 - [design/tokens/elevation.dart](#designtokenselevationdart) (1)
 - [design/tokens/layout.dart](#designtokenslayoutdart) (1)
@@ -55,24 +53,10 @@ token 层与视觉常量。
     - `static const headline = GinkgoTypography.headline;`  <sub>:53</sub>
     - `static Duration duration(BuildContext context, int milliseconds) => …`  <sub>:55</sub>
 
-## design/design_comparison_screen.dart
-
-- `class DesignComparisonScreen extends StatefulWidget` — 视觉对比工具 - 展示改进前后的设计效果
-  <sub>class · design/design_comparison_screen.dart:4</sub>
-    - `const DesignComparisonScreen({super.key});`  <sub>:5</sub>
-    - `State<DesignComparisonScreen> createState() => …`  <sub>:8</sub>
-
 ## design/ginkgo_theme.dart
 
 - `CupertinoThemeData ginkgoTheme([ Brightness? brightness, Color accent = GinkgoColors.accent, ]) => …`
   <sub>function · design/ginkgo_theme.dart:18</sub>
-
-## design/today_action_row_demo.dart
-
-- `class TodayActionRowDemo extends StatelessWidget` — 独立的 Demo 页面 - 展示 TodayActionRow 的三个版本
-  <sub>class · design/today_action_row_demo.dart:4</sub>
-    - `const TodayActionRowDemo({super.key});`  <sub>:5</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:8</sub>
 
 ## design/tokens/colors.dart
 

@@ -58,12 +58,17 @@
     - `const HomeworkBlockedNote({ super.key, required this.blockedReason, required this.canSubmit, });`  <sub>:264</sub>
     - `Widget build(BuildContext context) => …`  <sub>:274</sub>
 
+## features/homework/homework_list_slivers.dart
+
+- `List<Widget> buildHomeworkListSlivers({ required BuildContext context, required HomeworkResponse data, required List<HomeworkItem> visible, required int overdue, required int overduePending, required int unknown, required int filter, required int deadlineFilter, required bool includeTeaching, required bool allPersonalSubmitted, required String search, required DateTime clock, required AcademicGateway service, required PlatformActions fileActions, required ValueChanged<int> onToggleFilter, required ValueChanged<int> onToggleDeadline, required VoidCallback onClearFilters, }) {…}` — Builds the quick-filter bar, count header, grouped homework list (or empty
+  <sub>function · features/homework/homework_list_slivers.dart:32</sub>
+
 ## features/homework/homework_page.dart
 
 - `class HomeworkPage extends StatefulWidget`
-  <sub>class · features/homework/homework_page.dart:23</sub>
-    - `const HomeworkPage({ super.key, required this.service, required this.fileActions, this.initialFilter = 0, this.now, });`  <sub>:24</sub>
-    - `State<HomeworkPage> createState() => …`  <sub>:38</sub>
+  <sub>class · features/homework/homework_page.dart:22</sub>
+    - `const HomeworkPage({ super.key, required this.service, required this.fileActions, this.initialFilter = 0, this.now, });`  <sub>:23</sub>
+    - `State<HomeworkPage> createState() => …`  <sub>:37</sub>
 
 ## features/homework/homework_projection.dart
 

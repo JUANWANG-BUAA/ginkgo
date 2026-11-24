@@ -393,7 +393,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ### 7.3 CheckInGateway
 
-`checkin({forceRefresh})`、`checkinOnDate(date, {forceRefresh})`、`prepareCheckinQr(courseId, {revalidateCourse})`、`checkinProgress()`。
+`checkin({forceRefresh})`、`checkinOnDate(date, {forceRefresh})`、`prepareCheckinQr(courseId, {revalidateCourse, offsetMs})`、`checkinProgress()`。
 
 ### 7.4 LibrarySeatingGateway / LibraryCatalogGateway / ShuttleGateway
 
@@ -445,6 +445,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | `ScopedReminderPlatform` | `synchronize(owner, checkin, homework, groups, plans)`、`clearOwner(owner)` | 账号绑定的分组同步与后台配置；失败分组不覆盖 |
 | `BackgroundReminderStatusService` | `backgroundReminders()` | 读取本机后台任务状态，不登录或请求学校 |
 | `CheckinQrSaver` | `saveCheckinQrPng(bytes)` | 将实时签到码 PNG 覆写保存至系统相册 `Pictures/Ginkgo/ginkgo_checkin_qr.png`（桌面端文件保存对话框） |
+| `CheckinQrQuickHelper` | `probeScannerApp()`、`launchScannerApp()`、`showQuickNotification()`、`dismissQuickNotification()` | Android 单机扫码提速：拉起智慧北航/企业微信及静默通知栏「刷新码到相册」动作 |
 
 `SerialReminderPlatform` 对全量/分组/清理共享串行队列，入队复制标量计划映射和分组集合；本项失败不阻断后继。`CourseVisibility` 仅持有本机状态，`CourseVisibilityScope.controllerFactory` 显式注入实例；工作区及后台入口使用 `CourseVisibilityFileStore` 注入读写，文件格式保持兼容。文件恢复失败或对象销毁不开始新的排队写入。
 

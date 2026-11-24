@@ -44,8 +44,8 @@ class ReminderScheduler(private val context: Context) : MethodChannel.MethodCall
         if (call.method == "summary") {
             val prefs = context.getSharedPreferences("local-reminders", 0)
             val manager = context.getSystemService(NotificationManager::class.java)
-            result.success(mapOf("plans" to JSONArray(prefs.getString("plans", "[]")).length(),
-                "delivered" to JSONObject(prefs.getString("delivered", "{}")).length(),
+            result.success(mapOf("plans" to JSONArray(prefs.getString("plans", "[]") ?: "[]").length(),
+                "delivered" to JSONObject(prefs.getString("delivered", "{}") ?: "{}").length(),
                 "visible" to manager.activeNotifications.count { Build.VERSION.SDK_INT < 26 || it.notification.channelId == REMINDER_CHANNEL_ID }))
             return
         }
@@ -146,7 +146,7 @@ class ReminderScheduler(private val context: Context) : MethodChannel.MethodCall
         check(prefs.edit().putString("plans", next.toString()).putString("_last_replace_sig", next.toString()).commit()) {
             "Could not persist reminder plans"
         }
-        val delivered = JSONObject(prefs.getString("delivered", "{}"))
+        val delivered = JSONObject(prefs.getString("delivered", "{}") ?: "{}")
         val iterator = delivered.keys()
         val expired = mutableListOf<String>()
         while (iterator.hasNext()) { val key = iterator.next(); if (delivered.optLong(key) <= System.currentTimeMillis()) expired.add(key) }
@@ -184,11 +184,11 @@ class ReminderReceiver : BroadcastReceiver() {
         ReminderQueue.worker.execute {
             try {
                 val prefs = context.getSharedPreferences("local-reminders", 0)
-                val plans = JSONArray(prefs.getString("plans", "[]"))
+                val plans = JSONArray(prefs.getString("plans", "[]") ?: "[]")
                 val plan = (0 until plans.length()).map { plans.getJSONObject(it) }.firstOrNull { it.optString("key") == key } ?: return@execute
                 val now = System.currentTimeMillis()
                 if (plan.getLong("at") > now || plan.getLong("expires") <= now) return@execute
-                val delivered = JSONObject(prefs.getString("delivered", "{}"))
+                val delivered = JSONObject(prefs.getString("delivered", "{}") ?: "{}")
                 if (delivered.has(key)) return@execute
                 val manager = context.getSystemService(NotificationManager::class.java)
                 if (!manager.areNotificationsEnabled()) return@execute
@@ -202,7 +202,12 @@ class ReminderReceiver : BroadcastReceiver() {
                     Intent(context, MainActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
                     }, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-                val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, channel) else Notification.Builder(context)
+                val builder = if (Build.VERSION.SDK_INT >= 26) {
+                    Notification.Builder(context, channel)
+                } else {
+                    @Suppress("DEPRECATION")
+                    Notification.Builder(context)
+                }
                 val notification = builder.setSmallIcon(R.drawable.ic_reminder)
                     .setContentTitle(when (group) {
                         "checkin" -> "签到已开放"

@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/local_tasks.dart';
-import 'package:ginkgo_mirror/application/notices.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/features/homework/homework_detail_page.dart';
 import 'package:ginkgo_mirror/mirror_service.dart';
@@ -15,7 +14,6 @@ import 'package:ginkgo_mirror/features/today/today_course_focus.dart';
 import 'package:ginkgo_mirror/features/today/today_course_section.dart';
 import 'package:ginkgo_mirror/features/today/today_checkin_section.dart';
 import 'package:ginkgo_mirror/features/today/today_homework_section.dart';
-import 'package:ginkgo_mirror/features/today/today_notice_section.dart';
 import 'package:ginkgo_mirror/features/today/today_page.dart';
 import 'package:ginkgo_mirror/features/today/today_tasks_section.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
@@ -313,19 +311,6 @@ void main() {
     expect(find.text('今天没有可签到的课程'), findsNothing);
     expect(find.text('今天没有签到任务'), findsNothing);
     checkins.dispose();
-
-    final notices = RefreshSection<NoticesRead>()
-      ..value = const NoticesRead(data: []);
-    await tester.pumpWidget(
-      host(TodayNoticeSection(section: notices, onRetry: () {}, onOpen: () {})),
-    );
-    expect(find.byKey(const Key('today-notices')), findsNothing);
-    notices.error = '合成通知读取失败';
-    await tester.pumpWidget(
-      host(TodayNoticeSection(section: notices, onRetry: () {}, onOpen: () {})),
-    );
-    expect(find.text('合成通知读取失败'), findsOneWidget);
-    notices.dispose();
 
     final tasks = RefreshSection<TodayTasksSnapshot>()
       ..value = TodayTasksSnapshot([], clock);
